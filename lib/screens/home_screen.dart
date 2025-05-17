@@ -1,7 +1,9 @@
 import 'package:buchshelfly/components/app/library_switcher.dart';
 import 'package:buchshelfly/components/app/user_switcher.dart';
+import 'package:buchshelfly/components/common/library_item_widget.dart';
 import 'package:buchshelfly/provider/common/library_item_provider.dart';
 import 'package:buchshelfly/provider/common/library_provider.dart';
+import 'package:buchshelfly/provider/core/user_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -110,6 +112,7 @@ class _LibraryItemsViewState extends ConsumerState<LibraryItemsView> {
     final libraryItemNotifier = ref.read(
       libraryItemNotifierProvider(widget.libraryId).notifier,
     );
+    final api = ref.read(absApiProvider);
 
     return Column(
       children: [
@@ -209,7 +212,7 @@ class _LibraryItemsViewState extends ConsumerState<LibraryItemsView> {
               }
               return RefreshIndicator(
                 onRefresh: () => libraryItemNotifier.refresh(),
-                child: ListView.builder(
+                child: GridView.builder(
                   controller: _scrollController,
                   itemCount:
                       state.items.length +
@@ -226,19 +229,14 @@ class _LibraryItemsViewState extends ConsumerState<LibraryItemsView> {
                       }
                       return const SizedBox.shrink();
                     }
-                    final item = state.items[index];
-                    final title = item.media?.title ?? 'No Title';
-                    final author =
-                        item.media?.bookMedia?.metadata?.authors
-                            ?.map((a) => a.name)
-                            .join(', ') ??
-                        'Unknown Author';
-                    return ListTile(
-                      title: Text(title),
-                      subtitle: Text('Author: $author\nID: ${item.id}'),
-                      isThreeLine: true,
-                    );
+                    return LibraryItemWidget(state.items[index], api!);
                   },
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 6,
+                    childAspectRatio: 0.75,
+                    crossAxisSpacing: 8.0,
+                    mainAxisSpacing: 8.0,
+                  ),
                 ),
               );
             },

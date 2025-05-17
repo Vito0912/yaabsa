@@ -8,6 +8,8 @@ part 'library_item.g.dart';
 
 @freezed
 abstract class LibraryItem with _$LibraryItem {
+  const LibraryItem._();
+
   const factory LibraryItem({
     @JsonKey(name: "id") required String id,
     @JsonKey(name: "ino") required String ino,
@@ -35,4 +37,14 @@ abstract class LibraryItem with _$LibraryItem {
 
   factory LibraryItem.fromJson(Map<String, dynamic> json) =>
       _$LibraryItemFromJson(json);
+
+  // QoL
+  String get title {
+    return (media?.bookMedia?.metadata.title ??
+        media?.podcastMedia?.metadata.title)!;
+  }
+
+  String? get subtitle {
+    return media?.bookMedia?.metadata.subtitle;
+  }
 }

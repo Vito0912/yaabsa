@@ -58,9 +58,8 @@ class LibraryItemApi {
   Widget getLibraryItemCover(
     String id, {
     LibraryItem? item,
-    CancelToken? cancelToken,
-    Map<String, dynamic>? headers,
-    Map<String, dynamic>? extra,
+    double? width,
+    double? height,
   }) {
     if (item != null &&
         item.media != null &&
@@ -76,6 +75,9 @@ class LibraryItemApi {
       errorListener: (e) {
         print('Error loading image: $e');
       },
+      width: width,
+      height: height,
+      fit: BoxFit.cover,
       errorWidget: (context, url, error) {
         if (error.toString().contains('404')) {
           // TODO: 404 image placeholder

@@ -15,11 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$LibraryItemState {
 
- List<LibraryItem> get items; int get currentPage; bool get hasNextPage; String? get libraryId;// This is the ID of the library these items belong to
-// Parameters for the request that resulted in the current items
- String? get sort; int? get desc;// 0 for asc, 1 for desc usually
- String? get filter; int? get collapseseries; String? get include;// Standard state fields
- Object? get error; StackTrace? get stackTrace; bool get isLoadingNextPage; int get totalItems;
+ List<LibraryItem> get items; int get currentPage; bool get hasNextPage; String? get libraryId; String? get sort; int? get desc; String? get filter; int? get collapseseries; String? get include; Object? get error; StackTrace? get stackTrace; bool get isLoadingNextPage; int get totalItems;
 /// Create a copy of LibraryItemState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -105,15 +101,11 @@ class _LibraryItemState implements LibraryItemState {
 @override final  int currentPage;
 @override final  bool hasNextPage;
 @override final  String? libraryId;
-// This is the ID of the library these items belong to
-// Parameters for the request that resulted in the current items
 @override final  String? sort;
 @override final  int? desc;
-// 0 for asc, 1 for desc usually
 @override final  String? filter;
 @override final  int? collapseseries;
 @override final  String? include;
-// Standard state fields
 @override final  Object? error;
 @override final  StackTrace? stackTrace;
 @override@JsonKey() final  bool isLoadingNextPage;
