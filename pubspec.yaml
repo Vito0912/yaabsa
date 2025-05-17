@@ -1,0 +1,39 @@
+name: buchshelfly
+description: "An improved cross-platform app for Audiobookshelf"
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.7.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  freezed_annotation: ^3.0.0
+  json_annotation: ^4.9.0
+  dio: ^5.8.0+1
+  drift: ^2.26.1
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
+  path_provider: ^2.1.5
+  sqlite3_flutter_libs: ^0.5.32
+  flutter_hooks: ^0.21.2
+  hooks_riverpod: ^2.6.1
+  cached_network_image: ^3.4.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^5.0.0
+  build_runner: ^2.4.15
+  freezed: ^3.0.6
+  json_serializable: ^6.9.5
+  drift_dev: ^2.26.1
+  riverpod_generator: ^2.6.5
+
+flutter:
+  uses-material-design: true
