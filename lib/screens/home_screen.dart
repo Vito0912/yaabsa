@@ -14,10 +14,6 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedLibraryAsyncValue = ref.watch(selectedLibraryProvider);
 
-    if (selectedLibraryAsyncValue == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Library Items PoC'),
@@ -25,6 +21,10 @@ class HomeScreen extends ConsumerWidget {
       ),
       body: Builder(
         builder: (BuildContext context) {
+          if (selectedLibraryAsyncValue == null) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
           if (selectedLibrary == null) {
             return const Center(
               child: Text(
@@ -232,7 +232,7 @@ class _LibraryItemsViewState extends ConsumerState<LibraryItemsView> {
                     return LibraryItemWidget(state.items[index], api!);
                   },
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 6,
+                    crossAxisCount: 2,
                     childAspectRatio: 0.75,
                     crossAxisSpacing: 8.0,
                     mainAxisSpacing: 8.0,

@@ -49,12 +49,19 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   @override
   Future<void> seek(Duration position) async {
     if (_currentMediaItem == null) return Future.value();
-    _currentTrackIndex = _currentMediaItem!.getIndexForDuration(position);
-    await _setSource(
-      initialPosition:
-          position -
-          _currentMediaItem!.startDurationForTrack(_currentTrackIndex),
-    );
+    final newTrackIndex = _currentMediaItem!.getIndexForDuration(position);
+    if (newTrackIndex != _currentTrackIndex) {
+      _currentTrackIndex = newTrackIndex;
+      await _setSource(
+        initialPosition:
+            position -
+            _currentMediaItem!.startDurationForTrack(_currentTrackIndex),
+      );
+    } else {
+      await _player.seek(
+        position - _currentMediaItem!.startDurationForTrack(_currentTrackIndex),
+      );
+    }
     return Future.value();
   }
 
