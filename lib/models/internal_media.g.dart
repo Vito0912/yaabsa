@@ -15,6 +15,9 @@ _InternalMedia _$InternalMediaFromJson(Map<String, dynamic> json) =>
           (json['tracks'] as List<dynamic>)
               .map((e) => InternalTrack.fromJson(e as Map<String, dynamic>))
               .toList(),
+      duration: (json['duration'] as num?)?.toDouble(),
+      local: json['local'] as bool? ?? false,
+      saf: json['saf'] as bool,
     );
 
 Map<String, dynamic> _$InternalMediaToJson(_InternalMedia instance) =>
@@ -23,6 +26,9 @@ Map<String, dynamic> _$InternalMediaToJson(_InternalMedia instance) =>
       'itemId': instance.itemId,
       'episodeId': instance.episodeId,
       'tracks': instance.tracks,
+      'duration': instance.duration,
+      'local': instance.local,
+      'saf': instance.saf,
     };
 
 _InternalTrack _$InternalTrackFromJson(Map<String, dynamic> json) =>

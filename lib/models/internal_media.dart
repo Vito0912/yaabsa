@@ -5,18 +5,23 @@ part 'internal_media.g.dart';
 
 @unfreezed
 abstract class InternalMedia with _$InternalMedia {
-  const factory InternalMedia({
+  InternalMedia._();
+
+  factory InternalMedia({
     @JsonKey(name: "libraryId") required String libraryId,
     @JsonKey(name: "itemId") required String itemId,
     @JsonKey(name: "episodeId") required String? episodeId,
     @JsonKey(name: "tracks") required List<InternalTrack> tracks,
+    // Removed incorrect defaultValue: false
+    @JsonKey(name: "duration") double? duration,
+    @JsonKey(name: "local", defaultValue: false) required bool local,
+    // SAF is for Android only
+    @JsonKey(name: "saf") required bool saf,
   }) = _InternalMedia;
 
   factory InternalMedia.fromJson(Map<String, dynamic> json) =>
       _$InternalMediaFromJson(json);
 
-  /// Populates start and end for each track based on durations and order.
-  /// Mutates the tracks list.
   void populateTrackStartEnd() {
     double currentStart = 0.0;
     for (int i = 0; i < tracks.length; i++) {
@@ -27,9 +32,47 @@ abstract class InternalMedia with _$InternalMedia {
       currentStart = end;
     }
   }
+
+  Duration get totalDuration {
+    if (duration != null) {
+      return Duration(microseconds: (duration! * 1e6).round());
+    }
+    final calculated = tracks.fold(0.0, (sum, track) => sum + track.duration);
+    duration = calculated;
+    return Duration(microseconds: (calculated * 1e6).round());
+  }
+
+  Duration offsetForTrack(int index) {
+    if (index < 0 || index >= tracks.length) {
+      throw RangeError('Index out of range: $index');
+    }
+    return tracks[index].start != null
+        ? Duration(microseconds: (tracks[index].start! * 1e6).round())
+        : Duration.zero;
+  }
+
+  int getIndexForDuration(Duration duration) {
+    double targetDuration = duration.inMicroseconds / 1e6;
+    for (int i = 0; i < tracks.length; i++) {
+      if (tracks[i].start != null && tracks[i].end != null) {
+        if (targetDuration >= tracks[i].start! &&
+            targetDuration <= tracks[i].end!) {
+          return i;
+        }
+      }
+    }
+    return -1;
+  }
+
+  Duration startDurationForTrack(int index) {
+    if (index < 0 || index >= tracks.length) {
+      throw RangeError('Index out of range: $index');
+    }
+    return Duration(microseconds: (tracks[index].start! * 1e6).round());
+  }
 }
 
-@unfreezed
+@freezed
 abstract class InternalTrack with _$InternalTrack {
   const factory InternalTrack({
     @JsonKey(name: "index") required int index,

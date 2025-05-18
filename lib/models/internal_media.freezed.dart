@@ -16,7 +16,11 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$InternalMedia {
 
-@JsonKey(name: "libraryId") String get libraryId;@JsonKey(name: "libraryId") set libraryId(String value);@JsonKey(name: "itemId") String get itemId;@JsonKey(name: "itemId") set itemId(String value);@JsonKey(name: "episodeId") String? get episodeId;@JsonKey(name: "episodeId") set episodeId(String? value);@JsonKey(name: "tracks") List<InternalTrack> get tracks;@JsonKey(name: "tracks") set tracks(List<InternalTrack> value);
+@JsonKey(name: "libraryId") String get libraryId;@JsonKey(name: "libraryId") set libraryId(String value);@JsonKey(name: "itemId") String get itemId;@JsonKey(name: "itemId") set itemId(String value);@JsonKey(name: "episodeId") String? get episodeId;@JsonKey(name: "episodeId") set episodeId(String? value);@JsonKey(name: "tracks") List<InternalTrack> get tracks;@JsonKey(name: "tracks") set tracks(List<InternalTrack> value);// Removed incorrect defaultValue: false
+@JsonKey(name: "duration") double? get duration;// Removed incorrect defaultValue: false
+@JsonKey(name: "duration") set duration(double? value);@JsonKey(name: "local", defaultValue: false) bool get local;@JsonKey(name: "local", defaultValue: false) set local(bool value);// SAF is for Android only
+@JsonKey(name: "saf") bool get saf;// SAF is for Android only
+@JsonKey(name: "saf") set saf(bool value);
 /// Create a copy of InternalMedia
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -31,7 +35,7 @@ $InternalMediaCopyWith<InternalMedia> get copyWith => _$InternalMediaCopyWithImp
 
 @override
 String toString() {
-  return 'InternalMedia(libraryId: $libraryId, itemId: $itemId, episodeId: $episodeId, tracks: $tracks)';
+  return 'InternalMedia(libraryId: $libraryId, itemId: $itemId, episodeId: $episodeId, tracks: $tracks, duration: $duration, local: $local, saf: $saf)';
 }
 
 
@@ -42,7 +46,7 @@ abstract mixin class $InternalMediaCopyWith<$Res>  {
   factory $InternalMediaCopyWith(InternalMedia value, $Res Function(InternalMedia) _then) = _$InternalMediaCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: "libraryId") String libraryId,@JsonKey(name: "itemId") String itemId,@JsonKey(name: "episodeId") String? episodeId,@JsonKey(name: "tracks") List<InternalTrack> tracks
+@JsonKey(name: "libraryId") String libraryId,@JsonKey(name: "itemId") String itemId,@JsonKey(name: "episodeId") String? episodeId,@JsonKey(name: "tracks") List<InternalTrack> tracks,@JsonKey(name: "duration") double? duration,@JsonKey(name: "local", defaultValue: false) bool local,@JsonKey(name: "saf") bool saf
 });
 
 
@@ -59,13 +63,16 @@ class _$InternalMediaCopyWithImpl<$Res>
 
 /// Create a copy of InternalMedia
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? libraryId = null,Object? itemId = null,Object? episodeId = freezed,Object? tracks = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? libraryId = null,Object? itemId = null,Object? episodeId = freezed,Object? tracks = null,Object? duration = freezed,Object? local = null,Object? saf = null,}) {
   return _then(_self.copyWith(
 libraryId: null == libraryId ? _self.libraryId : libraryId // ignore: cast_nullable_to_non_nullable
 as String,itemId: null == itemId ? _self.itemId : itemId // ignore: cast_nullable_to_non_nullable
 as String,episodeId: freezed == episodeId ? _self.episodeId : episodeId // ignore: cast_nullable_to_non_nullable
 as String?,tracks: null == tracks ? _self.tracks : tracks // ignore: cast_nullable_to_non_nullable
-as List<InternalTrack>,
+as List<InternalTrack>,duration: freezed == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
+as double?,local: null == local ? _self.local : local // ignore: cast_nullable_to_non_nullable
+as bool,saf: null == saf ? _self.saf : saf // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -75,14 +82,19 @@ as List<InternalTrack>,
 /// @nodoc
 @JsonSerializable()
 
-class _InternalMedia implements InternalMedia {
-  const _InternalMedia({@JsonKey(name: "libraryId") required this.libraryId, @JsonKey(name: "itemId") required this.itemId, @JsonKey(name: "episodeId") required this.episodeId, @JsonKey(name: "tracks") required this.tracks});
+class _InternalMedia extends InternalMedia {
+   _InternalMedia({@JsonKey(name: "libraryId") required this.libraryId, @JsonKey(name: "itemId") required this.itemId, @JsonKey(name: "episodeId") required this.episodeId, @JsonKey(name: "tracks") required this.tracks, @JsonKey(name: "duration") this.duration, @JsonKey(name: "local", defaultValue: false) required this.local, @JsonKey(name: "saf") required this.saf}): super._();
   factory _InternalMedia.fromJson(Map<String, dynamic> json) => _$InternalMediaFromJson(json);
 
 @override@JsonKey(name: "libraryId")  String libraryId;
 @override@JsonKey(name: "itemId")  String itemId;
 @override@JsonKey(name: "episodeId")  String? episodeId;
 @override@JsonKey(name: "tracks")  List<InternalTrack> tracks;
+// Removed incorrect defaultValue: false
+@override@JsonKey(name: "duration")  double? duration;
+@override@JsonKey(name: "local", defaultValue: false)  bool local;
+// SAF is for Android only
+@override@JsonKey(name: "saf")  bool saf;
 
 /// Create a copy of InternalMedia
 /// with the given fields replaced by the non-null parameter values.
@@ -99,7 +111,7 @@ Map<String, dynamic> toJson() {
 
 @override
 String toString() {
-  return 'InternalMedia(libraryId: $libraryId, itemId: $itemId, episodeId: $episodeId, tracks: $tracks)';
+  return 'InternalMedia(libraryId: $libraryId, itemId: $itemId, episodeId: $episodeId, tracks: $tracks, duration: $duration, local: $local, saf: $saf)';
 }
 
 
@@ -110,7 +122,7 @@ abstract mixin class _$InternalMediaCopyWith<$Res> implements $InternalMediaCopy
   factory _$InternalMediaCopyWith(_InternalMedia value, $Res Function(_InternalMedia) _then) = __$InternalMediaCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: "libraryId") String libraryId,@JsonKey(name: "itemId") String itemId,@JsonKey(name: "episodeId") String? episodeId,@JsonKey(name: "tracks") List<InternalTrack> tracks
+@JsonKey(name: "libraryId") String libraryId,@JsonKey(name: "itemId") String itemId,@JsonKey(name: "episodeId") String? episodeId,@JsonKey(name: "tracks") List<InternalTrack> tracks,@JsonKey(name: "duration") double? duration,@JsonKey(name: "local", defaultValue: false) bool local,@JsonKey(name: "saf") bool saf
 });
 
 
@@ -127,13 +139,16 @@ class __$InternalMediaCopyWithImpl<$Res>
 
 /// Create a copy of InternalMedia
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? libraryId = null,Object? itemId = null,Object? episodeId = freezed,Object? tracks = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? libraryId = null,Object? itemId = null,Object? episodeId = freezed,Object? tracks = null,Object? duration = freezed,Object? local = null,Object? saf = null,}) {
   return _then(_InternalMedia(
 libraryId: null == libraryId ? _self.libraryId : libraryId // ignore: cast_nullable_to_non_nullable
 as String,itemId: null == itemId ? _self.itemId : itemId // ignore: cast_nullable_to_non_nullable
 as String,episodeId: freezed == episodeId ? _self.episodeId : episodeId // ignore: cast_nullable_to_non_nullable
 as String?,tracks: null == tracks ? _self.tracks : tracks // ignore: cast_nullable_to_non_nullable
-as List<InternalTrack>,
+as List<InternalTrack>,duration: freezed == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
+as double?,local: null == local ? _self.local : local // ignore: cast_nullable_to_non_nullable
+as bool,saf: null == saf ? _self.saf : saf // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -144,7 +159,7 @@ as List<InternalTrack>,
 /// @nodoc
 mixin _$InternalTrack {
 
-@JsonKey(name: "index") int get index;@JsonKey(name: "index") set index(int value);@JsonKey(name: "duration") double get duration;@JsonKey(name: "duration") set duration(double value);@JsonKey(name: "url") String get url;@JsonKey(name: "url") set url(String value);@JsonKey(name: "start") double? get start;@JsonKey(name: "start") set start(double? value);@JsonKey(name: "end") double? get end;@JsonKey(name: "end") set end(double? value);
+@JsonKey(name: "index") int get index;@JsonKey(name: "duration") double get duration;@JsonKey(name: "url") String get url;@JsonKey(name: "start") double? get start;@JsonKey(name: "end") double? get end;
 /// Create a copy of InternalTrack
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -155,7 +170,14 @@ $InternalTrackCopyWith<InternalTrack> get copyWith => _$InternalTrackCopyWithImp
   Map<String, dynamic> toJson();
 
 
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is InternalTrack&&(identical(other.index, index) || other.index == index)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.url, url) || other.url == url)&&(identical(other.start, start) || other.start == start)&&(identical(other.end, end) || other.end == end));
+}
 
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,index,duration,url,start,end);
 
 @override
 String toString() {
@@ -208,11 +230,11 @@ class _InternalTrack implements InternalTrack {
   const _InternalTrack({@JsonKey(name: "index") required this.index, @JsonKey(name: "duration") required this.duration, @JsonKey(name: "url") required this.url, @JsonKey(name: "start") this.start, @JsonKey(name: "end") this.end});
   factory _InternalTrack.fromJson(Map<String, dynamic> json) => _$InternalTrackFromJson(json);
 
-@override@JsonKey(name: "index")  int index;
-@override@JsonKey(name: "duration")  double duration;
-@override@JsonKey(name: "url")  String url;
-@override@JsonKey(name: "start")  double? start;
-@override@JsonKey(name: "end")  double? end;
+@override@JsonKey(name: "index") final  int index;
+@override@JsonKey(name: "duration") final  double duration;
+@override@JsonKey(name: "url") final  String url;
+@override@JsonKey(name: "start") final  double? start;
+@override@JsonKey(name: "end") final  double? end;
 
 /// Create a copy of InternalTrack
 /// with the given fields replaced by the non-null parameter values.
@@ -225,7 +247,14 @@ Map<String, dynamic> toJson() {
   return _$InternalTrackToJson(this, );
 }
 
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _InternalTrack&&(identical(other.index, index) || other.index == index)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.url, url) || other.url == url)&&(identical(other.start, start) || other.start == start)&&(identical(other.end, end) || other.end == end));
+}
 
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,index,duration,url,start,end);
 
 @override
 String toString() {

@@ -11,18 +11,36 @@ dependencies:
   flutter:
     sdk: flutter
 
+  # UI
   cupertino_icons: ^1.0.8
+
+  # Generation
   freezed_annotation: ^3.0.0
   json_annotation: ^4.9.0
+  riverpod_annotation: ^2.6.1
+
+  # Core
+  audioplayers: ^6.4.0
+  audio_service: ^0.18.18
   dio: ^5.8.0+1
   drift: ^2.26.1
-  flutter_riverpod: ^2.6.1
-  riverpod_annotation: ^2.6.1
   path_provider: ^2.1.5
   sqlite3_flutter_libs: ^0.5.32
-  flutter_hooks: ^0.21.2
-  hooks_riverpod: ^2.6.1
   cached_network_image: ^3.4.1
+
+  hooks_riverpod: ^2.6.1
+  flutter_riverpod: ^2.6.1
+  flutter_hooks: ^0.21.2
+
+  ## Windows
+
+  ## Linux
+
+  ## MacOS
+
+  ## iOS
+
+  ## Android
 
 dev_dependencies:
   flutter_test:

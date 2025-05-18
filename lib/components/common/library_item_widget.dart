@@ -16,6 +16,8 @@ class LibraryItemWidget extends HookWidget {
     // Use a hook for hover state
     final isHovered = useState(false);
 
+    print(libraryItem);
+
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Column(

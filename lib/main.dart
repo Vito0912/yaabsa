@@ -2,19 +2,14 @@ import 'dart:async';
 
 import 'package:buchshelfly/screens/auth/sign_in.dart';
 import 'package:buchshelfly/screens/home_screen.dart';
+import 'package:buchshelfly/util/init.dart' show Init;
 import 'package:buchshelfly/util/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-void main() {
-  FlutterError.onError = (details) {
-    logger(
-      'FlutterError: ${details.exceptionAsString()}',
-      tag: 'FlutterError',
-      level: InfoLevel.error,
-    );
-    FlutterError.presentError(details);
-  };
+void main() async {
+  Init.initLogger();
+  await Init.initAudioHandler();
 
   runZonedGuarded(
     () {
