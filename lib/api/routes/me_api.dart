@@ -1,6 +1,7 @@
 import 'package:buchshelfly/api/library/stats/user_listening_stats.dart';
 import 'package:buchshelfly/api/me/bookmark.dart';
 import 'package:buchshelfly/api/me/login.dart';
+import 'package:buchshelfly/api/me/media_progress.dart';
 import 'package:buchshelfly/api/me/request/create_bookmark_request.dart';
 import 'package:buchshelfly/api/me/request/login_request.dart';
 import 'package:buchshelfly/api/me/user.dart';
@@ -104,6 +105,29 @@ class MeApi {
     return ABSApi.makeApiGetRequest(
       route: '/api/users/$userId/listening-stats',
       fromJson: UserListeningStats.fromJson,
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
+      queryParams: {},
+    );
+  }
+
+  Future<Response<MediaProgress>> getProgress(
+    String itemId, {
+    String? episodeId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    var route = '/api/me/progress/$itemId';
+    if (episodeId != null) {
+      route = '/api/me/progress/$itemId/$episodeId';
+    }
+
+    return ABSApi.makeApiGetRequest(
+      route: route,
+      fromJson: MediaProgress.fromJson,
       cancelToken: cancelToken,
       headers: headers,
       extra: extra,

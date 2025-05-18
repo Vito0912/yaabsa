@@ -32,6 +32,12 @@ dependencies:
   flutter_riverpod: ^2.6.1
   flutter_hooks: ^0.21.2
 
+  # FOR LATER
+  # flutter_epub_reader:
+  #  git:
+  #    url: https://github.com/chandrabezzo/epub_viewer.git
+  #    ref: 7d07e46863fda440d39d8180475eed786098763f
+
   ## Windows
 
   ## Linux

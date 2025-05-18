@@ -232,7 +232,7 @@ class _LibraryItemsViewState extends ConsumerState<LibraryItemsView> {
                     return LibraryItemWidget(state.items[index], api!);
                   },
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
+                    crossAxisCount: 8,
                     childAspectRatio: 0.75,
                     crossAxisSpacing: 8.0,
                     mainAxisSpacing: 8.0,

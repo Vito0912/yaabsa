@@ -1,5 +1,6 @@
 import 'package:buchshelfly/api/library_items/library_item.dart';
 import 'package:buchshelfly/api/routes/abs_api.dart';
+import 'package:buchshelfly/provider/common/media_progress_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -49,26 +50,33 @@ class LibraryItemWidget extends HookWidget {
                       child: Stack(
                         alignment: Alignment.center,
                         children: [
-                          Consumer(
-                            builder: (
-                              BuildContext context,
-                              WidgetRef ref,
-                              Widget? child,
-                            ) {
-                              // TODO: Add progress
-                              return CircularProgressIndicator(
-                                value: showProgress ? 0.2 : 0.2,
-                                strokeWidth: 2,
-                                constraints: const BoxConstraints(
-                                  minWidth: 25,
-                                  minHeight: 25,
-                                ),
-                                backgroundColor: Colors.white,
-                                color: Colors.blue,
-                                year2023: false,
-                              );
-                            },
-                          ),
+                          if (showProgress)
+                            Consumer(
+                              builder: (
+                                BuildContext context,
+                                WidgetRef ref,
+                                Widget? child,
+                              ) {
+                                final progress = ref.watch(
+                                  mediaProgressNotifierProvider.select((
+                                    asyncValue,
+                                  ) {
+                                    return asyncValue.value?[libraryItem.id];
+                                  }),
+                                );
+                                return CircularProgressIndicator(
+                                  value: progress?.progress ?? 0,
+                                  strokeWidth: 2,
+                                  constraints: const BoxConstraints(
+                                    minWidth: 25,
+                                    minHeight: 25,
+                                  ),
+                                  backgroundColor: Colors.white,
+                                  color: Colors.blue,
+                                  year2023: false,
+                                );
+                              },
+                            ),
                           if (isHovered.value)
                             IconButton(
                               icon: const Icon(
