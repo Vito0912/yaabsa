@@ -31,6 +31,7 @@ abstract class InternalMedia with _$InternalMedia {
       tracks[i] = track.copyWith(start: start, end: end);
       currentStart = end;
     }
+    duration = currentStart;
   }
 
   Duration get totalDuration {

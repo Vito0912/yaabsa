@@ -2,14 +2,17 @@ import 'dart:async';
 
 import 'package:buchshelfly/screens/auth/sign_in.dart';
 import 'package:buchshelfly/screens/home_screen.dart';
+import 'package:buchshelfly/util/globals.dart' show audioHandler;
 import 'package:buchshelfly/util/init.dart' show Init;
 import 'package:buchshelfly/util/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import 'components/player/play_bar.dart' show PlayBar;
+
 void main() async {
   Init.initLogger();
-  await Init.initAudioHandler();
+  audioHandler = await Init.initAudioHandler();
 
   runZonedGuarded(
     () {
@@ -72,7 +75,9 @@ class MyApp extends ConsumerWidget {
                 ),
               ],
             ),
-            body: const HomeScreen(),
+            body: Column(
+              children: [Expanded(child: const HomeScreen()), const PlayBar()],
+            ),
           );
         },
       ),

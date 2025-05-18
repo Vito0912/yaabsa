@@ -59,13 +59,27 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   }
 
   BGAudioHandler() {
-    _player.onPlayerStateChanged.listen((state) {
+    _player.onPlayerStateChanged.listen((PlayerState state) {
       logger(state.toString());
+      if (state == PlayerState.completed) {
+        if (internalMedia.firstOrNull == null) return;
+        _currentTrackIndex++;
+        if (_currentTrackIndex >= internalMedia.firstOrNull!.tracks.length) {
+          _currentTrackIndex = 0;
+          internalMedia.removeAt(0);
+        }
+        logger(
+          'Current track index: $_currentTrackIndex, total tracks: ${internalMedia.firstOrNull!.tracks.length}',
+          tag: 'AudioHandler',
+          level: InfoLevel.debug,
+        );
+        _setSource();
+      }
       _updatePlaybackState();
     });
   }
 
-  _setSource({Duration? initialPosition}) async {
+  _setSource({Duration initialPosition = Duration.zero}) async {
     if (_currentMediaItem == null) return Future.value();
     final source =
         _currentMediaItem!.local
