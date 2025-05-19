@@ -135,4 +135,20 @@ class MeApi {
       queryParams: {},
     );
   }
+
+  Future<Response> getPing({
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiGetRequest(
+      route: '/ping',
+      fromJson: (data) => null,
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
+      queryParams: {},
+    );
+  }
 }

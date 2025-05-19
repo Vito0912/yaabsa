@@ -31,6 +31,7 @@ dependencies:
   hooks_riverpod: ^2.6.1
   flutter_riverpod: ^2.6.1
   flutter_hooks: ^0.21.2
+  connectivity_plus: ^6.1.4
 
   # FOR LATER
   # flutter_epub_reader:

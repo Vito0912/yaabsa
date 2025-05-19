@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:buchshelfly/components/app/server_status.dart';
 import 'package:buchshelfly/screens/auth/sign_in.dart';
 import 'package:buchshelfly/screens/home_screen.dart';
 import 'package:buchshelfly/util/globals.dart' show audioHandler;
@@ -73,6 +74,7 @@ class MyApp extends ConsumerWidget {
                     );
                   },
                 ),
+                ServerStatus()
               ],
             ),
             body: Column(

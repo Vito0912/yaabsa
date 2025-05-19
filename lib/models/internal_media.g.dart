@@ -11,9 +11,18 @@ _InternalMedia _$InternalMediaFromJson(Map<String, dynamic> json) =>
       libraryId: json['libraryId'] as String,
       itemId: json['itemId'] as String,
       episodeId: json['episodeId'] as String?,
+      title: json['title'] as String,
+      author: json['author'] as String?,
+      series: json['series'] as String?,
+      seriesPosition: json['seriesPosition'] as String?,
+      cover: Uri.parse(json['cover'] as String),
       tracks:
           (json['tracks'] as List<dynamic>)
               .map((e) => InternalTrack.fromJson(e as Map<String, dynamic>))
+              .toList(),
+      chapters:
+          (json['chapters'] as List<dynamic>?)
+              ?.map((e) => InternalChapter.fromJson(e as Map<String, dynamic>))
               .toList(),
       duration: (json['duration'] as num?)?.toDouble(),
       local: json['local'] as bool? ?? false,
@@ -25,7 +34,13 @@ Map<String, dynamic> _$InternalMediaToJson(_InternalMedia instance) =>
       'libraryId': instance.libraryId,
       'itemId': instance.itemId,
       'episodeId': instance.episodeId,
+      'title': instance.title,
+      'author': instance.author,
+      'series': instance.series,
+      'seriesPosition': instance.seriesPosition,
+      'cover': instance.cover.toString(),
       'tracks': instance.tracks,
+      'chapters': instance.chapters,
       'duration': instance.duration,
       'local': instance.local,
       'saf': instance.saf,
@@ -47,4 +62,18 @@ Map<String, dynamic> _$InternalTrackToJson(_InternalTrack instance) =>
       'url': instance.url,
       'start': instance.start,
       'end': instance.end,
+    };
+
+_InternalChapter _$InternalChapterFromJson(Map<String, dynamic> json) =>
+    _InternalChapter(
+      start: (json['start'] as num).toDouble(),
+      end: (json['end'] as num).toDouble(),
+      title: json['title'] as String,
+    );
+
+Map<String, dynamic> _$InternalChapterToJson(_InternalChapter instance) =>
+    <String, dynamic>{
+      'start': instance.start,
+      'end': instance.end,
+      'title': instance.title,
     };

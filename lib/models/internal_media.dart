@@ -1,3 +1,4 @@
+import 'package:audio_service/audio_service.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'internal_media.freezed.dart';
@@ -11,7 +12,13 @@ abstract class InternalMedia with _$InternalMedia {
     @JsonKey(name: "libraryId") required String libraryId,
     @JsonKey(name: "itemId") required String itemId,
     @JsonKey(name: "episodeId") required String? episodeId,
+    @JsonKey(name: "title") required String title,
+    @JsonKey(name: "author") String? author,
+    @JsonKey(name: "series") String? series,
+    @JsonKey(name: "seriesPosition") String? seriesPosition,
+    @JsonKey(name: "cover") required Uri cover,
     @JsonKey(name: "tracks") required List<InternalTrack> tracks,
+    @JsonKey(name: "chapters") List<InternalChapter>? chapters,
     // Removed incorrect defaultValue: false
     @JsonKey(name: "duration") double? duration,
     @JsonKey(name: "local", defaultValue: false) required bool local,
@@ -22,7 +29,23 @@ abstract class InternalMedia with _$InternalMedia {
   factory InternalMedia.fromJson(Map<String, dynamic> json) =>
       _$InternalMediaFromJson(json);
 
-  void populateTrackStartEnd() {
+  String get id => episodeId ?? itemId;
+
+  MediaItem toMediaItem() {
+    return MediaItem(
+      id: episodeId ?? itemId,
+      album:
+          (series != null && seriesPosition != null)
+              ? '$series #$seriesPosition'
+              : (series ?? ''),
+      title: title,
+      artist: author,
+      duration: totalDuration,
+      artUri: cover,
+    );
+  }
+
+  void populateFields() {
     double currentStart = 0.0;
     for (int i = 0; i < tracks.length; i++) {
       final track = tracks[i];
@@ -85,4 +108,16 @@ abstract class InternalTrack with _$InternalTrack {
 
   factory InternalTrack.fromJson(Map<String, dynamic> json) =>
       _$InternalTrackFromJson(json);
+}
+
+@freezed
+abstract class InternalChapter with _$InternalChapter {
+  const factory InternalChapter({
+    @JsonKey(name: "start") required double start,
+    @JsonKey(name: "end") required double end,
+    @JsonKey(name: "title") required String title,
+  }) = _InternalChapter;
+
+  factory InternalChapter.fromJson(Map<String, dynamic> json) =>
+      _$InternalChapterFromJson(json);
 }
