@@ -6,11 +6,16 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class LibraryItemWidget extends HookWidget {
-  const LibraryItemWidget(this.libraryItem, this.api, {super.key});
+  const LibraryItemWidget(
+    this.libraryItem,
+    this.api, {
+    super.key,
+    this.showProgress = false,
+  });
 
   final LibraryItem libraryItem;
   final ABSApi api;
-  final bool showProgress = false;
+  final bool showProgress;
 
   @override
   Widget build(BuildContext context) {

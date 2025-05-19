@@ -4,6 +4,7 @@ import 'package:buchshelfly/components/common/library_item_widget.dart';
 import 'package:buchshelfly/provider/common/library_item_provider.dart';
 import 'package:buchshelfly/provider/common/library_provider.dart';
 import 'package:buchshelfly/provider/core/user_providers.dart';
+import 'package:buchshelfly/screens/main/library_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -19,22 +20,7 @@ class HomeScreen extends ConsumerWidget {
         title: const Text('Library Items PoC'),
         actions: const [UserSwitcher(), LibrarySwitcher()],
       ),
-      body: Builder(
-        builder: (BuildContext context) {
-          if (selectedLibraryAsyncValue == null) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (selectedLibrary == null) {
-            return const Center(
-              child: Text(
-                'No library selected or available. Please select a library via the switcher.',
-              ),
-            );
-          }
-          return LibraryItemsView(libraryId: selectedLibraryAsyncValue.id);
-        },
-      ),
+      body: LibraryView(),
     );
   }
 }
