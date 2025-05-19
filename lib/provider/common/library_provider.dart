@@ -44,11 +44,38 @@ class SelectedLibraryId extends _$SelectedLibraryId {
       );
       return Stream.value(null);
     }
+
+    final stream = db.watchSelectedLibraryId(userId);
+
+    _maybeAutoSelectFirstLibrary(userId);
+
     logger(
       'SelectedLibraryIdProvider: Watching selected library ID for user $userId.',
       tag: 'SelectedLibraryId',
     );
-    return db.watchSelectedLibraryId(userId);
+    return stream;
+  }
+
+  Future<void> _maybeAutoSelectFirstLibrary(String userId) async {
+    final db = ref.read(appDatabaseProvider);
+    final currentSelectedId = await db.getSelectedLibraryId(userId);
+
+    if (currentSelectedId == null) {
+      final libraries = await ref.read(userLibrariesProvider.future);
+      if (libraries.isNotEmpty) {
+        final firstLibraryId = libraries.first.id;
+        logger(
+          'SelectedLibraryIdProvider: No library selected for user $userId. Auto-selecting first library: $firstLibraryId.',
+          tag: 'SelectedLibraryId',
+        );
+        await set(firstLibraryId);
+      } else {
+        logger(
+          'SelectedLibraryIdProvider: No library selected for user $userId and no libraries available to auto-select.',
+          tag: 'SelectedLibraryId',
+        );
+      }
+    }
   }
 
   Future<void> set(String? libraryId) async {

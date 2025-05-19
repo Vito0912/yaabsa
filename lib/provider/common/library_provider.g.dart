@@ -44,7 +44,7 @@ final selectedLibraryProvider = Provider<Library?>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef SelectedLibraryRef = ProviderRef<Library?>;
-String _$selectedLibraryIdHash() => r'60d83a0ca6be88f015ba74a9b081150f2f140fdb';
+String _$selectedLibraryIdHash() => r'3835157b94fa5b3346b506ce8a6c3b86370a12ff';
 
 /// See also [SelectedLibraryId].
 @ProviderFor(SelectedLibraryId)
