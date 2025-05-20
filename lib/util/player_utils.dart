@@ -38,9 +38,7 @@ class PlayerUtils {
       manufacturer = 'Linux';
       model = linuxInfo.name;
     } else {
-      throw UnsupportedError(
-        'Unsupported platform: ${Platform.operatingSystem}',
-      );
+      throw UnsupportedError('Unsupported platform: ${Platform.operatingSystem}');
     }
 
     return DeviceInfo(

@@ -24,6 +24,5 @@ abstract class Episode with _$Episode {
     @JsonKey(name: "updatedAt") int? updatedAt,
   }) = _Episode;
 
-  factory Episode.fromJson(Map<String, dynamic> json) =>
-      _$EpisodeFromJson(json);
+  factory Episode.fromJson(Map<String, dynamic> json) => _$EpisodeFromJson(json);
 }

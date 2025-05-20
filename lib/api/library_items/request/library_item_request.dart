@@ -12,6 +12,5 @@ abstract class LibraryItemRequest with _$LibraryItemRequest {
     @JsonKey(name: "episode") String? episode,
   }) = _LibraryItemRequest;
 
-  factory LibraryItemRequest.fromJson(Map<String, dynamic> json) =>
-      _$LibraryItemRequestFromJson(json);
+  factory LibraryItemRequest.fromJson(Map<String, dynamic> json) => _$LibraryItemRequestFromJson(json);
 }

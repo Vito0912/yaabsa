@@ -11,6 +11,5 @@ abstract class AuthorStats with _$AuthorStats {
     @JsonKey(name: "count") required int count,
   }) = _AuthorStats;
 
-  factory AuthorStats.fromJson(Map<String, dynamic> json) =>
-      _$AuthorStatsFromJson(json);
+  factory AuthorStats.fromJson(Map<String, dynamic> json) => _$AuthorStatsFromJson(json);
 }

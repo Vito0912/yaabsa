@@ -6,10 +6,7 @@ class OAuthInterceptor extends AuthInterceptor {
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    final authInfo = getAuthInfo(
-      options,
-      (secure) => secure['type'] == 'oauth' || secure['type'] == 'oauth2',
-    );
+    final authInfo = getAuthInfo(options, (secure) => secure['type'] == 'oauth' || secure['type'] == 'oauth2');
     for (final info in authInfo) {
       final token = tokens[info['name']];
       if (token != null) {

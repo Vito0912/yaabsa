@@ -15,6 +15,5 @@ abstract class Permissions with _$Permissions {
     @JsonKey(name: "accessExplicitContent") required bool accessExplicitContent,
   }) = _Permissions;
 
-  factory Permissions.fromJson(Map<String, dynamic> json) =>
-      _$PermissionsFromJson(json);
+  factory Permissions.fromJson(Map<String, dynamic> json) => _$PermissionsFromJson(json);
 }

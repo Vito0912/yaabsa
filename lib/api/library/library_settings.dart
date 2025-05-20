@@ -19,6 +19,5 @@ abstract class LibrarySettings with _$LibrarySettings {
     @JsonKey(name: "metadataPrecedence") List<String>? metadataPrecedence,
   }) = _LibrarySettings;
 
-  factory LibrarySettings.fromJson(Map<String, dynamic> json) =>
-      _$LibrarySettingsFromJson(json);
+  factory LibrarySettings.fromJson(Map<String, dynamic> json) => _$LibrarySettingsFromJson(json);
 }

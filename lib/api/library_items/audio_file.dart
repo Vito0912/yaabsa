@@ -35,6 +35,5 @@ abstract class AudioFile with _$AudioFile {
     @JsonKey(name: "mimeType") String? mimeType,
   }) = _AudioFile;
 
-  factory AudioFile.fromJson(Map<String, dynamic> json) =>
-      _$AudioFileFromJson(json);
+  factory AudioFile.fromJson(Map<String, dynamic> json) => _$AudioFileFromJson(json);
 }

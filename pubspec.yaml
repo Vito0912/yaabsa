@@ -28,6 +28,7 @@ dependencies:
   path_provider: ^2.1.5
   sqlite3_flutter_libs: ^0.5.32
   cached_network_image: ^3.4.1
+  go_router: ^15.1.2
 
   hooks_riverpod: ^2.6.1
   flutter_riverpod: ^2.6.1

@@ -11,47 +11,29 @@ class SettingsRepository {
   final AppDatabase _db;
   SettingsRepository(this._db);
 
-  Stream<String?> watchStringGlobalSetting({
-    required String key,
-    String? defaultValue,
-  }) {
+  Stream<String?> watchStringGlobalSetting({required String key, String? defaultValue}) {
     return _db.watchGlobalSetting(key).map((entry) {
       return entry?.value ?? defaultValue;
     });
   }
 
-  Future<void> setStringGlobalSetting({
-    required String key,
-    required String value,
-  }) {
+  Future<void> setStringGlobalSetting({required String key, required String value}) {
     return _db.setGlobalSetting(key, value);
   }
 
-  Future<String?> getStringGlobalSetting({
-    required String key,
-    String? defaultValue,
-  }) async {
+  Future<String?> getStringGlobalSetting({required String key, String? defaultValue}) async {
     final entry = await _db.getGlobalSetting(key);
     return entry?.value ?? defaultValue;
   }
 
   Stream<InfoLevel> watchLogLevelSetting() {
-    return watchStringGlobalSetting(
-      key: SettingKeys.appLogLevel,
-      defaultValue: InfoLevel.info.name,
-    ).map((value) {
-      return InfoLevel.values.firstWhere(
-        (e) => e.name == value,
-        orElse: () => InfoLevel.info,
-      );
+    return watchStringGlobalSetting(key: SettingKeys.appLogLevel, defaultValue: InfoLevel.info.name).map((value) {
+      return InfoLevel.values.firstWhere((e) => e.name == value, orElse: () => InfoLevel.info);
     });
   }
 
   Future<void> setLogLevelSetting(InfoLevel logLevel) {
-    return setStringGlobalSetting(
-      key: SettingKeys.appLogLevel,
-      value: logLevel.name,
-    );
+    return setStringGlobalSetting(key: SettingKeys.appLogLevel, value: logLevel.name);
   }
 }
 

@@ -84,13 +84,9 @@ class LibraryItemWidget extends HookWidget {
                                 );
                               },
                             ),
-                          if (isHovered.value)
+                          if (isHovered.value && libraryItem.media!.hasAudio)
                             IconButton(
-                              icon: const Icon(
-                                Icons.play_arrow,
-                                color: Colors.white,
-                                size: 14,
-                              ),
+                              icon: const Icon(Icons.play_arrow, size: 14),
                               iconSize: 10,
                               onPressed: () {
                                 audioHandler.setQueue(
@@ -99,6 +95,17 @@ class LibraryItemWidget extends HookWidget {
                                 audioHandler.play();
                               },
                               splashRadius: 8,
+                            ),
+                          if (isHovered.value &&
+                              !libraryItem.media!.hasAudio &&
+                              libraryItem.media!.hasBook)
+                            IconButton(
+                              icon: const Icon(
+                                Icons.my_library_books_outlined,
+                                size: 14,
+                              ),
+                              iconSize: 10,
+                              onPressed: () {},
                             ),
                         ],
                       ),

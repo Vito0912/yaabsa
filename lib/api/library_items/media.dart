@@ -8,8 +8,7 @@ part 'media.freezed.dart';
 abstract class Media with _$Media {
   const Media._(); // Private constructor for custom methods.
 
-  const factory Media({PodcastMedia? podcastMedia, BookMedia? bookMedia}) =
-      _Media;
+  const factory Media({PodcastMedia? podcastMedia, BookMedia? bookMedia}) = _Media;
 
   /// Custom fromJson method to handle different structures.
   factory Media.fromJson(Map<String, dynamic> json) {
@@ -35,19 +34,16 @@ abstract class Media with _$Media {
     }
   }
 
-  String? get title =>
-      podcastMedia?.metadata.title ?? bookMedia!.metadata.title;
+  String? get title => podcastMedia?.metadata.title ?? bookMedia!.metadata.title;
 
-  String? get subtitle =>
-      podcastMedia == null ? bookMedia!.metadata.subtitle : null;
+  String? get subtitle => podcastMedia == null ? bookMedia!.metadata.subtitle : null;
 
   List<String>? get authors =>
       podcastMedia != null
           ? podcastMedia!.metadata.author?.split(',')
           : bookMedia!.metadata.authors?.map((e) => e.name).toList();
 
-  String? get seriesSequence =>
-      bookMedia?.metadata.series?.firstOrNull?.sequence;
+  String? get seriesSequence => bookMedia?.metadata.series?.firstOrNull?.sequence;
 
   bool get hasAudio {
     bool simple =
@@ -58,6 +54,5 @@ abstract class Media with _$Media {
     return simple;
   }
 
-  bool get hasBook =>
-      bookMedia?.ebookFile != null || bookMedia?.ebookFormat != null;
+  bool get hasBook => bookMedia?.ebookFile != null || bookMedia?.ebookFormat != null;
 }

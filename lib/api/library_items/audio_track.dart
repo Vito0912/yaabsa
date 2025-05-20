@@ -27,11 +27,7 @@ abstract class AudioTrack with _$AudioTrack {
     return contentUrl;
   }
 
-  InternalTrack toInternalTrack(
-    String baseUrl,
-    String sessionId, {
-    int? localIndex,
-  }) {
+  InternalTrack toInternalTrack(String baseUrl, String sessionId, {int? localIndex}) {
     final tmpIndex = (index ?? localIndex)!;
     return InternalTrack(
       index: tmpIndex,
@@ -41,6 +37,5 @@ abstract class AudioTrack with _$AudioTrack {
     );
   }
 
-  factory AudioTrack.fromJson(Map<String, dynamic> json) =>
-      _$AudioTrackFromJson(json);
+  factory AudioTrack.fromJson(Map<String, dynamic> json) => _$AudioTrackFromJson(json);
 }

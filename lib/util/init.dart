@@ -10,11 +10,7 @@ import 'logger.dart';
 class Init {
   static void initLogger() async {
     FlutterError.onError = (details) {
-      logger(
-        'FlutterError: ${details.exceptionAsString()}',
-        tag: 'FlutterError',
-        level: InfoLevel.error,
-      );
+      logger('FlutterError: ${details.exceptionAsString()}', tag: 'FlutterError', level: InfoLevel.error);
       FlutterError.presentError(details);
     };
     logger('Logger initialized', tag: 'Init', level: InfoLevel.info);

@@ -4,11 +4,11 @@ import 'package:buchshelfly/api/me/user.dart';
 import 'package:buchshelfly/api/routes/abs_api.dart';
 import 'package:buchshelfly/database/app_database.dart';
 import 'package:buchshelfly/provider/core/user_providers.dart';
-import 'package:buchshelfly/screens/home_screen.dart';
 import 'package:buchshelfly/util/logger.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 class SignIn extends HookConsumerWidget {
@@ -94,9 +94,7 @@ class SignIn extends HookConsumerWidget {
           );
 
           if (context.mounted) {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (_) => const HomeScreen()),
-            );
+            context.go('/');
           }
         } else {
           errorMessage.value = 'Login failed: Invalid response from server.';

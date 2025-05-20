@@ -9,9 +9,7 @@ class SeriesConverter implements JsonConverter<List<Series>?, dynamic> {
     if (json == null) {
       return null;
     } else if (json is List) {
-      return json
-          .map<Series>((e) => Series.fromJson(e as Map<String, dynamic>))
-          .toList();
+      return json.map<Series>((e) => Series.fromJson(e as Map<String, dynamic>)).toList();
     } else if (json is Map<String, dynamic>) {
       return [Series.fromJson(json)];
     } else {

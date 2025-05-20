@@ -6,10 +6,7 @@ enum MediaItemType {
   @JsonValue("book")
   BOOK,
   @JsonValue("podcastEpisode")
-  PODCAST_EPISODE
+  PODCAST_EPISODE,
 }
 
-final mediaItemTypeValues = EnumValues({
-  "book": MediaItemType.BOOK,
-  "podcastEpisode": MediaItemType.PODCAST_EPISODE
-});
+final mediaItemTypeValues = EnumValues({"book": MediaItemType.BOOK, "podcastEpisode": MediaItemType.PODCAST_EPISODE});

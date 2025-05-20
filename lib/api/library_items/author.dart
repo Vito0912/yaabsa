@@ -5,10 +5,8 @@ part 'author.g.dart';
 
 @freezed
 abstract class Author with _$Author {
-  const factory Author({
-    @JsonKey(name: "id") required String id,
-    @JsonKey(name: "name") required String name,
-  }) = _Author;
+  const factory Author({@JsonKey(name: "id") required String id, @JsonKey(name: "name") required String name}) =
+      _Author;
 
   factory Author.fromJson(Map<String, dynamic> json) => _$AuthorFromJson(json);
 }

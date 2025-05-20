@@ -22,6 +22,5 @@ abstract class LibraryStats with _$LibraryStats {
     @JsonKey(name: "genresWithCount") List<GenreStats>? genresWithCount,
   }) = _LibraryStats;
 
-  factory LibraryStats.fromJson(Map<String, dynamic> json) =>
-      _$LibraryStatsFromJson(json);
+  factory LibraryStats.fromJson(Map<String, dynamic> json) => _$LibraryStatsFromJson(json);
 }

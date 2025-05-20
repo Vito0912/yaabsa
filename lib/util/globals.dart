@@ -7,3 +7,6 @@ const String appName = 'Buchshelfly';
 final ProviderContainer containerRef = ProviderContainer();
 late final PackageInfo packageInfo;
 late final BGAudioHandler audioHandler;
+
+const double kTabletBreakpoint = 800.0;
+const double kDesktopBreakpoint = 1200.0;

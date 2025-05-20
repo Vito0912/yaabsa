@@ -18,8 +18,7 @@ abstract class SearchLibrary with _$SearchLibrary {
     @JsonKey(name: "authors") List<SearchLibraryAuthor>? authors,
   }) = _SearchLibrary;
 
-  factory SearchLibrary.fromJson(Map<String, dynamic> json) =>
-      _$SearchLibraryFromJson(json);
+  factory SearchLibrary.fromJson(Map<String, dynamic> json) => _$SearchLibraryFromJson(json);
 }
 
 @freezed
@@ -30,8 +29,7 @@ abstract class SearchLibraryResult with _$SearchLibraryResult {
     @JsonKey(name: "matchText") String? matchText,
   }) = _SearchLibraryResult;
 
-  factory SearchLibraryResult.fromJson(Map<String, dynamic> json) =>
-      _$SearchLibraryResultFromJson(json);
+  factory SearchLibraryResult.fromJson(Map<String, dynamic> json) => _$SearchLibraryResultFromJson(json);
 }
 
 @freezed
@@ -41,8 +39,7 @@ abstract class SearchResultItem with _$SearchResultItem {
     @JsonKey(name: "numItems") int? numItems,
   }) = _SearchResultItem;
 
-  factory SearchResultItem.fromJson(Map<String, dynamic> json) =>
-      _$SearchResultItemFromJson(json);
+  factory SearchResultItem.fromJson(Map<String, dynamic> json) => _$SearchResultItemFromJson(json);
 }
 
 @freezed
@@ -52,6 +49,5 @@ abstract class SearchResultNarrator with _$SearchResultNarrator {
     @JsonKey(name: "numItems") int? numItems,
   }) = _SearchResultNarrator;
 
-  factory SearchResultNarrator.fromJson(Map<String, dynamic> json) =>
-      _$SearchResultNarratorFromJson(json);
+  factory SearchResultNarrator.fromJson(Map<String, dynamic> json) => _$SearchResultNarratorFromJson(json);
 }

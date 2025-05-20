@@ -17,6 +17,5 @@ abstract class UserListeningStats with _$UserListeningStats {
     @JsonKey(name: "recentSessions") List<PlaybackSession>? recentSessions,
   }) = _UserListeningStats;
 
-  factory UserListeningStats.fromJson(Map<String, dynamic> json) =>
-      _$UserListeningStatsFromJson(json);
+  factory UserListeningStats.fromJson(Map<String, dynamic> json) => _$UserListeningStatsFromJson(json);
 }

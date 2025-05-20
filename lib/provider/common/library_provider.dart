@@ -38,10 +38,7 @@ class SelectedLibraryId extends _$SelectedLibraryId {
     final userId = ref.watch(currentUserProvider).value?.id;
 
     if (userId == null) {
-      logger(
-        'SelectedLibraryIdProvider: No active user, returning null stream.',
-        tag: 'SelectedLibraryId',
-      );
+      logger('SelectedLibraryIdProvider: No active user, returning null stream.', tag: 'SelectedLibraryId');
       return Stream.value(null);
     }
 
@@ -49,10 +46,7 @@ class SelectedLibraryId extends _$SelectedLibraryId {
 
     _maybeAutoSelectFirstLibrary(userId);
 
-    logger(
-      'SelectedLibraryIdProvider: Watching selected library ID for user $userId.',
-      tag: 'SelectedLibraryId',
-    );
+    logger('SelectedLibraryIdProvider: Watching selected library ID for user $userId.', tag: 'SelectedLibraryId');
     return stream;
   }
 

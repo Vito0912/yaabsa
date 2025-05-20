@@ -25,6 +25,5 @@ abstract class BookMedia with _$BookMedia {
     @JsonKey(name: "ebookFormat") String? ebookFormat,
   }) = _BookMedia;
 
-  factory BookMedia.fromJson(Map<String, dynamic> json) =>
-      _$BookMediaFromJson(json);
+  factory BookMedia.fromJson(Map<String, dynamic> json) => _$BookMediaFromJson(json);
 }

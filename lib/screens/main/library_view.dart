@@ -14,32 +14,21 @@ class LibraryView extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedLibrary = ref.watch(selectedLibraryProvider);
     if (selectedLibrary == null) {
-      return const Center(
-        child: Text(
-          'No library selected. Please select a library via the switcher.',
-        ),
-      );
+      return const Center(child: Text('No library selected. Please select a library via the switcher.'));
     }
     final String libraryId = selectedLibrary.id;
 
     final scrollController = useScrollController();
 
-    final libraryItemsStateAsync = ref.watch(
-      libraryItemNotifierProvider(libraryId),
-    );
+    final libraryItemsStateAsync = ref.watch(libraryItemNotifierProvider(libraryId));
 
     useEffect(() {
       void onScroll() {
         if (!scrollController.hasClients) return;
 
-        if (scrollController.position.pixels >=
-            scrollController.position.maxScrollExtent - 300) {
-          final currentStateSnapshot = ref.read(
-            libraryItemNotifierProvider(libraryId),
-          );
-          final notifier = ref.read(
-            libraryItemNotifierProvider(libraryId).notifier,
-          );
+        if (scrollController.position.pixels >= scrollController.position.maxScrollExtent - 300) {
+          final currentStateSnapshot = ref.read(libraryItemNotifierProvider(libraryId));
+          final notifier = ref.read(libraryItemNotifierProvider(libraryId).notifier);
 
           final state = currentStateSnapshot.value;
 
@@ -73,27 +62,18 @@ class LibraryView extends HookConsumerWidget {
               crossAxisCount: crossAxisCount,
               mainAxisSpacing: 4,
               crossAxisSpacing: 4,
-              itemCount:
-                  items.length +
-                  ((state.hasNextPage || state.isLoadingNextPage) ? 1 : 0),
+              itemCount: items.length + ((state.hasNextPage || state.isLoadingNextPage) ? 1 : 0),
               itemBuilder: (context, index) {
                 if (index == items.length) {
                   if (state.isLoadingNextPage) {
                     return const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: CircularProgressIndicator(),
-                      ),
+                      child: Padding(padding: EdgeInsets.all(16.0), child: CircularProgressIndicator()),
                     );
                   }
                   return const SizedBox.shrink();
                 }
 
-                return LibraryItemWidget(
-                  items[index],
-                  api!,
-                  showProgress: true,
-                );
+                return LibraryItemWidget(items[index], api!, showProgress: true);
               },
             );
           },
@@ -104,10 +84,7 @@ class LibraryView extends HookConsumerWidget {
           (err, stack) => Center(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Text(
-                'Error loading items: $err',
-                textAlign: TextAlign.center,
-              ),
+              child: Text('Error loading items: $err', textAlign: TextAlign.center),
             ),
           ),
     );

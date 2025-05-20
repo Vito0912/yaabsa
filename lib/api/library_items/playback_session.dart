@@ -38,6 +38,5 @@ abstract class PlaybackSession with _$PlaybackSession {
     @JsonKey(name: "libraryItem") LibraryItem? libraryItem,
   }) = _PlaybackSession;
 
-  factory PlaybackSession.fromJson(Map<String, dynamic> json) =>
-      _$PlaybackSessionFromJson(json);
+  factory PlaybackSession.fromJson(Map<String, dynamic> json) => _$PlaybackSessionFromJson(json);
 }

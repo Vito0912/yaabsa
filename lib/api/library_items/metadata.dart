@@ -8,10 +8,7 @@ part 'metadata.freezed.dart';
 abstract class Metadata with _$Metadata {
   const Metadata._(); // Private constructor for custom methods.
 
-  const factory Metadata({
-    PodcastMetadata? podcastMetadata,
-    MediaMetadata? bookMetadata,
-  }) = _Metadata;
+  const factory Metadata({PodcastMetadata? podcastMetadata, MediaMetadata? bookMetadata}) = _Metadata;
 
   /// Custom fromJson method to handle different structures.
   factory Metadata.fromJson(Map<String, dynamic> json) {

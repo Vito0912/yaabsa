@@ -54,18 +54,11 @@ class LibraryItemApi {
     );
   }
 
-  Widget getLibraryItemCover(
-    String id, {
-    LibraryItem? item,
-    double? width,
-    double? height,
-  }) {
+  Widget getLibraryItemCover(String id, {LibraryItem? item, double? width, double? height}) {
     if (item != null &&
         item.media != null &&
-        ((item.media!.bookMedia != null &&
-                item.media!.bookMedia!.coverPath == null) ||
-            (item.media!.podcastMedia != null &&
-                item.media!.podcastMedia!.coverPath == null))) {
+        ((item.media!.bookMedia != null && item.media!.bookMedia!.coverPath == null) ||
+            (item.media!.podcastMedia != null && item.media!.podcastMedia!.coverPath == null))) {
       return Icon(Icons.image_sharp);
     }
     return CachedNetworkImage(

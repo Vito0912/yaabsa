@@ -17,6 +17,5 @@ abstract class SearchLibraryAuthor with _$SearchLibraryAuthor {
     @JsonKey(name: "numBooks") required int numBooks,
   }) = _SearchLibraryAuthor;
 
-  factory SearchLibraryAuthor.fromJson(Map<String, dynamic> json) =>
-      _$SearchLibraryAuthorFromJson(json);
+  factory SearchLibraryAuthor.fromJson(Map<String, dynamic> json) => _$SearchLibraryAuthorFromJson(json);
 }

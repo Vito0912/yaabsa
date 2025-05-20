@@ -16,10 +16,7 @@ class HomeScreen extends ConsumerWidget {
     final selectedLibraryAsyncValue = ref.watch(selectedLibraryProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Library Items PoC'),
-        actions: const [UserSwitcher(), LibrarySwitcher()],
-      ),
+      appBar: AppBar(title: const Text('Library Items PoC'), actions: const [UserSwitcher(), LibrarySwitcher()]),
       body: LibraryView(),
     );
   }
@@ -42,8 +39,7 @@ class _LibraryItemsViewState extends ConsumerState<LibraryItemsView> {
     super.initState();
     _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final currentFilter =
-          ref.read(libraryItemNotifierProvider(widget.libraryId)).value?.filter;
+      final currentFilter = ref.read(libraryItemNotifierProvider(widget.libraryId)).value?.filter;
       if (currentFilter != null) {
         _filterController.text = currentFilter;
       }
@@ -51,13 +47,9 @@ class _LibraryItemsViewState extends ConsumerState<LibraryItemsView> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 300) {
-      final notifier = ref.read(
-        libraryItemNotifierProvider(widget.libraryId).notifier,
-      );
-      final state =
-          ref.read(libraryItemNotifierProvider(widget.libraryId)).value;
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 300) {
+      final notifier = ref.read(libraryItemNotifierProvider(widget.libraryId).notifier);
+      final state = ref.read(libraryItemNotifierProvider(widget.libraryId)).value;
       if (state != null && state.hasNextPage && !state.isLoadingNextPage) {
         notifier.fetchNextPage();
       }
@@ -70,11 +62,7 @@ class _LibraryItemsViewState extends ConsumerState<LibraryItemsView> {
     if (widget.libraryId != oldWidget.libraryId) {
       _filterController.clear();
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        final currentFilter =
-            ref
-                .read(libraryItemNotifierProvider(widget.libraryId))
-                .value
-                ?.filter;
+        final currentFilter = ref.read(libraryItemNotifierProvider(widget.libraryId)).value?.filter;
         if (currentFilter != null) {
           _filterController.text = currentFilter;
         }
@@ -92,12 +80,8 @@ class _LibraryItemsViewState extends ConsumerState<LibraryItemsView> {
 
   @override
   Widget build(BuildContext context) {
-    final libraryItemsStateAsync = ref.watch(
-      libraryItemNotifierProvider(widget.libraryId),
-    );
-    final libraryItemNotifier = ref.read(
-      libraryItemNotifierProvider(widget.libraryId).notifier,
-    );
+    final libraryItemsStateAsync = ref.watch(libraryItemNotifierProvider(widget.libraryId));
+    final libraryItemNotifier = ref.read(libraryItemNotifierProvider(widget.libraryId).notifier);
     final api = ref.read(absApiProvider);
 
     return Column(
@@ -120,9 +104,7 @@ class _LibraryItemsViewState extends ConsumerState<LibraryItemsView> {
                 ),
                 onSubmitted: (value) {
                   if (value.isNotEmpty) {
-                    libraryItemNotifier.setFilter(
-                      'media.metadata.title:$value',
-                    );
+                    libraryItemNotifier.setFilter('media.metadata.title:$value');
                   } else {
                     libraryItemNotifier.clearFilter();
                   }
@@ -133,19 +115,11 @@ class _LibraryItemsViewState extends ConsumerState<LibraryItemsView> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   ElevatedButton(
-                    onPressed:
-                        () => libraryItemNotifier.setSort(
-                          'media.metadata.title',
-                          newDesc: 0,
-                        ),
+                    onPressed: () => libraryItemNotifier.setSort('media.metadata.title', newDesc: 0),
                     child: const Text('Sort Title (A-Z)'),
                   ),
                   ElevatedButton(
-                    onPressed:
-                        () => libraryItemNotifier.setSort(
-                          'media.metadata.title',
-                          newDesc: 1,
-                        ),
+                    onPressed: () => libraryItemNotifier.setSort('media.metadata.title', newDesc: 1),
                     child: const Text('Sort Title (Z-A)'),
                   ),
                 ],
@@ -154,15 +128,11 @@ class _LibraryItemsViewState extends ConsumerState<LibraryItemsView> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   ElevatedButton(
-                    onPressed:
-                        () =>
-                            libraryItemNotifier.setSort('addedAt', newDesc: 1),
+                    onPressed: () => libraryItemNotifier.setSort('addedAt', newDesc: 1),
                     child: const Text('Sort Added (Newest)'),
                   ),
                   ElevatedButton(
-                    onPressed:
-                        () =>
-                            libraryItemNotifier.setSort('addedAt', newDesc: 0),
+                    onPressed: () => libraryItemNotifier.setSort('addedAt', newDesc: 0),
                     child: const Text('Sort Added (Oldest)'),
                   ),
                 ],
@@ -173,9 +143,7 @@ class _LibraryItemsViewState extends ConsumerState<LibraryItemsView> {
         Expanded(
           child: libraryItemsStateAsync.when(
             data: (state) {
-              if (state.items.isEmpty &&
-                  !state.hasNextPage &&
-                  !state.isLoadingNextPage) {
+              if (state.items.isEmpty && !state.hasNextPage && !state.isLoadingNextPage) {
                 return RefreshIndicator(
                   onRefresh: () => libraryItemNotifier.refresh(),
                   child: LayoutBuilder(
@@ -183,14 +151,8 @@ class _LibraryItemsViewState extends ConsumerState<LibraryItemsView> {
                         (context, constraints) => SingleChildScrollView(
                           physics: const AlwaysScrollableScrollPhysics(),
                           child: ConstrainedBox(
-                            constraints: BoxConstraints(
-                              minHeight: constraints.maxHeight,
-                            ),
-                            child: const Center(
-                              child: Text(
-                                'No items match your criteria. Pull to refresh.',
-                              ),
-                            ),
+                            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                            child: const Center(child: Text('No items match your criteria. Pull to refresh.')),
                           ),
                         ),
                   ),
@@ -200,17 +162,12 @@ class _LibraryItemsViewState extends ConsumerState<LibraryItemsView> {
                 onRefresh: () => libraryItemNotifier.refresh(),
                 child: GridView.builder(
                   controller: _scrollController,
-                  itemCount:
-                      state.items.length +
-                      (state.hasNextPage || state.isLoadingNextPage ? 1 : 0),
+                  itemCount: state.items.length + (state.hasNextPage || state.isLoadingNextPage ? 1 : 0),
                   itemBuilder: (context, index) {
                     if (index == state.items.length) {
                       if (state.isLoadingNextPage) {
                         return const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(16.0),
-                            child: CircularProgressIndicator(),
-                          ),
+                          child: Padding(padding: EdgeInsets.all(16.0), child: CircularProgressIndicator()),
                         );
                       }
                       return const SizedBox.shrink();
@@ -235,16 +192,11 @@ class _LibraryItemsViewState extends ConsumerState<LibraryItemsView> {
                         (context, constraints) => SingleChildScrollView(
                           physics: const AlwaysScrollableScrollPhysics(),
                           child: ConstrainedBox(
-                            constraints: BoxConstraints(
-                              minHeight: constraints.maxHeight,
-                            ),
+                            constraints: BoxConstraints(minHeight: constraints.maxHeight),
                             child: Center(
                               child: Padding(
                                 padding: const EdgeInsets.all(16.0),
-                                child: Text(
-                                  'Error loading items: $err\nPull to refresh.',
-                                  textAlign: TextAlign.center,
-                                ),
+                                child: Text('Error loading items: $err\nPull to refresh.', textAlign: TextAlign.center),
                               ),
                             ),
                           ),

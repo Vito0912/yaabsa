@@ -68,18 +68,14 @@ Stream<bool> serverStatus(Ref ref) {
 
   checkStatus();
 
-  final connectivitySubscription = connectivity.onConnectivityChanged.listen((
-    result,
-  ) {
+  final connectivitySubscription = connectivity.onConnectivityChanged.listen((result) {
     timer?.cancel();
     checkStatus();
   });
 
   ref.listen(absApiProvider, (previous, next) {
-    if (identical(previous, next) &&
-        previous?.dio.options.baseUrl == next?.dio.options.baseUrl) {
-      if ((previous == null && next != null) ||
-          (previous != null && next == null)) {
+    if (identical(previous, next) && previous?.dio.options.baseUrl == next?.dio.options.baseUrl) {
+      if ((previous == null && next != null) || (previous != null && next == null)) {
       } else {
         return;
       }

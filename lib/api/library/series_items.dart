@@ -16,6 +16,5 @@ abstract class SeriesItems with _$SeriesItems {
     @JsonKey(name: "filterBy") String? filterBy,
   }) = _SeriesItems;
 
-  factory SeriesItems.fromJson(Map<String, dynamic> json) =>
-      _$SeriesItemsFromJson(json);
+  factory SeriesItems.fromJson(Map<String, dynamic> json) => _$SeriesItemsFromJson(json);
 }

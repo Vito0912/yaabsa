@@ -25,30 +25,19 @@ Stream<User?> currentUser(Ref ref) {
 
   return activeUserIdStream.asyncMap((userId) async {
     if (userId == null) {
-      logger(
-        'Active user ID is null, yielding null User.',
-        tag: 'currentUserProvider',
-      );
+      logger('Active user ID is null, yielding null User.', tag: 'currentUserProvider');
       return null;
     }
-    logger(
-      'Active user ID changed to: $userId. Fetching user.',
-      tag: 'currentUserProvider',
-    );
+    logger('Active user ID changed to: $userId. Fetching user.', tag: 'currentUserProvider');
     final user = await db.getStoredUser(userId);
 
     if (user == null) {
-      logger(
-        'User or user server is null, cannot proceed with server sync.',
-        tag: 'currentUserProvider',
-      );
+      logger('User or user server is null, cannot proceed with server sync.', tag: 'currentUserProvider');
       return user;
     }
 
     ABSApi tmp = ABSApi(
-      dio: Dio(
-        BaseOptions(baseUrl: user.server!.url, headers: user.server!.headers),
-      ),
+      dio: Dio(BaseOptions(baseUrl: user.server!.url, headers: user.server!.headers)),
       basePathOverride: user.server!.url,
     );
 
@@ -59,10 +48,7 @@ Stream<User?> currentUser(Ref ref) {
     try {
       final result = await tmp.getMeApi().checkLogin();
       final serverUser = result.data!.user;
-      logger(
-        'Fetched user from server: ${serverUser.username}. Updating local database.',
-        tag: 'currentUserProvider',
-      );
+      logger('Fetched user from server: ${serverUser.username}. Updating local database.', tag: 'currentUserProvider');
       serverUser.server = user.server; // Preserve local server info
       await db.addOrUpdateStoredUser(serverUser);
       return serverUser; // Return the updated user from server
@@ -80,9 +66,7 @@ Stream<User?> currentUser(Ref ref) {
           level: InfoLevel.warning,
         );
         await db.deleteStoredUser(user.id);
-        await db.setActiveUserId(
-          (await db.watchAllStoredUsers().first).first.id,
-        );
+        await db.setActiveUserId((await db.watchAllStoredUsers().first).first.id);
       }
       return user;
     }
@@ -111,11 +95,7 @@ ABSApi? absApi(Ref ref) {
   }
   token = currentUser.token;
 
-  List<Interceptor> interceptors = [
-    BearerAuthInterceptor(),
-    OAuthInterceptor(),
-    ABSInterceptor(ref),
-  ];
+  List<Interceptor> interceptors = [BearerAuthInterceptor(), OAuthInterceptor(), ABSInterceptor(ref)];
 
   final api = ABSApi(
     dio: Dio(
@@ -131,10 +111,7 @@ ABSApi? absApi(Ref ref) {
   );
 
   if (token != null) {
-    logger(
-      'Setting BearerAuth token for user ${currentUser.username}.',
-      tag: 'absApiProvider',
-    );
+    logger('Setting BearerAuth token for user ${currentUser.username}.', tag: 'absApiProvider');
     api.setBearerAuth('BearerAuth', token);
   }
 

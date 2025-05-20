@@ -10,8 +10,7 @@ abstract class ServerSettings with _$ServerSettings {
     @JsonKey(name: "scannerFindCovers") bool? scannerFindCovers,
     @JsonKey(name: "scannerCoverProvider") String? scannerCoverProvider,
     @JsonKey(name: "scannerParseSubtitle") bool? scannerParseSubtitle,
-    @JsonKey(name: "scannerPreferMatchedMetadata")
-    bool? scannerPreferMatchedMetadata,
+    @JsonKey(name: "scannerPreferMatchedMetadata") bool? scannerPreferMatchedMetadata,
     @JsonKey(name: "scannerDisableWatcher") bool? scannerDisableWatcher,
     @JsonKey(name: "storeCoverWithItem") bool? storeCoverWithItem,
     @JsonKey(name: "storeMetadataWithItem") bool? storeMetadataWithItem,
@@ -34,6 +33,5 @@ abstract class ServerSettings with _$ServerSettings {
     @JsonKey(name: "version") String? version,
   }) = _ServerSettings;
 
-  factory ServerSettings.fromJson(Map<String, dynamic> json) =>
-      _$ServerSettingsFromJson(json);
+  factory ServerSettings.fromJson(Map<String, dynamic> json) => _$ServerSettingsFromJson(json);
 }

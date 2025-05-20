@@ -20,16 +20,11 @@ class LibrarySwitcher extends ConsumerWidget {
           child: DropdownButton<String>(
             value: selectedLibraryId.value,
             onChanged: (String? newLibraryId) async {
-              await ref
-                  .read(selectedLibraryIdProvider.notifier)
-                  .set(newLibraryId);
+              await ref.read(selectedLibraryIdProvider.notifier).set(newLibraryId);
             },
             items:
                 libraries.map<DropdownMenuItem<String>>((library) {
-                  return DropdownMenuItem<String>(
-                    value: library.id,
-                    child: Text(library.name),
-                  );
+                  return DropdownMenuItem<String>(value: library.id, child: Text(library.name));
                 }).toList(),
             hint: const Text('Bibliothek auswählen'),
             isExpanded: true,

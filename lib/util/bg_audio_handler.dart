@@ -39,17 +39,13 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   Stream<Duration> get positionStream {
     return _player.positionStream.map((position) {
-      return (_currentMediaItem?.offsetForTrack(_currentTrackIndex) ??
-              Duration.zero) +
-          position;
+      return (_currentMediaItem?.offsetForTrack(_currentTrackIndex) ?? Duration.zero) + position;
     });
   }
 
   Duration get position {
     final pos = _player.position;
-    return (_currentMediaItem?.offsetForTrack(_currentTrackIndex) ??
-            Duration.zero) +
-        pos;
+    return (_currentMediaItem?.offsetForTrack(_currentTrackIndex) ?? Duration.zero) + pos;
   }
 
   @override
@@ -58,19 +54,22 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
     QueueItem? tmp = queueList.isNotEmpty ? queueList.removeAt(0) : null;
     if (tmp == null) return Future.value();
-    _currentMediaItem = await _ref
-        .read(sessionRepositoryProvider)
-        .openSession(tmp.itemId);
+    _currentMediaItem = await _ref.read(sessionRepositoryProvider).openSession(tmp.itemId);
     if (_currentMediaItem == null) {
-      logger(
-        'No media item found for ID: ${tmp.itemId}',
-        tag: 'AudioHandler',
-        level: InfoLevel.error,
-      );
+      logger('No media item found for ID: ${tmp.itemId}', tag: 'AudioHandler', level: InfoLevel.error);
       return Future.value();
     }
     await _setSource();
     await _player.play();
+  }
+
+  @override
+  Future<void> stop() async {
+    _currentMediaItem = null;
+    _currentTrackIndex = 0;
+    queueList.clear();
+    await _ref.read(sessionRepositoryProvider).closeSession();
+    return _player.stop();
   }
 
   @override
@@ -84,9 +83,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         index: _currentTrackIndex,
       );
     } else {
-      await _player.seek(
-        position - _currentMediaItem!.startDurationForTrack(_currentTrackIndex),
-      );
+      await _player.seek(position - _currentMediaItem!.startDurationForTrack(_currentTrackIndex));
     }
     return Future.value();
   }
@@ -117,12 +114,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   _setSource({Duration initialPosition = Duration.zero}) async {
     if (_currentMediaItem == null) return Future.value();
     final source = _currentMediaItem!.toAudioSources();
-    await player.setAudioSources(
-      source,
-      initialIndex: 0,
-      initialPosition: Duration.zero,
-      preload: true,
-    );
+    await player.setAudioSources(source, initialIndex: 0, initialPosition: Duration.zero, preload: true);
     await _player.play();
   }
 
@@ -130,18 +122,9 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     playbackState.add(
       PlaybackState(
         // Which buttons should appear in the notification now
-        controls: [
-          MediaControl.skipToPrevious,
-          MediaControl.pause,
-          MediaControl.stop,
-          MediaControl.skipToNext,
-        ],
+        controls: [MediaControl.skipToPrevious, MediaControl.pause, MediaControl.stop, MediaControl.skipToNext],
         // Which other actions should be enabled in the notification
-        systemActions: const {
-          MediaAction.seek,
-          MediaAction.seekForward,
-          MediaAction.seekBackward,
-        },
+        systemActions: const {MediaAction.seek, MediaAction.seekForward, MediaAction.seekBackward},
         // Which controls to show in Android's compact view.
         androidCompactActionIndices: const [0, 1, 3],
         // Whether audio is ready, buffering, ...

@@ -14,8 +14,7 @@ class ABSApi {
 
   String? get token {
     if (dio.interceptors.any((i) => i is BearerAuthInterceptor)) {
-      return (dio.interceptors.firstWhere((i) => i is BearerAuthInterceptor)
-              as BearerAuthInterceptor)
+      return (dio.interceptors.firstWhere((i) => i is BearerAuthInterceptor) as BearerAuthInterceptor)
           .tokens['BearerAuth'];
     }
     return null;
@@ -38,28 +37,19 @@ class ABSApi {
     if (interceptors != null) {
       this.dio.interceptors.addAll(interceptors);
     } else {
-      this.dio.interceptors.addAll([
-        OAuthInterceptor(),
-        BearerAuthInterceptor(),
-      ]);
+      this.dio.interceptors.addAll([OAuthInterceptor(), BearerAuthInterceptor()]);
     }
   }
 
   void setOAuthToken(String name, String token) {
     if (dio.interceptors.any((i) => i is OAuthInterceptor)) {
-      (dio.interceptors.firstWhere((i) => i is OAuthInterceptor)
-                  as OAuthInterceptor)
-              .tokens[name] =
-          token;
+      (dio.interceptors.firstWhere((i) => i is OAuthInterceptor) as OAuthInterceptor).tokens[name] = token;
     }
   }
 
   void setBearerAuth(String name, String token) {
     if (dio.interceptors.any((i) => i is BearerAuthInterceptor)) {
-      (dio.interceptors.firstWhere((i) => i is BearerAuthInterceptor)
-                  as BearerAuthInterceptor)
-              .tokens[name] =
-          token;
+      (dio.interceptors.firstWhere((i) => i is BearerAuthInterceptor) as BearerAuthInterceptor).tokens[name] = token;
     }
   }
 
@@ -86,20 +76,12 @@ class ABSApi {
     );
 
     try {
-      final response = await dio.request<Object>(
-        route,
-        data: bodyData,
-        options: options,
-        cancelToken: cancelToken,
-      );
+      final response = await dio.request<Object>(route, data: bodyData, options: options, cancelToken: cancelToken);
       T? responseData;
 
       if (fromJson != null) {
         final rawResponse = response.data;
-        responseData =
-            rawResponse == null
-                ? null
-                : fromJson(rawResponse as Map<String, dynamic>);
+        responseData = rawResponse == null ? null : fromJson(rawResponse as Map<String, dynamic>);
       }
 
       return Response<T>(
@@ -143,9 +125,7 @@ class ABSApi {
       if (key != null && queryParams.containsKey(key)) {
         return queryParams.remove(key).toString();
       } else {
-        throw ArgumentError(
-          "Missing required parameter: $key for route $route",
-        );
+        throw ArgumentError("Missing required parameter: $key for route $route");
       }
     });
 
@@ -155,26 +135,17 @@ class ABSApi {
               queryParameters: Map.fromEntries(
                 queryParams.entries
                     .where((entry) => entry.value != null)
-                    .map(
-                      (entry) => MapEntry(entry.key, entry.value.toString()),
-                    ),
+                    .map((entry) => MapEntry(entry.key, entry.value.toString())),
               ),
             )
             .toString();
 
     try {
-      final response = await dio.request<Object>(
-        uri,
-        options: options,
-        cancelToken: cancelToken,
-      );
+      final response = await dio.request<Object>(uri, options: options, cancelToken: cancelToken);
 
       T? responseData;
       final rawResponse = response.data;
-      responseData =
-          rawResponse == null
-              ? null
-              : fromJson(rawResponse as Map<String, dynamic>);
+      responseData = rawResponse == null ? null : fromJson(rawResponse as Map<String, dynamic>);
 
       return Response<T>(
         data: responseData,
@@ -215,16 +186,9 @@ class ABSApi {
     );
 
     try {
-      final response = await dio.request<Object>(
-        route,
-        options: options,
-        cancelToken: cancelToken,
-        data: data,
-      );
+      final response = await dio.request<Object>(route, options: options, cancelToken: cancelToken, data: data);
 
-      return response.statusCode != null &&
-          response.statusCode! >= 200 &&
-          response.statusCode! < 300;
+      return response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300;
     } catch (error, stackTrace) {
       if (error is DioException && error.response != null) {}
       return false;

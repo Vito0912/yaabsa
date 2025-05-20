@@ -21,6 +21,5 @@ abstract class PodcastMedia with _$PodcastMedia {
     @JsonKey(name: "maxNewEpisodesToDownload") int? maxNewEpisodesToDownload,
   }) = _PodcastMedia;
 
-  factory PodcastMedia.fromJson(Map<String, dynamic> json) =>
-      _$PodcastMediaFromJson(json);
+  factory PodcastMedia.fromJson(Map<String, dynamic> json) => _$PodcastMediaFromJson(json);
 }

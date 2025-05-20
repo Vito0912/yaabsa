@@ -53,51 +53,35 @@ class AppDatabase extends _$AppDatabase {
 
   // --- Global Settings Methods ---
   Stream<GlobalSettingEntry?> watchGlobalSetting(String key) {
-    return (select(globalSettings)
-      ..where((tbl) => tbl.key.equals(key))).watchSingleOrNull();
+    return (select(globalSettings)..where((tbl) => tbl.key.equals(key))).watchSingleOrNull();
   }
 
   Future<void> setGlobalSetting(String key, String value) {
-    final companion = GlobalSettingsCompanion(
-      key: Value(key),
-      value: Value(value),
-    );
+    final companion = GlobalSettingsCompanion(key: Value(key), value: Value(value));
     return into(globalSettings).insert(companion, mode: InsertMode.replace);
   }
 
   Future<GlobalSettingEntry?> getGlobalSetting(String key) {
-    return (select(globalSettings)
-      ..where((tbl) => tbl.key.equals(key))).getSingleOrNull();
+    return (select(globalSettings)..where((tbl) => tbl.key.equals(key))).getSingleOrNull();
   }
 
   // --- User Settings Methods ---
   Stream<UserSettingEntry?> watchUserSetting(String userId, String key) {
-    return (select(userSettings)..where(
-      (tbl) => tbl.userId.equals(userId) & tbl.key.equals(key),
-    )).watchSingleOrNull();
+    return (select(userSettings)..where((tbl) => tbl.userId.equals(userId) & tbl.key.equals(key))).watchSingleOrNull();
   }
 
   Future<void> setUserSetting(String userId, String key, String value) {
-    final companion = UserSettingsCompanion(
-      userId: Value(userId),
-      key: Value(key),
-      value: Value(value),
-    );
+    final companion = UserSettingsCompanion(userId: Value(userId), key: Value(key), value: Value(value));
     return into(userSettings).insert(companion, mode: InsertMode.replace);
   }
 
   Future<UserSettingEntry?> getUserSetting(String userId, String key) {
-    return (select(userSettings)..where(
-      (tbl) => tbl.userId.equals(userId) & tbl.key.equals(key),
-    )).getSingleOrNull();
+    return (select(userSettings)..where((tbl) => tbl.userId.equals(userId) & tbl.key.equals(key))).getSingleOrNull();
   }
 
   // --- Selected Library ID Methods ---
   Stream<String?> watchSelectedLibraryId(String userId) {
-    return watchUserSetting(
-      userId,
-      _selectedLibraryIdKey,
-    ).map((setting) => setting?.value);
+    return watchUserSetting(userId, _selectedLibraryIdKey).map((setting) => setting?.value);
   }
 
   Future<String?> getSelectedLibraryId(String userId) async {
@@ -110,13 +94,9 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Stream<List<User>> watchAllStoredUsers() {
-    print(
-      '[AppDatabase] watchAllStoredUsers() called. Setting up watch on storedUsers table.',
-    );
+    print('[AppDatabase] watchAllStoredUsers() called. Setting up watch on storedUsers table.');
     return select(storedUsers).watch().map((rows) {
-      print(
-        '[AppDatabase] storedUsers stream emitted ${rows.length} StoredUserEntry items.',
-      );
+      print('[AppDatabase] storedUsers stream emitted ${rows.length} StoredUserEntry items.');
       final userList =
           rows
               .map((row) {
@@ -168,19 +148,11 @@ class AppDatabase extends _$AppDatabase {
       id: Value(userToStore.id),
       userDataJson: Value(jsonEncode(userToStore.toJson())),
     );
-    final result = into(
-      storedUsers,
-    ).insert(companion, mode: InsertMode.replace);
+    final result = into(storedUsers).insert(companion, mode: InsertMode.replace);
     result
-        .then(
-          (_) => print(
-            '[AppDatabase] addOrUpdateStoredUser completed successfully for user ID: ${user.id}',
-          ),
-        )
+        .then((_) => print('[AppDatabase] addOrUpdateStoredUser completed successfully for user ID: ${user.id}'))
         .catchError(
-          (e, s) => print(
-            '[AppDatabase] addOrUpdateStoredUser ERROR for user ID: ${user.id}. Error: $e. Stack: $s',
-          ),
+          (e, s) => print('[AppDatabase] addOrUpdateStoredUser ERROR for user ID: ${user.id}. Error: $e. Stack: $s'),
         );
     return result;
   }
@@ -190,9 +162,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<User?> getStoredUser(String userId) async {
-    final row =
-        await (select(storedUsers)
-          ..where((tbl) => tbl.id.equals(userId))).getSingleOrNull();
+    final row = await (select(storedUsers)..where((tbl) => tbl.id.equals(userId))).getSingleOrNull();
     if (row != null) {
       return User.fromJson(jsonDecode(row.userDataJson));
     }
@@ -200,9 +170,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Stream<String?> watchActiveUserId() {
-    return watchGlobalSetting(
-      _activeUserIdKey,
-    ).map((setting) => setting?.value);
+    return watchGlobalSetting(_activeUserIdKey).map((setting) => setting?.value);
   }
 
   Future<String?> getActiveUserId() async {
@@ -211,9 +179,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<void> setActiveUserId(String newActiveUserId) async {
-    print(
-      '[AppDatabase] setActiveUserId called for newActiveUserId: $newActiveUserId',
-    );
+    print('[AppDatabase] setActiveUserId called for newActiveUserId: $newActiveUserId');
     final allCurrentUsers = await select(storedUsers).get();
 
     await batch((b) {
@@ -228,26 +194,18 @@ class AppDatabase extends _$AppDatabase {
           final updatedUser = user.copyWith(isActive: shouldBeActive);
           b.replace(
             storedUsers,
-            StoredUsersCompanion(
-              id: Value(updatedUser.id),
-              userDataJson: Value(jsonEncode(updatedUser.toJson())),
-            ),
+            StoredUsersCompanion(id: Value(updatedUser.id), userDataJson: Value(jsonEncode(updatedUser.toJson()))),
           );
         }
       }
     });
-    print(
-      '[AppDatabase] setActiveUserId: batch update completed for $newActiveUserId.',
-    );
+    print('[AppDatabase] setActiveUserId: batch update completed for $newActiveUserId.');
     await setGlobalSetting(_activeUserIdKey, newActiveUserId);
-    print(
-      '[AppDatabase] setActiveUserId: global setting for active user ID set to $newActiveUserId.',
-    );
+    print('[AppDatabase] setActiveUserId: global setting for active user ID set to $newActiveUserId.');
   }
 
   Future<void> clearActiveUserId() {
-    return (delete(globalSettings)
-      ..where((tbl) => tbl.key.equals(_activeUserIdKey))).go();
+    return (delete(globalSettings)..where((tbl) => tbl.key.equals(_activeUserIdKey))).go();
   }
 }
 

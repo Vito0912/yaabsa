@@ -21,10 +21,7 @@ class SessionRepository {
     final ABSApi? api = ref.read(absApiProvider);
 
     if (api == null) {
-      logger(
-        'No API available, cannot close session.',
-        tag: 'SessionRepository',
-      );
+      logger('No API available, cannot close session.', tag: 'SessionRepository');
       return;
     }
 
@@ -32,11 +29,7 @@ class SessionRepository {
       try {
         await api.getSessionApi().closeOpenSession(_currentSession!.id);
       } catch (e) {
-        logger(
-          'Failed to close session: $e',
-          tag: 'SessionRepository',
-          level: InfoLevel.warning,
-        );
+        logger('Failed to close session: $e', tag: 'SessionRepository', level: InfoLevel.warning);
       }
 
       _currentSession = null;
@@ -49,10 +42,7 @@ class SessionRepository {
     print(api);
 
     if (api == null) {
-      logger(
-        'No API available, cannot open session.',
-        tag: 'SessionRepository',
-      );
+      logger('No API available, cannot open session.', tag: 'SessionRepository');
       return null;
     }
 
@@ -68,31 +58,17 @@ class SessionRepository {
     );
 
     final PlaybackSession? session =
-        (await api.getLibraryItemApi().playLibraryItem(
-          itemId,
-          playRequest: playRequest,
-        )).data;
+        (await api.getLibraryItemApi().playLibraryItem(itemId, playRequest: playRequest)).data;
 
     if (session != null) {
       _currentSession = session;
-      logger(
-        'Session opened successfully: ${session.id}',
-        tag: 'SessionRepository',
-      );
+      logger('Session opened successfully: ${session.id}', tag: 'SessionRepository');
     } else {
-      logger(
-        'Failed to open session for item $itemId',
-        tag: 'SessionRepository',
-        level: InfoLevel.warning,
-      );
+      logger('Failed to open session for item $itemId', tag: 'SessionRepository', level: InfoLevel.warning);
     }
 
     if (_currentSession == null) {
-      logger(
-        'Session is null, cannot create InternalMedia object.',
-        tag: 'SessionRepository',
-        level: InfoLevel.error,
-      );
+      logger('Session is null, cannot create InternalMedia object.', tag: 'SessionRepository', level: InfoLevel.error);
       return null;
     }
 
@@ -103,19 +79,12 @@ class SessionRepository {
       itemId: _currentSession!.libraryItemId,
       episodeId: _currentSession!.episodeId,
       sessionId: _currentSession!.id,
-      title:
-          _currentSession!.displayTitle ?? _currentSession!.libraryItem!.title,
+      title: _currentSession!.displayTitle ?? _currentSession!.libraryItem!.title,
       // cover: _currentSession!.coverPath,
-      chapters:
-          _currentSession!.chapters?.map((e) => e.toInternalChapter()).toList(),
+      chapters: _currentSession!.chapters?.map((e) => e.toInternalChapter()).toList(),
       tracks:
           _currentSession!.audioTracks!
-              .map(
-                (e) => e.toInternalTrack(
-                  api.basePathOverride,
-                  _currentSession!.id,
-                ),
-              )
+              .map((e) => e.toInternalTrack(api.basePathOverride, _currentSession!.id))
               .toList(),
       local: false,
       saf: false,

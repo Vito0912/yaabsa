@@ -10,6 +10,5 @@ abstract class CreateBookmarkRequest with _$CreateBookmarkRequest {
     @JsonKey(name: "title") required String title,
   }) = _CreateBookmarkRequest;
 
-  factory CreateBookmarkRequest.fromJson(Map<String, dynamic> json) =>
-      _$CreateBookmarkRequestFromJson(json);
+  factory CreateBookmarkRequest.fromJson(Map<String, dynamic> json) => _$CreateBookmarkRequestFromJson(json);
 }

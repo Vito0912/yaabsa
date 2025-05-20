@@ -10,6 +10,5 @@ abstract class GenreStats with _$GenreStats {
     @JsonKey(name: "count") required int count,
   }) = _GenreStats;
 
-  factory GenreStats.fromJson(Map<String, dynamic> json) =>
-      _$GenreStatsFromJson(json);
+  factory GenreStats.fromJson(Map<String, dynamic> json) => _$GenreStatsFromJson(json);
 }

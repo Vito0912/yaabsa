@@ -23,6 +23,5 @@ abstract class Library with _$Library {
     @JsonKey(name: "folders") List<LibraryFolder>? folders,
   }) = _Library;
 
-  factory Library.fromJson(Map<String, dynamic> json) =>
-      _$LibraryFromJson(json);
+  factory Library.fromJson(Map<String, dynamic> json) => _$LibraryFromJson(json);
 }

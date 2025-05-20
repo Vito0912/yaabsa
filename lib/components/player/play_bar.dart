@@ -23,24 +23,14 @@ class PlayBar extends HookWidget {
   @override
   Widget build(BuildContext context) {
     // Listen to streams from the audio handler
-    final currentPosition =
-        useStream(audioHandler.positionStream).data ?? Duration.zero;
-    final totalDuration =
-        useStream(audioHandler.durationStream).data ?? Duration.zero;
+    final currentPosition = useStream(audioHandler.positionStream).data ?? Duration.zero;
+    final totalDuration = useStream(audioHandler.durationStream).data ?? Duration.zero;
 
     // State for managing scrubbing behavior
-    final scrubbingPosition = useState<double?>(
-      null,
-    ); // Visual position during scrub in seconds
-    final isScrubbing = useState<bool>(
-      false,
-    ); // True if user is dragging the slider
-    final lastSentSeekTime = useRef<DateTime?>(
-      null,
-    ); // Timestamp of the last sent seek command
-    final onChangeEndDebounceTimer = useRef<Timer?>(
-      null,
-    ); // Timer for debouncing final seek
+    final scrubbingPosition = useState<double?>(null); // Visual position during scrub in seconds
+    final isScrubbing = useState<bool>(false); // True if user is dragging the slider
+    final lastSentSeekTime = useRef<DateTime?>(null); // Timestamp of the last sent seek command
+    final onChangeEndDebounceTimer = useRef<Timer?>(null); // Timer for debouncing final seek
 
     // Determine the value to display on the slider
     double displaySliderValue;
@@ -57,14 +47,11 @@ class PlayBar extends HookWidget {
     final maxSliderValue = totalDuration.inSeconds.toDouble();
 
     // Effect for cleaning up the debounce timer
-    useEffect(
-      () {
-        return () {
-          onChangeEndDebounceTimer.value?.cancel();
-        };
-      },
-      const [],
-    ); // Empty dependency array means this runs once on mount and cleanup on unmount
+    useEffect(() {
+      return () {
+        onChangeEndDebounceTimer.value?.cancel();
+      };
+    }, const []); // Empty dependency array means this runs once on mount and cleanup on unmount
 
     // Function to actually send the seek command
     void _executeSeek(double seconds) {
@@ -114,25 +101,14 @@ class PlayBar extends HookWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Row(
             children: [
-              Text(
-                _formatDuration(displayCurrentTime),
-                style: const TextStyle(color: Colors.black, fontSize: 12),
-              ),
+              Text(_formatDuration(displayCurrentTime), style: const TextStyle(color: Colors.black, fontSize: 12)),
               Expanded(
                 child: Slider(
-                  value: displaySliderValue.clamp(
-                    0.0,
-                    maxSliderValue > 0 ? maxSliderValue : 0.0,
-                  ),
+                  value: displaySliderValue.clamp(0.0, maxSliderValue > 0 ? maxSliderValue : 0.0),
                   min: 0.0,
-                  max:
-                      maxSliderValue > 0
-                          ? maxSliderValue
-                          : 1.0, // Avoid max <= min
+                  max: maxSliderValue > 0 ? maxSliderValue : 1.0, // Avoid max <= min
                   activeColor: Theme.of(context).colorScheme.primary,
-                  inactiveColor: Theme.of(
-                    context,
-                  ).colorScheme.onSurface.withOpacity(0.3),
+                  inactiveColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
                   onChangeStart:
                       maxSliderValue <= 0
                           ? null
@@ -153,8 +129,7 @@ class PlayBar extends HookWidget {
 
                             final now = DateTime.now();
                             if (lastSentSeekTime.value == null ||
-                                now.difference(lastSentSeekTime.value!) >
-                                    const Duration(seconds: 1)) {
+                                now.difference(lastSentSeekTime.value!) > const Duration(seconds: 1)) {
                               _executeSeek(newValue);
                             }
                           },
@@ -163,8 +138,7 @@ class PlayBar extends HookWidget {
                           ? null
                           : (endValue) {
                             onChangeEndDebounceTimer.value?.cancel();
-                            onChangeEndDebounceTimer
-                                .value = Timer(const Duration(milliseconds: 50), () {
+                            onChangeEndDebounceTimer.value = Timer(const Duration(milliseconds: 50), () {
                               _executeSeek(endValue);
                               isScrubbing.value = false;
                               // Optional: Clear scrubbingPosition to snap to player's actual currentPosition.
@@ -176,10 +150,7 @@ class PlayBar extends HookWidget {
                           },
                 ),
               ),
-              Text(
-                _formatDuration(totalDuration),
-                style: const TextStyle(color: Colors.black, fontSize: 12),
-              ),
+              Text(_formatDuration(totalDuration), style: const TextStyle(color: Colors.black, fontSize: 12)),
             ],
           ),
         ),

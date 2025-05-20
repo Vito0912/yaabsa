@@ -15,6 +15,5 @@ abstract class DaysOfWeek with _$DaysOfWeek {
     @JsonKey(name: "Sunday") double? sunday,
   }) = _DaysOfWeek;
 
-  factory DaysOfWeek.fromJson(Map<String, dynamic> json) =>
-      _$DaysOfWeekFromJson(json);
+  factory DaysOfWeek.fromJson(Map<String, dynamic> json) => _$DaysOfWeekFromJson(json);
 }

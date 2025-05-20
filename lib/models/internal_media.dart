@@ -28,18 +28,14 @@ abstract class InternalMedia with _$InternalMedia {
     @JsonKey(name: "saf") required bool saf,
   }) = _InternalMedia;
 
-  factory InternalMedia.fromJson(Map<String, dynamic> json) =>
-      _$InternalMediaFromJson(json);
+  factory InternalMedia.fromJson(Map<String, dynamic> json) => _$InternalMediaFromJson(json);
 
   String get id => episodeId ?? itemId;
 
   MediaItem toMediaItem() {
     return MediaItem(
       id: episodeId ?? itemId,
-      album:
-          (series != null && seriesPosition != null)
-              ? '$series #$seriesPosition'
-              : (series ?? ''),
+      album: (series != null && seriesPosition != null) ? '$series #$seriesPosition' : (series ?? ''),
       title: title,
       artist: author,
       duration: totalDuration,
@@ -78,17 +74,14 @@ abstract class InternalMedia with _$InternalMedia {
     if (index < 0 || index >= tracks.length) {
       throw RangeError('Index out of range: $index');
     }
-    return tracks[index].start != null
-        ? Duration(microseconds: (tracks[index].start! * 1e6).round())
-        : Duration.zero;
+    return tracks[index].start != null ? Duration(microseconds: (tracks[index].start! * 1e6).round()) : Duration.zero;
   }
 
   int getIndexForDuration(Duration duration) {
     double targetDuration = duration.inMicroseconds / 1e6;
     for (int i = 0; i < tracks.length; i++) {
       if (tracks[i].start != null && tracks[i].end != null) {
-        if (targetDuration >= tracks[i].start! &&
-            targetDuration <= tracks[i].end!) {
+        if (targetDuration >= tracks[i].start! && targetDuration <= tracks[i].end!) {
           return i;
         }
       }
@@ -115,8 +108,7 @@ abstract class InternalTrack with _$InternalTrack {
     @JsonKey(name: "end") double? end,
   }) = _InternalTrack;
 
-  factory InternalTrack.fromJson(Map<String, dynamic> json) =>
-      _$InternalTrackFromJson(json);
+  factory InternalTrack.fromJson(Map<String, dynamic> json) => _$InternalTrackFromJson(json);
 }
 
 @freezed
@@ -127,8 +119,7 @@ abstract class InternalChapter with _$InternalChapter {
     @JsonKey(name: "title") required String title,
   }) = _InternalChapter;
 
-  factory InternalChapter.fromJson(Map<String, dynamic> json) =>
-      _$InternalChapterFromJson(json);
+  factory InternalChapter.fromJson(Map<String, dynamic> json) => _$InternalChapterFromJson(json);
 }
 
 @freezed
@@ -138,6 +129,5 @@ abstract class QueueItem with _$QueueItem {
     @JsonKey(name: "episodeId") String? episodeId,
   }) = _QueueItem;
 
-  factory QueueItem.fromJson(Map<String, dynamic> json) =>
-      _$QueueItemFromJson(json);
+  factory QueueItem.fromJson(Map<String, dynamic> json) => _$QueueItemFromJson(json);
 }

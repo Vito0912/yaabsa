@@ -14,15 +14,12 @@ abstract class MediaProgress with _$MediaProgress {
     @JsonKey(name: "libraryItemId") required String libraryItemId,
     @JsonKey(name: "episodeId") required String? episodeId,
     @JsonKey(name: "mediaItemId") required String mediaItemId,
-    @JsonKey(name: "mediaItemType")
-    @MediaItemTypeConverter()
-    required MediaItemType mediaItemType,
+    @JsonKey(name: "mediaItemType") @MediaItemTypeConverter() required MediaItemType mediaItemType,
     @JsonKey(name: "duration") required double duration,
     @JsonKey(name: "progress") required double progress,
     @JsonKey(name: "currentTime") required double currentTime,
     @JsonKey(name: "isFinished") required bool isFinished,
-    @JsonKey(name: "hideFromContinueListening")
-    required bool hideFromContinueListening,
+    @JsonKey(name: "hideFromContinueListening") required bool hideFromContinueListening,
     @JsonKey(name: "ebookLocation") required String? ebookLocation,
     @JsonKey(name: "ebookProgress") required double? ebookProgress,
     @JsonKey(name: "lastUpdate") required int? lastUpdate,
@@ -30,6 +27,5 @@ abstract class MediaProgress with _$MediaProgress {
     @JsonKey(name: "finishedAt") required int? finishedAt,
   }) = _MediaProgress;
 
-  factory MediaProgress.fromJson(Map<String, dynamic> json) =>
-      _$MediaProgressFromJson(json);
+  factory MediaProgress.fromJson(Map<String, dynamic> json) => _$MediaProgressFromJson(json);
 }

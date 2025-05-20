@@ -18,6 +18,5 @@ abstract class Server with _$Server {
   factory Server.fromJson(Map<String, dynamic> json) => _$ServerFromJson(json);
 
   // Full URL to the server
-  String get url =>
-      'http${ssl ? 's' : ''}://$host:$port${subdirectory != null ? '/$subdirectory' : ''}';
+  String get url => 'http${ssl ? 's' : ''}://$host:$port${subdirectory != null ? '/$subdirectory' : ''}';
 }

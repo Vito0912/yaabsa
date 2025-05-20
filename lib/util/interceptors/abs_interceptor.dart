@@ -20,9 +20,7 @@ class ABSInterceptor extends Interceptor {
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
-    if (response.statusCode != null &&
-        response.statusCode! >= 200 &&
-        response.statusCode! < 300) {
+    if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
       // ref.read(connectionProvider.notifier).setServerState(true);
     }
     return handler.next(response);
@@ -30,11 +28,7 @@ class ABSInterceptor extends Interceptor {
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    logger(
-      'Request: ${options.uri.toString()}',
-      tag: 'ABSInterceptor',
-      level: InfoLevel.debug,
-    );
+    logger('Request: ${options.uri.toString()}', tag: 'ABSInterceptor', level: InfoLevel.debug);
     return handler.next(options);
   }
 }

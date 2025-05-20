@@ -11,6 +11,5 @@ abstract class LibraryItemSizeStats with _$LibraryItemSizeStats {
     @JsonKey(name: "title") required String title,
   }) = _LibraryItemSizeStats;
 
-  factory LibraryItemSizeStats.fromJson(Map<String, dynamic> json) =>
-      _$LibraryItemSizeStatsFromJson(json);
+  factory LibraryItemSizeStats.fromJson(Map<String, dynamic> json) => _$LibraryItemSizeStatsFromJson(json);
 }

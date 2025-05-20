@@ -21,8 +21,7 @@ abstract class LibraryItems with _$LibraryItems {
     @JsonKey(name: "offset") int? offset,
   }) = _LibraryItems;
 
-  factory LibraryItems.fromJson(Map<String, dynamic> json) =>
-      _$LibraryItemsFromJson(json);
+  factory LibraryItems.fromJson(Map<String, dynamic> json) => _$LibraryItemsFromJson(json);
 }
 
 enum MediaType {

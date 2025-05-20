@@ -18,8 +18,7 @@ abstract class User with _$User {
     @JsonKey(name: "type") required String type,
     @JsonKey(name: "token") required String? token,
     @JsonKey(name: "mediaProgress") List<MediaProgress>? mediaProgress,
-    @JsonKey(name: "seriesHideFromContinueListening")
-    List<String>? seriesHideFromContinueListening,
+    @JsonKey(name: "seriesHideFromContinueListening") List<String>? seriesHideFromContinueListening,
     @JsonKey(name: "bookmarks") List<Bookmark>? bookmarks,
     @JsonKey(name: "isActive") bool? isActive,
     @JsonKey(name: "isLocked") bool? isLocked,

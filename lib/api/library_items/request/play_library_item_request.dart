@@ -10,12 +10,9 @@ abstract class PlayLibraryItemRequest with _$PlayLibraryItemRequest {
     @JsonKey(name: "deviceInfo") required DeviceInfo deviceInfo,
     @JsonKey(name: "forceDirectPlay") @Default(false) bool? forceDirectPlay,
     @JsonKey(name: "forceTranscode") @Default(false) bool? forceTranscode,
-    @JsonKey(name: "supportedMimeTypes")
-    @Default([])
-    List<String>? supportedMimeTypes,
+    @JsonKey(name: "supportedMimeTypes") @Default([]) List<String>? supportedMimeTypes,
     @JsonKey(name: "mediaPlayer") required String mediaPlayer,
   }) = _PlayLibraryItemRequest;
 
-  factory PlayLibraryItemRequest.fromJson(Map<String, dynamic> json) =>
-      _$PlayLibraryItemRequestFromJson(json);
+  factory PlayLibraryItemRequest.fromJson(Map<String, dynamic> json) => _$PlayLibraryItemRequestFromJson(json);
 }

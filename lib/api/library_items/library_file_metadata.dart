@@ -16,6 +16,5 @@ abstract class LibraryFileMetadata with _$LibraryFileMetadata {
     @JsonKey(name: "birthtimeMs") required int birthtimeMs,
   }) = _LibraryFileMetadata;
 
-  factory LibraryFileMetadata.fromJson(Map<String, dynamic> json) =>
-      _$LibraryFileMetadataFromJson(json);
+  factory LibraryFileMetadata.fromJson(Map<String, dynamic> json) => _$LibraryFileMetadataFromJson(json);
 }

@@ -6,10 +6,8 @@ part 'collection_response.g.dart';
 
 @freezed
 abstract class CollectionResponse with _$CollectionResponse {
-  const factory CollectionResponse({
-    @JsonKey(name: "collections") required List<Collection> items,
-  }) = _CollectionResponse;
+  const factory CollectionResponse({@JsonKey(name: "collections") required List<Collection> items}) =
+      _CollectionResponse;
 
-  factory CollectionResponse.fromJson(Map<String, dynamic> json) =>
-      _$CollectionResponseFromJson(json);
+  factory CollectionResponse.fromJson(Map<String, dynamic> json) => _$CollectionResponseFromJson(json);
 }

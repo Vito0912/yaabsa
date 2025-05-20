@@ -28,18 +28,11 @@ abstract class LibraryItemState with _$LibraryItemState {
   }) = _LibraryItemState;
 }
 
-const defaultLibraryItemsRequest = LibraryItemsRequest(
-  limit: _itemsPerPage,
-  page: 0,
-);
+const defaultLibraryItemsRequest = LibraryItemsRequest(limit: _itemsPerPage, page: 0);
 
 @riverpod
 class LibraryItemNotifier extends _$LibraryItemNotifier {
-  LibraryItemsRequest _constructRequest(
-    String libraryId,
-    int page, {
-    LibraryItemState? S,
-  }) {
+  LibraryItemsRequest _constructRequest(String libraryId, int page, {LibraryItemState? S}) {
     final stateForParams = S ?? state.valueOrNull;
     return LibraryItemsRequest(
       limit: _itemsPerPage,
@@ -78,10 +71,7 @@ class LibraryItemNotifier extends _$LibraryItemNotifier {
     );
 
     try {
-      final response = await absApi.getLibraryApi().getLibraryItems(
-        libraryId,
-        request,
-      );
+      final response = await absApi.getLibraryApi().getLibraryItems(libraryId, request);
       final data = response.data;
       if (data == null) {
         throw Exception('No data received from API');
@@ -91,10 +81,7 @@ class LibraryItemNotifier extends _$LibraryItemNotifier {
       final List<LibraryItem> newItems =
           page == 0
               ? List<LibraryItem>.from(data.results)
-              : <LibraryItem>[
-                ...(currentVal?.items ?? <LibraryItem>[]),
-                ...data.results,
-              ];
+              : <LibraryItem>[...(currentVal?.items ?? <LibraryItem>[]), ...data.results];
 
       return LibraryItemState(
         items: newItems,
@@ -157,13 +144,7 @@ class LibraryItemNotifier extends _$LibraryItemNotifier {
       );
       state = AsyncData(nextPageData);
     } catch (e, s) {
-      state = AsyncData(
-        currentState.copyWith(
-          isLoadingNextPage: false,
-          error: e,
-          stackTrace: s,
-        ),
-      );
+      state = AsyncData(currentState.copyWith(isLoadingNextPage: false, error: e, stackTrace: s));
     }
   }
 
@@ -182,10 +163,8 @@ class LibraryItemNotifier extends _$LibraryItemNotifier {
 
     final newSort = sort ?? currentLoadedState.sort;
     final newDesc = desc ?? currentLoadedState.desc;
-    final newFilter =
-        clearFilter ? null : (filter ?? currentLoadedState.filter);
-    final newCollapseSeries =
-        collapseseries ?? currentLoadedState.collapseseries;
+    final newFilter = clearFilter ? null : (filter ?? currentLoadedState.filter);
+    final newCollapseSeries = collapseseries ?? currentLoadedState.collapseseries;
     final newInclude = include ?? currentLoadedState.include;
 
     state = AsyncLoading<LibraryItemState>().copyWithPrevious(state);

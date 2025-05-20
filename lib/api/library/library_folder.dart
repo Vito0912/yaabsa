@@ -12,6 +12,5 @@ abstract class LibraryFolder with _$LibraryFolder {
     @JsonKey(name: "addedAt") int? addedAt,
   }) = _LibraryFolder;
 
-  factory LibraryFolder.fromJson(Map<String, dynamic> json) =>
-      _$LibraryFolderFromJson(json);
+  factory LibraryFolder.fromJson(Map<String, dynamic> json) => _$LibraryFolderFromJson(json);
 }

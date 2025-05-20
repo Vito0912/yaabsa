@@ -12,9 +12,7 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
   MeApi _getMeApiOrThrow() {
     final absApi = ref.watch(absApiProvider);
     if (absApi == null) {
-      throw Exception(
-        'User not authenticated or ABS API not available for MediaProgressNotifier.',
-      );
+      throw Exception('User not authenticated or ABS API not available for MediaProgressNotifier.');
     }
     return absApi.getMeApi();
   }
@@ -37,19 +35,13 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
       }
       return _listToMap(user.mediaProgress);
     } catch (e, s) {
-      logger(
-        'Error refreshing all media progress: $e\n$s',
-        tag: 'MediaProgressProvider',
-        level: InfoLevel.error,
-      );
+      logger('Error refreshing all media progress: $e\n$s', tag: 'MediaProgressProvider', level: InfoLevel.error);
       throw Exception('Failed to load initial media progress: $e');
     }
   }
 
   Future<void> refreshAllProgress() async {
-    state = const AsyncLoading<Map<String, MediaProgress>>().copyWithPrevious(
-      state,
-    );
+    state = const AsyncLoading<Map<String, MediaProgress>>().copyWithPrevious(state);
     try {
       final meApi = _getMeApiOrThrow();
       final userResponse = await meApi.getUser();
@@ -59,21 +51,12 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
       }
       state = AsyncData(_listToMap(user.mediaProgress));
     } catch (e, s) {
-      logger(
-        'Error refreshing all media progress: $e\n$s',
-        tag: 'MediaProgressProvider',
-        level: InfoLevel.error,
-      );
-      state = AsyncError<Map<String, MediaProgress>>(
-        e,
-        s,
-      ).copyWithPrevious(state);
+      logger('Error refreshing all media progress: $e\n$s', tag: 'MediaProgressProvider', level: InfoLevel.error);
+      state = AsyncError<Map<String, MediaProgress>>(e, s).copyWithPrevious(state);
     }
   }
 
-  Future<MediaProgress?> fetchOrRefreshIndividualProgress(
-    String libraryItemId,
-  ) async {
+  Future<MediaProgress?> fetchOrRefreshIndividualProgress(String libraryItemId) async {
     try {
       final meApi = _getMeApiOrThrow();
       final response = await meApi.getProgress(libraryItemId);
@@ -81,10 +64,7 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
 
       if (newProgress != null) {
         final currentMap = state.valueOrNull ?? {};
-        final updatedMap = {
-          ...currentMap,
-          newProgress.libraryItemId: newProgress,
-        };
+        final updatedMap = {...currentMap, newProgress.libraryItemId: newProgress};
         state = AsyncData(updatedMap);
         return newProgress;
       } else {
@@ -121,19 +101,11 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
     }
   }
 
-  Future<void> updateMediaProgress(
-    String libraryItemId,
-    MediaProgress mediaProgress,
-  ) async {
-    state = const AsyncLoading<Map<String, MediaProgress>>().copyWithPrevious(
-      state,
-    );
+  Future<void> updateMediaProgress(String libraryItemId, MediaProgress mediaProgress) async {
+    state = const AsyncLoading<Map<String, MediaProgress>>().copyWithPrevious(state);
     try {
       final currentMap = state.valueOrNull ?? {};
-      final updatedMap = {
-        ...currentMap,
-        mediaProgress.libraryItemId: mediaProgress,
-      };
+      final updatedMap = {...currentMap, mediaProgress.libraryItemId: mediaProgress};
       state = AsyncData(updatedMap);
     } catch (e, s) {
       logger(
@@ -141,10 +113,7 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
         tag: 'MediaProgressProvider',
         level: InfoLevel.error,
       );
-      state = AsyncError<Map<String, MediaProgress>>(
-        e,
-        s,
-      ).copyWithPrevious(state);
+      state = AsyncError<Map<String, MediaProgress>>(e, s).copyWithPrevious(state);
     }
   }
 }

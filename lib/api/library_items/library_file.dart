@@ -15,6 +15,5 @@ abstract class LibraryFile with _$LibraryFile {
     @JsonKey(name: "fileType") String? fileType,
   }) = _LibraryFile;
 
-  factory LibraryFile.fromJson(Map<String, dynamic> json) =>
-      _$LibraryFileFromJson(json);
+  factory LibraryFile.fromJson(Map<String, dynamic> json) => _$LibraryFileFromJson(json);
 }

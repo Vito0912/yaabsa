@@ -35,13 +35,11 @@ abstract class LibraryItem with _$LibraryItem {
     @JsonKey(name: "collapsedSeries") CollapsedSeries? collapsedSeries,
   }) = _LibraryItem;
 
-  factory LibraryItem.fromJson(Map<String, dynamic> json) =>
-      _$LibraryItemFromJson(json);
+  factory LibraryItem.fromJson(Map<String, dynamic> json) => _$LibraryItemFromJson(json);
 
   // QoL
   String get title {
-    return (media?.bookMedia?.metadata.title ??
-        media?.podcastMedia?.metadata.title)!;
+    return (media?.bookMedia?.metadata.title ?? media?.podcastMedia?.metadata.title)!;
   }
 
   String? get subtitle {
