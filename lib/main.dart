@@ -14,6 +14,7 @@ import 'components/player/play_bar.dart' show PlayBar;
 void main() async {
   Init.initLogger();
   audioHandler = await Init.initAudioHandler();
+  await Init.globals();
 
   runZonedGuarded(
     () {

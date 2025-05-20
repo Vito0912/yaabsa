@@ -82,8 +82,8 @@ as String,
 /// @nodoc
 @JsonSerializable()
 
-class _Chapter implements Chapter {
-  const _Chapter({@JsonKey(name: "id") required this.id, @JsonKey(name: "start") required this.start, @JsonKey(name: "end") required this.end, @JsonKey(name: "title") required this.title});
+class _Chapter extends Chapter {
+  const _Chapter({@JsonKey(name: "id") required this.id, @JsonKey(name: "start") required this.start, @JsonKey(name: "end") required this.end, @JsonKey(name: "title") required this.title}): super._();
   factory _Chapter.fromJson(Map<String, dynamic> json) => _$ChapterFromJson(json);
 
 @override@JsonKey(name: "id") final  int id;

@@ -2,6 +2,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:buchshelfly/util/bg_audio_handler.dart';
 import 'package:buchshelfly/util/globals.dart';
 import 'package:flutter/material.dart';
+import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import 'logger.dart';
@@ -33,6 +34,7 @@ class Init {
         preloadArtwork: true,
       ),
     );
+    JustAudioMediaKit.ensureInitialized(linux: true, windows: true);
     logger('AudioHandler initialized', tag: 'Init', level: InfoLevel.info);
     return _audioHandler!;
   }

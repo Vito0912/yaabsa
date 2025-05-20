@@ -47,6 +47,7 @@ dependencies:
   just_audio_media_kit: ^2.1.0
 
   ## Windows
+  media_kit_libs_windows_audio: any
 
   ## Linux
 

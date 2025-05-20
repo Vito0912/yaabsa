@@ -46,6 +46,8 @@ class SessionRepository {
   Future<InternalMedia?> openSession(String itemId) async {
     final ABSApi? api = ref.read(absApiProvider);
 
+    print(api);
+
     if (api == null) {
       logger(
         'No API available, cannot open session.',
@@ -118,6 +120,7 @@ class SessionRepository {
       local: false,
       saf: false,
     );
+    internalMedia.populateFields();
 
     return internalMedia;
   }

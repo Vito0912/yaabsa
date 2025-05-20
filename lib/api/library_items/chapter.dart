@@ -6,6 +6,8 @@ part 'chapter.g.dart';
 
 @freezed
 abstract class Chapter with _$Chapter {
+  const Chapter._();
+
   const factory Chapter({
     @JsonKey(name: "id") required int id,
     @JsonKey(name: "start") required double start,
