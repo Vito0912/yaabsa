@@ -11,11 +11,7 @@ class NavigationItemConfig {
   final String label;
   final Widget page;
 
-  NavigationItemConfig({
-    required this.icon,
-    required this.label,
-    required this.page,
-  });
+  NavigationItemConfig({required this.icon, required this.label, required this.page});
 }
 
 class PlaceholderPage extends StatelessWidget {
@@ -27,11 +23,7 @@ class PlaceholderPage extends StatelessWidget {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Text(
-          title,
-          style: Theme.of(context).textTheme.headlineMedium,
-          textAlign: TextAlign.center,
-        ),
+        child: Text(title, style: Theme.of(context).textTheme.headlineMedium, textAlign: TextAlign.center),
       ),
     );
   }
@@ -57,16 +49,8 @@ class _LayoutHomeState extends State<LayoutHome> {
   void initState() {
     super.initState();
     _appBarItems = [
-      NavigationItemConfig(
-        icon: Icons.home,
-        label: "Shelf",
-        page: const HomeScreen(),
-      ),
-      NavigationItemConfig(
-        icon: Icons.collections_bookmark_outlined,
-        label: "Library",
-        page: const LibraryView(),
-      ),
+      NavigationItemConfig(icon: Icons.home, label: "Shelf", page: const HomeScreen()),
+      NavigationItemConfig(icon: Icons.collections_bookmark_outlined, label: "Library", page: const LibraryView()),
       NavigationItemConfig(
         icon: Icons.search,
         label: "Search",
@@ -114,9 +98,7 @@ class _LayoutHomeState extends State<LayoutHome> {
   }
 
   void _handleAdvancedItemTap(BuildContext context, String itemName) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('Tapped on $itemName')));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Tapped on $itemName')));
   }
 
   Widget _buildSidebarItem(
@@ -142,10 +124,7 @@ class _LayoutHomeState extends State<LayoutHome> {
           onTap: onTap,
           dense: true,
           selectedTileColor: selectedColor.withOpacity(0.1),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 24,
-            vertical: 8,
-          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
         ),
       );
     } else {
@@ -185,12 +164,7 @@ class _LayoutHomeState extends State<LayoutHome> {
             value: item.label,
             child: Row(
               children: [
-                Icon(
-                  item.icon,
-                  color:
-                      Theme.of(context).iconTheme.color ??
-                      Theme.of(context).colorScheme.onSurface,
-                ),
+                Icon(item.icon, color: Theme.of(context).iconTheme.color ?? Theme.of(context).colorScheme.onSurface),
                 const SizedBox(width: 12),
                 Text(item.label),
               ],
@@ -251,10 +225,7 @@ class _LayoutHomeState extends State<LayoutHome> {
                         children: [
                           Icon(
                             item.icon,
-                            color:
-                                isSelected
-                                    ? colorScheme.primary
-                                    : colorScheme.onSurfaceVariant,
+                            color: isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
                             size: isSelected ? 26 : 22,
                           ),
                           const SizedBox(height: 4),
@@ -262,14 +233,8 @@ class _LayoutHomeState extends State<LayoutHome> {
                             item.label,
                             style: TextStyle(
                               fontSize: 10,
-                              color:
-                                  isSelected
-                                      ? colorScheme.primary
-                                      : colorScheme.onSurfaceVariant,
-                              fontWeight:
-                                  isSelected
-                                      ? FontWeight.w600
-                                      : FontWeight.normal,
+                              color: isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
+                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -287,7 +252,7 @@ class _LayoutHomeState extends State<LayoutHome> {
     );
   }
 
-  Widget _appBar(BuildContext context) {
+  Widget _appBar(BuildContext context, bool isMobile) {
     return SafeArea(
       top: true,
       bottom: false,
@@ -298,7 +263,7 @@ class _LayoutHomeState extends State<LayoutHome> {
           const SizedBox(width: 16),
           UserSwitcher(),
           const Spacer(),
-          _buildAdvancedMenuButton(context),
+          if (isMobile) _buildAdvancedMenuButton(context),
           const SizedBox(width: 8),
         ],
       ),
@@ -314,8 +279,7 @@ class _LayoutHomeState extends State<LayoutHome> {
         final bool isDesktop = screenWidth >= 1200;
 
         Widget currentContent;
-        if (_currentlyDisplayedPageSource == _PageSource.child &&
-            widget.child != null) {
+        if (_currentlyDisplayedPageSource == _PageSource.child && widget.child != null) {
           currentContent = widget.child!;
         } else {
           currentContent = _appBarItems[_selectedIndex].page;
@@ -325,23 +289,14 @@ class _LayoutHomeState extends State<LayoutHome> {
           return Scaffold(
             body: Stack(
               children: [
-                Column(
-                  children: [_appBar(context), Expanded(child: currentContent)],
-                ),
+                Column(children: [_appBar(context, true), Expanded(child: currentContent)]),
                 Column(
                   children: [
                     Expanded(
                       child: SafeArea(
                         child: Padding(
-                          padding: const EdgeInsets.only(
-                            bottom: 24,
-                            right: 12,
-                            left: 12,
-                          ),
-                          child: Align(
-                            alignment: Alignment.bottomCenter,
-                            child: _buildMobileNavBar(context),
-                          ),
+                          padding: const EdgeInsets.only(bottom: 24, right: 12, left: 12),
+                          child: Align(alignment: Alignment.bottomCenter, child: _buildMobileNavBar(context)),
                         ),
                       ),
                     ),
@@ -388,11 +343,7 @@ class _LayoutHomeState extends State<LayoutHome> {
                               isSelected: false,
                               isDesktopOrTablet: true,
                               isDesktop: isDesktop,
-                              onTap:
-                                  () => _handleAdvancedItemTap(
-                                    context,
-                                    item.label,
-                                  ),
+                              onTap: () => _handleAdvancedItemTap(context, item.label),
                             );
                           }).toList(),
                     ),
@@ -405,19 +356,12 @@ class _LayoutHomeState extends State<LayoutHome> {
           return Scaffold(
             body: Column(
               children: [
-                SafeArea(child: _appBar(context)),
+                SafeArea(child: _appBar(context, false)),
                 Expanded(
                   child: Row(
                     children: [
                       sidebar,
-                      Expanded(
-                        child: Column(
-                          children: [
-                            Expanded(child: currentContent),
-                            PlayBar(),
-                          ],
-                        ),
-                      ),
+                      Expanded(child: Column(children: [Expanded(child: currentContent), PlayBar()])),
                     ],
                   ),
                 ),

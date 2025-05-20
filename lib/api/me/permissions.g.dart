@@ -16,13 +16,12 @@ _Permissions _$PermissionsFromJson(Map<String, dynamic> json) => _Permissions(
   accessExplicitContent: json['accessExplicitContent'] as bool,
 );
 
-Map<String, dynamic> _$PermissionsToJson(_Permissions instance) =>
-    <String, dynamic>{
-      'download': instance.download,
-      'update': instance.update,
-      'delete': instance.delete,
-      'upload': instance.upload,
-      'accessAllLibraries': instance.accessAllLibraries,
-      'accessAllTags': instance.accessAllTags,
-      'accessExplicitContent': instance.accessExplicitContent,
-    };
+Map<String, dynamic> _$PermissionsToJson(_Permissions instance) => <String, dynamic>{
+  'download': instance.download,
+  'update': instance.update,
+  'delete': instance.delete,
+  'upload': instance.upload,
+  'accessAllLibraries': instance.accessAllLibraries,
+  'accessAllTags': instance.accessAllTags,
+  'accessExplicitContent': instance.accessExplicitContent,
+};

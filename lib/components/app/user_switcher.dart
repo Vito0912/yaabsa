@@ -11,12 +11,7 @@ const String _addNewUserValue = '__ADD_NEW_USER__';
 class UserSwitcher extends ConsumerWidget {
   const UserSwitcher({super.key});
 
-  void _onMenuItemSelected(
-    String value,
-    WidgetRef ref,
-    User? currentUser,
-    BuildContext context,
-  ) async {
+  void _onMenuItemSelected(String value, WidgetRef ref, User? currentUser, BuildContext context) async {
     if (value == _addNewUserValue) {
       context.go('/add-user');
     } else {
@@ -26,11 +21,7 @@ class UserSwitcher extends ConsumerWidget {
     }
   }
 
-  List<PopupMenuEntry<String>> _buildMenuItems(
-    BuildContext context,
-    List<User> allUsers,
-    User? currentUser,
-  ) {
+  List<PopupMenuEntry<String>> _buildMenuItems(BuildContext context, List<User> allUsers, User? currentUser) {
     final List<PopupMenuEntry<String>> items = [];
 
     for (final user in allUsers) {
@@ -40,10 +31,7 @@ class UserSwitcher extends ConsumerWidget {
           child: Text(
             user.username,
             style: TextStyle(
-              fontWeight:
-                  user.id == currentUser?.id
-                      ? FontWeight.bold
-                      : FontWeight.normal,
+              fontWeight: user.id == currentUser?.id ? FontWeight.bold : FontWeight.normal,
               color:
                   user.id == currentUser?.id
                       ? Theme.of(context).colorScheme.primary
@@ -62,11 +50,7 @@ class UserSwitcher extends ConsumerWidget {
       const PopupMenuItem<String>(
         value: _addNewUserValue,
         child: Row(
-          children: [
-            Icon(Icons.add_circle_outline_rounded, size: 20),
-            SizedBox(width: 8),
-            Text('Add New User'),
-          ],
+          children: [Icon(Icons.add_circle_outline_rounded, size: 20), SizedBox(width: 8), Text('Add New User')],
         ),
       ),
     );
@@ -83,14 +67,8 @@ class UserSwitcher extends ConsumerWidget {
         radius: avatarRadius,
         backgroundColor: Theme.of(context).primaryColor,
         child: Text(
-          currentUser.username.isNotEmpty
-              ? currentUser.username[0].toUpperCase()
-              : 'U',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: avatarFontSize,
-            fontWeight: FontWeight.bold,
-          ),
+          currentUser.username.isNotEmpty ? currentUser.username[0].toUpperCase() : 'U',
+          style: TextStyle(color: Colors.white, fontSize: avatarFontSize, fontWeight: FontWeight.bold),
         ),
       );
     } else {
@@ -106,31 +84,18 @@ class UserSwitcher extends ConsumerWidget {
     }
   }
 
-  Widget _buildMobile(
-    BuildContext context,
-    WidgetRef ref,
-    User? currentUser,
-    List<User> allUsers,
-  ) {
+  Widget _buildMobile(BuildContext context, WidgetRef ref, User? currentUser, List<User> allUsers) {
     return PopupMenuButton<String>(
       tooltip: 'Switch or Add User',
       offset: const Offset(0, 45),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-      onSelected:
-          (value) => _onMenuItemSelected(value, ref, currentUser, context),
+      onSelected: (value) => _onMenuItemSelected(value, ref, currentUser, context),
       itemBuilder: (ctx) => _buildMenuItems(ctx, allUsers, currentUser),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: _buildMobilePopupChild(context, currentUser),
-      ),
+      child: Padding(padding: const EdgeInsets.all(8.0), child: _buildMobilePopupChild(context, currentUser)),
     );
   }
 
-  Widget _buildTabletDesktopPopupChild(
-    BuildContext context,
-    User? currentUser, {
-    required bool isTablet,
-  }) {
+  Widget _buildTabletDesktopPopupChild(BuildContext context, User? currentUser, {required bool isTablet}) {
     final double horizontalPadding = isTablet ? 16.0 : 18.0;
     final double verticalPadding = isTablet ? 10.0 : 12.0;
     final double borderRadius = isTablet ? 16.0 : 10.0;
@@ -152,14 +117,8 @@ class UserSwitcher extends ConsumerWidget {
             radius: avatarRadius,
             backgroundColor: Theme.of(context).primaryColor,
             child: Text(
-              currentUser.username.isNotEmpty
-                  ? currentUser.username[0].toUpperCase()
-                  : 'U',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: avatarFontSize,
-                fontWeight: FontWeight.w500,
-              ),
+              currentUser.username.isNotEmpty ? currentUser.username[0].toUpperCase() : 'U',
+              style: TextStyle(color: Colors.white, fontSize: avatarFontSize, fontWeight: FontWeight.w500),
             ),
           ),
           SizedBox(width: spacingAfterAvatar),
@@ -178,9 +137,7 @@ class UserSwitcher extends ConsumerWidget {
           Icon(
             Icons.arrow_drop_down_rounded,
             size: dropdownIconSize,
-            color: Theme.of(
-              context,
-            ).colorScheme.onSurfaceVariant.withOpacity(0.7),
+            color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.7),
           ),
         ],
       );
@@ -188,11 +145,7 @@ class UserSwitcher extends ConsumerWidget {
       content = Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.people_alt_outlined,
-            size: avatarRadius * 1.2,
-            color: Theme.of(context).colorScheme.primary,
-          ),
+          Icon(Icons.people_alt_outlined, size: avatarRadius * 1.2, color: Theme.of(context).colorScheme.primary),
           SizedBox(width: spacingAfterAvatar),
           Text(
             'Manage Users',
@@ -206,9 +159,7 @@ class UserSwitcher extends ConsumerWidget {
           Icon(
             Icons.arrow_drop_down_rounded,
             size: dropdownIconSize,
-            color: Theme.of(
-              context,
-            ).colorScheme.onSurfaceVariant.withOpacity(0.7),
+            color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.7),
           ),
         ],
       );
@@ -220,28 +171,15 @@ class UserSwitcher extends ConsumerWidget {
         borderRadius: BorderRadius.circular(borderRadius),
         onTap: null,
         child: Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: horizontalPadding,
-            vertical: verticalPadding,
-          ),
+          padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: verticalPadding),
           decoration: BoxDecoration(
-            color:
-                Theme.of(context).chipTheme.backgroundColor ??
-                Theme.of(context).colorScheme.surfaceContainerHighest,
+            color: Theme.of(context).chipTheme.backgroundColor ?? Theme.of(context).colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(borderRadius),
             border: Border.all(
-              color:
-                  Theme.of(context).chipTheme.secondarySelectedColor ??
-                  Theme.of(context).colorScheme.outlineVariant,
+              color: Theme.of(context).chipTheme.secondarySelectedColor ?? Theme.of(context).colorScheme.outlineVariant,
               width: 1.0,
             ),
-            boxShadow: const [
-              BoxShadow(
-                color: Colors.black12,
-                blurRadius: 3.0,
-                offset: Offset(0, 2),
-              ),
-            ],
+            boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 3.0, offset: Offset(0, 2))],
           ),
           child: content,
         ),
@@ -259,17 +197,10 @@ class UserSwitcher extends ConsumerWidget {
     return PopupMenuButton<String>(
       tooltip: 'Switch or Add User',
       offset: const Offset(0, 55),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(isTablet ? 16.0 : 10.0),
-      ),
-      onSelected:
-          (value) => _onMenuItemSelected(value, ref, currentUser, context),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(isTablet ? 16.0 : 10.0)),
+      onSelected: (value) => _onMenuItemSelected(value, ref, currentUser, context),
       itemBuilder: (ctx) => _buildMenuItems(ctx, allUsers, currentUser),
-      child: _buildTabletDesktopPopupChild(
-        context,
-        currentUser,
-        isTablet: isTablet,
-      ),
+      child: _buildTabletDesktopPopupChild(context, currentUser, isTablet: isTablet),
     );
   }
 
@@ -283,36 +214,17 @@ class UserSwitcher extends ConsumerWidget {
         return allUsersAsync.when(
           data: (allUsers) {
             return PlatformBuilder(
-              mobileBuilder:
-                  (ctx) => _buildMobile(ctx, ref, currentUser, allUsers),
-              tabletBuilder:
-                  (ctx) => _buildTabletOrDesktop(
-                    ctx,
-                    ref,
-                    currentUser,
-                    allUsers,
-                    isTablet: true,
-                  ),
-              desktopBuilder:
-                  (ctx) => _buildTabletOrDesktop(
-                    ctx,
-                    ref,
-                    currentUser,
-                    allUsers,
-                    isTablet: false,
-                  ),
+              mobileBuilder: (ctx) => _buildMobile(ctx, ref, currentUser, allUsers),
+              tabletBuilder: (ctx) => _buildTabletOrDesktop(ctx, ref, currentUser, allUsers, isTablet: true),
+              desktopBuilder: (ctx) => _buildTabletOrDesktop(ctx, ref, currentUser, allUsers, isTablet: false),
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error:
-              (error, stack) =>
-                  Center(child: Text('Error loading users: $error')),
+          error: (error, stack) => Center(child: Text('Error loading users: $error')),
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error:
-          (error, stack) =>
-              Center(child: Text('Error loading current user: $error')),
+      error: (error, stack) => Center(child: Text('Error loading current user: $error')),
     );
   }
 }

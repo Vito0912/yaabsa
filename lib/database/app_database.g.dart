@@ -3,8 +3,7 @@
 part of 'app_database.dart';
 
 // ignore_for_file: type=lint
-class $GlobalSettingsTable extends GlobalSettings
-    with TableInfo<$GlobalSettingsTable, GlobalSettingEntry> {
+class $GlobalSettingsTable extends GlobalSettings with TableInfo<$GlobalSettingsTable, GlobalSettingEntry> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -35,25 +34,16 @@ class $GlobalSettingsTable extends GlobalSettings
   String get actualTableName => $name;
   static const String $name = 'global_settings';
   @override
-  VerificationContext validateIntegrity(
-    Insertable<GlobalSettingEntry> instance, {
-    bool isInserting = false,
-  }) {
+  VerificationContext validateIntegrity(Insertable<GlobalSettingEntry> instance, {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('key')) {
-      context.handle(
-        _keyMeta,
-        key.isAcceptableOrUnknown(data['key']!, _keyMeta),
-      );
+      context.handle(_keyMeta, key.isAcceptableOrUnknown(data['key']!, _keyMeta));
     } else if (isInserting) {
       context.missing(_keyMeta);
     }
     if (data.containsKey('value')) {
-      context.handle(
-        _valueMeta,
-        value.isAcceptableOrUnknown(data['value']!, _valueMeta),
-      );
+      context.handle(_valueMeta, value.isAcceptableOrUnknown(data['value']!, _valueMeta));
     } else if (isInserting) {
       context.missing(_valueMeta);
     }
@@ -66,16 +56,8 @@ class $GlobalSettingsTable extends GlobalSettings
   GlobalSettingEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return GlobalSettingEntry(
-      key:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}key'],
-          )!,
-      value:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}value'],
-          )!,
+      key: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}key'])!,
+      value: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}value'])!,
     );
   }
 
@@ -85,8 +67,7 @@ class $GlobalSettingsTable extends GlobalSettings
   }
 }
 
-class GlobalSettingEntry extends DataClass
-    implements Insertable<GlobalSettingEntry> {
+class GlobalSettingEntry extends DataClass implements Insertable<GlobalSettingEntry> {
   final String key;
   final String value;
   const GlobalSettingEntry({required this.key, required this.value});
@@ -102,10 +83,7 @@ class GlobalSettingEntry extends DataClass
     return GlobalSettingsCompanion(key: Value(key), value: Value(value));
   }
 
-  factory GlobalSettingEntry.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
+  factory GlobalSettingEntry.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return GlobalSettingEntry(
       key: serializer.fromJson<String>(json['key']),
@@ -115,10 +93,7 @@ class GlobalSettingEntry extends DataClass
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'key': serializer.toJson<String>(key),
-      'value': serializer.toJson<String>(value),
-    };
+    return <String, dynamic>{'key': serializer.toJson<String>(key), 'value': serializer.toJson<String>(value)};
   }
 
   GlobalSettingEntry copyWith({String? key, String? value}) =>
@@ -143,10 +118,7 @@ class GlobalSettingEntry extends DataClass
   int get hashCode => Object.hash(key, value);
   @override
   bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is GlobalSettingEntry &&
-          other.key == this.key &&
-          other.value == this.value);
+      identical(this, other) || (other is GlobalSettingEntry && other.key == this.key && other.value == this.value);
 }
 
 class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingEntry> {
@@ -158,12 +130,9 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingEntry> {
     this.value = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  GlobalSettingsCompanion.insert({
-    required String key,
-    required String value,
-    this.rowid = const Value.absent(),
-  }) : key = Value(key),
-       value = Value(value);
+  GlobalSettingsCompanion.insert({required String key, required String value, this.rowid = const Value.absent()})
+    : key = Value(key),
+      value = Value(value);
   static Insertable<GlobalSettingEntry> custom({
     Expression<String>? key,
     Expression<String>? value,
@@ -176,16 +145,8 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingEntry> {
     });
   }
 
-  GlobalSettingsCompanion copyWith({
-    Value<String>? key,
-    Value<String>? value,
-    Value<int>? rowid,
-  }) {
-    return GlobalSettingsCompanion(
-      key: key ?? this.key,
-      value: value ?? this.value,
-      rowid: rowid ?? this.rowid,
-    );
+  GlobalSettingsCompanion copyWith({Value<String>? key, Value<String>? value, Value<int>? rowid}) {
+    return GlobalSettingsCompanion(key: key ?? this.key, value: value ?? this.value, rowid: rowid ?? this.rowid);
   }
 
   @override
@@ -214,8 +175,7 @@ class GlobalSettingsCompanion extends UpdateCompanion<GlobalSettingEntry> {
   }
 }
 
-class $UserSettingsTable extends UserSettings
-    with TableInfo<$UserSettingsTable, UserSettingEntry> {
+class $UserSettingsTable extends UserSettings with TableInfo<$UserSettingsTable, UserSettingEntry> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -255,33 +215,21 @@ class $UserSettingsTable extends UserSettings
   String get actualTableName => $name;
   static const String $name = 'user_settings';
   @override
-  VerificationContext validateIntegrity(
-    Insertable<UserSettingEntry> instance, {
-    bool isInserting = false,
-  }) {
+  VerificationContext validateIntegrity(Insertable<UserSettingEntry> instance, {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('user_id')) {
-      context.handle(
-        _userIdMeta,
-        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
-      );
+      context.handle(_userIdMeta, userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
     } else if (isInserting) {
       context.missing(_userIdMeta);
     }
     if (data.containsKey('key')) {
-      context.handle(
-        _keyMeta,
-        key.isAcceptableOrUnknown(data['key']!, _keyMeta),
-      );
+      context.handle(_keyMeta, key.isAcceptableOrUnknown(data['key']!, _keyMeta));
     } else if (isInserting) {
       context.missing(_keyMeta);
     }
     if (data.containsKey('value')) {
-      context.handle(
-        _valueMeta,
-        value.isAcceptableOrUnknown(data['value']!, _valueMeta),
-      );
+      context.handle(_valueMeta, value.isAcceptableOrUnknown(data['value']!, _valueMeta));
     } else if (isInserting) {
       context.missing(_valueMeta);
     }
@@ -294,21 +242,9 @@ class $UserSettingsTable extends UserSettings
   UserSettingEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return UserSettingEntry(
-      userId:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}user_id'],
-          )!,
-      key:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}key'],
-          )!,
-      value:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}value'],
-          )!,
+      userId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
+      key: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}key'])!,
+      value: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}value'])!,
     );
   }
 
@@ -318,16 +254,11 @@ class $UserSettingsTable extends UserSettings
   }
 }
 
-class UserSettingEntry extends DataClass
-    implements Insertable<UserSettingEntry> {
+class UserSettingEntry extends DataClass implements Insertable<UserSettingEntry> {
   final String userId;
   final String key;
   final String value;
-  const UserSettingEntry({
-    required this.userId,
-    required this.key,
-    required this.value,
-  });
+  const UserSettingEntry({required this.userId, required this.key, required this.value});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -338,17 +269,10 @@ class UserSettingEntry extends DataClass
   }
 
   UserSettingsCompanion toCompanion(bool nullToAbsent) {
-    return UserSettingsCompanion(
-      userId: Value(userId),
-      key: Value(key),
-      value: Value(value),
-    );
+    return UserSettingsCompanion(userId: Value(userId), key: Value(key), value: Value(value));
   }
 
-  factory UserSettingEntry.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
+  factory UserSettingEntry.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return UserSettingEntry(
       userId: serializer.fromJson<String>(json['userId']),
@@ -367,11 +291,7 @@ class UserSettingEntry extends DataClass
   }
 
   UserSettingEntry copyWith({String? userId, String? key, String? value}) =>
-      UserSettingEntry(
-        userId: userId ?? this.userId,
-        key: key ?? this.key,
-        value: value ?? this.value,
-      );
+      UserSettingEntry(userId: userId ?? this.userId, key: key ?? this.key, value: value ?? this.value);
   UserSettingEntry copyWithCompanion(UserSettingsCompanion data) {
     return UserSettingEntry(
       userId: data.userId.present ? data.userId.value : this.userId,
@@ -395,10 +315,7 @@ class UserSettingEntry extends DataClass
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is UserSettingEntry &&
-          other.userId == this.userId &&
-          other.key == this.key &&
-          other.value == this.value);
+      (other is UserSettingEntry && other.userId == this.userId && other.key == this.key && other.value == this.value);
 }
 
 class UserSettingsCompanion extends UpdateCompanion<UserSettingEntry> {
@@ -434,12 +351,7 @@ class UserSettingsCompanion extends UpdateCompanion<UserSettingEntry> {
     });
   }
 
-  UserSettingsCompanion copyWith({
-    Value<String>? userId,
-    Value<String>? key,
-    Value<String>? value,
-    Value<int>? rowid,
-  }) {
+  UserSettingsCompanion copyWith({Value<String>? userId, Value<String>? key, Value<String>? value, Value<int>? rowid}) {
     return UserSettingsCompanion(
       userId: userId ?? this.userId,
       key: key ?? this.key,
@@ -478,8 +390,7 @@ class UserSettingsCompanion extends UpdateCompanion<UserSettingEntry> {
   }
 }
 
-class $StoredUsersTable extends StoredUsers
-    with TableInfo<$StoredUsersTable, StoredUserEntry> {
+class $StoredUsersTable extends StoredUsers with TableInfo<$StoredUsersTable, StoredUserEntry> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -493,9 +404,7 @@ class $StoredUsersTable extends StoredUsers
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _userDataJsonMeta = const VerificationMeta(
-    'userDataJson',
-  );
+  static const VerificationMeta _userDataJsonMeta = const VerificationMeta('userDataJson');
   @override
   late final GeneratedColumn<String> userDataJson = GeneratedColumn<String>(
     'user_data_json',
@@ -512,10 +421,7 @@ class $StoredUsersTable extends StoredUsers
   String get actualTableName => $name;
   static const String $name = 'stored_users';
   @override
-  VerificationContext validateIntegrity(
-    Insertable<StoredUserEntry> instance, {
-    bool isInserting = false,
-  }) {
+  VerificationContext validateIntegrity(Insertable<StoredUserEntry> instance, {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
@@ -524,13 +430,7 @@ class $StoredUsersTable extends StoredUsers
       context.missing(_idMeta);
     }
     if (data.containsKey('user_data_json')) {
-      context.handle(
-        _userDataJsonMeta,
-        userDataJson.isAcceptableOrUnknown(
-          data['user_data_json']!,
-          _userDataJsonMeta,
-        ),
-      );
+      context.handle(_userDataJsonMeta, userDataJson.isAcceptableOrUnknown(data['user_data_json']!, _userDataJsonMeta));
     } else if (isInserting) {
       context.missing(_userDataJsonMeta);
     }
@@ -543,16 +443,8 @@ class $StoredUsersTable extends StoredUsers
   StoredUserEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return StoredUserEntry(
-      id:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}id'],
-          )!,
-      userDataJson:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}user_data_json'],
-          )!,
+      id: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      userDataJson: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}user_data_json'])!,
     );
   }
 
@@ -575,16 +467,10 @@ class StoredUserEntry extends DataClass implements Insertable<StoredUserEntry> {
   }
 
   StoredUsersCompanion toCompanion(bool nullToAbsent) {
-    return StoredUsersCompanion(
-      id: Value(id),
-      userDataJson: Value(userDataJson),
-    );
+    return StoredUsersCompanion(id: Value(id), userDataJson: Value(userDataJson));
   }
 
-  factory StoredUserEntry.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
+  factory StoredUserEntry.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return StoredUserEntry(
       id: serializer.fromJson<String>(json['id']),
@@ -601,17 +487,11 @@ class StoredUserEntry extends DataClass implements Insertable<StoredUserEntry> {
   }
 
   StoredUserEntry copyWith({String? id, String? userDataJson}) =>
-      StoredUserEntry(
-        id: id ?? this.id,
-        userDataJson: userDataJson ?? this.userDataJson,
-      );
+      StoredUserEntry(id: id ?? this.id, userDataJson: userDataJson ?? this.userDataJson);
   StoredUserEntry copyWithCompanion(StoredUsersCompanion data) {
     return StoredUserEntry(
       id: data.id.present ? data.id.value : this.id,
-      userDataJson:
-          data.userDataJson.present
-              ? data.userDataJson.value
-              : this.userDataJson,
+      userDataJson: data.userDataJson.present ? data.userDataJson.value : this.userDataJson,
     );
   }
 
@@ -629,9 +509,7 @@ class StoredUserEntry extends DataClass implements Insertable<StoredUserEntry> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is StoredUserEntry &&
-          other.id == this.id &&
-          other.userDataJson == this.userDataJson);
+      (other is StoredUserEntry && other.id == this.id && other.userDataJson == this.userDataJson);
 }
 
 class StoredUsersCompanion extends UpdateCompanion<StoredUserEntry> {
@@ -643,12 +521,9 @@ class StoredUsersCompanion extends UpdateCompanion<StoredUserEntry> {
     this.userDataJson = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  StoredUsersCompanion.insert({
-    required String id,
-    required String userDataJson,
-    this.rowid = const Value.absent(),
-  }) : id = Value(id),
-       userDataJson = Value(userDataJson);
+  StoredUsersCompanion.insert({required String id, required String userDataJson, this.rowid = const Value.absent()})
+    : id = Value(id),
+      userDataJson = Value(userDataJson);
   static Insertable<StoredUserEntry> custom({
     Expression<String>? id,
     Expression<String>? userDataJson,
@@ -661,11 +536,7 @@ class StoredUsersCompanion extends UpdateCompanion<StoredUserEntry> {
     });
   }
 
-  StoredUsersCompanion copyWith({
-    Value<String>? id,
-    Value<String>? userDataJson,
-    Value<int>? rowid,
-  }) {
+  StoredUsersCompanion copyWith({Value<String>? id, Value<String>? userDataJson, Value<int>? rowid}) {
     return StoredUsersCompanion(
       id: id ?? this.id,
       userDataJson: userDataJson ?? this.userDataJson,
@@ -706,31 +577,17 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $UserSettingsTable userSettings = $UserSettingsTable(this);
   late final $StoredUsersTable storedUsers = $StoredUsersTable(this);
   @override
-  Iterable<TableInfo<Table, Object?>> get allTables =>
-      allSchemaEntities.whereType<TableInfo<Table, Object?>>();
+  Iterable<TableInfo<Table, Object?>> get allTables => allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [
-    globalSettings,
-    userSettings,
-    storedUsers,
-  ];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [globalSettings, userSettings, storedUsers];
 }
 
 typedef $$GlobalSettingsTableCreateCompanionBuilder =
-    GlobalSettingsCompanion Function({
-      required String key,
-      required String value,
-      Value<int> rowid,
-    });
+    GlobalSettingsCompanion Function({required String key, required String value, Value<int> rowid});
 typedef $$GlobalSettingsTableUpdateCompanionBuilder =
-    GlobalSettingsCompanion Function({
-      Value<String> key,
-      Value<String> value,
-      Value<int> rowid,
-    });
+    GlobalSettingsCompanion Function({Value<String> key, Value<String> value, Value<int> rowid});
 
-class $$GlobalSettingsTableFilterComposer
-    extends Composer<_$AppDatabase, $GlobalSettingsTable> {
+class $$GlobalSettingsTableFilterComposer extends Composer<_$AppDatabase, $GlobalSettingsTable> {
   $$GlobalSettingsTableFilterComposer({
     required super.$db,
     required super.$table,
@@ -738,19 +595,13 @@ class $$GlobalSettingsTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<String> get key => $composableBuilder(
-    column: $table.key,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnFilters<String> get key => $composableBuilder(column: $table.key, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get value => $composableBuilder(
-    column: $table.value,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnFilters<String> get value =>
+      $composableBuilder(column: $table.value, builder: (column) => ColumnFilters(column));
 }
 
-class $$GlobalSettingsTableOrderingComposer
-    extends Composer<_$AppDatabase, $GlobalSettingsTable> {
+class $$GlobalSettingsTableOrderingComposer extends Composer<_$AppDatabase, $GlobalSettingsTable> {
   $$GlobalSettingsTableOrderingComposer({
     required super.$db,
     required super.$table,
@@ -758,19 +609,14 @@ class $$GlobalSettingsTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<String> get key => $composableBuilder(
-    column: $table.key,
-    builder: (column) => ColumnOrderings(column),
-  );
+  ColumnOrderings<String> get key =>
+      $composableBuilder(column: $table.key, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get value => $composableBuilder(
-    column: $table.value,
-    builder: (column) => ColumnOrderings(column),
-  );
+  ColumnOrderings<String> get value =>
+      $composableBuilder(column: $table.value, builder: (column) => ColumnOrderings(column));
 }
 
-class $$GlobalSettingsTableAnnotationComposer
-    extends Composer<_$AppDatabase, $GlobalSettingsTable> {
+class $$GlobalSettingsTableAnnotationComposer extends Composer<_$AppDatabase, $GlobalSettingsTable> {
   $$GlobalSettingsTableAnnotationComposer({
     required super.$db,
     required super.$table,
@@ -778,11 +624,9 @@ class $$GlobalSettingsTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<String> get key =>
-      $composableBuilder(column: $table.key, builder: (column) => column);
+  GeneratedColumn<String> get key => $composableBuilder(column: $table.key, builder: (column) => column);
 
-  GeneratedColumn<String> get value =>
-      $composableBuilder(column: $table.value, builder: (column) => column);
+  GeneratedColumn<String> get value => $composableBuilder(column: $table.value, builder: (column) => column);
 }
 
 class $$GlobalSettingsTableTableManager
@@ -796,61 +640,28 @@ class $$GlobalSettingsTableTableManager
           $$GlobalSettingsTableAnnotationComposer,
           $$GlobalSettingsTableCreateCompanionBuilder,
           $$GlobalSettingsTableUpdateCompanionBuilder,
-          (
-            GlobalSettingEntry,
-            BaseReferences<
-              _$AppDatabase,
-              $GlobalSettingsTable,
-              GlobalSettingEntry
-            >,
-          ),
+          (GlobalSettingEntry, BaseReferences<_$AppDatabase, $GlobalSettingsTable, GlobalSettingEntry>),
           GlobalSettingEntry,
           PrefetchHooks Function()
         > {
-  $$GlobalSettingsTableTableManager(
-    _$AppDatabase db,
-    $GlobalSettingsTable table,
-  ) : super(
+  $$GlobalSettingsTableTableManager(_$AppDatabase db, $GlobalSettingsTable table)
+    : super(
         TableManagerState(
           db: db,
           table: table,
-          createFilteringComposer:
-              () => $$GlobalSettingsTableFilterComposer($db: db, $table: table),
-          createOrderingComposer:
-              () =>
-                  $$GlobalSettingsTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer:
-              () => $$GlobalSettingsTableAnnotationComposer(
-                $db: db,
-                $table: table,
-              ),
+          createFilteringComposer: () => $$GlobalSettingsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () => $$GlobalSettingsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () => $$GlobalSettingsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<String> key = const Value.absent(),
                 Value<String> value = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) =>
-                  GlobalSettingsCompanion(key: key, value: value, rowid: rowid),
+              }) => GlobalSettingsCompanion(key: key, value: value, rowid: rowid),
           createCompanionCallback:
-              ({
-                required String key,
-                required String value,
-                Value<int> rowid = const Value.absent(),
-              }) => GlobalSettingsCompanion.insert(
-                key: key,
-                value: value,
-                rowid: rowid,
-              ),
-          withReferenceMapper:
-              (p0) =>
-                  p0
-                      .map(
-                        (e) => (
-                          e.readTable(table),
-                          BaseReferences(db, table, e),
-                        ),
-                      )
-                      .toList(),
+              ({required String key, required String value, Value<int> rowid = const Value.absent()}) =>
+                  GlobalSettingsCompanion.insert(key: key, value: value, rowid: rowid),
+          withReferenceMapper: (p0) => p0.map((e) => (e.readTable(table), BaseReferences(db, table, e))).toList(),
           prefetchHooksCallback: null,
         ),
       );
@@ -866,10 +677,7 @@ typedef $$GlobalSettingsTableProcessedTableManager =
       $$GlobalSettingsTableAnnotationComposer,
       $$GlobalSettingsTableCreateCompanionBuilder,
       $$GlobalSettingsTableUpdateCompanionBuilder,
-      (
-        GlobalSettingEntry,
-        BaseReferences<_$AppDatabase, $GlobalSettingsTable, GlobalSettingEntry>,
-      ),
+      (GlobalSettingEntry, BaseReferences<_$AppDatabase, $GlobalSettingsTable, GlobalSettingEntry>),
       GlobalSettingEntry,
       PrefetchHooks Function()
     >;
@@ -881,15 +689,9 @@ typedef $$UserSettingsTableCreateCompanionBuilder =
       Value<int> rowid,
     });
 typedef $$UserSettingsTableUpdateCompanionBuilder =
-    UserSettingsCompanion Function({
-      Value<String> userId,
-      Value<String> key,
-      Value<String> value,
-      Value<int> rowid,
-    });
+    UserSettingsCompanion Function({Value<String> userId, Value<String> key, Value<String> value, Value<int> rowid});
 
-class $$UserSettingsTableFilterComposer
-    extends Composer<_$AppDatabase, $UserSettingsTable> {
+class $$UserSettingsTableFilterComposer extends Composer<_$AppDatabase, $UserSettingsTable> {
   $$UserSettingsTableFilterComposer({
     required super.$db,
     required super.$table,
@@ -897,24 +699,16 @@ class $$UserSettingsTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<String> get userId => $composableBuilder(
-    column: $table.userId,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnFilters<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get key => $composableBuilder(
-    column: $table.key,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnFilters<String> get key => $composableBuilder(column: $table.key, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get value => $composableBuilder(
-    column: $table.value,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnFilters<String> get value =>
+      $composableBuilder(column: $table.value, builder: (column) => ColumnFilters(column));
 }
 
-class $$UserSettingsTableOrderingComposer
-    extends Composer<_$AppDatabase, $UserSettingsTable> {
+class $$UserSettingsTableOrderingComposer extends Composer<_$AppDatabase, $UserSettingsTable> {
   $$UserSettingsTableOrderingComposer({
     required super.$db,
     required super.$table,
@@ -922,24 +716,17 @@ class $$UserSettingsTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<String> get userId => $composableBuilder(
-    column: $table.userId,
-    builder: (column) => ColumnOrderings(column),
-  );
+  ColumnOrderings<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get key => $composableBuilder(
-    column: $table.key,
-    builder: (column) => ColumnOrderings(column),
-  );
+  ColumnOrderings<String> get key =>
+      $composableBuilder(column: $table.key, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get value => $composableBuilder(
-    column: $table.value,
-    builder: (column) => ColumnOrderings(column),
-  );
+  ColumnOrderings<String> get value =>
+      $composableBuilder(column: $table.value, builder: (column) => ColumnOrderings(column));
 }
 
-class $$UserSettingsTableAnnotationComposer
-    extends Composer<_$AppDatabase, $UserSettingsTable> {
+class $$UserSettingsTableAnnotationComposer extends Composer<_$AppDatabase, $UserSettingsTable> {
   $$UserSettingsTableAnnotationComposer({
     required super.$db,
     required super.$table,
@@ -947,14 +734,11 @@ class $$UserSettingsTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<String> get userId =>
-      $composableBuilder(column: $table.userId, builder: (column) => column);
+  GeneratedColumn<String> get userId => $composableBuilder(column: $table.userId, builder: (column) => column);
 
-  GeneratedColumn<String> get key =>
-      $composableBuilder(column: $table.key, builder: (column) => column);
+  GeneratedColumn<String> get key => $composableBuilder(column: $table.key, builder: (column) => column);
 
-  GeneratedColumn<String> get value =>
-      $composableBuilder(column: $table.value, builder: (column) => column);
+  GeneratedColumn<String> get value => $composableBuilder(column: $table.value, builder: (column) => column);
 }
 
 class $$UserSettingsTableTableManager
@@ -968,10 +752,7 @@ class $$UserSettingsTableTableManager
           $$UserSettingsTableAnnotationComposer,
           $$UserSettingsTableCreateCompanionBuilder,
           $$UserSettingsTableUpdateCompanionBuilder,
-          (
-            UserSettingEntry,
-            BaseReferences<_$AppDatabase, $UserSettingsTable, UserSettingEntry>,
-          ),
+          (UserSettingEntry, BaseReferences<_$AppDatabase, $UserSettingsTable, UserSettingEntry>),
           UserSettingEntry,
           PrefetchHooks Function()
         > {
@@ -980,47 +761,24 @@ class $$UserSettingsTableTableManager
         TableManagerState(
           db: db,
           table: table,
-          createFilteringComposer:
-              () => $$UserSettingsTableFilterComposer($db: db, $table: table),
-          createOrderingComposer:
-              () => $$UserSettingsTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer:
-              () =>
-                  $$UserSettingsTableAnnotationComposer($db: db, $table: table),
+          createFilteringComposer: () => $$UserSettingsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () => $$UserSettingsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () => $$UserSettingsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<String> userId = const Value.absent(),
                 Value<String> key = const Value.absent(),
                 Value<String> value = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => UserSettingsCompanion(
-                userId: userId,
-                key: key,
-                value: value,
-                rowid: rowid,
-              ),
+              }) => UserSettingsCompanion(userId: userId, key: key, value: value, rowid: rowid),
           createCompanionCallback:
               ({
                 required String userId,
                 required String key,
                 required String value,
                 Value<int> rowid = const Value.absent(),
-              }) => UserSettingsCompanion.insert(
-                userId: userId,
-                key: key,
-                value: value,
-                rowid: rowid,
-              ),
-          withReferenceMapper:
-              (p0) =>
-                  p0
-                      .map(
-                        (e) => (
-                          e.readTable(table),
-                          BaseReferences(db, table, e),
-                        ),
-                      )
-                      .toList(),
+              }) => UserSettingsCompanion.insert(userId: userId, key: key, value: value, rowid: rowid),
+          withReferenceMapper: (p0) => p0.map((e) => (e.readTable(table), BaseReferences(db, table, e))).toList(),
           prefetchHooksCallback: null,
         ),
       );
@@ -1036,28 +794,16 @@ typedef $$UserSettingsTableProcessedTableManager =
       $$UserSettingsTableAnnotationComposer,
       $$UserSettingsTableCreateCompanionBuilder,
       $$UserSettingsTableUpdateCompanionBuilder,
-      (
-        UserSettingEntry,
-        BaseReferences<_$AppDatabase, $UserSettingsTable, UserSettingEntry>,
-      ),
+      (UserSettingEntry, BaseReferences<_$AppDatabase, $UserSettingsTable, UserSettingEntry>),
       UserSettingEntry,
       PrefetchHooks Function()
     >;
 typedef $$StoredUsersTableCreateCompanionBuilder =
-    StoredUsersCompanion Function({
-      required String id,
-      required String userDataJson,
-      Value<int> rowid,
-    });
+    StoredUsersCompanion Function({required String id, required String userDataJson, Value<int> rowid});
 typedef $$StoredUsersTableUpdateCompanionBuilder =
-    StoredUsersCompanion Function({
-      Value<String> id,
-      Value<String> userDataJson,
-      Value<int> rowid,
-    });
+    StoredUsersCompanion Function({Value<String> id, Value<String> userDataJson, Value<int> rowid});
 
-class $$StoredUsersTableFilterComposer
-    extends Composer<_$AppDatabase, $StoredUsersTable> {
+class $$StoredUsersTableFilterComposer extends Composer<_$AppDatabase, $StoredUsersTable> {
   $$StoredUsersTableFilterComposer({
     required super.$db,
     required super.$table,
@@ -1065,19 +811,13 @@ class $$StoredUsersTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<String> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnFilters<String> get id => $composableBuilder(column: $table.id, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get userDataJson => $composableBuilder(
-    column: $table.userDataJson,
-    builder: (column) => ColumnFilters(column),
-  );
+  ColumnFilters<String> get userDataJson =>
+      $composableBuilder(column: $table.userDataJson, builder: (column) => ColumnFilters(column));
 }
 
-class $$StoredUsersTableOrderingComposer
-    extends Composer<_$AppDatabase, $StoredUsersTable> {
+class $$StoredUsersTableOrderingComposer extends Composer<_$AppDatabase, $StoredUsersTable> {
   $$StoredUsersTableOrderingComposer({
     required super.$db,
     required super.$table,
@@ -1085,19 +825,13 @@ class $$StoredUsersTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<String> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
+  ColumnOrderings<String> get id => $composableBuilder(column: $table.id, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get userDataJson => $composableBuilder(
-    column: $table.userDataJson,
-    builder: (column) => ColumnOrderings(column),
-  );
+  ColumnOrderings<String> get userDataJson =>
+      $composableBuilder(column: $table.userDataJson, builder: (column) => ColumnOrderings(column));
 }
 
-class $$StoredUsersTableAnnotationComposer
-    extends Composer<_$AppDatabase, $StoredUsersTable> {
+class $$StoredUsersTableAnnotationComposer extends Composer<_$AppDatabase, $StoredUsersTable> {
   $$StoredUsersTableAnnotationComposer({
     required super.$db,
     required super.$table,
@@ -1105,13 +839,10 @@ class $$StoredUsersTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<String> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
+  GeneratedColumn<String> get id => $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<String> get userDataJson => $composableBuilder(
-    column: $table.userDataJson,
-    builder: (column) => column,
-  );
+  GeneratedColumn<String> get userDataJson =>
+      $composableBuilder(column: $table.userDataJson, builder: (column) => column);
 }
 
 class $$StoredUsersTableTableManager
@@ -1125,10 +856,7 @@ class $$StoredUsersTableTableManager
           $$StoredUsersTableAnnotationComposer,
           $$StoredUsersTableCreateCompanionBuilder,
           $$StoredUsersTableUpdateCompanionBuilder,
-          (
-            StoredUserEntry,
-            BaseReferences<_$AppDatabase, $StoredUsersTable, StoredUserEntry>,
-          ),
+          (StoredUserEntry, BaseReferences<_$AppDatabase, $StoredUsersTable, StoredUserEntry>),
           StoredUserEntry,
           PrefetchHooks Function()
         > {
@@ -1137,43 +865,19 @@ class $$StoredUsersTableTableManager
         TableManagerState(
           db: db,
           table: table,
-          createFilteringComposer:
-              () => $$StoredUsersTableFilterComposer($db: db, $table: table),
-          createOrderingComposer:
-              () => $$StoredUsersTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer:
-              () =>
-                  $$StoredUsersTableAnnotationComposer($db: db, $table: table),
+          createFilteringComposer: () => $$StoredUsersTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () => $$StoredUsersTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () => $$StoredUsersTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
                 Value<String> userDataJson = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => StoredUsersCompanion(
-                id: id,
-                userDataJson: userDataJson,
-                rowid: rowid,
-              ),
+              }) => StoredUsersCompanion(id: id, userDataJson: userDataJson, rowid: rowid),
           createCompanionCallback:
-              ({
-                required String id,
-                required String userDataJson,
-                Value<int> rowid = const Value.absent(),
-              }) => StoredUsersCompanion.insert(
-                id: id,
-                userDataJson: userDataJson,
-                rowid: rowid,
-              ),
-          withReferenceMapper:
-              (p0) =>
-                  p0
-                      .map(
-                        (e) => (
-                          e.readTable(table),
-                          BaseReferences(db, table, e),
-                        ),
-                      )
-                      .toList(),
+              ({required String id, required String userDataJson, Value<int> rowid = const Value.absent()}) =>
+                  StoredUsersCompanion.insert(id: id, userDataJson: userDataJson, rowid: rowid),
+          withReferenceMapper: (p0) => p0.map((e) => (e.readTable(table), BaseReferences(db, table, e))).toList(),
           prefetchHooksCallback: null,
         ),
       );
@@ -1189,10 +893,7 @@ typedef $$StoredUsersTableProcessedTableManager =
       $$StoredUsersTableAnnotationComposer,
       $$StoredUsersTableCreateCompanionBuilder,
       $$StoredUsersTableUpdateCompanionBuilder,
-      (
-        StoredUserEntry,
-        BaseReferences<_$AppDatabase, $StoredUsersTable, StoredUserEntry>,
-      ),
+      (StoredUserEntry, BaseReferences<_$AppDatabase, $StoredUsersTable, StoredUserEntry>),
       StoredUserEntry,
       PrefetchHooks Function()
     >;
@@ -1200,12 +901,9 @@ typedef $$StoredUsersTableProcessedTableManager =
 class $AppDatabaseManager {
   final _$AppDatabase _db;
   $AppDatabaseManager(this._db);
-  $$GlobalSettingsTableTableManager get globalSettings =>
-      $$GlobalSettingsTableTableManager(_db, _db.globalSettings);
-  $$UserSettingsTableTableManager get userSettings =>
-      $$UserSettingsTableTableManager(_db, _db.userSettings);
-  $$StoredUsersTableTableManager get storedUsers =>
-      $$StoredUsersTableTableManager(_db, _db.storedUsers);
+  $$GlobalSettingsTableTableManager get globalSettings => $$GlobalSettingsTableTableManager(_db, _db.globalSettings);
+  $$UserSettingsTableTableManager get userSettings => $$UserSettingsTableTableManager(_db, _db.userSettings);
+  $$StoredUsersTableTableManager get storedUsers => $$StoredUsersTableTableManager(_db, _db.storedUsers);
 }
 
 // **************************************************************************
@@ -1219,8 +917,7 @@ String _$appDatabaseHash() => r'8c69eb46d45206533c176c88a926608e79ca927d';
 final appDatabaseProvider = Provider<AppDatabase>.internal(
   appDatabase,
   name: r'appDatabaseProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$appDatabaseHash,
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product') ? null : _$appDatabaseHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );

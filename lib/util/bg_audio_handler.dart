@@ -4,6 +4,7 @@ import 'package:buchshelfly/provider/player/session_provider.dart';
 import 'package:buchshelfly/util/logger.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:rxdart/transformers.dart';
 
 class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   final AudioPlayer _player = AudioPlayer();
@@ -38,9 +39,10 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   }
 
   Stream<Duration> get positionStream {
-    return _player.positionStream.map((position) {
-      return (_currentMediaItem?.offsetForTrack(_currentTrackIndex) ?? Duration.zero) + position;
-    });
+    return _player.positionStream
+        .throttleTime(const Duration(milliseconds: 200))
+        .map((position) => (_currentMediaItem?.offsetForTrack(_currentTrackIndex) ?? Duration.zero) + position)
+        .distinct();
   }
 
   Duration get position {
@@ -70,6 +72,12 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     queueList.clear();
     await _ref.read(sessionRepositoryProvider).closeSession();
     return _player.stop();
+  }
+
+  @override
+  Future<void> pause() async {
+    await _player.pause();
+    return Future.value();
   }
 
   @override

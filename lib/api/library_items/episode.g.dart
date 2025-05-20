@@ -17,10 +17,7 @@ _Episode _$EpisodeFromJson(Map<String, dynamic> json) => _Episode(
   subtitle: json['subtitle'] as String?,
   description: json['description'] as String?,
   pubDate: json['pubDate'] as String?,
-  audioFile:
-      json['audioFile'] == null
-          ? null
-          : AudioFile.fromJson(json['audioFile'] as Map<String, dynamic>),
+  audioFile: json['audioFile'] == null ? null : AudioFile.fromJson(json['audioFile'] as Map<String, dynamic>),
   publishedAt: (json['publishedAt'] as num?)?.toInt(),
   addedAt: (json['addedAt'] as num?)?.toInt(),
   updatedAt: (json['updatedAt'] as num?)?.toInt(),
