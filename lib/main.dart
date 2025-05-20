@@ -1,20 +1,19 @@
 import 'dart:async';
 
-import 'package:buchshelfly/util/globals.dart' show appName, audioHandler;
+import 'package:buchshelfly/util/globals.dart' show appName, audioHandler, containerRef;
 import 'package:buchshelfly/util/init.dart' show Init;
 import 'package:buchshelfly/util/logger.dart';
 import 'package:buchshelfly/util/router.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-void main() async {
-  Init.initLogger();
-  audioHandler = await Init.initAudioHandler();
-  await Init.globals();
-
+void main() {
   runZonedGuarded(
-    () {
-      runApp(const ProviderScope(child: MyApp()));
+    () async {
+      Init.initLogger();
+      audioHandler = await Init.initAudioHandler();
+      await Init.globals();
+      runApp(UncontrolledProviderScope(container: containerRef, child: MyApp()));
     },
     (error, stack) {
       logger('Uncaught Dart error: $error\n$stack', tag: 'ZoneError', level: InfoLevel.error);

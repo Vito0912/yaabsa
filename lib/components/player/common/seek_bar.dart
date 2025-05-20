@@ -21,8 +21,8 @@ class SeekBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Stream<Duration> positionStream = audioHandler.positionStream.distinct();
-    final Stream<Duration> totalDurationStream = audioHandler.durationStream.distinct();
+    final Stream<Duration> positionStream = audioHandler.positionStream;
+    final Stream<Duration> totalDurationStream = audioHandler.durationStream;
 
     return StreamBuilder<Duration>(
       stream: totalDurationStream,
@@ -50,24 +50,41 @@ class SeekBar extends StatelessWidget {
               children: [
                 Text(_formatDuration(displayCurrentTime), style: const TextStyle(fontSize: 12)),
                 Expanded(
-                  child: Slider(
-                    value: sliderValue,
-                    min: 0.0,
-                    max: maxSliderValue > 0 ? maxSliderValue : 1.0,
-                    activeColor: Theme.of(context).colorScheme.primary,
-                    inactiveColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
-                    onChanged:
-                        maxSliderValue <= 0
-                            ? null
-                            : (newValue) {
-                              executeSeek(newValue);
-                            },
-                    onChangeEnd:
-                        maxSliderValue <= 0
-                            ? null
-                            : (endValue) {
-                              executeSeek(endValue);
-                            },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                    child: SliderTheme(
+                      data: SliderTheme.of(context).copyWith(
+                        trackHeight: 10.0,
+                        trackShape: const RectangularSliderTrackShape(),
+                        thumbShape: const RoundSliderThumbShape(
+                          enabledThumbRadius: 0.0,
+                          disabledThumbRadius: 0.0,
+                          pressedElevation: 0.0,
+                        ),
+                        overlayShape: SliderComponentShape.noOverlay,
+                        activeTrackColor: Theme.of(context).colorScheme.primary,
+                        inactiveTrackColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+                      ),
+                      child: Slider(
+                        value: sliderValue,
+                        min: 0.0,
+                        max: maxSliderValue > 0 ? maxSliderValue : 1.0,
+                        activeColor: Theme.of(context).colorScheme.primary,
+                        inactiveColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+                        onChanged:
+                            maxSliderValue <= 0
+                                ? null
+                                : (newValue) {
+                                  executeSeek(newValue);
+                                },
+                        onChangeEnd:
+                            maxSliderValue <= 0
+                                ? null
+                                : (endValue) {
+                                  executeSeek(endValue);
+                                },
+                      ),
+                    ),
                   ),
                 ),
                 Text(_formatDuration(totalDuration), style: const TextStyle(fontSize: 12)),

@@ -45,6 +45,13 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         .distinct();
   }
 
+  Stream<Duration> get bufferedPositionStream {
+    return _player.bufferedPositionStream
+        .throttleTime(const Duration(seconds: 1))
+        .map((position) => (_currentMediaItem?.offsetForTrack(_currentTrackIndex) ?? Duration.zero) + position)
+        .distinct();
+  }
+
   Duration get position {
     final pos = _player.position;
     return (_currentMediaItem?.offsetForTrack(_currentTrackIndex) ?? Duration.zero) + pos;
@@ -80,6 +87,25 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     return Future.value();
   }
 
+  // TODO: Skiptime
+  static const Duration skipTime = Duration(seconds: 10);
+
+  @override
+  Future<void> fastForward() async {
+    if (_currentMediaItem == null) return Future.value();
+    final newPosition = position + skipTime;
+    seek(newPosition);
+    return Future.value();
+  }
+
+  @override
+  Future<void> rewind() async {
+    if (_currentMediaItem == null) return Future.value();
+    final newPosition = position - skipTime;
+    seek(newPosition);
+    return Future.value();
+  }
+
   @override
   Future<void> seek(Duration position) async {
     if (_currentMediaItem == null) return Future.value();
@@ -98,7 +124,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   BGAudioHandler(this._ref) {
     _player.playerStateStream.listen((PlayerState state) async {
-      logger(state.toString());
+      logger(state.toString(), tag: 'AudioHandler', level: InfoLevel.debug);
       if (state.processingState == ProcessingState.completed) {
         if (_currentMediaItem == null) return;
         logger(

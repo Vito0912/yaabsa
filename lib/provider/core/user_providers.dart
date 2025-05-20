@@ -111,7 +111,7 @@ ABSApi? absApi(Ref ref) {
   );
 
   if (token != null) {
-    logger('Setting BearerAuth token for user ${currentUser.username}.', tag: 'absApiProvider');
+    logger('Setting BearerAuth token for user ${currentUser.username}.', tag: 'absApiProvider', level: InfoLevel.debug);
     api.setBearerAuth('BearerAuth', token);
   }
 

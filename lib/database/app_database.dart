@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:buchshelfly/api/me/user.dart';
+import 'package:buchshelfly/util/logger.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -94,9 +95,12 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Stream<List<User>> watchAllStoredUsers() {
-    print('[AppDatabase] watchAllStoredUsers() called. Setting up watch on storedUsers table.');
     return select(storedUsers).watch().map((rows) {
-      print('[AppDatabase] storedUsers stream emitted ${rows.length} StoredUserEntry items.');
+      logger(
+        'storedUsers stream emitted ${rows.length} StoredUserEntry items.',
+        tag: 'AppDatabase',
+        level: InfoLevel.debug,
+      );
       final userList =
           rows
               .map((row) {
@@ -104,24 +108,25 @@ class AppDatabase extends _$AppDatabase {
                   final user = User.fromJson(jsonDecode(row.userDataJson));
                   return user;
                 } catch (e, s) {
-                  print(
-                    '[AppDatabase] ERROR decoding User from JSON. Row ID: ${row.id}, JSON: ${row.userDataJson}. Error: $e. Stack: $s',
+                  logger(
+                    'ERROR decoding User from JSON. Row ID: ${row.id}, JSON: ${row.userDataJson}. Error: $e. Stack: $s',
+                    tag: 'AppDatabase',
+                    level: InfoLevel.error,
                   );
                   return null;
                 }
               })
               .whereType<User>()
               .toList();
-      print(
-        '[AppDatabase] Mapped to List<User> with ${userList.length} users. First user (if any): ${userList.isNotEmpty ? userList.first.username : 'N/A'}',
-      );
       return userList;
     });
   }
 
   Future<void> addOrUpdateStoredUser(User user) {
-    print(
+    logger(
       '[AppDatabase] addOrUpdateStoredUser called for user ID: ${user.id}, username: ${user.username}, isActive: ${user.isActive}, server: ${user.server?.url}',
+      tag: 'AppDatabase',
+      level: InfoLevel.debug,
     );
     final userToStore = User(
       id: user.id,
@@ -150,9 +155,19 @@ class AppDatabase extends _$AppDatabase {
     );
     final result = into(storedUsers).insert(companion, mode: InsertMode.replace);
     result
-        .then((_) => print('[AppDatabase] addOrUpdateStoredUser completed successfully for user ID: ${user.id}'))
+        .then(
+          (_) => logger(
+            'addOrUpdateStoredUser completed successfully for user ID: ${user.id}',
+            tag: 'AppDatabase',
+            level: InfoLevel.info,
+          ),
+        )
         .catchError(
-          (e, s) => print('[AppDatabase] addOrUpdateStoredUser ERROR for user ID: ${user.id}. Error: $e. Stack: $s'),
+          (e, s) => logger(
+            'addOrUpdateStoredUser ERROR for user ID: ${user.id}. Error: $e. Stack: $s',
+            tag: 'AppDatabase',
+            level: InfoLevel.error,
+          ),
         );
     return result;
   }
@@ -179,7 +194,6 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<void> setActiveUserId(String newActiveUserId) async {
-    print('[AppDatabase] setActiveUserId called for newActiveUserId: $newActiveUserId');
     final allCurrentUsers = await select(storedUsers).get();
 
     await batch((b) {
@@ -188,9 +202,6 @@ class AppDatabase extends _$AppDatabase {
         bool shouldBeActive = user.id == newActiveUserId;
         // Only add an update to the batch if the isActive status actually needs to change
         if (user.isActive != shouldBeActive) {
-          print(
-            '[AppDatabase] setActiveUserId: Updating user ${user.id} (${user.username}) isActive from ${user.isActive} to $shouldBeActive',
-          );
           final updatedUser = user.copyWith(isActive: shouldBeActive);
           b.replace(
             storedUsers,
@@ -199,9 +210,7 @@ class AppDatabase extends _$AppDatabase {
         }
       }
     });
-    print('[AppDatabase] setActiveUserId: batch update completed for $newActiveUserId.');
     await setGlobalSetting(_activeUserIdKey, newActiveUserId);
-    print('[AppDatabase] setActiveUserId: global setting for active user ID set to $newActiveUserId.');
   }
 
   Future<void> clearActiveUserId() {

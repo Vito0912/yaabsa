@@ -2,6 +2,7 @@ import 'package:buchshelfly/components/app/user_switcher.dart';
 import 'package:buchshelfly/components/player/play_bar.dart';
 import 'package:buchshelfly/screens/home_screen.dart';
 import 'package:buchshelfly/screens/main/library_view.dart';
+import 'package:buchshelfly/screens/settings/log_view.dart';
 import 'package:flutter/material.dart';
 
 enum _PageSource { internal, child }
@@ -62,7 +63,8 @@ class _LayoutHomeState extends State<LayoutHome> {
       NavigationItemConfig(
         icon: Icons.settings,
         label: "Settings",
-        page: const PlaceholderPage(title: "Settings Page Content"),
+        // TODO: Actual settings page
+        page: LogView(),
       ),
       NavigationItemConfig(
         icon: Icons.info_outline,
@@ -98,7 +100,15 @@ class _LayoutHomeState extends State<LayoutHome> {
   }
 
   void _handleAdvancedItemTap(BuildContext context, String itemName) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Tapped on $itemName')));
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) {
+          final item = _advancedMenuItems.firstWhere((item) => item.label == itemName);
+          return item.page;
+        },
+      ),
+    );
   }
 
   Widget _buildSidebarItem(
