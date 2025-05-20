@@ -13,6 +13,7 @@ dependencies:
 
   # UI
   cupertino_icons: ^1.0.8
+  flutter_staggered_grid_view: ^0.7.0
 
   # Generation
   freezed_annotation: ^3.0.0
@@ -20,7 +21,7 @@ dependencies:
   riverpod_annotation: ^2.6.1
 
   # Core
-  audioplayers: ^6.4.0
+  just_audio: ^0.10.3
   audio_service: ^0.18.18
   dio: ^5.8.0+1
   drift: ^2.26.1
@@ -33,14 +34,17 @@ dependencies:
   flutter_hooks: ^0.21.2
   connectivity_plus: ^6.1.4
 
-  # UI
-  flutter_staggered_grid_view: ^0.7.0
+  package_info_plus: ^8.3.0
+  device_info_plus: ^11.4.0
 
   # FOR LATER
   # flutter_epub_reader:
   #  git:
   #    url: https://github.com/chandrabezzo/epub_viewer.git
   #    ref: 7d07e46863fda440d39d8180475eed786098763f
+
+  ## Platform
+  just_audio_media_kit: ^2.1.0
 
   ## Windows
 

@@ -1,3 +1,4 @@
+import 'package:buchshelfly/models/internal_media.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'chapter.freezed.dart';
@@ -11,6 +12,10 @@ abstract class Chapter with _$Chapter {
     @JsonKey(name: "end") required double end,
     @JsonKey(name: "title") required String title,
   }) = _Chapter;
+
+  InternalChapter toInternalChapter() {
+    return InternalChapter(start: start, end: end, title: title);
+  }
 
   factory Chapter.fromJson(Map<String, dynamic> json) =>
       _$ChapterFromJson(json);

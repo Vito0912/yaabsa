@@ -1,5 +1,6 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:just_audio/just_audio.dart' show AudioSource;
 
 part 'internal_media.freezed.dart';
 part 'internal_media.g.dart';
@@ -12,11 +13,12 @@ abstract class InternalMedia with _$InternalMedia {
     @JsonKey(name: "libraryId") required String libraryId,
     @JsonKey(name: "itemId") required String itemId,
     @JsonKey(name: "episodeId") required String? episodeId,
+    @JsonKey(name: "sessionId") required String sessionId,
     @JsonKey(name: "title") required String title,
     @JsonKey(name: "author") String? author,
     @JsonKey(name: "series") String? series,
     @JsonKey(name: "seriesPosition") String? seriesPosition,
-    @JsonKey(name: "cover") required Uri cover,
+    @JsonKey(name: "cover") Uri? cover,
     @JsonKey(name: "tracks") required List<InternalTrack> tracks,
     @JsonKey(name: "chapters") List<InternalChapter>? chapters,
     // Removed incorrect defaultValue: false
@@ -43,6 +45,12 @@ abstract class InternalMedia with _$InternalMedia {
       duration: totalDuration,
       artUri: cover,
     );
+  }
+
+  List<AudioSource> toAudioSources() {
+    return tracks.map((track) {
+      return AudioSource.uri(Uri.parse(track.url));
+    }).toList();
   }
 
   void populateFields() {
@@ -102,6 +110,7 @@ abstract class InternalTrack with _$InternalTrack {
     @JsonKey(name: "index") required int index,
     @JsonKey(name: "duration") required double duration,
     @JsonKey(name: "url") required String url,
+    @JsonKey(name: "mimeType") required String mimeType,
     @JsonKey(name: "start") double? start,
     @JsonKey(name: "end") double? end,
   }) = _InternalTrack;
@@ -120,4 +129,15 @@ abstract class InternalChapter with _$InternalChapter {
 
   factory InternalChapter.fromJson(Map<String, dynamic> json) =>
       _$InternalChapterFromJson(json);
+}
+
+@freezed
+abstract class QueueItem with _$QueueItem {
+  const factory QueueItem({
+    @JsonKey(name: "itemId") required String itemId,
+    @JsonKey(name: "episodeId") String? episodeId,
+  }) = _QueueItem;
+
+  factory QueueItem.fromJson(Map<String, dynamic> json) =>
+      _$QueueItemFromJson(json);
 }

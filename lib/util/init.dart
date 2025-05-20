@@ -1,6 +1,8 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:buchshelfly/util/bg_audio_handler.dart';
-import 'package:flutter/foundation.dart';
+import 'package:buchshelfly/util/globals.dart';
+import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import 'logger.dart';
 
@@ -22,7 +24,7 @@ class Init {
   static Future<BGAudioHandler> initAudioHandler() async {
     if (_audioHandler != null) return _audioHandler!;
     _audioHandler = await AudioService.init(
-      builder: () => BGAudioHandler(),
+      builder: () => BGAudioHandler(containerRef),
       config: const AudioServiceConfig(
         androidNotificationChannelId: 'de.vito0912.buchshelfly.audio',
         androidNotificationChannelName: 'Playback',
@@ -33,5 +35,11 @@ class Init {
     );
     logger('AudioHandler initialized', tag: 'Init', level: InfoLevel.info);
     return _audioHandler!;
+  }
+
+  static Future<void> globals() async {
+    WidgetsFlutterBinding.ensureInitialized();
+
+    packageInfo = await PackageInfo.fromPlatform();
   }
 }

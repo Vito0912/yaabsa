@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$InternalMedia {
 
-@JsonKey(name: "libraryId") String get libraryId;@JsonKey(name: "libraryId") set libraryId(String value);@JsonKey(name: "itemId") String get itemId;@JsonKey(name: "itemId") set itemId(String value);@JsonKey(name: "episodeId") String? get episodeId;@JsonKey(name: "episodeId") set episodeId(String? value);@JsonKey(name: "title") String get title;@JsonKey(name: "title") set title(String value);@JsonKey(name: "author") String? get author;@JsonKey(name: "author") set author(String? value);@JsonKey(name: "series") String? get series;@JsonKey(name: "series") set series(String? value);@JsonKey(name: "seriesPosition") String? get seriesPosition;@JsonKey(name: "seriesPosition") set seriesPosition(String? value);@JsonKey(name: "cover") Uri get cover;@JsonKey(name: "cover") set cover(Uri value);@JsonKey(name: "tracks") List<InternalTrack> get tracks;@JsonKey(name: "tracks") set tracks(List<InternalTrack> value);@JsonKey(name: "chapters") List<InternalChapter>? get chapters;@JsonKey(name: "chapters") set chapters(List<InternalChapter>? value);// Removed incorrect defaultValue: false
+@JsonKey(name: "libraryId") String get libraryId;@JsonKey(name: "libraryId") set libraryId(String value);@JsonKey(name: "itemId") String get itemId;@JsonKey(name: "itemId") set itemId(String value);@JsonKey(name: "episodeId") String? get episodeId;@JsonKey(name: "episodeId") set episodeId(String? value);@JsonKey(name: "sessionId") String get sessionId;@JsonKey(name: "sessionId") set sessionId(String value);@JsonKey(name: "title") String get title;@JsonKey(name: "title") set title(String value);@JsonKey(name: "author") String? get author;@JsonKey(name: "author") set author(String? value);@JsonKey(name: "series") String? get series;@JsonKey(name: "series") set series(String? value);@JsonKey(name: "seriesPosition") String? get seriesPosition;@JsonKey(name: "seriesPosition") set seriesPosition(String? value);@JsonKey(name: "cover") Uri? get cover;@JsonKey(name: "cover") set cover(Uri? value);@JsonKey(name: "tracks") List<InternalTrack> get tracks;@JsonKey(name: "tracks") set tracks(List<InternalTrack> value);@JsonKey(name: "chapters") List<InternalChapter>? get chapters;@JsonKey(name: "chapters") set chapters(List<InternalChapter>? value);// Removed incorrect defaultValue: false
 @JsonKey(name: "duration") double? get duration;// Removed incorrect defaultValue: false
 @JsonKey(name: "duration") set duration(double? value);@JsonKey(name: "local", defaultValue: false) bool get local;@JsonKey(name: "local", defaultValue: false) set local(bool value);// SAF is for Android only
 @JsonKey(name: "saf") bool get saf;// SAF is for Android only
@@ -35,7 +35,7 @@ $InternalMediaCopyWith<InternalMedia> get copyWith => _$InternalMediaCopyWithImp
 
 @override
 String toString() {
-  return 'InternalMedia(libraryId: $libraryId, itemId: $itemId, episodeId: $episodeId, title: $title, author: $author, series: $series, seriesPosition: $seriesPosition, cover: $cover, tracks: $tracks, chapters: $chapters, duration: $duration, local: $local, saf: $saf)';
+  return 'InternalMedia(libraryId: $libraryId, itemId: $itemId, episodeId: $episodeId, sessionId: $sessionId, title: $title, author: $author, series: $series, seriesPosition: $seriesPosition, cover: $cover, tracks: $tracks, chapters: $chapters, duration: $duration, local: $local, saf: $saf)';
 }
 
 
@@ -46,7 +46,7 @@ abstract mixin class $InternalMediaCopyWith<$Res>  {
   factory $InternalMediaCopyWith(InternalMedia value, $Res Function(InternalMedia) _then) = _$InternalMediaCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: "libraryId") String libraryId,@JsonKey(name: "itemId") String itemId,@JsonKey(name: "episodeId") String? episodeId,@JsonKey(name: "title") String title,@JsonKey(name: "author") String? author,@JsonKey(name: "series") String? series,@JsonKey(name: "seriesPosition") String? seriesPosition,@JsonKey(name: "cover") Uri cover,@JsonKey(name: "tracks") List<InternalTrack> tracks,@JsonKey(name: "chapters") List<InternalChapter>? chapters,@JsonKey(name: "duration") double? duration,@JsonKey(name: "local", defaultValue: false) bool local,@JsonKey(name: "saf") bool saf
+@JsonKey(name: "libraryId") String libraryId,@JsonKey(name: "itemId") String itemId,@JsonKey(name: "episodeId") String? episodeId,@JsonKey(name: "sessionId") String sessionId,@JsonKey(name: "title") String title,@JsonKey(name: "author") String? author,@JsonKey(name: "series") String? series,@JsonKey(name: "seriesPosition") String? seriesPosition,@JsonKey(name: "cover") Uri? cover,@JsonKey(name: "tracks") List<InternalTrack> tracks,@JsonKey(name: "chapters") List<InternalChapter>? chapters,@JsonKey(name: "duration") double? duration,@JsonKey(name: "local", defaultValue: false) bool local,@JsonKey(name: "saf") bool saf
 });
 
 
@@ -63,17 +63,18 @@ class _$InternalMediaCopyWithImpl<$Res>
 
 /// Create a copy of InternalMedia
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? libraryId = null,Object? itemId = null,Object? episodeId = freezed,Object? title = null,Object? author = freezed,Object? series = freezed,Object? seriesPosition = freezed,Object? cover = null,Object? tracks = null,Object? chapters = freezed,Object? duration = freezed,Object? local = null,Object? saf = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? libraryId = null,Object? itemId = null,Object? episodeId = freezed,Object? sessionId = null,Object? title = null,Object? author = freezed,Object? series = freezed,Object? seriesPosition = freezed,Object? cover = freezed,Object? tracks = null,Object? chapters = freezed,Object? duration = freezed,Object? local = null,Object? saf = null,}) {
   return _then(_self.copyWith(
 libraryId: null == libraryId ? _self.libraryId : libraryId // ignore: cast_nullable_to_non_nullable
 as String,itemId: null == itemId ? _self.itemId : itemId // ignore: cast_nullable_to_non_nullable
 as String,episodeId: freezed == episodeId ? _self.episodeId : episodeId // ignore: cast_nullable_to_non_nullable
-as String?,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String?,sessionId: null == sessionId ? _self.sessionId : sessionId // ignore: cast_nullable_to_non_nullable
+as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,author: freezed == author ? _self.author : author // ignore: cast_nullable_to_non_nullable
 as String?,series: freezed == series ? _self.series : series // ignore: cast_nullable_to_non_nullable
 as String?,seriesPosition: freezed == seriesPosition ? _self.seriesPosition : seriesPosition // ignore: cast_nullable_to_non_nullable
-as String?,cover: null == cover ? _self.cover : cover // ignore: cast_nullable_to_non_nullable
-as Uri,tracks: null == tracks ? _self.tracks : tracks // ignore: cast_nullable_to_non_nullable
+as String?,cover: freezed == cover ? _self.cover : cover // ignore: cast_nullable_to_non_nullable
+as Uri?,tracks: null == tracks ? _self.tracks : tracks // ignore: cast_nullable_to_non_nullable
 as List<InternalTrack>,chapters: freezed == chapters ? _self.chapters : chapters // ignore: cast_nullable_to_non_nullable
 as List<InternalChapter>?,duration: freezed == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
 as double?,local: null == local ? _self.local : local // ignore: cast_nullable_to_non_nullable
@@ -89,17 +90,18 @@ as bool,
 @JsonSerializable()
 
 class _InternalMedia extends InternalMedia {
-   _InternalMedia({@JsonKey(name: "libraryId") required this.libraryId, @JsonKey(name: "itemId") required this.itemId, @JsonKey(name: "episodeId") required this.episodeId, @JsonKey(name: "title") required this.title, @JsonKey(name: "author") this.author, @JsonKey(name: "series") this.series, @JsonKey(name: "seriesPosition") this.seriesPosition, @JsonKey(name: "cover") required this.cover, @JsonKey(name: "tracks") required this.tracks, @JsonKey(name: "chapters") this.chapters, @JsonKey(name: "duration") this.duration, @JsonKey(name: "local", defaultValue: false) required this.local, @JsonKey(name: "saf") required this.saf}): super._();
+   _InternalMedia({@JsonKey(name: "libraryId") required this.libraryId, @JsonKey(name: "itemId") required this.itemId, @JsonKey(name: "episodeId") required this.episodeId, @JsonKey(name: "sessionId") required this.sessionId, @JsonKey(name: "title") required this.title, @JsonKey(name: "author") this.author, @JsonKey(name: "series") this.series, @JsonKey(name: "seriesPosition") this.seriesPosition, @JsonKey(name: "cover") this.cover, @JsonKey(name: "tracks") required this.tracks, @JsonKey(name: "chapters") this.chapters, @JsonKey(name: "duration") this.duration, @JsonKey(name: "local", defaultValue: false) required this.local, @JsonKey(name: "saf") required this.saf}): super._();
   factory _InternalMedia.fromJson(Map<String, dynamic> json) => _$InternalMediaFromJson(json);
 
 @override@JsonKey(name: "libraryId")  String libraryId;
 @override@JsonKey(name: "itemId")  String itemId;
 @override@JsonKey(name: "episodeId")  String? episodeId;
+@override@JsonKey(name: "sessionId")  String sessionId;
 @override@JsonKey(name: "title")  String title;
 @override@JsonKey(name: "author")  String? author;
 @override@JsonKey(name: "series")  String? series;
 @override@JsonKey(name: "seriesPosition")  String? seriesPosition;
-@override@JsonKey(name: "cover")  Uri cover;
+@override@JsonKey(name: "cover")  Uri? cover;
 @override@JsonKey(name: "tracks")  List<InternalTrack> tracks;
 @override@JsonKey(name: "chapters")  List<InternalChapter>? chapters;
 // Removed incorrect defaultValue: false
@@ -123,7 +125,7 @@ Map<String, dynamic> toJson() {
 
 @override
 String toString() {
-  return 'InternalMedia(libraryId: $libraryId, itemId: $itemId, episodeId: $episodeId, title: $title, author: $author, series: $series, seriesPosition: $seriesPosition, cover: $cover, tracks: $tracks, chapters: $chapters, duration: $duration, local: $local, saf: $saf)';
+  return 'InternalMedia(libraryId: $libraryId, itemId: $itemId, episodeId: $episodeId, sessionId: $sessionId, title: $title, author: $author, series: $series, seriesPosition: $seriesPosition, cover: $cover, tracks: $tracks, chapters: $chapters, duration: $duration, local: $local, saf: $saf)';
 }
 
 
@@ -134,7 +136,7 @@ abstract mixin class _$InternalMediaCopyWith<$Res> implements $InternalMediaCopy
   factory _$InternalMediaCopyWith(_InternalMedia value, $Res Function(_InternalMedia) _then) = __$InternalMediaCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: "libraryId") String libraryId,@JsonKey(name: "itemId") String itemId,@JsonKey(name: "episodeId") String? episodeId,@JsonKey(name: "title") String title,@JsonKey(name: "author") String? author,@JsonKey(name: "series") String? series,@JsonKey(name: "seriesPosition") String? seriesPosition,@JsonKey(name: "cover") Uri cover,@JsonKey(name: "tracks") List<InternalTrack> tracks,@JsonKey(name: "chapters") List<InternalChapter>? chapters,@JsonKey(name: "duration") double? duration,@JsonKey(name: "local", defaultValue: false) bool local,@JsonKey(name: "saf") bool saf
+@JsonKey(name: "libraryId") String libraryId,@JsonKey(name: "itemId") String itemId,@JsonKey(name: "episodeId") String? episodeId,@JsonKey(name: "sessionId") String sessionId,@JsonKey(name: "title") String title,@JsonKey(name: "author") String? author,@JsonKey(name: "series") String? series,@JsonKey(name: "seriesPosition") String? seriesPosition,@JsonKey(name: "cover") Uri? cover,@JsonKey(name: "tracks") List<InternalTrack> tracks,@JsonKey(name: "chapters") List<InternalChapter>? chapters,@JsonKey(name: "duration") double? duration,@JsonKey(name: "local", defaultValue: false) bool local,@JsonKey(name: "saf") bool saf
 });
 
 
@@ -151,17 +153,18 @@ class __$InternalMediaCopyWithImpl<$Res>
 
 /// Create a copy of InternalMedia
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? libraryId = null,Object? itemId = null,Object? episodeId = freezed,Object? title = null,Object? author = freezed,Object? series = freezed,Object? seriesPosition = freezed,Object? cover = null,Object? tracks = null,Object? chapters = freezed,Object? duration = freezed,Object? local = null,Object? saf = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? libraryId = null,Object? itemId = null,Object? episodeId = freezed,Object? sessionId = null,Object? title = null,Object? author = freezed,Object? series = freezed,Object? seriesPosition = freezed,Object? cover = freezed,Object? tracks = null,Object? chapters = freezed,Object? duration = freezed,Object? local = null,Object? saf = null,}) {
   return _then(_InternalMedia(
 libraryId: null == libraryId ? _self.libraryId : libraryId // ignore: cast_nullable_to_non_nullable
 as String,itemId: null == itemId ? _self.itemId : itemId // ignore: cast_nullable_to_non_nullable
 as String,episodeId: freezed == episodeId ? _self.episodeId : episodeId // ignore: cast_nullable_to_non_nullable
-as String?,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+as String?,sessionId: null == sessionId ? _self.sessionId : sessionId // ignore: cast_nullable_to_non_nullable
+as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,author: freezed == author ? _self.author : author // ignore: cast_nullable_to_non_nullable
 as String?,series: freezed == series ? _self.series : series // ignore: cast_nullable_to_non_nullable
 as String?,seriesPosition: freezed == seriesPosition ? _self.seriesPosition : seriesPosition // ignore: cast_nullable_to_non_nullable
-as String?,cover: null == cover ? _self.cover : cover // ignore: cast_nullable_to_non_nullable
-as Uri,tracks: null == tracks ? _self.tracks : tracks // ignore: cast_nullable_to_non_nullable
+as String?,cover: freezed == cover ? _self.cover : cover // ignore: cast_nullable_to_non_nullable
+as Uri?,tracks: null == tracks ? _self.tracks : tracks // ignore: cast_nullable_to_non_nullable
 as List<InternalTrack>,chapters: freezed == chapters ? _self.chapters : chapters // ignore: cast_nullable_to_non_nullable
 as List<InternalChapter>?,duration: freezed == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
 as double?,local: null == local ? _self.local : local // ignore: cast_nullable_to_non_nullable
@@ -177,7 +180,7 @@ as bool,
 /// @nodoc
 mixin _$InternalTrack {
 
-@JsonKey(name: "index") int get index;@JsonKey(name: "duration") double get duration;@JsonKey(name: "url") String get url;@JsonKey(name: "start") double? get start;@JsonKey(name: "end") double? get end;
+@JsonKey(name: "index") int get index;@JsonKey(name: "duration") double get duration;@JsonKey(name: "url") String get url;@JsonKey(name: "mimeType") String get mimeType;@JsonKey(name: "start") double? get start;@JsonKey(name: "end") double? get end;
 /// Create a copy of InternalTrack
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -190,16 +193,16 @@ $InternalTrackCopyWith<InternalTrack> get copyWith => _$InternalTrackCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is InternalTrack&&(identical(other.index, index) || other.index == index)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.url, url) || other.url == url)&&(identical(other.start, start) || other.start == start)&&(identical(other.end, end) || other.end == end));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is InternalTrack&&(identical(other.index, index) || other.index == index)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.url, url) || other.url == url)&&(identical(other.mimeType, mimeType) || other.mimeType == mimeType)&&(identical(other.start, start) || other.start == start)&&(identical(other.end, end) || other.end == end));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,index,duration,url,start,end);
+int get hashCode => Object.hash(runtimeType,index,duration,url,mimeType,start,end);
 
 @override
 String toString() {
-  return 'InternalTrack(index: $index, duration: $duration, url: $url, start: $start, end: $end)';
+  return 'InternalTrack(index: $index, duration: $duration, url: $url, mimeType: $mimeType, start: $start, end: $end)';
 }
 
 
@@ -210,7 +213,7 @@ abstract mixin class $InternalTrackCopyWith<$Res>  {
   factory $InternalTrackCopyWith(InternalTrack value, $Res Function(InternalTrack) _then) = _$InternalTrackCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: "index") int index,@JsonKey(name: "duration") double duration,@JsonKey(name: "url") String url,@JsonKey(name: "start") double? start,@JsonKey(name: "end") double? end
+@JsonKey(name: "index") int index,@JsonKey(name: "duration") double duration,@JsonKey(name: "url") String url,@JsonKey(name: "mimeType") String mimeType,@JsonKey(name: "start") double? start,@JsonKey(name: "end") double? end
 });
 
 
@@ -227,11 +230,12 @@ class _$InternalTrackCopyWithImpl<$Res>
 
 /// Create a copy of InternalTrack
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? index = null,Object? duration = null,Object? url = null,Object? start = freezed,Object? end = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? index = null,Object? duration = null,Object? url = null,Object? mimeType = null,Object? start = freezed,Object? end = freezed,}) {
   return _then(_self.copyWith(
 index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
 as int,duration: null == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
 as double,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
+as String,mimeType: null == mimeType ? _self.mimeType : mimeType // ignore: cast_nullable_to_non_nullable
 as String,start: freezed == start ? _self.start : start // ignore: cast_nullable_to_non_nullable
 as double?,end: freezed == end ? _self.end : end // ignore: cast_nullable_to_non_nullable
 as double?,
@@ -245,12 +249,13 @@ as double?,
 @JsonSerializable()
 
 class _InternalTrack implements InternalTrack {
-  const _InternalTrack({@JsonKey(name: "index") required this.index, @JsonKey(name: "duration") required this.duration, @JsonKey(name: "url") required this.url, @JsonKey(name: "start") this.start, @JsonKey(name: "end") this.end});
+  const _InternalTrack({@JsonKey(name: "index") required this.index, @JsonKey(name: "duration") required this.duration, @JsonKey(name: "url") required this.url, @JsonKey(name: "mimeType") required this.mimeType, @JsonKey(name: "start") this.start, @JsonKey(name: "end") this.end});
   factory _InternalTrack.fromJson(Map<String, dynamic> json) => _$InternalTrackFromJson(json);
 
 @override@JsonKey(name: "index") final  int index;
 @override@JsonKey(name: "duration") final  double duration;
 @override@JsonKey(name: "url") final  String url;
+@override@JsonKey(name: "mimeType") final  String mimeType;
 @override@JsonKey(name: "start") final  double? start;
 @override@JsonKey(name: "end") final  double? end;
 
@@ -267,16 +272,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _InternalTrack&&(identical(other.index, index) || other.index == index)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.url, url) || other.url == url)&&(identical(other.start, start) || other.start == start)&&(identical(other.end, end) || other.end == end));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _InternalTrack&&(identical(other.index, index) || other.index == index)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.url, url) || other.url == url)&&(identical(other.mimeType, mimeType) || other.mimeType == mimeType)&&(identical(other.start, start) || other.start == start)&&(identical(other.end, end) || other.end == end));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,index,duration,url,start,end);
+int get hashCode => Object.hash(runtimeType,index,duration,url,mimeType,start,end);
 
 @override
 String toString() {
-  return 'InternalTrack(index: $index, duration: $duration, url: $url, start: $start, end: $end)';
+  return 'InternalTrack(index: $index, duration: $duration, url: $url, mimeType: $mimeType, start: $start, end: $end)';
 }
 
 
@@ -287,7 +292,7 @@ abstract mixin class _$InternalTrackCopyWith<$Res> implements $InternalTrackCopy
   factory _$InternalTrackCopyWith(_InternalTrack value, $Res Function(_InternalTrack) _then) = __$InternalTrackCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: "index") int index,@JsonKey(name: "duration") double duration,@JsonKey(name: "url") String url,@JsonKey(name: "start") double? start,@JsonKey(name: "end") double? end
+@JsonKey(name: "index") int index,@JsonKey(name: "duration") double duration,@JsonKey(name: "url") String url,@JsonKey(name: "mimeType") String mimeType,@JsonKey(name: "start") double? start,@JsonKey(name: "end") double? end
 });
 
 
@@ -304,11 +309,12 @@ class __$InternalTrackCopyWithImpl<$Res>
 
 /// Create a copy of InternalTrack
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? index = null,Object? duration = null,Object? url = null,Object? start = freezed,Object? end = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? index = null,Object? duration = null,Object? url = null,Object? mimeType = null,Object? start = freezed,Object? end = freezed,}) {
   return _then(_InternalTrack(
 index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
 as int,duration: null == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
 as double,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
+as String,mimeType: null == mimeType ? _self.mimeType : mimeType // ignore: cast_nullable_to_non_nullable
 as String,start: freezed == start ? _self.start : start // ignore: cast_nullable_to_non_nullable
 as double?,end: freezed == end ? _self.end : end // ignore: cast_nullable_to_non_nullable
 as double?,
@@ -451,6 +457,142 @@ start: null == start ? _self.start : start // ignore: cast_nullable_to_non_nulla
 as double,end: null == end ? _self.end : end // ignore: cast_nullable_to_non_nullable
 as double,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$QueueItem {
+
+@JsonKey(name: "itemId") String get itemId;@JsonKey(name: "episodeId") String? get episodeId;
+/// Create a copy of QueueItem
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$QueueItemCopyWith<QueueItem> get copyWith => _$QueueItemCopyWithImpl<QueueItem>(this as QueueItem, _$identity);
+
+  /// Serializes this QueueItem to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is QueueItem&&(identical(other.itemId, itemId) || other.itemId == itemId)&&(identical(other.episodeId, episodeId) || other.episodeId == episodeId));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,itemId,episodeId);
+
+@override
+String toString() {
+  return 'QueueItem(itemId: $itemId, episodeId: $episodeId)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $QueueItemCopyWith<$Res>  {
+  factory $QueueItemCopyWith(QueueItem value, $Res Function(QueueItem) _then) = _$QueueItemCopyWithImpl;
+@useResult
+$Res call({
+@JsonKey(name: "itemId") String itemId,@JsonKey(name: "episodeId") String? episodeId
+});
+
+
+
+
+}
+/// @nodoc
+class _$QueueItemCopyWithImpl<$Res>
+    implements $QueueItemCopyWith<$Res> {
+  _$QueueItemCopyWithImpl(this._self, this._then);
+
+  final QueueItem _self;
+  final $Res Function(QueueItem) _then;
+
+/// Create a copy of QueueItem
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? itemId = null,Object? episodeId = freezed,}) {
+  return _then(_self.copyWith(
+itemId: null == itemId ? _self.itemId : itemId // ignore: cast_nullable_to_non_nullable
+as String,episodeId: freezed == episodeId ? _self.episodeId : episodeId // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+}
+
+
+/// @nodoc
+@JsonSerializable()
+
+class _QueueItem implements QueueItem {
+  const _QueueItem({@JsonKey(name: "itemId") required this.itemId, @JsonKey(name: "episodeId") this.episodeId});
+  factory _QueueItem.fromJson(Map<String, dynamic> json) => _$QueueItemFromJson(json);
+
+@override@JsonKey(name: "itemId") final  String itemId;
+@override@JsonKey(name: "episodeId") final  String? episodeId;
+
+/// Create a copy of QueueItem
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$QueueItemCopyWith<_QueueItem> get copyWith => __$QueueItemCopyWithImpl<_QueueItem>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$QueueItemToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _QueueItem&&(identical(other.itemId, itemId) || other.itemId == itemId)&&(identical(other.episodeId, episodeId) || other.episodeId == episodeId));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,itemId,episodeId);
+
+@override
+String toString() {
+  return 'QueueItem(itemId: $itemId, episodeId: $episodeId)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$QueueItemCopyWith<$Res> implements $QueueItemCopyWith<$Res> {
+  factory _$QueueItemCopyWith(_QueueItem value, $Res Function(_QueueItem) _then) = __$QueueItemCopyWithImpl;
+@override @useResult
+$Res call({
+@JsonKey(name: "itemId") String itemId,@JsonKey(name: "episodeId") String? episodeId
+});
+
+
+
+
+}
+/// @nodoc
+class __$QueueItemCopyWithImpl<$Res>
+    implements _$QueueItemCopyWith<$Res> {
+  __$QueueItemCopyWithImpl(this._self, this._then);
+
+  final _QueueItem _self;
+  final $Res Function(_QueueItem) _then;
+
+/// Create a copy of QueueItem
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? itemId = null,Object? episodeId = freezed,}) {
+  return _then(_QueueItem(
+itemId: null == itemId ? _self.itemId : itemId // ignore: cast_nullable_to_non_nullable
+as String,episodeId: freezed == episodeId ? _self.episodeId : episodeId // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

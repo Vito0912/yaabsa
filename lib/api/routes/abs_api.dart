@@ -21,6 +21,10 @@ class ABSApi {
     return null;
   }
 
+  String get basePathOverride {
+    return dio.options.baseUrl;
+  }
+
   ABSApi({Dio? dio, String? basePathOverride, List<Interceptor>? interceptors})
     : dio =
           dio ??

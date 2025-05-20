@@ -1,4 +1,5 @@
 import 'package:buchshelfly/api/library_items/library_file_metadata.dart';
+import 'package:buchshelfly/models/internal_media.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'audio_track.freezed.dart';
@@ -24,6 +25,20 @@ abstract class AudioTrack with _$AudioTrack {
       return contentUrl.substring(15);
     }
     return contentUrl;
+  }
+
+  InternalTrack toInternalTrack(
+    String baseUrl,
+    String sessionId, {
+    int? localIndex,
+  }) {
+    final tmpIndex = (index ?? localIndex)!;
+    return InternalTrack(
+      index: tmpIndex,
+      duration: duration,
+      url: '$baseUrl/public/session/$sessionId/track/$tmpIndex',
+      mimeType: mimeType,
+    );
   }
 
   factory AudioTrack.fromJson(Map<String, dynamic> json) =>

@@ -31,7 +31,7 @@ class LibraryItemApi {
   Future<Response<PlaybackSession>> playLibraryItem(
     String id, {
     String? episodeId,
-    required PlayLibraryItemRequest libraryItemRequest,
+    required PlayLibraryItemRequest playRequest,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -50,7 +50,7 @@ class LibraryItemApi {
       headers: headers,
       extra: extra,
       dio: _dio,
-      bodyData: libraryItemRequest.toJson(),
+      bodyData: playRequest.toJson(),
     );
   }
 
