@@ -2,6 +2,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:buchshelfly/models/internal_media.dart';
 import 'package:buchshelfly/provider/player/session_provider.dart';
 import 'package:buchshelfly/util/logger.dart';
+import 'package:buchshelfly/util/playback_sync_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:rxdart/transformers.dart';
@@ -123,6 +124,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   }
 
   BGAudioHandler(this._ref) {
+    PlaybackSyncService syncService = PlaybackSyncService(this, _ref);
     _player.playerStateStream.listen((PlayerState state) async {
       logger(state.toString(), tag: 'AudioHandler', level: InfoLevel.debug);
       if (state.processingState == ProcessingState.completed) {
@@ -132,6 +134,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           tag: 'AudioHandler',
           level: InfoLevel.debug,
         );
+        await syncService.flush();
         await _ref.read(sessionRepositoryProvider).closeSession();
 
         if (queueList.isNotEmpty) {

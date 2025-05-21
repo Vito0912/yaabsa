@@ -1,6 +1,7 @@
 import 'package:buchshelfly/api/library_items/playback_session.dart';
 import 'package:buchshelfly/api/library_items/request/play_library_item_request.dart';
 import 'package:buchshelfly/api/routes/abs_api.dart';
+import 'package:buchshelfly/api/session/request/sync_session_request.dart';
 import 'package:buchshelfly/models/internal_media.dart';
 import 'package:buchshelfly/provider/core/user_providers.dart';
 import 'package:buchshelfly/util/globals.dart';
@@ -92,6 +93,30 @@ class SessionRepository {
     internalMedia.populateFields();
 
     return internalMedia;
+  }
+
+  Future<bool> syncOpenSession(double currentTime, double timeListened) async {
+    // TODO: Implement for offline support
+    final ABSApi? api = ref.read(absApiProvider);
+    if (api == null) {
+      logger('No API available, cannot sync session.', tag: 'SessionRepository', level: InfoLevel.warning);
+      return false;
+    }
+    if (_currentSession == null) {
+      logger('No session available, cannot sync session.', tag: 'SessionRepository', level: InfoLevel.warning);
+      return false;
+    }
+
+    final result = await api.getSessionApi().syncOpenSession(
+      _currentSession!.id,
+      request: SyncSessionRequest(
+        currentTime: currentTime,
+        timeListened: timeListened,
+        duration: _currentSession!.duration ?? 0,
+      ),
+    );
+
+    return result;
   }
 }
 
