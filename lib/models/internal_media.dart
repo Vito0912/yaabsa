@@ -95,6 +95,19 @@ abstract class InternalMedia with _$InternalMedia {
     }
     return Duration(microseconds: (tracks[index].start! * 1e6).round());
   }
+
+  InternalChapter? getChapterForDuration(Duration duration) {
+    if (chapters == null || chapters!.isEmpty) {
+      return null;
+    }
+    double targetDuration = duration.inMicroseconds / 1e6;
+    for (int i = 0; i < chapters!.length; i++) {
+      if (chapters![i].start <= targetDuration && chapters![i].end >= targetDuration) {
+        return chapters![i];
+      }
+    }
+    return null;
+  }
 }
 
 @freezed

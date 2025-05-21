@@ -53,6 +53,17 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         .distinct();
   }
 
+  Stream<InternalChapter?> get chapterStream {
+    return _player.positionStream
+        .throttleTime(const Duration(milliseconds: 1000))
+        .map((position) => _currentMediaItem?.getChapterForDuration(position))
+        .distinct();
+  }
+
+  Stream<List<InternalChapter>> get chaptersStream {
+    return _player.playerStateStream.map((position) => _currentMediaItem?.chapters ?? []).distinct();
+  }
+
   Duration get position {
     final pos = _player.position;
     return (_currentMediaItem?.offsetForTrack(_currentTrackIndex) ?? Duration.zero) + pos;

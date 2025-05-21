@@ -9,7 +9,9 @@ part of 'audio_file.dart';
 _AudioFile _$AudioFileFromJson(Map<String, dynamic> json) => _AudioFile(
   index: (json['index'] as num?)?.toInt(),
   ino: json['ino'] as String,
-  metadata: LibraryFileMetadata.fromJson(json['metadata'] as Map<String, dynamic>),
+  metadata: LibraryFileMetadata.fromJson(
+    json['metadata'] as Map<String, dynamic>,
+  ),
   addedAt: (json['addedAt'] as num).toInt(),
   updatedAt: (json['updatedAt'] as num?)?.toInt(),
   trackNumFromMeta: (json['trackNumFromMeta'] as num?)?.toInt(),
@@ -27,35 +29,42 @@ _AudioFile _$AudioFileFromJson(Map<String, dynamic> json) => _AudioFile(
   timeBase: json['timeBase'] as String?,
   channels: (json['channels'] as num?)?.toInt(),
   channelLayout: json['channelLayout'] as String?,
-  chapters: (json['chapters'] as List<dynamic>?)?.map((e) => Chapter.fromJson(e as Map<String, dynamic>)).toList(),
+  chapters:
+      (json['chapters'] as List<dynamic>?)
+          ?.map((e) => Chapter.fromJson(e as Map<String, dynamic>))
+          .toList(),
   embeddedCoverArt: json['embeddedCoverArt'] as String?,
-  metaTags: json['metaTags'] == null ? null : MetaTags.fromJson(json['metaTags'] as Map<String, dynamic>),
+  metaTags:
+      json['metaTags'] == null
+          ? null
+          : MetaTags.fromJson(json['metaTags'] as Map<String, dynamic>),
   mimeType: json['mimeType'] as String?,
 );
 
-Map<String, dynamic> _$AudioFileToJson(_AudioFile instance) => <String, dynamic>{
-  'index': instance.index,
-  'ino': instance.ino,
-  'metadata': instance.metadata,
-  'addedAt': instance.addedAt,
-  'updatedAt': instance.updatedAt,
-  'trackNumFromMeta': instance.trackNumFromMeta,
-  'discNumFromMeta': instance.discNumFromMeta,
-  'trackNumFromFilename': instance.trackNumFromFilename,
-  'discNumFromFilename': instance.discNumFromFilename,
-  'manuallyVerified': instance.manuallyVerified,
-  'exclude': instance.exclude,
-  'error': instance.error,
-  'format': instance.format,
-  'duration': instance.duration,
-  'bitRate': instance.bitRate,
-  'language': instance.language,
-  'codec': instance.codec,
-  'timeBase': instance.timeBase,
-  'channels': instance.channels,
-  'channelLayout': instance.channelLayout,
-  'chapters': instance.chapters,
-  'embeddedCoverArt': instance.embeddedCoverArt,
-  'metaTags': instance.metaTags,
-  'mimeType': instance.mimeType,
-};
+Map<String, dynamic> _$AudioFileToJson(_AudioFile instance) =>
+    <String, dynamic>{
+      'index': instance.index,
+      'ino': instance.ino,
+      'metadata': instance.metadata,
+      'addedAt': instance.addedAt,
+      'updatedAt': instance.updatedAt,
+      'trackNumFromMeta': instance.trackNumFromMeta,
+      'discNumFromMeta': instance.discNumFromMeta,
+      'trackNumFromFilename': instance.trackNumFromFilename,
+      'discNumFromFilename': instance.discNumFromFilename,
+      'manuallyVerified': instance.manuallyVerified,
+      'exclude': instance.exclude,
+      'error': instance.error,
+      'format': instance.format,
+      'duration': instance.duration,
+      'bitRate': instance.bitRate,
+      'language': instance.language,
+      'codec': instance.codec,
+      'timeBase': instance.timeBase,
+      'channels': instance.channels,
+      'channelLayout': instance.channelLayout,
+      'chapters': instance.chapters,
+      'embeddedCoverArt': instance.embeddedCoverArt,
+      'metaTags': instance.metaTags,
+      'mimeType': instance.mimeType,
+    };

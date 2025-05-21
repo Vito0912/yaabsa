@@ -1,3 +1,4 @@
+import 'package:buchshelfly/components/player/common/chapter_text.dart';
 import 'package:buchshelfly/components/player/common/control_button.dart';
 import 'package:buchshelfly/components/player/common/jump_button.dart';
 import 'package:buchshelfly/components/player/common/seek_bar.dart';
@@ -19,7 +20,13 @@ class PlayBar extends HookWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 0.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: [JumpButton(rewind: true), ControlButton(), JumpButton(rewind: false), StopButton()],
+              children: [
+                JumpButton(rewind: true),
+                ControlButton(),
+                JumpButton(rewind: false),
+                StopButton(),
+                ChapterText(),
+              ],
             ),
           ),
           Padding(padding: const EdgeInsets.symmetric(horizontal: 16.0), child: SeekBar()),
