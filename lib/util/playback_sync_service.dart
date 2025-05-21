@@ -51,7 +51,7 @@ class PlaybackSyncService {
   }
 
   Future<bool> _sync() async {
-    final Duration currentPositionDuration = _handler.player.position;
+    final Duration currentPositionDuration = _handler.position;
     final double currentPositionSeconds = currentPositionDuration.inMicroseconds / Duration.microsecondsPerSecond;
     double listenedTime = 0;
 

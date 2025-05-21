@@ -3,6 +3,8 @@ import 'package:buchshelfly/api/library_items/chapter.dart';
 import 'package:buchshelfly/api/library_items/device_info.dart';
 import 'package:buchshelfly/api/library_items/library_item.dart';
 import 'package:buchshelfly/api/library_items/metadata.dart';
+import 'package:buchshelfly/api/me/media_item_type.dart';
+import 'package:buchshelfly/api/me/media_progress.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'playback_session.freezed.dart';
@@ -10,6 +12,8 @@ part 'playback_session.g.dart';
 
 @freezed
 abstract class PlaybackSession with _$PlaybackSession {
+  const PlaybackSession._();
+
   const factory PlaybackSession({
     @JsonKey(name: "id") required String id,
     @JsonKey(name: "userId") required String userId,
@@ -37,6 +41,28 @@ abstract class PlaybackSession with _$PlaybackSession {
     @JsonKey(name: "audioTracks") List<AudioTrack>? audioTracks,
     @JsonKey(name: "libraryItem") LibraryItem? libraryItem,
   }) = _PlaybackSession;
+
+  MediaProgress toMediaProgress(MediaProgress? item, String userId, double progress, double currentTime) {
+    if (item != null) return item;
+    return MediaProgress(
+      id: id,
+      userId: userId,
+      libraryItemId: libraryItemId,
+      episodeId: episodeId,
+      mediaItemType: mediaType == 'podcast' ? MediaItemType.PODCAST_EPISODE : MediaItemType.BOOK,
+      mediaItemId: id,
+      duration: duration ?? 0,
+      progress: progress,
+      currentTime: currentTime,
+      isFinished: currentTime >= (duration ?? 0),
+      hideFromContinueListening: false,
+      ebookProgress: null,
+      ebookLocation: null,
+      lastUpdate: DateTime.now().millisecondsSinceEpoch,
+      startedAt: startedAt ?? DateTime.now().millisecondsSinceEpoch,
+      finishedAt: null,
+    );
+  }
 
   factory PlaybackSession.fromJson(Map<String, dynamic> json) => _$PlaybackSessionFromJson(json);
 }

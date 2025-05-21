@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:audio_service/audio_service.dart';
 import 'package:buchshelfly/models/internal_media.dart';
+import 'package:buchshelfly/provider/common/media_progress_provider.dart';
 import 'package:buchshelfly/provider/player/session_provider.dart';
 import 'package:buchshelfly/util/logger.dart';
 import 'package:buchshelfly/util/playback_sync_service.dart';
@@ -71,7 +74,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   @override
   Future<void> play() async {
-    if (_currentMediaItem != null) await _player.play();
+    if (_currentMediaItem != null) await _syncedPlay();
 
     QueueItem? tmp = queueList.isNotEmpty ? queueList.removeAt(0) : null;
     if (tmp == null) return Future.value();
@@ -81,7 +84,35 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       return Future.value();
     }
     await _setSource();
-    await _player.play();
+    await _syncedPlay();
+  }
+
+  Future<void> _syncedPlay() async {
+    final bool waitForSync = true;
+    Duration currentPosition = Duration.zero;
+
+    if (waitForSync) {
+      final progress = await _ref
+          .read(mediaProgressNotifierProvider.notifier)
+          .fetchOrRefreshIndividualProgress(_currentMediaItem!.itemId);
+
+      currentPosition = Duration(microseconds: ((progress?.currentTime ?? 0) * Duration.microsecondsPerSecond).round());
+
+      await seek(currentPosition);
+      await _player.play();
+    } else {
+      await _player.play();
+
+      final progress = await _ref
+          .read(mediaProgressNotifierProvider.notifier)
+          .fetchOrRefreshIndividualProgress(_currentMediaItem!.itemId);
+
+      currentPosition = Duration(microseconds: ((progress?.currentTime ?? 0) * Duration.microsecondsPerSecond).round());
+
+      if ((currentPosition - _player.position).abs() >= const Duration(seconds: 10)) {
+        await seek(currentPosition);
+      }
+    }
   }
 
   @override
@@ -128,6 +159,12 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         position - _currentMediaItem!.startDurationForTrack(_currentTrackIndex),
         index: _currentTrackIndex,
       );
+      if (Platform.isWindows) {
+        // Bugfix for Windows as it doesn't seek correctly if the index changed
+        _player.playerStateStream.firstWhere((state) => state.processingState == ProcessingState.ready).then((_) async {
+          await _player.seek(position - _currentMediaItem!.startDurationForTrack(_currentTrackIndex));
+        });
+      }
     } else {
       await _player.seek(position - _currentMediaItem!.startDurationForTrack(_currentTrackIndex));
     }
@@ -162,6 +199,18 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   _setSource({Duration initialPosition = Duration.zero}) async {
     if (_currentMediaItem == null) return Future.value();
     final source = _currentMediaItem!.toAudioSources();
+    final currentProgress = _ref.read(
+      mediaProgressNotifierProvider.select((asyncValue) {
+        return asyncValue.value?[_currentMediaItem!.itemId];
+      }),
+    );
+
+    if (currentProgress != null) {
+      initialPosition = Duration(
+        microseconds: ((currentProgress.currentTime ?? 0) * Duration.microsecondsPerSecond).round(),
+      );
+    }
+
     await player.setAudioSources(source, initialIndex: 0, initialPosition: Duration.zero, preload: true);
     await _player.play();
   }

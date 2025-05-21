@@ -1,3 +1,4 @@
+import 'package:buchshelfly/api/library_items/playback_session.dart';
 import 'package:buchshelfly/api/me/media_progress.dart';
 import 'package:buchshelfly/api/routes/me_api.dart';
 import 'package:buchshelfly/provider/core/user_providers.dart';
@@ -101,11 +102,34 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
     }
   }
 
-  Future<void> updateMediaProgress(String libraryItemId, MediaProgress mediaProgress) async {
+  Future<void> updateMediaProgress(String libraryItemId, double currentTime, PlaybackSession session) async {
     state = const AsyncLoading<Map<String, MediaProgress>>().copyWithPrevious(state);
     try {
       final currentMap = state.valueOrNull ?? {};
-      final updatedMap = {...currentMap, mediaProgress.libraryItemId: mediaProgress};
+
+      MediaProgress? updatedProgress = currentMap[libraryItemId];
+      if (updatedProgress == null) {
+        updatedProgress = session.toMediaProgress(updatedProgress, '', 0, 0);
+        logger(
+          'No existing media progress found for $libraryItemId. Creating.',
+          tag: 'MediaProgressProvider',
+          level: InfoLevel.warning,
+        );
+      }
+      final double duration = updatedProgress.duration <= 0 ? (session.duration ?? 0) : updatedProgress.duration;
+      final double progress = currentTime / duration;
+
+      if (progress < 0 || progress > 1) {
+        logger(
+          'Invalid progress value: $progress for libraryItemId: $libraryItemId. Skipping update.',
+          tag: 'MediaProgressProvider',
+          level: InfoLevel.error,
+        );
+        return;
+      }
+
+      updatedProgress = updatedProgress.copyWith(currentTime: currentTime, progress: progress);
+      final updatedMap = {...currentMap, libraryItemId: updatedProgress};
       state = AsyncData(updatedMap);
     } catch (e, s) {
       logger(

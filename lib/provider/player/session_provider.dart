@@ -3,6 +3,7 @@ import 'package:buchshelfly/api/library_items/request/play_library_item_request.
 import 'package:buchshelfly/api/routes/abs_api.dart';
 import 'package:buchshelfly/api/session/request/sync_session_request.dart';
 import 'package:buchshelfly/models/internal_media.dart';
+import 'package:buchshelfly/provider/common/media_progress_provider.dart';
 import 'package:buchshelfly/provider/core/user_providers.dart';
 import 'package:buchshelfly/util/globals.dart';
 import 'package:buchshelfly/util/logger.dart';
@@ -106,6 +107,10 @@ class SessionRepository {
       logger('No session available, cannot sync session.', tag: 'SessionRepository', level: InfoLevel.warning);
       return false;
     }
+
+    ref
+        .read(mediaProgressNotifierProvider.notifier)
+        .updateMediaProgress(_currentSession!.libraryItemId, currentTime, _currentSession!);
 
     final result = await api.getSessionApi().syncOpenSession(
       _currentSession!.id,
