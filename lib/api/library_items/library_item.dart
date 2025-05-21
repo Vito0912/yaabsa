@@ -45,4 +45,16 @@ abstract class LibraryItem with _$LibraryItem {
   String? get subtitle {
     return media?.bookMedia?.metadata.subtitle;
   }
+
+  String? get authorString {
+    return media?.bookMedia?.metadata.authors?.map((e) => e.name).join(', ') ?? media?.podcastMedia?.metadata.author;
+  }
+
+  String? get seriesName {
+    return media?.bookMedia?.metadata.series?.firstOrNull?.name;
+  }
+
+  String? get seriesPosition {
+    return media?.bookMedia?.metadata.series?.firstOrNull?.sequence;
+  }
 }

@@ -1,3 +1,4 @@
+import 'package:buchshelfly/components/player/player.dart';
 import 'package:buchshelfly/screens/auth/sign_in.dart';
 import 'package:buchshelfly/screens/layout_home.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ final globalRouter = GoRouter(
   initialLocation: '/',
   routes: [
     GoRoute(path: '/add-user', builder: (context, state) => SignIn()),
+    GoRoute(path: '/player', builder: (context, state) => Player()),
     ShellRoute(
       builder: (BuildContext context, GoRouterState state, Widget child) {
         return child;

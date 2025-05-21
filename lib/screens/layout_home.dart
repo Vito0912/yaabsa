@@ -1,8 +1,8 @@
 import 'package:buchshelfly/components/app/user_switcher.dart';
 import 'package:buchshelfly/components/player/play_bar.dart';
-import 'package:buchshelfly/screens/home_screen.dart';
 import 'package:buchshelfly/screens/main/library_view.dart';
 import 'package:buchshelfly/screens/settings/log_view.dart';
+import 'package:buchshelfly/util/globals.dart';
 import 'package:flutter/material.dart';
 
 enum _PageSource { internal, child }
@@ -50,7 +50,7 @@ class _LayoutHomeState extends State<LayoutHome> {
   void initState() {
     super.initState();
     _appBarItems = [
-      NavigationItemConfig(icon: Icons.home, label: "Shelf", page: const HomeScreen()),
+      NavigationItemConfig(icon: Icons.home, label: "Shelf", page: const PlaceholderPage(title: "Shelf")),
       NavigationItemConfig(icon: Icons.collections_bookmark_outlined, label: "Library", page: const LibraryView()),
       NavigationItemConfig(
         icon: Icons.search,
@@ -189,74 +189,69 @@ class _LayoutHomeState extends State<LayoutHome> {
     final colorScheme = Theme.of(context).colorScheme;
     const double navBarHeight = 70.0;
 
-    return Positioned(
-      top: MediaQuery.of(context).padding.top + 8.0,
-      left: 16.0,
-      right: 16.0,
-      child: Material(
-        elevation: 4.0,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
+    return Material(
+      elevation: 4.0,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(16.0),
+          topRight: Radius.circular(16.0),
+          bottomLeft: Radius.circular(24.0),
+          bottomRight: Radius.circular(24.0),
+        ),
+      ),
+      child: Container(
+        height: navBarHeight,
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(16.0),
             topRight: Radius.circular(16.0),
             bottomLeft: Radius.circular(24.0),
             bottomRight: Radius.circular(24.0),
           ),
         ),
-        child: Container(
-          height: navBarHeight,
-          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainerHighest,
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(16.0),
-              topRight: Radius.circular(16.0),
-              bottomLeft: Radius.circular(24.0),
-              bottomRight: Radius.circular(24.0),
-            ),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              ..._appBarItems.asMap().entries.map((entry) {
-                int idx = entry.key;
-                NavigationItemConfig item = entry.value;
-                bool isSelected = _selectedIndex == idx;
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            ..._appBarItems.asMap().entries.map((entry) {
+              int idx = entry.key;
+              NavigationItemConfig item = entry.value;
+              bool isSelected = _selectedIndex == idx;
 
-                return Expanded(
-                  child: InkWell(
-                    onTap: () => _onAppBarItemTapped(idx),
-                    borderRadius: BorderRadius.circular(12.0),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            item.icon,
+              return Expanded(
+                child: InkWell(
+                  onTap: () => _onAppBarItemTapped(idx),
+                  borderRadius: BorderRadius.circular(12.0),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          item.icon,
+                          color: isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
+                          size: isSelected ? 26 : 22,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          item.label,
+                          style: TextStyle(
+                            fontSize: 10,
                             color: isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
-                            size: isSelected ? 26 : 22,
+                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            item.label,
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
-                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ),
                   ),
-                );
-              }),
-            ],
-          ),
+                ),
+              );
+            }),
+          ],
         ),
       ),
     );
@@ -299,18 +294,21 @@ class _LayoutHomeState extends State<LayoutHome> {
           return Scaffold(
             body: Stack(
               children: [
-                Column(children: [_appBar(context, true), Expanded(child: currentContent)]),
-                Column(
-                  children: [
-                    Expanded(
-                      child: SafeArea(
-                        child: Padding(
-                          padding: const EdgeInsets.only(bottom: 24, right: 12, left: 12),
-                          child: Align(alignment: Alignment.bottomCenter, child: _buildMobileNavBar(context)),
+                Column(children: [_appBar(context, true), Expanded(child: currentContent), PlayBar()]),
+                SafeArea(
+                  child: StreamBuilder<bool>(
+                    stream: audioHandler.shouldShowPlayer,
+                    builder: (context, snapshot) {
+                      return Padding(
+                        padding: EdgeInsets.only(
+                          bottom: 24 + ((snapshot.hasData && snapshot.data!) ? 56 : 0),
+                          right: 12,
+                          left: 12,
                         ),
-                      ),
-                    ),
-                  ],
+                        child: Align(alignment: Alignment.bottomCenter, child: _buildMobileNavBar(context)),
+                      );
+                    },
+                  ),
                 ),
               ],
             ),

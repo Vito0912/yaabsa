@@ -22,11 +22,11 @@ class Init {
     if (_audioHandler != null) return _audioHandler!;
     _audioHandler = await AudioService.init(
       builder: () => BGAudioHandler(containerRef),
-      config: const AudioServiceConfig(
+      config: AudioServiceConfig(
         androidNotificationChannelId: 'de.vito0912.buchshelfly.audio',
         androidNotificationChannelName: 'Playback',
-        androidNotificationOngoing: true,
-        androidStopForegroundOnPause: true,
+        androidNotificationOngoing: false,
+        androidStopForegroundOnPause: false,
         preloadArtwork: true,
       ),
     );

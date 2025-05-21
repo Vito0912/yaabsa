@@ -2,15 +2,27 @@
 
 An improved cross-platform app for Audiobookshelf
 
-## Getting Started
+## Compatibility Matrix
 
-This project is a starting point for a Flutter application.
+> [!NOTE]
+> For best playback experience merge all audio files into one file.
 
-A few resources to get you started if this is your first Flutter project:
+### Player
+| Feature                  | Android | iOS | Windows | MacOS | Linux |
+|--------------------------|---------|-----|---------|-------|-------|
+| Play/Pause/Seeking/Speed | ✅       | ✅   | ✅       | ✅     | ✅     |
+| Background Playback      | ✅       | ✅   | ✅       | ❓     | ❓     |
+| Device Controls          | ✅       | ✅   | ❌       | ✅     | ❌     |
+| (Auto)-Queue             | ✅       | ✅   | ✅       | ✅     | ✅     |
+| Gapless playback         | ✅       | ✅   | ✅       | ✅     | ✅     |
+| Buffering                | ✅       | ✅   | ✅       | ✅     | ✅     |
+| Volume Boost             | ✅       | ❌   | ❌       | ❌     | ❌     |
+| Audio ducking            | ✅       | ✅   | ❌       | ❌     | ❌     |
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### E-Reader
+
+| Feature      | Android | iOS | Windows | MacOS | Linux |
+|--------------|---------|-----|---------|-------|-------|
+| ePUB support | ✅       | ❓   | ✅       | ❓     | ❓     |
+| Annotations  | ✅       | ❓   | ✅       | ❓     | ❓     |

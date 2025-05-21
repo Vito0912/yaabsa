@@ -82,6 +82,10 @@ class SessionRepository {
       episodeId: _currentSession!.episodeId,
       sessionId: _currentSession!.id,
       title: _currentSession!.displayTitle ?? _currentSession!.libraryItem!.title,
+      subtitle: _currentSession!.libraryItem?.subtitle,
+      series: _currentSession!.libraryItem?.seriesName,
+      seriesPosition: _currentSession!.libraryItem?.seriesPosition,
+      author: _currentSession!.libraryItem?.authorString,
       // cover: _currentSession!.coverPath,
       chapters: _currentSession!.chapters?.map((e) => e.toInternalChapter()).toList(),
       tracks:

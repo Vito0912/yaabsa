@@ -12,35 +12,40 @@ class PlayBar extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final playerStateStream = audioHandler.player.playerStateStream;
+    final playerStateStream = audioHandler.shouldShowPlayer;
 
-    final playingStatusStream = useMemoized(() => playerStateStream.map((state) => state.playing).distinct(), [
-      playerStateStream,
-    ]);
+    final playingStatusStream = useMemoized(() => playerStateStream, [playerStateStream]);
 
     final playingSnapshot = useStream(playingStatusStream, initialData: audioHandler.player.playerState.playing);
 
     if (playingSnapshot.hasData && playingSnapshot.data == true) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 0.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  JumpButton(rewind: true),
-                  ControlButton(),
-                  JumpButton(rewind: false),
-                  StopButton(),
-                  ChapterText(),
-                ],
-              ),
+      return SafeArea(
+        child: InkWell(
+          onTap: () {
+            //context.go('/player');
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 0.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      JumpButton(rewind: true),
+                      ControlButton(),
+                      JumpButton(rewind: false),
+                      StopButton(),
+                      ChapterText(),
+                    ],
+                  ),
+                ),
+                Padding(padding: const EdgeInsets.symmetric(horizontal: 16.0), child: SeekBar()),
+              ],
             ),
-            Padding(padding: const EdgeInsets.symmetric(horizontal: 16.0), child: SeekBar()),
-          ],
+          ),
         ),
       );
     } else {

@@ -72,8 +72,13 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     return (_currentMediaItem?.offsetForTrack(_currentTrackIndex) ?? Duration.zero) + pos;
   }
 
+  Stream<bool> get shouldShowPlayer {
+    return _player.playerStateStream.map((state) => _currentMediaItem != null).distinct();
+  }
+
   @override
   Future<void> play() async {
+    print(_currentMediaItem);
     if (_currentMediaItem != null) await _syncedPlay();
 
     QueueItem? tmp = queueList.isNotEmpty ? queueList.removeAt(0) : null;
@@ -83,7 +88,9 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       logger('No media item found for ID: ${tmp.itemId}', tag: 'AudioHandler', level: InfoLevel.error);
       return Future.value();
     }
+    logger('Playing item: ${_currentMediaItem!.itemId}', tag: 'AudioHandler', level: InfoLevel.debug);
     await _setSource();
+    logger('Setting source for item: ${_currentMediaItem!.itemId}', tag: 'AudioHandler', level: InfoLevel.debug);
     await _syncedPlay();
   }
 
@@ -91,12 +98,20 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     final bool waitForSync = true;
     Duration currentPosition = Duration.zero;
 
+    if (_currentMediaItem == null) return Future.value();
+
     if (waitForSync) {
       final progress = await _ref
           .read(mediaProgressNotifierProvider.notifier)
           .fetchOrRefreshIndividualProgress(_currentMediaItem!.itemId);
 
       currentPosition = Duration(microseconds: ((progress?.currentTime ?? 0) * Duration.microsecondsPerSecond).round());
+
+      logger(
+        'Current position: $currentPosition, player position: ${_player.position}, progress: ${progress?.currentTime}',
+        tag: 'AudioHandler',
+        level: InfoLevel.debug,
+      );
 
       await seek(currentPosition);
       await _player.play();
@@ -153,6 +168,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   Future<void> seek(Duration position) async {
     if (_currentMediaItem == null) return Future.value();
     final newTrackIndex = _currentMediaItem!.getIndexForDuration(position);
+    logger('Seeking to position: $position, track index: $newTrackIndex', tag: 'AudioHandler', level: InfoLevel.debug);
     if (newTrackIndex != _currentTrackIndex) {
       _currentTrackIndex = newTrackIndex;
       await _player.seek(
@@ -211,23 +227,38 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       );
     }
 
-    await player.setAudioSources(source, initialIndex: 0, initialPosition: Duration.zero, preload: true);
-    await _player.play();
+    logger('Setting source with initial position: $initialPosition', tag: 'AudioHandler', level: InfoLevel.debug);
+
+    final trackIndex = _currentMediaItem!.getIndexForDuration(initialPosition);
+
+    await player.setAudioSources(source, initialIndex: trackIndex, initialPosition: Duration.zero, preload: true);
   }
 
   _updatePlaybackState() async {
+    mediaItem.add(_currentMediaItem?.toMediaItem());
     playbackState.add(
       PlaybackState(
         // Which buttons should appear in the notification now
-        controls: [MediaControl.skipToPrevious, MediaControl.pause, MediaControl.stop, MediaControl.skipToNext],
+        controls: [MediaControl.rewind, MediaControl.pause, MediaControl.stop, MediaControl.fastForward],
         // Which other actions should be enabled in the notification
         systemActions: const {MediaAction.seek, MediaAction.seekForward, MediaAction.seekBackward},
         // Which controls to show in Android's compact view.
         androidCompactActionIndices: const [0, 1, 3],
         // Whether audio is ready, buffering, ...
-        processingState: AudioProcessingState.ready,
-        // Whether audio is playing
-        playing: _player.playerState.playing,
+        processingState:
+            (_player.processingState == ProcessingState.completed && queueList.isNotEmpty)
+                ? AudioProcessingState.loading
+                : {
+                  ProcessingState.idle: AudioProcessingState.idle,
+                  ProcessingState.loading: AudioProcessingState.loading,
+                  ProcessingState.buffering: AudioProcessingState.buffering,
+                  ProcessingState.ready: AudioProcessingState.ready,
+                  ProcessingState.completed: AudioProcessingState.completed,
+                }[_player.processingState]!,
+        playing:
+            (_player.processingState == ProcessingState.completed && queueList.isNotEmpty)
+                ? true
+                : _player.playerState.playing,
         // The current position as of this update. You should not broadcast
         // position changes continuously because listeners will be able to
         // project the current position after any elapsed time based on the
@@ -235,7 +266,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         // broadcast position updates when they are different from expected (e.g.
         // buffering, or seeking).
         updatePosition: _player.position,
-        // speed: _player.play,
+        speed: _player.speed,
       ),
     );
   }

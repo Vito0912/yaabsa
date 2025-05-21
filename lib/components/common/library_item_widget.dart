@@ -16,13 +16,17 @@ class LibraryItemWidget extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Use a hook for hover state
     final isHovered = useState(false);
 
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: InkWell(
-        onTap: () async {},
+        onTap: () async {
+          //TMP
+
+          audioHandler.setQueue(QueueItem(itemId: libraryItem.id));
+          audioHandler.play();
+        },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

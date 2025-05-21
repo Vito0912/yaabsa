@@ -15,6 +15,7 @@ abstract class InternalMedia with _$InternalMedia {
     @JsonKey(name: "episodeId") required String? episodeId,
     @JsonKey(name: "sessionId") required String sessionId,
     @JsonKey(name: "title") required String title,
+    @JsonKey(name: "subtitle") String? subtitle,
     @JsonKey(name: "author") String? author,
     @JsonKey(name: "series") String? series,
     @JsonKey(name: "seriesPosition") String? seriesPosition,
@@ -37,8 +38,12 @@ abstract class InternalMedia with _$InternalMedia {
       id: episodeId ?? itemId,
       album: (series != null && seriesPosition != null) ? '$series #$seriesPosition' : (series ?? ''),
       title: title,
+      displayTitle: title,
       artist: author,
+      // Maybe add current chapter via settings?
+      displaySubtitle: subtitle,
       duration: totalDuration,
+      isLive: false,
       artUri: cover,
     );
   }
