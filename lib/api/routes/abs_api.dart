@@ -101,7 +101,7 @@ class ABSApi {
 
   static Future<Response<T>> makeApiGetRequest<T>({
     required String route,
-    required Function(Map<String, dynamic>) fromJson,
+    required Function(dynamic) fromJson,
     required Map<String, dynamic> queryParams,
     required Dio dio,
     CancelToken? cancelToken,
@@ -145,7 +145,7 @@ class ABSApi {
 
       T? responseData;
       final rawResponse = response.data;
-      responseData = rawResponse == null ? null : fromJson(rawResponse as Map<String, dynamic>);
+      responseData = rawResponse == null ? null : fromJson(rawResponse);
 
       return Response<T>(
         data: responseData,

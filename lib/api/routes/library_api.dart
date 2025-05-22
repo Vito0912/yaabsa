@@ -1,4 +1,5 @@
 import 'package:buchshelfly/api/library/library_items.dart';
+import 'package:buchshelfly/api/library/personalized_library.dart';
 import 'package:buchshelfly/api/library/request/library_items_request.dart';
 import 'package:buchshelfly/api/library/response/library_response.dart';
 import 'package:buchshelfly/api/library/search_library.dart';
@@ -96,6 +97,23 @@ class LibraryApi {
       extra: extra,
       dio: _dio,
       queryParams: request.toJson(),
+    );
+  }
+
+  Future<Response<PersonalizedLibrary>> getPersonalized(
+    String libraryId, {
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiGetRequest(
+      route: '/api/libraries/$libraryId/personalized',
+      fromJson: (data) => PersonalizedLibrary.fromJson(data),
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
+      queryParams: {'include': 'rssfeed,numEpisodesIncomplete,share'},
     );
   }
 }

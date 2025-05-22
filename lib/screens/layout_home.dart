@@ -1,6 +1,7 @@
 import 'package:buchshelfly/components/app/user_switcher.dart';
 import 'package:buchshelfly/components/player/play_bar.dart';
 import 'package:buchshelfly/screens/main/library_view.dart';
+import 'package:buchshelfly/screens/main/personalized_view.dart';
 import 'package:buchshelfly/screens/settings/settings_screen.dart';
 import 'package:buchshelfly/util/globals.dart';
 import 'package:flutter/material.dart';
@@ -50,7 +51,7 @@ class _LayoutHomeState extends State<LayoutHome> {
   void initState() {
     super.initState();
     _appBarItems = [
-      NavigationItemConfig(icon: Icons.home, label: "Shelf", page: const PlaceholderPage(title: "Shelf")),
+      NavigationItemConfig(icon: Icons.home, label: "Shelf", page: const PersonalizedView()),
       NavigationItemConfig(icon: Icons.collections_bookmark_outlined, label: "Library", page: const LibraryView()),
       NavigationItemConfig(
         icon: Icons.search,

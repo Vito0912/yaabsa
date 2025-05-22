@@ -87,7 +87,7 @@ class MeApi {
   }) async {
     return ABSApi.makeApiGetRequest(
       route: '/api/me',
-      fromJson: User.fromJson,
+      fromJson: (data) => User.fromJson(data),
       cancelToken: cancelToken,
       headers: headers,
       extra: extra,
@@ -104,7 +104,7 @@ class MeApi {
   }) async {
     return ABSApi.makeApiGetRequest(
       route: '/api/users/$userId/listening-stats',
-      fromJson: UserListeningStats.fromJson,
+      fromJson: (data) => UserListeningStats.fromJson(data),
       cancelToken: cancelToken,
       headers: headers,
       extra: extra,
@@ -127,7 +127,7 @@ class MeApi {
 
     return ABSApi.makeApiGetRequest(
       route: route,
-      fromJson: MediaProgress.fromJson,
+      fromJson: (data) => MediaProgress.fromJson(data),
       cancelToken: cancelToken,
       headers: headers,
       extra: extra,
