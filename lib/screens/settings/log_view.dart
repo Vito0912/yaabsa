@@ -107,6 +107,7 @@ class LogView extends HookWidget {
           ] else ...[
             Expanded(
               child: ListView.builder(
+                reverse: true,
                 controller: scrollController,
                 itemCount: logs.length,
                 itemBuilder: (context, index) {

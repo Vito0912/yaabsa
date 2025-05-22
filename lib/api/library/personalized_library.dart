@@ -20,6 +20,7 @@ abstract class PersonalizedLibrary with _$PersonalizedLibrary {
     ShelfEntry<LibraryItem>? listenAgain,
     ShelfEntry<Author>? newestAuthors,
     ShelfEntry<Episode>? newestEpisodes,
+    ShelfEntry<LibraryItem>? continueSeries,
   }) = _PersonalizedLibrary;
 
   factory PersonalizedLibrary.fromJson(List<dynamic> jsonList) {
@@ -30,6 +31,7 @@ abstract class PersonalizedLibrary with _$PersonalizedLibrary {
     ShelfEntry<LibraryItem>? tempListenAgain;
     ShelfEntry<Author>? tempNewestAuthors;
     ShelfEntry<Episode>? tempNewestEpisodes;
+    ShelfEntry<LibraryItem>? tempContinueSeries;
 
     const String idContinueListening = 'continue-listening';
     const String idRecentlyAdded = 'recently-added';
@@ -38,6 +40,7 @@ abstract class PersonalizedLibrary with _$PersonalizedLibrary {
     const String idListenAgain = 'listen-again';
     const String idNewestAuthors = 'newest-authors';
     const String idNewestEpisodes = 'newest-episodes';
+    const String idContinueSeries = 'continue-series';
 
     for (final itemJson in jsonList) {
       if (itemJson is Map<String, dynamic>) {
@@ -85,6 +88,12 @@ abstract class PersonalizedLibrary with _$PersonalizedLibrary {
               (json) => Episode.fromJson(json as Map<String, dynamic>),
             );
             break;
+          case idContinueSeries:
+            tempContinueSeries = ShelfEntry<LibraryItem>.fromJson(
+              itemJson,
+              (json) => LibraryItem.fromJson(json as Map<String, dynamic>),
+            );
+            break;
           default:
             logger('Warning: Unknown shelf ID encountered: $id', level: InfoLevel.warning);
         }
@@ -101,6 +110,7 @@ abstract class PersonalizedLibrary with _$PersonalizedLibrary {
       listenAgain: tempListenAgain,
       newestAuthors: tempNewestAuthors,
       newestEpisodes: tempNewestEpisodes,
+      continueSeries: tempContinueSeries,
     );
   }
 }

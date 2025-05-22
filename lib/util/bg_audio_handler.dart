@@ -245,7 +245,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           await play();
         } else {
           await _player.stop();
-          await _player.dispose();
+          //await _player.dispose();
         }
       }
       _updatePlaybackState();

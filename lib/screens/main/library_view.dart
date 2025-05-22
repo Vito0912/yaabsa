@@ -45,9 +45,6 @@ class LibraryView extends HookConsumerWidget {
 
     final api = ref.read(absApiProvider);
 
-    api?.getLibraryApi().getPersonalized(selectedLibrary.id).then((value) {
-      print(value);
-    });
 
     return libraryItemsStateAsync.when(
       data: (state) {

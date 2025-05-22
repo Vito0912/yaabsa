@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$PersonalizedLibrary {
 
- ShelfEntry<LibraryItem>? get continueListening; ShelfEntry<LibraryItem>? get recentlyAdded; ShelfEntry<Series>? get recentSeries; ShelfEntry<LibraryItem>? get discover; ShelfEntry<LibraryItem>? get listenAgain; ShelfEntry<Author>? get newestAuthors; ShelfEntry<Episode>? get newestEpisodes;
+ ShelfEntry<LibraryItem>? get continueListening; ShelfEntry<LibraryItem>? get recentlyAdded; ShelfEntry<Series>? get recentSeries; ShelfEntry<LibraryItem>? get discover; ShelfEntry<LibraryItem>? get listenAgain; ShelfEntry<Author>? get newestAuthors; ShelfEntry<Episode>? get newestEpisodes; ShelfEntry<LibraryItem>? get continueSeries;
 /// Create a copy of PersonalizedLibrary
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -26,16 +26,16 @@ $PersonalizedLibraryCopyWith<PersonalizedLibrary> get copyWith => _$Personalized
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PersonalizedLibrary&&(identical(other.continueListening, continueListening) || other.continueListening == continueListening)&&(identical(other.recentlyAdded, recentlyAdded) || other.recentlyAdded == recentlyAdded)&&(identical(other.recentSeries, recentSeries) || other.recentSeries == recentSeries)&&(identical(other.discover, discover) || other.discover == discover)&&(identical(other.listenAgain, listenAgain) || other.listenAgain == listenAgain)&&(identical(other.newestAuthors, newestAuthors) || other.newestAuthors == newestAuthors)&&(identical(other.newestEpisodes, newestEpisodes) || other.newestEpisodes == newestEpisodes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PersonalizedLibrary&&(identical(other.continueListening, continueListening) || other.continueListening == continueListening)&&(identical(other.recentlyAdded, recentlyAdded) || other.recentlyAdded == recentlyAdded)&&(identical(other.recentSeries, recentSeries) || other.recentSeries == recentSeries)&&(identical(other.discover, discover) || other.discover == discover)&&(identical(other.listenAgain, listenAgain) || other.listenAgain == listenAgain)&&(identical(other.newestAuthors, newestAuthors) || other.newestAuthors == newestAuthors)&&(identical(other.newestEpisodes, newestEpisodes) || other.newestEpisodes == newestEpisodes)&&(identical(other.continueSeries, continueSeries) || other.continueSeries == continueSeries));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,continueListening,recentlyAdded,recentSeries,discover,listenAgain,newestAuthors,newestEpisodes);
+int get hashCode => Object.hash(runtimeType,continueListening,recentlyAdded,recentSeries,discover,listenAgain,newestAuthors,newestEpisodes,continueSeries);
 
 @override
 String toString() {
-  return 'PersonalizedLibrary(continueListening: $continueListening, recentlyAdded: $recentlyAdded, recentSeries: $recentSeries, discover: $discover, listenAgain: $listenAgain, newestAuthors: $newestAuthors, newestEpisodes: $newestEpisodes)';
+  return 'PersonalizedLibrary(continueListening: $continueListening, recentlyAdded: $recentlyAdded, recentSeries: $recentSeries, discover: $discover, listenAgain: $listenAgain, newestAuthors: $newestAuthors, newestEpisodes: $newestEpisodes, continueSeries: $continueSeries)';
 }
 
 
@@ -46,11 +46,11 @@ abstract mixin class $PersonalizedLibraryCopyWith<$Res>  {
   factory $PersonalizedLibraryCopyWith(PersonalizedLibrary value, $Res Function(PersonalizedLibrary) _then) = _$PersonalizedLibraryCopyWithImpl;
 @useResult
 $Res call({
- ShelfEntry<LibraryItem>? continueListening, ShelfEntry<LibraryItem>? recentlyAdded, ShelfEntry<Series>? recentSeries, ShelfEntry<LibraryItem>? discover, ShelfEntry<LibraryItem>? listenAgain, ShelfEntry<Author>? newestAuthors, ShelfEntry<Episode>? newestEpisodes
+ ShelfEntry<LibraryItem>? continueListening, ShelfEntry<LibraryItem>? recentlyAdded, ShelfEntry<Series>? recentSeries, ShelfEntry<LibraryItem>? discover, ShelfEntry<LibraryItem>? listenAgain, ShelfEntry<Author>? newestAuthors, ShelfEntry<Episode>? newestEpisodes, ShelfEntry<LibraryItem>? continueSeries
 });
 
 
-$ShelfEntryCopyWith<LibraryItem, $Res>? get continueListening;$ShelfEntryCopyWith<LibraryItem, $Res>? get recentlyAdded;$ShelfEntryCopyWith<Series, $Res>? get recentSeries;$ShelfEntryCopyWith<LibraryItem, $Res>? get discover;$ShelfEntryCopyWith<LibraryItem, $Res>? get listenAgain;$ShelfEntryCopyWith<Author, $Res>? get newestAuthors;$ShelfEntryCopyWith<Episode, $Res>? get newestEpisodes;
+$ShelfEntryCopyWith<LibraryItem, $Res>? get continueListening;$ShelfEntryCopyWith<LibraryItem, $Res>? get recentlyAdded;$ShelfEntryCopyWith<Series, $Res>? get recentSeries;$ShelfEntryCopyWith<LibraryItem, $Res>? get discover;$ShelfEntryCopyWith<LibraryItem, $Res>? get listenAgain;$ShelfEntryCopyWith<Author, $Res>? get newestAuthors;$ShelfEntryCopyWith<Episode, $Res>? get newestEpisodes;$ShelfEntryCopyWith<LibraryItem, $Res>? get continueSeries;
 
 }
 /// @nodoc
@@ -63,7 +63,7 @@ class _$PersonalizedLibraryCopyWithImpl<$Res>
 
 /// Create a copy of PersonalizedLibrary
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? continueListening = freezed,Object? recentlyAdded = freezed,Object? recentSeries = freezed,Object? discover = freezed,Object? listenAgain = freezed,Object? newestAuthors = freezed,Object? newestEpisodes = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? continueListening = freezed,Object? recentlyAdded = freezed,Object? recentSeries = freezed,Object? discover = freezed,Object? listenAgain = freezed,Object? newestAuthors = freezed,Object? newestEpisodes = freezed,Object? continueSeries = freezed,}) {
   return _then(_self.copyWith(
 continueListening: freezed == continueListening ? _self.continueListening : continueListening // ignore: cast_nullable_to_non_nullable
 as ShelfEntry<LibraryItem>?,recentlyAdded: freezed == recentlyAdded ? _self.recentlyAdded : recentlyAdded // ignore: cast_nullable_to_non_nullable
@@ -72,7 +72,8 @@ as ShelfEntry<Series>?,discover: freezed == discover ? _self.discover : discover
 as ShelfEntry<LibraryItem>?,listenAgain: freezed == listenAgain ? _self.listenAgain : listenAgain // ignore: cast_nullable_to_non_nullable
 as ShelfEntry<LibraryItem>?,newestAuthors: freezed == newestAuthors ? _self.newestAuthors : newestAuthors // ignore: cast_nullable_to_non_nullable
 as ShelfEntry<Author>?,newestEpisodes: freezed == newestEpisodes ? _self.newestEpisodes : newestEpisodes // ignore: cast_nullable_to_non_nullable
-as ShelfEntry<Episode>?,
+as ShelfEntry<Episode>?,continueSeries: freezed == continueSeries ? _self.continueSeries : continueSeries // ignore: cast_nullable_to_non_nullable
+as ShelfEntry<LibraryItem>?,
   ));
 }
 /// Create a copy of PersonalizedLibrary
@@ -159,6 +160,18 @@ $ShelfEntryCopyWith<Episode, $Res>? get newestEpisodes {
   return $ShelfEntryCopyWith<Episode, $Res>(_self.newestEpisodes!, (value) {
     return _then(_self.copyWith(newestEpisodes: value));
   });
+}/// Create a copy of PersonalizedLibrary
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ShelfEntryCopyWith<LibraryItem, $Res>? get continueSeries {
+    if (_self.continueSeries == null) {
+    return null;
+  }
+
+  return $ShelfEntryCopyWith<LibraryItem, $Res>(_self.continueSeries!, (value) {
+    return _then(_self.copyWith(continueSeries: value));
+  });
 }
 }
 
@@ -167,7 +180,7 @@ $ShelfEntryCopyWith<Episode, $Res>? get newestEpisodes {
 
 
 class _PersonalizedLibrary extends PersonalizedLibrary {
-  const _PersonalizedLibrary({this.continueListening, this.recentlyAdded, this.recentSeries, this.discover, this.listenAgain, this.newestAuthors, this.newestEpisodes}): super._();
+  const _PersonalizedLibrary({this.continueListening, this.recentlyAdded, this.recentSeries, this.discover, this.listenAgain, this.newestAuthors, this.newestEpisodes, this.continueSeries}): super._();
   
 
 @override final  ShelfEntry<LibraryItem>? continueListening;
@@ -177,6 +190,7 @@ class _PersonalizedLibrary extends PersonalizedLibrary {
 @override final  ShelfEntry<LibraryItem>? listenAgain;
 @override final  ShelfEntry<Author>? newestAuthors;
 @override final  ShelfEntry<Episode>? newestEpisodes;
+@override final  ShelfEntry<LibraryItem>? continueSeries;
 
 /// Create a copy of PersonalizedLibrary
 /// with the given fields replaced by the non-null parameter values.
@@ -188,16 +202,16 @@ _$PersonalizedLibraryCopyWith<_PersonalizedLibrary> get copyWith => __$Personali
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PersonalizedLibrary&&(identical(other.continueListening, continueListening) || other.continueListening == continueListening)&&(identical(other.recentlyAdded, recentlyAdded) || other.recentlyAdded == recentlyAdded)&&(identical(other.recentSeries, recentSeries) || other.recentSeries == recentSeries)&&(identical(other.discover, discover) || other.discover == discover)&&(identical(other.listenAgain, listenAgain) || other.listenAgain == listenAgain)&&(identical(other.newestAuthors, newestAuthors) || other.newestAuthors == newestAuthors)&&(identical(other.newestEpisodes, newestEpisodes) || other.newestEpisodes == newestEpisodes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PersonalizedLibrary&&(identical(other.continueListening, continueListening) || other.continueListening == continueListening)&&(identical(other.recentlyAdded, recentlyAdded) || other.recentlyAdded == recentlyAdded)&&(identical(other.recentSeries, recentSeries) || other.recentSeries == recentSeries)&&(identical(other.discover, discover) || other.discover == discover)&&(identical(other.listenAgain, listenAgain) || other.listenAgain == listenAgain)&&(identical(other.newestAuthors, newestAuthors) || other.newestAuthors == newestAuthors)&&(identical(other.newestEpisodes, newestEpisodes) || other.newestEpisodes == newestEpisodes)&&(identical(other.continueSeries, continueSeries) || other.continueSeries == continueSeries));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,continueListening,recentlyAdded,recentSeries,discover,listenAgain,newestAuthors,newestEpisodes);
+int get hashCode => Object.hash(runtimeType,continueListening,recentlyAdded,recentSeries,discover,listenAgain,newestAuthors,newestEpisodes,continueSeries);
 
 @override
 String toString() {
-  return 'PersonalizedLibrary(continueListening: $continueListening, recentlyAdded: $recentlyAdded, recentSeries: $recentSeries, discover: $discover, listenAgain: $listenAgain, newestAuthors: $newestAuthors, newestEpisodes: $newestEpisodes)';
+  return 'PersonalizedLibrary(continueListening: $continueListening, recentlyAdded: $recentlyAdded, recentSeries: $recentSeries, discover: $discover, listenAgain: $listenAgain, newestAuthors: $newestAuthors, newestEpisodes: $newestEpisodes, continueSeries: $continueSeries)';
 }
 
 
@@ -208,11 +222,11 @@ abstract mixin class _$PersonalizedLibraryCopyWith<$Res> implements $Personalize
   factory _$PersonalizedLibraryCopyWith(_PersonalizedLibrary value, $Res Function(_PersonalizedLibrary) _then) = __$PersonalizedLibraryCopyWithImpl;
 @override @useResult
 $Res call({
- ShelfEntry<LibraryItem>? continueListening, ShelfEntry<LibraryItem>? recentlyAdded, ShelfEntry<Series>? recentSeries, ShelfEntry<LibraryItem>? discover, ShelfEntry<LibraryItem>? listenAgain, ShelfEntry<Author>? newestAuthors, ShelfEntry<Episode>? newestEpisodes
+ ShelfEntry<LibraryItem>? continueListening, ShelfEntry<LibraryItem>? recentlyAdded, ShelfEntry<Series>? recentSeries, ShelfEntry<LibraryItem>? discover, ShelfEntry<LibraryItem>? listenAgain, ShelfEntry<Author>? newestAuthors, ShelfEntry<Episode>? newestEpisodes, ShelfEntry<LibraryItem>? continueSeries
 });
 
 
-@override $ShelfEntryCopyWith<LibraryItem, $Res>? get continueListening;@override $ShelfEntryCopyWith<LibraryItem, $Res>? get recentlyAdded;@override $ShelfEntryCopyWith<Series, $Res>? get recentSeries;@override $ShelfEntryCopyWith<LibraryItem, $Res>? get discover;@override $ShelfEntryCopyWith<LibraryItem, $Res>? get listenAgain;@override $ShelfEntryCopyWith<Author, $Res>? get newestAuthors;@override $ShelfEntryCopyWith<Episode, $Res>? get newestEpisodes;
+@override $ShelfEntryCopyWith<LibraryItem, $Res>? get continueListening;@override $ShelfEntryCopyWith<LibraryItem, $Res>? get recentlyAdded;@override $ShelfEntryCopyWith<Series, $Res>? get recentSeries;@override $ShelfEntryCopyWith<LibraryItem, $Res>? get discover;@override $ShelfEntryCopyWith<LibraryItem, $Res>? get listenAgain;@override $ShelfEntryCopyWith<Author, $Res>? get newestAuthors;@override $ShelfEntryCopyWith<Episode, $Res>? get newestEpisodes;@override $ShelfEntryCopyWith<LibraryItem, $Res>? get continueSeries;
 
 }
 /// @nodoc
@@ -225,7 +239,7 @@ class __$PersonalizedLibraryCopyWithImpl<$Res>
 
 /// Create a copy of PersonalizedLibrary
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? continueListening = freezed,Object? recentlyAdded = freezed,Object? recentSeries = freezed,Object? discover = freezed,Object? listenAgain = freezed,Object? newestAuthors = freezed,Object? newestEpisodes = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? continueListening = freezed,Object? recentlyAdded = freezed,Object? recentSeries = freezed,Object? discover = freezed,Object? listenAgain = freezed,Object? newestAuthors = freezed,Object? newestEpisodes = freezed,Object? continueSeries = freezed,}) {
   return _then(_PersonalizedLibrary(
 continueListening: freezed == continueListening ? _self.continueListening : continueListening // ignore: cast_nullable_to_non_nullable
 as ShelfEntry<LibraryItem>?,recentlyAdded: freezed == recentlyAdded ? _self.recentlyAdded : recentlyAdded // ignore: cast_nullable_to_non_nullable
@@ -234,7 +248,8 @@ as ShelfEntry<Series>?,discover: freezed == discover ? _self.discover : discover
 as ShelfEntry<LibraryItem>?,listenAgain: freezed == listenAgain ? _self.listenAgain : listenAgain // ignore: cast_nullable_to_non_nullable
 as ShelfEntry<LibraryItem>?,newestAuthors: freezed == newestAuthors ? _self.newestAuthors : newestAuthors // ignore: cast_nullable_to_non_nullable
 as ShelfEntry<Author>?,newestEpisodes: freezed == newestEpisodes ? _self.newestEpisodes : newestEpisodes // ignore: cast_nullable_to_non_nullable
-as ShelfEntry<Episode>?,
+as ShelfEntry<Episode>?,continueSeries: freezed == continueSeries ? _self.continueSeries : continueSeries // ignore: cast_nullable_to_non_nullable
+as ShelfEntry<LibraryItem>?,
   ));
 }
 
@@ -321,6 +336,18 @@ $ShelfEntryCopyWith<Episode, $Res>? get newestEpisodes {
 
   return $ShelfEntryCopyWith<Episode, $Res>(_self.newestEpisodes!, (value) {
     return _then(_self.copyWith(newestEpisodes: value));
+  });
+}/// Create a copy of PersonalizedLibrary
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ShelfEntryCopyWith<LibraryItem, $Res>? get continueSeries {
+    if (_self.continueSeries == null) {
+    return null;
+  }
+
+  return $ShelfEntryCopyWith<LibraryItem, $Res>(_self.continueSeries!, (value) {
+    return _then(_self.copyWith(continueSeries: value));
   });
 }
 }

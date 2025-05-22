@@ -30,7 +30,7 @@ abstract class LibraryItemState with _$LibraryItemState {
 
 const defaultLibraryItemsRequest = LibraryItemsRequest(limit: _itemsPerPage, page: 0);
 
-@riverpod
+@Riverpod(keepAlive: true)
 class LibraryItemNotifier extends _$LibraryItemNotifier {
   LibraryItemsRequest _constructRequest(String libraryId, int page, {LibraryItemState? S}) {
     final stateForParams = S ?? state.valueOrNull;

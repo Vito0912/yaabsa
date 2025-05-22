@@ -7,7 +7,7 @@ part of 'library_item_provider.dart';
 // **************************************************************************
 
 String _$libraryItemNotifierHash() =>
-    r'9160a0cf4bacc289e401e6afb775f0d7b7406494';
+    r'b485491efb1c970b5ae6900411528a9daaf39649';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -31,7 +31,7 @@ class _SystemHash {
 }
 
 abstract class _$LibraryItemNotifier
-    extends BuildlessAutoDisposeAsyncNotifier<LibraryItemState> {
+    extends BuildlessAsyncNotifier<LibraryItemState> {
   late final String libraryId;
   late final String? initialSort;
   late final int? initialDesc;
@@ -108,11 +108,7 @@ class LibraryItemNotifierFamily extends Family<AsyncValue<LibraryItemState>> {
 
 /// See also [LibraryItemNotifier].
 class LibraryItemNotifierProvider
-    extends
-        AutoDisposeAsyncNotifierProviderImpl<
-          LibraryItemNotifier,
-          LibraryItemState
-        > {
+    extends AsyncNotifierProviderImpl<LibraryItemNotifier, LibraryItemState> {
   /// See also [LibraryItemNotifier].
   LibraryItemNotifierProvider(
     String libraryId, {
@@ -212,7 +208,7 @@ class LibraryItemNotifierProvider
   }
 
   @override
-  AutoDisposeAsyncNotifierProviderElement<LibraryItemNotifier, LibraryItemState>
+  AsyncNotifierProviderElement<LibraryItemNotifier, LibraryItemState>
   createElement() {
     return _LibraryItemNotifierProviderElement(this);
   }
@@ -244,8 +240,7 @@ class LibraryItemNotifierProvider
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-mixin LibraryItemNotifierRef
-    on AutoDisposeAsyncNotifierProviderRef<LibraryItemState> {
+mixin LibraryItemNotifierRef on AsyncNotifierProviderRef<LibraryItemState> {
   /// The parameter `libraryId` of this provider.
   String get libraryId;
 
@@ -266,11 +261,7 @@ mixin LibraryItemNotifierRef
 }
 
 class _LibraryItemNotifierProviderElement
-    extends
-        AutoDisposeAsyncNotifierProviderElement<
-          LibraryItemNotifier,
-          LibraryItemState
-        >
+    extends AsyncNotifierProviderElement<LibraryItemNotifier, LibraryItemState>
     with LibraryItemNotifierRef {
   _LibraryItemNotifierProviderElement(super.provider);
 
