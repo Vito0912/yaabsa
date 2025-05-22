@@ -2,6 +2,7 @@ import 'package:buchshelfly/provider/core/user_providers.dart';
 import 'package:buchshelfly/screens/settings/log_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class MainSettingsScreen extends ConsumerWidget {
   const MainSettingsScreen({super.key});
@@ -382,6 +383,14 @@ class MainSettingsScreen extends ConsumerWidget {
                             context,
                           ).showSnackBar(const SnackBar(content: Text('Navigate to Appearance'))),
                       isFirstInCard: true,
+                    ),
+                    _buildDivider(isWithinCard: true),
+                    _buildSettingsCardTile(
+                      context: context,
+                      icon: Icons.play_circle_outline_outlined,
+                      title: 'Global Player',
+                      onTap:
+                          () => context.push('/settings/global-player'),
                     ),
                     _buildDivider(isWithinCard: true),
                     _buildSettingsCardTile(

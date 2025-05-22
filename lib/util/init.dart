@@ -32,11 +32,8 @@ class Init {
       ),
     );
 
-    const int bufferSize = 10 * 1024 * 1024;
-
     // TODO: Setting
     JustAudioMediaKit.prefetchPlaylist = true;
-    JustAudioMediaKit.bufferSize = bufferSize;
 
     JustAudioMediaKit.ensureInitialized(linux: true, windows: true);
     logger('AudioHandler initialized', tag: 'Init', level: InfoLevel.info);

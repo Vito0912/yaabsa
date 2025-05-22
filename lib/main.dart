@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:buchshelfly/database/app_database.dart';
 import 'package:buchshelfly/util/globals.dart' show appName, audioHandler, containerRef;
 import 'package:buchshelfly/util/init.dart' show Init;
 import 'package:buchshelfly/util/logger.dart';
@@ -13,6 +14,8 @@ void main() {
       Init.initLogger();
       audioHandler = await Init.initAudioHandler();
       await Init.globals();
+      // Preload the database
+      containerRef.read(appDatabaseProvider);
       runApp(UncontrolledProviderScope(container: containerRef, child: MyApp()));
     },
     (error, stack) {

@@ -1,6 +1,7 @@
 import 'package:buchshelfly/components/player/player.dart';
 import 'package:buchshelfly/screens/auth/sign_in.dart';
 import 'package:buchshelfly/screens/layout_home.dart';
+import 'package:buchshelfly/screens/settings/global_player_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -14,6 +15,7 @@ final globalRouter = GoRouter(
         return child;
       },
       routes: [
+        GoRoute(path: '/settings/global-player', builder: (context, state) => GlobalPlayerSettings()),
         // For player
         ShellRoute(
           builder: (BuildContext context, GoRouterState state, Widget child) {

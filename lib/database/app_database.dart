@@ -54,7 +54,7 @@ class AppDatabase extends _$AppDatabase {
 
   // --- Global Settings Methods ---
   Stream<GlobalSettingEntry?> watchGlobalSetting(String key) {
-    return (select(globalSettings)..where((tbl) => tbl.key.equals(key))).watchSingleOrNull();
+    return (select(globalSettings)..where((tbl) => tbl.key.equals(key))).watchSingleOrNull().distinct();
   }
 
   Future<void> setGlobalSetting(String key, String value) {
@@ -68,7 +68,7 @@ class AppDatabase extends _$AppDatabase {
 
   // --- User Settings Methods ---
   Stream<UserSettingEntry?> watchUserSetting(String userId, String key) {
-    return (select(userSettings)..where((tbl) => tbl.userId.equals(userId) & tbl.key.equals(key))).watchSingleOrNull();
+    return (select(userSettings)..where((tbl) => tbl.userId.equals(userId) & tbl.key.equals(key))).watchSingleOrNull().distinct();
   }
 
   Future<void> setUserSetting(String userId, String key, String value) {
@@ -82,7 +82,7 @@ class AppDatabase extends _$AppDatabase {
 
   // --- Selected Library ID Methods ---
   Stream<String?> watchSelectedLibraryId(String userId) {
-    return watchUserSetting(userId, _selectedLibraryIdKey).map((setting) => setting?.value);
+    return watchUserSetting(userId, _selectedLibraryIdKey).map((setting) => setting?.value).distinct();
   }
 
   Future<String?> getSelectedLibraryId(String userId) async {
@@ -119,7 +119,7 @@ class AppDatabase extends _$AppDatabase {
               .whereType<User>()
               .toList();
       return userList;
-    });
+    }).distinct();
   }
 
   Future<void> addOrUpdateStoredUser(User user) {
