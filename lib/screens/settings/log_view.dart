@@ -78,58 +78,61 @@ class LogView extends HookWidget {
       return null;
     }, [logs.length]);
 
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              ElevatedButton.icon(
-                icon: const Icon(Icons.copy_outlined),
-                label: const Text('Copy Raw'),
-                onPressed: () => _copyRawLogs(context, logs),
-              ),
-              ElevatedButton.icon(
-                icon: const Icon(Icons.code_outlined),
-                label: const Text('Copy GitHub'),
-                onPressed: () => _copyGitHubLogs(context, logs),
-              ),
-            ],
-          ),
-        ),
-        if (logs.isEmpty && streamSnapshot.connectionState == ConnectionState.waiting) ...[
-          const Expanded(child: Center(child: CircularProgressIndicator())),
-        ] else if (logs.isEmpty) ...[
-          const Expanded(child: Center(child: Text('No logs yet.'))),
-        ] else ...[
-          Expanded(
-            child: ListView.builder(
-              controller: scrollController,
-              itemCount: logs.length,
-              itemBuilder: (context, index) {
-                final log = logs[index];
-                return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  color: _getColorForLevel(log.level).withOpacity(0.05),
-                  child: ListTile(
-                    leading: Icon(_getIconForLevel(log.level), color: _getColorForLevel(log.level)),
-                    title: Text(log.message, style: const TextStyle(fontSize: 14)),
-                    subtitle: Text(
-                      '${_formatTimestamp(log.timestamp)} ${log.tag != null ? "[${log.tag}]" : ""}',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.7),
-                      ),
-                    ),
-                    dense: true,
-                  ),
-                );
-              },
+    return Scaffold(
+      appBar: AppBar(title: const Text('Logs')),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.copy_outlined),
+                  label: const Text('Copy Raw'),
+                  onPressed: () => _copyRawLogs(context, logs),
+                ),
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.code_outlined),
+                  label: const Text('Copy GitHub'),
+                  onPressed: () => _copyGitHubLogs(context, logs),
+                ),
+              ],
             ),
           ),
+          if (logs.isEmpty && streamSnapshot.connectionState == ConnectionState.waiting) ...[
+            const Expanded(child: Center(child: CircularProgressIndicator())),
+          ] else if (logs.isEmpty) ...[
+            const Expanded(child: Center(child: Text('No logs yet.'))),
+          ] else ...[
+            Expanded(
+              child: ListView.builder(
+                controller: scrollController,
+                itemCount: logs.length,
+                itemBuilder: (context, index) {
+                  final log = logs[index];
+                  return Card(
+                    margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    color: _getColorForLevel(log.level).withOpacity(0.05),
+                    child: ListTile(
+                      leading: Icon(_getIconForLevel(log.level), color: _getColorForLevel(log.level)),
+                      title: Text(log.message, style: const TextStyle(fontSize: 14)),
+                      subtitle: Text(
+                        '${_formatTimestamp(log.timestamp)} ${log.tag != null ? "[${log.tag}]" : ""}',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.7),
+                        ),
+                      ),
+                      dense: true,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
         ],
-      ],
+      ),
     );
   }
 

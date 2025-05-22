@@ -8,7 +8,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'media_progress_provider.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 class MediaProgressNotifier extends _$MediaProgressNotifier {
   MeApi _getMeApiOrThrow() {
     final absApi = ref.watch(absApiProvider);

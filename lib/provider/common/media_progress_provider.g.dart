@@ -7,11 +7,11 @@ part of 'media_progress_provider.dart';
 // **************************************************************************
 
 String _$mediaProgressNotifierHash() =>
-    r'3d94ef6079272bbeebd03eea424b0b1fb0dcd373';
+    r'3818242811e1f2ac0d37727164c2785e1439e0d9';
 
 /// See also [MediaProgressNotifier].
 @ProviderFor(MediaProgressNotifier)
-final mediaProgressNotifierProvider = AutoDisposeAsyncNotifierProvider<
+final mediaProgressNotifierProvider = AsyncNotifierProvider<
   MediaProgressNotifier,
   Map<String, MediaProgress>
 >.internal(
@@ -25,7 +25,6 @@ final mediaProgressNotifierProvider = AutoDisposeAsyncNotifierProvider<
   allTransitiveDependencies: null,
 );
 
-typedef _$MediaProgressNotifier =
-    AutoDisposeAsyncNotifier<Map<String, MediaProgress>>;
+typedef _$MediaProgressNotifier = AsyncNotifier<Map<String, MediaProgress>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

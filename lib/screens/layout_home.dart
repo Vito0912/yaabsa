@@ -1,7 +1,7 @@
 import 'package:buchshelfly/components/app/user_switcher.dart';
 import 'package:buchshelfly/components/player/play_bar.dart';
 import 'package:buchshelfly/screens/main/library_view.dart';
-import 'package:buchshelfly/screens/settings/log_view.dart';
+import 'package:buchshelfly/screens/settings/settings_screen.dart';
 import 'package:buchshelfly/util/globals.dart';
 import 'package:flutter/material.dart';
 
@@ -60,12 +60,7 @@ class _LayoutHomeState extends State<LayoutHome> {
     ];
 
     _advancedMenuItems = [
-      NavigationItemConfig(
-        icon: Icons.settings,
-        label: "Settings",
-        // TODO: Actual settings page
-        page: LogView(),
-      ),
+      NavigationItemConfig(icon: Icons.settings, label: "Settings", page: MainSettingsScreen()),
       NavigationItemConfig(
         icon: Icons.info_outline,
         label: "About",
@@ -163,15 +158,17 @@ class _LayoutHomeState extends State<LayoutHome> {
   }
 
   Widget _buildAdvancedMenuButton(BuildContext context) {
-    return PopupMenuButton<String>(
+    return PopupMenuButton<int>(
       icon: const Icon(Icons.more_vert),
-      onSelected: (String value) {
-        _handleAdvancedItemTap(context, value);
+      onSelected: (int index) {
+        _onAppBarItemTapped(index);
       },
       itemBuilder: (BuildContext context) {
-        return _advancedMenuItems.map((NavigationItemConfig item) {
-          return PopupMenuItem<String>(
-            value: item.label,
+        return _advancedMenuItems.asMap().entries.map((entries) {
+          final NavigationItemConfig item = entries.value;
+          final int itemIndex = entries.key + _appBarItems.length;
+          return PopupMenuItem<int>(
+            value: itemIndex,
             child: Row(
               children: [
                 Icon(item.icon, color: Theme.of(context).iconTheme.color ?? Theme.of(context).colorScheme.onSurface),
@@ -287,7 +284,10 @@ class _LayoutHomeState extends State<LayoutHome> {
         if (_currentlyDisplayedPageSource == _PageSource.child && widget.child != null) {
           currentContent = widget.child!;
         } else {
-          currentContent = _appBarItems[_selectedIndex].page;
+          currentContent =
+              _selectedIndex < _appBarItems.length
+                  ? _appBarItems[_selectedIndex].page
+                  : _advancedMenuItems[_selectedIndex - _appBarItems.length].page;
         }
 
         if (isMobile) {
@@ -344,14 +344,16 @@ class _LayoutHomeState extends State<LayoutHome> {
                     padding: const EdgeInsets.symmetric(vertical: 8.0),
                     child: Column(
                       children:
-                          _advancedMenuItems.map((item) {
+                          _advancedMenuItems.asMap().entries.map((entry) {
+                            int idx = entry.key + _appBarItems.length;
+                            NavigationItemConfig item = entry.value;
                             return _buildSidebarItem(
                               context,
                               item,
-                              isSelected: false,
+                              isSelected: _selectedIndex == idx,
                               isDesktopOrTablet: true,
                               isDesktop: isDesktop,
-                              onTap: () => _handleAdvancedItemTap(context, item.label),
+                              onTap: () => _onAppBarItemTapped(idx),
                             );
                           }).toList(),
                     ),
