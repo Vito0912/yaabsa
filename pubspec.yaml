@@ -39,11 +39,11 @@ dependencies:
   package_info_plus: ^8.3.0
   device_info_plus: ^11.4.0
 
-  # FOR LATER
-  # flutter_epub_reader:
-  #  git:
-  #    url: https://github.com/chandrabezzo/epub_viewer.git
-  #    ref: 7d07e46863fda440d39d8180475eed786098763f
+  # Note for contributors: Commit pinning is used. Please check for updates when updating the e-Reader. This is for security, as it runs in a WebView and the repository is very small.
+  flutter_epub_reader:
+    git:
+      url: https://github.com/chandrabezzo/epub_viewer.git
+      ref: db2bab1bf511e4191a362014dbfc3067a16dd220
 
   ## Platform
   just_audio_media_kit: ^2.1.0

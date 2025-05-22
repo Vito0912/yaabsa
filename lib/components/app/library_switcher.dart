@@ -13,10 +13,10 @@ class LibrarySwitcher extends ConsumerWidget {
     return userLibrariesAsyncValue.when(
       data: (libraries) {
         if (libraries == null || libraries.isEmpty) {
-          return const Center(child: Text('Keine Bibliotheken verfügbar'));
+          return const Center(child: Text('No Library'));
         }
         return SizedBox(
-          width: 300,
+          width: 150,
           child: DropdownButton<String>(
             value: selectedLibraryId.value,
             onChanged: (String? newLibraryId) async {
@@ -26,7 +26,7 @@ class LibrarySwitcher extends ConsumerWidget {
                 libraries.map<DropdownMenuItem<String>>((library) {
                   return DropdownMenuItem<String>(value: library.id, child: Text(library.name));
                 }).toList(),
-            hint: const Text('Bibliothek auswählen'),
+            hint: const Text('Select Library'),
             isExpanded: true,
           ),
         );

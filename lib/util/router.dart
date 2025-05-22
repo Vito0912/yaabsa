@@ -1,4 +1,5 @@
 import 'package:buchshelfly/components/player/player.dart';
+import 'package:buchshelfly/components/reader/reader.dart';
 import 'package:buchshelfly/screens/auth/sign_in.dart';
 import 'package:buchshelfly/screens/item/library_item_view.dart';
 import 'package:buchshelfly/screens/layout_home.dart';
@@ -11,6 +12,7 @@ final globalRouter = GoRouter(
   routes: [
     GoRoute(path: '/add-user', builder: (context, state) => SignIn()),
     GoRoute(path: '/player', builder: (context, state) => Player()),
+    GoRoute(path: '/ebook/:id', builder: (context, state) => Reader(itemId: state.pathParameters['id']!)),
     ShellRoute(
       builder: (BuildContext context, GoRouterState state, Widget child) {
         return child;
@@ -26,16 +28,13 @@ final globalRouter = GoRouter(
             GoRoute(path: '/', builder: (context, state) => LayoutHome()),
             // For anything that should show the app bar. Responsive
             ShellRoute(
-          builder: (BuildContext context, GoRouterState state, Widget child) {
-            return LayoutHome(child: child);
-          },
-          routes: [
-            GoRoute(
-              path: '/item/:id',
-              builder: (context, state) => LibraryItemView(state.pathParameters['id']!),
+              builder: (BuildContext context, GoRouterState state, Widget child) {
+                return LayoutHome(child: child);
+              },
+              routes: [
+                GoRoute(path: '/item/:id', builder: (context, state) => LibraryItemView(state.pathParameters['id']!)),
+              ],
             ),
-          ],
-        ),
           ],
         ),
 

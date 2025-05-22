@@ -1,3 +1,4 @@
+import 'package:buchshelfly/components/app/library_switcher.dart';
 import 'package:buchshelfly/components/app/user_switcher.dart';
 import 'package:buchshelfly/components/player/play_bar.dart';
 import 'package:buchshelfly/screens/main/library_view.dart';
@@ -266,6 +267,7 @@ class _LayoutHomeState extends State<LayoutHome> {
           const SizedBox(width: 16),
           UserSwitcher(),
           const Spacer(),
+          LibrarySwitcher(),
           if (isMobile) _buildAdvancedMenuButton(context),
           const SizedBox(width: 8),
         ],
