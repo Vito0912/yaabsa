@@ -11,9 +11,17 @@ import 'package:just_audio/just_audio.dart';
 import 'package:rxdart/transformers.dart';
 
 class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
-  final AudioPlayer _player = AudioPlayer();
+  late final AudioPlayer _player;
   final ProviderContainer _ref;
   List<QueueItem> queueList = [];
+
+
+  static get maxVolume {
+    if (Platform.isAndroid) {
+      return 2.0;
+    }
+    return 1.0;
+  }
 
   void setQueue(QueueItem item) {
     queueList = [item];
@@ -188,6 +196,38 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   }
 
   BGAudioHandler(this._ref) {
+
+    const AndroidLoadControl androidLoadControl = AndroidLoadControl(
+      minBufferDuration: Duration(seconds: 50),
+      maxBufferDuration: Duration(seconds: 300),
+      // TODO: Settings back jump duration + 5
+      backBufferDuration: Duration(seconds: 10),
+      targetBufferBytes: 10 * 1024 * 1024
+    );
+
+    const DarwinLoadControl iOSLoadControl = DarwinLoadControl(
+      // iOS does what iOS wants anyways
+      preferredForwardBufferDuration: Duration(seconds: 300),
+      canUseNetworkResourcesForLiveStreamingWhilePaused: false,
+    );
+
+    AudioLoadConfiguration loadCfg = AudioLoadConfiguration(
+      androidLoadControl: androidLoadControl,
+      darwinLoadControl: iOSLoadControl
+    );
+
+    _player = AudioPlayer(
+      audioLoadConfiguration: loadCfg
+    );
+
+    _player.errorStream.listen((error) {
+      logger('AudioPlayer error: $error', tag: 'AudioHandler', level: InfoLevel.error);
+      if (error.toString().contains('ffurl_read')) {
+        logger('Trying to reconnect to stream', tag: 'AudioHandler', level: InfoLevel.warning);
+        _syncedPlay();
+      }
+    });
+
     PlaybackSyncService syncService = PlaybackSyncService(this, _ref);
     _player.playerStateStream.listen((PlayerState state) async {
       logger(state.toString(), tag: 'AudioHandler', level: InfoLevel.debug);

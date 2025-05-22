@@ -28,11 +28,80 @@ class PersonalizedView extends ConsumerWidget {
         } else if (!snapshot.hasData || snapshot.data?.data == null) {
           return const Center(child: Text('No personalized items found.'));
         }
-        return Column(
-          children:
-              snapshot.data!.data!.continueListening!.entities.map((e) {
-                return LibraryItemWidget(e, api!);
-              }).toList(),
+        return SingleChildScrollView(
+          child: Column(
+            spacing: 8,
+            children: [
+              Text('Continue Listening'),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children:
+                      snapshot.data!.data!.continueListening?.entities.map((e) {
+                        return Container(child: LibraryItemWidget(e, api!), width: 200);
+                      }).toList() ??
+                      [],
+                ),
+              ),
+              Text('Series'),
+
+              // TODO: Series
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children:
+                      snapshot.data!.data!.recentSeries?.entities.map((e) {
+                        return Container(child: Text(e.name), width: 200);
+                      }).toList() ??
+                      [],
+                ),
+              ),
+              Text('Discover'),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children:
+                      snapshot.data!.data!.discover?.entities.map((e) {
+                        return Container(child: LibraryItemWidget(e, api!), width: 200);
+                      }).toList() ??
+                      [],
+                ),
+              ),
+              Text('Listen again'),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children:
+                      snapshot.data!.data!.listenAgain?.entities.map((e) {
+                        return Container(child: LibraryItemWidget(e, api!), width: 200);
+                      }).toList() ??
+                      [],
+                ),
+              ),
+              Text('Authors'),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children:
+                      snapshot.data!.data!.newestAuthors?.entities.map((e) {
+                        return Container(child: Text(e.name), width: 200);
+                      }).toList() ??
+                      [],
+                ),
+              ),
+              Text('Episodes'),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children:
+                      snapshot.data!.data!.newestEpisodes?.entities.map((e) {
+                        return Container(child: Text(e.title!), width: 200);
+                      }).toList() ??
+                      [],
+                ),
+              ),
+            ],
+          ),
         );
       },
     );
