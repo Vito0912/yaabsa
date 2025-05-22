@@ -20,15 +20,15 @@ class LibraryView extends HookConsumerWidget {
 
     final scrollController = useScrollController();
 
-    final libraryItemsStateAsync = ref.watch(libraryItemNotifierProvider(libraryId));
+    final libraryItemsStateAsync = ref.watch(libraryItemsNotifierProvider(libraryId));
 
     useEffect(() {
       void onScroll() {
         if (!scrollController.hasClients) return;
 
         if (scrollController.position.pixels >= scrollController.position.maxScrollExtent - 300) {
-          final currentStateSnapshot = ref.read(libraryItemNotifierProvider(libraryId));
-          final notifier = ref.read(libraryItemNotifierProvider(libraryId).notifier);
+          final currentStateSnapshot = ref.read(libraryItemsNotifierProvider(libraryId));
+          final notifier = ref.read(libraryItemsNotifierProvider(libraryId).notifier);
 
           final state = currentStateSnapshot.value;
 

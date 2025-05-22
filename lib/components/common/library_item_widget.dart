@@ -6,6 +6,7 @@ import 'package:buchshelfly/util/globals.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class LibraryItemWidget extends HookWidget {
   const LibraryItemWidget(this.libraryItem, this.api, {super.key, this.showProgress = false});
@@ -22,10 +23,7 @@ class LibraryItemWidget extends HookWidget {
       padding: const EdgeInsets.all(8.0),
       child: InkWell(
         onTap: () async {
-          //TMP
-
-          audioHandler.setQueue(QueueItem(itemId: libraryItem.id));
-          audioHandler.play();
+          context.push('/item/${libraryItem.id}');
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

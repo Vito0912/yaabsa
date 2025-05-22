@@ -1,5 +1,6 @@
 import 'package:buchshelfly/components/player/player.dart';
 import 'package:buchshelfly/screens/auth/sign_in.dart';
+import 'package:buchshelfly/screens/item/library_item_view.dart';
 import 'package:buchshelfly/screens/layout_home.dart';
 import 'package:buchshelfly/screens/settings/global_player_settings.dart';
 import 'package:flutter/material.dart';
@@ -24,14 +25,17 @@ final globalRouter = GoRouter(
           routes: [
             GoRoute(path: '/', builder: (context, state) => LayoutHome()),
             // For anything that should show the app bar. Responsive
-            /* ShellRoute(
+            ShellRoute(
           builder: (BuildContext context, GoRouterState state, Widget child) {
             return LayoutHome(child: child);
           },
           routes: [
-
+            GoRoute(
+              path: '/item/:id',
+              builder: (context, state) => LibraryItemView(state.pathParameters['id']!),
+            ),
           ],
-        ),*/
+        ),
           ],
         ),
 

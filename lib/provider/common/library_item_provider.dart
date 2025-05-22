@@ -1,6 +1,7 @@
 import 'package:buchshelfly/api/library/request/library_items_request.dart';
 import 'package:buchshelfly/api/library_items/library_item.dart';
 import 'package:buchshelfly/provider/core/user_providers.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -31,7 +32,7 @@ abstract class LibraryItemState with _$LibraryItemState {
 const defaultLibraryItemsRequest = LibraryItemsRequest(limit: _itemsPerPage, page: 0);
 
 @Riverpod(keepAlive: true)
-class LibraryItemNotifier extends _$LibraryItemNotifier {
+class LibraryItemsNotifier extends _$LibraryItemsNotifier {
   LibraryItemsRequest _constructRequest(String libraryId, int page, {LibraryItemState? S}) {
     final stateForParams = S ?? state.valueOrNull;
     return LibraryItemsRequest(
@@ -226,5 +227,24 @@ class LibraryItemNotifier extends _$LibraryItemNotifier {
     } catch (e, s) {
       state = AsyncError(e, s);
     }
+  }
+}
+
+@riverpod
+Future<LibraryItem> libraryItem(Ref ref, String itemId) async {
+  final absApi = ref.watch(absApiProvider);
+  if (absApi == null) {
+    throw Exception('User not authenticated or API not available.');
+  }
+
+  try {
+    final response = await absApi.getLibraryItemApi().getLibraryItem(itemId: itemId);
+    final data = response.data;
+    if (data == null) {
+      throw Exception('No data received from API for item $itemId');
+    }
+    return data;
+  } catch (e, s) {
+    throw Exception('Failed to fetch library item $itemId: $e');
   }
 }

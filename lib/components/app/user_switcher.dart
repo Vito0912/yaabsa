@@ -2,6 +2,7 @@ import 'package:buchshelfly/api/me/user.dart';
 import 'package:buchshelfly/components/platform_builder.dart';
 import 'package:buchshelfly/database/app_database.dart';
 import 'package:buchshelfly/provider/core/user_providers.dart';
+import 'package:buchshelfly/util/globals.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -12,6 +13,33 @@ class UserSwitcher extends ConsumerWidget {
   const UserSwitcher({super.key});
 
   void _onMenuItemSelected(String value, WidgetRef ref, User? currentUser, BuildContext context) async {
+
+    final bool showPlayer = await audioHandler.shouldShowPlayer.first;
+    if (showPlayer) {
+      final shouldSwitch = await showDialog<bool>(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('Switch User'),
+            content: const Text('Are you sure you want to switch users? When you switch the user, the player will not be able to sync the progress. It will still be saved locally and sync with the server after an app restart.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Switch'),
+              ),
+            ],
+          );
+        },
+      );
+      if (shouldSwitch == null || !shouldSwitch) {
+        return;
+      }
+    }
+
     if (value == _addNewUserValue) {
       context.go('/add-user');
     } else {
