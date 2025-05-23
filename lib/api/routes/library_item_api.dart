@@ -79,4 +79,8 @@ class LibraryItemApi {
       },
     );
   }
+
+  Uri getCoverUri(String id) {
+    return Uri.parse('${_dio.options.baseUrl}/api/items/$id/cover');
+  }
 }

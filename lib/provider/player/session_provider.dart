@@ -86,7 +86,7 @@ class SessionRepository {
       series: _currentSession!.libraryItem?.seriesName,
       seriesPosition: _currentSession!.libraryItem?.seriesPosition,
       author: _currentSession!.libraryItem?.authorString,
-      // cover: _currentSession!.coverPath,
+      cover: api.getLibraryItemApi().getCoverUri(_currentSession!.libraryItemId),
       chapters: _currentSession!.chapters?.map((e) => e.toInternalChapter()).toList(),
       tracks:
           _currentSession!.audioTracks!

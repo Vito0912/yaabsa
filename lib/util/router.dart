@@ -3,8 +3,12 @@ import 'package:buchshelfly/components/reader/reader.dart';
 import 'package:buchshelfly/screens/auth/sign_in.dart';
 import 'package:buchshelfly/screens/item/library_item_view.dart';
 import 'package:buchshelfly/screens/layout_home.dart';
+import 'package:buchshelfly/screens/settings/appearance_settings.dart';
+import 'package:buchshelfly/screens/settings/caching_settings.dart';
 import 'package:buchshelfly/screens/settings/global_player_settings.dart';
+import 'package:buchshelfly/screens/settings/library_settings.dart';
 import 'package:buchshelfly/screens/settings/player_settings.dart';
+import 'package:buchshelfly/screens/settings/reader_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -21,6 +25,10 @@ final globalRouter = GoRouter(
       routes: [
         GoRoute(path: GlobalPlayerSettings.routeName, builder: (context, state) => GlobalPlayerSettings()),
         GoRoute(path: PlayerSettings.routeName, builder: (context, state) => PlayerSettings()),
+        GoRoute(path: AppearanceSettings.routeName, builder: (context, state) => AppearanceSettings()),
+        GoRoute(path: CachingSettings.routeName, builder: (context, state) => CachingSettings()),
+        GoRoute(path: LibrarySettings.routeName, builder: (context, state) => LibrarySettings()),
+        GoRoute(path: ReaderSettings.routeName, builder: (context, state) => ReaderSettings()),
         // For player
         ShellRoute(
           builder: (BuildContext context, GoRouterState state, Widget child) {

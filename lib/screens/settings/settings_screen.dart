@@ -1,6 +1,12 @@
 import 'package:buchshelfly/provider/core/user_providers.dart';
+import 'package:buchshelfly/screens/settings/appearance_settings.dart';
+import 'package:buchshelfly/screens/settings/caching_settings.dart';
+import 'package:buchshelfly/screens/settings/global_player_settings.dart';
+import 'package:buchshelfly/screens/settings/library_settings.dart';
 import 'package:buchshelfly/screens/settings/license_settings.dart';
 import 'package:buchshelfly/screens/settings/log_view.dart';
+import 'package:buchshelfly/screens/settings/player_settings.dart';
+import 'package:buchshelfly/screens/settings/reader_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -240,10 +246,7 @@ class MainSettingsScreen extends ConsumerWidget {
                         context: context,
                         icon: Icons.play_circle_outline_rounded,
                         title: 'Player Settings',
-                        onTap:
-                            () => ScaffoldMessenger.of(
-                              context,
-                            ).showSnackBar(const SnackBar(content: Text('Navigate to Player Settings'))),
+                        onTap: () => context.push(PlayerSettings.routeName),
                         isFirstInCard: true,
                       ),
                       _buildDivider(isWithinCard: true),
@@ -251,10 +254,7 @@ class MainSettingsScreen extends ConsumerWidget {
                         context: context,
                         icon: Icons.menu_book_rounded,
                         title: 'Ebook-Reader Settings',
-                        onTap:
-                            () => ScaffoldMessenger.of(
-                              context,
-                            ).showSnackBar(const SnackBar(content: Text('Navigate to Ebook-Reader Settings'))),
+                        onTap: () => context.push(ReaderSettings.routeName),
                         isLastInCard: true,
                       ),
                     ],
@@ -379,10 +379,7 @@ class MainSettingsScreen extends ConsumerWidget {
                       context: context,
                       icon: Icons.palette_outlined,
                       title: 'Appearance',
-                      onTap:
-                          () => ScaffoldMessenger.of(
-                            context,
-                          ).showSnackBar(const SnackBar(content: Text('Navigate to Appearance'))),
+                      onTap: () => context.push(AppearanceSettings.routeName),
                       isFirstInCard: true,
                     ),
                     _buildDivider(isWithinCard: true),
@@ -390,27 +387,21 @@ class MainSettingsScreen extends ConsumerWidget {
                       context: context,
                       icon: Icons.play_circle_outline_outlined,
                       title: 'Global Player',
-                      onTap: () => context.push('/settings/global-player'),
+                      onTap: () => context.push(GlobalPlayerSettings.routeName),
                     ),
                     _buildDivider(isWithinCard: true),
                     _buildSettingsCardTile(
                       context: context,
                       icon: Icons.library_books_outlined,
                       title: 'Library Behaviour',
-                      onTap:
-                          () => ScaffoldMessenger.of(
-                            context,
-                          ).showSnackBar(const SnackBar(content: Text('Navigate to Library Behaviour'))),
+                      onTap: () => context.push(LibrarySettings.routeName),
                     ),
                     _buildDivider(isWithinCard: true),
                     _buildSettingsCardTile(
                       context: context,
                       icon: Icons.cached_outlined,
                       title: 'Caching',
-                      onTap:
-                          () => ScaffoldMessenger.of(
-                            context,
-                          ).showSnackBar(const SnackBar(content: Text('Navigate to Caching'))),
+                      onTap: () => context.push(CachingSettings.routeName),
                       isLastInCard: true,
                     ),
                   ],

@@ -106,6 +106,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   }
 
   Future<void> _syncedPlay() async {
+    mediaItem.add(_currentMediaItem?.toMediaItem());
     final bool waitForSync = true;
     Duration currentPosition = Duration.zero;
 
@@ -282,13 +283,18 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   }
 
   _updatePlaybackState() async {
-    mediaItem.add(_currentMediaItem?.toMediaItem());
+    final lockMediaNotification = _ref
+        .read(globalSettingsManagerProvider.notifier)
+        .getSetting<bool>(SettingKeys.lockMediaNotification);
     playbackState.add(
       PlaybackState(
         // Which buttons should appear in the notification now
         controls: [MediaControl.rewind, MediaControl.pause, MediaControl.stop, MediaControl.fastForward],
         // Which other actions should be enabled in the notification
-        systemActions: const {MediaAction.seek, MediaAction.seekForward, MediaAction.seekBackward},
+        systemActions:
+            lockMediaNotification
+                ? const {MediaAction.seekForward, MediaAction.seekBackward}
+                : const {MediaAction.seek, MediaAction.seekForward, MediaAction.seekBackward},
         // Which controls to show in Android's compact view.
         androidCompactActionIndices: const [0, 1, 3],
         // Whether audio is ready, buffering, ...

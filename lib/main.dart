@@ -5,17 +5,18 @@ import 'package:buchshelfly/util/globals.dart' show appName, audioHandler, conta
 import 'package:buchshelfly/util/init.dart' show Init;
 import 'package:buchshelfly/util/logger.dart';
 import 'package:buchshelfly/util/router.dart';
+import 'package:buchshelfly/util/setting_key.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 void main() {
   runZonedGuarded(
     () async {
+      await Init.globals();
       await containerRef.read(globalSettingsManagerProvider.future);
       await containerRef.read(userSettingsManagerProvider.future);
       Init.initLogger();
       audioHandler = await Init.initAudioHandler();
-      await Init.globals();
       // Preload the database
       containerRef.read(appDatabaseProvider);
       runApp(UncontrolledProviderScope(container: containerRef, child: MyApp()));
@@ -31,11 +32,25 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(globalSettingByKeyProvider(SettingKeys.appThemeMode));
+    final appTheme = ref.read(globalSettingsManagerProvider.notifier).getSetting<String>(SettingKeys.appThemeMode);
+
     return MaterialApp.router(
       routerConfig: globalRouter,
       title: appName,
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple, brightness: Brightness.dark)),
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.deepPurple,
+          brightness:
+              {
+                AppThemeMode.dark.toString(): Brightness.dark,
+                AppThemeMode.light.toString(): Brightness.light,
+                AppThemeMode.system.toString(): Theme.of(context).brightness,
+              }[appTheme] ??
+              Brightness.light,
+        ),
+      ),
     );
   }
 }

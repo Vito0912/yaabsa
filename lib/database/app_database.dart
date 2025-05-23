@@ -424,6 +424,12 @@ class GlobalSettingsManager extends _$GlobalSettingsManager {
 }
 
 @Riverpod(keepAlive: true)
+Stream<String?> globalSettingByKey(Ref ref, String key) {
+  final db = ref.watch(appDatabaseProvider);
+  return db.watchGlobalSetting(key).map((setting) => setting?.value);
+}
+
+@Riverpod(keepAlive: true)
 class UserSettingsManager extends _$UserSettingsManager {
   @override
   Stream<Map<String, Map<String, dynamic>>> build() async* {
