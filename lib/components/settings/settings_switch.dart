@@ -1,4 +1,4 @@
-import 'package:buchshelfly/database/app_database.dart';
+import 'package:buchshelfly/database/settings_manager.dart';
 import 'package:buchshelfly/util/setting_key.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -122,7 +122,7 @@ class SettingSwitch extends ConsumerWidget {
               Switch(
                 value: currentValue,
                 onChanged: (bool newValue) {
-                  ref.read(globalSettingsManagerProvider.notifier).setSetting<bool>(settingKey, newValue);
+                  ref.read(settingsManagerProvider.notifier).setGlobalSetting<bool>(settingKey, newValue);
                   onChanged?.call(newValue);
                 },
                 activeColor: theme.colorScheme.primary,

@@ -42,7 +42,7 @@ class SelectedLibraryId extends _$SelectedLibraryId {
       return Stream.value(null);
     }
 
-    final stream = db.watchSelectedLibraryId(userId);
+    final stream = db.watchUserSetting(userId, 'selectedLibraryId').map((e) => e?.value);
 
     _maybeAutoSelectFirstLibrary(userId);
 
@@ -52,7 +52,7 @@ class SelectedLibraryId extends _$SelectedLibraryId {
 
   Future<void> _maybeAutoSelectFirstLibrary(String userId) async {
     final db = ref.read(appDatabaseProvider);
-    final currentSelectedId = await db.getSelectedLibraryId(userId);
+    final currentSelectedId = (await db.getUserSetting(userId, 'selectedLibraryId'))?.value;
 
     if (currentSelectedId == null) {
       final libraries = await ref.read(userLibrariesProvider.future);
@@ -80,7 +80,7 @@ class SelectedLibraryId extends _$SelectedLibraryId {
       'SelectedLibraryIdNotifier: Setting selected library ID to $libraryId for user $userId.',
       tag: 'SelectedLibraryId',
     );
-    await db.setSelectedLibraryId(userId, libraryId);
+    await db.setUserSetting(userId, 'selectedLibraryId', libraryId);
   }
 }
 

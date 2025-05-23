@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
-import 'package:buchshelfly/database/app_database.dart';
+import 'package:buchshelfly/database/settings_manager.dart';
 import 'package:buchshelfly/models/internal_media.dart';
 import 'package:buchshelfly/provider/common/media_progress_provider.dart';
 import 'package:buchshelfly/provider/player/session_provider.dart';
@@ -201,8 +201,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   }
 
   BGAudioHandler(this._ref) {
-    final settingManager = _ref.read(globalSettingsManagerProvider.notifier);
-    final bufferSize = settingManager.getSetting<int>(SettingKeys.bufferSize);
+    final settingManager = _ref.read(settingsManagerProvider.notifier);
+    final bufferSize = settingManager.getGlobalSetting<int>(SettingKeys.bufferSize);
 
     logger('Buffer size: $bufferSize', tag: 'AudioHandler', level: InfoLevel.debug);
 
@@ -284,8 +284,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   _updatePlaybackState() async {
     final lockMediaNotification = _ref
-        .read(globalSettingsManagerProvider.notifier)
-        .getSetting<bool>(SettingKeys.lockMediaNotification);
+        .read(settingsManagerProvider.notifier)
+        .getGlobalSetting<bool>(SettingKeys.lockMediaNotification);
     playbackState.add(
       PlaybackState(
         // Which buttons should appear in the notification now

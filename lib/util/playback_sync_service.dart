@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:buchshelfly/api/me/user.dart';
-import 'package:buchshelfly/database/app_database.dart';
+import 'package:buchshelfly/database/settings_manager.dart';
 import 'package:buchshelfly/provider/core/user_providers.dart';
 import 'package:buchshelfly/provider/player/session_provider.dart';
 import 'package:buchshelfly/util/bg_audio_handler.dart';
@@ -44,7 +44,9 @@ class PlaybackSyncService {
       return;
     }
     final User? user = _ref.read(currentUserProvider).value;
-    final syncInterval = _ref.read(userSettingsManagerProvider.notifier).getSetting(user?.id, SettingKeys.syncInterval);
+    final syncInterval = _ref
+        .read(settingsManagerProvider.notifier)
+        .getUserSetting<int>(user?.id, SettingKeys.syncInterval);
 
     _syncTimer = Timer.periodic(Duration(seconds: syncInterval), (_) {
       _sync();

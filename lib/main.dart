@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:buchshelfly/database/app_database.dart';
+import 'package:buchshelfly/database/settings_manager.dart';
 import 'package:buchshelfly/util/globals.dart' show appName, audioHandler, containerRef;
 import 'package:buchshelfly/util/init.dart' show Init;
 import 'package:buchshelfly/util/logger.dart';
@@ -13,8 +14,7 @@ void main() {
   runZonedGuarded(
     () async {
       await Init.globals();
-      await containerRef.read(globalSettingsManagerProvider.future);
-      await containerRef.read(userSettingsManagerProvider.future);
+      await containerRef.read(settingsManagerProvider.future);
       Init.initLogger();
       audioHandler = await Init.initAudioHandler();
       // Preload the database
@@ -33,7 +33,7 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(globalSettingByKeyProvider(SettingKeys.appThemeMode));
-    final appTheme = ref.read(globalSettingsManagerProvider.notifier).getSetting<String>(SettingKeys.appThemeMode);
+    final appTheme = ref.read(settingsManagerProvider.notifier).getGlobalSetting<String>(SettingKeys.appThemeMode);
 
     return MaterialApp.router(
       routerConfig: globalRouter,

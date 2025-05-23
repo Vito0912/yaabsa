@@ -15,7 +15,7 @@ part 'user_providers.g.dart';
 @Riverpod(keepAlive: true)
 Stream<String?> activeUserId(Ref ref) {
   final db = ref.watch(appDatabaseProvider);
-  return db.watchActiveUserId();
+  return db.watchGlobalSetting('activeUserId').map((e) => e?.value);
 }
 
 @Riverpod(keepAlive: true)

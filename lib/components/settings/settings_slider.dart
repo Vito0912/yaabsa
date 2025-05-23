@@ -1,4 +1,4 @@
-import 'package:buchshelfly/database/app_database.dart';
+import 'package:buchshelfly/database/settings_manager.dart';
 import 'package:buchshelfly/util/setting_key.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -181,7 +181,7 @@ class SettingSlider<T> extends ConsumerWidget {
                 label: valueLabels[safeIndex],
                 onChanged: (double newIndex) {
                   final T newValue = values[newIndex.round()];
-                  ref.read(globalSettingsManagerProvider.notifier).setSetting<T>(settingKey, newValue);
+                  ref.read(settingsManagerProvider.notifier).setGlobalSetting<T>(settingKey, newValue);
                   onChanged?.call(newValue);
                 },
               ),
