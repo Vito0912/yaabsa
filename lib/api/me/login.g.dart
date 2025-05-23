@@ -9,7 +9,9 @@ part of 'login.dart';
 _Login _$LoginFromJson(Map<String, dynamic> json) => _Login(
   user: User.fromJson(json['user'] as Map<String, dynamic>),
   userDefaultLibraryId: json['userDefaultLibraryId'] as String,
-  serverSettings: ServerSettings.fromJson(json['serverSettings'] as Map<String, dynamic>),
+  serverSettings: ServerSettings.fromJson(
+    json['serverSettings'] as Map<String, dynamic>,
+  ),
   source: json['Source'] as String,
 );
 

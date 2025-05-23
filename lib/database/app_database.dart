@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:buchshelfly/api/me/user.dart';
 import 'package:buchshelfly/util/logger.dart';
+import 'package:buchshelfly/util/setting_key.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -43,6 +44,32 @@ class StoredUsers extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+class SettingsParser {
+  static String encodeValue<T>(T value) {
+    if (value is String) return value;
+    if (value is int) return value.toString();
+    if (value is double) return value.toString();
+    if (value is bool) return value.toString();
+    return value.toString();
+  }
+
+  static T decodeValue<T>(String? stringValue, T defaultValue) {
+    if (T == Object) throw ArgumentError('Cannot decode to Object type');
+    if (stringValue == null) return defaultValue;
+
+    if (T == String) return stringValue as T;
+    if (T == int) return (int.tryParse(stringValue) ?? defaultValue) as T;
+    if (T == double) return (double.tryParse(stringValue) ?? defaultValue) as T;
+    if (T == bool) {
+      if (stringValue.toLowerCase() == 'true') return true as T;
+      if (stringValue.toLowerCase() == 'false') return false as T;
+      return defaultValue;
+    }
+
+    return defaultValue;
+  }
+}
+
 @DriftDatabase(tables: [GlobalSettings, UserSettings, StoredUsers])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -52,7 +79,6 @@ class AppDatabase extends _$AppDatabase {
   @override
   int get schemaVersion => 1;
 
-  // --- Global Settings Methods ---
   Stream<GlobalSettingEntry?> watchGlobalSetting(String key) {
     return (select(globalSettings)..where((tbl) => tbl.key.equals(key))).watchSingleOrNull().distinct();
   }
@@ -66,9 +92,9 @@ class AppDatabase extends _$AppDatabase {
     return (select(globalSettings)..where((tbl) => tbl.key.equals(key))).getSingleOrNull();
   }
 
-  // --- User Settings Methods ---
   Stream<UserSettingEntry?> watchUserSetting(String userId, String key) {
-    return (select(userSettings)..where((tbl) => tbl.userId.equals(userId) & tbl.key.equals(key))).watchSingleOrNull().distinct();
+    return (select(userSettings)
+      ..where((tbl) => tbl.userId.equals(userId) & tbl.key.equals(key))).watchSingleOrNull().distinct();
   }
 
   Future<void> setUserSetting(String userId, String key, String value) {
@@ -80,7 +106,46 @@ class AppDatabase extends _$AppDatabase {
     return (select(userSettings)..where((tbl) => tbl.userId.equals(userId) & tbl.key.equals(key))).getSingleOrNull();
   }
 
-  // --- Selected Library ID Methods ---
+  Stream<T> watchGlobalSettingTyped<T>(String key, T defaultValue) {
+    return watchGlobalSetting(key).map((setting) => SettingsParser.decodeValue<T>(setting?.value, defaultValue));
+  }
+
+  Future<T> getGlobalSettingTyped<T>(String key, T defaultValue) async {
+    final setting = await getGlobalSetting(key);
+    return SettingsParser.decodeValue<T>(setting?.value, defaultValue);
+  }
+
+  Future<void> setGlobalSettingTyped<T>(String key, T value) {
+    return setGlobalSetting(key, SettingsParser.encodeValue(value));
+  }
+
+  Stream<T> watchUserSettingTyped<T>(String userId, String key, T defaultValue) {
+    return watchUserSetting(userId, key).map((setting) => SettingsParser.decodeValue<T>(setting?.value, defaultValue));
+  }
+
+  Future<T> getUserSettingTyped<T>(String userId, String key, T defaultValue) async {
+    final setting = await getUserSetting(userId, key);
+    return SettingsParser.decodeValue<T>(setting?.value, defaultValue);
+  }
+
+  Future<void> setUserSettingTyped<T>(String userId, String key, T value) {
+    return setUserSetting(userId, key, SettingsParser.encodeValue(value));
+  }
+
+  Future<Map<String, String>> getAllGlobalSettings() async {
+    final entries = await select(globalSettings).get();
+    return Map.fromEntries(entries.map((e) => MapEntry(e.key, e.value)));
+  }
+
+  Future<Map<String, Map<String, String>>> getAllUserSettings() async {
+    final entries = await select(userSettings).get();
+    final result = <String, Map<String, String>>{};
+    for (final entry in entries) {
+      result.putIfAbsent(entry.userId, () => {})[entry.key] = entry.value;
+    }
+    return result;
+  }
+
   Stream<String?> watchSelectedLibraryId(String userId) {
     return watchUserSetting(userId, _selectedLibraryIdKey).map((setting) => setting?.value).distinct();
   }
@@ -200,7 +265,6 @@ class AppDatabase extends _$AppDatabase {
       for (final userRow in allCurrentUsers) {
         final user = User.fromJson(jsonDecode(userRow.userDataJson));
         bool shouldBeActive = user.id == newActiveUserId;
-        // Only add an update to the batch if the isActive status actually needs to change
         if (user.isActive != shouldBeActive) {
           final updatedUser = user.copyWith(isActive: shouldBeActive);
           b.replace(
@@ -218,6 +282,79 @@ class AppDatabase extends _$AppDatabase {
   }
 }
 
+class GlobalSettingsCache {
+  final Map<String, dynamic> _cache = {};
+  bool _isInitialized = false;
+
+  bool get isInitialized => _isInitialized;
+
+  T? get<T>(String key) {
+    final value = _cache[key];
+    if (value is T) return value;
+    return null;
+  }
+
+  void set<T>(String key, T? value) {
+    if (value == null) {
+      _cache.remove(key);
+    } else {
+      _cache[key] = value;
+    }
+  }
+
+  void setAll(Map<String, String> settings) {
+    _cache.clear();
+    _cache.addAll(settings);
+    _isInitialized = true;
+  }
+
+  void clear() {
+    _cache.clear();
+    _isInitialized = false;
+  }
+}
+
+class UserSettingsCache {
+  final Map<String, Map<String, dynamic>> _cache = {};
+  bool _isInitialized = false;
+
+  bool get isInitialized => _isInitialized;
+
+  T? get<T>(String userId, String key) {
+    final userCache = _cache[userId];
+    if (userCache == null) return null;
+    final value = userCache[key];
+    if (value is T) return value;
+    return null;
+  }
+
+  void set<T>(String userId, String key, T? value) {
+    _cache.putIfAbsent(userId, () => {});
+    if (value == null) {
+      _cache[userId]!.remove(key);
+    } else {
+      _cache[userId]![key] = value;
+    }
+  }
+
+  void setAll(Map<String, Map<String, String>> settings) {
+    _cache.clear();
+    for (final entry in settings.entries) {
+      _cache[entry.key] = Map<String, dynamic>.from(entry.value);
+    }
+    _isInitialized = true;
+  }
+
+  void clearUser(String userId) {
+    _cache.remove(userId);
+  }
+
+  void clear() {
+    _cache.clear();
+    _isInitialized = false;
+  }
+}
+
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
     final dbFolder = await getApplicationDocumentsDirectory();
@@ -229,4 +366,123 @@ LazyDatabase _openConnection() {
 @Riverpod(keepAlive: true)
 AppDatabase appDatabase(Ref ref) {
   return AppDatabase();
+}
+
+@Riverpod(keepAlive: true)
+GlobalSettingsCache globalSettingsCache(Ref ref) {
+  return GlobalSettingsCache();
+}
+
+@Riverpod(keepAlive: true)
+UserSettingsCache userSettingsCache(Ref ref) {
+  return UserSettingsCache();
+}
+
+@Riverpod(keepAlive: true)
+class GlobalSettingsManager extends _$GlobalSettingsManager {
+  @override
+  Stream<Map<String, dynamic>> build() async* {
+    final db = ref.watch(appDatabaseProvider);
+    final cache = ref.watch(globalSettingsCacheProvider);
+
+    if (!cache.isInitialized) {
+      final initialSettings = await db.getAllGlobalSettings();
+      cache.setAll(initialSettings);
+      yield Map<String, dynamic>.from(cache._cache);
+    }
+
+    await for (final entries in db.select(db.globalSettings).watch()) {
+      final settings = <String, String>{};
+      for (final entry in entries) {
+        settings[entry.key] = entry.value;
+      }
+      cache.setAll(settings);
+      yield Map<String, dynamic>.from(cache._cache);
+    }
+  }
+
+  T getSetting<T>(String key, {T? defaultValue}) {
+    final cache = ref.read(globalSettingsCacheProvider);
+    final stringValue = cache.get<String>(key);
+    final T tmpDefault = (defaultValue ?? defaultSettings[key]) as T;
+    return SettingsParser.decodeValue<T>(stringValue, tmpDefault);
+  }
+
+  Future<void> setSetting<T>(String key, T value) async {
+    logger('setSetting called with key: $key, value: $value', tag: 'GlobalSettingsManager', level: InfoLevel.debug);
+    final db = ref.read(appDatabaseProvider);
+    await db.setGlobalSettingTyped(key, value);
+  }
+
+  bool get isInitialized => ref.read(globalSettingsCacheProvider).isInitialized;
+
+  Future<void> waitForInitialization() async {
+    while (!isInitialized) {
+      await Future.delayed(const Duration(milliseconds: 10));
+    }
+  }
+}
+
+@Riverpod(keepAlive: true)
+class UserSettingsManager extends _$UserSettingsManager {
+  @override
+  Stream<Map<String, Map<String, dynamic>>> build() async* {
+    final db = ref.watch(appDatabaseProvider);
+    final cache = ref.watch(userSettingsCacheProvider);
+
+    if (!cache.isInitialized) {
+      final initialSettings = await db.getAllUserSettings();
+      cache.setAll(initialSettings);
+      yield Map<String, Map<String, dynamic>>.from(
+        cache._cache.map((k, v) => MapEntry(k, Map<String, dynamic>.from(v))),
+      );
+    }
+
+    await for (final entries in db.select(db.userSettings).watch()) {
+      final settings = <String, Map<String, String>>{};
+      for (final entry in entries) {
+        settings.putIfAbsent(entry.userId, () => <String, String>{})[entry.key] = entry.value;
+      }
+      cache.setAll(settings);
+      yield Map<String, Map<String, dynamic>>.from(
+        cache._cache.map((k, v) => MapEntry(k, Map<String, dynamic>.from(v))),
+      );
+    }
+  }
+
+  T getSetting<T>(String? userId, String key, {T? defaultValue}) {
+    final cache = ref.read(userSettingsCacheProvider);
+    if (userId == null) {
+      logger(
+        'getSetting called with null userId. Returning default value for key: $key',
+        tag: 'UserSettingsManager',
+        level: InfoLevel.warning,
+      );
+      return defaultValue ?? defaultSettings[key] as T;
+    }
+    final stringValue = cache.get<String>(userId, key);
+    final T tmpDefault = (defaultValue ?? defaultSettings[key]) as T;
+    return SettingsParser.decodeValue<T>(stringValue, tmpDefault);
+  }
+
+  Future<void> setSetting<T>(String userId, String key, T value) async {
+    final db = ref.read(appDatabaseProvider);
+    await db.setUserSettingTyped(userId, key, value);
+  }
+
+  bool get isInitialized => ref.read(userSettingsCacheProvider).isInitialized;
+
+  Future<void> waitForInitialization() async {
+    while (!isInitialized) {
+      await Future.delayed(const Duration(milliseconds: 10));
+    }
+  }
+}
+
+@Riverpod(keepAlive: true)
+Future<void> settingsInitializer(Ref ref) async {
+  final globalManager = ref.watch(globalSettingsManagerProvider.notifier);
+  final userManager = ref.watch(userSettingsManagerProvider.notifier);
+
+  await Future.wait([globalManager.waitForInitialization(), userManager.waitForInitialization()]);
 }

@@ -11,6 +11,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 void main() {
   runZonedGuarded(
     () async {
+      await containerRef.read(globalSettingsManagerProvider.future);
+      await containerRef.read(userSettingsManagerProvider.future);
       Init.initLogger();
       audioHandler = await Init.initAudioHandler();
       await Init.globals();

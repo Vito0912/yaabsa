@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class GlobalPlayerSettings extends ConsumerStatefulWidget {
   const GlobalPlayerSettings({super.key});
 
+  static const String routeName = '/settings/global-player';
+
   @override
   ConsumerState<GlobalPlayerSettings> createState() => _GlobalPlayerSettingsState();
 }
@@ -31,15 +33,14 @@ class _GlobalPlayerSettingsState extends ConsumerState<GlobalPlayerSettings> {
   Widget build(BuildContext context) {
     final database = ref.watch(appDatabaseProvider);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Global Player Settings'),
-      ),
+      appBar: AppBar(title: const Text('Global Player Settings')),
       body: Column(
         children: [
           if (_bufferSize != null)
             CustomLabeledSlider<int>(
               label: 'Max buffer size',
-              tooltip: 'Maximum size of the buffer in bytes. This is just a hint for the player and may not be respected by the OS. No more than 5 minutes should be cac.',
+              tooltip:
+                  'Maximum size of the buffer in bytes. This is just a hint for the player and may not be respected by the OS. No more than 5 minutes should be cac.',
               icon: Icons.info_outline,
               values: const [512 * 1024, 1024 * 1024, 2 * 1024 * 1024, 5 * 1024 * 1024, 10 * 1024 * 1024],
               valueLabels: const ['512 KB', '1 MB', '2 MB', '5 MB', '10 MB'],
@@ -48,7 +49,7 @@ class _GlobalPlayerSettingsState extends ConsumerState<GlobalPlayerSettings> {
                 setState(() {
                   _bufferSize = v;
                 });
-                database.setGlobalSetting(SettingKeys.bufferSize, v.toString());
+                ref.read(globalSettingsManagerProvider.notifier).setSetting<int>(SettingKeys.bufferSize, v);
               },
             ),
         ],
@@ -56,7 +57,6 @@ class _GlobalPlayerSettingsState extends ConsumerState<GlobalPlayerSettings> {
     );
   }
 }
-
 
 class CustomLabeledSlider<T> extends StatelessWidget {
   final String label;
@@ -95,10 +95,7 @@ class CustomLabeledSlider<T> extends StatelessWidget {
               if (icon != null && tooltip != null)
                 Padding(
                   padding: const EdgeInsets.only(left: 4.0),
-                  child: Tooltip(
-                    message: tooltip!,
-                    child: Icon(icon, size: 18),
-                  ),
+                  child: Tooltip(message: tooltip!, child: Icon(icon, size: 18)),
                 ),
             ],
           ),
@@ -119,9 +116,7 @@ class CustomLabeledSlider<T> extends StatelessWidget {
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: valueLabels
-                .map((lbl) => Text(lbl, style: Theme.of(context).textTheme.bodySmall))
-                .toList(),
+            children: valueLabels.map((lbl) => Text(lbl, style: Theme.of(context).textTheme.bodySmall)).toList(),
           ),
         ],
       ),

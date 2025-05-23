@@ -1,9 +1,7 @@
-import 'package:buchshelfly/api/library/personalized_library.dart';
 import 'package:buchshelfly/components/common/library_item_widget.dart';
 import 'package:buchshelfly/provider/common/library_provider.dart';
 import 'package:buchshelfly/provider/core/user_providers.dart';
 import 'package:buchshelfly/provider/library/personalized_library_provider.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -46,9 +44,9 @@ class PersonalizedView extends ConsumerWidget {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children:
-                  personalizedLibrary.continueSeries?.entities.map((e) {
-                    return Container(width: 200, child: LibraryItemWidget(e, api!));
-                  }).toList() ??
+                      personalizedLibrary.continueSeries?.entities.map((e) {
+                        return Container(width: 200, child: LibraryItemWidget(e, api!));
+                      }).toList() ??
                       [],
                 ),
               ),

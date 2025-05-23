@@ -16,12 +16,13 @@ _DaysOfWeek _$DaysOfWeekFromJson(Map<String, dynamic> json) => _DaysOfWeek(
   sunday: (json['Sunday'] as num?)?.toDouble(),
 );
 
-Map<String, dynamic> _$DaysOfWeekToJson(_DaysOfWeek instance) => <String, dynamic>{
-  'Monday': instance.monday,
-  'Tuesday': instance.tuesday,
-  'Wednesday': instance.wednesday,
-  'Thursday': instance.thursday,
-  'Friday': instance.friday,
-  'Saturday': instance.saturday,
-  'Sunday': instance.sunday,
-};
+Map<String, dynamic> _$DaysOfWeekToJson(_DaysOfWeek instance) =>
+    <String, dynamic>{
+      'Monday': instance.monday,
+      'Tuesday': instance.tuesday,
+      'Wednesday': instance.wednesday,
+      'Thursday': instance.thursday,
+      'Friday': instance.friday,
+      'Saturday': instance.saturday,
+      'Sunday': instance.sunday,
+    };

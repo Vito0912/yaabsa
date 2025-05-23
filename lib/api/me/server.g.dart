@@ -11,7 +11,9 @@ _Server _$ServerFromJson(Map<String, dynamic> json) => _Server(
   host: json['host'] as String,
   ssl: json['ssl'] as bool,
   subdirectory: json['subdirectory'] as String?,
-  headers: (json['headers'] as Map<String, dynamic>?)?.map((k, e) => MapEntry(k, e as String)),
+  headers: (json['headers'] as Map<String, dynamic>?)?.map(
+    (k, e) => MapEntry(k, e as String),
+  ),
 );
 
 Map<String, dynamic> _$ServerToJson(_Server instance) => <String, dynamic>{

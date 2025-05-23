@@ -1,8 +1,12 @@
 import 'dart:async';
 
+import 'package:buchshelfly/api/me/user.dart';
+import 'package:buchshelfly/database/app_database.dart';
+import 'package:buchshelfly/provider/core/user_providers.dart';
 import 'package:buchshelfly/provider/player/session_provider.dart';
 import 'package:buchshelfly/util/bg_audio_handler.dart';
 import 'package:buchshelfly/util/logger.dart';
+import 'package:buchshelfly/util/setting_key.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 
@@ -39,7 +43,10 @@ class PlaybackSyncService {
     if (_syncTimer?.isActive ?? false) {
       return;
     }
-    _syncTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+    final User? user = _ref.read(currentUserProvider).value;
+    final syncInterval = _ref.read(userSettingsManagerProvider.notifier).getSetting(user?.id, SettingKeys.syncInterval);
+
+    _syncTimer = Timer.periodic(Duration(seconds: syncInterval), (_) {
       _sync();
     });
   }
@@ -69,6 +76,11 @@ class PlaybackSyncService {
 
     // When seeking, this could produce many requests
     if (listenedTime < 0.3) {
+      logger(
+        'Syncing skipped: listenedTime is too small: $listenedTime',
+        tag: 'PlaybackSyncService',
+        level: InfoLevel.warning,
+      );
       return false;
     }
 
@@ -81,8 +93,9 @@ class PlaybackSyncService {
     return await _ref.read(sessionRepositoryProvider).syncOpenSession(currentPositionSeconds, listenedTime);
   }
 
-  Future<void> flush() async {
+  Future<bool> flush() async {
     await _stopSync();
     _currentSegmentStartTime = null;
+    return true;
   }
 }

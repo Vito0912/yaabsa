@@ -1,11 +1,13 @@
 import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
+import 'package:buchshelfly/database/app_database.dart';
 import 'package:buchshelfly/models/internal_media.dart';
 import 'package:buchshelfly/provider/common/media_progress_provider.dart';
 import 'package:buchshelfly/provider/player/session_provider.dart';
 import 'package:buchshelfly/util/logger.dart';
 import 'package:buchshelfly/util/playback_sync_service.dart';
+import 'package:buchshelfly/util/setting_key.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
@@ -14,8 +16,8 @@ import 'package:rxdart/transformers.dart';
 class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   late final AudioPlayer _player;
   final ProviderContainer _ref;
+  late final PlaybackSyncService _syncService;
   List<QueueItem> queueList = [];
-
 
   static get maxVolume {
     if (Platform.isAndroid) {
@@ -144,6 +146,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     _currentMediaItem = null;
     _currentTrackIndex = 0;
     queueList.clear();
+    await _syncService.flush();
     await _ref.read(sessionRepositoryProvider).closeSession();
     return _player.stop();
   }
@@ -197,20 +200,21 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   }
 
   BGAudioHandler(this._ref) {
+    final settingManager = _ref.read(globalSettingsManagerProvider.notifier);
+    final bufferSize = settingManager.getSetting<int>(SettingKeys.bufferSize);
 
-    const bufferSize = 10 * 1024 * 1024;
+    logger('Buffer size: $bufferSize', tag: 'AudioHandler', level: InfoLevel.debug);
 
-    const AndroidLoadControl androidLoadControl = AndroidLoadControl(
+    final AndroidLoadControl androidLoadControl = AndroidLoadControl(
       minBufferDuration: Duration(seconds: 50),
       maxBufferDuration: Duration(seconds: 300),
-      // TODO: Settings back jump duration + 5
-      backBufferDuration: Duration(seconds: 10),
+      backBufferDuration: Duration(seconds: 120),
       targetBufferBytes: bufferSize,
     );
 
     JustAudioMediaKit.bufferSize = bufferSize;
 
-    const DarwinLoadControl iOSLoadControl = DarwinLoadControl(
+    final DarwinLoadControl iOSLoadControl = DarwinLoadControl(
       // iOS does what iOS wants anyways
       preferredForwardBufferDuration: Duration(seconds: 300),
       canUseNetworkResourcesForLiveStreamingWhilePaused: false,
@@ -218,12 +222,10 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
     AudioLoadConfiguration loadCfg = AudioLoadConfiguration(
       androidLoadControl: androidLoadControl,
-      darwinLoadControl: iOSLoadControl
+      darwinLoadControl: iOSLoadControl,
     );
 
-    _player = AudioPlayer(
-      audioLoadConfiguration: loadCfg
-    );
+    _player = AudioPlayer(audioLoadConfiguration: loadCfg);
 
     _player.errorStream.listen((error) {
       logger('AudioPlayer error: $error', tag: 'AudioHandler', level: InfoLevel.error);
@@ -233,7 +235,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       }
     });
 
-    PlaybackSyncService syncService = PlaybackSyncService(this, _ref);
+    _syncService = PlaybackSyncService(this, _ref);
     _player.playerStateStream.listen((PlayerState state) async {
       logger(state.toString(), tag: 'AudioHandler', level: InfoLevel.debug);
       if (state.processingState == ProcessingState.completed) {
@@ -243,7 +245,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           tag: 'AudioHandler',
           level: InfoLevel.debug,
         );
-        await syncService.flush();
+        await _syncService.flush();
         await _ref.read(sessionRepositoryProvider).closeSession();
 
         if (queueList.isNotEmpty) {

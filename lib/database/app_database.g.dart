@@ -1228,5 +1228,102 @@ final appDatabaseProvider = Provider<AppDatabase>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef AppDatabaseRef = ProviderRef<AppDatabase>;
+String _$globalSettingsCacheHash() =>
+    r'345380ee959b54eecdac79be49eb50c328fd891a';
+
+/// See also [globalSettingsCache].
+@ProviderFor(globalSettingsCache)
+final globalSettingsCacheProvider = Provider<GlobalSettingsCache>.internal(
+  globalSettingsCache,
+  name: r'globalSettingsCacheProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$globalSettingsCacheHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef GlobalSettingsCacheRef = ProviderRef<GlobalSettingsCache>;
+String _$userSettingsCacheHash() => r'7760159f0d12e6169ba9b67cb8244fa471d3744e';
+
+/// See also [userSettingsCache].
+@ProviderFor(userSettingsCache)
+final userSettingsCacheProvider = Provider<UserSettingsCache>.internal(
+  userSettingsCache,
+  name: r'userSettingsCacheProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$userSettingsCacheHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef UserSettingsCacheRef = ProviderRef<UserSettingsCache>;
+String _$settingsInitializerHash() =>
+    r'b307ff81b3bb77dd283a6d341635e0220285fb8e';
+
+/// See also [settingsInitializer].
+@ProviderFor(settingsInitializer)
+final settingsInitializerProvider = FutureProvider<void>.internal(
+  settingsInitializer,
+  name: r'settingsInitializerProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$settingsInitializerHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef SettingsInitializerRef = FutureProviderRef<void>;
+String _$globalSettingsManagerHash() =>
+    r'04b619638f3f89bbfdf966473b59edbd6f08d4e1';
+
+/// See also [GlobalSettingsManager].
+@ProviderFor(GlobalSettingsManager)
+final globalSettingsManagerProvider = StreamNotifierProvider<
+  GlobalSettingsManager,
+  Map<String, dynamic>
+>.internal(
+  GlobalSettingsManager.new,
+  name: r'globalSettingsManagerProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$globalSettingsManagerHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$GlobalSettingsManager = StreamNotifier<Map<String, dynamic>>;
+String _$userSettingsManagerHash() =>
+    r'b6ed82877b4febfd9bf49983ef64405ec8695824';
+
+/// See also [UserSettingsManager].
+@ProviderFor(UserSettingsManager)
+final userSettingsManagerProvider = StreamNotifierProvider<
+  UserSettingsManager,
+  Map<String, Map<String, dynamic>>
+>.internal(
+  UserSettingsManager.new,
+  name: r'userSettingsManagerProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$userSettingsManagerHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$UserSettingsManager =
+    StreamNotifier<Map<String, Map<String, dynamic>>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

@@ -15,11 +15,12 @@ _DeviceInfo _$DeviceInfoFromJson(Map<String, dynamic> json) => _DeviceInfo(
   sdkVersion: json['sdkVersion'] as String?,
 );
 
-Map<String, dynamic> _$DeviceInfoToJson(_DeviceInfo instance) => <String, dynamic>{
-  'deviceId': instance.deviceId,
-  'clientName': instance.clientName,
-  'clientVersion': instance.clientVersion,
-  'manufacturer': instance.manufacturer,
-  'model': instance.model,
-  'sdkVersion': instance.sdkVersion,
-};
+Map<String, dynamic> _$DeviceInfoToJson(_DeviceInfo instance) =>
+    <String, dynamic>{
+      'deviceId': instance.deviceId,
+      'clientName': instance.clientName,
+      'clientVersion': instance.clientVersion,
+      'manufacturer': instance.manufacturer,
+      'model': instance.model,
+      'sdkVersion': instance.sdkVersion,
+    };

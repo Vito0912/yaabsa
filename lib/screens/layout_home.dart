@@ -297,7 +297,13 @@ class _LayoutHomeState extends State<LayoutHome> {
           return Scaffold(
             body: Stack(
               children: [
-                Column(children: [_appBar(context, true), Expanded(child: currentContent), PlayBar()]),
+                Column(
+                  children: [
+                    _appBar(context, true),
+                    Expanded(child: Column(children: [Expanded(child: currentContent), SizedBox(height: 86)])),
+                    PlayBar(),
+                  ],
+                ),
                 SafeArea(
                   child: StreamBuilder<bool>(
                     stream: audioHandler.shouldShowPlayer,

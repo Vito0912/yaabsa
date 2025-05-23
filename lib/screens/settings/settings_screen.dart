@@ -1,4 +1,5 @@
 import 'package:buchshelfly/provider/core/user_providers.dart';
+import 'package:buchshelfly/screens/settings/license_settings.dart';
 import 'package:buchshelfly/screens/settings/log_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -389,8 +390,7 @@ class MainSettingsScreen extends ConsumerWidget {
                       context: context,
                       icon: Icons.play_circle_outline_outlined,
                       title: 'Global Player',
-                      onTap:
-                          () => context.push('/settings/global-player'),
+                      onTap: () => context.push('/settings/global-player'),
                     ),
                     _buildDivider(isWithinCard: true),
                     _buildSettingsCardTile(
@@ -447,16 +447,6 @@ class MainSettingsScreen extends ConsumerWidget {
                     _buildDivider(isWithinCard: true),
                     _buildSettingsCardTile(
                       context: context,
-                      icon: Icons.gavel_outlined,
-                      title: 'Attribution',
-                      onTap:
-                          () => ScaffoldMessenger.of(
-                            context,
-                          ).showSnackBar(const SnackBar(content: Text('Navigate to Attribution'))),
-                    ),
-                    _buildDivider(isWithinCard: true),
-                    _buildSettingsCardTile(
-                      context: context,
                       icon: Icons.article_outlined,
                       title: 'Logs',
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const LogView())),
@@ -465,12 +455,9 @@ class MainSettingsScreen extends ConsumerWidget {
                     _buildSettingsCardTile(
                       context: context,
                       icon: Icons.info_outline_rounded,
-                      title: 'Information',
-                      subtitle: 'App version, licenses, etc.',
-                      onTap:
-                          () => ScaffoldMessenger.of(
-                            context,
-                          ).showSnackBar(const SnackBar(content: Text('Navigate to Information'))),
+                      title: 'Information & Attribution',
+                      subtitle: 'Licenses, App version, licenses, etc.',
+                      onTap: () => LicenseSettings.showLicensePage(context: context),
                       isLastInCard: true,
                     ),
                   ],
