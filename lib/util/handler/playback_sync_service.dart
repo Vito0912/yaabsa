@@ -4,7 +4,7 @@ import 'package:buchshelfly/api/me/user.dart';
 import 'package:buchshelfly/database/settings_manager.dart';
 import 'package:buchshelfly/provider/core/user_providers.dart';
 import 'package:buchshelfly/provider/player/session_provider.dart';
-import 'package:buchshelfly/util/bg_audio_handler.dart';
+import 'package:buchshelfly/util/handler/bg_audio_handler.dart';
 import 'package:buchshelfly/util/logger.dart';
 import 'package:buchshelfly/util/setting_key.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

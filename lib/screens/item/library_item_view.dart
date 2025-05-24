@@ -41,6 +41,12 @@ class LibraryItemView extends ConsumerWidget {
                     },
                   ),
                   IconButton(
+                    icon: const Icon(Icons.download),
+                    onPressed: () {
+                      downloadHandler.downloadFile(itemId);
+                    },
+                  ),
+                  IconButton(
                     icon: const Icon(Icons.book_outlined),
                     onPressed: () {
                       context.push('/ebook/${item.id}');
