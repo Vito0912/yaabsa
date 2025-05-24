@@ -147,8 +147,13 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     _currentMediaItem = null;
     _currentTrackIndex = 0;
     queueList.clear();
-    await _syncService.flush();
-    await _ref.read(sessionRepositoryProvider).closeSession();
+    try {
+      await _syncService.flush();
+      await _ref.read(sessionRepositoryProvider).closeSession();
+    } catch (e) {
+      logger('Error closing session: $e', tag: 'AudioHandler', level: InfoLevel.error);
+    }
+
     return _player.stop();
   }
 

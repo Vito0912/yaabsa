@@ -1,3 +1,4 @@
+import 'package:buchshelfly/api/library_items/audio_track.dart';
 import 'package:buchshelfly/api/library_items/chapter.dart';
 import 'package:buchshelfly/api/library_items/library_file_metadata.dart';
 import 'package:buchshelfly/api/library_items/meta_tags.dart';
@@ -8,6 +9,8 @@ part 'audio_file.g.dart';
 
 @freezed
 abstract class AudioFile with _$AudioFile {
+  const AudioFile._();
+
   const factory AudioFile({
     @JsonKey(name: "index") int? index,
     @JsonKey(name: "ino") required String ino,
@@ -34,6 +37,18 @@ abstract class AudioFile with _$AudioFile {
     @JsonKey(name: "metaTags") MetaTags? metaTags,
     @JsonKey(name: "mimeType") String? mimeType,
   }) = _AudioFile;
+
+  AudioTrack toAudioTrack() {
+    return AudioTrack(
+      index: index,
+      startOffset: 0,
+      duration: duration ?? 0,
+      title: metadata.filename ?? '',
+      contentUrl: metadata.path ?? '',
+      mimeType: mimeType ?? 'audio/mpeg',
+      metadata: metadata,
+    );
+  }
 
   factory AudioFile.fromJson(Map<String, dynamic> json) => _$AudioFileFromJson(json);
 }

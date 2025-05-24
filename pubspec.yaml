@@ -20,6 +20,10 @@ dependencies:
   json_annotation: ^4.9.0
   riverpod_annotation: ^2.6.1
 
+
+  # Misc
+  uuid: ^4.5.1
+
   # Core
   just_audio: ^0.10.3
   audio_service: ^0.18.18

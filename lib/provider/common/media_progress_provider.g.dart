@@ -7,7 +7,7 @@ part of 'media_progress_provider.dart';
 // **************************************************************************
 
 String _$mediaProgressNotifierHash() =>
-    r'3818242811e1f2ac0d37727164c2785e1439e0d9';
+    r'3a2e1980b8a5fe5e6035c7db0bf35066fd4b1ada';
 
 /// See also [MediaProgressNotifier].
 @ProviderFor(MediaProgressNotifier)

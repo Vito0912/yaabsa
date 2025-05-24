@@ -1,3 +1,4 @@
+import 'package:buchshelfly/api/library_items/playback_session.dart';
 import 'package:buchshelfly/api/routes/abs_api.dart';
 import 'package:buchshelfly/api/session/request/sync_session_request.dart';
 import 'package:dio/dio.dart';
@@ -36,6 +37,25 @@ class SessionApi {
   }) async {
     await ABSApi.makeApiPostRequest(
       route: '/api/session/$sessionId/sync',
+      fromJson: null,
+      bodyData: request.toJson(),
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
+    );
+
+    return true;
+  }
+
+  Future<bool> syncLocalSession(
+    PlaybackSession request, {
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    await ABSApi.makeApiPostRequest(
+      route: '/api/session/local',
       fromJson: null,
       bodyData: request.toJson(),
       cancelToken: cancelToken,

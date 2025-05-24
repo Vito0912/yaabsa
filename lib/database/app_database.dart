@@ -40,13 +40,83 @@ class StoredUsers extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-@DriftDatabase(tables: [GlobalSettings, UserSettings, StoredUsers])
+@DataClassName('StoredSyncEntry')
+class StoredSyncs extends Table {
+  TextColumn get sessionId => text()();
+  TextColumn get itemId => text()();
+  TextColumn get userId => text()();
+  TextColumn get episodeId => text().nullable()();
+
+  RealColumn get currentTime => real()();
+  RealColumn get timeListened => real()();
+  RealColumn get duration => real()();
+
+  BoolColumn get sessionLocal => boolean()();
+  DateTimeColumn get lastUpdated => dateTime()();
+
+  TextColumn get mediaProgress => text()();
+
+  @override
+  Set<Column> get primaryKey => {sessionId};
+}
+
+@DriftDatabase(tables: [GlobalSettings, UserSettings, StoredUsers, StoredSyncs])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 9;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onCreate: (m) async {
+      await m.createAll();
+    },
+    onUpgrade: (m, from, to) async {
+      if (from == 1) {
+        await m.createTable(storedSyncs);
+      }
+      if (from == 8) {
+        await m.drop(storedSyncs);
+        await m.createTable(storedSyncs);
+      }
+    },
+    beforeOpen: (details) async {},
+  );
+
+  // Sync management
+  Future<void> addOrUpdateSync(StoredSyncsCompanion companion) {
+    return into(storedSyncs).insert(
+      companion,
+      mode: InsertMode.insertOrIgnore,
+      onConflict: DoUpdate(
+        (old) => StoredSyncsCompanion.custom(
+          timeListened: old.timeListened + Variable<double>(companion.timeListened.value ?? 0.0),
+          currentTime: Variable<double>(companion.currentTime.value ?? 0.0),
+          lastUpdated: Variable<DateTime>(companion.lastUpdated.value ?? DateTime.now()),
+          sessionLocal: Variable<bool>(companion.sessionLocal.value ?? false),
+          mediaProgress: Variable<String>(companion.mediaProgress.value ?? ''),
+        ),
+        target: [storedSyncs.sessionId],
+      ),
+    );
+  }
+
+  Future<void> deleteSync(String sessionId) {
+    final query = delete(storedSyncs)..where((tbl) => tbl.sessionId.equals(sessionId));
+    return query.go();
+  }
+
+  Future<StoredSyncEntry?> getSync(String sessionId) async {
+    final query = select(storedSyncs)..where((tbl) => tbl.sessionId.equals(sessionId));
+    final entry = await query.getSingleOrNull();
+    return entry;
+  }
+
+  Future<List<StoredSyncEntry>> getAllSyncs() async {
+    return await select(storedSyncs).get();
+  }
 
   // Basic setting operations
   Stream<GlobalSettingEntry?> watchGlobalSetting(String key) {
@@ -116,6 +186,25 @@ class AppDatabase extends _$AppDatabase {
               .toList();
       return userList;
     }).distinct();
+  }
+
+  Future<List<User>> getAllStoredUsers() async {
+    final rows = await select(storedUsers).get();
+    return rows
+        .map((row) {
+          try {
+            return User.fromJson(jsonDecode(row.userDataJson));
+          } catch (e, s) {
+            logger(
+              'ERROR decoding User from JSON. Row ID: ${row.id}, JSON: ${row.userDataJson}. Error: $e. Stack: $s',
+              tag: 'AppDatabase',
+              level: InfoLevel.error,
+            );
+            return null;
+          }
+        })
+        .whereType<User>()
+        .toList();
   }
 
   Future<void> addOrUpdateStoredUser(User user) {

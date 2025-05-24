@@ -13,7 +13,6 @@ class UserSwitcher extends ConsumerWidget {
   const UserSwitcher({super.key});
 
   void _onMenuItemSelected(String value, WidgetRef ref, User? currentUser, BuildContext context) async {
-
     final bool showPlayer = await audioHandler.shouldShowPlayer.first;
     if (showPlayer) {
       final shouldSwitch = await showDialog<bool>(
@@ -21,16 +20,12 @@ class UserSwitcher extends ConsumerWidget {
         builder: (context) {
           return AlertDialog(
             title: const Text('Switch User'),
-            content: const Text('Are you sure you want to switch users? When you switch the user, the player will not be able to sync the progress. It will still be saved locally and sync with the server after an app restart.'),
+            content: const Text(
+              'Are you sure you want to switch users? When you switch the user, the player will not be able to sync the progress. It will still be saved locally and sync with the server after an app restart.',
+            ),
             actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: const Text('Switch'),
-              ),
+              TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
+              TextButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Switch')),
             ],
           );
         },
@@ -41,7 +36,7 @@ class UserSwitcher extends ConsumerWidget {
     }
 
     if (value == _addNewUserValue) {
-      context.go('/add-user');
+      context.push('/add-user');
     } else {
       if (value == currentUser?.id) return;
       final db = ref.read(appDatabaseProvider);
@@ -241,6 +236,7 @@ class UserSwitcher extends ConsumerWidget {
       data: (currentUser) {
         return allUsersAsync.when(
           data: (allUsers) {
+            if (allUsers.isEmpty) context.go('/add-user');
             return PlatformBuilder(
               mobileBuilder: (ctx) => _buildMobile(ctx, ref, currentUser, allUsers),
               tabletBuilder: (ctx) => _buildTabletOrDesktop(ctx, ref, currentUser, allUsers, isTablet: true),

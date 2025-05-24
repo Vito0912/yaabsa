@@ -195,6 +195,52 @@ class ABSApi {
     }
   }
 
+  static Future<Response<T>> makeApiPatchRequest<T>({
+    required String route,
+    required Function(Map<String, dynamic>)? fromJson,
+    required Map<String, dynamic>? bodyData,
+    required Dio dio,
+    T? returnData,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    final options = Options(
+      method: 'PATCH',
+      headers: <String, dynamic>{...?headers},
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {'type': 'http', 'scheme': 'bearer', 'name': 'BearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+    );
+
+    try {
+      final response = await dio.request<Object>(route, data: bodyData, options: options, cancelToken: cancelToken);
+      T? responseData;
+
+      if (fromJson != null) {
+        final rawResponse = response.data;
+        responseData = rawResponse == null ? null : fromJson(rawResponse as Map<String, dynamic>);
+      }
+
+      return Response<T>(
+        data: fromJson != null ? responseData : returnData,
+        headers: response.headers,
+        isRedirect: response.isRedirect,
+        requestOptions: response.requestOptions,
+        redirects: response.redirects,
+        statusCode: response.statusCode,
+        statusMessage: response.statusMessage,
+        extra: response.extra,
+      );
+    } catch (error, stackTrace) {
+      rethrow;
+    }
+  }
+
   MeApi getMeApi() {
     return MeApi(dio);
   }

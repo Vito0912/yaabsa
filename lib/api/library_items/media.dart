@@ -55,4 +55,16 @@ abstract class Media with _$Media {
   }
 
   bool get hasBook => bookMedia?.ebookFile != null || bookMedia?.ebookFormat != null;
+
+  double duration({String? episodeId}) {
+    if (podcastMedia != null) {
+      if (episodeId != null) {
+        final episode = podcastMedia!.episodes?.firstWhere((e) => e.id == episodeId);
+        return episode?.audioFile?.duration ?? 0;
+      }
+      return podcastMedia!.episodes?.map((e) => e.audioFile!.duration ?? 0).reduce((a, b) => a + b) ?? 0;
+    } else {
+      return bookMedia?.audioFiles?.map((e) => e.duration ?? 0).reduce((a, b) => a + b) ?? 0;
+    }
+  }
 }

@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:buchshelfly/api/library_items/playback_session.dart';
 import 'package:buchshelfly/api/me/media_progress.dart';
 import 'package:buchshelfly/api/routes/me_api.dart';
+import 'package:buchshelfly/database/app_database.dart';
 import 'package:buchshelfly/provider/core/user_providers.dart';
 import 'package:buchshelfly/util/logger.dart';
 import 'package:dio/dio.dart';
@@ -22,7 +25,14 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
     if (progressList == null || progressList.isEmpty) {
       return {};
     }
-    return {for (var p in progressList) p.libraryItemId: p};
+    final Map<String, MediaProgress> result = {};
+    for (var p in progressList) {
+      final key = '${p.libraryItemId}${p.episodeId ?? ''}';
+      if (!result.containsKey(key) || ((p.lastUpdate ?? 0) > (result[key]?.lastUpdate ?? 0))) {
+        result[key] = p;
+      }
+    }
+    return result;
   }
 
   @override
@@ -34,7 +44,10 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
       if (user == null) {
         throw Exception('User data is null, cannot fetch media progress.');
       }
-      return _listToMap(user.mediaProgress);
+      _listToMap(user.mediaProgress);
+      state = AsyncData(_listToMap(user.mediaProgress));
+      await _loadFromDb();
+      return state.valueOrNull ?? {};
     } catch (e, s) {
       logger('Error refreshing all media progress: $e\n$s', tag: 'MediaProgressProvider', level: InfoLevel.error);
       throw Exception('Failed to load initial media progress: $e');
@@ -51,21 +64,48 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
         throw Exception('User data is null during refresh all progress.');
       }
       state = AsyncData(_listToMap(user.mediaProgress));
+      _loadFromDb();
     } catch (e, s) {
       logger('Error refreshing all media progress: $e\n$s', tag: 'MediaProgressProvider', level: InfoLevel.error);
       state = AsyncError<Map<String, MediaProgress>>(e, s).copyWithPrevious(state);
     }
   }
 
-  Future<MediaProgress?> fetchOrRefreshIndividualProgress(String libraryItemId) async {
+  Future<void> _loadFromDb() async {
+    final db = ref.watch(appDatabaseProvider);
+    try {
+      final progressList = await db.getAllSyncs();
+      final List<MediaProgress> mediaProgressList =
+          progressList.map((e) => MediaProgress.fromJson(jsonDecode(e.mediaProgress))).toList();
+      final currentMap = state.valueOrNull ?? {};
+      final loadedMap = _listToMap(mediaProgressList);
+      final mergedMap = {...currentMap, ...loadedMap};
+      state = AsyncData(mergedMap);
+    } catch (e, s) {
+      logger('Error loading media progress from DB: $e\n$s', tag: 'MediaProgressProvider', level: InfoLevel.error);
+      state = AsyncError<Map<String, MediaProgress>>(e, s).copyWithPrevious(state);
+    }
+  }
+
+  Future<MediaProgress?> fetchOrRefreshIndividualProgress(String libraryItemId, {String? episodeId}) async {
     try {
       final meApi = _getMeApiOrThrow();
-      final response = await meApi.getProgress(libraryItemId);
+      final response = await meApi.getProgress(libraryItemId, episodeId: episodeId);
       final newProgress = response.data;
+      final String key = '$libraryItemId${episodeId ?? ''}';
+
+      if ((newProgress?.lastUpdate ?? 0) < (state.valueOrNull?[key]?.lastUpdate ?? 0)) {
+        logger(
+          'Skipping update for $libraryItemId: new progress is older than existing progress.',
+          tag: 'MediaProgressProvider',
+          level: InfoLevel.debug,
+        );
+        return state.valueOrNull?[key];
+      }
 
       if (newProgress != null) {
         final currentMap = state.valueOrNull ?? {};
-        final updatedMap = {...currentMap, newProgress.libraryItemId: newProgress};
+        final updatedMap = {...currentMap, key: newProgress};
         state = AsyncData(updatedMap);
         return newProgress;
       } else {
@@ -102,7 +142,7 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
     }
   }
 
-  Future<void> updateMediaProgress(String libraryItemId, double currentTime, PlaybackSession session) async {
+  Future<MediaProgress?> updateMediaProgress(String libraryItemId, double currentTime, PlaybackSession session) async {
     state = const AsyncLoading<Map<String, MediaProgress>>().copyWithPrevious(state);
     try {
       final currentMap = state.valueOrNull ?? {};
@@ -125,12 +165,17 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
           tag: 'MediaProgressProvider',
           level: InfoLevel.error,
         );
-        return;
+        return null;
       }
 
-      updatedProgress = updatedProgress.copyWith(currentTime: currentTime, progress: progress);
+      updatedProgress = updatedProgress.copyWith(
+        currentTime: currentTime,
+        progress: progress,
+        lastUpdate: DateTime.now().millisecondsSinceEpoch,
+      );
       final updatedMap = {...currentMap, libraryItemId: updatedProgress};
       state = AsyncData(updatedMap);
+      return updatedProgress;
     } catch (e, s) {
       logger(
         'Error updating media progress for $libraryItemId: $e\n$s',
@@ -139,5 +184,6 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
       );
       state = AsyncError<Map<String, MediaProgress>>(e, s).copyWithPrevious(state);
     }
+    return null;
   }
 }

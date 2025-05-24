@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$MediaProgress {
 
-@JsonKey(name: "id") String get id;@JsonKey(name: "userId") String get userId;@JsonKey(name: "libraryItemId") String get libraryItemId;@JsonKey(name: "episodeId") String? get episodeId;@JsonKey(name: "mediaItemId") String get mediaItemId;@JsonKey(name: "mediaItemType")@MediaItemTypeConverter() MediaItemType get mediaItemType;@JsonKey(name: "duration") double get duration;@JsonKey(name: "progress") double get progress;@JsonKey(name: "currentTime") double get currentTime;@JsonKey(name: "isFinished") bool get isFinished;@JsonKey(name: "hideFromContinueListening") bool get hideFromContinueListening;@JsonKey(name: "ebookLocation") String? get ebookLocation;@JsonKey(name: "ebookProgress") double? get ebookProgress;@JsonKey(name: "lastUpdate") int? get lastUpdate;@JsonKey(name: "startedAt") int get startedAt;@JsonKey(name: "finishedAt") int? get finishedAt;
+@JsonKey(name: "id") String get id;@JsonKey(name: "userId") String get userId;@JsonKey(name: "libraryItemId") String get libraryItemId;@JsonKey(name: "episodeId") String? get episodeId;@JsonKey(name: "mediaItemId") String get mediaItemId;@JsonKey(name: "mediaItemType")@MediaItemTypeConverter() MediaItemType get mediaItemType;@JsonKey(name: "duration") double get duration;@JsonKey(name: "progress") double get progress;@JsonKey(name: "currentTime") double get currentTime;@JsonKey(name: "isFinished") bool get isFinished;@JsonKey(name: "hideFromContinueListening") bool? get hideFromContinueListening;@JsonKey(name: "ebookLocation") String? get ebookLocation;@JsonKey(name: "ebookProgress") double? get ebookProgress;@JsonKey(name: "lastUpdate") int? get lastUpdate;@JsonKey(name: "startedAt") int get startedAt;@JsonKey(name: "finishedAt") int? get finishedAt;
 /// Create a copy of MediaProgress
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -49,7 +49,7 @@ abstract mixin class $MediaProgressCopyWith<$Res>  {
   factory $MediaProgressCopyWith(MediaProgress value, $Res Function(MediaProgress) _then) = _$MediaProgressCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: "id") String id,@JsonKey(name: "userId") String userId,@JsonKey(name: "libraryItemId") String libraryItemId,@JsonKey(name: "episodeId") String? episodeId,@JsonKey(name: "mediaItemId") String mediaItemId,@JsonKey(name: "mediaItemType")@MediaItemTypeConverter() MediaItemType mediaItemType,@JsonKey(name: "duration") double duration,@JsonKey(name: "progress") double progress,@JsonKey(name: "currentTime") double currentTime,@JsonKey(name: "isFinished") bool isFinished,@JsonKey(name: "hideFromContinueListening") bool hideFromContinueListening,@JsonKey(name: "ebookLocation") String? ebookLocation,@JsonKey(name: "ebookProgress") double? ebookProgress,@JsonKey(name: "lastUpdate") int? lastUpdate,@JsonKey(name: "startedAt") int startedAt,@JsonKey(name: "finishedAt") int? finishedAt
+@JsonKey(name: "id") String id,@JsonKey(name: "userId") String userId,@JsonKey(name: "libraryItemId") String libraryItemId,@JsonKey(name: "episodeId") String? episodeId,@JsonKey(name: "mediaItemId") String mediaItemId,@JsonKey(name: "mediaItemType")@MediaItemTypeConverter() MediaItemType mediaItemType,@JsonKey(name: "duration") double duration,@JsonKey(name: "progress") double progress,@JsonKey(name: "currentTime") double currentTime,@JsonKey(name: "isFinished") bool isFinished,@JsonKey(name: "hideFromContinueListening") bool? hideFromContinueListening,@JsonKey(name: "ebookLocation") String? ebookLocation,@JsonKey(name: "ebookProgress") double? ebookProgress,@JsonKey(name: "lastUpdate") int? lastUpdate,@JsonKey(name: "startedAt") int startedAt,@JsonKey(name: "finishedAt") int? finishedAt
 });
 
 
@@ -66,7 +66,7 @@ class _$MediaProgressCopyWithImpl<$Res>
 
 /// Create a copy of MediaProgress
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? userId = null,Object? libraryItemId = null,Object? episodeId = freezed,Object? mediaItemId = null,Object? mediaItemType = null,Object? duration = null,Object? progress = null,Object? currentTime = null,Object? isFinished = null,Object? hideFromContinueListening = null,Object? ebookLocation = freezed,Object? ebookProgress = freezed,Object? lastUpdate = freezed,Object? startedAt = null,Object? finishedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? userId = null,Object? libraryItemId = null,Object? episodeId = freezed,Object? mediaItemId = null,Object? mediaItemType = null,Object? duration = null,Object? progress = null,Object? currentTime = null,Object? isFinished = null,Object? hideFromContinueListening = freezed,Object? ebookLocation = freezed,Object? ebookProgress = freezed,Object? lastUpdate = freezed,Object? startedAt = null,Object? finishedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
@@ -78,8 +78,8 @@ as MediaItemType,duration: null == duration ? _self.duration : duration // ignor
 as double,progress: null == progress ? _self.progress : progress // ignore: cast_nullable_to_non_nullable
 as double,currentTime: null == currentTime ? _self.currentTime : currentTime // ignore: cast_nullable_to_non_nullable
 as double,isFinished: null == isFinished ? _self.isFinished : isFinished // ignore: cast_nullable_to_non_nullable
-as bool,hideFromContinueListening: null == hideFromContinueListening ? _self.hideFromContinueListening : hideFromContinueListening // ignore: cast_nullable_to_non_nullable
-as bool,ebookLocation: freezed == ebookLocation ? _self.ebookLocation : ebookLocation // ignore: cast_nullable_to_non_nullable
+as bool,hideFromContinueListening: freezed == hideFromContinueListening ? _self.hideFromContinueListening : hideFromContinueListening // ignore: cast_nullable_to_non_nullable
+as bool?,ebookLocation: freezed == ebookLocation ? _self.ebookLocation : ebookLocation // ignore: cast_nullable_to_non_nullable
 as String?,ebookProgress: freezed == ebookProgress ? _self.ebookProgress : ebookProgress // ignore: cast_nullable_to_non_nullable
 as double?,lastUpdate: freezed == lastUpdate ? _self.lastUpdate : lastUpdate // ignore: cast_nullable_to_non_nullable
 as int?,startedAt: null == startedAt ? _self.startedAt : startedAt // ignore: cast_nullable_to_non_nullable
@@ -95,7 +95,7 @@ as int?,
 @JsonSerializable()
 
 class _MediaProgress implements MediaProgress {
-  const _MediaProgress({@JsonKey(name: "id") required this.id, @JsonKey(name: "userId") required this.userId, @JsonKey(name: "libraryItemId") required this.libraryItemId, @JsonKey(name: "episodeId") required this.episodeId, @JsonKey(name: "mediaItemId") required this.mediaItemId, @JsonKey(name: "mediaItemType")@MediaItemTypeConverter() required this.mediaItemType, @JsonKey(name: "duration") required this.duration, @JsonKey(name: "progress") required this.progress, @JsonKey(name: "currentTime") required this.currentTime, @JsonKey(name: "isFinished") required this.isFinished, @JsonKey(name: "hideFromContinueListening") required this.hideFromContinueListening, @JsonKey(name: "ebookLocation") required this.ebookLocation, @JsonKey(name: "ebookProgress") required this.ebookProgress, @JsonKey(name: "lastUpdate") required this.lastUpdate, @JsonKey(name: "startedAt") required this.startedAt, @JsonKey(name: "finishedAt") required this.finishedAt});
+  const _MediaProgress({@JsonKey(name: "id") required this.id, @JsonKey(name: "userId") required this.userId, @JsonKey(name: "libraryItemId") required this.libraryItemId, @JsonKey(name: "episodeId") required this.episodeId, @JsonKey(name: "mediaItemId") required this.mediaItemId, @JsonKey(name: "mediaItemType")@MediaItemTypeConverter() required this.mediaItemType, @JsonKey(name: "duration") required this.duration, @JsonKey(name: "progress") required this.progress, @JsonKey(name: "currentTime") required this.currentTime, @JsonKey(name: "isFinished") required this.isFinished, @JsonKey(name: "hideFromContinueListening") this.hideFromContinueListening, @JsonKey(name: "ebookLocation") this.ebookLocation, @JsonKey(name: "ebookProgress") this.ebookProgress, @JsonKey(name: "lastUpdate") required this.lastUpdate, @JsonKey(name: "startedAt") required this.startedAt, @JsonKey(name: "finishedAt") required this.finishedAt});
   factory _MediaProgress.fromJson(Map<String, dynamic> json) => _$MediaProgressFromJson(json);
 
 @override@JsonKey(name: "id") final  String id;
@@ -108,7 +108,7 @@ class _MediaProgress implements MediaProgress {
 @override@JsonKey(name: "progress") final  double progress;
 @override@JsonKey(name: "currentTime") final  double currentTime;
 @override@JsonKey(name: "isFinished") final  bool isFinished;
-@override@JsonKey(name: "hideFromContinueListening") final  bool hideFromContinueListening;
+@override@JsonKey(name: "hideFromContinueListening") final  bool? hideFromContinueListening;
 @override@JsonKey(name: "ebookLocation") final  String? ebookLocation;
 @override@JsonKey(name: "ebookProgress") final  double? ebookProgress;
 @override@JsonKey(name: "lastUpdate") final  int? lastUpdate;
@@ -148,7 +148,7 @@ abstract mixin class _$MediaProgressCopyWith<$Res> implements $MediaProgressCopy
   factory _$MediaProgressCopyWith(_MediaProgress value, $Res Function(_MediaProgress) _then) = __$MediaProgressCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: "id") String id,@JsonKey(name: "userId") String userId,@JsonKey(name: "libraryItemId") String libraryItemId,@JsonKey(name: "episodeId") String? episodeId,@JsonKey(name: "mediaItemId") String mediaItemId,@JsonKey(name: "mediaItemType")@MediaItemTypeConverter() MediaItemType mediaItemType,@JsonKey(name: "duration") double duration,@JsonKey(name: "progress") double progress,@JsonKey(name: "currentTime") double currentTime,@JsonKey(name: "isFinished") bool isFinished,@JsonKey(name: "hideFromContinueListening") bool hideFromContinueListening,@JsonKey(name: "ebookLocation") String? ebookLocation,@JsonKey(name: "ebookProgress") double? ebookProgress,@JsonKey(name: "lastUpdate") int? lastUpdate,@JsonKey(name: "startedAt") int startedAt,@JsonKey(name: "finishedAt") int? finishedAt
+@JsonKey(name: "id") String id,@JsonKey(name: "userId") String userId,@JsonKey(name: "libraryItemId") String libraryItemId,@JsonKey(name: "episodeId") String? episodeId,@JsonKey(name: "mediaItemId") String mediaItemId,@JsonKey(name: "mediaItemType")@MediaItemTypeConverter() MediaItemType mediaItemType,@JsonKey(name: "duration") double duration,@JsonKey(name: "progress") double progress,@JsonKey(name: "currentTime") double currentTime,@JsonKey(name: "isFinished") bool isFinished,@JsonKey(name: "hideFromContinueListening") bool? hideFromContinueListening,@JsonKey(name: "ebookLocation") String? ebookLocation,@JsonKey(name: "ebookProgress") double? ebookProgress,@JsonKey(name: "lastUpdate") int? lastUpdate,@JsonKey(name: "startedAt") int startedAt,@JsonKey(name: "finishedAt") int? finishedAt
 });
 
 
@@ -165,7 +165,7 @@ class __$MediaProgressCopyWithImpl<$Res>
 
 /// Create a copy of MediaProgress
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? userId = null,Object? libraryItemId = null,Object? episodeId = freezed,Object? mediaItemId = null,Object? mediaItemType = null,Object? duration = null,Object? progress = null,Object? currentTime = null,Object? isFinished = null,Object? hideFromContinueListening = null,Object? ebookLocation = freezed,Object? ebookProgress = freezed,Object? lastUpdate = freezed,Object? startedAt = null,Object? finishedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? userId = null,Object? libraryItemId = null,Object? episodeId = freezed,Object? mediaItemId = null,Object? mediaItemType = null,Object? duration = null,Object? progress = null,Object? currentTime = null,Object? isFinished = null,Object? hideFromContinueListening = freezed,Object? ebookLocation = freezed,Object? ebookProgress = freezed,Object? lastUpdate = freezed,Object? startedAt = null,Object? finishedAt = freezed,}) {
   return _then(_MediaProgress(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
@@ -177,8 +177,8 @@ as MediaItemType,duration: null == duration ? _self.duration : duration // ignor
 as double,progress: null == progress ? _self.progress : progress // ignore: cast_nullable_to_non_nullable
 as double,currentTime: null == currentTime ? _self.currentTime : currentTime // ignore: cast_nullable_to_non_nullable
 as double,isFinished: null == isFinished ? _self.isFinished : isFinished // ignore: cast_nullable_to_non_nullable
-as bool,hideFromContinueListening: null == hideFromContinueListening ? _self.hideFromContinueListening : hideFromContinueListening // ignore: cast_nullable_to_non_nullable
-as bool,ebookLocation: freezed == ebookLocation ? _self.ebookLocation : ebookLocation // ignore: cast_nullable_to_non_nullable
+as bool,hideFromContinueListening: freezed == hideFromContinueListening ? _self.hideFromContinueListening : hideFromContinueListening // ignore: cast_nullable_to_non_nullable
+as bool?,ebookLocation: freezed == ebookLocation ? _self.ebookLocation : ebookLocation // ignore: cast_nullable_to_non_nullable
 as String?,ebookProgress: freezed == ebookProgress ? _self.ebookProgress : ebookProgress // ignore: cast_nullable_to_non_nullable
 as double?,lastUpdate: freezed == lastUpdate ? _self.lastUpdate : lastUpdate // ignore: cast_nullable_to_non_nullable
 as int?,startedAt: null == startedAt ? _self.startedAt : startedAt // ignore: cast_nullable_to_non_nullable

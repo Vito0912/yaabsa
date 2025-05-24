@@ -20,7 +20,7 @@ _MediaProgress _$MediaProgressFromJson(Map<String, dynamic> json) =>
       progress: (json['progress'] as num).toDouble(),
       currentTime: (json['currentTime'] as num).toDouble(),
       isFinished: json['isFinished'] as bool,
-      hideFromContinueListening: json['hideFromContinueListening'] as bool,
+      hideFromContinueListening: json['hideFromContinueListening'] as bool?,
       ebookLocation: json['ebookLocation'] as String?,
       ebookProgress: (json['ebookProgress'] as num?)?.toDouble(),
       lastUpdate: (json['lastUpdate'] as num?)?.toInt(),

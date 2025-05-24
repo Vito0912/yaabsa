@@ -11,7 +11,7 @@ _PlaybackSession _$PlaybackSessionFromJson(
 ) => _PlaybackSession(
   id: json['id'] as String,
   userId: json['userId'] as String,
-  libraryId: json['libraryId'] as String,
+  libraryId: json['libraryId'] as String?,
   libraryItemId: json['libraryItemId'] as String,
   episodeId: json['episodeId'] as String?,
   mediaType: json['mediaType'] as String?,

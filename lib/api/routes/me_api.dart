@@ -151,4 +151,28 @@ class MeApi {
       queryParams: {},
     );
   }
+
+  Future<void> createUpdateMediaProgress(
+    String itemId,
+    MediaProgress progress, {
+    String? episodeId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    var route = '/api/me/progress/$itemId';
+    if (episodeId != null) {
+      route = '/api/me/progress/$itemId/$episodeId';
+    }
+
+    await ABSApi.makeApiPatchRequest(
+      route: route,
+      fromJson: null,
+      bodyData: progress.toJson(),
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
+    );
+  }
 }

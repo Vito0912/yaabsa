@@ -699,12 +699,662 @@ class StoredUsersCompanion extends UpdateCompanion<StoredUserEntry> {
   }
 }
 
+class $StoredSyncsTable extends StoredSyncs
+    with TableInfo<$StoredSyncsTable, StoredSyncEntry> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $StoredSyncsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _sessionIdMeta = const VerificationMeta(
+    'sessionId',
+  );
+  @override
+  late final GeneratedColumn<String> sessionId = GeneratedColumn<String>(
+    'session_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _itemIdMeta = const VerificationMeta('itemId');
+  @override
+  late final GeneratedColumn<String> itemId = GeneratedColumn<String>(
+    'item_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _episodeIdMeta = const VerificationMeta(
+    'episodeId',
+  );
+  @override
+  late final GeneratedColumn<String> episodeId = GeneratedColumn<String>(
+    'episode_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _currentTimeMeta = const VerificationMeta(
+    'currentTime',
+  );
+  @override
+  late final GeneratedColumn<double> currentTime = GeneratedColumn<double>(
+    'current_time',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _timeListenedMeta = const VerificationMeta(
+    'timeListened',
+  );
+  @override
+  late final GeneratedColumn<double> timeListened = GeneratedColumn<double>(
+    'time_listened',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _durationMeta = const VerificationMeta(
+    'duration',
+  );
+  @override
+  late final GeneratedColumn<double> duration = GeneratedColumn<double>(
+    'duration',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sessionLocalMeta = const VerificationMeta(
+    'sessionLocal',
+  );
+  @override
+  late final GeneratedColumn<bool> sessionLocal = GeneratedColumn<bool>(
+    'session_local',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("session_local" IN (0, 1))',
+    ),
+  );
+  static const VerificationMeta _lastUpdatedMeta = const VerificationMeta(
+    'lastUpdated',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastUpdated = GeneratedColumn<DateTime>(
+    'last_updated',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _mediaProgressMeta = const VerificationMeta(
+    'mediaProgress',
+  );
+  @override
+  late final GeneratedColumn<String> mediaProgress = GeneratedColumn<String>(
+    'media_progress',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    sessionId,
+    itemId,
+    userId,
+    episodeId,
+    currentTime,
+    timeListened,
+    duration,
+    sessionLocal,
+    lastUpdated,
+    mediaProgress,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'stored_syncs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<StoredSyncEntry> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('session_id')) {
+      context.handle(
+        _sessionIdMeta,
+        sessionId.isAcceptableOrUnknown(data['session_id']!, _sessionIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sessionIdMeta);
+    }
+    if (data.containsKey('item_id')) {
+      context.handle(
+        _itemIdMeta,
+        itemId.isAcceptableOrUnknown(data['item_id']!, _itemIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_itemIdMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('episode_id')) {
+      context.handle(
+        _episodeIdMeta,
+        episodeId.isAcceptableOrUnknown(data['episode_id']!, _episodeIdMeta),
+      );
+    }
+    if (data.containsKey('current_time')) {
+      context.handle(
+        _currentTimeMeta,
+        currentTime.isAcceptableOrUnknown(
+          data['current_time']!,
+          _currentTimeMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_currentTimeMeta);
+    }
+    if (data.containsKey('time_listened')) {
+      context.handle(
+        _timeListenedMeta,
+        timeListened.isAcceptableOrUnknown(
+          data['time_listened']!,
+          _timeListenedMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_timeListenedMeta);
+    }
+    if (data.containsKey('duration')) {
+      context.handle(
+        _durationMeta,
+        duration.isAcceptableOrUnknown(data['duration']!, _durationMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_durationMeta);
+    }
+    if (data.containsKey('session_local')) {
+      context.handle(
+        _sessionLocalMeta,
+        sessionLocal.isAcceptableOrUnknown(
+          data['session_local']!,
+          _sessionLocalMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_sessionLocalMeta);
+    }
+    if (data.containsKey('last_updated')) {
+      context.handle(
+        _lastUpdatedMeta,
+        lastUpdated.isAcceptableOrUnknown(
+          data['last_updated']!,
+          _lastUpdatedMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_lastUpdatedMeta);
+    }
+    if (data.containsKey('media_progress')) {
+      context.handle(
+        _mediaProgressMeta,
+        mediaProgress.isAcceptableOrUnknown(
+          data['media_progress']!,
+          _mediaProgressMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_mediaProgressMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {sessionId};
+  @override
+  StoredSyncEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return StoredSyncEntry(
+      sessionId:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}session_id'],
+          )!,
+      itemId:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}item_id'],
+          )!,
+      userId:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}user_id'],
+          )!,
+      episodeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}episode_id'],
+      ),
+      currentTime:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.double,
+            data['${effectivePrefix}current_time'],
+          )!,
+      timeListened:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.double,
+            data['${effectivePrefix}time_listened'],
+          )!,
+      duration:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.double,
+            data['${effectivePrefix}duration'],
+          )!,
+      sessionLocal:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.bool,
+            data['${effectivePrefix}session_local'],
+          )!,
+      lastUpdated:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}last_updated'],
+          )!,
+      mediaProgress:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}media_progress'],
+          )!,
+    );
+  }
+
+  @override
+  $StoredSyncsTable createAlias(String alias) {
+    return $StoredSyncsTable(attachedDatabase, alias);
+  }
+}
+
+class StoredSyncEntry extends DataClass implements Insertable<StoredSyncEntry> {
+  final String sessionId;
+  final String itemId;
+  final String userId;
+  final String? episodeId;
+  final double currentTime;
+  final double timeListened;
+  final double duration;
+  final bool sessionLocal;
+  final DateTime lastUpdated;
+  final String mediaProgress;
+  const StoredSyncEntry({
+    required this.sessionId,
+    required this.itemId,
+    required this.userId,
+    this.episodeId,
+    required this.currentTime,
+    required this.timeListened,
+    required this.duration,
+    required this.sessionLocal,
+    required this.lastUpdated,
+    required this.mediaProgress,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['session_id'] = Variable<String>(sessionId);
+    map['item_id'] = Variable<String>(itemId);
+    map['user_id'] = Variable<String>(userId);
+    if (!nullToAbsent || episodeId != null) {
+      map['episode_id'] = Variable<String>(episodeId);
+    }
+    map['current_time'] = Variable<double>(currentTime);
+    map['time_listened'] = Variable<double>(timeListened);
+    map['duration'] = Variable<double>(duration);
+    map['session_local'] = Variable<bool>(sessionLocal);
+    map['last_updated'] = Variable<DateTime>(lastUpdated);
+    map['media_progress'] = Variable<String>(mediaProgress);
+    return map;
+  }
+
+  StoredSyncsCompanion toCompanion(bool nullToAbsent) {
+    return StoredSyncsCompanion(
+      sessionId: Value(sessionId),
+      itemId: Value(itemId),
+      userId: Value(userId),
+      episodeId:
+          episodeId == null && nullToAbsent
+              ? const Value.absent()
+              : Value(episodeId),
+      currentTime: Value(currentTime),
+      timeListened: Value(timeListened),
+      duration: Value(duration),
+      sessionLocal: Value(sessionLocal),
+      lastUpdated: Value(lastUpdated),
+      mediaProgress: Value(mediaProgress),
+    );
+  }
+
+  factory StoredSyncEntry.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return StoredSyncEntry(
+      sessionId: serializer.fromJson<String>(json['sessionId']),
+      itemId: serializer.fromJson<String>(json['itemId']),
+      userId: serializer.fromJson<String>(json['userId']),
+      episodeId: serializer.fromJson<String?>(json['episodeId']),
+      currentTime: serializer.fromJson<double>(json['currentTime']),
+      timeListened: serializer.fromJson<double>(json['timeListened']),
+      duration: serializer.fromJson<double>(json['duration']),
+      sessionLocal: serializer.fromJson<bool>(json['sessionLocal']),
+      lastUpdated: serializer.fromJson<DateTime>(json['lastUpdated']),
+      mediaProgress: serializer.fromJson<String>(json['mediaProgress']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'sessionId': serializer.toJson<String>(sessionId),
+      'itemId': serializer.toJson<String>(itemId),
+      'userId': serializer.toJson<String>(userId),
+      'episodeId': serializer.toJson<String?>(episodeId),
+      'currentTime': serializer.toJson<double>(currentTime),
+      'timeListened': serializer.toJson<double>(timeListened),
+      'duration': serializer.toJson<double>(duration),
+      'sessionLocal': serializer.toJson<bool>(sessionLocal),
+      'lastUpdated': serializer.toJson<DateTime>(lastUpdated),
+      'mediaProgress': serializer.toJson<String>(mediaProgress),
+    };
+  }
+
+  StoredSyncEntry copyWith({
+    String? sessionId,
+    String? itemId,
+    String? userId,
+    Value<String?> episodeId = const Value.absent(),
+    double? currentTime,
+    double? timeListened,
+    double? duration,
+    bool? sessionLocal,
+    DateTime? lastUpdated,
+    String? mediaProgress,
+  }) => StoredSyncEntry(
+    sessionId: sessionId ?? this.sessionId,
+    itemId: itemId ?? this.itemId,
+    userId: userId ?? this.userId,
+    episodeId: episodeId.present ? episodeId.value : this.episodeId,
+    currentTime: currentTime ?? this.currentTime,
+    timeListened: timeListened ?? this.timeListened,
+    duration: duration ?? this.duration,
+    sessionLocal: sessionLocal ?? this.sessionLocal,
+    lastUpdated: lastUpdated ?? this.lastUpdated,
+    mediaProgress: mediaProgress ?? this.mediaProgress,
+  );
+  StoredSyncEntry copyWithCompanion(StoredSyncsCompanion data) {
+    return StoredSyncEntry(
+      sessionId: data.sessionId.present ? data.sessionId.value : this.sessionId,
+      itemId: data.itemId.present ? data.itemId.value : this.itemId,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      episodeId: data.episodeId.present ? data.episodeId.value : this.episodeId,
+      currentTime:
+          data.currentTime.present ? data.currentTime.value : this.currentTime,
+      timeListened:
+          data.timeListened.present
+              ? data.timeListened.value
+              : this.timeListened,
+      duration: data.duration.present ? data.duration.value : this.duration,
+      sessionLocal:
+          data.sessionLocal.present
+              ? data.sessionLocal.value
+              : this.sessionLocal,
+      lastUpdated:
+          data.lastUpdated.present ? data.lastUpdated.value : this.lastUpdated,
+      mediaProgress:
+          data.mediaProgress.present
+              ? data.mediaProgress.value
+              : this.mediaProgress,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StoredSyncEntry(')
+          ..write('sessionId: $sessionId, ')
+          ..write('itemId: $itemId, ')
+          ..write('userId: $userId, ')
+          ..write('episodeId: $episodeId, ')
+          ..write('currentTime: $currentTime, ')
+          ..write('timeListened: $timeListened, ')
+          ..write('duration: $duration, ')
+          ..write('sessionLocal: $sessionLocal, ')
+          ..write('lastUpdated: $lastUpdated, ')
+          ..write('mediaProgress: $mediaProgress')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    sessionId,
+    itemId,
+    userId,
+    episodeId,
+    currentTime,
+    timeListened,
+    duration,
+    sessionLocal,
+    lastUpdated,
+    mediaProgress,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is StoredSyncEntry &&
+          other.sessionId == this.sessionId &&
+          other.itemId == this.itemId &&
+          other.userId == this.userId &&
+          other.episodeId == this.episodeId &&
+          other.currentTime == this.currentTime &&
+          other.timeListened == this.timeListened &&
+          other.duration == this.duration &&
+          other.sessionLocal == this.sessionLocal &&
+          other.lastUpdated == this.lastUpdated &&
+          other.mediaProgress == this.mediaProgress);
+}
+
+class StoredSyncsCompanion extends UpdateCompanion<StoredSyncEntry> {
+  final Value<String> sessionId;
+  final Value<String> itemId;
+  final Value<String> userId;
+  final Value<String?> episodeId;
+  final Value<double> currentTime;
+  final Value<double> timeListened;
+  final Value<double> duration;
+  final Value<bool> sessionLocal;
+  final Value<DateTime> lastUpdated;
+  final Value<String> mediaProgress;
+  final Value<int> rowid;
+  const StoredSyncsCompanion({
+    this.sessionId = const Value.absent(),
+    this.itemId = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.episodeId = const Value.absent(),
+    this.currentTime = const Value.absent(),
+    this.timeListened = const Value.absent(),
+    this.duration = const Value.absent(),
+    this.sessionLocal = const Value.absent(),
+    this.lastUpdated = const Value.absent(),
+    this.mediaProgress = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  StoredSyncsCompanion.insert({
+    required String sessionId,
+    required String itemId,
+    required String userId,
+    this.episodeId = const Value.absent(),
+    required double currentTime,
+    required double timeListened,
+    required double duration,
+    required bool sessionLocal,
+    required DateTime lastUpdated,
+    required String mediaProgress,
+    this.rowid = const Value.absent(),
+  }) : sessionId = Value(sessionId),
+       itemId = Value(itemId),
+       userId = Value(userId),
+       currentTime = Value(currentTime),
+       timeListened = Value(timeListened),
+       duration = Value(duration),
+       sessionLocal = Value(sessionLocal),
+       lastUpdated = Value(lastUpdated),
+       mediaProgress = Value(mediaProgress);
+  static Insertable<StoredSyncEntry> custom({
+    Expression<String>? sessionId,
+    Expression<String>? itemId,
+    Expression<String>? userId,
+    Expression<String>? episodeId,
+    Expression<double>? currentTime,
+    Expression<double>? timeListened,
+    Expression<double>? duration,
+    Expression<bool>? sessionLocal,
+    Expression<DateTime>? lastUpdated,
+    Expression<String>? mediaProgress,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (sessionId != null) 'session_id': sessionId,
+      if (itemId != null) 'item_id': itemId,
+      if (userId != null) 'user_id': userId,
+      if (episodeId != null) 'episode_id': episodeId,
+      if (currentTime != null) 'current_time': currentTime,
+      if (timeListened != null) 'time_listened': timeListened,
+      if (duration != null) 'duration': duration,
+      if (sessionLocal != null) 'session_local': sessionLocal,
+      if (lastUpdated != null) 'last_updated': lastUpdated,
+      if (mediaProgress != null) 'media_progress': mediaProgress,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  StoredSyncsCompanion copyWith({
+    Value<String>? sessionId,
+    Value<String>? itemId,
+    Value<String>? userId,
+    Value<String?>? episodeId,
+    Value<double>? currentTime,
+    Value<double>? timeListened,
+    Value<double>? duration,
+    Value<bool>? sessionLocal,
+    Value<DateTime>? lastUpdated,
+    Value<String>? mediaProgress,
+    Value<int>? rowid,
+  }) {
+    return StoredSyncsCompanion(
+      sessionId: sessionId ?? this.sessionId,
+      itemId: itemId ?? this.itemId,
+      userId: userId ?? this.userId,
+      episodeId: episodeId ?? this.episodeId,
+      currentTime: currentTime ?? this.currentTime,
+      timeListened: timeListened ?? this.timeListened,
+      duration: duration ?? this.duration,
+      sessionLocal: sessionLocal ?? this.sessionLocal,
+      lastUpdated: lastUpdated ?? this.lastUpdated,
+      mediaProgress: mediaProgress ?? this.mediaProgress,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (sessionId.present) {
+      map['session_id'] = Variable<String>(sessionId.value);
+    }
+    if (itemId.present) {
+      map['item_id'] = Variable<String>(itemId.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (episodeId.present) {
+      map['episode_id'] = Variable<String>(episodeId.value);
+    }
+    if (currentTime.present) {
+      map['current_time'] = Variable<double>(currentTime.value);
+    }
+    if (timeListened.present) {
+      map['time_listened'] = Variable<double>(timeListened.value);
+    }
+    if (duration.present) {
+      map['duration'] = Variable<double>(duration.value);
+    }
+    if (sessionLocal.present) {
+      map['session_local'] = Variable<bool>(sessionLocal.value);
+    }
+    if (lastUpdated.present) {
+      map['last_updated'] = Variable<DateTime>(lastUpdated.value);
+    }
+    if (mediaProgress.present) {
+      map['media_progress'] = Variable<String>(mediaProgress.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StoredSyncsCompanion(')
+          ..write('sessionId: $sessionId, ')
+          ..write('itemId: $itemId, ')
+          ..write('userId: $userId, ')
+          ..write('episodeId: $episodeId, ')
+          ..write('currentTime: $currentTime, ')
+          ..write('timeListened: $timeListened, ')
+          ..write('duration: $duration, ')
+          ..write('sessionLocal: $sessionLocal, ')
+          ..write('lastUpdated: $lastUpdated, ')
+          ..write('mediaProgress: $mediaProgress, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $GlobalSettingsTable globalSettings = $GlobalSettingsTable(this);
   late final $UserSettingsTable userSettings = $UserSettingsTable(this);
   late final $StoredUsersTable storedUsers = $StoredUsersTable(this);
+  late final $StoredSyncsTable storedSyncs = $StoredSyncsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -713,6 +1363,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     globalSettings,
     userSettings,
     storedUsers,
+    storedSyncs,
   ];
 }
 
@@ -1196,6 +1847,319 @@ typedef $$StoredUsersTableProcessedTableManager =
       StoredUserEntry,
       PrefetchHooks Function()
     >;
+typedef $$StoredSyncsTableCreateCompanionBuilder =
+    StoredSyncsCompanion Function({
+      required String sessionId,
+      required String itemId,
+      required String userId,
+      Value<String?> episodeId,
+      required double currentTime,
+      required double timeListened,
+      required double duration,
+      required bool sessionLocal,
+      required DateTime lastUpdated,
+      required String mediaProgress,
+      Value<int> rowid,
+    });
+typedef $$StoredSyncsTableUpdateCompanionBuilder =
+    StoredSyncsCompanion Function({
+      Value<String> sessionId,
+      Value<String> itemId,
+      Value<String> userId,
+      Value<String?> episodeId,
+      Value<double> currentTime,
+      Value<double> timeListened,
+      Value<double> duration,
+      Value<bool> sessionLocal,
+      Value<DateTime> lastUpdated,
+      Value<String> mediaProgress,
+      Value<int> rowid,
+    });
+
+class $$StoredSyncsTableFilterComposer
+    extends Composer<_$AppDatabase, $StoredSyncsTable> {
+  $$StoredSyncsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get sessionId => $composableBuilder(
+    column: $table.sessionId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get itemId => $composableBuilder(
+    column: $table.itemId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get episodeId => $composableBuilder(
+    column: $table.episodeId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get currentTime => $composableBuilder(
+    column: $table.currentTime,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get timeListened => $composableBuilder(
+    column: $table.timeListened,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get duration => $composableBuilder(
+    column: $table.duration,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get sessionLocal => $composableBuilder(
+    column: $table.sessionLocal,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastUpdated => $composableBuilder(
+    column: $table.lastUpdated,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mediaProgress => $composableBuilder(
+    column: $table.mediaProgress,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$StoredSyncsTableOrderingComposer
+    extends Composer<_$AppDatabase, $StoredSyncsTable> {
+  $$StoredSyncsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get sessionId => $composableBuilder(
+    column: $table.sessionId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get itemId => $composableBuilder(
+    column: $table.itemId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get episodeId => $composableBuilder(
+    column: $table.episodeId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get currentTime => $composableBuilder(
+    column: $table.currentTime,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get timeListened => $composableBuilder(
+    column: $table.timeListened,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get duration => $composableBuilder(
+    column: $table.duration,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get sessionLocal => $composableBuilder(
+    column: $table.sessionLocal,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get lastUpdated => $composableBuilder(
+    column: $table.lastUpdated,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mediaProgress => $composableBuilder(
+    column: $table.mediaProgress,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$StoredSyncsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $StoredSyncsTable> {
+  $$StoredSyncsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get sessionId =>
+      $composableBuilder(column: $table.sessionId, builder: (column) => column);
+
+  GeneratedColumn<String> get itemId =>
+      $composableBuilder(column: $table.itemId, builder: (column) => column);
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get episodeId =>
+      $composableBuilder(column: $table.episodeId, builder: (column) => column);
+
+  GeneratedColumn<double> get currentTime => $composableBuilder(
+    column: $table.currentTime,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get timeListened => $composableBuilder(
+    column: $table.timeListened,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get duration =>
+      $composableBuilder(column: $table.duration, builder: (column) => column);
+
+  GeneratedColumn<bool> get sessionLocal => $composableBuilder(
+    column: $table.sessionLocal,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get lastUpdated => $composableBuilder(
+    column: $table.lastUpdated,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get mediaProgress => $composableBuilder(
+    column: $table.mediaProgress,
+    builder: (column) => column,
+  );
+}
+
+class $$StoredSyncsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $StoredSyncsTable,
+          StoredSyncEntry,
+          $$StoredSyncsTableFilterComposer,
+          $$StoredSyncsTableOrderingComposer,
+          $$StoredSyncsTableAnnotationComposer,
+          $$StoredSyncsTableCreateCompanionBuilder,
+          $$StoredSyncsTableUpdateCompanionBuilder,
+          (
+            StoredSyncEntry,
+            BaseReferences<_$AppDatabase, $StoredSyncsTable, StoredSyncEntry>,
+          ),
+          StoredSyncEntry,
+          PrefetchHooks Function()
+        > {
+  $$StoredSyncsTableTableManager(_$AppDatabase db, $StoredSyncsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer:
+              () => $$StoredSyncsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer:
+              () => $$StoredSyncsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer:
+              () =>
+                  $$StoredSyncsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> sessionId = const Value.absent(),
+                Value<String> itemId = const Value.absent(),
+                Value<String> userId = const Value.absent(),
+                Value<String?> episodeId = const Value.absent(),
+                Value<double> currentTime = const Value.absent(),
+                Value<double> timeListened = const Value.absent(),
+                Value<double> duration = const Value.absent(),
+                Value<bool> sessionLocal = const Value.absent(),
+                Value<DateTime> lastUpdated = const Value.absent(),
+                Value<String> mediaProgress = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => StoredSyncsCompanion(
+                sessionId: sessionId,
+                itemId: itemId,
+                userId: userId,
+                episodeId: episodeId,
+                currentTime: currentTime,
+                timeListened: timeListened,
+                duration: duration,
+                sessionLocal: sessionLocal,
+                lastUpdated: lastUpdated,
+                mediaProgress: mediaProgress,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String sessionId,
+                required String itemId,
+                required String userId,
+                Value<String?> episodeId = const Value.absent(),
+                required double currentTime,
+                required double timeListened,
+                required double duration,
+                required bool sessionLocal,
+                required DateTime lastUpdated,
+                required String mediaProgress,
+                Value<int> rowid = const Value.absent(),
+              }) => StoredSyncsCompanion.insert(
+                sessionId: sessionId,
+                itemId: itemId,
+                userId: userId,
+                episodeId: episodeId,
+                currentTime: currentTime,
+                timeListened: timeListened,
+                duration: duration,
+                sessionLocal: sessionLocal,
+                lastUpdated: lastUpdated,
+                mediaProgress: mediaProgress,
+                rowid: rowid,
+              ),
+          withReferenceMapper:
+              (p0) =>
+                  p0
+                      .map(
+                        (e) => (
+                          e.readTable(table),
+                          BaseReferences(db, table, e),
+                        ),
+                      )
+                      .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$StoredSyncsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $StoredSyncsTable,
+      StoredSyncEntry,
+      $$StoredSyncsTableFilterComposer,
+      $$StoredSyncsTableOrderingComposer,
+      $$StoredSyncsTableAnnotationComposer,
+      $$StoredSyncsTableCreateCompanionBuilder,
+      $$StoredSyncsTableUpdateCompanionBuilder,
+      (
+        StoredSyncEntry,
+        BaseReferences<_$AppDatabase, $StoredSyncsTable, StoredSyncEntry>,
+      ),
+      StoredSyncEntry,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -1206,6 +2170,8 @@ class $AppDatabaseManager {
       $$UserSettingsTableTableManager(_db, _db.userSettings);
   $$StoredUsersTableTableManager get storedUsers =>
       $$StoredUsersTableTableManager(_db, _db.storedUsers);
+  $$StoredSyncsTableTableManager get storedSyncs =>
+      $$StoredSyncsTableTableManager(_db, _db.storedSyncs);
 }
 
 // **************************************************************************

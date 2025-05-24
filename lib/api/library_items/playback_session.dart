@@ -17,7 +17,7 @@ abstract class PlaybackSession with _$PlaybackSession {
   const factory PlaybackSession({
     @JsonKey(name: "id") required String id,
     @JsonKey(name: "userId") required String userId,
-    @JsonKey(name: "libraryId") required String libraryId,
+    @JsonKey(name: "libraryId") String? libraryId,
     @JsonKey(name: "libraryItemId") required String libraryItemId,
     @JsonKey(name: "episodeId") String? episodeId,
     @JsonKey(name: "mediaType") String? mediaType,
