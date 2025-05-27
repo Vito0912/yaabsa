@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$InternalDownload {
 
-@JsonKey(name: "item") LibraryItem? get item;@JsonKey(name: "episode") Episode? get episode;@JsonKey(name: "tracks") InternalTrack? get tracks;@JsonKey(name: "saf", defaultValue: false) bool get saf;
+@JsonKey(name: "item") LibraryItem? get item;@JsonKey(name: "episode") Episode? get episode;@JsonKey(name: "tracks") List<InternalTrack> get tracks;@JsonKey(name: "saf", defaultValue: false) bool get saf;
 /// Create a copy of InternalDownload
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,12 +29,12 @@ $InternalDownloadCopyWith<InternalDownload> get copyWith => _$InternalDownloadCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is InternalDownload&&(identical(other.item, item) || other.item == item)&&(identical(other.episode, episode) || other.episode == episode)&&(identical(other.tracks, tracks) || other.tracks == tracks)&&(identical(other.saf, saf) || other.saf == saf));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is InternalDownload&&(identical(other.item, item) || other.item == item)&&(identical(other.episode, episode) || other.episode == episode)&&const DeepCollectionEquality().equals(other.tracks, tracks)&&(identical(other.saf, saf) || other.saf == saf));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,item,episode,tracks,saf);
+int get hashCode => Object.hash(runtimeType,item,episode,const DeepCollectionEquality().hash(tracks),saf);
 
 @override
 String toString() {
@@ -49,11 +49,11 @@ abstract mixin class $InternalDownloadCopyWith<$Res>  {
   factory $InternalDownloadCopyWith(InternalDownload value, $Res Function(InternalDownload) _then) = _$InternalDownloadCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: "item") LibraryItem? item,@JsonKey(name: "episode") Episode? episode,@JsonKey(name: "tracks") InternalTrack? tracks,@JsonKey(name: "saf", defaultValue: false) bool saf
+@JsonKey(name: "item") LibraryItem? item,@JsonKey(name: "episode") Episode? episode,@JsonKey(name: "tracks") List<InternalTrack> tracks,@JsonKey(name: "saf", defaultValue: false) bool saf
 });
 
 
-$LibraryItemCopyWith<$Res>? get item;$EpisodeCopyWith<$Res>? get episode;$InternalTrackCopyWith<$Res>? get tracks;
+$LibraryItemCopyWith<$Res>? get item;$EpisodeCopyWith<$Res>? get episode;
 
 }
 /// @nodoc
@@ -66,12 +66,12 @@ class _$InternalDownloadCopyWithImpl<$Res>
 
 /// Create a copy of InternalDownload
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? item = freezed,Object? episode = freezed,Object? tracks = freezed,Object? saf = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? item = freezed,Object? episode = freezed,Object? tracks = null,Object? saf = null,}) {
   return _then(_self.copyWith(
 item: freezed == item ? _self.item : item // ignore: cast_nullable_to_non_nullable
 as LibraryItem?,episode: freezed == episode ? _self.episode : episode // ignore: cast_nullable_to_non_nullable
-as Episode?,tracks: freezed == tracks ? _self.tracks : tracks // ignore: cast_nullable_to_non_nullable
-as InternalTrack?,saf: null == saf ? _self.saf : saf // ignore: cast_nullable_to_non_nullable
+as Episode?,tracks: null == tracks ? _self.tracks : tracks // ignore: cast_nullable_to_non_nullable
+as List<InternalTrack>,saf: null == saf ? _self.saf : saf // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -99,18 +99,6 @@ $EpisodeCopyWith<$Res>? get episode {
   return $EpisodeCopyWith<$Res>(_self.episode!, (value) {
     return _then(_self.copyWith(episode: value));
   });
-}/// Create a copy of InternalDownload
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$InternalTrackCopyWith<$Res>? get tracks {
-    if (_self.tracks == null) {
-    return null;
-  }
-
-  return $InternalTrackCopyWith<$Res>(_self.tracks!, (value) {
-    return _then(_self.copyWith(tracks: value));
-  });
 }
 }
 
@@ -119,12 +107,18 @@ $InternalTrackCopyWith<$Res>? get tracks {
 @JsonSerializable()
 
 class _InternalDownload extends InternalDownload {
-   _InternalDownload({@JsonKey(name: "item") required this.item, @JsonKey(name: "episode") required this.episode, @JsonKey(name: "tracks") required this.tracks, @JsonKey(name: "saf", defaultValue: false) required this.saf}): super._();
+   _InternalDownload({@JsonKey(name: "item") required this.item, @JsonKey(name: "episode") required this.episode, @JsonKey(name: "tracks") required final  List<InternalTrack> tracks, @JsonKey(name: "saf", defaultValue: false) required this.saf}): _tracks = tracks,super._();
   factory _InternalDownload.fromJson(Map<String, dynamic> json) => _$InternalDownloadFromJson(json);
 
 @override@JsonKey(name: "item") final  LibraryItem? item;
 @override@JsonKey(name: "episode") final  Episode? episode;
-@override@JsonKey(name: "tracks") final  InternalTrack? tracks;
+ final  List<InternalTrack> _tracks;
+@override@JsonKey(name: "tracks") List<InternalTrack> get tracks {
+  if (_tracks is EqualUnmodifiableListView) return _tracks;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_tracks);
+}
+
 @override@JsonKey(name: "saf", defaultValue: false) final  bool saf;
 
 /// Create a copy of InternalDownload
@@ -140,12 +134,12 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _InternalDownload&&(identical(other.item, item) || other.item == item)&&(identical(other.episode, episode) || other.episode == episode)&&(identical(other.tracks, tracks) || other.tracks == tracks)&&(identical(other.saf, saf) || other.saf == saf));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _InternalDownload&&(identical(other.item, item) || other.item == item)&&(identical(other.episode, episode) || other.episode == episode)&&const DeepCollectionEquality().equals(other._tracks, _tracks)&&(identical(other.saf, saf) || other.saf == saf));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,item,episode,tracks,saf);
+int get hashCode => Object.hash(runtimeType,item,episode,const DeepCollectionEquality().hash(_tracks),saf);
 
 @override
 String toString() {
@@ -160,11 +154,11 @@ abstract mixin class _$InternalDownloadCopyWith<$Res> implements $InternalDownlo
   factory _$InternalDownloadCopyWith(_InternalDownload value, $Res Function(_InternalDownload) _then) = __$InternalDownloadCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: "item") LibraryItem? item,@JsonKey(name: "episode") Episode? episode,@JsonKey(name: "tracks") InternalTrack? tracks,@JsonKey(name: "saf", defaultValue: false) bool saf
+@JsonKey(name: "item") LibraryItem? item,@JsonKey(name: "episode") Episode? episode,@JsonKey(name: "tracks") List<InternalTrack> tracks,@JsonKey(name: "saf", defaultValue: false) bool saf
 });
 
 
-@override $LibraryItemCopyWith<$Res>? get item;@override $EpisodeCopyWith<$Res>? get episode;@override $InternalTrackCopyWith<$Res>? get tracks;
+@override $LibraryItemCopyWith<$Res>? get item;@override $EpisodeCopyWith<$Res>? get episode;
 
 }
 /// @nodoc
@@ -177,12 +171,12 @@ class __$InternalDownloadCopyWithImpl<$Res>
 
 /// Create a copy of InternalDownload
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? item = freezed,Object? episode = freezed,Object? tracks = freezed,Object? saf = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? item = freezed,Object? episode = freezed,Object? tracks = null,Object? saf = null,}) {
   return _then(_InternalDownload(
 item: freezed == item ? _self.item : item // ignore: cast_nullable_to_non_nullable
 as LibraryItem?,episode: freezed == episode ? _self.episode : episode // ignore: cast_nullable_to_non_nullable
-as Episode?,tracks: freezed == tracks ? _self.tracks : tracks // ignore: cast_nullable_to_non_nullable
-as InternalTrack?,saf: null == saf ? _self.saf : saf // ignore: cast_nullable_to_non_nullable
+as Episode?,tracks: null == tracks ? _self._tracks : tracks // ignore: cast_nullable_to_non_nullable
+as List<InternalTrack>,saf: null == saf ? _self.saf : saf // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -210,18 +204,6 @@ $EpisodeCopyWith<$Res>? get episode {
 
   return $EpisodeCopyWith<$Res>(_self.episode!, (value) {
     return _then(_self.copyWith(episode: value));
-  });
-}/// Create a copy of InternalDownload
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$InternalTrackCopyWith<$Res>? get tracks {
-    if (_self.tracks == null) {
-    return null;
-  }
-
-  return $InternalTrackCopyWith<$Res>(_self.tracks!, (value) {
-    return _then(_self.copyWith(tracks: value));
   });
 }
 }

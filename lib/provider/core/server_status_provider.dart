@@ -125,8 +125,19 @@ Future<void> _onReconnected(Ref ref) async {
     }
   }
 
+  final openSession = ref.read(sessionRepositoryProvider).currentSession;
+
   for (final sync in offlineSync) {
+    if (openSession != null && sync.sessionId == openSession.id) {
+      logger(
+        'Skipping sync for current session: ${sync.sessionId}, because it is open. Waiting until next try',
+        tag: 'ServerStatusProvider',
+        level: InfoLevel.debug,
+      );
+      continue;
+    }
     try {
+      // This is a needed workaround, because we cannot get the current closed session and therefore could potentially overwrite the session
       String newSessionId = sync.sessionLocal ? sync.sessionId : Uuid().v4();
       PlaybackSession session = await ref
           .read(sessionRepositoryProvider)

@@ -19,6 +19,7 @@ import 'package:buchshelfly/util/player_utils.dart';
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:uuid/uuid.dart';
 
 part 'session_provider.g.dart';
 
@@ -52,37 +53,57 @@ class SessionRepository {
 
   Future<InternalMedia?> openSession(String itemId) async {
     final ABSApi? api = ref.read(absApiProvider);
+    final AppDatabase db = ref.read(appDatabaseProvider);
 
     if (api == null) {
       logger('No API available, cannot open session.', tag: 'SessionRepository');
       return null;
     }
 
-    // TODO
+    final downloaded = await db.getStoredDownload(itemId, api.user!.id);
+
     if (itemId == _currentSession?.libraryItemId) return null;
 
-    PlayLibraryItemRequest playRequest = PlayLibraryItemRequest(
-      deviceInfo: await PlayerUtils.getDeviceInfo(),
-      forceDirectPlay: false,
-      forceTranscode: false,
-      supportedMimeTypes: await PlayerUtils.getSupportedMimeTypes(),
-      mediaPlayer: '$appName just_audio',
-    );
+    // TODO: Setting to open session for syncing for offline support
+    if (downloaded == null) {
+      PlayLibraryItemRequest playRequest = PlayLibraryItemRequest(
+        deviceInfo: await PlayerUtils.getDeviceInfo(),
+        forceDirectPlay: false,
+        forceTranscode: false,
+        supportedMimeTypes: await PlayerUtils.getSupportedMimeTypes(),
+        mediaPlayer: '$appName just_audio',
+      );
 
-    final PlaybackSession? session =
-        (await api.getLibraryItemApi().playLibraryItem(itemId, playRequest: playRequest)).data;
+      final PlaybackSession? session =
+          (await api.getLibraryItemApi().playLibraryItem(itemId, playRequest: playRequest)).data;
 
-    if (session != null) {
-      _currentSession = session;
-      _isLocalSession = false;
-      logger('Session opened successfully: ${session.id}', tag: 'SessionRepository');
+      if (session != null) {
+        _currentSession = session;
+        _isLocalSession = false;
+        logger('Session opened successfully: ${session.id}', tag: 'SessionRepository');
+      } else {
+        logger('Failed to open session for item $itemId', tag: 'SessionRepository', level: InfoLevel.warning);
+      }
+
+      if (_currentSession == null) {
+        logger(
+          'Session is null, cannot create InternalMedia object.',
+          tag: 'SessionRepository',
+          level: InfoLevel.error,
+        );
+        return null;
+      }
     } else {
-      logger('Failed to open session for item $itemId', tag: 'SessionRepository', level: InfoLevel.warning);
-    }
-
-    if (_currentSession == null) {
-      logger('Session is null, cannot create InternalMedia object.', tag: 'SessionRepository', level: InfoLevel.error);
-      return null;
+      logger('Using local download for item $itemId', tag: 'SessionRepository', level: InfoLevel.debug);
+      final randomId = Uuid().v4();
+      _currentSession = await createLocalSession(
+        randomId,
+        itemId,
+        api.user!.id,
+        DateTime.now(),
+        // episodeId: episodeId,
+      );
+      _isLocalSession = true;
     }
 
     // TODO: Add for offline support
@@ -100,12 +121,15 @@ class SessionRepository {
       cover: api.getLibraryItemApi().getCoverUri(_currentSession!.libraryItemId),
       chapters: _currentSession!.chapters?.map((e) => e.toInternalChapter()).toList(),
       tracks:
-          _currentSession!.audioTracks!
-              .map((e) => e.toInternalTrack(api.basePathOverride, _currentSession!.id))
-              .toList(),
-      local: false,
-      saf: false,
+          downloaded != null
+              ? downloaded.tracks
+              : _currentSession!.audioTracks!
+                  .map((e) => e.toInternalTrack(api.basePathOverride, _currentSession!.id))
+                  .toList(),
+      local: _isLocalSession,
+      saf: downloaded?.saf ?? false,
     );
+    print(downloaded?.tracks);
     internalMedia.populateFields();
 
     return internalMedia;

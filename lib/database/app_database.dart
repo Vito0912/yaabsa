@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:buchshelfly/api/me/user.dart';
+import 'package:buchshelfly/models/internal_download.dart';
+import 'package:buchshelfly/models/internal_media.dart';
 import 'package:buchshelfly/util/logger.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
@@ -60,13 +62,31 @@ class StoredSyncs extends Table {
   Set<Column> get primaryKey => {sessionId};
 }
 
-@DriftDatabase(tables: [GlobalSettings, UserSettings, StoredUsers, StoredSyncs])
+@DataClassName('StoredDownloadsEntry')
+class StoredDownloads extends Table {
+  TextColumn get itemId => text()();
+  TextColumn get userId => text()();
+  TextColumn get episodeId => text().nullable()();
+
+  TextColumn get download => text()();
+
+  @override
+  Set<Column> get primaryKey => {itemId, userId, episodeId};
+
+  @override
+  List<Set<Column>> get uniqueKeys => [
+    {itemId, userId, episodeId},
+    {itemId, userId},
+  ];
+}
+
+@DriftDatabase(tables: [GlobalSettings, UserSettings, StoredUsers, StoredSyncs, StoredDownloads])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 12;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -81,9 +101,79 @@ class AppDatabase extends _$AppDatabase {
         await m.drop(storedSyncs);
         await m.createTable(storedSyncs);
       }
+      if (from == 10) {
+        await m.createTable(storedDownloads);
+      }
+      if (from == 11) {
+        await m.drop(storedDownloads);
+        await m.createTable(storedDownloads);
+      }
     },
     beforeOpen: (details) async {},
   );
+
+  // Download management
+  Future<List<StoredDownloadsEntry>> getAllStoredDownloads() async {
+    return await select(storedDownloads).get();
+  }
+
+  Future<InternalDownload?> getStoredDownload(String itemId, String userId, {String? episodeId}) async {
+    final query = select(storedDownloads)..where((tbl) => tbl.itemId.equals(itemId) & tbl.userId.equals(userId));
+    if (episodeId != null) {
+      query.where((tbl) => tbl.episodeId.equals(episodeId));
+    }
+    final entry = await query.getSingleOrNull();
+    if (entry != null) {
+      final download = InternalDownload.fromJson(jsonDecode(entry.download));
+      if (download.isComplete) {
+        return download;
+      } else {
+        logger(
+          'Incomplete download found for itemId: $itemId, userId: $userId, episodeId: $episodeId',
+          tag: 'AppDatabase',
+          level: InfoLevel.warning,
+        );
+      }
+    }
+    return null;
+  }
+
+  Future<void> addOrUpdateStoredDownload(StoredDownloadsCompanion companion) {
+    return transaction(() async {
+      final insertResult = await into(storedDownloads).insert(companion, mode: InsertMode.insertOrIgnore);
+
+      if (insertResult == 0) {
+        Expression<bool> whereClause =
+            storedDownloads.itemId.equals(companion.itemId.value) &
+            storedDownloads.userId.equals(companion.userId.value);
+
+        if (companion.episodeId.present && companion.episodeId.value != null) {
+          whereClause = whereClause & storedDownloads.episodeId.equals(companion.episodeId.value!);
+        } else {
+          whereClause = whereClause & storedDownloads.episodeId.isNull();
+        }
+        final existing = await (select(storedDownloads)..where((tbl) => whereClause)).getSingle();
+
+        final oldDownload = InternalDownload.fromJson(jsonDecode(existing.download));
+        final newDownload = InternalDownload.fromJson(jsonDecode(companion.download.value));
+
+        final List<InternalTrack> mergedTracks = [...oldDownload.tracks, ...newDownload.tracks];
+        final updatedDownload = oldDownload.copyWith(tracks: mergedTracks);
+
+        await (update(storedDownloads)..where(
+          (tbl) => whereClause,
+        )).write(StoredDownloadsCompanion(download: Value(jsonEncode(updatedDownload.toJson()))));
+      }
+    });
+  }
+
+  Future<void> deleteStoredDownload(String itemId, String userId, {String? episodeId}) {
+    final query = delete(storedDownloads)..where((tbl) => tbl.itemId.equals(itemId) & tbl.userId.equals(userId));
+    if (episodeId != null) {
+      query.where((tbl) => tbl.episodeId.equals(episodeId));
+    }
+    return query.go();
+  }
 
   // Sync management
   Future<void> addOrUpdateSync(StoredSyncsCompanion companion) {
@@ -92,11 +182,11 @@ class AppDatabase extends _$AppDatabase {
       mode: InsertMode.insertOrIgnore,
       onConflict: DoUpdate(
         (old) => StoredSyncsCompanion.custom(
-          timeListened: old.timeListened + Variable<double>(companion.timeListened.value ?? 0.0),
-          currentTime: Variable<double>(companion.currentTime.value ?? 0.0),
-          lastUpdated: Variable<DateTime>(companion.lastUpdated.value ?? DateTime.now()),
-          sessionLocal: Variable<bool>(companion.sessionLocal.value ?? false),
-          mediaProgress: Variable<String>(companion.mediaProgress.value ?? ''),
+          timeListened: old.timeListened + Variable<double>(companion.timeListened.value),
+          currentTime: Variable<double>(companion.currentTime.value),
+          lastUpdated: Variable<DateTime>(companion.lastUpdated.value),
+          sessionLocal: Variable<bool>(companion.sessionLocal.value),
+          mediaProgress: Variable<String>(companion.mediaProgress.value),
         ),
         target: [storedSyncs.sessionId],
       ),

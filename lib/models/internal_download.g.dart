@@ -17,9 +17,9 @@ _InternalDownload _$InternalDownloadFromJson(Map<String, dynamic> json) =>
               ? null
               : Episode.fromJson(json['episode'] as Map<String, dynamic>),
       tracks:
-          json['tracks'] == null
-              ? null
-              : InternalTrack.fromJson(json['tracks'] as Map<String, dynamic>),
+          (json['tracks'] as List<dynamic>)
+              .map((e) => InternalTrack.fromJson(e as Map<String, dynamic>))
+              .toList(),
       saf: json['saf'] as bool? ?? false,
     );
 

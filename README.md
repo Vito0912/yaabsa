@@ -53,3 +53,4 @@ An improved cross-platform app for Audiobookshelf
 | Sync      | ✅       | ✅   | ✅       | ✅     | ✅     |
 | Caching   | ❌       | ❌   | ❌       | ❌     | ❌     |
 | Downloads | ❌       | ❌   | ❌       | ❌     | ❌     |
+| Headers   | ✅       | ✅   | ✅       | ✅     | ✅     |

@@ -108,6 +108,7 @@ ABSApi? absApi(Ref ref) {
     ),
     interceptors: interceptors,
     basePathOverride: basePathOverride,
+    user: currentUser,
   );
 
   if (token != null) {

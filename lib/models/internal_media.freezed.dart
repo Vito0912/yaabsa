@@ -183,7 +183,7 @@ as bool,
 /// @nodoc
 mixin _$InternalTrack {
 
-@JsonKey(name: "index") int get index;@JsonKey(name: "duration") double get duration;@JsonKey(name: "url") String get url;@JsonKey(name: "mimeType") String get mimeType;@JsonKey(name: "start") double? get start;@JsonKey(name: "end") double? get end;
+@JsonKey(name: "index") int get index;@JsonKey(name: "duration") double get duration;@JsonKey(name: "url") String? get url;@JsonKey(name: "mimeType") String get mimeType;@JsonKey(name: "start") double? get start;@JsonKey(name: "end") double? get end;
 /// Create a copy of InternalTrack
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -216,7 +216,7 @@ abstract mixin class $InternalTrackCopyWith<$Res>  {
   factory $InternalTrackCopyWith(InternalTrack value, $Res Function(InternalTrack) _then) = _$InternalTrackCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: "index") int index,@JsonKey(name: "duration") double duration,@JsonKey(name: "url") String url,@JsonKey(name: "mimeType") String mimeType,@JsonKey(name: "start") double? start,@JsonKey(name: "end") double? end
+@JsonKey(name: "index") int index,@JsonKey(name: "duration") double duration,@JsonKey(name: "url") String? url,@JsonKey(name: "mimeType") String mimeType,@JsonKey(name: "start") double? start,@JsonKey(name: "end") double? end
 });
 
 
@@ -233,12 +233,12 @@ class _$InternalTrackCopyWithImpl<$Res>
 
 /// Create a copy of InternalTrack
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? index = null,Object? duration = null,Object? url = null,Object? mimeType = null,Object? start = freezed,Object? end = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? index = null,Object? duration = null,Object? url = freezed,Object? mimeType = null,Object? start = freezed,Object? end = freezed,}) {
   return _then(_self.copyWith(
 index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
 as int,duration: null == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
-as double,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
-as String,mimeType: null == mimeType ? _self.mimeType : mimeType // ignore: cast_nullable_to_non_nullable
+as double,url: freezed == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
+as String?,mimeType: null == mimeType ? _self.mimeType : mimeType // ignore: cast_nullable_to_non_nullable
 as String,start: freezed == start ? _self.start : start // ignore: cast_nullable_to_non_nullable
 as double?,end: freezed == end ? _self.end : end // ignore: cast_nullable_to_non_nullable
 as double?,
@@ -257,7 +257,7 @@ class _InternalTrack implements InternalTrack {
 
 @override@JsonKey(name: "index") final  int index;
 @override@JsonKey(name: "duration") final  double duration;
-@override@JsonKey(name: "url") final  String url;
+@override@JsonKey(name: "url") final  String? url;
 @override@JsonKey(name: "mimeType") final  String mimeType;
 @override@JsonKey(name: "start") final  double? start;
 @override@JsonKey(name: "end") final  double? end;
@@ -295,7 +295,7 @@ abstract mixin class _$InternalTrackCopyWith<$Res> implements $InternalTrackCopy
   factory _$InternalTrackCopyWith(_InternalTrack value, $Res Function(_InternalTrack) _then) = __$InternalTrackCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: "index") int index,@JsonKey(name: "duration") double duration,@JsonKey(name: "url") String url,@JsonKey(name: "mimeType") String mimeType,@JsonKey(name: "start") double? start,@JsonKey(name: "end") double? end
+@JsonKey(name: "index") int index,@JsonKey(name: "duration") double duration,@JsonKey(name: "url") String? url,@JsonKey(name: "mimeType") String mimeType,@JsonKey(name: "start") double? start,@JsonKey(name: "end") double? end
 });
 
 
@@ -312,12 +312,12 @@ class __$InternalTrackCopyWithImpl<$Res>
 
 /// Create a copy of InternalTrack
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? index = null,Object? duration = null,Object? url = null,Object? mimeType = null,Object? start = freezed,Object? end = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? index = null,Object? duration = null,Object? url = freezed,Object? mimeType = null,Object? start = freezed,Object? end = freezed,}) {
   return _then(_InternalTrack(
 index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
 as int,duration: null == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
-as double,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
-as String,mimeType: null == mimeType ? _self.mimeType : mimeType // ignore: cast_nullable_to_non_nullable
+as double,url: freezed == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
+as String?,mimeType: null == mimeType ? _self.mimeType : mimeType // ignore: cast_nullable_to_non_nullable
 as String,start: freezed == start ? _self.start : start // ignore: cast_nullable_to_non_nullable
 as double?,end: freezed == end ? _self.end : end // ignore: cast_nullable_to_non_nullable
 as double?,

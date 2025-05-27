@@ -1,3 +1,4 @@
+import 'package:buchshelfly/api/me/user.dart';
 import 'package:buchshelfly/api/routes/interceptors/bearer_auth_interceptor.dart';
 import 'package:buchshelfly/api/routes/interceptors/o_auth_interceptor.dart';
 import 'package:buchshelfly/api/routes/library_api.dart';
@@ -12,6 +13,8 @@ class ABSApi {
 
   final Dio dio;
 
+  final User? user;
+
   String? get token {
     if (dio.interceptors.any((i) => i is BearerAuthInterceptor)) {
       return (dio.interceptors.firstWhere((i) => i is BearerAuthInterceptor) as BearerAuthInterceptor)
@@ -24,7 +27,7 @@ class ABSApi {
     return dio.options.baseUrl;
   }
 
-  ABSApi({Dio? dio, String? basePathOverride, List<Interceptor>? interceptors})
+  ABSApi({Dio? dio, String? basePathOverride, List<Interceptor>? interceptors, this.user})
     : dio =
           dio ??
           Dio(

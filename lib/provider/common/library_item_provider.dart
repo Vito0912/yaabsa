@@ -1,6 +1,8 @@
 import 'package:buchshelfly/api/library/request/library_items_request.dart';
 import 'package:buchshelfly/api/library_items/library_item.dart';
+import 'package:buchshelfly/database/app_database.dart';
 import 'package:buchshelfly/provider/core/user_providers.dart';
+import 'package:buchshelfly/util/logger.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -231,10 +233,17 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
 }
 
 @riverpod
-Future<LibraryItem> libraryItem(Ref ref, String itemId) async {
+Future<LibraryItem> libraryItem(Ref ref, String itemId, {String? episodeId}) async {
   final absApi = ref.watch(absApiProvider);
-  if (absApi == null) {
+  final db = ref.read(appDatabaseProvider);
+  if (absApi == null || absApi.user == null) {
     throw Exception('User not authenticated or API not available.');
+  }
+
+  final download = await db.getStoredDownload(itemId, absApi.user!.id, episodeId: episodeId);
+  if (download != null && download.item != null) {
+    logger('Returning local download for item $itemId', tag: 'libraryItemProvider', level: InfoLevel.debug);
+    return download.item!;
   }
 
   try {

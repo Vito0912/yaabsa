@@ -1348,6 +1348,328 @@ class StoredSyncsCompanion extends UpdateCompanion<StoredSyncEntry> {
   }
 }
 
+class $StoredDownloadsTable extends StoredDownloads
+    with TableInfo<$StoredDownloadsTable, StoredDownloadsEntry> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $StoredDownloadsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _itemIdMeta = const VerificationMeta('itemId');
+  @override
+  late final GeneratedColumn<String> itemId = GeneratedColumn<String>(
+    'item_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _episodeIdMeta = const VerificationMeta(
+    'episodeId',
+  );
+  @override
+  late final GeneratedColumn<String> episodeId = GeneratedColumn<String>(
+    'episode_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _downloadMeta = const VerificationMeta(
+    'download',
+  );
+  @override
+  late final GeneratedColumn<String> download = GeneratedColumn<String>(
+    'download',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [itemId, userId, episodeId, download];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'stored_downloads';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<StoredDownloadsEntry> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('item_id')) {
+      context.handle(
+        _itemIdMeta,
+        itemId.isAcceptableOrUnknown(data['item_id']!, _itemIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_itemIdMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('episode_id')) {
+      context.handle(
+        _episodeIdMeta,
+        episodeId.isAcceptableOrUnknown(data['episode_id']!, _episodeIdMeta),
+      );
+    }
+    if (data.containsKey('download')) {
+      context.handle(
+        _downloadMeta,
+        download.isAcceptableOrUnknown(data['download']!, _downloadMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_downloadMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {itemId, userId, episodeId};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {itemId, userId, episodeId},
+    {itemId, userId},
+  ];
+  @override
+  StoredDownloadsEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return StoredDownloadsEntry(
+      itemId:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}item_id'],
+          )!,
+      userId:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}user_id'],
+          )!,
+      episodeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}episode_id'],
+      ),
+      download:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}download'],
+          )!,
+    );
+  }
+
+  @override
+  $StoredDownloadsTable createAlias(String alias) {
+    return $StoredDownloadsTable(attachedDatabase, alias);
+  }
+}
+
+class StoredDownloadsEntry extends DataClass
+    implements Insertable<StoredDownloadsEntry> {
+  final String itemId;
+  final String userId;
+  final String? episodeId;
+  final String download;
+  const StoredDownloadsEntry({
+    required this.itemId,
+    required this.userId,
+    this.episodeId,
+    required this.download,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['item_id'] = Variable<String>(itemId);
+    map['user_id'] = Variable<String>(userId);
+    if (!nullToAbsent || episodeId != null) {
+      map['episode_id'] = Variable<String>(episodeId);
+    }
+    map['download'] = Variable<String>(download);
+    return map;
+  }
+
+  StoredDownloadsCompanion toCompanion(bool nullToAbsent) {
+    return StoredDownloadsCompanion(
+      itemId: Value(itemId),
+      userId: Value(userId),
+      episodeId:
+          episodeId == null && nullToAbsent
+              ? const Value.absent()
+              : Value(episodeId),
+      download: Value(download),
+    );
+  }
+
+  factory StoredDownloadsEntry.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return StoredDownloadsEntry(
+      itemId: serializer.fromJson<String>(json['itemId']),
+      userId: serializer.fromJson<String>(json['userId']),
+      episodeId: serializer.fromJson<String?>(json['episodeId']),
+      download: serializer.fromJson<String>(json['download']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'itemId': serializer.toJson<String>(itemId),
+      'userId': serializer.toJson<String>(userId),
+      'episodeId': serializer.toJson<String?>(episodeId),
+      'download': serializer.toJson<String>(download),
+    };
+  }
+
+  StoredDownloadsEntry copyWith({
+    String? itemId,
+    String? userId,
+    Value<String?> episodeId = const Value.absent(),
+    String? download,
+  }) => StoredDownloadsEntry(
+    itemId: itemId ?? this.itemId,
+    userId: userId ?? this.userId,
+    episodeId: episodeId.present ? episodeId.value : this.episodeId,
+    download: download ?? this.download,
+  );
+  StoredDownloadsEntry copyWithCompanion(StoredDownloadsCompanion data) {
+    return StoredDownloadsEntry(
+      itemId: data.itemId.present ? data.itemId.value : this.itemId,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      episodeId: data.episodeId.present ? data.episodeId.value : this.episodeId,
+      download: data.download.present ? data.download.value : this.download,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StoredDownloadsEntry(')
+          ..write('itemId: $itemId, ')
+          ..write('userId: $userId, ')
+          ..write('episodeId: $episodeId, ')
+          ..write('download: $download')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(itemId, userId, episodeId, download);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is StoredDownloadsEntry &&
+          other.itemId == this.itemId &&
+          other.userId == this.userId &&
+          other.episodeId == this.episodeId &&
+          other.download == this.download);
+}
+
+class StoredDownloadsCompanion extends UpdateCompanion<StoredDownloadsEntry> {
+  final Value<String> itemId;
+  final Value<String> userId;
+  final Value<String?> episodeId;
+  final Value<String> download;
+  final Value<int> rowid;
+  const StoredDownloadsCompanion({
+    this.itemId = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.episodeId = const Value.absent(),
+    this.download = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  StoredDownloadsCompanion.insert({
+    required String itemId,
+    required String userId,
+    this.episodeId = const Value.absent(),
+    required String download,
+    this.rowid = const Value.absent(),
+  }) : itemId = Value(itemId),
+       userId = Value(userId),
+       download = Value(download);
+  static Insertable<StoredDownloadsEntry> custom({
+    Expression<String>? itemId,
+    Expression<String>? userId,
+    Expression<String>? episodeId,
+    Expression<String>? download,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (itemId != null) 'item_id': itemId,
+      if (userId != null) 'user_id': userId,
+      if (episodeId != null) 'episode_id': episodeId,
+      if (download != null) 'download': download,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  StoredDownloadsCompanion copyWith({
+    Value<String>? itemId,
+    Value<String>? userId,
+    Value<String?>? episodeId,
+    Value<String>? download,
+    Value<int>? rowid,
+  }) {
+    return StoredDownloadsCompanion(
+      itemId: itemId ?? this.itemId,
+      userId: userId ?? this.userId,
+      episodeId: episodeId ?? this.episodeId,
+      download: download ?? this.download,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (itemId.present) {
+      map['item_id'] = Variable<String>(itemId.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (episodeId.present) {
+      map['episode_id'] = Variable<String>(episodeId.value);
+    }
+    if (download.present) {
+      map['download'] = Variable<String>(download.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StoredDownloadsCompanion(')
+          ..write('itemId: $itemId, ')
+          ..write('userId: $userId, ')
+          ..write('episodeId: $episodeId, ')
+          ..write('download: $download, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -1355,6 +1677,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $UserSettingsTable userSettings = $UserSettingsTable(this);
   late final $StoredUsersTable storedUsers = $StoredUsersTable(this);
   late final $StoredSyncsTable storedSyncs = $StoredSyncsTable(this);
+  late final $StoredDownloadsTable storedDownloads = $StoredDownloadsTable(
+    this,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1364,6 +1689,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     userSettings,
     storedUsers,
     storedSyncs,
+    storedDownloads,
   ];
 }
 
@@ -2160,6 +2486,211 @@ typedef $$StoredSyncsTableProcessedTableManager =
       StoredSyncEntry,
       PrefetchHooks Function()
     >;
+typedef $$StoredDownloadsTableCreateCompanionBuilder =
+    StoredDownloadsCompanion Function({
+      required String itemId,
+      required String userId,
+      Value<String?> episodeId,
+      required String download,
+      Value<int> rowid,
+    });
+typedef $$StoredDownloadsTableUpdateCompanionBuilder =
+    StoredDownloadsCompanion Function({
+      Value<String> itemId,
+      Value<String> userId,
+      Value<String?> episodeId,
+      Value<String> download,
+      Value<int> rowid,
+    });
+
+class $$StoredDownloadsTableFilterComposer
+    extends Composer<_$AppDatabase, $StoredDownloadsTable> {
+  $$StoredDownloadsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get itemId => $composableBuilder(
+    column: $table.itemId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get episodeId => $composableBuilder(
+    column: $table.episodeId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get download => $composableBuilder(
+    column: $table.download,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$StoredDownloadsTableOrderingComposer
+    extends Composer<_$AppDatabase, $StoredDownloadsTable> {
+  $$StoredDownloadsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get itemId => $composableBuilder(
+    column: $table.itemId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get episodeId => $composableBuilder(
+    column: $table.episodeId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get download => $composableBuilder(
+    column: $table.download,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$StoredDownloadsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $StoredDownloadsTable> {
+  $$StoredDownloadsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get itemId =>
+      $composableBuilder(column: $table.itemId, builder: (column) => column);
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get episodeId =>
+      $composableBuilder(column: $table.episodeId, builder: (column) => column);
+
+  GeneratedColumn<String> get download =>
+      $composableBuilder(column: $table.download, builder: (column) => column);
+}
+
+class $$StoredDownloadsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $StoredDownloadsTable,
+          StoredDownloadsEntry,
+          $$StoredDownloadsTableFilterComposer,
+          $$StoredDownloadsTableOrderingComposer,
+          $$StoredDownloadsTableAnnotationComposer,
+          $$StoredDownloadsTableCreateCompanionBuilder,
+          $$StoredDownloadsTableUpdateCompanionBuilder,
+          (
+            StoredDownloadsEntry,
+            BaseReferences<
+              _$AppDatabase,
+              $StoredDownloadsTable,
+              StoredDownloadsEntry
+            >,
+          ),
+          StoredDownloadsEntry,
+          PrefetchHooks Function()
+        > {
+  $$StoredDownloadsTableTableManager(
+    _$AppDatabase db,
+    $StoredDownloadsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer:
+              () =>
+                  $$StoredDownloadsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer:
+              () => $$StoredDownloadsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer:
+              () => $$StoredDownloadsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> itemId = const Value.absent(),
+                Value<String> userId = const Value.absent(),
+                Value<String?> episodeId = const Value.absent(),
+                Value<String> download = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => StoredDownloadsCompanion(
+                itemId: itemId,
+                userId: userId,
+                episodeId: episodeId,
+                download: download,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String itemId,
+                required String userId,
+                Value<String?> episodeId = const Value.absent(),
+                required String download,
+                Value<int> rowid = const Value.absent(),
+              }) => StoredDownloadsCompanion.insert(
+                itemId: itemId,
+                userId: userId,
+                episodeId: episodeId,
+                download: download,
+                rowid: rowid,
+              ),
+          withReferenceMapper:
+              (p0) =>
+                  p0
+                      .map(
+                        (e) => (
+                          e.readTable(table),
+                          BaseReferences(db, table, e),
+                        ),
+                      )
+                      .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$StoredDownloadsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $StoredDownloadsTable,
+      StoredDownloadsEntry,
+      $$StoredDownloadsTableFilterComposer,
+      $$StoredDownloadsTableOrderingComposer,
+      $$StoredDownloadsTableAnnotationComposer,
+      $$StoredDownloadsTableCreateCompanionBuilder,
+      $$StoredDownloadsTableUpdateCompanionBuilder,
+      (
+        StoredDownloadsEntry,
+        BaseReferences<
+          _$AppDatabase,
+          $StoredDownloadsTable,
+          StoredDownloadsEntry
+        >,
+      ),
+      StoredDownloadsEntry,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2172,6 +2703,8 @@ class $AppDatabaseManager {
       $$StoredUsersTableTableManager(_db, _db.storedUsers);
   $$StoredSyncsTableTableManager get storedSyncs =>
       $$StoredSyncsTableTableManager(_db, _db.storedSyncs);
+  $$StoredDownloadsTableTableManager get storedDownloads =>
+      $$StoredDownloadsTableTableManager(_db, _db.storedDownloads);
 }
 
 // **************************************************************************

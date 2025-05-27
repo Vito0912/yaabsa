@@ -1,4 +1,5 @@
 import 'package:audio_service/audio_service.dart';
+import 'package:buchshelfly/util/logger.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:just_audio/just_audio.dart' show AudioSource;
 
@@ -49,12 +50,28 @@ abstract class InternalMedia with _$InternalMedia {
   }
 
   List<AudioSource> toAudioSources() {
+    if (local) {
+      logger('Using local audio sources', tag: 'InternalMedia', level: InfoLevel.debug);
+    }
     return tracks.map((track) {
-      return AudioSource.uri(Uri.parse(track.url));
+      if (track.url == null) {
+        throw ArgumentError('Track URL cannot be null for track index ${track.index}');
+      }
+      if (track.mimeType.isEmpty) {
+        throw ArgumentError('Track mimeType cannot be empty for track index ${track.index}');
+      }
+      if (local) {
+        // TODO: SAF
+        return AudioSource.file(track.url!);
+      } else {
+        return AudioSource.uri(Uri.parse(track.url!));
+      }
     }).toList();
   }
 
   void populateFields() {
+    tracks = tracks.toList();
+
     double currentStart = 0.0;
     for (int i = 0; i < tracks.length; i++) {
       final track = tracks[i];
@@ -120,7 +137,7 @@ abstract class InternalTrack with _$InternalTrack {
   const factory InternalTrack({
     @JsonKey(name: "index") required int index,
     @JsonKey(name: "duration") required double duration,
-    @JsonKey(name: "url") required String url,
+    @JsonKey(name: "url") required String? url,
     @JsonKey(name: "mimeType") required String mimeType,
     @JsonKey(name: "start") double? start,
     @JsonKey(name: "end") double? end,

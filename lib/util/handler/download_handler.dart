@@ -1,12 +1,18 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:background_downloader/background_downloader.dart';
 import 'package:buchshelfly/api/library_items/audio_file.dart';
 import 'package:buchshelfly/api/library_items/library_item.dart';
 import 'package:buchshelfly/api/me/user.dart';
+import 'package:buchshelfly/database/app_database.dart';
+import 'package:buchshelfly/models/internal_download.dart';
+import 'package:buchshelfly/models/internal_media.dart';
 import 'package:buchshelfly/provider/common/library_item_provider.dart';
 import 'package:buchshelfly/provider/core/user_providers.dart';
 import 'package:buchshelfly/util/globals.dart';
+import 'package:buchshelfly/util/logger.dart';
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class DownloadHandler {
@@ -23,9 +29,49 @@ class DownloadHandler {
 
     _init();
 
-    dbUpdates.listen((update) {
-      print(update.progress);
-      print(update.task.filename);
+    dbUpdates.listen((update) async {
+      if (update.status == TaskStatus.complete) {
+        final List<dynamic> metaData = jsonDecode(update.task.metaData);
+        if (metaData.isNotEmpty && metaData[0] is String) {
+          final String itemId = metaData[0];
+          final String userId = metaData[1];
+          final String? episodeId = metaData[2];
+          final InternalTrack track = InternalTrack.fromJson(metaData[3]);
+
+          // Update the download in the database
+          StoredDownloadsCompanion downloadCompanion = StoredDownloadsCompanion(
+            itemId: Value(itemId),
+            episodeId: Value(episodeId),
+            userId: Value(userId),
+            download: Value(
+              jsonEncode(
+                InternalDownload(
+                  item: _ref.read(libraryItemProvider(itemId)).valueOrNull,
+                  episode:
+                      episodeId != null
+                          ? _ref
+                              .read(libraryItemProvider(itemId))
+                              .valueOrNull
+                              ?.media
+                              ?.podcastMedia
+                              ?.episodes
+                              ?.firstWhere((e) => e.id == episodeId)
+                          : null,
+                  saf: false,
+                  tracks: [track.copyWith(url: await update.task.filePath())],
+                ),
+              ),
+            ),
+          );
+
+          logger(
+            'Download complete for item $itemId, episode $episodeId, track ${track.index}',
+            tag: 'DownloadHandler',
+          );
+
+          _ref.read(appDatabaseProvider).addOrUpdateStoredDownload(downloadCompanion);
+        }
+      }
     });
   }
 
@@ -72,7 +118,17 @@ class DownloadHandler {
             headers: {'Authorization': 'Bearer ${user.token}'},
             directory: '$appName/${item.id}',
             updates: Updates.statusAndProgress,
-            // TODO: requiresWiFi
+            metaData: jsonEncode([
+              item.id,
+              user.id,
+              episodeId,
+              InternalTrack(
+                index: file.index ?? 0,
+                duration: file.duration!,
+                url: null,
+                mimeType: file.mimeType ?? 'audio/mpeg',
+              ),
+            ]),
             retries: 3,
             allowPause: true,
           );
@@ -142,6 +198,10 @@ class DownloadHandler {
         groupNotificationId: item.id,
       );
     }
+
+    await _ref
+        .read(appDatabaseProvider)
+        .deleteStoredDownload(itemId, _ref.read(currentUserProvider).value!.id, episodeId: episodeId);
 
     await FileDownloader().downloadBatch(downloadTasks);
   }

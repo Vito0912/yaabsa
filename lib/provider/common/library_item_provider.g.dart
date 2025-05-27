@@ -6,7 +6,7 @@ part of 'library_item_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$libraryItemHash() => r'41fae2c883a21307e0a30f172bdf41650bfe697a';
+String _$libraryItemHash() => r'0748ccbf373848c33262c4d928025462b761a427';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -39,15 +39,15 @@ class LibraryItemFamily extends Family<AsyncValue<LibraryItem>> {
   const LibraryItemFamily();
 
   /// See also [libraryItem].
-  LibraryItemProvider call(String itemId) {
-    return LibraryItemProvider(itemId);
+  LibraryItemProvider call(String itemId, {String? episodeId}) {
+    return LibraryItemProvider(itemId, episodeId: episodeId);
   }
 
   @override
   LibraryItemProvider getProviderOverride(
     covariant LibraryItemProvider provider,
   ) {
-    return call(provider.itemId);
+    return call(provider.itemId, episodeId: provider.episodeId);
   }
 
   static const Iterable<ProviderOrFamily>? _dependencies = null;
@@ -68,9 +68,10 @@ class LibraryItemFamily extends Family<AsyncValue<LibraryItem>> {
 /// See also [libraryItem].
 class LibraryItemProvider extends AutoDisposeFutureProvider<LibraryItem> {
   /// See also [libraryItem].
-  LibraryItemProvider(String itemId)
+  LibraryItemProvider(String itemId, {String? episodeId})
     : this._internal(
-        (ref) => libraryItem(ref as LibraryItemRef, itemId),
+        (ref) =>
+            libraryItem(ref as LibraryItemRef, itemId, episodeId: episodeId),
         from: libraryItemProvider,
         name: r'libraryItemProvider',
         debugGetCreateSourceHash:
@@ -80,6 +81,7 @@ class LibraryItemProvider extends AutoDisposeFutureProvider<LibraryItem> {
         dependencies: LibraryItemFamily._dependencies,
         allTransitiveDependencies: LibraryItemFamily._allTransitiveDependencies,
         itemId: itemId,
+        episodeId: episodeId,
       );
 
   LibraryItemProvider._internal(
@@ -90,9 +92,11 @@ class LibraryItemProvider extends AutoDisposeFutureProvider<LibraryItem> {
     required super.debugGetCreateSourceHash,
     required super.from,
     required this.itemId,
+    required this.episodeId,
   }) : super.internal();
 
   final String itemId;
+  final String? episodeId;
 
   @override
   Override overrideWith(
@@ -108,6 +112,7 @@ class LibraryItemProvider extends AutoDisposeFutureProvider<LibraryItem> {
         allTransitiveDependencies: null,
         debugGetCreateSourceHash: null,
         itemId: itemId,
+        episodeId: episodeId,
       ),
     );
   }
@@ -119,13 +124,16 @@ class LibraryItemProvider extends AutoDisposeFutureProvider<LibraryItem> {
 
   @override
   bool operator ==(Object other) {
-    return other is LibraryItemProvider && other.itemId == itemId;
+    return other is LibraryItemProvider &&
+        other.itemId == itemId &&
+        other.episodeId == episodeId;
   }
 
   @override
   int get hashCode {
     var hash = _SystemHash.combine(0, runtimeType.hashCode);
     hash = _SystemHash.combine(hash, itemId.hashCode);
+    hash = _SystemHash.combine(hash, episodeId.hashCode);
 
     return _SystemHash.finish(hash);
   }
@@ -136,6 +144,9 @@ class LibraryItemProvider extends AutoDisposeFutureProvider<LibraryItem> {
 mixin LibraryItemRef on AutoDisposeFutureProviderRef<LibraryItem> {
   /// The parameter `itemId` of this provider.
   String get itemId;
+
+  /// The parameter `episodeId` of this provider.
+  String? get episodeId;
 }
 
 class _LibraryItemProviderElement
@@ -145,6 +156,8 @@ class _LibraryItemProviderElement
 
   @override
   String get itemId => (origin as LibraryItemProvider).itemId;
+  @override
+  String? get episodeId => (origin as LibraryItemProvider).episodeId;
 }
 
 String _$libraryItemsNotifierHash() =>

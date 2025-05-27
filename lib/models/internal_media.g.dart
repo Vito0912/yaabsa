@@ -54,7 +54,7 @@ _InternalTrack _$InternalTrackFromJson(Map<String, dynamic> json) =>
     _InternalTrack(
       index: (json['index'] as num).toInt(),
       duration: (json['duration'] as num).toDouble(),
-      url: json['url'] as String,
+      url: json['url'] as String?,
       mimeType: json['mimeType'] as String,
       start: (json['start'] as num?)?.toDouble(),
       end: (json['end'] as num?)?.toDouble(),
