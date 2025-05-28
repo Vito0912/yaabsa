@@ -19,17 +19,23 @@ class DownloadHandler {
   final ProviderContainer _ref;
   late final FileDownloader _downloader;
   final _progressUpdateController = StreamController<TaskProgressUpdate>.broadcast();
+  final _taskQueueController = StreamController<List<TaskRecord>>.broadcast();
 
   Stream<TaskRecord> get dbUpdates => _downloader.database.updates;
 
   Stream<TaskProgressUpdate> get progressUpdateStream => _progressUpdateController.stream;
+
+  Stream<List<TaskRecord>> get taskQueueStream => _taskQueueController.stream;
 
   DownloadHandler(this._ref) {
     _downloader = FileDownloader();
 
     _init();
 
+    _updateTaskQueue();
+
     dbUpdates.listen((update) async {
+      _updateTaskQueue();
       if (update.status == TaskStatus.complete) {
         final List<dynamic> metaData = jsonDecode(update.task.metaData);
         if (metaData.isNotEmpty && metaData[0] is String) {
@@ -73,15 +79,40 @@ class DownloadHandler {
         }
       }
     });
+
+    _downloader.updates.listen((update) {
+      _updateTaskQueue();
+    });
   }
 
   _init() async {
     // TODO: Need to find examples for https://github.com/781flyingdutchman/background_downloader/blob/main/doc/CONFIG.md
+    List<String> ids = [];
+    await _downloader.database.allRecordsWithStatus(TaskStatus.failed).then((failedTasks) {
+      for (final task in failedTasks) {
+        logger(
+          'Failed task found: ${task.taskId} with status ${task.status}',
+          tag: 'DownloadHandler',
+          level: InfoLevel.warning,
+        );
+        ids.add(task.taskId);
+      }
+    });
+    await _downloader.database.deleteRecordsWithIds(ids);
+
     FileDownloader().configure();
 
     await FileDownloader().trackTasks();
 
     FileDownloader().start();
+
+    _updateTaskQueue();
+  }
+
+  _updateTaskQueue() async {
+    final List<TaskRecord> tasks =
+        (await _downloader.database.allRecords()).where((task) => task.status != TaskStatus.complete).toList();
+    _taskQueueController.add(tasks);
   }
 
   Future<void> downloadFile(String itemId, {String? episodeId, bool ebook = false}) async {

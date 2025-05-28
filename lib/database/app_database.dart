@@ -86,7 +86,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 12;
+  int get schemaVersion => 13;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -94,17 +94,21 @@ class AppDatabase extends _$AppDatabase {
       await m.createAll();
     },
     onUpgrade: (m, from, to) async {
-      if (from == 1) {
+      if (from <= 1) {
         await m.createTable(storedSyncs);
       }
-      if (from == 8) {
+      if (from <= 8) {
         await m.drop(storedSyncs);
         await m.createTable(storedSyncs);
       }
-      if (from == 10) {
+      if (from <= 10) {
         await m.createTable(storedDownloads);
       }
-      if (from == 11) {
+      if (from <= 11) {
+        await m.drop(storedDownloads);
+        await m.createTable(storedDownloads);
+      }
+      if (from <= 12) {
         await m.drop(storedDownloads);
         await m.createTable(storedDownloads);
       }
@@ -145,7 +149,7 @@ class AppDatabase extends _$AppDatabase {
         return download;
       } else {
         logger(
-          'Incomplete download found for itemId: $itemId, userId: $userId, episodeId: $episodeId',
+          'Incomplete download found for itemId: $itemId, userId: $userId, episodeId: $episodeId (target tracks: ${download.numberOfTracks}, downloaded tracks: ${download.numberOfDownloadedTracks}).',
           tag: 'AppDatabase',
           level: InfoLevel.warning,
         );
@@ -158,7 +162,10 @@ class AppDatabase extends _$AppDatabase {
     return transaction(() async {
       final insertResult = await into(storedDownloads).insert(companion, mode: InsertMode.insertOrIgnore);
 
-      if (insertResult == 0) {
+      print('Insert result: $insertResult');
+
+      // TODO: Find why the f it returns 3, 0 and somethimes 1
+      if (insertResult >= 0) {
         Expression<bool> whereClause =
             storedDownloads.itemId.equals(companion.itemId.value) &
             storedDownloads.userId.equals(companion.userId.value);
@@ -173,7 +180,10 @@ class AppDatabase extends _$AppDatabase {
         final oldDownload = InternalDownload.fromJson(jsonDecode(existing.download));
         final newDownload = InternalDownload.fromJson(jsonDecode(companion.download.value));
 
-        final List<InternalTrack> mergedTracks = [...oldDownload.tracks, ...newDownload.tracks];
+        final List<InternalTrack> mergedTracks = [
+          ...oldDownload.tracks,
+          ...newDownload.tracks.where((track) => !oldDownload.tracks.contains(track)),
+        ];
         final updatedDownload = oldDownload.copyWith(tracks: mergedTracks);
 
         await (update(storedDownloads)..where(

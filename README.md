@@ -7,6 +7,13 @@ An improved cross-platform app for Audiobookshelf
 > [!NOTE]
 > For best playback experience merge all audio files into one file.
 
+> [!NOTE]
+> - ✅: Feature is available and tested for the platform before the release on at least one personal device.
+> - ❓: Feature is available but not tested for the platform before the release. The features should work, but they are not guaranteed to work.
+> - ❌: Feature is not available for the platform
+>
+> If a feature already has one ✅ or ❓, please do not open an issue for the other platforms as it is not possible or would require too much effort to implement it for a single platform.
+
 ### Library
 | Feature            | Android | iOS | Windows | MacOS | Linux |
 |--------------------|---------|-----|---------|-------|-------|
@@ -25,13 +32,13 @@ An improved cross-platform app for Audiobookshelf
 | Feature                  | Android | iOS | Windows | MacOS | Linux |
 |--------------------------|---------|-----|---------|-------|-------|
 | Play/Pause/Seeking/Speed | ✅       | ✅   | ✅       | ✅     | ✅     |
-| Background Playback      | ✅       | ✅   | ✅       | ❓     | ❓     |
-| Device Controls          | ✅       | ✅   | ❌       | ✅     | ❌     |
+| Background Playback      | ✅       | ❓   | ✅       | ❓     | ❓     |
+| Device Controls          | ✅       | ❓   | ❌       | ❓     | ❌     |
 | (Auto)-Queue             | ✅       | ✅   | ✅       | ✅     | ✅     |
-| Gapless playback         | ✅       | ✅   | ✅       | ✅     | ✅     |
-| Buffering                | ✅       | ✅   | ✅       | ✅     | ✅     |
+| Gapless playback         | ✅       | ❓   | ✅       | ❓     | ❓     |
+| Buffering                | ✅       | ❓   | ✅       | ❓     | ❓     |
 | Volume Boost             | ✅       | ❌   | ❌       | ❌     | ❌     |
-| Audio ducking            | ✅       | ✅   | ❌       | ❌     | ❌     |
+| Audio ducking            | ✅       | ❓   | ❌       | ❌     | ❌     |
 | Sleep Timer              | ❌       | ❌   | ❌       | ❌     | ❌     |
 | Chapters                 | ❌       | ❌   | ❌       | ❌     | ❌     |
 | Play History             | ❌       | ❌   | ❌       | ❌     | ❌     |
@@ -52,5 +59,5 @@ An improved cross-platform app for Audiobookshelf
 |-----------|---------|-----|---------|-------|-------|
 | Sync      | ✅       | ✅   | ✅       | ✅     | ✅     |
 | Caching   | ❌       | ❌   | ❌       | ❌     | ❌     |
-| Downloads | ❌       | ❌   | ❌       | ❌     | ❌     |
+| Downloads | ✅       | ❓   | ✅       | ❓     | ❓     |
 | Headers   | ✅       | ✅   | ✅       | ✅     | ✅     |

@@ -39,7 +39,7 @@ dependencies:
   flutter_hooks: ^0.21.2
   connectivity_plus: ^6.1.4
   rxdart: ^0.28.0
-  background_downloader: ^9.2.2 # Setup needed for Android, iOS, macOS, Linux | Testing needed for Android, iOS, macOS, Linux
+  background_downloader: ^9.2.2 # Setup needed for , iOS, macOS, Linux | Testing needed for iOS, macOS, Linux
 
   package_info_plus: ^8.3.0
   device_info_plus: ^11.4.0
