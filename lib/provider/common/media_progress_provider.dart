@@ -50,8 +50,10 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
       return state.valueOrNull ?? {};
     } catch (e, s) {
       logger('Error refreshing all media progress: $e\n$s', tag: 'MediaProgressProvider', level: InfoLevel.error);
-      throw Exception('Failed to load initial media progress: $e');
+      await _loadFromDb();
+      state = AsyncError<Map<String, MediaProgress>>(e, s).copyWithPrevious(state);
     }
+    return state.valueOrNull ?? {};
   }
 
   Future<void> refreshAllProgress() async {
@@ -68,6 +70,7 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
     } catch (e, s) {
       logger('Error refreshing all media progress: $e\n$s', tag: 'MediaProgressProvider', level: InfoLevel.error);
       state = AsyncError<Map<String, MediaProgress>>(e, s).copyWithPrevious(state);
+      _loadFromDb();
     }
   }
 

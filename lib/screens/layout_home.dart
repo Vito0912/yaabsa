@@ -1,6 +1,7 @@
 import 'package:buchshelfly/components/app/library_switcher.dart';
 import 'package:buchshelfly/components/app/user_switcher.dart';
 import 'package:buchshelfly/components/player/play_bar.dart';
+import 'package:buchshelfly/screens/main/downloads.dart';
 import 'package:buchshelfly/screens/main/library_view.dart';
 import 'package:buchshelfly/screens/main/personalized_view.dart';
 import 'package:buchshelfly/screens/settings/settings_screen.dart';
@@ -62,6 +63,7 @@ class _LayoutHomeState extends State<LayoutHome> {
     ];
 
     _advancedMenuItems = [
+      NavigationItemConfig(icon: Icons.download, label: "Downloads", page: Downloads()),
       NavigationItemConfig(icon: Icons.settings, label: "Settings", page: MainSettingsScreen()),
       NavigationItemConfig(
         icon: Icons.info_outline,

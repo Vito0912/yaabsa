@@ -113,8 +113,24 @@ class AppDatabase extends _$AppDatabase {
   );
 
   // Download management
-  Future<List<StoredDownloadsEntry>> getAllStoredDownloads() async {
-    return await select(storedDownloads).get();
+  Future<List<InternalDownload>> getAllStoredDownloads() async {
+    final entries = await select(storedDownloads).get();
+    return entries.map((e) => InternalDownload.fromJson(jsonDecode(e.download))).toList();
+  }
+
+  Future<List<InternalDownload>> getAllStoredDownloadsByUser(String userId) async {
+    final entries = await (select(storedDownloads)..where((tbl) => tbl.userId.equals(userId))).get();
+    return entries.map((e) => InternalDownload.fromJson(jsonDecode(e.download))).toList();
+  }
+
+  Future<List<InternalDownload>> getAllStoredDownloadsByUserForLibrary(String userId, String libraryId) async {
+    final entries = await (select(storedDownloads)..where((tbl) => tbl.userId.equals(userId))).get();
+    // TODO: Podcast
+    return entries
+        .map((e) => InternalDownload.fromJson(jsonDecode(e.download)))
+        .toList()
+        .where((d) => d.item?.libraryId == libraryId)
+        .toList();
   }
 
   Future<InternalDownload?> getStoredDownload(String itemId, String userId, {String? episodeId}) async {

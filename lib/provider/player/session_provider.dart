@@ -33,6 +33,11 @@ class SessionRepository {
   PlaybackSession? get currentSession => _currentSession;
 
   Future<void> closeSession() async {
+    if (_isLocalSession) {
+      logger('Closed local session', tag: 'SessionRepository');
+      _currentSession = null;
+      return;
+    }
     final ABSApi? api = ref.read(absApiProvider);
 
     if (api == null) {
