@@ -20,7 +20,9 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   final ProviderContainer _ref;
   late final PlaybackSyncService _syncService;
   List<QueueItem> queueList = [];
+  QueueItem? _lastQueueItem;
   BehaviorSubject<InternalMedia?> mediaItemStream = BehaviorSubject<InternalMedia?>();
+  InternalMedia? get currentMediaItem => _currentMediaItem;
 
   static get maxVolume {
     if (Platform.isAndroid) {
@@ -110,11 +112,16 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   @override
   Future<void> play() async {
-    print(_currentMediaItem);
     if (_currentMediaItem != null) await _syncedPlay();
 
     QueueItem? tmp = queueList.isNotEmpty ? queueList.removeAt(0) : null;
+
+    if (tmp == null && _lastQueueItem != null) {
+      // e.g. Android still shows the notification and allows pressing play. This will re-use the last item.
+      tmp = _lastQueueItem;
+    }
     if (tmp == null) return Future.value();
+    _lastQueueItem = tmp;
     _currentMediaItem = await _ref.read(sessionRepositoryProvider).openSession(tmp.itemId);
     if (_currentMediaItem == null) {
       logger('No media item found for ID: ${tmp.itemId}', tag: 'AudioHandler', level: InfoLevel.error);
@@ -201,6 +208,10 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   Future<void> rewind() async {
     if (_currentMediaItem == null) return Future.value();
     final newPosition = position - skipTime;
+    if (newPosition < Duration.zero) {
+      logger('Rewind position is negative, resetting to zero', tag: 'AudioHandler', level: InfoLevel.debug);
+      return seek(Duration.zero);
+    }
     seek(newPosition);
     return Future.value();
   }

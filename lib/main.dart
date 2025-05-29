@@ -21,6 +21,7 @@ void main() {
       Init.initLogger();
       audioHandler = await Init.initAudioHandler();
 
+      Init.late();
       runApp(UncontrolledProviderScope(container: containerRef, child: MyApp()));
     },
     (error, stack) {

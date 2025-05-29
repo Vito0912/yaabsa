@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:audio_service/audio_service.dart';
 import 'package:buchshelfly/util/globals.dart';
 import 'package:buchshelfly/util/handler/bg_audio_handler.dart';
 import 'package:buchshelfly/util/handler/download_handler.dart';
+import 'package:buchshelfly/util/handler/shake_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -45,5 +48,13 @@ class Init {
 
     packageInfo = await PackageInfo.fromPlatform();
     downloadHandler = DownloadHandler(containerRef);
+  }
+
+  static Future<void> late() async {
+    if (Platform.isAndroid || Platform.isIOS) {
+      rewindShakeHandler = ShakeRewindHandler();
+    } else {
+      rewindShakeHandler = null;
+    }
   }
 }

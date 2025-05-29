@@ -17,7 +17,15 @@ class LibraryItemView extends ConsumerWidget {
     final api = ref.watch(absApiProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Library Item')),
+      appBar: AppBar(
+        title: const Text('Library Item'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            context.pop();
+          },
+        ),
+      ),
       body: item.when(
         data: (item) {
           if (item == null) {
