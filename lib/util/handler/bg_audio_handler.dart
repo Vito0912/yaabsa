@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
@@ -11,6 +12,7 @@ import 'package:buchshelfly/util/setting_key.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
+import 'package:rxdart/subjects.dart';
 import 'package:rxdart/transformers.dart';
 
 class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
@@ -18,6 +20,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   final ProviderContainer _ref;
   late final PlaybackSyncService _syncService;
   List<QueueItem> queueList = [];
+  BehaviorSubject<InternalMedia?> mediaItemStream = BehaviorSubject<InternalMedia?>();
 
   static get maxVolume {
     if (Platform.isAndroid) {
@@ -41,7 +44,25 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   AudioPlayer get player => _player;
 
   int _currentTrackIndex = 0;
-  InternalMedia? _currentMediaItem;
+  InternalMedia? __currentMediaItem;
+
+  InternalMedia? get _currentMediaItem => __currentMediaItem;
+  set _currentMediaItem(InternalMedia? mediaItem) {
+    __currentMediaItem = mediaItem;
+    _currentTrackIndex = 0;
+    mediaItemStream.add(mediaItem);
+  }
+
+  Stream<double> get volumeStream => _player.volumeStream;
+
+  Future<void> setVolume(double volume) async {
+    if (volume < 0 || volume > maxVolume) {
+      logger('Volume out of bounds: $volume', tag: 'AudioHandler', level: InfoLevel.error);
+      return Future.value();
+    }
+    await _player.setVolume(volume);
+    return Future.value();
+  }
 
   Stream<Duration> get durationStream {
     return _player.durationStream.map((duration) {
@@ -75,7 +96,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   }
 
   Stream<List<InternalChapter>> get chaptersStream {
-    return _player.playerStateStream.map((position) => _currentMediaItem?.chapters ?? []).distinct();
+    return mediaItemStream.map((position) => _currentMediaItem?.chapters ?? []).distinct();
   }
 
   Duration get position {
@@ -143,10 +164,10 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   }
 
   @override
-  Future<void> stop() async {
+  Future<void> stop({bool clearQueue = true}) async {
     _currentMediaItem = null;
     _currentTrackIndex = 0;
-    queueList.clear();
+    if (clearQueue) queueList.clear();
     try {
       await _syncService.flush();
       await _ref.read(sessionRepositoryProvider).closeSession();
@@ -163,8 +184,10 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     return Future.value();
   }
 
-  // TODO: Skiptime
+  // TODO: Settings
   static const Duration skipTime = Duration(seconds: 10);
+  static const bool headphoneSkip =
+      true; // Later should determine if the skip button just fasts forward or skips chapters
 
   @override
   Future<void> fastForward() async {
@@ -179,6 +202,46 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     if (_currentMediaItem == null) return Future.value();
     final newPosition = position - skipTime;
     seek(newPosition);
+    return Future.value();
+  }
+
+  @override
+  Future<void> skipToNext() async {
+    if (_currentMediaItem == null) return Future.value();
+    InternalChapter? nextChapter = _currentMediaItem!.getNextChapterForDuration(position);
+    if (nextChapter != null) {
+      final newPosition = Duration(microseconds: (nextChapter.start * Duration.microsecondsPerSecond).round());
+      logger(
+        'Skipping to next chapter: $nextChapter, new position: $newPosition',
+        tag: 'AudioHandler',
+        level: InfoLevel.debug,
+      );
+      return seek(newPosition);
+    } else {
+      logger('No next chapter found, skipping to next item', tag: 'AudioHandler', level: InfoLevel.debug);
+      if (queueList.isNotEmpty) {
+        await stop(clearQueue: false);
+        return play();
+      } else {
+        logger('No more items in queue, stopping playback', tag: 'AudioHandler', level: InfoLevel.debug);
+        return stop();
+      }
+    }
+  }
+
+  @override
+  Future<void> skipToPrevious() async {
+    if (_currentMediaItem == null) return Future.value();
+    InternalChapter? previousChapter = _currentMediaItem!.getPreviousChapterForDuration(position);
+    if (previousChapter != null) {
+      final newPosition = Duration(microseconds: (previousChapter.start * Duration.microsecondsPerSecond).round());
+      logger(
+        'Skipping to previous chapter: $previousChapter, new position: $newPosition',
+        tag: 'AudioHandler',
+        level: InfoLevel.debug,
+      );
+      return seek(newPosition);
+    }
     return Future.value();
   }
 
@@ -327,5 +390,9 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         speed: _player.speed,
       ),
     );
+  }
+
+  Future<void> dispose() async {
+    await mediaItemStream.close();
   }
 }

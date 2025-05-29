@@ -1,10 +1,10 @@
 import 'package:buchshelfly/components/app/download_status.dart';
 import 'package:buchshelfly/components/app/library_switcher.dart';
 import 'package:buchshelfly/components/app/user_switcher.dart';
-import 'package:buchshelfly/components/player/play_bar.dart';
 import 'package:buchshelfly/screens/main/downloads.dart';
 import 'package:buchshelfly/screens/main/library_view.dart';
 import 'package:buchshelfly/screens/main/personalized_view.dart';
+import 'package:buchshelfly/screens/player/play_bar.dart';
 import 'package:buchshelfly/screens/settings/settings_screen.dart';
 import 'package:buchshelfly/util/globals.dart';
 import 'package:flutter/material.dart';

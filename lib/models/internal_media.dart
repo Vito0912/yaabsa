@@ -1,4 +1,5 @@
 import 'package:audio_service/audio_service.dart';
+import 'package:buchshelfly/util/extensions.dart';
 import 'package:buchshelfly/util/logger.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:just_audio/just_audio.dart' show AudioSource;
@@ -129,6 +130,60 @@ abstract class InternalMedia with _$InternalMedia {
       }
     }
     return null;
+  }
+
+  InternalChapter? getNextChapterForDuration(Duration duration) {
+    if (chapters?.isEmpty ?? true) return null;
+
+    final target = duration.inSecondsPrecise;
+
+    int left = 0;
+    int right = chapters!.length - 1;
+    InternalChapter? result;
+
+    while (left <= right) {
+      final mid = (left + right) ~/ 2;
+      final chapter = chapters![mid];
+
+      if (chapter.start > target) {
+        result = chapter;
+        right = mid - 1;
+      } else {
+        left = mid + 1;
+      }
+    }
+
+    return result;
+  }
+
+  InternalChapter? getPreviousChapterForDuration(Duration duration) {
+    if (chapters?.isEmpty ?? true) return null;
+    final target = duration.inSecondsPrecise;
+
+    int left = 0;
+    int right = chapters!.length - 1;
+    InternalChapter? currentChapter;
+    int currentIndex = -1;
+    while (left <= right) {
+      final mid = (left + right) ~/ 2;
+      final chapter = chapters![mid];
+      if (chapter.start <= target && target < chapter.end) {
+        currentChapter = chapter;
+        currentIndex = mid;
+        break;
+      } else if (chapter.start > target) {
+        right = mid - 1;
+      } else {
+        left = mid + 1;
+      }
+    }
+    if (currentChapter == null) return null;
+    final secondsIntoChapter = target - currentChapter.start;
+    if (secondsIntoChapter < 5.0) {
+      return currentIndex > 0 ? chapters![currentIndex - 1] : null;
+    } else {
+      return currentChapter;
+    }
   }
 }
 
