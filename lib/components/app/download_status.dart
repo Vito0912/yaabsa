@@ -11,7 +11,7 @@ class DownloadStatus extends StatelessWidget {
     return StreamBuilder<List<TaskRecord>>(
       stream: downloadHandler.taskQueueStream,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+        if (snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
 
