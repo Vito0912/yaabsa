@@ -175,4 +175,25 @@ class MeApi {
       dio: _dio,
     );
   }
+
+  Future<void> updateBookProgress(
+    String itemId, {
+    required double progress,
+    required String epubCfi,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    var route = '/api/me/progress/$itemId';
+
+    await ABSApi.makeApiPatchRequest(
+      route: route,
+      fromJson: null,
+      bodyData: {'ebookLocation': epubCfi, 'ebookProgress': progress},
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
+    );
+  }
 }

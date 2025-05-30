@@ -1,9 +1,9 @@
-import 'package:buchshelfly/components/reader/reader.dart';
 import 'package:buchshelfly/screens/auth/sign_in.dart';
 import 'package:buchshelfly/screens/item/library_item_view.dart';
 import 'package:buchshelfly/screens/layout_home.dart';
 import 'package:buchshelfly/screens/player/play_history_view.dart';
 import 'package:buchshelfly/screens/player/player.dart';
+import 'package:buchshelfly/screens/reader/reader.dart';
 import 'package:buchshelfly/screens/settings/appearance_settings.dart';
 import 'package:buchshelfly/screens/settings/caching_settings.dart';
 import 'package:buchshelfly/screens/settings/global_player_settings.dart';

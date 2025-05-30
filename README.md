@@ -52,8 +52,8 @@ An improved cross-platform app for Audiobookshelf
 |------------------|---------|-----|---------|-------|-------|
 | ePUB support     | ✅       | ✅   | ✅       | ❓     | ❓     |
 | PDF support      | 🅿️     | 🅿️ | 🅿️     | 🅿️   | 🅿️   |
-| Annotations      | 🅿️     | 🅿️ | 🅿️     | 🅿️   | 🅿️   |
-| Sync Annotations | 🅿️     | 🅿️ | 🅿️     | 🅿️   | 🅿️   |
+| Annotations      | ✅       | ✅   | ✅       | ❓     | ❓     |
+| Sync Annotations | ✅       | ✅   | ✅       | ❓     | ❓     |
 
 
 ### Other Features
