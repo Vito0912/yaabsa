@@ -28,5 +28,12 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <true/>
+    </dict>
+    <key>NSMotionUsageDescription</key>
+    <string>This app needs access to the accelerometer to allow actions when you shake your device. You can reset the sleep timer or rewind the current audio by shaking. The app only listens for these actions if the setting is turned on and you can use the feature (for example, shaking to rewind only works if audio is playing). No acceleration data is sent anywhere.</string>
 </dict>
 </plist>

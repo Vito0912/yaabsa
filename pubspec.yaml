@@ -25,8 +25,8 @@ dependencies:
   uuid: ^4.5.1
 
   # Core
-  just_audio: ^0.10.3
-  audio_service: ^0.18.18
+  just_audio: ^0.10.3 # Should be setup for Android, Windows, iOS, macOS, Linux | Testing needed for iOS, macOS, Linux | https://pub.dev/packages/just_audio
+  audio_service: ^0.18.18 # Should be setup for Android, Windows, iOS | Testing needed for iOS, macOS | for macOS pod is needed platform :osx, '10.12.2' | https://pub.dev/packages/audio_service
   dio: ^5.8.0+1
   drift: ^2.26.1
   path_provider: ^2.1.5
@@ -39,11 +39,11 @@ dependencies:
   flutter_hooks: ^0.21.2
   connectivity_plus: ^6.1.4
   rxdart: ^0.28.0
-  background_downloader: ^9.2.2 # Setup needed for , iOS, macOS, Linux | Testing needed for iOS, macOS, Linux
+  background_downloader: ^9.2.2 # iOS needs background fetch | Testing needed for iOS, Android | https://pub.dev/packages/background_downloader
 
   package_info_plus: ^8.3.0
   device_info_plus: ^11.4.0
-  sensors_plus: ^6.1.1
+  sensors_plus: ^6.1.1 # Should be setup for Android, iOS, macOS, Windows | Testing needed for iOS, macOS, Windows | https://pub.dev/packages/sensors_plus
   vibration: ^3.1.3
 
   # Note for contributors: Commit pinning is used. Please check for updates when updating the e-Reader. This is for security, as it runs in a WebView and the repository is very small.
@@ -59,6 +59,7 @@ dependencies:
   media_kit_libs_windows_audio: any
 
   ## Linux
+  audio_service_mpris: ^0.2.0 # Needs to be tested
 
   ## MacOS
 
