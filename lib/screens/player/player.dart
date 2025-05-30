@@ -10,9 +10,11 @@ import 'package:buchshelfly/components/player/common/volume_slider.dart';
 import 'package:buchshelfly/models/internal_media.dart';
 import 'package:buchshelfly/provider/core/user_providers.dart';
 import 'package:buchshelfly/screens/player/chapter.dart';
+import 'package:buchshelfly/screens/player/play_history_view.dart';
 import 'package:buchshelfly/util/globals.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class Player extends StatelessWidget {
   Player({super.key});
@@ -20,7 +22,19 @@ class Player extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Player'), actions: [StopButton()]),
+      appBar: AppBar(
+        title: const Text('Player'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.history),
+            onPressed: () {
+              context.push(PlayHistoryView.routeName);
+            },
+            tooltip: 'Play History',
+          ),
+          StopButton(),
+        ],
+      ),
       body: Consumer(
         builder: (BuildContext context, ref, child) {
           final ABSApi? api = ref.watch(absApiProvider);

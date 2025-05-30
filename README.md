@@ -31,26 +31,26 @@ An improved cross-platform app for Audiobookshelf
 | Stats              | 🅿️     | 🅿️ | 🅿️     | 🅿️   | 🅿️   |
 
 ### Player
-| Feature                  | Android | iOS | Windows | MacOS | Linux |
-|--------------------------|---------|-----|---------|-------|-------|
-| Play/Pause/Seeking/Speed | ✅       | ✅   | ✅       | ✅     | ✅     |
-| Background Playback      | ✅       | ❓   | ✅       | ❓     | ❓     |
-| Device Controls          | ✅       | ❓   | ❌       | ❓     | ❌     |
-| (Auto)-Queue             | ✅       | ✅   | ✅       | ✅     | ✅     |
-| Gapless playback         | ✅       | ❓   | ✅       | ❓     | ❓     |
-| Buffering                | ✅       | ❓   | ✅       | ❓     | ❓     |
-| Volume Boost             | ✅       | ❌   | ❌       | ❌     | ❌     |
-| Audio ducking            | ✅       | ❓   | ❌       | ❌     | ❌     |
-| Sleep Timer              | ✅       | ✅   | ✅       | ✅     | ✅     |
-| Chapters                 | ✅       | ✅   | ✅       | ✅     | ✅     |
-| Play History             | 🅿️     | 🅿️ | 🅿️     | 🅿️   | 🅿️   |
-| Shake to rewind          | ✅       | ✅   | ❌       | ❌     | ❌     |
+| Feature                         | Android | iOS | Windows | MacOS | Linux |
+|---------------------------------|---------|-----|---------|-------|-------|
+| Play/Pause/Seeking/Speed/Volume | ✅       | ✅   | ✅       | ✅     | ✅     |
+| Background Playback             | ✅       | ❓   | ✅       | ❓     | ❓     |
+| Device Controls                 | ✅       | ❓   | ❌       | ❓     | ❌     |
+| (Auto)-Queue                    | ✅       | ✅   | ✅       | ✅     | ✅     |
+| Gapless playback                | ✅       | ✅   | ✅       | ❓     | ❓     |
+| Buffering                       | ✅       | ✅   | ✅       | ❓     | ❓     |
+| Volume Boost                    | ✅       | ❌   | ❌       | ❌     | ❌     |
+| Audio ducking                   | ✅       | ❓   | ❌       | ❌     | ❌     |
+| Sleep Timer                     | ✅       | ✅   | ✅       | ✅     | ✅     |
+| Chapters                        | ✅       | ✅   | ✅       | ✅     | ✅     |
+| Play History                    | ✅       | ✅   | ✅       | ✅     | ✅     |
+| Shake to rewind                 | ✅       | ✅   | ❌       | ❌     | ❌     |
 
 ### E-Reader
 
 | Feature          | Android | iOS | Windows | MacOS | Linux |
 |------------------|---------|-----|---------|-------|-------|
-| ePUB support     | ✅       | ❓   | ✅       | ❓     | ❓     |
+| ePUB support     | ✅       | ✅   | ✅       | ❓     | ❓     |
 | PDF support      | 🅿️     | 🅿️ | 🅿️     | 🅿️   | 🅿️   |
 | Annotations      | 🅿️     | 🅿️ | 🅿️     | 🅿️   | 🅿️   |
 | Sync Annotations | 🅿️     | 🅿️ | 🅿️     | 🅿️   | 🅿️   |

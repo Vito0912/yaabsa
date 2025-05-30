@@ -2,6 +2,7 @@ import 'package:buchshelfly/components/reader/reader.dart';
 import 'package:buchshelfly/screens/auth/sign_in.dart';
 import 'package:buchshelfly/screens/item/library_item_view.dart';
 import 'package:buchshelfly/screens/layout_home.dart';
+import 'package:buchshelfly/screens/player/play_history_view.dart';
 import 'package:buchshelfly/screens/player/player.dart';
 import 'package:buchshelfly/screens/settings/appearance_settings.dart';
 import 'package:buchshelfly/screens/settings/caching_settings.dart';
@@ -18,6 +19,7 @@ final globalRouter = GoRouter(
     GoRoute(path: '/add-user', builder: (context, state) => SignIn()),
     GoRoute(path: '/player', builder: (context, state) => Player()),
     GoRoute(path: '/ebook/:id', builder: (context, state) => Reader(itemId: state.pathParameters['id']!)),
+    GoRoute(path: PlayHistoryView.routeName, builder: (context, state) => PlayHistoryView()),
     ShellRoute(
       builder: (BuildContext context, GoRouterState state, Widget child) {
         return child;

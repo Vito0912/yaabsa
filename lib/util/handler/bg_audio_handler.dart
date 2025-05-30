@@ -7,6 +7,7 @@ import 'package:buchshelfly/models/internal_media.dart';
 import 'package:buchshelfly/provider/common/media_progress_provider.dart';
 import 'package:buchshelfly/provider/player/session_provider.dart';
 import 'package:buchshelfly/util/handler/playback_sync_service.dart';
+import 'package:buchshelfly/util/handler/player_history_handler.dart';
 import 'package:buchshelfly/util/logger.dart';
 import 'package:buchshelfly/util/setting_key.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -328,6 +329,17 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     _syncService = PlaybackSyncService(this, _ref);
     _player.playerStateStream.listen((PlayerState state) async {
       logger(state.toString(), tag: 'AudioHandler', level: InfoLevel.debug);
+
+      if (state.processingState == ProcessingState.completed) {
+        PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.stop);
+      }
+      if (state.processingState == ProcessingState.loading || state.processingState == ProcessingState.buffering) {
+        PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.pause);
+      }
+      if (state.playing && state.processingState == ProcessingState.ready) {
+        PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.play);
+      }
+
       if (state.processingState == ProcessingState.completed) {
         if (_currentMediaItem == null) return;
         logger(

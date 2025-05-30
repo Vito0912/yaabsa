@@ -75,18 +75,32 @@ class StoredDownloads extends Table {
 
   @override
   List<Set<Column>> get uniqueKeys => [
-    {itemId, userId, episodeId},
     {itemId, userId},
   ];
 }
 
-@DriftDatabase(tables: [GlobalSettings, UserSettings, StoredUsers, StoredSyncs, StoredDownloads])
+@DataClassName('PlayerHistoryEntry')
+class PlayerHistory extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get itemId => text()();
+  TextColumn get userId => text()();
+  TextColumn get episodeId => text().nullable()();
+
+  TextColumn get type => text()();
+  RealColumn get currentTime => real()();
+
+  DateTimeColumn get created => dateTime().withDefault(currentDateAndTime)();
+
+  // TODO: Indexes for performance
+}
+
+@DriftDatabase(tables: [GlobalSettings, UserSettings, StoredUsers, StoredSyncs, StoredDownloads, PlayerHistory])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 13;
+  int get schemaVersion => 14;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -112,9 +126,26 @@ class AppDatabase extends _$AppDatabase {
         await m.drop(storedDownloads);
         await m.createTable(storedDownloads);
       }
+      if (from <= 13) {
+        await m.createTable(playerHistory);
+      }
     },
     beforeOpen: (details) async {},
   );
+
+  // Player history management
+  Future<void> addPlayerHistory(PlayerHistoryCompanion companion) {
+    return into(playerHistory).insert(companion, mode: InsertMode.insertOrIgnore);
+  }
+
+  Stream<List<PlayerHistoryEntry>> watchPlayerHistoryByItem(String itemId, String userId, {String? episodeId}) {
+    final query = select(playerHistory)..where((tbl) => tbl.itemId.equals(itemId) & tbl.userId.equals(userId));
+    if (episodeId != null) {
+      query.where((tbl) => tbl.episodeId.equals(episodeId));
+    }
+    query.orderBy([(tbl) => OrderingTerm.desc(tbl.created)]);
+    return query.watch();
+  }
 
   // Download management
   Future<List<InternalDownload>> getAllStoredDownloads() async {

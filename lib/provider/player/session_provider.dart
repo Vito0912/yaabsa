@@ -14,6 +14,7 @@ import 'package:buchshelfly/provider/common/media_progress_provider.dart';
 import 'package:buchshelfly/provider/core/server_status_provider.dart';
 import 'package:buchshelfly/provider/core/user_providers.dart';
 import 'package:buchshelfly/util/globals.dart';
+import 'package:buchshelfly/util/handler/player_history_handler.dart';
 import 'package:buchshelfly/util/logger.dart';
 import 'package:buchshelfly/util/player_utils.dart';
 import 'package:drift/drift.dart' show Value;
@@ -141,7 +142,6 @@ class SessionRepository {
   }
 
   Future<bool> syncOpenSession(double currentTime, double timeListened) async {
-    // TODO: Implement for offline support
     final ABSApi? api = ref.read(absApiProvider);
     if (api == null) {
       logger('No API available, cannot sync session.', tag: 'SessionRepository', level: InfoLevel.warning);
@@ -172,6 +172,8 @@ class SessionRepository {
         ),
       );
 
+      PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.sync);
+
       return result;
     } catch (e) {
       logger('Failed to sync open session', tag: 'SessionRepository', level: InfoLevel.warning);
@@ -194,6 +196,7 @@ class SessionRepository {
     );
 
     await ref.read(appDatabaseProvider).addOrUpdateSync(sync);
+    PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.syncOffline);
     logger('Sync stored locally for session ${_currentSession!.id}', tag: 'SessionRepository', level: InfoLevel.debug);
     return true;
   }

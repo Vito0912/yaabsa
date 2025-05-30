@@ -1445,7 +1445,6 @@ class $StoredDownloadsTable extends StoredDownloads
   Set<GeneratedColumn> get $primaryKey => {itemId, userId, episodeId};
   @override
   List<Set<GeneratedColumn>> get uniqueKeys => [
-    {itemId, userId, episodeId},
     {itemId, userId},
   ];
   @override
@@ -1670,6 +1669,458 @@ class StoredDownloadsCompanion extends UpdateCompanion<StoredDownloadsEntry> {
   }
 }
 
+class $PlayerHistoryTable extends PlayerHistory
+    with TableInfo<$PlayerHistoryTable, PlayerHistoryEntry> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PlayerHistoryTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _itemIdMeta = const VerificationMeta('itemId');
+  @override
+  late final GeneratedColumn<String> itemId = GeneratedColumn<String>(
+    'item_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _episodeIdMeta = const VerificationMeta(
+    'episodeId',
+  );
+  @override
+  late final GeneratedColumn<String> episodeId = GeneratedColumn<String>(
+    'episode_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _currentTimeMeta = const VerificationMeta(
+    'currentTime',
+  );
+  @override
+  late final GeneratedColumn<double> currentTime = GeneratedColumn<double>(
+    'current_time',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdMeta = const VerificationMeta(
+    'created',
+  );
+  @override
+  late final GeneratedColumn<DateTime> created = GeneratedColumn<DateTime>(
+    'created',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    itemId,
+    userId,
+    episodeId,
+    type,
+    currentTime,
+    created,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'player_history';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PlayerHistoryEntry> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('item_id')) {
+      context.handle(
+        _itemIdMeta,
+        itemId.isAcceptableOrUnknown(data['item_id']!, _itemIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_itemIdMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('episode_id')) {
+      context.handle(
+        _episodeIdMeta,
+        episodeId.isAcceptableOrUnknown(data['episode_id']!, _episodeIdMeta),
+      );
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_typeMeta);
+    }
+    if (data.containsKey('current_time')) {
+      context.handle(
+        _currentTimeMeta,
+        currentTime.isAcceptableOrUnknown(
+          data['current_time']!,
+          _currentTimeMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_currentTimeMeta);
+    }
+    if (data.containsKey('created')) {
+      context.handle(
+        _createdMeta,
+        created.isAcceptableOrUnknown(data['created']!, _createdMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  PlayerHistoryEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PlayerHistoryEntry(
+      id:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.int,
+            data['${effectivePrefix}id'],
+          )!,
+      itemId:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}item_id'],
+          )!,
+      userId:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}user_id'],
+          )!,
+      episodeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}episode_id'],
+      ),
+      type:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.string,
+            data['${effectivePrefix}type'],
+          )!,
+      currentTime:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.double,
+            data['${effectivePrefix}current_time'],
+          )!,
+      created:
+          attachedDatabase.typeMapping.read(
+            DriftSqlType.dateTime,
+            data['${effectivePrefix}created'],
+          )!,
+    );
+  }
+
+  @override
+  $PlayerHistoryTable createAlias(String alias) {
+    return $PlayerHistoryTable(attachedDatabase, alias);
+  }
+}
+
+class PlayerHistoryEntry extends DataClass
+    implements Insertable<PlayerHistoryEntry> {
+  final int id;
+  final String itemId;
+  final String userId;
+  final String? episodeId;
+  final String type;
+  final double currentTime;
+  final DateTime created;
+  const PlayerHistoryEntry({
+    required this.id,
+    required this.itemId,
+    required this.userId,
+    this.episodeId,
+    required this.type,
+    required this.currentTime,
+    required this.created,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['item_id'] = Variable<String>(itemId);
+    map['user_id'] = Variable<String>(userId);
+    if (!nullToAbsent || episodeId != null) {
+      map['episode_id'] = Variable<String>(episodeId);
+    }
+    map['type'] = Variable<String>(type);
+    map['current_time'] = Variable<double>(currentTime);
+    map['created'] = Variable<DateTime>(created);
+    return map;
+  }
+
+  PlayerHistoryCompanion toCompanion(bool nullToAbsent) {
+    return PlayerHistoryCompanion(
+      id: Value(id),
+      itemId: Value(itemId),
+      userId: Value(userId),
+      episodeId:
+          episodeId == null && nullToAbsent
+              ? const Value.absent()
+              : Value(episodeId),
+      type: Value(type),
+      currentTime: Value(currentTime),
+      created: Value(created),
+    );
+  }
+
+  factory PlayerHistoryEntry.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PlayerHistoryEntry(
+      id: serializer.fromJson<int>(json['id']),
+      itemId: serializer.fromJson<String>(json['itemId']),
+      userId: serializer.fromJson<String>(json['userId']),
+      episodeId: serializer.fromJson<String?>(json['episodeId']),
+      type: serializer.fromJson<String>(json['type']),
+      currentTime: serializer.fromJson<double>(json['currentTime']),
+      created: serializer.fromJson<DateTime>(json['created']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'itemId': serializer.toJson<String>(itemId),
+      'userId': serializer.toJson<String>(userId),
+      'episodeId': serializer.toJson<String?>(episodeId),
+      'type': serializer.toJson<String>(type),
+      'currentTime': serializer.toJson<double>(currentTime),
+      'created': serializer.toJson<DateTime>(created),
+    };
+  }
+
+  PlayerHistoryEntry copyWith({
+    int? id,
+    String? itemId,
+    String? userId,
+    Value<String?> episodeId = const Value.absent(),
+    String? type,
+    double? currentTime,
+    DateTime? created,
+  }) => PlayerHistoryEntry(
+    id: id ?? this.id,
+    itemId: itemId ?? this.itemId,
+    userId: userId ?? this.userId,
+    episodeId: episodeId.present ? episodeId.value : this.episodeId,
+    type: type ?? this.type,
+    currentTime: currentTime ?? this.currentTime,
+    created: created ?? this.created,
+  );
+  PlayerHistoryEntry copyWithCompanion(PlayerHistoryCompanion data) {
+    return PlayerHistoryEntry(
+      id: data.id.present ? data.id.value : this.id,
+      itemId: data.itemId.present ? data.itemId.value : this.itemId,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      episodeId: data.episodeId.present ? data.episodeId.value : this.episodeId,
+      type: data.type.present ? data.type.value : this.type,
+      currentTime:
+          data.currentTime.present ? data.currentTime.value : this.currentTime,
+      created: data.created.present ? data.created.value : this.created,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PlayerHistoryEntry(')
+          ..write('id: $id, ')
+          ..write('itemId: $itemId, ')
+          ..write('userId: $userId, ')
+          ..write('episodeId: $episodeId, ')
+          ..write('type: $type, ')
+          ..write('currentTime: $currentTime, ')
+          ..write('created: $created')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, itemId, userId, episodeId, type, currentTime, created);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PlayerHistoryEntry &&
+          other.id == this.id &&
+          other.itemId == this.itemId &&
+          other.userId == this.userId &&
+          other.episodeId == this.episodeId &&
+          other.type == this.type &&
+          other.currentTime == this.currentTime &&
+          other.created == this.created);
+}
+
+class PlayerHistoryCompanion extends UpdateCompanion<PlayerHistoryEntry> {
+  final Value<int> id;
+  final Value<String> itemId;
+  final Value<String> userId;
+  final Value<String?> episodeId;
+  final Value<String> type;
+  final Value<double> currentTime;
+  final Value<DateTime> created;
+  const PlayerHistoryCompanion({
+    this.id = const Value.absent(),
+    this.itemId = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.episodeId = const Value.absent(),
+    this.type = const Value.absent(),
+    this.currentTime = const Value.absent(),
+    this.created = const Value.absent(),
+  });
+  PlayerHistoryCompanion.insert({
+    this.id = const Value.absent(),
+    required String itemId,
+    required String userId,
+    this.episodeId = const Value.absent(),
+    required String type,
+    required double currentTime,
+    this.created = const Value.absent(),
+  }) : itemId = Value(itemId),
+       userId = Value(userId),
+       type = Value(type),
+       currentTime = Value(currentTime);
+  static Insertable<PlayerHistoryEntry> custom({
+    Expression<int>? id,
+    Expression<String>? itemId,
+    Expression<String>? userId,
+    Expression<String>? episodeId,
+    Expression<String>? type,
+    Expression<double>? currentTime,
+    Expression<DateTime>? created,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (itemId != null) 'item_id': itemId,
+      if (userId != null) 'user_id': userId,
+      if (episodeId != null) 'episode_id': episodeId,
+      if (type != null) 'type': type,
+      if (currentTime != null) 'current_time': currentTime,
+      if (created != null) 'created': created,
+    });
+  }
+
+  PlayerHistoryCompanion copyWith({
+    Value<int>? id,
+    Value<String>? itemId,
+    Value<String>? userId,
+    Value<String?>? episodeId,
+    Value<String>? type,
+    Value<double>? currentTime,
+    Value<DateTime>? created,
+  }) {
+    return PlayerHistoryCompanion(
+      id: id ?? this.id,
+      itemId: itemId ?? this.itemId,
+      userId: userId ?? this.userId,
+      episodeId: episodeId ?? this.episodeId,
+      type: type ?? this.type,
+      currentTime: currentTime ?? this.currentTime,
+      created: created ?? this.created,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (itemId.present) {
+      map['item_id'] = Variable<String>(itemId.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (episodeId.present) {
+      map['episode_id'] = Variable<String>(episodeId.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
+    if (currentTime.present) {
+      map['current_time'] = Variable<double>(currentTime.value);
+    }
+    if (created.present) {
+      map['created'] = Variable<DateTime>(created.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PlayerHistoryCompanion(')
+          ..write('id: $id, ')
+          ..write('itemId: $itemId, ')
+          ..write('userId: $userId, ')
+          ..write('episodeId: $episodeId, ')
+          ..write('type: $type, ')
+          ..write('currentTime: $currentTime, ')
+          ..write('created: $created')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -1680,6 +2131,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $StoredDownloadsTable storedDownloads = $StoredDownloadsTable(
     this,
   );
+  late final $PlayerHistoryTable playerHistory = $PlayerHistoryTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1690,6 +2142,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     storedUsers,
     storedSyncs,
     storedDownloads,
+    playerHistory,
   ];
 }
 
@@ -2691,6 +3144,255 @@ typedef $$StoredDownloadsTableProcessedTableManager =
       StoredDownloadsEntry,
       PrefetchHooks Function()
     >;
+typedef $$PlayerHistoryTableCreateCompanionBuilder =
+    PlayerHistoryCompanion Function({
+      Value<int> id,
+      required String itemId,
+      required String userId,
+      Value<String?> episodeId,
+      required String type,
+      required double currentTime,
+      Value<DateTime> created,
+    });
+typedef $$PlayerHistoryTableUpdateCompanionBuilder =
+    PlayerHistoryCompanion Function({
+      Value<int> id,
+      Value<String> itemId,
+      Value<String> userId,
+      Value<String?> episodeId,
+      Value<String> type,
+      Value<double> currentTime,
+      Value<DateTime> created,
+    });
+
+class $$PlayerHistoryTableFilterComposer
+    extends Composer<_$AppDatabase, $PlayerHistoryTable> {
+  $$PlayerHistoryTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get itemId => $composableBuilder(
+    column: $table.itemId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get episodeId => $composableBuilder(
+    column: $table.episodeId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get currentTime => $composableBuilder(
+    column: $table.currentTime,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get created => $composableBuilder(
+    column: $table.created,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$PlayerHistoryTableOrderingComposer
+    extends Composer<_$AppDatabase, $PlayerHistoryTable> {
+  $$PlayerHistoryTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get itemId => $composableBuilder(
+    column: $table.itemId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get episodeId => $composableBuilder(
+    column: $table.episodeId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get currentTime => $composableBuilder(
+    column: $table.currentTime,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get created => $composableBuilder(
+    column: $table.created,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$PlayerHistoryTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PlayerHistoryTable> {
+  $$PlayerHistoryTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get itemId =>
+      $composableBuilder(column: $table.itemId, builder: (column) => column);
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get episodeId =>
+      $composableBuilder(column: $table.episodeId, builder: (column) => column);
+
+  GeneratedColumn<String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<double> get currentTime => $composableBuilder(
+    column: $table.currentTime,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get created =>
+      $composableBuilder(column: $table.created, builder: (column) => column);
+}
+
+class $$PlayerHistoryTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PlayerHistoryTable,
+          PlayerHistoryEntry,
+          $$PlayerHistoryTableFilterComposer,
+          $$PlayerHistoryTableOrderingComposer,
+          $$PlayerHistoryTableAnnotationComposer,
+          $$PlayerHistoryTableCreateCompanionBuilder,
+          $$PlayerHistoryTableUpdateCompanionBuilder,
+          (
+            PlayerHistoryEntry,
+            BaseReferences<
+              _$AppDatabase,
+              $PlayerHistoryTable,
+              PlayerHistoryEntry
+            >,
+          ),
+          PlayerHistoryEntry,
+          PrefetchHooks Function()
+        > {
+  $$PlayerHistoryTableTableManager(_$AppDatabase db, $PlayerHistoryTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer:
+              () => $$PlayerHistoryTableFilterComposer($db: db, $table: table),
+          createOrderingComposer:
+              () =>
+                  $$PlayerHistoryTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer:
+              () => $$PlayerHistoryTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> itemId = const Value.absent(),
+                Value<String> userId = const Value.absent(),
+                Value<String?> episodeId = const Value.absent(),
+                Value<String> type = const Value.absent(),
+                Value<double> currentTime = const Value.absent(),
+                Value<DateTime> created = const Value.absent(),
+              }) => PlayerHistoryCompanion(
+                id: id,
+                itemId: itemId,
+                userId: userId,
+                episodeId: episodeId,
+                type: type,
+                currentTime: currentTime,
+                created: created,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String itemId,
+                required String userId,
+                Value<String?> episodeId = const Value.absent(),
+                required String type,
+                required double currentTime,
+                Value<DateTime> created = const Value.absent(),
+              }) => PlayerHistoryCompanion.insert(
+                id: id,
+                itemId: itemId,
+                userId: userId,
+                episodeId: episodeId,
+                type: type,
+                currentTime: currentTime,
+                created: created,
+              ),
+          withReferenceMapper:
+              (p0) =>
+                  p0
+                      .map(
+                        (e) => (
+                          e.readTable(table),
+                          BaseReferences(db, table, e),
+                        ),
+                      )
+                      .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$PlayerHistoryTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PlayerHistoryTable,
+      PlayerHistoryEntry,
+      $$PlayerHistoryTableFilterComposer,
+      $$PlayerHistoryTableOrderingComposer,
+      $$PlayerHistoryTableAnnotationComposer,
+      $$PlayerHistoryTableCreateCompanionBuilder,
+      $$PlayerHistoryTableUpdateCompanionBuilder,
+      (
+        PlayerHistoryEntry,
+        BaseReferences<_$AppDatabase, $PlayerHistoryTable, PlayerHistoryEntry>,
+      ),
+      PlayerHistoryEntry,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2705,6 +3407,8 @@ class $AppDatabaseManager {
       $$StoredSyncsTableTableManager(_db, _db.storedSyncs);
   $$StoredDownloadsTableTableManager get storedDownloads =>
       $$StoredDownloadsTableTableManager(_db, _db.storedDownloads);
+  $$PlayerHistoryTableTableManager get playerHistory =>
+      $$PlayerHistoryTableTableManager(_db, _db.playerHistory);
 }
 
 // **************************************************************************

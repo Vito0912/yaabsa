@@ -23,6 +23,7 @@ dependencies:
 
   # Misc
   uuid: ^4.5.1
+  intl: ^0.20.2
 
   # Core
   just_audio: ^0.10.3 # Should be setup for Android, Windows, iOS, macOS, Linux | Testing needed for iOS, macOS, Linux | https://pub.dev/packages/just_audio
