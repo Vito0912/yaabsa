@@ -3,6 +3,8 @@ import 'package:buchshelfly/components/player/common/control_button.dart';
 import 'package:buchshelfly/components/player/common/jump_button.dart';
 import 'package:buchshelfly/components/player/common/seek_bar.dart';
 import 'package:buchshelfly/components/player/common/skip_button.dart';
+import 'package:buchshelfly/components/player/common/sleep_timer_button.dart';
+import 'package:buchshelfly/components/player/common/speed_slider.dart';
 import 'package:buchshelfly/components/player/common/stop_button.dart';
 import 'package:buchshelfly/components/player/common/volume_slider.dart';
 import 'package:buchshelfly/models/internal_media.dart';
@@ -103,6 +105,10 @@ class Player extends StatelessWidget {
 
                           const SizedBox(height: 16.0),
 
+                          const Padding(padding: EdgeInsets.symmetric(horizontal: 16.0), child: SpeedSlider()),
+
+                          const SizedBox(height: 16.0),
+
                           const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -121,6 +127,8 @@ class Player extends StatelessWidget {
                           const SizedBox(height: 16.0),
 
                           const Padding(padding: EdgeInsets.symmetric(horizontal: 16.0), child: SeekBar()),
+
+                          const Row(mainAxisAlignment: MainAxisAlignment.center, children: [SleepTimerButton()]),
                         ],
                       ),
                     ),

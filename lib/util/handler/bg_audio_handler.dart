@@ -66,6 +66,16 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     return Future.value();
   }
 
+  @override
+  Future<void> setSpeed(double speed) async {
+    if (speed < 0.25 || speed > 3) {
+      logger('Speed out of bounds: $speed', tag: 'AudioHandler', level: InfoLevel.error);
+      return Future.value();
+    }
+    await _player.setSpeed(speed);
+    return Future.value();
+  }
+
   Stream<Duration> get durationStream {
     return _player.durationStream.map((duration) {
       return _currentMediaItem?.totalDuration ?? duration ?? Duration.zero;

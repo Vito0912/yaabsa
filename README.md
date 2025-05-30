@@ -41,18 +41,19 @@ An improved cross-platform app for Audiobookshelf
 | Buffering                | ✅       | ❓   | ✅       | ❓     | ❓     |
 | Volume Boost             | ✅       | ❌   | ❌       | ❌     | ❌     |
 | Audio ducking            | ✅       | ❓   | ❌       | ❌     | ❌     |
-| Sleep Timer              | 🅿️     | 🅿️ | 🅿️     | 🅿️   | 🅿️   |
-| Chapters                 | 🅿️     | 🅿️ | 🅿️     | 🅿️   | 🅿️   |
+| Sleep Timer              | ✅       | ✅   | ✅       | ✅     | ✅     |
+| Chapters                 | ✅       | ✅   | ✅       | ✅     | ✅     |
 | Play History             | 🅿️     | 🅿️ | 🅿️     | 🅿️   | 🅿️   |
-
+| Shake to rewind          | ✅       | ✅   | ❌       | ❌     | ❌     |
 
 ### E-Reader
 
-| Feature      | Android | iOS | Windows | MacOS | Linux |
-|--------------|---------|-----|---------|-------|-------|
-| ePUB support | ✅       | ❓   | ✅       | ❓     | ❓     |
-| PDF support  | 🅿️     | 🅿️ | 🅿️     | 🅿️   | 🅿️   |
-| Annotations  | 🅿️     | 🅿️ | 🅿️     | 🅿️   | 🅿️   |
+| Feature          | Android | iOS | Windows | MacOS | Linux |
+|------------------|---------|-----|---------|-------|-------|
+| ePUB support     | ✅       | ❓   | ✅       | ❓     | ❓     |
+| PDF support      | 🅿️     | 🅿️ | 🅿️     | 🅿️   | 🅿️   |
+| Annotations      | 🅿️     | 🅿️ | 🅿️     | 🅿️   | 🅿️   |
+| Sync Annotations | 🅿️     | 🅿️ | 🅿️     | 🅿️   | 🅿️   |
 
 
 ### Other Features

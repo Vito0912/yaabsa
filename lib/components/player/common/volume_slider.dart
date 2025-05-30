@@ -1,4 +1,5 @@
 import 'package:buchshelfly/util/globals.dart';
+import 'package:buchshelfly/util/handler/bg_audio_handler.dart';
 import 'package:flutter/material.dart';
 
 class VolumeSlider extends StatelessWidget {
@@ -19,7 +20,7 @@ class VolumeSlider extends StatelessWidget {
                 year2023: false,
                 value: volume,
                 min: 0.0,
-                max: 1.0,
+                max: BGAudioHandler.maxVolume,
                 onChanged: (value) {
                   audioHandler.setVolume(value);
                 },
