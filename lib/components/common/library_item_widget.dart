@@ -49,7 +49,7 @@ class LibraryItemWidget extends HookWidget {
                       child: Stack(
                         alignment: Alignment.center,
                         children: [
-                          if (showProgress)
+                          if (false)
                             Consumer(
                               builder: (BuildContext context, WidgetRef ref, Widget? child) {
                                 final progress = ref.watch(
@@ -67,7 +67,7 @@ class LibraryItemWidget extends HookWidget {
                                 );
                               },
                             ),
-                          if (isHovered.value && libraryItem.media!.hasAudio)
+                          if (libraryItem.media!.hasAudio)
                             IconButton(
                               icon: const Icon(Icons.play_arrow, size: 14),
                               iconSize: 10,
@@ -77,7 +77,7 @@ class LibraryItemWidget extends HookWidget {
                               },
                               splashRadius: 8,
                             ),
-                          if (isHovered.value && !libraryItem.media!.hasAudio && libraryItem.media!.hasBook)
+                          if (!libraryItem.media!.hasAudio && libraryItem.media!.hasBook)
                             IconButton(
                               icon: const Icon(Icons.my_library_books_outlined, size: 14),
                               iconSize: 10,
