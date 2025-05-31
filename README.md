@@ -54,14 +54,14 @@ An improved cross-platform app for Audiobookshelf
 | PDF support      | 🅿️     | 🅿️ | 🅿️     | 🅿️   | 🅿️   |
 | Annotations      | ✅       | ✅   | ✅       | ❓     | ❓     |
 | Sync Annotations | ✅       | ✅   | ✅       | ❓     | ❓     |
-
+(Annotations only available for ePUB files)
 
 ### Other Features
 
 | Feature   | Android | iOS   | Windows | MacOS | Linux |
 |-----------|---------|-------|---------|-------|-------|
 | Sync      | ✅       | ✅     | ✅       | ✅     | ✅     |
-| Caching   | 🅿️     | 🅿️   | 🅿️     | 🅿️   | 🅿️   |
+| Caching   | ✅       | ✅     | ✅       | ✅     | ✅     |
 | Downloads | ✅       | ❓     | ✅       | ❓     | ❓     |
 | Headers   | ✅       | ✅     | ✅       | ✅     | ✅     |
 | Car       | 🅿️L    | 🅿️LL | ❌       | ❌     | ❌     |

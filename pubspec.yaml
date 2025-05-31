@@ -25,6 +25,8 @@ dependencies:
   uuid: ^4.5.1
   intl: ^0.20.2
 
+  sembast: ^3.8.5+1
+
   # Core
   just_audio: ^0.10.3 # Should be setup for Android, Windows, iOS, macOS, Linux | Testing needed for iOS, macOS, Linux | https://pub.dev/packages/just_audio
   audio_service: ^0.18.18 # Should be setup for Android, Windows, iOS | Testing needed for iOS, macOS | for macOS pod is needed platform :osx, '10.12.2' | https://pub.dev/packages/audio_service

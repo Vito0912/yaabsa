@@ -3,6 +3,7 @@ import 'package:buchshelfly/api/routes/abs_api.dart';
 import 'package:buchshelfly/api/routes/interceptors/bearer_auth_interceptor.dart';
 import 'package:buchshelfly/api/routes/interceptors/o_auth_interceptor.dart';
 import 'package:buchshelfly/database/app_database.dart';
+import 'package:buchshelfly/util/interceptors/cache_interceptor.dart';
 import 'package:buchshelfly/util/logger.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -95,7 +96,12 @@ ABSApi? absApi(Ref ref) {
   }
   token = currentUser.token;
 
-  List<Interceptor> interceptors = [BearerAuthInterceptor(), OAuthInterceptor(), ABSInterceptor(ref)];
+  List<Interceptor> interceptors = [
+    BearerAuthInterceptor(),
+    OAuthInterceptor(),
+    ABSInterceptor(ref),
+    CacheInterceptor(ref),
+  ];
 
   final api = ABSApi(
     dio: Dio(
