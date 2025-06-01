@@ -1,4 +1,4 @@
-import 'package:buchshelfly/util/logger.dart';
+import 'package:yaabsa/util/logger.dart';
 
 class SettingKeys {
   // Global Settings

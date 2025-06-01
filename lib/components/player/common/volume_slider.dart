@@ -1,5 +1,5 @@
-import 'package:buchshelfly/util/globals.dart';
-import 'package:buchshelfly/util/handler/bg_audio_handler.dart';
+import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/handler/bg_audio_handler.dart';
 import 'package:flutter/material.dart';
 
 class VolumeSlider extends StatelessWidget {

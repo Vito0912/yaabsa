@@ -1,7 +1,7 @@
-import 'package:buchshelfly/api/library/stats/author_stats.dart';
-import 'package:buchshelfly/api/library/stats/genre_stats.dart';
-import 'package:buchshelfly/api/library/stats/library_item_duration_stats.dart';
-import 'package:buchshelfly/api/library/stats/library_item_size_stats.dart';
+import 'package:yaabsa/api/library/stats/author_stats.dart';
+import 'package:yaabsa/api/library/stats/genre_stats.dart';
+import 'package:yaabsa/api/library/stats/library_item_duration_stats.dart';
+import 'package:yaabsa/api/library/stats/library_item_size_stats.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'library_stats.freezed.dart';

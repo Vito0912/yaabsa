@@ -1,9 +1,8 @@
-
-import 'package:buchshelfly/api/library/personalized_library.dart';
-import 'package:buchshelfly/provider/core/user_providers.dart';
-import 'package:buchshelfly/util/logger.dart';
 import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:yaabsa/api/library/personalized_library.dart';
+import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/util/logger.dart';
 
 part 'personalized_library_provider.g.dart';
 
@@ -33,8 +32,8 @@ class PersonalizedLibraryNotifier extends _$PersonalizedLibraryNotifier {
     return _fetchPersonalizedLibrary(libraryId);
   }
 
-  Future<void> refresh(String libraryId, { bool withLoading = false }) async {
-    if(withLoading) state = const AsyncValue.loading();
+  Future<void> refresh(String libraryId, {bool withLoading = false}) async {
+    if (withLoading) state = const AsyncValue.loading();
     state = await AsyncValue.guard(() => _fetchPersonalizedLibrary(libraryId));
   }
 }

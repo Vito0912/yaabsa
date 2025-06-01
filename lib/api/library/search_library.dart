@@ -1,6 +1,6 @@
-import 'package:buchshelfly/api/library/search_library_author.dart';
-import 'package:buchshelfly/api/library/search_series.dart';
-import 'package:buchshelfly/api/library_items/library_item.dart';
+import 'package:yaabsa/api/library/search_library_author.dart';
+import 'package:yaabsa/api/library/search_series.dart';
+import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'search_library.freezed.dart';

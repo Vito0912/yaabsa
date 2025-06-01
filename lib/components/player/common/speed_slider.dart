@@ -1,4 +1,4 @@
-import 'package:buchshelfly/util/globals.dart';
+import 'package:yaabsa/util/globals.dart';
 import 'package:flutter/material.dart';
 
 // TODO: Better solution. Speed is currently not linarally with the slider values. Maybe something like the settings slider.

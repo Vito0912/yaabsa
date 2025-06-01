@@ -5,10 +5,10 @@
 // 'flutter create' template.
 
 // The application's name. By default this is also the title of the Flutter window.
-PRODUCT_NAME = buchshelfly
+PRODUCT_NAME = yaabsa
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = de.vito0912.buchshelfly.buchshelfly
+PRODUCT_BUNDLE_IDENTIFIER = de.vito0912.yaabsa.yaabsa
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2025 de.vito0912.buchshelfly. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2025 de.vito0912.yaabsa. All rights reserved.

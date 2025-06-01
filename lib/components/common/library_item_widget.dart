@@ -1,8 +1,8 @@
-import 'package:buchshelfly/api/library_items/library_item.dart';
-import 'package:buchshelfly/api/routes/abs_api.dart';
-import 'package:buchshelfly/models/internal_media.dart';
-import 'package:buchshelfly/provider/common/media_progress_provider.dart';
-import 'package:buchshelfly/util/globals.dart';
+import 'package:yaabsa/api/library_items/library_item.dart';
+import 'package:yaabsa/api/routes/abs_api.dart';
+import 'package:yaabsa/models/internal_media.dart';
+import 'package:yaabsa/provider/common/media_progress_provider.dart';
+import 'package:yaabsa/util/globals.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

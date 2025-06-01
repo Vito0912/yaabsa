@@ -1,4 +1,4 @@
-import 'package:buchshelfly/api/library_items/series.dart';
+import 'package:yaabsa/api/library_items/series.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 class SeriesConverter implements JsonConverter<List<Series>?, dynamic> {

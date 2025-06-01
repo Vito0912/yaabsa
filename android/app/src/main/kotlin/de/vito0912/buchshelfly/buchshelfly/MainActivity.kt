@@ -1,4 +1,4 @@
-package de.vito0912.buchshelfly.buchshelfly
+package de.vito0912.yaabsa.yaabsa
 
 import io.flutter.embedding.android.FlutterActivity
 

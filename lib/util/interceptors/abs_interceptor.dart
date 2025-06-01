@@ -1,4 +1,4 @@
-import 'package:buchshelfly/util/logger.dart';
+import 'package:yaabsa/util/logger.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

@@ -1,10 +1,10 @@
-import 'package:buchshelfly/api/library_items/audio_track.dart';
-import 'package:buchshelfly/api/library_items/chapter.dart';
-import 'package:buchshelfly/api/library_items/device_info.dart';
-import 'package:buchshelfly/api/library_items/library_item.dart';
-import 'package:buchshelfly/api/library_items/metadata.dart';
-import 'package:buchshelfly/api/me/media_item_type.dart';
-import 'package:buchshelfly/api/me/media_progress.dart';
+import 'package:yaabsa/api/library_items/audio_track.dart';
+import 'package:yaabsa/api/library_items/chapter.dart';
+import 'package:yaabsa/api/library_items/device_info.dart';
+import 'package:yaabsa/api/library_items/library_item.dart';
+import 'package:yaabsa/api/library_items/metadata.dart';
+import 'package:yaabsa/api/me/media_item_type.dart';
+import 'package:yaabsa/api/me/media_progress.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'playback_session.freezed.dart';

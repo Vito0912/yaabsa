@@ -1,7 +1,7 @@
-import 'package:buchshelfly/api/library_items/library_item.dart';
-import 'package:buchshelfly/api/library_items/playback_session.dart';
-import 'package:buchshelfly/api/library_items/request/play_library_item_request.dart';
-import 'package:buchshelfly/api/routes/abs_api.dart';
+import 'package:yaabsa/api/library_items/library_item.dart';
+import 'package:yaabsa/api/library_items/playback_session.dart';
+import 'package:yaabsa/api/library_items/request/play_library_item_request.dart';
+import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';

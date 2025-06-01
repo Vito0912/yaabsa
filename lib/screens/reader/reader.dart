@@ -1,13 +1,13 @@
 import 'dart:convert';
 
-import 'package:buchshelfly/api/me/bookmark.dart';
-import 'package:buchshelfly/api/me/request/create_bookmark_request.dart';
-import 'package:buchshelfly/api/me/user.dart';
-import 'package:buchshelfly/api/routes/abs_api.dart';
-import 'package:buchshelfly/models/internal_annotation.dart';
-import 'package:buchshelfly/provider/common/media_progress_provider.dart';
-import 'package:buchshelfly/provider/core/user_providers.dart';
-import 'package:buchshelfly/util/logger.dart';
+import 'package:yaabsa/api/me/bookmark.dart';
+import 'package:yaabsa/api/me/request/create_bookmark_request.dart';
+import 'package:yaabsa/api/me/user.dart';
+import 'package:yaabsa/api/routes/abs_api.dart';
+import 'package:yaabsa/models/internal_annotation.dart';
+import 'package:yaabsa/provider/common/media_progress_provider.dart';
+import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/util/logger.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_epub_reader/flutter_epub_reader.dart';

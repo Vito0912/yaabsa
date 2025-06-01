@@ -1,7 +1,7 @@
-import 'package:buchshelfly/components/common/library_item_widget.dart';
-import 'package:buchshelfly/provider/common/library_provider.dart';
-import 'package:buchshelfly/provider/core/user_providers.dart';
-import 'package:buchshelfly/provider/library/personalized_library_provider.dart';
+import 'package:yaabsa/components/common/library_item_widget.dart';
+import 'package:yaabsa/provider/common/library_provider.dart';
+import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/provider/library/personalized_library_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

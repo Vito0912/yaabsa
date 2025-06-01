@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:buchshelfly/database/settings_manager.dart';
-import 'package:buchshelfly/util/globals.dart';
-import 'package:buchshelfly/util/logger.dart';
-import 'package:buchshelfly/util/setting_key.dart';
+import 'package:yaabsa/database/settings_manager.dart';
+import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/setting_key.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:vibration/vibration.dart';
 

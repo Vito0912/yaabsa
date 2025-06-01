@@ -1,6 +1,6 @@
-import 'package:buchshelfly/api/library/stats/days_of_week.dart';
-import 'package:buchshelfly/api/library/stats/items_listened_to.dart';
-import 'package:buchshelfly/api/library_items/playback_session.dart';
+import 'package:yaabsa/api/library/stats/days_of_week.dart';
+import 'package:yaabsa/api/library/stats/items_listened_to.dart';
+import 'package:yaabsa/api/library_items/playback_session.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'user_listening_stats.freezed.dart';

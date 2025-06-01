@@ -1,8 +1,8 @@
 // lib/provider/sleep_timer_handler.dart
 import 'dart:async';
 
-import 'package:buchshelfly/util/globals.dart';
-import 'package:buchshelfly/util/logger.dart';
+import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/logger.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 

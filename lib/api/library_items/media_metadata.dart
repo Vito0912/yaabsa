@@ -1,6 +1,6 @@
-import 'package:buchshelfly/api/library_items/author.dart';
-import 'package:buchshelfly/api/library_items/series.dart';
-import 'package:buchshelfly/api/library_items/series_convertor.dart';
+import 'package:yaabsa/api/library_items/author.dart';
+import 'package:yaabsa/api/library_items/series.dart';
+import 'package:yaabsa/api/library_items/series_convertor.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'media_metadata.freezed.dart';

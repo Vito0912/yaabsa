@@ -1,4 +1,4 @@
-import 'package:buchshelfly/provider/common/library_provider.dart';
+import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

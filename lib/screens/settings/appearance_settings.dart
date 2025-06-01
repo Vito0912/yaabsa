@@ -1,6 +1,6 @@
-import 'package:buchshelfly/components/settings/settings_dropdown.dart';
-import 'package:buchshelfly/util/logger.dart';
-import 'package:buchshelfly/util/setting_key.dart';
+import 'package:yaabsa/components/settings/settings_dropdown.dart';
+import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/setting_key.dart';
 import 'package:flutter/material.dart';
 
 class AppearanceSettings extends StatelessWidget {

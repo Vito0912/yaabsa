@@ -1,5 +1,5 @@
-import 'package:buchshelfly/api/library_items/book_media.dart';
-import 'package:buchshelfly/api/library_items/podcast_media.dart';
+import 'package:yaabsa/api/library_items/book_media.dart';
+import 'package:yaabsa/api/library_items/podcast_media.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'media.freezed.dart';

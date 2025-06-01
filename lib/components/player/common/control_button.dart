@@ -1,4 +1,4 @@
-import 'package:buchshelfly/util/globals.dart';
+import 'package:yaabsa/util/globals.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 

@@ -1,4 +1,4 @@
-import 'package:buchshelfly/api/routes/interceptors/auth_interceptor.dart';
+import 'package:yaabsa/api/routes/interceptors/auth_interceptor.dart';
 import 'package:dio/dio.dart';
 
 class OAuthInterceptor extends AuthInterceptor {

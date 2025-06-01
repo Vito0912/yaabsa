@@ -1,10 +1,10 @@
 import 'dart:async';
 
-import 'package:buchshelfly/api/library_items/playback_session.dart';
-import 'package:buchshelfly/database/app_database.dart';
-import 'package:buchshelfly/provider/core/user_providers.dart';
-import 'package:buchshelfly/provider/player/session_provider.dart';
-import 'package:buchshelfly/util/logger.dart';
+import 'package:yaabsa/api/library_items/playback_session.dart';
+import 'package:yaabsa/database/app_database.dart';
+import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/provider/player/session_provider.dart';
+import 'package:yaabsa/util/logger.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

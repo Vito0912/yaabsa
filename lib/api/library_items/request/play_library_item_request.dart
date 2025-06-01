@@ -1,4 +1,4 @@
-import 'package:buchshelfly/api/library_items/device_info.dart';
+import 'package:yaabsa/api/library_items/device_info.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'play_library_item_request.freezed.dart';

@@ -1,11 +1,11 @@
-import 'package:buchshelfly/components/common/library_item_widget.dart';
-import 'package:buchshelfly/provider/common/library_item_provider.dart';
-import 'package:buchshelfly/provider/common/library_provider.dart';
-import 'package:buchshelfly/provider/core/user_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:yaabsa/components/common/library_item_widget.dart';
+import 'package:yaabsa/provider/common/library_item_provider.dart';
+import 'package:yaabsa/provider/common/library_provider.dart';
+import 'package:yaabsa/provider/core/user_providers.dart';
 
 class LibraryView extends HookConsumerWidget {
   const LibraryView({super.key});
@@ -44,7 +44,6 @@ class LibraryView extends HookConsumerWidget {
     }, [scrollController, libraryId, ref]);
 
     final api = ref.read(absApiProvider);
-
 
     return libraryItemsStateAsync.when(
       data: (state) {

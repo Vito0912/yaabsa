@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:buchshelfly/api/me/user.dart';
-import 'package:buchshelfly/models/internal_download.dart';
-import 'package:buchshelfly/models/internal_media.dart';
-import 'package:buchshelfly/util/logger.dart';
+import 'package:yaabsa/api/me/user.dart';
+import 'package:yaabsa/models/internal_download.dart';
+import 'package:yaabsa/models/internal_media.dart';
+import 'package:yaabsa/util/logger.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

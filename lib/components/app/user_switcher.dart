@@ -1,8 +1,8 @@
-import 'package:buchshelfly/api/me/user.dart';
-import 'package:buchshelfly/components/platform_builder.dart';
-import 'package:buchshelfly/database/app_database.dart';
-import 'package:buchshelfly/provider/core/user_providers.dart';
-import 'package:buchshelfly/util/globals.dart';
+import 'package:yaabsa/api/me/user.dart';
+import 'package:yaabsa/components/platform_builder.dart';
+import 'package:yaabsa/database/app_database.dart';
+import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/util/globals.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';

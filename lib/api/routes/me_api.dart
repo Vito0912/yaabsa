@@ -1,11 +1,11 @@
-import 'package:buchshelfly/api/library/stats/user_listening_stats.dart';
-import 'package:buchshelfly/api/me/bookmark.dart';
-import 'package:buchshelfly/api/me/login.dart';
-import 'package:buchshelfly/api/me/media_progress.dart';
-import 'package:buchshelfly/api/me/request/create_bookmark_request.dart';
-import 'package:buchshelfly/api/me/request/login_request.dart';
-import 'package:buchshelfly/api/me/user.dart';
-import 'package:buchshelfly/api/routes/abs_api.dart';
+import 'package:yaabsa/api/library/stats/user_listening_stats.dart';
+import 'package:yaabsa/api/me/bookmark.dart';
+import 'package:yaabsa/api/me/login.dart';
+import 'package:yaabsa/api/me/media_progress.dart';
+import 'package:yaabsa/api/me/request/create_bookmark_request.dart';
+import 'package:yaabsa/api/me/request/login_request.dart';
+import 'package:yaabsa/api/me/user.dart';
+import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:dio/dio.dart';
 
 class MeApi {

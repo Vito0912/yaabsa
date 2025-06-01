@@ -1,4 +1,4 @@
-import 'package:buchshelfly/database/app_database.dart';
+import 'package:yaabsa/database/app_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';

@@ -1,5 +1,5 @@
-import 'package:buchshelfly/database/settings_manager.dart';
-import 'package:buchshelfly/util/setting_key.dart';
+import 'package:yaabsa/database/settings_manager.dart';
+import 'package:yaabsa/util/setting_key.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

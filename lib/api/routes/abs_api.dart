@@ -1,11 +1,11 @@
-import 'package:buchshelfly/api/me/user.dart';
-import 'package:buchshelfly/api/routes/interceptors/bearer_auth_interceptor.dart';
-import 'package:buchshelfly/api/routes/interceptors/o_auth_interceptor.dart';
-import 'package:buchshelfly/api/routes/library_api.dart';
-import 'package:buchshelfly/api/routes/library_item_api.dart';
-import 'package:buchshelfly/api/routes/list_api.dart';
-import 'package:buchshelfly/api/routes/me_api.dart';
-import 'package:buchshelfly/api/routes/session_api.dart';
+import 'package:yaabsa/api/me/user.dart';
+import 'package:yaabsa/api/routes/interceptors/bearer_auth_interceptor.dart';
+import 'package:yaabsa/api/routes/interceptors/o_auth_interceptor.dart';
+import 'package:yaabsa/api/routes/library_api.dart';
+import 'package:yaabsa/api/routes/library_item_api.dart';
+import 'package:yaabsa/api/routes/list_api.dart';
+import 'package:yaabsa/api/routes/me_api.dart';
+import 'package:yaabsa/api/routes/session_api.dart';
 import 'package:dio/dio.dart';
 
 class ABSApi {

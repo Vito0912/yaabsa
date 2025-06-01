@@ -1,4 +1,4 @@
-import 'package:buchshelfly/models/internal_media.dart';
+import 'package:yaabsa/models/internal_media.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'chapter.freezed.dart';

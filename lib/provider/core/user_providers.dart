@@ -1,10 +1,10 @@
-import 'package:buchshelfly/api/me/user.dart';
-import 'package:buchshelfly/api/routes/abs_api.dart';
-import 'package:buchshelfly/api/routes/interceptors/bearer_auth_interceptor.dart';
-import 'package:buchshelfly/api/routes/interceptors/o_auth_interceptor.dart';
-import 'package:buchshelfly/database/app_database.dart';
-import 'package:buchshelfly/util/interceptors/cache_interceptor.dart';
-import 'package:buchshelfly/util/logger.dart';
+import 'package:yaabsa/api/me/user.dart';
+import 'package:yaabsa/api/routes/abs_api.dart';
+import 'package:yaabsa/api/routes/interceptors/bearer_auth_interceptor.dart';
+import 'package:yaabsa/api/routes/interceptors/o_auth_interceptor.dart';
+import 'package:yaabsa/database/app_database.dart';
+import 'package:yaabsa/util/interceptors/cache_interceptor.dart';
+import 'package:yaabsa/util/logger.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';

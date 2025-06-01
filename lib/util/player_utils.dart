@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:buchshelfly/api/library_items/device_info.dart';
-import 'package:buchshelfly/util/globals.dart';
+import 'package:yaabsa/api/library_items/device_info.dart';
+import 'package:yaabsa/util/globals.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 
 class PlayerUtils {

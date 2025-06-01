@@ -1,6 +1,6 @@
-import 'package:buchshelfly/api/me/permissions.dart';
-import 'package:buchshelfly/api/me/server.dart';
-import 'package:buchshelfly/api/me/server_settings.dart';
+import 'package:yaabsa/api/me/permissions.dart';
+import 'package:yaabsa/api/me/server.dart';
+import 'package:yaabsa/api/me/server_settings.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'bookmark.dart';

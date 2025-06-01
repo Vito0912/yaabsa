@@ -1,15 +1,15 @@
-import 'package:buchshelfly/screens/auth/sign_in.dart';
-import 'package:buchshelfly/screens/item/library_item_view.dart';
-import 'package:buchshelfly/screens/layout_home.dart';
-import 'package:buchshelfly/screens/player/play_history_view.dart';
-import 'package:buchshelfly/screens/player/player.dart';
-import 'package:buchshelfly/screens/reader/reader.dart';
-import 'package:buchshelfly/screens/settings/appearance_settings.dart';
-import 'package:buchshelfly/screens/settings/caching_settings.dart';
-import 'package:buchshelfly/screens/settings/global_player_settings.dart';
-import 'package:buchshelfly/screens/settings/library_settings.dart';
-import 'package:buchshelfly/screens/settings/player_settings.dart';
-import 'package:buchshelfly/screens/settings/reader_settings.dart';
+import 'package:yaabsa/screens/auth/sign_in.dart';
+import 'package:yaabsa/screens/item/library_item_view.dart';
+import 'package:yaabsa/screens/layout_home.dart';
+import 'package:yaabsa/screens/player/play_history_view.dart';
+import 'package:yaabsa/screens/player/player.dart';
+import 'package:yaabsa/screens/reader/reader.dart';
+import 'package:yaabsa/screens/settings/appearance_settings.dart';
+import 'package:yaabsa/screens/settings/caching_settings.dart';
+import 'package:yaabsa/screens/settings/global_player_settings.dart';
+import 'package:yaabsa/screens/settings/library_settings.dart';
+import 'package:yaabsa/screens/settings/player_settings.dart';
+import 'package:yaabsa/screens/settings/reader_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 

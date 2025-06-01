@@ -1,5 +1,5 @@
-import 'package:buchshelfly/api/library_items/library_file_metadata.dart';
-import 'package:buchshelfly/models/internal_media.dart';
+import 'package:yaabsa/api/library_items/library_file_metadata.dart';
+import 'package:yaabsa/models/internal_media.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'audio_track.freezed.dart';

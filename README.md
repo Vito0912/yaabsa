@@ -1,4 +1,5 @@
- # buchshelfly 
+ # Yet another ABS App
+ ## yaabsa
 
 An improved cross-platform app for Audiobookshelf
 
@@ -52,8 +53,9 @@ An improved cross-platform app for Audiobookshelf
 |------------------|---------|-----|---------|-------|-------|
 | ePUB support     | ✅       | ✅   | ✅       | ❓     | ❓     |
 | PDF support      | 🅿️     | 🅿️ | 🅿️     | 🅿️   | 🅿️   |
-| Annotations      | ✅       | ✅   | ✅       | ❓     | ❓     |
+| Annotations      | ✅       | ✅*  | ✅       | ❓     | ❓     |
 | Sync Annotations | ✅       | ✅   | ✅       | ❓     | ❓     |
+* You can only load in annotations, but not create new ones.\
 (Annotations only available for ePUB files)
 
 ### Other Features

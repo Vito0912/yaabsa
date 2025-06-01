@@ -1,6 +1,6 @@
-import 'package:buchshelfly/components/settings/settings_slider.dart';
-import 'package:buchshelfly/components/settings/settings_switch.dart';
-import 'package:buchshelfly/util/setting_key.dart';
+import 'package:yaabsa/components/settings/settings_slider.dart';
+import 'package:yaabsa/components/settings/settings_switch.dart';
+import 'package:yaabsa/util/setting_key.dart';
 import 'package:flutter/material.dart';
 
 class GlobalPlayerSettings extends StatelessWidget {

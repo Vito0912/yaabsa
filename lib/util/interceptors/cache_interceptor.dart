@@ -1,8 +1,8 @@
 import 'dart:convert';
 
-import 'package:buchshelfly/provider/core/user_providers.dart';
-import 'package:buchshelfly/util/globals.dart';
-import 'package:buchshelfly/util/logger.dart';
+import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/logger.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sembast/sembast.dart';

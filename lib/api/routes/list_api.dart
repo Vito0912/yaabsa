@@ -1,5 +1,5 @@
-import 'package:buchshelfly/api/list/response/collection_response.dart';
-import 'package:buchshelfly/api/list/response/playlist_response.dart';
+import 'package:yaabsa/api/list/response/collection_response.dart';
+import 'package:yaabsa/api/list/response/playlist_response.dart';
 import 'package:dio/dio.dart';
 
 import 'abs_api.dart';

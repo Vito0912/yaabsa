@@ -1,11 +1,11 @@
-import 'package:buchshelfly/util/handler/bg_audio_handler.dart';
-import 'package:buchshelfly/util/handler/download_handler.dart';
-import 'package:buchshelfly/util/handler/shake_handler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sembast/sembast.dart' show Database;
+import 'package:yaabsa/util/handler/bg_audio_handler.dart';
+import 'package:yaabsa/util/handler/download_handler.dart';
+import 'package:yaabsa/util/handler/shake_handler.dart';
 
-const String appName = 'Buchshelfly';
+const String appName = 'Yaabsa';
 
 final ProviderContainer containerRef = ProviderContainer();
 late final PackageInfo packageInfo;

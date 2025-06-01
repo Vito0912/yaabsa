@@ -1,13 +1,13 @@
 import 'dart:async';
 
-import 'package:buchshelfly/database/settings_manager.dart';
-import 'package:buchshelfly/provider/core/server_status_provider.dart';
-import 'package:buchshelfly/provider/core/user_providers.dart';
-import 'package:buchshelfly/util/globals.dart' show appName, audioHandler, containerRef;
-import 'package:buchshelfly/util/init.dart' show Init;
-import 'package:buchshelfly/util/logger.dart';
-import 'package:buchshelfly/util/router.dart';
-import 'package:buchshelfly/util/setting_key.dart';
+import 'package:yaabsa/database/settings_manager.dart';
+import 'package:yaabsa/provider/core/server_status_provider.dart';
+import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/util/globals.dart' show appName, audioHandler, containerRef;
+import 'package:yaabsa/util/init.dart' show Init;
+import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/router.dart';
+import 'package:yaabsa/util/setting_key.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 

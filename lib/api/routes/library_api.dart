@@ -1,11 +1,11 @@
-import 'package:buchshelfly/api/library/library_items.dart';
-import 'package:buchshelfly/api/library/personalized_library.dart';
-import 'package:buchshelfly/api/library/request/library_items_request.dart';
-import 'package:buchshelfly/api/library/response/library_response.dart';
-import 'package:buchshelfly/api/library/search_library.dart';
-import 'package:buchshelfly/api/library/series_items.dart';
-import 'package:buchshelfly/api/library/stats/library_stats.dart';
-import 'package:buchshelfly/api/routes/abs_api.dart';
+import 'package:yaabsa/api/library/library_items.dart';
+import 'package:yaabsa/api/library/personalized_library.dart';
+import 'package:yaabsa/api/library/request/library_items_request.dart';
+import 'package:yaabsa/api/library/response/library_response.dart';
+import 'package:yaabsa/api/library/search_library.dart';
+import 'package:yaabsa/api/library/series_items.dart';
+import 'package:yaabsa/api/library/stats/library_stats.dart';
+import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:dio/dio.dart';
 
 class LibraryApi {

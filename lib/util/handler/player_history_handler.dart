@@ -1,8 +1,8 @@
-import 'package:buchshelfly/database/app_database.dart';
-import 'package:buchshelfly/models/internal_media.dart';
-import 'package:buchshelfly/provider/core/user_providers.dart';
-import 'package:buchshelfly/util/extensions.dart';
-import 'package:buchshelfly/util/globals.dart';
+import 'package:yaabsa/database/app_database.dart';
+import 'package:yaabsa/models/internal_media.dart';
+import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/util/extensions.dart';
+import 'package:yaabsa/util/globals.dart';
 import 'package:drift/drift.dart';
 
 enum PlayerHistoryType { sync, syncOffline, play, pause, stop, seek }

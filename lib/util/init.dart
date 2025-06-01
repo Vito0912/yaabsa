@@ -1,10 +1,10 @@
 import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
-import 'package:buchshelfly/util/globals.dart';
-import 'package:buchshelfly/util/handler/bg_audio_handler.dart';
-import 'package:buchshelfly/util/handler/download_handler.dart';
-import 'package:buchshelfly/util/handler/shake_handler.dart';
+import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/handler/bg_audio_handler.dart';
+import 'package:yaabsa/util/handler/download_handler.dart';
+import 'package:yaabsa/util/handler/shake_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -30,7 +30,7 @@ class Init {
     _audioHandler = await AudioService.init(
       builder: () => BGAudioHandler(containerRef),
       config: AudioServiceConfig(
-        androidNotificationChannelId: 'de.vito0912.buchshelfly.audio',
+        androidNotificationChannelId: 'de.vito0912.yaabsa.audio',
         androidNotificationChannelName: 'Playback',
         androidNotificationOngoing: false,
         androidStopForegroundOnPause: false,

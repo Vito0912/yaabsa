@@ -1,4 +1,4 @@
-import 'package:buchshelfly/api/library_items/library_item.dart';
+import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'collection.freezed.dart';

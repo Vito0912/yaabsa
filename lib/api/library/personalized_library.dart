@@ -1,8 +1,8 @@
-import 'package:buchshelfly/api/library_items/author.dart';
-import 'package:buchshelfly/api/library_items/episode.dart';
-import 'package:buchshelfly/api/library_items/library_item.dart';
-import 'package:buchshelfly/api/library_items/series.dart';
-import 'package:buchshelfly/util/logger.dart';
+import 'package:yaabsa/api/library_items/author.dart';
+import 'package:yaabsa/api/library_items/episode.dart';
+import 'package:yaabsa/api/library_items/library_item.dart';
+import 'package:yaabsa/api/library_items/series.dart';
+import 'package:yaabsa/util/logger.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'personalized_library.freezed.dart';

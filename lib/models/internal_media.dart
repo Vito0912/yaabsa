@@ -1,6 +1,6 @@
 import 'package:audio_service/audio_service.dart';
-import 'package:buchshelfly/util/extensions.dart';
-import 'package:buchshelfly/util/logger.dart';
+import 'package:yaabsa/util/extensions.dart';
+import 'package:yaabsa/util/logger.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:just_audio/just_audio.dart' show AudioSource;
 

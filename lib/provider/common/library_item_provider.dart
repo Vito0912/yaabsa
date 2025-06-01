@@ -1,8 +1,8 @@
-import 'package:buchshelfly/api/library/request/library_items_request.dart';
-import 'package:buchshelfly/api/library_items/library_item.dart';
-import 'package:buchshelfly/database/app_database.dart';
-import 'package:buchshelfly/provider/core/user_providers.dart';
-import 'package:buchshelfly/util/logger.dart';
+import 'package:yaabsa/api/library/request/library_items_request.dart';
+import 'package:yaabsa/api/library_items/library_item.dart';
+import 'package:yaabsa/database/app_database.dart';
+import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/util/logger.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';

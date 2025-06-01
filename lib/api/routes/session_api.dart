@@ -1,6 +1,6 @@
-import 'package:buchshelfly/api/library_items/playback_session.dart';
-import 'package:buchshelfly/api/routes/abs_api.dart';
-import 'package:buchshelfly/api/session/request/sync_session_request.dart';
+import 'package:yaabsa/api/library_items/playback_session.dart';
+import 'package:yaabsa/api/routes/abs_api.dart';
+import 'package:yaabsa/api/session/request/sync_session_request.dart';
 import 'package:dio/dio.dart';
 
 class SessionApi {

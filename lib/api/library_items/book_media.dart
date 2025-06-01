@@ -1,7 +1,7 @@
-import 'package:buchshelfly/api/library_items/audio_file.dart';
-import 'package:buchshelfly/api/library_items/chapter.dart';
-import 'package:buchshelfly/api/library_items/ebook_file.dart';
-import 'package:buchshelfly/api/library_items/media_metadata.dart';
+import 'package:yaabsa/api/library_items/audio_file.dart';
+import 'package:yaabsa/api/library_items/chapter.dart';
+import 'package:yaabsa/api/library_items/ebook_file.dart';
+import 'package:yaabsa/api/library_items/media_metadata.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'book_media.freezed.dart';

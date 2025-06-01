@@ -1,4 +1,4 @@
-import 'package:buchshelfly/api/library_items/audio_file.dart';
+import 'package:yaabsa/api/library_items/audio_file.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'episode.freezed.dart';

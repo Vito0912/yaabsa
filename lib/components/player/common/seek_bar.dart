@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:buchshelfly/models/internal_media.dart';
-import 'package:buchshelfly/util/extensions.dart';
-import 'package:buchshelfly/util/globals.dart';
+import 'package:yaabsa/models/internal_media.dart';
+import 'package:yaabsa/util/extensions.dart';
+import 'package:yaabsa/util/globals.dart';
 import 'package:flutter/material.dart';
 
 class SeekBar extends StatelessWidget {

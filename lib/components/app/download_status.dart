@@ -1,5 +1,5 @@
 import 'package:background_downloader/background_downloader.dart';
-import 'package:buchshelfly/util/globals.dart';
+import 'package:yaabsa/util/globals.dart';
 import 'package:flutter/material.dart';
 
 // This is just a placeholder that needs to be fixed, because it kinda sucks.

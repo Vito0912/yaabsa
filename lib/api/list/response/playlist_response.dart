@@ -1,4 +1,4 @@
-import 'package:buchshelfly/api/list/playlist.dart';
+import 'package:yaabsa/api/list/playlist.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'playlist_response.freezed.dart';

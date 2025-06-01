@@ -1,5 +1,5 @@
-import 'package:buchshelfly/api/me/server_settings.dart';
-import 'package:buchshelfly/api/me/user.dart';
+import 'package:yaabsa/api/me/server_settings.dart';
+import 'package:yaabsa/api/me/user.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'login.freezed.dart';

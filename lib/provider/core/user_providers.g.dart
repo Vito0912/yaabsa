@@ -58,7 +58,7 @@ final allStoredUsersProvider = StreamProvider<List<User>>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef AllStoredUsersRef = StreamProviderRef<List<User>>;
-String _$absApiHash() => r'c422e3fd64b427a796996d508eb7f71c203016e0';
+String _$absApiHash() => r'cf58e8928aa64b48938350ca60dd50ae998a567d';
 
 /// See also [absApi].
 @ProviderFor(absApi)
