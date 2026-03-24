@@ -16,38 +16,38 @@ dependencies:
   flutter_staggered_grid_view: ^0.7.0
 
   # Generation
-  freezed_annotation: ^3.0.0
-  json_annotation: ^4.9.0
-  riverpod_annotation: ^2.6.1
+  freezed_annotation: ^3.1.0
+  json_annotation: ^4.11.0
+  riverpod_annotation: ^4.0.2
 
 
   # Misc
-  uuid: ^4.5.1
+  uuid: ^4.5.3
   intl: ^0.20.2
 
-  sembast: ^3.8.5+1
+  sembast: ^3.8.6
 
   # Core
-  just_audio: ^0.10.3 # Should be setup for Android, Windows, iOS, macOS, Linux | Testing needed for iOS, macOS, Linux | https://pub.dev/packages/just_audio
+  just_audio: ^0.10.5 # Should be setup for Android, Windows, iOS, macOS, Linux | Testing needed for iOS, macOS, Linux | https://pub.dev/packages/just_audio
   audio_service: ^0.18.18 # Should be setup for Android, Windows, iOS | Testing needed for iOS, macOS | for macOS pod is needed platform :osx, '10.12.2' | https://pub.dev/packages/audio_service
-  dio: ^5.8.0+1
-  drift: ^2.26.1
+  dio: ^5.9.2
+  drift: ^2.32.1
   path_provider: ^2.1.5
-  sqlite3_flutter_libs: ^0.5.32
+  sqlite3: ^3.2.0
   cached_network_image: ^3.4.1
-  go_router: ^15.1.2
+  go_router: ^17.1.0
 
-  hooks_riverpod: ^2.6.1
-  flutter_riverpod: ^2.6.1
-  flutter_hooks: ^0.21.2
-  connectivity_plus: ^6.1.4
+  hooks_riverpod: ^3.3.1
+  flutter_riverpod: ^3.3.1
+  flutter_hooks: ^0.21.3+1
+  connectivity_plus: ^7.0.0
   rxdart: ^0.28.0
-  background_downloader: ^9.2.2 # iOS needs background fetch | Testing needed for iOS, Android | https://pub.dev/packages/background_downloader
+  background_downloader: ^9.5.4 # iOS needs background fetch | Testing needed for iOS, Android | https://pub.dev/packages/background_downloader
 
-  package_info_plus: ^8.3.0
-  device_info_plus: ^11.4.0
-  sensors_plus: ^6.1.1 # Should be setup for Android, iOS, macOS, Windows | Testing needed for iOS, macOS, Windows | https://pub.dev/packages/sensors_plus
-  vibration: ^3.1.3
+  package_info_plus: ^9.0.0
+  device_info_plus: ^12.3.0
+  sensors_plus: ^7.0.0 # Should be setup for Android, iOS, macOS, Windows | Testing needed for iOS, macOS, Windows | https://pub.dev/packages/sensors_plus
+  vibration: ^3.1.8
 
   # Note for contributors: Commit pinning is used. Please check for updates when updating the e-Reader. This is for security, as it runs in a WebView and the repository is very small.
   flutter_epub_reader:
@@ -62,7 +62,7 @@ dependencies:
   media_kit_libs_windows_audio: any
 
   ## Linux
-  audio_service_mpris: ^0.2.0 # Needs to be tested
+  audio_service_mpris: ^0.2.1 # Needs to be tested
 
   ## MacOS
 
@@ -75,11 +75,14 @@ dev_dependencies:
     sdk: flutter
 
   flutter_lints: ^6.0.0
-  build_runner: ^2.4.15
-  freezed: ^3.0.6
-  json_serializable: ^6.9.5
-  drift_dev: ^2.26.1
-  riverpod_generator: ^2.6.5
+  build_runner: ^2.13.1
+  freezed: ^3.2.5
+  json_serializable: ^6.12.0
+  drift_dev: ^2.32.1
+  riverpod_generator: ^4.0.3
+  
+dependency_overrides:
+  analyzer: ^10.0.0
 
 flutter:
   uses-material-design: true
