@@ -1,6 +1,5 @@
-// dart format width=80
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// coverage:ignore-file
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
@@ -135,6 +134,136 @@ $LibraryItemCopyWith<$Res>? get libraryItem {
 }
 }
 
+
+/// Adds pattern-matching-related methods to [PlaybackSession].
+extension PlaybackSessionPatterns on PlaybackSession {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _PlaybackSession value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _PlaybackSession() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _PlaybackSession value)  $default,){
+final _that = this;
+switch (_that) {
+case _PlaybackSession():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _PlaybackSession value)?  $default,){
+final _that = this;
+switch (_that) {
+case _PlaybackSession() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "userId")  String userId, @JsonKey(name: "libraryId")  String? libraryId, @JsonKey(name: "libraryItemId")  String libraryItemId, @JsonKey(name: "episodeId")  String? episodeId, @JsonKey(name: "mediaType")  String? mediaType, @JsonKey(name: "mediaMetadata")  Metadata? mediaMetadata, @JsonKey(name: "chapters")  List<Chapter>? chapters, @JsonKey(name: "displayTitle")  String? displayTitle, @JsonKey(name: "displayAuthor")  String? displayAuthor, @JsonKey(name: "coverPath")  String? coverPath, @JsonKey(name: "duration")  double? duration, @JsonKey(name: "playMethod")  int? playMethod, @JsonKey(name: "mediaPlayer")  String? mediaPlayer, @JsonKey(name: "deviceInfo")  DeviceInfo? deviceInfo, @JsonKey(name: "serverVersion")  String? serverVersion, @JsonKey(name: "date")  String? date, @JsonKey(name: "dayOfWeek")  String? dayOfWeek, @JsonKey(name: "timeListening")  double? timeListening, @JsonKey(name: "startTime")  double? startTime, @JsonKey(name: "currentTime")  double? currentTime, @JsonKey(name: "startedAt")  int? startedAt, @JsonKey(name: "updatedAt")  int? updatedAt, @JsonKey(name: "audioTracks")  List<AudioTrack>? audioTracks, @JsonKey(name: "libraryItem")  LibraryItem? libraryItem)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _PlaybackSession() when $default != null:
+return $default(_that.id,_that.userId,_that.libraryId,_that.libraryItemId,_that.episodeId,_that.mediaType,_that.mediaMetadata,_that.chapters,_that.displayTitle,_that.displayAuthor,_that.coverPath,_that.duration,_that.playMethod,_that.mediaPlayer,_that.deviceInfo,_that.serverVersion,_that.date,_that.dayOfWeek,_that.timeListening,_that.startTime,_that.currentTime,_that.startedAt,_that.updatedAt,_that.audioTracks,_that.libraryItem);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "userId")  String userId, @JsonKey(name: "libraryId")  String? libraryId, @JsonKey(name: "libraryItemId")  String libraryItemId, @JsonKey(name: "episodeId")  String? episodeId, @JsonKey(name: "mediaType")  String? mediaType, @JsonKey(name: "mediaMetadata")  Metadata? mediaMetadata, @JsonKey(name: "chapters")  List<Chapter>? chapters, @JsonKey(name: "displayTitle")  String? displayTitle, @JsonKey(name: "displayAuthor")  String? displayAuthor, @JsonKey(name: "coverPath")  String? coverPath, @JsonKey(name: "duration")  double? duration, @JsonKey(name: "playMethod")  int? playMethod, @JsonKey(name: "mediaPlayer")  String? mediaPlayer, @JsonKey(name: "deviceInfo")  DeviceInfo? deviceInfo, @JsonKey(name: "serverVersion")  String? serverVersion, @JsonKey(name: "date")  String? date, @JsonKey(name: "dayOfWeek")  String? dayOfWeek, @JsonKey(name: "timeListening")  double? timeListening, @JsonKey(name: "startTime")  double? startTime, @JsonKey(name: "currentTime")  double? currentTime, @JsonKey(name: "startedAt")  int? startedAt, @JsonKey(name: "updatedAt")  int? updatedAt, @JsonKey(name: "audioTracks")  List<AudioTrack>? audioTracks, @JsonKey(name: "libraryItem")  LibraryItem? libraryItem)  $default,) {final _that = this;
+switch (_that) {
+case _PlaybackSession():
+return $default(_that.id,_that.userId,_that.libraryId,_that.libraryItemId,_that.episodeId,_that.mediaType,_that.mediaMetadata,_that.chapters,_that.displayTitle,_that.displayAuthor,_that.coverPath,_that.duration,_that.playMethod,_that.mediaPlayer,_that.deviceInfo,_that.serverVersion,_that.date,_that.dayOfWeek,_that.timeListening,_that.startTime,_that.currentTime,_that.startedAt,_that.updatedAt,_that.audioTracks,_that.libraryItem);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "id")  String id, @JsonKey(name: "userId")  String userId, @JsonKey(name: "libraryId")  String? libraryId, @JsonKey(name: "libraryItemId")  String libraryItemId, @JsonKey(name: "episodeId")  String? episodeId, @JsonKey(name: "mediaType")  String? mediaType, @JsonKey(name: "mediaMetadata")  Metadata? mediaMetadata, @JsonKey(name: "chapters")  List<Chapter>? chapters, @JsonKey(name: "displayTitle")  String? displayTitle, @JsonKey(name: "displayAuthor")  String? displayAuthor, @JsonKey(name: "coverPath")  String? coverPath, @JsonKey(name: "duration")  double? duration, @JsonKey(name: "playMethod")  int? playMethod, @JsonKey(name: "mediaPlayer")  String? mediaPlayer, @JsonKey(name: "deviceInfo")  DeviceInfo? deviceInfo, @JsonKey(name: "serverVersion")  String? serverVersion, @JsonKey(name: "date")  String? date, @JsonKey(name: "dayOfWeek")  String? dayOfWeek, @JsonKey(name: "timeListening")  double? timeListening, @JsonKey(name: "startTime")  double? startTime, @JsonKey(name: "currentTime")  double? currentTime, @JsonKey(name: "startedAt")  int? startedAt, @JsonKey(name: "updatedAt")  int? updatedAt, @JsonKey(name: "audioTracks")  List<AudioTrack>? audioTracks, @JsonKey(name: "libraryItem")  LibraryItem? libraryItem)?  $default,) {final _that = this;
+switch (_that) {
+case _PlaybackSession() when $default != null:
+return $default(_that.id,_that.userId,_that.libraryId,_that.libraryItemId,_that.episodeId,_that.mediaType,_that.mediaMetadata,_that.chapters,_that.displayTitle,_that.displayAuthor,_that.coverPath,_that.duration,_that.playMethod,_that.mediaPlayer,_that.deviceInfo,_that.serverVersion,_that.date,_that.dayOfWeek,_that.timeListening,_that.startTime,_that.currentTime,_that.startedAt,_that.updatedAt,_that.audioTracks,_that.libraryItem);case _:
+  return null;
+
+}
+}
+
+}
 
 /// @nodoc
 @JsonSerializable()

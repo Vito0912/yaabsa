@@ -1,6 +1,5 @@
-// dart format width=80
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// coverage:ignore-file
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
@@ -88,6 +87,136 @@ $LibraryFileMetadataCopyWith<$Res> get metadata {
 }
 }
 
+
+/// Adds pattern-matching-related methods to [EbookFile].
+extension EbookFilePatterns on EbookFile {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _EbookFile value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _EbookFile() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _EbookFile value)  $default,){
+final _that = this;
+switch (_that) {
+case _EbookFile():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _EbookFile value)?  $default,){
+final _that = this;
+switch (_that) {
+case _EbookFile() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "ino")  String ino, @JsonKey(name: "metadata")  LibraryFileMetadata metadata, @JsonKey(name: "ebookFormat")  String ebookFormat, @JsonKey(name: "addedAt")  int addedAt, @JsonKey(name: "updatedAt")  int? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _EbookFile() when $default != null:
+return $default(_that.ino,_that.metadata,_that.ebookFormat,_that.addedAt,_that.updatedAt);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "ino")  String ino, @JsonKey(name: "metadata")  LibraryFileMetadata metadata, @JsonKey(name: "ebookFormat")  String ebookFormat, @JsonKey(name: "addedAt")  int addedAt, @JsonKey(name: "updatedAt")  int? updatedAt)  $default,) {final _that = this;
+switch (_that) {
+case _EbookFile():
+return $default(_that.ino,_that.metadata,_that.ebookFormat,_that.addedAt,_that.updatedAt);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "ino")  String ino, @JsonKey(name: "metadata")  LibraryFileMetadata metadata, @JsonKey(name: "ebookFormat")  String ebookFormat, @JsonKey(name: "addedAt")  int addedAt, @JsonKey(name: "updatedAt")  int? updatedAt)?  $default,) {final _that = this;
+switch (_that) {
+case _EbookFile() when $default != null:
+return $default(_that.ino,_that.metadata,_that.ebookFormat,_that.addedAt,_that.updatedAt);case _:
+  return null;
+
+}
+}
+
+}
 
 /// @nodoc
 @JsonSerializable()

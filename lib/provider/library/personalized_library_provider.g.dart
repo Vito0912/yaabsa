@@ -6,177 +6,106 @@ part of 'personalized_library_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$personalizedLibraryNotifierHash() =>
-    r'2da59666810275c78aa411d8fda3658214053aa8';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
-
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-}
-
-abstract class _$PersonalizedLibraryNotifier
-    extends BuildlessAsyncNotifier<PersonalizedLibrary?> {
-  late final String libraryId;
-
-  FutureOr<PersonalizedLibrary?> build(String libraryId);
-}
-
-/// See also [PersonalizedLibraryNotifier].
 @ProviderFor(PersonalizedLibraryNotifier)
-const personalizedLibraryNotifierProvider = PersonalizedLibraryNotifierFamily();
+final personalizedLibraryProvider = PersonalizedLibraryNotifierFamily._();
 
-/// See also [PersonalizedLibraryNotifier].
-class PersonalizedLibraryNotifierFamily
-    extends Family<AsyncValue<PersonalizedLibrary?>> {
-  /// See also [PersonalizedLibraryNotifier].
-  const PersonalizedLibraryNotifierFamily();
-
-  /// See also [PersonalizedLibraryNotifier].
-  PersonalizedLibraryNotifierProvider call(String libraryId) {
-    return PersonalizedLibraryNotifierProvider(libraryId);
-  }
-
-  @override
-  PersonalizedLibraryNotifierProvider getProviderOverride(
-    covariant PersonalizedLibraryNotifierProvider provider,
-  ) {
-    return call(provider.libraryId);
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'personalizedLibraryNotifierProvider';
-}
-
-/// See also [PersonalizedLibraryNotifier].
-class PersonalizedLibraryNotifierProvider
+final class PersonalizedLibraryNotifierProvider
     extends
-        AsyncNotifierProviderImpl<
+        $AsyncNotifierProvider<
           PersonalizedLibraryNotifier,
           PersonalizedLibrary?
         > {
-  /// See also [PersonalizedLibraryNotifier].
-  PersonalizedLibraryNotifierProvider(String libraryId)
-    : this._internal(
-        () => PersonalizedLibraryNotifier()..libraryId = libraryId,
-        from: personalizedLibraryNotifierProvider,
-        name: r'personalizedLibraryNotifierProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$personalizedLibraryNotifierHash,
-        dependencies: PersonalizedLibraryNotifierFamily._dependencies,
-        allTransitiveDependencies:
-            PersonalizedLibraryNotifierFamily._allTransitiveDependencies,
-        libraryId: libraryId,
-      );
-
-  PersonalizedLibraryNotifierProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.libraryId,
-  }) : super.internal();
-
-  final String libraryId;
+  PersonalizedLibraryNotifierProvider._({
+    required PersonalizedLibraryNotifierFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'personalizedLibraryProvider',
+         isAutoDispose: false,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
-  FutureOr<PersonalizedLibrary?> runNotifierBuild(
-    covariant PersonalizedLibraryNotifier notifier,
-  ) {
-    return notifier.build(libraryId);
-  }
+  String debugGetCreateSourceHash() => _$personalizedLibraryNotifierHash();
 
   @override
-  Override overrideWith(PersonalizedLibraryNotifier Function() create) {
-    return ProviderOverride(
-      origin: this,
-      override: PersonalizedLibraryNotifierProvider._internal(
-        () => create()..libraryId = libraryId,
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        libraryId: libraryId,
-      ),
-    );
+  String toString() {
+    return r'personalizedLibraryProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  AsyncNotifierProviderElement<
-    PersonalizedLibraryNotifier,
-    PersonalizedLibrary?
-  >
-  createElement() {
-    return _PersonalizedLibraryNotifierProviderElement(this);
-  }
+  PersonalizedLibraryNotifier create() => PersonalizedLibraryNotifier();
 
   @override
   bool operator ==(Object other) {
     return other is PersonalizedLibraryNotifierProvider &&
-        other.libraryId == libraryId;
+        other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, libraryId.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin PersonalizedLibraryNotifierRef
-    on AsyncNotifierProviderRef<PersonalizedLibrary?> {
-  /// The parameter `libraryId` of this provider.
-  String get libraryId;
-}
+String _$personalizedLibraryNotifierHash() =>
+    r'2da59666810275c78aa411d8fda3658214053aa8';
 
-class _PersonalizedLibraryNotifierProviderElement
-    extends
-        AsyncNotifierProviderElement<
+final class PersonalizedLibraryNotifierFamily extends $Family
+    with
+        $ClassFamilyOverride<
           PersonalizedLibraryNotifier,
-          PersonalizedLibrary?
-        >
-    with PersonalizedLibraryNotifierRef {
-  _PersonalizedLibraryNotifierProviderElement(super.provider);
+          AsyncValue<PersonalizedLibrary?>,
+          PersonalizedLibrary?,
+          FutureOr<PersonalizedLibrary?>,
+          String
+        > {
+  PersonalizedLibraryNotifierFamily._()
+    : super(
+        retry: null,
+        name: r'personalizedLibraryProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: false,
+      );
+
+  PersonalizedLibraryNotifierProvider call(String libraryId) =>
+      PersonalizedLibraryNotifierProvider._(argument: libraryId, from: this);
 
   @override
-  String get libraryId =>
-      (origin as PersonalizedLibraryNotifierProvider).libraryId;
+  String toString() => r'personalizedLibraryProvider';
 }
 
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+abstract class _$PersonalizedLibraryNotifier
+    extends $AsyncNotifier<PersonalizedLibrary?> {
+  late final _$args = ref.$arg as String;
+  String get libraryId => _$args;
+
+  FutureOr<PersonalizedLibrary?> build(String libraryId);
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref =
+        this.ref
+            as $Ref<AsyncValue<PersonalizedLibrary?>, PersonalizedLibrary?>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<
+                AsyncValue<PersonalizedLibrary?>,
+                PersonalizedLibrary?
+              >,
+              AsyncValue<PersonalizedLibrary?>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, () => build(_$args));
+  }
+}

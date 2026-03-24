@@ -16,7 +16,7 @@ class PersonalizedView extends ConsumerWidget {
       return const Center(child: Text('No library selected. Please select a library via the switcher.'));
     }
 
-    final personalizedLibraryAsyncValue = ref.watch(personalizedLibraryNotifierProvider(selectedLibrary.id));
+    final personalizedLibraryAsyncValue = ref.watch(personalizedLibraryProvider(selectedLibrary.id));
 
     return personalizedLibraryAsyncValue.when(
       data: (personalizedLibrary) {

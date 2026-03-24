@@ -17,13 +17,11 @@ const Duration _connectedInterval = Duration(minutes: 10);
 const Duration _disconnectedInterval = Duration(minutes: 1);
 
 @Riverpod(keepAlive: true)
-Stream<bool> serverStatus(Ref ref) {
+Stream<bool> serverStatus(Ref ref) async* {
   final controller = StreamController<bool>();
   Timer? timer;
   bool lastStatus = false;
   final connectivity = Connectivity();
-
-  controller.add(false);
 
   Future<void> checkStatus() async {
     final connectivityResult = await connectivity.checkConnectivity();
@@ -98,7 +96,8 @@ Stream<bool> serverStatus(Ref ref) {
     connectivitySubscription.cancel();
   });
 
-  return controller.stream;
+  yield false;
+  yield* controller.stream;
 }
 
 Future<void> _onReconnected(Ref ref) async {

@@ -47,13 +47,13 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
       _listToMap(user.mediaProgress);
       state = AsyncData(_listToMap(user.mediaProgress));
       await _loadFromDb();
-      return state.valueOrNull ?? {};
+      return state.asData?.value ?? <String, MediaProgress>{};
     } catch (e, s) {
       logger('Error refreshing all media progress: $e\n$s', tag: 'MediaProgressProvider', level: InfoLevel.error);
       await _loadFromDb();
       state = AsyncError<Map<String, MediaProgress>>(e, s).copyWithPrevious(state);
     }
-    return state.valueOrNull ?? {};
+    return state.asData?.value ?? <String, MediaProgress>{};
   }
 
   Future<void> refreshAllProgress() async {
@@ -80,9 +80,9 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
       final progressList = await db.getAllSyncs();
       final List<MediaProgress> mediaProgressList =
           progressList.map((e) => MediaProgress.fromJson(jsonDecode(e.mediaProgress))).toList();
-      final currentMap = state.valueOrNull ?? {};
+        final Map<String, MediaProgress> currentMap = state.asData?.value ?? <String, MediaProgress>{};
       final loadedMap = _listToMap(mediaProgressList);
-      final mergedMap = {...currentMap, ...loadedMap};
+        final Map<String, MediaProgress> mergedMap = {...currentMap, ...loadedMap};
       state = AsyncData(mergedMap);
     } catch (e, s) {
       logger('Error loading media progress from DB: $e\n$s', tag: 'MediaProgressProvider', level: InfoLevel.error);
@@ -97,23 +97,23 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
       final newProgress = response.data;
       final String key = '$libraryItemId${episodeId ?? ''}';
 
-      if ((newProgress?.lastUpdate ?? 0) < (state.valueOrNull?[key]?.lastUpdate ?? 0)) {
+      if ((newProgress?.lastUpdate ?? 0) < (state.asData?.value[key]?.lastUpdate ?? 0)) {
         logger(
           'Skipping update for $libraryItemId: new progress is older than existing progress.',
           tag: 'MediaProgressProvider',
           level: InfoLevel.debug,
         );
-        return state.valueOrNull?[key];
+        return state.asData?.value[key];
       }
 
       if (newProgress != null) {
-        final currentMap = state.valueOrNull ?? {};
-        final updatedMap = {...currentMap, key: newProgress};
+        final Map<String, MediaProgress> currentMap = state.asData?.value ?? <String, MediaProgress>{};
+        final Map<String, MediaProgress> updatedMap = {...currentMap, key: newProgress};
         state = AsyncData(updatedMap);
         return newProgress;
       } else {
-        final currentMap = state.valueOrNull ?? {};
-        final updatedMap = {...currentMap};
+        final Map<String, MediaProgress> currentMap = state.asData?.value ?? <String, MediaProgress>{};
+        final Map<String, MediaProgress> updatedMap = {...currentMap};
         if (updatedMap.remove(libraryItemId) != null) {
           state = AsyncData(updatedMap);
         }
@@ -121,8 +121,8 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
       }
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) {
-        final currentMap = state.valueOrNull ?? {};
-        final updatedMap = {...currentMap};
+        final Map<String, MediaProgress> currentMap = state.asData?.value ?? <String, MediaProgress>{};
+        final Map<String, MediaProgress> updatedMap = {...currentMap};
         if (updatedMap.remove(libraryItemId) != null) {
           state = AsyncData(updatedMap);
         }
@@ -148,7 +148,7 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
   Future<MediaProgress?> updateMediaProgress(String libraryItemId, double currentTime, PlaybackSession session) async {
     state = const AsyncLoading<Map<String, MediaProgress>>().copyWithPrevious(state);
     try {
-      final currentMap = state.valueOrNull ?? {};
+      final Map<String, MediaProgress> currentMap = state.asData?.value ?? <String, MediaProgress>{};
 
       MediaProgress? updatedProgress = currentMap[libraryItemId];
       if (updatedProgress == null) {
@@ -176,7 +176,7 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
         progress: progress,
         lastUpdate: DateTime.now().millisecondsSinceEpoch,
       );
-      final updatedMap = {...currentMap, libraryItemId: updatedProgress};
+      final Map<String, MediaProgress> updatedMap = {...currentMap, libraryItemId: updatedProgress};
       state = AsyncData(updatedMap);
       return updatedProgress;
     } catch (e, s) {

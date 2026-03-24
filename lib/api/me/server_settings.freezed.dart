@@ -1,6 +1,5 @@
-// dart format width=80
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// coverage:ignore-file
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
@@ -99,6 +98,136 @@ as String?,
 
 }
 
+
+/// Adds pattern-matching-related methods to [ServerSettings].
+extension ServerSettingsPatterns on ServerSettings {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _ServerSettings value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _ServerSettings() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _ServerSettings value)  $default,){
+final _that = this;
+switch (_that) {
+case _ServerSettings():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _ServerSettings value)?  $default,){
+final _that = this;
+switch (_that) {
+case _ServerSettings() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "scannerFindCovers")  bool? scannerFindCovers, @JsonKey(name: "scannerCoverProvider")  String? scannerCoverProvider, @JsonKey(name: "scannerParseSubtitle")  bool? scannerParseSubtitle, @JsonKey(name: "scannerPreferMatchedMetadata")  bool? scannerPreferMatchedMetadata, @JsonKey(name: "scannerDisableWatcher")  bool? scannerDisableWatcher, @JsonKey(name: "storeCoverWithItem")  bool? storeCoverWithItem, @JsonKey(name: "storeMetadataWithItem")  bool? storeMetadataWithItem, @JsonKey(name: "metadataFileFormat")  String? metadataFileFormat, @JsonKey(name: "rateLimitLoginRequests")  int? rateLimitLoginRequests, @JsonKey(name: "rateLimitLoginWindow")  int? rateLimitLoginWindow, @JsonKey(name: "backupSchedule")  dynamic backupSchedule, @JsonKey(name: "backupsToKeep")  int? backupsToKeep, @JsonKey(name: "maxBackupSize")  int? maxBackupSize, @JsonKey(name: "loggerDailyLogsToKeep")  int? loggerDailyLogsToKeep, @JsonKey(name: "loggerScannerLogsToKeep")  int? loggerScannerLogsToKeep, @JsonKey(name: "homeBookshelfView")  int? homeBookshelfView, @JsonKey(name: "bookshelfView")  int? bookshelfView, @JsonKey(name: "sortingIgnorePrefix")  bool? sortingIgnorePrefix, @JsonKey(name: "sortingPrefixes")  List<String>? sortingPrefixes, @JsonKey(name: "chromecastEnabled")  bool? chromecastEnabled, @JsonKey(name: "dateFormat")  String? dateFormat, @JsonKey(name: "language")  String? language, @JsonKey(name: "logLevel")  int? logLevel, @JsonKey(name: "version")  String? version)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _ServerSettings() when $default != null:
+return $default(_that.id,_that.scannerFindCovers,_that.scannerCoverProvider,_that.scannerParseSubtitle,_that.scannerPreferMatchedMetadata,_that.scannerDisableWatcher,_that.storeCoverWithItem,_that.storeMetadataWithItem,_that.metadataFileFormat,_that.rateLimitLoginRequests,_that.rateLimitLoginWindow,_that.backupSchedule,_that.backupsToKeep,_that.maxBackupSize,_that.loggerDailyLogsToKeep,_that.loggerScannerLogsToKeep,_that.homeBookshelfView,_that.bookshelfView,_that.sortingIgnorePrefix,_that.sortingPrefixes,_that.chromecastEnabled,_that.dateFormat,_that.language,_that.logLevel,_that.version);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "scannerFindCovers")  bool? scannerFindCovers, @JsonKey(name: "scannerCoverProvider")  String? scannerCoverProvider, @JsonKey(name: "scannerParseSubtitle")  bool? scannerParseSubtitle, @JsonKey(name: "scannerPreferMatchedMetadata")  bool? scannerPreferMatchedMetadata, @JsonKey(name: "scannerDisableWatcher")  bool? scannerDisableWatcher, @JsonKey(name: "storeCoverWithItem")  bool? storeCoverWithItem, @JsonKey(name: "storeMetadataWithItem")  bool? storeMetadataWithItem, @JsonKey(name: "metadataFileFormat")  String? metadataFileFormat, @JsonKey(name: "rateLimitLoginRequests")  int? rateLimitLoginRequests, @JsonKey(name: "rateLimitLoginWindow")  int? rateLimitLoginWindow, @JsonKey(name: "backupSchedule")  dynamic backupSchedule, @JsonKey(name: "backupsToKeep")  int? backupsToKeep, @JsonKey(name: "maxBackupSize")  int? maxBackupSize, @JsonKey(name: "loggerDailyLogsToKeep")  int? loggerDailyLogsToKeep, @JsonKey(name: "loggerScannerLogsToKeep")  int? loggerScannerLogsToKeep, @JsonKey(name: "homeBookshelfView")  int? homeBookshelfView, @JsonKey(name: "bookshelfView")  int? bookshelfView, @JsonKey(name: "sortingIgnorePrefix")  bool? sortingIgnorePrefix, @JsonKey(name: "sortingPrefixes")  List<String>? sortingPrefixes, @JsonKey(name: "chromecastEnabled")  bool? chromecastEnabled, @JsonKey(name: "dateFormat")  String? dateFormat, @JsonKey(name: "language")  String? language, @JsonKey(name: "logLevel")  int? logLevel, @JsonKey(name: "version")  String? version)  $default,) {final _that = this;
+switch (_that) {
+case _ServerSettings():
+return $default(_that.id,_that.scannerFindCovers,_that.scannerCoverProvider,_that.scannerParseSubtitle,_that.scannerPreferMatchedMetadata,_that.scannerDisableWatcher,_that.storeCoverWithItem,_that.storeMetadataWithItem,_that.metadataFileFormat,_that.rateLimitLoginRequests,_that.rateLimitLoginWindow,_that.backupSchedule,_that.backupsToKeep,_that.maxBackupSize,_that.loggerDailyLogsToKeep,_that.loggerScannerLogsToKeep,_that.homeBookshelfView,_that.bookshelfView,_that.sortingIgnorePrefix,_that.sortingPrefixes,_that.chromecastEnabled,_that.dateFormat,_that.language,_that.logLevel,_that.version);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "id")  String id, @JsonKey(name: "scannerFindCovers")  bool? scannerFindCovers, @JsonKey(name: "scannerCoverProvider")  String? scannerCoverProvider, @JsonKey(name: "scannerParseSubtitle")  bool? scannerParseSubtitle, @JsonKey(name: "scannerPreferMatchedMetadata")  bool? scannerPreferMatchedMetadata, @JsonKey(name: "scannerDisableWatcher")  bool? scannerDisableWatcher, @JsonKey(name: "storeCoverWithItem")  bool? storeCoverWithItem, @JsonKey(name: "storeMetadataWithItem")  bool? storeMetadataWithItem, @JsonKey(name: "metadataFileFormat")  String? metadataFileFormat, @JsonKey(name: "rateLimitLoginRequests")  int? rateLimitLoginRequests, @JsonKey(name: "rateLimitLoginWindow")  int? rateLimitLoginWindow, @JsonKey(name: "backupSchedule")  dynamic backupSchedule, @JsonKey(name: "backupsToKeep")  int? backupsToKeep, @JsonKey(name: "maxBackupSize")  int? maxBackupSize, @JsonKey(name: "loggerDailyLogsToKeep")  int? loggerDailyLogsToKeep, @JsonKey(name: "loggerScannerLogsToKeep")  int? loggerScannerLogsToKeep, @JsonKey(name: "homeBookshelfView")  int? homeBookshelfView, @JsonKey(name: "bookshelfView")  int? bookshelfView, @JsonKey(name: "sortingIgnorePrefix")  bool? sortingIgnorePrefix, @JsonKey(name: "sortingPrefixes")  List<String>? sortingPrefixes, @JsonKey(name: "chromecastEnabled")  bool? chromecastEnabled, @JsonKey(name: "dateFormat")  String? dateFormat, @JsonKey(name: "language")  String? language, @JsonKey(name: "logLevel")  int? logLevel, @JsonKey(name: "version")  String? version)?  $default,) {final _that = this;
+switch (_that) {
+case _ServerSettings() when $default != null:
+return $default(_that.id,_that.scannerFindCovers,_that.scannerCoverProvider,_that.scannerParseSubtitle,_that.scannerPreferMatchedMetadata,_that.scannerDisableWatcher,_that.storeCoverWithItem,_that.storeMetadataWithItem,_that.metadataFileFormat,_that.rateLimitLoginRequests,_that.rateLimitLoginWindow,_that.backupSchedule,_that.backupsToKeep,_that.maxBackupSize,_that.loggerDailyLogsToKeep,_that.loggerScannerLogsToKeep,_that.homeBookshelfView,_that.bookshelfView,_that.sortingIgnorePrefix,_that.sortingPrefixes,_that.chromecastEnabled,_that.dateFormat,_that.language,_that.logLevel,_that.version);case _:
+  return null;
+
+}
+}
+
+}
 
 /// @nodoc
 @JsonSerializable()

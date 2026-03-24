@@ -1,6 +1,5 @@
-// dart format width=80
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// coverage:ignore-file
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
@@ -120,6 +119,136 @@ $CollapsedSeriesCopyWith<$Res>? get collapsedSeries {
 }
 }
 
+
+/// Adds pattern-matching-related methods to [LibraryItem].
+extension LibraryItemPatterns on LibraryItem {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _LibraryItem value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _LibraryItem() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _LibraryItem value)  $default,){
+final _that = this;
+switch (_that) {
+case _LibraryItem():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _LibraryItem value)?  $default,){
+final _that = this;
+switch (_that) {
+case _LibraryItem() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "ino")  String ino, @JsonKey(name: "oldLibraryItemId")  String? oldLibraryItemId, @JsonKey(name: "libraryId")  String? libraryId, @JsonKey(name: "folderId")  String? folderId, @JsonKey(name: "path")  String? path, @JsonKey(name: "relPath")  String? relPath, @JsonKey(name: "isFile")  bool? isFile, @JsonKey(name: "mtimeMs")  int? mtimeMs, @JsonKey(name: "ctimeMs")  int? ctimeMs, @JsonKey(name: "birthtimeMs")  int? birthtimeMs, @JsonKey(name: "addedAt")  int? addedAt, @JsonKey(name: "updatedAt")  int? updatedAt, @JsonKey(name: "lastScan")  int? lastScan, @JsonKey(name: "scanVersion")  String? scanVersion, @JsonKey(name: "isMissing")  bool? isMissing, @JsonKey(name: "isInvalid")  bool? isInvalid, @JsonKey(name: "mediaType")  String? mediaType, @JsonKey(name: "media")  Media? media, @JsonKey(name: "libraryFiles")  List<LibraryFile>? libraryFiles, @JsonKey(name: "size")  int? size, @JsonKey(name: "collapsedSeries")  CollapsedSeries? collapsedSeries)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _LibraryItem() when $default != null:
+return $default(_that.id,_that.ino,_that.oldLibraryItemId,_that.libraryId,_that.folderId,_that.path,_that.relPath,_that.isFile,_that.mtimeMs,_that.ctimeMs,_that.birthtimeMs,_that.addedAt,_that.updatedAt,_that.lastScan,_that.scanVersion,_that.isMissing,_that.isInvalid,_that.mediaType,_that.media,_that.libraryFiles,_that.size,_that.collapsedSeries);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "ino")  String ino, @JsonKey(name: "oldLibraryItemId")  String? oldLibraryItemId, @JsonKey(name: "libraryId")  String? libraryId, @JsonKey(name: "folderId")  String? folderId, @JsonKey(name: "path")  String? path, @JsonKey(name: "relPath")  String? relPath, @JsonKey(name: "isFile")  bool? isFile, @JsonKey(name: "mtimeMs")  int? mtimeMs, @JsonKey(name: "ctimeMs")  int? ctimeMs, @JsonKey(name: "birthtimeMs")  int? birthtimeMs, @JsonKey(name: "addedAt")  int? addedAt, @JsonKey(name: "updatedAt")  int? updatedAt, @JsonKey(name: "lastScan")  int? lastScan, @JsonKey(name: "scanVersion")  String? scanVersion, @JsonKey(name: "isMissing")  bool? isMissing, @JsonKey(name: "isInvalid")  bool? isInvalid, @JsonKey(name: "mediaType")  String? mediaType, @JsonKey(name: "media")  Media? media, @JsonKey(name: "libraryFiles")  List<LibraryFile>? libraryFiles, @JsonKey(name: "size")  int? size, @JsonKey(name: "collapsedSeries")  CollapsedSeries? collapsedSeries)  $default,) {final _that = this;
+switch (_that) {
+case _LibraryItem():
+return $default(_that.id,_that.ino,_that.oldLibraryItemId,_that.libraryId,_that.folderId,_that.path,_that.relPath,_that.isFile,_that.mtimeMs,_that.ctimeMs,_that.birthtimeMs,_that.addedAt,_that.updatedAt,_that.lastScan,_that.scanVersion,_that.isMissing,_that.isInvalid,_that.mediaType,_that.media,_that.libraryFiles,_that.size,_that.collapsedSeries);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "id")  String id, @JsonKey(name: "ino")  String ino, @JsonKey(name: "oldLibraryItemId")  String? oldLibraryItemId, @JsonKey(name: "libraryId")  String? libraryId, @JsonKey(name: "folderId")  String? folderId, @JsonKey(name: "path")  String? path, @JsonKey(name: "relPath")  String? relPath, @JsonKey(name: "isFile")  bool? isFile, @JsonKey(name: "mtimeMs")  int? mtimeMs, @JsonKey(name: "ctimeMs")  int? ctimeMs, @JsonKey(name: "birthtimeMs")  int? birthtimeMs, @JsonKey(name: "addedAt")  int? addedAt, @JsonKey(name: "updatedAt")  int? updatedAt, @JsonKey(name: "lastScan")  int? lastScan, @JsonKey(name: "scanVersion")  String? scanVersion, @JsonKey(name: "isMissing")  bool? isMissing, @JsonKey(name: "isInvalid")  bool? isInvalid, @JsonKey(name: "mediaType")  String? mediaType, @JsonKey(name: "media")  Media? media, @JsonKey(name: "libraryFiles")  List<LibraryFile>? libraryFiles, @JsonKey(name: "size")  int? size, @JsonKey(name: "collapsedSeries")  CollapsedSeries? collapsedSeries)?  $default,) {final _that = this;
+switch (_that) {
+case _LibraryItem() when $default != null:
+return $default(_that.id,_that.ino,_that.oldLibraryItemId,_that.libraryId,_that.folderId,_that.path,_that.relPath,_that.isFile,_that.mtimeMs,_that.ctimeMs,_that.birthtimeMs,_that.addedAt,_that.updatedAt,_that.lastScan,_that.scanVersion,_that.isMissing,_that.isInvalid,_that.mediaType,_that.media,_that.libraryFiles,_that.size,_that.collapsedSeries);case _:
+  return null;
+
+}
+}
+
+}
 
 /// @nodoc
 @JsonSerializable()

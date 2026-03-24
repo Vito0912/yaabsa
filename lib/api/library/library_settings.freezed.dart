@@ -1,6 +1,5 @@
-// dart format width=80
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// coverage:ignore-file
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
@@ -85,6 +84,136 @@ as List<String>?,
 
 }
 
+
+/// Adds pattern-matching-related methods to [LibrarySettings].
+extension LibrarySettingsPatterns on LibrarySettings {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _LibrarySettings value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _LibrarySettings() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _LibrarySettings value)  $default,){
+final _that = this;
+switch (_that) {
+case _LibrarySettings():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _LibrarySettings value)?  $default,){
+final _that = this;
+switch (_that) {
+case _LibrarySettings() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "coverAspectRatio")  double? coverAspectRatio, @JsonKey(name: "disableWatcher")  bool? disableWatcher, @JsonKey(name: "skipMatchingMediaWithAsin")  bool? skipMatchingMediaWithIsbn, @JsonKey(name: "skipMatchingMediaWithIsbn")  bool? skipMatchingMediaWithAsin, @JsonKey(name: "autoScanCronExpression")  String? autoScanCronExpression, @JsonKey(name: "audiobooksOnly")  bool? audiobooksOnly, @JsonKey(name: "epubsAllowScriptedContent")  bool? epubScriptedContent, @JsonKey(name: "hideSingleBookSeries")  bool? hideSingleBookSeries, @JsonKey(name: "onlyShowLaterBooksInContinueSeries")  bool? showLaterBooks, @JsonKey(name: "podcastSearchRegion")  String? podcastSearchRegion, @JsonKey(name: "metadataPrecedence")  List<String>? metadataPrecedence)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _LibrarySettings() when $default != null:
+return $default(_that.coverAspectRatio,_that.disableWatcher,_that.skipMatchingMediaWithIsbn,_that.skipMatchingMediaWithAsin,_that.autoScanCronExpression,_that.audiobooksOnly,_that.epubScriptedContent,_that.hideSingleBookSeries,_that.showLaterBooks,_that.podcastSearchRegion,_that.metadataPrecedence);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "coverAspectRatio")  double? coverAspectRatio, @JsonKey(name: "disableWatcher")  bool? disableWatcher, @JsonKey(name: "skipMatchingMediaWithAsin")  bool? skipMatchingMediaWithIsbn, @JsonKey(name: "skipMatchingMediaWithIsbn")  bool? skipMatchingMediaWithAsin, @JsonKey(name: "autoScanCronExpression")  String? autoScanCronExpression, @JsonKey(name: "audiobooksOnly")  bool? audiobooksOnly, @JsonKey(name: "epubsAllowScriptedContent")  bool? epubScriptedContent, @JsonKey(name: "hideSingleBookSeries")  bool? hideSingleBookSeries, @JsonKey(name: "onlyShowLaterBooksInContinueSeries")  bool? showLaterBooks, @JsonKey(name: "podcastSearchRegion")  String? podcastSearchRegion, @JsonKey(name: "metadataPrecedence")  List<String>? metadataPrecedence)  $default,) {final _that = this;
+switch (_that) {
+case _LibrarySettings():
+return $default(_that.coverAspectRatio,_that.disableWatcher,_that.skipMatchingMediaWithIsbn,_that.skipMatchingMediaWithAsin,_that.autoScanCronExpression,_that.audiobooksOnly,_that.epubScriptedContent,_that.hideSingleBookSeries,_that.showLaterBooks,_that.podcastSearchRegion,_that.metadataPrecedence);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "coverAspectRatio")  double? coverAspectRatio, @JsonKey(name: "disableWatcher")  bool? disableWatcher, @JsonKey(name: "skipMatchingMediaWithAsin")  bool? skipMatchingMediaWithIsbn, @JsonKey(name: "skipMatchingMediaWithIsbn")  bool? skipMatchingMediaWithAsin, @JsonKey(name: "autoScanCronExpression")  String? autoScanCronExpression, @JsonKey(name: "audiobooksOnly")  bool? audiobooksOnly, @JsonKey(name: "epubsAllowScriptedContent")  bool? epubScriptedContent, @JsonKey(name: "hideSingleBookSeries")  bool? hideSingleBookSeries, @JsonKey(name: "onlyShowLaterBooksInContinueSeries")  bool? showLaterBooks, @JsonKey(name: "podcastSearchRegion")  String? podcastSearchRegion, @JsonKey(name: "metadataPrecedence")  List<String>? metadataPrecedence)?  $default,) {final _that = this;
+switch (_that) {
+case _LibrarySettings() when $default != null:
+return $default(_that.coverAspectRatio,_that.disableWatcher,_that.skipMatchingMediaWithIsbn,_that.skipMatchingMediaWithAsin,_that.autoScanCronExpression,_that.audiobooksOnly,_that.epubScriptedContent,_that.hideSingleBookSeries,_that.showLaterBooks,_that.podcastSearchRegion,_that.metadataPrecedence);case _:
+  return null;
+
+}
+}
+
+}
 
 /// @nodoc
 @JsonSerializable()

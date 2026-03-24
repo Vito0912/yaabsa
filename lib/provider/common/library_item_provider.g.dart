@@ -6,171 +6,126 @@ part of 'library_item_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$libraryItemHash() => r'0748ccbf373848c33262c4d928025462b761a427';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
+@ProviderFor(LibraryItemsNotifier)
+final libraryItemsProvider = LibraryItemsNotifierFamily._();
 
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-}
-
-/// See also [libraryItem].
-@ProviderFor(libraryItem)
-const libraryItemProvider = LibraryItemFamily();
-
-/// See also [libraryItem].
-class LibraryItemFamily extends Family<AsyncValue<LibraryItem>> {
-  /// See also [libraryItem].
-  const LibraryItemFamily();
-
-  /// See also [libraryItem].
-  LibraryItemProvider call(String itemId, {String? episodeId}) {
-    return LibraryItemProvider(itemId, episodeId: episodeId);
-  }
+final class LibraryItemsNotifierProvider
+    extends $AsyncNotifierProvider<LibraryItemsNotifier, LibraryItemState> {
+  LibraryItemsNotifierProvider._({
+    required LibraryItemsNotifierFamily super.from,
+    required (
+      String, {
+      String? initialSort,
+      int? initialDesc,
+      String? initialFilter,
+      int? initialCollapseSeries,
+      String? initialInclude,
+    })
+    super.argument,
+  }) : super(
+         retry: null,
+         name: r'libraryItemsProvider',
+         isAutoDispose: false,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
-  LibraryItemProvider getProviderOverride(
-    covariant LibraryItemProvider provider,
-  ) {
-    return call(provider.itemId, episodeId: provider.episodeId);
+  String debugGetCreateSourceHash() => _$libraryItemsNotifierHash();
+
+  @override
+  String toString() {
+    return r'libraryItemsProvider'
+        ''
+        '$argument';
   }
 
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
+  @$internal
   @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'libraryItemProvider';
-}
-
-/// See also [libraryItem].
-class LibraryItemProvider extends AutoDisposeFutureProvider<LibraryItem> {
-  /// See also [libraryItem].
-  LibraryItemProvider(String itemId, {String? episodeId})
-    : this._internal(
-        (ref) =>
-            libraryItem(ref as LibraryItemRef, itemId, episodeId: episodeId),
-        from: libraryItemProvider,
-        name: r'libraryItemProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$libraryItemHash,
-        dependencies: LibraryItemFamily._dependencies,
-        allTransitiveDependencies: LibraryItemFamily._allTransitiveDependencies,
-        itemId: itemId,
-        episodeId: episodeId,
-      );
-
-  LibraryItemProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.itemId,
-    required this.episodeId,
-  }) : super.internal();
-
-  final String itemId;
-  final String? episodeId;
-
-  @override
-  Override overrideWith(
-    FutureOr<LibraryItem> Function(LibraryItemRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: LibraryItemProvider._internal(
-        (ref) => create(ref as LibraryItemRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        itemId: itemId,
-        episodeId: episodeId,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<LibraryItem> createElement() {
-    return _LibraryItemProviderElement(this);
-  }
+  LibraryItemsNotifier create() => LibraryItemsNotifier();
 
   @override
   bool operator ==(Object other) {
-    return other is LibraryItemProvider &&
-        other.itemId == itemId &&
-        other.episodeId == episodeId;
+    return other is LibraryItemsNotifierProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, itemId.hashCode);
-    hash = _SystemHash.combine(hash, episodeId.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin LibraryItemRef on AutoDisposeFutureProviderRef<LibraryItem> {
-  /// The parameter `itemId` of this provider.
-  String get itemId;
-
-  /// The parameter `episodeId` of this provider.
-  String? get episodeId;
-}
-
-class _LibraryItemProviderElement
-    extends AutoDisposeFutureProviderElement<LibraryItem>
-    with LibraryItemRef {
-  _LibraryItemProviderElement(super.provider);
-
-  @override
-  String get itemId => (origin as LibraryItemProvider).itemId;
-  @override
-  String? get episodeId => (origin as LibraryItemProvider).episodeId;
-}
-
 String _$libraryItemsNotifierHash() =>
-    r'9a0febe3b7c43c209408c7cbf80210cfc6f25be8';
+    r'78ee19932b44ffdad0450ea06f905a8bbf3284bf';
 
-abstract class _$LibraryItemsNotifier
-    extends BuildlessAsyncNotifier<LibraryItemState> {
-  late final String libraryId;
-  late final String? initialSort;
-  late final int? initialDesc;
-  late final String? initialFilter;
-  late final int? initialCollapseSeries;
-  late final String? initialInclude;
+final class LibraryItemsNotifierFamily extends $Family
+    with
+        $ClassFamilyOverride<
+          LibraryItemsNotifier,
+          AsyncValue<LibraryItemState>,
+          LibraryItemState,
+          FutureOr<LibraryItemState>,
+          (
+            String, {
+            String? initialSort,
+            int? initialDesc,
+            String? initialFilter,
+            int? initialCollapseSeries,
+            String? initialInclude,
+          })
+        > {
+  LibraryItemsNotifierFamily._()
+    : super(
+        retry: null,
+        name: r'libraryItemsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: false,
+      );
+
+  LibraryItemsNotifierProvider call(
+    String libraryId, {
+    String? initialSort,
+    int? initialDesc,
+    String? initialFilter,
+    int? initialCollapseSeries,
+    String? initialInclude,
+  }) => LibraryItemsNotifierProvider._(
+    argument: (
+      libraryId,
+      initialSort: initialSort,
+      initialDesc: initialDesc,
+      initialFilter: initialFilter,
+      initialCollapseSeries: initialCollapseSeries,
+      initialInclude: initialInclude,
+    ),
+    from: this,
+  );
+
+  @override
+  String toString() => r'libraryItemsProvider';
+}
+
+abstract class _$LibraryItemsNotifier extends $AsyncNotifier<LibraryItemState> {
+  late final _$args =
+      ref.$arg
+          as (
+            String, {
+            String? initialSort,
+            int? initialDesc,
+            String? initialFilter,
+            int? initialCollapseSeries,
+            String? initialInclude,
+          });
+  String get libraryId => _$args.$1;
+  String? get initialSort => _$args.initialSort;
+  int? get initialDesc => _$args.initialDesc;
+  String? get initialFilter => _$args.initialFilter;
+  int? get initialCollapseSeries => _$args.initialCollapseSeries;
+  String? get initialInclude => _$args.initialInclude;
 
   FutureOr<LibraryItemState> build(
     String libraryId, {
@@ -180,241 +135,111 @@ abstract class _$LibraryItemsNotifier
     int? initialCollapseSeries,
     String? initialInclude,
   });
-}
-
-/// See also [LibraryItemsNotifier].
-@ProviderFor(LibraryItemsNotifier)
-const libraryItemsNotifierProvider = LibraryItemsNotifierFamily();
-
-/// See also [LibraryItemsNotifier].
-class LibraryItemsNotifierFamily extends Family<AsyncValue<LibraryItemState>> {
-  /// See also [LibraryItemsNotifier].
-  const LibraryItemsNotifierFamily();
-
-  /// See also [LibraryItemsNotifier].
-  LibraryItemsNotifierProvider call(
-    String libraryId, {
-    String? initialSort,
-    int? initialDesc,
-    String? initialFilter,
-    int? initialCollapseSeries,
-    String? initialInclude,
-  }) {
-    return LibraryItemsNotifierProvider(
-      libraryId,
-      initialSort: initialSort,
-      initialDesc: initialDesc,
-      initialFilter: initialFilter,
-      initialCollapseSeries: initialCollapseSeries,
-      initialInclude: initialInclude,
-    );
-  }
-
+  @$mustCallSuper
   @override
-  LibraryItemsNotifierProvider getProviderOverride(
-    covariant LibraryItemsNotifierProvider provider,
-  ) {
-    return call(
-      provider.libraryId,
-      initialSort: provider.initialSort,
-      initialDesc: provider.initialDesc,
-      initialFilter: provider.initialFilter,
-      initialCollapseSeries: provider.initialCollapseSeries,
-      initialInclude: provider.initialInclude,
-    );
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'libraryItemsNotifierProvider';
-}
-
-/// See also [LibraryItemsNotifier].
-class LibraryItemsNotifierProvider
-    extends AsyncNotifierProviderImpl<LibraryItemsNotifier, LibraryItemState> {
-  /// See also [LibraryItemsNotifier].
-  LibraryItemsNotifierProvider(
-    String libraryId, {
-    String? initialSort,
-    int? initialDesc,
-    String? initialFilter,
-    int? initialCollapseSeries,
-    String? initialInclude,
-  }) : this._internal(
-         () =>
-             LibraryItemsNotifier()
-               ..libraryId = libraryId
-               ..initialSort = initialSort
-               ..initialDesc = initialDesc
-               ..initialFilter = initialFilter
-               ..initialCollapseSeries = initialCollapseSeries
-               ..initialInclude = initialInclude,
-         from: libraryItemsNotifierProvider,
-         name: r'libraryItemsNotifierProvider',
-         debugGetCreateSourceHash:
-             const bool.fromEnvironment('dart.vm.product')
-                 ? null
-                 : _$libraryItemsNotifierHash,
-         dependencies: LibraryItemsNotifierFamily._dependencies,
-         allTransitiveDependencies:
-             LibraryItemsNotifierFamily._allTransitiveDependencies,
-         libraryId: libraryId,
-         initialSort: initialSort,
-         initialDesc: initialDesc,
-         initialFilter: initialFilter,
-         initialCollapseSeries: initialCollapseSeries,
-         initialInclude: initialInclude,
-       );
-
-  LibraryItemsNotifierProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.libraryId,
-    required this.initialSort,
-    required this.initialDesc,
-    required this.initialFilter,
-    required this.initialCollapseSeries,
-    required this.initialInclude,
-  }) : super.internal();
-
-  final String libraryId;
-  final String? initialSort;
-  final int? initialDesc;
-  final String? initialFilter;
-  final int? initialCollapseSeries;
-  final String? initialInclude;
-
-  @override
-  FutureOr<LibraryItemState> runNotifierBuild(
-    covariant LibraryItemsNotifier notifier,
-  ) {
-    return notifier.build(
-      libraryId,
-      initialSort: initialSort,
-      initialDesc: initialDesc,
-      initialFilter: initialFilter,
-      initialCollapseSeries: initialCollapseSeries,
-      initialInclude: initialInclude,
-    );
-  }
-
-  @override
-  Override overrideWith(LibraryItemsNotifier Function() create) {
-    return ProviderOverride(
-      origin: this,
-      override: LibraryItemsNotifierProvider._internal(
-        () =>
-            create()
-              ..libraryId = libraryId
-              ..initialSort = initialSort
-              ..initialDesc = initialDesc
-              ..initialFilter = initialFilter
-              ..initialCollapseSeries = initialCollapseSeries
-              ..initialInclude = initialInclude,
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        libraryId: libraryId,
-        initialSort: initialSort,
-        initialDesc: initialDesc,
-        initialFilter: initialFilter,
-        initialCollapseSeries: initialCollapseSeries,
-        initialInclude: initialInclude,
+  void runBuild() {
+    final ref =
+        this.ref as $Ref<AsyncValue<LibraryItemState>, LibraryItemState>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<LibraryItemState>, LibraryItemState>,
+              AsyncValue<LibraryItemState>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(
+      ref,
+      () => build(
+        _$args.$1,
+        initialSort: _$args.initialSort,
+        initialDesc: _$args.initialDesc,
+        initialFilter: _$args.initialFilter,
+        initialCollapseSeries: _$args.initialCollapseSeries,
+        initialInclude: _$args.initialInclude,
       ),
     );
   }
+}
+
+@ProviderFor(libraryItem)
+final libraryItemProvider = LibraryItemFamily._();
+
+final class LibraryItemProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<LibraryItem>,
+          LibraryItem,
+          FutureOr<LibraryItem>
+        >
+    with $FutureModifier<LibraryItem>, $FutureProvider<LibraryItem> {
+  LibraryItemProvider._({
+    required LibraryItemFamily super.from,
+    required (String, {String? episodeId}) super.argument,
+  }) : super(
+         retry: null,
+         name: r'libraryItemProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
-  AsyncNotifierProviderElement<LibraryItemsNotifier, LibraryItemState>
-  createElement() {
-    return _LibraryItemsNotifierProviderElement(this);
+  String debugGetCreateSourceHash() => _$libraryItemHash();
+
+  @override
+  String toString() {
+    return r'libraryItemProvider'
+        ''
+        '$argument';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<LibraryItem> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<LibraryItem> create(Ref ref) {
+    final argument = this.argument as (String, {String? episodeId});
+    return libraryItem(ref, argument.$1, episodeId: argument.episodeId);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is LibraryItemsNotifierProvider &&
-        other.libraryId == libraryId &&
-        other.initialSort == initialSort &&
-        other.initialDesc == initialDesc &&
-        other.initialFilter == initialFilter &&
-        other.initialCollapseSeries == initialCollapseSeries &&
-        other.initialInclude == initialInclude;
+    return other is LibraryItemProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, libraryId.hashCode);
-    hash = _SystemHash.combine(hash, initialSort.hashCode);
-    hash = _SystemHash.combine(hash, initialDesc.hashCode);
-    hash = _SystemHash.combine(hash, initialFilter.hashCode);
-    hash = _SystemHash.combine(hash, initialCollapseSeries.hashCode);
-    hash = _SystemHash.combine(hash, initialInclude.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin LibraryItemsNotifierRef on AsyncNotifierProviderRef<LibraryItemState> {
-  /// The parameter `libraryId` of this provider.
-  String get libraryId;
+String _$libraryItemHash() => r'0748ccbf373848c33262c4d928025462b761a427';
 
-  /// The parameter `initialSort` of this provider.
-  String? get initialSort;
+final class LibraryItemFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          FutureOr<LibraryItem>,
+          (String, {String? episodeId})
+        > {
+  LibraryItemFamily._()
+    : super(
+        retry: null,
+        name: r'libraryItemProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
 
-  /// The parameter `initialDesc` of this provider.
-  int? get initialDesc;
+  LibraryItemProvider call(String itemId, {String? episodeId}) =>
+      LibraryItemProvider._(
+        argument: (itemId, episodeId: episodeId),
+        from: this,
+      );
 
-  /// The parameter `initialFilter` of this provider.
-  String? get initialFilter;
-
-  /// The parameter `initialCollapseSeries` of this provider.
-  int? get initialCollapseSeries;
-
-  /// The parameter `initialInclude` of this provider.
-  String? get initialInclude;
+  @override
+  String toString() => r'libraryItemProvider';
 }
-
-class _LibraryItemsNotifierProviderElement
-    extends AsyncNotifierProviderElement<LibraryItemsNotifier, LibraryItemState>
-    with LibraryItemsNotifierRef {
-  _LibraryItemsNotifierProviderElement(super.provider);
-
-  @override
-  String get libraryId => (origin as LibraryItemsNotifierProvider).libraryId;
-  @override
-  String? get initialSort =>
-      (origin as LibraryItemsNotifierProvider).initialSort;
-  @override
-  int? get initialDesc => (origin as LibraryItemsNotifierProvider).initialDesc;
-  @override
-  String? get initialFilter =>
-      (origin as LibraryItemsNotifierProvider).initialFilter;
-  @override
-  int? get initialCollapseSeries =>
-      (origin as LibraryItemsNotifierProvider).initialCollapseSeries;
-  @override
-  String? get initialInclude =>
-      (origin as LibraryItemsNotifierProvider).initialInclude;
-}
-
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

@@ -98,18 +98,28 @@ SettingsCache settingsCache(Ref ref) {
 
 @Riverpod(keepAlive: true)
 class SettingsManager extends _$SettingsManager {
+  Future<void> ensureInitialized() async {
+    final db = ref.read(appDatabaseProvider);
+    final cache = ref.read(settingsCacheProvider);
+
+    if (cache.isInitialized) {
+      return;
+    }
+
+    final globalSettings = await db.getAllGlobalSettings();
+    final userSettings = await db.getAllUserSettings();
+    cache.setAllGlobal(globalSettings);
+    cache.setAllUsers(userSettings);
+  }
+
   @override
   Stream<bool> build() async* {
     final db = ref.watch(appDatabaseProvider);
     final cache = ref.watch(settingsCacheProvider);
 
-    if (!cache.isInitialized) {
-      final globalSettings = await db.getAllGlobalSettings();
-      final userSettings = await db.getAllUserSettings();
-      cache.setAllGlobal(globalSettings);
-      cache.setAllUsers(userSettings);
-      yield true;
-    }
+    await ensureInitialized();
+
+    yield true;
 
     await for (final _ in db.select(db.globalSettings).watch()) {
       final globalSettings = await db.getAllGlobalSettings();

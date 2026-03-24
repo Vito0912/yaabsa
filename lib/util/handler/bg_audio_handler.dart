@@ -153,7 +153,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
     if (waitForSync) {
       final progress = await _ref
-          .read(mediaProgressNotifierProvider.notifier)
+          .read(mediaProgressProvider.notifier)
           .fetchOrRefreshIndividualProgress(_currentMediaItem!.itemId);
 
       currentPosition = Duration(microseconds: ((progress?.currentTime ?? 0) * Duration.microsecondsPerSecond).round());
@@ -170,7 +170,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       await _player.play();
 
       final progress = await _ref
-          .read(mediaProgressNotifierProvider.notifier)
+          .read(mediaProgressProvider.notifier)
           .fetchOrRefreshIndividualProgress(_currentMediaItem!.itemId);
 
       currentPosition = Duration(microseconds: ((progress?.currentTime ?? 0) * Duration.microsecondsPerSecond).round());
@@ -365,7 +365,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     if (_currentMediaItem == null) return Future.value();
     final source = _currentMediaItem!.toAudioSources();
     final currentProgress = _ref.read(
-      mediaProgressNotifierProvider.select((asyncValue) {
+      mediaProgressProvider.select((asyncValue) {
         return asyncValue.value?[_currentMediaItem!.itemId];
       }),
     );

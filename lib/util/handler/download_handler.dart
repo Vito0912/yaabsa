@@ -52,12 +52,13 @@ class DownloadHandler {
             download: Value(
               jsonEncode(
                 InternalDownload(
-                  item: _ref.read(libraryItemProvider(itemId)).valueOrNull,
+                  item: _ref.read(libraryItemProvider(itemId)).asData?.value,
                   episode:
                       episodeId != null
                           ? _ref
                               .read(libraryItemProvider(itemId))
-                              .valueOrNull
+                        .asData
+                        ?.value
                               ?.media
                               ?.podcastMedia
                               ?.episodes
@@ -116,7 +117,7 @@ class DownloadHandler {
   }
 
   Future<void> downloadFile(String itemId, {String? episodeId, bool ebook = false}) async {
-    final LibraryItem? item = _ref.read(libraryItemProvider(itemId)).valueOrNull;
+    final LibraryItem? item = _ref.read(libraryItemProvider(itemId)).asData?.value;
     if (item == null || absApi == null) {
       throw Exception('Library item with ID $itemId not found.');
     }

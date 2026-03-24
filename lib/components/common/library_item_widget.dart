@@ -53,7 +53,7 @@ class LibraryItemWidget extends HookWidget {
                             Consumer(
                               builder: (BuildContext context, WidgetRef ref, Widget? child) {
                                 final progress = ref.watch(
-                                  mediaProgressNotifierProvider.select((asyncValue) {
+                                  mediaProgressProvider.select((asyncValue) {
                                     return asyncValue.value?[libraryItem.id];
                                   }),
                                 );

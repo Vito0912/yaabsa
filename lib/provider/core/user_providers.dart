@@ -22,7 +22,7 @@ Stream<String?> activeUserId(Ref ref) {
 @Riverpod(keepAlive: true)
 Stream<User?> currentUser(Ref ref) {
   final db = ref.watch(appDatabaseProvider);
-  final activeUserIdStream = ref.watch(activeUserIdProvider.stream);
+  final activeUserIdStream = db.watchGlobalSetting('activeUserId').map((e) => e?.value);
 
   return activeUserIdStream.asyncMap((userId) async {
     if (userId == null) {

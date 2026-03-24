@@ -36,7 +36,7 @@ const defaultLibraryItemsRequest = LibraryItemsRequest(limit: _itemsPerPage, pag
 @Riverpod(keepAlive: true)
 class LibraryItemsNotifier extends _$LibraryItemsNotifier {
   LibraryItemsRequest _constructRequest(String libraryId, int page, {LibraryItemState? S}) {
-    final stateForParams = S ?? state.valueOrNull;
+    final stateForParams = S ?? state.asData?.value;
     return LibraryItemsRequest(
       limit: _itemsPerPage,
       page: page,
@@ -62,7 +62,7 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
       throw Exception('User not authenticated or API not available.');
     }
 
-    final currentVal = state.valueOrNull;
+    final currentVal = state.asData?.value;
     final request = LibraryItemsRequest(
       limit: _itemsPerPage,
       page: page,
@@ -159,7 +159,7 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
     String? include,
     bool clearFilter = false,
   }) async {
-    final currentLoadedState = state.valueOrNull;
+    final currentLoadedState = state.asData?.value;
     if (currentLoadedState == null || currentLoadedState.libraryId == null) {
       return;
     }
@@ -209,7 +209,7 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
   }
 
   Future<void> refresh() async {
-    final currentLoadedState = state.valueOrNull;
+    final currentLoadedState = state.asData?.value;
     if (currentLoadedState == null || currentLoadedState.libraryId == null) {
       return;
     }

@@ -318,7 +318,7 @@ class _ReaderState extends ConsumerState<Reader> {
         builder: (context, ref, child) {
           final User user = ref.watch(currentUserProvider).value!;
           final currentProgress = ref.read(
-            mediaProgressNotifierProvider.select((asyncValue) {
+            mediaProgressProvider.select((asyncValue) {
               return asyncValue.value?[widget.itemId];
             }),
           );

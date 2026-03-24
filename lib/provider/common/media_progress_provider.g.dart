@@ -6,25 +6,63 @@ part of 'media_progress_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$mediaProgressNotifierHash() =>
-    r'ed70f4ae13686e1c95b1e6360d33fed2bf17649c';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [MediaProgressNotifier].
 @ProviderFor(MediaProgressNotifier)
-final mediaProgressNotifierProvider = AsyncNotifierProvider<
-  MediaProgressNotifier,
-  Map<String, MediaProgress>
->.internal(
-  MediaProgressNotifier.new,
-  name: r'mediaProgressNotifierProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$mediaProgressNotifierHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+final mediaProgressProvider = MediaProgressNotifierProvider._();
 
-typedef _$MediaProgressNotifier = AsyncNotifier<Map<String, MediaProgress>>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class MediaProgressNotifierProvider
+    extends
+        $AsyncNotifierProvider<
+          MediaProgressNotifier,
+          Map<String, MediaProgress>
+        > {
+  MediaProgressNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'mediaProgressProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$mediaProgressNotifierHash();
+
+  @$internal
+  @override
+  MediaProgressNotifier create() => MediaProgressNotifier();
+}
+
+String _$mediaProgressNotifierHash() =>
+    r'dfce16b1d429900ae3799adc60ad73c895465311';
+
+abstract class _$MediaProgressNotifier
+    extends $AsyncNotifier<Map<String, MediaProgress>> {
+  FutureOr<Map<String, MediaProgress>> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref =
+        this.ref
+            as $Ref<
+              AsyncValue<Map<String, MediaProgress>>,
+              Map<String, MediaProgress>
+            >;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<
+                AsyncValue<Map<String, MediaProgress>>,
+                Map<String, MediaProgress>
+              >,
+              AsyncValue<Map<String, MediaProgress>>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}

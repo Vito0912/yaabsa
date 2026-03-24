@@ -15,9 +15,9 @@ void main() {
   runZonedGuarded(
     () async {
       await Init.globals();
-      await containerRef.read(settingsManagerProvider.future);
-      await containerRef.read(currentUserProvider.future);
-      await containerRef.read(serverStatusProvider.future);
+      await containerRef.read(settingsManagerProvider.notifier).ensureInitialized();
+      unawaited(containerRef.read(currentUserProvider.future));
+      unawaited(containerRef.read(serverStatusProvider.future));
       Init.initLogger();
       audioHandler = await Init.initAudioHandler();
 

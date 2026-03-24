@@ -6,21 +6,38 @@ part of 'server_status_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$serverStatusHash() => r'f98e86f9ac2303de95b039d2394a4b140798f749';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [serverStatus].
 @ProviderFor(serverStatus)
-final serverStatusProvider = StreamProvider<bool>.internal(
-  serverStatus,
-  name: r'serverStatusProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$serverStatusHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+final serverStatusProvider = ServerStatusProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef ServerStatusRef = StreamProviderRef<bool>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class ServerStatusProvider
+    extends $FunctionalProvider<AsyncValue<bool>, bool, Stream<bool>>
+    with $FutureModifier<bool>, $StreamProvider<bool> {
+  ServerStatusProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'serverStatusProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$serverStatusHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<bool> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<bool> create(Ref ref) {
+    return serverStatus(ref);
+  }
+}
+
+String _$serverStatusHash() => r'4e07f328691749638b87443d4da3ef7701adfd2e';

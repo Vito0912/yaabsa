@@ -6,73 +6,155 @@ part of 'user_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+
+@ProviderFor(activeUserId)
+final activeUserIdProvider = ActiveUserIdProvider._();
+
+final class ActiveUserIdProvider
+    extends $FunctionalProvider<AsyncValue<String?>, String?, Stream<String?>>
+    with $FutureModifier<String?>, $StreamProvider<String?> {
+  ActiveUserIdProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'activeUserIdProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$activeUserIdHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<String?> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<String?> create(Ref ref) {
+    return activeUserId(ref);
+  }
+}
+
 String _$activeUserIdHash() => r'7cd6e0720d9e38814d28806fecf7a9bbc3e2b311';
 
-/// See also [activeUserId].
-@ProviderFor(activeUserId)
-final activeUserIdProvider = StreamProvider<String?>.internal(
-  activeUserId,
-  name: r'activeUserIdProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$activeUserIdHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef ActiveUserIdRef = StreamProviderRef<String?>;
-String _$currentUserHash() => r'384cc5a7df05ea69dadba1fe9feb85989a889e52';
-
-/// See also [currentUser].
 @ProviderFor(currentUser)
-final currentUserProvider = StreamProvider<User?>.internal(
-  currentUser,
-  name: r'currentUserProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$currentUserHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+final currentUserProvider = CurrentUserProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef CurrentUserRef = StreamProviderRef<User?>;
-String _$allStoredUsersHash() => r'7d0a676d47e1920e42b0638ceb25a5549d7482fb';
+final class CurrentUserProvider
+    extends $FunctionalProvider<AsyncValue<User?>, User?, Stream<User?>>
+    with $FutureModifier<User?>, $StreamProvider<User?> {
+  CurrentUserProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'currentUserProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$currentUserHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<User?> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<User?> create(Ref ref) {
+    return currentUser(ref);
+  }
+}
+
+String _$currentUserHash() => r'4890ab6bd30efd10d8ddc3f5fbdc8bdbedd2feab';
 
 /// Provider for the list of all stored users.
-///
-/// Copied from [allStoredUsers].
+
 @ProviderFor(allStoredUsers)
-final allStoredUsersProvider = StreamProvider<List<User>>.internal(
-  allStoredUsers,
-  name: r'allStoredUsersProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$allStoredUsersHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+final allStoredUsersProvider = AllStoredUsersProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef AllStoredUsersRef = StreamProviderRef<List<User>>;
-String _$absApiHash() => r'cf58e8928aa64b48938350ca60dd50ae998a567d';
+/// Provider for the list of all stored users.
 
-/// See also [absApi].
+final class AllStoredUsersProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<User>>,
+          List<User>,
+          Stream<List<User>>
+        >
+    with $FutureModifier<List<User>>, $StreamProvider<List<User>> {
+  /// Provider for the list of all stored users.
+  AllStoredUsersProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'allStoredUsersProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$allStoredUsersHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<List<User>> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<User>> create(Ref ref) {
+    return allStoredUsers(ref);
+  }
+}
+
+String _$allStoredUsersHash() => r'7d0a676d47e1920e42b0638ceb25a5549d7482fb';
+
 @ProviderFor(absApi)
-final absApiProvider = Provider<ABSApi?>.internal(
-  absApi,
-  name: r'absApiProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$absApiHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+final absApiProvider = AbsApiProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef AbsApiRef = ProviderRef<ABSApi?>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class AbsApiProvider
+    extends $FunctionalProvider<ABSApi?, ABSApi?, ABSApi?>
+    with $Provider<ABSApi?> {
+  AbsApiProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'absApiProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$absApiHash();
+
+  @$internal
+  @override
+  $ProviderElement<ABSApi?> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  ABSApi? create(Ref ref) {
+    return absApi(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ABSApi? value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ABSApi?>(value),
+    );
+  }
+}
+
+String _$absApiHash() => r'cf58e8928aa64b48938350ca60dd50ae998a567d';

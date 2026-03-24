@@ -153,7 +153,7 @@ class SessionRepository {
     }
 
     final MediaProgress? updatedProgress = await ref
-        .read(mediaProgressNotifierProvider.notifier)
+      .read(mediaProgressProvider.notifier)
         .updateMediaProgress(_currentSession!.libraryItemId, currentTime, _currentSession!);
 
     if (!(ref.read(serverStatusProvider).value ?? false) || _isLocalSession) {
