@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:yaabsa/components/app/download_status.dart';
 import 'package:yaabsa/components/app/library_switcher.dart';
 import 'package:yaabsa/components/app/user_switcher.dart';
 import 'package:yaabsa/screens/main/downloads.dart';
 import 'package:yaabsa/screens/main/library_view.dart';
 import 'package:yaabsa/screens/main/personalized_view.dart';
+import 'package:yaabsa/screens/main/search_view.dart';
 import 'package:yaabsa/screens/player/play_bar.dart';
 import 'package:yaabsa/screens/settings/settings_screen.dart';
 import 'package:yaabsa/util/globals.dart';
@@ -16,7 +19,11 @@ class NavigationItemConfig {
   final String label;
   final Widget page;
 
-  NavigationItemConfig({required this.icon, required this.label, required this.page});
+  NavigationItemConfig({
+    required this.icon,
+    required this.label,
+    required this.page,
+  });
 }
 
 class PlaceholderPage extends StatelessWidget {
@@ -28,7 +35,11 @@ class PlaceholderPage extends StatelessWidget {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Text(title, style: Theme.of(context).textTheme.headlineMedium, textAlign: TextAlign.center),
+        child: Text(
+          title,
+          style: Theme.of(context).textTheme.headlineMedium,
+          textAlign: TextAlign.center,
+        ),
       ),
     );
   }
@@ -46,6 +57,10 @@ class LayoutHome extends StatefulWidget {
 class _LayoutHomeState extends State<LayoutHome> {
   int _selectedIndex = 0;
   _PageSource _currentlyDisplayedPageSource = _PageSource.internal;
+  final TextEditingController _searchController = TextEditingController();
+  Timer? _searchDebounce;
+  String _searchQuery = '';
+  bool _isMobileSearchExpanded = false;
 
   late final List<NavigationItemConfig> _appBarItems;
   late final List<NavigationItemConfig> _advancedMenuItems;
@@ -54,18 +69,29 @@ class _LayoutHomeState extends State<LayoutHome> {
   void initState() {
     super.initState();
     _appBarItems = [
-      NavigationItemConfig(icon: Icons.home, label: "Shelf", page: const PersonalizedView()),
-      NavigationItemConfig(icon: Icons.collections_bookmark_outlined, label: "Library", page: const LibraryView()),
       NavigationItemConfig(
-        icon: Icons.search,
-        label: "Search",
-        page: const PlaceholderPage(title: "Search Page Content"),
+        icon: Icons.home,
+        label: "Shelf",
+        page: const PersonalizedView(),
+      ),
+      NavigationItemConfig(
+        icon: Icons.collections_bookmark_outlined,
+        label: "Library",
+        page: const LibraryView(),
       ),
     ];
 
     _advancedMenuItems = [
-      NavigationItemConfig(icon: Icons.download, label: "Downloads", page: Downloads()),
-      NavigationItemConfig(icon: Icons.settings, label: "Settings", page: MainSettingsScreen()),
+      NavigationItemConfig(
+        icon: Icons.download,
+        label: "Downloads",
+        page: Downloads(),
+      ),
+      NavigationItemConfig(
+        icon: Icons.settings,
+        label: "Settings",
+        page: MainSettingsScreen(),
+      ),
       NavigationItemConfig(
         icon: Icons.info_outline,
         label: "About",
@@ -78,6 +104,13 @@ class _LayoutHomeState extends State<LayoutHome> {
     } else {
       _currentlyDisplayedPageSource = _PageSource.internal;
     }
+  }
+
+  @override
+  void dispose() {
+    _searchDebounce?.cancel();
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -96,19 +129,51 @@ class _LayoutHomeState extends State<LayoutHome> {
     setState(() {
       _selectedIndex = index;
       _currentlyDisplayedPageSource = _PageSource.internal;
+      _searchQuery = '';
+      _searchController.clear();
+      _isMobileSearchExpanded = false;
     });
   }
 
-  void _handleAdvancedItemTap(BuildContext context, String itemName) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) {
-          final item = _advancedMenuItems.firstWhere((item) => item.label == itemName);
-          return item.page;
-        },
-      ),
-    );
+  void _submitSearch(String value) {
+    final query = value.trim();
+    _searchDebounce?.cancel();
+    setState(() {
+      _currentlyDisplayedPageSource = _PageSource.internal;
+      _searchQuery = query;
+    });
+  }
+
+  void _onSearchChanged(String value) {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 250), () {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _currentlyDisplayedPageSource = _PageSource.internal;
+        _searchQuery = value.trim();
+      });
+    });
+  }
+
+  void _expandMobileSearch() {
+    setState(() {
+      _isMobileSearchExpanded = true;
+    });
+  }
+
+  void _collapseMobileSearch() {
+    setState(() {
+      _isMobileSearchExpanded = false;
+    });
+  }
+
+  void _clearSearch() {
+    setState(() {
+      _searchQuery = '';
+      _searchController.clear();
+    });
   }
 
   Widget _buildSidebarItem(
@@ -133,8 +198,11 @@ class _LayoutHomeState extends State<LayoutHome> {
           selected: isSelected,
           onTap: onTap,
           dense: true,
-          selectedTileColor: selectedColor.withOpacity(0.1),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+          selectedTileColor: selectedColor.withValues(alpha: 0.1),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 24,
+            vertical: 8,
+          ),
         ),
       );
     } else {
@@ -142,7 +210,7 @@ class _LayoutHomeState extends State<LayoutHome> {
         onTap: onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
-          color: isSelected ? selectedColor.withOpacity(0.1) : null,
+          color: isSelected ? selectedColor.withValues(alpha: 0.1) : null,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -176,7 +244,12 @@ class _LayoutHomeState extends State<LayoutHome> {
             value: itemIndex,
             child: Row(
               children: [
-                Icon(item.icon, color: Theme.of(context).iconTheme.color ?? Theme.of(context).colorScheme.onSurface),
+                Icon(
+                  item.icon,
+                  color:
+                      Theme.of(context).iconTheme.color ??
+                      Theme.of(context).colorScheme.onSurface,
+                ),
                 const SizedBox(width: 12),
                 Text(item.label),
               ],
@@ -233,7 +306,9 @@ class _LayoutHomeState extends State<LayoutHome> {
                       children: [
                         Icon(
                           item.icon,
-                          color: isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
+                          color: isSelected
+                              ? colorScheme.primary
+                              : colorScheme.onSurfaceVariant,
                           size: isSelected ? 26 : 22,
                         ),
                         const SizedBox(height: 4),
@@ -241,8 +316,12 @@ class _LayoutHomeState extends State<LayoutHome> {
                           item.label,
                           style: TextStyle(
                             fontSize: 10,
-                            color: isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
-                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                            color: isSelected
+                                ? colorScheme.primary
+                                : colorScheme.onSurfaceVariant,
+                            fontWeight: isSelected
+                                ? FontWeight.w600
+                                : FontWeight.normal,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -259,22 +338,130 @@ class _LayoutHomeState extends State<LayoutHome> {
     );
   }
 
+  Widget _topSearchField(bool isMobile, {bool autofocus = false}) {
+    return SizedBox(
+      height: 40,
+      child: TextField(
+        controller: _searchController,
+        autofocus: autofocus,
+        textInputAction: TextInputAction.search,
+        onChanged: _onSearchChanged,
+        onSubmitted: _submitSearch,
+        decoration: InputDecoration(
+          hintText: 'Search this library',
+          isDense: true,
+          prefixIcon: const Icon(Icons.search_rounded),
+          suffixIcon: _searchQuery.isNotEmpty
+              ? IconButton(
+                  tooltip: 'Clear search',
+                  onPressed: _clearSearch,
+                  icon: const Icon(Icons.close_rounded),
+                )
+              : null,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide.none,
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 10,
+            vertical: 10,
+          ),
+          filled: true,
+        ),
+        style: TextStyle(fontSize: isMobile ? 14 : 15),
+      ),
+    );
+  }
+
+  Widget _mobileSearchToggle(BuildContext context) {
+    return InkWell(
+      onTap: _expandMobileSearch,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        height: 40,
+        width: 40,
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainerHigh,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outlineVariant,
+          ),
+        ),
+        child: Icon(
+          Icons.search_rounded,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      ),
+    );
+  }
+
   Widget _appBar(BuildContext context, bool isMobile) {
+    if (isMobile && _isMobileSearchExpanded) {
+      return SafeArea(
+        top: true,
+        bottom: false,
+        left: false,
+        right: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
+          child: Row(
+            children: [
+              InkWell(
+                onTap: _collapseMobileSearch,
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  height: 40,
+                  width: 40,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.outlineVariant,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.arrow_back_rounded,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Expanded(child: _topSearchField(true, autofocus: true)),
+            ],
+          ),
+        ),
+      );
+    }
+
     return SafeArea(
       top: true,
       bottom: false,
       left: false,
       right: false,
-      child: Row(
-        children: [
-          const SizedBox(width: 16),
-          UserSwitcher(),
-          const Spacer(),
-          DownloadStatus(),
-          LibrarySwitcher(),
-          if (isMobile) _buildAdvancedMenuButton(context),
-          const SizedBox(width: 8),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
+        child: Row(
+          children: [
+            UserSwitcher(),
+            const SizedBox(width: 6),
+            const Spacer(),
+            if (!isMobile)
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 250),
+                child: _topSearchField(false),
+              ),
+            if (!isMobile) const SizedBox(width: 6),
+            if (isMobile) _mobileSearchToggle(context),
+            if (isMobile) const SizedBox(width: 6),
+            DownloadStatus(),
+            const SizedBox(width: 4),
+            LibrarySwitcher(),
+            if (isMobile) ...[
+              const SizedBox(width: 2),
+              _buildAdvancedMenuButton(context),
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -288,13 +475,15 @@ class _LayoutHomeState extends State<LayoutHome> {
         final bool isDesktop = screenWidth >= 1200;
 
         Widget currentContent;
-        if (_currentlyDisplayedPageSource == _PageSource.child && widget.child != null) {
+        if (_currentlyDisplayedPageSource == _PageSource.child &&
+            widget.child != null) {
           currentContent = widget.child!;
+        } else if (_searchQuery.isNotEmpty) {
+          currentContent = SearchView(query: _searchQuery);
         } else {
-          currentContent =
-              _selectedIndex < _appBarItems.length
-                  ? _appBarItems[_selectedIndex].page
-                  : _advancedMenuItems[_selectedIndex - _appBarItems.length].page;
+          currentContent = _selectedIndex < _appBarItems.length
+              ? _appBarItems[_selectedIndex].page
+              : _advancedMenuItems[_selectedIndex - _appBarItems.length].page;
         }
 
         if (isMobile) {
@@ -304,7 +493,14 @@ class _LayoutHomeState extends State<LayoutHome> {
                 Column(
                   children: [
                     _appBar(context, true),
-                    Expanded(child: Column(children: [Expanded(child: currentContent), SizedBox(height: 86)])),
+                    Expanded(
+                      child: Column(
+                        children: [
+                          Expanded(child: currentContent),
+                          SizedBox(height: 86),
+                        ],
+                      ),
+                    ),
                     PlayBar(),
                   ],
                 ),
@@ -314,11 +510,16 @@ class _LayoutHomeState extends State<LayoutHome> {
                     builder: (context, snapshot) {
                       return Padding(
                         padding: EdgeInsets.only(
-                          bottom: 24 + ((snapshot.hasData && snapshot.data!) ? 56 : 0),
+                          bottom:
+                              24 +
+                              ((snapshot.hasData && snapshot.data!) ? 56 : 0),
                           right: 12,
                           left: 12,
                         ),
-                        child: Align(alignment: Alignment.bottomCenter, child: _buildMobileNavBar(context)),
+                        child: Align(
+                          alignment: Alignment.bottomCenter,
+                          child: _buildMobileNavBar(context),
+                        ),
                       );
                     },
                   ),
@@ -337,38 +538,36 @@ class _LayoutHomeState extends State<LayoutHome> {
                   Expanded(
                     child: ListView(
                       padding: EdgeInsets.zero,
-                      children:
-                          _appBarItems.asMap().entries.map((entry) {
-                            int idx = entry.key;
-                            NavigationItemConfig item = entry.value;
-                            return _buildSidebarItem(
-                              context,
-                              item,
-                              isSelected: _selectedIndex == idx,
-                              isDesktopOrTablet: true,
-                              isDesktop: isDesktop,
-                              onTap: () => _onAppBarItemTapped(idx),
-                            );
-                          }).toList(),
+                      children: _appBarItems.asMap().entries.map((entry) {
+                        int idx = entry.key;
+                        NavigationItemConfig item = entry.value;
+                        return _buildSidebarItem(
+                          context,
+                          item,
+                          isSelected: _selectedIndex == idx,
+                          isDesktopOrTablet: true,
+                          isDesktop: isDesktop,
+                          onTap: () => _onAppBarItemTapped(idx),
+                        );
+                      }).toList(),
                     ),
                   ),
                   const Divider(height: 1, thickness: 1),
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8.0),
                     child: Column(
-                      children:
-                          _advancedMenuItems.asMap().entries.map((entry) {
-                            int idx = entry.key + _appBarItems.length;
-                            NavigationItemConfig item = entry.value;
-                            return _buildSidebarItem(
-                              context,
-                              item,
-                              isSelected: _selectedIndex == idx,
-                              isDesktopOrTablet: true,
-                              isDesktop: isDesktop,
-                              onTap: () => _onAppBarItemTapped(idx),
-                            );
-                          }).toList(),
+                      children: _advancedMenuItems.asMap().entries.map((entry) {
+                        int idx = entry.key + _appBarItems.length;
+                        NavigationItemConfig item = entry.value;
+                        return _buildSidebarItem(
+                          context,
+                          item,
+                          isSelected: _selectedIndex == idx,
+                          isDesktopOrTablet: true,
+                          isDesktop: isDesktop,
+                          onTap: () => _onAppBarItemTapped(idx),
+                        );
+                      }).toList(),
                     ),
                   ),
                 ],
@@ -384,7 +583,14 @@ class _LayoutHomeState extends State<LayoutHome> {
                   child: Row(
                     children: [
                       sidebar,
-                      Expanded(child: Column(children: [Expanded(child: currentContent), PlayBar()])),
+                      Expanded(
+                        child: Column(
+                          children: [
+                            Expanded(child: currentContent),
+                            PlayBar(),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
