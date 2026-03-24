@@ -4,23 +4,40 @@ import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-class LibraryItemWidget extends HookWidget {
-  const LibraryItemWidget(this.libraryItem, this.api, {super.key, this.showProgress = false});
+class LibraryItemWidget extends ConsumerWidget {
+  const LibraryItemWidget(
+    this.libraryItem,
+    this.api, {
+    super.key,
+    this.showProgress = false,
+    this.compact = false,
+    this.squareCover = false,
+  });
 
   final LibraryItem libraryItem;
   final ABSApi api;
   final bool showProgress;
+  final bool compact;
+  final bool squareCover;
 
   @override
-  Widget build(BuildContext context) {
-    final isHovered = useState(false);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final progress = showProgress
+        ? ref.watch(
+            mediaProgressProvider.select(
+              (asyncValue) => asyncValue.value?[libraryItem.id],
+            ),
+          )
+        : null;
+
+    final progressValue = (progress?.progress ?? 0).clamp(0.0, 1.0).toDouble();
+    final showProgressBar = showProgress && progressValue > 0;
 
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: compact ? const EdgeInsets.all(4) : const EdgeInsets.all(8),
       child: InkWell(
         onTap: () async {
           context.push('/item/${libraryItem.id}');
@@ -32,65 +49,77 @@ class LibraryItemWidget extends HookWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(16),
-                  child: SizedBox(
-                    width: double.infinity,
-                    height: 200,
-                    child: api.getLibraryItemApi().getLibraryItemCover(libraryItem.id),
-                  ),
+                  child: squareCover
+                      ? AspectRatio(
+                          aspectRatio: 1,
+                          child: api.getLibraryItemApi().getLibraryItemCover(
+                            libraryItem.id,
+                          ),
+                        )
+                      : SizedBox(
+                          width: double.infinity,
+                          height: 200,
+                          child: api.getLibraryItemApi().getLibraryItemCover(
+                            libraryItem.id,
+                          ),
+                        ),
                 ),
                 Positioned(
                   top: 4,
                   right: 4,
-                  child: MouseRegion(
-                    onEnter: (_) => isHovered.value = true,
-                    onExit: (_) => isHovered.value = false,
-                    child: Container(
-                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(100), color: Colors.black),
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          if (false)
-                            Consumer(
-                              builder: (BuildContext context, WidgetRef ref, Widget? child) {
-                                final progress = ref.watch(
-                                  mediaProgressProvider.select((asyncValue) {
-                                    return asyncValue.value?[libraryItem.id];
-                                  }),
-                                );
-                                return CircularProgressIndicator(
-                                  value: progress?.progress ?? 0,
-                                  strokeWidth: 2,
-                                  constraints: const BoxConstraints(minWidth: 25, minHeight: 25),
-                                  backgroundColor: Colors.white,
-                                  color: Colors.blue,
-                                  year2023: false,
-                                );
-                              },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(100),
+                      color: Colors.black,
+                    ),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        if (libraryItem.media!.hasAudio)
+                          IconButton(
+                            icon: const Icon(Icons.play_arrow, size: 14),
+                            iconSize: 10,
+                            onPressed: () {
+                              audioHandler.setQueue(
+                                QueueItem(itemId: libraryItem.id),
+                              );
+                              audioHandler.play();
+                            },
+                            splashRadius: 8,
+                          ),
+                        if (!libraryItem.media!.hasAudio &&
+                            libraryItem.media!.hasBook)
+                          IconButton(
+                            icon: const Icon(
+                              Icons.my_library_books_outlined,
+                              size: 14,
                             ),
-                          if (libraryItem.media!.hasAudio)
-                            IconButton(
-                              icon: const Icon(Icons.play_arrow, size: 14),
-                              iconSize: 10,
-                              onPressed: () {
-                                audioHandler.setQueue(QueueItem(itemId: libraryItem.id));
-                                audioHandler.play();
-                              },
-                              splashRadius: 8,
-                            ),
-                          if (!libraryItem.media!.hasAudio && libraryItem.media!.hasBook)
-                            IconButton(
-                              icon: const Icon(Icons.my_library_books_outlined, size: 14),
-                              iconSize: 10,
-                              onPressed: () {},
-                            ),
-                        ],
-                      ),
+                            iconSize: 10,
+                            onPressed: () {},
+                          ),
+                      ],
                     ),
                   ),
                 ),
               ],
             ),
-            Text(libraryItem.title, maxLines: 2, overflow: TextOverflow.ellipsis),
+            if (showProgressBar) ...[
+              const SizedBox(height: 6),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(99),
+                child: LinearProgressIndicator(
+                  value: progressValue,
+                  minHeight: compact ? 3.5 : 4,
+                ),
+              ),
+            ],
+            SizedBox(height: compact ? 6 : 8),
+            Text(
+              libraryItem.title,
+              maxLines: compact ? 1 : 2,
+              overflow: TextOverflow.ellipsis,
+              style: compact ? Theme.of(context).textTheme.bodyMedium : null,
+            ),
           ],
         ),
       ),

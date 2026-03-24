@@ -11,7 +11,6 @@ import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
-import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/handler/player_history_handler.dart';
@@ -42,7 +41,10 @@ class SessionRepository {
     final ABSApi? api = ref.read(absApiProvider);
 
     if (api == null) {
-      logger('No API available, cannot close session.', tag: 'SessionRepository');
+      logger(
+        'No API available, cannot close session.',
+        tag: 'SessionRepository',
+      );
       return;
     }
 
@@ -50,7 +52,11 @@ class SessionRepository {
       try {
         await api.getSessionApi().closeOpenSession(_currentSession!.id);
       } catch (e) {
-        logger('Failed to close session: $e', tag: 'SessionRepository', level: InfoLevel.warning);
+        logger(
+          'Failed to close session: $e',
+          tag: 'SessionRepository',
+          level: InfoLevel.warning,
+        );
       }
 
       _currentSession = null;
@@ -62,7 +68,10 @@ class SessionRepository {
     final AppDatabase db = ref.read(appDatabaseProvider);
 
     if (api == null) {
-      logger('No API available, cannot open session.', tag: 'SessionRepository');
+      logger(
+        'No API available, cannot open session.',
+        tag: 'SessionRepository',
+      );
       return null;
     }
 
@@ -81,14 +90,24 @@ class SessionRepository {
       );
 
       final PlaybackSession? session =
-          (await api.getLibraryItemApi().playLibraryItem(itemId, playRequest: playRequest)).data;
+          (await api.getLibraryItemApi().playLibraryItem(
+            itemId,
+            playRequest: playRequest,
+          )).data;
 
       if (session != null) {
         _currentSession = session;
         _isLocalSession = false;
-        logger('Session opened successfully: ${session.id}', tag: 'SessionRepository');
+        logger(
+          'Session opened successfully: ${session.id}',
+          tag: 'SessionRepository',
+        );
       } else {
-        logger('Failed to open session for item $itemId', tag: 'SessionRepository', level: InfoLevel.warning);
+        logger(
+          'Failed to open session for item $itemId',
+          tag: 'SessionRepository',
+          level: InfoLevel.warning,
+        );
       }
 
       if (_currentSession == null) {
@@ -100,7 +119,11 @@ class SessionRepository {
         return null;
       }
     } else {
-      logger('Using local download for item $itemId', tag: 'SessionRepository', level: InfoLevel.debug);
+      logger(
+        'Using local download for item $itemId',
+        tag: 'SessionRepository',
+        level: InfoLevel.debug,
+      );
       final randomId = Uuid().v4();
       _currentSession = await createLocalSession(
         randomId,
@@ -119,19 +142,28 @@ class SessionRepository {
       itemId: _currentSession!.libraryItemId,
       episodeId: _currentSession!.episodeId,
       sessionId: _currentSession!.id,
-      title: _currentSession!.displayTitle ?? _currentSession!.libraryItem!.title,
+      title:
+          _currentSession!.displayTitle ?? _currentSession!.libraryItem!.title,
       subtitle: _currentSession!.libraryItem?.subtitle,
       series: _currentSession!.libraryItem?.seriesName,
       seriesPosition: _currentSession!.libraryItem?.seriesPosition,
       author: _currentSession!.libraryItem?.authorString,
-      cover: api.getLibraryItemApi().getCoverUri(_currentSession!.libraryItemId),
-      chapters: _currentSession!.chapters?.map((e) => e.toInternalChapter()).toList(),
-      tracks:
-          downloaded != null
-              ? downloaded.tracks
-              : _currentSession!.audioTracks!
-                  .map((e) => e.toInternalTrack(api.basePathOverride, _currentSession!.id))
-                  .toList(),
+      cover: api.getLibraryItemApi().getCoverUri(
+        _currentSession!.libraryItemId,
+      ),
+      chapters: _currentSession!.chapters
+          ?.map((e) => e.toInternalChapter())
+          .toList(),
+      tracks: downloaded != null
+          ? downloaded.tracks
+          : _currentSession!.audioTracks!
+                .map(
+                  (e) => e.toInternalTrack(
+                    api.basePathOverride,
+                    _currentSession!.id,
+                  ),
+                )
+                .toList(),
       local: _isLocalSession,
       saf: downloaded?.saf ?? false,
     );
@@ -144,20 +176,36 @@ class SessionRepository {
   Future<bool> syncOpenSession(double currentTime, double timeListened) async {
     final ABSApi? api = ref.read(absApiProvider);
     if (api == null) {
-      logger('No API available, cannot sync session.', tag: 'SessionRepository', level: InfoLevel.warning);
+      logger(
+        'No API available, cannot sync session.',
+        tag: 'SessionRepository',
+        level: InfoLevel.warning,
+      );
       return false;
     }
     if (_currentSession == null) {
-      logger('No session available', tag: 'SessionRepository', level: InfoLevel.warning);
+      logger(
+        'No session available',
+        tag: 'SessionRepository',
+        level: InfoLevel.warning,
+      );
       return false;
     }
 
     final MediaProgress? updatedProgress = await ref
-      .read(mediaProgressProvider.notifier)
-        .updateMediaProgress(_currentSession!.libraryItemId, currentTime, _currentSession!);
+        .read(mediaProgressProvider.notifier)
+        .updateMediaProgress(
+          _currentSession!.libraryItemId,
+          currentTime,
+          _currentSession!,
+        );
 
-    if (!(ref.read(serverStatusProvider).value ?? false) || _isLocalSession) {
-      logger('No server available or session is local', tag: 'SessionRepository', level: InfoLevel.debug);
+    if (_isLocalSession) {
+      logger(
+        'Session is local; storing sync locally',
+        tag: 'SessionRepository',
+        level: InfoLevel.debug,
+      );
 
       return _addLocal(currentTime, timeListened, updatedProgress);
     }
@@ -176,12 +224,20 @@ class SessionRepository {
 
       return result;
     } catch (e) {
-      logger('Failed to sync open session', tag: 'SessionRepository', level: InfoLevel.warning);
+      logger(
+        'Failed to sync open session',
+        tag: 'SessionRepository',
+        level: InfoLevel.warning,
+      );
       return _addLocal(currentTime, timeListened, updatedProgress);
     }
   }
 
-  Future<bool> _addLocal(double currentTime, double timeListened, MediaProgress? progress) async {
+  Future<bool> _addLocal(
+    double currentTime,
+    double timeListened,
+    MediaProgress? progress,
+  ) async {
     StoredSyncsCompanion sync = StoredSyncsCompanion(
       sessionId: Value(_currentSession!.id),
       itemId: Value(_currentSession!.libraryItemId),
@@ -197,14 +253,25 @@ class SessionRepository {
 
     await ref.read(appDatabaseProvider).addOrUpdateSync(sync);
     PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.syncOffline);
-    logger('Sync stored locally for session ${_currentSession!.id}', tag: 'SessionRepository', level: InfoLevel.debug);
+    logger(
+      'Sync stored locally for session ${_currentSession!.id}',
+      tag: 'SessionRepository',
+      level: InfoLevel.debug,
+    );
     return true;
   }
 
-  Future<bool> syncClosedSession(StoredSyncEntry storedSync, {String? sessionId}) async {
+  Future<bool> syncClosedSession(
+    StoredSyncEntry storedSync, {
+    String? sessionId,
+  }) async {
     final ABSApi? api = ref.read(absApiProvider);
     if (api == null) {
-      logger('No API available, cannot sync session.', tag: 'SessionRepository', level: InfoLevel.warning);
+      logger(
+        'No API available, cannot sync session.',
+        tag: 'SessionRepository',
+        level: InfoLevel.warning,
+      );
       return false;
     }
 
@@ -240,10 +307,15 @@ class SessionRepository {
     double? currentPosition,
     double? duration,
   }) async {
-    final LibraryItem libraryItem = await ref.read(libraryItemProvider(itemId).future);
+    final LibraryItem libraryItem = await ref.read(
+      libraryItemProvider(itemId).future,
+    );
     final LibraryItem strippedItem = libraryItem.copyWith(
       media: libraryItem.media?.copyWith(
-        bookMedia: libraryItem.media?.bookMedia?.copyWith(audioFiles: null, chapters: null),
+        bookMedia: libraryItem.media?.bookMedia?.copyWith(
+          audioFiles: null,
+          chapters: null,
+        ),
         podcastMedia: libraryItem.media?.podcastMedia?.copyWith(episodes: null),
       ),
     );
@@ -271,7 +343,10 @@ class SessionRepository {
       currentTime: currentPosition,
       updatedAt: date.millisecondsSinceEpoch,
       audioTracks:
-          libraryItem.media?.bookMedia?.audioFiles?.map((a) => a.toAudioTrack()).whereType<AudioTrack>().toList() ??
+          libraryItem.media?.bookMedia?.audioFiles
+              ?.map((a) => a.toAudioTrack())
+              .whereType<AudioTrack>()
+              .toList() ??
           (libraryItem.media?.podcastMedia?.episodes
                       ?.where((e) => e.id == episodeId)
                       .firstOrNull
@@ -279,27 +354,39 @@ class SessionRepository {
                       ?.toAudioTrack() !=
                   null
               ? [
-                libraryItem.media?.podcastMedia?.episodes
-                        ?.where((e) => e.id == episodeId)
-                        .firstOrNull
-                        ?.audioFile
-                        ?.toAudioTrack()
-                    as AudioTrack,
-              ]
+                  libraryItem.media?.podcastMedia?.episodes
+                          ?.where((e) => e.id == episodeId)
+                          .firstOrNull
+                          ?.audioFile
+                          ?.toAudioTrack()
+                      as AudioTrack,
+                ]
               : []),
     );
 
     return session;
   }
 
-  Future<void> updateMediaProgress(String itemId, MediaProgress progress, {String? episodeId}) async {
+  Future<void> updateMediaProgress(
+    String itemId,
+    MediaProgress progress, {
+    String? episodeId,
+  }) async {
     final ABSApi? api = ref.read(absApiProvider);
     if (api == null) {
-      logger('No API available, cannot update media progress.', tag: 'SessionRepository', level: InfoLevel.warning);
+      logger(
+        'No API available, cannot update media progress.',
+        tag: 'SessionRepository',
+        level: InfoLevel.warning,
+      );
       return Future.value();
     }
 
-    return api.getMeApi().createUpdateMediaProgress(itemId, progress, episodeId: episodeId);
+    return api.getMeApi().createUpdateMediaProgress(
+      itemId,
+      progress,
+      episodeId: episodeId,
+    );
   }
 }
 
