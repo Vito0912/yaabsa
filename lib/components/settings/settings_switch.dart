@@ -125,10 +125,10 @@ class SettingSwitch extends ConsumerWidget {
                   ref.read(settingsManagerProvider.notifier).setGlobalSetting<bool>(settingKey, newValue);
                   onChanged?.call(newValue);
                 },
-                activeColor: theme.colorScheme.primary,
+                activeThumbColor: theme.colorScheme.primary,
                 activeTrackColor: theme.colorScheme.primaryContainer,
                 inactiveThumbColor: theme.colorScheme.outline,
-                inactiveTrackColor: theme.colorScheme.surfaceVariant,
+                inactiveTrackColor: theme.colorScheme.surfaceContainerHighest,
               ),
             ],
           ),

@@ -42,7 +42,7 @@ class AppLoggerService {
 
 final appLoggerService = AppLoggerService();
 
-logger(String message, {String? tag, InfoLevel level = InfoLevel.info}) {
+void logger(String message, {String? tag, InfoLevel level = InfoLevel.info}) {
   final now = DateTime.now();
 
   final logEntry = LogEntry(timestamp: now, message: message, level: level, tag: tag);

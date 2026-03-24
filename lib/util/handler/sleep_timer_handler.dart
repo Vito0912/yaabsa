@@ -3,7 +3,6 @@ import 'dart:async';
 
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/logger.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'sleep_timer_handler.g.dart';

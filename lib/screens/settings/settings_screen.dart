@@ -46,7 +46,7 @@ class MainSettingsScreen extends ConsumerWidget {
     );
 
     return Material(
-      color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+      color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
       shape: shape,
       child: InkWell(
         onTap: onTap,
@@ -155,7 +155,7 @@ class MainSettingsScreen extends ConsumerWidget {
                                 radius: 28,
                                 backgroundColor: Theme.of(context).colorScheme.primary,
                                 child: Text(
-                                  currentUser.username?.substring(0, 1).toUpperCase() ?? 'U',
+                                  currentUser.username.substring(0, 1).toUpperCase() ?? 'U',
                                   style: TextStyle(fontSize: 24, color: Theme.of(context).colorScheme.onPrimary),
                                 ),
                               ),
@@ -346,7 +346,7 @@ class MainSettingsScreen extends ConsumerWidget {
                               ],
                             ),
                           );
-                        }).toList(),
+                        }),
                       ],
                     ),
                   ),

@@ -217,7 +217,7 @@ final class LibraryItemProvider
   }
 }
 
-String _$libraryItemHash() => r'0748ccbf373848c33262c4d928025462b761a427';
+String _$libraryItemHash() => r'0fdbded8f4f1a28c117ca21ba753d5a16b667037';
 
 final class LibraryItemFamily extends $Family
     with

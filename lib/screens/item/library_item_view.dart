@@ -28,9 +28,6 @@ class LibraryItemView extends ConsumerWidget {
       ),
       body: item.when(
         data: (item) {
-          if (item == null) {
-            return const Center(child: Text('No item found.'));
-          }
           return Column(
             children: [
               ClipRRect(

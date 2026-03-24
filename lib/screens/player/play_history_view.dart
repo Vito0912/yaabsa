@@ -46,7 +46,7 @@ class PlayHistoryView extends ConsumerWidget {
       body: StreamBuilder<List<PlayerHistoryEntry>>(
         stream: db.watchPlayerHistoryByItem(
           audioHandler.currentMediaItem!.itemId,
-          user!.id,
+          user.id,
           episodeId: audioHandler.currentMediaItem!.episodeId,
         ),
         builder: (context, snapshot) {

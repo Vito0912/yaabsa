@@ -30,7 +30,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       BehaviorSubject<InternalMedia?>();
   InternalMedia? get currentMediaItem => _currentMediaItem;
 
-  static get maxVolume {
+  static double get maxVolume {
     if (Platform.isAndroid) {
       return 2.0;
     }
@@ -534,7 +534,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     });
   }
 
-  _setSource({Duration initialPosition = Duration.zero}) async {
+  Future<dynamic> _setSource({Duration initialPosition = Duration.zero}) async {
     if (_currentMediaItem == null) return Future.value();
     final source = _currentMediaItem!.toAudioSources();
     final currentProgress = _ref.read(
@@ -568,7 +568,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     );
   }
 
-  _updatePlaybackState() async {
+  Future<void> _updatePlaybackState() async {
     final lockMediaNotification = _ref
         .read(settingsManagerProvider.notifier)
         .getGlobalSetting<bool>(SettingKeys.lockMediaNotification);

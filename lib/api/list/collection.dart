@@ -18,5 +18,6 @@ abstract class Collection with _$Collection {
     @JsonKey(name: "createdAt") required int createdAt,
   }) = _Collection;
 
-  factory Collection.fromJson(Map<String, dynamic> json) => _$CollectionFromJson(json);
+  factory Collection.fromJson(Map<String, dynamic> json) =>
+      _$CollectionFromJson(json);
 }

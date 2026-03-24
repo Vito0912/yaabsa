@@ -59,7 +59,7 @@ class DownloadHandler {
                               .read(libraryItemProvider(itemId))
                         .asData
                         ?.value
-                              ?.media
+                              .media
                               ?.podcastMedia
                               ?.episodes
                               ?.firstWhere((e) => e.id == episodeId)
@@ -86,7 +86,7 @@ class DownloadHandler {
     });
   }
 
-  _init() async {
+  Future<void> _init() async {
     // TODO: Need to find examples for https://github.com/781flyingdutchman/background_downloader/blob/main/doc/CONFIG.md
     List<String> ids = [];
     await _downloader.database.allRecordsWithStatus(TaskStatus.failed).then((failedTasks) {
@@ -110,7 +110,7 @@ class DownloadHandler {
     _updateTaskQueue();
   }
 
-  _updateTaskQueue() async {
+  Future<void> _updateTaskQueue() async {
     final List<TaskRecord> tasks =
         (await _downloader.database.allRecords()).where((task) => task.status != TaskStatus.complete).toList();
     _taskQueueController.add(tasks);
@@ -118,7 +118,7 @@ class DownloadHandler {
 
   Future<void> downloadFile(String itemId, {String? episodeId, bool ebook = false}) async {
     final LibraryItem? item = _ref.read(libraryItemProvider(itemId)).asData?.value;
-    if (item == null || absApi == null) {
+    if (item == null) {
       throw Exception('Library item with ID $itemId not found.');
     }
     if (item.mediaType == 'podcast' && episodeId == null) {

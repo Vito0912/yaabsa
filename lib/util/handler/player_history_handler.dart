@@ -8,7 +8,7 @@ import 'package:drift/drift.dart';
 enum PlayerHistoryType { sync, syncOffline, play, pause, stop, seek }
 
 class PlayerHistoryHandler {
-  static addPlayerHistory(PlayerHistoryType type) async {
+  static Future<void> addPlayerHistory(PlayerHistoryType type) async {
     if (audioHandler.currentMediaItem == null) {
       return;
     }

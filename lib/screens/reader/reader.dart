@@ -191,7 +191,7 @@ class _ReaderState extends ConsumerState<Reader> {
     );
   }
 
-  _loadAnnotationsFromApi() async {
+  Future<void> _loadAnnotationsFromApi() async {
     final ABSApi? api = ref.read(absApiProvider);
     if (api == null) {
       _showSnackBar('API not available');

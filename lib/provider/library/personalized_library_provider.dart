@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:yaabsa/api/library/personalized_library.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';

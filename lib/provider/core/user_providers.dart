@@ -6,7 +6,6 @@ import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/util/interceptors/cache_interceptor.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../util/interceptors/abs_interceptor.dart' show ABSInterceptor;

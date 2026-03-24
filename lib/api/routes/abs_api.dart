@@ -97,7 +97,7 @@ class ABSApi {
         statusMessage: response.statusMessage,
         extra: response.extra,
       );
-    } catch (error, stackTrace) {
+    } catch (error) {
       rethrow;
     }
   }
@@ -160,7 +160,7 @@ class ABSApi {
         statusMessage: response.statusMessage,
         extra: response.extra,
       );
-    } catch (error, stackTrace) {
+    } catch (error) {
       if (error is DioException) {
         if (error.response != null) {}
       }
@@ -192,7 +192,7 @@ class ABSApi {
       final response = await dio.request<Object>(route, options: options, cancelToken: cancelToken, data: data);
 
       return response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300;
-    } catch (error, stackTrace) {
+    } catch (error) {
       if (error is DioException && error.response != null) {}
       return false;
     }
@@ -239,7 +239,7 @@ class ABSApi {
         statusMessage: response.statusMessage,
         extra: response.extra,
       );
-    } catch (error, stackTrace) {
+    } catch (error) {
       rethrow;
     }
   }
