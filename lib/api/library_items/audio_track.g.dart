@@ -13,12 +13,9 @@ _AudioTrack _$AudioTrackFromJson(Map<String, dynamic> json) => _AudioTrack(
   title: json['title'] as String,
   contentUrl: json['contentUrl'] as String,
   mimeType: json['mimeType'] as String,
-  metadata:
-      json['metadata'] == null
-          ? null
-          : LibraryFileMetadata.fromJson(
-            json['metadata'] as Map<String, dynamic>,
-          ),
+  metadata: json['metadata'] == null
+      ? null
+      : LibraryFileMetadata.fromJson(json['metadata'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$AudioTrackToJson(_AudioTrack instance) =>

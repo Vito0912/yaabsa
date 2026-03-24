@@ -12,8 +12,9 @@ _PodcastMetadata _$PodcastMetadataFromJson(Map<String, dynamic> json) =>
       author: json['author'] as String?,
       description: json['description'] as String?,
       releaseDate: json['releaseDate'] as String?,
-      genres:
-          (json['genres'] as List<dynamic>?)?.map((e) => e as String).toList(),
+      genres: (json['genres'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
       feedUrl: json['feedUrl'] as String?,
       imageUrl: json['imageUrl'] as String?,
       itunesPageUrl: json['itunesPageUrl'] as String?,

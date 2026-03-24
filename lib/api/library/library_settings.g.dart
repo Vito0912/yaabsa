@@ -18,10 +18,9 @@ _LibrarySettings _$LibrarySettingsFromJson(Map<String, dynamic> json) =>
       hideSingleBookSeries: json['hideSingleBookSeries'] as bool?,
       showLaterBooks: json['onlyShowLaterBooksInContinueSeries'] as bool?,
       podcastSearchRegion: json['podcastSearchRegion'] as String?,
-      metadataPrecedence:
-          (json['metadataPrecedence'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList(),
+      metadataPrecedence: (json['metadataPrecedence'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
     );
 
 Map<String, dynamic> _$LibrarySettingsToJson(_LibrarySettings instance) =>

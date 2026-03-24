@@ -13,10 +13,9 @@ _CollapsedSeries _$CollapsedSeriesFromJson(Map<String, dynamic> json) =>
       nameIgnorePrefix: json['nameIgnorePrefix'] as String?,
       sequence: json['sequence'] as String?,
       numBooks: (json['numBooks'] as num?)?.toInt(),
-      libraryItemIds:
-          (json['libraryItemIds'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList(),
+      libraryItemIds: (json['libraryItemIds'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
     );
 
 Map<String, dynamic> _$CollapsedSeriesToJson(_CollapsedSeries instance) =>

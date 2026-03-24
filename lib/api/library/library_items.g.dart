@@ -8,10 +8,9 @@ part of 'library_items.dart';
 
 _LibraryItems _$LibraryItemsFromJson(Map<String, dynamic> json) =>
     _LibraryItems(
-      results:
-          (json['results'] as List<dynamic>)
-              .map((e) => LibraryItem.fromJson(e as Map<String, dynamic>))
-              .toList(),
+      results: (json['results'] as List<dynamic>)
+          .map((e) => LibraryItem.fromJson(e as Map<String, dynamic>))
+          .toList(),
       total: (json['total'] as num?)?.toInt(),
       limit: (json['limit'] as num?)?.toInt(),
       page: (json['page'] as num?)?.toInt(),

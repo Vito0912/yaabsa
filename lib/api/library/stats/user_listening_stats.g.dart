@@ -16,15 +16,13 @@ _UserListeningStats _$UserListeningStatsFromJson(Map<String, dynamic> json) =>
       days: (json['days'] as Map<String, dynamic>?)?.map(
         (k, e) => MapEntry(k, (e as num).toDouble()),
       ),
-      dayOfWeek:
-          json['dayOfWeek'] == null
-              ? null
-              : DaysOfWeek.fromJson(json['dayOfWeek'] as Map<String, dynamic>),
+      dayOfWeek: json['dayOfWeek'] == null
+          ? null
+          : DaysOfWeek.fromJson(json['dayOfWeek'] as Map<String, dynamic>),
       today: (json['today'] as num?)?.toDouble(),
-      recentSessions:
-          (json['recentSessions'] as List<dynamic>?)
-              ?.map((e) => PlaybackSession.fromJson(e as Map<String, dynamic>))
-              .toList(),
+      recentSessions: (json['recentSessions'] as List<dynamic>?)
+          ?.map((e) => PlaybackSession.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
 
 Map<String, dynamic> _$UserListeningStatsToJson(_UserListeningStats instance) =>

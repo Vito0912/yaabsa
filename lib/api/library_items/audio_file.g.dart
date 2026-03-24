@@ -29,15 +29,13 @@ _AudioFile _$AudioFileFromJson(Map<String, dynamic> json) => _AudioFile(
   timeBase: json['timeBase'] as String?,
   channels: (json['channels'] as num?)?.toInt(),
   channelLayout: json['channelLayout'] as String?,
-  chapters:
-      (json['chapters'] as List<dynamic>?)
-          ?.map((e) => Chapter.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  chapters: (json['chapters'] as List<dynamic>?)
+      ?.map((e) => Chapter.fromJson(e as Map<String, dynamic>))
+      .toList(),
   embeddedCoverArt: json['embeddedCoverArt'] as String?,
-  metaTags:
-      json['metaTags'] == null
-          ? null
-          : MetaTags.fromJson(json['metaTags'] as Map<String, dynamic>),
+  metaTags: json['metaTags'] == null
+      ? null
+      : MetaTags.fromJson(json['metaTags'] as Map<String, dynamic>),
   mimeType: json['mimeType'] as String?,
 );
 

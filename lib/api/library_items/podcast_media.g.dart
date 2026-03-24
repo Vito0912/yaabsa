@@ -14,10 +14,9 @@ _PodcastMedia _$PodcastMediaFromJson(
   metadata: PodcastMetadata.fromJson(json['metadata'] as Map<String, dynamic>),
   coverPath: json['coverPath'] as String?,
   tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
-  episodes:
-      (json['episodes'] as List<dynamic>?)
-          ?.map((e) => Episode.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  episodes: (json['episodes'] as List<dynamic>?)
+      ?.map((e) => Episode.fromJson(e as Map<String, dynamic>))
+      .toList(),
   autoDownloadEpisodes: json['autoDownloadEpisodes'] as bool?,
   autoDownloadSchedule: json['autoDownloadSchedule'] as String?,
   lastEpisodeCheck: (json['lastEpisodeCheck'] as num?)?.toInt(),

@@ -25,21 +25,18 @@ _LibraryItem _$LibraryItemFromJson(Map<String, dynamic> json) => _LibraryItem(
   isMissing: json['isMissing'] as bool?,
   isInvalid: json['isInvalid'] as bool?,
   mediaType: json['mediaType'] as String?,
-  media:
-      json['media'] == null
-          ? null
-          : Media.fromJson(json['media'] as Map<String, dynamic>),
-  libraryFiles:
-      (json['libraryFiles'] as List<dynamic>?)
-          ?.map((e) => LibraryFile.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  media: json['media'] == null
+      ? null
+      : Media.fromJson(json['media'] as Map<String, dynamic>),
+  libraryFiles: (json['libraryFiles'] as List<dynamic>?)
+      ?.map((e) => LibraryFile.fromJson(e as Map<String, dynamic>))
+      .toList(),
   size: (json['size'] as num?)?.toInt(),
-  collapsedSeries:
-      json['collapsedSeries'] == null
-          ? null
-          : CollapsedSeries.fromJson(
-            json['collapsedSeries'] as Map<String, dynamic>,
-          ),
+  collapsedSeries: json['collapsedSeries'] == null
+      ? null
+      : CollapsedSeries.fromJson(
+          json['collapsedSeries'] as Map<String, dynamic>,
+        ),
 );
 
 Map<String, dynamic> _$LibraryItemToJson(_LibraryItem instance) =>

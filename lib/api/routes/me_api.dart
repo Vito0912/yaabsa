@@ -4,6 +4,7 @@ import 'package:yaabsa/api/me/login.dart';
 import 'package:yaabsa/api/me/media_progress.dart';
 import 'package:yaabsa/api/me/request/create_bookmark_request.dart';
 import 'package:yaabsa/api/me/request/login_request.dart';
+import 'package:yaabsa/api/me/status.dart';
 import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:dio/dio.dart';
@@ -144,6 +145,22 @@ class MeApi {
     return ABSApi.makeApiGetRequest(
       route: '/ping',
       fromJson: (data) => null,
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
+      queryParams: {},
+    );
+  }
+
+  Future<Response<ServerStatus>> getStatus({
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiGetRequest(
+      route: '/status',
+      fromJson: (data) => ServerStatus.fromJson(data as Map<String, dynamic>),
       cancelToken: cancelToken,
       headers: headers,
       extra: extra,

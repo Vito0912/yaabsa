@@ -7,10 +7,9 @@ part of 'series_items.dart';
 // **************************************************************************
 
 _SeriesItems _$SeriesItemsFromJson(Map<String, dynamic> json) => _SeriesItems(
-  results:
-      (json['results'] as List<dynamic>)
-          .map((e) => Series.fromJson(e as Map<String, dynamic>))
-          .toList(),
+  results: (json['results'] as List<dynamic>)
+      .map((e) => Series.fromJson(e as Map<String, dynamic>))
+      .toList(),
   total: (json['total'] as num).toInt(),
   page: (json['page'] as num).toInt(),
   limit: (json['limit'] as num?)?.toInt(),

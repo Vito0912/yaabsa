@@ -6,50 +6,44 @@ part of 'playback_session.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_PlaybackSession _$PlaybackSessionFromJson(
-  Map<String, dynamic> json,
-) => _PlaybackSession(
-  id: json['id'] as String,
-  userId: json['userId'] as String,
-  libraryId: json['libraryId'] as String?,
-  libraryItemId: json['libraryItemId'] as String,
-  episodeId: json['episodeId'] as String?,
-  mediaType: json['mediaType'] as String?,
-  mediaMetadata:
-      json['mediaMetadata'] == null
+_PlaybackSession _$PlaybackSessionFromJson(Map<String, dynamic> json) =>
+    _PlaybackSession(
+      id: json['id'] as String,
+      userId: json['userId'] as String,
+      libraryId: json['libraryId'] as String?,
+      libraryItemId: json['libraryItemId'] as String,
+      episodeId: json['episodeId'] as String?,
+      mediaType: json['mediaType'] as String?,
+      mediaMetadata: json['mediaMetadata'] == null
           ? null
           : Metadata.fromJson(json['mediaMetadata'] as Map<String, dynamic>),
-  chapters:
-      (json['chapters'] as List<dynamic>?)
+      chapters: (json['chapters'] as List<dynamic>?)
           ?.map((e) => Chapter.fromJson(e as Map<String, dynamic>))
           .toList(),
-  displayTitle: json['displayTitle'] as String?,
-  displayAuthor: json['displayAuthor'] as String?,
-  coverPath: json['coverPath'] as String?,
-  duration: (json['duration'] as num?)?.toDouble(),
-  playMethod: (json['playMethod'] as num?)?.toInt(),
-  mediaPlayer: json['mediaPlayer'] as String?,
-  deviceInfo:
-      json['deviceInfo'] == null
+      displayTitle: json['displayTitle'] as String?,
+      displayAuthor: json['displayAuthor'] as String?,
+      coverPath: json['coverPath'] as String?,
+      duration: (json['duration'] as num?)?.toDouble(),
+      playMethod: (json['playMethod'] as num?)?.toInt(),
+      mediaPlayer: json['mediaPlayer'] as String?,
+      deviceInfo: json['deviceInfo'] == null
           ? null
           : DeviceInfo.fromJson(json['deviceInfo'] as Map<String, dynamic>),
-  serverVersion: json['serverVersion'] as String?,
-  date: json['date'] as String?,
-  dayOfWeek: json['dayOfWeek'] as String?,
-  timeListening: (json['timeListening'] as num?)?.toDouble(),
-  startTime: (json['startTime'] as num?)?.toDouble(),
-  currentTime: (json['currentTime'] as num?)?.toDouble(),
-  startedAt: (json['startedAt'] as num?)?.toInt(),
-  updatedAt: (json['updatedAt'] as num?)?.toInt(),
-  audioTracks:
-      (json['audioTracks'] as List<dynamic>?)
+      serverVersion: json['serverVersion'] as String?,
+      date: json['date'] as String?,
+      dayOfWeek: json['dayOfWeek'] as String?,
+      timeListening: (json['timeListening'] as num?)?.toDouble(),
+      startTime: (json['startTime'] as num?)?.toDouble(),
+      currentTime: (json['currentTime'] as num?)?.toDouble(),
+      startedAt: (json['startedAt'] as num?)?.toInt(),
+      updatedAt: (json['updatedAt'] as num?)?.toInt(),
+      audioTracks: (json['audioTracks'] as List<dynamic>?)
           ?.map((e) => AudioTrack.fromJson(e as Map<String, dynamic>))
           .toList(),
-  libraryItem:
-      json['libraryItem'] == null
+      libraryItem: json['libraryItem'] == null
           ? null
           : LibraryItem.fromJson(json['libraryItem'] as Map<String, dynamic>),
-);
+    );
 
 Map<String, dynamic> _$PlaybackSessionToJson(_PlaybackSession instance) =>
     <String, dynamic>{

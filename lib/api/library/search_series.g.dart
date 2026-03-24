@@ -9,10 +9,9 @@ part of 'search_series.dart';
 _SearchSeries _$SearchSeriesFromJson(Map<String, dynamic> json) =>
     _SearchSeries(
       series: Series.fromJson(json['series'] as Map<String, dynamic>),
-      books:
-          (json['books'] as List<dynamic>)
-              .map((e) => LibraryItem.fromJson(e as Map<String, dynamic>))
-              .toList(),
+      books: (json['books'] as List<dynamic>)
+          .map((e) => LibraryItem.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
 
 Map<String, dynamic> _$SearchSeriesToJson(_SearchSeries instance) =>

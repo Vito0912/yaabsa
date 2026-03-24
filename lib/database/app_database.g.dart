@@ -66,16 +66,14 @@ class $GlobalSettingsTable extends GlobalSettings
   GlobalSettingEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return GlobalSettingEntry(
-      key:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}key'],
-          )!,
-      value:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}value'],
-          )!,
+      key: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}key'],
+      )!,
+      value: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}value'],
+      )!,
     );
   }
 
@@ -294,21 +292,18 @@ class $UserSettingsTable extends UserSettings
   UserSettingEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return UserSettingEntry(
-      userId:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}user_id'],
-          )!,
-      key:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}key'],
-          )!,
-      value:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}value'],
-          )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      )!,
+      key: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}key'],
+      )!,
+      value: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}value'],
+      )!,
     );
   }
 
@@ -543,16 +538,14 @@ class $StoredUsersTable extends StoredUsers
   StoredUserEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return StoredUserEntry(
-      id:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}id'],
-          )!,
-      userDataJson:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}user_data_json'],
-          )!,
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      userDataJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_data_json'],
+      )!,
     );
   }
 
@@ -608,10 +601,9 @@ class StoredUserEntry extends DataClass implements Insertable<StoredUserEntry> {
   StoredUserEntry copyWithCompanion(StoredUsersCompanion data) {
     return StoredUserEntry(
       id: data.id.present ? data.id.value : this.id,
-      userDataJson:
-          data.userDataJson.present
-              ? data.userDataJson.value
-              : this.userDataJson,
+      userDataJson: data.userDataJson.present
+          ? data.userDataJson.value
+          : this.userDataJson,
     );
   }
 
@@ -941,55 +933,46 @@ class $StoredSyncsTable extends StoredSyncs
   StoredSyncEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return StoredSyncEntry(
-      sessionId:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}session_id'],
-          )!,
-      itemId:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}item_id'],
-          )!,
-      userId:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}user_id'],
-          )!,
+      sessionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}session_id'],
+      )!,
+      itemId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}item_id'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      )!,
       episodeId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}episode_id'],
       ),
-      currentTime:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.double,
-            data['${effectivePrefix}current_time'],
-          )!,
-      timeListened:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.double,
-            data['${effectivePrefix}time_listened'],
-          )!,
-      duration:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.double,
-            data['${effectivePrefix}duration'],
-          )!,
-      sessionLocal:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.bool,
-            data['${effectivePrefix}session_local'],
-          )!,
-      lastUpdated:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.dateTime,
-            data['${effectivePrefix}last_updated'],
-          )!,
-      mediaProgress:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}media_progress'],
-          )!,
+      currentTime: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}current_time'],
+      )!,
+      timeListened: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}time_listened'],
+      )!,
+      duration: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}duration'],
+      )!,
+      sessionLocal: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}session_local'],
+      )!,
+      lastUpdated: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_updated'],
+      )!,
+      mediaProgress: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}media_progress'],
+      )!,
     );
   }
 
@@ -1045,10 +1028,9 @@ class StoredSyncEntry extends DataClass implements Insertable<StoredSyncEntry> {
       sessionId: Value(sessionId),
       itemId: Value(itemId),
       userId: Value(userId),
-      episodeId:
-          episodeId == null && nullToAbsent
-              ? const Value.absent()
-              : Value(episodeId),
+      episodeId: episodeId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(episodeId),
       currentTime: Value(currentTime),
       timeListened: Value(timeListened),
       duration: Value(duration),
@@ -1122,23 +1104,22 @@ class StoredSyncEntry extends DataClass implements Insertable<StoredSyncEntry> {
       itemId: data.itemId.present ? data.itemId.value : this.itemId,
       userId: data.userId.present ? data.userId.value : this.userId,
       episodeId: data.episodeId.present ? data.episodeId.value : this.episodeId,
-      currentTime:
-          data.currentTime.present ? data.currentTime.value : this.currentTime,
-      timeListened:
-          data.timeListened.present
-              ? data.timeListened.value
-              : this.timeListened,
+      currentTime: data.currentTime.present
+          ? data.currentTime.value
+          : this.currentTime,
+      timeListened: data.timeListened.present
+          ? data.timeListened.value
+          : this.timeListened,
       duration: data.duration.present ? data.duration.value : this.duration,
-      sessionLocal:
-          data.sessionLocal.present
-              ? data.sessionLocal.value
-              : this.sessionLocal,
-      lastUpdated:
-          data.lastUpdated.present ? data.lastUpdated.value : this.lastUpdated,
-      mediaProgress:
-          data.mediaProgress.present
-              ? data.mediaProgress.value
-              : this.mediaProgress,
+      sessionLocal: data.sessionLocal.present
+          ? data.sessionLocal.value
+          : this.sessionLocal,
+      lastUpdated: data.lastUpdated.present
+          ? data.lastUpdated.value
+          : this.lastUpdated,
+      mediaProgress: data.mediaProgress.present
+          ? data.mediaProgress.value
+          : this.mediaProgress,
     );
   }
 
@@ -1451,25 +1432,22 @@ class $StoredDownloadsTable extends StoredDownloads
   StoredDownloadsEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return StoredDownloadsEntry(
-      itemId:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}item_id'],
-          )!,
-      userId:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}user_id'],
-          )!,
+      itemId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}item_id'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      )!,
       episodeId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}episode_id'],
       ),
-      download:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}download'],
-          )!,
+      download: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}download'],
+      )!,
     );
   }
 
@@ -1507,10 +1485,9 @@ class StoredDownloadsEntry extends DataClass
     return StoredDownloadsCompanion(
       itemId: Value(itemId),
       userId: Value(userId),
-      episodeId:
-          episodeId == null && nullToAbsent
-              ? const Value.absent()
-              : Value(episodeId),
+      episodeId: episodeId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(episodeId),
       download: Value(download),
     );
   }
@@ -1830,40 +1807,34 @@ class $PlayerHistoryTable extends PlayerHistory
   PlayerHistoryEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return PlayerHistoryEntry(
-      id:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.int,
-            data['${effectivePrefix}id'],
-          )!,
-      itemId:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}item_id'],
-          )!,
-      userId:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}user_id'],
-          )!,
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      itemId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}item_id'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      )!,
       episodeId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}episode_id'],
       ),
-      type:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.string,
-            data['${effectivePrefix}type'],
-          )!,
-      currentTime:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.double,
-            data['${effectivePrefix}current_time'],
-          )!,
-      created:
-          attachedDatabase.typeMapping.read(
-            DriftSqlType.dateTime,
-            data['${effectivePrefix}created'],
-          )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}type'],
+      )!,
+      currentTime: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}current_time'],
+      )!,
+      created: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created'],
+      )!,
     );
   }
 
@@ -1911,10 +1882,9 @@ class PlayerHistoryEntry extends DataClass
       id: Value(id),
       itemId: Value(itemId),
       userId: Value(userId),
-      episodeId:
-          episodeId == null && nullToAbsent
-              ? const Value.absent()
-              : Value(episodeId),
+      episodeId: episodeId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(episodeId),
       type: Value(type),
       currentTime: Value(currentTime),
       created: Value(created),
@@ -1974,8 +1944,9 @@ class PlayerHistoryEntry extends DataClass
       userId: data.userId.present ? data.userId.value : this.userId,
       episodeId: data.episodeId.present ? data.episodeId.value : this.episodeId,
       type: data.type.present ? data.type.value : this.type,
-      currentTime:
-          data.currentTime.present ? data.currentTime.value : this.currentTime,
+      currentTime: data.currentTime.present
+          ? data.currentTime.value
+          : this.currentTime,
       created: data.created.present ? data.created.value : this.created,
     );
   }
@@ -2244,16 +2215,12 @@ class $$GlobalSettingsTableTableManager
         TableManagerState(
           db: db,
           table: table,
-          createFilteringComposer:
-              () => $$GlobalSettingsTableFilterComposer($db: db, $table: table),
-          createOrderingComposer:
-              () =>
-                  $$GlobalSettingsTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer:
-              () => $$GlobalSettingsTableAnnotationComposer(
-                $db: db,
-                $table: table,
-              ),
+          createFilteringComposer: () =>
+              $$GlobalSettingsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$GlobalSettingsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$GlobalSettingsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<String> key = const Value.absent(),
@@ -2271,16 +2238,9 @@ class $$GlobalSettingsTableTableManager
                 value: value,
                 rowid: rowid,
               ),
-          withReferenceMapper:
-              (p0) =>
-                  p0
-                      .map(
-                        (e) => (
-                          e.readTable(table),
-                          BaseReferences(db, table, e),
-                        ),
-                      )
-                      .toList(),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
           prefetchHooksCallback: null,
         ),
       );
@@ -2410,13 +2370,12 @@ class $$UserSettingsTableTableManager
         TableManagerState(
           db: db,
           table: table,
-          createFilteringComposer:
-              () => $$UserSettingsTableFilterComposer($db: db, $table: table),
-          createOrderingComposer:
-              () => $$UserSettingsTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer:
-              () =>
-                  $$UserSettingsTableAnnotationComposer($db: db, $table: table),
+          createFilteringComposer: () =>
+              $$UserSettingsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$UserSettingsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$UserSettingsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<String> userId = const Value.absent(),
@@ -2441,16 +2400,9 @@ class $$UserSettingsTableTableManager
                 value: value,
                 rowid: rowid,
               ),
-          withReferenceMapper:
-              (p0) =>
-                  p0
-                      .map(
-                        (e) => (
-                          e.readTable(table),
-                          BaseReferences(db, table, e),
-                        ),
-                      )
-                      .toList(),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
           prefetchHooksCallback: null,
         ),
       );
@@ -2567,13 +2519,12 @@ class $$StoredUsersTableTableManager
         TableManagerState(
           db: db,
           table: table,
-          createFilteringComposer:
-              () => $$StoredUsersTableFilterComposer($db: db, $table: table),
-          createOrderingComposer:
-              () => $$StoredUsersTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer:
-              () =>
-                  $$StoredUsersTableAnnotationComposer($db: db, $table: table),
+          createFilteringComposer: () =>
+              $$StoredUsersTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$StoredUsersTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$StoredUsersTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
@@ -2594,16 +2545,9 @@ class $$StoredUsersTableTableManager
                 userDataJson: userDataJson,
                 rowid: rowid,
               ),
-          withReferenceMapper:
-              (p0) =>
-                  p0
-                      .map(
-                        (e) => (
-                          e.readTable(table),
-                          BaseReferences(db, table, e),
-                        ),
-                      )
-                      .toList(),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
           prefetchHooksCallback: null,
         ),
       );
@@ -2848,13 +2792,12 @@ class $$StoredSyncsTableTableManager
         TableManagerState(
           db: db,
           table: table,
-          createFilteringComposer:
-              () => $$StoredSyncsTableFilterComposer($db: db, $table: table),
-          createOrderingComposer:
-              () => $$StoredSyncsTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer:
-              () =>
-                  $$StoredSyncsTableAnnotationComposer($db: db, $table: table),
+          createFilteringComposer: () =>
+              $$StoredSyncsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$StoredSyncsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$StoredSyncsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<String> sessionId = const Value.absent(),
@@ -2907,16 +2850,9 @@ class $$StoredSyncsTableTableManager
                 mediaProgress: mediaProgress,
                 rowid: rowid,
               ),
-          withReferenceMapper:
-              (p0) =>
-                  p0
-                      .map(
-                        (e) => (
-                          e.readTable(table),
-                          BaseReferences(db, table, e),
-                        ),
-                      )
-                      .toList(),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
           prefetchHooksCallback: null,
         ),
       );
@@ -3067,19 +3003,12 @@ class $$StoredDownloadsTableTableManager
         TableManagerState(
           db: db,
           table: table,
-          createFilteringComposer:
-              () =>
-                  $$StoredDownloadsTableFilterComposer($db: db, $table: table),
-          createOrderingComposer:
-              () => $$StoredDownloadsTableOrderingComposer(
-                $db: db,
-                $table: table,
-              ),
-          createComputedFieldComposer:
-              () => $$StoredDownloadsTableAnnotationComposer(
-                $db: db,
-                $table: table,
-              ),
+          createFilteringComposer: () =>
+              $$StoredDownloadsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$StoredDownloadsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$StoredDownloadsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<String> itemId = const Value.absent(),
@@ -3108,16 +3037,9 @@ class $$StoredDownloadsTableTableManager
                 download: download,
                 rowid: rowid,
               ),
-          withReferenceMapper:
-              (p0) =>
-                  p0
-                      .map(
-                        (e) => (
-                          e.readTable(table),
-                          BaseReferences(db, table, e),
-                        ),
-                      )
-                      .toList(),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
           prefetchHooksCallback: null,
         ),
       );
@@ -3315,16 +3237,12 @@ class $$PlayerHistoryTableTableManager
         TableManagerState(
           db: db,
           table: table,
-          createFilteringComposer:
-              () => $$PlayerHistoryTableFilterComposer($db: db, $table: table),
-          createOrderingComposer:
-              () =>
-                  $$PlayerHistoryTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer:
-              () => $$PlayerHistoryTableAnnotationComposer(
-                $db: db,
-                $table: table,
-              ),
+          createFilteringComposer: () =>
+              $$PlayerHistoryTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PlayerHistoryTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PlayerHistoryTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
@@ -3361,16 +3279,9 @@ class $$PlayerHistoryTableTableManager
                 currentTime: currentTime,
                 created: created,
               ),
-          withReferenceMapper:
-              (p0) =>
-                  p0
-                      .map(
-                        (e) => (
-                          e.readTable(table),
-                          BaseReferences(db, table, e),
-                        ),
-                      )
-                      .toList(),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
           prefetchHooksCallback: null,
         ),
       );

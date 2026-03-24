@@ -20,9 +20,13 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   late final AudioPlayer _player;
   final ProviderContainer _ref;
   late final PlaybackSyncService _syncService;
+  StreamSubscription<PlayerException>? _errorSubscription;
+  StreamSubscription<PlayerState>? _playerStateSubscription;
+  bool _isDisposing = false;
   List<QueueItem> queueList = [];
   QueueItem? _lastQueueItem;
-  BehaviorSubject<InternalMedia?> mediaItemStream = BehaviorSubject<InternalMedia?>();
+  BehaviorSubject<InternalMedia?> mediaItemStream =
+      BehaviorSubject<InternalMedia?>();
   InternalMedia? get currentMediaItem => _currentMediaItem;
 
   static get maxVolume {
@@ -60,7 +64,11 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   Future<void> setVolume(double volume) async {
     if (volume < 0 || volume > maxVolume) {
-      logger('Volume out of bounds: $volume', tag: 'AudioHandler', level: InfoLevel.error);
+      logger(
+        'Volume out of bounds: $volume',
+        tag: 'AudioHandler',
+        level: InfoLevel.error,
+      );
       return Future.value();
     }
     await _player.setVolume(volume);
@@ -70,7 +78,11 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   @override
   Future<void> setSpeed(double speed) async {
     if (speed < 0.25 || speed > 3) {
-      logger('Speed out of bounds: $speed', tag: 'AudioHandler', level: InfoLevel.error);
+      logger(
+        'Speed out of bounds: $speed',
+        tag: 'AudioHandler',
+        level: InfoLevel.error,
+      );
       return Future.value();
     }
     await _player.setSpeed(speed);
@@ -90,14 +102,24 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   Stream<Duration> get positionStream {
     return _player.positionStream
         .throttleTime(const Duration(milliseconds: 200))
-        .map((position) => (_currentMediaItem?.offsetForTrack(_currentTrackIndex) ?? Duration.zero) + position)
+        .map(
+          (position) =>
+              (_currentMediaItem?.offsetForTrack(_currentTrackIndex) ??
+                  Duration.zero) +
+              position,
+        )
         .distinct();
   }
 
   Stream<Duration> get bufferedPositionStream {
     return _player.bufferedPositionStream
         .throttleTime(const Duration(seconds: 1))
-        .map((position) => (_currentMediaItem?.offsetForTrack(_currentTrackIndex) ?? Duration.zero) + position)
+        .map(
+          (position) =>
+              (_currentMediaItem?.offsetForTrack(_currentTrackIndex) ??
+                  Duration.zero) +
+              position,
+        )
         .distinct();
   }
 
@@ -109,16 +131,22 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   }
 
   Stream<List<InternalChapter>> get chaptersStream {
-    return mediaItemStream.map((position) => _currentMediaItem?.chapters ?? []).distinct();
+    return mediaItemStream
+        .map((position) => _currentMediaItem?.chapters ?? [])
+        .distinct();
   }
 
   Duration get position {
     final pos = _player.position;
-    return (_currentMediaItem?.offsetForTrack(_currentTrackIndex) ?? Duration.zero) + pos;
+    return (_currentMediaItem?.offsetForTrack(_currentTrackIndex) ??
+            Duration.zero) +
+        pos;
   }
 
   Stream<bool> get shouldShowPlayer {
-    return _player.playerStateStream.map((state) => _currentMediaItem != null).distinct();
+    return _player.playerStateStream
+        .map((state) => _currentMediaItem != null)
+        .distinct();
   }
 
   @override
@@ -133,14 +161,28 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     }
     if (tmp == null) return Future.value();
     _lastQueueItem = tmp;
-    _currentMediaItem = await _ref.read(sessionRepositoryProvider).openSession(tmp.itemId);
+    _currentMediaItem = await _ref
+        .read(sessionRepositoryProvider)
+        .openSession(tmp.itemId);
     if (_currentMediaItem == null) {
-      logger('No media item found for ID: ${tmp.itemId}', tag: 'AudioHandler', level: InfoLevel.error);
+      logger(
+        'No media item found for ID: ${tmp.itemId}',
+        tag: 'AudioHandler',
+        level: InfoLevel.error,
+      );
       return Future.value();
     }
-    logger('Playing item: ${_currentMediaItem!.itemId}', tag: 'AudioHandler', level: InfoLevel.debug);
+    logger(
+      'Playing item: ${_currentMediaItem!.itemId}',
+      tag: 'AudioHandler',
+      level: InfoLevel.debug,
+    );
     await _setSource();
-    logger('Setting source for item: ${_currentMediaItem!.itemId}', tag: 'AudioHandler', level: InfoLevel.debug);
+    logger(
+      'Setting source for item: ${_currentMediaItem!.itemId}',
+      tag: 'AudioHandler',
+      level: InfoLevel.debug,
+    );
     await _syncedPlay();
   }
 
@@ -156,7 +198,11 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           .read(mediaProgressProvider.notifier)
           .fetchOrRefreshIndividualProgress(_currentMediaItem!.itemId);
 
-      currentPosition = Duration(microseconds: ((progress?.currentTime ?? 0) * Duration.microsecondsPerSecond).round());
+      currentPosition = Duration(
+        microseconds:
+            ((progress?.currentTime ?? 0) * Duration.microsecondsPerSecond)
+                .round(),
+      );
 
       logger(
         'Current position: $currentPosition, player position: ${_player.position}, progress: ${progress?.currentTime}',
@@ -173,9 +219,14 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           .read(mediaProgressProvider.notifier)
           .fetchOrRefreshIndividualProgress(_currentMediaItem!.itemId);
 
-      currentPosition = Duration(microseconds: ((progress?.currentTime ?? 0) * Duration.microsecondsPerSecond).round());
+      currentPosition = Duration(
+        microseconds:
+            ((progress?.currentTime ?? 0) * Duration.microsecondsPerSecond)
+                .round(),
+      );
 
-      if ((currentPosition - _player.position).abs() >= const Duration(seconds: 10)) {
+      if ((currentPosition - _player.position).abs() >=
+          const Duration(seconds: 10)) {
         await seek(currentPosition);
       }
     }
@@ -190,10 +241,23 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       await _syncService.flush();
       await _ref.read(sessionRepositoryProvider).closeSession();
     } catch (e) {
-      logger('Error closing session: $e', tag: 'AudioHandler', level: InfoLevel.error);
+      logger(
+        'Error closing session: $e',
+        tag: 'AudioHandler',
+        level: InfoLevel.error,
+      );
     }
 
-    return _player.stop();
+    return _safePlayerStop();
+  }
+
+  Future<void> _safePlayerStop() async {
+    if (Platform.isLinux) {
+      await _player.pause();
+      await _player.seek(Duration.zero);
+      return;
+    }
+    await _player.stop();
   }
 
   @override
@@ -220,7 +284,11 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     if (_currentMediaItem == null) return Future.value();
     final newPosition = position - skipTime;
     if (newPosition < Duration.zero) {
-      logger('Rewind position is negative, resetting to zero', tag: 'AudioHandler', level: InfoLevel.debug);
+      logger(
+        'Rewind position is negative, resetting to zero',
+        tag: 'AudioHandler',
+        level: InfoLevel.debug,
+      );
       return seek(Duration.zero);
     }
     seek(newPosition);
@@ -230,9 +298,14 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   @override
   Future<void> skipToNext() async {
     if (_currentMediaItem == null) return Future.value();
-    InternalChapter? nextChapter = _currentMediaItem!.getNextChapterForDuration(position);
+    InternalChapter? nextChapter = _currentMediaItem!.getNextChapterForDuration(
+      position,
+    );
     if (nextChapter != null) {
-      final newPosition = Duration(microseconds: (nextChapter.start * Duration.microsecondsPerSecond).round());
+      final newPosition = Duration(
+        microseconds: (nextChapter.start * Duration.microsecondsPerSecond)
+            .round(),
+      );
       logger(
         'Skipping to next chapter: $nextChapter, new position: $newPosition',
         tag: 'AudioHandler',
@@ -240,12 +313,20 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       );
       return seek(newPosition);
     } else {
-      logger('No next chapter found, skipping to next item', tag: 'AudioHandler', level: InfoLevel.debug);
+      logger(
+        'No next chapter found, skipping to next item',
+        tag: 'AudioHandler',
+        level: InfoLevel.debug,
+      );
       if (queueList.isNotEmpty) {
         await stop(clearQueue: false);
         return play();
       } else {
-        logger('No more items in queue, stopping playback', tag: 'AudioHandler', level: InfoLevel.debug);
+        logger(
+          'No more items in queue, stopping playback',
+          tag: 'AudioHandler',
+          level: InfoLevel.debug,
+        );
         return stop();
       }
     }
@@ -254,9 +335,13 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   @override
   Future<void> skipToPrevious() async {
     if (_currentMediaItem == null) return Future.value();
-    InternalChapter? previousChapter = _currentMediaItem!.getPreviousChapterForDuration(position);
+    InternalChapter? previousChapter = _currentMediaItem!
+        .getPreviousChapterForDuration(position);
     if (previousChapter != null) {
-      final newPosition = Duration(microseconds: (previousChapter.start * Duration.microsecondsPerSecond).round());
+      final newPosition = Duration(
+        microseconds: (previousChapter.start * Duration.microsecondsPerSecond)
+            .round(),
+      );
       logger(
         'Skipping to previous chapter: $previousChapter, new position: $newPosition',
         tag: 'AudioHandler',
@@ -271,7 +356,11 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   Future<void> seek(Duration position) async {
     if (_currentMediaItem == null) return Future.value();
     final newTrackIndex = _currentMediaItem!.getIndexForDuration(position);
-    logger('Seeking to position: $position, track index: $newTrackIndex', tag: 'AudioHandler', level: InfoLevel.debug);
+    logger(
+      'Seeking to position: $position, track index: $newTrackIndex',
+      tag: 'AudioHandler',
+      level: InfoLevel.debug,
+    );
     if (newTrackIndex != _currentTrackIndex) {
       _currentTrackIndex = newTrackIndex;
       await _player.seek(
@@ -280,21 +369,38 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       );
       if (Platform.isWindows) {
         // Bugfix for Windows as it doesn't seek correctly if the index changed
-        _player.playerStateStream.firstWhere((state) => state.processingState == ProcessingState.ready).then((_) async {
-          await _player.seek(position - _currentMediaItem!.startDurationForTrack(_currentTrackIndex));
-        });
+        _player.playerStateStream
+            .firstWhere(
+              (state) => state.processingState == ProcessingState.ready,
+            )
+            .then((_) async {
+              await _player.seek(
+                position -
+                    _currentMediaItem!.startDurationForTrack(
+                      _currentTrackIndex,
+                    ),
+              );
+            });
       }
     } else {
-      await _player.seek(position - _currentMediaItem!.startDurationForTrack(_currentTrackIndex));
+      await _player.seek(
+        position - _currentMediaItem!.startDurationForTrack(_currentTrackIndex),
+      );
     }
     return Future.value();
   }
 
   BGAudioHandler(this._ref) {
     final settingManager = _ref.read(settingsManagerProvider.notifier);
-    final bufferSize = settingManager.getGlobalSetting<int>(SettingKeys.bufferSize);
+    final bufferSize = settingManager.getGlobalSetting<int>(
+      SettingKeys.bufferSize,
+    );
 
-    logger('Buffer size: $bufferSize', tag: 'AudioHandler', level: InfoLevel.debug);
+    logger(
+      'Buffer size: $bufferSize',
+      tag: 'AudioHandler',
+      level: InfoLevel.debug,
+    );
 
     final AndroidLoadControl androidLoadControl = AndroidLoadControl(
       minBufferDuration: Duration(seconds: 50),
@@ -318,22 +424,34 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
     _player = AudioPlayer(audioLoadConfiguration: loadCfg);
 
-    _player.errorStream.listen((error) {
-      logger('AudioPlayer error: $error', tag: 'AudioHandler', level: InfoLevel.error);
+    _errorSubscription = _player.errorStream.listen((error) {
+      logger(
+        'AudioPlayer error: $error',
+        tag: 'AudioHandler',
+        level: InfoLevel.error,
+      );
       if (error.toString().contains('ffurl_read')) {
-        logger('Trying to reconnect to stream', tag: 'AudioHandler', level: InfoLevel.warning);
+        logger(
+          'Trying to reconnect to stream',
+          tag: 'AudioHandler',
+          level: InfoLevel.warning,
+        );
         _syncedPlay();
       }
     });
 
     _syncService = PlaybackSyncService(this, _ref);
-    _player.playerStateStream.listen((PlayerState state) async {
+    _playerStateSubscription = _player.playerStateStream.listen((
+      PlayerState state,
+    ) async {
+      if (_isDisposing) return;
       logger(state.toString(), tag: 'AudioHandler', level: InfoLevel.debug);
 
       if (state.processingState == ProcessingState.completed) {
         PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.stop);
       }
-      if (state.processingState == ProcessingState.loading || state.processingState == ProcessingState.buffering) {
+      if (state.processingState == ProcessingState.loading ||
+          state.processingState == ProcessingState.buffering) {
         PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.pause);
       }
       if (state.playing && state.processingState == ProcessingState.ready) {
@@ -353,8 +471,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         if (queueList.isNotEmpty) {
           await play();
         } else {
-          await _player.stop();
-          //await _player.dispose();
+          await _safePlayerStop();
         }
       }
       _updatePlaybackState();
@@ -372,15 +489,27 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
     if (currentProgress != null) {
       initialPosition = Duration(
-        microseconds: ((currentProgress.currentTime ?? 0) * Duration.microsecondsPerSecond).round(),
+        microseconds:
+            ((currentProgress.currentTime ?? 0) *
+                    Duration.microsecondsPerSecond)
+                .round(),
       );
     }
 
-    logger('Setting source with initial position: $initialPosition', tag: 'AudioHandler', level: InfoLevel.debug);
+    logger(
+      'Setting source with initial position: $initialPosition',
+      tag: 'AudioHandler',
+      level: InfoLevel.debug,
+    );
 
     final trackIndex = _currentMediaItem!.getIndexForDuration(initialPosition);
 
-    await player.setAudioSources(source, initialIndex: trackIndex, initialPosition: Duration.zero, preload: true);
+    await player.setAudioSources(
+      source,
+      initialIndex: trackIndex,
+      initialPosition: Duration.zero,
+      preload: true,
+    );
   }
 
   _updatePlaybackState() async {
@@ -390,29 +519,39 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     playbackState.add(
       PlaybackState(
         // Which buttons should appear in the notification now
-        controls: [MediaControl.rewind, MediaControl.pause, MediaControl.stop, MediaControl.fastForward],
+        controls: [
+          MediaControl.rewind,
+          MediaControl.pause,
+          MediaControl.stop,
+          MediaControl.fastForward,
+        ],
         // Which other actions should be enabled in the notification
-        systemActions:
-            lockMediaNotification
-                ? const {MediaAction.seekForward, MediaAction.seekBackward}
-                : const {MediaAction.seek, MediaAction.seekForward, MediaAction.seekBackward},
+        systemActions: lockMediaNotification
+            ? const {MediaAction.seekForward, MediaAction.seekBackward}
+            : const {
+                MediaAction.seek,
+                MediaAction.seekForward,
+                MediaAction.seekBackward,
+              },
         // Which controls to show in Android's compact view.
         androidCompactActionIndices: const [0, 1, 3],
         // Whether audio is ready, buffering, ...
         processingState:
-            (_player.processingState == ProcessingState.completed && queueList.isNotEmpty)
-                ? AudioProcessingState.loading
-                : {
-                  ProcessingState.idle: AudioProcessingState.idle,
-                  ProcessingState.loading: AudioProcessingState.loading,
-                  ProcessingState.buffering: AudioProcessingState.buffering,
-                  ProcessingState.ready: AudioProcessingState.ready,
-                  ProcessingState.completed: AudioProcessingState.completed,
-                }[_player.processingState]!,
+            (_player.processingState == ProcessingState.completed &&
+                queueList.isNotEmpty)
+            ? AudioProcessingState.loading
+            : {
+                ProcessingState.idle: AudioProcessingState.idle,
+                ProcessingState.loading: AudioProcessingState.loading,
+                ProcessingState.buffering: AudioProcessingState.buffering,
+                ProcessingState.ready: AudioProcessingState.ready,
+                ProcessingState.completed: AudioProcessingState.completed,
+              }[_player.processingState]!,
         playing:
-            (_player.processingState == ProcessingState.completed && queueList.isNotEmpty)
-                ? true
-                : _player.playerState.playing,
+            (_player.processingState == ProcessingState.completed &&
+                queueList.isNotEmpty)
+            ? true
+            : _player.playerState.playing,
         // The current position as of this update. You should not broadcast
         // position changes continuously because listeners will be able to
         // project the current position after any elapsed time based on the
@@ -426,6 +565,13 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   }
 
   Future<void> dispose() async {
+    _isDisposing = true;
+    await _errorSubscription?.cancel();
+    _errorSubscription = null;
+    await _playerStateSubscription?.cancel();
+    _playerStateSubscription = null;
+    await _syncService.dispose();
+    await _player.dispose();
     await mediaItemStream.close();
   }
 }

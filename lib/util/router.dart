@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/screens/auth/sign_in.dart';
 import 'package:yaabsa/screens/item/library_item_view.dart';
 import 'package:yaabsa/screens/layout_home.dart';
@@ -10,27 +13,110 @@ import 'package:yaabsa/screens/settings/global_player_settings.dart';
 import 'package:yaabsa/screens/settings/library_settings.dart';
 import 'package:yaabsa/screens/settings/player_settings.dart';
 import 'package:yaabsa/screens/settings/reader_settings.dart';
+import 'package:yaabsa/util/globals.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+class _GoRouterRefreshStream extends ChangeNotifier {
+  _GoRouterRefreshStream(Stream<dynamic> stream) {
+    notifyListener = () => notifyListeners();
+    _subscription = stream.asBroadcastStream().listen((_) => notifyListener());
+  }
+
+  late final VoidCallback notifyListener;
+  late final StreamSubscription<dynamic> _subscription;
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+}
+
+class _ActiveUserIdNotifier extends ChangeNotifier {
+  _ActiveUserIdNotifier() {
+    final db = containerRef.read(appDatabaseProvider);
+    _subscription = db.watchGlobalSetting('activeUserId').listen((setting) {
+      final next = setting?.value;
+      if (_activeUserId != next) {
+        _activeUserId = next;
+        notifyListeners();
+      }
+    });
+  }
+
+  late final StreamSubscription<dynamic> _subscription;
+  String? _activeUserId;
+
+  String? get activeUserId => _activeUserId;
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+}
+
+final _activeUserIdNotifier = _ActiveUserIdNotifier();
+
 final globalRouter = GoRouter(
   initialLocation: '/',
+  refreshListenable: Listenable.merge([
+    _activeUserIdNotifier,
+    _GoRouterRefreshStream(
+      containerRef.read(appDatabaseProvider).watchGlobalSetting('activeUserId'),
+    ),
+  ]),
+  redirect: (context, state) {
+    final activeUserId = _activeUserIdNotifier.activeUserId;
+    final isLoginRoute = state.matchedLocation == '/add-user';
+
+    if (activeUserId == null && !isLoginRoute) {
+      return '/add-user';
+    }
+
+    return null;
+  },
   routes: [
     GoRoute(path: '/add-user', builder: (context, state) => SignIn()),
     GoRoute(path: '/player', builder: (context, state) => Player()),
-    GoRoute(path: '/ebook/:id', builder: (context, state) => Reader(itemId: state.pathParameters['id']!)),
-    GoRoute(path: PlayHistoryView.routeName, builder: (context, state) => PlayHistoryView()),
+    GoRoute(
+      path: '/ebook/:id',
+      builder: (context, state) => Reader(itemId: state.pathParameters['id']!),
+    ),
+    GoRoute(
+      path: PlayHistoryView.routeName,
+      builder: (context, state) => PlayHistoryView(),
+    ),
     ShellRoute(
       builder: (BuildContext context, GoRouterState state, Widget child) {
         return child;
       },
       routes: [
-        GoRoute(path: GlobalPlayerSettings.routeName, builder: (context, state) => GlobalPlayerSettings()),
-        GoRoute(path: PlayerSettings.routeName, builder: (context, state) => PlayerSettings()),
-        GoRoute(path: AppearanceSettings.routeName, builder: (context, state) => AppearanceSettings()),
-        GoRoute(path: CachingSettings.routeName, builder: (context, state) => CachingSettings()),
-        GoRoute(path: LibrarySettings.routeName, builder: (context, state) => LibrarySettings()),
-        GoRoute(path: ReaderSettings.routeName, builder: (context, state) => ReaderSettings()),
+        GoRoute(
+          path: GlobalPlayerSettings.routeName,
+          builder: (context, state) => GlobalPlayerSettings(),
+        ),
+        GoRoute(
+          path: PlayerSettings.routeName,
+          builder: (context, state) => PlayerSettings(),
+        ),
+        GoRoute(
+          path: AppearanceSettings.routeName,
+          builder: (context, state) => AppearanceSettings(),
+        ),
+        GoRoute(
+          path: CachingSettings.routeName,
+          builder: (context, state) => CachingSettings(),
+        ),
+        GoRoute(
+          path: LibrarySettings.routeName,
+          builder: (context, state) => LibrarySettings(),
+        ),
+        GoRoute(
+          path: ReaderSettings.routeName,
+          builder: (context, state) => ReaderSettings(),
+        ),
         // For player
         ShellRoute(
           builder: (BuildContext context, GoRouterState state, Widget child) {
@@ -40,11 +126,16 @@ final globalRouter = GoRouter(
             GoRoute(path: '/', builder: (context, state) => LayoutHome()),
             // For anything that should show the app bar. Responsive
             ShellRoute(
-              builder: (BuildContext context, GoRouterState state, Widget child) {
-                return LayoutHome(child: child);
-              },
+              builder:
+                  (BuildContext context, GoRouterState state, Widget child) {
+                    return LayoutHome(child: child);
+                  },
               routes: [
-                GoRoute(path: '/item/:id', builder: (context, state) => LibraryItemView(state.pathParameters['id']!)),
+                GoRoute(
+                  path: '/item/:id',
+                  builder: (context, state) =>
+                      LibraryItemView(state.pathParameters['id']!),
+                ),
               ],
             ),
           ],

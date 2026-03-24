@@ -18,14 +18,12 @@ _InternalMedia _$InternalMediaFromJson(Map<String, dynamic> json) =>
       series: json['series'] as String?,
       seriesPosition: json['seriesPosition'] as String?,
       cover: json['cover'] == null ? null : Uri.parse(json['cover'] as String),
-      tracks:
-          (json['tracks'] as List<dynamic>)
-              .map((e) => InternalTrack.fromJson(e as Map<String, dynamic>))
-              .toList(),
-      chapters:
-          (json['chapters'] as List<dynamic>?)
-              ?.map((e) => InternalChapter.fromJson(e as Map<String, dynamic>))
-              .toList(),
+      tracks: (json['tracks'] as List<dynamic>)
+          .map((e) => InternalTrack.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      chapters: (json['chapters'] as List<dynamic>?)
+          ?.map((e) => InternalChapter.fromJson(e as Map<String, dynamic>))
+          .toList(),
       duration: (json['duration'] as num?)?.toDouble(),
       local: json['local'] as bool? ?? false,
       saf: json['saf'] as bool,

@@ -28,10 +28,9 @@ _ServerSettings _$ServerSettingsFromJson(
   homeBookshelfView: (json['homeBookshelfView'] as num?)?.toInt(),
   bookshelfView: (json['bookshelfView'] as num?)?.toInt(),
   sortingIgnorePrefix: json['sortingIgnorePrefix'] as bool?,
-  sortingPrefixes:
-      (json['sortingPrefixes'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList(),
+  sortingPrefixes: (json['sortingPrefixes'] as List<dynamic>?)
+      ?.map((e) => e as String)
+      .toList(),
   chromecastEnabled: json['chromecastEnabled'] as bool?,
   dateFormat: json['dateFormat'] as String?,
   language: json['language'] as String?,
