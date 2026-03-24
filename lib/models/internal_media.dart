@@ -104,12 +104,15 @@ abstract class InternalMedia with _$InternalMedia {
     double targetDuration = duration.inMicroseconds / 1e6;
     for (int i = 0; i < tracks.length; i++) {
       if (tracks[i].start != null && tracks[i].end != null) {
-        if (targetDuration >= tracks[i].start! && targetDuration <= tracks[i].end!) {
+        final isLastTrack = i == tracks.length - 1;
+        if (targetDuration >= tracks[i].start! &&
+            (targetDuration < tracks[i].end! ||
+                (isLastTrack && targetDuration <= tracks[i].end!))) {
           return i;
         }
       }
     }
-    return -1;
+    return tracks.isNotEmpty ? tracks.length - 1 : -1;
   }
 
   Duration startDurationForTrack(int index) {
@@ -125,7 +128,10 @@ abstract class InternalMedia with _$InternalMedia {
     }
     double targetDuration = duration.inMicroseconds / 1e6;
     for (int i = 0; i < chapters!.length; i++) {
-      if (chapters![i].start <= targetDuration && chapters![i].end >= targetDuration) {
+      final isLastChapter = i == chapters!.length - 1;
+      if (chapters![i].start <= targetDuration &&
+          (targetDuration < chapters![i].end ||
+              (isLastChapter && targetDuration <= chapters![i].end))) {
         return chapters![i];
       }
     }

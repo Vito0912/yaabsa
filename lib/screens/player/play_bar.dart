@@ -5,52 +5,65 @@ import 'package:yaabsa/components/player/common/seek_bar.dart';
 import 'package:yaabsa/components/player/common/stop_button.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 
-class PlayBar extends HookWidget {
+class PlayBar extends StatelessWidget {
   const PlayBar({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final playerStateStream = audioHandler.shouldShowPlayer;
+    return StreamBuilder<bool>(
+      stream: audioHandler.shouldShowPlayer,
+      initialData: audioHandler.player.playerState.playing,
+      builder: (context, snapshot) {
+        final showPlayer = snapshot.data == true;
+        if (!showPlayer) {
+          return const SizedBox.shrink();
+        }
 
-    final playingStatusStream = useMemoized(() => playerStateStream, [playerStateStream]);
-
-    final playingSnapshot = useStream(playingStatusStream, initialData: audioHandler.player.playerState.playing);
-
-    if (playingSnapshot.hasData && playingSnapshot.data == true) {
-      return SafeArea(
-        child: GestureDetector(
-          onTap: () {
-            context.push('/player');
-          },
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 0.0),
-                  child: Row(
+        return SafeArea(
+          top: false,
+          child: GestureDetector(
+            onTap: () => context.push('/player'),
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.outlineVariant.withValues(alpha: 0.6),
+                ),
+              ),
+              child: const Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(child: ChapterText()),
+                      StopButton(),
+                    ],
+                  ),
+                  SizedBox(height: 4),
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       JumpButton(rewind: true),
                       ControlButton(),
                       JumpButton(rewind: false),
-                      StopButton(),
-                      ChapterText(),
                     ],
                   ),
-                ),
-                Padding(padding: const EdgeInsets.symmetric(horizontal: 16.0), child: SeekBar()),
-              ],
+                  SizedBox(height: 4),
+                  SeekBar(),
+                ],
+              ),
             ),
           ),
-        ),
-      );
-    } else {
-      return const SizedBox.shrink();
-    }
+        );
+      },
+    );
   }
 }

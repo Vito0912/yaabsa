@@ -8,10 +8,28 @@ class SkipButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      icon: Icon(!previous ? Icons.skip_next_outlined : Icons.skip_previous_outlined),
-      onPressed: () {
-        !previous ? audioHandler.skipToNext() : audioHandler.skipToPrevious();
+    if (previous) {
+      return IconButton(
+        icon: const Icon(Icons.skip_previous_outlined),
+        onPressed: () {
+          audioHandler.skipToPrevious();
+        },
+      );
+    }
+
+    return StreamBuilder<bool>(
+      stream: audioHandler.canSkipForwardStream,
+      initialData: audioHandler.canSkipForwardNow,
+      builder: (context, snapshot) {
+        final canSkip = snapshot.data == true;
+        return IconButton(
+          icon: const Icon(Icons.skip_next_outlined),
+          onPressed: canSkip
+              ? () {
+                  audioHandler.skipToNext();
+                }
+              : null,
+        );
       },
     );
   }

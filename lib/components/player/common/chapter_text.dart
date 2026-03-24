@@ -7,18 +7,32 @@ class ChapterText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Stream<InternalChapter?> chapterStream = audioHandler.chapterStream;
+    return StreamBuilder<InternalMedia?>(
+      stream: audioHandler.mediaItemStream,
+      builder: (context, mediaSnapshot) {
+        final mediaTitle = mediaSnapshot.data?.title;
 
-    return StreamBuilder<InternalChapter?>(
-      stream: chapterStream,
-      builder: (BuildContext context, AsyncSnapshot<InternalChapter?> snapshot) {
-        final InternalChapter? chapter = snapshot.data;
+        return StreamBuilder<InternalChapter?>(
+          stream: audioHandler.chapterStream,
+          builder:
+              (
+                BuildContext context,
+                AsyncSnapshot<InternalChapter?> chapterSnapshot,
+              ) {
+                final title = chapterSnapshot.data?.title ?? mediaTitle;
+                final text = (title == null || title.isEmpty) ? 'Now playing' : title;
 
-        if (chapter == null) {
-          return const SizedBox.shrink();
-        }
-
-        return Text(chapter.title, style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold));
+                return Text(
+                  text,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 15.0,
+                    fontWeight: FontWeight.w600,
+                  ),
+                );
+              },
+        );
       },
     );
   }
