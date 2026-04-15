@@ -1,3 +1,6 @@
+import 'package:yaabsa/api/me/user.dart';
+import 'package:yaabsa/api/routes/abs_api.dart';
+import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/settings/appearance_settings.dart';
 import 'package:yaabsa/screens/settings/caching_settings.dart';
@@ -7,6 +10,7 @@ import 'package:yaabsa/screens/settings/license_settings.dart';
 import 'package:yaabsa/screens/settings/log_view.dart';
 import 'package:yaabsa/screens/settings/player_settings.dart';
 import 'package:yaabsa/screens/settings/reader_settings.dart';
+import 'package:yaabsa/util/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -98,7 +102,54 @@ class MainSettingsScreen extends ConsumerWidget {
     );
   }
 
-  void _showDeleteUserConfirmationDialog(BuildContext context, dynamic user, WidgetRef ref) {
+  Future<void> _deleteUser(BuildContext context, WidgetRef ref, User user) async {
+    final db = ref.read(appDatabaseProvider);
+
+    try {
+      final refreshToken = user.refreshToken;
+      if (user.server != null && refreshToken != null && refreshToken.isNotEmpty) {
+        try {
+          final api = ABSApi(basePathOverride: user.server!.url);
+          final authToken = user.preferredAuthToken;
+          if (authToken != null && authToken.isNotEmpty) {
+            api.setBearerAuth('BearerAuth', authToken);
+          }
+          await api.getMeApi().logout(refreshToken: refreshToken, extra: const {'skip_auth_refresh': true});
+        } catch (e, s) {
+          logger(
+            'Failed to notify server logout before deleting user ${user.username}: $e. Stack: $s',
+            tag: 'MainSettingsScreen',
+            level: InfoLevel.warning,
+          );
+        }
+      }
+
+      final activeUserId = (await db.getGlobalSetting('activeUserId'))?.value;
+      final wasActiveUser = activeUserId == user.id;
+
+      await db.deleteStoredUser(user.id);
+
+      if (wasActiveUser) {
+        final remainingUsers = await db.getAllStoredUsers();
+        if (remainingUsers.isNotEmpty) {
+          await db.setActiveUserId(remainingUsers.first.id);
+        } else {
+          await db.clearActiveUserId();
+        }
+      }
+
+      ref.invalidate(allStoredUsersProvider);
+      ref.invalidate(currentUserProvider);
+
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Deleted user ${user.username}')));
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to delete user ${user.username}: $e')));
+    }
+  }
+
+  void _showDeleteUserConfirmationDialog(BuildContext context, User user, WidgetRef ref) {
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
@@ -110,11 +161,9 @@ class MainSettingsScreen extends ConsumerWidget {
             TextButton(child: const Text('Cancel'), onPressed: () => Navigator.of(dialogContext).pop()),
             TextButton(
               child: Text('Delete', style: TextStyle(color: Theme.of(context).colorScheme.error)),
-              onPressed: () {
+              onPressed: () async {
                 Navigator.of(dialogContext).pop();
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(SnackBar(content: Text('User ${user.username} delete action triggered')));
+                await _deleteUser(context, ref, user);
               },
             ),
           ],
@@ -130,10 +179,9 @@ class MainSettingsScreen extends ConsumerWidget {
     return asyncCurrentUser.when(
       data: (currentUser) {
         final allUsersList = asyncAllUsers.asData?.value ?? [];
-        final otherUsers =
-            currentUser != null
-                ? allUsersList.where((user) => user.username != currentUser.username).toList()
-                : allUsersList;
+        final otherUsers = currentUser != null
+            ? allUsersList.where((user) => user.username != currentUser.username).toList()
+            : allUsersList;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -147,50 +195,49 @@ class MainSettingsScreen extends ConsumerWidget {
                 color: Theme.of(context).colorScheme.primaryContainer,
                 child: Padding(
                   padding: const EdgeInsets.all(20.0),
-                  child:
-                      currentUser != null
-                          ? Row(
-                            children: [
-                              CircleAvatar(
-                                radius: 28,
-                                backgroundColor: Theme.of(context).colorScheme.primary,
-                                child: Text(
-                                  currentUser.username.substring(0, 1).toUpperCase() ?? 'U',
-                                  style: TextStyle(fontSize: 24, color: Theme.of(context).colorScheme.onPrimary),
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      currentUser.username ?? 'Current User',
-                                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: Theme.of(context).colorScheme.onPrimaryContainer,
-                                      ),
-                                    ),
-                                    Text(
-                                      currentUser.server?.url ?? 'No server connected',
-                                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                        color: Theme.of(context).colorScheme.onPrimaryContainer.withOpacity(0.8),
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          )
-                          : Center(
-                            child: Text(
-                              'No active user.',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  child: currentUser != null
+                      ? Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 28,
+                              backgroundColor: Theme.of(context).colorScheme.primary,
+                              child: Text(
+                                currentUser.username.substring(0, 1).toUpperCase() ?? 'U',
+                                style: TextStyle(fontSize: 24, color: Theme.of(context).colorScheme.onPrimary),
                               ),
                             ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    currentUser.username ?? 'Current User',
+                                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                    ),
+                                  ),
+                                  Text(
+                                    currentUser.server?.url ?? 'No server connected',
+                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      color: Theme.of(context).colorScheme.onPrimaryContainer.withOpacity(0.8),
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        )
+                      : Center(
+                          child: Text(
+                            'No active user.',
+                            style: Theme.of(
+                              context,
+                            ).textTheme.titleMedium?.copyWith(color: Theme.of(context).colorScheme.onPrimaryContainer),
                           ),
+                        ),
                 ),
               ),
             ),
@@ -225,9 +272,7 @@ class MainSettingsScreen extends ConsumerWidget {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
                       ),
                       onPressed: () {
-                        ScaffoldMessenger.of(
-                          context,
-                        ).showSnackBar(const SnackBar(content: Text('Navigate to Add User Screen')));
+                        context.push('/add-user');
                       },
                     ),
                   ),
@@ -265,21 +310,18 @@ class MainSettingsScreen extends ConsumerWidget {
           ],
         );
       },
-      loading: () => const Padding(padding: EdgeInsets.all(32.0), child: Center(child: CircularProgressIndicator())),
-      error:
-          (e, st) => Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text('Error loading user data: $e', style: TextStyle(color: Theme.of(context).colorScheme.error)),
-          ),
+      loading: () => const Padding(
+        padding: EdgeInsets.all(32.0),
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (e, st) => Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Text('Error loading user data: $e', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+      ),
     );
   }
 
-  void _showManageAccountsBottomSheet(
-    BuildContext context,
-    WidgetRef ref,
-    dynamic currentUser,
-    List<dynamic> otherUsers,
-  ) {
+  void _showManageAccountsBottomSheet(BuildContext context, WidgetRef ref, User? currentUser, List<User> otherUsers) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -318,7 +360,7 @@ class MainSettingsScreen extends ConsumerWidget {
                           return ListTile(
                             leading: CircleAvatar(
                               backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-                              child: Text(user.username?.substring(0, 1).toUpperCase() ?? 'U'),
+                              child: Text(user.username.substring(0, 1).toUpperCase() ?? 'U'),
                             ),
                             title: Text(user.username ?? 'Unknown User'),
                             subtitle: Text(user.server?.url ?? 'No server'),
@@ -328,11 +370,17 @@ class MainSettingsScreen extends ConsumerWidget {
                                 IconButton(
                                   icon: Icon(Icons.swap_horiz_rounded, color: Theme.of(context).colorScheme.primary),
                                   tooltip: 'Switch to this user',
-                                  onPressed: () {
+                                  onPressed: () async {
+                                    final db = ref.read(appDatabaseProvider);
+                                    await db.setActiveUserId(user.id);
+                                    ref.invalidate(currentUserProvider);
+                                    ref.invalidate(allStoredUsersProvider);
+
+                                    if (!context.mounted) return;
                                     Navigator.pop(bottomSheetContext);
                                     ScaffoldMessenger.of(
                                       context,
-                                    ).showSnackBar(SnackBar(content: Text('Switching to ${user.username ?? 'user'}')));
+                                    ).showSnackBar(SnackBar(content: Text('Switched to ${user.username}')));
                                   },
                                 ),
                                 IconButton(
@@ -419,10 +467,9 @@ class MainSettingsScreen extends ConsumerWidget {
                       context: context,
                       icon: Icons.code_rounded,
                       title: 'View on GitHub',
-                      onTap:
-                          () => ScaffoldMessenger.of(
-                            context,
-                          ).showSnackBar(const SnackBar(content: Text('Navigate to View on GitHub'))),
+                      onTap: () => ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(const SnackBar(content: Text('Navigate to View on GitHub'))),
                       isFirstInCard: true,
                     ),
                     _buildDivider(isWithinCard: true),
@@ -430,10 +477,9 @@ class MainSettingsScreen extends ConsumerWidget {
                       context: context,
                       icon: Icons.bug_report_outlined,
                       title: 'Report an Issue',
-                      onTap:
-                          () => ScaffoldMessenger.of(
-                            context,
-                          ).showSnackBar(const SnackBar(content: Text('Navigate to Report an Issue'))),
+                      onTap: () => ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(const SnackBar(content: Text('Navigate to Report an Issue'))),
                     ),
                     _buildDivider(isWithinCard: true),
                     _buildSettingsCardTile(

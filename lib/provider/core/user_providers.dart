@@ -4,6 +4,7 @@ import 'package:yaabsa/api/routes/interceptors/bearer_auth_interceptor.dart';
 import 'package:yaabsa/api/routes/interceptors/o_auth_interceptor.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/util/interceptors/cache_interceptor.dart';
+import 'package:yaabsa/util/interceptors/auth_refresh_interceptor.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -31,7 +32,7 @@ Stream<User?> currentUser(Ref ref) {
     logger('Active user ID changed to: $userId. Fetching user.', tag: 'currentUserProvider');
     final user = await db.getStoredUser(userId);
 
-    if (user == null) {
+    if (user == null || user.server == null) {
       logger('User or user server is null, cannot proceed with server sync.', tag: 'currentUserProvider');
       return user;
     }
@@ -41,8 +42,8 @@ Stream<User?> currentUser(Ref ref) {
       basePathOverride: user.server!.url,
     );
 
-    if (user.token != null) {
-      tmp.setBearerAuth('BearerAuth', user.token!);
+    if (user.preferredAuthToken != null) {
+      tmp.setBearerAuth('BearerAuth', user.preferredAuthToken!);
     }
 
     try {
@@ -60,13 +61,35 @@ Stream<User?> currentUser(Ref ref) {
       );
       // Check if 401 Unauthorized
       if (e is DioException && e.response?.statusCode == 401) {
+        if (user.refreshToken != null && user.refreshToken!.isNotEmpty) {
+          try {
+            final refreshResponse = await tmp.getMeApi().refreshAuth(refreshToken: user.refreshToken);
+            final refreshedLogin = refreshResponse.data;
+
+            if (refreshedLogin != null) {
+              final refreshedUser = refreshedLogin.user.copyWith(server: user.server, isActive: true);
+              await db.addOrUpdateStoredUser(refreshedUser);
+              return refreshedUser;
+            }
+          } catch (refreshError) {
+            logger('Refresh after 401 failed: $refreshError', tag: 'currentUserProvider', level: InfoLevel.warning);
+          }
+        }
+
         logger(
-          '401 Unauthorized error. User token might be invalid. Please re-login.',
+          '401 Unauthorized and refresh unavailable/failed. Removing user ${user.username}.',
           tag: 'currentUserProvider',
           level: InfoLevel.warning,
         );
+
         await db.deleteStoredUser(user.id);
-        await db.setActiveUserId((await db.watchAllStoredUsers().first).first.id);
+        final remainingUsers = await db.getAllStoredUsers();
+        if (remainingUsers.isNotEmpty) {
+          await db.setActiveUserId(remainingUsers.first.id);
+        } else {
+          await db.clearActiveUserId();
+        }
+        return null;
       }
       return user;
     }
@@ -93,11 +116,12 @@ ABSApi? absApi(Ref ref) {
   if (currentUser.server != null) {
     basePathOverride = currentUser.server!.url;
   }
-  token = currentUser.token;
+  token = currentUser.preferredAuthToken;
 
   List<Interceptor> interceptors = [
     BearerAuthInterceptor(),
     OAuthInterceptor(),
+    AuthRefreshInterceptor(ref),
     ABSInterceptor(ref),
     CacheInterceptor(ref),
   ];

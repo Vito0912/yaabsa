@@ -44,12 +44,11 @@ class DownloadStatus extends StatelessWidget {
   void _showErrorDialog(BuildContext context, Object? error) {
     showDialog(
       context: context,
-      builder:
-          (_) => AlertDialog(
-            title: const Text('Download Error'),
-            content: Text('Error: $error'),
-            actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK'))],
-          ),
+      builder: (_) => AlertDialog(
+        title: const Text('Download Error'),
+        content: Text('Error: $error'),
+        actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK'))],
+      ),
     );
   }
 }

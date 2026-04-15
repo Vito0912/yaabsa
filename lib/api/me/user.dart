@@ -11,12 +11,17 @@ part 'user.g.dart';
 
 @unfreezed
 abstract class User with _$User {
+  User._();
+
   factory User({
     @JsonKey(name: "id") required String id,
     @JsonKey(name: "username") required String username,
     @JsonKey(name: "email") required dynamic email,
     @JsonKey(name: "type") required String type,
     @JsonKey(name: "token") required String? token,
+    @JsonKey(name: "accessToken") String? accessToken,
+    @JsonKey(name: "refreshToken") String? refreshToken,
+    @JsonKey(name: "apiKey") String? apiKey,
     @JsonKey(name: "mediaProgress") List<MediaProgress>? mediaProgress,
     @JsonKey(name: "seriesHideFromContinueListening") List<String>? seriesHideFromContinueListening,
     @JsonKey(name: "bookmarks") List<Bookmark>? bookmarks,
@@ -33,4 +38,6 @@ abstract class User with _$User {
   }) = _User;
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
+
+  String? get preferredAuthToken => apiKey ?? accessToken ?? token;
 }

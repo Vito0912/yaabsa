@@ -16,16 +16,22 @@ class MeApi {
 
   Future<Response<Login>> login({
     required LoginRequest loginRequest,
+    bool returnTokens = false,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
   }) async {
+    final requestHeaders = <String, dynamic>{...?headers};
+    if (returnTokens) {
+      requestHeaders['x-return-tokens'] = 'true';
+    }
+
     return ABSApi.makeApiPostRequest(
       route: '/login',
       fromJson: (data) => Login.fromJson(data),
       bodyData: loginRequest.toJson(),
       cancelToken: cancelToken,
-      headers: headers,
+      headers: requestHeaders,
       extra: extra,
       dio: _dio,
     );
@@ -44,6 +50,53 @@ class MeApi {
       extra: extra,
       dio: _dio,
       bodyData: {},
+    );
+  }
+
+  Future<Response<Login>> refreshAuth({
+    String? refreshToken,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    final requestHeaders = <String, dynamic>{...?headers};
+    final requestExtra = <String, dynamic>{'skip_auth_refresh': true, ...?extra};
+    if (refreshToken != null && refreshToken.isNotEmpty) {
+      requestHeaders['x-refresh-token'] = refreshToken;
+    }
+
+    return ABSApi.makeApiPostRequest(
+      route: '/auth/refresh',
+      fromJson: (data) => Login.fromJson(data),
+      bodyData: const {},
+      cancelToken: cancelToken,
+      headers: requestHeaders,
+      extra: requestExtra,
+      dio: _dio,
+    );
+  }
+
+  Future<Response<Map<String, dynamic>>> logout({
+    String? refreshToken,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    final requestHeaders = <String, dynamic>{...?headers};
+    final requestExtra = <String, dynamic>{'skip_auth_refresh': true, ...?extra};
+    if (refreshToken != null && refreshToken.isNotEmpty) {
+      requestHeaders['x-refresh-token'] = refreshToken;
+    }
+
+    return ABSApi.makeApiPostRequest(
+      route: '/logout',
+      fromJson: (data) => data,
+      bodyData: const {},
+      cancelToken: cancelToken,
+      headers: requestHeaders,
+      extra: requestExtra,
+      dio: _dio,
+      returnData: const <String, dynamic>{},
     );
   }
 

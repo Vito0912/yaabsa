@@ -19,16 +19,10 @@ class PersonalizedView extends ConsumerWidget {
     final selectedLibrary = ref.watch(selectedLibraryProvider);
 
     if (selectedLibrary == null) {
-      return const Center(
-        child: Text(
-          'No library selected. Please select a library via the switcher.',
-        ),
-      );
+      return const Center(child: Text('No library selected. Please select a library via the switcher.'));
     }
 
-    final personalizedLibraryAsyncValue = ref.watch(
-      personalizedLibraryProvider(selectedLibrary.id),
-    );
+    final personalizedLibraryAsyncValue = ref.watch(personalizedLibraryProvider(selectedLibrary.id));
 
     return personalizedLibraryAsyncValue.when(
       data: (personalizedLibrary) {
@@ -42,9 +36,7 @@ class PersonalizedView extends ConsumerWidget {
 
         final sections = _buildSections(personalizedLibrary);
         if (sections.isEmpty) {
-          return const Center(
-            child: Text('No personalized sections available yet.'),
-          );
+          return const Center(child: Text('No personalized sections available yet.'));
         }
 
         return LayoutBuilder(
@@ -60,21 +52,13 @@ class PersonalizedView extends ConsumerWidget {
 
             return RefreshIndicator(
               onRefresh: () => ref
-                  .read(
-                    personalizedLibraryProvider(selectedLibrary.id).notifier,
-                  )
+                  .read(personalizedLibraryProvider(selectedLibrary.id).notifier)
                   .refresh(selectedLibrary.id, withLoading: false),
               child: ListView.separated(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: EdgeInsets.fromLTRB(
-                  horizontalPadding,
-                  verticalPadding,
-                  horizontalPadding,
-                  verticalPadding,
-                ),
+                padding: EdgeInsets.fromLTRB(horizontalPadding, verticalPadding, horizontalPadding, verticalPadding),
                 itemCount: sections.length,
-                separatorBuilder: (context, index) =>
-                    const SizedBox(height: 12),
+                separatorBuilder: (context, index) => const SizedBox(height: 12),
                 itemBuilder: (context, index) {
                   final section = sections[index];
                   return _SectionRow(
@@ -98,11 +82,7 @@ class PersonalizedView extends ConsumerWidget {
 enum _ShelfEntityKind { libraryItem, series, author, episode }
 
 class _SectionData {
-  _SectionData({
-    required this.title,
-    required this.kind,
-    required this.entities,
-  });
+  _SectionData({required this.title, required this.kind, required this.entities});
 
   final String title;
   final _ShelfEntityKind kind;
@@ -114,13 +94,7 @@ List<_SectionData> _buildSections(PersonalizedLibrary library) {
 
   void addSection<T>(ShelfEntry<T>? shelf, _ShelfEntityKind kind) {
     if (shelf == null || shelf.entities.isEmpty) return;
-    sections.add(
-      _SectionData(
-        title: shelf.label,
-        kind: kind,
-        entities: shelf.entities.cast<Object>(),
-      ),
-    );
+    sections.add(_SectionData(title: shelf.label, kind: kind, entities: shelf.entities.cast<Object>()));
   }
 
   addSection(library.continueListening, _ShelfEntityKind.libraryItem);
@@ -163,17 +137,9 @@ class _SectionRow extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.only(left: 4, right: 4, bottom: 8),
-          child: Text(
-            section.title,
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
+          child: Text(section.title, style: Theme.of(context).textTheme.titleMedium),
         ),
-        _SectionList(
-          section: section,
-          api: api,
-          libraryTileWidth: libraryTileWidth,
-          viewportWidth: viewportWidth,
-        ),
+        _SectionList(section: section, api: api, libraryTileWidth: libraryTileWidth, viewportWidth: viewportWidth),
       ],
     );
   }
@@ -195,9 +161,7 @@ class _SectionList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isLibraryItems = section.kind == _ShelfEntityKind.libraryItem;
-    final rowHeight = isLibraryItems
-        ? libraryTileWidth + 42.0
-        : (viewportWidth >= 700 ? 112.0 : 96.0);
+    final rowHeight = isLibraryItems ? libraryTileWidth + 42.0 : (viewportWidth >= 700 ? 112.0 : 96.0);
 
     return SizedBox(
       height: rowHeight,
@@ -227,19 +191,14 @@ class _SectionList extends StatelessWidget {
                 child: _MetaCard(
                   icon: Icons.auto_stories_outlined,
                   title: series.name,
-                  subtitle: series.numBooks != null
-                      ? '${series.numBooks} books'
-                      : null,
+                  subtitle: series.numBooks != null ? '${series.numBooks} books' : null,
                 ),
               );
             case _ShelfEntityKind.author:
               final author = entity as Author;
               return SizedBox(
                 width: viewportWidth >= 1100 ? 260 : 220,
-                child: _MetaCard(
-                  icon: Icons.person_outline,
-                  title: author.name,
-                ),
+                child: _MetaCard(icon: Icons.person_outline, title: author.name),
               );
             case _ShelfEntityKind.episode:
               final episode = entity as Episode;
@@ -293,9 +252,7 @@ class _MetaCard extends StatelessWidget {
                 if (subtitle != null && subtitle!.isNotEmpty)
                   Text(
                     subtitle!,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),

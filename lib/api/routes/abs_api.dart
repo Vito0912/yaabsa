@@ -132,16 +132,15 @@ class ABSApi {
       }
     });
 
-    final uri =
-        Uri.parse(replacedRoute)
-            .replace(
-              queryParameters: Map.fromEntries(
-                queryParams.entries
-                    .where((entry) => entry.value != null)
-                    .map((entry) => MapEntry(entry.key, entry.value.toString())),
-              ),
-            )
-            .toString();
+    final uri = Uri.parse(replacedRoute)
+        .replace(
+          queryParameters: Map.fromEntries(
+            queryParams.entries
+                .where((entry) => entry.value != null)
+                .map((entry) => MapEntry(entry.key, entry.value.toString())),
+          ),
+        )
+        .toString();
 
     try {
       final response = await dio.request<Object>(uri, options: options, cancelToken: cancelToken);

@@ -80,13 +80,12 @@ class LibraryView extends HookConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error:
-          (err, stack) => Center(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text('Error loading items: $err', textAlign: TextAlign.center),
-            ),
-          ),
+      error: (err, stack) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Text('Error loading items: $err', textAlign: TextAlign.center),
+        ),
+      ),
     );
   }
 }

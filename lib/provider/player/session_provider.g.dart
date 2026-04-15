@@ -13,12 +13,7 @@ part of 'session_provider.dart';
 final sessionRepositoryProvider = SessionRepositoryProvider._();
 
 final class SessionRepositoryProvider
-    extends
-        $FunctionalProvider<
-          SessionRepository,
-          SessionRepository,
-          SessionRepository
-        >
+    extends $FunctionalProvider<SessionRepository, SessionRepository, SessionRepository>
     with $Provider<SessionRepository> {
   SessionRepositoryProvider._()
     : super(
@@ -36,9 +31,7 @@ final class SessionRepositoryProvider
 
   @$internal
   @override
-  $ProviderElement<SessionRepository> $createElement(
-    $ProviderPointer pointer,
-  ) => $ProviderElement(pointer);
+  $ProviderElement<SessionRepository> $createElement($ProviderPointer pointer) => $ProviderElement(pointer);
 
   @override
   SessionRepository create(Ref ref) {
@@ -47,10 +40,7 @@ final class SessionRepositoryProvider
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(SessionRepository value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<SessionRepository>(value),
-    );
+    return $ProviderOverride(origin: this, providerOverride: $SyncValueProvider<SessionRepository>(value));
   }
 }
 

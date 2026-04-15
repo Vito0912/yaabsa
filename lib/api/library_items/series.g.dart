@@ -15,13 +15,9 @@ _Series _$SeriesFromJson(Map<String, dynamic> json) => _Series(
   updatedAt: (json['updatedAt'] as num?)?.toInt(),
   nameIgnorePrefix: json['nameIgnorePrefix'] as String?,
   nameIgnorePrefixSort: json['nameIgnorePrefixSort'] as String?,
-  libraryItemIds: (json['libraryItemIds'] as List<dynamic>?)
-      ?.map((e) => e as String)
-      .toList(),
+  libraryItemIds: (json['libraryItemIds'] as List<dynamic>?)?.map((e) => e as String).toList(),
   numBooks: (json['numBooks'] as num?)?.toInt(),
-  books: (json['books'] as List<dynamic>?)
-      ?.map((e) => LibraryItem.fromJson(e as Map<String, dynamic>))
-      .toList(),
+  books: (json['books'] as List<dynamic>?)?.map((e) => LibraryItem.fromJson(e as Map<String, dynamic>)).toList(),
   totalDuration: (json['totalDuration'] as num?)?.toDouble(),
 );
 

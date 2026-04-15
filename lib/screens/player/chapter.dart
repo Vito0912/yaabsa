@@ -50,11 +50,10 @@ class _ChapterViewState extends State<ChapterView> {
 
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (currentIndex >= 0 && _scrollController.hasClients) {
-                final targetOffset =
-                    (currentIndex * _chapterTileExtent - 8).clamp(
-                      0.0,
-                      _scrollController.position.maxScrollExtent,
-                    );
+                final targetOffset = (currentIndex * _chapterTileExtent - 8).clamp(
+                  0.0,
+                  _scrollController.position.maxScrollExtent,
+                );
                 _scrollController.animateTo(
                   targetOffset,
                   duration: const Duration(milliseconds: 300),
@@ -77,9 +76,7 @@ class _ChapterViewState extends State<ChapterView> {
                     '${chapter.start.toDuration.toHhMmString()} - ${chapter.end.toDuration.toHhMmString()}',
                   ),
                   selected: chapter == currentChapter,
-                  selectedTileColor: Theme.of(
-                    context,
-                  ).colorScheme.secondary.withValues(alpha: 0.2),
+                  selectedTileColor: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.2),
                   onTap: () {
                     audioHandler.seek(chapter.start.toDuration);
                   },
@@ -112,25 +109,18 @@ class _ChapterEmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.menu_book_outlined,
-              size: 36,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
+            Icon(Icons.menu_book_outlined, size: 36, color: Theme.of(context).colorScheme.onSurfaceVariant),
             const SizedBox(height: 10),
-            Text(
-              'No chapters available',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
+            Text('No chapters available', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 4),
             Text(
               title,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
           ],
         ),

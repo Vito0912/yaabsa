@@ -15,14 +15,13 @@ class LicenseSettings {
 
     Navigator.of(context, rootNavigator: useRootNavigator).push(
       MaterialPageRoute<void>(
-        builder:
-            (BuildContext context) => themes.wrap(
-              LicensePage(
-                applicationName: packageInfo.appName,
-                applicationVersion: packageInfo.version,
-                applicationLegalese: _buildLegalese(deviceInfo),
-              ),
-            ),
+        builder: (BuildContext context) => themes.wrap(
+          LicensePage(
+            applicationName: packageInfo.appName,
+            applicationVersion: packageInfo.version,
+            applicationLegalese: _buildLegalese(deviceInfo),
+          ),
+        ),
       ),
     );
   }

@@ -106,8 +106,7 @@ abstract class InternalMedia with _$InternalMedia {
       if (tracks[i].start != null && tracks[i].end != null) {
         final isLastTrack = i == tracks.length - 1;
         if (targetDuration >= tracks[i].start! &&
-            (targetDuration < tracks[i].end! ||
-                (isLastTrack && targetDuration <= tracks[i].end!))) {
+            (targetDuration < tracks[i].end! || (isLastTrack && targetDuration <= tracks[i].end!))) {
           return i;
         }
       }
@@ -130,8 +129,7 @@ abstract class InternalMedia with _$InternalMedia {
     for (int i = 0; i < chapters!.length; i++) {
       final isLastChapter = i == chapters!.length - 1;
       if (chapters![i].start <= targetDuration &&
-          (targetDuration < chapters![i].end ||
-              (isLastChapter && targetDuration <= chapters![i].end))) {
+          (targetDuration < chapters![i].end || (isLastChapter && targetDuration <= chapters![i].end))) {
         return chapters![i];
       }
     }

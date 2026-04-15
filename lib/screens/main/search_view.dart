@@ -16,11 +16,7 @@ class SearchView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedLibrary = ref.watch(selectedLibraryProvider);
     if (selectedLibrary == null) {
-      return const Center(
-        child: Text(
-          'No library selected. Please select a library via the switcher.',
-        ),
-      );
+      return const Center(child: Text('No library selected. Please select a library via the switcher.'));
     }
 
     final searchAsync = ref.watch(librarySearchProvider(query));
@@ -47,31 +43,21 @@ class SearchView extends ConsumerWidget {
         return ListView(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
           children: [
-            Text(
-              'Search results for "$query"',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
+            Text('Search results for "$query"', style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 12),
             if (resultItems.isNotEmpty) _SearchResultItems(items: resultItems),
             if (searchResult.series?.isNotEmpty ?? false) ...[
               const SizedBox(height: 20),
               _TokenSection(
                 title: 'Series',
-                tokens: searchResult.series!
-                    .map(
-                      (series) =>
-                          '${series.series.name} (${series.books.length})',
-                    )
-                    .toList(),
+                tokens: searchResult.series!.map((series) => '${series.series.name} (${series.books.length})').toList(),
               ),
             ],
             if (searchResult.authors?.isNotEmpty ?? false) ...[
               const SizedBox(height: 20),
               _TokenSection(
                 title: 'Authors',
-                tokens: searchResult.authors!
-                    .map((author) => '${author.name} (${author.numBooks})')
-                    .toList(),
+                tokens: searchResult.authors!.map((author) => '${author.name} (${author.numBooks})').toList(),
               ),
             ],
             if (searchResult.narrators?.isNotEmpty ?? false) ...[
@@ -79,10 +65,7 @@ class SearchView extends ConsumerWidget {
               _TokenSection(
                 title: 'Narrators',
                 tokens: searchResult.narrators!
-                    .map(
-                      (narrator) =>
-                          '${narrator.name} (${narrator.numItems ?? 0})',
-                    )
+                    .map((narrator) => '${narrator.name} (${narrator.numItems ?? 0})')
                     .toList(),
               ),
             ],
@@ -90,18 +73,14 @@ class SearchView extends ConsumerWidget {
               const SizedBox(height: 20),
               _TokenSection(
                 title: 'Tags',
-                tokens: searchResult.tags!
-                    .map((tag) => '${tag.name} (${tag.numItems ?? 0})')
-                    .toList(),
+                tokens: searchResult.tags!.map((tag) => '${tag.name} (${tag.numItems ?? 0})').toList(),
               ),
             ],
             if (searchResult.genres?.isNotEmpty ?? false) ...[
               const SizedBox(height: 20),
               _TokenSection(
                 title: 'Genres',
-                tokens: searchResult.genres!
-                    .map((genre) => '${genre.name} (${genre.numItems ?? 0})')
-                    .toList(),
+                tokens: searchResult.genres!.map((genre) => '${genre.name} (${genre.numItems ?? 0})').toList(),
               ),
             ],
           ],
@@ -111,10 +90,7 @@ class SearchView extends ConsumerWidget {
       error: (err, stack) => Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Text(
-            'Error loading search results: $err',
-            textAlign: TextAlign.center,
-          ),
+          child: Text('Error loading search results: $err', textAlign: TextAlign.center),
         ),
       ),
     );
@@ -171,9 +147,7 @@ class _SearchResultItems extends ConsumerWidget {
                         child: SizedBox(
                           width: 56,
                           height: 56,
-                          child: api.getLibraryItemApi().getLibraryItemCover(
-                            item.id,
-                          ),
+                          child: api.getLibraryItemApi().getLibraryItemCover(item.id),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -190,12 +164,9 @@ class _SearchResultItems extends ConsumerWidget {
                             const SizedBox(height: 4),
                             Text(
                               item.mediaType ?? 'Unknown media',
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurfaceVariant,
-                                  ),
+                              style: Theme.of(
+                                context,
+                              ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                             ),
                           ],
                         ),
@@ -229,14 +200,7 @@ class _TokenSection extends StatelessWidget {
         Wrap(
           spacing: 8,
           runSpacing: 8,
-          children: tokens
-              .map(
-                (token) => Chip(
-                  label: Text(token),
-                  visualDensity: VisualDensity.compact,
-                ),
-              )
-              .toList(),
+          children: tokens.map((token) => Chip(label: Text(token), visualDensity: VisualDensity.compact)).toList(),
         ),
       ],
     );

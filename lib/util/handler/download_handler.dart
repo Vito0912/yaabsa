@@ -53,17 +53,16 @@ class DownloadHandler {
               jsonEncode(
                 InternalDownload(
                   item: _ref.read(libraryItemProvider(itemId)).asData?.value,
-                  episode:
-                      episodeId != null
-                          ? _ref
-                              .read(libraryItemProvider(itemId))
-                        .asData
-                        ?.value
-                              .media
-                              ?.podcastMedia
-                              ?.episodes
-                              ?.firstWhere((e) => e.id == episodeId)
-                          : null,
+                  episode: episodeId != null
+                      ? _ref
+                            .read(libraryItemProvider(itemId))
+                            .asData
+                            ?.value
+                            .media
+                            ?.podcastMedia
+                            ?.episodes
+                            ?.firstWhere((e) => e.id == episodeId)
+                      : null,
                   saf: false,
                   tracks: [track.copyWith(url: await update.task.filePath())],
                 ),
@@ -111,8 +110,9 @@ class DownloadHandler {
   }
 
   Future<void> _updateTaskQueue() async {
-    final List<TaskRecord> tasks =
-        (await _downloader.database.allRecords()).where((task) => task.status != TaskStatus.complete).toList();
+    final List<TaskRecord> tasks = (await _downloader.database.allRecords())
+        .where((task) => task.status != TaskStatus.complete)
+        .toList();
     _taskQueueController.add(tasks);
   }
 
@@ -124,47 +124,54 @@ class DownloadHandler {
     if (item.mediaType == 'podcast' && episodeId == null) {
       throw Exception('Episode ID must be provided for podcast items.');
     }
-    final List<AudioFile> audioFiles =
-        item.mediaType == 'podcast'
-            ? item.media!.podcastMedia!.episodes
-                    ?.where((e) => e.id == episodeId)
-                    .map((e) => e.audioFile)
-                    .whereType<AudioFile>()
-                    .toList() ??
-                []
-            : item.media!.bookMedia!.audioFiles ?? [];
+    final List<AudioFile> audioFiles = item.mediaType == 'podcast'
+        ? item.media!.podcastMedia!.episodes
+                  ?.where((e) => e.id == episodeId)
+                  .map((e) => e.audioFile)
+                  .whereType<AudioFile>()
+                  .toList() ??
+              []
+        : item.media!.bookMedia!.audioFiles ?? [];
 
     if (audioFiles.isEmpty) {
       throw Exception('No audio files found for item $itemId with episode $episodeId.');
     }
 
-    List<DownloadTask> downloadTasks =
-        audioFiles.map((file) {
-          final User? user = _ref.read(currentUserProvider).value;
-          return DownloadTask(
-            group: item.id,
-            taskId: file.ino,
-            url: '${user!.server!.url}/api/items/${item.id}/file/${file.ino}/download',
-            filename: file.metadata.filename,
-            displayName: item.title,
-            headers: {'Authorization': 'Bearer ${user.token}'},
-            directory: '$appName/${item.id}',
-            updates: Updates.statusAndProgress,
-            metaData: jsonEncode([
-              item.id,
-              user.id,
-              episodeId,
-              InternalTrack(
-                index: file.index ?? 0,
-                duration: file.duration!,
-                url: null,
-                mimeType: file.mimeType ?? 'audio/mpeg',
-              ),
-            ]),
-            retries: 3,
-            allowPause: true,
-          );
-        }).toList();
+    final User? user = _ref.read(currentUserProvider).value;
+    if (user == null) {
+      throw Exception('No active user found for download request.');
+    }
+
+    final authToken = user.preferredAuthToken;
+    if (authToken == null || authToken.isEmpty) {
+      throw Exception('No valid authentication token available for downloads.');
+    }
+
+    List<DownloadTask> downloadTasks = audioFiles.map((file) {
+      return DownloadTask(
+        group: item.id,
+        taskId: file.ino,
+        url: '${user.server!.url}/api/items/${item.id}/file/${file.ino}/download',
+        filename: file.metadata.filename,
+        displayName: item.title,
+        headers: {'Authorization': 'Bearer $authToken'},
+        directory: '$appName/${item.id}',
+        updates: Updates.statusAndProgress,
+        metaData: jsonEncode([
+          item.id,
+          user.id,
+          episodeId,
+          InternalTrack(
+            index: file.index ?? 0,
+            duration: file.duration!,
+            url: null,
+            mimeType: file.mimeType ?? 'audio/mpeg',
+          ),
+        ]),
+        retries: 3,
+        allowPause: true,
+      );
+    }).toList();
 
     if (audioFiles.length == 1) {
       FileDownloader().configureNotificationForGroup(

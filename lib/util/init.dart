@@ -9,8 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart'
-    show getApplicationDocumentsDirectory;
+import 'package:path_provider/path_provider.dart' show getApplicationDocumentsDirectory;
 import 'package:sembast/sembast_io.dart' show databaseFactoryIo;
 import 'package:audio_service_mpris/audio_service_mpris.dart';
 
@@ -19,11 +18,7 @@ import 'logger.dart';
 class Init {
   static void initLogger() async {
     FlutterError.onError = (details) {
-      logger(
-        'FlutterError: ${details.exceptionAsString()}',
-        tag: 'FlutterError',
-        level: InfoLevel.error,
-      );
+      logger('FlutterError: ${details.exceptionAsString()}', tag: 'FlutterError', level: InfoLevel.error);
       FlutterError.presentError(details);
     };
     logger('Logger initialized', tag: 'Init', level: InfoLevel.info);

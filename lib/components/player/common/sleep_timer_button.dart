@@ -10,9 +10,7 @@ class SleepTimerButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final sleepTimer = ref.watch(sleepTimerHandlerProvider);
     final isActive = sleepTimer.isActive;
-    final label = isActive
-        ? 'Sleep ${_formatTime(sleepTimer.remainingTime)}'
-        : 'Sleep timer';
+    final label = isActive ? 'Sleep ${_formatTime(sleepTimer.remainingTime)}' : 'Sleep timer';
 
     return OutlinedButton.icon(
       onPressed: () => _showSleepTimerModal(context, ref),
@@ -86,10 +84,7 @@ class _SleepTimerModalState extends State<SleepTimerModal> {
           Text('Sleep timer', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 8),
           if (sleepTimer.isActive)
-            Text(
-              'Remaining ${_formatTime(sleepTimer.remainingTime)}',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
+            Text('Remaining ${_formatTime(sleepTimer.remainingTime)}', style: Theme.of(context).textTheme.bodyMedium),
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
@@ -99,9 +94,7 @@ class _SleepTimerModalState extends State<SleepTimerModal> {
                   (option) => ActionChip(
                     label: Text(option.label),
                     onPressed: () {
-                      widget.ref
-                          .read(sleepTimerHandlerProvider.notifier)
-                          .start(option.duration);
+                      widget.ref.read(sleepTimerHandlerProvider.notifier).start(option.duration);
                       Navigator.of(context).pop();
                       HapticFeedback.lightImpact();
                     },
@@ -118,26 +111,18 @@ class _SleepTimerModalState extends State<SleepTimerModal> {
                 OutlinedButton.icon(
                   onPressed: () {
                     if (sleepTimer.isRunning) {
-                      widget.ref
-                          .read(sleepTimerHandlerProvider.notifier)
-                          .pause();
+                      widget.ref.read(sleepTimerHandlerProvider.notifier).pause();
                     } else {
-                      widget.ref
-                          .read(sleepTimerHandlerProvider.notifier)
-                          .resume();
+                      widget.ref.read(sleepTimerHandlerProvider.notifier).resume();
                     }
                     setState(() {});
                   },
-                  icon: Icon(
-                    sleepTimer.isRunning ? Icons.pause : Icons.play_arrow,
-                  ),
+                  icon: Icon(sleepTimer.isRunning ? Icons.pause : Icons.play_arrow),
                   label: Text(sleepTimer.isRunning ? 'Pause' : 'Resume'),
                 ),
                 OutlinedButton.icon(
                   onPressed: () {
-                    widget.ref
-                        .read(sleepTimerHandlerProvider.notifier)
-                        .extend(const Duration(minutes: 5));
+                    widget.ref.read(sleepTimerHandlerProvider.notifier).extend(const Duration(minutes: 5));
                     setState(() {});
                   },
                   icon: const Icon(Icons.add),
@@ -170,10 +155,7 @@ class _SleepTimerModalState extends State<SleepTimerModal> {
                 ),
               ),
               const SizedBox(width: 8),
-              FilledButton(
-                onPressed: _handleCustomInput,
-                child: const Text('Start'),
-              ),
+              FilledButton(onPressed: _handleCustomInput, child: const Text('Start')),
             ],
           ),
         ],
@@ -187,12 +169,9 @@ class _SleepTimerModalState extends State<SleepTimerModal> {
 
     final minutes = int.tryParse(input);
     if (minutes == null || minutes <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Not valid'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: const Text('Not valid'), backgroundColor: Theme.of(context).colorScheme.error));
       return;
     }
 

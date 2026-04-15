@@ -12,36 +12,26 @@ _User _$UserFromJson(Map<String, dynamic> json) => _User(
   email: json['email'],
   type: json['type'] as String,
   token: json['token'] as String?,
+  accessToken: json['accessToken'] as String?,
+  refreshToken: json['refreshToken'] as String?,
+  apiKey: json['apiKey'] as String?,
   mediaProgress: (json['mediaProgress'] as List<dynamic>?)
       ?.map((e) => MediaProgress.fromJson(e as Map<String, dynamic>))
       .toList(),
-  seriesHideFromContinueListening:
-      (json['seriesHideFromContinueListening'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList(),
-  bookmarks: (json['bookmarks'] as List<dynamic>?)
-      ?.map((e) => Bookmark.fromJson(e as Map<String, dynamic>))
+  seriesHideFromContinueListening: (json['seriesHideFromContinueListening'] as List<dynamic>?)
+      ?.map((e) => e as String)
       .toList(),
+  bookmarks: (json['bookmarks'] as List<dynamic>?)?.map((e) => Bookmark.fromJson(e as Map<String, dynamic>)).toList(),
   isActive: json['isActive'] as bool?,
   isLocked: json['isLocked'] as bool?,
   lastSeen: (json['lastSeen'] as num?)?.toInt(),
   createdAt: (json['createdAt'] as num?)?.toInt(),
-  permissions: Permissions.fromJson(
-    json['permissions'] as Map<String, dynamic>,
-  ),
-  librariesAccessible: (json['librariesAccessible'] as List<dynamic>?)
-      ?.map((e) => e as String)
-      .toList(),
-  itemTagsSelected: (json['itemTagsSelected'] as List<dynamic>?)
-      ?.map((e) => e as String)
-      .toList(),
+  permissions: Permissions.fromJson(json['permissions'] as Map<String, dynamic>),
+  librariesAccessible: (json['librariesAccessible'] as List<dynamic>?)?.map((e) => e as String).toList(),
+  itemTagsSelected: (json['itemTagsSelected'] as List<dynamic>?)?.map((e) => e as String).toList(),
   hasOpenIdLink: json['hasOpenIDLink'] as bool?,
-  setting: json['setting'] == null
-      ? null
-      : ServerSettings.fromJson(json['setting'] as Map<String, dynamic>),
-  server: json['server'] == null
-      ? null
-      : Server.fromJson(json['server'] as Map<String, dynamic>),
+  setting: json['setting'] == null ? null : ServerSettings.fromJson(json['setting'] as Map<String, dynamic>),
+  server: json['server'] == null ? null : Server.fromJson(json['server'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$UserToJson(_User instance) => <String, dynamic>{
@@ -50,6 +40,9 @@ Map<String, dynamic> _$UserToJson(_User instance) => <String, dynamic>{
   'email': instance.email,
   'type': instance.type,
   'token': instance.token,
+  'accessToken': instance.accessToken,
+  'refreshToken': instance.refreshToken,
+  'apiKey': instance.apiKey,
   'mediaProgress': instance.mediaProgress,
   'seriesHideFromContinueListening': instance.seriesHideFromContinueListening,
   'bookmarks': instance.bookmarks,

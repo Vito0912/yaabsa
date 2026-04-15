@@ -80,10 +80,9 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
       }
 
       final totalResults = data.total ?? 0;
-      final List<LibraryItem> newItems =
-          page == 0
-              ? List<LibraryItem>.from(data.results)
-              : <LibraryItem>[...(currentVal?.items ?? <LibraryItem>[]), ...data.results];
+      final List<LibraryItem> newItems = page == 0
+          ? List<LibraryItem>.from(data.results)
+          : <LibraryItem>[...(currentVal?.items ?? <LibraryItem>[]), ...data.results];
 
       return LibraryItemState(
         items: newItems,

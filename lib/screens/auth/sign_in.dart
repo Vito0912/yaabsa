@@ -26,8 +26,10 @@ class SignIn extends HookConsumerWidget {
     final serverAddressController = useTextEditingController();
     final usernameController = useTextEditingController();
     final passwordController = useTextEditingController();
+    final apiKeyController = useTextEditingController();
 
     final isLoading = useState(false);
+    final useApiKey = useState(false);
     final isStatusLoading = useState(false);
     final errorMessage = useState<String?>(null);
     final status = useState<ServerStatus?>(null);
@@ -38,12 +40,8 @@ class SignIn extends HookConsumerWidget {
 
     final currentUser = ref.watch(currentUserProvider).value;
     useEffect(() {
-      if (currentUser?.server?.url != null &&
-          serverAddressController.text.isEmpty) {
-        _setControllerTextKeepingCursor(
-          serverAddressController,
-          currentUser!.server!.url,
-        );
+      if (currentUser?.server?.url != null && serverAddressController.text.isEmpty) {
+        _setControllerTextKeepingCursor(serverAddressController, currentUser!.server!.url);
       }
       return null;
     }, [currentUser]);
@@ -53,9 +51,7 @@ class SignIn extends HookConsumerWidget {
         errorMessage.value = null;
       }
 
-      final normalizedServer = _normalizeServerAddress(
-        serverAddressController.text.trim(),
-      );
+      final normalizedServer = _normalizeServerAddress(serverAddressController.text.trim());
       if (normalizedServer == null) {
         if (showErrors) {
           statusError.value = 'Please enter a valid server address.';
@@ -85,12 +81,10 @@ class SignIn extends HookConsumerWidget {
           return null;
         }
 
-        final isAudiobookshelf =
-            fetchedStatus.app.toLowerCase() == 'audiobookshelf';
+        final isAudiobookshelf = fetchedStatus.app.toLowerCase() == 'audiobookshelf';
         if (!isAudiobookshelf) {
           if (showErrors) {
-            statusError.value =
-                'Server is reachable, but it is not an Audiobookshelf server.';
+            statusError.value = 'Server is reachable, but it is not an Audiobookshelf server.';
           }
           status.value = null;
           lastCheckedServer.value = null;
@@ -104,10 +98,7 @@ class SignIn extends HookConsumerWidget {
       } on DioException catch (e) {
         if (!CancelToken.isCancel(e)) {
           if (showErrors) {
-            statusError.value = _parseDioErrorMessage(
-              e,
-              fallback: 'Failed to fetch server status.',
-            );
+            statusError.value = _parseDioErrorMessage(e, fallback: 'Failed to fetch server status.');
           }
         }
       } catch (e) {
@@ -124,10 +115,7 @@ class SignIn extends HookConsumerWidget {
       return null;
     }
 
-    Future<ServerStatus?> ensureStatusForServer(
-      String normalizedServer, {
-      required bool showErrors,
-    }) async {
+    Future<ServerStatus?> ensureStatusForServer(String normalizedServer, {required bool showErrors}) async {
       if (status.value != null && lastCheckedServer.value == normalizedServer) {
         return status.value;
       }
@@ -137,78 +125,80 @@ class SignIn extends HookConsumerWidget {
     Future<void> validateAndSignIn() async {
       errorMessage.value = null;
 
-      final normalizedServer = _normalizeServerAddress(
-        serverAddressController.text.trim(),
-      );
+      final normalizedServer = _normalizeServerAddress(serverAddressController.text.trim());
       if (normalizedServer == null) {
         errorMessage.value = 'Please enter a valid server address.';
         return;
       }
-      _setControllerTextKeepingCursor(
-        serverAddressController,
-        normalizedServer,
-      );
+      _setControllerTextKeepingCursor(serverAddressController, normalizedServer);
 
-      final currentStatus = await ensureStatusForServer(
-        normalizedServer,
-        showErrors: true,
-      );
+      final currentStatus = await ensureStatusForServer(normalizedServer, showErrors: true);
       if (currentStatus == null) {
-        errorMessage.value =
-            statusError.value ?? 'Unable to verify server status.';
+        errorMessage.value = statusError.value ?? 'Unable to verify server status.';
         return;
       }
 
       final allowsLocal = currentStatus.authMethods.contains('local');
-      if (!allowsLocal) {
-        errorMessage.value =
-            'Local login is disabled on this server. Use OpenID Connect instead.';
-        return;
-      }
-
-      final username = usernameController.text.trim();
-      final password = passwordController.text;
-
-      if (username.isEmpty || password.isEmpty) {
-        errorMessage.value = 'Username and password are required.';
+      if (!useApiKey.value && !allowsLocal) {
+        errorMessage.value = 'Local login is disabled on this server. Use OpenID Connect instead.';
         return;
       }
 
       isLoading.value = true;
 
       try {
-        logger(
-          'Attempting login to server: $normalizedServer with username: $username',
-          tag: 'SignIn',
-        );
+        late final User loggedInUser;
 
-        final apiResponse = await ABSApi(basePathOverride: normalizedServer)
-            .getMeApi()
-            .login(
-              loginRequest: LoginRequest(
-                username: username,
-                password: password,
-              ),
-            );
+        if (useApiKey.value) {
+          final apiKey = apiKeyController.text.trim();
+          if (apiKey.isEmpty) {
+            errorMessage.value = 'API key is required.';
+            return;
+          }
 
-        final loginData = apiResponse.data;
+          logger('Attempting API key auth against server: $normalizedServer', tag: 'SignIn');
 
-        if (loginData == null) {
-          errorMessage.value = 'Login failed: Invalid response from server.';
-          return;
+          final api = ABSApi(basePathOverride: normalizedServer);
+          api.setBearerAuth('BearerAuth', apiKey);
+          final userResponse = await api.getMeApi().getUser();
+          final userData = userResponse.data;
+          if (userData == null) {
+            errorMessage.value = 'API key authentication failed: Invalid response.';
+            return;
+          }
+
+          loggedInUser = userData.copyWith(apiKey: apiKey);
+        } else {
+          final username = usernameController.text.trim();
+          final password = passwordController.text;
+
+          if (username.isEmpty || password.isEmpty) {
+            errorMessage.value = 'Username and password are required.';
+            return;
+          }
+
+          logger('Attempting login to server: $normalizedServer with username: $username', tag: 'SignIn');
+
+          final apiResponse = await ABSApi(basePathOverride: normalizedServer).getMeApi().login(
+            loginRequest: LoginRequest(username: username, password: password),
+            returnTokens: true,
+          );
+
+          final loginData = apiResponse.data;
+
+          if (loginData == null) {
+            errorMessage.value = 'Login failed: Invalid response from server.';
+            return;
+          }
+
+          loggedInUser = loginData.user;
         }
-
-        final User loggedInUser = loginData.user;
 
         final serverUri = Uri.parse(normalizedServer);
         final db = ref.read(appDatabaseProvider);
         await db.addOrUpdateStoredUser(
           loggedInUser.copyWith(
-            server: Server(
-              host: serverUri.host,
-              port: serverUri.port,
-              ssl: serverUri.scheme == 'https',
-            ),
+            server: Server(host: serverUri.host, port: serverUri.port, ssl: serverUri.scheme == 'https'),
           ),
         );
         await db.setActiveUserId(loggedInUser.id);
@@ -219,10 +209,7 @@ class SignIn extends HookConsumerWidget {
         if (!context.mounted) return;
         context.go('/');
       } on DioException catch (e) {
-        errorMessage.value = _parseDioErrorMessage(
-          e,
-          fallback: 'Login failed.',
-        );
+        errorMessage.value = _parseDioErrorMessage(e, fallback: 'Login failed.');
       } catch (e) {
         errorMessage.value = 'Login failed: $e';
       } finally {
@@ -233,25 +220,16 @@ class SignIn extends HookConsumerWidget {
     Future<void> startOpenIdConnect() async {
       errorMessage.value = null;
 
-      final normalizedServer = _normalizeServerAddress(
-        serverAddressController.text.trim(),
-      );
+      final normalizedServer = _normalizeServerAddress(serverAddressController.text.trim());
       if (normalizedServer == null) {
         errorMessage.value = 'Please enter a valid server address first.';
         return;
       }
-      _setControllerTextKeepingCursor(
-        serverAddressController,
-        normalizedServer,
-      );
+      _setControllerTextKeepingCursor(serverAddressController, normalizedServer);
 
-      final currentStatus = await ensureStatusForServer(
-        normalizedServer,
-        showErrors: true,
-      );
+      final currentStatus = await ensureStatusForServer(normalizedServer, showErrors: true);
       if (currentStatus == null) {
-        errorMessage.value =
-            statusError.value ?? 'Unable to verify server status.';
+        errorMessage.value = statusError.value ?? 'Unable to verify server status.';
         return;
       }
 
@@ -263,9 +241,7 @@ class SignIn extends HookConsumerWidget {
 
       final codeVerifier = _generateCodeVerifier();
       final state = _randomBase64Url(24);
-      final codeChallenge = _toBase64UrlNoPadding(
-        sha256.convert(utf8.encode(codeVerifier)).bytes,
-      );
+      final codeChallenge = _toBase64UrlNoPadding(sha256.convert(utf8.encode(codeVerifier)).bytes);
 
       final authUri = Uri.parse('$normalizedServer/auth/openid').replace(
         queryParameters: {
@@ -279,10 +255,7 @@ class SignIn extends HookConsumerWidget {
       );
 
       logger('Launching OpenID endpoint: $authUri', tag: 'SignIn');
-      final launched = await launchUrl(
-        authUri,
-        mode: LaunchMode.externalApplication,
-      );
+      final launched = await launchUrl(authUri, mode: LaunchMode.externalApplication);
 
       if (!launched && context.mounted) {
         errorMessage.value = 'Could not open the OpenID login page.';
@@ -292,9 +265,7 @@ class SignIn extends HookConsumerWidget {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'OpenID flow opened in your browser. Finish sign-in there and return to the app.',
-          ),
+          content: Text('OpenID flow opened in your browser. Finish sign-in there and return to the app.'),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -302,9 +273,7 @@ class SignIn extends HookConsumerWidget {
 
     useEffect(() {
       void onServerChanged() {
-        final normalized = _normalizeServerAddress(
-          serverAddressController.text.trim(),
-        );
+        final normalized = _normalizeServerAddress(serverAddressController.text.trim());
 
         statusDebounce.value?.cancel();
 
@@ -318,9 +287,7 @@ class SignIn extends HookConsumerWidget {
         }
 
         statusDebounce.value = Timer(const Duration(milliseconds: 500), () {
-          final latest = _normalizeServerAddress(
-            serverAddressController.text.trim(),
-          );
+          final latest = _normalizeServerAddress(serverAddressController.text.trim());
           if (latest == null) return;
           if (latest == lastCheckedServer.value && status.value != null) return;
           fetchStatus(showErrors: false);
@@ -336,13 +303,11 @@ class SignIn extends HookConsumerWidget {
     }, [serverAddressController]);
 
     final activeStatus = status.value;
-    final allowsLocal =
-        activeStatus == null || activeStatus.authMethods.contains('local');
+    final allowsLocal = activeStatus == null || activeStatus.authMethods.contains('local');
     final allowsOpenId = activeStatus?.authMethods.contains('openid') ?? false;
+    const allowsApiKey = true;
     final customMessage = activeStatus?.authFormData?.authLoginCustomMessage;
-    final openIdButtonText =
-        activeStatus?.authFormData?.authOpenIDButtonText ??
-        'Continue with OpenID Connect';
+    final openIdButtonText = activeStatus?.authFormData?.authOpenIDButtonText ?? 'Continue with OpenID Connect';
 
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
@@ -354,37 +319,24 @@ class SignIn extends HookConsumerWidget {
           Positioned(
             top: -100,
             right: -70,
-            child: _GlowOrb(
-              size: 250,
-              color: colorScheme.primary.withValues(alpha: 0.16),
-            ),
+            child: _GlowOrb(size: 250, color: colorScheme.primary.withValues(alpha: 0.16)),
           ),
           Positioned(
             bottom: -90,
             left: -55,
-            child: _GlowOrb(
-              size: 220,
-              color: colorScheme.tertiary.withValues(alpha: 0.14),
-            ),
+            child: _GlowOrb(size: 220, color: colorScheme.tertiary.withValues(alpha: 0.14)),
           ),
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 28,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 560),
                   child: Card(
                     elevation: 1,
                     shadowColor: colorScheme.shadow.withValues(alpha: 0.08),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(28),
-                    ),
-                    color: colorScheme.surfaceContainerLowest.withValues(
-                      alpha: 0.96,
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+                    color: colorScheme.surfaceContainerLowest.withValues(alpha: 0.96),
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
                       child: Column(
@@ -393,17 +345,13 @@ class SignIn extends HookConsumerWidget {
                           Text(
                             'Yaabsa',
                             textAlign: TextAlign.center,
-                            style: textTheme.headlineMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
+                            style: textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700),
                           ),
                           const SizedBox(height: 6),
                           Text(
                             'Sign in to your Audiobookshelf server',
                             textAlign: TextAlign.center,
-                            style: textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
+                            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
                           ),
                           const SizedBox(height: 22),
                           TextField(
@@ -413,9 +361,7 @@ class SignIn extends HookConsumerWidget {
                               labelText: 'Server Address',
                               hintText: 'https://your-audiobookshelf.example',
                               prefixIcon: const Icon(Icons.dns_outlined),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -425,58 +371,81 @@ class SignIn extends HookConsumerWidget {
                                 SizedBox(
                                   height: 14,
                                   width: 14,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.onSurfaceVariant),
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
                                   'Checking server...',
-                                  style: textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
+                                  style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
                                 ),
                               ],
                             )
                           else if (activeStatus != null)
                             Row(
                               children: [
-                                Icon(
-                                  Icons.check_circle_rounded,
-                                  size: 16,
-                                  color: colorScheme.primary,
-                                ),
+                                Icon(Icons.check_circle_rounded, size: 16, color: colorScheme.primary),
                                 const SizedBox(width: 6),
                                 Expanded(
                                   child: Text(
                                     'Valid Audiobookshelf server (v${activeStatus.serverVersion})',
-                                    style: textTheme.bodySmall?.copyWith(
-                                      color: colorScheme.onSurfaceVariant,
-                                    ),
+                                    style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
                                   ),
                                 ),
                               ],
                             )
                           else if (statusError.value != null)
-                            Text(
-                              statusError.value!,
-                              style: textTheme.bodySmall?.copyWith(
-                                color: colorScheme.error,
-                              ),
-                            ),
-                          if (customMessage != null &&
-                              customMessage.trim().isNotEmpty) ...[
+                            Text(statusError.value!, style: textTheme.bodySmall?.copyWith(color: colorScheme.error)),
+                          if (customMessage != null && customMessage.trim().isNotEmpty) ...[
                             const SizedBox(height: 12),
                             Text(
                               customMessage,
                               textAlign: TextAlign.center,
-                              style: textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
+                              style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                            ),
+                          ],
+                          if (allowsApiKey) ...[
+                            const SizedBox(height: 14),
+                            SwitchListTile.adaptive(
+                              value: useApiKey.value,
+                              contentPadding: EdgeInsets.zero,
+                              onChanged: isLoading.value
+                                  ? null
+                                  : (value) {
+                                      useApiKey.value = value;
+                                      errorMessage.value = null;
+                                    },
+                              title: const Text('Use API Key'),
+                              subtitle: const Text(
+                                'Authenticate with a generated API key instead of username/password.',
                               ),
                             ),
                           ],
-                          if (allowsLocal) ...[
+                          if (useApiKey.value) ...[
+                            const SizedBox(height: 12),
+                            TextField(
+                              controller: apiKeyController,
+                              enabled: !isLoading.value,
+                              obscureText: true,
+                              onSubmitted: (_) => validateAndSignIn(),
+                              decoration: InputDecoration(
+                                labelText: 'API Key',
+                                prefixIcon: const Icon(Icons.key_rounded),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                            FilledButton.icon(
+                              onPressed: isLoading.value ? null : validateAndSignIn,
+                              icon: isLoading.value
+                                  ? SizedBox(
+                                      height: 18,
+                                      width: 18,
+                                      child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.onPrimary),
+                                    )
+                                  : const Icon(Icons.vpn_key_rounded),
+                              label: Text(isLoading.value ? 'Signing in...' : 'Connect with API Key'),
+                            ),
+                          ] else if (allowsLocal) ...[
                             const SizedBox(height: 18),
                             TextField(
                               controller: usernameController,
@@ -484,12 +453,8 @@ class SignIn extends HookConsumerWidget {
                               textInputAction: TextInputAction.next,
                               decoration: InputDecoration(
                                 labelText: 'Username',
-                                prefixIcon: const Icon(
-                                  Icons.person_outline_rounded,
-                                ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
+                                prefixIcon: const Icon(Icons.person_outline_rounded),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                               ),
                             ),
                             const SizedBox(height: 12),
@@ -501,48 +466,35 @@ class SignIn extends HookConsumerWidget {
                               decoration: InputDecoration(
                                 labelText: 'Password',
                                 prefixIcon: const Icon(Icons.password_rounded),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                               ),
                             ),
                             const SizedBox(height: 14),
                             FilledButton.icon(
-                              onPressed: isLoading.value
-                                  ? null
-                                  : validateAndSignIn,
+                              onPressed: isLoading.value ? null : validateAndSignIn,
                               icon: isLoading.value
                                   ? SizedBox(
                                       height: 18,
                                       width: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: colorScheme.onPrimary,
-                                      ),
+                                      child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.onPrimary),
                                     )
                                   : const Icon(Icons.login_rounded),
-                              label: Text(
-                                isLoading.value ? 'Signing in...' : 'Sign In',
-                              ),
+                              label: Text(isLoading.value ? 'Signing in...' : 'Sign In'),
                             ),
                           ],
-                          if (allowsOpenId) ...[
+                          if (!useApiKey.value && allowsOpenId) ...[
                             const SizedBox(height: 12),
                             OutlinedButton.icon(
-                              onPressed: isLoading.value
-                                  ? null
-                                  : startOpenIdConnect,
+                              onPressed: isLoading.value ? null : startOpenIdConnect,
                               icon: const Icon(Icons.shield_outlined),
                               label: Text(openIdButtonText),
                             ),
                           ],
-                          if (!allowsLocal && !allowsOpenId) ...[
+                          if (!useApiKey.value && !allowsLocal && !allowsOpenId) ...[
                             const SizedBox(height: 12),
                             Text(
                               'No supported authentication method is enabled on this server.',
-                              style: textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.error,
-                              ),
+                              style: textTheme.bodyMedium?.copyWith(color: colorScheme.error),
                             ),
                           ],
                           if (errorMessage.value != null) ...[
@@ -550,9 +502,7 @@ class SignIn extends HookConsumerWidget {
                             Text(
                               errorMessage.value!,
                               textAlign: TextAlign.center,
-                              style: textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.error,
-                              ),
+                              style: textTheme.bodyMedium?.copyWith(color: colorScheme.error),
                             ),
                           ],
                         ],
@@ -583,9 +533,7 @@ class _GlowOrb extends StatelessWidget {
         width: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: RadialGradient(
-            colors: [color, color.withValues(alpha: 0.0)],
-          ),
+          gradient: RadialGradient(colors: [color, color.withValues(alpha: 0.0)]),
         ),
       ),
     );
@@ -602,24 +550,15 @@ String? _normalizeServerAddress(String input) {
     return null;
   }
 
-  final normalized = uri
-      .replace(path: '', query: null, fragment: null)
-      .toString();
-  return normalized.endsWith('/')
-      ? normalized.substring(0, normalized.length - 1)
-      : normalized;
+  final normalized = uri.replace(path: '', query: null, fragment: null).toString();
+  return normalized.endsWith('/') ? normalized.substring(0, normalized.length - 1) : normalized;
 }
 
-String _parseDioErrorMessage(
-  DioException exception, {
-  required String fallback,
-}) {
+String _parseDioErrorMessage(DioException exception, {required String fallback}) {
   final responseData = exception.response?.data;
 
   if (responseData is Map<String, dynamic>) {
-    final message =
-        responseData['message']?.toString() ??
-        responseData['error']?.toString();
+    final message = responseData['message']?.toString() ?? responseData['error']?.toString();
     if (message != null && message.isNotEmpty) {
       return message;
     }
@@ -637,8 +576,7 @@ String _parseDioErrorMessage(
 }
 
 String _generateCodeVerifier() {
-  const chars =
-      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
   final random = Random.secure();
   return List.generate(64, (_) => chars[random.nextInt(chars.length)]).join();
 }
@@ -653,10 +591,7 @@ String _toBase64UrlNoPadding(List<int> data) {
   return base64Url.encode(data).replaceAll('=', '');
 }
 
-void _setControllerTextKeepingCursor(
-  TextEditingController controller,
-  String text,
-) {
+void _setControllerTextKeepingCursor(TextEditingController controller, String text) {
   if (controller.text == text) return;
   controller.value = controller.value.copyWith(
     text: text,

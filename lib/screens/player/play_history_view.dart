@@ -155,10 +155,16 @@ class PlayHistoryView extends ConsumerWidget {
     final timestampText = DateFormat('HH:mm:ss').format(entry.created);
 
     return ListTile(
-      leading: CircleAvatar(backgroundColor: color.withOpacity(0.2), child: Icon(icon, color: color, size: 20)),
+      leading: CircleAvatar(
+        backgroundColor: color.withOpacity(0.2),
+        child: Icon(icon, color: color, size: 20),
+      ),
       title: Row(
         children: [
-          Text(_getTypeDisplayName(type), style: TextStyle(fontWeight: FontWeight.w500, color: color)),
+          Text(
+            _getTypeDisplayName(type),
+            style: TextStyle(fontWeight: FontWeight.w500, color: color),
+          ),
           const Spacer(),
           Text(timestampText, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
         ],

@@ -147,10 +147,9 @@ class LogView extends HookWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color:
-                            autoScrollEnabled.value
-                                ? Theme.of(context).colorScheme.primaryContainer
-                                : Theme.of(context).colorScheme.errorContainer,
+                        color: autoScrollEnabled.value
+                            ? Theme.of(context).colorScheme.primaryContainer
+                            : Theme.of(context).colorScheme.errorContainer,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
@@ -159,19 +158,17 @@ class LogView extends HookWidget {
                           Icon(
                             autoScrollEnabled.value ? Icons.play_arrow : Icons.pause,
                             size: 14,
-                            color:
-                                autoScrollEnabled.value
-                                    ? Theme.of(context).colorScheme.onPrimaryContainer
-                                    : Theme.of(context).colorScheme.onErrorContainer,
+                            color: autoScrollEnabled.value
+                                ? Theme.of(context).colorScheme.onPrimaryContainer
+                                : Theme.of(context).colorScheme.onErrorContainer,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             autoScrollEnabled.value ? 'Auto-scroll ON' : 'Auto-scroll OFF',
                             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color:
-                                  autoScrollEnabled.value
-                                      ? Theme.of(context).colorScheme.onPrimaryContainer
-                                      : Theme.of(context).colorScheme.onErrorContainer,
+                              color: autoScrollEnabled.value
+                                  ? Theme.of(context).colorScheme.onPrimaryContainer
+                                  : Theme.of(context).colorScheme.onErrorContainer,
                             ),
                           ),
                         ],
@@ -298,44 +295,41 @@ class LogView extends HookWidget {
           ],
         ],
       ),
-      floatingActionButton:
-          logs.isNotEmpty
-              ? Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  FloatingActionButton.small(
-                    heroTag: "scroll_top",
-                    onPressed: () => _scrollToTop(scrollController),
-                    tooltip: 'Scroll to top',
-                    child: const Icon(Icons.keyboard_arrow_up),
-                  ),
-                  const SizedBox(height: 8),
-                  FloatingActionButton.small(
-                    heroTag: "scroll_bottom",
-                    onPressed: () => _scrollToBottom(scrollController),
-                    tooltip: 'Scroll to bottom',
-                    child: const Icon(Icons.keyboard_arrow_down),
-                  ),
-                  const SizedBox(height: 8),
-                  FloatingActionButton.small(
-                    heroTag: "auto_scroll",
-                    onPressed: () {
-                      autoScrollEnabled.value = !autoScrollEnabled.value;
-                    },
-                    tooltip: autoScrollEnabled.value ? 'Disable auto-scroll' : 'Enable auto-scroll',
-                    backgroundColor:
-                        autoScrollEnabled.value
-                            ? Theme.of(context).colorScheme.primary
-                            : Theme.of(context).colorScheme.error,
-                    foregroundColor:
-                        autoScrollEnabled.value
-                            ? Theme.of(context).colorScheme.onPrimary
-                            : Theme.of(context).colorScheme.onError,
-                    child: Icon(autoScrollEnabled.value ? Icons.pause : Icons.play_arrow),
-                  ),
-                ],
-              )
-              : null,
+      floatingActionButton: logs.isNotEmpty
+          ? Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                FloatingActionButton.small(
+                  heroTag: "scroll_top",
+                  onPressed: () => _scrollToTop(scrollController),
+                  tooltip: 'Scroll to top',
+                  child: const Icon(Icons.keyboard_arrow_up),
+                ),
+                const SizedBox(height: 8),
+                FloatingActionButton.small(
+                  heroTag: "scroll_bottom",
+                  onPressed: () => _scrollToBottom(scrollController),
+                  tooltip: 'Scroll to bottom',
+                  child: const Icon(Icons.keyboard_arrow_down),
+                ),
+                const SizedBox(height: 8),
+                FloatingActionButton.small(
+                  heroTag: "auto_scroll",
+                  onPressed: () {
+                    autoScrollEnabled.value = !autoScrollEnabled.value;
+                  },
+                  tooltip: autoScrollEnabled.value ? 'Disable auto-scroll' : 'Enable auto-scroll',
+                  backgroundColor: autoScrollEnabled.value
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.error,
+                  foregroundColor: autoScrollEnabled.value
+                      ? Theme.of(context).colorScheme.onPrimary
+                      : Theme.of(context).colorScheme.onError,
+                  child: Icon(autoScrollEnabled.value ? Icons.pause : Icons.play_arrow),
+                ),
+              ],
+            )
+          : null,
     );
   }
 

@@ -38,10 +38,9 @@ abstract class Media with _$Media {
 
   String? get subtitle => podcastMedia == null ? bookMedia!.metadata.subtitle : null;
 
-  List<String>? get authors =>
-      podcastMedia != null
-          ? podcastMedia!.metadata.author?.split(',')
-          : bookMedia!.metadata.authors?.map((e) => e.name).toList();
+  List<String>? get authors => podcastMedia != null
+      ? podcastMedia!.metadata.author?.split(',')
+      : bookMedia!.metadata.authors?.map((e) => e.name).toList();
 
   String? get seriesSequence => bookMedia?.metadata.series?.firstOrNull?.sequence;
 

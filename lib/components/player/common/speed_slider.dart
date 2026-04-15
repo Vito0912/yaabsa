@@ -74,10 +74,7 @@ class _SpeedSheetState extends State<_SpeedSheet> {
         children: [
           Text('Playback speed', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 12),
-          Text(
-            '${_value.toStringAsFixed(1)}x',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
+          Text('${_value.toStringAsFixed(1)}x', style: Theme.of(context).textTheme.titleMedium),
           Slider(
             value: _value,
             min: SpeedSlider.minSpeed,
@@ -106,9 +103,7 @@ class _SpeedSheetState extends State<_SpeedSheet> {
           TextField(
             controller: _customController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            inputFormatters: [
-              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
-            ],
+            inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$'))],
             decoration: const InputDecoration(
               labelText: 'Custom value',
               hintText: '0.5 - 3.0',
@@ -121,10 +116,7 @@ class _SpeedSheetState extends State<_SpeedSheet> {
           Row(
             children: [
               Expanded(
-                child: OutlinedButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Cancel'),
-                ),
+                child: OutlinedButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
               ),
               const SizedBox(width: 8),
               Expanded(
@@ -185,9 +177,6 @@ class _PresetButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ActionChip(
-      label: Text('${value.toStringAsFixed(1)}x'),
-      onPressed: () => onTap(value),
-    );
+    return ActionChip(label: Text('${value.toStringAsFixed(1)}x'), onPressed: () => onTap(value));
   }
 }

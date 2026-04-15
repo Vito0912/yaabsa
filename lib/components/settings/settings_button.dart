@@ -60,41 +60,40 @@ class SettingButton extends ConsumerWidget {
               ),
               Padding(
                 padding: const EdgeInsets.only(left: 16.0),
-                child:
-                    isLoading
-                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.5))
-                        : ElevatedButton.icon(
-                          onPressed: onPressed,
-                          icon:
-                              buttonIcon != null
-                                  ? Icon(
-                                    buttonIcon,
-                                    size: 18,
-                                    color: isDestructive ? theme.colorScheme.onError : theme.colorScheme.onPrimary,
-                                  )
-                                  : const SizedBox.shrink(),
-                          label: Text(
-                            buttonText,
-                            style: textTheme.labelMedium?.copyWith(
-                              color: isDestructive ? theme.colorScheme.onError : theme.colorScheme.onPrimary,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: isDestructive ? theme.colorScheme.error : theme.colorScheme.primary,
-                            foregroundColor: isDestructive ? theme.colorScheme.onError : theme.colorScheme.onPrimary,
-                            elevation: 2,
-                            shadowColor: theme.colorScheme.shadow.withOpacity(0.2),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          ).copyWith(
-                            overlayColor: WidgetStateProperty.all(
-                              (isDestructive ? theme.colorScheme.onError : theme.colorScheme.onPrimary).withOpacity(
-                                0.1,
-                              ),
-                            ),
+                child: isLoading
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.5))
+                    : ElevatedButton.icon(
+                        onPressed: onPressed,
+                        icon: buttonIcon != null
+                            ? Icon(
+                                buttonIcon,
+                                size: 18,
+                                color: isDestructive ? theme.colorScheme.onError : theme.colorScheme.onPrimary,
+                              )
+                            : const SizedBox.shrink(),
+                        label: Text(
+                          buttonText,
+                          style: textTheme.labelMedium?.copyWith(
+                            color: isDestructive ? theme.colorScheme.onError : theme.colorScheme.onPrimary,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
+                        style:
+                            ElevatedButton.styleFrom(
+                              backgroundColor: isDestructive ? theme.colorScheme.error : theme.colorScheme.primary,
+                              foregroundColor: isDestructive ? theme.colorScheme.onError : theme.colorScheme.onPrimary,
+                              elevation: 2,
+                              shadowColor: theme.colorScheme.shadow.withOpacity(0.2),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            ).copyWith(
+                              overlayColor: WidgetStateProperty.all(
+                                (isDestructive ? theme.colorScheme.onError : theme.colorScheme.onPrimary).withOpacity(
+                                  0.1,
+                                ),
+                              ),
+                            ),
+                      ),
               ),
             ],
           ),

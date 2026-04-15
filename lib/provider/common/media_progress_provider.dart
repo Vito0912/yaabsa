@@ -78,11 +78,12 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
     final db = ref.watch(appDatabaseProvider);
     try {
       final progressList = await db.getAllSyncs();
-      final List<MediaProgress> mediaProgressList =
-          progressList.map((e) => MediaProgress.fromJson(jsonDecode(e.mediaProgress))).toList();
-        final Map<String, MediaProgress> currentMap = state.asData?.value ?? <String, MediaProgress>{};
+      final List<MediaProgress> mediaProgressList = progressList
+          .map((e) => MediaProgress.fromJson(jsonDecode(e.mediaProgress)))
+          .toList();
+      final Map<String, MediaProgress> currentMap = state.asData?.value ?? <String, MediaProgress>{};
       final loadedMap = _listToMap(mediaProgressList);
-        final Map<String, MediaProgress> mergedMap = {...currentMap, ...loadedMap};
+      final Map<String, MediaProgress> mergedMap = {...currentMap, ...loadedMap};
       state = AsyncData(mergedMap);
     } catch (e, s) {
       logger('Error loading media progress from DB: $e\n$s', tag: 'MediaProgressProvider', level: InfoLevel.error);

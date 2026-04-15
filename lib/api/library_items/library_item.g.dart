@@ -25,42 +25,37 @@ _LibraryItem _$LibraryItemFromJson(Map<String, dynamic> json) => _LibraryItem(
   isMissing: json['isMissing'] as bool?,
   isInvalid: json['isInvalid'] as bool?,
   mediaType: json['mediaType'] as String?,
-  media: json['media'] == null
-      ? null
-      : Media.fromJson(json['media'] as Map<String, dynamic>),
+  media: json['media'] == null ? null : Media.fromJson(json['media'] as Map<String, dynamic>),
   libraryFiles: (json['libraryFiles'] as List<dynamic>?)
       ?.map((e) => LibraryFile.fromJson(e as Map<String, dynamic>))
       .toList(),
   size: (json['size'] as num?)?.toInt(),
   collapsedSeries: json['collapsedSeries'] == null
       ? null
-      : CollapsedSeries.fromJson(
-          json['collapsedSeries'] as Map<String, dynamic>,
-        ),
+      : CollapsedSeries.fromJson(json['collapsedSeries'] as Map<String, dynamic>),
 );
 
-Map<String, dynamic> _$LibraryItemToJson(_LibraryItem instance) =>
-    <String, dynamic>{
-      'id': instance.id,
-      'ino': instance.ino,
-      'oldLibraryItemId': instance.oldLibraryItemId,
-      'libraryId': instance.libraryId,
-      'folderId': instance.folderId,
-      'path': instance.path,
-      'relPath': instance.relPath,
-      'isFile': instance.isFile,
-      'mtimeMs': instance.mtimeMs,
-      'ctimeMs': instance.ctimeMs,
-      'birthtimeMs': instance.birthtimeMs,
-      'addedAt': instance.addedAt,
-      'updatedAt': instance.updatedAt,
-      'lastScan': instance.lastScan,
-      'scanVersion': instance.scanVersion,
-      'isMissing': instance.isMissing,
-      'isInvalid': instance.isInvalid,
-      'mediaType': instance.mediaType,
-      'media': instance.media,
-      'libraryFiles': instance.libraryFiles,
-      'size': instance.size,
-      'collapsedSeries': instance.collapsedSeries,
-    };
+Map<String, dynamic> _$LibraryItemToJson(_LibraryItem instance) => <String, dynamic>{
+  'id': instance.id,
+  'ino': instance.ino,
+  'oldLibraryItemId': instance.oldLibraryItemId,
+  'libraryId': instance.libraryId,
+  'folderId': instance.folderId,
+  'path': instance.path,
+  'relPath': instance.relPath,
+  'isFile': instance.isFile,
+  'mtimeMs': instance.mtimeMs,
+  'ctimeMs': instance.ctimeMs,
+  'birthtimeMs': instance.birthtimeMs,
+  'addedAt': instance.addedAt,
+  'updatedAt': instance.updatedAt,
+  'lastScan': instance.lastScan,
+  'scanVersion': instance.scanVersion,
+  'isMissing': instance.isMissing,
+  'isInvalid': instance.isInvalid,
+  'mediaType': instance.mediaType,
+  'media': instance.media,
+  'libraryFiles': instance.libraryFiles,
+  'size': instance.size,
+  'collapsedSeries': instance.collapsedSeries,
+};

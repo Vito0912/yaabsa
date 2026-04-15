@@ -3,8 +3,7 @@ import 'dart:async';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
-import 'package:yaabsa/util/globals.dart'
-    show appName, audioHandler, containerRef;
+import 'package:yaabsa/util/globals.dart' show appName, audioHandler, containerRef;
 import 'package:yaabsa/util/init.dart' show Init;
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/router.dart';
@@ -16,25 +15,17 @@ void main() {
   runZonedGuarded(
     () async {
       await Init.globals();
-      await containerRef
-          .read(settingsManagerProvider.notifier)
-          .ensureInitialized();
+      await containerRef.read(settingsManagerProvider.notifier).ensureInitialized();
       unawaited(containerRef.read(currentUserProvider.future));
       unawaited(containerRef.read(serverStatusProvider.future));
       Init.initLogger();
       audioHandler = await Init.initAudioHandler();
 
       Init.late();
-      runApp(
-        UncontrolledProviderScope(container: containerRef, child: MyApp()),
-      );
+      runApp(UncontrolledProviderScope(container: containerRef, child: MyApp()));
     },
     (error, stack) {
-      logger(
-        'Uncaught Dart error: $error\n$stack',
-        tag: 'ZoneError',
-        level: InfoLevel.error,
-      );
+      logger('Uncaught Dart error: $error\n$stack', tag: 'ZoneError', level: InfoLevel.error);
     },
   );
 }
@@ -45,9 +36,7 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(globalSettingByKeyProvider(SettingKeys.appThemeMode));
-    final appTheme = ref
-        .read(settingsManagerProvider.notifier)
-        .getGlobalSetting<String>(SettingKeys.appThemeMode);
+    final appTheme = ref.read(settingsManagerProvider.notifier).getGlobalSetting<String>(SettingKeys.appThemeMode);
 
     return MaterialApp.router(
       routerConfig: globalRouter,

@@ -40,11 +40,7 @@ class Player extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.directions_car_filled_outlined),
             onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => const _CarModeScreen(),
-                ),
-              );
+              Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const _CarModeScreen()));
             },
             tooltip: 'Car Mode',
           ),
@@ -64,8 +60,7 @@ class Player extends StatelessWidget {
           return StreamBuilder<InternalMedia?>(
             stream: audioHandler.mediaItemStream.stream,
             builder: (context, asyncSnapshot) {
-              if (asyncSnapshot.connectionState == ConnectionState.waiting ||
-                  asyncSnapshot.data == null) {
+              if (asyncSnapshot.connectionState == ConnectionState.waiting || asyncSnapshot.data == null) {
                 return const Center(child: CircularProgressIndicator());
               }
 
@@ -73,9 +68,7 @@ class Player extends StatelessWidget {
               return LayoutBuilder(
                 builder: (context, constraints) {
                   final layout = _resolveLayout(constraints.maxWidth);
-                  final basePadding = layout == _PlayerLayoutType.mobile
-                      ? 6.0
-                      : 8.0;
+                  final basePadding = layout == _PlayerLayoutType.mobile ? 6.0 : 8.0;
                   final hasChapters = media.chapters?.isNotEmpty == true;
 
                   if (layout == _PlayerLayoutType.mobile) {
@@ -89,27 +82,17 @@ class Player extends StatelessWidget {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
-                                  _NowPlayingPanel(
-                                    api: api,
-                                    media: media,
-                                    layout: layout,
-                                  ),
+                                  _NowPlayingPanel(api: api, media: media, layout: layout),
                                   if (hasChapters) ...[
                                     const SizedBox(height: 6),
-                                    const _SectionPanel(
-                                      title: 'Chapters',
-                                      child: ChapterView(maxHeight: 190),
-                                    ),
+                                    const _SectionPanel(title: 'Chapters', child: ChapterView(maxHeight: 190)),
                                   ],
                                 ],
                               ),
                             ),
                           ),
                           const SizedBox(height: 6),
-                          const _SectionPanel(
-                            title: 'Playback',
-                            child: _PlaybackContent(dense: true),
-                          ),
+                          const _SectionPanel(title: 'Playback', child: _PlaybackContent(dense: true)),
                         ],
                       ),
                     );
@@ -125,27 +108,16 @@ class Player extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                _NowPlayingPanel(
-                                  api: api,
-                                  media: media,
-                                  layout: layout,
-                                ),
+                                _NowPlayingPanel(api: api, media: media, layout: layout),
                                 const Spacer(),
-                                const _SectionPanel(
-                                  title: 'Playback',
-                                  child: _PlaybackContent(dense: true),
-                                ),
+                                const _SectionPanel(title: 'Playback', child: _PlaybackContent(dense: true)),
                               ],
                             ),
                           ),
                           const SizedBox(width: 6),
                           const SizedBox(
                             width: 320,
-                            child: _SectionPanel(
-                              title: 'Chapters',
-                              expandChild: true,
-                              child: ChapterView(),
-                            ),
+                            child: _SectionPanel(title: 'Chapters', expandChild: true, child: ChapterView()),
                           ),
                         ],
                       ),
@@ -161,27 +133,16 @@ class Player extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              _NowPlayingPanel(
-                                api: api,
-                                media: media,
-                                layout: layout,
-                              ),
+                              _NowPlayingPanel(api: api, media: media, layout: layout),
                               const Spacer(),
-                              const _SectionPanel(
-                                title: 'Playback',
-                                child: _PlaybackContent(dense: true),
-                              ),
+                              const _SectionPanel(title: 'Playback', child: _PlaybackContent(dense: true)),
                             ],
                           ),
                         ),
                         const SizedBox(width: 6),
                         const SizedBox(
                           width: 360,
-                          child: _SectionPanel(
-                            title: 'Chapters',
-                            expandChild: true,
-                            child: ChapterView(),
-                          ),
+                          child: _SectionPanel(title: 'Chapters', expandChild: true, child: ChapterView()),
                         ),
                       ],
                     ),
@@ -197,11 +158,7 @@ class Player extends StatelessWidget {
 }
 
 class _NowPlayingPanel extends StatelessWidget {
-  const _NowPlayingPanel({
-    required this.api,
-    required this.media,
-    required this.layout,
-  });
+  const _NowPlayingPanel({required this.api, required this.media, required this.layout});
 
   final ABSApi? api;
   final InternalMedia media;
@@ -248,11 +205,7 @@ class _CoverArt extends StatelessWidget {
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(14),
       ),
-      child: Icon(
-        Icons.music_note,
-        size: size * 0.26,
-        color: Theme.of(context).colorScheme.onSurfaceVariant,
-      ),
+      child: Icon(Icons.music_note, size: size * 0.26, color: Theme.of(context).colorScheme.onSurfaceVariant),
     );
 
     return SizedBox(
@@ -261,15 +214,10 @@ class _CoverArt extends StatelessWidget {
       child: api == null
           ? fallback
           : FutureBuilder(
-              future: Future.value(
-                api!.getLibraryItemApi().getLibraryItemCover(media.itemId),
-              ),
+              future: Future.value(api!.getLibraryItemApi().getLibraryItemCover(media.itemId)),
               builder: (context, snapshot) {
                 if (snapshot.hasData && snapshot.data != null) {
-                  return ClipRRect(
-                    borderRadius: BorderRadius.circular(14),
-                    child: snapshot.data!,
-                  );
+                  return ClipRRect(borderRadius: BorderRadius.circular(14), child: snapshot.data!);
                 }
                 return fallback;
               },
@@ -287,14 +235,12 @@ class _TitleBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final titleStyle = Theme.of(context).textTheme.titleMedium;
-    final authorStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(
-      color: Theme.of(context).colorScheme.onSurfaceVariant,
-    );
+    final authorStyle = Theme.of(
+      context,
+    ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant);
 
     return Column(
-      crossAxisAlignment: alignCenter
-          ? CrossAxisAlignment.center
-          : CrossAxisAlignment.start,
+      crossAxisAlignment: alignCenter ? CrossAxisAlignment.center : CrossAxisAlignment.start,
       children: [
         Text(
           media.title,
@@ -357,11 +303,7 @@ class _PlaybackContent extends StatelessWidget {
 }
 
 class _SectionPanel extends StatelessWidget {
-  const _SectionPanel({
-    required this.title,
-    required this.child,
-    this.expandChild = false,
-  });
+  const _SectionPanel({required this.title, required this.child, this.expandChild = false});
 
   final String title;
   final Widget child;
@@ -379,11 +321,7 @@ class _SectionPanel extends StatelessWidget {
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           borderRadius: borderRadius,
-          border: Border.all(
-            color: Theme.of(
-              context,
-            ).colorScheme.outlineVariant.withValues(alpha: 0.5),
-          ),
+          border: Border.all(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -440,9 +378,9 @@ class _CarModeScreen extends ConsumerWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.titleMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                       ),
                     ],
                   ),
@@ -453,15 +391,9 @@ class _CarModeScreen extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    _CarControl(
-                      icon: Icons.replay_10,
-                      onPressed: () => audioHandler.rewind(),
-                    ),
+                    _CarControl(icon: Icons.replay_10, onPressed: () => audioHandler.rewind()),
                     const _CarPlayPauseControl(),
-                    _CarControl(
-                      icon: Icons.forward_10,
-                      onPressed: () => audioHandler.fastForward(),
-                    ),
+                    _CarControl(icon: Icons.forward_10, onPressed: () => audioHandler.fastForward()),
                   ],
                 ),
                 const SizedBox(height: 18),

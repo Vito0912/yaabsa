@@ -11,12 +11,11 @@ class StopButton extends StatelessWidget {
       builder: (BuildContext context, snapshot) {
         return IconButton(
           icon: Icon(Icons.stop),
-          onPressed:
-              snapshot.data == true
-                  ? () {
-                    audioHandler.stop();
-                  }
-                  : null,
+          onPressed: snapshot.data == true
+              ? () {
+                  audioHandler.stop();
+                }
+              : null,
         );
       },
     );

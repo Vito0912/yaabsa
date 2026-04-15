@@ -73,18 +73,14 @@ Stream<bool> serverStatus(Ref ref) async* {
 
   checkStatus();
 
-  final connectivitySubscription = connectivity.onConnectivityChanged.listen((
-    result,
-  ) {
+  final connectivitySubscription = connectivity.onConnectivityChanged.listen((result) {
     timer?.cancel();
     checkStatus();
   });
 
   ref.listen(absApiProvider, (previous, next) {
-    if (identical(previous, next) &&
-        previous?.dio.options.baseUrl == next?.dio.options.baseUrl) {
-      if ((previous == null && next != null) ||
-          (previous != null && next == null)) {
+    if (identical(previous, next) && previous?.dio.options.baseUrl == next?.dio.options.baseUrl) {
+      if ((previous == null && next != null) || (previous != null && next == null)) {
       } else {
         return;
       }
@@ -104,28 +100,18 @@ Stream<bool> serverStatus(Ref ref) async* {
 }
 
 Future<void> _onReconnected(Ref ref) async {
-  logger(
-    'Reconnected to server',
-    tag: 'ServerStatusProvider',
-    level: InfoLevel.debug,
-  );
+  logger('Reconnected to server', tag: 'ServerStatusProvider', level: InfoLevel.debug);
   AppDatabase db = ref.read(appDatabaseProvider);
 
   final offlineSync = await db.getAllSyncs();
   if (offlineSync.isEmpty) {
-    logger(
-      'No offline syncs found',
-      tag: 'ServerStatusProvider',
-      level: InfoLevel.debug,
-    );
+    logger('No offline syncs found', tag: 'ServerStatusProvider', level: InfoLevel.debug);
     return;
   }
   final users = await db.getAllStoredUsers();
 
   final userIds = users.map((user) => user.id).toList();
-  final syncsWithoutUser = offlineSync
-      .where((sync) => !userIds.contains(sync.userId))
-      .toList();
+  final syncsWithoutUser = offlineSync.where((sync) => !userIds.contains(sync.userId)).toList();
 
   if (syncsWithoutUser.isNotEmpty) {
     logger(
@@ -157,9 +143,7 @@ Future<void> _onReconnected(Ref ref) async {
             newSessionId,
             sync.itemId,
             sync.userId,
-            DateTime.fromMillisecondsSinceEpoch(
-              sync.lastUpdated.millisecondsSinceEpoch,
-            ),
+            DateTime.fromMillisecondsSinceEpoch(sync.lastUpdated.millisecondsSinceEpoch),
             episodeId: sync.episodeId,
             initialTimeListening: sync.timeListened,
             currentPosition: sync.currentTime,
@@ -168,17 +152,10 @@ Future<void> _onReconnected(Ref ref) async {
 
       final api = ref.read(absApiProvider);
       await api!.getSessionApi().syncLocalSession(session);
-      logger(
-        'Created new session with ID: $newSessionId',
-        tag: 'ServerStatusProvider',
-        level: InfoLevel.debug,
-      );
+      logger('Created new session with ID: $newSessionId', tag: 'ServerStatusProvider', level: InfoLevel.debug);
 
       await db.deleteSync(sync.sessionId);
-      logger(
-        'Sync completed successfully for session ID: ${sync.sessionId}',
-        tag: 'ServerStatusProvider',
-      );
+      logger('Sync completed successfully for session ID: ${sync.sessionId}', tag: 'ServerStatusProvider');
     } on DioException catch (e) {
       if (_isMissingLibraryItemSyncError(e)) {
         logger(
@@ -188,11 +165,7 @@ Future<void> _onReconnected(Ref ref) async {
         );
         continue;
       }
-      logger(
-        'Failed to sync session: $e',
-        tag: 'ServerStatusProvider',
-        level: InfoLevel.warning,
-      );
+      logger('Failed to sync session: $e', tag: 'ServerStatusProvider', level: InfoLevel.warning);
     } catch (e) {
       if (_isMissingLibraryItemSyncError(e)) {
         logger(
@@ -202,11 +175,7 @@ Future<void> _onReconnected(Ref ref) async {
         );
         continue;
       }
-      logger(
-        'Failed to sync session: $e',
-        tag: 'ServerStatusProvider',
-        level: InfoLevel.warning,
-      );
+      logger('Failed to sync session: $e', tag: 'ServerStatusProvider', level: InfoLevel.warning);
     }
   }
 }
@@ -217,6 +186,5 @@ bool _isMissingLibraryItemSyncError(Object error) {
   }
 
   final message = error.toString();
-  return message.contains('Failed to fetch library item') &&
-      message.contains('status code of 404');
+  return message.contains('Failed to fetch library item') && message.contains('status code of 404');
 }

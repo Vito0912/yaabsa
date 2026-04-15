@@ -63,9 +63,7 @@ final globalRouter = GoRouter(
   initialLocation: '/',
   refreshListenable: Listenable.merge([
     _activeUserIdNotifier,
-    _GoRouterRefreshStream(
-      containerRef.read(appDatabaseProvider).watchGlobalSetting('activeUserId'),
-    ),
+    _GoRouterRefreshStream(containerRef.read(appDatabaseProvider).watchGlobalSetting('activeUserId')),
   ]),
   redirect: (context, state) {
     final activeUserId = _activeUserIdNotifier.activeUserId;
@@ -84,39 +82,18 @@ final globalRouter = GoRouter(
       path: '/ebook/:id',
       builder: (context, state) => Reader(itemId: state.pathParameters['id']!),
     ),
-    GoRoute(
-      path: PlayHistoryView.routeName,
-      builder: (context, state) => PlayHistoryView(),
-    ),
+    GoRoute(path: PlayHistoryView.routeName, builder: (context, state) => PlayHistoryView()),
     ShellRoute(
       builder: (BuildContext context, GoRouterState state, Widget child) {
         return child;
       },
       routes: [
-        GoRoute(
-          path: GlobalPlayerSettings.routeName,
-          builder: (context, state) => GlobalPlayerSettings(),
-        ),
-        GoRoute(
-          path: PlayerSettings.routeName,
-          builder: (context, state) => PlayerSettings(),
-        ),
-        GoRoute(
-          path: AppearanceSettings.routeName,
-          builder: (context, state) => AppearanceSettings(),
-        ),
-        GoRoute(
-          path: CachingSettings.routeName,
-          builder: (context, state) => CachingSettings(),
-        ),
-        GoRoute(
-          path: LibrarySettings.routeName,
-          builder: (context, state) => LibrarySettings(),
-        ),
-        GoRoute(
-          path: ReaderSettings.routeName,
-          builder: (context, state) => ReaderSettings(),
-        ),
+        GoRoute(path: GlobalPlayerSettings.routeName, builder: (context, state) => GlobalPlayerSettings()),
+        GoRoute(path: PlayerSettings.routeName, builder: (context, state) => PlayerSettings()),
+        GoRoute(path: AppearanceSettings.routeName, builder: (context, state) => AppearanceSettings()),
+        GoRoute(path: CachingSettings.routeName, builder: (context, state) => CachingSettings()),
+        GoRoute(path: LibrarySettings.routeName, builder: (context, state) => LibrarySettings()),
+        GoRoute(path: ReaderSettings.routeName, builder: (context, state) => ReaderSettings()),
         // For player
         ShellRoute(
           builder: (BuildContext context, GoRouterState state, Widget child) {
@@ -126,16 +103,11 @@ final globalRouter = GoRouter(
             GoRoute(path: '/', builder: (context, state) => LayoutHome()),
             // For anything that should show the app bar. Responsive
             ShellRoute(
-              builder:
-                  (BuildContext context, GoRouterState state, Widget child) {
-                    return LayoutHome(child: child);
-                  },
+              builder: (BuildContext context, GoRouterState state, Widget child) {
+                return LayoutHome(child: child);
+              },
               routes: [
-                GoRoute(
-                  path: '/item/:id',
-                  builder: (context, state) =>
-                      LibraryItemView(state.pathParameters['id']!),
-                ),
+                GoRoute(path: '/item/:id', builder: (context, state) => LibraryItemView(state.pathParameters['id']!)),
               ],
             ),
           ],

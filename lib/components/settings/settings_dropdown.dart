@@ -51,44 +51,42 @@ class SettingDropdown<T> extends ConsumerWidget {
         final T currentValue = SettingsParser.decodeValue<T>(stringValue, defaultValue);
         return _buildDropdownContent(context, ref, currentValue, theme, textTheme);
       },
-      loading:
-          () => Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Flexible(
-                  child: Text(
-                    label,
-                    style: textTheme.titleMedium?.copyWith(color: theme.disabledColor),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                ),
-                const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.5)),
-              ],
+      loading: () => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Flexible(
+              child: Text(
+                label,
+                style: textTheme.titleMedium?.copyWith(color: theme.disabledColor),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
             ),
-          ),
-      error:
-          (error, stackTrace) => Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Flexible(
-                  child: Text(
-                    label,
-                    style: textTheme.titleMedium?.copyWith(color: theme.colorScheme.error),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                ),
-                Icon(Icons.error_outline, color: theme.colorScheme.error, size: 22),
-              ],
+            const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.5)),
+          ],
+        ),
+      ),
+      error: (error, stackTrace) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Flexible(
+              child: Text(
+                label,
+                style: textTheme.titleMedium?.copyWith(color: theme.colorScheme.error),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
             ),
-          ),
+            Icon(Icons.error_outline, color: theme.colorScheme.error, size: 22),
+          ],
+        ),
+      ),
     );
   }
 

@@ -12,12 +12,7 @@ const String _addNewUserValue = '__ADD_NEW_USER__';
 class UserSwitcher extends ConsumerWidget {
   const UserSwitcher({super.key});
 
-  void _onMenuItemSelected(
-    String value,
-    WidgetRef ref,
-    User? currentUser,
-    BuildContext context,
-  ) async {
+  void _onMenuItemSelected(String value, WidgetRef ref, User? currentUser, BuildContext context) async {
     final bool showPlayer = await audioHandler.shouldShowPlayer.first;
     if (!context.mounted) {
       return;
@@ -32,14 +27,8 @@ class UserSwitcher extends ConsumerWidget {
               'Are you sure you want to switch users? When you switch the user, the player will not be able to sync the progress. It will still be saved locally and sync with the server after an app restart.',
             ),
             actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: const Text('Switch'),
-              ),
+              TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
+              TextButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Switch')),
             ],
           );
         },
@@ -62,11 +51,7 @@ class UserSwitcher extends ConsumerWidget {
     }
   }
 
-  List<PopupMenuEntry<String>> _buildMenuItems(
-    BuildContext context,
-    List<User> allUsers,
-    User? currentUser,
-  ) {
+  List<PopupMenuEntry<String>> _buildMenuItems(BuildContext context, List<User> allUsers, User? currentUser) {
     final List<PopupMenuEntry<String>> items = [];
 
     for (final user in allUsers) {
@@ -76,9 +61,7 @@ class UserSwitcher extends ConsumerWidget {
           child: Text(
             user.username,
             style: TextStyle(
-              fontWeight: user.id == currentUser?.id
-                  ? FontWeight.bold
-                  : FontWeight.normal,
+              fontWeight: user.id == currentUser?.id ? FontWeight.bold : FontWeight.normal,
               color: user.id == currentUser?.id
                   ? Theme.of(context).colorScheme.primary
                   : Theme.of(context).textTheme.bodyLarge?.color,
@@ -96,11 +79,7 @@ class UserSwitcher extends ConsumerWidget {
       const PopupMenuItem<String>(
         value: _addNewUserValue,
         child: Row(
-          children: [
-            Icon(Icons.add_circle_outline_rounded, size: 20),
-            SizedBox(width: 8),
-            Text('Add New User'),
-          ],
+          children: [Icon(Icons.add_circle_outline_rounded, size: 20), SizedBox(width: 8), Text('Add New User')],
         ),
       ),
     );
@@ -111,43 +90,26 @@ class UserSwitcher extends ConsumerWidget {
     return _selectorContainer(context, currentUser, compact: true);
   }
 
-  Widget _buildMobile(
-    BuildContext context,
-    WidgetRef ref,
-    User? currentUser,
-    List<User> allUsers,
-  ) {
+  Widget _buildMobile(BuildContext context, WidgetRef ref, User? currentUser, List<User> allUsers) {
     return PopupMenuButton<String>(
       tooltip: 'Switch or Add User',
       offset: const Offset(0, 40),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-      onSelected: (value) =>
-          _onMenuItemSelected(value, ref, currentUser, context),
+      onSelected: (value) => _onMenuItemSelected(value, ref, currentUser, context),
       itemBuilder: (ctx) => _buildMenuItems(ctx, allUsers, currentUser),
       child: _buildMobilePopupChild(context, currentUser),
     );
   }
 
-  Widget _buildTabletDesktopPopupChild(
-    BuildContext context,
-    User? currentUser, {
-    required bool isTablet,
-  }) {
+  Widget _buildTabletDesktopPopupChild(BuildContext context, User? currentUser, {required bool isTablet}) {
     return _selectorContainer(context, currentUser, compact: false);
   }
 
-  Widget _selectorContainer(
-    BuildContext context,
-    User? currentUser, {
-    required bool compact,
-  }) {
+  Widget _selectorContainer(BuildContext context, User? currentUser, {required bool compact}) {
     final avatarRadius = compact ? 13.0 : 14.0;
     return Container(
       height: 40,
-      padding: EdgeInsets.symmetric(
-        horizontal: compact ? 8 : 10,
-        vertical: compact ? 6 : 8,
-      ),
+      padding: EdgeInsets.symmetric(horizontal: compact ? 8 : 10, vertical: compact ? 6 : 8),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(compact ? 12 : 14),
@@ -160,9 +122,7 @@ class UserSwitcher extends ConsumerWidget {
             radius: avatarRadius,
             backgroundColor: Theme.of(context).colorScheme.primary,
             child: Text(
-              currentUser?.username.isNotEmpty == true
-                  ? currentUser!.username[0].toUpperCase()
-                  : 'U',
+              currentUser?.username.isNotEmpty == true ? currentUser!.username[0].toUpperCase() : 'U',
               style: TextStyle(
                 color: Theme.of(context).colorScheme.onPrimary,
                 fontSize: compact ? 10 : 11,
@@ -182,10 +142,7 @@ class UserSwitcher extends ConsumerWidget {
               ),
             ),
           ],
-          Icon(
-            Icons.arrow_drop_down_rounded,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
+          Icon(Icons.arrow_drop_down_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant),
         ],
       ),
     );
@@ -201,17 +158,10 @@ class UserSwitcher extends ConsumerWidget {
     return PopupMenuButton<String>(
       tooltip: 'Switch or Add User',
       offset: const Offset(0, 55),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(isTablet ? 16.0 : 10.0),
-      ),
-      onSelected: (value) =>
-          _onMenuItemSelected(value, ref, currentUser, context),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(isTablet ? 16.0 : 10.0)),
+      onSelected: (value) => _onMenuItemSelected(value, ref, currentUser, context),
       itemBuilder: (ctx) => _buildMenuItems(ctx, allUsers, currentUser),
-      child: _buildTabletDesktopPopupChild(
-        context,
-        currentUser,
-        isTablet: isTablet,
-      ),
+      child: _buildTabletDesktopPopupChild(context, currentUser, isTablet: isTablet),
     );
   }
 
@@ -226,32 +176,17 @@ class UserSwitcher extends ConsumerWidget {
           data: (allUsers) {
             if (allUsers.isEmpty) context.go('/add-user');
             return PlatformBuilder(
-              mobileBuilder: (ctx) =>
-                  _buildMobile(ctx, ref, currentUser, allUsers),
-              tabletBuilder: (ctx) => _buildTabletOrDesktop(
-                ctx,
-                ref,
-                currentUser,
-                allUsers,
-                isTablet: true,
-              ),
-              desktopBuilder: (ctx) => _buildTabletOrDesktop(
-                ctx,
-                ref,
-                currentUser,
-                allUsers,
-                isTablet: false,
-              ),
+              mobileBuilder: (ctx) => _buildMobile(ctx, ref, currentUser, allUsers),
+              tabletBuilder: (ctx) => _buildTabletOrDesktop(ctx, ref, currentUser, allUsers, isTablet: true),
+              desktopBuilder: (ctx) => _buildTabletOrDesktop(ctx, ref, currentUser, allUsers, isTablet: false),
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stack) =>
-              Center(child: Text('Error loading users: $error')),
+          error: (error, stack) => Center(child: Text('Error loading users: $error')),
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) =>
-          Center(child: Text('Error loading current user: $error')),
+      error: (error, stack) => Center(child: Text('Error loading current user: $error')),
     );
   }
 }

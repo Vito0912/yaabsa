@@ -12,8 +12,7 @@ part of 'sleep_timer_handler.dart';
 @ProviderFor(SleepTimerHandler)
 final sleepTimerHandlerProvider = SleepTimerHandlerProvider._();
 
-final class SleepTimerHandlerProvider
-    extends $NotifierProvider<SleepTimerHandler, SleepTimerData> {
+final class SleepTimerHandlerProvider extends $NotifierProvider<SleepTimerHandler, SleepTimerData> {
   SleepTimerHandlerProvider._()
     : super(
         from: null,
@@ -34,10 +33,7 @@ final class SleepTimerHandlerProvider
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(SleepTimerData value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<SleepTimerData>(value),
-    );
+    return $ProviderOverride(origin: this, providerOverride: $SyncValueProvider<SleepTimerData>(value));
   }
 }
 
@@ -51,12 +47,7 @@ abstract class _$SleepTimerHandler extends $Notifier<SleepTimerData> {
     final ref = this.ref as $Ref<SleepTimerData, SleepTimerData>;
     final element =
         ref.element
-            as $ClassProviderElement<
-              AnyNotifier<SleepTimerData, SleepTimerData>,
-              SleepTimerData,
-              Object?,
-              Object?
-            >;
+            as $ClassProviderElement<AnyNotifier<SleepTimerData, SleepTimerData>, SleepTimerData, Object?, Object?>;
     element.handleCreate(ref, build);
   }
 }
@@ -64,8 +55,7 @@ abstract class _$SleepTimerHandler extends $Notifier<SleepTimerData> {
 @ProviderFor(sleepTimerRemainingTime)
 final sleepTimerRemainingTimeProvider = SleepTimerRemainingTimeProvider._();
 
-final class SleepTimerRemainingTimeProvider
-    extends $FunctionalProvider<Duration, Duration, Duration>
+final class SleepTimerRemainingTimeProvider extends $FunctionalProvider<Duration, Duration, Duration>
     with $Provider<Duration> {
   SleepTimerRemainingTimeProvider._()
     : super(
@@ -83,8 +73,7 @@ final class SleepTimerRemainingTimeProvider
 
   @$internal
   @override
-  $ProviderElement<Duration> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
+  $ProviderElement<Duration> $createElement($ProviderPointer pointer) => $ProviderElement(pointer);
 
   @override
   Duration create(Ref ref) {
@@ -93,22 +82,16 @@ final class SleepTimerRemainingTimeProvider
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(Duration value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<Duration>(value),
-    );
+    return $ProviderOverride(origin: this, providerOverride: $SyncValueProvider<Duration>(value));
   }
 }
 
-String _$sleepTimerRemainingTimeHash() =>
-    r'5448067efe23d6862dc299b44304e3ead602db71';
+String _$sleepTimerRemainingTimeHash() => r'5448067efe23d6862dc299b44304e3ead602db71';
 
 @ProviderFor(sleepTimerState)
 final sleepTimerStateProvider = SleepTimerStateProvider._();
 
-final class SleepTimerStateProvider
-    extends
-        $FunctionalProvider<SleepTimerState, SleepTimerState, SleepTimerState>
+final class SleepTimerStateProvider extends $FunctionalProvider<SleepTimerState, SleepTimerState, SleepTimerState>
     with $Provider<SleepTimerState> {
   SleepTimerStateProvider._()
     : super(
@@ -126,8 +109,7 @@ final class SleepTimerStateProvider
 
   @$internal
   @override
-  $ProviderElement<SleepTimerState> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
+  $ProviderElement<SleepTimerState> $createElement($ProviderPointer pointer) => $ProviderElement(pointer);
 
   @override
   SleepTimerState create(Ref ref) {
@@ -136,10 +118,7 @@ final class SleepTimerStateProvider
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(SleepTimerState value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<SleepTimerState>(value),
-    );
+    return $ProviderOverride(origin: this, providerOverride: $SyncValueProvider<SleepTimerState>(value));
   }
 }
 
@@ -148,9 +127,7 @@ String _$sleepTimerStateHash() => r'b52764c84f46cd98809a1e33f167df245460dee8';
 @ProviderFor(sleepTimerIsActive)
 final sleepTimerIsActiveProvider = SleepTimerIsActiveProvider._();
 
-final class SleepTimerIsActiveProvider
-    extends $FunctionalProvider<bool, bool, bool>
-    with $Provider<bool> {
+final class SleepTimerIsActiveProvider extends $FunctionalProvider<bool, bool, bool> with $Provider<bool> {
   SleepTimerIsActiveProvider._()
     : super(
         from: null,
@@ -167,8 +144,7 @@ final class SleepTimerIsActiveProvider
 
   @$internal
   @override
-  $ProviderElement<bool> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
+  $ProviderElement<bool> $createElement($ProviderPointer pointer) => $ProviderElement(pointer);
 
   @override
   bool create(Ref ref) {
@@ -177,12 +153,8 @@ final class SleepTimerIsActiveProvider
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(bool value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<bool>(value),
-    );
+    return $ProviderOverride(origin: this, providerOverride: $SyncValueProvider<bool>(value));
   }
 }
 
-String _$sleepTimerIsActiveHash() =>
-    r'caa43a299e2d1f1bbb2d568cc1376f8880887d43';
+String _$sleepTimerIsActiveHash() => r'caa43a299e2d1f1bbb2d568cc1376f8880887d43';

@@ -2,8 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:yaabsa/api/me/user.dart';
+import 'package:yaabsa/database/auth_secret_store.dart';
 import 'package:yaabsa/models/internal_download.dart';
 import 'package:yaabsa/models/internal_media.dart';
+import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
@@ -95,8 +97,15 @@ class PlayerHistory extends Table {
 
 @DriftDatabase(tables: [GlobalSettings, UserSettings, StoredUsers, StoredSyncs, StoredDownloads, PlayerHistory])
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(_openConnection());
-  AppDatabase.connect(DatabaseConnection super.connection);
+  AppDatabase({AuthSecretStore? authSecretStore})
+    : _authSecretStore = authSecretStore ?? AuthSecretStore(),
+      super(_openConnection());
+
+  AppDatabase.connect(DatabaseConnection connection, {AuthSecretStore? authSecretStore})
+    : _authSecretStore = authSecretStore ?? AuthSecretStore(),
+      super(connection.executor);
+
+  final AuthSecretStore _authSecretStore;
 
   @override
   int get schemaVersion => 14;
@@ -216,9 +225,9 @@ class AppDatabase extends _$AppDatabase {
         ];
         final updatedDownload = oldDownload.copyWith(tracks: mergedTracks);
 
-        await (update(storedDownloads)..where(
-          (tbl) => whereClause,
-        )).write(StoredDownloadsCompanion(download: Value(jsonEncode(updatedDownload.toJson()))));
+        await (update(storedDownloads)..where((tbl) => whereClause)).write(
+          StoredDownloadsCompanion(download: Value(jsonEncode(updatedDownload.toJson()))),
+        );
       }
     });
   }
@@ -279,8 +288,9 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Stream<UserSettingEntry?> watchUserSetting(String userId, String key) {
-    return (select(userSettings)
-      ..where((tbl) => tbl.userId.equals(userId) & tbl.key.equals(key))).watchSingleOrNull().distinct();
+    return (select(
+      userSettings,
+    )..where((tbl) => tbl.userId.equals(userId) & tbl.key.equals(key))).watchSingleOrNull().distinct();
   }
 
   Future<void> setUserSetting(String userId, String key, String value) {
@@ -308,113 +318,128 @@ class AppDatabase extends _$AppDatabase {
 
   // User management
   Stream<List<User>> watchAllStoredUsers() {
-    return select(storedUsers).watch().map((rows) {
+    return select(storedUsers).watch().asyncMap((rows) async {
       logger(
         'storedUsers stream emitted ${rows.length} StoredUserEntry items.',
         tag: 'AppDatabase',
         level: InfoLevel.debug,
       );
-      final userList =
-          rows
-              .map((row) {
-                try {
-                  return User.fromJson(jsonDecode(row.userDataJson));
-                } catch (e, s) {
-                  logger(
-                    'ERROR decoding User from JSON. Row ID: ${row.id}, JSON: ${row.userDataJson}. Error: $e. Stack: $s',
-                    tag: 'AppDatabase',
-                    level: InfoLevel.error,
-                  );
-                  return null;
-                }
-              })
-              .whereType<User>()
-              .toList();
+
+      final userList = <User>[];
+      for (final row in rows) {
+        try {
+          final decodedUser = User.fromJson(jsonDecode(row.userDataJson));
+          userList.add(await _hydrateUserWithAuthSecrets(decodedUser));
+        } catch (e, s) {
+          logger(
+            'ERROR decoding User from JSON. Row ID: ${row.id}, JSON: ${row.userDataJson}. Error: $e. Stack: $s',
+            tag: 'AppDatabase',
+            level: InfoLevel.error,
+          );
+        }
+      }
+
       return userList;
     }).distinct();
   }
 
   Future<List<User>> getAllStoredUsers() async {
     final rows = await select(storedUsers).get();
-    return rows
-        .map((row) {
-          try {
-            return User.fromJson(jsonDecode(row.userDataJson));
-          } catch (e, s) {
-            logger(
-              'ERROR decoding User from JSON. Row ID: ${row.id}, JSON: ${row.userDataJson}. Error: $e. Stack: $s',
-              tag: 'AppDatabase',
-              level: InfoLevel.error,
-            );
-            return null;
-          }
-        })
-        .whereType<User>()
-        .toList();
+    final users = <User>[];
+    for (final row in rows) {
+      try {
+        final decodedUser = User.fromJson(jsonDecode(row.userDataJson));
+        users.add(await _hydrateUserWithAuthSecrets(decodedUser));
+      } catch (e, s) {
+        logger(
+          'ERROR decoding User from JSON. Row ID: ${row.id}, JSON: ${row.userDataJson}. Error: $e. Stack: $s',
+          tag: 'AppDatabase',
+          level: InfoLevel.error,
+        );
+      }
+    }
+    return users;
   }
 
-  Future<void> addOrUpdateStoredUser(User user) {
+  Future<void> addOrUpdateStoredUser(User user) async {
     logger(
       '[AppDatabase] addOrUpdateStoredUser called for user ID: ${user.id}, username: ${user.username}, isActive: ${user.isActive}, server: ${user.server?.url}',
       tag: 'AppDatabase',
       level: InfoLevel.debug,
     );
 
-    final userToStore = User(
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      type: user.type,
-      token: user.token,
-      mediaProgress: null,
-      seriesHideFromContinueListening: user.seriesHideFromContinueListening,
-      bookmarks: null,
-      isActive: user.isActive,
-      isLocked: user.isLocked,
-      lastSeen: user.lastSeen,
-      createdAt: user.createdAt,
-      permissions: user.permissions,
-      librariesAccessible: user.librariesAccessible,
-      itemTagsSelected: user.itemTagsSelected,
-      hasOpenIdLink: user.hasOpenIdLink,
-      setting: user.setting,
-      server: user.server,
-    );
+    try {
+      final mergedSecrets = await _mergeAuthSecretsForUser(user);
+      await _authSecretStore.writeForUser(
+        user.id,
+        legacyToken: mergedSecrets.legacyToken,
+        accessToken: mergedSecrets.accessToken,
+        refreshToken: mergedSecrets.refreshToken,
+        apiKey: mergedSecrets.apiKey,
+        clearMissing: true,
+      );
 
-    final companion = StoredUsersCompanion(
-      id: Value(userToStore.id),
-      userDataJson: Value(jsonEncode(userToStore.toJson())),
-    );
+      final userToStore = _sanitizeUserForStorage(user);
+      final companion = StoredUsersCompanion(
+        id: Value(userToStore.id),
+        userDataJson: Value(jsonEncode(userToStore.toJson())),
+      );
 
-    final result = into(storedUsers).insert(companion, mode: InsertMode.replace);
-    result
-        .then(
-          (_) => logger(
-            'addOrUpdateStoredUser completed successfully for user ID: ${user.id}',
-            tag: 'AppDatabase',
-            level: InfoLevel.info,
-          ),
-        )
-        .catchError(
-          (e, s) => logger(
-            'addOrUpdateStoredUser ERROR for user ID: ${user.id}. Error: $e. Stack: $s',
-            tag: 'AppDatabase',
-            level: InfoLevel.error,
-          ),
-        );
-    return result;
+      await into(storedUsers).insert(companion, mode: InsertMode.replace);
+
+      logger(
+        'addOrUpdateStoredUser completed successfully for user ID: ${user.id}',
+        tag: 'AppDatabase',
+        level: InfoLevel.info,
+      );
+    } catch (e, s) {
+      logger(
+        'addOrUpdateStoredUser ERROR for user ID: ${user.id}. Error: $e. Stack: $s',
+        tag: 'AppDatabase',
+        level: InfoLevel.error,
+      );
+      rethrow;
+    }
   }
 
-  Future<void> deleteStoredUser(String userId) {
-    return (delete(storedUsers)..where((tbl) => tbl.id.equals(userId))).go();
+  Future<void> deleteStoredUser(String userId) async {
+    await (delete(storedUsers)..where((tbl) => tbl.id.equals(userId))).go();
+    await _authSecretStore.deleteForUser(userId);
   }
 
   Future<User?> getStoredUser(String userId) async {
     final row = await (select(storedUsers)..where((tbl) => tbl.id.equals(userId))).getSingleOrNull();
     if (row != null) {
-      return User.fromJson(jsonDecode(row.userDataJson));
+      final decodedUser = User.fromJson(jsonDecode(row.userDataJson));
+      return _hydrateUserWithAuthSecrets(decodedUser);
     }
     return null;
+  }
+
+  Future<AuthSecrets> getUserAuthSecrets(String userId) {
+    return _authSecretStore.read(userId);
+  }
+
+  Future<void> saveUserAuthSecrets(
+    String userId, {
+    String? legacyToken,
+    String? accessToken,
+    String? refreshToken,
+    String? apiKey,
+    bool clearMissing = false,
+  }) {
+    return _authSecretStore.writeForUser(
+      userId,
+      legacyToken: legacyToken,
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+      apiKey: apiKey,
+      clearMissing: clearMissing,
+    );
+  }
+
+  Future<void> clearUserAuthSecrets(String userId) {
+    return _authSecretStore.deleteForUser(userId);
   }
 
   Future<void> setActiveUserId(String newActiveUserId) async {
@@ -441,17 +466,85 @@ class AppDatabase extends _$AppDatabase {
     const activeUserIdKey = 'activeUserId';
     return (delete(globalSettings)..where((tbl) => tbl.key.equals(activeUserIdKey))).go();
   }
+
+  Future<AuthSecrets> _mergeAuthSecretsForUser(User user) async {
+    final existing = await _authSecretStore.read(user.id);
+    return AuthSecrets(
+      legacyToken: user.token ?? existing.legacyToken,
+      accessToken: user.accessToken ?? existing.accessToken,
+      refreshToken: user.refreshToken ?? existing.refreshToken,
+      apiKey: user.apiKey ?? existing.apiKey,
+    );
+  }
+
+  Future<User> _hydrateUserWithAuthSecrets(User user) async {
+    final merged = await _mergeAuthSecretsForUser(user);
+
+    final hasPlainTextSecrets =
+        user.token != null || user.accessToken != null || user.refreshToken != null || user.apiKey != null;
+
+    if (hasPlainTextSecrets) {
+      await _authSecretStore.writeForUser(
+        user.id,
+        legacyToken: merged.legacyToken,
+        accessToken: merged.accessToken,
+        refreshToken: merged.refreshToken,
+        apiKey: merged.apiKey,
+        clearMissing: true,
+      );
+
+      final sanitized = _sanitizeUserForStorage(user);
+      await into(storedUsers).insert(
+        StoredUsersCompanion(id: Value(sanitized.id), userDataJson: Value(jsonEncode(sanitized.toJson()))),
+        mode: InsertMode.replace,
+      );
+    }
+
+    return user.copyWith(
+      token: merged.legacyToken,
+      accessToken: merged.accessToken,
+      refreshToken: merged.refreshToken,
+      apiKey: merged.apiKey,
+    );
+  }
+
+  User _sanitizeUserForStorage(User user) {
+    return User(
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      type: user.type,
+      token: null,
+      accessToken: null,
+      refreshToken: null,
+      apiKey: null,
+      mediaProgress: null,
+      seriesHideFromContinueListening: user.seriesHideFromContinueListening,
+      bookmarks: null,
+      isActive: user.isActive,
+      isLocked: user.isLocked,
+      lastSeen: user.lastSeen,
+      createdAt: user.createdAt,
+      permissions: user.permissions,
+      librariesAccessible: user.librariesAccessible,
+      itemTagsSelected: user.itemTagsSelected,
+      hasOpenIdLink: user.hasOpenIdLink,
+      setting: user.setting,
+      server: user.server,
+    );
+  }
 }
 
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
     final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dbFolder.path, 'app_db.sqlite'));
+    final file = File(p.join(dbFolder.path, appName, 'app_db.sqlite'));
     return NativeDatabase.createInBackground(file);
   });
 }
 
 @Riverpod(keepAlive: true)
 AppDatabase appDatabase(Ref ref) {
-  return AppDatabase();
+  final authSecretStore = ref.watch(authSecretStoreProvider);
+  return AppDatabase(authSecretStore: authSecretStore);
 }

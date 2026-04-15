@@ -71,19 +71,18 @@ class _ReaderState extends ConsumerState<Reader> {
       context: context,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
-      builder:
-          (context) => _ColorPickerSheet(
-            isHighlight: isHighlight,
-            colors: isHighlight ? _kHighlightColors.sublist(0, _kHighlightColors.length - 1) : _kHighlightColors,
-            onColorSelected: (color) {
-              Navigator.pop(context);
-              if (isHighlight) {
-                _toggleHighlight(_selectedCfi!, _selectedText!, color);
-              } else {
-                _showThicknessPicker(color: color);
-              }
-            },
-          ),
+      builder: (context) => _ColorPickerSheet(
+        isHighlight: isHighlight,
+        colors: isHighlight ? _kHighlightColors.sublist(0, _kHighlightColors.length - 1) : _kHighlightColors,
+        onColorSelected: (color) {
+          Navigator.pop(context);
+          if (isHighlight) {
+            _toggleHighlight(_selectedCfi!, _selectedText!, color);
+          } else {
+            _showThicknessPicker(color: color);
+          }
+        },
+      ),
     );
   }
 
@@ -92,15 +91,14 @@ class _ReaderState extends ConsumerState<Reader> {
       context: context,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
-      builder:
-          (context) => _ThicknessPickerSheet(
-            color: color,
-            thicknesses: _kUnderlineThickness,
-            onThicknessSelected: (thickness) {
-              Navigator.pop(context);
-              _toggleUnderline(_selectedCfi!, _selectedText!, color, thickness);
-            },
-          ),
+      builder: (context) => _ThicknessPickerSheet(
+        color: color,
+        thicknesses: _kUnderlineThickness,
+        onThicknessSelected: (thickness) {
+          Navigator.pop(context);
+          _toggleUnderline(_selectedCfi!, _selectedText!, color, thickness);
+        },
+      ),
     );
   }
 
@@ -199,16 +197,16 @@ class _ReaderState extends ConsumerState<Reader> {
     }
 
     final User user = ref.read(currentUserProvider).value!;
-    final Bookmark? bookmark =
-        user.bookmarks?.where((b) => b.libraryItemId == widget.itemId && b.time == -1).firstOrNull;
+    final Bookmark? bookmark = user.bookmarks
+        ?.where((b) => b.libraryItemId == widget.itemId && b.time == -1)
+        .firstOrNull;
     if (bookmark == null) {
       _showSnackBar('No annotations found for this item');
       return;
     }
-    final List<InternalAnnotation> annotations =
-        (jsonDecode(bookmark.title) as List)
-            .map((e) => InternalAnnotation.fromJson(e as Map<String, dynamic>))
-            .toList();
+    final List<InternalAnnotation> annotations = (jsonDecode(bookmark.title) as List)
+        .map((e) => InternalAnnotation.fromJson(e as Map<String, dynamic>))
+        .toList();
 
     for (final highlight in await epubController.getHighlights()) {
       await epubController.removeHighlight(highlight.cfi);
@@ -317,6 +315,10 @@ class _ReaderState extends ConsumerState<Reader> {
       body: Consumer(
         builder: (context, ref, child) {
           final User user = ref.watch(currentUserProvider).value!;
+          final authToken = user.preferredAuthToken;
+          if (authToken == null || authToken.isEmpty) {
+            return const Center(child: Text('Missing authentication token for ebook loading.'));
+          }
           final currentProgress = ref.read(
             mediaProgressProvider.select((asyncValue) {
               return asyncValue.value?[widget.itemId];
@@ -325,7 +327,7 @@ class _ReaderState extends ConsumerState<Reader> {
 
           final EpubSource epubSource = EpubSource.fromUrl(
             '${user.server!.url}/api/items/${widget.itemId}/ebook',
-            headers: {'Authorization': 'Bearer ${user.token}'},
+            headers: {'Authorization': 'Bearer $authToken'},
             isCachedToLocal: false,
           );
 
@@ -434,25 +436,27 @@ class _ColorPickerSheet extends StatelessWidget {
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
           ),
           const SizedBox(height: 16),
-          const Text('Colors:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.black)),
+          const Text(
+            'Colors:',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.black),
+          ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
-            children:
-                colors.map((color) {
-                  return GestureDetector(
-                    onTap: () => onColorSelected(color),
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: color,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey),
-                      ),
-                    ),
-                  );
-                }).toList(),
+            children: colors.map((color) {
+              return GestureDetector(
+                onTap: () => onColorSelected(color),
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey),
+                  ),
+                ),
+              );
+            }).toList(),
           ),
         ],
       ),
@@ -580,7 +584,11 @@ class _AnnotationsListViewState extends State<_AnnotationsListView> {
             ),
           ),
           if (!hasAnnotations)
-            const Expanded(child: Center(child: Text('No annotations found', style: TextStyle(color: Colors.grey))))
+            const Expanded(
+              child: Center(
+                child: Text('No annotations found', style: TextStyle(color: Colors.grey)),
+              ),
+            )
           else
             Expanded(
               child: ListView(
@@ -662,7 +670,11 @@ class _AnnotationTile extends StatelessWidget {
         height: 24,
         decoration: BoxDecoration(
           color: type == 'Highlight' ? parsedColor : Colors.transparent,
-          border: type == 'Underline' ? Border(bottom: BorderSide(color: parsedColor, width: thickness ?? 1)) : null,
+          border: type == 'Underline'
+              ? Border(
+                  bottom: BorderSide(color: parsedColor, width: thickness ?? 1),
+                )
+              : null,
           borderRadius: BorderRadius.circular(4),
         ),
       ),
@@ -674,7 +686,10 @@ class _AnnotationTile extends StatelessWidget {
         'CFI: ${cfi.length > 30 ? '${cfi.substring(0, 30)}...' : cfi}',
         style: const TextStyle(color: Colors.grey, fontSize: 12),
       ),
-      trailing: IconButton(icon: const Icon(Icons.delete, color: Colors.red), onPressed: onRemove),
+      trailing: IconButton(
+        icon: const Icon(Icons.delete, color: Colors.red),
+        onPressed: onRemove,
+      ),
     );
   }
 }

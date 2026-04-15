@@ -62,6 +62,7 @@ class PlayerUtils {
       'audio/mp4',
       'audio/x-aiff',
       'audio/x-mpegurl',
+      "audio/x-matroska",
     ];
   }
 }

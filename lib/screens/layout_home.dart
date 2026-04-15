@@ -19,11 +19,7 @@ class NavigationItemConfig {
   final String label;
   final Widget page;
 
-  NavigationItemConfig({
-    required this.icon,
-    required this.label,
-    required this.page,
-  });
+  NavigationItemConfig({required this.icon, required this.label, required this.page});
 }
 
 class PlaceholderPage extends StatelessWidget {
@@ -35,11 +31,7 @@ class PlaceholderPage extends StatelessWidget {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Text(
-          title,
-          style: Theme.of(context).textTheme.headlineMedium,
-          textAlign: TextAlign.center,
-        ),
+        child: Text(title, style: Theme.of(context).textTheme.headlineMedium, textAlign: TextAlign.center),
       ),
     );
   }
@@ -69,29 +61,13 @@ class _LayoutHomeState extends State<LayoutHome> {
   void initState() {
     super.initState();
     _appBarItems = [
-      NavigationItemConfig(
-        icon: Icons.home,
-        label: "Shelf",
-        page: const PersonalizedView(),
-      ),
-      NavigationItemConfig(
-        icon: Icons.collections_bookmark_outlined,
-        label: "Library",
-        page: const LibraryView(),
-      ),
+      NavigationItemConfig(icon: Icons.home, label: "Shelf", page: const PersonalizedView()),
+      NavigationItemConfig(icon: Icons.collections_bookmark_outlined, label: "Library", page: const LibraryView()),
     ];
 
     _advancedMenuItems = [
-      NavigationItemConfig(
-        icon: Icons.download,
-        label: "Downloads",
-        page: Downloads(),
-      ),
-      NavigationItemConfig(
-        icon: Icons.settings,
-        label: "Settings",
-        page: MainSettingsScreen(),
-      ),
+      NavigationItemConfig(icon: Icons.download, label: "Downloads", page: Downloads()),
+      NavigationItemConfig(icon: Icons.settings, label: "Settings", page: MainSettingsScreen()),
       NavigationItemConfig(
         icon: Icons.info_outline,
         label: "About",
@@ -199,10 +175,7 @@ class _LayoutHomeState extends State<LayoutHome> {
           onTap: onTap,
           dense: true,
           selectedTileColor: selectedColor.withValues(alpha: 0.1),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 24,
-            vertical: 8,
-          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
         ),
       );
     } else {
@@ -244,12 +217,7 @@ class _LayoutHomeState extends State<LayoutHome> {
             value: itemIndex,
             child: Row(
               children: [
-                Icon(
-                  item.icon,
-                  color:
-                      Theme.of(context).iconTheme.color ??
-                      Theme.of(context).colorScheme.onSurface,
-                ),
+                Icon(item.icon, color: Theme.of(context).iconTheme.color ?? Theme.of(context).colorScheme.onSurface),
                 const SizedBox(width: 12),
                 Text(item.label),
               ],
@@ -306,9 +274,7 @@ class _LayoutHomeState extends State<LayoutHome> {
                       children: [
                         Icon(
                           item.icon,
-                          color: isSelected
-                              ? colorScheme.primary
-                              : colorScheme.onSurfaceVariant,
+                          color: isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
                           size: isSelected ? 26 : 22,
                         ),
                         const SizedBox(height: 4),
@@ -316,12 +282,8 @@ class _LayoutHomeState extends State<LayoutHome> {
                           item.label,
                           style: TextStyle(
                             fontSize: 10,
-                            color: isSelected
-                                ? colorScheme.primary
-                                : colorScheme.onSurfaceVariant,
-                            fontWeight: isSelected
-                                ? FontWeight.w600
-                                : FontWeight.normal,
+                            color: isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
+                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -352,20 +314,10 @@ class _LayoutHomeState extends State<LayoutHome> {
           isDense: true,
           prefixIcon: const Icon(Icons.search_rounded),
           suffixIcon: _searchQuery.isNotEmpty
-              ? IconButton(
-                  tooltip: 'Clear search',
-                  onPressed: _clearSearch,
-                  icon: const Icon(Icons.close_rounded),
-                )
+              ? IconButton(tooltip: 'Clear search', onPressed: _clearSearch, icon: const Icon(Icons.close_rounded))
               : null,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide.none,
-          ),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 10,
-            vertical: 10,
-          ),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
           filled: true,
         ),
         style: TextStyle(fontSize: isMobile ? 14 : 15),
@@ -383,14 +335,9 @@ class _LayoutHomeState extends State<LayoutHome> {
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surfaceContainerHigh,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: Theme.of(context).colorScheme.outlineVariant,
-          ),
+          border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
         ),
-        child: Icon(
-          Icons.search_rounded,
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
+        child: Icon(Icons.search_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant),
       ),
     );
   }
@@ -415,14 +362,9 @@ class _LayoutHomeState extends State<LayoutHome> {
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.surfaceContainerHigh,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Theme.of(context).colorScheme.outlineVariant,
-                    ),
+                    border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
                   ),
-                  child: Icon(
-                    Icons.arrow_back_rounded,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                  child: Icon(Icons.arrow_back_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
               ),
               const SizedBox(width: 6),
@@ -446,20 +388,14 @@ class _LayoutHomeState extends State<LayoutHome> {
             const SizedBox(width: 6),
             const Spacer(),
             if (!isMobile)
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 250),
-                child: _topSearchField(false),
-              ),
+              ConstrainedBox(constraints: const BoxConstraints(maxWidth: 250), child: _topSearchField(false)),
             if (!isMobile) const SizedBox(width: 6),
             if (isMobile) _mobileSearchToggle(context),
             if (isMobile) const SizedBox(width: 6),
             DownloadStatus(),
             const SizedBox(width: 4),
             LibrarySwitcher(),
-            if (isMobile) ...[
-              const SizedBox(width: 2),
-              _buildAdvancedMenuButton(context),
-            ],
+            if (isMobile) ...[const SizedBox(width: 2), _buildAdvancedMenuButton(context)],
           ],
         ),
       ),
@@ -475,8 +411,7 @@ class _LayoutHomeState extends State<LayoutHome> {
         final bool isDesktop = screenWidth >= 1200;
 
         Widget currentContent;
-        if (_currentlyDisplayedPageSource == _PageSource.child &&
-            widget.child != null) {
+        if (_currentlyDisplayedPageSource == _PageSource.child && widget.child != null) {
           currentContent = widget.child!;
         } else if (_searchQuery.isNotEmpty) {
           currentContent = SearchView(query: _searchQuery);
@@ -510,16 +445,11 @@ class _LayoutHomeState extends State<LayoutHome> {
                     builder: (context, snapshot) {
                       return Padding(
                         padding: EdgeInsets.only(
-                          bottom:
-                              24 +
-                              ((snapshot.hasData && snapshot.data!) ? 56 : 0),
+                          bottom: 24 + ((snapshot.hasData && snapshot.data!) ? 56 : 0),
                           right: 12,
                           left: 12,
                         ),
-                        child: Align(
-                          alignment: Alignment.bottomCenter,
-                          child: _buildMobileNavBar(context),
-                        ),
+                        child: Align(alignment: Alignment.bottomCenter, child: _buildMobileNavBar(context)),
                       );
                     },
                   ),

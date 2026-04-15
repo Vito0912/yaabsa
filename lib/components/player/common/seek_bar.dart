@@ -91,18 +91,16 @@ class SeekBar extends StatelessWidget {
                                     max: maxSliderValue > 0 ? maxSliderValue : 1.0,
                                     activeColor: Theme.of(context).colorScheme.primary,
                                     inactiveColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
-                                    onChanged:
-                                        maxSliderValue <= 0
-                                            ? null
-                                            : (newValue) {
-                                              executeSeek(newValue);
-                                            },
-                                    onChangeEnd:
-                                        maxSliderValue <= 0
-                                            ? null
-                                            : (endValue) {
-                                              executeSeek(endValue);
-                                            },
+                                    onChanged: maxSliderValue <= 0
+                                        ? null
+                                        : (newValue) {
+                                            executeSeek(newValue);
+                                          },
+                                    onChangeEnd: maxSliderValue <= 0
+                                        ? null
+                                        : (endValue) {
+                                            executeSeek(endValue);
+                                          },
                                   ),
                                   for (var entry in chapterPositions.entries)
                                     Positioned(

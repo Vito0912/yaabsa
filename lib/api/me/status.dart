@@ -16,8 +16,7 @@ abstract class ServerStatus with _$ServerStatus {
     @JsonKey(name: 'MetadataPath') String? metadataPath,
   }) = _ServerStatus;
 
-  factory ServerStatus.fromJson(Map<String, dynamic> json) =>
-      _$ServerStatusFromJson(json);
+  factory ServerStatus.fromJson(Map<String, dynamic> json) => _$ServerStatusFromJson(json);
 }
 
 @freezed
@@ -28,6 +27,5 @@ abstract class AuthFormData with _$AuthFormData {
     @JsonKey(name: 'authOpenIDAutoLaunch') bool? authOpenIDAutoLaunch,
   }) = _AuthFormData;
 
-  factory AuthFormData.fromJson(Map<String, dynamic> json) =>
-      _$AuthFormDataFromJson(json);
+  factory AuthFormData.fromJson(Map<String, dynamic> json) => _$AuthFormDataFromJson(json);
 }

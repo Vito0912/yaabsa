@@ -31,11 +31,7 @@ class PlayBar extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.outlineVariant.withValues(alpha: 0.6),
-                ),
+                border: Border.all(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.6)),
               ),
               child: const Column(
                 mainAxisSize: MainAxisSize.min,
@@ -50,11 +46,7 @@ class PlayBar extends StatelessWidget {
                   SizedBox(height: 4),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      JumpButton(rewind: true),
-                      ControlButton(),
-                      JumpButton(rewind: false),
-                    ],
+                    children: [JumpButton(rewind: true), ControlButton(), JumpButton(rewind: false)],
                   ),
                   SizedBox(height: 4),
                   SeekBar(),
