@@ -24,8 +24,6 @@ class MediaItemTypeConverter implements JsonConverter<MediaItemType, String> {
         return "book";
       case MediaItemType.PODCAST_EPISODE:
         return "podcastEpisode";
-      default:
-        throw ArgumentError("Invalid MediaItemType: $object");
     }
   }
 }

@@ -23,8 +23,7 @@ class DownloadStatus extends StatelessWidget {
         }
 
         final tasks = snapshot.data ?? [];
-        final remainingTasks = tasks.where((t) => t.status != TaskStatus.complete).length;
-        final totalProgress = _calculateOverallProgress(tasks);
+        _calculateOverallProgress(tasks);
 
         return SizedBox();
       },

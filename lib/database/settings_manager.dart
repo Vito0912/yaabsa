@@ -192,7 +192,7 @@ Stream<String?> globalSettingByKey(Ref ref, String key) {
 @Riverpod(keepAlive: true)
 Future<void> settingsInitializer(Ref ref) async {
   final manager = ref.watch(settingsManagerProvider.notifier);
-  final userWatcher = ref.watch(userSettingsWatcherProvider.notifier);
+  ref.watch(userSettingsWatcherProvider.notifier);
 
   await manager.waitForInitialization();
 

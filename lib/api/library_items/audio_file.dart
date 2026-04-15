@@ -43,8 +43,8 @@ abstract class AudioFile with _$AudioFile {
       index: index,
       startOffset: 0,
       duration: duration ?? 0,
-      title: metadata.filename ?? '',
-      contentUrl: metadata.path ?? '',
+      title: metadata.filename,
+      contentUrl: metadata.path,
       mimeType: mimeType ?? 'audio/mpeg',
       metadata: metadata,
     );

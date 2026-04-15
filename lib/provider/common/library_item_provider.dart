@@ -34,19 +34,6 @@ const defaultLibraryItemsRequest = LibraryItemsRequest(limit: _itemsPerPage, pag
 
 @Riverpod(keepAlive: true)
 class LibraryItemsNotifier extends _$LibraryItemsNotifier {
-  LibraryItemsRequest _constructRequest(String libraryId, int page, {LibraryItemState? S}) {
-    final stateForParams = S ?? state.asData?.value;
-    return LibraryItemsRequest(
-      limit: _itemsPerPage,
-      page: page,
-      sort: stateForParams?.sort,
-      desc: stateForParams?.desc,
-      filter: stateForParams?.filter,
-      collapseseries: stateForParams?.collapseseries,
-      include: stateForParams?.include,
-    );
-  }
-
   Future<LibraryItemState> _fetchItems(
     String libraryId,
     int page, {

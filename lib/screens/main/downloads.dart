@@ -36,7 +36,7 @@ class Downloads extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Downloaded Tracks: ${download.tracks.length}'),
-                    if (!(download.isComplete ?? true))
+                    if (!(download.isComplete))
                       const Text(
                         'Warning: Download unfished or not complete. Not available for offline use!',
                         style: TextStyle(color: Colors.red),

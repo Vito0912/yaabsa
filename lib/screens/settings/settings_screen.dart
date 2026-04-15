@@ -202,7 +202,7 @@ class MainSettingsScreen extends ConsumerWidget {
                               radius: 28,
                               backgroundColor: Theme.of(context).colorScheme.primary,
                               child: Text(
-                                currentUser.username.substring(0, 1).toUpperCase() ?? 'U',
+                                currentUser.username.substring(0, 1).toUpperCase(),
                                 style: TextStyle(fontSize: 24, color: Theme.of(context).colorScheme.onPrimary),
                               ),
                             ),
@@ -212,7 +212,7 @@ class MainSettingsScreen extends ConsumerWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    currentUser.username ?? 'Current User',
+                                    currentUser.username,
                                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                                       fontWeight: FontWeight.bold,
                                       color: Theme.of(context).colorScheme.onPrimaryContainer,
@@ -360,9 +360,9 @@ class MainSettingsScreen extends ConsumerWidget {
                           return ListTile(
                             leading: CircleAvatar(
                               backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-                              child: Text(user.username.substring(0, 1).toUpperCase() ?? 'U'),
+                              child: Text(user.username.substring(0, 1).toUpperCase()),
                             ),
-                            title: Text(user.username ?? 'Unknown User'),
+                            title: Text(user.username),
                             subtitle: Text(user.server?.url ?? 'No server'),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,

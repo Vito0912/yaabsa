@@ -447,7 +447,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
     if (currentProgress != null) {
       initialPosition = Duration(
-        microseconds: ((currentProgress.currentTime ?? 0) * Duration.microsecondsPerSecond).round(),
+        microseconds: ((currentProgress.currentTime) * Duration.microsecondsPerSecond).round(),
       );
     }
 
