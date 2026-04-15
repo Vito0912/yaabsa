@@ -57,4 +57,13 @@ abstract class LibraryItem with _$LibraryItem {
   String? get seriesPosition {
     return media?.bookMedia?.metadata.series?.firstOrNull?.sequence;
   }
+
+  String? get coverPath {
+    return media?.bookMedia?.coverPath ?? media?.podcastMedia?.coverPath;
+  }
+
+  bool get hasCover {
+    final path = coverPath;
+    return path != null && path.isNotEmpty;
+  }
 }

@@ -32,7 +32,11 @@ class LibraryItemView extends ConsumerWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(16),
-                child: SizedBox(width: 200, height: 200, child: api!.getLibraryItemApi().getLibraryItemCover(item.id)),
+                child: SizedBox(
+                  width: 200,
+                  height: 200,
+                  child: api!.getLibraryItemApi().getLibraryItemCover(item.id, item: item),
+                ),
               ),
 
               Row(

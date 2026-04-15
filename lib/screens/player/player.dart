@@ -7,6 +7,7 @@ import 'package:yaabsa/components/player/common/sleep_timer_button.dart';
 import 'package:yaabsa/components/player/common/speed_slider.dart';
 import 'package:yaabsa/components/player/common/stop_button.dart';
 import 'package:yaabsa/components/player/common/volume_slider.dart';
+import 'package:yaabsa/components/common/cover_placeholder.dart';
 import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/player/chapter.dart';
@@ -200,27 +201,16 @@ class _CoverArt extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fallback = Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Icon(Icons.music_note, size: size * 0.26, color: Theme.of(context).colorScheme.onSurfaceVariant),
-    );
+    const fallback = CoverPlaceholder(borderRadius: 14);
 
     return SizedBox(
       width: size,
       height: size,
-      child: api == null
+      child: api == null || media.cover == null
           ? fallback
-          : FutureBuilder(
-              future: Future.value(api!.getLibraryItemApi().getLibraryItemCover(media.itemId)),
-              builder: (context, snapshot) {
-                if (snapshot.hasData && snapshot.data != null) {
-                  return ClipRRect(borderRadius: BorderRadius.circular(14), child: snapshot.data!);
-                }
-                return fallback;
-              },
+          : ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: api!.getLibraryItemApi().getLibraryItemCover(media.itemId),
             ),
     );
   }

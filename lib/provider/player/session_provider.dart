@@ -113,6 +113,8 @@ class SessionRepository {
     }
 
     // TODO: Add for offline support
+    final hasCoverPath =
+        (_currentSession!.coverPath?.isNotEmpty ?? false) || (_currentSession!.libraryItem?.hasCover ?? false);
 
     final InternalMedia internalMedia = InternalMedia(
       libraryId: _currentSession!.libraryId!,
@@ -124,7 +126,7 @@ class SessionRepository {
       series: _currentSession!.libraryItem?.seriesName,
       seriesPosition: _currentSession!.libraryItem?.seriesPosition,
       author: _currentSession!.libraryItem?.authorString,
-      cover: api.getLibraryItemApi().getCoverUri(_currentSession!.libraryItemId),
+      cover: hasCoverPath ? api.getLibraryItemApi().getCoverUri(_currentSession!.libraryItemId) : null,
       chapters: _currentSession!.chapters?.map((e) => e.toInternalChapter()).toList(),
       tracks: downloaded != null
           ? downloaded.tracks

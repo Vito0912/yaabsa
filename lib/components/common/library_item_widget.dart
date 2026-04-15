@@ -46,11 +46,14 @@ class LibraryItemWidget extends ConsumerWidget {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(16),
                   child: squareCover
-                      ? AspectRatio(aspectRatio: 1, child: api.getLibraryItemApi().getLibraryItemCover(libraryItem.id))
+                      ? AspectRatio(
+                          aspectRatio: 1,
+                          child: api.getLibraryItemApi().getLibraryItemCover(libraryItem.id, item: libraryItem),
+                        )
                       : SizedBox(
                           width: double.infinity,
                           height: 200,
-                          child: api.getLibraryItemApi().getLibraryItemCover(libraryItem.id),
+                          child: api.getLibraryItemApi().getLibraryItemCover(libraryItem.id, item: libraryItem),
                         ),
                 ),
                 Positioned(

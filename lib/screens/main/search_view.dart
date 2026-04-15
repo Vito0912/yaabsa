@@ -147,7 +147,7 @@ class _SearchResultItems extends ConsumerWidget {
                         child: SizedBox(
                           width: 56,
                           height: 56,
-                          child: api.getLibraryItemApi().getLibraryItemCover(item.id),
+                          child: api.getLibraryItemApi().getLibraryItemCover(item.id, item: item),
                         ),
                       ),
                       const SizedBox(width: 12),

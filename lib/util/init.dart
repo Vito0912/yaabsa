@@ -9,10 +9,10 @@ import 'package:flutter/material.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart' show getApplicationDocumentsDirectory;
 import 'package:sembast/sembast_io.dart' show databaseFactoryIo;
 import 'package:audio_service_mpris/audio_service_mpris.dart';
 
+import 'app_paths.dart';
 import 'logger.dart';
 
 class Init {
@@ -55,8 +55,8 @@ class Init {
   static Future<void> globals() async {
     WidgetsFlutterBinding.ensureInitialized();
 
-    final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dbFolder.path, appName, 'cache.db'));
+    final cacheFolder = await resolveDefaultCacheDirectory();
+    final file = File(p.join(cacheFolder.path, 'cache.db'));
     await file.parent.create(recursive: true);
 
     cacheDb = await databaseFactoryIo.openDatabase(file.path);

@@ -2,6 +2,7 @@ import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/library_items/playback_session.dart';
 import 'package:yaabsa/api/library_items/request/play_library_item_request.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
+import 'package:yaabsa/components/common/cover_placeholder.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -55,28 +56,18 @@ class LibraryItemApi {
   }
 
   Widget getLibraryItemCover(String id, {LibraryItem? item, double? width, double? height}) {
-    if (item != null &&
-        item.media != null &&
-        ((item.media!.bookMedia != null && item.media!.bookMedia!.coverPath == null) ||
-            (item.media!.podcastMedia != null && item.media!.podcastMedia!.coverPath == null))) {
-      return Icon(Icons.image_sharp);
+    if (item != null && !item.hasCover) {
+      return const CoverPlaceholder();
     }
+
     return CachedNetworkImage(
       imageUrl: '${_dio.options.baseUrl}/api/items/$id/cover',
       httpHeaders: Map<String, String>.from(_dio.options.headers),
-      errorListener: (e) {
-        print('Error loading image: $e');
-      },
       width: width,
       height: height,
       fit: BoxFit.cover,
-      errorWidget: (context, url, error) {
-        if (error.toString().contains('404')) {
-          // TODO: 404 image placeholder
-          return const Icon(Icons.image_sharp);
-        }
-        return const Icon(Icons.error);
-      },
+      placeholder: (context, url) => const CoverPlaceholder(),
+      errorWidget: (context, url, error) => const CoverPlaceholder(),
     );
   }
 
