@@ -71,13 +71,25 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build Linux
+      - name: Build Linux debug
         run: flutter build linux
 
       - name: Upload Linux build artifact
         uses: actions/upload-artifact@v7
         with:
-          name: linux-build
+          name: linux-build-debug
+          path: build/linux/x64/release/bundle
+
+      - name: remove debug build
+        run: rm -rf build/linux/x64/release/bundle
+
+      - name: Build Linux release
+        run: flutter build linux --release
+
+      - name: Upload Linux release artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: linux-build-release
           path: build/linux/x64/release/bundle
 
   build-android:
