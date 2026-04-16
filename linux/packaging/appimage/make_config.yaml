@@ -16,4 +16,4 @@ categories:
 
 startup_notify: true
 
-include: []
+include: [libmpv.so.2]

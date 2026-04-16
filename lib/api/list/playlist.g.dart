@@ -13,9 +13,7 @@ _Playlist _$PlaylistFromJson(Map<String, dynamic> json) => _Playlist(
   name: json['name'] as String,
   description: json['description'] as String?,
   coverPath: json['coverPath'] as String?,
-  items: (json['items'] as List<dynamic>?)
-      ?.map((e) => PlaylistItem.fromJson(e as Map<String, dynamic>))
-      .toList(),
+  items: (json['items'] as List<dynamic>?)?.map((e) => PlaylistItem.fromJson(e as Map<String, dynamic>)).toList(),
   lastUpdate: (json['lastUpdate'] as num).toInt(),
   createdAt: (json['createdAt'] as num).toInt(),
 );

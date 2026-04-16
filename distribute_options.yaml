@@ -10,10 +10,11 @@ releases:
         package:
           platform: linux
           target: appimage
-      - name: release-linux-rpm
-        package:
-          platform: linux
-          target: rpm
+      # RPM broken: https://github.com/fastforgedev/fastforge/issues/235
+      # - name: release-linux-rpm
+      #  package:
+      #    platform: linux
+      #    target: rpm
       - name: release-linux-bundle
         package:
           platform: linux
