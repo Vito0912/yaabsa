@@ -15,8 +15,12 @@ _BookMedia _$BookMediaFromJson(Map<String, dynamic> json) => _BookMedia(
   audioFiles: (json['audioFiles'] as List<dynamic>?)
       ?.map((e) => AudioFile.fromJson(e as Map<String, dynamic>))
       .toList(),
-  chapters: (json['chapters'] as List<dynamic>?)?.map((e) => Chapter.fromJson(e as Map<String, dynamic>)).toList(),
-  ebookFile: json['ebookFile'] == null ? null : EbookFile.fromJson(json['ebookFile'] as Map<String, dynamic>),
+  chapters: (json['chapters'] as List<dynamic>?)
+      ?.map((e) => Chapter.fromJson(e as Map<String, dynamic>))
+      .toList(),
+  ebookFile: json['ebookFile'] == null
+      ? null
+      : EbookFile.fromJson(json['ebookFile'] as Map<String, dynamic>),
   numTracks: (json['numTracks'] as num?)?.toInt(),
   numChapters: (json['numChapters'] as num?)?.toInt(),
   numAudioFiles: (json['numAudioFiles'] as num?)?.toInt(),
@@ -24,18 +28,19 @@ _BookMedia _$BookMediaFromJson(Map<String, dynamic> json) => _BookMedia(
   ebookFormat: json['ebookFormat'] as String?,
 );
 
-Map<String, dynamic> _$BookMediaToJson(_BookMedia instance) => <String, dynamic>{
-  'id': instance.id,
-  'libraryItemId': instance.libraryItemId,
-  'metadata': instance.metadata,
-  'coverPath': instance.coverPath,
-  'tags': instance.tags,
-  'audioFiles': instance.audioFiles,
-  'chapters': instance.chapters,
-  'ebookFile': instance.ebookFile,
-  'numTracks': instance.numTracks,
-  'numChapters': instance.numChapters,
-  'numAudioFiles': instance.numAudioFiles,
-  'size': instance.size,
-  'ebookFormat': instance.ebookFormat,
-};
+Map<String, dynamic> _$BookMediaToJson(_BookMedia instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'libraryItemId': instance.libraryItemId,
+      'metadata': instance.metadata,
+      'coverPath': instance.coverPath,
+      'tags': instance.tags,
+      'audioFiles': instance.audioFiles,
+      'chapters': instance.chapters,
+      'ebookFile': instance.ebookFile,
+      'numTracks': instance.numTracks,
+      'numChapters': instance.numChapters,
+      'numAudioFiles': instance.numAudioFiles,
+      'size': instance.size,
+      'ebookFormat': instance.ebookFormat,
+    };

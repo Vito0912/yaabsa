@@ -12,7 +12,9 @@ part of 'auth_secret_store.dart';
 @ProviderFor(authSecretStore)
 final authSecretStoreProvider = AuthSecretStoreProvider._();
 
-final class AuthSecretStoreProvider extends $FunctionalProvider<AuthSecretStore, AuthSecretStore, AuthSecretStore>
+final class AuthSecretStoreProvider
+    extends
+        $FunctionalProvider<AuthSecretStore, AuthSecretStore, AuthSecretStore>
     with $Provider<AuthSecretStore> {
   AuthSecretStoreProvider._()
     : super(
@@ -30,7 +32,8 @@ final class AuthSecretStoreProvider extends $FunctionalProvider<AuthSecretStore,
 
   @$internal
   @override
-  $ProviderElement<AuthSecretStore> $createElement($ProviderPointer pointer) => $ProviderElement(pointer);
+  $ProviderElement<AuthSecretStore> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
 
   @override
   AuthSecretStore create(Ref ref) {
@@ -39,7 +42,10 @@ final class AuthSecretStoreProvider extends $FunctionalProvider<AuthSecretStore,
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(AuthSecretStore value) {
-    return $ProviderOverride(origin: this, providerOverride: $SyncValueProvider<AuthSecretStore>(value));
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AuthSecretStore>(value),
+    );
   }
 }
 

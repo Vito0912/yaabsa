@@ -13,7 +13,11 @@ part of 'media_progress_provider.dart';
 final mediaProgressProvider = MediaProgressNotifierProvider._();
 
 final class MediaProgressNotifierProvider
-    extends $AsyncNotifierProvider<MediaProgressNotifier, Map<String, MediaProgress>> {
+    extends
+        $AsyncNotifierProvider<
+          MediaProgressNotifier,
+          Map<String, MediaProgress>
+        > {
   MediaProgressNotifierProvider._()
     : super(
         from: null,
@@ -33,18 +37,28 @@ final class MediaProgressNotifierProvider
   MediaProgressNotifier create() => MediaProgressNotifier();
 }
 
-String _$mediaProgressNotifierHash() => r'dfce16b1d429900ae3799adc60ad73c895465311';
+String _$mediaProgressNotifierHash() =>
+    r'dfce16b1d429900ae3799adc60ad73c895465311';
 
-abstract class _$MediaProgressNotifier extends $AsyncNotifier<Map<String, MediaProgress>> {
+abstract class _$MediaProgressNotifier
+    extends $AsyncNotifier<Map<String, MediaProgress>> {
   FutureOr<Map<String, MediaProgress>> build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<AsyncValue<Map<String, MediaProgress>>, Map<String, MediaProgress>>;
+    final ref =
+        this.ref
+            as $Ref<
+              AsyncValue<Map<String, MediaProgress>>,
+              Map<String, MediaProgress>
+            >;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<AsyncValue<Map<String, MediaProgress>>, Map<String, MediaProgress>>,
+              AnyNotifier<
+                AsyncValue<Map<String, MediaProgress>>,
+                Map<String, MediaProgress>
+              >,
               AsyncValue<Map<String, MediaProgress>>,
               Object?,
               Object?

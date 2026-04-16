@@ -13,7 +13,11 @@ part of 'personalized_library_provider.dart';
 final personalizedLibraryProvider = PersonalizedLibraryNotifierFamily._();
 
 final class PersonalizedLibraryNotifierProvider
-    extends $AsyncNotifierProvider<PersonalizedLibraryNotifier, PersonalizedLibrary?> {
+    extends
+        $AsyncNotifierProvider<
+          PersonalizedLibraryNotifier,
+          PersonalizedLibrary?
+        > {
   PersonalizedLibraryNotifierProvider._({
     required PersonalizedLibraryNotifierFamily super.from,
     required String super.argument,
@@ -41,7 +45,8 @@ final class PersonalizedLibraryNotifierProvider
 
   @override
   bool operator ==(Object other) {
-    return other is PersonalizedLibraryNotifierProvider && other.argument == argument;
+    return other is PersonalizedLibraryNotifierProvider &&
+        other.argument == argument;
   }
 
   @override
@@ -50,7 +55,8 @@ final class PersonalizedLibraryNotifierProvider
   }
 }
 
-String _$personalizedLibraryNotifierHash() => r'2da59666810275c78aa411d8fda3658214053aa8';
+String _$personalizedLibraryNotifierHash() =>
+    r'2da59666810275c78aa411d8fda3658214053aa8';
 
 final class PersonalizedLibraryNotifierFamily extends $Family
     with
@@ -77,7 +83,8 @@ final class PersonalizedLibraryNotifierFamily extends $Family
   String toString() => r'personalizedLibraryProvider';
 }
 
-abstract class _$PersonalizedLibraryNotifier extends $AsyncNotifier<PersonalizedLibrary?> {
+abstract class _$PersonalizedLibraryNotifier
+    extends $AsyncNotifier<PersonalizedLibrary?> {
   late final _$args = ref.$arg as String;
   String get libraryId => _$args;
 
@@ -85,11 +92,16 @@ abstract class _$PersonalizedLibraryNotifier extends $AsyncNotifier<Personalized
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<AsyncValue<PersonalizedLibrary?>, PersonalizedLibrary?>;
+    final ref =
+        this.ref
+            as $Ref<AsyncValue<PersonalizedLibrary?>, PersonalizedLibrary?>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<AsyncValue<PersonalizedLibrary?>, PersonalizedLibrary?>,
+              AnyNotifier<
+                AsyncValue<PersonalizedLibrary?>,
+                PersonalizedLibrary?
+              >,
               AsyncValue<PersonalizedLibrary?>,
               Object?,
               Object?

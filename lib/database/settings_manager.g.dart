@@ -12,7 +12,8 @@ part of 'settings_manager.dart';
 @ProviderFor(settingsCache)
 final settingsCacheProvider = SettingsCacheProvider._();
 
-final class SettingsCacheProvider extends $FunctionalProvider<SettingsCache, SettingsCache, SettingsCache>
+final class SettingsCacheProvider
+    extends $FunctionalProvider<SettingsCache, SettingsCache, SettingsCache>
     with $Provider<SettingsCache> {
   SettingsCacheProvider._()
     : super(
@@ -30,7 +31,8 @@ final class SettingsCacheProvider extends $FunctionalProvider<SettingsCache, Set
 
   @$internal
   @override
-  $ProviderElement<SettingsCache> $createElement($ProviderPointer pointer) => $ProviderElement(pointer);
+  $ProviderElement<SettingsCache> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
 
   @override
   SettingsCache create(Ref ref) {
@@ -39,7 +41,10 @@ final class SettingsCacheProvider extends $FunctionalProvider<SettingsCache, Set
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(SettingsCache value) {
-    return $ProviderOverride(origin: this, providerOverride: $SyncValueProvider<SettingsCache>(value));
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<SettingsCache>(value),
+    );
   }
 }
 
@@ -48,7 +53,8 @@ String _$settingsCacheHash() => r'05175d029a69a1e15af750304907dd17f8c82874';
 @ProviderFor(SettingsManager)
 final settingsManagerProvider = SettingsManagerProvider._();
 
-final class SettingsManagerProvider extends $StreamNotifierProvider<SettingsManager, bool> {
+final class SettingsManagerProvider
+    extends $StreamNotifierProvider<SettingsManager, bool> {
   SettingsManagerProvider._()
     : super(
         from: null,
@@ -77,7 +83,13 @@ abstract class _$SettingsManager extends $StreamNotifier<bool> {
   void runBuild() {
     final ref = this.ref as $Ref<AsyncValue<bool>, bool>;
     final element =
-        ref.element as $ClassProviderElement<AnyNotifier<AsyncValue<bool>, bool>, AsyncValue<bool>, Object?, Object?>;
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<bool>, bool>,
+              AsyncValue<bool>,
+              Object?,
+              Object?
+            >;
     element.handleCreate(ref, build);
   }
 }
@@ -85,7 +97,8 @@ abstract class _$SettingsManager extends $StreamNotifier<bool> {
 @ProviderFor(UserSettingsWatcher)
 final userSettingsWatcherProvider = UserSettingsWatcherProvider._();
 
-final class UserSettingsWatcherProvider extends $StreamNotifierProvider<UserSettingsWatcher, bool> {
+final class UserSettingsWatcherProvider
+    extends $StreamNotifierProvider<UserSettingsWatcher, bool> {
   UserSettingsWatcherProvider._()
     : super(
         from: null,
@@ -105,7 +118,8 @@ final class UserSettingsWatcherProvider extends $StreamNotifierProvider<UserSett
   UserSettingsWatcher create() => UserSettingsWatcher();
 }
 
-String _$userSettingsWatcherHash() => r'e60d8bb7e7c33e35fca51da72e763866fdab04d5';
+String _$userSettingsWatcherHash() =>
+    r'e60d8bb7e7c33e35fca51da72e763866fdab04d5';
 
 abstract class _$UserSettingsWatcher extends $StreamNotifier<bool> {
   Stream<bool> build();
@@ -114,7 +128,13 @@ abstract class _$UserSettingsWatcher extends $StreamNotifier<bool> {
   void runBuild() {
     final ref = this.ref as $Ref<AsyncValue<bool>, bool>;
     final element =
-        ref.element as $ClassProviderElement<AnyNotifier<AsyncValue<bool>, bool>, AsyncValue<bool>, Object?, Object?>;
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<bool>, bool>,
+              AsyncValue<bool>,
+              Object?,
+              Object?
+            >;
     element.handleCreate(ref, build);
   }
 }
@@ -122,16 +142,19 @@ abstract class _$UserSettingsWatcher extends $StreamNotifier<bool> {
 @ProviderFor(globalSettingByKey)
 final globalSettingByKeyProvider = GlobalSettingByKeyFamily._();
 
-final class GlobalSettingByKeyProvider extends $FunctionalProvider<AsyncValue<String?>, String?, Stream<String?>>
+final class GlobalSettingByKeyProvider
+    extends $FunctionalProvider<AsyncValue<String?>, String?, Stream<String?>>
     with $FutureModifier<String?>, $StreamProvider<String?> {
-  GlobalSettingByKeyProvider._({required GlobalSettingByKeyFamily super.from, required String super.argument})
-    : super(
-        retry: null,
-        name: r'globalSettingByKeyProvider',
-        isAutoDispose: false,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
+  GlobalSettingByKeyProvider._({
+    required GlobalSettingByKeyFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'globalSettingByKeyProvider',
+         isAutoDispose: false,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
   String debugGetCreateSourceHash() => _$globalSettingByKeyHash();
@@ -145,7 +168,8 @@ final class GlobalSettingByKeyProvider extends $FunctionalProvider<AsyncValue<St
 
   @$internal
   @override
-  $StreamProviderElement<String?> $createElement($ProviderPointer pointer) => $StreamProviderElement(pointer);
+  $StreamProviderElement<String?> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
 
   @override
   Stream<String?> create(Ref ref) {
@@ -164,9 +188,11 @@ final class GlobalSettingByKeyProvider extends $FunctionalProvider<AsyncValue<St
   }
 }
 
-String _$globalSettingByKeyHash() => r'a0ef71373adf342a19f14e7d04b19503583007fa';
+String _$globalSettingByKeyHash() =>
+    r'a0ef71373adf342a19f14e7d04b19503583007fa';
 
-final class GlobalSettingByKeyFamily extends $Family with $FunctionalFamilyOverride<Stream<String?>, String> {
+final class GlobalSettingByKeyFamily extends $Family
+    with $FunctionalFamilyOverride<Stream<String?>, String> {
   GlobalSettingByKeyFamily._()
     : super(
         retry: null,
@@ -176,7 +202,8 @@ final class GlobalSettingByKeyFamily extends $Family with $FunctionalFamilyOverr
         isAutoDispose: false,
       );
 
-  GlobalSettingByKeyProvider call(String key) => GlobalSettingByKeyProvider._(argument: key, from: this);
+  GlobalSettingByKeyProvider call(String key) =>
+      GlobalSettingByKeyProvider._(argument: key, from: this);
 
   @override
   String toString() => r'globalSettingByKeyProvider';
@@ -185,7 +212,8 @@ final class GlobalSettingByKeyFamily extends $Family with $FunctionalFamilyOverr
 @ProviderFor(settingsInitializer)
 final settingsInitializerProvider = SettingsInitializerProvider._();
 
-final class SettingsInitializerProvider extends $FunctionalProvider<AsyncValue<void>, void, FutureOr<void>>
+final class SettingsInitializerProvider
+    extends $FunctionalProvider<AsyncValue<void>, void, FutureOr<void>>
     with $FutureModifier<void>, $FutureProvider<void> {
   SettingsInitializerProvider._()
     : super(
@@ -203,7 +231,8 @@ final class SettingsInitializerProvider extends $FunctionalProvider<AsyncValue<v
 
   @$internal
   @override
-  $FutureProviderElement<void> $createElement($ProviderPointer pointer) => $FutureProviderElement(pointer);
+  $FutureProviderElement<void> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
 
   @override
   FutureOr<void> create(Ref ref) {
@@ -211,4 +240,5 @@ final class SettingsInitializerProvider extends $FunctionalProvider<AsyncValue<v
   }
 }
 
-String _$settingsInitializerHash() => r'ff5cd3b2194aa7f43f31603d116e4a57844f768c';
+String _$settingsInitializerHash() =>
+    r'54e713ec5361c903812a614e5b6c15cffc508e5d';
