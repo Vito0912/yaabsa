@@ -1,9 +1,11 @@
 import 'dart:async';
 
+import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/screens/auth/sign_in.dart';
 import 'package:yaabsa/screens/item/library_item_view.dart';
 import 'package:yaabsa/screens/layout_home.dart';
+import 'package:yaabsa/screens/main/series_detail_view.dart';
 import 'package:yaabsa/screens/player/play_history_view.dart';
 import 'package:yaabsa/screens/player/player.dart';
 import 'package:yaabsa/screens/reader/reader.dart';
@@ -108,6 +110,14 @@ final globalRouter = GoRouter(
               },
               routes: [
                 GoRoute(path: '/item/:id', builder: (context, state) => LibraryItemView(state.pathParameters['id']!)),
+                GoRoute(
+                  path: '/series/:id',
+                  builder: (context, state) {
+                    final extra = state.extra;
+                    final initialEntry = extra is MultiBookEntryData ? extra : null;
+                    return SeriesDetailView(seriesId: state.pathParameters['id']!, initialEntry: initialEntry);
+                  },
+                ),
               ],
             ),
           ],

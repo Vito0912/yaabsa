@@ -14,7 +14,7 @@ class LibraryItemWidget extends ConsumerWidget {
     super.key,
     this.showProgress = false,
     this.compact = false,
-    this.squareCover = false,
+    this.squareCover = true,
   });
 
   final LibraryItem libraryItem;
@@ -64,7 +64,7 @@ class LibraryItemWidget extends ConsumerWidget {
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
-                        if (libraryItem.media!.hasAudio)
+                        if (libraryItem.media?.hasAudio ?? false)
                           IconButton(
                             icon: const Icon(Icons.play_arrow, size: 14),
                             iconSize: 10,
@@ -74,7 +74,7 @@ class LibraryItemWidget extends ConsumerWidget {
                             },
                             splashRadius: 8,
                           ),
-                        if (!libraryItem.media!.hasAudio && libraryItem.media!.hasBook)
+                        if (!(libraryItem.media?.hasAudio ?? false) && (libraryItem.media?.hasBook ?? false))
                           IconButton(
                             icon: const Icon(Icons.my_library_books_outlined, size: 14),
                             iconSize: 10,

@@ -60,8 +60,10 @@ class LibraryItemApi {
       return const CoverPlaceholder();
     }
 
+    final uri = _buildCoverUri(id, item: item, width: width, height: height);
+
     return CachedNetworkImage(
-      imageUrl: '${_dio.options.baseUrl}/api/items/$id/cover',
+      imageUrl: uri.toString(),
       httpHeaders: Map<String, String>.from(_dio.options.headers),
       width: width,
       height: height,
@@ -71,7 +73,29 @@ class LibraryItemApi {
     );
   }
 
-  Uri getCoverUri(String id) {
-    return Uri.parse('${_dio.options.baseUrl}/api/items/$id/cover');
+  Uri getCoverUri(String id, {LibraryItem? item, double? width, double? height}) {
+    return _buildCoverUri(id, item: item, width: width, height: height);
+  }
+
+  Uri _buildCoverUri(String id, {LibraryItem? item, double? width, double? height}) {
+    final queryParams = <String, String>{};
+
+    final widthPx = width?.round();
+    if (widthPx != null && widthPx > 0) {
+      queryParams['width'] = widthPx.toString();
+    }
+
+    final heightPx = height?.round();
+    if (heightPx != null && heightPx > 0) {
+      queryParams['height'] = heightPx.toString();
+    }
+
+    final updatedAt = item?.updatedAt;
+    if (updatedAt != null) {
+      queryParams['ts'] = updatedAt.toString();
+    }
+
+    final base = Uri.parse('${_dio.options.baseUrl}/api/items/$id/cover');
+    return queryParams.isEmpty ? base : base.replace(queryParameters: queryParams);
   }
 }

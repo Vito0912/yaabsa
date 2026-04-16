@@ -1,3 +1,4 @@
+import 'package:yaabsa/api/library/request/library_filter.dart';
 import 'package:yaabsa/api/library/request/library_items_request.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/database/app_database.dart';
@@ -34,6 +35,8 @@ const defaultLibraryItemsRequest = LibraryItemsRequest(limit: _itemsPerPage, pag
 
 @Riverpod(keepAlive: true)
 class LibraryItemsNotifier extends _$LibraryItemsNotifier {
+  bool _isEnsuringIndex = false;
+
   Future<LibraryItemState> _fetchItems(
     String libraryId,
     int page, {
@@ -54,7 +57,7 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
       page: page,
       sort: sort ?? currentVal?.sort,
       desc: desc ?? currentVal?.desc,
-      filter: filter ?? currentVal?.filter,
+      filter: normalizeLibraryFilterQuery(filter ?? currentVal?.filter),
       collapseseries: collapseseries ?? currentVal?.collapseseries,
       include: include ?? currentVal?.include,
     );
@@ -136,6 +139,30 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
     }
   }
 
+  Future<void> ensureLoadedForIndex(int index) async {
+    if (index < 0 || _isEnsuringIndex) {
+      return;
+    }
+
+    _isEnsuringIndex = true;
+    try {
+      while (true) {
+        final currentState = state.value;
+        if (currentState == null ||
+            currentState.libraryId == null ||
+            !currentState.hasNextPage ||
+            currentState.isLoadingNextPage ||
+            index < currentState.items.length) {
+          break;
+        }
+
+        await fetchNextPage();
+      }
+    } finally {
+      _isEnsuringIndex = false;
+    }
+  }
+
   Future<void> _updateAndRefetch({
     String? sort,
     int? desc,
@@ -155,7 +182,7 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
     final newCollapseSeries = collapseseries ?? currentLoadedState.collapseseries;
     final newInclude = include ?? currentLoadedState.include;
 
-    state = AsyncLoading<LibraryItemState>().copyWithPrevious(state);
+    state = const AsyncValue.loading();
 
     try {
       final newState = await _fetchItems(
@@ -169,7 +196,7 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
       );
       state = AsyncData(newState);
     } catch (e, s) {
-      state = AsyncError<LibraryItemState>(e, s).copyWithPrevious(state);
+      state = AsyncError<LibraryItemState>(e, s);
     }
   }
 

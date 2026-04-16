@@ -7,6 +7,7 @@ import 'package:yaabsa/screens/main/downloads.dart';
 import 'package:yaabsa/screens/main/library_view.dart';
 import 'package:yaabsa/screens/main/personalized_view.dart';
 import 'package:yaabsa/screens/main/search_view.dart';
+import 'package:yaabsa/screens/main/series_view.dart';
 import 'package:yaabsa/screens/player/play_bar.dart';
 import 'package:yaabsa/screens/settings/settings_screen.dart';
 import 'package:yaabsa/util/globals.dart';
@@ -63,6 +64,7 @@ class _LayoutHomeState extends State<LayoutHome> {
     _appBarItems = [
       NavigationItemConfig(icon: Icons.home, label: "Shelf", page: const PersonalizedView()),
       NavigationItemConfig(icon: Icons.collections_bookmark_outlined, label: "Library", page: const LibraryView()),
+      NavigationItemConfig(icon: Icons.view_column_outlined, label: "Series", page: const SeriesView()),
     ];
 
     _advancedMenuItems = [

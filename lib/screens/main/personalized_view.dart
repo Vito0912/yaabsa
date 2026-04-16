@@ -1,4 +1,5 @@
 import 'package:yaabsa/components/common/library_item_widget.dart';
+import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
 import 'package:yaabsa/api/library/personalized_library.dart';
 import 'package:yaabsa/api/library_items/author.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
@@ -10,6 +11,8 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/library/personalized_library_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:yaabsa/util/layout_sizes.dart';
 
 class PersonalizedView extends ConsumerWidget {
   const PersonalizedView({super.key});
@@ -48,7 +51,7 @@ class PersonalizedView extends ConsumerWidget {
                 ? 18.0
                 : 10.0;
             final verticalPadding = width >= 1200 ? 22.0 : 14.0;
-            final libraryTileWidth = _libraryItemTileWidth(width);
+            final libraryTileWidth = appGridTileWidth;
 
             return RefreshIndicator(
               onRefresh: () => ref
@@ -109,14 +112,6 @@ List<_SectionData> _buildSections(PersonalizedLibrary library) {
   return sections;
 }
 
-double _libraryItemTileWidth(double width) {
-  if (width >= 1700) return 210;
-  if (width >= 1400) return 190;
-  if (width >= 1000) return 170;
-  if (width >= 700) return 150;
-  return 138;
-}
-
 class _SectionRow extends StatelessWidget {
   const _SectionRow({
     required this.section,
@@ -160,60 +155,65 @@ class _SectionList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isLibraryItems = section.kind == _ShelfEntityKind.libraryItem;
-    final rowHeight = isLibraryItems ? libraryTileWidth + 42.0 : (viewportWidth >= 700 ? 112.0 : 96.0);
+    final seriesTileWidth = libraryTileWidth * 1.5;
 
-    return SizedBox(
-      height: rowHeight,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 4),
-        itemCount: section.entities.length,
-        separatorBuilder: (context, index) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          final entity = section.entities[index];
-          switch (section.kind) {
-            case _ShelfEntityKind.libraryItem:
-              return SizedBox(
-                width: libraryTileWidth,
-                child: LibraryItemWidget(
-                  entity as LibraryItem,
-                  api,
-                  showProgress: true,
-                  compact: true,
-                  squareCover: true,
-                ),
-              );
-            case _ShelfEntityKind.series:
-              final series = entity as Series;
-              return SizedBox(
-                width: viewportWidth >= 1100 ? 280 : 240,
-                child: _MetaCard(
-                  icon: Icons.auto_stories_outlined,
-                  title: series.name,
-                  subtitle: series.numBooks != null ? '${series.numBooks} books' : null,
-                ),
-              );
-            case _ShelfEntityKind.author:
-              final author = entity as Author;
-              return SizedBox(
-                width: viewportWidth >= 1100 ? 260 : 220,
-                child: _MetaCard(icon: Icons.person_outline, title: author.name),
-              );
-            case _ShelfEntityKind.episode:
-              final episode = entity as Episode;
-              return SizedBox(
-                width: viewportWidth >= 1100 ? 320 : 270,
-                child: _MetaCard(
-                  icon: Icons.podcasts_outlined,
-                  title: episode.title ?? 'Untitled episode',
-                  subtitle: episode.subtitle,
-                ),
-              );
-          }
-        },
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (var index = 0; index < section.entities.length; index++) ...[
+            _buildEntityTile(context, section.entities[index], seriesTileWidth),
+            if (index < section.entities.length - 1) const SizedBox(width: 8),
+          ],
+        ],
       ),
     );
+  }
+
+  Widget _buildEntityTile(BuildContext context, Object entity, double seriesTileWidth) {
+    switch (section.kind) {
+      case _ShelfEntityKind.libraryItem:
+        return SizedBox(
+          width: libraryTileWidth,
+          child: LibraryItemWidget(entity as LibraryItem, api, showProgress: true, compact: true, squareCover: true),
+        );
+      case _ShelfEntityKind.series:
+        final series = entity as Series;
+        final seriesEntry = MultiBookEntryData.fromSeries(series);
+
+        return SizedBox(
+          width: seriesTileWidth,
+          child: MultiBookEntryWidget(
+            api: api,
+            entry: seriesEntry,
+            compact: true,
+            squareCover: true,
+            coverHeight: libraryTileWidth,
+            maxBooksToShow: defaultMultiBookPreviewLimit,
+            onTap: () {
+              context.push('/series/${series.id}', extra: seriesEntry);
+            },
+          ),
+        );
+      case _ShelfEntityKind.author:
+        final author = entity as Author;
+        return SizedBox(
+          width: viewportWidth >= 1100 ? 260 : 220,
+          child: _MetaCard(icon: Icons.person_outline, title: author.name),
+        );
+      case _ShelfEntityKind.episode:
+        final episode = entity as Episode;
+        return SizedBox(
+          width: viewportWidth >= 1100 ? 320 : 270,
+          child: _MetaCard(
+            icon: Icons.podcasts_outlined,
+            title: episode.title ?? 'Untitled episode',
+            subtitle: episode.subtitle,
+          ),
+        );
+    }
   }
 }
 

@@ -39,7 +39,12 @@ abstract class LibraryItem with _$LibraryItem {
 
   // QoL
   String get title {
-    return (media?.bookMedia?.metadata.title ?? media?.podcastMedia?.metadata.title)!;
+    final collapsedTitle = collapsedSeries?.name;
+    if (collapsedTitle != null && collapsedTitle.isNotEmpty) {
+      return collapsedTitle;
+    }
+
+    return media?.bookMedia?.metadata.title ?? media?.podcastMedia?.metadata.title ?? 'Untitled';
   }
 
   String? get subtitle {
