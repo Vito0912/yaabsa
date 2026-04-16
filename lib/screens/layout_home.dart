@@ -4,8 +4,10 @@ import 'package:yaabsa/components/app/download_status.dart';
 import 'package:yaabsa/components/app/library_switcher.dart';
 import 'package:yaabsa/components/app/user_switcher.dart';
 import 'package:yaabsa/screens/main/downloads.dart';
+import 'package:yaabsa/screens/main/collection_view.dart';
 import 'package:yaabsa/screens/main/library_view.dart';
 import 'package:yaabsa/screens/main/personalized_view.dart';
+import 'package:yaabsa/screens/main/playlist_view.dart';
 import 'package:yaabsa/screens/main/search_view.dart';
 import 'package:yaabsa/screens/main/series_view.dart';
 import 'package:yaabsa/screens/player/play_bar.dart';
@@ -64,6 +66,8 @@ class _LayoutHomeState extends State<LayoutHome> {
     _appBarItems = [
       NavigationItemConfig(icon: Icons.home, label: "Shelf", page: const PersonalizedView()),
       NavigationItemConfig(icon: Icons.collections_bookmark_outlined, label: "Library", page: const LibraryView()),
+      NavigationItemConfig(icon: Icons.collections_outlined, label: "Collections", page: const CollectionView()),
+      NavigationItemConfig(icon: Icons.playlist_play_rounded, label: "Playlists", page: const PlaylistView()),
       NavigationItemConfig(icon: Icons.view_column_outlined, label: "Series", page: const SeriesView()),
     ];
 
@@ -463,7 +467,7 @@ class _LayoutHomeState extends State<LayoutHome> {
           Widget sidebar = Material(
             elevation: 2.0,
             child: Container(
-              width: !isDesktop ? 90 : 260,
+              width: !isDesktop ? 90 : 200,
               color: Theme.of(context).colorScheme.surface,
               child: Column(
                 children: [

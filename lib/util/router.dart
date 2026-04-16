@@ -5,6 +5,8 @@ import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/screens/auth/sign_in.dart';
 import 'package:yaabsa/screens/item/library_item_view.dart';
 import 'package:yaabsa/screens/layout_home.dart';
+import 'package:yaabsa/screens/main/collection_detail_view.dart';
+import 'package:yaabsa/screens/main/playlist_detail_view.dart';
 import 'package:yaabsa/screens/main/series_detail_view.dart';
 import 'package:yaabsa/screens/player/play_history_view.dart';
 import 'package:yaabsa/screens/player/player.dart';
@@ -110,6 +112,22 @@ final globalRouter = GoRouter(
               },
               routes: [
                 GoRoute(path: '/item/:id', builder: (context, state) => LibraryItemView(state.pathParameters['id']!)),
+                GoRoute(
+                  path: '/collection/:id',
+                  builder: (context, state) {
+                    final extra = state.extra;
+                    final initialEntry = extra is MultiBookEntryData ? extra : null;
+                    return CollectionDetailView(collectionId: state.pathParameters['id']!, initialEntry: initialEntry);
+                  },
+                ),
+                GoRoute(
+                  path: '/playlist/:id',
+                  builder: (context, state) {
+                    final extra = state.extra;
+                    final initialEntry = extra is MultiBookEntryData ? extra : null;
+                    return PlaylistDetailView(playlistId: state.pathParameters['id']!, initialEntry: initialEntry);
+                  },
+                ),
                 GoRoute(
                   path: '/series/:id',
                   builder: (context, state) {

@@ -56,7 +56,7 @@ class CacheInterceptor extends Interceptor {
             }
           });
 
-          logger('Cache hit: ${options.uri.toString()}', tag: 'CacheInterceptor');
+          logger('Cache hit: ${options.uri.toString()}', tag: 'CacheInterceptor', level: InfoLevel.debug);
           handler.resolve(
             Response(
               requestOptions: options,
@@ -85,7 +85,7 @@ class CacheInterceptor extends Interceptor {
           }
           return;
         } else {
-          logger('Cache expired: ${options.uri.toString()}', tag: 'CacheInterceptor');
+          logger('Cache expired: ${options.uri.toString()}', tag: 'CacheInterceptor', level: InfoLevel.debug);
         }
       }
     }
@@ -102,7 +102,7 @@ class CacheInterceptor extends Interceptor {
         response.statusCode! >= 200 &&
         response.statusCode! < 300) {
       final String cacheKey = _getCacheKey(response.requestOptions.uri);
-      logger('Caching: ${response.requestOptions.uri.toString()}', tag: 'CacheInterceptor');
+      logger('Caching: ${response.requestOptions.uri.toString()}', tag: 'CacheInterceptor', level: InfoLevel.debug);
       await _store.record(cacheKey).put(cacheDb, {
         'data': response.data,
         'statusCode': response.statusCode,
@@ -138,7 +138,7 @@ class CacheInterceptor extends Interceptor {
               ),
             );
           } catch (e) {
-            logger('Error while serving from cache: $e', tag: 'CacheInterceptor');
+            logger('Error while serving from cache: $e', tag: 'CacheInterceptor', level: InfoLevel.debug);
             return handler.next(err);
           }
         } else {
