@@ -1,0 +1,22 @@
+icon: assets/logo_blue_big_abs.svg
+summary: Yet another Audiobookshelf client, built with Flutter.
+group: Application/Emulator
+vendor: Vito0912
+packager: Vito0912
+#packagerEmail:
+license: AGPLv3
+url: https://github.com/fastforgedev/fastforge
+
+display_name: yaabsa
+
+keywords:
+  - ABS
+  - Audiobookshelf
+
+generic_name: Audiobookshelf Client
+
+categories:
+  - ABS
+  - Audiobookshelf
+
+startup_notify: true

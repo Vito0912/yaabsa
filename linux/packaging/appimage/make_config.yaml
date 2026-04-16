@@ -1,0 +1,19 @@
+display_name: yaabsa
+
+icon: assets/logo_blue_big_abs.svg
+
+keywords:
+  - ABS
+  - Audiobookshelf
+
+generic_name: Audiobookshelf Client
+
+actions:
+
+
+categories:
+  - Music
+
+startup_notify: true
+
+include: []

@@ -1,0 +1,31 @@
+output: output/
+releases:
+  - name: linux
+    jobs:
+      - name: release-linux-deb
+        package:
+          platform: linux
+          target: deb
+      - name: release-linux-appimage
+        package:
+          platform: linux
+          target: appimage
+      - name: release-linux-rpm
+        package:
+          platform: linux
+          target: rpm
+      - name: release-linux-bundle
+        package:
+          platform: linux
+          target: zip
+
+  - name: android
+    jobs:
+      - name: release-android-appbundle
+        package:
+          platform: android
+          target: aab
+      - name: release-android-apk
+        package:
+          platform: android
+          target: apk

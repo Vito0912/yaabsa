@@ -74,23 +74,44 @@ jobs:
       - name: Build Linux debug
         run: flutter build linux
 
-      - name: Upload Linux build artifact
+      - name: Install dependencies
+        run: |
+          sudo apt install locate patchelf rpm -y
+          wget -O appimagetool "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage"
+          chmod +x appimagetool
+          mv appimagetool /usr/local/bin/
+
+      - name: Install Fastforge
+        run: |
+          dart pub global activate fastforge
+          export PATH="$PATH":"$HOME/.pub-cache/bin"
+
+      - name: Build and release
+        run: fastforge release --name linux
+
+      - name: Upload Linux deb artifact
         uses: actions/upload-artifact@v7
         with:
-          name: linux-build-debug
-          path: build/linux/x64/release/bundle
+          name: linux-deb
+          path: output/*/*.deb
 
-      - name: remove debug build
-        run: rm -rf build/linux/x64/release/bundle
-
-      - name: Build Linux release
-        run: flutter build linux --release
-
-      - name: Upload Linux release artifact
+      - name: Upload Linux appimage artifact
         uses: actions/upload-artifact@v7
         with:
-          name: linux-build-release
-          path: build/linux/x64/release/bundle
+          name: linux-appimage
+          path: output/*/*.AppImage
+
+      - name: Upload Linux rpm artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: linux-rpm
+          path: output/*/*.rpm
+
+      - name: Upload Linux bundle artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: linux-bundle
+          path: output/*/*.zip
 
   build-android:
     runs-on: ubuntu-latest
@@ -113,20 +134,22 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build Android
-        run: flutter build appbundle
+      - name: Install Fastforge
+        run: |
+          dart pub global activate fastforge
+          export PATH="$PATH":"$HOME/.pub-cache/bin"
 
-      - name: Build APK
-        run: flutter build apk --split-per-abi
+      - name: Build and release
+        run: fastforge release --name linux
 
       - name: Upload Android appbundle artifact
         uses: actions/upload-artifact@v7
         with:
           name: android-appbundle
-          path: build/app/outputs/bundle/release/*.aab
+          path: output/*/*.aab
 
-      - name: Upload Android APK artifact
+      - name: Upload Android apk artifact
         uses: actions/upload-artifact@v7
         with:
           name: android-apk
-          path: build/app/outputs/apk/release/*.apk
+          path: output/*/*.apk

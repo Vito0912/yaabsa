@@ -1,0 +1,22 @@
+display_name: yaabsa
+package_name: yaabsa
+maintainer:
+  name: Vito0912
+#  email: lijy91@foxmail.com
+priority: optional
+section: misc
+installed_size: 40960
+essential: false
+icon: assets/logo_blue_big_abs.svg
+
+keywords:
+  - ABS
+  - Audiobookshelf
+
+generic_name: Audiobookshelf Client
+
+categories:
+  - Music
+  - Media
+
+startup_notify: true
