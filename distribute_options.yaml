@@ -30,3 +30,18 @@ releases:
         package:
           platform: android
           target: apk
+
+  - name: windows
+    jobs:
+      - name: release-windows-msix
+        package:
+          platform: windows
+          target: msix
+      - name: release-windows-exe
+        package:
+          platform: windows
+          target: exe
+      - name: release-windows-bundle
+        package:
+          platform: windows
+          target: zip
