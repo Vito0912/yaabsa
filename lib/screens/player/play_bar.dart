@@ -7,8 +7,16 @@ import 'package:yaabsa/util/globals.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-class PlayBar extends StatelessWidget {
+class PlayBar extends StatefulWidget {
   const PlayBar({super.key});
+
+  @override
+  State<PlayBar> createState() => _PlayBarState();
+}
+
+class _PlayBarState extends State<PlayBar> {
+  bool _isHovered = false;
+  bool _isSeekBarHovered = false;
 
   @override
   Widget build(BuildContext context) {
@@ -21,36 +29,63 @@ class PlayBar extends StatelessWidget {
           return const SizedBox.shrink();
         }
 
+        final colorScheme = Theme.of(context).colorScheme;
+        final baseColor = colorScheme.surface;
+        final hoveredColor = Color.alphaBlend(colorScheme.onSurface.withValues(alpha: 0.06), baseColor);
+
         return SafeArea(
           top: false,
-          child: GestureDetector(
-            onTap: () => context.push('/player'),
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(14),
+              child: InkWell(
+                onTap: () => context.push('/player'),
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.6)),
-              ),
-              child: const Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
+                mouseCursor: SystemMouseCursors.click,
+                onHover: (hovering) {
+                  if (_isHovered == hovering) return;
+                  setState(() => _isHovered = hovering);
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 160),
+                  curve: Curves.easeOut,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: (_isHovered && !_isSeekBarHovered) ? hoveredColor : baseColor,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.6)),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Expanded(child: ChapterText()),
-                      StopButton(),
+                      const Row(
+                        children: [
+                          JumpButton(rewind: true),
+                          ControlButton(),
+                          JumpButton(rewind: false),
+                          SizedBox(width: 6),
+                          Expanded(child: ChapterText()),
+                          StopButton(),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      MouseRegion(
+                        onEnter: (_) {
+                          if (_isSeekBarHovered) return;
+                          setState(() => _isSeekBarHovered = true);
+                        },
+                        onExit: (_) {
+                          if (!_isSeekBarHovered) return;
+                          setState(() => _isSeekBarHovered = false);
+                        },
+                        child: SeekBar(),
+                      ),
                     ],
                   ),
-                  SizedBox(height: 4),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [JumpButton(rewind: true), ControlButton(), JumpButton(rewind: false)],
-                  ),
-                  SizedBox(height: 4),
-                  SeekBar(),
-                ],
+                ),
               ),
             ),
           ),

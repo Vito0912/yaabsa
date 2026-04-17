@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/components/common/cover_placeholder.dart';
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
+import 'package:yaabsa/components/common/scroll_to_top_button.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/common/series_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
@@ -12,11 +14,12 @@ import 'package:yaabsa/util/layout_sizes.dart';
 const int _seriesPrefetchThreshold = 8;
 const int _seriesApproxScrollPastCount = 24;
 
-class SeriesView extends ConsumerWidget {
+class SeriesView extends HookConsumerWidget {
   const SeriesView({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final scrollController = useScrollController();
     final selectedLibrary = ref.watch(selectedLibraryProvider);
 
     if (selectedLibrary == null) {
@@ -54,54 +57,62 @@ class SeriesView extends ConsumerWidget {
               return const Center(child: Text('No series found in this library.'));
             }
 
-            return RefreshIndicator(
-              onRefresh: () => ref.read(seriesProvider(libraryId).notifier).refresh(withLoading: false),
-              child: AlignedGridView.count(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: EdgeInsets.fromLTRB(gridLayout.horizontalPadding, 12, gridLayout.horizontalPadding, 16),
-                crossAxisCount: gridLayout.crossAxisCount,
-                mainAxisSpacing: appGridSpacing,
-                crossAxisSpacing: appGridSpacing,
-                itemCount: estimatedItemCount,
-                itemBuilder: (context, index) {
-                  if (index >= loadedCount - _seriesPrefetchThreshold) {
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      ref.read(currentSeriesProvider.notifier).ensureLoadedForIndex(index);
-                    });
-                  }
+            return Stack(
+              children: [
+                Positioned.fill(
+                  child: RefreshIndicator(
+                    onRefresh: () => ref.read(seriesProvider(libraryId).notifier).refresh(withLoading: false),
+                    child: AlignedGridView.count(
+                      controller: scrollController,
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: EdgeInsets.fromLTRB(gridLayout.horizontalPadding, 12, gridLayout.horizontalPadding, 16),
+                      crossAxisCount: gridLayout.crossAxisCount,
+                      mainAxisSpacing: appGridSpacing,
+                      crossAxisSpacing: appGridSpacing,
+                      itemCount: estimatedItemCount,
+                      itemBuilder: (context, index) {
+                        if (index >= loadedCount - _seriesPrefetchThreshold) {
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            ref.read(currentSeriesProvider.notifier).ensureLoadedForIndex(index);
+                          });
+                        }
 
-                  if (index >= loadedCount) return const _SeriesGridPlaceholderTile();
+                        if (index >= loadedCount) return const _SeriesGridPlaceholderTile();
 
-                  final series = seriesItems[index];
-                  final baseEntry = MultiBookEntryData.fromSeries(series);
-                  final sequence = series.sequence?.trim();
-                  final subtitle = sequence != null && sequence.isNotEmpty
-                      ? baseEntry.totalBookCount > 0
-                            ? 'Series #$sequence • ${baseEntry.totalBookCount} books'
-                            : 'Series #$sequence'
-                      : baseEntry.subtitle;
-                  final seriesEntry = MultiBookEntryData(
-                    id: baseEntry.id,
-                    title: baseEntry.title,
-                    subtitle: subtitle,
-                    bookItemIds: baseEntry.bookItemIds,
-                    totalBooks: baseEntry.totalBooks,
-                  );
+                        final series = seriesItems[index];
+                        final baseEntry = MultiBookEntryData.fromSeries(series);
+                        final sequence = series.sequence?.trim();
+                        final subtitle = sequence != null && sequence.isNotEmpty
+                            ? baseEntry.totalBookCount > 0
+                                  ? 'Series #$sequence • ${baseEntry.totalBookCount} books'
+                                  : 'Series #$sequence'
+                            : baseEntry.subtitle;
+                        final seriesEntry = MultiBookEntryData(
+                          id: baseEntry.id,
+                          title: baseEntry.title,
+                          subtitle: subtitle,
+                          bookItemIds: baseEntry.bookItemIds,
+                          totalBooks: baseEntry.totalBooks,
+                        );
 
-                  return MultiBookEntryWidget(
-                    api: api,
-                    entry: seriesEntry,
-                    compact: constraints.maxWidth < 700,
-                    squareCover: true,
-                    coverHeight: appGridTileWidth,
-                    showSubtitle: true,
-                    maxBooksToShow: defaultMultiBookPreviewLimit,
-                    onTap: () {
-                      context.push('/series/${series.id}', extra: seriesEntry);
-                    },
-                  );
-                },
-              ),
+                        return MultiBookEntryWidget(
+                          api: api,
+                          entry: seriesEntry,
+                          compact: constraints.maxWidth < 700,
+                          squareCover: true,
+                          coverHeight: appGridTileWidth,
+                          showSubtitle: true,
+                          maxBooksToShow: defaultMultiBookPreviewLimit,
+                          onTap: () {
+                            context.push('/series/${series.id}', extra: seriesEntry);
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                ScrollToTopButton(controller: scrollController),
+              ],
             );
           },
         );

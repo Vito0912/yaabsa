@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/api/library_items/series.dart';
 import 'package:yaabsa/components/common/cover_placeholder.dart';
 import 'package:yaabsa/components/common/library_item_widget.dart';
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
+import 'package:yaabsa/components/common/scroll_to_top_button.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/common/series_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
@@ -14,7 +16,7 @@ import 'package:yaabsa/util/layout_sizes.dart';
 const int _seriesBooksPrefetchThreshold = 8;
 const int _seriesBooksApproxScrollPastCount = 24;
 
-class SeriesDetailView extends ConsumerWidget {
+class SeriesDetailView extends HookConsumerWidget {
   const SeriesDetailView({required this.seriesId, super.key, this.initialEntry});
 
   final String seriesId;
@@ -22,6 +24,7 @@ class SeriesDetailView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final scrollController = useScrollController();
     final selectedLibrary = ref.watch(selectedLibraryProvider);
     if (selectedLibrary == null) {
       return const Center(child: Text('No library selected. Please select a library via the switcher.'));
@@ -104,27 +107,41 @@ class SeriesDetailView extends ConsumerWidget {
                   const Expanded(child: Center(child: Text('No books found in this series.')))
                 else
                   Expanded(
-                    child: RefreshIndicator(
-                      onRefresh: () => ref.read(seriesBooksProvider(booksArgs).notifier).refresh(withLoading: false),
-                      child: AlignedGridView.count(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        padding: EdgeInsets.fromLTRB(horizontalPadding, 0, horizontalPadding, 16),
-                        crossAxisCount: gridLayout.crossAxisCount,
-                        mainAxisSpacing: appGridSpacing,
-                        crossAxisSpacing: appGridSpacing,
-                        itemCount: estimatedItemCount,
-                        itemBuilder: (context, index) {
-                          if (index >= loadedCount - _seriesBooksPrefetchThreshold) {
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              ref.read(currentBooksProvider.notifier).ensureLoadedForIndex(index);
-                            });
-                          }
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: RefreshIndicator(
+                            onRefresh: () =>
+                                ref.read(seriesBooksProvider(booksArgs).notifier).refresh(withLoading: false),
+                            child: AlignedGridView.count(
+                              controller: scrollController,
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              padding: EdgeInsets.fromLTRB(horizontalPadding, 0, horizontalPadding, 16),
+                              crossAxisCount: gridLayout.crossAxisCount,
+                              mainAxisSpacing: appGridSpacing,
+                              crossAxisSpacing: appGridSpacing,
+                              itemCount: estimatedItemCount,
+                              itemBuilder: (context, index) {
+                                if (index >= loadedCount - _seriesBooksPrefetchThreshold) {
+                                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                                    ref.read(currentBooksProvider.notifier).ensureLoadedForIndex(index);
+                                  });
+                                }
 
-                          if (index >= loadedCount) return const _SeriesBooksPlaceholderTile();
+                                if (index >= loadedCount) return const _SeriesBooksPlaceholderTile();
 
-                          return LibraryItemWidget(state.items[index], api, showProgress: true, squareCover: true);
-                        },
-                      ),
+                                return LibraryItemWidget(
+                                  state.items[index],
+                                  api,
+                                  showProgress: true,
+                                  squareCover: true,
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                        ScrollToTopButton(controller: scrollController),
+                      ],
                     ),
                   ),
               ],

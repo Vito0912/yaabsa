@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/api/library/search_library.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
+import 'package:yaabsa/components/common/scroll_to_top_button.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/common/library_search_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 
-class SearchView extends ConsumerWidget {
+class SearchView extends HookConsumerWidget {
   const SearchView({required this.query, super.key});
 
   final String query;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final scrollController = useScrollController();
     final selectedLibrary = ref.watch(selectedLibraryProvider);
     if (selectedLibrary == null) {
       return const Center(child: Text('No library selected. Please select a library via the switcher.'));
@@ -40,49 +43,59 @@ class SearchView extends ConsumerWidget {
           return Center(child: Text('No results found for "$query".'));
         }
 
-        return ListView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+        return Stack(
           children: [
-            Text('Search results for "$query"', style: Theme.of(context).textTheme.headlineSmall),
-            const SizedBox(height: 12),
-            if (resultItems.isNotEmpty) _SearchResultItems(items: resultItems),
-            if (searchResult.series?.isNotEmpty ?? false) ...[
-              const SizedBox(height: 20),
-              _TokenSection(
-                title: 'Series',
-                tokens: searchResult.series!.map((series) => '${series.series.name} (${series.books.length})').toList(),
+            Positioned.fill(
+              child: ListView(
+                controller: scrollController,
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+                children: [
+                  Text('Search results for "$query"', style: Theme.of(context).textTheme.headlineSmall),
+                  const SizedBox(height: 12),
+                  if (resultItems.isNotEmpty) _SearchResultItems(items: resultItems),
+                  if (searchResult.series?.isNotEmpty ?? false) ...[
+                    const SizedBox(height: 20),
+                    _TokenSection(
+                      title: 'Series',
+                      tokens: searchResult.series!
+                          .map((series) => '${series.series.name} (${series.books.length})')
+                          .toList(),
+                    ),
+                  ],
+                  if (searchResult.authors?.isNotEmpty ?? false) ...[
+                    const SizedBox(height: 20),
+                    _TokenSection(
+                      title: 'Authors',
+                      tokens: searchResult.authors!.map((author) => '${author.name} (${author.numBooks})').toList(),
+                    ),
+                  ],
+                  if (searchResult.narrators?.isNotEmpty ?? false) ...[
+                    const SizedBox(height: 20),
+                    _TokenSection(
+                      title: 'Narrators',
+                      tokens: searchResult.narrators!
+                          .map((narrator) => '${narrator.name} (${narrator.numItems ?? 0})')
+                          .toList(),
+                    ),
+                  ],
+                  if (searchResult.tags?.isNotEmpty ?? false) ...[
+                    const SizedBox(height: 20),
+                    _TokenSection(
+                      title: 'Tags',
+                      tokens: searchResult.tags!.map((tag) => '${tag.name} (${tag.numItems ?? 0})').toList(),
+                    ),
+                  ],
+                  if (searchResult.genres?.isNotEmpty ?? false) ...[
+                    const SizedBox(height: 20),
+                    _TokenSection(
+                      title: 'Genres',
+                      tokens: searchResult.genres!.map((genre) => '${genre.name} (${genre.numItems ?? 0})').toList(),
+                    ),
+                  ],
+                ],
               ),
-            ],
-            if (searchResult.authors?.isNotEmpty ?? false) ...[
-              const SizedBox(height: 20),
-              _TokenSection(
-                title: 'Authors',
-                tokens: searchResult.authors!.map((author) => '${author.name} (${author.numBooks})').toList(),
-              ),
-            ],
-            if (searchResult.narrators?.isNotEmpty ?? false) ...[
-              const SizedBox(height: 20),
-              _TokenSection(
-                title: 'Narrators',
-                tokens: searchResult.narrators!
-                    .map((narrator) => '${narrator.name} (${narrator.numItems ?? 0})')
-                    .toList(),
-              ),
-            ],
-            if (searchResult.tags?.isNotEmpty ?? false) ...[
-              const SizedBox(height: 20),
-              _TokenSection(
-                title: 'Tags',
-                tokens: searchResult.tags!.map((tag) => '${tag.name} (${tag.numItems ?? 0})').toList(),
-              ),
-            ],
-            if (searchResult.genres?.isNotEmpty ?? false) ...[
-              const SizedBox(height: 20),
-              _TokenSection(
-                title: 'Genres',
-                tokens: searchResult.genres!.map((genre) => '${genre.name} (${genre.numItems ?? 0})').toList(),
-              ),
-            ],
+            ),
+            ScrollToTopButton(controller: scrollController),
           ],
         );
       },

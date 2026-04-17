@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/components/common/cover_placeholder.dart';
 import 'package:yaabsa/components/common/library_item_widget.dart';
+import 'package:yaabsa/components/common/scroll_to_top_button.dart';
 import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
@@ -11,11 +13,12 @@ import 'package:yaabsa/util/layout_sizes.dart';
 const int _libraryPrefetchThreshold = 8;
 const int _libraryApproxScrollPastCount = 24;
 
-class LibraryView extends ConsumerWidget {
+class LibraryView extends HookConsumerWidget {
   const LibraryView({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final scrollController = useScrollController();
     final selectedLibrary = ref.watch(selectedLibraryProvider);
     if (selectedLibrary == null) {
       return const Center(child: Text('No library selected. Please select a library via the switcher.'));
@@ -47,24 +50,32 @@ class LibraryView extends ConsumerWidget {
               hasNextPage: state.hasNextPage,
             );
 
-            return AlignedGridView.count(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: EdgeInsets.fromLTRB(gridLayout.horizontalPadding, 8, gridLayout.horizontalPadding, 16),
-              crossAxisCount: gridLayout.crossAxisCount,
-              mainAxisSpacing: appGridSpacing,
-              crossAxisSpacing: appGridSpacing,
-              itemCount: estimatedItemCount,
-              itemBuilder: (context, index) {
-                if (index >= loadedCount - _libraryPrefetchThreshold) {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    ref.read(itemsProvider.notifier).ensureLoadedForIndex(index);
-                  });
-                }
+            return Stack(
+              children: [
+                Positioned.fill(
+                  child: AlignedGridView.count(
+                    controller: scrollController,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.fromLTRB(gridLayout.horizontalPadding, 8, gridLayout.horizontalPadding, 16),
+                    crossAxisCount: gridLayout.crossAxisCount,
+                    mainAxisSpacing: appGridSpacing,
+                    crossAxisSpacing: appGridSpacing,
+                    itemCount: estimatedItemCount,
+                    itemBuilder: (context, index) {
+                      if (index >= loadedCount - _libraryPrefetchThreshold) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          ref.read(itemsProvider.notifier).ensureLoadedForIndex(index);
+                        });
+                      }
 
-                if (index >= loadedCount) return const _LibraryGridPlaceholderTile();
+                      if (index >= loadedCount) return const _LibraryGridPlaceholderTile();
 
-                return LibraryItemWidget(items[index], api, showProgress: true, squareCover: true);
-              },
+                      return LibraryItemWidget(items[index], api, showProgress: true, squareCover: true);
+                    },
+                  ),
+                ),
+                ScrollToTopButton(controller: scrollController),
+              ],
             );
           },
         );

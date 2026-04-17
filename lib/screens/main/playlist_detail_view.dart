@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
@@ -7,12 +8,13 @@ import 'package:yaabsa/api/list/playlist.dart';
 import 'package:yaabsa/api/list/playlist_item.dart';
 import 'package:yaabsa/components/common/library_item_widget.dart';
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
+import 'package:yaabsa/components/common/scroll_to_top_button.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/common/playlist_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
 
-class PlaylistDetailView extends ConsumerWidget {
+class PlaylistDetailView extends HookConsumerWidget {
   const PlaylistDetailView({required this.playlistId, super.key, this.initialEntry});
 
   final String playlistId;
@@ -20,6 +22,7 @@ class PlaylistDetailView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final scrollController = useScrollController();
     final selectedLibrary = ref.watch(selectedLibraryProvider);
     if (selectedLibrary == null) {
       return const Center(child: Text('No library selected. Please select a library via the switcher.'));
@@ -105,19 +108,27 @@ class PlaylistDetailView extends ConsumerWidget {
               const Expanded(child: Center(child: Text('No library items found in this playlist.')))
             else
               Expanded(
-                child: RefreshIndicator(
-                  onRefresh: () => ref.read(playlistsProvider(libraryId).notifier).refresh(withLoading: false),
-                  child: AlignedGridView.count(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    padding: EdgeInsets.fromLTRB(horizontalPadding, 0, horizontalPadding, 16),
-                    crossAxisCount: gridLayout.crossAxisCount,
-                    mainAxisSpacing: appGridSpacing,
-                    crossAxisSpacing: appGridSpacing,
-                    itemCount: libraryItems.length,
-                    itemBuilder: (context, index) {
-                      return LibraryItemWidget(libraryItems[index], api, showProgress: true, squareCover: true);
-                    },
-                  ),
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: RefreshIndicator(
+                        onRefresh: () => ref.read(playlistsProvider(libraryId).notifier).refresh(withLoading: false),
+                        child: AlignedGridView.count(
+                          controller: scrollController,
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: EdgeInsets.fromLTRB(horizontalPadding, 0, horizontalPadding, 16),
+                          crossAxisCount: gridLayout.crossAxisCount,
+                          mainAxisSpacing: appGridSpacing,
+                          crossAxisSpacing: appGridSpacing,
+                          itemCount: libraryItems.length,
+                          itemBuilder: (context, index) {
+                            return LibraryItemWidget(libraryItems[index], api, showProgress: true, squareCover: true);
+                          },
+                        ),
+                      ),
+                    ),
+                    ScrollToTopButton(controller: scrollController),
+                  ],
                 ),
               ),
           ],

@@ -4,17 +4,20 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/handler/player_history_handler.dart';
+import 'package:yaabsa/components/common/scroll_to_top_button.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 
-class PlayHistoryView extends ConsumerWidget {
+class PlayHistoryView extends HookConsumerWidget {
   const PlayHistoryView({super.key});
 
   static const routeName = '/play-history';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final scrollController = useScrollController();
     final db = ref.watch(appDatabaseProvider);
     final User? user = ref.read(currentUserProvider).value;
 
@@ -83,13 +86,21 @@ class PlayHistoryView extends ConsumerWidget {
           final history = snapshot.data!;
           final groupedHistory = _groupHistoryByDate(history);
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(8.0),
-            itemCount: groupedHistory.length,
-            itemBuilder: (context, index) {
-              final dateGroup = groupedHistory[index];
-              return _buildDateGroup(context, dateGroup);
-            },
+          return Stack(
+            children: [
+              Positioned.fill(
+                child: ListView.builder(
+                  controller: scrollController,
+                  padding: const EdgeInsets.all(8.0),
+                  itemCount: groupedHistory.length,
+                  itemBuilder: (context, index) {
+                    final dateGroup = groupedHistory[index];
+                    return _buildDateGroup(context, dateGroup);
+                  },
+                ),
+              ),
+              ScrollToTopButton(controller: scrollController),
+            ],
           );
         },
       ),
@@ -156,7 +167,7 @@ class PlayHistoryView extends ConsumerWidget {
 
     return ListTile(
       leading: CircleAvatar(
-        backgroundColor: color.withOpacity(0.2),
+        backgroundColor: color.withValues(alpha: 0.2),
         child: Icon(icon, color: color, size: 20),
       ),
       title: Row(

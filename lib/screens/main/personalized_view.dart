@@ -10,15 +10,18 @@ import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/library/personalized_library_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
+import 'package:yaabsa/components/common/scroll_to_top_button.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-class PersonalizedView extends ConsumerWidget {
+class PersonalizedView extends HookConsumerWidget {
   const PersonalizedView({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final scrollController = useScrollController();
     final selectedLibrary = ref.watch(selectedLibraryProvider);
 
     if (selectedLibrary == null) {
@@ -53,25 +56,38 @@ class PersonalizedView extends ConsumerWidget {
             final verticalPadding = width >= 1200 ? 22.0 : 14.0;
             final libraryTileWidth = appGridTileWidth;
 
-            return RefreshIndicator(
-              onRefresh: () => ref
-                  .read(personalizedLibraryProvider(selectedLibrary.id).notifier)
-                  .refresh(selectedLibrary.id, withLoading: false),
-              child: ListView.separated(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: EdgeInsets.fromLTRB(horizontalPadding, verticalPadding, horizontalPadding, verticalPadding),
-                itemCount: sections.length,
-                separatorBuilder: (context, index) => const SizedBox(height: 12),
-                itemBuilder: (context, index) {
-                  final section = sections[index];
-                  return _SectionRow(
-                    section: section,
-                    api: api,
-                    libraryTileWidth: libraryTileWidth,
-                    viewportWidth: width,
-                  );
-                },
-              ),
+            return Stack(
+              children: [
+                Positioned.fill(
+                  child: RefreshIndicator(
+                    onRefresh: () => ref
+                        .read(personalizedLibraryProvider(selectedLibrary.id).notifier)
+                        .refresh(selectedLibrary.id, withLoading: false),
+                    child: ListView.separated(
+                      controller: scrollController,
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: EdgeInsets.fromLTRB(
+                        horizontalPadding,
+                        verticalPadding,
+                        horizontalPadding,
+                        verticalPadding,
+                      ),
+                      itemCount: sections.length,
+                      separatorBuilder: (context, index) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final section = sections[index];
+                        return _SectionRow(
+                          section: section,
+                          api: api,
+                          libraryTileWidth: libraryTileWidth,
+                          viewportWidth: width,
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                ScrollToTopButton(controller: scrollController),
+              ],
             );
           },
         );
