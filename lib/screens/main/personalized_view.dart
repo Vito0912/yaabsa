@@ -31,6 +31,8 @@ class PersonalizedView extends HookConsumerWidget {
     final personalizedLibraryAsyncValue = ref.watch(personalizedLibraryProvider(selectedLibrary.id));
 
     return personalizedLibraryAsyncValue.when(
+      skipLoadingOnRefresh: true,
+      skipLoadingOnReload: true,
       data: (personalizedLibrary) {
         if (personalizedLibrary == null) {
           return const Center(child: Text('No personalized items found.'));

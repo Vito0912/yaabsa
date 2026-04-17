@@ -31,6 +31,8 @@ class PlaylistView extends HookConsumerWidget {
     final playlistStateAsync = ref.watch(playlistsProvider(libraryId));
 
     return playlistStateAsync.when(
+      skipLoadingOnRefresh: true,
+      skipLoadingOnReload: true,
       data: (state) {
         final playlists = state.items;
         if (playlists.isEmpty) {

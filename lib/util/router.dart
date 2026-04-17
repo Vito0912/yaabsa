@@ -21,38 +21,46 @@ import 'package:yaabsa/util/globals.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-class _GoRouterRefreshStream extends ChangeNotifier {
-  _GoRouterRefreshStream(Stream<dynamic> stream) {
-    notifyListener = () => notifyListeners();
-    _subscription = stream.asBroadcastStream().listen((_) => notifyListener());
-  }
-
-  late final VoidCallback notifyListener;
-  late final StreamSubscription<dynamic> _subscription;
-
-  @override
-  void dispose() {
-    _subscription.cancel();
-    super.dispose();
-  }
-}
+const String _bootRoutePath = '/boot';
 
 class _ActiveUserIdNotifier extends ChangeNotifier {
-  _ActiveUserIdNotifier() {
-    final db = containerRef.read(appDatabaseProvider);
-    _subscription = db.watchGlobalSetting('activeUserId').listen((setting) {
-      final next = setting?.value;
-      if (_activeUserId != next) {
-        _activeUserId = next;
-        notifyListeners();
-      }
+  _ActiveUserIdNotifier() : _db = containerRef.read(appDatabaseProvider) {
+    _subscription = _db.watchGlobalSetting('activeUserId').listen((setting) {
+      _updateState(setting?.value, initialized: true);
     });
+    unawaited(_loadInitialValue());
   }
 
+  final AppDatabase _db;
   late final StreamSubscription<dynamic> _subscription;
   String? _activeUserId;
+  bool _isInitialized = false;
 
   String? get activeUserId => _activeUserId;
+  bool get isInitialized => _isInitialized;
+
+  Future<void> _loadInitialValue() async {
+    if (_isInitialized) {
+      return;
+    }
+
+    final initialUserId = (await _db.getGlobalSetting('activeUserId'))?.value;
+    if (_isInitialized) {
+      return;
+    }
+
+    _updateState(initialUserId, initialized: true);
+  }
+
+  void _updateState(String? nextUserId, {required bool initialized}) {
+    final changed = _activeUserId != nextUserId || _isInitialized != initialized;
+    _activeUserId = nextUserId;
+    _isInitialized = initialized;
+
+    if (changed) {
+      notifyListeners();
+    }
+  }
 
   @override
   void dispose() {
@@ -65,21 +73,32 @@ final _activeUserIdNotifier = _ActiveUserIdNotifier();
 
 final globalRouter = GoRouter(
   initialLocation: '/',
-  refreshListenable: Listenable.merge([
-    _activeUserIdNotifier,
-    _GoRouterRefreshStream(containerRef.read(appDatabaseProvider).watchGlobalSetting('activeUserId')),
-  ]),
+  refreshListenable: _activeUserIdNotifier,
   redirect: (context, state) {
     final activeUserId = _activeUserIdNotifier.activeUserId;
+    final isBootRoute = state.matchedLocation == _bootRoutePath;
     final isLoginRoute = state.matchedLocation == '/add-user';
+
+    if (!_activeUserIdNotifier.isInitialized) {
+      return isBootRoute ? null : _bootRoutePath;
+    }
+
+    if (isBootRoute) {
+      return activeUserId == null ? '/add-user' : '/';
+    }
 
     if (activeUserId == null && !isLoginRoute) {
       return '/add-user';
     }
 
+    if (activeUserId != null && isLoginRoute) {
+      return '/';
+    }
+
     return null;
   },
   routes: [
+    GoRoute(path: _bootRoutePath, builder: (context, state) => const _AppStartupScreen()),
     GoRoute(path: '/add-user', builder: (context, state) => SignIn()),
     GoRoute(path: '/player', builder: (context, state) => Player()),
     GoRoute(
@@ -140,9 +159,20 @@ final globalRouter = GoRouter(
             ),
           ],
         ),
-
-        // TODO: For big player (to not have the smaller player in the bottom)
       ],
     ),
   ],
 );
+
+class _AppStartupScreen extends StatelessWidget {
+  const _AppStartupScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: Center(child: const SizedBox(width: 28, height: 28, child: CircularProgressIndicator(strokeWidth: 2.6))),
+      ),
+    );
+  }
+}

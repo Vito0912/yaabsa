@@ -55,6 +55,8 @@ class SeriesDetailView extends HookConsumerWidget {
     final booksStateAsync = ref.watch(currentBooksProvider);
 
     return booksStateAsync.when(
+      skipLoadingOnRefresh: true,
+      skipLoadingOnReload: true,
       data: (state) {
         return LayoutBuilder(
           builder: (context, constraints) {

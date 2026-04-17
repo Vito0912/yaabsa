@@ -14,9 +14,12 @@ import 'package:yaabsa/screens/main/search_view.dart';
 import 'package:yaabsa/screens/main/series_view.dart';
 import 'package:yaabsa/screens/player/play_bar.dart';
 import 'package:yaabsa/screens/settings/settings_screen.dart';
+import 'package:yaabsa/provider/common/library_provider.dart';
+import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 enum _PageSource { internal, child }
 
@@ -35,18 +38,19 @@ class PlaceholderPage extends StatelessWidget {
   }
 }
 
-class LayoutHome extends StatefulWidget {
+class LayoutHome extends ConsumerStatefulWidget {
   const LayoutHome({super.key, this.child});
 
   final Widget? child;
 
   @override
-  State<LayoutHome> createState() => _LayoutHomeState();
+  ConsumerState<LayoutHome> createState() => _LayoutHomeState();
 }
 
-class _LayoutHomeState extends State<LayoutHome> {
+class _LayoutHomeState extends ConsumerState<LayoutHome> {
   int _selectedIndex = 0;
   _PageSource _currentlyDisplayedPageSource = _PageSource.internal;
+  String? _bootstrappedUserId;
   final TextEditingController _searchController = TextEditingController();
   Timer? _searchDebounce;
   String _searchQuery = '';
@@ -183,8 +187,57 @@ class _LayoutHomeState extends State<LayoutHome> {
     );
   }
 
+  bool _isBootstrapping() {
+    final currentUserAsync = ref.watch(currentUserProvider);
+    if (currentUserAsync.isLoading && !currentUserAsync.hasValue) {
+      return true;
+    }
+
+    if (currentUserAsync.hasError) {
+      return false;
+    }
+
+    final currentUser = currentUserAsync.value;
+    if (currentUser == null) {
+      _bootstrappedUserId = null;
+      return false;
+    }
+
+    final userId = currentUser.id;
+    if (_bootstrappedUserId == userId) {
+      return false;
+    }
+
+    final librariesAsync = ref.watch(userLibrariesProvider);
+    final selectedLibraryIdAsync = ref.watch(selectedLibraryIdProvider);
+
+    if (librariesAsync.hasError || selectedLibraryIdAsync.hasError) {
+      _bootstrappedUserId = userId;
+      return false;
+    }
+
+    if ((librariesAsync.isLoading && !librariesAsync.hasValue) ||
+        (selectedLibraryIdAsync.isLoading && !selectedLibraryIdAsync.hasValue)) {
+      return true;
+    }
+
+    final libraries = librariesAsync.value ?? const [];
+    final selectedLibraryId = selectedLibraryIdAsync.value;
+
+    if (libraries.isNotEmpty && selectedLibraryId == null) {
+      return true;
+    }
+
+    _bootstrappedUserId = userId;
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_isBootstrapping()) {
+      return const _LayoutHomeStartupScreen();
+    }
+
     final bool isMobile = context.isMobile;
     final bool isTablet = context.isTablet;
     final bool canExpandSidebar = !isMobile;
@@ -290,6 +343,19 @@ class _LayoutHomeState extends State<LayoutHome> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _LayoutHomeStartupScreen extends StatelessWidget {
+  const _LayoutHomeStartupScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: Center(child: const SizedBox(width: 28, height: 28, child: CircularProgressIndicator(strokeWidth: 2.6))),
       ),
     );
   }

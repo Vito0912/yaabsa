@@ -40,6 +40,8 @@ class SeriesView extends HookConsumerWidget {
     final seriesStateAsync = ref.watch(currentSeriesProvider);
 
     return seriesStateAsync.when(
+      skipLoadingOnRefresh: true,
+      skipLoadingOnReload: true,
       data: (state) {
         final seriesItems = state.items;
 

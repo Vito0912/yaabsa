@@ -25,6 +25,8 @@ class SearchView extends HookConsumerWidget {
     final searchAsync = ref.watch(librarySearchProvider(query));
 
     return searchAsync.when(
+      skipLoadingOnRefresh: true,
+      skipLoadingOnReload: true,
       data: (searchResult) {
         if (searchResult == null) {
           return const Center(child: Text('No results found.'));

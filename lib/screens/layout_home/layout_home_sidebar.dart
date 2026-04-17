@@ -27,7 +27,7 @@ class LayoutHomeSidebar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       elevation: 2.0,
-      color: Theme.of(context).colorScheme.surface,
+      color: Theme.of(context).colorScheme.surfaceContainer,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         curve: Curves.easeOut,

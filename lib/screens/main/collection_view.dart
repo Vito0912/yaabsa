@@ -31,6 +31,8 @@ class CollectionView extends HookConsumerWidget {
     final collectionStateAsync = ref.watch(collectionsProvider(libraryId));
 
     return collectionStateAsync.when(
+      skipLoadingOnRefresh: true,
+      skipLoadingOnReload: true,
       data: (state) {
         final collections = state.items;
         if (collections.isEmpty) {

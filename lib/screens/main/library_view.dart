@@ -33,6 +33,8 @@ class LibraryView extends HookConsumerWidget {
     }
 
     return libraryItemsStateAsync.when(
+      skipLoadingOnRefresh: true,
+      skipLoadingOnReload: true,
       data: (state) {
         final items = state.items;
 

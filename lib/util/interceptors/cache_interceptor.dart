@@ -12,7 +12,7 @@ class CacheInterceptor extends Interceptor {
   final List<RoutePattern> _cacheableRoutes = [
     RoutePattern('/api/libraries', const Duration(days: 7)),
     RoutePattern('/api/libraries/{uuidv4}', const Duration(days: 7)),
-    RoutePattern('/api/libraries/{uuidv4}/personalized', const Duration(days: 7)),
+    // RoutePattern('/api/libraries/{uuidv4}/personalized', const Duration(days: 7)),
     RoutePattern('/api/libraries/{uuidv4}/items', const Duration(days: 7)),
     RoutePattern('/api/items/{uuidv4}', const Duration(days: 7)),
     RoutePattern('/api/items/{uuidv4}/{uuidv4}', const Duration(days: 7)),
