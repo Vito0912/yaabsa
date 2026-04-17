@@ -138,7 +138,17 @@ class SettingsManager extends _$SettingsManager {
 
   Future<void> setGlobalSetting<T>(String key, T value) async {
     final db = ref.read(appDatabaseProvider);
-    await db.setGlobalSetting(key, SettingsParser.encodeValue(value));
+    final cache = ref.read(settingsCacheProvider);
+    final encodedValue = SettingsParser.encodeValue(value);
+
+    cache.set<String>(key, encodedValue);
+
+    try {
+      await db.setGlobalSetting(key, encodedValue);
+    } catch (e) {
+      logger('Failed to persist global setting "$key": $e', tag: 'SettingsManager', level: InfoLevel.error);
+      rethrow;
+    }
   }
 
   T getUserSetting<T>(String? userId, String key, {T? defaultValue}) {
@@ -155,6 +165,30 @@ class SettingsManager extends _$SettingsManager {
     final stringValue = cache.get<String>(userId, key);
     final T tmpDefault = (defaultValue ?? defaultSettings[key]) as T;
     return SettingsParser.decodeValue<T>(stringValue, tmpDefault);
+  }
+
+  Future<void> setUserSetting<T>(String? userId, String key, T value) async {
+    if (userId == null) {
+      logger('setUserSetting called with null userId for key: $key', tag: 'SettingsManager', level: InfoLevel.warning);
+      return;
+    }
+
+    final db = ref.read(appDatabaseProvider);
+    final cache = ref.read(settingsCacheProvider);
+    final encodedValue = SettingsParser.encodeValue(value);
+
+    cache.set<String>(userId, encodedValue, key);
+
+    try {
+      await db.setUserSetting(userId, key, encodedValue);
+    } catch (e) {
+      logger(
+        'Failed to persist user setting "$key" for user "$userId": $e',
+        tag: 'SettingsManager',
+        level: InfoLevel.error,
+      );
+      rethrow;
+    }
   }
 
   bool get isInitialized => ref.read(settingsCacheProvider).isInitialized;

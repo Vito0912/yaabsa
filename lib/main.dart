@@ -35,8 +35,8 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.watch(globalSettingByKeyProvider(SettingKeys.appThemeMode));
-    final appTheme = ref.read(settingsManagerProvider.notifier).getGlobalSetting<String>(SettingKeys.appThemeMode);
+    final appThemeSetting = ref.watch(globalSettingByKeyProvider(SettingKeys.appThemeMode)).asData?.value;
+    final appTheme = appThemeSetting ?? (defaultSettings[SettingKeys.appThemeMode] as String);
 
     return MaterialApp.router(
       routerConfig: globalRouter,

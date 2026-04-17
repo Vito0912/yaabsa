@@ -8,11 +8,13 @@ import 'package:yaabsa/components/player/common/speed_slider.dart';
 import 'package:yaabsa/components/player/common/stop_button.dart';
 import 'package:yaabsa/components/player/common/volume_slider.dart';
 import 'package:yaabsa/components/common/cover_placeholder.dart';
+import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/player/chapter.dart';
 import 'package:yaabsa/screens/player/play_history_view.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/setting_key.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -51,6 +53,17 @@ class Player extends StatelessWidget {
               context.push(PlayHistoryView.routeName);
             },
             tooltip: 'Play History',
+          ),
+          IconButton(
+            icon: const Icon(Icons.tune),
+            onPressed: () {
+              showModalBottomSheet<void>(
+                context: context,
+                showDragHandle: true,
+                builder: (context) => const _PlayerQuickSettingsSheet(),
+              );
+            },
+            tooltip: 'Quick Settings',
           ),
           StopButton(),
         ],
@@ -436,6 +449,54 @@ class _CarPlayPauseControl extends StatelessWidget {
           style: IconButton.styleFrom(minimumSize: const Size(116, 116)),
         );
       },
+    );
+  }
+}
+
+class _PlayerQuickSettingsSheet extends ConsumerWidget {
+  const _PlayerQuickSettingsSheet();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final modeValue = ref.watch(globalSettingByKeyProvider(SettingKeys.playerSeekBarMode)).asData?.value;
+    final selectedMode = PlayerSeekBarMode.fromSettingValue(modeValue);
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Quick Player Settings', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 4),
+            Text(
+              'Timeline mode',
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: PlayerSeekBarMode.values.map((mode) {
+                final selected = mode == selectedMode;
+                return ChoiceChip(
+                  label: Text(mode.label),
+                  selected: selected,
+                  onSelected: (value) {
+                    if (!value) return;
+                    ref
+                        .read(settingsManagerProvider.notifier)
+                        .setGlobalSetting<String>(SettingKeys.playerSeekBarMode, mode.name);
+                  },
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

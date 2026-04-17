@@ -31,6 +31,7 @@ class SettingKeys {
 
   static const String playbackSpeed = 'playback_speed';
   static const String volume = 'volume';
+  static const String playerSeekBarMode = 'player_seek_bar_mode';
 }
 
 final defaultSettings = {
@@ -61,6 +62,33 @@ final defaultSettings = {
 
   SettingKeys.playbackSpeed: 1.0,
   SettingKeys.volume: 1.0,
+  SettingKeys.playerSeekBarMode: PlayerSeekBarMode.full.name,
 };
 
 enum AppThemeMode { light, dark, system }
+
+enum PlayerSeekBarMode {
+  chapter,
+  full,
+  both;
+
+  static PlayerSeekBarMode fromSettingValue(String? value) {
+    for (final mode in PlayerSeekBarMode.values) {
+      if (mode.name == value) {
+        return mode;
+      }
+    }
+    return PlayerSeekBarMode.full;
+  }
+
+  String get label {
+    switch (this) {
+      case PlayerSeekBarMode.chapter:
+        return 'Chapter';
+      case PlayerSeekBarMode.full:
+        return 'Full';
+      case PlayerSeekBarMode.both:
+        return 'Both';
+    }
+  }
+}

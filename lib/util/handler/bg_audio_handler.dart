@@ -247,14 +247,19 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     return Future.value();
   }
 
-  // TODO: Settings
-  static const Duration skipTime = Duration(seconds: 10);
   static const bool headphoneSkip =
       true; // Later should determine if the skip button just fasts forward or skips chapters
+
+  Duration _skipDurationForKey(String key) {
+    final configuredSeconds = _ref.read(settingsManagerProvider.notifier).getGlobalSetting<int>(key);
+    final safeSeconds = configuredSeconds < 1 ? 1 : configuredSeconds;
+    return Duration(seconds: safeSeconds);
+  }
 
   @override
   Future<void> fastForward() async {
     if (_currentMediaItem == null) return Future.value();
+    final skipTime = _skipDurationForKey(SettingKeys.fastForwardInterval);
     final newPosition = position + skipTime;
     seek(newPosition);
     return Future.value();
@@ -263,6 +268,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   @override
   Future<void> rewind() async {
     if (_currentMediaItem == null) return Future.value();
+    final skipTime = _skipDurationForKey(SettingKeys.rewindInterval);
     final newPosition = position - skipTime;
     if (newPosition < Duration.zero) {
       logger('Rewind position is negative, resetting to zero', tag: 'AudioHandler', level: InfoLevel.debug);
