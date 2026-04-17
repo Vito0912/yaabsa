@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:yaabsa/components/common/cover_placeholder.dart';
+import 'package:yaabsa/components/common/cover_loading_placeholder.dart';
 import 'package:yaabsa/components/common/library_item_widget.dart';
 import 'package:yaabsa/components/common/scroll_to_top_button.dart';
 import 'package:yaabsa/provider/common/library_item_provider.dart';
@@ -109,7 +109,7 @@ class _LibraryGridPlaceholderTile extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const AspectRatio(aspectRatio: 1, child: CoverPlaceholder(borderRadius: 16)),
+          const AspectRatio(aspectRatio: 1, child: CoverLoadingPlaceholder(borderRadius: 16)),
           const SizedBox(height: 8),
           Container(
             width: double.infinity,

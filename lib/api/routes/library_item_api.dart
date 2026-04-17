@@ -2,6 +2,7 @@ import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/library_items/playback_session.dart';
 import 'package:yaabsa/api/library_items/request/play_library_item_request.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
+import 'package:yaabsa/components/common/cover_loading_placeholder.dart';
 import 'package:yaabsa/components/common/cover_placeholder.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
@@ -68,7 +69,9 @@ class LibraryItemApi {
       width: width,
       height: height,
       fit: BoxFit.cover,
-      placeholder: (context, url) => const CoverPlaceholder(),
+      fadeInDuration: const Duration(milliseconds: 120),
+      fadeOutDuration: const Duration(milliseconds: 70),
+      placeholder: (context, url) => const CoverLoadingPlaceholder(),
       errorWidget: (context, url, error) => const CoverPlaceholder(),
     );
   }

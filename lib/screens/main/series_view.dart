@@ -3,7 +3,7 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:yaabsa/components/common/cover_placeholder.dart';
+import 'package:yaabsa/components/common/cover_loading_placeholder.dart';
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
 import 'package:yaabsa/components/common/scroll_to_top_button.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
@@ -141,7 +141,11 @@ class _SeriesGridPlaceholderTile extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(width: double.infinity, height: appGridTileWidth, child: CoverPlaceholder(borderRadius: 14)),
+          const SizedBox(
+            width: double.infinity,
+            height: appGridTileWidth,
+            child: CoverLoadingPlaceholder(borderRadius: 14),
+          ),
           const SizedBox(height: 8),
           Container(
             width: double.infinity,

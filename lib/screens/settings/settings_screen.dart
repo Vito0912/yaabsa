@@ -409,101 +409,107 @@ class MainSettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 700),
-        child: ListView(
-          padding: const EdgeInsets.only(bottom: 24),
-          children: <Widget>[
-            _buildUserManagementSection(context, ref),
-            _buildSectionTitle(context, 'Application Settings'),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(16.0),
-                child: Column(
-                  children: [
-                    _buildSettingsCardTile(
-                      context: context,
-                      icon: Icons.palette_outlined,
-                      title: 'Appearance',
-                      onTap: () => context.push(AppearanceSettings.routeName),
-                      isFirstInCard: true,
+    return ListView(
+      padding: const EdgeInsets.only(bottom: 24),
+      children: <Widget>[
+        Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 700),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildUserManagementSection(context, ref),
+                _buildSectionTitle(context, 'Application Settings'),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16.0),
+                    child: Column(
+                      children: [
+                        _buildSettingsCardTile(
+                          context: context,
+                          icon: Icons.palette_outlined,
+                          title: 'Appearance',
+                          onTap: () => context.push(AppearanceSettings.routeName),
+                          isFirstInCard: true,
+                        ),
+                        _buildDivider(isWithinCard: true),
+                        _buildSettingsCardTile(
+                          context: context,
+                          icon: Icons.play_circle_outline_outlined,
+                          title: 'Global Player',
+                          onTap: () => context.push(GlobalPlayerSettings.routeName),
+                        ),
+                        _buildDivider(isWithinCard: true),
+                        _buildSettingsCardTile(
+                          context: context,
+                          icon: Icons.library_books_outlined,
+                          title: 'Library Behaviour',
+                          onTap: () => context.push(LibrarySettings.routeName),
+                        ),
+                        _buildDivider(isWithinCard: true),
+                        _buildSettingsCardTile(
+                          context: context,
+                          icon: Icons.cached_outlined,
+                          title: 'Caching',
+                          onTap: () => context.push(CachingSettings.routeName),
+                          isLastInCard: true,
+                        ),
+                      ],
                     ),
-                    _buildDivider(isWithinCard: true),
-                    _buildSettingsCardTile(
-                      context: context,
-                      icon: Icons.play_circle_outline_outlined,
-                      title: 'Global Player',
-                      onTap: () => context.push(GlobalPlayerSettings.routeName),
-                    ),
-                    _buildDivider(isWithinCard: true),
-                    _buildSettingsCardTile(
-                      context: context,
-                      icon: Icons.library_books_outlined,
-                      title: 'Library Behaviour',
-                      onTap: () => context.push(LibrarySettings.routeName),
-                    ),
-                    _buildDivider(isWithinCard: true),
-                    _buildSettingsCardTile(
-                      context: context,
-                      icon: Icons.cached_outlined,
-                      title: 'Caching',
-                      onTap: () => context.push(CachingSettings.routeName),
-                      isLastInCard: true,
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-            _buildSectionTitle(context, 'About & Support'),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(16.0),
-                child: Column(
-                  children: [
-                    _buildSettingsCardTile(
-                      context: context,
-                      icon: Icons.code_rounded,
-                      title: 'View on GitHub',
-                      onTap: () => ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(const SnackBar(content: Text('Navigate to View on GitHub'))),
-                      isFirstInCard: true,
+                _buildSectionTitle(context, 'About & Support'),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16.0),
+                    child: Column(
+                      children: [
+                        _buildSettingsCardTile(
+                          context: context,
+                          icon: Icons.code_rounded,
+                          title: 'View on GitHub',
+                          onTap: () => ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(const SnackBar(content: Text('Navigate to View on GitHub'))),
+                          isFirstInCard: true,
+                        ),
+                        _buildDivider(isWithinCard: true),
+                        _buildSettingsCardTile(
+                          context: context,
+                          icon: Icons.bug_report_outlined,
+                          title: 'Report an Issue',
+                          onTap: () => ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(const SnackBar(content: Text('Navigate to Report an Issue'))),
+                        ),
+                        _buildDivider(isWithinCard: true),
+                        _buildSettingsCardTile(
+                          context: context,
+                          icon: Icons.article_outlined,
+                          title: 'Logs',
+                          onTap: () =>
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => const LogView())),
+                        ),
+                        _buildDivider(isWithinCard: true),
+                        _buildSettingsCardTile(
+                          context: context,
+                          icon: Icons.info_outline_rounded,
+                          title: 'Information & Attribution',
+                          subtitle: 'Licenses, App version, licenses, etc.',
+                          onTap: () => LicenseSettings.showLicensePage(context: context),
+                          isLastInCard: true,
+                        ),
+                      ],
                     ),
-                    _buildDivider(isWithinCard: true),
-                    _buildSettingsCardTile(
-                      context: context,
-                      icon: Icons.bug_report_outlined,
-                      title: 'Report an Issue',
-                      onTap: () => ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(const SnackBar(content: Text('Navigate to Report an Issue'))),
-                    ),
-                    _buildDivider(isWithinCard: true),
-                    _buildSettingsCardTile(
-                      context: context,
-                      icon: Icons.article_outlined,
-                      title: 'Logs',
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const LogView())),
-                    ),
-                    _buildDivider(isWithinCard: true),
-                    _buildSettingsCardTile(
-                      context: context,
-                      icon: Icons.info_outline_rounded,
-                      title: 'Information & Attribution',
-                      subtitle: 'Licenses, App version, licenses, etc.',
-                      onTap: () => LicenseSettings.showLicensePage(context: context),
-                      isLastInCard: true,
-                    ),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 }

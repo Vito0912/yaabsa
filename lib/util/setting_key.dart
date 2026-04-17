@@ -8,6 +8,7 @@ class SettingKeys {
   static const String bufferSize = 'buffer_size';
   static const String lockMediaNotification = 'lock_media_notification';
   static const String language = 'language';
+  static const String sidebarCollapsed = 'sidebar_collapsed';
 
   // User-Specific Settings
   static const String syncInterval = 'sync_interval';
@@ -39,6 +40,7 @@ final defaultSettings = {
   SettingKeys.bufferSize: 5 * 1024 * 1024,
   SettingKeys.lockMediaNotification: false,
   SettingKeys.language: 'en-US',
+  SettingKeys.sidebarCollapsed: false,
 
   SettingKeys.syncInterval: 10,
   SettingKeys.syncOnlyOnWifi: false,

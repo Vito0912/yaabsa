@@ -4,7 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/api/library_items/series.dart';
-import 'package:yaabsa/components/common/cover_placeholder.dart';
+import 'package:yaabsa/components/common/cover_loading_placeholder.dart';
 import 'package:yaabsa/components/common/library_item_widget.dart';
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
 import 'package:yaabsa/components/common/scroll_to_top_button.dart';
@@ -173,7 +173,7 @@ class _SeriesBooksPlaceholderTile extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const AspectRatio(aspectRatio: 1, child: CoverPlaceholder(borderRadius: 16)),
+          const AspectRatio(aspectRatio: 1, child: CoverLoadingPlaceholder(borderRadius: 16)),
           const SizedBox(height: 8),
           Container(
             width: double.infinity,
