@@ -8,7 +8,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 class PlayBar extends StatefulWidget {
-  const PlayBar({super.key});
+  const PlayBar({super.key, this.includeBottomSafeArea = true, this.attachedToBottom = false});
+
+  final bool includeBottomSafeArea;
+  final bool attachedToBottom;
 
   @override
   State<PlayBar> createState() => _PlayBarState();
@@ -32,17 +35,28 @@ class _PlayBarState extends State<PlayBar> {
         final colorScheme = Theme.of(context).colorScheme;
         final baseColor = colorScheme.surface;
         final hoveredColor = Color.alphaBlend(colorScheme.onSurface.withValues(alpha: 0.06), baseColor);
+        final borderRadius = widget.attachedToBottom ? BorderRadius.zero : BorderRadius.circular(14);
+        final outerPadding = widget.attachedToBottom
+            ? EdgeInsets.zero
+            : const EdgeInsets.symmetric(horizontal: 8, vertical: 6);
+        final innerPadding = widget.attachedToBottom
+            ? const EdgeInsets.fromLTRB(12, 8, 12, 10)
+            : const EdgeInsets.symmetric(horizontal: 12, vertical: 10);
+        final border = widget.attachedToBottom
+            ? Border(top: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.6)))
+            : Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.6));
 
         return SafeArea(
           top: false,
+          bottom: widget.includeBottomSafeArea,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            padding: outerPadding,
             child: Material(
               color: Colors.transparent,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: borderRadius,
               child: InkWell(
                 onTap: () => context.push('/player'),
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: borderRadius,
                 mouseCursor: SystemMouseCursors.click,
                 onHover: (hovering) {
                   if (_isHovered == hovering) return;
@@ -51,11 +65,11 @@ class _PlayBarState extends State<PlayBar> {
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 160),
                   curve: Curves.easeOut,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  padding: innerPadding,
                   decoration: BoxDecoration(
                     color: (_isHovered && !_isSeekBarHovered) ? hoveredColor : baseColor,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.6)),
+                    borderRadius: borderRadius,
+                    border: border,
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,

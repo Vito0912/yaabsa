@@ -122,9 +122,6 @@ jobs:
 
   build-flatpak:
     runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-50
-      options: --privileged
     needs: check-requirements
     steps:
       - name: Checkout
@@ -139,19 +136,44 @@ jobs:
       - name: Make Flutter SDK safe for git
         run: git config --global --add safe.directory "$FLUTTER_ROOT" || true
 
+      - name: Install apt dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            libgtk-3-dev \
+            libgtk-3-0 \
+            libblkid1 \
+            liblzma5 \
+            libsecret-1-0 \
+            libsecret-1-dev \
+            libmpv-dev \
+            mpv \
+            flatpak \
+            flatpak-builder
+
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build
+      - name: Build Linux bundle
         run: flutter build linux --release
 
-      - name: Build Flatpak
-        uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+      - name: Install Flatpak runtime and SDK
+        run: |
+          flatpak --user remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          flatpak --user install -y flathub org.gnome.Platform//49 org.gnome.Sdk//49
+
+      - name: Build Flatpak repo and bundle
         continue-on-error: true
+        run: |
+          flatpak-builder --user --install-deps-from=flathub --force-clean --repo=flatpak-repo flatpak-build linux/packaging/flatpak/de.vito0912.yaabsa.yaabsa.yml
+          flatpak build-bundle flatpak-repo de.vito0912.yaabsa.yaabsa.flatpak de.vito0912.yaabsa.yaabsa
+
+      - name: Upload Flatpak artifact
+        uses: actions/upload-artifact@v7
         with:
-          bundle: "de.vito0912.yaabsa.yaabsa.flatpak"
-          manifest-path: linux/packaging/flatpak/de.vito0912.yaabsa.yaabsa.yml
-          upload-artifact: true
+          name: linux-flatpak
+          path: de.vito0912.yaabsa.yaabsa.flatpak
 
   build-android:
     runs-on: ubuntu-latest

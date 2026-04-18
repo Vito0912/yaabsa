@@ -4,6 +4,10 @@ import 'package:yaabsa/screens/layout_home/navigation_item_config.dart';
 class LayoutHomeMobileNavBar extends StatelessWidget {
   const LayoutHomeMobileNavBar({super.key, required this.items, required this.selectedIndex, required this.onItemTap});
 
+  static const double height = 70.0;
+  static const double horizontalMargin = 12.0;
+  static const double floatingBottomMargin = 24.0;
+
   final List<NavigationItemConfig> items;
   final int selectedIndex;
   final ValueChanged<int> onItemTap;
@@ -11,10 +15,8 @@ class LayoutHomeMobileNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    const double navBarHeight = 70.0;
 
     return Material(
-      elevation: 4.0,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(16.0),
@@ -24,7 +26,7 @@ class LayoutHomeMobileNavBar extends StatelessWidget {
         ),
       ),
       child: Container(
-        height: navBarHeight,
+        height: height,
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surfaceContainerHighest,

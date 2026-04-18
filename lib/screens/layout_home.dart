@@ -247,56 +247,46 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
 
     if (isMobile) {
       return Scaffold(
-        body: Stack(
+        body: Column(
           children: [
-            Column(
-              children: [
-                LayoutHomeMobileAppBar(
-                  isSearchExpanded: _isMobileSearchExpanded,
-                  searchController: _searchController,
-                  searchQuery: _searchQuery,
-                  advancedMenuItems: _advancedMenuItems,
-                  advancedMenuStartIndex: _appBarItems.length,
-                  onSearchChanged: _onSearchChanged,
-                  onSearchSubmitted: _submitSearch,
-                  onExpandSearch: _expandMobileSearch,
-                  onCollapseSearch: _collapseMobileSearch,
-                  onClearSearch: _clearSearch,
-                  onAdvancedItemSelected: _onAppBarItemTapped,
-                ),
-                Expanded(
-                  child: Column(
-                    children: [
-                      Expanded(child: currentContent),
-                      const SizedBox(height: 86),
-                    ],
+            LayoutHomeMobileAppBar(
+              isSearchExpanded: _isMobileSearchExpanded,
+              searchController: _searchController,
+              searchQuery: _searchQuery,
+              advancedMenuItems: _advancedMenuItems,
+              advancedMenuStartIndex: _appBarItems.length,
+              onSearchChanged: _onSearchChanged,
+              onSearchSubmitted: _submitSearch,
+              onExpandSearch: _expandMobileSearch,
+              onCollapseSearch: _collapseMobileSearch,
+              onClearSearch: _clearSearch,
+              onAdvancedItemSelected: _onAppBarItemTapped,
+            ),
+
+            Expanded(child: currentContent),
+            StreamBuilder<bool>(
+              stream: audioHandler.shouldShowPlayer,
+              initialData: audioHandler.player.playerState.playing,
+              builder: (context, snapshot) {
+                final showPlayer = snapshot.data == true;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: LayoutHomeMobileNavBar.horizontalMargin),
+                  child: SafeArea(
+                    top: false,
+                    left: false,
+                    right: false,
+                    bottom: !showPlayer,
+                    minimum: EdgeInsets.only(bottom: showPlayer ? 8 : LayoutHomeMobileNavBar.floatingBottomMargin),
+                    child: LayoutHomeMobileNavBar(
+                      items: _appBarItems,
+                      selectedIndex: _selectedIndex,
+                      onItemTap: _onAppBarItemTapped,
+                    ),
                   ),
-                ),
-                const PlayBar(),
-              ],
+                );
+              },
             ),
-            SafeArea(
-              child: StreamBuilder<bool>(
-                stream: audioHandler.shouldShowPlayer,
-                builder: (context, snapshot) {
-                  return Padding(
-                    padding: EdgeInsets.only(
-                      bottom: 24 + ((snapshot.hasData && snapshot.data!) ? 56 : 0),
-                      right: 12,
-                      left: 12,
-                    ),
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: LayoutHomeMobileNavBar(
-                        items: _appBarItems,
-                        selectedIndex: _selectedIndex,
-                        onItemTap: _onAppBarItemTapped,
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
+            const PlayBar(includeBottomSafeArea: true, attachedToBottom: true),
           ],
         ),
       );
