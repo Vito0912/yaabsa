@@ -136,6 +136,9 @@ jobs:
           channel: stable
           cache: true
 
+      - name: Make Flutter SDK safe for git
+        run: git config --global --add safe.directory "$FLUTTER_ROOT" || true
+
       - name: Install dependencies
         run: flutter pub get
 
