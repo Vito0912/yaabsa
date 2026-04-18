@@ -29,6 +29,7 @@ releases:
       - name: release-android-apk
         package:
           platform: android
+          split-per-abi:
           target: apk
 
   - name: windows
