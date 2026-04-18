@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>de.vito0912.yaabsa.yaabsa</id>
+  <name>yaabsa</name>
+  <summary>Yet another Audiobookshelf client, built with Flutter.</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>AGPL-3.0-only</project_license>
+
+  <developer id="de.vito0912">
+    <name>Vito0912</name>
+  </developer>
+
+  <launchable type="desktop-id">de.vito0912.yaabsa.yaabsa.desktop</launchable>
+
+  <url type="homepage">https://github.com/Vito0912/yaabsa</url>
+  <url type="bugtracker">https://github.com/Vito0912/yaabsa/issues</url>
+
+  <description>
+    <p>
+      yaabsa is a cross-platform Audiobookshelf client built with Flutter.
+    </p>
+  </description>
+
+  <content_rating type="oars-1.1" />
+
+  <releases>
+    <release version="1.1.0" date="2026-04-18" />
+  </releases>
+</component>

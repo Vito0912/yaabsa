@@ -1,0 +1,149 @@
+app-id: de.vito0912.yaabsa.yaabsa
+runtime: org.gnome.Platform
+runtime-version: '49'
+sdk: org.gnome.Sdk
+command: yaabsa
+
+finish-args:
+  - --socket=fallback-x11
+  - --socket=wayland
+  - --socket=pulseaudio
+  - --share=network
+  - --share=ipc
+  - --device=dri
+  - --filesystem=xdg-download
+  - --filesystem=xdg-documents
+  - --talk-name=org.freedesktop.Notifications
+  - --talk-name=org.freedesktop.secrets
+  - --own-name=org.mpris.MediaPlayer2.yaabsa
+  - --env=LD_LIBRARY_PATH=/app/lib:/app/yaabsa/lib
+  - --env=LIBMPV_LIBRARY_PATH=/app/lib/libmpv.so.1
+
+# https://github.com/media-kit/media-kit/issues/406
+modules:
+  - name: jsoncpp
+    buildsystem: meson
+    config-opts:
+      - --default-library=shared
+    sources:
+      - type: git
+        url: https://github.com/open-source-parsers/jsoncpp
+        tag: 1.9.5
+
+  - name: libmpv
+    cleanup:
+      - /include
+      - /lib/pkgconfig
+      - /share/man
+    buildsystem: simple
+    build-commands:
+      - python3 waf configure --prefix=/app --enable-libmpv-shared --disable-cplayer --disable-build-date --disable-alsa
+      - python3 waf build
+      - python3 waf install
+      - ln -sf /app/lib/libmpv.so.2 /app/lib/libmpv.so.1
+    sources:
+      - type: git
+        url: https://github.com/mpv-player/mpv.git
+        tag: v0.41.0
+      - type: file
+        url: https://waf.io/waf-2.1.9
+        sha256: e235eeac6d34f039834e355a738298416a92a17defd1b6e1eae48488ba4a6864
+        dest-filename: waf
+    modules:
+      - name: libass
+        cleanup:
+          - /include
+          - /lib/*.la
+          - /lib/pkgconfig
+        config-opts:
+          - --disable-static
+        sources:
+          - type: archive
+            url: https://github.com/libass/libass/releases/download/0.17.1/libass-0.17.1.tar.xz
+            sha256: f0da0bbfba476c16ae3e1cfd862256d30915911f7abaa1b16ce62ee653192784
+        modules:
+          - name: fribidi
+            cleanup:
+              - /bin
+              - /include
+              - /lib/pkgconfig
+              - /lib/*.la
+              - /share/man
+            buildsystem: meson
+            config-opts:
+              - --buildtype=release
+              - -Ddocs=false
+            sources:
+              - type: git
+                url: https://github.com/fribidi/fribidi.git
+                tag: v1.0.16
+                commit: 68162babff4f39c4e2dc164a5e825af93bda9983
+
+      - name: x264
+        cleanup:
+          - /include
+          - /lib/pkgconfig
+          - /share/man
+        config-opts:
+          - --disable-cli
+          - --enable-shared
+        sources:
+          - type: git
+            url: https://code.videolan.org/videolan/x264.git
+            commit: a8b68ebfaa68621b5ac8907610d3335971839d52
+
+      - name: nv-codec-headers
+        cleanup:
+          - '*'
+        no-autogen: true
+        make-install-args:
+          - PREFIX=/app
+        sources:
+          - type: git
+            url: https://github.com/FFmpeg/nv-codec-headers.git
+            commit: 33a9ede8d9914299d9262539c576a15bd0a19621
+
+      - name: ffmpeg
+        cleanup:
+          - /include
+          - /lib/pkgconfig
+          - /share/ffmpeg/examples
+        config-opts:
+          - --enable-shared
+          - --disable-static
+          - --enable-gnutls
+          - --disable-doc
+          - --disable-programs
+          - --disable-encoders
+          - --disable-muxers
+          - --enable-encoder=png
+          - --enable-libv4l2
+          - --enable-libdav1d
+        sources:
+          - type: git
+            url: https://git.ffmpeg.org/ffmpeg.git
+            branch: release/8.1
+            commit: 7f5c90f77e1f63a6aa340db4a4aa7742f81a61cb
+
+  - name: yaabsa
+    buildsystem: simple
+    build-commands:
+      - test -x bundle/yaabsa || (echo "Missing build/linux/x64/release/bundle. Run: flutter build linux --release" && exit 1)
+      - install -Dm644 de.vito0912.yaabsa.yaabsa.metainfo.xml /app/share/metainfo/de.vito0912.yaabsa.yaabsa.metainfo.xml
+      - install -Dm644 de.vito0912.yaabsa.yaabsa.desktop /app/share/applications/de.vito0912.yaabsa.yaabsa.desktop
+      - install -Dm644 app-icon.svg /app/share/icons/hicolor/scalable/apps/de.vito0912.yaabsa.yaabsa.svg
+      - install -dm755 /app/bin /app/yaabsa
+      - cp -R bundle/. /app/yaabsa/
+      - chmod +x /app/yaabsa/yaabsa
+      - ln -sf /app/yaabsa/yaabsa /app/bin/yaabsa
+    sources:
+      - type: dir
+        path: ../../../build/linux/x64/release/bundle
+        dest: bundle
+      - type: file
+        path: de.vito0912.yaabsa.yaabsa.desktop
+      - type: file
+        path: de.vito0912.yaabsa.yaabsa.metainfo.xml
+      - type: file
+        path: ../../../assets/logo_blue_big_abs.svg
+        dest-filename: app-icon.svg

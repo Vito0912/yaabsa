@@ -26,6 +26,22 @@ class Init {
 
   static BGAudioHandler? _audioHandler;
 
+  static String? _resolveFlatpakLibmpvPath() {
+    if (!Platform.isLinux || !Platform.environment.containsKey('FLATPAK_ID')) {
+      return null;
+    }
+
+    const candidates = ['/app/lib/libmpv.so.1', '/app/lib/libmpv.so.2', '/app/lib/libmpv.so'];
+
+    for (final candidate in candidates) {
+      if (File(candidate).existsSync()) {
+        return candidate;
+      }
+    }
+
+    return null;
+  }
+
   static Future<BGAudioHandler> initAudioHandler() async {
     if (_audioHandler != null) return _audioHandler!;
 
@@ -33,7 +49,11 @@ class Init {
       AudioServiceMpris.registerWith();
     }
 
-    JustAudioMediaKit.ensureInitialized(linux: true, windows: true);
+    final libmpvPath = _resolveFlatpakLibmpvPath();
+    if (libmpvPath != null) {
+      logger('Using Flatpak libmpv at $libmpvPath', tag: 'Init', level: InfoLevel.info);
+    }
+    JustAudioMediaKit.ensureInitialized(linux: true, windows: true, libmpv: libmpvPath);
 
     _audioHandler = await AudioService.init(
       builder: () => BGAudioHandler(containerRef),

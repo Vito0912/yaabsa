@@ -120,6 +120,36 @@ jobs:
           name: linux-bundle
           path: output/*/*.zip
 
+  build-flatpak:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-50
+      options: --privileged
+    needs: check-requirements
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build
+        run: flutter build linux --release
+
+      - name: Build Flatpak
+        uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        continue-on-error: true
+        with:
+          bundle: "de.vito0912.yaabsa.yaabsa.flatpak"
+          manifest-path: linux/packaging/flatpak/de.vito0912.yaabsa.yaabsa.yml
+          upload-artifact: true
+
   build-android:
     runs-on: ubuntu-latest
     needs: check-requirements
@@ -183,26 +213,22 @@ jobs:
           echo "$env:LOCALAPPDATA\Pub\Cache\bin" >> $env:GITHUB_PATH
 
       - name: Build and release
-        continue-on-error: true
         run: fastforge release --name windows
 
       - name: Upload Windows msix artifact
         uses: actions/upload-artifact@v7
-        continue-on-error: true
         with:
           name: windows-msix
           path: output/*/*.msix
 
       - name: Upload Windows exe artifact
         uses: actions/upload-artifact@v7
-        continue-on-error: true
         with:
           name: windows-exe
           path: output/*/*.exe
 
       - name: Upload Windows bundle artifact
         uses: actions/upload-artifact@v7
-        continue-on-error: true
         with:
           name: windows-bundle
           path: output/*/*.zip

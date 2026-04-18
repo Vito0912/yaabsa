@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=yaabsa
+GenericName=Audiobookshelf Client
+Comment=Yet another Audiobookshelf client, built with Flutter.
+Exec=yaabsa %U
+Icon=de.vito0912.yaabsa.yaabsa
+Terminal=false
+Categories=AudioVideo;Audio;Player;
+Keywords=ABS;Audiobookshelf;
+StartupNotify=true
