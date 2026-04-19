@@ -1,5 +1,6 @@
 import 'package:yaabsa/api/library/request/library_filter.dart';
 import 'package:yaabsa/api/library/request/library_items_request.dart';
+import 'package:yaabsa/api/library/request/library_sort.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
@@ -176,9 +177,15 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
       return;
     }
 
-    final newSort = sort ?? currentLoadedState.sort;
-    final newDesc = desc ?? currentLoadedState.desc;
     final newFilter = clearFilter ? null : (filter ?? currentLoadedState.filter);
+    var newSort = sort ?? currentLoadedState.sort;
+    var newDesc = desc ?? currentLoadedState.desc;
+
+    if (newSort == LibrarySortValue.sequence.wireValue && !_isSeriesFilterQuery(newFilter)) {
+      newSort = defaultLibrarySortWireValue;
+      newDesc = defaultLibrarySortDesc;
+    }
+
     final newCollapseSeries = collapseseries ?? currentLoadedState.collapseseries;
     final newInclude = include ?? currentLoadedState.include;
 
@@ -242,6 +249,11 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
       state = AsyncError(e, s);
     }
   }
+}
+
+bool _isSeriesFilterQuery(String? filter) {
+  final parsed = parseGroupedLibraryFilterQuery(filter);
+  return parsed?.group == LibraryFilterGroup.series;
 }
 
 @riverpod

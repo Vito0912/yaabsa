@@ -1,6 +1,7 @@
 import 'package:yaabsa/api/library/library_items.dart';
 import 'package:yaabsa/api/library/personalized_library.dart';
 import 'package:yaabsa/api/library/request/library_items_request.dart';
+import 'package:yaabsa/api/library/response/library_details_response.dart';
 import 'package:yaabsa/api/library/response/library_response.dart';
 import 'package:yaabsa/api/library/search_library.dart';
 import 'package:yaabsa/api/library/series_items.dart';
@@ -43,6 +44,44 @@ class LibraryApi {
       extra: extra,
       dio: _dio,
       queryParams: {},
+    );
+  }
+
+  Future<Response<LibraryDetailsResponse>> getLibraryDetails(
+    String libraryId, {
+    String? include,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    final queryParams = <String, dynamic>{};
+    if (include != null && include.isNotEmpty) {
+      queryParams['include'] = include;
+    }
+
+    return ABSApi.makeApiGetRequest(
+      route: '/api/libraries/$libraryId',
+      fromJson: (data) => LibraryDetailsResponse.fromJson(data as Map<String, dynamic>),
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
+      queryParams: queryParams,
+    );
+  }
+
+  Future<Response<LibraryDetailsResponse>> getLibraryFilterData(
+    String libraryId, {
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) {
+    return getLibraryDetails(
+      libraryId,
+      include: 'filterdata',
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
     );
   }
 

@@ -15,12 +15,40 @@ extension LibraryFilterGroupX on LibraryFilterGroup {
     LibraryFilterGroup.tracks => 'tracks',
   };
 
+  String get displayName => switch (this) {
+    LibraryFilterGroup.genres => 'Genres',
+    LibraryFilterGroup.tags => 'Tags',
+    LibraryFilterGroup.series => 'Series',
+    LibraryFilterGroup.authors => 'Authors',
+    LibraryFilterGroup.progress => 'Progress',
+    LibraryFilterGroup.narrators => 'Narrators',
+    LibraryFilterGroup.missing => 'Missing Metadata',
+    LibraryFilterGroup.languages => 'Languages',
+    LibraryFilterGroup.tracks => 'Tracks',
+  };
+
+  bool get isBookOnly => switch (this) {
+    LibraryFilterGroup.series ||
+    LibraryFilterGroup.authors ||
+    LibraryFilterGroup.narrators ||
+    LibraryFilterGroup.missing ||
+    LibraryFilterGroup.tracks => true,
+    _ => false,
+  };
+
   static LibraryFilterGroup? tryParse(String raw) {
     for (final value in LibraryFilterGroup.values) {
       if (value.wireValue == raw) return value;
     }
     return null;
   }
+}
+
+class GroupedLibraryFilterValue {
+  const GroupedLibraryFilterValue({required this.group, required this.value});
+
+  final LibraryFilterGroup group;
+  final String value;
 }
 
 enum LibraryProgressFilterValue { finished, notStarted, notFinished, inProgress }
@@ -110,6 +138,37 @@ String encodeFilterValue(String value) {
   return Uri.encodeComponent(base64Value);
 }
 
+String decodeFilterValue(String value) {
+  final uriDecoded = Uri.decodeComponent(value);
+
+  try {
+    final decodedBytes = base64Decode(uriDecoded);
+    return utf8.decode(decodedBytes);
+  } catch (_) {
+    return uriDecoded;
+  }
+}
+
+GroupedLibraryFilterValue? parseGroupedLibraryFilterQuery(String? filter) {
+  if (filter == null || filter.isEmpty || filter == 'issues' || filter == 'feed-open') {
+    return null;
+  }
+
+  final dotIndex = filter.indexOf('.');
+  if (dotIndex <= 0 || dotIndex >= filter.length - 1) {
+    return null;
+  }
+
+  final groupRaw = filter.substring(0, dotIndex);
+  final valueRaw = filter.substring(dotIndex + 1);
+  final group = LibraryFilterGroupX.tryParse(groupRaw);
+  if (group == null) {
+    return null;
+  }
+
+  return GroupedLibraryFilterValue(group: group, value: decodeFilterValue(valueRaw));
+}
+
 String? normalizeLibraryFilterQuery(String? filter) {
   if (filter == null || filter.isEmpty) return null;
   if (filter == 'issues' || filter == 'feed-open') return filter;
@@ -137,8 +196,7 @@ String? normalizeLibraryFilterQuery(String? filter) {
 
 bool _looksUrlEncodedBase64(String raw) {
   try {
-    final decoded = Uri.decodeComponent(raw);
-    base64Decode(decoded);
+    base64Decode(Uri.decodeComponent(raw));
     return true;
   } catch (_) {
     return false;

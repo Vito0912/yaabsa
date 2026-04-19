@@ -37,17 +37,19 @@ modules:
       - /share/man
     buildsystem: simple
     build-commands:
-      - python3 waf configure --prefix=/app --enable-libmpv-shared --disable-cplayer --disable-build-date --disable-alsa
-      - python3 waf build
-      - python3 waf install
+      - cd mpv && python3 waf configure --prefix=/app --enable-libmpv-shared --disable-cplayer --disable-build-date --disable-alsa
+      - cd mpv && python3 waf build
+      - cd mpv && python3 waf install
       - ln -sf /app/lib/libmpv.so.2 /app/lib/libmpv.so.1
     sources:
       - type: git
         url: https://github.com/mpv-player/mpv.git
         tag: v0.41.0
+        dest: mpv
       - type: file
         url: https://waf.io/waf-2.1.9
         sha256: e235eeac6d34f039834e355a738298416a92a17defd1b6e1eae48488ba4a6864
+        dest: mpv
         dest-filename: waf
     modules:
       - name: libass
