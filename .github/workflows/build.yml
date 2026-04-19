@@ -164,9 +164,12 @@ jobs:
           flatpak --user install -y flathub org.gnome.Platform//49 org.gnome.Sdk//49
 
       - name: Build Flatpak repo and bundle
-        continue-on-error: true
         run: |
           flatpak-builder --user --install-deps-from=flathub --force-clean --repo=flatpak-repo flatpak-build linux/packaging/flatpak/de.vito0912.yaabsa.yaabsa.yml
+          if ! find flatpak-build/files -maxdepth 5 -type f -name 'libmpv.so*' | grep -q .; then
+            echo "libmpv was not bundled into the Flatpak image."
+            exit 1
+          fi
           flatpak build-bundle flatpak-repo de.vito0912.yaabsa.yaabsa.flatpak de.vito0912.yaabsa.yaabsa
 
       - name: Upload Flatpak artifact

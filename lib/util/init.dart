@@ -27,20 +27,85 @@ class Init {
 
   static BGAudioHandler? _audioHandler;
 
-  static String? _resolveFlatpakLibmpvPath() {
-    if (!Platform.isLinux || !Platform.environment.containsKey('FLATPAK_ID')) {
+  static bool _isContainerRuntime() {
+    return Platform.environment.containsKey('CONTAINER') ||
+        Platform.environment.containsKey('container') ||
+        Platform.environment.containsKey('FLATPAK_ID');
+  }
+
+  static String? _discoverLibmpvPath() {
+    const searchDirectories = <String>['/app/lib', '/app/lib64', '/app/yaabsa/lib'];
+
+    for (final searchDirectory in searchDirectories) {
+      final directory = Directory(searchDirectory);
+      if (!directory.existsSync()) {
+        continue;
+      }
+
+      try {
+        final matches =
+            directory
+                .listSync(followLinks: true)
+                .whereType<File>()
+                .map((file) => file.path)
+                .where((path) => p.basename(path).startsWith('libmpv.so'))
+                .toList()
+              ..sort((a, b) => a.length.compareTo(b.length));
+
+        if (matches.isNotEmpty) {
+          return matches.first;
+        }
+      } catch (e) {
+        logger('Failed to scan $searchDirectory for libmpv: $e', tag: 'Init', level: InfoLevel.warning);
+      }
+    }
+
+    return null;
+  }
+
+  static String? _resolveLibmpvPath() {
+    if (!Platform.isLinux) {
       return null;
     }
 
-    logger('Resolving Flatpak libmpv path', tag: 'Init', level: InfoLevel.info);
+    final configuredPath = Platform.environment['LIBMPV_LIBRARY_PATH'];
+    if (configuredPath != null && configuredPath.isNotEmpty) {
+      if (!p.isAbsolute(configuredPath) || File(configuredPath).existsSync()) {
+        logger('Using libmpv path from environment: $configuredPath', tag: 'Init', level: InfoLevel.info);
+        return configuredPath;
+      }
 
-    const candidates = ['/app/lib/libmpv.so.1', '/app/lib/libmpv.so.2', '/app/lib/libmpv.so'];
+      logger('Configured libmpv path does not exist: $configuredPath', tag: 'Init', level: InfoLevel.warning);
+    }
 
-    for (final candidate in candidates) {
+    if (!_isContainerRuntime()) {
+      logger('No Flatpak', tag: 'Init', level: InfoLevel.debug);
+      return null;
+    }
+    logger('Running as Flatpak', tag: 'Init', level: InfoLevel.debug);
+
+    const fallbackCandidates = <String>[
+      '/app/lib/libmpv.so',
+      '/app/lib/libmpv.so.2',
+      '/app/lib64/libmpv.so',
+      '/app/lib64/libmpv.so.2',
+      '/app/yaabsa/lib/libmpv.so',
+      '/app/yaabsa/lib/libmpv.so.2',
+    ];
+
+    for (final candidate in fallbackCandidates) {
       if (File(candidate).existsSync()) {
         return candidate;
       }
     }
+
+    final discoveredPath = _discoverLibmpvPath();
+    if (discoveredPath != null) {
+      logger('Discovered libmpv path: $discoveredPath', tag: 'Init', level: InfoLevel.info);
+      return discoveredPath;
+    }
+
+    logger('Libmpv path is not available', tag: 'Init', level: InfoLevel.error);
 
     return null;
   }
@@ -52,9 +117,9 @@ class Init {
       AudioServiceMpris.registerWith();
     }
 
-    final libmpvPath = _resolveFlatpakLibmpvPath();
+    final libmpvPath = _resolveLibmpvPath();
     if (libmpvPath != null) {
-      logger('Using Flatpak libmpv at $libmpvPath', tag: 'Init', level: InfoLevel.info);
+      logger('Using libmpv at $libmpvPath', tag: 'Init', level: InfoLevel.info);
     }
     JustAudioMediaKit.ensureInitialized(linux: true, windows: true, libmpv: libmpvPath);
 

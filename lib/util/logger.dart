@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -42,6 +43,28 @@ class AppLoggerService {
 
 final appLoggerService = AppLoggerService();
 
+const String _releaseConsoleLoggingEnvKey = 'YAABSA_RELEASE_CONSOLE_LOG';
+
+bool _isTruthyEnvValue(String? value) {
+  if (value == null) {
+    return false;
+  }
+
+  switch (value.trim().toLowerCase()) {
+    case '1':
+    case 'true':
+    case 'yes':
+    case 'on':
+      return true;
+    default:
+      return false;
+  }
+}
+
+final bool _isReleaseConsoleLoggingEnabled = _isTruthyEnvValue(Platform.environment[_releaseConsoleLoggingEnvKey]);
+
+bool get _shouldPrintToConsole => kDebugMode || _isReleaseConsoleLoggingEnabled;
+
 void logger(String message, {String? tag, InfoLevel level = InfoLevel.info}) {
   final now = DateTime.now();
 
@@ -49,7 +72,7 @@ void logger(String message, {String? tag, InfoLevel level = InfoLevel.info}) {
 
   appLoggerService._addLogEntry(logEntry);
 
-  if (kDebugMode) {
+  if (_shouldPrintToConsole) {
     final formattedDate =
         '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
     final fallbackMessage = '[$formattedDate] [${level.name.toUpperCase()}] [${tag ?? 'FALLBACK'}] $message';

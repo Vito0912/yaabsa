@@ -15,9 +15,10 @@ finish-args:
   - --filesystem=xdg-documents
   - --talk-name=org.freedesktop.Notifications
   - --talk-name=org.freedesktop.secrets
+  - --system-talk-name=org.freedesktop.NetworkManager
   - --own-name=org.mpris.MediaPlayer2.yaabsa
-  - --env=LD_LIBRARY_PATH=/app/lib:/app/yaabsa/lib
-  - --env=LIBMPV_LIBRARY_PATH=/app/lib/libmpv.so
+  - --env=LD_LIBRARY_PATH=/app/lib:/app/lib64:/app/yaabsa/lib
+  - --env=DBUS_SYSTEM_BUS_ADDRESS=unix:path=/run/dbus/system_bus_socket
 
 # https://github.com/media-kit/media-kit/issues/406
 modules:
@@ -37,9 +38,10 @@ modules:
       - /share/man
     buildsystem: simple
     build-commands:
-      - PKG_CONFIG_PATH="/app/lib/pkgconfig:/app/lib64/pkgconfig:${PKG_CONFIG_PATH:-}" meson setup _build --prefix=/app --buildtype=release -Ddefault_library=shared -Dlibmpv=true -Dcplayer=false -Dbuild-date=false -Dalsa=disabled -Dmanpage-build=disabled -Dhtml-build=disabled -Dpdf-build=disabled
+      - PKG_CONFIG_PATH="/app/lib/pkgconfig:/app/lib64/pkgconfig:${PKG_CONFIG_PATH:-}" meson setup _build --prefix=/app --libdir=/app/lib --buildtype=release -Ddefault_library=shared -Dlibmpv=true -Dcplayer=false -Dbuild-date=false -Dalsa=disabled -Dmanpage-build=disabled -Dhtml-build=disabled -Dpdf-build=disabled
       - meson compile -C _build
       - meson install -C _build
+      - if [ -f /app/lib/libmpv.so.2 ] && [ ! -e /app/lib/libmpv.so ]; then ln -s /app/lib/libmpv.so.2 /app/lib/libmpv.so; fi
     sources:
       - type: git
         url: https://github.com/mpv-player/mpv.git
