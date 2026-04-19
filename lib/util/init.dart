@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/device_capabilities.dart';
 import 'package:yaabsa/util/handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/handler/download_handler.dart';
 import 'package:yaabsa/util/handler/shake_handler.dart';
@@ -86,7 +87,7 @@ class Init {
   }
 
   static Future<void> late() async {
-    if (Platform.isAndroid || Platform.isIOS) {
+    if (DeviceCapabilities.supportsShakeActions) {
       rewindShakeHandler = ShakeRewindHandler();
     } else {
       rewindShakeHandler = null;

@@ -6,19 +6,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class SettingSwitch extends ConsumerWidget {
   final String label;
   final String? description;
+  final String? disabledReason;
   final String? tooltip;
   final IconData? icon;
   final String settingKey;
   final ValueChanged<bool>? onChanged;
+  final bool enabled;
 
   const SettingSwitch({
     super.key,
     required this.label,
     this.description,
+    this.disabledReason,
     this.tooltip,
     this.icon,
     required this.settingKey,
     this.onChanged,
+    this.enabled = true,
   });
 
   @override
@@ -89,6 +93,11 @@ class SettingSwitch extends ConsumerWidget {
     ThemeData theme,
     TextTheme textTheme,
   ) {
+    final details = <String>[
+      if (description != null && description!.isNotEmpty) description!,
+      if (!enabled && disabledReason != null && disabledReason!.isNotEmpty) disabledReason!,
+    ];
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
       child: Column(
@@ -104,14 +113,23 @@ class SettingSwitch extends ConsumerWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Flexible(
-                      child: Text(label, style: textTheme.titleMedium, overflow: TextOverflow.ellipsis, maxLines: 1),
+                      child: Text(
+                        label,
+                        style: textTheme.titleMedium?.copyWith(color: enabled ? null : theme.disabledColor),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
                     ),
                     if (icon != null && tooltip != null)
                       Padding(
                         padding: const EdgeInsets.only(left: 6.0),
                         child: Tooltip(
                           message: tooltip!,
-                          child: Icon(icon, size: 20, color: theme.colorScheme.onSurfaceVariant),
+                          child: Icon(
+                            icon,
+                            size: 20,
+                            color: enabled ? theme.colorScheme.onSurfaceVariant : theme.disabledColor,
+                          ),
                         ),
                       ),
                   ],
@@ -119,10 +137,12 @@ class SettingSwitch extends ConsumerWidget {
               ),
               Switch(
                 value: currentValue,
-                onChanged: (bool newValue) {
-                  ref.read(settingsManagerProvider.notifier).setGlobalSetting<bool>(settingKey, newValue);
-                  onChanged?.call(newValue);
-                },
+                onChanged: enabled
+                    ? (bool newValue) {
+                        ref.read(settingsManagerProvider.notifier).setGlobalSetting<bool>(settingKey, newValue);
+                        onChanged?.call(newValue);
+                      }
+                    : null,
                 activeThumbColor: theme.colorScheme.primary,
                 activeTrackColor: theme.colorScheme.primaryContainer,
                 inactiveThumbColor: theme.colorScheme.outline,
@@ -130,12 +150,14 @@ class SettingSwitch extends ConsumerWidget {
               ),
             ],
           ),
-          if (description != null && description!.isNotEmpty)
+          if (details.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 4.0),
               child: Text(
-                description!,
-                style: textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                details.join('\n'),
+                style: textTheme.bodySmall?.copyWith(
+                  color: enabled ? theme.colorScheme.onSurfaceVariant : theme.disabledColor,
+                ),
               ),
             ),
         ],

@@ -6,23 +6,27 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class SettingSlider<T> extends ConsumerWidget {
   final String label;
   final String? description;
+  final String? disabledReason;
   final String? tooltip;
   final IconData? icon;
   final List<T> values;
   final List<String> valueLabels;
   final String settingKey;
   final ValueChanged<T>? onChanged;
+  final bool enabled;
 
   const SettingSlider({
     super.key,
     required this.label,
     this.description,
+    this.disabledReason,
     this.tooltip,
     this.icon,
     required this.values,
     required this.valueLabels,
     required this.settingKey,
     this.onChanged,
+    this.enabled = true,
   });
 
   @override
@@ -110,6 +114,10 @@ class SettingSlider<T> extends ConsumerWidget {
     final int currentIndex = values.indexOf(currentValue);
     final int safeIndex = currentIndex >= 0 && currentIndex < values.length ? currentIndex : 0;
     final String currentDisplayValue = valueLabels[safeIndex];
+    final details = <String>[
+      if (description != null && description!.isNotEmpty) description!,
+      if (!enabled && disabledReason != null && disabledReason!.isNotEmpty) disabledReason!,
+    ];
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
@@ -126,14 +134,23 @@ class SettingSlider<T> extends ConsumerWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Flexible(
-                      child: Text(label, style: textTheme.titleMedium, overflow: TextOverflow.ellipsis, maxLines: 1),
+                      child: Text(
+                        label,
+                        style: textTheme.titleMedium?.copyWith(color: enabled ? null : theme.disabledColor),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
                     ),
                     if (icon != null && tooltip != null)
                       Padding(
                         padding: const EdgeInsets.only(left: 6.0),
                         child: Tooltip(
                           message: tooltip!,
-                          child: Icon(icon, size: 20, color: theme.colorScheme.onSurfaceVariant),
+                          child: Icon(
+                            icon,
+                            size: 20,
+                            color: enabled ? theme.colorScheme.onSurfaceVariant : theme.disabledColor,
+                          ),
                         ),
                       ),
                   ],
@@ -143,19 +160,24 @@ class SettingSlider<T> extends ConsumerWidget {
                 padding: const EdgeInsets.only(left: 16.0),
                 child: Text(
                   currentDisplayValue,
-                  style: textTheme.bodyMedium?.copyWith(color: theme.colorScheme.primary, fontWeight: FontWeight.w500),
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: enabled ? theme.colorScheme.primary : theme.disabledColor,
+                    fontWeight: FontWeight.w500,
+                  ),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
                 ),
               ),
             ],
           ),
-          if (description != null && description!.isNotEmpty)
+          if (details.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 4.0, bottom: 4.0),
               child: Text(
-                description!,
-                style: textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                details.join('\n'),
+                style: textTheme.bodySmall?.copyWith(
+                  color: enabled ? theme.colorScheme.onSurfaceVariant : theme.disabledColor,
+                ),
               ),
             ),
           if (values.length > 1) ...[
@@ -167,7 +189,7 @@ class SettingSlider<T> extends ConsumerWidget {
                 activeTrackColor: theme.colorScheme.primary,
                 inactiveTrackColor: theme.colorScheme.primaryContainer,
                 thumbColor: theme.colorScheme.primary,
-                overlayColor: theme.colorScheme.primary.withOpacity(0.12),
+                overlayColor: theme.colorScheme.primary.withValues(alpha: 0.12),
                 valueIndicatorTextStyle: textTheme.labelSmall?.copyWith(color: theme.colorScheme.onPrimary),
                 valueIndicatorColor: theme.colorScheme.primary,
               ),
@@ -177,11 +199,13 @@ class SettingSlider<T> extends ConsumerWidget {
                 divisions: values.length - 1,
                 value: safeIndex.toDouble(),
                 label: valueLabels[safeIndex],
-                onChanged: (double newIndex) {
-                  final T newValue = values[newIndex.round()];
-                  ref.read(settingsManagerProvider.notifier).setGlobalSetting<T>(settingKey, newValue);
-                  onChanged?.call(newValue);
-                },
+                onChanged: enabled
+                    ? (double newIndex) {
+                        final T newValue = values[newIndex.round()];
+                        ref.read(settingsManagerProvider.notifier).setGlobalSetting<T>(settingKey, newValue);
+                        onChanged?.call(newValue);
+                      }
+                    : null,
               ),
             ),
             Padding(

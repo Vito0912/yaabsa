@@ -113,6 +113,29 @@ class SleepTimerHandler extends _$SleepTimerHandler {
     state = state.copyWith(remainingTime: newRemainingTime, totalDuration: newTotalDuration);
   }
 
+  void reset() {
+    if (!state.isActive) return;
+
+    final totalDuration = state.totalDuration ?? state.remainingTime;
+    if (totalDuration <= Duration.zero) return;
+
+    logger('Sleep timer reset to ${totalDuration.inMinutes} minutes', tag: 'SleepTimer', level: InfoLevel.info);
+
+    _timer?.cancel();
+    _timer = null;
+
+    if (state.state == SleepTimerState.paused) {
+      _startTime = null;
+      state = state.copyWith(remainingTime: totalDuration, totalDuration: totalDuration);
+      return;
+    }
+
+    _startTime = DateTime.now();
+    state = SleepTimerData(remainingTime: totalDuration, state: SleepTimerState.running, totalDuration: totalDuration);
+
+    _startTimer(totalDuration);
+  }
+
   void _startTimer(Duration duration) {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_startTime == null) {

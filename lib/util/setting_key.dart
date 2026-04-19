@@ -50,7 +50,7 @@ final defaultSettings = {
   SettingKeys.waitForSync: true,
   SettingKeys.progressPerChapter: false,
   SettingKeys.shakeToResetSleepTimer: false,
-  SettingKeys.shakeToRewind: true,
+  SettingKeys.shakeToRewind: false,
   SettingKeys.shakeSensitivity: 2.0,
   SettingKeys.shakeVibrate: true,
   SettingKeys.fastForwardInterval: 10,
