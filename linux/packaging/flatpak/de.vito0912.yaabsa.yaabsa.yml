@@ -37,7 +37,7 @@ modules:
       - /share/man
     buildsystem: simple
     build-commands:
-      - meson setup _build --prefix=/app --buildtype=release -Ddefault_library=shared -Dlibmpv=true -Dcplayer=false -Dbuild-date=false -Dalsa=disabled -Dmanpage-build=disabled -Dhtml-build=disabled -Dpdf-build=disabled
+      - PKG_CONFIG_PATH="/app/lib/pkgconfig:/app/lib64/pkgconfig:${PKG_CONFIG_PATH:-}" meson setup _build --prefix=/app --buildtype=release -Ddefault_library=shared -Dlibmpv=true -Dcplayer=false -Dbuild-date=false -Dalsa=disabled -Dmanpage-build=disabled -Dhtml-build=disabled -Dpdf-build=disabled
       - meson compile -C _build
       - meson install -C _build
     sources:
@@ -97,6 +97,22 @@ modules:
           - type: git
             url: https://github.com/FFmpeg/nv-codec-headers.git
             commit: 33a9ede8d9914299d9262539c576a15bd0a19621
+
+      - name: libplacebo
+        buildsystem: meson
+        config-opts:
+          - --libdir=/app/lib
+          - -Dvulkan=enabled
+          - -Dshaderc=enabled
+          - -Ddemos=false
+        cleanup:
+          - /include
+          - /lib/pkgconfig
+        sources:
+          - type: git
+            url: https://github.com/haasn/libplacebo.git
+            tag: v7.360.1
+            commit: cee9b076f2c63104ccfd497fa79c39a867293ec4
 
       - name: ffmpeg
         cleanup:

@@ -32,6 +32,8 @@ class Init {
       return null;
     }
 
+    logger('Resolving Flatpak libmpv path', tag: 'Init', level: InfoLevel.info);
+
     const candidates = ['/app/lib/libmpv.so.1', '/app/lib/libmpv.so.2', '/app/lib/libmpv.so'];
 
     for (final candidate in candidates) {
