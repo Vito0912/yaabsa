@@ -16,7 +16,7 @@ finish-args:
   - --talk-name=org.freedesktop.Notifications
   - --talk-name=org.freedesktop.secrets
   - --system-talk-name=org.freedesktop.NetworkManager
-  - --own-name=org.mpris.MediaPlayer2.yaabsa
+  - --own-name=org.mpris.MediaPlayer2.de.vito0912.yaabsa.audio.*
   - --env=LD_LIBRARY_PATH=/app/lib:/app/lib64:/app/yaabsa/lib
   - --env=DBUS_SYSTEM_BUS_ADDRESS=unix:path=/run/dbus/system_bus_socket
 
