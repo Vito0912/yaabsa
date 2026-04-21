@@ -14,7 +14,11 @@ abstract class InternalDownload with _$InternalDownload {
     @JsonKey(name: "item") required LibraryItem? item,
     @JsonKey(name: "episode") required Episode? episode,
     @JsonKey(name: "tracks") required List<InternalTrack> tracks,
+    @JsonKey(name: "expectedFileCount") int? expectedFileCount,
+    @JsonKey(name: "auxiliaryFilePaths") @Default(<String>[]) List<String> auxiliaryFilePaths,
     @JsonKey(name: "saf", defaultValue: false) required bool saf,
+    @JsonKey(name: "coverPath") String? coverPath,
+    @JsonKey(name: "sidecarPaths") @Default(<String>[]) List<String> sidecarPaths,
   }) = _InternalDownload;
 
   bool get isPodcast {
@@ -32,11 +36,28 @@ abstract class InternalDownload with _$InternalDownload {
   }
 
   int get numberOfDownloadedTracks {
-    return tracks.length;
+    return tracks.where((track) => track.url != null && track.url!.trim().isNotEmpty).length;
+  }
+
+  int get numberOfFiles {
+    final expected = expectedFileCount;
+    if (expected != null && expected > 0) {
+      return expected;
+    }
+    return numberOfTracks;
+  }
+
+  int get numberOfDownloadedFiles {
+    final uniqueAuxiliaryFiles = auxiliaryFilePaths.where((path) => path.trim().isNotEmpty).toSet();
+    return numberOfDownloadedTracks + uniqueAuxiliaryFiles.length;
   }
 
   bool get isComplete {
-    return numberOfDownloadedTracks == numberOfTracks;
+    final target = numberOfFiles;
+    if (target <= 0) {
+      return numberOfDownloadedTracks == numberOfTracks;
+    }
+    return numberOfDownloadedFiles >= target;
   }
 
   factory InternalDownload.fromJson(Map<String, dynamic> json) => _$InternalDownloadFromJson(json);

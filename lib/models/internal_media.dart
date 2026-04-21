@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:audio_service/audio_service.dart';
 import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/logger.dart';
@@ -61,11 +63,23 @@ abstract class InternalMedia with _$InternalMedia {
       if (track.mimeType.isEmpty) {
         throw ArgumentError('Track mimeType cannot be empty for track index ${track.index}');
       }
+      final url = track.url!;
       if (local) {
-        // TODO: SAF
-        return AudioSource.file(track.url!);
+        final hasExplicitScheme = RegExp(r'^[a-zA-Z][a-zA-Z0-9+.-]*://').hasMatch(url);
+        final isFileUri = url.startsWith('file://');
+
+        if (saf || (hasExplicitScheme && !isFileUri)) {
+          return AudioSource.uri(Uri.parse(url));
+        }
+
+        if (isFileUri) {
+          final fileUri = Uri.parse(url);
+          return AudioSource.file(fileUri.toFilePath(windows: Platform.isWindows));
+        }
+
+        return AudioSource.file(url);
       } else {
-        return AudioSource.uri(Uri.parse(track.url!));
+        return AudioSource.uri(Uri.parse(url));
       }
     }).toList();
   }

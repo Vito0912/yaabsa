@@ -154,25 +154,160 @@ class AppDatabase extends _$AppDatabase {
     return query.watch();
   }
 
+  Expression<bool> _storedDownloadWhereExpression({
+    required String itemId,
+    required String userId,
+    required String? episodeId,
+  }) {
+    var whereClause = storedDownloads.itemId.equals(itemId) & storedDownloads.userId.equals(userId);
+    if (episodeId != null) {
+      whereClause = whereClause & storedDownloads.episodeId.equals(episodeId);
+    } else {
+      whereClause = whereClause & storedDownloads.episodeId.isNull();
+    }
+    return whereClause;
+  }
+
+  InternalDownload? _decodeDownloadJsonOrNull(
+    String rawJson, {
+    required String itemId,
+    required String userId,
+    required String? episodeId,
+  }) {
+    try {
+      final decoded = jsonDecode(rawJson);
+      if (decoded is Map<String, dynamic>) {
+        return InternalDownload.fromJson(decoded);
+      }
+      if (decoded is Map) {
+        return InternalDownload.fromJson(Map<String, dynamic>.from(decoded));
+      }
+      throw const FormatException('Stored download payload is not a JSON object');
+    } catch (e, s) {
+      logger(
+        'Failed to decode stored download itemId=$itemId userId=$userId episodeId=$episodeId: $e\n$s',
+        tag: 'AppDatabase',
+        level: InfoLevel.warning,
+      );
+      return null;
+    }
+  }
+
+  InternalDownload? _decodeStoredDownloadOrNull(StoredDownloadsEntry entry) {
+    final decoded = _decodeDownloadJsonOrNull(
+      entry.download,
+      itemId: entry.itemId,
+      userId: entry.userId,
+      episodeId: entry.episodeId,
+    );
+    if (decoded == null) {
+      return null;
+    }
+
+    final validTracks = <InternalTrack>[];
+    for (final track in decoded.tracks) {
+      final trackUrl = track.url;
+      if (trackUrl == null || !_storedPathExists(trackUrl)) {
+        continue;
+      }
+      validTracks.add(track);
+    }
+
+    final validAuxiliaryPaths = decoded.auxiliaryFilePaths.where(_storedPathExists).toSet().toList(growable: false)
+      ..sort();
+
+    final validSidecarPaths = decoded.sidecarPaths.where(_storedPathExists).toSet().toList(growable: false)..sort();
+
+    final validCoverPath = decoded.coverPath != null && _storedPathExists(decoded.coverPath!)
+        ? decoded.coverPath
+        : null;
+
+    return decoded.copyWith(
+      tracks: validTracks,
+      auxiliaryFilePaths: validAuxiliaryPaths,
+      sidecarPaths: validSidecarPaths,
+      coverPath: validCoverPath,
+    );
+  }
+
+  List<InternalDownload> _decodeStoredDownloads(Iterable<StoredDownloadsEntry> entries) {
+    final downloads = <InternalDownload>[];
+    for (final entry in entries) {
+      final parsed = _decodeStoredDownloadOrNull(entry);
+      if (parsed != null) {
+        downloads.add(parsed);
+      }
+    }
+    return downloads;
+  }
+
+  bool _sameStringSet(Set<String> left, Set<String> right) {
+    return left.length == right.length && left.containsAll(right);
+  }
+
+  bool _storedPathExists(String rawPath) {
+    final trimmed = rawPath.trim();
+    if (trimmed.isEmpty) {
+      return false;
+    }
+
+    if (Platform.isWindows && RegExp(r'^[a-zA-Z]:[\\/]').hasMatch(trimmed)) {
+      return File(trimmed).existsSync();
+    }
+
+    final parsed = Uri.tryParse(trimmed);
+    if (parsed == null || parsed.scheme.isEmpty) {
+      return File(trimmed).existsSync();
+    }
+
+    if (parsed.scheme == 'file') {
+      try {
+        return File.fromUri(parsed).existsSync();
+      } catch (_) {
+        return false;
+      }
+    }
+
+    // Non-file URIs (for example SAF on Android) cannot be verified synchronously here.
+    return true;
+  }
+
   // Download management
   Future<List<InternalDownload>> getAllStoredDownloads() async {
     final entries = await select(storedDownloads).get();
-    return entries.map((e) => InternalDownload.fromJson(jsonDecode(e.download))).toList();
+    return _decodeStoredDownloads(entries);
   }
 
   Future<List<InternalDownload>> getAllStoredDownloadsByUser(String userId) async {
     final entries = await (select(storedDownloads)..where((tbl) => tbl.userId.equals(userId))).get();
-    return entries.map((e) => InternalDownload.fromJson(jsonDecode(e.download))).toList();
+    return _decodeStoredDownloads(entries);
   }
 
   Future<List<InternalDownload>> getAllStoredDownloadsByUserForLibrary(String userId, String libraryId) async {
     final entries = await (select(storedDownloads)..where((tbl) => tbl.userId.equals(userId))).get();
-    // TODO: Podcast
-    return entries
-        .map((e) => InternalDownload.fromJson(jsonDecode(e.download)))
-        .toList()
-        .where((d) => d.item?.libraryId == libraryId)
-        .toList();
+    return _decodeStoredDownloads(entries).where((d) => d.item?.libraryId == libraryId).toList();
+  }
+
+  Stream<List<InternalDownload>> watchStoredDownloadsByUser(String userId) {
+    final query = select(storedDownloads)..where((tbl) => tbl.userId.equals(userId));
+    return query.watch().map((entries) => _decodeStoredDownloads(entries));
+  }
+
+  Stream<Set<String>> watchCompletedDownloadItemIdsByUser(String userId) {
+    final query = select(storedDownloads)..where((tbl) => tbl.userId.equals(userId));
+    return query
+        .watch()
+        .map((entries) {
+          final itemIds = <String>{};
+          for (final entry in entries) {
+            final parsed = _decodeStoredDownloadOrNull(entry);
+            if (parsed?.isComplete ?? false) {
+              itemIds.add(entry.itemId);
+            }
+          }
+          return itemIds;
+        })
+        .distinct(_sameStringSet);
   }
 
   Future<InternalDownload?> getStoredDownload(String itemId, String userId, {String? episodeId}) async {
@@ -182,12 +317,15 @@ class AppDatabase extends _$AppDatabase {
     }
     final entry = await query.getSingleOrNull();
     if (entry != null) {
-      final download = InternalDownload.fromJson(jsonDecode(entry.download));
+      final download = _decodeStoredDownloadOrNull(entry);
+      if (download == null) {
+        return null;
+      }
       if (download.isComplete) {
         return download;
       } else {
         logger(
-          'Incomplete download found for itemId: $itemId, userId: $userId, episodeId: $episodeId (target tracks: ${download.numberOfTracks}, downloaded tracks: ${download.numberOfDownloadedTracks}).',
+          'Incomplete download found for itemId: $itemId, userId: $userId, episodeId: $episodeId (target files: ${download.numberOfFiles}, downloaded files: ${download.numberOfDownloadedFiles}).',
           tag: 'AppDatabase',
           level: InfoLevel.warning,
         );
@@ -198,36 +336,103 @@ class AppDatabase extends _$AppDatabase {
 
   Future<void> addOrUpdateStoredDownload(StoredDownloadsCompanion companion) {
     return transaction(() async {
-      final insertResult = await into(storedDownloads).insert(companion, mode: InsertMode.insertOrIgnore);
+      await into(storedDownloads).insert(companion, mode: InsertMode.insertOrIgnore);
 
-      print('Insert result: $insertResult');
+      final requestedEpisodeId = companion.episodeId.present ? companion.episodeId.value : null;
+      final requestedWhereClause = _storedDownloadWhereExpression(
+        itemId: companion.itemId.value,
+        userId: companion.userId.value,
+        episodeId: requestedEpisodeId,
+      );
 
-      // TODO: Find why the f it returns 3, 0 and somethimes 1
-      if (insertResult >= 0) {
-        Expression<bool> whereClause =
-            storedDownloads.itemId.equals(companion.itemId.value) &
-            storedDownloads.userId.equals(companion.userId.value);
+      final existing =
+          await (select(storedDownloads)..where((tbl) => requestedWhereClause)).getSingleOrNull() ??
+          await (select(storedDownloads)
+                ..where((tbl) => tbl.itemId.equals(companion.itemId.value) & tbl.userId.equals(companion.userId.value)))
+              .getSingleOrNull();
 
-        if (companion.episodeId.present && companion.episodeId.value != null) {
-          whereClause = whereClause & storedDownloads.episodeId.equals(companion.episodeId.value!);
-        } else {
-          whereClause = whereClause & storedDownloads.episodeId.isNull();
+      if (existing == null) {
+        await into(storedDownloads).insert(companion, mode: InsertMode.replace);
+        return;
+      }
+
+      final newDownload = _decodeDownloadJsonOrNull(
+        companion.download.value,
+        itemId: companion.itemId.value,
+        userId: companion.userId.value,
+        episodeId: requestedEpisodeId,
+      );
+
+      if (newDownload == null) {
+        logger(
+          'Skipping stored download upsert because new payload could not be decoded.',
+          tag: 'AppDatabase',
+          level: InfoLevel.warning,
+        );
+        return;
+      }
+
+      final oldDownload = _decodeStoredDownloadOrNull(existing);
+
+      final InternalDownload updatedDownload;
+      if (oldDownload == null) {
+        updatedDownload = newDownload;
+      } else {
+        final mergedByIndex = <int, InternalTrack>{};
+        for (final track in oldDownload.tracks) {
+          mergedByIndex[track.index] = track;
         }
-        final existing = await (select(storedDownloads)..where((tbl) => whereClause)).getSingle();
+        for (final track in newDownload.tracks) {
+          final current = mergedByIndex[track.index];
+          if (current == null || track.url != null) {
+            mergedByIndex[track.index] = track;
+          }
+        }
 
-        final oldDownload = InternalDownload.fromJson(jsonDecode(existing.download));
-        final newDownload = InternalDownload.fromJson(jsonDecode(companion.download.value));
+        final mergedTracks = mergedByIndex.values.toList()..sort((left, right) => left.index.compareTo(right.index));
 
-        final List<InternalTrack> mergedTracks = [
-          ...oldDownload.tracks,
-          ...newDownload.tracks.where((track) => !oldDownload.tracks.contains(track)),
-        ];
-        final updatedDownload = oldDownload.copyWith(tracks: mergedTracks);
+        final mergedAuxiliaryPaths = <String>{
+          ...oldDownload.auxiliaryFilePaths.where((path) => path.trim().isNotEmpty),
+          ...newDownload.auxiliaryFilePaths.where((path) => path.trim().isNotEmpty),
+        }.toList(growable: false)..sort();
 
-        await (update(storedDownloads)..where((tbl) => whereClause)).write(
-          StoredDownloadsCompanion(download: Value(jsonEncode(updatedDownload.toJson()))),
+        final mergedSidecarPaths = <String>{
+          ...oldDownload.sidecarPaths.where((path) => path.trim().isNotEmpty),
+          ...newDownload.sidecarPaths.where((path) => path.trim().isNotEmpty),
+        }.toList(growable: false)..sort();
+
+        final expectedCountCandidates = <int>{
+          if (oldDownload.expectedFileCount != null && oldDownload.expectedFileCount! > 0)
+            oldDownload.expectedFileCount!,
+          if (newDownload.expectedFileCount != null && newDownload.expectedFileCount! > 0)
+            newDownload.expectedFileCount!,
+        };
+
+        final mergedExpectedFileCount = expectedCountCandidates.isEmpty
+            ? null
+            : expectedCountCandidates.reduce((left, right) => left > right ? left : right);
+
+        updatedDownload = oldDownload.copyWith(
+          item: newDownload.item ?? oldDownload.item,
+          episode: newDownload.episode ?? oldDownload.episode,
+          tracks: mergedTracks,
+          expectedFileCount: mergedExpectedFileCount,
+          auxiliaryFilePaths: mergedAuxiliaryPaths,
+          saf: oldDownload.saf || newDownload.saf,
+          coverPath: newDownload.coverPath ?? oldDownload.coverPath,
+          sidecarPaths: mergedSidecarPaths,
         );
       }
+
+      final existingWhereClause = _storedDownloadWhereExpression(
+        itemId: existing.itemId,
+        userId: existing.userId,
+        episodeId: existing.episodeId,
+      );
+
+      await (update(storedDownloads)..where((tbl) => existingWhereClause)).write(
+        StoredDownloadsCompanion(download: Value(jsonEncode(updatedDownload.toJson()))),
+      );
     });
   }
 

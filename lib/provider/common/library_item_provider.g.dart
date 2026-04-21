@@ -223,3 +223,35 @@ final class LibraryItemFamily extends $Family
   @override
   String toString() => r'libraryItemProvider';
 }
+
+@ProviderFor(completedDownloadItemIds)
+final completedDownloadItemIdsProvider = CompletedDownloadItemIdsProvider._();
+
+final class CompletedDownloadItemIdsProvider
+    extends $FunctionalProvider<AsyncValue<Set<String>>, Set<String>, Stream<Set<String>>>
+    with $FutureModifier<Set<String>>, $StreamProvider<Set<String>> {
+  CompletedDownloadItemIdsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'completedDownloadItemIdsProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$completedDownloadItemIdsHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<Set<String>> $createElement($ProviderPointer pointer) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<Set<String>> create(Ref ref) {
+    return completedDownloadItemIds(ref);
+  }
+}
+
+String _$completedDownloadItemIdsHash() => r'aca295e2457fdd4cbf3fa79c15e004d1c577f99e';

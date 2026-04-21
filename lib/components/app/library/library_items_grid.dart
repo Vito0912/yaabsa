@@ -18,6 +18,10 @@ class LibraryItemsGrid extends StatelessWidget {
     required this.hasNextPage,
     required this.api,
     required this.onEnsureLoadedForIndex,
+    this.selectionMode = false,
+    this.selectedItemIds = const <String>{},
+    this.onToggleSelection,
+    this.onEnterSelectionMode,
   });
 
   final ScrollController scrollController;
@@ -26,6 +30,10 @@ class LibraryItemsGrid extends StatelessWidget {
   final bool hasNextPage;
   final ABSApi api;
   final ValueChanged<int> onEnsureLoadedForIndex;
+  final bool selectionMode;
+  final Set<String> selectedItemIds;
+  final ValueChanged<String>? onToggleSelection;
+  final ValueChanged<String>? onEnterSelectionMode;
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +66,18 @@ class LibraryItemsGrid extends StatelessWidget {
               return const _LibraryGridPlaceholderTile();
             }
 
-            return LibraryItemWidget(items[index], api, showProgress: true, squareCover: true);
+            final item = items[index];
+
+            return LibraryItemWidget(
+              item,
+              api,
+              showProgress: true,
+              squareCover: true,
+              selectionMode: selectionMode,
+              isSelected: selectedItemIds.contains(item.id),
+              onToggleSelection: onToggleSelection == null ? null : () => onToggleSelection!(item.id),
+              onEnterSelectionMode: onEnterSelectionMode == null ? null : () => onEnterSelectionMode!(item.id),
+            );
           },
         );
       },
