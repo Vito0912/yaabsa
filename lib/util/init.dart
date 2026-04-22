@@ -33,8 +33,27 @@ class Init {
         Platform.environment.containsKey('FLATPAK_ID');
   }
 
+  static bool _isSnapRuntime() {
+    final snapRoot = Platform.environment['SNAP'];
+    return snapRoot != null && snapRoot.isNotEmpty;
+  }
+
+  static String? _snapRoot() {
+    final snapRoot = Platform.environment['SNAP'];
+    if (snapRoot == null || snapRoot.isEmpty) {
+      return null;
+    }
+
+    return snapRoot;
+  }
+
   static String? _discoverLibmpvPath() {
-    const searchDirectories = <String>['/app/lib', '/app/lib64', '/app/yaabsa/lib'];
+    final searchDirectories = <String>{'/app/lib', '/app/lib64', '/app/yaabsa/lib'};
+
+    final snapRoot = _snapRoot();
+    if (snapRoot != null) {
+      searchDirectories.add('$snapRoot/usr/lib/x86_64-linux-gnu');
+    }
 
     for (final searchDirectory in searchDirectories) {
       final directory = Directory(searchDirectory);
@@ -79,19 +98,22 @@ class Init {
     }
 
     if (!_isContainerRuntime()) {
-      logger('No Flatpak', tag: 'Init', level: InfoLevel.debug);
-      return null;
-    }
-    logger('Running as Flatpak', tag: 'Init', level: InfoLevel.debug);
+      if (!_isSnapRuntime()) {
+        logger('No Flatpak or Snap runtime detected', tag: 'Init', level: InfoLevel.debug);
+        return null;
+      }
 
-    const fallbackCandidates = <String>[
-      '/app/lib/libmpv.so',
-      '/app/lib/libmpv.so.2',
-      '/app/lib64/libmpv.so',
-      '/app/lib64/libmpv.so.2',
-      '/app/yaabsa/lib/libmpv.so',
-      '/app/yaabsa/lib/libmpv.so.2',
-    ];
+      logger('Running as Snap', tag: 'Init', level: InfoLevel.debug);
+    } else {
+      logger('Running as Flatpak', tag: 'Init', level: InfoLevel.debug);
+    }
+
+    final fallbackCandidates = <String>['/app/lib/libmpv.so', '/app/lib64/libmpv.so'];
+
+    final snapRoot = _snapRoot();
+    if (snapRoot != null) {
+      fallbackCandidates.addAll(<String>['$snapRoot/usr/lib/x86_64-linux-gnu/libmpv.so.2']);
+    }
 
     for (final candidate in fallbackCandidates) {
       if (File(candidate).existsSync()) {

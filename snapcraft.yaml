@@ -1,0 +1,66 @@
+name: yaabsa
+version: '1.1.0'
+summary: Yet another Audiobookshelf client, built with Flutter.
+description: Yet another Audiobookshelf client, built with Flutter.
+
+confinement: strict
+base: core24
+grade: stable
+compression: xz
+
+slots:
+  yaabsa-session-dbus:
+    interface: dbus
+    bus: session
+    name: de.vito0912.yaabsa.yaabsa
+
+  yaabsa-mpris:
+    interface: dbus
+    bus: session
+    name: org.mpris.MediaPlayer2.de.vito0912.yaabsa.audio
+
+apps:
+  yaabsa:
+    command: yaabsa
+    extensions: [gnome]
+    plugs:
+      - network
+      - network-status
+      - home
+      - audio-playback
+      - desktop
+      - desktop-legacy
+      - wayland
+      - x11
+      - opengl
+      - unity7
+      - password-manager-service
+    slots:
+      - yaabsa-session-dbus
+      - yaabsa-mpris
+
+parts:
+  yaabsa:
+    plugin: flutter
+    source: .
+    flutter-target: lib/main.dart
+    flutter-channel: stable
+    build-packages:
+      - clang
+      - lld-18
+      - llvm-18
+      - binutils
+      - cmake
+      - ninja-build
+      - libsecret-1-dev
+      - libmpv-dev
+      - pkg-config
+    stage-packages:
+      - libsecret-1-0
+      - libmpv2
+    prime:
+      - -usr/share/doc/*
+      - -usr/share/man/*
+      - -usr/include/*
+      - -usr/lib/**/*.a
+      - -usr/lib/pkgconfig/*
