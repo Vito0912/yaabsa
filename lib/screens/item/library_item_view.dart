@@ -15,6 +15,7 @@ class LibraryItemView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final item = ref.watch(libraryItemProvider(itemId));
     final api = ref.watch(absApiProvider);
+    final canDownload = ref.watch(currentUserProvider).value?.permissions.download ?? false;
 
     return Scaffold(
       appBar: AppBar(
@@ -49,12 +50,13 @@ class LibraryItemView extends ConsumerWidget {
                       audioHandler.play();
                     },
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.download),
-                    onPressed: () {
-                      downloadHandler.downloadFile(itemId);
-                    },
-                  ),
+                  if (canDownload)
+                    IconButton(
+                      icon: const Icon(Icons.download),
+                      onPressed: () {
+                        downloadHandler.downloadFile(itemId);
+                      },
+                    ),
                   IconButton(
                     icon: const Icon(Icons.book_outlined),
                     onPressed: () {

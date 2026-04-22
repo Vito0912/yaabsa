@@ -36,6 +36,22 @@ class Player extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    void closePlayerIfOpen() {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!context.mounted) {
+          return;
+        }
+        final location = GoRouterState.of(context).matchedLocation;
+        if (location == '/player') {
+          if (Navigator.of(context).canPop()) {
+            context.pop();
+          } else {
+            context.go('/');
+          }
+        }
+      });
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Player'),
@@ -73,9 +89,15 @@ class Player extends StatelessWidget {
           final ABSApi? api = ref.watch(absApiProvider);
           return StreamBuilder<InternalMedia?>(
             stream: audioHandler.mediaItemStream.stream,
+            initialData: audioHandler.currentMediaItem,
             builder: (context, asyncSnapshot) {
-              if (asyncSnapshot.connectionState == ConnectionState.waiting || asyncSnapshot.data == null) {
+              if (asyncSnapshot.connectionState == ConnectionState.waiting && asyncSnapshot.data == null) {
                 return const Center(child: CircularProgressIndicator());
+              }
+
+              if (asyncSnapshot.data == null) {
+                closePlayerIfOpen();
+                return const SizedBox.shrink();
               }
 
               final InternalMedia media = asyncSnapshot.data!;

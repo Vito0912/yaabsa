@@ -58,6 +58,7 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
   bool _isSidebarCollapsed = false;
 
   late final List<NavigationItemConfig> _appBarItems;
+  late final NavigationItemConfig _downloadsMenuItem;
   late final List<NavigationItemConfig> _advancedMenuItems;
 
   @override
@@ -71,8 +72,8 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
       NavigationItemConfig(icon: Icons.view_column_outlined, label: "Series", page: SeriesView()),
     ];
 
+    _downloadsMenuItem = const NavigationItemConfig(icon: Icons.download, label: "Downloads", page: Downloads());
     _advancedMenuItems = const [
-      NavigationItemConfig(icon: Icons.download, label: "Downloads", page: Downloads()),
       NavigationItemConfig(icon: Icons.settings, label: "Settings", page: MainSettingsScreen()),
       NavigationItemConfig(
         icon: Icons.info_outline,
@@ -104,7 +105,14 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
 
   _PageSource _pageSourceFor(Widget? child) => child == null ? _PageSource.internal : _PageSource.child;
 
-  Widget _resolveCurrentContent() {
+  List<NavigationItemConfig> _visibleAdvancedMenuItems({required bool canDownload}) {
+    if (!canDownload) {
+      return _advancedMenuItems;
+    }
+    return [_downloadsMenuItem, ..._advancedMenuItems];
+  }
+
+  Widget _resolveCurrentContent(List<NavigationItemConfig> advancedMenuItems) {
     if (_currentlyDisplayedPageSource == _PageSource.child && widget.child != null) {
       return widget.child!;
     }
@@ -114,7 +122,13 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
     if (_selectedIndex < _appBarItems.length) {
       return _appBarItems[_selectedIndex].page;
     }
-    return _advancedMenuItems[_selectedIndex - _appBarItems.length].page;
+
+    final advancedIndex = _selectedIndex - _appBarItems.length;
+    if (advancedIndex >= 0 && advancedIndex < advancedMenuItems.length) {
+      return advancedMenuItems[advancedIndex].page;
+    }
+
+    return _appBarItems.first.page;
   }
 
   SidebarVariant _sidebarVariantFor({required bool isTablet, required bool isCollapsed}) {
@@ -240,10 +254,12 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
 
     final bool isMobile = context.isMobile;
     final bool isTablet = context.isTablet;
+    final canDownload = ref.watch(currentUserProvider).value?.permissions.download ?? false;
+    final advancedMenuItems = _visibleAdvancedMenuItems(canDownload: canDownload);
     final bool canExpandSidebar = !isMobile;
     final bool isSidebarCollapsed = !canExpandSidebar || _isSidebarCollapsed;
     final SidebarVariant sidebarVariant = _sidebarVariantFor(isTablet: isTablet, isCollapsed: isSidebarCollapsed);
-    final Widget currentContent = _resolveCurrentContent();
+    final Widget currentContent = _resolveCurrentContent(advancedMenuItems);
 
     if (isMobile) {
       return Scaffold(
@@ -253,7 +269,7 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
               isSearchExpanded: _isMobileSearchExpanded,
               searchController: _searchController,
               searchQuery: _searchQuery,
-              advancedMenuItems: _advancedMenuItems,
+              advancedMenuItems: advancedMenuItems,
               advancedMenuStartIndex: _appBarItems.length,
               onSearchChanged: _onSearchChanged,
               onSearchSubmitted: _submitSearch,
@@ -304,7 +320,7 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
               variant: sidebarVariant,
               selectedIndex: _selectedIndex,
               primaryItems: _appBarItems,
-              secondaryItems: _advancedMenuItems,
+              secondaryItems: advancedMenuItems,
               onItemTap: _onAppBarItemTapped,
             ),
           ),
