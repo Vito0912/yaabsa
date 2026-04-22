@@ -9,6 +9,7 @@ import 'package:yaabsa/provider/player/session_provider.dart';
 import 'package:yaabsa/util/handler/playback_sync_service.dart';
 import 'package:yaabsa/util/handler/player_history_handler.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/player_utils.dart' show PlayerUtils;
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
@@ -156,6 +157,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   @override
   Future<void> play() async {
+    PlayerUtils.enableWakelock(_ref);
     if (_currentMediaItem != null) {
       await _syncedPlay();
       return Future.value();
@@ -211,6 +213,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       await seek(currentPosition);
     }
 
+    logger('Wakelock enabled', tag: 'AudioHandler', level: InfoLevel.debug);
     await _player.play();
   }
 
@@ -218,6 +221,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   Future<void> stop({bool clearQueue = true}) async {
     _currentMediaItem = null;
     _currentTrackIndex = 0;
+    PlayerUtils.disableWakelock(_ref);
     if (clearQueue) {
       queueList.clear();
       _emitQueueLength();
@@ -243,6 +247,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   @override
   Future<void> pause() async {
+    PlayerUtils.disableWakelock(_ref);
     await _player.pause();
     return Future.value();
   }

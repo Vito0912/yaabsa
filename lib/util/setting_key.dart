@@ -6,6 +6,7 @@ class SettingKeys {
   static const String currentUserId = 'current_user_id';
   static const String appLogLevel = 'app_log_level';
   static const String bufferSize = 'buffer_size';
+  static const String keepScreenOn = 'keep_screen_on';
   static const String lockMediaNotification = 'lock_media_notification';
   static const String language = 'language';
   static const String sidebarCollapsed = 'sidebar_collapsed';
@@ -41,6 +42,7 @@ final defaultSettings = {
   SettingKeys.appLogLevel: InfoLevel.info.toString(),
   SettingKeys.bufferSize: 5 * 1024 * 1024,
   SettingKeys.lockMediaNotification: false,
+  SettingKeys.keepScreenOn: false,
   SettingKeys.language: 'en-US',
   SettingKeys.sidebarCollapsed: false,
 

@@ -24,6 +24,7 @@ class GlobalPlayerSettings extends StatelessWidget {
           settingKey: SettingKeys.bufferSize,
         ),
         SettingSwitch(label: 'Lock Media Notification', settingKey: SettingKeys.lockMediaNotification),
+        SettingSwitch(label: 'Keep Screen On', settingKey: SettingKeys.keepScreenOn),
       ],
     );
   }

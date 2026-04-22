@@ -1,11 +1,32 @@
 import 'dart:io';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:yaabsa/api/library_items/device_info.dart';
+import 'package:yaabsa/database/settings_manager.dart' show settingsManagerProvider;
 import 'package:yaabsa/util/globals.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/setting_key.dart';
 
 class PlayerUtils {
   static final DeviceInfoPlugin _deviceInfoPlugin = DeviceInfoPlugin();
+
+  static void enableWakelock(ProviderContainer ref) {
+    final keepScreenOn = ref.read(settingsManagerProvider.notifier).getGlobalSetting<bool>(SettingKeys.keepScreenOn);
+    if (keepScreenOn == true) {
+      WakelockPlus.enable();
+      logger('Wakelock enabled', tag: 'PlayerUtils', level: InfoLevel.debug);
+    }
+  }
+
+  static void disableWakelock(ProviderContainer ref) {
+    final keepScreenOn = ref.read(settingsManagerProvider.notifier).getGlobalSetting<bool>(SettingKeys.keepScreenOn);
+    if (keepScreenOn == true) {
+      WakelockPlus.disable();
+      logger('Wakelock disabled', tag: 'PlayerUtils', level: InfoLevel.debug);
+    }
+  }
 
   static Future<DeviceInfo> getDeviceInfo() async {
     String? deviceId;
