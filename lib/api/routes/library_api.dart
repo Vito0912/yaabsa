@@ -6,6 +6,7 @@ import 'package:yaabsa/api/library/response/library_response.dart';
 import 'package:yaabsa/api/library/search_library.dart';
 import 'package:yaabsa/api/library/series_items.dart';
 import 'package:yaabsa/api/library/stats/library_stats.dart';
+import 'package:yaabsa/api/library_items/series.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:dio/dio.dart';
 
@@ -137,6 +138,23 @@ class LibraryApi {
       extra: extra,
       dio: _dio,
       queryParams: request.toJson(),
+    );
+  }
+
+  Future<Response<Series>> getSeriesById(
+    String seriesId, {
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiGetRequest(
+      route: '/api/series/$seriesId',
+      fromJson: (data) => Series.fromJson(data),
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
+      queryParams: {},
     );
   }
 

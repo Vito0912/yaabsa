@@ -9,6 +9,21 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 const int _seriesPerPage = 20;
 const int _seriesBooksPerPage = 20;
 
+final seriesByIdProvider = FutureProvider.family<Series, String>((ref, seriesId) async {
+  final absApi = ref.watch(absApiProvider);
+  if (absApi == null) {
+    throw Exception('User not authenticated or API not available.');
+  }
+
+  final response = await absApi.getLibraryApi().getSeriesById(seriesId);
+  final data = response.data;
+  if (data == null) {
+    throw Exception('No series details data received from API.');
+  }
+
+  return data;
+});
+
 class SeriesState {
   const SeriesState({
     this.items = const <Series>[],

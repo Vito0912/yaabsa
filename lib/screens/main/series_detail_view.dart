@@ -42,13 +42,11 @@ class SeriesDetailView extends HookConsumerWidget {
     final libraryId = selectedLibrary.id;
     final allSeriesAsync = ref.watch(seriesProvider(libraryId));
     final resolvedEntry = _resolveEntry(seriesId, initialEntry, allSeriesAsync.value?.items);
-
-    if (resolvedEntry == null) {
-      if (allSeriesAsync.isLoading) {
-        return const Center(child: CircularProgressIndicator());
-      }
-      return const Center(child: Text('Series details could not be loaded.'));
-    }
+    final seriesDetailsAsync =
+      resolvedEntry == null ? ref.watch(seriesByIdProvider(seriesId)) : const AsyncValue<Series>.loading();
+    final resolvedSeries = seriesDetailsAsync.value;
+    final seriesTitle = resolvedEntry?.title ?? resolvedSeries?.name;
+    final seriesSubtitle = resolvedEntry?.subtitle ?? _seriesSubtitleFromSeries(resolvedSeries);
 
     final booksArgs = SeriesBooksArgs(libraryId: libraryId, seriesId: seriesId);
     final currentBooksProvider = seriesBooksProvider(booksArgs);
@@ -82,23 +80,40 @@ class SeriesDetailView extends HookConsumerWidget {
                       ),
                       const SizedBox(width: 6),
                       Expanded(
-                        child: Text(
-                          resolvedEntry.title,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
+                        child: switch ((seriesTitle, seriesDetailsAsync.isLoading, seriesDetailsAsync.hasError)) {
+                          (final String title?, _, _) => Text(
+                            title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          (_, true, _) => const Align(
+                            alignment: Alignment.centerLeft,
+                            child: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2.2),
+                            ),
+                          ),
+                          (_, _, true) => Text(
+                            'Series details could not be loaded.',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          _ => const SizedBox.shrink(),
+                        },
                       ),
                     ],
                   ),
                 ),
-                if (resolvedEntry.subtitle != null)
+                if (seriesSubtitle != null)
                   Padding(
                     padding: EdgeInsets.fromLTRB(horizontalPadding + 58, 0, horizontalPadding, 10),
                     child: Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        resolvedEntry.subtitle!,
+                        seriesSubtitle,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.bodySmall,
@@ -155,6 +170,12 @@ class SeriesDetailView extends HookConsumerWidget {
       error: (error, stackTrace) => Center(child: Text('Error loading series books: $error')),
     );
   }
+}
+
+String? _seriesSubtitleFromSeries(Series? series) {
+  final numBooks = series?.numBooks;
+  if (numBooks == null) return null;
+  return '$numBooks ${numBooks == 1 ? 'book' : 'books'}';
 }
 
 int _estimatedItemCount({required int loadedCount, required int totalItems, required bool hasNextPage}) {
