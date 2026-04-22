@@ -42,8 +42,9 @@ class SeriesDetailView extends HookConsumerWidget {
     final libraryId = selectedLibrary.id;
     final allSeriesAsync = ref.watch(seriesProvider(libraryId));
     final resolvedEntry = _resolveEntry(seriesId, initialEntry, allSeriesAsync.value?.items);
-    final seriesDetailsAsync =
-      resolvedEntry == null ? ref.watch(seriesByIdProvider(seriesId)) : const AsyncValue<Series>.loading();
+    final seriesDetailsAsync = resolvedEntry == null
+        ? ref.watch(seriesByIdProvider(seriesId))
+        : const AsyncValue<Series>.loading();
     final resolvedSeries = seriesDetailsAsync.value;
     final seriesTitle = resolvedEntry?.title ?? resolvedSeries?.name;
     final seriesSubtitle = resolvedEntry?.subtitle ?? _seriesSubtitleFromSeries(resolvedSeries);
@@ -89,11 +90,7 @@ class SeriesDetailView extends HookConsumerWidget {
                           ),
                           (_, true, _) => const Align(
                             alignment: Alignment.centerLeft,
-                            child: SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2.2),
-                            ),
+                            child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.2)),
                           ),
                           (_, _, true) => Text(
                             'Series details could not be loaded.',
