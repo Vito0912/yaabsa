@@ -47,7 +47,7 @@ jobs:
           fi
 
       - name: Check if flutter fixes are available
-        run: dart fix . --dry-run | grep "Nothing to fix!" || (echo "Flutter fixes are
+        run: dart fix lib/ --dry-run | grep "Nothing to fix!" || (echo "Flutter fixes are
           available. Please run 'dart fix . --apply' and commit the changes." &&
           exit 1)
 

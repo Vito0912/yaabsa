@@ -14,6 +14,7 @@ class SettingKeys {
   static const String syncInterval = 'sync_interval';
   static const String syncOnlyOnWifi = 'sync_only_on_wifi';
   static const String sortSeriesAscending = 'sort_series_ascending';
+  static const String collapseSeries = 'collapse_series';
   static const String downloadPath = 'download_path';
   static const String waitForSync = 'wait_for_sync';
   static const String progressPerChapter = 'progress_per_chapter';
@@ -46,6 +47,7 @@ final defaultSettings = {
   SettingKeys.syncInterval: 10,
   SettingKeys.syncOnlyOnWifi: false,
   SettingKeys.sortSeriesAscending: false,
+  SettingKeys.collapseSeries: false,
   SettingKeys.downloadPath: null,
   SettingKeys.waitForSync: true,
   SettingKeys.progressPerChapter: false,

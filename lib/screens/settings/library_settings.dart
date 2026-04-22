@@ -23,6 +23,7 @@ class LibrarySettings extends ConsumerStatefulWidget {
 
 class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
   bool _isPicking = false;
+  bool _isUpdatingCollapseSeries = false;
   late final Future<String> _defaultLocationFuture;
 
   @override
@@ -153,6 +154,32 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
     }
   }
 
+  Future<void> _setCollapseSeriesEnabled(String userId, bool enabled) async {
+    if (_isUpdatingCollapseSeries) {
+      return;
+    }
+
+    setState(() => _isUpdatingCollapseSeries = true);
+
+    try {
+      await ref
+          .read(settingsManagerProvider.notifier)
+          .setUserSetting<bool>(userId, SettingKeys.collapseSeries, enabled);
+    } catch (e) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to update collapse series setting: $e')));
+    } finally {
+      if (mounted) {
+        setState(() => _isUpdatingCollapseSeries = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final appDatabase = ref.watch(appDatabaseProvider);
@@ -170,27 +197,27 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
               );
             }
 
-            return StreamBuilder<UserSettingEntry?>(
-              stream: appDatabase.watchUserSetting(user.id, SettingKeys.downloadPath),
-              builder: (context, snapshot) {
-                final fallbackValue = ref
-                    .read(settingsManagerProvider.notifier)
-                    .getUserSetting<String>(user.id, SettingKeys.downloadPath, defaultValue: '');
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                StreamBuilder<UserSettingEntry?>(
+                  stream: appDatabase.watchUserSetting(user.id, SettingKeys.downloadPath),
+                  builder: (context, snapshot) {
+                    final fallbackValue = ref
+                        .read(settingsManagerProvider.notifier)
+                        .getUserSetting<String>(user.id, SettingKeys.downloadPath, defaultValue: '');
 
-                final currentRawValue = snapshot.data?.value ?? fallbackValue;
-                final hasCustomLocation = parseDownloadLocationSetting(currentRawValue) != null;
-                final currentDisplayValue = formatDownloadLocationForDisplay(currentRawValue);
+                    final currentRawValue = snapshot.data?.value ?? fallbackValue;
+                    final hasCustomLocation = parseDownloadLocationSetting(currentRawValue) != null;
+                    final currentDisplayValue = formatDownloadLocationForDisplay(currentRawValue);
 
-                return FutureBuilder<String>(
-                  future: _defaultLocationFuture,
-                  builder: (context, defaultLocationSnapshot) {
-                    final defaultLocation = defaultLocationSnapshot.data ?? 'Loading default location...';
-                    final currentLocationDisplay = hasCustomLocation ? currentDisplayValue : defaultLocation;
+                    return FutureBuilder<String>(
+                      future: _defaultLocationFuture,
+                      builder: (context, defaultLocationSnapshot) {
+                        final defaultLocation = defaultLocationSnapshot.data ?? 'Loading default location...';
+                        final currentLocationDisplay = hasCustomLocation ? currentDisplayValue : defaultLocation;
 
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        SettingButton(
+                        return SettingButton(
                           label: 'Download Location',
                           description: currentLocationDisplay,
                           buttonText: hasCustomLocation ? 'Change' : 'Choose',
@@ -199,12 +226,55 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
                               ? () => _handleLocationAction(user.id, hasCustomLocation: hasCustomLocation)
                               : null,
                           isLoading: _isPicking,
-                        ),
-                      ],
+                        );
+                      },
                     );
                   },
-                );
-              },
+                ),
+                StreamBuilder<UserSettingEntry?>(
+                  stream: appDatabase.watchUserSetting(user.id, SettingKeys.collapseSeries),
+                  builder: (context, snapshot) {
+                    final fallbackValue = ref
+                        .read(settingsManagerProvider.notifier)
+                        .getUserSetting<bool>(user.id, SettingKeys.collapseSeries, defaultValue: false);
+
+                    final isEnabled = SettingsParser.decodeValue<bool>(snapshot.data?.value, fallbackValue);
+                    final theme = Theme.of(context);
+
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  'Collapse Series',
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    color: _isUpdatingCollapseSeries ? theme.disabledColor : null,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                              ),
+                              Switch(
+                                value: isEnabled,
+                                onChanged: _isUpdatingCollapseSeries
+                                    ? null
+                                    : (value) => _setCollapseSeriesEnabled(user.id, value),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ],
             );
           },
           loading: () => const Padding(

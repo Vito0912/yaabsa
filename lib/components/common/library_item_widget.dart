@@ -40,6 +40,9 @@ class LibraryItemWidget extends ConsumerWidget {
         : null;
     final completedDownloadItemIds = ref.watch(completedDownloadItemIdsProvider).asData?.value ?? const <String>{};
     final isDownloaded = completedDownloadItemIds.contains(libraryItem.id);
+    final collapsedSeriesBookCount = libraryItem.collapsedSeries?.numBooks ?? 0;
+    final collapsedSeriesId = libraryItem.collapsedSeries?.id;
+    final isCollapsedSeriesCard = libraryItem.collapsedSeries != null;
 
     final progressValue = (progress?.progress ?? 0).clamp(0.0, 1.0).toDouble();
     final showProgressBar = showProgress && progressValue > 0;
@@ -61,6 +64,12 @@ class LibraryItemWidget extends ConsumerWidget {
                 onToggleSelection?.call();
                 return;
               }
+
+              if (isCollapsedSeriesCard && collapsedSeriesId != null && collapsedSeriesId.isNotEmpty) {
+                context.push('/series/$collapsedSeriesId');
+                return;
+              }
+
               context.push('/item/${libraryItem.id}');
             },
             onLongPress: (onEnterSelectionMode == null && onToggleSelection == null)
@@ -138,41 +147,72 @@ class LibraryItemWidget extends ConsumerWidget {
                     Positioned(
                       top: 4,
                       right: 4,
-                      child: Container(
-                        decoration: BoxDecoration(borderRadius: BorderRadius.circular(100), color: Colors.black),
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            if (libraryItem.media?.hasAudio ?? false)
-                              IconButton(
-                                tooltip: isPlayingCurrentItem ? 'Pause' : 'Play',
-                                icon: Icon(isPlayingCurrentItem ? Icons.pause : Icons.play_arrow, size: 14),
-                                iconSize: 10,
-                                onPressed: () {
-                                  if (isPlayingCurrentItem) {
-                                    audioHandler.pause();
-                                    return;
-                                  }
-
-                                  if (isCurrentItem) {
-                                    audioHandler.play();
-                                    return;
-                                  }
-
-                                  audioHandler.setQueue(QueueItem(itemId: libraryItem.id));
-                                  audioHandler.play();
-                                },
-                                splashRadius: 8,
+                      child: isCollapsedSeriesCard
+                          ? Tooltip(
+                              message:
+                                  '$collapsedSeriesBookCount '
+                                  '${collapsedSeriesBookCount == 1 ? 'book' : 'books'} in series',
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(100),
+                                  color: colorScheme.secondaryContainer,
+                                ),
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.collections_bookmark_rounded,
+                                      size: 14,
+                                      color: colorScheme.onSecondaryContainer,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '$collapsedSeriesBookCount',
+                                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                        color: colorScheme.onSecondaryContainer,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            if (!(libraryItem.media?.hasAudio ?? false) && (libraryItem.media?.hasBook ?? false))
-                              IconButton(
-                                icon: const Icon(Icons.my_library_books_outlined, size: 14),
-                                iconSize: 10,
-                                onPressed: () {},
+                            )
+                          : Container(
+                              decoration: BoxDecoration(borderRadius: BorderRadius.circular(100), color: Colors.black),
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  if (libraryItem.media?.hasAudio ?? false)
+                                    IconButton(
+                                      tooltip: isPlayingCurrentItem ? 'Pause' : 'Play',
+                                      icon: Icon(isPlayingCurrentItem ? Icons.pause : Icons.play_arrow, size: 14),
+                                      iconSize: 10,
+                                      onPressed: () {
+                                        if (isPlayingCurrentItem) {
+                                          audioHandler.pause();
+                                          return;
+                                        }
+
+                                        if (isCurrentItem) {
+                                          audioHandler.play();
+                                          return;
+                                        }
+
+                                        audioHandler.setQueue(QueueItem(itemId: libraryItem.id));
+                                        audioHandler.play();
+                                      },
+                                      splashRadius: 8,
+                                    ),
+                                  if (!(libraryItem.media?.hasAudio ?? false) && (libraryItem.media?.hasBook ?? false))
+                                    IconButton(
+                                      icon: const Icon(Icons.my_library_books_outlined, size: 14),
+                                      iconSize: 10,
+                                      onPressed: () {},
+                                    ),
+                                ],
                               ),
-                          ],
-                        ),
-                      ),
+                            ),
                     ),
                   ],
                 ),
