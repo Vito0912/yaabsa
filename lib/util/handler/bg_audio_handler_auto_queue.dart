@@ -2,7 +2,7 @@ part of 'bg_audio_handler.dart';
 
 extension _BGAudioHandlerAutoQueueExtension on BGAudioHandler {
   Future<_AutoQueueRequestContext?> _buildSeriesFallbackAutoQueueContext(LibraryItem item) async {
-    final seriesId = await this._resolvePrimarySeriesId(item);
+    final seriesId = await _resolvePrimarySeriesId(item);
     final libraryId = item.libraryId;
     if (seriesId == null || seriesId.isEmpty || libraryId == null || libraryId.isEmpty) {
       return null;
@@ -67,14 +67,14 @@ extension _BGAudioHandlerAutoQueueExtension on BGAudioHandler {
   }
 
   Future<String?> _resolvePrimarySeriesId(LibraryItem item) async {
-    final initialSeriesId = this._firstSeriesIdFromItem(item);
+    final initialSeriesId = _firstSeriesIdFromItem(item);
     if (initialSeriesId != null) {
       return initialSeriesId;
     }
 
     try {
       final fullItem = await _ref.read(libraryItemProvider(item.id).future);
-      return this._firstSeriesIdFromItem(fullItem);
+      return _firstSeriesIdFromItem(fullItem);
     } catch (e) {
       logger(
         'Failed to resolve full item for fallback auto-queue series lookup (${item.id}): $e',
@@ -91,8 +91,8 @@ extension _BGAudioHandlerAutoQueueExtension on BGAudioHandler {
     _emitQueueState();
 
     try {
-      final locatedStart = await this._locateAutoQueueStart(context, currentItemId);
-      if (!this._isAutoQueueStillValid(generation, currentItemId)) {
+      final locatedStart = await _locateAutoQueueStart(context, currentItemId);
+      if (!_isAutoQueueStillValid(generation, currentItemId)) {
         return;
       }
 
@@ -120,10 +120,10 @@ extension _BGAudioHandlerAutoQueueExtension on BGAudioHandler {
       _autoQueueState = autoState;
 
       final samePageQueueItems = currentPageResult.items.skip(currentIndexInPage + 1).toList(growable: false);
-      this._appendAutoQueueItems(samePageQueueItems, page: currentPageResult.page);
+      _appendAutoQueueItems(samePageQueueItems, page: currentPageResult.page);
 
       if (_remainingAutoQueueItems(autoState) > 0) {
-        await this._loadMoreAutoQueue();
+        await _loadMoreAutoQueue();
       } else {
         _emitQueueState();
       }
@@ -136,13 +136,13 @@ extension _BGAudioHandlerAutoQueueExtension on BGAudioHandler {
     _AutoQueueRequestContext context,
     String currentItemId,
   ) async {
-    final initialResult = await this._fetchAutoQueuePage(context, context.initialPage);
+    final initialResult = await _fetchAutoQueuePage(context, context.initialPage);
     final initialIndex = initialResult.items.indexWhere((item) => item.id == currentItemId);
     if (initialIndex >= 0) {
       return (pageResult: initialResult, itemIndex: initialIndex);
     }
 
-    final maxPage = this._maxAutoQueuePage(initialResult);
+    final maxPage = _maxAutoQueuePage(initialResult);
     if (maxPage <= 0) {
       return null;
     }
@@ -152,7 +152,7 @@ extension _BGAudioHandlerAutoQueueExtension on BGAudioHandler {
         continue;
       }
 
-      final result = await this._fetchAutoQueuePage(context, page);
+      final result = await _fetchAutoQueuePage(context, page);
       final index = result.items.indexWhere((item) => item.id == currentItemId);
       if (index >= 0) {
         return (pageResult: result, itemIndex: index);
@@ -212,7 +212,7 @@ extension _BGAudioHandlerAutoQueueExtension on BGAudioHandler {
 
     final nextPage = autoState.highestLoadedPage + 1;
     try {
-      final pageResult = await this._fetchAutoQueuePage(autoState.context, nextPage);
+      final pageResult = await _fetchAutoQueuePage(autoState.context, nextPage);
       if (_autoQueueState != autoState) {
         return;
       }
@@ -222,7 +222,7 @@ extension _BGAudioHandlerAutoQueueExtension on BGAudioHandler {
         autoState.firstItemIdByPage[pageResult.page] = pageResult.items.first.id;
       }
 
-      this._appendAutoQueueItems(pageResult.items, page: pageResult.page);
+      _appendAutoQueueItems(pageResult.items, page: pageResult.page);
     } catch (e) {
       logger('Failed to load more auto queue items: $e', tag: 'AudioHandler', level: InfoLevel.warning);
     } finally {
@@ -253,7 +253,7 @@ extension _BGAudioHandlerAutoQueueExtension on BGAudioHandler {
       return;
     }
 
-    unawaited(this._loadMoreAutoQueue());
+    unawaited(_loadMoreAutoQueue());
   }
 
   Future<_AutoQueuePageResult> _fetchAutoQueuePage(_AutoQueueRequestContext context, int page) async {
@@ -287,11 +287,11 @@ extension _BGAudioHandlerAutoQueueExtension on BGAudioHandler {
           pageSize: data.limit ?? context.pageSize,
         );
       case _AutoQueueSourceType.playlist:
-        context.cachedItems ??= await this._resolvePlaylistItems(context);
-        return this._sliceAutoQueuePage(items: context.cachedItems!, page: page, pageSize: context.pageSize);
+        context.cachedItems ??= await _resolvePlaylistItems(context);
+        return _sliceAutoQueuePage(items: context.cachedItems!, page: page, pageSize: context.pageSize);
       case _AutoQueueSourceType.collection:
-        context.cachedItems ??= await this._resolveCollectionItems(context);
-        return this._sliceAutoQueuePage(items: context.cachedItems!, page: page, pageSize: context.pageSize);
+        context.cachedItems ??= await _resolveCollectionItems(context);
+        return _sliceAutoQueuePage(items: context.cachedItems!, page: page, pageSize: context.pageSize);
     }
   }
 

@@ -1,3 +1,5 @@
+// ignore_for_file: unused_element_parameter
+
 import 'dart:async';
 import 'dart:io';
 
@@ -271,7 +273,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   }
 
   Future<void> loadMoreAutoQueue() {
-    return this._loadMoreAutoQueue();
+    return _loadMoreAutoQueue();
   }
 
   Future<LibraryItem?> resolveQueueLibraryItem(String itemId) {
@@ -387,7 +389,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     __currentMediaItem = mediaItem;
     _currentTrackIndex = 0;
     mediaItemStream.add(mediaItem);
-    this._handleAutoQueueOnCurrentItemChange(mediaItem?.itemId);
+    _handleAutoQueueOnCurrentItemChange(mediaItem?.itemId);
   }
 
   Stream<double> get volumeStream => _player.volumeStream;
@@ -538,7 +540,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     }
 
     if (autoQueueContext != null) {
-      unawaited(this._startAutoQueue(autoQueueContext, item.id));
+      unawaited(_startAutoQueue(autoQueueContext, item.id));
       return;
     }
 
@@ -546,9 +548,9 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       return;
     }
 
-    final fallbackContext = await this._buildSeriesFallbackAutoQueueContext(item);
+    final fallbackContext = await _buildSeriesFallbackAutoQueueContext(item);
     if (fallbackContext != null) {
-      unawaited(this._startAutoQueue(fallbackContext, item.id));
+      unawaited(_startAutoQueue(fallbackContext, item.id));
     }
   }
 
