@@ -185,6 +185,25 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     await _syncedPlay(restoreProgress: true);
   }
 
+  Future<void> playItemFromPosition({required String itemId, required Duration position}) async {
+    PlayerUtils.enableWakelock(_ref);
+
+    final isCurrentItem = _currentMediaItem?.itemId == itemId;
+    if (!isCurrentItem) {
+      await _ref.read(sessionRepositoryProvider).closeSession();
+      _lastQueueItem = QueueItem(itemId: itemId);
+      _currentMediaItem = await _ref.read(sessionRepositoryProvider).openSession(itemId);
+      if (_currentMediaItem == null) {
+        logger('No media item found for ID: $itemId', tag: 'AudioHandler', level: InfoLevel.error);
+        return Future.value();
+      }
+      await _setSource(ignoreSavedProgress: true);
+    }
+
+    await seek(position);
+    await _player.play();
+  }
+
   Future<void> _syncedPlay({bool restoreProgress = false}) async {
     mediaItem.add(_currentMediaItem?.toMediaItem());
 
@@ -447,19 +466,21 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     });
   }
 
-  Future<dynamic> _setSource({Duration initialPosition = Duration.zero}) async {
+  Future<dynamic> _setSource({Duration initialPosition = Duration.zero, bool ignoreSavedProgress = false}) async {
     if (_currentMediaItem == null) return Future.value();
     final source = _currentMediaItem!.toAudioSources();
-    final currentProgress = _ref.read(
-      mediaProgressProvider.select((asyncValue) {
-        return asyncValue.value?[_currentMediaItem!.itemId];
-      }),
-    );
-
-    if (currentProgress != null) {
-      initialPosition = Duration(
-        microseconds: ((currentProgress.currentTime) * Duration.microsecondsPerSecond).round(),
+    if (!ignoreSavedProgress) {
+      final currentProgress = _ref.read(
+        mediaProgressProvider.select((asyncValue) {
+          return asyncValue.value?[_currentMediaItem!.itemId];
+        }),
       );
+
+      if (currentProgress != null) {
+        initialPosition = Duration(
+          microseconds: ((currentProgress.currentTime) * Duration.microsecondsPerSecond).round(),
+        );
+      }
     }
 
     logger('Setting source with initial position: $initialPosition', tag: 'AudioHandler', level: InfoLevel.debug);

@@ -128,6 +128,15 @@ final globalRouter = GoRouter(
               routes: [
                 GoRoute(path: '/item/:id', builder: (context, state) => LibraryItemView(state.pathParameters['id']!)),
                 GoRoute(
+                  path: '/author/:id',
+                  builder: (context, state) => _PendingEntityView(title: 'Author', value: state.pathParameters['id']!),
+                ),
+                GoRoute(
+                  path: '/narrator/:name',
+                  builder: (context, state) =>
+                      _PendingEntityView(title: 'Narrator', value: Uri.decodeComponent(state.pathParameters['name']!)),
+                ),
+                GoRoute(
                   path: '/collection/:id',
                   builder: (context, state) {
                     final extra = state.extra;
@@ -169,6 +178,39 @@ class _AppStartupScreen extends StatelessWidget {
       body: SafeArea(
         child: Center(child: const SizedBox(width: 28, height: 28, child: CircularProgressIndicator(strokeWidth: 2.6))),
       ),
+    );
+  }
+}
+
+class _PendingEntityView extends StatelessWidget {
+  const _PendingEntityView({required this.title, required this.value});
+
+  final String title;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(8, 10, 8, 8),
+          child: Row(
+            children: [
+              IconButton(onPressed: () => context.pop(), icon: const Icon(Icons.arrow_back_rounded), tooltip: 'Back'),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  '$title: $value',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const Expanded(child: Center(child: Text('This view is not implemented yet.'))),
+      ],
     );
   }
 }

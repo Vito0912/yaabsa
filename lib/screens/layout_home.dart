@@ -19,6 +19,7 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 enum _PageSource { internal, child }
@@ -49,6 +50,7 @@ class LayoutHome extends ConsumerStatefulWidget {
 
 class _LayoutHomeState extends ConsumerState<LayoutHome> {
   int _selectedIndex = 0;
+  String? _lastConsumedTabIntent;
   _PageSource _currentlyDisplayedPageSource = _PageSource.internal;
   String? _bootstrappedUserId;
   final TextEditingController _searchController = TextEditingController();
@@ -248,6 +250,27 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
 
   @override
   Widget build(BuildContext context) {
+    final queryParameters = GoRouterState.of(context).uri.queryParameters;
+    final tabIntent = queryParameters['tab'];
+    final intentKey = queryParameters['intent'] ?? tabIntent;
+    if (tabIntent != null && intentKey != null && intentKey != _lastConsumedTabIntent) {
+      final targetIndex = switch (tabIntent) {
+        'library' => 1,
+        'collections' => 2,
+        'playlists' => 3,
+        'series' => 4,
+        _ => 0,
+      };
+      _lastConsumedTabIntent = intentKey;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        setState(() {
+          _selectedIndex = targetIndex;
+          _currentlyDisplayedPageSource = _PageSource.internal;
+        });
+      });
+    }
+
     if (_isBootstrapping()) {
       return const _LayoutHomeStartupScreen();
     }
