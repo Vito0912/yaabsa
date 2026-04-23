@@ -10,6 +10,8 @@ class SettingKeys {
   static const String lockMediaNotification = 'lock_media_notification';
   static const String language = 'language';
   static const String sidebarCollapsed = 'sidebar_collapsed';
+  static const String autoQueue = 'auto_queue';
+  static const String autoQueueIncludeSeriesOutsideContext = 'auto_queue_include_series_outside_context';
 
   // User-Specific Settings
   static const String syncInterval = 'sync_interval';
@@ -45,6 +47,8 @@ final defaultSettings = {
   SettingKeys.keepScreenOn: false,
   SettingKeys.language: 'en-US',
   SettingKeys.sidebarCollapsed: false,
+  SettingKeys.autoQueue: true,
+  SettingKeys.autoQueueIncludeSeriesOutsideContext: false,
 
   SettingKeys.syncInterval: 10,
   SettingKeys.syncOnlyOnWifi: false,

@@ -12,6 +12,7 @@ import 'package:yaabsa/components/common/scroll_to_top_button.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/common/playlist_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
 
 class PlaylistDetailView extends HookConsumerWidget {
@@ -122,7 +123,21 @@ class PlaylistDetailView extends HookConsumerWidget {
                           crossAxisSpacing: appGridSpacing,
                           itemCount: libraryItems.length,
                           itemBuilder: (context, index) {
-                            return LibraryItemWidget(libraryItems[index], api, showProgress: true, squareCover: true);
+                            final item = libraryItems[index];
+                            return LibraryItemWidget(
+                              item,
+                              api,
+                              showProgress: true,
+                              squareCover: true,
+                              onPlay: () {
+                                audioHandler.playLibraryItemFromPlaylistView(
+                                  item,
+                                  libraryId: libraryId,
+                                  playlistId: playlistId,
+                                  itemIndex: index,
+                                );
+                              },
+                            );
                           },
                         ),
                       ),

@@ -22,6 +22,7 @@ class LibraryItemsGrid extends StatelessWidget {
     this.selectedItemIds = const <String>{},
     this.onToggleSelection,
     this.onEnterSelectionMode,
+    this.onPlayItem,
   });
 
   final ScrollController scrollController;
@@ -34,6 +35,7 @@ class LibraryItemsGrid extends StatelessWidget {
   final Set<String> selectedItemIds;
   final ValueChanged<String>? onToggleSelection;
   final ValueChanged<String>? onEnterSelectionMode;
+  final void Function(LibraryItem item, int index)? onPlayItem;
 
   @override
   Widget build(BuildContext context) {
@@ -73,6 +75,7 @@ class LibraryItemsGrid extends StatelessWidget {
               api,
               showProgress: true,
               squareCover: true,
+              onPlay: onPlayItem == null ? null : () => onPlayItem!(item, index),
               selectionMode: selectionMode,
               isSelected: selectedItemIds.contains(item.id),
               onToggleSelection: onToggleSelection == null ? null : () => onToggleSelection!(item.id),

@@ -13,7 +13,9 @@ import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/player/chapter.dart';
 import 'package:yaabsa/screens/player/play_history_view.dart';
+import 'package:yaabsa/screens/player/queue.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -56,6 +58,19 @@ class Player extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Player'),
         actions: [
+          if (context.isMobile)
+            IconButton(
+              icon: const Icon(Icons.queue_music_rounded),
+              onPressed: () {
+                showModalBottomSheet<void>(
+                  context: context,
+                  showDragHandle: true,
+                  isScrollControlled: true,
+                  builder: (context) => const _QueueBottomSheet(),
+                );
+              },
+              tooltip: 'Queue',
+            ),
           IconButton(
             icon: const Icon(Icons.directions_car_filled_outlined),
             onPressed: () {
@@ -135,53 +150,73 @@ class Player extends StatelessWidget {
                   }
 
                   if (layout == _PlayerLayoutType.tablet) {
-                    return Padding(
-                      padding: EdgeInsets.all(basePadding),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                _NowPlayingPanel(api: api, media: media, layout: layout),
-                                const Spacer(),
-                                const _SectionPanel(title: 'Playback', child: _PlaybackContent(dense: true)),
-                              ],
-                            ),
+                    return StreamBuilder<PlayerQueueSnapshot>(
+                      stream: audioHandler.queueSnapshotStream,
+                      initialData: audioHandler.queueSnapshot,
+                      builder: (context, queueSnapshot) {
+                        final showQueue = queueSnapshot.data?.entries.isNotEmpty == true;
+                        final showSidePanels = hasChapters || showQueue;
+
+                        return Padding(
+                          padding: EdgeInsets.all(basePadding),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    _NowPlayingPanel(api: api, media: media, layout: layout),
+                                    const Spacer(),
+                                    const _SectionPanel(title: 'Playback', child: _PlaybackContent(dense: true)),
+                                  ],
+                                ),
+                              ),
+                              if (showSidePanels) const SizedBox(width: 6),
+                              if (showSidePanels)
+                                SizedBox(
+                                  width: 320,
+                                  child: _PlayerSidePanels(hasChapters: hasChapters, showQueue: showQueue),
+                                ),
+                            ],
                           ),
-                          const SizedBox(width: 6),
-                          const SizedBox(
-                            width: 320,
-                            child: _SectionPanel(title: 'Chapters', expandChild: true, child: ChapterView()),
-                          ),
-                        ],
-                      ),
+                        );
+                      },
                     );
                   }
 
-                  return Padding(
-                    padding: EdgeInsets.all(basePadding),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              _NowPlayingPanel(api: api, media: media, layout: layout),
-                              const Spacer(),
-                              const _SectionPanel(title: 'Playback', child: _PlaybackContent(dense: true)),
-                            ],
-                          ),
+                  return StreamBuilder<PlayerQueueSnapshot>(
+                    stream: audioHandler.queueSnapshotStream,
+                    initialData: audioHandler.queueSnapshot,
+                    builder: (context, queueSnapshot) {
+                      final showQueue = queueSnapshot.data?.entries.isNotEmpty == true;
+                      final showSidePanels = hasChapters || showQueue;
+
+                      return Padding(
+                        padding: EdgeInsets.all(basePadding),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  _NowPlayingPanel(api: api, media: media, layout: layout),
+                                  const Spacer(),
+                                  const _SectionPanel(title: 'Playback', child: _PlaybackContent(dense: true)),
+                                ],
+                              ),
+                            ),
+                            if (showSidePanels) const SizedBox(width: 6),
+                            if (showSidePanels)
+                              SizedBox(
+                                width: 360,
+                                child: _PlayerSidePanels(hasChapters: hasChapters, showQueue: showQueue),
+                              ),
+                          ],
                         ),
-                        const SizedBox(width: 6),
-                        const SizedBox(
-                          width: 360,
-                          child: _SectionPanel(title: 'Chapters', expandChild: true, child: ChapterView()),
-                        ),
-                      ],
-                    ),
+                      );
+                    },
                   );
                 },
               );
@@ -355,6 +390,57 @@ class _SectionPanel extends StatelessWidget {
             const SizedBox(height: 6),
             content,
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PlayerSidePanels extends StatelessWidget {
+  const _PlayerSidePanels({required this.hasChapters, required this.showQueue});
+
+  final bool hasChapters;
+  final bool showQueue;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (hasChapters)
+          const Expanded(
+            child: _SectionPanel(title: 'Chapters', expandChild: true, child: ChapterView()),
+          ),
+        if (hasChapters && showQueue) const SizedBox(height: 6),
+        if (showQueue)
+          const Expanded(
+            child: _SectionPanel(title: 'Queue', expandChild: true, child: PlayerQueueView(showEmptyIcon: false)),
+          ),
+      ],
+    );
+  }
+}
+
+class _QueueBottomSheet extends StatelessWidget {
+  const _QueueBottomSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    final maxHeight = MediaQuery.of(context).size.height * 0.85;
+
+    return SafeArea(
+      child: SizedBox(
+        height: maxHeight,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Queue', style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 8),
+              const Expanded(child: PlayerQueueView(showEmptyIcon: false)),
+            ],
+          ),
         ),
       ),
     );

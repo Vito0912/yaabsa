@@ -1,8 +1,8 @@
 import 'package:yaabsa/components/app/item/library_item_view_components.dart';
-import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/item_view_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -57,57 +57,70 @@ class LibraryItemView extends ConsumerWidget {
           onFilterTap: (filter) => openLibraryWithFilter(context, ref, filter: filter),
         );
 
-        return SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(horizontalPadding, 8, horizontalPadding, 16),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: maxWidth),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  LibraryItemTopContent(
-                    isLargeScreen: isLargeScreen,
-                    title: item.title,
-                    subtitle: item.subtitle,
-                    cover: api.getLibraryItemApi().getLibraryItemCover(item.id, item: item),
-                    actionButtons: buildItemActionButtons(
-                      hasAudio: hasAudio,
-                      hasBook: hasBook,
-                      canDownload: canDownload,
-                      onPlay: () {
-                        audioHandler.setQueue(QueueItem(itemId: item.id));
-                        audioHandler.play();
-                      },
-                      onRead: () {
-                        context.push('/ebook/${item.id}');
-                      },
-                      onDownload: () {
-                        downloadHandler.downloadFile(itemId);
-                      },
-                      onQueue: () {
-                        audioHandler.addToQueue(QueueItem(itemId: item.id));
-                      },
-                    ),
-                    metadataRows: metadataRows,
-                    item: item,
-                    onBack: () => context.pop(),
-                  ),
-                  LibraryItemMediaSections(
-                    itemId: item.id,
-                    chapters: chapters,
-                    audioFiles: audioFiles,
-                    ebookFile: ebookFile,
-                    onChapterTap: (chapter) {
-                      audioHandler.playItemFromPosition(
+        return StreamBuilder<PlayerQueueSnapshot>(
+          stream: audioHandler.queueSnapshotStream,
+          initialData: audioHandler.queueSnapshot,
+          builder: (context, queueSnapshot) {
+            final isQueued = queueSnapshot.data?.entries.any((entry) => entry.item.itemId == item.id) ?? false;
+
+            return SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(horizontalPadding, 8, horizontalPadding, 16),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: maxWidth),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      LibraryItemTopContent(
+                        isLargeScreen: isLargeScreen,
+                        title: item.title,
+                        subtitle: item.subtitle,
+                        cover: api.getLibraryItemApi().getLibraryItemCover(item.id, item: item),
+                        actionButtons: buildItemActionButtons(
+                          hasAudio: hasAudio,
+                          hasBook: hasBook,
+                          canDownload: canDownload,
+                          isQueued: isQueued,
+                          onPlay: () {
+                            audioHandler.playLibraryItem(item);
+                          },
+                          onRead: () {
+                            context.push('/ebook/${item.id}');
+                          },
+                          onDownload: () {
+                            downloadHandler.downloadFile(itemId);
+                          },
+                          onQueueToggle: () {
+                            if (isQueued) {
+                              audioHandler.removeFromQueueByItemId(item.id);
+                              return;
+                            }
+
+                            audioHandler.addLibraryItemToQueue(item);
+                          },
+                        ),
+                        metadataRows: metadataRows,
+                        item: item,
+                        onBack: () => context.pop(),
+                      ),
+                      LibraryItemMediaSections(
                         itemId: item.id,
-                        position: Duration(seconds: chapter.start.round()),
-                      );
-                    },
+                        chapters: chapters,
+                        audioFiles: audioFiles,
+                        ebookFile: ebookFile,
+                        onChapterTap: (chapter) {
+                          audioHandler.playItemFromPosition(
+                            itemId: item.id,
+                            position: Duration(seconds: chapter.start.round()),
+                          );
+                        },
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
+            );
+          },
         );
       },
       error: (error, stackTrace) {

@@ -10,6 +10,7 @@ import 'package:yaabsa/provider/common/library_filter_data_provider.dart';
 import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
 class LibraryView extends HookConsumerWidget {
@@ -78,6 +79,9 @@ class LibraryView extends HookConsumerWidget {
                                 totalItems: state.totalItems,
                                 hasNextPage: state.hasNextPage,
                                 api: api,
+                                onPlayItem: (item, _) {
+                                  audioHandler.playLibraryItem(item);
+                                },
                                 onEnsureLoadedForIndex: (index) {
                                   ref.read(itemsProvider.notifier).ensureLoadedForIndex(index);
                                 },

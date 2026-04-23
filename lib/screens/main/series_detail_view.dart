@@ -11,6 +11,7 @@ import 'package:yaabsa/components/common/scroll_to_top_button.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/common/series_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
 
 const int _seriesBooksPrefetchThreshold = 8;
@@ -144,11 +145,21 @@ class SeriesDetailView extends HookConsumerWidget {
 
                                 if (index >= loadedCount) return const _SeriesBooksPlaceholderTile();
 
+                                final item = state.items[index];
+
                                 return LibraryItemWidget(
-                                  state.items[index],
+                                  item,
                                   api,
                                   showProgress: true,
                                   squareCover: true,
+                                  onPlay: () {
+                                    audioHandler.playLibraryItemFromSeriesView(
+                                      item,
+                                      libraryId: libraryId,
+                                      seriesId: seriesId,
+                                      itemIndex: index,
+                                    );
+                                  },
                                 );
                               },
                             ),

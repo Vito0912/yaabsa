@@ -1,6 +1,5 @@
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
-import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/util/globals.dart';
@@ -21,6 +20,7 @@ class LibraryItemWidget extends ConsumerWidget {
     this.isSelected = false,
     this.onToggleSelection,
     this.onEnterSelectionMode,
+    this.onPlay,
   });
 
   final LibraryItem libraryItem;
@@ -32,6 +32,7 @@ class LibraryItemWidget extends ConsumerWidget {
   final bool isSelected;
   final VoidCallback? onToggleSelection;
   final VoidCallback? onEnterSelectionMode;
+  final VoidCallback? onPlay;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -199,8 +200,12 @@ class LibraryItemWidget extends ConsumerWidget {
                                           return;
                                         }
 
-                                        audioHandler.setQueue(QueueItem(itemId: libraryItem.id));
-                                        audioHandler.play();
+                                        if (onPlay != null) {
+                                          onPlay!();
+                                          return;
+                                        }
+
+                                        audioHandler.playLibraryItem(libraryItem);
                                       },
                                       splashRadius: 8,
                                     ),

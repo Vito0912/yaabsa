@@ -106,8 +106,9 @@ Widget buildItemActionButtons({
   required bool hasAudio,
   required bool hasBook,
   required bool canDownload,
+  required bool isQueued,
   required VoidCallback onPlay,
-  required VoidCallback onQueue,
+  required VoidCallback onQueueToggle,
   required VoidCallback onRead,
   required VoidCallback onDownload,
 }) {
@@ -139,8 +140,9 @@ Widget buildItemActionButtons({
         context,
         showDownload: canDownload,
         showQueue: hasAudio,
+        isQueued: isQueued,
         onDownload: onDownload,
-        onQueue: onQueue,
+        onQueueToggle: onQueueToggle,
       );
 
       final placeSmallBelowPrimary = constraints.maxWidth < 360 || !hasPrimaryActions;
@@ -178,8 +180,9 @@ Widget _buildSmallActionButtons(
   BuildContext context, {
   required bool showDownload,
   required bool showQueue,
+  required bool isQueued,
   required VoidCallback onDownload,
-  required VoidCallback onQueue,
+  required VoidCallback onQueueToggle,
 }) {
   final children = <Widget>[
     if (showDownload)
@@ -191,9 +194,9 @@ Widget _buildSmallActionButtons(
       ),
     if (showQueue)
       IconButton.filledTonal(
-        onPressed: onQueue,
-        tooltip: 'Queue',
-        icon: const Icon(Icons.queue_music_rounded),
+        onPressed: onQueueToggle,
+        tooltip: isQueued ? 'Remove from queue' : 'Add to queue',
+        icon: Icon(isQueued ? Icons.playlist_remove_rounded : Icons.queue_music_rounded),
         visualDensity: VisualDensity.compact,
       ),
   ];
