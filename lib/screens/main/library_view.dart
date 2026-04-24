@@ -14,7 +14,9 @@ import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
 class LibraryView extends HookConsumerWidget {
-  const LibraryView({super.key});
+  const LibraryView({super.key, this.initialFilter});
+
+  final String? initialFilter;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -45,7 +47,11 @@ class LibraryView extends HookConsumerWidget {
       builder: (context, snapshot) {
         final collapseSeriesEnabled = SettingsParser.decodeValue<bool>(snapshot.data?.value, collapseSeriesFallback);
         final initialCollapseSeries = selectedLibrary.mediaType == 'book' && collapseSeriesEnabled ? 1 : 0;
-        final itemsProvider = libraryItemsProvider(libraryId, initialCollapseSeries: initialCollapseSeries);
+        final itemsProvider = libraryItemsProvider(
+          libraryId,
+          initialFilter: initialFilter,
+          initialCollapseSeries: initialCollapseSeries,
+        );
         final libraryItemsStateAsync = ref.watch(itemsProvider);
 
         return libraryItemsStateAsync.when(

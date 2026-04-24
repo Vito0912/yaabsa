@@ -3,11 +3,13 @@ import 'dart:async';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/screens/main/downloads.dart';
 import 'package:yaabsa/screens/main/collection_view.dart';
+import 'package:yaabsa/screens/main/authors_view.dart';
 import 'package:yaabsa/screens/layout_home/layout_home_app_bars.dart';
 import 'package:yaabsa/screens/layout_home/layout_home_mobile_nav_bar.dart';
 import 'package:yaabsa/screens/layout_home/layout_home_sidebar.dart';
 import 'package:yaabsa/screens/layout_home/navigation_item_config.dart';
 import 'package:yaabsa/screens/main/library_view.dart';
+import 'package:yaabsa/screens/main/narrators_view.dart';
 import 'package:yaabsa/screens/main/personalized_view.dart';
 import 'package:yaabsa/screens/main/playlist_view.dart';
 import 'package:yaabsa/screens/main/search_view.dart';
@@ -72,6 +74,8 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
       NavigationItemConfig(icon: Icons.collections_outlined, label: "Collections", page: CollectionView()),
       NavigationItemConfig(icon: Icons.playlist_play_rounded, label: "Playlists", page: PlaylistView()),
       NavigationItemConfig(icon: Icons.view_column_outlined, label: "Series", page: SeriesView()),
+      NavigationItemConfig(icon: Icons.person_outline_rounded, label: "Authors", page: AuthorsView()),
+      NavigationItemConfig(icon: Icons.record_voice_over_rounded, label: "Narrators", page: NarratorsView()),
     ];
 
     _downloadsMenuItem = const NavigationItemConfig(icon: Icons.download, label: "Downloads", page: Downloads());
@@ -259,6 +263,8 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
         'collections' => 2,
         'playlists' => 3,
         'series' => 4,
+        'authors' => 5,
+        'narrators' => 6,
         _ => 0,
       };
       _lastConsumedTabIntent = intentKey;

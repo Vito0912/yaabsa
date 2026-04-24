@@ -1,5 +1,6 @@
 import 'package:yaabsa/components/common/library_item_widget.dart';
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
+import 'package:yaabsa/components/common/author_card.dart';
 import 'package:yaabsa/api/library/personalized_library.dart';
 import 'package:yaabsa/api/library_items/author.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
@@ -219,7 +220,14 @@ class _SectionList extends StatelessWidget {
         final author = entity as Author;
         return SizedBox(
           width: viewportWidth >= 1100 ? 260 : 220,
-          child: _MetaCard(icon: Icons.person_outline, title: author.name),
+          child: AuthorCard(
+            authorId: author.id,
+            name: author.name,
+            compact: true,
+            onTap: () {
+              context.push('/author/${author.id}');
+            },
+          ),
         );
       case _ShelfEntityKind.episode:
         final episode = entity as Episode;
