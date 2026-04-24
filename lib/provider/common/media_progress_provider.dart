@@ -21,13 +21,21 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
     return absApi.getMeApi();
   }
 
+  String _progressKey(String libraryItemId, [String? episodeId]) {
+    return '$libraryItemId${episodeId ?? ''}';
+  }
+
+  String _progressKeyFromMediaProgress(MediaProgress progress) {
+    return _progressKey(progress.libraryItemId, progress.episodeId);
+  }
+
   Map<String, MediaProgress> _listToMap(List<MediaProgress>? progressList) {
     if (progressList == null || progressList.isEmpty) {
       return {};
     }
     final Map<String, MediaProgress> result = {};
     for (var p in progressList) {
-      final key = '${p.libraryItemId}${p.episodeId ?? ''}';
+      final key = _progressKeyFromMediaProgress(p);
       if (!result.containsKey(key) || ((p.lastUpdate ?? 0) > (result[key]?.lastUpdate ?? 0))) {
         result[key] = p;
       }
@@ -51,13 +59,13 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
     } catch (e, s) {
       logger('Error refreshing all media progress: $e\n$s', tag: 'MediaProgressProvider', level: InfoLevel.error);
       await _loadFromDb();
-      state = AsyncError<Map<String, MediaProgress>>(e, s).copyWithPrevious(state);
+      state = AsyncError<Map<String, MediaProgress>>(e, s);
     }
     return state.asData?.value ?? <String, MediaProgress>{};
   }
 
   Future<void> refreshAllProgress() async {
-    state = const AsyncLoading<Map<String, MediaProgress>>().copyWithPrevious(state);
+    state = const AsyncLoading<Map<String, MediaProgress>>();
     try {
       final meApi = _getMeApiOrThrow();
       final userResponse = await meApi.getUser();
@@ -69,7 +77,7 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
       _loadFromDb();
     } catch (e, s) {
       logger('Error refreshing all media progress: $e\n$s', tag: 'MediaProgressProvider', level: InfoLevel.error);
-      state = AsyncError<Map<String, MediaProgress>>(e, s).copyWithPrevious(state);
+      state = AsyncError<Map<String, MediaProgress>>(e, s);
       _loadFromDb();
     }
   }
@@ -87,7 +95,7 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
       state = AsyncData(mergedMap);
     } catch (e, s) {
       logger('Error loading media progress from DB: $e\n$s', tag: 'MediaProgressProvider', level: InfoLevel.error);
-      state = AsyncError<Map<String, MediaProgress>>(e, s).copyWithPrevious(state);
+      state = AsyncError<Map<String, MediaProgress>>(e, s);
     }
   }
 
@@ -96,7 +104,7 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
       final meApi = _getMeApiOrThrow();
       final response = await meApi.getProgress(libraryItemId, episodeId: episodeId);
       final newProgress = response.data;
-      final String key = '$libraryItemId${episodeId ?? ''}';
+      final key = _progressKey(libraryItemId, episodeId);
 
       if ((newProgress?.lastUpdate ?? 0) < (state.asData?.value[key]?.lastUpdate ?? 0)) {
         logger(
@@ -115,7 +123,7 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
       } else {
         final Map<String, MediaProgress> currentMap = state.asData?.value ?? <String, MediaProgress>{};
         final Map<String, MediaProgress> updatedMap = {...currentMap};
-        if (updatedMap.remove(libraryItemId) != null) {
+        if (updatedMap.remove(key) != null) {
           state = AsyncData(updatedMap);
         }
         return null;
@@ -124,7 +132,8 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
       if (e.response?.statusCode == 404) {
         final Map<String, MediaProgress> currentMap = state.asData?.value ?? <String, MediaProgress>{};
         final Map<String, MediaProgress> updatedMap = {...currentMap};
-        if (updatedMap.remove(libraryItemId) != null) {
+        final key = _progressKey(libraryItemId, episodeId);
+        if (updatedMap.remove(key) != null) {
           state = AsyncData(updatedMap);
         }
         return null;
@@ -147,11 +156,12 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
   }
 
   Future<MediaProgress?> updateMediaProgress(String libraryItemId, double currentTime, PlaybackSession session) async {
-    state = const AsyncLoading<Map<String, MediaProgress>>().copyWithPrevious(state);
+    state = const AsyncLoading<Map<String, MediaProgress>>();
     try {
       final Map<String, MediaProgress> currentMap = state.asData?.value ?? <String, MediaProgress>{};
+      final key = _progressKey(libraryItemId, session.episodeId);
 
-      MediaProgress? updatedProgress = currentMap[libraryItemId];
+      MediaProgress? updatedProgress = currentMap[key];
       if (updatedProgress == null) {
         updatedProgress = session.toMediaProgress(updatedProgress, '', 0, 0);
         logger(
@@ -177,7 +187,7 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
         progress: progress,
         lastUpdate: DateTime.now().millisecondsSinceEpoch,
       );
-      final Map<String, MediaProgress> updatedMap = {...currentMap, libraryItemId: updatedProgress};
+      final Map<String, MediaProgress> updatedMap = {...currentMap, key: updatedProgress};
       state = AsyncData(updatedMap);
       return updatedProgress;
     } catch (e, s) {
@@ -186,8 +196,25 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
         tag: 'MediaProgressProvider',
         level: InfoLevel.error,
       );
-      state = AsyncError<Map<String, MediaProgress>>(e, s).copyWithPrevious(state);
+      state = AsyncError<Map<String, MediaProgress>>(e, s);
     }
     return null;
+  }
+
+  void applyRemoteProgressUpdate(MediaProgress progress) {
+    final key = _progressKeyFromMediaProgress(progress);
+    final Map<String, MediaProgress> currentMap = state.asData?.value ?? <String, MediaProgress>{};
+    final existingProgress = currentMap[key];
+
+    if ((progress.lastUpdate ?? 0) < (existingProgress?.lastUpdate ?? 0)) {
+      logger(
+        'Ignoring stale remote progress update for key $key.',
+        tag: 'MediaProgressProvider',
+        level: InfoLevel.debug,
+      );
+      return;
+    }
+
+    state = AsyncData({...currentMap, key: progress});
   }
 }

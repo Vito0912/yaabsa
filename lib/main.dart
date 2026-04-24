@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:yaabsa/database/settings_manager.dart';
+import 'package:yaabsa/provider/core/socket_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart' show appName, audioHandler, containerRef;
@@ -18,6 +19,7 @@ void main() {
       await containerRef.read(settingsManagerProvider.notifier).ensureInitialized();
       unawaited(containerRef.read(currentUserProvider.future));
       unawaited(containerRef.read(serverStatusProvider.future));
+      containerRef.read(absSocketClientProvider);
       Init.initLogger();
       audioHandler = await Init.initAudioHandler();
 

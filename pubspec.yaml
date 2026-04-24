@@ -55,6 +55,7 @@ dependencies:
   vibration: ^3.1.8
   wakelock_plus: ^1.5.2 # TODO: Update to 1.6.0, waiting for file_picker to update dep on package_info_plus
   flutter_html: ^3.0.0
+  socket_io_client: ^3.1.4
 
 
   # Note for contributors: Commit pinning is used. Please check for updates when updating the e-Reader. This is for security, as it runs in a WebView and the repository is very small.
