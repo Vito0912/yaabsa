@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:yaabsa/api/library/request/library_filter.dart';
 import 'package:yaabsa/api/library/request/library_items_request.dart';
+import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/common/library_item_provider.dart';
@@ -71,7 +72,7 @@ class PlayerQueueSnapshot {
   final bool canLoadMoreAutoQueue;
 }
 
-enum _AutoQueueSourceType { series, playlist, collection }
+enum _AutoQueueSourceType { series, playlist, collection, podcast }
 
 class _AutoQueueRequestContext {
   _AutoQueueRequestContext._({
@@ -86,6 +87,9 @@ class _AutoQueueRequestContext {
     this.seriesId,
     this.playlistId,
     this.collectionId,
+    this.podcastItemId,
+    this.podcastItem,
+    this.seededPodcastEpisodes,
   });
 
   factory _AutoQueueRequestContext.series({
@@ -129,6 +133,23 @@ class _AutoQueueRequestContext {
     );
   }
 
+  factory _AutoQueueRequestContext.podcast({
+    required String libraryId,
+    required String podcastItemId,
+    required LibraryItem podcastItem,
+    required int initialPage,
+    List<Episode>? seededPodcastEpisodes,
+  }) {
+    return _AutoQueueRequestContext._(
+      sourceType: _AutoQueueSourceType.podcast,
+      libraryId: libraryId,
+      initialPage: initialPage,
+      podcastItemId: podcastItemId,
+      podcastItem: podcastItem,
+      seededPodcastEpisodes: seededPodcastEpisodes,
+    );
+  }
+
   final _AutoQueueSourceType sourceType;
   final String libraryId;
   final int initialPage;
@@ -141,14 +162,25 @@ class _AutoQueueRequestContext {
   final String? seriesId;
   final String? playlistId;
   final String? collectionId;
+  final String? podcastItemId;
+  final LibraryItem? podcastItem;
+  final List<Episode>? seededPodcastEpisodes;
 
-  List<LibraryItem>? cachedItems;
+  List<_AutoQueueItemCandidate>? cachedCandidates;
+}
+
+class _AutoQueueItemCandidate {
+  const _AutoQueueItemCandidate({required this.queueItem, required this.referenceKey, required this.displayInfo});
+
+  final QueueItem queueItem;
+  final String referenceKey;
+  final QueueDisplayInfo displayInfo;
 }
 
 class _AutoQueuePageResult {
   const _AutoQueuePageResult({required this.items, required this.total, required this.page, required this.pageSize});
 
-  final List<LibraryItem> items;
+  final List<_AutoQueueItemCandidate> items;
   final int total;
   final int page;
   final int pageSize;
@@ -157,7 +189,7 @@ class _AutoQueuePageResult {
 class _AutoQueueState {
   _AutoQueueState({
     required this.context,
-    required this.currentItemId,
+    required this.currentItemReferenceKey,
     required this.currentItemAbsoluteIndex,
     required this.totalItems,
     required this.pageSize,
@@ -165,14 +197,14 @@ class _AutoQueueState {
   });
 
   final _AutoQueueRequestContext context;
-  final String currentItemId;
+  final String currentItemReferenceKey;
   final int currentItemAbsoluteIndex;
   final int totalItems;
   final int pageSize;
 
   int highestLoadedPage;
   bool isLoading = false;
-  final Map<int, String> firstItemIdByPage = <int, String>{};
+  final Map<int, String> firstItemReferenceByPage = <int, String>{};
   final Set<int> triggeredPages = <int>{};
 }
 
@@ -193,12 +225,41 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   final BehaviorSubject<PlayerQueueSnapshot> _queueSnapshotSubject = BehaviorSubject<PlayerQueueSnapshot>.seeded(
     const PlayerQueueSnapshot(),
   );
+  final BehaviorSubject<bool> _queueTransitionLoadingSubject = BehaviorSubject<bool>.seeded(false);
+  final BehaviorSubject<bool> _showPlayerSubject = BehaviorSubject<bool>.seeded(false);
   final Map<String, Future<LibraryItem?>> _queueItemDetailsCache = <String, Future<LibraryItem?>>{};
+  bool _queueTransitionLoading = false;
   BehaviorSubject<InternalMedia?> mediaItemStream = BehaviorSubject<InternalMedia?>();
   InternalMedia? get currentMediaItem => _currentMediaItem;
 
   Stream<PlayerQueueSnapshot> get queueSnapshotStream => _queueSnapshotSubject.stream;
   PlayerQueueSnapshot get queueSnapshot => _buildQueueSnapshot();
+  Stream<bool> get queueTransitionLoadingStream => _queueTransitionLoadingSubject.stream;
+  bool get queueTransitionLoading => _queueTransitionLoading;
+
+  void _emitShouldShowPlayer() {
+    if (!_showPlayerSubject.isClosed) {
+      _showPlayerSubject.add(_currentMediaItem != null || _queueTransitionLoading);
+    }
+  }
+
+  void _setQueueTransitionLoading(bool value, {bool emitMediaWhenEmpty = false}) {
+    if (_queueTransitionLoading == value) {
+      return;
+    }
+
+    _queueTransitionLoading = value;
+    if (!_queueTransitionLoadingSubject.isClosed) {
+      _queueTransitionLoadingSubject.add(value);
+    }
+    _emitShouldShowPlayer();
+
+    if (emitMediaWhenEmpty && !value && _currentMediaItem == null && !mediaItemStream.isClosed) {
+      mediaItemStream.add(null);
+    }
+
+    unawaited(_updatePlaybackState());
+  }
 
   static double get maxVolume {
     if (Platform.isAndroid) {
@@ -207,8 +268,36 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     return 1.0;
   }
 
-  bool isInQueue(String itemId) {
-    return queueList.any((entry) => entry.item.itemId == itemId);
+  bool _queueItemsMatch({
+    required String leftItemId,
+    required String? leftEpisodeId,
+    required String rightItemId,
+    required String? rightEpisodeId,
+  }) {
+    return leftItemId == rightItemId && leftEpisodeId == rightEpisodeId;
+  }
+
+  String _queueItemReferenceKey({required String itemId, String? episodeId}) {
+    return '$itemId::${episodeId ?? ''}';
+  }
+
+  bool isInQueue(String itemId, {String? episodeId}) {
+    if (episodeId == null) {
+      return queueList.any((entry) => entry.item.itemId == itemId);
+    }
+
+    return queueList.any(
+      (entry) => _queueItemsMatch(
+        leftItemId: entry.item.itemId,
+        leftEpisodeId: entry.item.episodeId,
+        rightItemId: itemId,
+        rightEpisodeId: episodeId,
+      ),
+    );
+  }
+
+  bool isQueueItemInQueue(QueueItem item) {
+    return isInQueue(item.itemId, episodeId: item.episodeId);
   }
 
   void setQueue(QueueItem item, {QueueDisplayInfo displayInfo = QueueDisplayInfo.empty}) {
@@ -222,6 +311,13 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     setQueue(QueueItem(itemId: item.id), displayInfo: _displayInfoFromLibraryItem(item));
   }
 
+  void setQueueFromPodcastEpisode(LibraryItem item, Episode episode) {
+    setQueue(
+      QueueItem(itemId: item.id, episodeId: episode.id),
+      displayInfo: _displayInfoFromPodcastEpisode(item, episode),
+    );
+  }
+
   void addToQueue(QueueItem item, {QueueDisplayInfo displayInfo = QueueDisplayInfo.empty}) {
     _enqueueItem(item, displayInfo: displayInfo);
     _emitQueueState();
@@ -231,14 +327,36 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     addToQueue(QueueItem(itemId: item.id), displayInfo: _displayInfoFromLibraryItem(item));
   }
 
-  void removeFromQueueByItemId(String itemId) {
-    final nextQueue = queueList.where((entry) => entry.item.itemId != itemId).toList();
+  void addPodcastEpisodeToQueue(LibraryItem item, Episode episode) {
+    addToQueue(
+      QueueItem(itemId: item.id, episodeId: episode.id),
+      displayInfo: _displayInfoFromPodcastEpisode(item, episode),
+    );
+  }
+
+  void removeFromQueueByItemId(String itemId, {String? episodeId}) {
+    final nextQueue = queueList
+        .where(
+          (entry) => episodeId == null
+              ? entry.item.itemId != itemId
+              : !_queueItemsMatch(
+                  leftItemId: entry.item.itemId,
+                  leftEpisodeId: entry.item.episodeId,
+                  rightItemId: itemId,
+                  rightEpisodeId: episodeId,
+                ),
+        )
+        .toList();
     if (nextQueue.length == queueList.length) {
       return;
     }
 
     queueList = nextQueue;
     _emitQueueState();
+  }
+
+  void removeFromQueueItem(QueueItem item) {
+    removeFromQueueByItemId(item.itemId, episodeId: item.episodeId);
   }
 
   void removeQueueEntry(String queueEntryId) {
@@ -306,11 +424,17 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     bool autoQueued = false,
     int? autoQueuePage,
   }) {
-    if (_currentMediaItem?.itemId == item.itemId) {
+    if (_currentMediaItem != null &&
+        _queueItemsMatch(
+          leftItemId: _currentMediaItem!.itemId,
+          leftEpisodeId: _currentMediaItem!.episodeId,
+          rightItemId: item.itemId,
+          rightEpisodeId: item.episodeId,
+        )) {
       return false;
     }
 
-    if (isInQueue(item.itemId)) {
+    if (isInQueue(item.itemId, episodeId: item.episodeId)) {
       return false;
     }
 
@@ -330,6 +454,14 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   QueueDisplayInfo _displayInfoFromLibraryItem(LibraryItem item) {
     return QueueDisplayInfo(title: item.title, subtitle: item.subtitle, author: item.authorString);
+  }
+
+  QueueDisplayInfo _displayInfoFromPodcastEpisode(LibraryItem item, Episode episode) {
+    final title = (episode.title != null && episode.title!.trim().isNotEmpty) ? episode.title!.trim() : item.title;
+    final subtitle = (episode.subtitle != null && episode.subtitle!.trim().isNotEmpty)
+        ? episode.subtitle!.trim()
+        : item.title;
+    return QueueDisplayInfo(title: title, subtitle: subtitle, author: item.authorString);
   }
 
   bool get _isAutoQueueEnabled {
@@ -389,7 +521,10 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     __currentMediaItem = mediaItem;
     _currentTrackIndex = 0;
     mediaItemStream.add(mediaItem);
-    _handleAutoQueueOnCurrentItemChange(mediaItem?.itemId);
+    _emitShouldShowPlayer();
+    _handleAutoQueueOnCurrentItemChange(
+      mediaItem == null ? null : _queueItemReferenceKey(itemId: mediaItem.itemId, episodeId: mediaItem.episodeId),
+    );
   }
 
   Stream<double> get volumeStream => _player.volumeStream;
@@ -475,11 +610,49 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   }
 
   Stream<bool> get shouldShowPlayer {
-    return _player.playerStateStream.map((state) => _currentMediaItem != null).distinct();
+    return _showPlayerSubject.stream.distinct();
   }
 
   Future<void> playLibraryItem(LibraryItem item) {
     return _playLibraryItemWithContext(item);
+  }
+
+  Future<void> playPodcastEpisode(
+    LibraryItem item,
+    Episode episode, {
+    int? episodeIndex,
+    List<Episode>? orderedEpisodes,
+  }) async {
+    final libraryId = item.libraryId;
+    final autoQueueContext = libraryId != null && episodeIndex != null
+        ? _AutoQueueRequestContext.podcast(
+            libraryId: libraryId,
+            podcastItemId: item.id,
+            podcastItem: item,
+            initialPage: episodeIndex ~/ _autoQueuePageSize,
+            seededPodcastEpisodes: orderedEpisodes,
+          )
+        : null;
+
+    setQueueFromPodcastEpisode(item, episode);
+    await play();
+
+    if (!_isAutoQueueEnabled) {
+      return;
+    }
+
+    if (!_queueItemsMatch(
+      leftItemId: _currentMediaItem?.itemId ?? '',
+      leftEpisodeId: _currentMediaItem?.episodeId,
+      rightItemId: item.id,
+      rightEpisodeId: episode.id,
+    )) {
+      return;
+    }
+
+    if (autoQueueContext != null) {
+      unawaited(_startAutoQueue(autoQueueContext, QueueItem(itemId: item.id, episodeId: episode.id)));
+    }
   }
 
   Future<void> playLibraryItemFromSeriesView(
@@ -535,12 +708,17 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       return;
     }
 
-    if (_currentMediaItem?.itemId != item.id) {
+    if (!_queueItemsMatch(
+      leftItemId: _currentMediaItem?.itemId ?? '',
+      leftEpisodeId: _currentMediaItem?.episodeId,
+      rightItemId: item.id,
+      rightEpisodeId: null,
+    )) {
       return;
     }
 
     if (autoQueueContext != null) {
-      unawaited(_startAutoQueue(autoQueueContext, item.id));
+      unawaited(_startAutoQueue(autoQueueContext, QueueItem(itemId: item.id)));
       return;
     }
 
@@ -550,8 +728,23 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
     final fallbackContext = await _buildSeriesFallbackAutoQueueContext(item);
     if (fallbackContext != null) {
-      unawaited(_startAutoQueue(fallbackContext, item.id));
+      unawaited(_startAutoQueue(fallbackContext, QueueItem(itemId: item.id)));
     }
+  }
+
+  Future<void> _prepareForQueuedItemTransition() async {
+    _setQueueTransitionLoading(true);
+    _currentMediaItem = null;
+    _currentTrackIndex = 0;
+
+    try {
+      await _syncService.flush();
+      await _ref.read(sessionRepositoryProvider).closeSession();
+    } catch (e) {
+      logger('Error preparing queued transition: $e', tag: 'AudioHandler', level: InfoLevel.error);
+    }
+
+    await _safePlayerStop();
   }
 
   @override
@@ -559,13 +752,21 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     PlayerUtils.enableWakelock(_ref);
 
     final shouldSwitchToQueuedItem =
-        _currentMediaItem != null && queueList.isNotEmpty && queueList.first.item.itemId != _currentMediaItem!.itemId;
+        _currentMediaItem != null &&
+        queueList.isNotEmpty &&
+        !_queueItemsMatch(
+          leftItemId: queueList.first.item.itemId,
+          leftEpisodeId: queueList.first.item.episodeId,
+          rightItemId: _currentMediaItem!.itemId,
+          rightEpisodeId: _currentMediaItem!.episodeId,
+        );
 
     if (shouldSwitchToQueuedItem) {
-      await stop(clearQueue: false);
+      await _prepareForQueuedItemTransition();
     }
 
     if (_currentMediaItem != null) {
+      _setQueueTransitionLoading(false);
       await _syncedPlay();
       return Future.value();
     }
@@ -581,27 +782,60 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       // e.g. Android still shows the notification and allows pressing play. This will re-use the last item.
       nextItem = _lastQueueItem;
     }
-    if (nextItem == null) return Future.value();
-    _lastQueueItem = nextItem;
-    _currentMediaItem = await _ref.read(sessionRepositoryProvider).openSession(nextItem.itemId);
-    if (_currentMediaItem == null) {
-      logger('No media item found for ID: ${nextItem.itemId}', tag: 'AudioHandler', level: InfoLevel.error);
+    if (nextItem == null) {
+      _setQueueTransitionLoading(false);
       return Future.value();
     }
-    logger('Playing item: ${_currentMediaItem!.itemId}', tag: 'AudioHandler', level: InfoLevel.debug);
-    await _setSource();
-    logger('Setting source for item: ${_currentMediaItem!.itemId}', tag: 'AudioHandler', level: InfoLevel.debug);
-    await _syncedPlay(restoreProgress: true);
+    _lastQueueItem = nextItem;
+    _currentMediaItem = await _ref
+        .read(sessionRepositoryProvider)
+        .openSession(nextItem.itemId, episodeId: nextItem.episodeId);
+    if (_currentMediaItem == null) {
+      logger(
+        'No media item found for ID: ${nextItem.itemId} (${nextItem.episodeId ?? 'item'})',
+        tag: 'AudioHandler',
+        level: InfoLevel.error,
+      );
+      PlayerUtils.disableWakelock(_ref);
+      _setQueueTransitionLoading(false, emitMediaWhenEmpty: true);
+      return Future.value();
+    }
+    logger(
+      'Playing item: ${_currentMediaItem!.itemId} (${_currentMediaItem!.episodeId ?? 'item'})',
+      tag: 'AudioHandler',
+      level: InfoLevel.debug,
+    );
+    try {
+      await _setSource();
+      logger(
+        'Setting source for item: ${_currentMediaItem!.itemId} (${_currentMediaItem!.episodeId ?? 'item'})',
+        tag: 'AudioHandler',
+        level: InfoLevel.debug,
+      );
+      _setQueueTransitionLoading(false);
+      await _syncedPlay(restoreProgress: true);
+    } catch (e) {
+      logger('Failed to start playback source: $e', tag: 'AudioHandler', level: InfoLevel.error);
+      PlayerUtils.disableWakelock(_ref);
+      _setQueueTransitionLoading(false, emitMediaWhenEmpty: true);
+    }
   }
 
-  Future<void> playItemFromPosition({required String itemId, required Duration position}) async {
+  Future<void> playItemFromPosition({required String itemId, String? episodeId, required Duration position}) async {
     PlayerUtils.enableWakelock(_ref);
 
-    final isCurrentItem = _currentMediaItem?.itemId == itemId;
+    final isCurrentItem =
+        _currentMediaItem != null &&
+        _queueItemsMatch(
+          leftItemId: _currentMediaItem!.itemId,
+          leftEpisodeId: _currentMediaItem!.episodeId,
+          rightItemId: itemId,
+          rightEpisodeId: episodeId,
+        );
     if (!isCurrentItem) {
       await stop(clearQueue: true);
-      _lastQueueItem = QueueItem(itemId: itemId);
-      _currentMediaItem = await _ref.read(sessionRepositoryProvider).openSession(itemId);
+      _lastQueueItem = QueueItem(itemId: itemId, episodeId: episodeId);
+      _currentMediaItem = await _ref.read(sessionRepositoryProvider).openSession(itemId, episodeId: episodeId);
       if (_currentMediaItem == null) {
         logger('No media item found for ID: $itemId', tag: 'AudioHandler', level: InfoLevel.error);
         return Future.value();
@@ -627,9 +861,14 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
     final progress = await _ref
         .read(mediaProgressProvider.notifier)
-        .fetchOrRefreshIndividualProgress(_currentMediaItem!.itemId);
+        .fetchOrRefreshIndividualProgress(_currentMediaItem!.itemId, episodeId: _currentMediaItem!.episodeId);
 
-    currentPosition = Duration(microseconds: ((progress?.currentTime ?? 0) * Duration.microsecondsPerSecond).round());
+    if (progress?.isFinished ?? false) {
+      currentPosition = Duration.zero;
+      logger('Item marked finished; starting from beginning instead', tag: 'AudioHandler', level: InfoLevel.debug);
+    } else {
+      currentPosition = Duration(microseconds: ((progress?.currentTime ?? 0) * Duration.microsecondsPerSecond).round());
+    }
 
     logger(
       'Current position: $currentPosition, player position: ${_player.position}, progress: ${progress?.currentTime}',
@@ -647,6 +886,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   @override
   Future<void> stop({bool clearQueue = true}) async {
+    _setQueueTransitionLoading(false);
     _currentMediaItem = null;
     _currentTrackIndex = 0;
     PlayerUtils.disableWakelock(_ref);
@@ -730,7 +970,6 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
       logger('No next chapter found, skipping to next item', tag: 'AudioHandler', level: InfoLevel.debug);
       if (queueList.isNotEmpty) {
-        await stop(clearQueue: false);
         await play();
       } else {
         logger(
@@ -876,6 +1115,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     });
 
     _emitQueueState();
+    _emitShouldShowPlayer();
   }
 
   Future<dynamic> _setSource({Duration initialPosition = Duration.zero, bool ignoreSavedProgress = false}) async {
@@ -884,14 +1124,19 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     if (!ignoreSavedProgress) {
       final currentProgress = _ref.read(
         mediaProgressProvider.select((asyncValue) {
-          return asyncValue.value?[_currentMediaItem!.itemId];
+          return asyncValue.value?[mediaProgressKey(_currentMediaItem!.itemId, _currentMediaItem!.episodeId)];
         }),
       );
 
       if (currentProgress != null) {
-        initialPosition = Duration(
-          microseconds: ((currentProgress.currentTime) * Duration.microsecondsPerSecond).round(),
-        );
+        if (currentProgress.isFinished == true) {
+          initialPosition = Duration.zero;
+          logger('Progress indicates finished. Starting from beginning', tag: 'AudioHandler', level: InfoLevel.debug);
+        } else {
+          initialPosition = Duration(
+            microseconds: ((currentProgress.currentTime) * Duration.microsecondsPerSecond).round(),
+          );
+        }
       }
     }
 
@@ -906,6 +1151,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     final lockMediaNotification = _ref
         .read(settingsManagerProvider.notifier)
         .getGlobalSetting<bool>(SettingKeys.lockMediaNotification);
+    final isTransitionLoading =
+        _queueTransitionLoading || (_player.processingState == ProcessingState.completed && queueList.isNotEmpty);
     playbackState.add(
       PlaybackState(
         // Which buttons should appear in the notification now
@@ -917,7 +1164,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         // Which controls to show in Android's compact view.
         androidCompactActionIndices: const [0, 1, 3],
         // Whether audio is ready, buffering, ...
-        processingState: (_player.processingState == ProcessingState.completed && queueList.isNotEmpty)
+        processingState: isTransitionLoading
             ? AudioProcessingState.loading
             : {
                 ProcessingState.idle: AudioProcessingState.idle,
@@ -926,9 +1173,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
                 ProcessingState.ready: AudioProcessingState.ready,
                 ProcessingState.completed: AudioProcessingState.completed,
               }[_player.processingState]!,
-        playing: (_player.processingState == ProcessingState.completed && queueList.isNotEmpty)
-            ? true
-            : _player.playerState.playing,
+        playing: isTransitionLoading ? true : _player.playerState.playing,
         // The current position as of this update. You should not broadcast
         // position changes continuously because listeners will be able to
         // project the current position after any elapsed time based on the
@@ -953,5 +1198,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     await mediaItemStream.close();
     await _queueLengthSubject.close();
     await _queueSnapshotSubject.close();
+    await _queueTransitionLoadingSubject.close();
+    await _showPlayerSubject.close();
   }
 }

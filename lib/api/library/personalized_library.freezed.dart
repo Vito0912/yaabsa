@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$PersonalizedLibrary {
 
- ShelfEntry<LibraryItem>? get continueListening; ShelfEntry<LibraryItem>? get recentlyAdded; ShelfEntry<Series>? get recentSeries; ShelfEntry<LibraryItem>? get discover; ShelfEntry<LibraryItem>? get listenAgain; ShelfEntry<Author>? get newestAuthors; ShelfEntry<Episode>? get newestEpisodes; ShelfEntry<LibraryItem>? get continueSeries;
+ ShelfEntry<LibraryItem>? get continueListening; ShelfEntry<LibraryItem>? get recentlyAdded; ShelfEntry<Series>? get recentSeries; ShelfEntry<LibraryItem>? get discover; ShelfEntry<LibraryItem>? get listenAgain; ShelfEntry<Author>? get newestAuthors; ShelfEntry<Episode>? get newestEpisodes; ShelfEntry<LibraryItem>? get continueSeries; List<ShelfEntry<LibraryItem>> get extraLibraryShelves; List<ShelfEntry<Episode>> get extraEpisodeShelves;
 /// Create a copy of PersonalizedLibrary
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $PersonalizedLibraryCopyWith<PersonalizedLibrary> get copyWith => _$Personalized
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PersonalizedLibrary&&(identical(other.continueListening, continueListening) || other.continueListening == continueListening)&&(identical(other.recentlyAdded, recentlyAdded) || other.recentlyAdded == recentlyAdded)&&(identical(other.recentSeries, recentSeries) || other.recentSeries == recentSeries)&&(identical(other.discover, discover) || other.discover == discover)&&(identical(other.listenAgain, listenAgain) || other.listenAgain == listenAgain)&&(identical(other.newestAuthors, newestAuthors) || other.newestAuthors == newestAuthors)&&(identical(other.newestEpisodes, newestEpisodes) || other.newestEpisodes == newestEpisodes)&&(identical(other.continueSeries, continueSeries) || other.continueSeries == continueSeries));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PersonalizedLibrary&&(identical(other.continueListening, continueListening) || other.continueListening == continueListening)&&(identical(other.recentlyAdded, recentlyAdded) || other.recentlyAdded == recentlyAdded)&&(identical(other.recentSeries, recentSeries) || other.recentSeries == recentSeries)&&(identical(other.discover, discover) || other.discover == discover)&&(identical(other.listenAgain, listenAgain) || other.listenAgain == listenAgain)&&(identical(other.newestAuthors, newestAuthors) || other.newestAuthors == newestAuthors)&&(identical(other.newestEpisodes, newestEpisodes) || other.newestEpisodes == newestEpisodes)&&(identical(other.continueSeries, continueSeries) || other.continueSeries == continueSeries)&&const DeepCollectionEquality().equals(other.extraLibraryShelves, extraLibraryShelves)&&const DeepCollectionEquality().equals(other.extraEpisodeShelves, extraEpisodeShelves));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,continueListening,recentlyAdded,recentSeries,discover,listenAgain,newestAuthors,newestEpisodes,continueSeries);
+int get hashCode => Object.hash(runtimeType,continueListening,recentlyAdded,recentSeries,discover,listenAgain,newestAuthors,newestEpisodes,continueSeries,const DeepCollectionEquality().hash(extraLibraryShelves),const DeepCollectionEquality().hash(extraEpisodeShelves));
 
 @override
 String toString() {
-  return 'PersonalizedLibrary(continueListening: $continueListening, recentlyAdded: $recentlyAdded, recentSeries: $recentSeries, discover: $discover, listenAgain: $listenAgain, newestAuthors: $newestAuthors, newestEpisodes: $newestEpisodes, continueSeries: $continueSeries)';
+  return 'PersonalizedLibrary(continueListening: $continueListening, recentlyAdded: $recentlyAdded, recentSeries: $recentSeries, discover: $discover, listenAgain: $listenAgain, newestAuthors: $newestAuthors, newestEpisodes: $newestEpisodes, continueSeries: $continueSeries, extraLibraryShelves: $extraLibraryShelves, extraEpisodeShelves: $extraEpisodeShelves)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $PersonalizedLibraryCopyWith<$Res>  {
   factory $PersonalizedLibraryCopyWith(PersonalizedLibrary value, $Res Function(PersonalizedLibrary) _then) = _$PersonalizedLibraryCopyWithImpl;
 @useResult
 $Res call({
- ShelfEntry<LibraryItem>? continueListening, ShelfEntry<LibraryItem>? recentlyAdded, ShelfEntry<Series>? recentSeries, ShelfEntry<LibraryItem>? discover, ShelfEntry<LibraryItem>? listenAgain, ShelfEntry<Author>? newestAuthors, ShelfEntry<Episode>? newestEpisodes, ShelfEntry<LibraryItem>? continueSeries
+ ShelfEntry<LibraryItem>? continueListening, ShelfEntry<LibraryItem>? recentlyAdded, ShelfEntry<Series>? recentSeries, ShelfEntry<LibraryItem>? discover, ShelfEntry<LibraryItem>? listenAgain, ShelfEntry<Author>? newestAuthors, ShelfEntry<Episode>? newestEpisodes, ShelfEntry<LibraryItem>? continueSeries, List<ShelfEntry<LibraryItem>> extraLibraryShelves, List<ShelfEntry<Episode>> extraEpisodeShelves
 });
 
 
@@ -62,7 +62,7 @@ class _$PersonalizedLibraryCopyWithImpl<$Res>
 
 /// Create a copy of PersonalizedLibrary
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? continueListening = freezed,Object? recentlyAdded = freezed,Object? recentSeries = freezed,Object? discover = freezed,Object? listenAgain = freezed,Object? newestAuthors = freezed,Object? newestEpisodes = freezed,Object? continueSeries = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? continueListening = freezed,Object? recentlyAdded = freezed,Object? recentSeries = freezed,Object? discover = freezed,Object? listenAgain = freezed,Object? newestAuthors = freezed,Object? newestEpisodes = freezed,Object? continueSeries = freezed,Object? extraLibraryShelves = null,Object? extraEpisodeShelves = null,}) {
   return _then(_self.copyWith(
 continueListening: freezed == continueListening ? _self.continueListening : continueListening // ignore: cast_nullable_to_non_nullable
 as ShelfEntry<LibraryItem>?,recentlyAdded: freezed == recentlyAdded ? _self.recentlyAdded : recentlyAdded // ignore: cast_nullable_to_non_nullable
@@ -72,7 +72,9 @@ as ShelfEntry<LibraryItem>?,listenAgain: freezed == listenAgain ? _self.listenAg
 as ShelfEntry<LibraryItem>?,newestAuthors: freezed == newestAuthors ? _self.newestAuthors : newestAuthors // ignore: cast_nullable_to_non_nullable
 as ShelfEntry<Author>?,newestEpisodes: freezed == newestEpisodes ? _self.newestEpisodes : newestEpisodes // ignore: cast_nullable_to_non_nullable
 as ShelfEntry<Episode>?,continueSeries: freezed == continueSeries ? _self.continueSeries : continueSeries // ignore: cast_nullable_to_non_nullable
-as ShelfEntry<LibraryItem>?,
+as ShelfEntry<LibraryItem>?,extraLibraryShelves: null == extraLibraryShelves ? _self.extraLibraryShelves : extraLibraryShelves // ignore: cast_nullable_to_non_nullable
+as List<ShelfEntry<LibraryItem>>,extraEpisodeShelves: null == extraEpisodeShelves ? _self.extraEpisodeShelves : extraEpisodeShelves // ignore: cast_nullable_to_non_nullable
+as List<ShelfEntry<Episode>>,
   ));
 }
 /// Create a copy of PersonalizedLibrary
@@ -253,10 +255,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( ShelfEntry<LibraryItem>? continueListening,  ShelfEntry<LibraryItem>? recentlyAdded,  ShelfEntry<Series>? recentSeries,  ShelfEntry<LibraryItem>? discover,  ShelfEntry<LibraryItem>? listenAgain,  ShelfEntry<Author>? newestAuthors,  ShelfEntry<Episode>? newestEpisodes,  ShelfEntry<LibraryItem>? continueSeries)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( ShelfEntry<LibraryItem>? continueListening,  ShelfEntry<LibraryItem>? recentlyAdded,  ShelfEntry<Series>? recentSeries,  ShelfEntry<LibraryItem>? discover,  ShelfEntry<LibraryItem>? listenAgain,  ShelfEntry<Author>? newestAuthors,  ShelfEntry<Episode>? newestEpisodes,  ShelfEntry<LibraryItem>? continueSeries,  List<ShelfEntry<LibraryItem>> extraLibraryShelves,  List<ShelfEntry<Episode>> extraEpisodeShelves)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PersonalizedLibrary() when $default != null:
-return $default(_that.continueListening,_that.recentlyAdded,_that.recentSeries,_that.discover,_that.listenAgain,_that.newestAuthors,_that.newestEpisodes,_that.continueSeries);case _:
+return $default(_that.continueListening,_that.recentlyAdded,_that.recentSeries,_that.discover,_that.listenAgain,_that.newestAuthors,_that.newestEpisodes,_that.continueSeries,_that.extraLibraryShelves,_that.extraEpisodeShelves);case _:
   return orElse();
 
 }
@@ -274,10 +276,10 @@ return $default(_that.continueListening,_that.recentlyAdded,_that.recentSeries,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( ShelfEntry<LibraryItem>? continueListening,  ShelfEntry<LibraryItem>? recentlyAdded,  ShelfEntry<Series>? recentSeries,  ShelfEntry<LibraryItem>? discover,  ShelfEntry<LibraryItem>? listenAgain,  ShelfEntry<Author>? newestAuthors,  ShelfEntry<Episode>? newestEpisodes,  ShelfEntry<LibraryItem>? continueSeries)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( ShelfEntry<LibraryItem>? continueListening,  ShelfEntry<LibraryItem>? recentlyAdded,  ShelfEntry<Series>? recentSeries,  ShelfEntry<LibraryItem>? discover,  ShelfEntry<LibraryItem>? listenAgain,  ShelfEntry<Author>? newestAuthors,  ShelfEntry<Episode>? newestEpisodes,  ShelfEntry<LibraryItem>? continueSeries,  List<ShelfEntry<LibraryItem>> extraLibraryShelves,  List<ShelfEntry<Episode>> extraEpisodeShelves)  $default,) {final _that = this;
 switch (_that) {
 case _PersonalizedLibrary():
-return $default(_that.continueListening,_that.recentlyAdded,_that.recentSeries,_that.discover,_that.listenAgain,_that.newestAuthors,_that.newestEpisodes,_that.continueSeries);case _:
+return $default(_that.continueListening,_that.recentlyAdded,_that.recentSeries,_that.discover,_that.listenAgain,_that.newestAuthors,_that.newestEpisodes,_that.continueSeries,_that.extraLibraryShelves,_that.extraEpisodeShelves);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -294,10 +296,10 @@ return $default(_that.continueListening,_that.recentlyAdded,_that.recentSeries,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( ShelfEntry<LibraryItem>? continueListening,  ShelfEntry<LibraryItem>? recentlyAdded,  ShelfEntry<Series>? recentSeries,  ShelfEntry<LibraryItem>? discover,  ShelfEntry<LibraryItem>? listenAgain,  ShelfEntry<Author>? newestAuthors,  ShelfEntry<Episode>? newestEpisodes,  ShelfEntry<LibraryItem>? continueSeries)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( ShelfEntry<LibraryItem>? continueListening,  ShelfEntry<LibraryItem>? recentlyAdded,  ShelfEntry<Series>? recentSeries,  ShelfEntry<LibraryItem>? discover,  ShelfEntry<LibraryItem>? listenAgain,  ShelfEntry<Author>? newestAuthors,  ShelfEntry<Episode>? newestEpisodes,  ShelfEntry<LibraryItem>? continueSeries,  List<ShelfEntry<LibraryItem>> extraLibraryShelves,  List<ShelfEntry<Episode>> extraEpisodeShelves)?  $default,) {final _that = this;
 switch (_that) {
 case _PersonalizedLibrary() when $default != null:
-return $default(_that.continueListening,_that.recentlyAdded,_that.recentSeries,_that.discover,_that.listenAgain,_that.newestAuthors,_that.newestEpisodes,_that.continueSeries);case _:
+return $default(_that.continueListening,_that.recentlyAdded,_that.recentSeries,_that.discover,_that.listenAgain,_that.newestAuthors,_that.newestEpisodes,_that.continueSeries,_that.extraLibraryShelves,_that.extraEpisodeShelves);case _:
   return null;
 
 }
@@ -309,7 +311,7 @@ return $default(_that.continueListening,_that.recentlyAdded,_that.recentSeries,_
 
 
 class _PersonalizedLibrary extends PersonalizedLibrary {
-  const _PersonalizedLibrary({this.continueListening, this.recentlyAdded, this.recentSeries, this.discover, this.listenAgain, this.newestAuthors, this.newestEpisodes, this.continueSeries}): super._();
+  const _PersonalizedLibrary({this.continueListening, this.recentlyAdded, this.recentSeries, this.discover, this.listenAgain, this.newestAuthors, this.newestEpisodes, this.continueSeries, final  List<ShelfEntry<LibraryItem>> extraLibraryShelves = const <ShelfEntry<LibraryItem>>[], final  List<ShelfEntry<Episode>> extraEpisodeShelves = const <ShelfEntry<Episode>>[]}): _extraLibraryShelves = extraLibraryShelves,_extraEpisodeShelves = extraEpisodeShelves,super._();
   
 
 @override final  ShelfEntry<LibraryItem>? continueListening;
@@ -320,6 +322,20 @@ class _PersonalizedLibrary extends PersonalizedLibrary {
 @override final  ShelfEntry<Author>? newestAuthors;
 @override final  ShelfEntry<Episode>? newestEpisodes;
 @override final  ShelfEntry<LibraryItem>? continueSeries;
+ final  List<ShelfEntry<LibraryItem>> _extraLibraryShelves;
+@override@JsonKey() List<ShelfEntry<LibraryItem>> get extraLibraryShelves {
+  if (_extraLibraryShelves is EqualUnmodifiableListView) return _extraLibraryShelves;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_extraLibraryShelves);
+}
+
+ final  List<ShelfEntry<Episode>> _extraEpisodeShelves;
+@override@JsonKey() List<ShelfEntry<Episode>> get extraEpisodeShelves {
+  if (_extraEpisodeShelves is EqualUnmodifiableListView) return _extraEpisodeShelves;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_extraEpisodeShelves);
+}
+
 
 /// Create a copy of PersonalizedLibrary
 /// with the given fields replaced by the non-null parameter values.
@@ -331,16 +347,16 @@ _$PersonalizedLibraryCopyWith<_PersonalizedLibrary> get copyWith => __$Personali
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PersonalizedLibrary&&(identical(other.continueListening, continueListening) || other.continueListening == continueListening)&&(identical(other.recentlyAdded, recentlyAdded) || other.recentlyAdded == recentlyAdded)&&(identical(other.recentSeries, recentSeries) || other.recentSeries == recentSeries)&&(identical(other.discover, discover) || other.discover == discover)&&(identical(other.listenAgain, listenAgain) || other.listenAgain == listenAgain)&&(identical(other.newestAuthors, newestAuthors) || other.newestAuthors == newestAuthors)&&(identical(other.newestEpisodes, newestEpisodes) || other.newestEpisodes == newestEpisodes)&&(identical(other.continueSeries, continueSeries) || other.continueSeries == continueSeries));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PersonalizedLibrary&&(identical(other.continueListening, continueListening) || other.continueListening == continueListening)&&(identical(other.recentlyAdded, recentlyAdded) || other.recentlyAdded == recentlyAdded)&&(identical(other.recentSeries, recentSeries) || other.recentSeries == recentSeries)&&(identical(other.discover, discover) || other.discover == discover)&&(identical(other.listenAgain, listenAgain) || other.listenAgain == listenAgain)&&(identical(other.newestAuthors, newestAuthors) || other.newestAuthors == newestAuthors)&&(identical(other.newestEpisodes, newestEpisodes) || other.newestEpisodes == newestEpisodes)&&(identical(other.continueSeries, continueSeries) || other.continueSeries == continueSeries)&&const DeepCollectionEquality().equals(other._extraLibraryShelves, _extraLibraryShelves)&&const DeepCollectionEquality().equals(other._extraEpisodeShelves, _extraEpisodeShelves));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,continueListening,recentlyAdded,recentSeries,discover,listenAgain,newestAuthors,newestEpisodes,continueSeries);
+int get hashCode => Object.hash(runtimeType,continueListening,recentlyAdded,recentSeries,discover,listenAgain,newestAuthors,newestEpisodes,continueSeries,const DeepCollectionEquality().hash(_extraLibraryShelves),const DeepCollectionEquality().hash(_extraEpisodeShelves));
 
 @override
 String toString() {
-  return 'PersonalizedLibrary(continueListening: $continueListening, recentlyAdded: $recentlyAdded, recentSeries: $recentSeries, discover: $discover, listenAgain: $listenAgain, newestAuthors: $newestAuthors, newestEpisodes: $newestEpisodes, continueSeries: $continueSeries)';
+  return 'PersonalizedLibrary(continueListening: $continueListening, recentlyAdded: $recentlyAdded, recentSeries: $recentSeries, discover: $discover, listenAgain: $listenAgain, newestAuthors: $newestAuthors, newestEpisodes: $newestEpisodes, continueSeries: $continueSeries, extraLibraryShelves: $extraLibraryShelves, extraEpisodeShelves: $extraEpisodeShelves)';
 }
 
 
@@ -351,7 +367,7 @@ abstract mixin class _$PersonalizedLibraryCopyWith<$Res> implements $Personalize
   factory _$PersonalizedLibraryCopyWith(_PersonalizedLibrary value, $Res Function(_PersonalizedLibrary) _then) = __$PersonalizedLibraryCopyWithImpl;
 @override @useResult
 $Res call({
- ShelfEntry<LibraryItem>? continueListening, ShelfEntry<LibraryItem>? recentlyAdded, ShelfEntry<Series>? recentSeries, ShelfEntry<LibraryItem>? discover, ShelfEntry<LibraryItem>? listenAgain, ShelfEntry<Author>? newestAuthors, ShelfEntry<Episode>? newestEpisodes, ShelfEntry<LibraryItem>? continueSeries
+ ShelfEntry<LibraryItem>? continueListening, ShelfEntry<LibraryItem>? recentlyAdded, ShelfEntry<Series>? recentSeries, ShelfEntry<LibraryItem>? discover, ShelfEntry<LibraryItem>? listenAgain, ShelfEntry<Author>? newestAuthors, ShelfEntry<Episode>? newestEpisodes, ShelfEntry<LibraryItem>? continueSeries, List<ShelfEntry<LibraryItem>> extraLibraryShelves, List<ShelfEntry<Episode>> extraEpisodeShelves
 });
 
 
@@ -368,7 +384,7 @@ class __$PersonalizedLibraryCopyWithImpl<$Res>
 
 /// Create a copy of PersonalizedLibrary
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? continueListening = freezed,Object? recentlyAdded = freezed,Object? recentSeries = freezed,Object? discover = freezed,Object? listenAgain = freezed,Object? newestAuthors = freezed,Object? newestEpisodes = freezed,Object? continueSeries = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? continueListening = freezed,Object? recentlyAdded = freezed,Object? recentSeries = freezed,Object? discover = freezed,Object? listenAgain = freezed,Object? newestAuthors = freezed,Object? newestEpisodes = freezed,Object? continueSeries = freezed,Object? extraLibraryShelves = null,Object? extraEpisodeShelves = null,}) {
   return _then(_PersonalizedLibrary(
 continueListening: freezed == continueListening ? _self.continueListening : continueListening // ignore: cast_nullable_to_non_nullable
 as ShelfEntry<LibraryItem>?,recentlyAdded: freezed == recentlyAdded ? _self.recentlyAdded : recentlyAdded // ignore: cast_nullable_to_non_nullable
@@ -378,7 +394,9 @@ as ShelfEntry<LibraryItem>?,listenAgain: freezed == listenAgain ? _self.listenAg
 as ShelfEntry<LibraryItem>?,newestAuthors: freezed == newestAuthors ? _self.newestAuthors : newestAuthors // ignore: cast_nullable_to_non_nullable
 as ShelfEntry<Author>?,newestEpisodes: freezed == newestEpisodes ? _self.newestEpisodes : newestEpisodes // ignore: cast_nullable_to_non_nullable
 as ShelfEntry<Episode>?,continueSeries: freezed == continueSeries ? _self.continueSeries : continueSeries // ignore: cast_nullable_to_non_nullable
-as ShelfEntry<LibraryItem>?,
+as ShelfEntry<LibraryItem>?,extraLibraryShelves: null == extraLibraryShelves ? _self._extraLibraryShelves : extraLibraryShelves // ignore: cast_nullable_to_non_nullable
+as List<ShelfEntry<LibraryItem>>,extraEpisodeShelves: null == extraEpisodeShelves ? _self._extraEpisodeShelves : extraEpisodeShelves // ignore: cast_nullable_to_non_nullable
+as List<ShelfEntry<Episode>>,
   ));
 }
 
@@ -485,7 +503,7 @@ $ShelfEntryCopyWith<LibraryItem, $Res>? get continueSeries {
 /// @nodoc
 mixin _$ShelfEntry<T> {
 
-@JsonKey(name: "id") String get id;@JsonKey(name: "label") String get label;@JsonKey(name: "labelStringKey") String get labelStringKey;@JsonKey(name: "type") ShelfType get type;@JsonKey(name: "total") int get total;@JsonKey(name: "entities") List<T> get entities;
+@JsonKey(name: "id") String get id;@JsonKey(name: "label") String get label;@JsonKey(name: "labelStringKey") String get labelStringKey;@JsonKey(name: "type")@ShelfTypeConverter() ShelfType get type;@JsonKey(name: "total") int get total;@JsonKey(name: "entities") List<T> get entities;
 /// Create a copy of ShelfEntry
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -518,7 +536,7 @@ abstract mixin class $ShelfEntryCopyWith<T,$Res>  {
   factory $ShelfEntryCopyWith(ShelfEntry<T> value, $Res Function(ShelfEntry<T>) _then) = _$ShelfEntryCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: "id") String id,@JsonKey(name: "label") String label,@JsonKey(name: "labelStringKey") String labelStringKey,@JsonKey(name: "type") ShelfType type,@JsonKey(name: "total") int total,@JsonKey(name: "entities") List<T> entities
+@JsonKey(name: "id") String id,@JsonKey(name: "label") String label,@JsonKey(name: "labelStringKey") String labelStringKey,@JsonKey(name: "type")@ShelfTypeConverter() ShelfType type,@JsonKey(name: "total") int total,@JsonKey(name: "entities") List<T> entities
 });
 
 
@@ -628,7 +646,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "label")  String label, @JsonKey(name: "labelStringKey")  String labelStringKey, @JsonKey(name: "type")  ShelfType type, @JsonKey(name: "total")  int total, @JsonKey(name: "entities")  List<T> entities)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "label")  String label, @JsonKey(name: "labelStringKey")  String labelStringKey, @JsonKey(name: "type")@ShelfTypeConverter()  ShelfType type, @JsonKey(name: "total")  int total, @JsonKey(name: "entities")  List<T> entities)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ShelfEntry() when $default != null:
 return $default(_that.id,_that.label,_that.labelStringKey,_that.type,_that.total,_that.entities);case _:
@@ -649,7 +667,7 @@ return $default(_that.id,_that.label,_that.labelStringKey,_that.type,_that.total
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "label")  String label, @JsonKey(name: "labelStringKey")  String labelStringKey, @JsonKey(name: "type")  ShelfType type, @JsonKey(name: "total")  int total, @JsonKey(name: "entities")  List<T> entities)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "label")  String label, @JsonKey(name: "labelStringKey")  String labelStringKey, @JsonKey(name: "type")@ShelfTypeConverter()  ShelfType type, @JsonKey(name: "total")  int total, @JsonKey(name: "entities")  List<T> entities)  $default,) {final _that = this;
 switch (_that) {
 case _ShelfEntry():
 return $default(_that.id,_that.label,_that.labelStringKey,_that.type,_that.total,_that.entities);case _:
@@ -669,7 +687,7 @@ return $default(_that.id,_that.label,_that.labelStringKey,_that.type,_that.total
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "id")  String id, @JsonKey(name: "label")  String label, @JsonKey(name: "labelStringKey")  String labelStringKey, @JsonKey(name: "type")  ShelfType type, @JsonKey(name: "total")  int total, @JsonKey(name: "entities")  List<T> entities)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "id")  String id, @JsonKey(name: "label")  String label, @JsonKey(name: "labelStringKey")  String labelStringKey, @JsonKey(name: "type")@ShelfTypeConverter()  ShelfType type, @JsonKey(name: "total")  int total, @JsonKey(name: "entities")  List<T> entities)?  $default,) {final _that = this;
 switch (_that) {
 case _ShelfEntry() when $default != null:
 return $default(_that.id,_that.label,_that.labelStringKey,_that.type,_that.total,_that.entities);case _:
@@ -684,13 +702,13 @@ return $default(_that.id,_that.label,_that.labelStringKey,_that.type,_that.total
 @JsonSerializable(genericArgumentFactories: true)
 
 class _ShelfEntry<T> implements ShelfEntry<T> {
-  const _ShelfEntry({@JsonKey(name: "id") required this.id, @JsonKey(name: "label") required this.label, @JsonKey(name: "labelStringKey") required this.labelStringKey, @JsonKey(name: "type") required this.type, @JsonKey(name: "total") required this.total, @JsonKey(name: "entities") required final  List<T> entities}): _entities = entities;
+  const _ShelfEntry({@JsonKey(name: "id") required this.id, @JsonKey(name: "label") required this.label, @JsonKey(name: "labelStringKey") required this.labelStringKey, @JsonKey(name: "type")@ShelfTypeConverter() required this.type, @JsonKey(name: "total") required this.total, @JsonKey(name: "entities") required final  List<T> entities}): _entities = entities;
   factory _ShelfEntry.fromJson(Map<String, dynamic> json,T Function(Object?) fromJsonT) => _$ShelfEntryFromJson(json,fromJsonT);
 
 @override@JsonKey(name: "id") final  String id;
 @override@JsonKey(name: "label") final  String label;
 @override@JsonKey(name: "labelStringKey") final  String labelStringKey;
-@override@JsonKey(name: "type") final  ShelfType type;
+@override@JsonKey(name: "type")@ShelfTypeConverter() final  ShelfType type;
 @override@JsonKey(name: "total") final  int total;
  final  List<T> _entities;
 @override@JsonKey(name: "entities") List<T> get entities {
@@ -733,7 +751,7 @@ abstract mixin class _$ShelfEntryCopyWith<T,$Res> implements $ShelfEntryCopyWith
   factory _$ShelfEntryCopyWith(_ShelfEntry<T> value, $Res Function(_ShelfEntry<T>) _then) = __$ShelfEntryCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: "id") String id,@JsonKey(name: "label") String label,@JsonKey(name: "labelStringKey") String labelStringKey,@JsonKey(name: "type") ShelfType type,@JsonKey(name: "total") int total,@JsonKey(name: "entities") List<T> entities
+@JsonKey(name: "id") String id,@JsonKey(name: "label") String label,@JsonKey(name: "labelStringKey") String labelStringKey,@JsonKey(name: "type")@ShelfTypeConverter() ShelfType type,@JsonKey(name: "total") int total,@JsonKey(name: "entities") List<T> entities
 });
 
 

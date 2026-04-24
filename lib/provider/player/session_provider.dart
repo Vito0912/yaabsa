@@ -55,7 +55,7 @@ class SessionRepository {
     }
   }
 
-  Future<InternalMedia?> openSession(String itemId) async {
+  Future<InternalMedia?> openSession(String itemId, {String? episodeId}) async {
     final ABSApi? api = ref.read(absApiProvider);
     final AppDatabase db = ref.read(appDatabaseProvider);
 
@@ -64,9 +64,9 @@ class SessionRepository {
       return null;
     }
 
-    final downloaded = await db.getStoredDownload(itemId, api.user!.id);
+    final downloaded = await db.getStoredDownload(itemId, api.user!.id, episodeId: episodeId);
 
-    if (itemId == _currentSession?.libraryItemId) return null;
+    if (itemId == _currentSession?.libraryItemId && episodeId == _currentSession?.episodeId) return null;
 
     // TODO: Setting to open session for syncing for offline support
     if (downloaded == null) {
@@ -80,6 +80,7 @@ class SessionRepository {
 
       final PlaybackSession? session = (await api.getLibraryItemApi().playLibraryItem(
         itemId,
+        episodeId: episodeId,
         playRequest: playRequest,
       )).data;
 
@@ -102,13 +103,7 @@ class SessionRepository {
     } else {
       logger('Using local download for item $itemId', tag: 'SessionRepository', level: InfoLevel.debug);
       final randomId = Uuid().v4();
-      _currentSession = await createLocalSession(
-        randomId,
-        itemId,
-        api.user!.id,
-        DateTime.now(),
-        // episodeId: episodeId,
-      );
+      _currentSession = await createLocalSession(randomId, itemId, api.user!.id, DateTime.now(), episodeId: episodeId);
       _isLocalSession = true;
     }
 
@@ -122,7 +117,7 @@ class SessionRepository {
       episodeId: _currentSession!.episodeId,
       sessionId: _currentSession!.id,
       title: _currentSession!.displayTitle ?? _currentSession!.libraryItem!.title,
-      subtitle: _currentSession!.libraryItem?.subtitle,
+      subtitle: _currentSession!.episodeId == null ? _currentSession!.libraryItem?.subtitle : null,
       series: _currentSession!.libraryItem?.seriesName,
       seriesPosition: _currentSession!.libraryItem?.seriesPosition,
       author: _currentSession!.libraryItem?.authorString,
@@ -130,13 +125,13 @@ class SessionRepository {
       chapters: _currentSession!.chapters?.map((e) => e.toInternalChapter()).toList(),
       tracks: downloaded != null
           ? downloaded.tracks
-          : _currentSession!.audioTracks!
+          : (_currentSession!.audioTracks ?? const <AudioTrack>[])
                 .map((e) => e.toInternalTrack(api.basePathOverride, _currentSession!.id))
                 .toList(),
       local: _isLocalSession,
       saf: downloaded?.saf ?? false,
     );
-    print(downloaded?.tracks);
+
     internalMedia.populateFields();
 
     return internalMedia;
@@ -242,6 +237,14 @@ class SessionRepository {
     double? duration,
   }) async {
     final LibraryItem libraryItem = await ref.read(libraryItemProvider(itemId).future);
+    final selectedEpisode = episodeId == null
+        ? null
+        : libraryItem.media?.podcastMedia?.episodes?.where((episode) => episode.id == episodeId).firstOrNull;
+
+    final selectedEpisodeTrack = selectedEpisode?.audioFile?.toAudioTrack();
+    final selectedEpisodeTitle = selectedEpisode?.title;
+    final hasSelectedEpisodeTitle = selectedEpisodeTitle != null && selectedEpisodeTitle.trim().isNotEmpty;
+
     final LibraryItem strippedItem = libraryItem.copyWith(
       media: libraryItem.media?.copyWith(
         bookMedia: libraryItem.media?.bookMedia?.copyWith(audioFiles: null, chapters: null),
@@ -257,10 +260,10 @@ class SessionRepository {
       libraryItem: strippedItem,
       mediaType: libraryItem.mediaType,
       episodeId: episodeId,
-      displayTitle: libraryItem.title,
-      chapters: libraryItem.media?.bookMedia?.chapters,
+      displayTitle: hasSelectedEpisodeTitle ? selectedEpisodeTitle.trim() : libraryItem.title,
+      chapters: episodeId == null ? libraryItem.media?.bookMedia?.chapters : null,
       displayAuthor: libraryItem.authorString,
-      coverPath: libraryItem.media?.bookMedia?.coverPath,
+      coverPath: libraryItem.media?.bookMedia?.coverPath ?? libraryItem.media?.podcastMedia?.coverPath,
       duration: duration ?? libraryItem.media?.duration(episodeId: episodeId),
       playMethod: 0,
       deviceInfo: await PlayerUtils.getDeviceInfo(),
@@ -273,21 +276,7 @@ class SessionRepository {
       updatedAt: date.millisecondsSinceEpoch,
       audioTracks:
           libraryItem.media?.bookMedia?.audioFiles?.map((a) => a.toAudioTrack()).whereType<AudioTrack>().toList() ??
-          (libraryItem.media?.podcastMedia?.episodes
-                      ?.where((e) => e.id == episodeId)
-                      .firstOrNull
-                      ?.audioFile
-                      ?.toAudioTrack() !=
-                  null
-              ? [
-                  libraryItem.media?.podcastMedia?.episodes
-                          ?.where((e) => e.id == episodeId)
-                          .firstOrNull
-                          ?.audioFile
-                          ?.toAudioTrack()
-                      as AudioTrack,
-                ]
-              : []),
+          (selectedEpisodeTrack == null ? const <AudioTrack>[] : <AudioTrack>[selectedEpisodeTrack]),
     );
 
     return session;

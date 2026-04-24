@@ -1,4 +1,6 @@
 import 'package:yaabsa/api/library_items/library_item.dart';
+import 'package:yaabsa/api/library_items/episode.dart';
+import 'package:yaabsa/api/me/media_progress.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
@@ -36,9 +38,10 @@ class LibraryItemWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final progress = showProgress
-        ? ref.watch(mediaProgressProvider.select((asyncValue) => asyncValue.value?[libraryItem.id]))
+    final progressMap = showProgress
+        ? (ref.watch(mediaProgressProvider).asData?.value ?? const <String, MediaProgress>{})
         : null;
+    final progress = showProgress ? _resolveProgress(progressMap!) : null;
     final completedDownloadItemIds = ref.watch(completedDownloadItemIdsProvider).asData?.value ?? const <String>{};
     final isDownloaded = completedDownloadItemIds.contains(libraryItem.id);
     final collapsedSeriesBookCount = libraryItem.collapsedSeries?.numBooks ?? 0;
@@ -205,6 +208,22 @@ class LibraryItemWidget extends ConsumerWidget {
                                           return;
                                         }
 
+                                        if (libraryItem.mediaType == 'podcast') {
+                                          final podcastEpisodes =
+                                              (libraryItem.media?.podcastMedia?.episodes ?? const <Episode>[])
+                                                  .where((episode) => episode.audioFile != null)
+                                                  .toList(growable: false);
+                                          if (podcastEpisodes.isNotEmpty) {
+                                            audioHandler.playPodcastEpisode(
+                                              libraryItem,
+                                              podcastEpisodes.first,
+                                              episodeIndex: 0,
+                                              orderedEpisodes: podcastEpisodes,
+                                            );
+                                            return;
+                                          }
+                                        }
+
                                         audioHandler.playLibraryItem(libraryItem);
                                       },
                                       splashRadius: 8,
@@ -241,5 +260,26 @@ class LibraryItemWidget extends ConsumerWidget {
         );
       },
     );
+  }
+
+  MediaProgress? _resolveProgress(Map<String, MediaProgress> progressMap) {
+    final itemProgress = progressMap[libraryItem.id];
+    if (itemProgress != null && libraryItem.mediaType != 'podcast') {
+      return itemProgress;
+    }
+
+    final podcastEpisodes = libraryItem.media?.podcastMedia?.episodes;
+    if (podcastEpisodes == null || podcastEpisodes.isEmpty) {
+      return null;
+    }
+
+    for (final episode in podcastEpisodes) {
+      final episodeProgress = progressMap[mediaProgressKey(libraryItem.id, episode.id)];
+      if (episodeProgress != null) {
+        return episodeProgress;
+      }
+    }
+
+    return null;
   }
 }

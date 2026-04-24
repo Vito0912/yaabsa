@@ -113,20 +113,45 @@ class _SectionData {
 
 List<_SectionData> _buildSections(PersonalizedLibrary library) {
   final sections = <_SectionData>[];
+  const newestEpisodesShelfId = 'newest-episodes';
 
   void addSection<T>(ShelfEntry<T>? shelf, _ShelfEntityKind kind) {
     if (shelf == null || shelf.entities.isEmpty) return;
     sections.add(_SectionData(title: shelf.label, kind: kind, entities: shelf.entities.cast<Object>()));
   }
 
+  ShelfEntry<LibraryItem>? newestEpisodesAsLibraryItems;
+  for (final shelf in library.extraLibraryShelves) {
+    if (shelf.id == newestEpisodesShelfId) {
+      newestEpisodesAsLibraryItems = shelf;
+      break;
+    }
+  }
+
   addSection(library.continueListening, _ShelfEntityKind.libraryItem);
+  addSection(newestEpisodesAsLibraryItems, _ShelfEntityKind.libraryItem);
+  addSection(library.listenAgain, _ShelfEntityKind.libraryItem);
+
   addSection(library.continueSeries, _ShelfEntityKind.libraryItem);
   addSection(library.recentlyAdded, _ShelfEntityKind.libraryItem);
   addSection(library.discover, _ShelfEntityKind.libraryItem);
-  addSection(library.listenAgain, _ShelfEntityKind.libraryItem);
   addSection(library.recentSeries, _ShelfEntityKind.series);
   addSection(library.newestAuthors, _ShelfEntityKind.author);
-  addSection(library.newestEpisodes, _ShelfEntityKind.episode);
+
+  if (newestEpisodesAsLibraryItems == null) {
+    addSection(library.newestEpisodes, _ShelfEntityKind.episode);
+  }
+
+  for (final shelf in library.extraLibraryShelves) {
+    if (shelf.id == newestEpisodesShelfId) {
+      continue;
+    }
+    addSection(shelf, _ShelfEntityKind.libraryItem);
+  }
+
+  for (final shelf in library.extraEpisodeShelves) {
+    addSection(shelf, _ShelfEntityKind.episode);
+  }
 
   return sections;
 }
@@ -230,6 +255,13 @@ class _SectionList extends StatelessWidget {
           ),
         );
       case _ShelfEntityKind.episode:
+        if (entity is LibraryItem) {
+          return SizedBox(
+            width: libraryTileWidth,
+            child: LibraryItemWidget(entity, api, showProgress: true, compact: true, squareCover: true),
+          );
+        }
+
         final episode = entity as Episode;
         return SizedBox(
           width: viewportWidth >= 1100 ? 320 : 270,

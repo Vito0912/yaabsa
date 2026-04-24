@@ -102,119 +102,130 @@ class Player extends StatelessWidget {
       body: Consumer(
         builder: (BuildContext context, ref, child) {
           final ABSApi? api = ref.watch(absApiProvider);
-          return StreamBuilder<InternalMedia?>(
-            stream: audioHandler.mediaItemStream.stream,
-            initialData: audioHandler.currentMediaItem,
-            builder: (context, asyncSnapshot) {
-              if (asyncSnapshot.connectionState == ConnectionState.waiting && asyncSnapshot.data == null) {
-                return const Center(child: CircularProgressIndicator());
-              }
-
-              if (asyncSnapshot.data == null) {
-                closePlayerIfOpen();
-                return const SizedBox.shrink();
-              }
-
-              final InternalMedia media = asyncSnapshot.data!;
-              return LayoutBuilder(
-                builder: (context, constraints) {
-                  final layout = _resolveLayout(constraints.maxWidth);
-                  final basePadding = layout == _PlayerLayoutType.mobile ? 6.0 : 8.0;
-                  final hasChapters = media.chapters?.isNotEmpty == true;
-
-                  if (layout == _PlayerLayoutType.mobile) {
-                    return Padding(
-                      padding: EdgeInsets.all(basePadding),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Expanded(
-                            child: SingleChildScrollView(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  _NowPlayingPanel(api: api, media: media, layout: layout),
-                                  if (hasChapters) ...[
-                                    const SizedBox(height: 6),
-                                    const _SectionPanel(title: 'Chapters', child: ChapterView(maxHeight: 190)),
-                                  ],
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          const _SectionPanel(title: 'Playback', child: _PlaybackContent(dense: true)),
-                        ],
-                      ),
-                    );
+          return StreamBuilder<bool>(
+            stream: audioHandler.queueTransitionLoadingStream,
+            initialData: audioHandler.queueTransitionLoading,
+            builder: (context, transitionSnapshot) {
+              final isTransitionLoading = transitionSnapshot.data == true;
+              return StreamBuilder<InternalMedia?>(
+                stream: audioHandler.mediaItemStream.stream,
+                initialData: audioHandler.currentMediaItem,
+                builder: (context, asyncSnapshot) {
+                  if (asyncSnapshot.connectionState == ConnectionState.waiting && asyncSnapshot.data == null) {
+                    return const Center(child: CircularProgressIndicator());
                   }
 
-                  if (layout == _PlayerLayoutType.tablet) {
-                    return StreamBuilder<PlayerQueueSnapshot>(
-                      stream: audioHandler.queueSnapshotStream,
-                      initialData: audioHandler.queueSnapshot,
-                      builder: (context, queueSnapshot) {
-                        final showQueue = queueSnapshot.data?.entries.isNotEmpty == true;
-                        final showSidePanels = hasChapters || showQueue;
+                  if (asyncSnapshot.data == null) {
+                    if (isTransitionLoading) {
+                      return const _PlayerTransitionLoadingView();
+                    }
 
+                    closePlayerIfOpen();
+                    return const SizedBox.shrink();
+                  }
+
+                  final InternalMedia media = asyncSnapshot.data!;
+                  return LayoutBuilder(
+                    builder: (context, constraints) {
+                      final layout = _resolveLayout(constraints.maxWidth);
+                      final basePadding = layout == _PlayerLayoutType.mobile ? 6.0 : 8.0;
+                      final hasChapters = media.chapters?.isNotEmpty == true;
+
+                      if (layout == _PlayerLayoutType.mobile) {
                         return Padding(
                           padding: EdgeInsets.all(basePadding),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                                  children: [
-                                    _NowPlayingPanel(api: api, media: media, layout: layout),
-                                    const Spacer(),
-                                    const _SectionPanel(title: 'Playback', child: _PlaybackContent(dense: true)),
-                                  ],
+                                child: SingleChildScrollView(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    children: [
+                                      _NowPlayingPanel(api: api, media: media, layout: layout),
+                                      if (hasChapters) ...[
+                                        const SizedBox(height: 6),
+                                        const _SectionPanel(title: 'Chapters', child: ChapterView(maxHeight: 190)),
+                                      ],
+                                    ],
+                                  ),
                                 ),
                               ),
-                              if (showSidePanels) const SizedBox(width: 6),
-                              if (showSidePanels)
-                                SizedBox(
-                                  width: 320,
-                                  child: _PlayerSidePanels(hasChapters: hasChapters, showQueue: showQueue),
-                                ),
+                              const SizedBox(height: 6),
+                              const _SectionPanel(title: 'Playback', child: _PlaybackContent(dense: true)),
                             ],
                           ),
                         );
-                      },
-                    );
-                  }
+                      }
 
-                  return StreamBuilder<PlayerQueueSnapshot>(
-                    stream: audioHandler.queueSnapshotStream,
-                    initialData: audioHandler.queueSnapshot,
-                    builder: (context, queueSnapshot) {
-                      final showQueue = queueSnapshot.data?.entries.isNotEmpty == true;
-                      final showSidePanels = hasChapters || showQueue;
+                      if (layout == _PlayerLayoutType.tablet) {
+                        return StreamBuilder<PlayerQueueSnapshot>(
+                          stream: audioHandler.queueSnapshotStream,
+                          initialData: audioHandler.queueSnapshot,
+                          builder: (context, queueSnapshot) {
+                            final showQueue = queueSnapshot.data?.entries.isNotEmpty == true;
+                            final showSidePanels = hasChapters || showQueue;
 
-                      return Padding(
-                        padding: EdgeInsets.all(basePadding),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                            return Padding(
+                              padding: EdgeInsets.all(basePadding),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  _NowPlayingPanel(api: api, media: media, layout: layout),
-                                  const Spacer(),
-                                  const _SectionPanel(title: 'Playback', child: _PlaybackContent(dense: true)),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                                      children: [
+                                        _NowPlayingPanel(api: api, media: media, layout: layout),
+                                        const Spacer(),
+                                        const _SectionPanel(title: 'Playback', child: _PlaybackContent(dense: true)),
+                                      ],
+                                    ),
+                                  ),
+                                  if (showSidePanels) const SizedBox(width: 6),
+                                  if (showSidePanels)
+                                    SizedBox(
+                                      width: 320,
+                                      child: _PlayerSidePanels(hasChapters: hasChapters, showQueue: showQueue),
+                                    ),
                                 ],
                               ),
+                            );
+                          },
+                        );
+                      }
+
+                      return StreamBuilder<PlayerQueueSnapshot>(
+                        stream: audioHandler.queueSnapshotStream,
+                        initialData: audioHandler.queueSnapshot,
+                        builder: (context, queueSnapshot) {
+                          final showQueue = queueSnapshot.data?.entries.isNotEmpty == true;
+                          final showSidePanels = hasChapters || showQueue;
+
+                          return Padding(
+                            padding: EdgeInsets.all(basePadding),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    children: [
+                                      _NowPlayingPanel(api: api, media: media, layout: layout),
+                                      const Spacer(),
+                                      const _SectionPanel(title: 'Playback', child: _PlaybackContent(dense: true)),
+                                    ],
+                                  ),
+                                ),
+                                if (showSidePanels) const SizedBox(width: 6),
+                                if (showSidePanels)
+                                  SizedBox(
+                                    width: 360,
+                                    child: _PlayerSidePanels(hasChapters: hasChapters, showQueue: showQueue),
+                                  ),
+                              ],
                             ),
-                            if (showSidePanels) const SizedBox(width: 6),
-                            if (showSidePanels)
-                              SizedBox(
-                                width: 360,
-                                child: _PlayerSidePanels(hasChapters: hasChapters, showQueue: showQueue),
-                              ),
-                          ],
-                        ),
+                          );
+                        },
                       );
                     },
                   );
@@ -223,6 +234,24 @@ class Player extends StatelessWidget {
             },
           );
         },
+      ),
+    );
+  }
+}
+
+class _PlayerTransitionLoadingView extends StatelessWidget {
+  const _PlayerTransitionLoadingView();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(width: 28, height: 28, child: CircularProgressIndicator(strokeWidth: 2.6)),
+          const SizedBox(height: 10),
+          Text('Loading next item...', style: Theme.of(context).textTheme.bodyMedium),
+        ],
       ),
     );
   }

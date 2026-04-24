@@ -10,7 +10,7 @@ _ShelfEntry<T> _$ShelfEntryFromJson<T>(Map<String, dynamic> json, T Function(Obj
   id: json['id'] as String,
   label: json['label'] as String,
   labelStringKey: json['labelStringKey'] as String,
-  type: $enumDecode(_$ShelfTypeEnumMap, json['type']),
+  type: const ShelfTypeConverter().fromJson(json['type'] as String),
   total: (json['total'] as num).toInt(),
   entities: (json['entities'] as List<dynamic>).map(fromJsonT).toList(),
 );
@@ -20,15 +20,7 @@ Map<String, dynamic> _$ShelfEntryToJson<T>(_ShelfEntry<T> instance, Object? Func
       'id': instance.id,
       'label': instance.label,
       'labelStringKey': instance.labelStringKey,
-      'type': _$ShelfTypeEnumMap[instance.type]!,
+      'type': const ShelfTypeConverter().toJson(instance.type),
       'total': instance.total,
       'entities': instance.entities.map(toJsonT).toList(),
     };
-
-const _$ShelfTypeEnumMap = {
-  ShelfType.book: 'book',
-  ShelfType.series: 'series',
-  ShelfType.author: 'authors',
-  ShelfType.episode: 'episodes',
-  ShelfType.podcast: 'podcast',
-};

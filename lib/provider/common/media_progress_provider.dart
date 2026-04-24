@@ -11,6 +11,13 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'media_progress_provider.g.dart';
 
+String mediaProgressKey(String libraryItemId, [String? episodeId]) {
+  if (episodeId == null || episodeId.isEmpty) {
+    return libraryItemId;
+  }
+  return '$libraryItemId::$episodeId';
+}
+
 @Riverpod(keepAlive: true)
 class MediaProgressNotifier extends _$MediaProgressNotifier {
   MeApi _getMeApiOrThrow() {
@@ -22,7 +29,7 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
   }
 
   String _progressKey(String libraryItemId, [String? episodeId]) {
-    return '$libraryItemId${episodeId ?? ''}';
+    return mediaProgressKey(libraryItemId, episodeId);
   }
 
   String _progressKeyFromMediaProgress(MediaProgress progress) {
@@ -156,7 +163,6 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
   }
 
   Future<MediaProgress?> updateMediaProgress(String libraryItemId, double currentTime, PlaybackSession session) async {
-    state = const AsyncLoading<Map<String, MediaProgress>>();
     try {
       final Map<String, MediaProgress> currentMap = state.asData?.value ?? <String, MediaProgress>{};
       final key = _progressKey(libraryItemId, session.episodeId);
@@ -171,20 +177,21 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
         );
       }
       final double duration = updatedProgress.duration <= 0 ? (session.duration ?? 0) : updatedProgress.duration;
-      final double progress = currentTime / duration;
-
-      if (progress < 0 || progress > 1) {
+      if (duration <= 0) {
         logger(
-          'Invalid progress value: $progress for libraryItemId: $libraryItemId. Skipping update.',
+          'Invalid duration ($duration) for libraryItemId: $libraryItemId. Skipping update.',
           tag: 'MediaProgressProvider',
           level: InfoLevel.error,
         );
         return null;
       }
 
+      final double progress = (currentTime / duration).clamp(0.0, 1.0);
+
       updatedProgress = updatedProgress.copyWith(
         currentTime: currentTime,
         progress: progress,
+        isFinished: progress >= 0.999,
         lastUpdate: DateTime.now().millisecondsSinceEpoch,
       );
       final Map<String, MediaProgress> updatedMap = {...currentMap, key: updatedProgress};

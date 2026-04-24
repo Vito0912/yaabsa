@@ -61,14 +61,14 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
   bool _isMobileSearchExpanded = false;
   bool _isSidebarCollapsed = false;
 
-  late final List<NavigationItemConfig> _appBarItems;
+  late final List<NavigationItemConfig> _allAppBarItems;
   late final NavigationItemConfig _downloadsMenuItem;
   late final List<NavigationItemConfig> _advancedMenuItems;
 
   @override
   void initState() {
     super.initState();
-    _appBarItems = const [
+    _allAppBarItems = const [
       NavigationItemConfig(icon: Icons.home, label: "Shelf", page: PersonalizedView()),
       NavigationItemConfig(icon: Icons.collections_bookmark_outlined, label: "Library", page: LibraryView()),
       NavigationItemConfig(icon: Icons.collections_outlined, label: "Collections", page: CollectionView()),
@@ -118,23 +118,37 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
     return [_downloadsMenuItem, ..._advancedMenuItems];
   }
 
-  Widget _resolveCurrentContent(List<NavigationItemConfig> advancedMenuItems) {
+  List<NavigationItemConfig> _visiblePrimaryItems({required String? libraryMediaType}) {
+    if (libraryMediaType != 'podcast') {
+      return _allAppBarItems;
+    }
+
+    return _allAppBarItems
+        .where((item) => item.label != 'Series' && item.label != 'Authors' && item.label != 'Narrators')
+        .toList(growable: false);
+  }
+
+  Widget _resolveCurrentContent(
+    int selectedIndex,
+    List<NavigationItemConfig> primaryItems,
+    List<NavigationItemConfig> advancedMenuItems,
+  ) {
     if (_currentlyDisplayedPageSource == _PageSource.child && widget.child != null) {
       return widget.child!;
     }
     if (_searchQuery.isNotEmpty) {
       return SearchView(query: _searchQuery);
     }
-    if (_selectedIndex < _appBarItems.length) {
-      return _appBarItems[_selectedIndex].page;
+    if (selectedIndex < primaryItems.length) {
+      return primaryItems[selectedIndex].page;
     }
 
-    final advancedIndex = _selectedIndex - _appBarItems.length;
+    final advancedIndex = selectedIndex - primaryItems.length;
     if (advancedIndex >= 0 && advancedIndex < advancedMenuItems.length) {
       return advancedMenuItems[advancedIndex].page;
     }
 
-    return _appBarItems.first.page;
+    return primaryItems.first.page;
   }
 
   SidebarVariant _sidebarVariantFor({required bool isTablet, required bool isCollapsed}) {
@@ -254,41 +268,63 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
 
   @override
   Widget build(BuildContext context) {
-    final queryParameters = GoRouterState.of(context).uri.queryParameters;
-    final tabIntent = queryParameters['tab'];
-    final intentKey = queryParameters['intent'] ?? tabIntent;
-    if (tabIntent != null && intentKey != null && intentKey != _lastConsumedTabIntent) {
-      final targetIndex = switch (tabIntent) {
-        'library' => 1,
-        'collections' => 2,
-        'playlists' => 3,
-        'series' => 4,
-        'authors' => 5,
-        'narrators' => 6,
-        _ => 0,
-      };
-      _lastConsumedTabIntent = intentKey;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        setState(() {
-          _selectedIndex = targetIndex;
-          _currentlyDisplayedPageSource = _PageSource.internal;
-        });
-      });
-    }
-
     if (_isBootstrapping()) {
       return const _LayoutHomeStartupScreen();
     }
 
     final bool isMobile = context.isMobile;
     final bool isTablet = context.isTablet;
+    final selectedLibrary = ref.watch(selectedLibraryProvider);
+    final primaryItems = _visiblePrimaryItems(libraryMediaType: selectedLibrary?.mediaType);
     final canDownload = ref.watch(currentUserProvider).value?.permissions.download ?? false;
     final advancedMenuItems = _visibleAdvancedMenuItems(canDownload: canDownload);
+
+    final queryParameters = GoRouterState.of(context).uri.queryParameters;
+    final tabIntent = queryParameters['tab'];
+    final intentKey = queryParameters['intent'] ?? tabIntent;
+    if (tabIntent != null && intentKey != null && intentKey != _lastConsumedTabIntent) {
+      final targetLabel = switch (tabIntent) {
+        'library' => 'Library',
+        'collections' => 'Collections',
+        'playlists' => 'Playlists',
+        'series' => 'Series',
+        'authors' => 'Authors',
+        'narrators' => 'Narrators',
+        _ => 'Shelf',
+      };
+
+      final targetIndex = primaryItems.indexWhere((item) => item.label == targetLabel);
+      _lastConsumedTabIntent = intentKey;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        setState(() {
+          _selectedIndex = targetIndex >= 0 ? targetIndex : 0;
+          _currentlyDisplayedPageSource = _PageSource.internal;
+        });
+      });
+    }
+
+    final selectedHiddenPrimaryTab = _selectedIndex >= primaryItems.length && _selectedIndex < _allAppBarItems.length;
+    final maxIndex = (primaryItems.length + advancedMenuItems.length) - 1;
+    final safeSelectedIndex = selectedHiddenPrimaryTab
+        ? 0
+        : maxIndex < 0
+        ? 0
+        : (_selectedIndex < 0 ? 0 : (_selectedIndex > maxIndex ? maxIndex : _selectedIndex));
+
+    if (_selectedIndex != safeSelectedIndex) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        setState(() {
+          _selectedIndex = safeSelectedIndex;
+        });
+      });
+    }
+
     final bool canExpandSidebar = !isMobile;
     final bool isSidebarCollapsed = !canExpandSidebar || _isSidebarCollapsed;
     final SidebarVariant sidebarVariant = _sidebarVariantFor(isTablet: isTablet, isCollapsed: isSidebarCollapsed);
-    final Widget currentContent = _resolveCurrentContent(advancedMenuItems);
+    final Widget currentContent = _resolveCurrentContent(safeSelectedIndex, primaryItems, advancedMenuItems);
 
     if (isMobile) {
       return Scaffold(
@@ -299,7 +335,7 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
               searchController: _searchController,
               searchQuery: _searchQuery,
               advancedMenuItems: advancedMenuItems,
-              advancedMenuStartIndex: _appBarItems.length,
+              advancedMenuStartIndex: primaryItems.length,
               onSearchChanged: _onSearchChanged,
               onSearchSubmitted: _submitSearch,
               onExpandSearch: _expandMobileSearch,
@@ -323,8 +359,8 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
                     bottom: !showPlayer,
                     minimum: EdgeInsets.only(bottom: showPlayer ? 8 : LayoutHomeMobileNavBar.floatingBottomMargin),
                     child: LayoutHomeMobileNavBar(
-                      items: _appBarItems,
-                      selectedIndex: _selectedIndex,
+                      items: primaryItems,
+                      selectedIndex: safeSelectedIndex,
                       onItemTap: _onAppBarItemTapped,
                     ),
                   ),
@@ -347,8 +383,8 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
             right: false,
             child: LayoutHomeSidebar(
               variant: sidebarVariant,
-              selectedIndex: _selectedIndex,
-              primaryItems: _appBarItems,
+              selectedIndex: safeSelectedIndex,
+              primaryItems: primaryItems,
               secondaryItems: advancedMenuItems,
               onItemTap: _onAppBarItemTapped,
             ),
