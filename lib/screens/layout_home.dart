@@ -52,6 +52,7 @@ class LayoutHome extends ConsumerStatefulWidget {
 
 class _LayoutHomeState extends ConsumerState<LayoutHome> {
   int _selectedIndex = 0;
+  String? _lastSelectedLabel;
   String? _lastConsumedTabIntent;
   _PageSource _currentlyDisplayedPageSource = _PageSource.internal;
   String? _bootstrappedUserId;
@@ -89,6 +90,8 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
     ];
 
     _currentlyDisplayedPageSource = _pageSourceFor(widget.child);
+
+    _lastSelectedLabel = _allAppBarItems.isNotEmpty ? _allAppBarItems.first.label : null;
 
     final settings = containerRef.read(settingsManagerProvider.notifier);
     _isSidebarCollapsed = settings.getGlobalSetting<bool>(SettingKeys.sidebarCollapsed);
@@ -159,8 +162,22 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
   }
 
   void _onAppBarItemTapped(int index) {
+    final selectedLibrary = ref.read(selectedLibraryProvider);
+    final primaryItems = _visiblePrimaryItems(libraryMediaType: selectedLibrary?.mediaType);
+    final canDownload = ref.read(currentUserProvider).value?.permissions.download ?? false;
+    final advancedItems = _visibleAdvancedMenuItems(canDownload: canDownload);
+    final combined = <NavigationItemConfig>[...primaryItems, ...advancedItems];
+
+    String? label;
+    if (index >= 0 && index < combined.length) {
+      label = combined[index].label;
+    } else if (index >= 0 && index < _allAppBarItems.length) {
+      label = _allAppBarItems[index].label;
+    }
+
     setState(() {
       _selectedIndex = index;
+      _lastSelectedLabel = label ?? _lastSelectedLabel;
       _currentlyDisplayedPageSource = _PageSource.internal;
       _searchQuery = '';
       _searchController.clear();
@@ -300,23 +317,43 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
         setState(() {
           _selectedIndex = targetIndex >= 0 ? targetIndex : 0;
           _currentlyDisplayedPageSource = _PageSource.internal;
+          _lastSelectedLabel = primaryItems.isNotEmpty
+              ? (targetIndex >= 0 ? primaryItems[targetIndex].label : primaryItems.first.label)
+              : _lastSelectedLabel;
         });
       });
     }
+    final combinedItems = <NavigationItemConfig>[...primaryItems, ...advancedMenuItems];
+    final maxIndex = combinedItems.length - 1;
 
-    final selectedHiddenPrimaryTab = _selectedIndex >= primaryItems.length && _selectedIndex < _allAppBarItems.length;
-    final maxIndex = (primaryItems.length + advancedMenuItems.length) - 1;
-    final safeSelectedIndex = selectedHiddenPrimaryTab
-        ? 0
-        : maxIndex < 0
-        ? 0
-        : (_selectedIndex < 0 ? 0 : (_selectedIndex > maxIndex ? maxIndex : _selectedIndex));
+    int computeSafeSelectedIndex() {
+      if (_selectedIndex >= 0 && _selectedIndex <= maxIndex) {
+        return _selectedIndex;
+      }
+
+      if (_selectedIndex >= 0 && _selectedIndex < _allAppBarItems.length) {
+        final originalLabel = _allAppBarItems[_selectedIndex].label;
+        final mapped = combinedItems.indexWhere((it) => it.label == originalLabel);
+        if (mapped >= 0) return mapped;
+        return 0;
+      }
+
+      if (_lastSelectedLabel != null) {
+        final mapped = combinedItems.indexWhere((it) => it.label == _lastSelectedLabel);
+        if (mapped >= 0) return mapped;
+      }
+
+      return maxIndex >= 0 ? maxIndex : 0;
+    }
+
+    final safeSelectedIndex = computeSafeSelectedIndex();
 
     if (_selectedIndex != safeSelectedIndex) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         setState(() {
           _selectedIndex = safeSelectedIndex;
+          _lastSelectedLabel = combinedItems.isNotEmpty ? combinedItems[safeSelectedIndex].label : _lastSelectedLabel;
         });
       });
     }
