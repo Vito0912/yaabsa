@@ -127,12 +127,12 @@ class LayoutHomeSidebar extends StatelessWidget {
         );
       case SidebarVariant.tabletExpanded:
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
           child: InkWell(
             onTap: onTap,
             borderRadius: BorderRadius.circular(12),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
               decoration: BoxDecoration(
                 color: isSelected ? selectedColor.withValues(alpha: 0.12) : Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
@@ -141,7 +141,7 @@ class LayoutHomeSidebar extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(item.icon, size: 22, color: itemColor),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
                   Text(
                     item.label,
                     style: TextStyle(color: itemColor, fontSize: 11),

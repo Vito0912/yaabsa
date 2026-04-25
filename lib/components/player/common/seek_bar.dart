@@ -76,7 +76,14 @@ class SeekBar extends ConsumerWidget {
       children: [
         Row(
           children: [
-            Text(_formatDuration(leftTime), style: const TextStyle(fontSize: 12)),
+            Text(
+              _formatDuration(leftTime),
+              style: const TextStyle(
+                fontSize: 12,
+                fontFamily: 'monospace',
+                fontFeatures: [FontFeature.tabularFigures()],
+              ),
+            ),
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4.0),
@@ -144,7 +151,14 @@ class SeekBar extends ConsumerWidget {
                 ),
               ),
             ),
-            Text(_formatDuration(rightTime), style: const TextStyle(fontSize: 12)),
+            Text(
+              _formatDuration(rightTime),
+              style: const TextStyle(
+                fontSize: 12,
+                fontFamily: 'monospace',
+                fontFeatures: [FontFeature.tabularFigures()],
+              ),
+            ),
           ],
         ),
       ],

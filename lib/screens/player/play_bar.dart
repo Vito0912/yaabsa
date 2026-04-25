@@ -1,11 +1,14 @@
+import 'dart:io' show File;
+
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:yaabsa/components/common/cover_placeholder.dart';
 import 'package:yaabsa/components/player/common/chapter_text.dart';
 import 'package:yaabsa/components/player/common/control_button.dart';
 import 'package:yaabsa/components/player/common/jump_button.dart';
 import 'package:yaabsa/components/player/common/seek_bar.dart';
 import 'package:yaabsa/components/player/common/stop_button.dart';
 import 'package:yaabsa/util/globals.dart';
-import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 class PlayBar extends StatefulWidget {
   const PlayBar({super.key, this.includeBottomSafeArea = true, this.attachedToBottom = false});
@@ -18,8 +21,79 @@ class PlayBar extends StatefulWidget {
 }
 
 class _PlayBarState extends State<PlayBar> {
+  static const double _mobileCoverSize = 44;
+  static const double _mobileCoverRadius = 6;
+  static const double _desktopCoverWidth = 62;
+  static const double _desktopCoverRadius = 8;
+  static const double _coverSpacing = 10;
+
   bool _isHovered = false;
   bool _isSeekBarHovered = false;
+
+  void _setSeekBarHovered(bool isHovered) {
+    if (_isSeekBarHovered == isHovered) {
+      return;
+    }
+    setState(() => _isSeekBarHovered = isHovered);
+  }
+
+  Widget _buildControlsAndSeekBar({Widget? leading}) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            if (leading != null) ...[Padding(padding: const EdgeInsets.only(right: 8), child: leading)],
+            const JumpButton(rewind: true),
+            const ControlButton(),
+            const JumpButton(rewind: false),
+            const SizedBox(width: 6),
+            const Expanded(child: ChapterText()),
+            const StopButton(),
+          ],
+        ),
+        const SizedBox(height: 4),
+        MouseRegion(
+          onEnter: (_) => _setSeekBarHovered(true),
+          onExit: (_) => _setSeekBarHovered(false),
+          child: const SeekBar(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildReadyContent(BuildContext context) {
+    final coverUri = audioHandler.currentMediaItem?.cover;
+
+    if (context.isMobile) {
+      return _buildControlsAndSeekBar(
+        leading: SizedBox(
+          width: _mobileCoverSize,
+          height: _mobileCoverSize,
+          child: _PlayBarCover(coverUri: coverUri, borderRadius: _mobileCoverRadius),
+        ),
+      );
+    }
+
+    return Stack(
+      children: [
+        Positioned(
+          left: 0,
+          top: 0,
+          bottom: 0,
+          child: SizedBox(
+            width: _desktopCoverWidth,
+            child: _PlayBarCover(coverUri: coverUri, borderRadius: widget.attachedToBottom ? 0 : _desktopCoverRadius),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(left: _desktopCoverWidth + _coverSpacing),
+          child: _buildControlsAndSeekBar(),
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -79,34 +153,7 @@ class _PlayBarState extends State<PlayBar> {
                       ),
                       child: isTransitionLoading
                           ? const _PlayBarTransitionLoadingContent()
-                          : Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                const Row(
-                                  children: [
-                                    JumpButton(rewind: true),
-                                    ControlButton(),
-                                    JumpButton(rewind: false),
-                                    SizedBox(width: 6),
-                                    Expanded(child: ChapterText()),
-                                    StopButton(),
-                                  ],
-                                ),
-                                const SizedBox(height: 4),
-                                MouseRegion(
-                                  onEnter: (_) {
-                                    if (_isSeekBarHovered) return;
-                                    setState(() => _isSeekBarHovered = true);
-                                  },
-                                  onExit: (_) {
-                                    if (!_isSeekBarHovered) return;
-                                    setState(() => _isSeekBarHovered = false);
-                                  },
-                                  child: SeekBar(),
-                                ),
-                              ],
-                            ),
+                          : _buildReadyContent(context),
                     ),
                   ),
                 ),
@@ -115,6 +162,44 @@ class _PlayBarState extends State<PlayBar> {
           },
         );
       },
+    );
+  }
+}
+
+class _PlayBarCover extends StatelessWidget {
+  const _PlayBarCover({required this.coverUri, required this.borderRadius});
+
+  final Uri? coverUri;
+  final double borderRadius;
+
+  ImageProvider<Object>? _imageProvider() {
+    final uri = coverUri;
+    if (uri == null) {
+      return null;
+    }
+
+    if (uri.scheme == 'file') {
+      return FileImage(File(uri.toFilePath()));
+    }
+
+    return NetworkImage(uri.toString());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final imageProvider = _imageProvider();
+    if (imageProvider == null) {
+      return CoverPlaceholder(borderRadius: borderRadius);
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(borderRadius),
+      child: Image(
+        image: imageProvider,
+        fit: BoxFit.cover,
+        filterQuality: FilterQuality.low,
+        errorBuilder: (context, error, stackTrace) => CoverPlaceholder(borderRadius: borderRadius),
+      ),
     );
   }
 }
