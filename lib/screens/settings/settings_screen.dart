@@ -2,6 +2,7 @@ import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/screens/settings/android_auto_settings.dart';
 import 'package:yaabsa/screens/settings/appearance_settings.dart';
 import 'package:yaabsa/screens/settings/caching_settings.dart';
 import 'package:yaabsa/screens/settings/global_player_settings.dart';
@@ -446,6 +447,13 @@ class MainSettingsScreen extends ConsumerWidget {
                           icon: Icons.library_books_outlined,
                           title: 'Library Behaviour',
                           onTap: () => context.push(LibrarySettings.routeName),
+                        ),
+                        _buildDivider(isWithinCard: true),
+                        _buildSettingsCardTile(
+                          context: context,
+                          icon: Icons.directions_car_filled_outlined,
+                          title: 'Android Auto',
+                          onTap: () => context.push(AndroidAutoSettings.routeName),
                         ),
                         _buildDivider(isWithinCard: true),
                         _buildSettingsCardTile(

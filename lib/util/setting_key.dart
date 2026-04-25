@@ -8,6 +8,7 @@ class SettingKeys {
   static const String bufferSize = 'buffer_size';
   static const String keepScreenOn = 'keep_screen_on';
   static const String lockMediaNotification = 'lock_media_notification';
+  static const String showNotificationMoreButton = 'show_notification_more_button';
   static const String language = 'language';
   static const String sidebarCollapsed = 'sidebar_collapsed';
   static const String autoQueue = 'auto_queue';
@@ -19,6 +20,9 @@ class SettingKeys {
   static const String sortSeriesAscending = 'sort_series_ascending';
   static const String collapseSeries = 'collapse_series';
   static const String downloadPath = 'download_path';
+  static const String androidAutoLibrarySortDescending = 'android_auto_library_sort_descending';
+  static const String androidAutoLibrarySortField = 'android_auto_library_sort_field';
+  static const String androidAutoGroupByLetters = 'android_auto_group_by_letters';
   static const String waitForSync = 'wait_for_sync';
   static const String progressPerChapter = 'progress_per_chapter';
   static const String shakeToResetSleepTimer = 'shake_to_reset_sleep_timer';
@@ -44,6 +48,7 @@ final defaultSettings = {
   SettingKeys.appLogLevel: InfoLevel.info.toString(),
   SettingKeys.bufferSize: 5 * 1024 * 1024,
   SettingKeys.lockMediaNotification: false,
+  SettingKeys.showNotificationMoreButton: false,
   SettingKeys.keepScreenOn: false,
   SettingKeys.language: 'en-US',
   SettingKeys.sidebarCollapsed: false,
@@ -55,6 +60,9 @@ final defaultSettings = {
   SettingKeys.sortSeriesAscending: false,
   SettingKeys.collapseSeries: false,
   SettingKeys.downloadPath: null,
+  SettingKeys.androidAutoLibrarySortDescending: false,
+  SettingKeys.androidAutoLibrarySortField: 'title',
+  SettingKeys.androidAutoGroupByLetters: true,
   SettingKeys.waitForSync: true,
   SettingKeys.progressPerChapter: false,
   SettingKeys.shakeToResetSleepTimer: false,

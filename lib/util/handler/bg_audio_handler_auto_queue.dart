@@ -270,11 +270,8 @@ extension _BGAudioHandlerAutoQueueExtension on BGAudioHandler {
         final request = LibraryItemsRequest(
           limit: context.pageSize,
           page: page,
-          sort: context.sort,
-          desc: context.desc,
           filter: normalizeLibraryFilterQuery(context.filter),
           collapseseries: context.collapseseries,
-          include: context.include,
         );
 
         final response = await api.getLibraryApi().getLibraryItems(context.libraryId, request);

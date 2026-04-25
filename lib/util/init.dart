@@ -153,6 +153,12 @@ class Init {
         androidNotificationOngoing: false,
         androidStopForegroundOnPause: false,
         preloadArtwork: true,
+        androidBrowsableRootExtras: <String, dynamic>{
+          AndroidContentStyle.supportedKey: true,
+          AndroidContentStyle.playableHintKey: AndroidContentStyle.listItemHintValue,
+          AndroidContentStyle.browsableHintKey: AndroidContentStyle.listItemHintValue,
+          'android.media.browse.SEARCH_SUPPORTED': true,
+        },
       ),
     );
 

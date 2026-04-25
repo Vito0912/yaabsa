@@ -12,6 +12,7 @@ import 'package:yaabsa/screens/main/playlist_detail_view.dart';
 import 'package:yaabsa/screens/main/series_detail_view.dart';
 import 'package:yaabsa/screens/player/play_history_view.dart';
 import 'package:yaabsa/screens/player/player.dart';
+import 'package:yaabsa/screens/settings/android_auto_settings.dart';
 import 'package:yaabsa/screens/reader/reader.dart';
 import 'package:yaabsa/screens/settings/appearance_settings.dart';
 import 'package:yaabsa/screens/settings/caching_settings.dart';
@@ -114,6 +115,7 @@ final globalRouter = GoRouter(
         GoRoute(path: AppearanceSettings.routeName, builder: (context, state) => AppearanceSettings()),
         GoRoute(path: CachingSettings.routeName, builder: (context, state) => CachingSettings()),
         GoRoute(path: LibrarySettings.routeName, builder: (context, state) => LibrarySettings()),
+        GoRoute(path: AndroidAutoSettings.routeName, builder: (context, state) => AndroidAutoSettings()),
         GoRoute(path: ReaderSettings.routeName, builder: (context, state) => ReaderSettings()),
         // For player
         ShellRoute(

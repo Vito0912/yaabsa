@@ -24,6 +24,11 @@ class GlobalPlayerSettings extends StatelessWidget {
           settingKey: SettingKeys.bufferSize,
         ),
         SettingSwitch(label: 'Lock Media Notification', settingKey: SettingKeys.lockMediaNotification),
+        SettingSwitch(
+          label: 'Show notification More button',
+          description: 'When enabled, a More button will be shown, giving more quick actions',
+          settingKey: SettingKeys.showNotificationMoreButton,
+        ),
         SettingSwitch(label: 'Keep Screen On', settingKey: SettingKeys.keepScreenOn),
       ],
     );

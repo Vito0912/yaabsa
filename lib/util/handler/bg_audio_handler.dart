@@ -4,16 +4,28 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
+import 'package:yaabsa/api/library/filter_data/library_filter_data.dart';
+import 'package:yaabsa/api/library/library.dart';
+import 'package:yaabsa/api/library/personalized_library.dart';
 import 'package:yaabsa/api/library/request/library_filter.dart';
 import 'package:yaabsa/api/library/request/library_items_request.dart';
+import 'package:yaabsa/api/library/search_library.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
+import 'package:yaabsa/api/library_items/series.dart';
+import 'package:yaabsa/api/me/user.dart';
+import 'package:yaabsa/api/list/collection.dart';
+import 'package:yaabsa/api/list/playlist.dart';
+import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/database/settings_manager.dart';
+import 'package:yaabsa/models/internal_download.dart';
 import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
+import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/player/session_provider.dart';
+import 'package:yaabsa/util/globals.dart' show packageInfo;
 import 'package:yaabsa/util/handler/playback_sync_service.dart';
 import 'package:yaabsa/util/handler/player_history_handler.dart';
 import 'package:yaabsa/util/logger.dart';
@@ -24,189 +36,27 @@ import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:rxdart/rxdart.dart';
 
+part 'bg_audio_handler_models.dart';
 part 'bg_audio_handler_auto_queue.dart';
+part 'bg_audio_handler_android_auto.dart';
+part 'bg_audio_handler_android_auto_ids.dart';
+part 'bg_audio_handler_android_auto_data.dart';
+part 'bg_audio_handler_android_auto_media.dart';
+part 'bg_audio_handler_android_auto_browse.dart';
 
-const int _autoQueuePageSize = 20;
+const String _androidAutoCustomActionRewind = 'aa.custom.rewind';
+const String _androidAutoCustomActionFastForward = 'aa.custom.fast_forward';
+const String _androidAutoCustomActionSpeed = 'aa.custom.speed';
+const String _androidAutoCustomActionMoreMenu = 'aa.custom.more.menu';
+const String _androidAutoCustomActionMoreClose = 'aa.custom.more.close';
+const String _androidAutoCustomActionStop = 'aa.custom.stop';
 
-class QueueDisplayInfo {
-  const QueueDisplayInfo({this.title, this.subtitle, this.author});
-
-  final String? title;
-  final String? subtitle;
-  final String? author;
-
-  static const empty = QueueDisplayInfo();
-}
-
-class PlayerQueueEntry {
-  const PlayerQueueEntry({
-    required this.id,
-    required this.item,
-    this.displayInfo = QueueDisplayInfo.empty,
-    this.autoQueued = false,
-    this.autoQueuePage,
-  });
-
-  final String id;
-  final QueueItem item;
-  final QueueDisplayInfo displayInfo;
-  final bool autoQueued;
-  final int? autoQueuePage;
-}
-
-class PlayerQueueSnapshot {
-  const PlayerQueueSnapshot({
-    this.entries = const <PlayerQueueEntry>[],
-    this.autoQueueEnabled = false,
-    this.autoQueueActive = false,
-    this.autoQueueLoading = false,
-    this.autoQueueRemaining = 0,
-    this.canLoadMoreAutoQueue = false,
-  });
-
-  final List<PlayerQueueEntry> entries;
-  final bool autoQueueEnabled;
-  final bool autoQueueActive;
-  final bool autoQueueLoading;
-  final int autoQueueRemaining;
-  final bool canLoadMoreAutoQueue;
-}
-
-enum _AutoQueueSourceType { series, playlist, collection, podcast }
-
-class _AutoQueueRequestContext {
-  _AutoQueueRequestContext._({
-    required this.sourceType,
-    required this.libraryId,
-    required this.initialPage,
-    this.sort,
-    this.desc,
-    this.filter,
-    this.collapseseries,
-    this.include,
-    this.seriesId,
-    this.playlistId,
-    this.collectionId,
-    this.podcastItemId,
-    this.podcastItem,
-    this.seededPodcastEpisodes,
-  });
-
-  factory _AutoQueueRequestContext.series({
-    required String libraryId,
-    required String seriesId,
-    required int initialPage,
-  }) {
-    return _AutoQueueRequestContext._(
-      sourceType: _AutoQueueSourceType.series,
-      libraryId: libraryId,
-      initialPage: initialPage,
-      filter: LibraryFilter.grouped(LibraryFilterGroup.series, seriesId).queryValue,
-      collapseseries: 0,
-      seriesId: seriesId,
-    );
-  }
-
-  factory _AutoQueueRequestContext.playlist({
-    required String libraryId,
-    required String playlistId,
-    required int initialPage,
-  }) {
-    return _AutoQueueRequestContext._(
-      sourceType: _AutoQueueSourceType.playlist,
-      libraryId: libraryId,
-      initialPage: initialPage,
-      playlistId: playlistId,
-    );
-  }
-
-  factory _AutoQueueRequestContext.collection({
-    required String libraryId,
-    required String collectionId,
-    required int initialPage,
-  }) {
-    return _AutoQueueRequestContext._(
-      sourceType: _AutoQueueSourceType.collection,
-      libraryId: libraryId,
-      initialPage: initialPage,
-      collectionId: collectionId,
-    );
-  }
-
-  factory _AutoQueueRequestContext.podcast({
-    required String libraryId,
-    required String podcastItemId,
-    required LibraryItem podcastItem,
-    required int initialPage,
-    List<Episode>? seededPodcastEpisodes,
-  }) {
-    return _AutoQueueRequestContext._(
-      sourceType: _AutoQueueSourceType.podcast,
-      libraryId: libraryId,
-      initialPage: initialPage,
-      podcastItemId: podcastItemId,
-      podcastItem: podcastItem,
-      seededPodcastEpisodes: seededPodcastEpisodes,
-    );
-  }
-
-  final _AutoQueueSourceType sourceType;
-  final String libraryId;
-  final int initialPage;
-  final int pageSize = _autoQueuePageSize;
-  final String? sort;
-  final int? desc;
-  final String? filter;
-  final int? collapseseries;
-  final String? include;
-  final String? seriesId;
-  final String? playlistId;
-  final String? collectionId;
-  final String? podcastItemId;
-  final LibraryItem? podcastItem;
-  final List<Episode>? seededPodcastEpisodes;
-
-  List<_AutoQueueItemCandidate>? cachedCandidates;
-}
-
-class _AutoQueueItemCandidate {
-  const _AutoQueueItemCandidate({required this.queueItem, required this.referenceKey, required this.displayInfo});
-
-  final QueueItem queueItem;
-  final String referenceKey;
-  final QueueDisplayInfo displayInfo;
-}
-
-class _AutoQueuePageResult {
-  const _AutoQueuePageResult({required this.items, required this.total, required this.page, required this.pageSize});
-
-  final List<_AutoQueueItemCandidate> items;
-  final int total;
-  final int page;
-  final int pageSize;
-}
-
-class _AutoQueueState {
-  _AutoQueueState({
-    required this.context,
-    required this.currentItemReferenceKey,
-    required this.currentItemAbsoluteIndex,
-    required this.totalItems,
-    required this.pageSize,
-    required this.highestLoadedPage,
-  });
-
-  final _AutoQueueRequestContext context;
-  final String currentItemReferenceKey;
-  final int currentItemAbsoluteIndex;
-  final int totalItems;
-  final int pageSize;
-
-  int highestLoadedPage;
-  bool isLoading = false;
-  final Map<int, String> firstItemReferenceByPage = <int, String>{};
-  final Set<int> triggeredPages = <int>{};
-}
+const String _androidAutoIconReplay = 'drawable/replay';
+const String _androidAutoIconForwardMedia = 'drawable/forward_media';
+const String _androidAutoIconSpeed = 'drawable/speed';
+const String _androidAutoIconStop = 'drawable/stop';
+const String _androidAutoIconClose = 'drawable/close';
+const String _androidAutoIconMoreVert = 'drawable/more_vert';
 
 class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   late final AudioPlayer _player;
@@ -229,6 +79,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   final BehaviorSubject<bool> _showPlayerSubject = BehaviorSubject<bool>.seeded(false);
   final Map<String, Future<LibraryItem?>> _queueItemDetailsCache = <String, Future<LibraryItem?>>{};
   bool _queueTransitionLoading = false;
+  bool _androidAutoMoreMenuVisible = false;
+  Timer? _androidAutoMoreMenuTimer;
   BehaviorSubject<InternalMedia?> mediaItemStream = BehaviorSubject<InternalMedia?>();
   InternalMedia? get currentMediaItem => _currentMediaItem;
 
@@ -241,6 +93,30 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     if (!_showPlayerSubject.isClosed) {
       _showPlayerSubject.add(_currentMediaItem != null || _queueTransitionLoading);
     }
+  }
+
+  void _setAndroidAutoMoreMenuVisible(bool visible, {Duration? autoCloseAfter}) {
+    if (_androidAutoMoreMenuVisible == visible && autoCloseAfter == null) {
+      return;
+    }
+
+    _androidAutoMoreMenuVisible = visible;
+
+    _androidAutoMoreMenuTimer?.cancel();
+    _androidAutoMoreMenuTimer = null;
+
+    if (visible && autoCloseAfter != null) {
+      _androidAutoMoreMenuTimer = Timer(autoCloseAfter, () {
+        if (!_androidAutoMoreMenuVisible) {
+          return;
+        }
+
+        _androidAutoMoreMenuVisible = false;
+        unawaited(_updatePlaybackState());
+      });
+    }
+
+    unawaited(_updatePlaybackState());
   }
 
   void _setQueueTransitionLoading(bool value, {bool emitMediaWhenEmpty = false}) {
@@ -392,6 +268,92 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   Future<void> loadMoreAutoQueue() {
     return _loadMoreAutoQueue();
+  }
+
+  @override
+  Future<List<MediaItem>> getChildren(String parentMediaId, [Map<String, dynamic>? options]) {
+    return _androidAutoGetChildren(parentMediaId, options: options);
+  }
+
+  @override
+  Future<MediaItem?> getMediaItem(String mediaId) {
+    return _androidAutoGetMediaItem(mediaId);
+  }
+
+  @override
+  Future<List<MediaItem>> search(String query, [Map<String, dynamic>? extras]) {
+    return _androidAutoSearch(query, extras: extras);
+  }
+
+  @override
+  Future<void> playFromMediaId(String mediaId, [Map<String, dynamic>? extras]) {
+    return _androidAutoPlayFromMediaId(mediaId, extras: extras);
+  }
+
+  @override
+  Future<void> playFromSearch(String query, [Map<String, dynamic>? extras]) {
+    return _androidAutoPlayFromSearch(query, extras: extras);
+  }
+
+  @override
+  Future<dynamic> customAction(String name, [Map<String, dynamic>? extras]) async {
+    if (name == _androidAutoCustomActionRewind) {
+      _setAndroidAutoMoreMenuVisible(false);
+
+      await rewind();
+      logger('Android Auto custom action: rewind', tag: 'AudioHandler', level: InfoLevel.info);
+      return <String, dynamic>{'handled': true};
+    }
+
+    if (name == _androidAutoCustomActionFastForward) {
+      _setAndroidAutoMoreMenuVisible(false);
+
+      await fastForward();
+      logger('Android Auto custom action: fast forward', tag: 'AudioHandler', level: InfoLevel.info);
+      return <String, dynamic>{'handled': true};
+    }
+
+    if (name == _androidAutoCustomActionSpeed) {
+      _setAndroidAutoMoreMenuVisible(false);
+
+      const steps = <double>[0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
+      final currentSpeed = _player.speed;
+
+      final currentIndex = steps.indexWhere((value) => (value - currentSpeed).abs() < 0.001);
+      final nextIndex = currentIndex < 0 ? 1 : (currentIndex + 1) % steps.length;
+      final nextSpeed = steps[nextIndex];
+
+      await setSpeed(nextSpeed);
+      logger('Android Auto custom action: speed changed to $nextSpeed', tag: 'AudioHandler', level: InfoLevel.info);
+      return <String, dynamic>{'handled': true, 'speed': nextSpeed};
+    }
+
+    if (name == _androidAutoCustomActionMoreMenu) {
+      _setAndroidAutoMoreMenuVisible(true, autoCloseAfter: const Duration(seconds: 4));
+
+      logger('Android Auto more menu opened', tag: 'AudioHandler', level: InfoLevel.info);
+      return <String, dynamic>{
+        'handled': true,
+        'actions': <String>['close', 'stop'],
+      };
+    }
+
+    if (name == _androidAutoCustomActionMoreClose) {
+      _setAndroidAutoMoreMenuVisible(false);
+
+      logger('Android Auto custom action: more menu closed', tag: 'AudioHandler', level: InfoLevel.info);
+      return <String, dynamic>{'handled': true, 'action': 'close'};
+    }
+
+    if (name == _androidAutoCustomActionStop) {
+      _setAndroidAutoMoreMenuVisible(false);
+
+      await stop();
+      logger('Android Auto custom action: stop invoked', tag: 'AudioHandler', level: InfoLevel.info);
+      return <String, dynamic>{'handled': true, 'action': 'stop'};
+    }
+
+    return super.customAction(name, extras);
   }
 
   Future<LibraryItem?> resolveQueueLibraryItem(String itemId) {
@@ -1151,18 +1113,69 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     final lockMediaNotification = _ref
         .read(settingsManagerProvider.notifier)
         .getGlobalSetting<bool>(SettingKeys.lockMediaNotification);
+    final showNotificationMoreButton = _ref
+        .read(settingsManagerProvider.notifier)
+        .getGlobalSetting<bool>(SettingKeys.showNotificationMoreButton);
+
+    if (!showNotificationMoreButton && _androidAutoMoreMenuVisible) {
+      _androidAutoMoreMenuVisible = false;
+      _androidAutoMoreMenuTimer?.cancel();
+      _androidAutoMoreMenuTimer = null;
+    }
+
     final isTransitionLoading =
         _queueTransitionLoading || (_player.processingState == ProcessingState.completed && queueList.isNotEmpty);
+    final isMoreMenuVisible = showNotificationMoreButton && _androidAutoMoreMenuVisible;
+    final playPauseControl = _player.playerState.playing ? MediaControl.pause : MediaControl.play;
+    final controls = isMoreMenuVisible
+        ? <MediaControl>[
+            MediaControl.custom(
+              androidIcon: _androidAutoIconClose,
+              label: 'Close',
+              name: _androidAutoCustomActionMoreClose,
+            ),
+            MediaControl.custom(androidIcon: _androidAutoIconStop, label: 'Stop', name: _androidAutoCustomActionStop),
+            playPauseControl,
+          ]
+        : <MediaControl>[
+            MediaControl.custom(
+              androidIcon: _androidAutoIconReplay,
+              label: 'Rewind',
+              name: _androidAutoCustomActionRewind,
+            ),
+            MediaControl.custom(
+              androidIcon: _androidAutoIconForwardMedia,
+              label: 'Fast forward',
+              name: _androidAutoCustomActionFastForward,
+            ),
+            MediaControl.custom(
+              androidIcon: _androidAutoIconSpeed,
+              label: 'Speed',
+              name: _androidAutoCustomActionSpeed,
+            ),
+            showNotificationMoreButton
+                ? MediaControl.custom(
+                    androidIcon: _androidAutoIconMoreVert,
+                    label: 'More',
+                    name: _androidAutoCustomActionMoreMenu,
+                  )
+                : MediaControl.custom(
+                    androidIcon: _androidAutoIconStop,
+                    label: 'Stop',
+                    name: _androidAutoCustomActionStop,
+                  ),
+            playPauseControl,
+          ];
+    final compactActionIndices = isMoreMenuVisible ? const <int>[0, 1, 2] : <int>[0, 2, controls.length - 1];
+
     playbackState.add(
       PlaybackState(
         // Which buttons should appear in the notification now
-        controls: [MediaControl.rewind, MediaControl.pause, MediaControl.stop, MediaControl.fastForward],
+        controls: controls,
         // Which other actions should be enabled in the notification
-        systemActions: lockMediaNotification
-            ? const {MediaAction.seekForward, MediaAction.seekBackward}
-            : const {MediaAction.seek, MediaAction.seekForward, MediaAction.seekBackward},
+        systemActions: lockMediaNotification ? const <MediaAction>{} : const {MediaAction.seek},
         // Which controls to show in Android's compact view.
-        androidCompactActionIndices: const [0, 1, 3],
+        androidCompactActionIndices: compactActionIndices,
         // Whether audio is ready, buffering, ...
         processingState: isTransitionLoading
             ? AudioProcessingState.loading
@@ -1181,6 +1194,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         // broadcast position updates when they are different from expected (e.g.
         // buffering, or seeking).
         updatePosition: _player.position,
+        bufferedPosition: _player.bufferedPosition,
         speed: _player.speed,
       ),
     );
@@ -1188,6 +1202,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   Future<void> dispose() async {
     _isDisposing = true;
+    _androidAutoMoreMenuTimer?.cancel();
+    _androidAutoMoreMenuTimer = null;
     _clearAutoQueueState();
     await _errorSubscription?.cancel();
     _errorSubscription = null;

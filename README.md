@@ -28,41 +28,41 @@ As I myself criticize the lack of disclosure about AI, which most ABS apps now u
 | Feature            | Android | iOS | Windows | MacOS | Linux |
 | ------------------ | ------- | --- | ------- | ----- | ----- |
 | Library (Book)     | ✅      | ✅  | ✅      | ✅    | ✅    |
-| Library (Podcast)  | 🅿️      | 🅿️  | 🅿️      | 🅿️    | 🅿️    |
+| Library (Podcast)  | ✅      | ✅  | ✅      | ✅    | ✅    |
 | Personalized/Shelf | ✅      | ✅  | ✅      | ✅    | ✅    |
-| Series             | 🅿️      | 🅿️  | 🅿️      | 🅿️    | 🅿️    |
-| Collections        | 🅿️      | 🅿️  | 🅿️      | 🅿️    | 🅿️    |
-| Playlists          | 🅿️      | 🅿️  | 🅿️      | 🅿️    | 🅿️    |
-| Author             | 🅿️      | 🅿️  | 🅿️      | 🅿️    | 🅿️    |
-| Narrator           | 🅿️      | 🅿️  | 🅿️      | 🅿️    | 🅿️    |
-| Search             | 🅿️      | 🅿️  | 🅿️      | 🅿️    | 🅿️    |
+| Series             | ✅      | ✅  | ✅      | ✅    | ✅    |
+| Collections        | ✅      | ✅  | ✅      | ✅    | ✅    |
+| Playlists          | ✅      | ✅  | ✅      | ✅    | ✅    |
+| Author             | ✅      | ✅  | ✅      | ✅    | ✅    |
+| Narrator           | ✅      | ✅  | ✅      | ✅    | ✅    |
+| Search             | ✅      | ✅  | ✅      | ✅    | ✅    |
 | Stats              | 🅿️      | 🅿️  | 🅿️      | 🅿️    | 🅿️    |
 
 ### Player
 
 | Feature                         | Android | iOS | Windows | MacOS | Linux |
 | ------------------------------- | ------- | --- | ------- | ----- | ----- |
-| Play/Pause/Seeking/Speed/Volume | ✅      | ✅  | ✅      | ✅    | ✅    |
-| Background Playback             | ✅      | ❓  | ✅      | ❓    | ❓    |
+| Play/Pause/Seeking/Speed/Volume | ✅      | ❓  | ❓      | ❓    | ✅    |
+| Background Playback             | ✅      | ❓  | ❓      | ❓    | ❓    |
 | Device Controls                 | ✅      | ❓  | ❌      | ❓    | ❌    |
-| (Auto)-Queue                    | ✅      | ✅  | ✅      | ✅    | ✅    |
-| Gapless playback                | ✅      | ✅  | ✅      | ❓    | ❓    |
-| Buffering                       | ✅      | ✅  | ✅      | ❓    | ❓    |
+| (Auto)-Queue                    | ✅      | ❓  | ❓      | ❓    | ✅    |
+| Gapless playback                | ✅      | ❓  | ❓      | ❓    | ❓    |
+| Buffering                       | ✅      | ❓  | ❓      | ❓    | ❓    |
 | Volume Boost                    | ✅      | ❌  | ❌      | ❌    | ❌    |
 | Audio ducking                   | ✅      | ❓  | ❌      | ❌    | ❌    |
-| Sleep Timer                     | ✅      | ✅  | ✅      | ✅    | ✅    |
-| Chapters                        | ✅      | ✅  | ✅      | ✅    | ✅    |
-| Play History                    | ✅      | ✅  | ✅      | ✅    | ✅    |
-| Shake to rewind                 | ✅      | ✅  | ❌      | ❌    | ❌    |
+| Sleep Timer                     | ✅      | ❓  | ❓      | ❓    | ✅    |
+| Chapters                        | ✅      | ❓  | ❓      | ❓    | ✅    |
+| Play History                    | ✅      | ❓  | ❓      | ❓    | ✅    |
+| Shake to rewind                 | ✅      | ❓  | ❌      | ❌    | ❌    |
 
 ### E-Reader
 
 | Feature          | Android | iOS  | Windows | MacOS | Linux |
 | ---------------- | ------- | ---- | ------- | ----- | ----- |
-| ePUB support     | ✅      | ✅   | ✅      | ❓    | ❓    |
+| ePUB support     | ✅      | ✅   | ❓      | ❓    | ❓    |
 | PDF support      | 🅿️      | 🅿️   | 🅿️      | 🅿️    | 🅿️    |
-| Annotations      | ✅      | ✅\* | ✅      | ❓    | ❓    |
-| Sync Annotations | ✅      | ✅   | ✅      | ❓    | ❓    |
+| Annotations      | ✅      | ✅\* | ❓      | ❓    | ❓    |
+| Sync Annotations | ✅      | ✅   | ❓      | ❓    | ❓    |
 
 - You can only load in annotations, but not create new ones.\
   (Annotations only available for ePUB files)
@@ -73,6 +73,20 @@ As I myself criticize the lack of disclosure about AI, which most ABS apps now u
 | --------- | ------- | ---- | ------- | ----- | ----- |
 | Sync      | ✅      | ✅   | ✅      | ✅    | ✅    |
 | Caching   | ✅      | ✅   | ✅      | ✅    | ✅    |
-| Downloads | ✅      | ❓   | ✅      | ❓    | ❓    |
-| Headers   | ✅      | ✅   | ✅      | ✅    | ✅    |
-| Car       | 🅿️L     | 🅿️LL | ❌      | ❌    | ❌    |
+| Downloads | ✅      | ❓   | ❓      | ❓    | ✅    |
+| Headers   | ❌      | ❌   | ❌      | ❌    | ❌    |
+| Car       | ✅      | 🅿️L  | ❌      | ❌    | ❌    |
+
+
+## Platform hints
+
+The releases are used daily on Android and Linux. Other OSes should not break, but they are not tested more deeply. Issues with iOS should be easy to catch since, while not used daily, it is still used.
+
+### Linux
+
+For the best experience and security, please use the Flatpak. It includes everything you need and is easy to remove later.
+The Snap package is currently broken and might be removed in the future.
+For all other installation methods, you need to make sure that the correct dependencies are installed on your system. If the app starts with a black screen, please set the ENV `YAABSA_RELEASE_CONSOLE_LOG=1`, as this will log issues if you start the application from the terminal.
+In general, you need the following dependencies:
+- libmpv
+- libsecret
