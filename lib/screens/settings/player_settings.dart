@@ -5,6 +5,7 @@ import 'package:yaabsa/components/settings/settings_slider.dart';
 import 'package:yaabsa/components/settings/settings_switch.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/screens/settings/widgets/shake_settings_section.dart';
+import 'package:yaabsa/screens/settings/widgets/subtitle_settings_section.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
@@ -57,6 +58,7 @@ class PlayerSettings extends ConsumerWidget {
           settingKey: SettingKeys.autoQueueIncludeSeriesOutsideContext,
           enabled: autoQueueEnabled,
         ),
+        const SubtitleSettingsSection(),
         const ShakeSettingsSection(),
       ],
     );

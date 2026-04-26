@@ -40,6 +40,10 @@ class SettingKeys {
   static const String playbackSpeed = 'playback_speed';
   static const String volume = 'volume';
   static const String playerSeekBarMode = 'player_seek_bar_mode';
+
+  static const String subtitlesEnabled = 'subtitles_enabled';
+  static const String subtitleSpeakerHighlighting = 'subtitle_speaker_highlighting';
+  static const String subtitleReadAlong = 'subtitle_read_along';
 }
 
 final defaultSettings = {
@@ -79,6 +83,9 @@ final defaultSettings = {
   SettingKeys.playbackSpeed: 1.0,
   SettingKeys.volume: 1.0,
   SettingKeys.playerSeekBarMode: PlayerSeekBarMode.full.name,
+  SettingKeys.subtitlesEnabled: true,
+  SettingKeys.subtitleSpeakerHighlighting: true,
+  SettingKeys.subtitleReadAlong: true,
 };
 
 enum AppThemeMode { light, dark, system }

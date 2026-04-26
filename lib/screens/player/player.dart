@@ -6,6 +6,7 @@ import 'package:yaabsa/components/player/common/skip_button.dart';
 import 'package:yaabsa/components/player/common/sleep_timer_button.dart';
 import 'package:yaabsa/components/player/common/speed_slider.dart';
 import 'package:yaabsa/components/player/common/stop_button.dart';
+import 'package:yaabsa/components/player/common/subtitle_panel.dart';
 import 'package:yaabsa/components/player/common/volume_slider.dart';
 import 'package:yaabsa/components/common/cover_placeholder.dart';
 import 'package:yaabsa/database/settings_manager.dart';
@@ -366,6 +367,7 @@ class _PlaybackContent extends StatelessWidget {
         const VolumeSlider(),
         SizedBox(height: spacing),
         const SeekBar(),
+        const SubtitlePanel(),
         SizedBox(height: spacing),
         const Wrap(
           alignment: WrapAlignment.center,

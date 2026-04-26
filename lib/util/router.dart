@@ -12,6 +12,7 @@ import 'package:yaabsa/screens/main/playlist_detail_view.dart';
 import 'package:yaabsa/screens/main/series_detail_view.dart';
 import 'package:yaabsa/screens/player/play_history_view.dart';
 import 'package:yaabsa/screens/player/player.dart';
+import 'package:yaabsa/screens/player/subtitle_reading_mode.dart';
 import 'package:yaabsa/screens/settings/android_auto_settings.dart';
 import 'package:yaabsa/screens/reader/reader.dart';
 import 'package:yaabsa/screens/settings/appearance_settings.dart';
@@ -131,6 +132,10 @@ final globalRouter = GoRouter(
               },
               routes: [
                 GoRoute(path: '/item/:id', builder: (context, state) => LibraryItemView(state.pathParameters['id']!)),
+                GoRoute(
+                  path: SubtitleReadingModeView.routeName,
+                  builder: (context, state) => const SubtitleReadingModeView(),
+                ),
                 GoRoute(
                   path: '/author/:id',
                   builder: (context, state) => AuthorDetailView(authorId: state.pathParameters['id']!),

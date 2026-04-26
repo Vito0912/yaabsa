@@ -1,12 +1,18 @@
-# Yet another ABS App
+# yaabsa
 
-## yaabsa
-
-An improved cross-platform app for Audiobookshelf
+An improved unofficial cross-platform app for Audiobookshelf
 
 ## Usage of AI
 
 As I myself criticize the lack of disclosure about AI, which most ABS apps now use, I want to be clear that later in the making of the app, AI/LLMs were used in the development process. I still know the API endpoints used very well and have already helped a ton of people with API usage.
+
+## Feature, features, features
+
+Below is a list of all features, but I want to *highlight* a few, as this client has features that are only and or very rarely found in other clients:
+
+- eBook/PDF support **with** _syncable_ annotations (EPUBs only)
+- subtitle support **with** karaoke-style highlighting support (later planned to be extended like Whispersync)
+- Support for all platforms Linux, Android, iOS, macOS, Windows with responsive design
 
 ## Compatibility Matrix
 
