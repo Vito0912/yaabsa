@@ -1,0 +1,14 @@
+name: Post Flutter get
+description: Run post-get steps
+inputs:
+  flow:
+    required: true
+    description: Flow name
+
+runs:
+  using: composite
+  steps:
+    - name: Post-get steps
+      shell: bash
+      run: |
+        dart run pdfrx:remove_wasm_modules

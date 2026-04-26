@@ -1,0 +1,37 @@
+[Setup]
+AppId=5A1397DE-0D70-4E1D-918D-0F9959BD1E8C
+AppVersion=@APP_VERSION@
+AppName=yaabsa
+AppPublisher=Vito0912
+AppPublisherURL=https://github.com/Vito0912/yaabsa
+AppSupportURL=https://github.com/Vito0912/yaabsa
+AppUpdatesURL=https://github.com/Vito0912/yaabsa
+DefaultDirName={autopf64}\yaabsa
+DisableProgramGroupPage=yes
+OutputDir=@OUTPUT_DIR@
+OutputBaseFilename=@OUTPUT_BASE_FILENAME@
+Compression=lzma
+SolidCompression=yes
+WizardStyle=modern
+PrivilegesRequired=none
+ArchitecturesAllowed=x64
+ArchitecturesInstallIn64BitMode=x64
+
+[Languages]
+Name: "english"; MessagesFile: "compiler:Default.isl"
+Name: "german"; MessagesFile: "compiler:Languages\German.isl"
+
+[Tasks]
+Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+Name: "launchAtStartup"; Description: "{cm:AutoStartProgram,yaabsa}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+
+[Files]
+Source: "@SOURCE_DIR@\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+
+[Icons]
+Name: "{autoprograms}\yaabsa"; Filename: "{app}\yaabsa.exe"
+Name: "{autodesktop}\yaabsa"; Filename: "{app}\yaabsa.exe"; Tasks: desktopicon
+Name: "{userstartup}\yaabsa"; Filename: "{app}\yaabsa.exe"; WorkingDir: "{app}"; Tasks: launchAtStartup
+
+[Run]
+Filename: "{app}\yaabsa.exe"; Description: "{cm:LaunchProgram,yaabsa}"; Flags: nowait postinstall skipifsilent

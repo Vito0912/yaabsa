@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+set -e
+
+ln -sf /usr/share/yaabsa/yaabsa /usr/bin/yaabsa
+chmod +x /usr/bin/yaabsa
+
+exit 0

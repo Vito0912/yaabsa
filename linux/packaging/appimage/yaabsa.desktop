@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=yaabsa
+GenericName=Audiobookshelf Client
+Exec=LD_LIBRARY_PATH=usr/lib yaabsa %u
+Icon=yaabsa
+Type=Application
+StartupNotify=true
+Categories=Music
+Keywords=ABS;Audiobookshelf

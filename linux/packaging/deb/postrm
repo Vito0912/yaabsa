@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+set -e
+
+rm -f /usr/bin/yaabsa
+
+exit 0

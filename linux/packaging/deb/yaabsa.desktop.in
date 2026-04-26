@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Version=@VERSION@
+Name=yaabsa
+GenericName=Audiobookshelf Client
+Icon=yaabsa
+Exec=yaabsa %U
+Categories=Music;Media;
+Keywords=ABS;Audiobookshelf;
+StartupNotify=true

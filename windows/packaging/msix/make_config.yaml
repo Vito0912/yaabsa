@@ -1,8 +1,0 @@
-display_name: yaabsa
-publisher_display_name: Vito0912
-identity_name: de.vito0912.yaabsa
-msix_version: 1.1.0.0
-logo_path: .\assets\logo_blue_big_abs.png
-capabilities: internetClient
-sign_msix: "false"
-publisher: CN=Vito0912

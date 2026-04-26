@@ -1,0 +1,40 @@
+Name: yaabsa
+Version: @VERSION@
+Release: @RELEASE@%{?dist}
+Summary: Yet another Audiobookshelf client, built with Flutter.
+Group: Application/Emulator
+Vendor: Vito0912
+Packager: Vito0912
+License: AGPLv3
+URL: https://github.com/Vito0912/yaabsa
+BuildArch: @ARCH@
+Requires: mpv, libsecret
+
+%description
+An improved cross-platform app for Audiobookshelf
+
+%install
+mkdir -p %{buildroot}%{_bindir}
+mkdir -p %{buildroot}%{_datadir}/%{name}
+mkdir -p %{buildroot}%{_datadir}/applications
+mkdir -p %{buildroot}%{_datadir}/icons/hicolor/scalable/apps
+cp -a %{_builddir}/%{name}/. %{buildroot}%{_datadir}/%{name}/
+ln -sf %{_datadir}/%{name}/%{name} %{buildroot}%{_bindir}/%{name}
+install -Dm644 %{_builddir}/%{name}.desktop %{buildroot}%{_datadir}/applications/%{name}.desktop
+install -Dm644 %{_builddir}/%{name}.svg %{buildroot}%{_datadir}/icons/hicolor/scalable/apps/%{name}.svg
+update-mime-database %{_datadir}/mime &> /dev/null || :
+
+%postun
+update-mime-database %{_datadir}/mime &> /dev/null || :
+
+%files
+%{_bindir}/%{name}
+%{_datadir}/%{name}
+%{_datadir}/applications/%{name}.desktop
+%{_datadir}/icons/hicolor/scalable/apps/%{name}.svg
+
+%defattr(-,root,root)
+
+%changelog
+* @CHANGELOG_DATE@ Vito0912 - @VERSION@-@RELEASE@
+- Automated RPM build
