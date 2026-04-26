@@ -224,4 +224,32 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
 
     state = AsyncData({...currentMap, key: progress});
   }
+
+  void applyLocalEbookProgressUpdate({
+    required String libraryItemId,
+    required String ebookLocation,
+    required double ebookProgress,
+    String? episodeId,
+  }) {
+    final key = _progressKey(libraryItemId, episodeId);
+    final Map<String, MediaProgress> currentMap = state.asData?.value ?? <String, MediaProgress>{};
+    final existingProgress = currentMap[key];
+    if (existingProgress == null) {
+      return;
+    }
+
+    var nextLastUpdate = DateTime.now().millisecondsSinceEpoch;
+    final previousLastUpdate = existingProgress.lastUpdate;
+    if (previousLastUpdate != null && previousLastUpdate >= nextLastUpdate) {
+      nextLastUpdate = previousLastUpdate + 1;
+    }
+
+    final updatedProgress = existingProgress.copyWith(
+      ebookLocation: ebookLocation,
+      ebookProgress: ebookProgress,
+      lastUpdate: nextLastUpdate,
+    );
+
+    state = AsyncData({...currentMap, key: updatedProgress});
+  }
 }

@@ -58,7 +58,7 @@ dependencies:
   socket_io_client: ^3.1.4
 
 
-  pdf: ^3.12.0
+  pdfrx: ^2.2.24
   # Note for contributors: Commit pinning is used. Please check for updates when updating the e-Reader. This is for security, as it runs in a WebView and the repository is very small.
   flutter_epub_reader:
     git:

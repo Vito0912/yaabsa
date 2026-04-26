@@ -12,7 +12,7 @@ Below is a list of all features, but I want to *highlight* a few, as this client
 
 - eBook/PDF support **with** _syncable_ annotations (EPUBs only)
 - subtitle support **with** karaoke-style highlighting support (later planned to be extended like Whispersync)
-- Support for all platforms Linux, Android, iOS, macOS, Windows with responsive design
+- Support for all platforms Linux, Android, (iOS, macOS: TBA), Windows with responsive design
 
 ## Compatibility Matrix
 
@@ -65,13 +65,12 @@ Below is a list of all features, but I want to *highlight* a few, as this client
 
 | Feature          | Android | iOS  | Windows | MacOS | Linux |
 | ---------------- | ------- | ---- | ------- | ----- | ----- |
-| ePUB support     | ✅      | ✅   | ❓      | ❓    | ❓    |
-| PDF support      | 🅿️      | 🅿️   | 🅿️      | 🅿️    | 🅿️    |
-| Annotations      | ✅      | ✅\* | ❓      | ❓    | ❓    |
-| Sync Annotations | ✅      | ✅   | ❓      | ❓    | ❓    |
+| ePUB support     | ✅      | ✅   | 🅿️      | ❓    | 🅿️    |
+| PDF support      | ✅      | 🅿️   | 🅿️      | ❓    | ✅    |
+| Annotations      | ✅      | ✅\* | 🅿️      | ❓    | ✅    |
+| Sync Annotations | ✅      | ✅   | ❓      | ❓    | ✅    |
 
-- You can only load in annotations, but not create new ones.\
-  (Annotations only available for ePUB files)
+\* You can only load in annotations, but not create new ones for ePUBs
 
 ### Other Features
 
