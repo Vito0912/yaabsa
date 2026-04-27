@@ -179,14 +179,6 @@ jobs:
           flatpak --user remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
           flatpak --user install -y flathub org.gnome.Platform//49 org.gnome.Sdk//49
 
-      - name: Build Flatpak repo
-        run: |
-          flatpak-builder --user --install-deps-from=flathub --force-clean --repo=flatpak-repo --default-branch=master flatpak-build linux/packaging/flatpak/de.vito0912.yaabsa.yaabsa.yml
-          if ! find flatpak-build/files -maxdepth 5 -type f -name 'libmpv.so*' | grep -q .; then
-            echo "libmpv was not bundled into the Flatpak image."
-            exit 1
-          fi
-
       - name: Validate Flatpak signing secrets
         if: github.ref == 'refs/heads/master'
         env:
@@ -219,6 +211,20 @@ jobs:
             gpgconf --launch gpg-agent
             printf 'unlock' > /tmp/gpg-unlock.txt
             gpg --batch --yes --pinentry-mode loopback --passphrase "$FLATPAK_GPG_PASSPHRASE" --local-user "$FLATPAK_GPG_KEY_ID" --output /tmp/gpg-unlock.sig --detach-sign /tmp/gpg-unlock.txt
+          fi
+
+      - name: Build Flatpak repo
+        env:
+          FLATPAK_GPG_KEY_ID: ${{ secrets.FLATPAK_GPG_KEY_ID }}
+        run: |
+          if [ "$GITHUB_REF" = "refs/heads/master" ]; then
+            flatpak-builder --user --install-deps-from=flathub --force-clean --repo=flatpak-repo --default-branch=master --gpg-sign="$FLATPAK_GPG_KEY_ID" flatpak-build linux/packaging/flatpak/de.vito0912.yaabsa.yaabsa.yml
+          else
+            flatpak-builder --user --install-deps-from=flathub --force-clean --repo=flatpak-repo --default-branch=master flatpak-build linux/packaging/flatpak/de.vito0912.yaabsa.yaabsa.yml
+          fi
+          if ! find flatpak-build/files -maxdepth 5 -type f -name 'libmpv.so*' | grep -q .; then
+            echo "libmpv was not bundled into the Flatpak image."
+            exit 1
           fi
 
       - name: Finalize signed Flatpak repo
@@ -331,11 +337,18 @@ jobs:
         with:
           flow: build-android
 
-      - name: Build appbundle
-        run: flutter build appbundle
+      - name: Setup Keystore
+        run: printf '%s' "${{ secrets.STORE }}" | base64 -d > android/keystore.jks
 
-      - name: Build apk
-        run: flutter build apk --split-per-abi
+      - name: Build
+        run: |
+          flutter build appbundle --release
+          flutter build apk --split-per-abi --release
+        env:
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          STORE_FILE: ${{ secrets.STORE_FILE }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
       - name: Upload Android appbundle artifact
         uses: actions/upload-artifact@v7
@@ -348,6 +361,12 @@ jobs:
         with:
           name: android-apk
           path: build/app/outputs/flutter-apk/*.apk
+      
+      - name: Clean up
+        if: always()
+        run: |
+          sudo rm -rf build
+          sudo rm -rf android/keystore.jks
 
   build-windows:
     runs-on: windows-latest

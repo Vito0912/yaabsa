@@ -1,8 +1,17 @@
+import java.util.Properties
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+}
+
+val keystoreProperties = Properties()
+val keystorePropertiesFile = rootProject.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.inputStream().use { keystoreProperties.load(it) }
 }
 
 android {
@@ -13,10 +22,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
-    }
-
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
     }
 
     defaultConfig {
@@ -30,12 +35,47 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        create("release") {
+            val envKeyAlias = System.getenv("KEY_ALIAS")
+            val envKeyPassword = System.getenv("KEY_PASSWORD")
+            val envStoreFile = System.getenv("STORE_FILE")
+            val envStorePassword = System.getenv("STORE_PASSWORD")
+
+            val keyAliasValue = envKeyAlias ?: keystoreProperties.getProperty("keyAlias")
+            val keyPasswordValue = envKeyPassword ?: keystoreProperties.getProperty("keyPassword")
+            val storeFilePath = envStoreFile ?: keystoreProperties.getProperty("storeFile")
+            val storePasswordValue = envStorePassword ?: keystoreProperties.getProperty("storePassword")
+
+            if (!keyAliasValue.isNullOrBlank()) {
+                keyAlias = keyAliasValue
+            }
+            if (!keyPasswordValue.isNullOrBlank()) {
+                keyPassword = keyPasswordValue
+            }
+            if (!storeFilePath.isNullOrBlank()) {
+                storeFile = file(storeFilePath)
+            }
+            if (!storePasswordValue.isNullOrBlank()) {
+                storePassword = storePasswordValue
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
         }
+        debug {
+            applicationIdSuffix = ".dev"
+            isDebuggable = true
+        }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_11
     }
 }
 
