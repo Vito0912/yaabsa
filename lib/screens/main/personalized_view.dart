@@ -171,14 +171,65 @@ class _SectionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    ScrollController scrollController = ScrollController();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 4, right: 4, bottom: 8),
-          child: Text(section.title, style: Theme.of(context).textTheme.titleMedium),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 4, right: 4, bottom: 8),
+              child: Text(section.title, style: Theme.of(context).textTheme.titleMedium),
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: IconButton(
+                    onPressed: () {
+                      scrollController.animateTo(
+                        scrollController.offset - (viewportWidth * 0.8),
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      );
+                    },
+                    icon: Icon(Icons.arrow_back_ios_new_rounded, size: 16),
+                    splashRadius: 1,
+                    padding: EdgeInsets.all(0.0),
+                  ),
+                ),
+                SizedBox(width: 4),
+                SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: IconButton(
+                    onPressed: () {
+                      scrollController.animateTo(
+                        scrollController.offset + (viewportWidth * 0.8),
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut,
+                      );
+                    },
+                    icon: Icon(Icons.arrow_forward_ios_rounded, size: 16),
+                    splashRadius: 1,
+                    padding: EdgeInsets.all(0.0),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
-        _SectionList(section: section, api: api, libraryTileWidth: libraryTileWidth, viewportWidth: viewportWidth),
+
+        _SectionList(
+          section: section,
+          api: api,
+          libraryTileWidth: libraryTileWidth,
+          viewportWidth: viewportWidth,
+          scrollController: scrollController,
+        ),
       ],
     );
   }
@@ -190,12 +241,14 @@ class _SectionList extends StatelessWidget {
     required this.api,
     required this.libraryTileWidth,
     required this.viewportWidth,
+    required this.scrollController,
   });
 
   final _SectionData section;
   final ABSApi api;
   final double libraryTileWidth;
   final double viewportWidth;
+  final ScrollController scrollController;
 
   @override
   Widget build(BuildContext context) {
@@ -203,6 +256,7 @@ class _SectionList extends StatelessWidget {
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
+      controller: scrollController,
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
