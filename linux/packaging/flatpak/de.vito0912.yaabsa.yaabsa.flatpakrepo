@@ -1,0 +1,9 @@
+[Flatpak Repo]
+Title=yaabsa
+Url=__REPO_URL__
+Homepage=__HOMEPAGE_URL__
+Comment=yaabsa Flatpak repository
+Description=yaabsa Flatpak repository
+Icon=__ICON_URL__
+DefaultBranch=master
+GPGKey=__GPG_KEY__

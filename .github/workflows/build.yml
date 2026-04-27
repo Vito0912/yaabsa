@@ -133,7 +133,7 @@ jobs:
   build-flatpak:
     runs-on: ubuntu-latest
     needs: check-requirements
-    timeout-minutes: 25
+    timeout-minutes: 35
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -179,20 +179,112 @@ jobs:
           flatpak --user remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
           flatpak --user install -y flathub org.gnome.Platform//49 org.gnome.Sdk//49
 
-      - name: Build Flatpak repo and bundle
+      - name: Build Flatpak repo
         run: |
-          flatpak-builder --user --install-deps-from=flathub --force-clean --repo=flatpak-repo flatpak-build linux/packaging/flatpak/de.vito0912.yaabsa.yaabsa.yml
+          flatpak-builder --user --install-deps-from=flathub --force-clean --repo=flatpak-repo --default-branch=master flatpak-build linux/packaging/flatpak/de.vito0912.yaabsa.yaabsa.yml
           if ! find flatpak-build/files -maxdepth 5 -type f -name 'libmpv.so*' | grep -q .; then
             echo "libmpv was not bundled into the Flatpak image."
             exit 1
           fi
-          flatpak build-bundle flatpak-repo de.vito0912.yaabsa.yaabsa.flatpak de.vito0912.yaabsa.yaabsa
+
+      - name: Validate Flatpak signing secrets
+        if: github.ref == 'refs/heads/master'
+        env:
+          FLATPAK_GPG_PRIVATE_KEY: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
+          FLATPAK_GPG_KEY_ID: ${{ secrets.FLATPAK_GPG_KEY_ID }}
+        run: |
+          if [ -z "$FLATPAK_GPG_PRIVATE_KEY" ]; then
+            echo "Missing secret: FLATPAK_GPG_PRIVATE_KEY"
+            exit 1
+          fi
+          if [ -z "$FLATPAK_GPG_KEY_ID" ]; then
+            echo "Missing secret: FLATPAK_GPG_KEY_ID"
+            exit 1
+          fi
+
+      - name: Configure GPG signing key
+        if: github.ref == 'refs/heads/master'
+        env:
+          FLATPAK_GPG_PRIVATE_KEY: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
+          FLATPAK_GPG_KEY_ID: ${{ secrets.FLATPAK_GPG_KEY_ID }}
+          FLATPAK_GPG_PASSPHRASE: ${{ secrets.FLATPAK_GPG_PASSPHRASE }}
+        run: |
+          mkdir -p ~/.gnupg
+          chmod 700 ~/.gnupg
+          printf '%s' "$FLATPAK_GPG_PRIVATE_KEY" | gpg --batch --import
+          if [ -n "$FLATPAK_GPG_PASSPHRASE" ]; then
+            echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf
+            echo "allow-loopback-pinentry" >> ~/.gnupg/gpg-agent.conf
+            gpgconf --kill gpg-agent
+            gpgconf --launch gpg-agent
+            printf 'unlock' > /tmp/gpg-unlock.txt
+            gpg --batch --yes --pinentry-mode loopback --passphrase "$FLATPAK_GPG_PASSPHRASE" --local-user "$FLATPAK_GPG_KEY_ID" --output /tmp/gpg-unlock.sig --detach-sign /tmp/gpg-unlock.txt
+          fi
+
+      - name: Finalize signed Flatpak repo
+        if: github.ref == 'refs/heads/master'
+        env:
+          FLATPAK_GPG_KEY_ID: ${{ secrets.FLATPAK_GPG_KEY_ID }}
+        run: flatpak build-update-repo --gpg-sign="$FLATPAK_GPG_KEY_ID" --generate-static-deltas --prune flatpak-repo
+
+      - name: Build Flatpak bundle for master
+        if: github.ref == 'refs/heads/master'
+        env:
+          FLATPAK_GPG_KEY_ID: ${{ secrets.FLATPAK_GPG_KEY_ID }}
+        run: flatpak build-bundle --gpg-sign="$FLATPAK_GPG_KEY_ID" flatpak-repo de.vito0912.yaabsa.yaabsa.flatpak de.vito0912.yaabsa.yaabsa master
+
+      - name: Build Flatpak bundle for non-master
+        if: github.ref != 'refs/heads/master'
+        run: flatpak build-bundle flatpak-repo de.vito0912.yaabsa.yaabsa.flatpak de.vito0912.yaabsa.yaabsa master
+
+      - name: Prepare GitHub Pages content
+        if: github.ref == 'refs/heads/master'
+        env:
+          FLATPAK_GPG_KEY_ID: ${{ secrets.FLATPAK_GPG_KEY_ID }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+          REPO_SLUG: ${{ github.repository }}
+        run: |
+          PAGES_URL="https://${REPO_OWNER}.github.io/${REPO_NAME}/"
+          HOMEPAGE_URL="https://github.com/${REPO_SLUG}"
+          ICON_URL="https://raw.githubusercontent.com/${REPO_SLUG}/master/assets/logo_blue_big_abs.svg"
+          GPG_KEY_B64="$(gpg --export "$FLATPAK_GPG_KEY_ID" | base64 -w 0)"
+          mkdir -p flatpak-pages
+          cp -R flatpak-repo/. flatpak-pages/
+          cp linux/packaging/flatpak/de.vito0912.yaabsa.yaabsa.flatpakrepo flatpak-pages/de.vito0912.yaabsa.yaabsa.flatpakrepo
+          sed -i \
+            -e "s|__REPO_URL__|${PAGES_URL}|g" \
+            -e "s|__HOMEPAGE_URL__|${HOMEPAGE_URL}|g" \
+            -e "s|__ICON_URL__|${ICON_URL}|g" \
+            -e "s|__GPG_KEY__|${GPG_KEY_B64}|g" \
+            flatpak-pages/de.vito0912.yaabsa.yaabsa.flatpakrepo
+
+      - name: Upload Flatpak Pages artifact
+        if: github.ref == 'refs/heads/master'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: flatpak-pages
 
       - name: Upload Flatpak artifact
         uses: actions/upload-artifact@v7
         with:
           name: linux-flatpak
           path: de.vito0912.yaabsa.yaabsa.flatpak
+
+  deploy-flatpak-pages:
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    needs: build-flatpak
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Deploy Flatpak Pages
+        id: deploy
+        uses: actions/deploy-pages@v5
 
   build-snap:
     runs-on: ubuntu-latest
