@@ -2,7 +2,7 @@
 
 While developing, make sure you have a sperate process with the following command running to automatically generate code (for Providers and Database models):
 ```bash
-flutter pub run build_runner watch --delete-conflicting-outputs
+dart run build_runner watch --delete-conflicting-outputs
 ```
 
 TODO: Fix styling because macOS Layout differs and is bad

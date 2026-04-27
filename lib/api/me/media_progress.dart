@@ -20,7 +20,7 @@ abstract class MediaProgress with _$MediaProgress {
     @JsonKey(name: "currentTime") required double currentTime,
     @JsonKey(name: "isFinished") required bool isFinished,
     @JsonKey(name: "hideFromContinueListening") bool? hideFromContinueListening,
-    @JsonKey(name: "ebookLocation") String? ebookLocation,
+    @IntToStringConverter() @JsonKey(name: "ebookLocation") String? ebookLocation,
     @JsonKey(name: "ebookProgress") double? ebookProgress,
     @JsonKey(name: "lastUpdate") required int? lastUpdate,
     @JsonKey(name: "startedAt") required int startedAt,
@@ -28,4 +28,18 @@ abstract class MediaProgress with _$MediaProgress {
   }) = _MediaProgress;
 
   factory MediaProgress.fromJson(Map<String, dynamic> json) => _$MediaProgressFromJson(json);
+}
+
+class IntToStringConverter implements JsonConverter<String, dynamic> {
+  const IntToStringConverter();
+
+  @override
+  String fromJson(dynamic json) {
+    return json?.toString() ?? '';
+  }
+
+  @override
+  dynamic toJson(String object) {
+    return object;
+  }
 }

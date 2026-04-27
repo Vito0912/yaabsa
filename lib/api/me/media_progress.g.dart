@@ -18,7 +18,7 @@ _MediaProgress _$MediaProgressFromJson(Map<String, dynamic> json) => _MediaProgr
   currentTime: (json['currentTime'] as num).toDouble(),
   isFinished: json['isFinished'] as bool,
   hideFromContinueListening: json['hideFromContinueListening'] as bool?,
-  ebookLocation: json['ebookLocation'] as String?,
+  ebookLocation: const IntToStringConverter().fromJson(json['ebookLocation']),
   ebookProgress: (json['ebookProgress'] as num?)?.toDouble(),
   lastUpdate: (json['lastUpdate'] as num?)?.toInt(),
   startedAt: (json['startedAt'] as num).toInt(),
@@ -37,9 +37,12 @@ Map<String, dynamic> _$MediaProgressToJson(_MediaProgress instance) => <String, 
   'currentTime': instance.currentTime,
   'isFinished': instance.isFinished,
   'hideFromContinueListening': instance.hideFromContinueListening,
-  'ebookLocation': instance.ebookLocation,
+  'ebookLocation': _$JsonConverterToJson<dynamic, String>(instance.ebookLocation, const IntToStringConverter().toJson),
   'ebookProgress': instance.ebookProgress,
   'lastUpdate': instance.lastUpdate,
   'startedAt': instance.startedAt,
   'finishedAt': instance.finishedAt,
 };
+
+Json? _$JsonConverterToJson<Json, Value>(Value? value, Json? Function(Value value) toJson) =>
+    value == null ? null : toJson(value);
