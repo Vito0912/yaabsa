@@ -6,6 +6,7 @@ import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/network/dio_factory.dart';
 
 class AuthRefreshInterceptor extends Interceptor {
   AuthRefreshInterceptor(this.ref);
@@ -87,8 +88,8 @@ class AuthRefreshInterceptor extends Interceptor {
         }
 
         final refreshApi = ABSApi(
-          dio: Dio(
-            BaseOptions(
+          dio: createNativeDio(
+            options: BaseOptions(
               baseUrl: activeUser.server!.url,
               connectTimeout: const Duration(seconds: 3),
               receiveTimeout: const Duration(seconds: 20),
@@ -134,8 +135,8 @@ class AuthRefreshInterceptor extends Interceptor {
     required User user,
     required String token,
   }) async {
-    final retryDio = Dio(
-      BaseOptions(
+    final retryDio = createNativeDio(
+      options: BaseOptions(
         baseUrl: user.server!.url,
         connectTimeout: const Duration(seconds: 3),
         receiveTimeout: const Duration(seconds: 20),

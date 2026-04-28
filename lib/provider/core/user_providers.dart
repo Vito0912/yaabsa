@@ -6,6 +6,7 @@ import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/util/interceptors/cache_interceptor.dart';
 import 'package:yaabsa/util/interceptors/auth_refresh_interceptor.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/network/dio_factory.dart';
 import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -93,7 +94,9 @@ bool _stringMapEquals(Map<String, dynamic>? a, Map<String, dynamic>? b) {
 
 Future<User?> _refreshCurrentUserFromServer({required AppDatabase db, required User user}) async {
   ABSApi tmp = ABSApi(
-    dio: Dio(BaseOptions(baseUrl: user.server!.url, headers: user.server!.headers)),
+    dio: createNativeDio(
+      options: BaseOptions(baseUrl: user.server!.url, headers: user.server!.headers),
+    ),
     basePathOverride: user.server!.url,
   );
 
@@ -185,8 +188,8 @@ ABSApi? absApi(Ref ref) {
   ];
 
   final api = ABSApi(
-    dio: Dio(
-      BaseOptions(
+    dio: createNativeDio(
+      options: BaseOptions(
         connectTimeout: const Duration(seconds: 3),
         receiveTimeout: const Duration(seconds: 20),
         baseUrl: basePathOverride ?? ABSApi.basePath,

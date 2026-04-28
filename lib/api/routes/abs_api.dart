@@ -6,6 +6,7 @@ import 'package:yaabsa/api/routes/library_item_api.dart';
 import 'package:yaabsa/api/routes/list_api.dart';
 import 'package:yaabsa/api/routes/me_api.dart';
 import 'package:yaabsa/api/routes/session_api.dart';
+import 'package:yaabsa/util/network/dio_factory.dart';
 import 'package:dio/dio.dart';
 
 class ABSApi {
@@ -30,8 +31,8 @@ class ABSApi {
   ABSApi({Dio? dio, String? basePathOverride, List<Interceptor>? interceptors, this.user})
     : dio =
           dio ??
-          Dio(
-            BaseOptions(
+          createNativeDio(
+            options: BaseOptions(
               baseUrl: basePathOverride ?? basePath,
               connectTimeout: const Duration(milliseconds: 5000),
               receiveTimeout: const Duration(milliseconds: 3000),

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/network/dio_factory.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sembast/sembast.dart';
@@ -78,7 +79,7 @@ class CacheInterceptor extends Interceptor {
 
             final refreshedOptions = options.copyWith(extra: newOptions.extra);
 
-            final Dio dio = Dio();
+            final Dio dio = createNativeDio();
             dio.interceptors.add(this);
 
             dio.fetch(refreshedOptions);
