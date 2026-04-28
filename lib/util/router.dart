@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
 import 'package:yaabsa/database/app_database.dart';
@@ -24,6 +25,7 @@ import 'package:yaabsa/screens/settings/reader_settings.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:yaabsa/util/handler/tray_handler.dart';
 
 const String _bootRoutePath = '/boot';
 
@@ -98,76 +100,92 @@ final globalRouter = GoRouter(
     return null;
   },
   routes: [
-    GoRoute(path: _bootRoutePath, builder: (context, state) => const _AppStartupScreen()),
-    GoRoute(path: '/add-user', builder: (context, state) => SignIn()),
-    GoRoute(path: '/player', builder: (context, state) => Player()),
-    GoRoute(
-      path: '/ebook/:id',
-      builder: (context, state) => Reader(itemId: state.pathParameters['id']!),
-    ),
-    GoRoute(path: PlayHistoryView.routeName, builder: (context, state) => PlayHistoryView()),
     ShellRoute(
       builder: (BuildContext context, GoRouterState state, Widget child) {
+        if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+          return TrayManager(child);
+        }
         return child;
       },
       routes: [
-        GoRoute(path: GlobalPlayerSettings.routeName, builder: (context, state) => GlobalPlayerSettings()),
-        GoRoute(path: PlayerSettings.routeName, builder: (context, state) => PlayerSettings()),
-        GoRoute(path: AppearanceSettings.routeName, builder: (context, state) => AppearanceSettings()),
-        GoRoute(path: CachingSettings.routeName, builder: (context, state) => CachingSettings()),
-        GoRoute(path: LibrarySettings.routeName, builder: (context, state) => LibrarySettings()),
-        GoRoute(path: AndroidAutoSettings.routeName, builder: (context, state) => AndroidAutoSettings()),
-        GoRoute(path: ReaderSettings.routeName, builder: (context, state) => ReaderSettings()),
-        // For player
+        GoRoute(path: _bootRoutePath, builder: (context, state) => const _AppStartupScreen()),
+        GoRoute(path: '/add-user', builder: (context, state) => SignIn()),
+        GoRoute(path: '/player', builder: (context, state) => Player()),
+        GoRoute(
+          path: '/ebook/:id',
+          builder: (context, state) => Reader(itemId: state.pathParameters['id']!),
+        ),
+        GoRoute(path: PlayHistoryView.routeName, builder: (context, state) => PlayHistoryView()),
         ShellRoute(
           builder: (BuildContext context, GoRouterState state, Widget child) {
             return child;
           },
           routes: [
-            GoRoute(path: '/', builder: (context, state) => LayoutHome()),
-            // For anything that should show the app bar. Responsive
+            GoRoute(path: GlobalPlayerSettings.routeName, builder: (context, state) => GlobalPlayerSettings()),
+            GoRoute(path: PlayerSettings.routeName, builder: (context, state) => PlayerSettings()),
+            GoRoute(path: AppearanceSettings.routeName, builder: (context, state) => AppearanceSettings()),
+            GoRoute(path: CachingSettings.routeName, builder: (context, state) => CachingSettings()),
+            GoRoute(path: LibrarySettings.routeName, builder: (context, state) => LibrarySettings()),
+            GoRoute(path: AndroidAutoSettings.routeName, builder: (context, state) => AndroidAutoSettings()),
+            GoRoute(path: ReaderSettings.routeName, builder: (context, state) => ReaderSettings()),
+            // For player
             ShellRoute(
               builder: (BuildContext context, GoRouterState state, Widget child) {
-                return LayoutHome(child: child);
+                return child;
               },
               routes: [
-                GoRoute(path: '/item/:id', builder: (context, state) => LibraryItemView(state.pathParameters['id']!)),
-                GoRoute(
-                  path: SubtitleReadingModeView.routeName,
-                  builder: (context, state) => const SubtitleReadingModeView(),
-                ),
-                GoRoute(
-                  path: '/author/:id',
-                  builder: (context, state) => AuthorDetailView(authorId: state.pathParameters['id']!),
-                ),
-                GoRoute(
-                  path: '/narrator/:name',
-                  builder: (context, state) =>
-                      NarratorDetailView(narratorName: Uri.decodeComponent(state.pathParameters['name']!)),
-                ),
-                GoRoute(
-                  path: '/collection/:id',
-                  builder: (context, state) {
-                    final extra = state.extra;
-                    final initialEntry = extra is MultiBookEntryData ? extra : null;
-                    return CollectionDetailView(collectionId: state.pathParameters['id']!, initialEntry: initialEntry);
+                GoRoute(path: '/', builder: (context, state) => LayoutHome()),
+                // For anything that should show the app bar. Responsive
+                ShellRoute(
+                  builder: (BuildContext context, GoRouterState state, Widget child) {
+                    return LayoutHome(child: child);
                   },
-                ),
-                GoRoute(
-                  path: '/playlist/:id',
-                  builder: (context, state) {
-                    final extra = state.extra;
-                    final initialEntry = extra is MultiBookEntryData ? extra : null;
-                    return PlaylistDetailView(playlistId: state.pathParameters['id']!, initialEntry: initialEntry);
-                  },
-                ),
-                GoRoute(
-                  path: '/series/:id',
-                  builder: (context, state) {
-                    final extra = state.extra;
-                    final initialEntry = extra is MultiBookEntryData ? extra : null;
-                    return SeriesDetailView(seriesId: state.pathParameters['id']!, initialEntry: initialEntry);
-                  },
+                  routes: [
+                    GoRoute(
+                      path: '/item/:id',
+                      builder: (context, state) => LibraryItemView(state.pathParameters['id']!),
+                    ),
+                    GoRoute(
+                      path: SubtitleReadingModeView.routeName,
+                      builder: (context, state) => const SubtitleReadingModeView(),
+                    ),
+                    GoRoute(
+                      path: '/author/:id',
+                      builder: (context, state) => AuthorDetailView(authorId: state.pathParameters['id']!),
+                    ),
+                    GoRoute(
+                      path: '/narrator/:name',
+                      builder: (context, state) =>
+                          NarratorDetailView(narratorName: Uri.decodeComponent(state.pathParameters['name']!)),
+                    ),
+                    GoRoute(
+                      path: '/collection/:id',
+                      builder: (context, state) {
+                        final extra = state.extra;
+                        final initialEntry = extra is MultiBookEntryData ? extra : null;
+                        return CollectionDetailView(
+                          collectionId: state.pathParameters['id']!,
+                          initialEntry: initialEntry,
+                        );
+                      },
+                    ),
+                    GoRoute(
+                      path: '/playlist/:id',
+                      builder: (context, state) {
+                        final extra = state.extra;
+                        final initialEntry = extra is MultiBookEntryData ? extra : null;
+                        return PlaylistDetailView(playlistId: state.pathParameters['id']!, initialEntry: initialEntry);
+                      },
+                    ),
+                    GoRoute(
+                      path: '/series/:id',
+                      builder: (context, state) {
+                        final extra = state.extra;
+                        final initialEntry = extra is MultiBookEntryData ? extra : null;
+                        return SeriesDetailView(seriesId: state.pathParameters['id']!, initialEntry: initialEntry);
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),

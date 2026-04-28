@@ -6,5 +6,5 @@ Architecture: @ARCH@
 Essential: no
 Installed-Size: 40960
 Maintainer: Vito0912
-Depends: libmpv2, libsecret-1-0
+Depends: libmpv2, libsecret-1-0, libayatana-appindicator3-1
 Description: An improved cross-platform app for Audiobookshelf

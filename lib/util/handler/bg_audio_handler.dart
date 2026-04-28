@@ -28,6 +28,7 @@ import 'package:yaabsa/provider/player/session_provider.dart';
 import 'package:yaabsa/util/globals.dart' show packageInfo;
 import 'package:yaabsa/util/handler/playback_sync_service.dart';
 import 'package:yaabsa/util/handler/player_history_handler.dart';
+import 'package:yaabsa/util/handler/tray_handler.dart' show TrayManager;
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/player_utils.dart' show PlayerUtils;
 import 'package:yaabsa/util/setting_key.dart';
@@ -759,6 +760,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         level: InfoLevel.error,
       );
       PlayerUtils.disableWakelock(_ref);
+      TrayManager.update();
       _setQueueTransitionLoading(false, emitMediaWhenEmpty: true);
       return Future.value();
     }
@@ -781,6 +783,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       PlayerUtils.disableWakelock(_ref);
       _setQueueTransitionLoading(false, emitMediaWhenEmpty: true);
     }
+    TrayManager.update();
   }
 
   Future<void> playItemFromPosition({required String itemId, String? episodeId, required Duration position}) async {
@@ -807,6 +810,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
     await seek(position);
     await _player.play();
+    TrayManager.update();
   }
 
   Future<void> _syncedPlay({bool restoreProgress = false}) async {
@@ -841,8 +845,6 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     if (currentPosition > Duration.zero) {
       await seek(currentPosition);
     }
-
-    logger('Wakelock enabled', tag: 'AudioHandler', level: InfoLevel.debug);
     await _player.play();
   }
 
@@ -863,7 +865,6 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     } catch (e) {
       logger('Error closing session: $e', tag: 'AudioHandler', level: InfoLevel.error);
     }
-
     return _safePlayerStop();
   }
 
@@ -874,12 +875,14 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       return;
     }
     await _player.stop();
+    TrayManager.update();
   }
 
   @override
   Future<void> pause() async {
     PlayerUtils.disableWakelock(_ref);
     await _player.pause();
+    TrayManager.update();
     return Future.value();
   }
 

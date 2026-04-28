@@ -67,6 +67,7 @@ dependencies:
 
   ## Platform
   just_audio_media_kit: ^2.1.0
+  tray_manager: ^0.5.2
 
   ## Windows
   media_kit_libs_windows_audio: any
@@ -97,3 +98,6 @@ dependency_overrides:
 
 flutter:
   uses-material-design: true
+
+  assets:
+    - assets/logo_blue_big_abs.png
