@@ -46,4 +46,6 @@ app.*.map.json
 
 output
 .flatpak-builder/
+flatpak-build/
+flatpak-repo/
 AGENTS.md

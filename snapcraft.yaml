@@ -55,9 +55,11 @@ parts:
       - libsecret-1-dev
       - libmpv-dev
       - pkg-config
+      - libayatana-appindicator3-dev
     stage-packages:
       - libsecret-1-0
       - libmpv2
+      - libayatana-appindicator3-1
     prime:
       - -usr/share/doc/*
       - -usr/share/man/*
