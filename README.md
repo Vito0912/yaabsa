@@ -6,7 +6,7 @@ An improved unofficial cross-platform app for Audiobookshelf
 
 As I myself criticize the lack of disclosure about AI, which most ABS apps now use, I want to be clear that later in the making of the app, AI/LLMs were used in the development process. I still know the API endpoints used very well and have already helped a ton of people with API usage.
 
-## Feature, features, features
+## Features, features, features
 
 Below is a list of all features, but I want to *highlight* a few, as this client has features that are only and or very rarely found in other clients:
 
@@ -49,10 +49,10 @@ Below is a list of all features, but I want to *highlight* a few, as this client
 | Feature                         | Android | iOS | Windows | MacOS | Linux |
 | ------------------------------- | ------- | --- | ------- | ----- | ----- |
 | Play/Pause/Seeking/Speed/Volume | ✅      | ❓  | ❓      | ❓    | ✅    |
-| Background Playback             | ✅      | ❓  | ❓      | ❓    | ❓    |
+| Background Playback             | ✅      | ❓  | ❓      | ❓    | ✅    |
 | Device Controls                 | ✅      | ❓  | ❌      | ❓    | ❌    |
 | (Auto)-Queue                    | ✅      | ❓  | ❓      | ❓    | ✅    |
-| Gapless playback                | ✅      | ❓  | ❓      | ❓    | ❓    |
+| Gapless playback                | ✅      | ❓  | ❓      | ❓    | ✅    |
 | Buffering                       | ✅      | ❓  | ❓      | ❓    | ❓    |
 | Volume Boost                    | ✅      | ❌  | ❌      | ❌    | ❌    |
 | Audio ducking                   | ✅      | ❓  | ❌      | ❌    | ❌    |
@@ -65,7 +65,7 @@ Below is a list of all features, but I want to *highlight* a few, as this client
 
 | Feature          | Android | iOS  | Windows | MacOS | Linux |
 | ---------------- | ------- | ---- | ------- | ----- | ----- |
-| ePUB support     | ✅      | ✅   | 🅿️      | ❓    | 🅿️    |
+| ePUB support     | ✅      | ✅   | 🅿️      | ❓    | ❌    |
 | PDF support      | ✅      | 🅿️   | 🅿️      | ❓    | ✅    |
 | Annotations      | ✅      | ✅\* | 🅿️      | ❓    | ✅    |
 | Sync Annotations | ✅      | ✅   | ❓      | ❓    | ✅    |
@@ -79,7 +79,7 @@ Below is a list of all features, but I want to *highlight* a few, as this client
 | Sync      | ✅      | ✅   | ✅      | ✅    | ✅    |
 | Caching   | ✅      | ✅   | ✅      | ✅    | ✅    |
 | Downloads | ✅      | ❓   | ❓      | ❓    | ✅    |
-| Headers   | ❌      | ❌   | ❌      | ❌    | ❌    |
+| Headers   | ✅      | ✅   | ✅      | ✅    | ✅    |
 | Car       | ✅      | 🅿️L  | ❌      | ❌    | ❌    |
 
 

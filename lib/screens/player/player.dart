@@ -9,6 +9,7 @@ import 'package:yaabsa/components/player/common/stop_button.dart';
 import 'package:yaabsa/components/player/common/subtitle_panel.dart';
 import 'package:yaabsa/components/player/common/volume_slider.dart';
 import 'package:yaabsa/components/common/cover_placeholder.dart';
+import 'package:yaabsa/components/common/cover_zoom_view.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
@@ -302,15 +303,29 @@ class _CoverArt extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const fallback = CoverPlaceholder(borderRadius: 14);
+    final currentApi = api;
 
     return SizedBox(
       width: size,
       height: size,
-      child: api == null || media.cover == null
+      child: currentApi == null || media.cover == null
           ? fallback
           : ClipRRect(
               borderRadius: BorderRadius.circular(14),
-              child: api!.getLibraryItemApi().getLibraryItemCover(media.itemId),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () {
+                    openCoverZoomView(
+                      context,
+                      coverUri: media.cover!,
+                      requestHeaders: normalizeImageRequestHeaders(currentApi.dio.options.headers),
+                      semanticsLabel: media.title,
+                    );
+                  },
+                  child: currentApi.getLibraryItemApi().getLibraryItemCover(media.itemId),
+                ),
+              ),
             ),
     );
   }

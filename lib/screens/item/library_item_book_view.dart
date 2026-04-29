@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/components/app/item/library_item_view_components.dart';
+import 'package:yaabsa/components/common/cover_zoom_view.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/handler/bg_audio_handler.dart';
@@ -21,6 +22,26 @@ class LibraryItemBookView extends ConsumerWidget {
     if (api == null) {
       return const Center(child: Text('No server connection available.'));
     }
+
+    final libraryItemApi = api.getLibraryItemApi();
+    final coverHeaders = normalizeImageRequestHeaders(api.dio.options.headers);
+    final coverWidget = libraryItemApi.getLibraryItemCover(item.id, item: item);
+    final topCover = item.hasCover
+        ? MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: GestureDetector(
+              onTap: () {
+                openCoverZoomView(
+                  context,
+                  coverUri: libraryItemApi.getCoverUri(item.id, item: item),
+                  requestHeaders: coverHeaders,
+                  semanticsLabel: item.title,
+                );
+              },
+              child: coverWidget,
+            ),
+          )
+        : coverWidget;
 
     final bookMedia = item.media?.bookMedia;
     final metadata = bookMedia?.metadata;
@@ -78,7 +99,7 @@ class LibraryItemBookView extends ConsumerWidget {
                         isLargeScreen: isLargeScreen,
                         title: item.title,
                         subtitle: item.subtitle,
-                        cover: api.getLibraryItemApi().getLibraryItemCover(item.id, item: item),
+                        cover: topCover,
                         actionButtons: buildItemActionButtons(
                           hasAudio: hasAudio,
                           hasBook: hasBook,
