@@ -110,6 +110,11 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     return left.playing == right.playing && left.processingState == right.processingState;
   }
 
+  void _clearCastControlTracking() {
+    _castControlledContentId = null;
+    _castControlledTrackIndex = 0;
+  }
+
   void _emitShouldShowPlayer() {
     if (!_showPlayerSubject.isClosed) {
       _showPlayerSubject.add(_currentMediaItem != null || _queueTransitionLoading);
@@ -560,8 +565,17 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       return false;
     }
 
-    final remoteContentId = GoogleCastRemoteMediaClient.instance.mediaStatus?.mediaInformation?.contentId;
-    return remoteContentId == null || remoteContentId == _castControlledContentId;
+    final status = GoogleCastRemoteMediaClient.instance.mediaStatus;
+    if (status == null) {
+      return false;
+    }
+
+    if (status.playerState == CastMediaPlayerState.idle) {
+      return false;
+    }
+
+    final remoteContentId = status.mediaInformation?.contentId;
+    return remoteContentId != null && remoteContentId == _castControlledContentId;
   }
 
   PlayerState _castPlayerStateFromStatus(GoggleCastMediaStatus? status) {
@@ -658,8 +672,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   void _refreshPlayerControlState() {
     if (_supportsCastPlatform && !GoogleCastSessionManager.instance.hasConnectedSession) {
-      _castControlledContentId = null;
-      _castControlledTrackIndex = 0;
+      _clearCastControlTracking();
     }
 
     final castActive = _computeCastControlActive();
@@ -684,8 +697,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     _castSessionSubscription = GoogleCastSessionManager.instance.currentSessionStream.listen((session) {
       final wasCastControlActive = isCastControlActive;
       if (session?.connectionState != GoogleCastConnectState.connected) {
-        _castControlledContentId = null;
-        _castControlledTrackIndex = 0;
+        _clearCastControlTracking();
       }
       _refreshPlayerControlState();
       if (wasCastControlActive != isCastControlActive || isCastControlActive) {
@@ -695,6 +707,12 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
     _castMediaStatusSubscription = GoogleCastRemoteMediaClient.instance.mediaStatusStream.listen((_) {
       final wasCastControlActive = isCastControlActive;
+
+      final status = GoogleCastRemoteMediaClient.instance.mediaStatus;
+      if (status == null || status.playerState == CastMediaPlayerState.idle) {
+        _clearCastControlTracking();
+      }
+
       _refreshPlayerControlState();
       if (wasCastControlActive != isCastControlActive || isCastControlActive) {
         unawaited(_updatePlaybackState());
@@ -1386,13 +1404,14 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     final isTransitionLoading =
         _queueTransitionLoading || (_player.processingState == ProcessingState.completed && queueList.isNotEmpty);
     final isMoreMenuVisible = showNotificationMoreButton && _androidAutoMoreMenuVisible;
-    final controlState = playerControlState;
+    final castActive = isCastControlActive;
+    final controlState = castActive ? playerControlState : _player.playerState;
     final playPauseControl = controlState.playing ? MediaControl.pause : MediaControl.play;
-    final updatePosition = position;
-    final effectiveSpeed = isCastControlActive
+    final updatePosition = castActive ? position : _player.position;
+    final effectiveSpeed = castActive
         ? (GoogleCastRemoteMediaClient.instance.mediaStatus?.playbackRate.toDouble() ?? _player.speed)
         : _player.speed;
-    final bufferedPosition = isCastControlActive ? updatePosition : _player.bufferedPosition;
+    final bufferedPosition = castActive ? updatePosition : _player.bufferedPosition;
     final controls = isMoreMenuVisible
         ? <MediaControl>[
             MediaControl.custom(

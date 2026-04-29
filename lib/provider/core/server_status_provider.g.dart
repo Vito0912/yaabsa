@@ -38,4 +38,4 @@ final class ServerStatusProvider extends $FunctionalProvider<AsyncValue<bool>, b
   }
 }
 
-String _$serverStatusHash() => r'4e07f328691749638b87443d4da3ef7701adfd2e';
+String _$serverStatusHash() => r'd77a26a5351b616362c4a6c2d3a11d6fc3b0a6e2';

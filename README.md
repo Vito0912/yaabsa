@@ -60,6 +60,7 @@ Below is a list of all features, but I want to *highlight* a few, as this client
 | Chapters                        | ✅      | ❓  | ❓      | ❓    | ✅    |
 | Play History                    | ✅      | ❓  | ❓      | ❓    | ✅    |
 | Shake to rewind                 | ✅      | ❓  | ❌      | ❌    | ❌    |
+| Cast                            | ✅      | ❓  | ❌      | ❌    | ❌    |
 
 ### E-Reader
 

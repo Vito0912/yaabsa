@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/database/settings_manager.dart';
+import 'package:yaabsa/provider/core/server_reachability_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/player/session_provider.dart';
 import 'package:yaabsa/util/handler/bg_audio_handler.dart';
@@ -93,7 +94,11 @@ class PlaybackSyncService {
       level: InfoLevel.debug,
     );
 
-    return await _ref.read(sessionRepositoryProvider).syncOpenSession(currentPositionSeconds, listenedTime);
+    final bool canReachServer = _ref.read(serverReachabilityProvider);
+
+    return await _ref
+        .read(sessionRepositoryProvider)
+        .syncOpenSession(currentPositionSeconds, listenedTime, canReachServer: canReachServer);
   }
 
   Future<bool> flush() async {

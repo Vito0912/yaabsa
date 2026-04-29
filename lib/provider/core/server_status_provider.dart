@@ -1,81 +1,80 @@
 import 'dart:async';
 
-import 'package:yaabsa/api/library_items/playback_session.dart';
 import 'package:yaabsa/database/app_database.dart';
+import 'package:yaabsa/provider/core/server_reachability_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/player/session_provider.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:uuid/uuid.dart';
 
 part 'server_status_provider.g.dart';
 
 const Duration _connectedInterval = Duration(minutes: 10);
 const Duration _disconnectedInterval = Duration(minutes: 1);
+bool _isSyncReplayInProgress = false;
 
 @Riverpod(keepAlive: true)
 Stream<bool> serverStatus(Ref ref) async* {
   final controller = StreamController<bool>();
   Timer? timer;
-  bool lastStatus = false;
   final connectivity = Connectivity();
+  late final Future<void> Function() checkStatus;
 
-  Future<void> checkStatus() async {
+  void scheduleNextCheck(bool connected) {
+    timer?.cancel();
+    timer = Timer(connected ? _connectedInterval : _disconnectedInterval, () {
+      unawaited(checkStatus());
+    });
+  }
+
+  void markUnreachable(String reason) {
+    final wasReachable = ref.read(serverReachabilityProvider);
+    if (wasReachable) {
+      logger('Server marked unreachable via $reason', tag: 'ServerStatusProvider', level: InfoLevel.debug);
+      ref.read(serverReachabilityProvider.notifier).setUnreachable();
+    }
+    scheduleNextCheck(false);
+  }
+
+  void markReachable(String reason) {
+    final wasReachable = ref.read(serverReachabilityProvider);
+    if (!wasReachable) {
+      logger('Server marked reachable via $reason', tag: 'ServerStatusProvider', level: InfoLevel.debug);
+      ref.read(serverReachabilityProvider.notifier).setReachable();
+    }
+    scheduleNextCheck(true);
+  }
+
+  checkStatus = () async {
     final connectivityResult = await connectivity.checkConnectivity();
     if (connectivityResult.contains(ConnectivityResult.none)) {
-      if (lastStatus) {
-        controller.add(false);
-        lastStatus = false;
-      }
-      timer?.cancel();
-      timer = Timer.periodic(_disconnectedInterval, (_) => checkStatus());
+      markUnreachable('connectivity.none');
       return;
     }
 
     final absApi = ref.read(absApiProvider);
     if (absApi == null) {
-      if (lastStatus) {
-        controller.add(false);
-        lastStatus = false;
-      }
-      timer?.cancel();
-      timer = Timer.periodic(_disconnectedInterval, (_) => checkStatus());
+      markUnreachable('absApi.null');
       return;
     }
 
     try {
       await absApi.getMeApi().getPing();
-      if (!lastStatus) {
-        controller.add(true);
-        lastStatus = true;
-        _onReconnected(ref);
-      }
-      timer?.cancel();
-      timer = Timer.periodic(_connectedInterval, (_) => checkStatus());
+      markReachable('ping.success');
     } on DioException {
-      if (lastStatus) {
-        controller.add(false);
-        lastStatus = false;
-      }
-      timer?.cancel();
-      timer = Timer.periodic(_disconnectedInterval, (_) => checkStatus());
-    } catch (e) {
-      if (lastStatus) {
-        controller.add(false);
-        lastStatus = false;
-      }
-      timer?.cancel();
-      timer = Timer.periodic(_disconnectedInterval, (_) => checkStatus());
+      markUnreachable('ping.dio_exception');
+    } catch (_) {
+      markUnreachable('ping.unknown_exception');
     }
-  }
+  };
 
-  checkStatus();
+  unawaited(checkStatus());
 
-  final connectivitySubscription = connectivity.onConnectivityChanged.listen((result) {
+  final connectivitySubscription = connectivity.onConnectivityChanged.listen((_) {
     timer?.cancel();
-    checkStatus();
+    unawaited(checkStatus());
   });
 
   ref.listen(absApiProvider, (previous, next) {
@@ -86,105 +85,82 @@ Stream<bool> serverStatus(Ref ref) async* {
       }
     }
     timer?.cancel();
-    checkStatus();
+    unawaited(checkStatus());
+  });
+
+  ref.listen<bool>(serverReachabilityProvider, (previous, next) {
+    if (previous == next || controller.isClosed) {
+      return;
+    }
+
+    scheduleNextCheck(next);
+    controller.add(next);
+    if (next) {
+      final reconnected = previous == false;
+      unawaited(_onServerReachable(ref, reconnected: reconnected));
+    }
   });
 
   ref.onDispose(() {
     timer?.cancel();
-    controller.close();
-    connectivitySubscription.cancel();
+    unawaited(controller.close());
+    unawaited(connectivitySubscription.cancel());
   });
 
-  yield false;
+  yield ref.read(serverReachabilityProvider);
   yield* controller.stream;
 }
 
-Future<void> _onReconnected(Ref ref) async {
-  logger('Reconnected to server', tag: 'ServerStatusProvider', level: InfoLevel.debug);
-  AppDatabase db = ref.read(appDatabaseProvider);
-
-  final offlineSync = await db.getAllSyncs();
-  if (offlineSync.isEmpty) {
-    logger('No offline syncs found', tag: 'ServerStatusProvider', level: InfoLevel.debug);
+Future<void> _onServerReachable(Ref ref, {required bool reconnected}) async {
+  if (_isSyncReplayInProgress) {
+    logger(
+      'Sync replay already running, skipping duplicate trigger.',
+      tag: 'ServerStatusProvider',
+      level: InfoLevel.debug,
+    );
     return;
   }
-  final users = await db.getAllStoredUsers();
 
-  final userIds = users.map((user) => user.id).toList();
-  final syncsWithoutUser = offlineSync.where((sync) => !userIds.contains(sync.userId)).toList();
+  _isSyncReplayInProgress = true;
 
-  if (syncsWithoutUser.isNotEmpty) {
+  try {
     logger(
-      'Found ${syncsWithoutUser.length} syncs without a user. Deleting. Syncs: $syncsWithoutUser',
+      reconnected ? 'Reconnected to server' : 'Server reachable, checking offline sync backlog',
       tag: 'ServerStatusProvider',
+      level: InfoLevel.debug,
     );
-    for (final sync in syncsWithoutUser) {
-      await db.deleteSync(sync.sessionId);
+
+    final AppDatabase db = ref.read(appDatabaseProvider);
+    final sessionRepository = ref.read(sessionRepositoryProvider);
+    final users = await db.getAllStoredUsers();
+    final userIds = users.map((user) => user.id).toSet();
+
+    final offlineSync = await db.getAllSyncs();
+    if (offlineSync.isEmpty) {
+      logger('No offline syncs found', tag: 'ServerStatusProvider', level: InfoLevel.debug);
+      return;
     }
-  }
 
-  final openSession = ref.read(sessionRepositoryProvider).currentSession;
+    final sortedSyncs = [...offlineSync]..sort((left, right) => left.lastUpdated.compareTo(right.lastUpdated));
 
-  for (final sync in offlineSync) {
-    if (openSession != null && sync.sessionId == openSession.id) {
-      logger(
-        'Skipping sync for current session: ${sync.sessionId}, because it is open. Waiting until next try',
-        tag: 'ServerStatusProvider',
-        level: InfoLevel.debug,
-      );
-      continue;
-    }
-    try {
-      // This is a needed workaround, because we cannot get the current closed session and therefore could potentially overwrite the session
-      String newSessionId = sync.sessionLocal ? sync.sessionId : Uuid().v4();
-      PlaybackSession session = await ref
-          .read(sessionRepositoryProvider)
-          .createLocalSession(
-            newSessionId,
-            sync.itemId,
-            sync.userId,
-            DateTime.fromMillisecondsSinceEpoch(sync.lastUpdated.millisecondsSinceEpoch),
-            episodeId: sync.episodeId,
-            initialTimeListening: sync.timeListened,
-            currentPosition: sync.currentTime,
-            duration: sync.duration,
-          );
-
-      final api = ref.read(absApiProvider);
-      await api!.getSessionApi().syncLocalSession(session);
-      logger('Created new session with ID: $newSessionId', tag: 'ServerStatusProvider', level: InfoLevel.debug);
-
-      await db.deleteSync(sync.sessionId);
-      logger('Sync completed successfully for session ID: ${sync.sessionId}', tag: 'ServerStatusProvider');
-    } on DioException catch (e) {
-      if (_isMissingLibraryItemSyncError(e)) {
+    for (final sync in sortedSyncs) {
+      if (!userIds.contains(sync.userId)) {
         logger(
-          'Keeping session ${sync.sessionId} local because item ${sync.itemId} was not found on server.',
+          'Deleting sync ${sync.sessionId} because user ${sync.userId} no longer exists.',
           tag: 'ServerStatusProvider',
           level: InfoLevel.debug,
         );
+        await db.deleteSync(sync.sessionId);
         continue;
       }
-      logger('Failed to sync session: $e', tag: 'ServerStatusProvider', level: InfoLevel.warning);
-    } catch (e) {
-      if (_isMissingLibraryItemSyncError(e)) {
-        logger(
-          'Keeping session ${sync.sessionId} local because item ${sync.itemId} was not found on server.',
-          tag: 'ServerStatusProvider',
-          level: InfoLevel.debug,
-        );
-        continue;
+
+      final synced = await sessionRepository.replayStoredSync(sync);
+      if (synced) {
+        await db.deleteSync(sync.sessionId);
+        logger('Sync completed successfully for session ID: ${sync.sessionId}', tag: 'ServerStatusProvider');
       }
-      logger('Failed to sync session: $e', tag: 'ServerStatusProvider', level: InfoLevel.warning);
     }
+  } finally {
+    _isSyncReplayInProgress = false;
   }
-}
-
-bool _isMissingLibraryItemSyncError(Object error) {
-  if (error is DioException) {
-    return error.response?.statusCode == 404;
-  }
-
-  final message = error.toString();
-  return message.contains('Failed to fetch library item') && message.contains('status code of 404');
 }
