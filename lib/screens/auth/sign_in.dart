@@ -17,7 +17,14 @@ import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/screens/auth/widgets/glow_orb.dart';
+import 'package:yaabsa/screens/auth/widgets/sign_in_advanced_options.dart';
+import 'package:yaabsa/screens/auth/widgets/sign_in_auth_section.dart';
+import 'package:yaabsa/screens/auth/widgets/sign_in_header_editor_dialog.dart';
+import 'package:yaabsa/screens/auth/widgets/sign_in_server_status.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/network/dio_factory.dart';
+import 'package:yaabsa/util/network/request_headers.dart';
 
 class SignIn extends HookConsumerWidget {
   const SignIn({super.key});
@@ -38,14 +45,58 @@ class SignIn extends HookConsumerWidget {
     final lastCheckedServer = useState<String?>(null);
     final statusDebounce = useRef<Timer?>(null);
     final statusCancelToken = useRef<CancelToken?>(null);
+    final customHeaders = useState<Map<String, String>>(<String, String>{});
+    final advancedOptionsExpanded = useState(false);
+    final hasStoredUsers = ref
+        .watch(allStoredUsersProvider)
+        .maybeWhen(data: (users) => users.isNotEmpty, orElse: () => false);
 
-    final currentUser = ref.watch(currentUserProvider).value;
-    useEffect(() {
-      if (currentUser?.server?.url != null && serverAddressController.text.isEmpty) {
-        _setControllerTextKeepingCursor(serverAddressController, currentUser!.server!.url);
+    ABSApi buildServerApi(String baseUrl) {
+      final headers = buildRequestHeaders(serverHeaders: customHeaders.value);
+      return ABSApi(
+        dio: createNativeDio(
+          options: BaseOptions(
+            baseUrl: baseUrl,
+            connectTimeout: const Duration(milliseconds: 5000),
+            receiveTimeout: const Duration(milliseconds: 3000),
+            headers: headers.isEmpty ? null : headers,
+          ),
+        ),
+        basePathOverride: baseUrl,
+      );
+    }
+
+    Future<void> showHeaderEditor({String? originalHeaderName}) async {
+      final result = await showSignInHeaderEditorDialog(
+        context: context,
+        existingHeaders: customHeaders.value,
+        originalHeaderName: originalHeaderName,
+      );
+
+      if (result == null) {
+        return;
       }
-      return null;
-    }, [currentUser]);
+
+      final nextHeaders = Map<String, String>.from(customHeaders.value);
+      if (originalHeaderName != null && originalHeaderName != result.name) {
+        nextHeaders.remove(originalHeaderName);
+      }
+      nextHeaders[result.name] = result.value;
+      customHeaders.value = nextHeaders;
+
+      status.value = null;
+      statusError.value = null;
+      lastCheckedServer.value = null;
+    }
+
+    void removeHeader(String headerName) {
+      final nextHeaders = Map<String, String>.from(customHeaders.value);
+      nextHeaders.remove(headerName);
+      customHeaders.value = nextHeaders;
+      status.value = null;
+      statusError.value = null;
+      lastCheckedServer.value = null;
+    }
 
     Future<ServerStatus?> fetchStatus({required bool showErrors}) async {
       if (showErrors) {
@@ -70,9 +121,7 @@ class SignIn extends HookConsumerWidget {
       statusError.value = null;
 
       try {
-        final response = await ABSApi(
-          basePathOverride: normalizedServer,
-        ).getMeApi().getStatus(cancelToken: cancelToken);
+        final response = await buildServerApi(normalizedServer).getMeApi().getStatus(cancelToken: cancelToken);
         final fetchedStatus = response.data;
 
         if (fetchedStatus == null) {
@@ -159,7 +208,7 @@ class SignIn extends HookConsumerWidget {
 
           logger('Attempting API key auth against server: $normalizedServer', tag: 'SignIn');
 
-          final api = ABSApi(basePathOverride: normalizedServer);
+          final api = buildServerApi(normalizedServer);
           api.setBearerAuth('BearerAuth', apiKey);
           final userResponse = await api.getMeApi().getUser();
           final userData = userResponse.data;
@@ -180,7 +229,7 @@ class SignIn extends HookConsumerWidget {
 
           logger('Attempting login to server: $normalizedServer with username: $username', tag: 'SignIn');
 
-          final apiResponse = await ABSApi(basePathOverride: normalizedServer).getMeApi().login(
+          final apiResponse = await buildServerApi(normalizedServer).getMeApi().login(
             loginRequest: LoginRequest(username: username, password: password),
             returnTokens: true,
           );
@@ -196,10 +245,16 @@ class SignIn extends HookConsumerWidget {
         }
 
         final serverUri = Uri.parse(normalizedServer);
+        final headers = buildRequestHeaders(serverHeaders: customHeaders.value);
         final db = ref.read(appDatabaseProvider);
         await db.addOrUpdateStoredUser(
           loggedInUser.copyWith(
-            server: Server(host: serverUri.host, port: serverUri.port, ssl: serverUri.scheme == 'https'),
+            server: Server(
+              host: serverUri.host,
+              port: serverUri.port,
+              ssl: serverUri.scheme == 'https',
+              headers: headers.isEmpty ? null : headers,
+            ),
           ),
         );
         await db.setActiveUserId(loggedInUser.id);
@@ -320,12 +375,12 @@ class SignIn extends HookConsumerWidget {
           Positioned(
             top: -100,
             right: -70,
-            child: _GlowOrb(size: 250, color: colorScheme.primary.withValues(alpha: 0.16)),
+            child: GlowOrb(size: 250, color: colorScheme.primary.withValues(alpha: 0.16)),
           ),
           Positioned(
             bottom: -90,
             left: -55,
-            child: _GlowOrb(size: 220, color: colorScheme.tertiary.withValues(alpha: 0.14)),
+            child: GlowOrb(size: 220, color: colorScheme.tertiary.withValues(alpha: 0.14)),
           ),
           SafeArea(
             child: Center(
@@ -343,6 +398,25 @@ class SignIn extends HookConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
+                          if (hasStoredUsers) ...[
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: IconButton(
+                                onPressed: isLoading.value
+                                    ? null
+                                    : () {
+                                        if (context.canPop()) {
+                                          context.pop();
+                                        } else {
+                                          context.go('/');
+                                        }
+                                      },
+                                tooltip: 'Back',
+                                icon: const Icon(Icons.arrow_back_rounded),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                          ],
                           Text(
                             'Yaabsa',
                             textAlign: TextAlign.center,
@@ -366,36 +440,11 @@ class SignIn extends HookConsumerWidget {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          if (isStatusLoading.value)
-                            Row(
-                              children: [
-                                SizedBox(
-                                  height: 14,
-                                  width: 14,
-                                  child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.onSurfaceVariant),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Checking server...',
-                                  style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
-                                ),
-                              ],
-                            )
-                          else if (activeStatus != null)
-                            Row(
-                              children: [
-                                Icon(Icons.check_circle_rounded, size: 16, color: colorScheme.primary),
-                                const SizedBox(width: 6),
-                                Expanded(
-                                  child: Text(
-                                    'Valid Audiobookshelf server (v${activeStatus.serverVersion})',
-                                    style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
-                                  ),
-                                ),
-                              ],
-                            )
-                          else if (statusError.value != null)
-                            Text(statusError.value!, style: textTheme.bodySmall?.copyWith(color: colorScheme.error)),
+                          SignInServerStatus(
+                            isLoading: isStatusLoading.value,
+                            status: activeStatus,
+                            error: statusError.value,
+                          ),
                           if (customMessage != null && customMessage.trim().isNotEmpty) ...[
                             const SizedBox(height: 12),
                             Html(
@@ -407,100 +456,36 @@ class SignIn extends HookConsumerWidget {
                               },
                             ),
                           ],
-                          if (allowsApiKey) ...[
-                            const SizedBox(height: 14),
-                            SwitchListTile.adaptive(
-                              value: useApiKey.value,
-                              contentPadding: EdgeInsets.zero,
-                              onChanged: isLoading.value
-                                  ? null
-                                  : (value) {
-                                      useApiKey.value = value;
-                                      errorMessage.value = null;
-                                    },
-                              title: const Text('Use API Key'),
-                              subtitle: const Text(
-                                'Authenticate with a generated API key instead of username/password.',
-                              ),
-                            ),
-                          ],
-                          if (useApiKey.value) ...[
-                            const SizedBox(height: 12),
-                            TextField(
-                              controller: apiKeyController,
-                              enabled: !isLoading.value,
-                              obscureText: true,
-                              onSubmitted: (_) => validateAndSignIn(),
-                              decoration: InputDecoration(
-                                labelText: 'API Key',
-                                prefixIcon: const Icon(Icons.key_rounded),
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                              ),
-                            ),
-                            const SizedBox(height: 14),
-                            FilledButton.icon(
-                              onPressed: isLoading.value ? null : validateAndSignIn,
-                              icon: isLoading.value
-                                  ? SizedBox(
-                                      height: 18,
-                                      width: 18,
-                                      child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.onPrimary),
-                                    )
-                                  : const Icon(Icons.vpn_key_rounded),
-                              label: Text(isLoading.value ? 'Signing in...' : 'Connect with API Key'),
-                            ),
-                          ] else if (allowsLocal) ...[
-                            const SizedBox(height: 18),
-                            TextField(
-                              controller: usernameController,
-                              enabled: !isLoading.value,
-                              textInputAction: TextInputAction.next,
-                              decoration: InputDecoration(
-                                labelText: 'Username',
-                                prefixIcon: const Icon(Icons.person_outline_rounded),
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            TextField(
-                              controller: passwordController,
-                              enabled: !isLoading.value,
-                              obscureText: true,
-                              onSubmitted: (_) => validateAndSignIn(),
-                              decoration: InputDecoration(
-                                labelText: 'Password',
-                                prefixIcon: const Icon(Icons.password_rounded),
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                              ),
-                            ),
-                            const SizedBox(height: 14),
-                            FilledButton.icon(
-                              onPressed: isLoading.value ? null : validateAndSignIn,
-                              icon: isLoading.value
-                                  ? SizedBox(
-                                      height: 18,
-                                      width: 18,
-                                      child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.onPrimary),
-                                    )
-                                  : const Icon(Icons.login_rounded),
-                              label: Text(isLoading.value ? 'Signing in...' : 'Sign In'),
-                            ),
-                          ],
-                          if (!useApiKey.value && allowsOpenId) ...[
-                            const SizedBox(height: 12),
-                            OutlinedButton.icon(
-                              onPressed: isLoading.value ? null : startOpenIdConnect,
-                              icon: const Icon(Icons.shield_outlined),
-                              label: Text(openIdButtonText),
-                            ),
-                          ],
-                          if (!useApiKey.value && !allowsLocal && !allowsOpenId) ...[
-                            const SizedBox(height: 12),
-                            Text(
-                              'No supported authentication method is enabled on this server.',
-                              style: textTheme.bodyMedium?.copyWith(color: colorScheme.error),
-                            ),
-                          ],
+                          SignInAuthSection(
+                            useApiKey: useApiKey.value,
+                            isLoading: isLoading.value,
+                            allowsLocal: allowsLocal,
+                            allowsOpenId: allowsOpenId,
+                            openIdButtonText: openIdButtonText,
+                            usernameController: usernameController,
+                            passwordController: passwordController,
+                            apiKeyController: apiKeyController,
+                            onValidateAndSignIn: validateAndSignIn,
+                            onStartOpenIdConnect: startOpenIdConnect,
+                          ),
+                          SignInAdvancedOptions(
+                            isExpanded: advancedOptionsExpanded.value,
+                            onExpandedChanged: (value) => advancedOptionsExpanded.value = value,
+                            isLoading: isLoading.value,
+                            allowsApiKey: allowsApiKey,
+                            useApiKey: useApiKey.value,
+                            onUseApiKeyChanged: (value) {
+                              useApiKey.value = value;
+                              errorMessage.value = null;
+                              if (value) {
+                                advancedOptionsExpanded.value = true;
+                              }
+                            },
+                            customHeaders: customHeaders.value,
+                            onAddHeader: () => showHeaderEditor(),
+                            onEditHeader: (headerName) => showHeaderEditor(originalHeaderName: headerName),
+                            onRemoveHeader: removeHeader,
+                          ),
                           if (errorMessage.value != null) ...[
                             const SizedBox(height: 12),
                             Text(
@@ -518,27 +503,6 @@ class SignIn extends HookConsumerWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _GlowOrb extends StatelessWidget {
-  const _GlowOrb({required this.size, required this.color});
-
-  final double size;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: Container(
-        height: size,
-        width: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: RadialGradient(colors: [color, color.withValues(alpha: 0.0)]),
-        ),
       ),
     );
   }

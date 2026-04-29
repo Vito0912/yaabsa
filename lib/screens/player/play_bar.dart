@@ -65,13 +65,14 @@ class _PlayBarState extends State<PlayBar> {
 
   Widget _buildReadyContent(BuildContext context) {
     final coverUri = audioHandler.currentMediaItem?.cover;
+    final requestHeaders = audioHandler.currentRequestHeaders;
 
     if (context.isMobile) {
       return _buildControlsAndSeekBar(
         leading: SizedBox(
           width: _mobileCoverSize,
           height: _mobileCoverSize,
-          child: _PlayBarCover(coverUri: coverUri, borderRadius: _mobileCoverRadius),
+          child: _PlayBarCover(coverUri: coverUri, borderRadius: _mobileCoverRadius, requestHeaders: requestHeaders),
         ),
       );
     }
@@ -84,7 +85,11 @@ class _PlayBarState extends State<PlayBar> {
           bottom: 0,
           child: SizedBox(
             width: _desktopCoverWidth,
-            child: _PlayBarCover(coverUri: coverUri, borderRadius: widget.attachedToBottom ? 0 : _desktopCoverRadius),
+            child: _PlayBarCover(
+              coverUri: coverUri,
+              borderRadius: widget.attachedToBottom ? 0 : _desktopCoverRadius,
+              requestHeaders: requestHeaders,
+            ),
           ),
         ),
         Padding(
@@ -167,10 +172,11 @@ class _PlayBarState extends State<PlayBar> {
 }
 
 class _PlayBarCover extends StatelessWidget {
-  const _PlayBarCover({required this.coverUri, required this.borderRadius});
+  const _PlayBarCover({required this.coverUri, required this.borderRadius, required this.requestHeaders});
 
   final Uri? coverUri;
   final double borderRadius;
+  final Map<String, String> requestHeaders;
 
   ImageProvider<Object>? _imageProvider() {
     final uri = coverUri;
@@ -182,7 +188,7 @@ class _PlayBarCover extends StatelessWidget {
       return FileImage(File(uri.toFilePath()));
     }
 
-    return NetworkImage(uri.toString());
+    return NetworkImage(uri.toString(), headers: requestHeaders.isEmpty ? null : requestHeaders);
   }
 
   @override

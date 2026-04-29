@@ -1,6 +1,7 @@
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:yaabsa/api/socket/events/user_item_progress_updated_event.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/network/request_headers.dart';
 
 typedef UserItemProgressUpdatedHandler = void Function(UserItemProgressUpdatedEvent event);
 
@@ -13,21 +14,29 @@ class ABSSocketClient {
   io.Socket? _socket;
   String? _serverUrl;
   String? _apiToken;
+  String? _headersSignature;
 
   bool get isConnected => _socket?.connected ?? false;
 
-  void connect({required String serverUrl, required String apiToken}) {
+  void connect({required String serverUrl, required String apiToken, Map<String, String>? headers}) {
     final normalizedServerUrl = _normalizeServerUrl(serverUrl);
+    final normalizedHeaders = buildRequestHeaders(serverHeaders: headers);
+    final nextHeadersSignature = _headersSignatureFor(normalizedHeaders);
     _apiToken = apiToken;
 
-    final shouldRecreateSocket = _socket == null || _serverUrl != normalizedServerUrl;
+    final shouldRecreateSocket =
+        _socket == null || _serverUrl != normalizedServerUrl || _headersSignature != nextHeadersSignature;
     if (shouldRecreateSocket) {
       _disposeSocket();
       _serverUrl = normalizedServerUrl;
-      _socket = io.io(
-        normalizedServerUrl,
-        io.OptionBuilder().setTransports(["websocket"]).disableAutoConnect().enableReconnection().build(),
-      );
+      _headersSignature = nextHeadersSignature;
+
+      final options = io.OptionBuilder().setTransports(["websocket"]).disableAutoConnect().enableReconnection();
+      if (normalizedHeaders.isNotEmpty) {
+        options.setExtraHeaders(Map<String, dynamic>.from(normalizedHeaders));
+      }
+
+      _socket = io.io(normalizedServerUrl, options.build());
       _registerSocketListeners(_socket!);
     }
 
@@ -48,12 +57,14 @@ class ABSSocketClient {
     _apiToken = null;
     _disposeSocket();
     _serverUrl = null;
+    _headersSignature = null;
   }
 
   void dispose() {
     _apiToken = null;
     _disposeSocket();
     _serverUrl = null;
+    _headersSignature = null;
   }
 
   void _registerSocketListeners(io.Socket socket) {
@@ -72,11 +83,7 @@ class ABSSocketClient {
     });
 
     socket.on("init", (dynamic payload) {
-      logger(
-        'Socket authenticated successfully: ${_stringifyPayload(payload)}',
-        tag: 'ABSSocketClient',
-        level: InfoLevel.debug,
-      );
+      logger('Socket authenticated successfully', tag: 'ABSSocketClient', level: InfoLevel.debug);
     });
 
     socket.on("invalid_token", (dynamic payload) {
@@ -147,6 +154,16 @@ class ABSSocketClient {
       return serverUrl.substring(0, serverUrl.length - 1);
     }
     return serverUrl;
+  }
+
+  String _headersSignatureFor(Map<String, String> headers) {
+    if (headers.isEmpty) {
+      return '';
+    }
+
+    final keys = headers.keys.toList()..sort();
+    final serialized = keys.map((key) => '$key=${headers[key]}').join('&');
+    return serialized;
   }
 
   String _stringifyPayload(dynamic payload) {

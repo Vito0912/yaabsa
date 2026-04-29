@@ -52,10 +52,12 @@ abstract class InternalMedia with _$InternalMedia {
     );
   }
 
-  List<AudioSource> toAudioSources() {
+  List<AudioSource> toAudioSources({Map<String, String>? headers}) {
     if (local) {
       logger('Using local audio sources', tag: 'InternalMedia', level: InfoLevel.debug);
     }
+    final effectiveHeaders = headers == null || headers.isEmpty ? null : headers;
+
     return tracks.map((track) {
       if (track.url == null) {
         throw ArgumentError('Track URL cannot be null for track index ${track.index}');
@@ -69,7 +71,9 @@ abstract class InternalMedia with _$InternalMedia {
         final isFileUri = url.startsWith('file://');
 
         if (saf || (hasExplicitScheme && !isFileUri)) {
-          return AudioSource.uri(Uri.parse(url));
+          final uri = Uri.parse(url);
+          final shouldAttachHeaders = uri.scheme == 'http' || uri.scheme == 'https';
+          return AudioSource.uri(uri, headers: shouldAttachHeaders ? effectiveHeaders : null);
         }
 
         if (isFileUri) {
@@ -79,7 +83,8 @@ abstract class InternalMedia with _$InternalMedia {
 
         return AudioSource.file(url);
       } else {
-        return AudioSource.uri(Uri.parse(url));
+        final uri = Uri.parse(url);
+        return AudioSource.uri(uri, headers: effectiveHeaders);
       }
     }).toList();
   }

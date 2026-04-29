@@ -18,6 +18,7 @@ ABSSocketClient absSocketClient(Ref ref) {
   void updateSocketForUser(User? user) {
     final serverUrl = user?.server?.url;
     final token = user?.preferredAuthToken;
+    final serverHeaders = user?.server?.headers;
 
     if (serverUrl == null || serverUrl.isEmpty || token == null || token.isEmpty) {
       socketClient.disconnect();
@@ -29,7 +30,7 @@ ABSSocketClient absSocketClient(Ref ref) {
       tag: 'SocketProvider',
       level: InfoLevel.debug,
     );
-    socketClient.connect(serverUrl: serverUrl, apiToken: token);
+    socketClient.connect(serverUrl: serverUrl, apiToken: token, headers: serverHeaders);
   }
 
   ref.listen<AsyncValue<User?>>(currentUserProvider, (previous, next) {

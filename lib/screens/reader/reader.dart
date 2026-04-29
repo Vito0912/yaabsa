@@ -22,6 +22,7 @@ import 'package:yaabsa/screens/reader/widgets/reader_pdf_annotations_list_view.d
 import 'package:yaabsa/screens/reader/widgets/reader_pdf_view.dart';
 import 'package:yaabsa/screens/reader/widgets/reader_thickness_picker_sheet.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/network/request_headers.dart';
 
 part 'reader_annotation_actions.dart';
 part 'reader_annotation_sync.dart';

@@ -12,6 +12,8 @@ import 'package:yaabsa/screens/settings/log_view.dart';
 import 'package:yaabsa/screens/settings/player_settings.dart';
 import 'package:yaabsa/screens/settings/reader_settings.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/network/dio_factory.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -110,7 +112,12 @@ class MainSettingsScreen extends ConsumerWidget {
       final refreshToken = user.refreshToken;
       if (user.server != null && refreshToken != null && refreshToken.isNotEmpty) {
         try {
-          final api = ABSApi(basePathOverride: user.server!.url);
+          final api = ABSApi(
+            dio: createNativeDio(
+              options: BaseOptions(baseUrl: user.server!.url, headers: user.server!.headers),
+            ),
+            basePathOverride: user.server!.url,
+          );
           final authToken = user.preferredAuthToken;
           if (authToken != null && authToken.isNotEmpty) {
             api.setBearerAuth('BearerAuth', authToken);

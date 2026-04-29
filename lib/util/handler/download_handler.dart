@@ -20,6 +20,7 @@ import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/download_destination.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/network/request_headers.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -140,6 +141,7 @@ class DownloadHandler {
     if (authToken == null || authToken.isEmpty) {
       throw Exception('No valid authentication token available for downloads.');
     }
+    final requestHeaders = buildRequestHeaders(serverHeaders: server.headers, bearerToken: authToken);
 
     final String customDownloadLocation = _ref
         .read(settingsManagerProvider.notifier)
@@ -184,7 +186,7 @@ class DownloadHandler {
               url: '${server.url}/api/items/${resolvedItem.id}/file/${source.ino}/download',
               filename: filename,
               displayName: resolvedItem.title,
-              headers: {'Authorization': 'Bearer $authToken'},
+              headers: requestHeaders,
               updates: Updates.statusAndProgress,
               metaData: metaData,
               retries: 3,
@@ -199,7 +201,7 @@ class DownloadHandler {
             url: '${server.url}/api/items/${resolvedItem.id}/file/${source.ino}/download',
             filename: filename,
             displayName: resolvedItem.title,
-            headers: {'Authorization': 'Bearer $authToken'},
+            headers: requestHeaders,
             baseDirectory: destination.baseDirectory!,
             directory: destination.directory!,
             updates: Updates.statusAndProgress,
@@ -559,12 +561,15 @@ class DownloadHandler {
     if (server == null || authToken == null || authToken.isEmpty) {
       return null;
     }
+    final requestHeaders = buildRequestHeaders(serverHeaders: server.headers, bearerToken: authToken);
 
     final client = HttpClient();
     try {
       final uri = Uri.parse('${server.url}/api/items/$itemId/cover');
       final request = await client.getUrl(uri);
-      request.headers.set(HttpHeaders.authorizationHeader, 'Bearer $authToken');
+      for (final entry in requestHeaders.entries) {
+        request.headers.set(entry.key, entry.value);
+      }
       final response = await request.close();
 
       if (response.statusCode < 200 || response.statusCode >= 300) {

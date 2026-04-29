@@ -30,6 +30,7 @@ import 'package:yaabsa/util/handler/playback_sync_service.dart';
 import 'package:yaabsa/util/handler/player_history_handler.dart';
 import 'package:yaabsa/util/handler/tray_handler.dart' show TrayManager;
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/network/request_headers.dart';
 import 'package:yaabsa/util/player_utils.dart' show PlayerUtils;
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -1085,7 +1086,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   Future<dynamic> _setSource({Duration initialPosition = Duration.zero, bool ignoreSavedProgress = false}) async {
     if (_currentMediaItem == null) return Future.value();
-    final source = _currentMediaItem!.toAudioSources();
+    final source = _currentMediaItem!.toAudioSources(headers: currentRequestHeaders);
     if (!ignoreSavedProgress) {
       final currentProgress = _ref.read(
         mediaProgressProvider.select((asyncValue) {
@@ -1110,6 +1111,11 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     final trackIndex = _currentMediaItem!.getIndexForDuration(initialPosition);
 
     await player.setAudioSources(source, initialIndex: trackIndex, initialPosition: Duration.zero, preload: true);
+  }
+
+  Map<String, String> get currentRequestHeaders {
+    final user = _ref.read(currentUserProvider).value;
+    return buildRequestHeaders(serverHeaders: user?.server?.headers, bearerToken: user?.preferredAuthToken);
   }
 
   Future<void> _updatePlaybackState() async {

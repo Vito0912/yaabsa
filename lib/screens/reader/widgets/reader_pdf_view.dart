@@ -9,7 +9,7 @@ class ReaderPdfView extends StatefulWidget {
     super.key,
     required this.controller,
     required this.documentUrl,
-    required this.authToken,
+    required this.requestHeaders,
     required this.itemId,
     required this.initialPage,
     required this.onPageFocused,
@@ -21,7 +21,7 @@ class ReaderPdfView extends StatefulWidget {
 
   final PdfViewerController controller;
   final String documentUrl;
-  final String authToken;
+  final Map<String, String> requestHeaders;
   final String itemId;
   final int initialPage;
   final ValueChanged<int> onPageFocused;
@@ -89,7 +89,7 @@ class _ReaderPdfViewState extends State<ReaderPdfView> {
       content: PdfViewer.uri(
         Uri.parse(widget.documentUrl),
         key: ValueKey<String>('pdf-${widget.itemId}'),
-        headers: {'Authorization': 'Bearer ${widget.authToken}'},
+        headers: widget.requestHeaders,
         controller: widget.controller,
         initialPageNumber: widget.initialPage,
         params: PdfViewerParams(

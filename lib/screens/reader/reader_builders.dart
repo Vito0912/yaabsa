@@ -33,11 +33,8 @@ extension _ReaderBuilders on _ReaderState {
   }
 
   Widget _buildEpubReaderBody({required User user, required String authToken, required String? initialCfi}) {
-    final EpubSource epubSource = EpubSource.fromUrl(
-      _ebookUrl(user),
-      headers: {'Authorization': 'Bearer $authToken'},
-      isCachedToLocal: false,
-    );
+    final requestHeaders = buildRequestHeaders(serverHeaders: user.server?.headers, bearerToken: authToken);
+    final EpubSource epubSource = EpubSource.fromUrl(_ebookUrl(user), headers: requestHeaders, isCachedToLocal: false);
 
     return ReaderEpubView(
       epubController: epubController,
@@ -55,12 +52,13 @@ extension _ReaderBuilders on _ReaderState {
 
   Widget _buildPdfReaderBody({required User user, required String authToken, required String? initialLocation}) {
     final int initialPage = _parseStoredPdfPage(initialLocation);
+    final requestHeaders = buildRequestHeaders(serverHeaders: user.server?.headers, bearerToken: authToken);
     _triggerAutoAnnotationLoadIfNeeded(isEpubMode: false);
 
     return ReaderPdfView(
       controller: _pdfController,
       documentUrl: _ebookUrl(user),
-      authToken: authToken,
+      requestHeaders: requestHeaders,
       itemId: widget.itemId,
       initialPage: initialPage,
       onPageFocused: (pageNumber) => _syncPdfProgress(pageNumber: pageNumber),
