@@ -12,7 +12,7 @@ slots:
   yaabsa-session-dbus:
     interface: dbus
     bus: session
-    name: de.vito0912.yaabsa.yaabsa
+    name: de.vito0912.yaabsa
 
   yaabsa-mpris:
     interface: dbus

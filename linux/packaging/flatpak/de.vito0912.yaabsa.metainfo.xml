@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>de.vito0912.yaabsa.yaabsa</id>
+  <id>de.vito0912.yaabsa</id>
   <name>yaabsa</name>
   <summary>Yet another Audiobookshelf client, built with Flutter.</summary>
   <metadata_license>CC0-1.0</metadata_license>
@@ -10,7 +10,7 @@
     <name>Vito0912</name>
   </developer>
 
-  <launchable type="desktop-id">de.vito0912.yaabsa.yaabsa.desktop</launchable>
+  <launchable type="desktop-id">de.vito0912.yaabsa.desktop</launchable>
 
   <url type="homepage">https://github.com/Vito0912/yaabsa</url>
   <url type="bugtracker">https://github.com/Vito0912/yaabsa/issues</url>

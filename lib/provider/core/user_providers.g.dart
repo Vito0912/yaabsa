@@ -140,4 +140,4 @@ final class AbsApiProvider extends $FunctionalProvider<ABSApi?, ABSApi?, ABSApi?
   }
 }
 
-String _$absApiHash() => r'01fc36cd30620d37dd4d54fa96a0053cad015066';
+String _$absApiHash() => r'7519371e7f30a12315e2c1eb5886de298c7d9578';

@@ -1,4 +1,4 @@
-package de.vito0912.yaabsa.yaabsa
+package de.vito0912.yaabsa
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -224,9 +224,9 @@ jobs:
           FLATPAK_GPG_KEY_ID: ${{ secrets.FLATPAK_GPG_KEY_ID }}
         run: |
           if [ "$GITHUB_REF" = "refs/heads/master" ]; then
-            flatpak-builder --user --install-deps-from=flathub --force-clean --repo=flatpak-repo --default-branch=master --gpg-sign="$FLATPAK_GPG_KEY_ID" flatpak-build linux/packaging/flatpak/de.vito0912.yaabsa.yaabsa.yml
+            flatpak-builder --user --install-deps-from=flathub --force-clean --repo=flatpak-repo --default-branch=master --gpg-sign="$FLATPAK_GPG_KEY_ID" flatpak-build linux/packaging/flatpak/de.vito0912.yaabsa.yml
           else
-            flatpak-builder --user --install-deps-from=flathub --force-clean --repo=flatpak-repo --default-branch=master flatpak-build linux/packaging/flatpak/de.vito0912.yaabsa.yaabsa.yml
+            flatpak-builder --user --install-deps-from=flathub --force-clean --repo=flatpak-repo --default-branch=master flatpak-build linux/packaging/flatpak/de.vito0912.yaabsa.yml
           fi
           if ! find flatpak-build/files -maxdepth 5 -type f -name 'libmpv.so*' | grep -q .; then
             echo "libmpv was not bundled into the Flatpak image."
@@ -243,11 +243,11 @@ jobs:
         if: github.ref == 'refs/heads/master'
         env:
           FLATPAK_GPG_KEY_ID: ${{ secrets.FLATPAK_GPG_KEY_ID }}
-        run: flatpak build-bundle --gpg-sign="$FLATPAK_GPG_KEY_ID" flatpak-repo de.vito0912.yaabsa.yaabsa.flatpak de.vito0912.yaabsa.yaabsa master
+        run: flatpak build-bundle --gpg-sign="$FLATPAK_GPG_KEY_ID" flatpak-repo de.vito0912.yaabsa.flatpak de.vito0912.yaabsa master
 
       - name: Build Flatpak bundle for non-master
         if: github.ref != 'refs/heads/master'
-        run: flatpak build-bundle flatpak-repo de.vito0912.yaabsa.yaabsa.flatpak de.vito0912.yaabsa.yaabsa master
+        run: flatpak build-bundle flatpak-repo de.vito0912.yaabsa.flatpak de.vito0912.yaabsa master
 
       - name: Prepare GitHub Pages content
         if: github.ref == 'refs/heads/master'
@@ -263,13 +263,13 @@ jobs:
           GPG_KEY_B64="$(gpg --export "$FLATPAK_GPG_KEY_ID" | base64 -w 0)"
           mkdir -p flatpak-pages
           cp -R flatpak-repo/. flatpak-pages/
-          cp linux/packaging/flatpak/de.vito0912.yaabsa.yaabsa.flatpakrepo flatpak-pages/de.vito0912.yaabsa.yaabsa.flatpakrepo
+          cp linux/packaging/flatpak/de.vito0912.yaabsa.flatpakrepo flatpak-pages/de.vito0912.yaabsa.flatpakrepo
           sed -i \
             -e "s|__REPO_URL__|${PAGES_URL}|g" \
             -e "s|__HOMEPAGE_URL__|${HOMEPAGE_URL}|g" \
             -e "s|__ICON_URL__|${ICON_URL}|g" \
             -e "s|__GPG_KEY__|${GPG_KEY_B64}|g" \
-            flatpak-pages/de.vito0912.yaabsa.yaabsa.flatpakrepo
+            flatpak-pages/de.vito0912.yaabsa.flatpakrepo
 
       - name: Upload Flatpak Pages artifact
         if: github.ref == 'refs/heads/master'
@@ -281,7 +281,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: linux-flatpak
-          path: de.vito0912.yaabsa.yaabsa.flatpak
+          path: de.vito0912.yaabsa.flatpak
 
   deploy-flatpak-pages:
     if: github.ref == 'refs/heads/master'
