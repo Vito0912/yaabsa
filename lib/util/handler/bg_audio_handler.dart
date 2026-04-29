@@ -106,6 +106,10 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   bool get _supportsCastPlatform => Platform.isAndroid || Platform.isIOS;
 
+  bool _isSameControlState(PlayerState left, PlayerState right) {
+    return left.playing == right.playing && left.processingState == right.processingState;
+  }
+
   void _emitShouldShowPlayer() {
     if (!_showPlayerSubject.isClosed) {
       _showPlayerSubject.add(_currentMediaItem != null || _queueTransitionLoading);
@@ -659,7 +663,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     }
 
     final castActive = _computeCastControlActive();
-    if (!_castControlActiveSubject.isClosed) {
+    if (!_castControlActiveSubject.isClosed && _castControlActiveSubject.value != castActive) {
       _castControlActiveSubject.add(castActive);
     }
 
@@ -667,7 +671,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         ? _castPlayerStateFromStatus(GoogleCastRemoteMediaClient.instance.mediaStatus)
         : _player.playerState;
 
-    if (!_playerControlStateSubject.isClosed) {
+    if (!_playerControlStateSubject.isClosed && !_isSameControlState(_playerControlStateSubject.value, state)) {
       _playerControlStateSubject.add(state);
     }
   }
@@ -678,17 +682,23 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     }
 
     _castSessionSubscription = GoogleCastSessionManager.instance.currentSessionStream.listen((session) {
+      final wasCastControlActive = isCastControlActive;
       if (session?.connectionState != GoogleCastConnectState.connected) {
         _castControlledContentId = null;
         _castControlledTrackIndex = 0;
       }
       _refreshPlayerControlState();
-      unawaited(_updatePlaybackState());
+      if (wasCastControlActive != isCastControlActive || isCastControlActive) {
+        unawaited(_updatePlaybackState());
+      }
     });
 
     _castMediaStatusSubscription = GoogleCastRemoteMediaClient.instance.mediaStatusStream.listen((_) {
+      final wasCastControlActive = isCastControlActive;
       _refreshPlayerControlState();
-      unawaited(_updatePlaybackState());
+      if (wasCastControlActive != isCastControlActive || isCastControlActive) {
+        unawaited(_updatePlaybackState());
+      }
     });
   }
 
