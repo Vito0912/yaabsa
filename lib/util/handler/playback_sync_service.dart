@@ -23,7 +23,7 @@ class PlaybackSyncService {
 
     logger('PlaybackSyncService initialized', tag: 'PlaybackSyncService', level: InfoLevel.debug);
 
-    _playerStateSubscription = _handler.player.playerStateStream.distinct().listen((playerState) {
+    _playerStateSubscription = _handler.playerControlStateStream.listen((playerState) {
       final bool isEffectivelyPlaying = playerState.playing && playerState.processingState == ProcessingState.ready;
 
       if (isEffectivelyPlaying) {

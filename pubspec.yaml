@@ -82,6 +82,7 @@ dependencies:
   ## iOS
 
   ## Android
+  flutter_chrome_cast: ^1.4.6
 
 dev_dependencies:
   flutter_test:

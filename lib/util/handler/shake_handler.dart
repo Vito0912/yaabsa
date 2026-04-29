@@ -47,7 +47,7 @@ class ShakeRewindHandler {
 
     logger('Initializing ShakeRewindHandler', tag: 'ShakeRewindHandler', level: InfoLevel.info);
 
-    _playerStateSub = audioHandler.player.playerStateStream.listen((_) => _syncListenerState());
+    _playerStateSub = audioHandler.playerControlStateStream.listen((_) => _syncListenerState());
     _sleepTimerSub = containerRef.listen<SleepTimerData>(
       sleepTimerHandlerProvider,
       (previous, next) => _syncListenerState(),

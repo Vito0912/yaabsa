@@ -5,6 +5,7 @@ import 'package:yaabsa/provider/core/socket_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart' show appName, audioHandler, containerRef;
+import 'package:yaabsa/util/chrome_cast_service.dart';
 import 'package:yaabsa/util/handler/tray_handler.dart' show TrayManager;
 import 'package:yaabsa/util/init.dart' show Init;
 import 'package:yaabsa/util/logger.dart';
@@ -23,6 +24,7 @@ void main() {
       containerRef.read(absSocketClientProvider);
       Init.initLogger();
       audioHandler = await Init.initAudioHandler();
+      unawaited(ChromeCastService.ensureInitialized());
       TrayManager.update();
 
       Init.late();

@@ -104,7 +104,7 @@ class _PlayBarState extends State<PlayBar> {
   Widget build(BuildContext context) {
     return StreamBuilder<bool>(
       stream: audioHandler.shouldShowPlayer,
-      initialData: audioHandler.player.playerState.playing,
+      initialData: audioHandler.shouldShowPlayerNow,
       builder: (context, snapshot) {
         final showPlayer = snapshot.data == true;
         if (!showPlayer) {

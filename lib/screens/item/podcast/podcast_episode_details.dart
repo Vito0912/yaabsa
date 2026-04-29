@@ -85,8 +85,8 @@ class PodcastEpisodeDetailsContent extends ConsumerWidget {
         );
 
         return StreamBuilder<PlayerState>(
-          stream: audioHandler.player.playerStateStream,
-          initialData: audioHandler.player.playerState,
+          stream: audioHandler.playerControlStateStream,
+          initialData: audioHandler.playerControlState,
           builder: (context, playerStateBuilder) {
             final playerState = playerStateBuilder.data;
             final isCurrentEpisode =

@@ -112,9 +112,9 @@ Future<User?> _refreshCurrentUserFromServer({required AppDatabase db, required U
     }
 
     logger('Fetched user from server: ${serverUser.username}. Updating local database.', tag: 'currentUserProvider');
-    serverUser.server = user.server; // Preserve local server info
-    await db.addOrUpdateStoredUser(serverUser);
-    return serverUser;
+    final mergedUser = serverUser.copyWith(server: user.server, setting: serverUser.setting ?? user.setting);
+    await db.addOrUpdateStoredUser(mergedUser);
+    return mergedUser;
   } catch (e, s) {
     logger(
       'Error fetching user from server: $e. Stack: $s. Keeping local user.',
@@ -129,7 +129,11 @@ Future<User?> _refreshCurrentUserFromServer({required AppDatabase db, required U
           final refreshedLogin = refreshResponse.data;
 
           if (refreshedLogin != null) {
-            final refreshedUser = refreshedLogin.user.copyWith(server: user.server, isActive: true);
+            final refreshedUser = refreshedLogin.user.copyWith(
+              server: user.server,
+              isActive: true,
+              setting: refreshedLogin.user.setting ?? refreshedLogin.serverSettings,
+            );
             await db.addOrUpdateStoredUser(refreshedUser);
             return refreshedUser;
           }

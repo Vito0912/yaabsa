@@ -241,7 +241,7 @@ class SignIn extends HookConsumerWidget {
             return;
           }
 
-          loggedInUser = loginData.user;
+          loggedInUser = loginData.user.copyWith(setting: loginData.serverSettings);
         }
 
         final serverUri = Uri.parse(normalizedServer);

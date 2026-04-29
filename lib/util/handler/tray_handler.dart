@@ -36,7 +36,7 @@ class TrayManager extends ConsumerStatefulWidget {
               items: [
                 MenuItem(
                   key: TrayManager.playPauseKey,
-                  label: audioHandler.player.playerState.playing ? 'Pause' : 'Play',
+                  label: audioHandler.playerControlState.playing ? 'Pause' : 'Play',
                 ),
                 MenuItem(key: TrayManager.stopKey, label: 'Stop'),
                 MenuItem(key: TrayManager.nextKey, label: 'Next'),
@@ -97,13 +97,13 @@ class _TrayManagerState extends ConsumerState<TrayManager> with TrayListener {
         // TODO: Implement
         break;
       case TrayManager.playPauseKey:
-        audioHandler.player.playerState.playing ? audioHandler.pause() : audioHandler.play();
+        audioHandler.playerControlState.playing ? audioHandler.pause() : audioHandler.play();
         break;
       case TrayManager.fastForwardKey:
-        audioHandler.seek(audioHandler.player.position + const Duration(seconds: 10));
+        audioHandler.seek(audioHandler.position + const Duration(seconds: 10));
         break;
       case TrayManager.rewindKey:
-        audioHandler.seek(audioHandler.player.position - const Duration(seconds: 10));
+        audioHandler.seek(audioHandler.position - const Duration(seconds: 10));
         break;
       case TrayManager.nextKey:
         audioHandler.skipToNext();

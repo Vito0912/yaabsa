@@ -384,7 +384,7 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
             Expanded(child: currentContent),
             StreamBuilder<bool>(
               stream: audioHandler.shouldShowPlayer,
-              initialData: audioHandler.player.playerState.playing,
+              initialData: audioHandler.shouldShowPlayerNow,
               builder: (context, snapshot) {
                 final showPlayer = snapshot.data == true;
                 return Padding(

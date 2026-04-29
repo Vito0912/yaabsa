@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
+import 'package:flutter_chrome_cast/flutter_chrome_cast.dart';
 import 'package:yaabsa/api/library/filter_data/library_filter_data.dart';
 import 'package:yaabsa/api/library/library.dart';
 import 'package:yaabsa/api/library/personalized_library.dart';
@@ -66,6 +67,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   late final PlaybackSyncService _syncService;
   StreamSubscription<PlayerException>? _errorSubscription;
   StreamSubscription<PlayerState>? _playerStateSubscription;
+  StreamSubscription<GoogleCastSession?>? _castSessionSubscription;
+  StreamSubscription<GoggleCastMediaStatus?>? _castMediaStatusSubscription;
   bool _isDisposing = false;
   List<PlayerQueueEntry> queueList = [];
   QueueItem? _lastQueueItem;
@@ -83,6 +86,10 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   bool _queueTransitionLoading = false;
   bool _androidAutoMoreMenuVisible = false;
   Timer? _androidAutoMoreMenuTimer;
+  late final BehaviorSubject<PlayerState> _playerControlStateSubject;
+  final BehaviorSubject<bool> _castControlActiveSubject = BehaviorSubject<bool>.seeded(false);
+  String? _castControlledContentId;
+  int _castControlledTrackIndex = 0;
   BehaviorSubject<InternalMedia?> mediaItemStream = BehaviorSubject<InternalMedia?>();
   InternalMedia? get currentMediaItem => _currentMediaItem;
 
@@ -90,6 +97,14 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   PlayerQueueSnapshot get queueSnapshot => _buildQueueSnapshot();
   Stream<bool> get queueTransitionLoadingStream => _queueTransitionLoadingSubject.stream;
   bool get queueTransitionLoading => _queueTransitionLoading;
+  Stream<PlayerState> get playerControlStateStream => _playerControlStateSubject.stream.distinct(
+    (previous, next) => previous.playing == next.playing && previous.processingState == next.processingState,
+  );
+  PlayerState get playerControlState => _playerControlStateSubject.value;
+  Stream<bool> get castControlActiveStream => _castControlActiveSubject.stream.distinct();
+  bool get isCastControlActive => _castControlActiveSubject.value;
+
+  bool get _supportsCastPlatform => Platform.isAndroid || Platform.isIOS;
 
   void _emitShouldShowPlayer() {
     if (!_showPlayerSubject.isClosed) {
@@ -485,6 +500,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     __currentMediaItem = mediaItem;
     _currentTrackIndex = 0;
     mediaItemStream.add(mediaItem);
+    _refreshPlayerControlState();
     _emitShouldShowPlayer();
     _handleAutoQueueOnCurrentItemChange(
       mediaItem == null ? null : _queueItemReferenceKey(itemId: mediaItem.itemId, episodeId: mediaItem.episodeId),
@@ -512,6 +528,170 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     return Future.value();
   }
 
+  void activateCastControl({required String contentId, required int trackIndex}) {
+    _castControlledContentId = contentId;
+    _castControlledTrackIndex = trackIndex < 0 ? 0 : trackIndex;
+    _refreshPlayerControlState();
+    unawaited(_updatePlaybackState());
+  }
+
+  void deactivateCastControl() {
+    _castControlledContentId = null;
+    _castControlledTrackIndex = 0;
+    _refreshPlayerControlState();
+    unawaited(_updatePlaybackState());
+  }
+
+  bool _computeCastControlActive() {
+    if (!_supportsCastPlatform) {
+      return false;
+    }
+    if (_castControlledContentId == null || _currentMediaItem == null) {
+      return false;
+    }
+    if (!GoogleCastSessionManager.instance.hasConnectedSession) {
+      return false;
+    }
+    if (_currentMediaItem!.id != _castControlledContentId) {
+      return false;
+    }
+
+    final remoteContentId = GoogleCastRemoteMediaClient.instance.mediaStatus?.mediaInformation?.contentId;
+    return remoteContentId == null || remoteContentId == _castControlledContentId;
+  }
+
+  PlayerState _castPlayerStateFromStatus(GoggleCastMediaStatus? status) {
+    if (status == null) {
+      return PlayerState(false, ProcessingState.loading);
+    }
+
+    switch (status.playerState) {
+      case CastMediaPlayerState.playing:
+        return PlayerState(true, ProcessingState.ready);
+      case CastMediaPlayerState.paused:
+        return PlayerState(false, ProcessingState.ready);
+      case CastMediaPlayerState.buffering:
+        return PlayerState(true, ProcessingState.buffering);
+      case CastMediaPlayerState.loading:
+        return PlayerState(false, ProcessingState.loading);
+      case CastMediaPlayerState.idle:
+        if (status.idleReason == GoogleCastMediaIdleReason.finished) {
+          return PlayerState(false, ProcessingState.completed);
+        }
+        return PlayerState(false, ProcessingState.idle);
+      case CastMediaPlayerState.unknown:
+        return PlayerState(false, ProcessingState.loading);
+    }
+  }
+
+  AudioProcessingState _toAudioProcessingState(ProcessingState state) {
+    return {
+      ProcessingState.idle: AudioProcessingState.idle,
+      ProcessingState.loading: AudioProcessingState.loading,
+      ProcessingState.buffering: AudioProcessingState.buffering,
+      ProcessingState.ready: AudioProcessingState.ready,
+      ProcessingState.completed: AudioProcessingState.completed,
+    }[state]!;
+  }
+
+  int _resolvedCastTrackIndex(InternalMedia media) {
+    if (media.tracks.isEmpty) {
+      return 0;
+    }
+    final maxIndex = media.tracks.length - 1;
+    return _castControlledTrackIndex.clamp(0, maxIndex).toInt();
+  }
+
+  Duration _trackEndDurationForIndex(InternalMedia media, int trackIndex) {
+    final track = media.tracks[trackIndex];
+    final endSeconds = track.end ?? ((track.start ?? 0) + track.duration);
+    return Duration(microseconds: (endSeconds * Duration.microsecondsPerSecond).round());
+  }
+
+  Duration _castAbsolutePosition(Duration castRelativePosition) {
+    final media = _currentMediaItem;
+    if (media == null || media.tracks.isEmpty) {
+      return castRelativePosition;
+    }
+
+    final trackIndex = _resolvedCastTrackIndex(media);
+    final trackStart = media.startDurationForTrack(trackIndex);
+    final trackEnd = _trackEndDurationForIndex(media, trackIndex);
+    final boundedTrackEnd = trackEnd < trackStart ? media.totalDuration : trackEnd;
+    final absolute = trackStart + castRelativePosition;
+    if (absolute < trackStart) {
+      return trackStart;
+    }
+    if (absolute > boundedTrackEnd) {
+      return boundedTrackEnd;
+    }
+    if (absolute > media.totalDuration) {
+      return media.totalDuration;
+    }
+    return absolute;
+  }
+
+  Duration _absoluteToCastRelativePosition(Duration absolutePosition) {
+    final media = _currentMediaItem;
+    if (media == null || media.tracks.isEmpty) {
+      return absolutePosition;
+    }
+
+    final trackIndex = _resolvedCastTrackIndex(media);
+    final trackStart = media.startDurationForTrack(trackIndex);
+    final trackEnd = _trackEndDurationForIndex(media, trackIndex);
+    final boundedTrackEnd = trackEnd < trackStart ? media.totalDuration : trackEnd;
+
+    final bounded = absolutePosition < trackStart
+        ? trackStart
+        : (absolutePosition > boundedTrackEnd ? boundedTrackEnd : absolutePosition);
+    return bounded - trackStart;
+  }
+
+  Duration _localAbsolutePosition() {
+    return (_currentMediaItem?.offsetForTrack(_currentTrackIndex) ?? Duration.zero) + _player.position;
+  }
+
+  void _refreshPlayerControlState() {
+    if (_supportsCastPlatform && !GoogleCastSessionManager.instance.hasConnectedSession) {
+      _castControlledContentId = null;
+      _castControlledTrackIndex = 0;
+    }
+
+    final castActive = _computeCastControlActive();
+    if (!_castControlActiveSubject.isClosed) {
+      _castControlActiveSubject.add(castActive);
+    }
+
+    final state = castActive
+        ? _castPlayerStateFromStatus(GoogleCastRemoteMediaClient.instance.mediaStatus)
+        : _player.playerState;
+
+    if (!_playerControlStateSubject.isClosed) {
+      _playerControlStateSubject.add(state);
+    }
+  }
+
+  void _setupCastStateListeners() {
+    if (!_supportsCastPlatform) {
+      return;
+    }
+
+    _castSessionSubscription = GoogleCastSessionManager.instance.currentSessionStream.listen((session) {
+      if (session?.connectionState != GoogleCastConnectState.connected) {
+        _castControlledContentId = null;
+        _castControlledTrackIndex = 0;
+      }
+      _refreshPlayerControlState();
+      unawaited(_updatePlaybackState());
+    });
+
+    _castMediaStatusSubscription = GoogleCastRemoteMediaClient.instance.mediaStatusStream.listen((_) {
+      _refreshPlayerControlState();
+      unawaited(_updatePlaybackState());
+    });
+  }
+
   Stream<Duration> get durationStream {
     return _player.durationStream.map((duration) {
       return _currentMediaItem?.totalDuration ?? duration ?? Duration.zero;
@@ -523,10 +703,26 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   }
 
   Stream<Duration> get positionStream {
-    return _player.positionStream
+    final localPositionStream = _player.positionStream
         .throttleTime(const Duration(milliseconds: 200))
         .map((position) => (_currentMediaItem?.offsetForTrack(_currentTrackIndex) ?? Duration.zero) + position)
         .distinct();
+
+    if (!_supportsCastPlatform) {
+      return localPositionStream;
+    }
+
+    final castPositionStream = GoogleCastRemoteMediaClient.instance.playerPositionStream
+        .throttleTime(const Duration(milliseconds: 200))
+        .map(_castAbsolutePosition)
+        .distinct();
+
+    return castControlActiveStream.startWith(isCastControlActive).switchMap((castActive) {
+      if (castActive) {
+        return castPositionStream.startWith(position);
+      }
+      return localPositionStream.startWith(position);
+    }).distinct();
   }
 
   Stream<Duration> get bufferedPositionStream {
@@ -537,7 +733,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   }
 
   Stream<InternalChapter?> get chapterStream {
-    return _player.positionStream
+    return positionStream
         .throttleTime(const Duration(milliseconds: 1000))
         .map((position) => _currentMediaItem?.getChapterForDuration(position))
         .distinct();
@@ -569,12 +765,18 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   }
 
   Duration get position {
-    final pos = _player.position;
-    return (_currentMediaItem?.offsetForTrack(_currentTrackIndex) ?? Duration.zero) + pos;
+    if (isCastControlActive) {
+      return _castAbsolutePosition(GoogleCastRemoteMediaClient.instance.playerPosition);
+    }
+    return _localAbsolutePosition();
   }
 
   Stream<bool> get shouldShowPlayer {
     return _showPlayerSubject.stream.distinct();
+  }
+
+  bool get shouldShowPlayerNow {
+    return _currentMediaItem != null || _queueTransitionLoading;
   }
 
   Future<void> playLibraryItem(LibraryItem item) {
@@ -713,6 +915,14 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   @override
   Future<void> play() async {
+    if (isCastControlActive) {
+      PlayerUtils.enableWakelock(_ref);
+      await GoogleCastRemoteMediaClient.instance.play();
+      _refreshPlayerControlState();
+      await _updatePlaybackState();
+      return;
+    }
+
     PlayerUtils.enableWakelock(_ref);
 
     final shouldSwitchToQueuedItem =
@@ -810,7 +1020,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     }
 
     await seek(position);
-    await _player.play();
+    await play();
     TrayManager.update();
   }
 
@@ -851,10 +1061,20 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   @override
   Future<void> stop({bool clearQueue = true}) async {
+    final shouldStopCastPlayback = isCastControlActive;
+
     _setQueueTransitionLoading(false);
     _currentMediaItem = null;
     _currentTrackIndex = 0;
     PlayerUtils.disableWakelock(_ref);
+    if (shouldStopCastPlayback) {
+      try {
+        await GoogleCastRemoteMediaClient.instance.stop();
+      } catch (e) {
+        logger('Error stopping cast playback: $e', tag: 'AudioHandler', level: InfoLevel.warning);
+      }
+      deactivateCastControl();
+    }
     if (clearQueue) {
       _clearAutoQueueState();
       queueList.clear();
@@ -882,6 +1102,13 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   @override
   Future<void> pause() async {
     PlayerUtils.disableWakelock(_ref);
+    if (isCastControlActive) {
+      await GoogleCastRemoteMediaClient.instance.pause();
+      _refreshPlayerControlState();
+      await _updatePlaybackState();
+      TrayManager.update();
+      return Future.value();
+    }
     await _player.pause();
     TrayManager.update();
     return Future.value();
@@ -978,6 +1205,15 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     final boundedPosition = position < Duration.zero
         ? Duration.zero
         : (position > maxPosition ? maxPosition : position);
+
+    if (isCastControlActive) {
+      final relativePosition = _absoluteToCastRelativePosition(boundedPosition);
+      await GoogleCastRemoteMediaClient.instance.seek(GoogleCastMediaSeekOption(position: relativePosition));
+      _refreshPlayerControlState();
+      await _updatePlaybackState();
+      return Future.value();
+    }
+
     final newTrackIndex = _currentMediaItem!.getIndexForDuration(boundedPosition);
     if (newTrackIndex < 0) {
       logger(
@@ -1037,6 +1273,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     );
 
     _player = AudioPlayer(audioLoadConfiguration: loadCfg);
+    _playerControlStateSubject = BehaviorSubject<PlayerState>.seeded(_player.playerState);
 
     _errorSubscription = _player.errorStream.listen((error) {
       logger('AudioPlayer error: $error', tag: 'AudioHandler', level: InfoLevel.error);
@@ -1077,8 +1314,12 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           await _safePlayerStop();
         }
       }
+      _refreshPlayerControlState();
       _updatePlaybackState();
     });
+
+    _setupCastStateListeners();
+    _refreshPlayerControlState();
 
     _emitQueueState();
     _emitShouldShowPlayer();
@@ -1135,7 +1376,13 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     final isTransitionLoading =
         _queueTransitionLoading || (_player.processingState == ProcessingState.completed && queueList.isNotEmpty);
     final isMoreMenuVisible = showNotificationMoreButton && _androidAutoMoreMenuVisible;
-    final playPauseControl = _player.playerState.playing ? MediaControl.pause : MediaControl.play;
+    final controlState = playerControlState;
+    final playPauseControl = controlState.playing ? MediaControl.pause : MediaControl.play;
+    final updatePosition = position;
+    final effectiveSpeed = isCastControlActive
+        ? (GoogleCastRemoteMediaClient.instance.mediaStatus?.playbackRate.toDouble() ?? _player.speed)
+        : _player.speed;
+    final bufferedPosition = isCastControlActive ? updatePosition : _player.bufferedPosition;
     final controls = isMoreMenuVisible
         ? <MediaControl>[
             MediaControl.custom(
@@ -1188,23 +1435,17 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         // Whether audio is ready, buffering, ...
         processingState: isTransitionLoading
             ? AudioProcessingState.loading
-            : {
-                ProcessingState.idle: AudioProcessingState.idle,
-                ProcessingState.loading: AudioProcessingState.loading,
-                ProcessingState.buffering: AudioProcessingState.buffering,
-                ProcessingState.ready: AudioProcessingState.ready,
-                ProcessingState.completed: AudioProcessingState.completed,
-              }[_player.processingState]!,
-        playing: isTransitionLoading ? true : _player.playerState.playing,
+            : _toAudioProcessingState(controlState.processingState),
+        playing: isTransitionLoading ? true : controlState.playing,
         // The current position as of this update. You should not broadcast
         // position changes continuously because listeners will be able to
         // project the current position after any elapsed time based on the
         // current speed and whether audio is playing and ready. Instead, only
         // broadcast position updates when they are different from expected (e.g.
         // buffering, or seeking).
-        updatePosition: _player.position,
-        bufferedPosition: _player.bufferedPosition,
-        speed: _player.speed,
+        updatePosition: updatePosition,
+        bufferedPosition: bufferedPosition,
+        speed: effectiveSpeed,
       ),
     );
   }
@@ -1218,9 +1459,15 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     _errorSubscription = null;
     await _playerStateSubscription?.cancel();
     _playerStateSubscription = null;
+    await _castSessionSubscription?.cancel();
+    _castSessionSubscription = null;
+    await _castMediaStatusSubscription?.cancel();
+    _castMediaStatusSubscription = null;
     await _syncService.dispose();
     await _player.dispose();
     await mediaItemStream.close();
+    await _playerControlStateSubject.close();
+    await _castControlActiveSubject.close();
     await _queueLengthSubject.close();
     await _queueSnapshotSubject.close();
     await _queueTransitionLoadingSubject.close();

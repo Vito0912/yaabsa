@@ -7,8 +7,9 @@ class ControlButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder(
-      stream: audioHandler.player.playerStateStream,
+    return StreamBuilder<PlayerState>(
+      stream: audioHandler.playerControlStateStream,
+      initialData: audioHandler.playerControlState,
       builder: (BuildContext context, snapshot) {
         final PlayerState? playerState = snapshot.data;
         final isPlaying = playerState?.playing ?? false;

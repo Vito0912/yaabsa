@@ -1,5 +1,6 @@
 import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/components/player/common/control_button.dart';
+import 'package:yaabsa/components/player/common/cast_button.dart';
 import 'package:yaabsa/components/player/common/jump_button.dart';
 import 'package:yaabsa/components/player/common/seek_bar.dart';
 import 'package:yaabsa/components/player/common/skip_button.dart';
@@ -16,14 +17,18 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/player/chapter.dart';
 import 'package:yaabsa/screens/player/play_history_view.dart';
 import 'package:yaabsa/screens/player/queue.dart';
+import 'package:yaabsa/util/chrome_cast_service.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:just_audio/just_audio.dart';
 
 enum _PlayerLayoutType { mobile, tablet, desktop }
+
+enum _PlayerAppBarMenuAction { queue, carMode, playHistory, cast }
 
 class Player extends StatelessWidget {
   const Player({super.key});
@@ -38,8 +43,87 @@ class Player extends StatelessWidget {
     return _PlayerLayoutType.desktop;
   }
 
+  void _showQueueSheet(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (context) => const _QueueBottomSheet(),
+    );
+  }
+
+  void _openCarMode(BuildContext context) {
+    Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const _CarModeScreen()));
+  }
+
+  void _openPlayHistory(BuildContext context) {
+    context.push(PlayHistoryView.routeName);
+  }
+
+  void _showQuickSettings(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => const _PlayerQuickSettingsSheet(),
+    );
+  }
+
+  Future<void> _handleAppBarMenuAction(BuildContext context, _PlayerAppBarMenuAction action) async {
+    switch (action) {
+      case _PlayerAppBarMenuAction.queue:
+        _showQueueSheet(context);
+      case _PlayerAppBarMenuAction.carMode:
+        _openCarMode(context);
+      case _PlayerAppBarMenuAction.playHistory:
+        _openPlayHistory(context);
+      case _PlayerAppBarMenuAction.cast:
+        await showCastDevicePicker(context);
+    }
+  }
+
+  List<PopupMenuEntry<_PlayerAppBarMenuAction>> _buildOverflowMenuItems({
+    required bool isMobile,
+    required bool castSupported,
+  }) {
+    final items = <PopupMenuEntry<_PlayerAppBarMenuAction>>[];
+
+    if (isMobile) {
+      items.add(
+        const PopupMenuItem<_PlayerAppBarMenuAction>(
+          value: _PlayerAppBarMenuAction.queue,
+          child: _PlayerAppBarMenuItem(icon: Icons.queue_music_rounded, label: 'Queue'),
+        ),
+      );
+    }
+
+    items.addAll([
+      const PopupMenuItem<_PlayerAppBarMenuAction>(
+        value: _PlayerAppBarMenuAction.carMode,
+        child: _PlayerAppBarMenuItem(icon: Icons.directions_car_filled_outlined, label: 'Car Mode'),
+      ),
+      const PopupMenuItem<_PlayerAppBarMenuAction>(
+        value: _PlayerAppBarMenuAction.playHistory,
+        child: _PlayerAppBarMenuItem(icon: Icons.history, label: 'Play History'),
+      ),
+    ]);
+
+    if (isMobile && castSupported) {
+      items.add(
+        const PopupMenuItem<_PlayerAppBarMenuAction>(
+          value: _PlayerAppBarMenuAction.cast,
+          child: _PlayerAppBarMenuItem(icon: Icons.cast, label: 'Cast'),
+        ),
+      );
+    }
+
+    return items;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final castSupported = ChromeCastService.isSupportedPlatform;
+    final isMobile = context.isMobile;
+
     void closePlayerIfOpen() {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!context.mounted) {
@@ -60,45 +144,21 @@ class Player extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Player'),
         actions: [
-          if (context.isMobile)
-            IconButton(
-              icon: const Icon(Icons.queue_music_rounded),
-              onPressed: () {
-                showModalBottomSheet<void>(
-                  context: context,
-                  showDragHandle: true,
-                  isScrollControlled: true,
-                  builder: (context) => const _QueueBottomSheet(),
-                );
-              },
-              tooltip: 'Queue',
-            ),
-          IconButton(
-            icon: const Icon(Icons.directions_car_filled_outlined),
-            onPressed: () {
-              Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const _CarModeScreen()));
-            },
-            tooltip: 'Car Mode',
-          ),
-          IconButton(
-            icon: const Icon(Icons.history),
-            onPressed: () {
-              context.push(PlayHistoryView.routeName);
-            },
-            tooltip: 'Play History',
-          ),
           IconButton(
             icon: const Icon(Icons.tune),
-            onPressed: () {
-              showModalBottomSheet<void>(
-                context: context,
-                showDragHandle: true,
-                builder: (context) => const _PlayerQuickSettingsSheet(),
-              );
-            },
+            onPressed: () => _showQuickSettings(context),
             tooltip: 'Quick Settings',
           ),
-          StopButton(),
+          if (!isMobile && castSupported) const CastButton(),
+          const StopButton(),
+          PopupMenuButton<_PlayerAppBarMenuAction>(
+            tooltip: 'More options',
+            icon: const Icon(Icons.more_vert),
+            onSelected: (action) async {
+              await _handleAppBarMenuAction(context, action);
+            },
+            itemBuilder: (context) => _buildOverflowMenuItems(isMobile: isMobile, castSupported: castSupported),
+          ),
         ],
       ),
       body: Consumer(
@@ -493,6 +553,24 @@ class _QueueBottomSheet extends StatelessWidget {
   }
 }
 
+class _PlayerAppBarMenuItem extends StatelessWidget {
+  const _PlayerAppBarMenuItem({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, color: Theme.of(context).iconTheme.color ?? Theme.of(context).colorScheme.onSurface),
+        const SizedBox(width: 12),
+        Text(label),
+      ],
+    );
+  }
+}
+
 class _CarModeScreen extends ConsumerWidget {
   const _CarModeScreen();
 
@@ -585,8 +663,9 @@ class _CarPlayPauseControl extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder(
-      stream: audioHandler.player.playerStateStream,
+    return StreamBuilder<PlayerState>(
+      stream: audioHandler.playerControlStateStream,
+      initialData: audioHandler.playerControlState,
       builder: (context, snapshot) {
         final playerState = snapshot.data;
         final isPlaying = playerState?.playing ?? false;

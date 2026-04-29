@@ -52,8 +52,8 @@ class LibraryItemWidget extends ConsumerWidget {
     final showProgressBar = showProgress && progressValue > 0;
 
     return StreamBuilder<PlayerState>(
-      stream: audioHandler.player.playerStateStream,
-      initialData: audioHandler.player.playerState,
+      stream: audioHandler.playerControlStateStream,
+      initialData: audioHandler.playerControlState,
       builder: (context, snapshot) {
         final playerState = snapshot.data;
         final isCurrentItem = audioHandler.currentMediaItem?.itemId == libraryItem.id;

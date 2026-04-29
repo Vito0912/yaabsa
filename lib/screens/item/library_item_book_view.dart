@@ -82,8 +82,8 @@ class LibraryItemBookView extends ConsumerWidget {
       builder: (context, queueSnapshot) {
         final isQueued = queueSnapshot.data?.entries.any((entry) => entry.item.itemId == item.id) ?? false;
         return StreamBuilder<PlayerState>(
-          stream: audioHandler.player.playerStateStream,
-          initialData: audioHandler.player.playerState,
+          stream: audioHandler.playerControlStateStream,
+          initialData: audioHandler.playerControlState,
           builder: (context, playerStateSnapshot) {
             final isCurrentItem = audioHandler.currentMediaItem?.itemId == item.id;
 

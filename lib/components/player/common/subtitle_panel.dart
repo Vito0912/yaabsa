@@ -73,8 +73,8 @@ class SubtitlePanel extends ConsumerWidget {
             final canReadAlong = readAlongEnabled && document.supportsReadAlong;
 
             return StreamBuilder<PlayerState>(
-              stream: audioHandler.player.playerStateStream,
-              initialData: audioHandler.player.playerState,
+              stream: audioHandler.playerControlStateStream,
+              initialData: audioHandler.playerControlState,
               builder: (context, stateSnapshot) {
                 final state = stateSnapshot.data;
                 final isPlaying = state != null && state.playing && state.processingState == ProcessingState.ready;
