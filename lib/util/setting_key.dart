@@ -96,6 +96,33 @@ enum PlayerSeekBarMode {
   both;
 
   static PlayerSeekBarMode fromSettingValue(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return PlayerSeekBarMode.full;
+    }
+
+    final normalized = value.trim().toLowerCase();
+
+    for (final mode in PlayerSeekBarMode.values) {
+      if (mode.name == normalized) {
+        return mode;
+      }
+    }
+
+    if (normalized.startsWith('playerseekbarmode.')) {
+      final suffix = normalized.split('.').last;
+      for (final mode in PlayerSeekBarMode.values) {
+        if (mode.name == suffix) {
+          return mode;
+        }
+      }
+    }
+
+    for (final mode in PlayerSeekBarMode.values) {
+      if (mode.label.toLowerCase() == normalized) {
+        return mode;
+      }
+    }
+
     for (final mode in PlayerSeekBarMode.values) {
       if (mode.name == value) {
         return mode;

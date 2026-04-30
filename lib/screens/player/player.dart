@@ -19,19 +19,60 @@ import 'package:yaabsa/screens/player/play_history_view.dart';
 import 'package:yaabsa/screens/player/queue.dart';
 import 'package:yaabsa/util/chrome_cast_service.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/aaos_service.dart';
 import 'package:yaabsa/util/handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:just_audio/just_audio.dart';
+import 'dart:async';
 
 enum _PlayerLayoutType { mobile, tablet, desktop }
 
 enum _PlayerAppBarMenuAction { queue, carMode, playHistory, cast }
 
-class Player extends StatelessWidget {
+class Player extends StatefulWidget {
   const Player({super.key});
+
+  @override
+  State<Player> createState() => _PlayerState();
+}
+
+class _PlayerState extends State<Player> {
+  bool _didAutoOpenCarMode = false;
+  StreamSubscription<AaosTelemetryState>? _aaosAutoOpenSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _aaosAutoOpenSubscription = AaosService.instance.stream.listen(_maybeAutoOpenCarMode);
+    _maybeAutoOpenCarMode(AaosService.instance.currentState);
+  }
+
+  @override
+  void dispose() {
+    _aaosAutoOpenSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _maybeAutoOpenCarMode(AaosTelemetryState state) {
+    if (_didAutoOpenCarMode || !state.isAutomotiveDevice || !mounted) {
+      return;
+    }
+
+    _didAutoOpenCarMode = true;
+    _aaosAutoOpenSubscription?.cancel();
+    _aaosAutoOpenSubscription = null;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+
+      _openCarMode(context);
+    });
+  }
 
   _PlayerLayoutType _resolveLayout(double width) {
     if (width < 700) {
@@ -579,7 +620,7 @@ class _CarModeScreen extends ConsumerWidget {
     final api = ref.watch(absApiProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Car Mode')),
+      appBar: AppBar(title: const Text('Car Mode'), actions: const [StopButton()]),
       body: StreamBuilder<InternalMedia?>(
         stream: audioHandler.mediaItemStream.stream,
         builder: (context, snapshot) {
@@ -621,7 +662,7 @@ class _CarModeScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
-                const SeekBar(),
+                const SeekBar(trackHeight: 18.0),
                 const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -691,8 +732,12 @@ class _PlayerQuickSettingsSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final modeValue = ref.watch(globalSettingByKeyProvider(SettingKeys.playerSeekBarMode)).asData?.value;
-    final selectedMode = PlayerSeekBarMode.fromSettingValue(modeValue);
+    ref.watch(globalSettingByKeyProvider(SettingKeys.playerSeekBarMode));
+    final selectedMode = PlayerSeekBarMode.fromSettingValue(
+      ref
+          .read(settingsManagerProvider.notifier)
+          .getGlobalSetting<String>(SettingKeys.playerSeekBarMode, defaultValue: PlayerSeekBarMode.full.name),
+    );
 
     return SafeArea(
       child: Padding(

@@ -11,6 +11,7 @@ import 'package:yaabsa/screens/settings/license_settings.dart';
 import 'package:yaabsa/screens/settings/log_view.dart';
 import 'package:yaabsa/screens/settings/player_settings.dart';
 import 'package:yaabsa/screens/settings/reader_settings.dart';
+import 'package:yaabsa/util/aaos_service.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/network/dio_factory.dart';
 import 'package:dio/dio.dart';
@@ -456,11 +457,19 @@ class MainSettingsScreen extends ConsumerWidget {
                           onTap: () => context.push(LibrarySettings.routeName),
                         ),
                         _buildDivider(isWithinCard: true),
-                        _buildSettingsCardTile(
-                          context: context,
-                          icon: Icons.directions_car_filled_outlined,
-                          title: 'Android Auto',
-                          onTap: () => context.push(AndroidAutoSettings.routeName),
+                        StreamBuilder<AaosTelemetryState>(
+                          stream: AaosService.instance.stream,
+                          initialData: AaosService.instance.currentState,
+                          builder: (context, snapshot) {
+                            final aaosState = snapshot.data ?? AaosService.instance.currentState;
+
+                            return _buildSettingsCardTile(
+                              context: context,
+                              icon: Icons.directions_car_filled_outlined,
+                              title: aaosState.isAutomotiveDevice ? 'AAOS' : 'Android Auto',
+                              onTap: () => context.push(AndroidAutoSettings.routeName),
+                            );
+                          },
                         ),
                         _buildDivider(isWithinCard: true),
                         _buildSettingsCardTile(

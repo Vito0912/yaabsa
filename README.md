@@ -2,6 +2,14 @@
 
 An improved unofficial cross-platform app for Audiobookshelf
 
+> [!NOTE]
+> If you have problems or issues, you can create an issue.\
+> Please note that this client is a project I started because it lacks features; it is mainly a personal project.\
+> There are many options now, most of them just vibe-coded, and I do not want to add another app to the pile. This App by no means is AI-free, but not vibed  
+> If you find this app or see me mention it in a thread because of one of its unique features, please note that, since it is a personal project, any changes are very personal/opiniated.
+>
+> If you have better **ideas** for **design**, I am open to restructuring or redesigning the app
+
 ## Usage of AI
 
 As I myself criticize the lack of disclosure about AI, which most ABS apps now use, I want to be clear that later in the making of the app, AI/LLMs were used in the development process. I still know the API endpoints used very well and have already helped a ton of people with API usage.
@@ -10,9 +18,10 @@ As I myself criticize the lack of disclosure about AI, which most ABS apps now u
 
 Below is a list of all features, but I want to *highlight* a few, as this client has features that are only and or very rarely found in other clients:
 
-- eBook/PDF support **with** _syncable_ annotations (EPUBs only)
+- **First** and **only** client that supports Android Automotive with desktop/large displays in mind
+- eBook/PDF support **with** *syncable* annotations (EPUBs only)
 - subtitle support **with** karaoke-style highlighting support (later planned to be extended like Whispersync)
-- Support for all platforms Linux, Android, (iOS, macOS: TBA), Windows with responsive design
+- Support for all platforms Linux, Android, Android Automotive, (iOS, macOS: TBA), Windows with responsive design
 
 ## Compatibility Matrix
 
@@ -75,14 +84,14 @@ Below is a list of all features, but I want to *highlight* a few, as this client
 
 ### Other Features
 
-| Feature   | Android | iOS  | Windows | MacOS | Linux |
-| --------- | ------- | ---- | ------- | ----- | ----- |
-| Sync      | ✅      | ✅   | ✅      | ✅    | ✅    |
-| Caching   | ✅      | ✅   | ✅      | ✅    | ✅    |
-| Downloads | ✅      | ❓   | ❓      | ❓    | ✅    |
-| Headers   | ✅      | ✅   | ✅      | ✅    | ✅    |
-| Car       | ✅      | 🅿️L  | ❌      | ❌    | ❌    |
-
+| Feature            | Android | iOS  | Windows | MacOS | Linux |
+| ------------------ | ------- | ---- | ------- | ----- | ----- |
+| Sync               | ✅      | ✅   | ✅      | ✅    | ✅    |
+| Caching            | ✅      | ✅   | ✅      | ✅    | ✅    |
+| Downloads          | ✅      | ❓   | ❓      | ❓    | ✅    |
+| Headers            | ✅      | ✅   | ✅      | ✅    | ✅    |
+| Car                | ✅      | 🅿️L  | ❌      | ❌    | ❌    |
+| Android Automotive | ✅      | ❌   | ❌      | ❌    | ❌    |
 
 ## Platform hints
 
@@ -94,5 +103,6 @@ For the best experience and security, please use the Flatpak. It includes everyt
 The Snap package is currently broken and might be removed in the future.
 For all other installation methods, you need to make sure that the correct dependencies are installed on your system. If the app starts with a black screen, please set the ENV `YAABSA_RELEASE_CONSOLE_LOG=1`, as this will log issues if you start the application from the terminal.
 In general, you need the following dependencies:
+
 - libmpv
 - libsecret

@@ -7,7 +7,9 @@ import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
 class SeekBar extends ConsumerWidget {
-  const SeekBar({super.key});
+  const SeekBar({super.key, this.trackHeight = 10.0});
+
+  final double trackHeight;
 
   String _formatDuration(Duration? duration) {
     if (duration == null) return "--:--";
@@ -23,6 +25,11 @@ class SeekBar extends ConsumerWidget {
   }
 
   InternalChapter? _getCurrentChapter(List<InternalChapter> chapters, Duration currentPosition) {
+    final mediaChapter = audioHandler.currentMediaItem?.getChapterForDuration(currentPosition);
+    if (mediaChapter != null) {
+      return mediaChapter;
+    }
+
     if (chapters.isEmpty) {
       return null;
     }
@@ -38,6 +45,10 @@ class SeekBar extends ConsumerWidget {
     final lastChapter = chapters.last;
     if (currentPosition >= lastChapter.end.toDuration) {
       return lastChapter;
+    }
+
+    if (currentPosition < chapters.first.start.toDuration) {
+      return chapters.first;
     }
 
     return null;
@@ -89,7 +100,7 @@ class SeekBar extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 4.0),
                 child: SliderTheme(
                   data: SliderTheme.of(context).copyWith(
-                    trackHeight: 10.0,
+                    trackHeight: trackHeight,
                     trackShape: const RectangularSliderTrackShape(),
                     thumbShape: const RoundSliderThumbShape(
                       enabledThumbRadius: 0.0,
@@ -140,7 +151,7 @@ class SeekBar extends ConsumerWidget {
                               left: offset,
                               child: Container(
                                 width: 1.0,
-                                height: 10.0,
+                                height: trackHeight,
                                 color: Theme.of(context).colorScheme.secondaryContainer.withValues(alpha: 0.75),
                               ),
                             ),
@@ -167,8 +178,9 @@ class SeekBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final seekBarModeValue = ref.watch(globalSettingByKeyProvider(SettingKeys.playerSeekBarMode)).asData?.value;
-    final configuredMode = PlayerSeekBarMode.fromSettingValue(seekBarModeValue);
+    // Listen for persisted setting changes and resolve from cache for immediate in-app updates.
+    ref.watch(globalSettingByKeyProvider(SettingKeys.playerSeekBarMode));
+    final settingsManager = ref.read(settingsManagerProvider.notifier);
 
     final Stream<Duration> positionStream = audioHandler.positionStream;
     final Stream<Duration> totalDurationStream = audioHandler.durationStream;
@@ -185,6 +197,12 @@ class SeekBar extends ConsumerWidget {
             return StreamBuilder<List<InternalChapter>>(
               stream: chaptersStream,
               builder: (context, chaptersSnapshot) {
+                final configuredMode = PlayerSeekBarMode.fromSettingValue(
+                  settingsManager.getGlobalSetting<String>(
+                    SettingKeys.playerSeekBarMode,
+                    defaultValue: PlayerSeekBarMode.full.name,
+                  ),
+                );
                 final chapters = chaptersSnapshot.data ?? const <InternalChapter>[];
                 final currentChapter = _getCurrentChapter(chapters, currentPosition);
 

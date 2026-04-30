@@ -1,0 +1,89 @@
+import 'dart:async';
+import 'dart:io';
+
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:yaabsa/util/logger.dart';
+
+class AaosTelemetryState {
+  const AaosTelemetryState({required this.isAndroid, required this.isAutomotiveDevice, this.statusMessage});
+
+  const AaosTelemetryState.initial()
+    : isAndroid = false,
+      isAutomotiveDevice = false,
+      statusMessage = 'AAOS integration is inactive.';
+
+  final bool isAndroid;
+  final bool isAutomotiveDevice;
+  final String? statusMessage;
+
+  AaosTelemetryState copyWith({
+    bool? isAndroid,
+    bool? isAutomotiveDevice,
+    String? statusMessage,
+    bool clearStatusMessage = false,
+  }) {
+    return AaosTelemetryState(
+      isAndroid: isAndroid ?? this.isAndroid,
+      isAutomotiveDevice: isAutomotiveDevice ?? this.isAutomotiveDevice,
+      statusMessage: clearStatusMessage ? null : (statusMessage ?? this.statusMessage),
+    );
+  }
+}
+
+class AaosService {
+  AaosService._();
+
+  static final AaosService instance = AaosService._();
+
+  static const String _automotiveFeatureFlag = 'android.hardware.type.automotive';
+
+  final DeviceInfoPlugin _deviceInfoPlugin = DeviceInfoPlugin();
+  final StreamController<AaosTelemetryState> _stateController = StreamController<AaosTelemetryState>.broadcast();
+
+  AaosTelemetryState _state = const AaosTelemetryState.initial();
+  bool _initialized = false;
+
+  Stream<AaosTelemetryState> get stream => _stateController.stream;
+  AaosTelemetryState get currentState => _state;
+
+  Future<void> initialize() async {
+    if (_initialized) {
+      return;
+    }
+
+    _initialized = true;
+
+    if (!Platform.isAndroid) {
+      _emit(_state.copyWith(statusMessage: 'AAOS integration is only available on Android.'));
+      return;
+    }
+
+    final isAutomotiveDevice = await _detectAutomotiveDevice();
+    _emit(
+      _state.copyWith(
+        isAndroid: true,
+        isAutomotiveDevice: isAutomotiveDevice,
+        statusMessage: isAutomotiveDevice
+            ? 'Android Automotive OS detected.'
+            : 'Android Automotive OS not detected on this device.',
+      ),
+    );
+  }
+
+  Future<bool> _detectAutomotiveDevice() async {
+    try {
+      final androidInfo = await _deviceInfoPlugin.androidInfo;
+      return androidInfo.systemFeatures.contains(_automotiveFeatureFlag);
+    } catch (error) {
+      logger('Failed to detect AAOS feature flag: $error', tag: 'AAOS', level: InfoLevel.warning);
+      return false;
+    }
+  }
+
+  void _emit(AaosTelemetryState nextState) {
+    _state = nextState;
+    if (!_stateController.isClosed) {
+      _stateController.add(nextState);
+    }
+  }
+}
