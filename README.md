@@ -21,7 +21,7 @@ Below is a list of all features, but I want to *highlight* a few, as this client
 - **First** and **only** client that supports Android Automotive with desktop/large displays in mind
 - eBook/PDF support **with** *syncable* annotations (EPUBs only)
 - subtitle support **with** karaoke-style highlighting support (later planned to be extended like Whispersync)
-- Support for all platforms Linux, Android, Android Automotive, (iOS, macOS: TBA), Windows with responsive design
+- Support for all platforms Linux, Android, Android Automotive, iOS, macOS, Windows with responsive design
 
 ## Compatibility Matrix
 
@@ -57,28 +57,28 @@ Below is a list of all features, but I want to *highlight* a few, as this client
 
 | Feature                         | Android | iOS | Windows | MacOS | Linux |
 | ------------------------------- | ------- | --- | ------- | ----- | ----- |
-| Play/Pause/Seeking/Speed/Volume | ✅      | ❓  | ❓      | ❓    | ✅    |
-| Background Playback             | ✅      | ❓  | ❓      | ❓    | ✅    |
-| Device Controls                 | ✅      | ❓  | ❌      | ❓    | ❌    |
-| (Auto)-Queue                    | ✅      | ❓  | ❓      | ❓    | ✅    |
-| Gapless playback                | ✅      | ❓  | ❓      | ❓    | ✅    |
-| Buffering                       | ✅      | ❓  | ❓      | ❓    | ❓    |
+| Play/Pause/Seeking/Speed/Volume | ✅      | ✅  | ❓      | ✅    | ✅    |
+| Background Playback             | ✅      | ✅  | ❓      | ✅    | ✅    |
+| Device Controls                 | ✅      | ✅  | ❌      | ✅    | ❌    |
+| (Auto)-Queue                    | ✅      | ✅  | ❓      | ✅    | ✅    |
+| Gapless playback                | ✅      | ✅  | ❓      | ✅    | ✅    |
+| Buffering                       | ✅      | ✅  | ❓      | ✅    | ❓    |
 | Volume Boost                    | ✅      | ❌  | ❌      | ❌    | ❌    |
 | Audio ducking                   | ✅      | ❓  | ❌      | ❌    | ❌    |
-| Sleep Timer                     | ✅      | ❓  | ❓      | ❓    | ✅    |
-| Chapters                        | ✅      | ❓  | ❓      | ❓    | ✅    |
-| Play History                    | ✅      | ❓  | ❓      | ❓    | ✅    |
-| Shake to rewind                 | ✅      | ❓  | ❌      | ❌    | ❌    |
+| Sleep Timer                     | ✅      | ✅  | ❓      | ✅    | ✅    |
+| Chapters                        | ✅      | ✅  | ❓      | ✅    | ✅    |
+| Play History                    | ✅      | ✅  | ❓      | ✅    | ✅    |
+| Shake to rewind                 | ✅      | ✅  | ❌      | ❌    | ❌    |
 | Cast                            | ✅      | ❓  | ❌      | ❌    | ❌    |
 
 ### E-Reader
 
 | Feature          | Android | iOS  | Windows | MacOS | Linux |
 | ---------------- | ------- | ---- | ------- | ----- | ----- |
-| ePUB support     | ✅      | ✅   | 🅿️      | ❓    | ❌    |
-| PDF support      | ✅      | 🅿️   | 🅿️      | ❓    | ✅    |
-| Annotations      | ✅      | ✅\* | 🅿️      | ❓    | ✅    |
-| Sync Annotations | ✅      | ✅   | ❓      | ❓    | ✅    |
+| ePUB support     | ✅      | ✅   | 🅿️      | 🅿️    | ❌    |
+| PDF support      | ✅      | 🅿️   | 🅿️      | ✅    | ✅    |
+| Annotations      | ✅      | ✅\* | 🅿️      | ✅    | ✅    |
+| Sync Annotations | ✅      | ✅   | ❓      | ✅    | ✅    |
 
 \* You can only load in annotations, but not create new ones for ePUBs
 
@@ -88,10 +88,12 @@ Below is a list of all features, but I want to *highlight* a few, as this client
 | ------------------ | ------- | ---- | ------- | ----- | ----- |
 | Sync               | ✅      | ✅   | ✅      | ✅    | ✅    |
 | Caching            | ✅      | ✅   | ✅      | ✅    | ✅    |
-| Downloads          | ✅      | ❓   | ❓      | ❓    | ✅    |
+| Downloads          | ✅      | ❓   | ❓      | ✅\*  | ✅    |
 | Headers            | ✅      | ✅   | ✅      | ✅    | ✅    |
 | Car                | ✅      | 🅿️L  | ❌      | ❌    | ❌    |
 | Android Automotive | ✅      | ❌   | ❌      | ❌    | ❌    |
+
+\* Only supports the default download location, due to sandboxing limitations. Will be addressed in the future.
 
 ## Platform hints
 
