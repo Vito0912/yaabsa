@@ -79,6 +79,8 @@ android {
         }
         create("automotive") {
             dimension = "carPlatform"
+            versionCode = flutter.versionCode + 1
+            versionName = flutter.versionName
         }
     }
 }
