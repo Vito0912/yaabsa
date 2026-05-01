@@ -4,21 +4,21 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ABSInterceptor extends Interceptor {
-  final Ref ref;
+  final ProviderContainer container;
 
-  const ABSInterceptor(this.ref);
+  const ABSInterceptor(this.container);
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     if (_isConnectivityFailure(err)) {
-      final wasReachable = ref.read(serverReachabilityProvider);
+      final wasReachable = container.read(serverReachabilityProvider);
       if (wasReachable) {
         logger(
           'Marking server unreachable from interceptor due to ${err.type}.',
           tag: 'ABSInterceptor',
           level: InfoLevel.debug,
         );
-        ref.read(serverReachabilityProvider.notifier).setUnreachable();
+        container.read(serverReachabilityProvider.notifier).setUnreachable();
       }
     }
     return handler.next(err);
@@ -27,13 +27,13 @@ class ABSInterceptor extends Interceptor {
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
     if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
-      if (!ref.read(serverReachabilityProvider)) {
+      if (!container.read(serverReachabilityProvider)) {
         logger(
           'Marking server reachable from interceptor due to ${response.requestOptions.uri}.',
           tag: 'ABSInterceptor',
           level: InfoLevel.debug,
         );
-        ref.read(serverReachabilityProvider.notifier).setReachable();
+        container.read(serverReachabilityProvider.notifier).setReachable();
       }
     }
     return handler.next(response);

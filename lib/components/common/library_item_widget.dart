@@ -49,7 +49,7 @@ class LibraryItemWidget extends ConsumerWidget {
     final isCollapsedSeriesCard = libraryItem.collapsedSeries != null;
 
     final progressValue = (progress?.progress ?? 0).clamp(0.0, 1.0).toDouble();
-    final showProgressBar = showProgress && progressValue > 0;
+    final showProgressRing = showProgress && progressValue > 0;
 
     return StreamBuilder<PlayerState>(
       stream: audioHandler.playerControlStateStream,
@@ -59,6 +59,8 @@ class LibraryItemWidget extends ConsumerWidget {
         final isCurrentItem = audioHandler.currentMediaItem?.itemId == libraryItem.id;
         final isPlayingCurrentItem = isCurrentItem && (playerState?.playing ?? false);
         final colorScheme = Theme.of(context).colorScheme;
+        final isFinished = showProgressRing && (progress?.isFinished ?? false);
+        final activeBorderProgress = isPlayingCurrentItem ? progressValue : 0.0;
 
         return Padding(
           padding: compact ? const EdgeInsets.all(4) : const EdgeInsets.all(8),
@@ -91,32 +93,37 @@ class LibraryItemWidget extends ConsumerWidget {
               children: [
                 Stack(
                   children: [
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 180),
-                      curve: Curves.easeOut,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        border: isCurrentItem
-                            ? Border.all(
-                                color: colorScheme.primary.withValues(alpha: isPlayingCurrentItem ? 1 : 0.5),
-                                width: 4,
-                              )
-                            : null,
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: squareCover
-                            ? AspectRatio(
-                                aspectRatio: 1,
-                                child: api.getLibraryItemApi().getLibraryItemCover(libraryItem.id, item: libraryItem),
-                              )
-                            : SizedBox(
-                                width: double.infinity,
-                                height: 200,
-                                child: api.getLibraryItemApi().getLibraryItemCover(libraryItem.id, item: libraryItem),
-                              ),
-                      ),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: squareCover
+                          ? AspectRatio(
+                              aspectRatio: 1,
+                              child: api.getLibraryItemApi().getLibraryItemCover(libraryItem.id, item: libraryItem),
+                            )
+                          : SizedBox(
+                              width: double.infinity,
+                              height: 200,
+                              child: api.getLibraryItemApi().getLibraryItemCover(libraryItem.id, item: libraryItem),
+                            ),
                     ),
+                    if (isCurrentItem)
+                      Positioned.fill(
+                        child: IgnorePointer(
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 180),
+                            child: CustomPaint(
+                              key: ValueKey<double>(activeBorderProgress),
+                              painter: _SquareProgressBorderPainter(
+                                borderRadius: 16,
+                                strokeWidth: 4,
+                                baseColor: colorScheme.primary.withValues(alpha: 0.5),
+                                progressColor: colorScheme.primary,
+                                progress: activeBorderProgress,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                     if (selectionMode)
                       Positioned(
                         top: 4,
@@ -183,50 +190,77 @@ class LibraryItemWidget extends ConsumerWidget {
                               ),
                             )
                           : Container(
-                              decoration: BoxDecoration(borderRadius: BorderRadius.circular(100), color: Colors.black),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(100),
+                                color: isFinished ? colorScheme.primary : colorScheme.surface.withAlpha(230),
+                              ),
                               child: Stack(
                                 alignment: Alignment.center,
                                 children: [
                                   if (libraryItem.media?.hasAudio ?? false)
-                                    IconButton(
-                                      tooltip: isPlayingCurrentItem ? 'Pause' : 'Play',
-                                      icon: Icon(isPlayingCurrentItem ? Icons.pause : Icons.play_arrow, size: 14),
-                                      iconSize: 10,
-                                      onPressed: () {
-                                        if (isPlayingCurrentItem) {
-                                          audioHandler.pause();
-                                          return;
-                                        }
+                                    SizedBox(
+                                      width: 36,
+                                      height: 36,
+                                      child: Stack(
+                                        alignment: Alignment.center,
+                                        children: [
+                                          if (showProgressRing)
+                                            SizedBox(
+                                              width: 34,
+                                              height: 34,
+                                              child: CircularProgressIndicator(
+                                                value: progressValue,
+                                                strokeWidth: 3,
+                                                backgroundColor: Colors.white24,
+                                                valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
+                                              ),
+                                            ),
+                                          IconButton(
+                                            tooltip: isPlayingCurrentItem ? 'Pause' : (isFinished ? 'Replay' : 'Play'),
+                                            icon: Icon(
+                                              isPlayingCurrentItem ? Icons.pause : Icons.play_arrow,
+                                              size: isFinished ? 20 : 16,
+                                              color: isFinished ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
+                                            ),
+                                            iconSize: isFinished ? 20 : 16,
+                                            onPressed: () {
+                                              if (isPlayingCurrentItem) {
+                                                audioHandler.pause();
+                                                return;
+                                              }
 
-                                        if (isCurrentItem) {
-                                          audioHandler.play();
-                                          return;
-                                        }
+                                              if (isCurrentItem) {
+                                                audioHandler.play();
+                                                return;
+                                              }
 
-                                        if (onPlay != null) {
-                                          onPlay!();
-                                          return;
-                                        }
+                                              if (onPlay != null) {
+                                                onPlay!();
+                                                return;
+                                              }
 
-                                        if (libraryItem.mediaType == 'podcast') {
-                                          final podcastEpisodes =
-                                              (libraryItem.media?.podcastMedia?.episodes ?? const <Episode>[])
-                                                  .where((episode) => episode.audioFile != null)
-                                                  .toList(growable: false);
-                                          if (podcastEpisodes.isNotEmpty) {
-                                            audioHandler.playPodcastEpisode(
-                                              libraryItem,
-                                              podcastEpisodes.first,
-                                              episodeIndex: 0,
-                                              orderedEpisodes: podcastEpisodes,
-                                            );
-                                            return;
-                                          }
-                                        }
+                                              if (libraryItem.mediaType == 'podcast') {
+                                                final podcastEpisodes =
+                                                    (libraryItem.media?.podcastMedia?.episodes ?? const <Episode>[])
+                                                        .where((episode) => episode.audioFile != null)
+                                                        .toList(growable: false);
+                                                if (podcastEpisodes.isNotEmpty) {
+                                                  audioHandler.playPodcastEpisode(
+                                                    libraryItem,
+                                                    podcastEpisodes.first,
+                                                    episodeIndex: 0,
+                                                    orderedEpisodes: podcastEpisodes,
+                                                  );
+                                                  return;
+                                                }
+                                              }
 
-                                        audioHandler.playLibraryItem(libraryItem);
-                                      },
-                                      splashRadius: 8,
+                                              audioHandler.playLibraryItem(libraryItem);
+                                            },
+                                            splashRadius: 8,
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   if (!(libraryItem.media?.hasAudio ?? false) && (libraryItem.media?.hasBook ?? false))
                                     IconButton(
@@ -240,13 +274,6 @@ class LibraryItemWidget extends ConsumerWidget {
                     ),
                   ],
                 ),
-                if (showProgressBar) ...[
-                  const SizedBox(height: 6),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(99),
-                    child: LinearProgressIndicator(value: progressValue, minHeight: compact ? 3.5 : 4),
-                  ),
-                ],
                 SizedBox(height: compact ? 6 : 8),
                 Text(
                   libraryItem.title,
@@ -281,5 +308,70 @@ class LibraryItemWidget extends ConsumerWidget {
     }
 
     return null;
+  }
+}
+
+class _SquareProgressBorderPainter extends CustomPainter {
+  const _SquareProgressBorderPainter({
+    required this.borderRadius,
+    required this.strokeWidth,
+    required this.baseColor,
+    required this.progressColor,
+    required this.progress,
+  });
+
+  final double borderRadius;
+  final double strokeWidth;
+  final Color baseColor;
+  final Color progressColor;
+  final double progress;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final inset = strokeWidth / 2;
+    final rect = Rect.fromLTWH(inset, inset, size.width - strokeWidth, size.height - strokeWidth);
+    final radiusValue = borderRadius.clamp(0.0, rect.shortestSide / 2);
+    final r = Radius.circular(radiusValue);
+
+    final path = Path()
+      ..moveTo(rect.center.dx, rect.top)
+      ..lineTo(rect.right - radiusValue, rect.top)
+      ..arcToPoint(Offset(rect.right, rect.top + radiusValue), radius: r, clockwise: true)
+      ..lineTo(rect.right, rect.bottom - radiusValue)
+      ..arcToPoint(Offset(rect.right - radiusValue, rect.bottom), radius: r, clockwise: true)
+      ..lineTo(rect.left + radiusValue, rect.bottom)
+      ..arcToPoint(Offset(rect.left, rect.bottom - radiusValue), radius: r, clockwise: true)
+      ..lineTo(rect.left, rect.top + radiusValue)
+      ..arcToPoint(Offset(rect.left + radiusValue, rect.top), radius: r, clockwise: true)
+      ..lineTo(rect.center.dx, rect.top);
+
+    final basePaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..color = baseColor;
+    canvas.drawPath(path, basePaint);
+
+    final clampedProgress = progress.clamp(0.0, 1.0);
+    if (clampedProgress <= 0) {
+      return;
+    }
+
+    final metric = path.computeMetrics().first;
+    final progressPath = metric.extractPath(0, metric.length * clampedProgress);
+    final progressPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round
+      ..color = progressColor;
+    canvas.drawPath(progressPath, progressPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _SquareProgressBorderPainter oldDelegate) {
+    return oldDelegate.progress != progress ||
+        oldDelegate.baseColor != baseColor ||
+        oldDelegate.progressColor != progressColor ||
+        oldDelegate.strokeWidth != strokeWidth ||
+        oldDelegate.borderRadius != borderRadius;
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class SignInAuthSection extends StatelessWidget {
   const SignInAuthSection({
@@ -61,31 +62,51 @@ class SignInAuthSection extends StatelessWidget {
           ),
         ] else if (allowsLocal) ...[
           const SizedBox(height: 18),
-          TextField(
-            controller: usernameController,
-            enabled: !isLoading,
-            textInputAction: TextInputAction.next,
-            decoration: InputDecoration(
-              labelText: 'Username',
-              prefixIcon: const Icon(Icons.person_outline_rounded),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: passwordController,
-            enabled: !isLoading,
-            obscureText: true,
-            onSubmitted: (_) => onValidateAndSignIn(),
-            decoration: InputDecoration(
-              labelText: 'Password',
-              prefixIcon: const Icon(Icons.password_rounded),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          AutofillGroup(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextField(
+                  controller: usernameController,
+                  enabled: !isLoading,
+                  textInputAction: TextInputAction.next,
+                  autofillHints: const [AutofillHints.username, AutofillHints.email],
+                  decoration: InputDecoration(
+                    labelText: 'Username',
+                    prefixIcon: const Icon(Icons.person_outline_rounded),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: passwordController,
+                  enabled: !isLoading,
+                  obscureText: true,
+                  enableSuggestions: false,
+                  autocorrect: false,
+                  autofillHints: const [AutofillHints.password],
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) {
+                    TextInput.finishAutofillContext(shouldSave: true);
+                    onValidateAndSignIn();
+                  },
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    prefixIcon: const Icon(Icons.password_rounded),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 14),
           FilledButton.icon(
-            onPressed: isLoading ? null : onValidateAndSignIn,
+            onPressed: isLoading
+                ? null
+                : () {
+                    TextInput.finishAutofillContext(shouldSave: true);
+                    onValidateAndSignIn();
+                  },
             icon: isLoading
                 ? SizedBox(
                     height: 18,

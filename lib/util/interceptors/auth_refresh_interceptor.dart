@@ -9,12 +9,12 @@ import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/network/dio_factory.dart';
 
 class AuthRefreshInterceptor extends Interceptor {
-  AuthRefreshInterceptor(this.ref);
+  AuthRefreshInterceptor(this.container);
 
   static const String _retryExtraKey = 'auth_retry_attempted';
   static const String _skipRefreshExtraKey = 'skip_auth_refresh';
 
-  final Ref ref;
+  final ProviderContainer container;
   Completer<User?>? _refreshCompleter;
 
   @override
@@ -68,7 +68,7 @@ class AuthRefreshInterceptor extends Interceptor {
 
     () async {
       try {
-        final db = ref.read(appDatabaseProvider);
+        final db = container.read(appDatabaseProvider);
         final activeUserId = (await db.getGlobalSetting('activeUserId'))?.value;
         if (activeUserId == null || activeUserId.isEmpty) {
           completer.complete(null);

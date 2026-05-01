@@ -3,6 +3,7 @@ import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/api/routes/interceptors/bearer_auth_interceptor.dart';
 import 'package:yaabsa/api/routes/interceptors/o_auth_interceptor.dart';
 import 'package:yaabsa/database/app_database.dart';
+import 'package:yaabsa/util/globals.dart' show containerRef;
 import 'package:yaabsa/util/interceptors/cache_interceptor.dart';
 import 'package:yaabsa/util/interceptors/auth_refresh_interceptor.dart';
 import 'package:yaabsa/util/logger.dart';
@@ -186,9 +187,9 @@ ABSApi? absApi(Ref ref) {
   List<Interceptor> interceptors = [
     BearerAuthInterceptor(),
     OAuthInterceptor(),
-    AuthRefreshInterceptor(ref),
-    ABSInterceptor(ref),
-    CacheInterceptor(ref),
+    AuthRefreshInterceptor(containerRef),
+    ABSInterceptor(containerRef),
+    CacheInterceptor(containerRef),
   ];
 
   final api = ABSApi(

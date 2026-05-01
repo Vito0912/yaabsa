@@ -8,9 +8,40 @@ import 'package:yaabsa/util/chrome_cast_service.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/logger.dart';
 
+String? _resolveCastAvailabilityMessage() {
+  final media = audioHandler.currentMediaItem;
+  if (media == null || media.tracks.isEmpty) {
+    return 'Nothing is currently playing to cast.';
+  }
+
+  final currentTrackIndex = audioHandler.player.currentIndex ?? 0;
+  if (currentTrackIndex < 0 || currentTrackIndex >= media.tracks.length) {
+    return 'Unable to determine the current track.';
+  }
+
+  final currentTrack = media.tracks[currentTrackIndex];
+  final trackUrl = currentTrack.url;
+  if (trackUrl == null || trackUrl.isEmpty) {
+    return 'Current track does not have a playable URL.';
+  }
+
+  final trackUri = Uri.tryParse(trackUrl);
+  if (trackUri == null || !(trackUri.scheme == 'http' || trackUri.scheme == 'https')) {
+    return 'Casting currently is not supported for local files.';
+  }
+
+  return null;
+}
+
 Future<void> showCastDevicePicker(BuildContext context, {bool ensureInitialized = true}) async {
   if (!(Platform.isAndroid || Platform.isIOS)) {
     _showCastMessage(context, 'Chrome Cast is unavailable on this platform.');
+    return;
+  }
+
+  final castUnavailableMessage = _resolveCastAvailabilityMessage();
+  if (castUnavailableMessage != null) {
+    _showCastMessage(context, castUnavailableMessage);
     return;
   }
 
@@ -128,7 +159,7 @@ Future<_CastTarget?> _castCurrentTrack(BuildContext context) async {
 
   final trackUri = Uri.tryParse(trackUrl);
   if (trackUri == null || !(trackUri.scheme == 'http' || trackUri.scheme == 'https')) {
-    _showCastMessage(context, 'Casting local files is not supported.');
+    _showCastMessage(context, 'Casting currently is not supported for local files.');
     return null;
   }
 
@@ -224,6 +255,12 @@ class _CastButtonState extends ConsumerState<CastButton> {
   }
 
   Future<void> _handlePressed() async {
+    final castUnavailableMessage = _resolveCastAvailabilityMessage();
+    if (castUnavailableMessage != null) {
+      _showCastMessage(context, castUnavailableMessage);
+      return;
+    }
+
     final initialized = _isInitialized || await _ensureInitialized();
     if (!initialized) {
       _showCastMessage(context, 'Chrome Cast is unavailable on this device.');

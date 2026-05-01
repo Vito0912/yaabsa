@@ -26,12 +26,17 @@ class CacheInterceptor extends Interceptor {
 
   final StoreRef<String, dynamic> _store = StoreRef.main();
 
-  final Ref ref;
+  final ProviderContainer container;
   final bool cachingEnabled;
   final bool aggressiveCaching;
   final bool boostLoading;
 
-  CacheInterceptor(this.ref, {this.cachingEnabled = true, this.aggressiveCaching = false, this.boostLoading = false});
+  CacheInterceptor(
+    this.container, {
+    this.cachingEnabled = true,
+    this.aggressiveCaching = false,
+    this.boostLoading = false,
+  });
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
@@ -165,7 +170,7 @@ class CacheInterceptor extends Interceptor {
   }
 
   String _getCacheKey(Uri uri) {
-    final user = ref.read(currentUserProvider).value;
+    final user = container.read(currentUserProvider).value;
     return '${user?.id}${uri.toString()}';
   }
 }
