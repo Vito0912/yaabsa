@@ -3,6 +3,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/components/common/author_card.dart';
+import 'package:yaabsa/components/common/connection_issue_view.dart';
 import 'package:yaabsa/components/common/scroll_to_top_button.dart';
 import 'package:yaabsa/provider/common/library_filter_data_provider.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
@@ -87,7 +88,14 @@ class AuthorsView extends HookConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stackTrace) => Center(child: Text('Error loading authors: $error')),
+      error: (error, stackTrace) => ConnectionIssueView.requestFailed(
+        error: error,
+        title: 'Error loading authors',
+        onRetry: () async {
+          ref.invalidate(libraryFilterDataProvider(libraryId));
+          await ref.read(libraryFilterDataProvider(libraryId).future);
+        },
+      ),
     );
   }
 }

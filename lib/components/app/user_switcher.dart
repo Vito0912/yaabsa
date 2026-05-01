@@ -1,6 +1,8 @@
 import 'package:yaabsa/api/me/user.dart';
+import 'package:yaabsa/components/app/user_switcher_avatar.dart';
 import 'package:yaabsa/components/platform_builder.dart';
 import 'package:yaabsa/database/app_database.dart';
+import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:flutter/material.dart';
@@ -86,50 +88,56 @@ class UserSwitcher extends ConsumerWidget {
     return items;
   }
 
-  Widget _buildMobilePopupChild(BuildContext context, User? currentUser) {
-    return _selectorContainer(context, currentUser, compact: true);
+  Widget _buildMobilePopupChild(BuildContext context, User? currentUser, {required bool? serverReachable}) {
+    return _selectorContainer(context, currentUser, compact: true, serverReachable: serverReachable);
   }
 
-  Widget _buildMobile(BuildContext context, WidgetRef ref, User? currentUser, List<User> allUsers) {
+  Widget _buildMobile(
+    BuildContext context,
+    WidgetRef ref,
+    User? currentUser,
+    List<User> allUsers, {
+    required bool? serverReachable,
+  }) {
     return PopupMenuButton<String>(
       tooltip: 'Switch or Add User',
       offset: const Offset(0, 40),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
       onSelected: (value) => _onMenuItemSelected(value, ref, currentUser, context),
       itemBuilder: (ctx) => _buildMenuItems(ctx, allUsers, currentUser),
-      child: _buildMobilePopupChild(context, currentUser),
+      child: _buildMobilePopupChild(context, currentUser, serverReachable: serverReachable),
     );
   }
 
-  Widget _buildTabletDesktopPopupChild(BuildContext context, User? currentUser, {required bool isTablet}) {
-    return _selectorContainer(context, currentUser, compact: false);
+  Widget _buildTabletDesktopPopupChild(
+    BuildContext context,
+    User? currentUser, {
+    required bool isTablet,
+    required bool? serverReachable,
+  }) {
+    return _selectorContainer(context, currentUser, compact: false, serverReachable: serverReachable);
   }
 
-  Widget _selectorContainer(BuildContext context, User? currentUser, {required bool compact}) {
-    final avatarRadius = compact ? 13.0 : 14.0;
+  Widget _selectorContainer(
+    BuildContext context,
+    User? currentUser, {
+    required bool compact,
+    required bool? serverReachable,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       height: 40,
       padding: EdgeInsets.symmetric(horizontal: compact ? 8 : 10, vertical: compact ? 6 : 8),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHigh,
+        color: colorScheme.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(compact ? 12 : 14),
-        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+        border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          CircleAvatar(
-            radius: avatarRadius,
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            child: Text(
-              currentUser?.username.isNotEmpty == true ? currentUser!.username[0].toUpperCase() : 'U',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onPrimary,
-                fontSize: compact ? 10 : 11,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
+          UserSwitcherAvatar(username: currentUser?.username, compact: compact, serverReachable: serverReachable),
           if (!compact) ...[
             const SizedBox(width: 8),
             ConstrainedBox(
@@ -142,7 +150,7 @@ class UserSwitcher extends ConsumerWidget {
               ),
             ),
           ],
-          Icon(Icons.arrow_drop_down_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant),
+          Icon(Icons.arrow_drop_down_rounded, color: colorScheme.onSurfaceVariant),
         ],
       ),
     );
@@ -154,6 +162,7 @@ class UserSwitcher extends ConsumerWidget {
     User? currentUser,
     List<User> allUsers, {
     required bool isTablet,
+    required bool? serverReachable,
   }) {
     return PopupMenuButton<String>(
       tooltip: 'Switch or Add User',
@@ -161,7 +170,7 @@ class UserSwitcher extends ConsumerWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(isTablet ? 16.0 : 10.0)),
       onSelected: (value) => _onMenuItemSelected(value, ref, currentUser, context),
       itemBuilder: (ctx) => _buildMenuItems(ctx, allUsers, currentUser),
-      child: _buildTabletDesktopPopupChild(context, currentUser, isTablet: isTablet),
+      child: _buildTabletDesktopPopupChild(context, currentUser, isTablet: isTablet, serverReachable: serverReachable),
     );
   }
 
@@ -169,16 +178,33 @@ class UserSwitcher extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentUserAsync = ref.watch(currentUserProvider);
     final allUsersAsync = ref.watch(allStoredUsersProvider);
+    final serverStatusAsync = ref.watch(serverStatusProvider);
 
     return currentUserAsync.when(
       data: (currentUser) {
+        final bool? serverReachable = currentUser == null ? null : serverStatusAsync.value;
+
         return allUsersAsync.when(
           data: (allUsers) {
             if (allUsers.isEmpty) context.go('/add-user');
             return PlatformBuilder(
-              mobileBuilder: (ctx) => _buildMobile(ctx, ref, currentUser, allUsers),
-              tabletBuilder: (ctx) => _buildTabletOrDesktop(ctx, ref, currentUser, allUsers, isTablet: true),
-              desktopBuilder: (ctx) => _buildTabletOrDesktop(ctx, ref, currentUser, allUsers, isTablet: false),
+              mobileBuilder: (ctx) => _buildMobile(ctx, ref, currentUser, allUsers, serverReachable: serverReachable),
+              tabletBuilder: (ctx) => _buildTabletOrDesktop(
+                ctx,
+                ref,
+                currentUser,
+                allUsers,
+                isTablet: true,
+                serverReachable: serverReachable,
+              ),
+              desktopBuilder: (ctx) => _buildTabletOrDesktop(
+                ctx,
+                ref,
+                currentUser,
+                allUsers,
+                isTablet: false,
+                serverReachable: serverReachable,
+              ),
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),

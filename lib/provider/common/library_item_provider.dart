@@ -47,7 +47,7 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
     int? collapseseries,
     String? include,
   }) async {
-    final absApi = ref.watch(absApiProvider);
+    final absApi = ref.read(absApiProvider);
     if (absApi == null) {
       throw Exception('User not authenticated or API not available.');
     }
@@ -173,27 +173,27 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
     bool clearFilter = false,
   }) async {
     final currentLoadedState = state.asData?.value;
-    if (currentLoadedState == null || currentLoadedState.libraryId == null) {
-      return;
-    }
+    final targetLibraryId = currentLoadedState?.libraryId ?? libraryId;
 
-    final newFilter = clearFilter ? null : (filter ?? currentLoadedState.filter);
-    var newSort = sort ?? currentLoadedState.sort;
-    var newDesc = desc ?? currentLoadedState.desc;
+    final newFilter = clearFilter ? null : (filter ?? currentLoadedState?.filter ?? initialFilter);
+    var newSort = sort ?? currentLoadedState?.sort ?? initialSort;
+    var newDesc = desc ?? currentLoadedState?.desc ?? initialDesc;
 
     if (newSort == LibrarySortValue.sequence.wireValue && !_isSeriesFilterQuery(newFilter)) {
       newSort = defaultLibrarySortWireValue;
       newDesc = defaultLibrarySortDesc;
     }
 
-    final newCollapseSeries = collapseseries ?? currentLoadedState.collapseseries;
-    final newInclude = include ?? currentLoadedState.include;
+    final newCollapseSeries = collapseseries ?? currentLoadedState?.collapseseries ?? initialCollapseSeries;
+    final newInclude = include ?? currentLoadedState?.include ?? initialInclude;
 
-    state = const AsyncValue.loading();
+    if (currentLoadedState == null) {
+      state = const AsyncValue.loading();
+    }
 
     try {
       final newState = await _fetchItems(
-        currentLoadedState.libraryId!,
+        targetLibraryId,
         0,
         sort: newSort,
         desc: newDesc,
@@ -203,7 +203,11 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
       );
       state = AsyncData(newState);
     } catch (e, s) {
-      state = AsyncError<LibraryItemState>(e, s);
+      if (currentLoadedState != null) {
+        state = AsyncData(currentLoadedState.copyWith(error: e, stackTrace: s));
+      } else {
+        state = AsyncError<LibraryItemState>(e, s);
+      }
     }
   }
 
@@ -229,24 +233,29 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
 
   Future<void> refresh() async {
     final currentLoadedState = state.asData?.value;
-    if (currentLoadedState == null || currentLoadedState.libraryId == null) {
-      return;
+    final targetLibraryId = currentLoadedState?.libraryId ?? libraryId;
+
+    if (currentLoadedState == null) {
+      state = const AsyncValue.loading();
     }
 
-    state = const AsyncValue.loading();
     try {
       final newState = await _fetchItems(
-        currentLoadedState.libraryId!,
+        targetLibraryId,
         0,
-        sort: currentLoadedState.sort,
-        desc: currentLoadedState.desc,
-        filter: currentLoadedState.filter,
-        collapseseries: currentLoadedState.collapseseries,
-        include: currentLoadedState.include,
+        sort: currentLoadedState?.sort ?? initialSort,
+        desc: currentLoadedState?.desc ?? initialDesc,
+        filter: currentLoadedState?.filter ?? initialFilter,
+        collapseseries: currentLoadedState?.collapseseries ?? initialCollapseSeries,
+        include: currentLoadedState?.include ?? initialInclude,
       );
       state = AsyncData(newState);
     } catch (e, s) {
-      state = AsyncError(e, s);
+      if (currentLoadedState != null) {
+        state = AsyncData(currentLoadedState.copyWith(error: e, stackTrace: s));
+      } else {
+        state = AsyncError(e, s);
+      }
     }
   }
 }

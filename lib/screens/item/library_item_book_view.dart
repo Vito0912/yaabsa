@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/components/app/item/library_item_view_components.dart';
+import 'package:yaabsa/components/common/connection_issue_view.dart';
 import 'package:yaabsa/components/common/cover_zoom_view.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
@@ -20,7 +21,7 @@ class LibraryItemBookView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final api = ref.watch(absApiProvider);
     if (api == null) {
-      return const Center(child: Text('No server connection available.'));
+      return ConnectionIssueView.offline();
     }
 
     final libraryItemApi = api.getLibraryItemApi();

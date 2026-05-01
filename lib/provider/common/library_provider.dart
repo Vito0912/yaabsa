@@ -9,12 +9,27 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'library_provider.g.dart';
 
 final Map<String, Library> _selectedLibraryCacheByUserId = {};
+final Map<String, List<Library>> _userLibrariesCacheByUserId = {};
 
 /// Provider to fetch all libraries for the current user.
 @riverpod
 Future<List<Library>> userLibraries(Ref ref) async {
+  final activeUserId = ref.watch(currentUserProvider).value?.id;
+
   final api = ref.watch(absApiProvider);
   if (api == null) {
+    if (activeUserId != null) {
+      final cachedLibraries = _userLibrariesCacheByUserId[activeUserId];
+      if (cachedLibraries != null) {
+        logger(
+          'UserLibrariesProvider: ABSApi is null, using ${cachedLibraries.length} cached libraries for user $activeUserId.',
+          tag: 'UserLibrariesProvider',
+          level: InfoLevel.warning,
+        );
+        return cachedLibraries;
+      }
+    }
+
     logger(
       'UserLibrariesProvider: ABSApi is null, returning empty list.',
       tag: 'UserLibrariesProvider',
@@ -25,11 +40,28 @@ Future<List<Library>> userLibraries(Ref ref) async {
   try {
     final librariesResponse = await api.getLibraryApi().getLibraries();
     if (librariesResponse.data != null) {
-      return librariesResponse.data!.libraries;
+      final libraries = List<Library>.unmodifiable(librariesResponse.data!.libraries);
+      if (activeUserId != null) {
+        _userLibrariesCacheByUserId[activeUserId] = libraries;
+      }
+      return libraries;
     }
   } catch (e, s) {
     logger('Error fetching libraries: $e\\n$s', tag: 'UserLibrariesProvider');
+
+    if (activeUserId != null) {
+      final cachedLibraries = _userLibrariesCacheByUserId[activeUserId];
+      if (cachedLibraries != null) {
+        logger(
+          'UserLibrariesProvider: Using ${cachedLibraries.length} cached libraries after fetch error for user $activeUserId.',
+          tag: 'UserLibrariesProvider',
+          level: InfoLevel.warning,
+        );
+        return cachedLibraries;
+      }
+    }
   }
+
   return [];
 }
 
@@ -112,16 +144,42 @@ Library? selectedLibrary(Ref ref) {
 
   final isLibrariesPending = libraries == null && (librariesAsync.isLoading || !librariesAsync.hasValue);
   final isSelectedIdPending = selectedId == null && (selectedIdAsync.isLoading || !selectedIdAsync.hasValue);
-  if (isLibrariesPending || isSelectedIdPending) {
+  final hasTransientFailure = librariesAsync.hasError || selectedIdAsync.hasError;
+
+  if (isLibrariesPending || isSelectedIdPending || hasTransientFailure) {
     return cachedLibrary;
   }
 
-  if (libraries == null || libraries.isEmpty || selectedId == null) {
+  if (libraries == null || libraries.isEmpty) {
+    if (cachedLibrary != null) {
+      logger(
+        'SelectedLibraryProvider: Libraries unavailable, using cached selected library ${cachedLibrary.id}.',
+        tag: 'SelectedLibrary',
+        level: InfoLevel.debug,
+      );
+      return cachedLibrary;
+    }
+
     _selectedLibraryCacheByUserId.remove(activeUserId);
     logger(
-      'SelectedLibraryProvider: Libraries or selectedId is null/empty. Libraries: ${libraries?.length}, SelectedID: $selectedId',
+      'SelectedLibraryProvider: Libraries unavailable and no cache. Libraries: ${libraries?.length}',
       tag: 'SelectedLibrary',
     );
+    return null;
+  }
+
+  if (selectedId == null) {
+    if (cachedLibrary != null) {
+      logger(
+        'SelectedLibraryProvider: Selected library ID unavailable, using cached selected library ${cachedLibrary.id}.',
+        tag: 'SelectedLibrary',
+        level: InfoLevel.debug,
+      );
+      return cachedLibrary;
+    }
+
+    _selectedLibraryCacheByUserId.remove(activeUserId);
+    logger('SelectedLibraryProvider: Selected library ID is null and no cache exists.', tag: 'SelectedLibrary');
     return null;
   }
 

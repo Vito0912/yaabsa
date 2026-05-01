@@ -3,6 +3,7 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:yaabsa/components/common/connection_issue_view.dart';
 import 'package:yaabsa/components/common/cover_loading_placeholder.dart';
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
 import 'package:yaabsa/components/common/scroll_to_top_button.dart';
@@ -33,7 +34,7 @@ class SeriesView extends HookConsumerWidget {
     final libraryId = selectedLibrary.id;
     final api = ref.watch(absApiProvider);
     if (api == null) {
-      return const Center(child: Text('No server connection available.'));
+      return ConnectionIssueView.offline();
     }
 
     final currentSeriesProvider = seriesProvider(libraryId);
@@ -120,7 +121,11 @@ class SeriesView extends HookConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stackTrace) => Center(child: Text('Error loading series: $error')),
+      error: (error, stackTrace) => ConnectionIssueView.requestFailed(
+        error: error,
+        title: 'Error loading series',
+        onRetry: () => ref.read(seriesProvider(libraryId).notifier).refresh(withLoading: true),
+      ),
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/components/app/library/library_filter_toolbar.dart';
+import 'package:yaabsa/components/common/connection_issue_view.dart';
 import 'package:yaabsa/components/app/library/library_items_grid.dart';
 import 'package:yaabsa/components/common/scroll_to_top_button.dart';
 import 'package:yaabsa/database/app_database.dart';
@@ -39,7 +40,7 @@ class LibraryView extends HookConsumerWidget {
 
     final api = ref.watch(absApiProvider);
     if (api == null) {
-      return const Center(child: Text('No server connection available.'));
+      return ConnectionIssueView.offline();
     }
 
     return StreamBuilder<UserSettingEntry?>(
@@ -101,11 +102,12 @@ class LibraryView extends HookConsumerWidget {
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (err, stack) => Center(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text('Error loading items: $err', textAlign: TextAlign.center),
-            ),
+          error: (err, stack) => ConnectionIssueView.requestFailed(
+            error: err,
+            title: 'Error loading library items',
+            onRetry: () async {
+              await ref.read(itemsProvider.notifier).refresh();
+            },
           ),
         );
       },

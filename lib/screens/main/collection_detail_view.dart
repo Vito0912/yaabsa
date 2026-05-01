@@ -4,6 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/api/list/collection.dart';
+import 'package:yaabsa/components/common/connection_issue_view.dart';
 import 'package:yaabsa/components/common/library_item_widget.dart';
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
 import 'package:yaabsa/components/common/scroll_to_top_button.dart';
@@ -29,7 +30,7 @@ class CollectionDetailView extends HookConsumerWidget {
 
     final api = ref.watch(absApiProvider);
     if (api == null) {
-      return const Center(child: Text('No server connection available.'));
+      return ConnectionIssueView.offline();
     }
 
     final libraryId = selectedLibrary.id;
@@ -41,7 +42,12 @@ class CollectionDetailView extends HookConsumerWidget {
       if (allCollectionsAsync.isLoading) {
         return const Center(child: CircularProgressIndicator());
       }
-      return const Center(child: Text('Collection details could not be loaded.'));
+      return ConnectionIssueView(
+        icon: Icons.collections_bookmark_outlined,
+        title: 'Collection details could not be loaded',
+        message: 'Reconnect and retry to load this collection.',
+        onRetry: () => ref.read(collectionsProvider(libraryId).notifier).refresh(withLoading: true),
+      );
     }
 
     final collectionItems = resolvedCollection.items ?? const [];

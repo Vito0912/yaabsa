@@ -1,4 +1,5 @@
 import 'package:yaabsa/components/app/downloads/download_list_tile.dart';
+import 'package:yaabsa/components/common/connection_issue_view.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/models/internal_download.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
@@ -157,7 +158,10 @@ class _DownloadsState extends ConsumerState<Downloads> {
             }
 
             if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
+              return ConnectionIssueView.requestFailed(
+                error: snapshot.error ?? 'Unknown error',
+                title: 'Unable to load downloads',
+              );
             }
 
             final downloads = snapshot.data ?? const <InternalDownload>[];
@@ -245,7 +249,7 @@ class _DownloadsState extends ConsumerState<Downloads> {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(child: Text('Error: $error')),
+      error: (error, _) => ConnectionIssueView.requestFailed(error: error, title: 'Unable to load downloads'),
     );
   }
 }

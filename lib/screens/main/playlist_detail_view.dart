@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/list/playlist.dart';
 import 'package:yaabsa/api/list/playlist_item.dart';
+import 'package:yaabsa/components/common/connection_issue_view.dart';
 import 'package:yaabsa/components/common/library_item_widget.dart';
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
 import 'package:yaabsa/components/common/scroll_to_top_button.dart';
@@ -31,7 +32,7 @@ class PlaylistDetailView extends HookConsumerWidget {
 
     final api = ref.watch(absApiProvider);
     if (api == null) {
-      return const Center(child: Text('No server connection available.'));
+      return ConnectionIssueView.offline();
     }
 
     final libraryId = selectedLibrary.id;
@@ -43,7 +44,12 @@ class PlaylistDetailView extends HookConsumerWidget {
       if (allPlaylistsAsync.isLoading) {
         return const Center(child: CircularProgressIndicator());
       }
-      return const Center(child: Text('Playlist details could not be loaded.'));
+      return ConnectionIssueView(
+        icon: Icons.playlist_play_rounded,
+        title: 'Playlist details could not be loaded',
+        message: 'Reconnect and retry to load this playlist.',
+        onRetry: () => ref.read(playlistsProvider(libraryId).notifier).refresh(withLoading: true),
+      );
     }
 
     final playlistItems = resolvedPlaylist.items ?? const <PlaylistItem>[];

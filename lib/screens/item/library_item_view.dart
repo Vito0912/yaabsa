@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:yaabsa/components/common/connection_issue_view.dart';
 import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/item/library_item_book_view.dart';
@@ -24,7 +25,14 @@ class LibraryItemView extends ConsumerWidget {
         return LibraryItemBookView(item: item, canDownload: canDownload);
       },
       error: (error, stackTrace) {
-        return Center(child: Text('Error: $error'));
+        return ConnectionIssueView.requestFailed(
+          error: error,
+          title: 'Unable to load item',
+          onRetry: () async {
+            ref.invalidate(libraryItemProvider(itemId));
+            await ref.read(libraryItemProvider(itemId).future);
+          },
+        );
       },
       loading: () {
         return const Center(child: CircularProgressIndicator());

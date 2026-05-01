@@ -3,6 +3,7 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:yaabsa/components/common/connection_issue_view.dart';
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
 import 'package:yaabsa/components/common/scroll_to_top_button.dart';
 import 'package:yaabsa/provider/common/collection_provider.dart';
@@ -25,7 +26,7 @@ class CollectionView extends HookConsumerWidget {
     final libraryId = selectedLibrary.id;
     final api = ref.watch(absApiProvider);
     if (api == null) {
-      return const Center(child: Text('No server connection available.'));
+      return ConnectionIssueView.offline();
     }
 
     final collectionStateAsync = ref.watch(collectionsProvider(libraryId));
@@ -83,7 +84,11 @@ class CollectionView extends HookConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stackTrace) => Center(child: Text('Error loading collections: $error')),
+      error: (error, stackTrace) => ConnectionIssueView.requestFailed(
+        error: error,
+        title: 'Error loading collections',
+        onRetry: () => ref.read(collectionsProvider(libraryId).notifier).refresh(withLoading: true),
+      ),
     );
   }
 }

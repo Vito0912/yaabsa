@@ -307,18 +307,20 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
         'series' => 'Series',
         'authors' => 'Authors',
         'narrators' => 'Narrators',
+        'downloads' => 'Downloads',
         _ => 'Shelf',
       };
 
-      final targetIndex = primaryItems.indexWhere((item) => item.label == targetLabel);
+      final navigationItems = <NavigationItemConfig>[...primaryItems, ...advancedMenuItems];
+      final targetIndex = navigationItems.indexWhere((item) => item.label == targetLabel);
       _lastConsumedTabIntent = intentKey;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         setState(() {
           _selectedIndex = targetIndex >= 0 ? targetIndex : 0;
           _currentlyDisplayedPageSource = _PageSource.internal;
-          _lastSelectedLabel = primaryItems.isNotEmpty
-              ? (targetIndex >= 0 ? primaryItems[targetIndex].label : primaryItems.first.label)
+          _lastSelectedLabel = navigationItems.isNotEmpty
+              ? (targetIndex >= 0 ? navigationItems[targetIndex].label : navigationItems.first.label)
               : _lastSelectedLabel;
         });
       });

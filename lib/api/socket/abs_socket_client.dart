@@ -31,7 +31,7 @@ class ABSSocketClient {
       _serverUrl = normalizedServerUrl;
       _headersSignature = nextHeadersSignature;
 
-      final options = io.OptionBuilder().setTransports(["websocket"]).disableAutoConnect().enableReconnection();
+      final options = io.OptionBuilder().setTransports(["websocket"]).disableAutoConnect().disableReconnection();
       if (normalizedHeaders.isNotEmpty) {
         options.setExtraHeaders(Map<String, dynamic>.from(normalizedHeaders));
       }

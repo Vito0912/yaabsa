@@ -4,6 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/api/library_items/series.dart';
+import 'package:yaabsa/components/common/connection_issue_view.dart';
 import 'package:yaabsa/components/common/cover_loading_placeholder.dart';
 import 'package:yaabsa/components/common/library_item_widget.dart';
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
@@ -37,7 +38,7 @@ class SeriesDetailView extends HookConsumerWidget {
 
     final api = ref.watch(absApiProvider);
     if (api == null) {
-      return const Center(child: Text('No server connection available.'));
+      return ConnectionIssueView.offline();
     }
 
     final libraryId = selectedLibrary.id;
@@ -175,7 +176,11 @@ class SeriesDetailView extends HookConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stackTrace) => Center(child: Text('Error loading series books: $error')),
+      error: (error, stackTrace) => ConnectionIssueView.requestFailed(
+        error: error,
+        title: 'Error loading series books',
+        onRetry: () => ref.read(seriesBooksProvider(booksArgs).notifier).refresh(withLoading: true),
+      ),
     );
   }
 }

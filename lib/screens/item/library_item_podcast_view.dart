@@ -5,6 +5,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/me/media_progress.dart';
+import 'package:yaabsa/components/common/connection_issue_view.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/item/podcast/podcast_episode_details.dart';
@@ -42,7 +43,7 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
   Widget build(BuildContext context) {
     final api = ref.watch(absApiProvider);
     if (api == null) {
-      return const Center(child: Text('No server connection available.'));
+      return ConnectionIssueView.offline();
     }
 
     final podcastMedia = widget.item.media?.podcastMedia;

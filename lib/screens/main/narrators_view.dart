@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:yaabsa/components/common/connection_issue_view.dart';
 import 'package:yaabsa/components/common/narrator_card.dart';
 import 'package:yaabsa/components/common/scroll_to_top_button.dart';
 import 'package:yaabsa/provider/common/library_filter_data_provider.dart';
@@ -89,7 +90,14 @@ class NarratorsView extends HookConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stackTrace) => Center(child: Text('Error loading narrators: $error')),
+      error: (error, stackTrace) => ConnectionIssueView.requestFailed(
+        error: error,
+        title: 'Error loading narrators',
+        onRetry: () async {
+          ref.invalidate(libraryFilterDataProvider(libraryId));
+          await ref.read(libraryFilterDataProvider(libraryId).future);
+        },
+      ),
     );
   }
 }

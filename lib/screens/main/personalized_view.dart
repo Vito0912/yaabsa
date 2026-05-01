@@ -1,21 +1,22 @@
-import 'package:yaabsa/components/common/library_item_widget.dart';
-import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
-import 'package:yaabsa/components/common/author_card.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/api/library/personalized_library.dart';
 import 'package:yaabsa/api/library_items/author.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/library_items/series.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
+import 'package:yaabsa/components/common/author_card.dart';
+import 'package:yaabsa/components/common/library_item_widget.dart';
+import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
+import 'package:yaabsa/components/common/scroll_to_top_button.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
+import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/library/personalized_library_provider.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:go_router/go_router.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
-import 'package:yaabsa/components/common/scroll_to_top_button.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 class PersonalizedView extends HookConsumerWidget {
   const PersonalizedView({super.key});
@@ -29,23 +30,48 @@ class PersonalizedView extends HookConsumerWidget {
       return const Center(child: Text('No library selected. Please select a library via the switcher.'));
     }
 
+    final serverReachable = ref.watch(serverStatusProvider).value ?? false;
     final personalizedLibraryAsyncValue = ref.watch(personalizedLibraryProvider(selectedLibrary.id));
+
+    Future<void> refreshPersonalizedLibrary({bool withLoading = false}) {
+      return ref
+          .read(personalizedLibraryProvider(selectedLibrary.id).notifier)
+          .refresh(selectedLibrary.id, withLoading: withLoading);
+    }
 
     return personalizedLibraryAsyncValue.when(
       skipLoadingOnRefresh: true,
       skipLoadingOnReload: true,
       data: (personalizedLibrary) {
-        if (personalizedLibrary == null) {
-          return const Center(child: Text('No personalized items found.'));
-        }
         final api = ref.watch(absApiProvider);
         if (api == null) {
-          return const Center(child: Text('No server connection available.'));
+          return _PersonalizedFeedbackView(
+            icon: Icons.cloud_off_rounded,
+            title: 'No server connection available',
+            message: 'Pull down to refresh once your connection is back.',
+            onRefresh: refreshPersonalizedLibrary,
+          );
+        }
+
+        if (personalizedLibrary == null) {
+          return _PersonalizedFeedbackView(
+            icon: serverReachable ? Icons.auto_awesome_outlined : Icons.cloud_off_rounded,
+            title: serverReachable ? 'No personalized items found' : 'Personalized shelf is offline',
+            message: serverReachable
+                ? 'No personalized sections are available for this library yet.'
+                : 'Unable to reach the server right now. Pull down to retry.',
+            onRefresh: refreshPersonalizedLibrary,
+          );
         }
 
         final sections = _buildSections(personalizedLibrary);
         if (sections.isEmpty) {
-          return const Center(child: Text('No personalized sections available yet.'));
+          return _PersonalizedFeedbackView(
+            icon: Icons.view_carousel_outlined,
+            title: 'No personalized sections available yet',
+            message: 'Pull down to refresh and try again.',
+            onRefresh: refreshPersonalizedLibrary,
+          );
         }
 
         return LayoutBuilder(
@@ -62,31 +88,36 @@ class PersonalizedView extends HookConsumerWidget {
             return Stack(
               children: [
                 Positioned.fill(
-                  child: RefreshIndicator(
-                    onRefresh: () => ref
-                        .read(personalizedLibraryProvider(selectedLibrary.id).notifier)
-                        .refresh(selectedLibrary.id, withLoading: false),
-                    child: ListView.separated(
-                      controller: scrollController,
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: EdgeInsets.fromLTRB(
-                        horizontalPadding,
-                        verticalPadding,
-                        horizontalPadding,
-                        verticalPadding,
+                  child: Column(
+                    children: [
+                      if (!serverReachable) const _PersonalizedConnectionBanner(),
+                      Expanded(
+                        child: RefreshIndicator(
+                          onRefresh: refreshPersonalizedLibrary,
+                          child: ListView.separated(
+                            controller: scrollController,
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: EdgeInsets.fromLTRB(
+                              horizontalPadding,
+                              verticalPadding,
+                              horizontalPadding,
+                              verticalPadding,
+                            ),
+                            itemCount: sections.length,
+                            separatorBuilder: (context, index) => const SizedBox(height: 12),
+                            itemBuilder: (context, index) {
+                              final section = sections[index];
+                              return _SectionRow(
+                                section: section,
+                                api: api,
+                                libraryTileWidth: libraryTileWidth,
+                                viewportWidth: width,
+                              );
+                            },
+                          ),
+                        ),
                       ),
-                      itemCount: sections.length,
-                      separatorBuilder: (context, index) => const SizedBox(height: 12),
-                      itemBuilder: (context, index) {
-                        final section = sections[index];
-                        return _SectionRow(
-                          section: section,
-                          api: api,
-                          libraryTileWidth: libraryTileWidth,
-                          viewportWidth: width,
-                        );
-                      },
-                    ),
+                    ],
                   ),
                 ),
                 ScrollToTopButton(controller: scrollController),
@@ -96,7 +127,139 @@ class PersonalizedView extends HookConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stackTrace) => Center(child: Text('Error: $error')),
+      error: (error, stackTrace) {
+        final title = serverReachable ? 'Could not load personalized shelf' : 'Server connection unavailable';
+        final message = serverReachable
+            ? 'Pull down to retry loading personalized sections.'
+            : 'You appear to be offline. Pull down to retry after reconnecting.';
+
+        return _PersonalizedFeedbackView(
+          icon: serverReachable ? Icons.error_outline_rounded : Icons.cloud_off_rounded,
+          title: title,
+          message: message,
+          detail: error.toString(),
+          onRefresh: () => refreshPersonalizedLibrary(withLoading: true),
+        );
+      },
+    );
+  }
+}
+
+class _PersonalizedConnectionBanner extends StatelessWidget {
+  const _PersonalizedConnectionBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(10, 8, 10, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+      decoration: BoxDecoration(
+        color: colorScheme.errorContainer,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colorScheme.error.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.cloud_off_rounded, size: 18, color: colorScheme.onErrorContainer),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Server connection is unstable. Displaying the latest available shelf data.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onErrorContainer),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PersonalizedFeedbackView extends StatelessWidget {
+  const _PersonalizedFeedbackView({
+    required this.icon,
+    required this.title,
+    required this.message,
+    required this.onRefresh,
+    this.detail,
+  });
+
+  final IconData icon;
+  final String title;
+  final String message;
+  final String? detail;
+  final Future<void> Function() onRefresh;
+
+  @override
+  Widget build(BuildContext context) {
+    return RefreshIndicator(
+      onRefresh: onRefresh,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            children: [
+              ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight - 32),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(icon, size: 36, color: Theme.of(context).colorScheme.primary),
+                      const SizedBox(height: 12),
+                      Text(title, textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleMedium),
+                      const SizedBox(height: 8),
+                      Text(
+                        message,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      ),
+                      if (detail != null && detail!.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          detail!,
+                          textAlign: TextAlign.center,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                        ),
+                      ],
+                      const SizedBox(height: 14),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        alignment: WrapAlignment.center,
+                        children: [
+                          FilledButton.icon(
+                            onPressed: () async {
+                              await onRefresh();
+                            },
+                            icon: const Icon(Icons.refresh_rounded),
+                            label: const Text('Retry'),
+                          ),
+                          OutlinedButton.icon(
+                            onPressed: () {
+                              context.go('/?tab=downloads&intent=downloads');
+                            },
+                            icon: const Icon(Icons.download_rounded),
+                            label: const Text('Open Downloads'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 }
@@ -222,7 +385,6 @@ class _SectionRow extends StatelessWidget {
             ),
           ],
         ),
-
         _SectionList(
           section: section,
           api: api,
