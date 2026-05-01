@@ -2,4 +2,13 @@
     <uses-feature
         android:name="android.hardware.type.automotive"
         android:required="true" />
+
+    <application>
+        <activity android:name="com.ryanheise.audioservice.AudioServiceActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.CAR_LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
 </manifest>

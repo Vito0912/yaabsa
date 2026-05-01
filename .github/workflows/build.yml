@@ -6,18 +6,47 @@ on:
       - "lib/**"
       - "linux/**"
       - "windows/**"
-      - "macos/**"
-      - "ios/**"
       - "android/**"
-      - "pubspec.yaml"
-      - "pubspec.lock"
-      - ".github/workflows/build.yml"
-      - ".github/actions/**"
   workflow_dispatch:
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      lib: ${{ steps.filter.outputs.lib }}
+      android: ${{ steps.filter.outputs.android }}
+      linux: ${{ steps.filter.outputs.linux }}
+      windows: ${{ steps.filter.outputs.windows }}
+      any: ${{ steps.filter.outputs.any }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed paths
+        id: filter
+        uses: dorny/paths-filter@v4
+        with:
+          filters: |
+            lib:
+              - 'lib/**'
+            android:
+              - 'android/**'
+            linux:
+              - 'linux/**'
+            windows:
+              - 'windows/**'
+            any:
+              - 'lib/**'
+              - 'android/**'
+              - 'linux/**'
+              - 'windows/**'
+
   check-requirements:
     runs-on: ubuntu-latest
+    needs: changes
+    if: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.any == 'true' }}
     timeout-minutes: 10
     steps:
       - name: Checkout
@@ -62,7 +91,10 @@ jobs:
 
   build-linux:
     runs-on: ubuntu-latest
-    needs: check-requirements
+    needs:
+      - changes
+      - check-requirements
+    if: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.linux == 'true' }}
     timeout-minutes: 20
     steps:
       - name: Checkout
@@ -132,7 +164,10 @@ jobs:
 
   build-flatpak:
     runs-on: ubuntu-latest
-    needs: check-requirements
+    needs:
+      - changes
+      - check-requirements
+    if: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.linux == 'true' }}
     timeout-minutes: 35
     steps:
       - name: Checkout
@@ -286,7 +321,8 @@ jobs:
   deploy-flatpak-pages:
     if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-slim
-    needs: build-flatpak
+    needs:
+      - build-flatpak
     permissions:
       pages: write
       id-token: write
@@ -300,7 +336,10 @@ jobs:
 
   build-snap:
     runs-on: ubuntu-latest
-    needs: check-requirements
+    needs:
+      - changes
+      - check-requirements
+    if: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.linux == 'true' }}
     timeout-minutes: 20
     steps:
       - name: Checkout
@@ -318,7 +357,10 @@ jobs:
 
   build-android:
     runs-on: ubuntu-latest
-    needs: check-requirements
+    needs:
+      - changes
+      - check-requirements
+    if: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.android == 'true' }}
     timeout-minutes: 20
     steps:
       - name: Checkout
@@ -373,6 +415,15 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
+      - name: Build Android Automotive apk
+        run: |
+          flutter build apk --flavor automotive --release --split-per-abi
+        env:
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          STORE_FILE: ${{ secrets.STORE_FILE }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+
       - name: Upload Android appbundle artifact
         uses: actions/upload-artifact@v7
         with:
@@ -390,7 +441,13 @@ jobs:
         with:
           name: android-automotive-appbundle
           path: build/app/outputs/bundle/automotiveRelease/*.aab
-      
+
+      - name: Upload Android Automotive apk artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: android-automotive-apk
+          path: build/app/outputs/flutter-apk/*automotive-release*.apk
+
       - name: Clean up
         if: always()
         run: |
@@ -399,7 +456,10 @@ jobs:
 
   build-windows:
     runs-on: windows-latest
-    needs: check-requirements
+    needs:
+      - changes
+      - check-requirements
+    if: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.windows == 'true' }}
     timeout-minutes: 20
     steps:
       - name: Checkout
