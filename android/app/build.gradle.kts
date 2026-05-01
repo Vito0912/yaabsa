@@ -71,6 +71,16 @@ android {
             isDebuggable = true
         }
     }
+
+    flavorDimensions += "carPlatform"
+    productFlavors {
+        create("auto") {
+            dimension = "carPlatform"
+        }
+        create("automotive") {
+            dimension = "carPlatform"
+        }
+    }
 }
 
 kotlin {

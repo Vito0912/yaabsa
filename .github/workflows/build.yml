@@ -346,10 +346,27 @@ jobs:
       - name: Setup Keystore
         run: printf '%s' "${{ secrets.STORE }}" | base64 -d > android/keystore.jks
 
-      - name: Build
+      - name: Build Android Auto appbundle
         run: |
-          flutter build appbundle --release
-          flutter build apk --split-per-abi --release
+          flutter build appbundle --flavor auto --release
+        env:
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          STORE_FILE: ${{ secrets.STORE_FILE }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+
+      - name: Build Android Auto APKs
+        run: |
+          flutter build apk --split-per-abi --flavor auto --release
+        env:
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          STORE_FILE: ${{ secrets.STORE_FILE }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+
+      - name: Build Android Automotive appbundle
+        run: |
+          flutter build appbundle --flavor automotive --release
         env:
           STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
           STORE_FILE: ${{ secrets.STORE_FILE }}
@@ -360,13 +377,19 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: android-appbundle
-          path: build/app/outputs/bundle/release/*.aab
+          path: build/app/outputs/bundle/autoRelease/*.aab
 
       - name: Upload Android apk artifact
         uses: actions/upload-artifact@v7
         with:
           name: android-apk
-          path: build/app/outputs/flutter-apk/*.apk
+          path: build/app/outputs/flutter-apk/*auto-release*.apk
+
+      - name: Upload Android Automotive appbundle artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: android-automotive-appbundle
+          path: build/app/outputs/bundle/automotiveRelease/*.aab
       
       - name: Clean up
         if: always()
