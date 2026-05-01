@@ -3,12 +3,15 @@ import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/api/routes/interceptors/bearer_auth_interceptor.dart';
 import 'package:yaabsa/api/routes/interceptors/o_auth_interceptor.dart';
 import 'package:yaabsa/database/app_database.dart';
+import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/util/globals.dart' show containerRef;
 import 'package:yaabsa/util/interceptors/cache_interceptor.dart';
 import 'package:yaabsa/util/interceptors/auth_refresh_interceptor.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/network/dio_factory.dart';
+import 'package:yaabsa/util/setting_key.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart' show Provider;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../util/interceptors/abs_interceptor.dart' show ABSInterceptor;
@@ -170,11 +173,45 @@ Stream<List<User>> allStoredUsers(Ref ref) {
   return stream;
 }
 
+class CacheStartupSettings {
+  const CacheStartupSettings({
+    required this.cachingEnabled,
+    required this.boostLoading,
+    required this.routeEnabledBySettingKey,
+  });
+
+  final bool cachingEnabled;
+  final bool boostLoading;
+  final Map<String, bool> routeEnabledBySettingKey;
+}
+
+final cacheStartupSettingsProvider = Provider<CacheStartupSettings>((ref) {
+  final settingsManager = ref.read(settingsManagerProvider.notifier);
+  final cachingEnabled = settingsManager.getGlobalSetting<bool>(SettingKeys.caching, defaultValue: true);
+  final boostLoading = settingsManager.getGlobalSetting<bool>(SettingKeys.boostLoading, defaultValue: true);
+
+  final routeEnabledBySettingKey = <String, bool>{
+    for (final route in cacheRouteDefinitions)
+      route.settingKey: settingsManager.getGlobalSetting<bool>(
+        route.settingKey,
+        defaultValue: (defaultSettings[route.settingKey] as bool?) ?? !route.aggressiveCache,
+      ),
+  };
+
+  return CacheStartupSettings(
+    cachingEnabled: cachingEnabled,
+    boostLoading: boostLoading,
+    routeEnabledBySettingKey: routeEnabledBySettingKey,
+  );
+});
+
 @Riverpod(keepAlive: true)
 ABSApi? absApi(Ref ref) {
   final currentUser = ref.watch(currentUserProvider).value;
 
   if (currentUser == null) return null;
+
+  final cacheSettings = ref.read(cacheStartupSettingsProvider);
 
   String? basePathOverride;
   String? token;
@@ -189,7 +226,12 @@ ABSApi? absApi(Ref ref) {
     OAuthInterceptor(),
     AuthRefreshInterceptor(containerRef),
     ABSInterceptor(containerRef),
-    CacheInterceptor(containerRef),
+    CacheInterceptor(
+      containerRef,
+      cachingEnabled: cacheSettings.cachingEnabled,
+      boostLoading: cacheSettings.boostLoading,
+      routeEnabledBySettingKey: cacheSettings.routeEnabledBySettingKey,
+    ),
   ];
 
   final api = ABSApi(

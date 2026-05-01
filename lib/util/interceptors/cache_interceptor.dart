@@ -4,38 +4,89 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/network/dio_factory.dart';
+import 'package:yaabsa/util/setting_key.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sembast/sembast.dart';
 
+const List<CacheRouteDefinition> cacheRouteDefinitions = [
+  CacheRouteDefinition(
+    settingKey: SettingKeys.cacheRouteLibraries,
+    label: 'Libraries list',
+    pathPattern: '/api/libraries',
+    cacheDuration: Duration(days: 7),
+  ),
+  CacheRouteDefinition(
+    settingKey: SettingKeys.cacheRouteLibraryById,
+    label: 'Library details',
+    pathPattern: '/api/libraries/{uuidv4}',
+    cacheDuration: Duration(days: 7),
+  ),
+  CacheRouteDefinition(
+    settingKey: SettingKeys.cacheRouteLibraryItems,
+    label: 'Library items',
+    pathPattern: '/api/libraries/{uuidv4}/items',
+    cacheDuration: Duration(days: 7),
+  ),
+  CacheRouteDefinition(
+    settingKey: SettingKeys.cacheRouteItemById,
+    label: 'Item details',
+    pathPattern: '/api/items/{uuidv4}',
+    cacheDuration: Duration(days: 7),
+  ),
+  CacheRouteDefinition(
+    settingKey: SettingKeys.cacheRouteItemChild,
+    label: 'Item nested resource',
+    pathPattern: '/api/items/{uuidv4}/{uuidv4}',
+    cacheDuration: Duration(days: 7),
+  ),
+  CacheRouteDefinition(
+    settingKey: SettingKeys.cacheRouteLibraryFilterData,
+    label: 'Library filter data',
+    pathPattern: '/api/libraries/{uuidv4}/filterdata',
+    cacheDuration: Duration(days: 7),
+  ),
+  CacheRouteDefinition(
+    settingKey: SettingKeys.cacheRouteLibrarySeries,
+    label: 'Library series',
+    pathPattern: '/api/libraries/{uuidv4}/series',
+    cacheDuration: Duration(days: 7),
+  ),
+  CacheRouteDefinition(
+    settingKey: SettingKeys.cacheRoutePlaylists,
+    label: 'Playlists',
+    pathPattern: '/api/playlists',
+    cacheDuration: Duration(days: 7),
+  ),
+  CacheRouteDefinition(
+    settingKey: SettingKeys.cacheRouteCollections,
+    label: 'Collections',
+    pathPattern: '/api/collections',
+    cacheDuration: Duration(days: 7),
+  ),
+  CacheRouteDefinition(
+    settingKey: SettingKeys.cacheRouteMe,
+    label: 'Current user profile',
+    pathPattern: '/api/me',
+    cacheDuration: Duration(days: 1),
+    aggressiveCache: true,
+  ),
+];
+
 // TODO: Replace by Drift cache
 class CacheInterceptor extends Interceptor {
-  final List<RoutePattern> _cacheableRoutes = [
-    RoutePattern('/api/libraries', const Duration(days: 7)),
-    RoutePattern('/api/libraries/{uuidv4}', const Duration(days: 7)),
-    // RoutePattern('/api/libraries/{uuidv4}/personalized', const Duration(days: 7)),
-    RoutePattern('/api/libraries/{uuidv4}/items', const Duration(days: 7)),
-    RoutePattern('/api/items/{uuidv4}', const Duration(days: 7)),
-    RoutePattern('/api/items/{uuidv4}/{uuidv4}', const Duration(days: 7)),
-    RoutePattern('/api/libraries/{uuidv4}/filterdata', const Duration(days: 7)),
-    RoutePattern('/api/libraries/{uuidv4}/series', const Duration(days: 7)),
-    RoutePattern('/api/playlists', const Duration(days: 7)),
-    RoutePattern('/api/collections', const Duration(days: 7)),
-    RoutePattern('/api/me', const Duration(days: 1), aggressiveCache: true),
-  ];
-
   final StoreRef<String, dynamic> _store = StoreRef.main();
 
   final ProviderContainer container;
   final bool cachingEnabled;
-  final bool aggressiveCaching;
   final bool boostLoading;
+  final Map<String, bool> routeEnabledBySettingKey;
 
   CacheInterceptor(
     this.container, {
     this.cachingEnabled = true,
-    this.aggressiveCaching = false,
     this.boostLoading = false,
+    this.routeEnabledBySettingKey = const {},
   });
 
   @override
@@ -74,19 +125,13 @@ class CacheInterceptor extends Interceptor {
           );
 
           if (boostLoading) {
-            final newOptions = Options(
-              method: options.method,
-              headers: options.headers,
-              responseType: options.responseType,
-              extra: options.extra,
-            );
-            newOptions.extra?['noCache'] = true;
-
-            final refreshedOptions = options.copyWith(extra: newOptions.extra);
+            final refreshedExtra = Map<String, dynamic>.from(options.extra)..['noCache'] = true;
+            final refreshedOptions = options.copyWith(extra: refreshedExtra);
 
             final Dio dio = createNativeDio();
             dio.interceptors.add(this);
 
+            // Serve stale data now, then refresh in the background for the next call.
             dio.fetch(refreshedOptions);
           }
           return;
@@ -130,17 +175,21 @@ class CacheInterceptor extends Interceptor {
       _store.record(cacheKey).get(cacheDb).then((cachedData) {
         if (cachedData != null) {
           try {
+            final decodedHeaders = jsonDecode(cachedData['headers']) as Map<String, dynamic>;
+            final headers = decodedHeaders.map<String, List<String>>((key, dynamic value) {
+              if (value is List) {
+                return MapEntry(key, value.cast<String>());
+              }
+              throw Exception("Expected a List<String> but got something else");
+            });
+
             return handler.resolve(
               Response(
                 requestOptions: err.requestOptions,
                 data: cachedData['data'],
                 statusCode: cachedData['statusCode'],
                 statusMessage: cachedData['statusMessage'],
-                headers: Headers.fromMap(
-                  cachedData['headers'].map<String, List<String>>(
-                    (key, value) => MapEntry(key, List<String>.from(value)),
-                  ),
-                ),
+                headers: Headers.fromMap(headers),
               ),
             );
           } catch (e) {
@@ -156,17 +205,26 @@ class CacheInterceptor extends Interceptor {
     }
   }
 
-  RoutePattern? _getMatchingRoute(RequestOptions options) {
+  CacheRouteDefinition? _getMatchingRoute(RequestOptions options) {
     if (!cachingEnabled) return null;
-    for (var routePattern in _cacheableRoutes) {
-      if (routePattern.matches(options.path) && options.method == 'GET') {
-        if (routePattern.aggressiveCache && !aggressiveCaching) {
-          return null;
+    if (options.method.toUpperCase() != 'GET') {
+      return null;
+    }
+
+    for (var routePattern in cacheRouteDefinitions) {
+      if (routePattern.matches(options.path)) {
+        if (!_isRouteEnabled(routePattern.settingKey)) {
+          continue;
         }
+
         return routePattern;
       }
     }
     return null;
+  }
+
+  bool _isRouteEnabled(String settingKey) {
+    return routeEnabledBySettingKey[settingKey] ?? true;
   }
 
   String _getCacheKey(Uri uri) {
@@ -175,15 +233,23 @@ class CacheInterceptor extends Interceptor {
   }
 }
 
-class RoutePattern {
-  final String pattern;
+class CacheRouteDefinition {
+  final String settingKey;
+  final String label;
+  final String pathPattern;
   final Duration cacheDuration;
   final bool aggressiveCache;
 
-  RoutePattern(this.pattern, this.cacheDuration, {this.aggressiveCache = false});
+  const CacheRouteDefinition({
+    required this.settingKey,
+    required this.label,
+    required this.pathPattern,
+    required this.cacheDuration,
+    this.aggressiveCache = false,
+  });
 
   bool matches(String path) {
-    final patternSegments = pattern.split('/');
+    final patternSegments = pathPattern.split('/');
     final pathSegments = Uri.parse(path).path.split('/');
 
     if (patternSegments.length != pathSegments.length) {

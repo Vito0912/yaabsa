@@ -218,8 +218,12 @@ class LibraryItemWidget extends ConsumerWidget {
                                           IconButton(
                                             tooltip: isPlayingCurrentItem ? 'Pause' : (isFinished ? 'Replay' : 'Play'),
                                             icon: Icon(
-                                              isPlayingCurrentItem ? Icons.pause : Icons.play_arrow,
-                                              size: isFinished ? 20 : 16,
+                                              isPlayingCurrentItem
+                                                  ? Icons.pause
+                                                  : isFinished
+                                                  ? Icons.replay
+                                                  : Icons.play_arrow,
+                                              size: isFinished ? 18 : 16,
                                               color: isFinished ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
                                             ),
                                             iconSize: isFinished ? 20 : 16,

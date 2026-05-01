@@ -34,8 +34,17 @@ class SettingKeys {
   static const String rewindInterval = 'rewind_interval';
 
   static const String caching = 'caching';
-  static const String aggressiveCaching = 'aggressive_caching';
   static const String boostLoading = 'boost_loading';
+  static const String cacheRouteLibraries = 'cache_route_libraries';
+  static const String cacheRouteLibraryById = 'cache_route_library_by_id';
+  static const String cacheRouteLibraryItems = 'cache_route_library_items';
+  static const String cacheRouteItemById = 'cache_route_item_by_id';
+  static const String cacheRouteItemChild = 'cache_route_item_child';
+  static const String cacheRouteLibraryFilterData = 'cache_route_library_filter_data';
+  static const String cacheRouteLibrarySeries = 'cache_route_library_series';
+  static const String cacheRoutePlaylists = 'cache_route_playlists';
+  static const String cacheRouteCollections = 'cache_route_collections';
+  static const String cacheRouteMe = 'cache_route_me';
 
   static const String playbackSpeed = 'playback_speed';
   static const String volume = 'volume';
@@ -77,8 +86,17 @@ final defaultSettings = {
   SettingKeys.rewindInterval: 10,
 
   SettingKeys.caching: true,
-  SettingKeys.aggressiveCaching: false,
   SettingKeys.boostLoading: true,
+  SettingKeys.cacheRouteLibraries: true,
+  SettingKeys.cacheRouteLibraryById: true,
+  SettingKeys.cacheRouteLibraryItems: true,
+  SettingKeys.cacheRouteItemById: true,
+  SettingKeys.cacheRouteItemChild: true,
+  SettingKeys.cacheRouteLibraryFilterData: true,
+  SettingKeys.cacheRouteLibrarySeries: true,
+  SettingKeys.cacheRoutePlaylists: true,
+  SettingKeys.cacheRouteCollections: true,
+  SettingKeys.cacheRouteMe: false,
 
   SettingKeys.playbackSpeed: 1.0,
   SettingKeys.volume: 1.0,

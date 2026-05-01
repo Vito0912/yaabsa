@@ -43,7 +43,7 @@ final class UserLibrariesProvider
   }
 }
 
-String _$userLibrariesHash() => r'18a6a0093685762a25a721c143e321b44826ff0a';
+String _$userLibrariesHash() => r'92ded6bf124f25f7d81ea3f29ae53e8f6acf9962';
 
 @ProviderFor(SelectedLibraryId)
 final selectedLibraryIdProvider = SelectedLibraryIdProvider._();
@@ -116,4 +116,4 @@ final class SelectedLibraryProvider extends $FunctionalProvider<Library?, Librar
   }
 }
 
-String _$selectedLibraryHash() => r'3e616a365e11ce37c7401e506d07805905a1d165';
+String _$selectedLibraryHash() => r'179ad419991b402672afd9bfe4833585a575b687';
