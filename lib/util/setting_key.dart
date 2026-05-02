@@ -25,6 +25,7 @@ class SettingKeys {
   static const String androidAutoPodcastSortDescending = 'android_auto_podcast_sort_descending';
   static const String androidAutoPodcastSortField = 'android_auto_podcast_sort_field';
   static const String androidAutoGroupByLetters = 'android_auto_group_by_letters';
+  static const String personalizedShelfShowPlayVisibleButton = 'personalized_shelf_show_play_visible_button';
   static const String waitForSync = 'wait_for_sync';
   static const String progressPerChapter = 'progress_per_chapter';
   static const String shakeToResetSleepTimer = 'shake_to_reset_sleep_timer';
@@ -80,6 +81,7 @@ final defaultSettings = {
   SettingKeys.androidAutoPodcastSortDescending: true,
   SettingKeys.androidAutoPodcastSortField: 'added',
   SettingKeys.androidAutoGroupByLetters: true,
+  SettingKeys.personalizedShelfShowPlayVisibleButton: false,
   SettingKeys.waitForSync: true,
   SettingKeys.progressPerChapter: false,
   SettingKeys.shakeToResetSleepTimer: false,

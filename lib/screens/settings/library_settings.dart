@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/components/settings/settings_button.dart';
+import 'package:yaabsa/components/settings/settings_switch_tile.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
@@ -283,6 +284,11 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
           ),
           error: (error, _) =>
               Padding(padding: const EdgeInsets.all(16), child: Text('Failed to load user settings: $error')),
+        ),
+        const SettingSwitchTile(
+          label: 'Show Shelf Play Button',
+          settingKey: SettingKeys.personalizedShelfShowPlayVisibleButton,
+          subtitle: 'Adds a play-all button on Continue Listening and Newest Episodes shelves.',
         ),
       ],
     );

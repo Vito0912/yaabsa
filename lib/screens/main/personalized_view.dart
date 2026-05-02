@@ -7,16 +7,21 @@ import 'package:yaabsa/api/library_items/author.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/library_items/series.dart';
+import 'package:yaabsa/api/me/media_progress.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/components/common/author_card.dart';
 import 'package:yaabsa/components/common/library_item_widget.dart';
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
 import 'package:yaabsa/components/common/scroll_to_top_button.dart';
+import 'package:yaabsa/database/settings_manager.dart';
+import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/library/personalized_library_provider.dart';
+import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
+import 'package:yaabsa/util/setting_key.dart';
 
 class PersonalizedView extends HookConsumerWidget {
   const PersonalizedView({super.key});
@@ -32,6 +37,14 @@ class PersonalizedView extends HookConsumerWidget {
 
     final serverReachable = ref.watch(serverStatusProvider).value ?? false;
     final personalizedLibraryAsyncValue = ref.watch(personalizedLibraryProvider(selectedLibrary.id));
+    final showShelfPlayButtonSettingValue = ref.watch(
+      globalSettingByKeyProvider(SettingKeys.personalizedShelfShowPlayVisibleButton),
+    );
+    final showShelfPlayButton = SettingsParser.decodeValue<bool>(
+      showShelfPlayButtonSettingValue.value,
+      defaultSettings[SettingKeys.personalizedShelfShowPlayVisibleButton] as bool,
+    );
+    final mediaProgressMap = ref.watch(mediaProgressProvider).asData?.value ?? const <String, MediaProgress>{};
 
     Future<void> refreshPersonalizedLibrary({bool withLoading = false}) {
       return ref
@@ -112,6 +125,8 @@ class PersonalizedView extends HookConsumerWidget {
                                 api: api,
                                 libraryTileWidth: libraryTileWidth,
                                 viewportWidth: width,
+                                showPlayVisibleButton: showShelfPlayButton,
+                                mediaProgressMap: mediaProgressMap,
                               );
                             },
                           ),
@@ -266,9 +281,13 @@ class _PersonalizedFeedbackView extends StatelessWidget {
 
 enum _ShelfEntityKind { libraryItem, series, author, episode }
 
-class _SectionData {
-  _SectionData({required this.title, required this.kind, required this.entities});
+const _continueListeningShelfId = 'continue-listening';
+const _newestEpisodesShelfId = 'newest-episodes';
 
+class _SectionData {
+  _SectionData({required this.id, required this.title, required this.kind, required this.entities});
+
+  final String id;
   final String title;
   final _ShelfEntityKind kind;
   final List<Object> entities;
@@ -276,16 +295,15 @@ class _SectionData {
 
 List<_SectionData> _buildSections(PersonalizedLibrary library) {
   final sections = <_SectionData>[];
-  const newestEpisodesShelfId = 'newest-episodes';
 
   void addSection<T>(ShelfEntry<T>? shelf, _ShelfEntityKind kind) {
     if (shelf == null || shelf.entities.isEmpty) return;
-    sections.add(_SectionData(title: shelf.label, kind: kind, entities: shelf.entities.cast<Object>()));
+    sections.add(_SectionData(id: shelf.id, title: shelf.label, kind: kind, entities: shelf.entities.cast<Object>()));
   }
 
   ShelfEntry<LibraryItem>? newestEpisodesAsLibraryItems;
   for (final shelf in library.extraLibraryShelves) {
-    if (shelf.id == newestEpisodesShelfId) {
+    if (shelf.id == _newestEpisodesShelfId) {
       newestEpisodesAsLibraryItems = shelf;
       break;
     }
@@ -306,7 +324,7 @@ List<_SectionData> _buildSections(PersonalizedLibrary library) {
   }
 
   for (final shelf in library.extraLibraryShelves) {
-    if (shelf.id == newestEpisodesShelfId) {
+    if (shelf.id == _newestEpisodesShelfId) {
       continue;
     }
     addSection(shelf, _ShelfEntityKind.libraryItem);
@@ -325,16 +343,116 @@ class _SectionRow extends StatelessWidget {
     required this.api,
     required this.libraryTileWidth,
     required this.viewportWidth,
+    required this.showPlayVisibleButton,
+    required this.mediaProgressMap,
   });
 
   final _SectionData section;
   final ABSApi api;
   final double libraryTileWidth;
   final double viewportWidth;
+  final bool showPlayVisibleButton;
+  final Map<String, MediaProgress> mediaProgressMap;
+
+  bool get _supportsPlayVisibleButton {
+    return section.id == _continueListeningShelfId || section.id == _newestEpisodesShelfId;
+  }
+
+  List<_SectionPlayableEntry> _collectPlayableEntries() {
+    final playableEntries = <_SectionPlayableEntry>[];
+
+    for (final entity in section.entities) {
+      if (entity is! LibraryItem) {
+        continue;
+      }
+
+      if (entity.mediaType == 'podcast') {
+        final playableEpisode = _playablePodcastEpisode(entity);
+        if (playableEpisode != null) {
+          playableEntries.add(_SectionPlayableEntry.podcastEpisode(entity, playableEpisode));
+        }
+        continue;
+      }
+
+      if (!(entity.media?.hasAudio ?? false)) {
+        continue;
+      }
+
+      if (_isFinishedProgress(mediaProgressMap[entity.id])) {
+        continue;
+      }
+
+      playableEntries.add(_SectionPlayableEntry.libraryItem(entity));
+    }
+
+    return playableEntries;
+  }
+
+  Episode? _playablePodcastEpisode(LibraryItem item) {
+    if (item.mediaType != 'podcast') {
+      return null;
+    }
+
+    final episodes = (item.media?.podcastMedia?.episodes ?? const <Episode>[])
+        .where((episode) => episode.audioFile != null)
+        .toList(growable: false);
+    if (episodes.isEmpty) {
+      return null;
+    }
+
+    for (final episode in episodes) {
+      final episodeProgress = mediaProgressMap[mediaProgressKey(item.id, episode.id)];
+      if (_isFinishedProgress(episodeProgress)) {
+        continue;
+      }
+
+      return episode;
+    }
+
+    return null;
+  }
+
+  bool _isFinishedProgress(MediaProgress? progress) {
+    return progress?.isFinished ?? false;
+  }
+
+  Future<void> _playVisibleShelfItems(BuildContext context, List<_SectionPlayableEntry> playableEntries) async {
+    if (playableEntries.isEmpty) {
+      return;
+    }
+
+    try {
+      final firstEntry = playableEntries.first;
+      if (firstEntry.episode != null) {
+        audioHandler.setQueueFromPodcastEpisode(firstEntry.item, firstEntry.episode!);
+      } else {
+        audioHandler.setQueueFromLibraryItem(firstEntry.item);
+      }
+
+      for (final entry in playableEntries.skip(1)) {
+        if (entry.episode != null) {
+          audioHandler.addPodcastEpisodeToQueue(entry.item, entry.episode!);
+        } else {
+          audioHandler.addLibraryItemToQueue(entry.item);
+        }
+      }
+
+      await audioHandler.play();
+    } catch (error) {
+      if (!context.mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to queue visible items: $error')));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    ScrollController scrollController = ScrollController();
+    final scrollController = ScrollController();
+    final playableEntries = _collectPlayableEntries();
+    final canShowPlayVisibleButton = showPlayVisibleButton && _supportsPlayVisibleButton && playableEntries.isNotEmpty;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -348,6 +466,22 @@ class _SectionRow extends StatelessWidget {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
+                if (canShowPlayVisibleButton) ...[
+                  SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: IconButton(
+                      onPressed: () {
+                        _playVisibleShelfItems(context, playableEntries);
+                      },
+                      icon: const Icon(Icons.playlist_play_rounded, size: 18),
+                      tooltip: 'Queue all items in this shelf',
+                      splashRadius: 1,
+                      padding: EdgeInsets.zero,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                ],
                 SizedBox(
                   width: 24,
                   height: 24,
@@ -395,6 +529,14 @@ class _SectionRow extends StatelessWidget {
       ],
     );
   }
+}
+
+class _SectionPlayableEntry {
+  const _SectionPlayableEntry.libraryItem(this.item) : episode = null;
+  const _SectionPlayableEntry.podcastEpisode(this.item, this.episode);
+
+  final LibraryItem item;
+  final Episode? episode;
 }
 
 class _SectionList extends StatelessWidget {
