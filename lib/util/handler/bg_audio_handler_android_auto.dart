@@ -5,6 +5,12 @@ const String _androidAutoRecentNodeId = 'aa/recent';
 const String _androidAutoLibrariesNodeId = 'aa/libraries';
 const String _androidAutoDownloadsNodeId = 'aa/downloads';
 
+const String _androidAutoCompletionStatusExtrasKey = 'android.media.extra.PLAYBACK_STATUS';
+const String _androidAutoCompletionPercentageExtrasKey = 'androidx.media.MediaItem.Extras.COMPLETION_PERCENTAGE';
+const int _androidAutoCompletionStatusNotPlayed = 0;
+const int _androidAutoCompletionStatusPartiallyPlayed = 1;
+const int _androidAutoCompletionStatusFullyPlayed = 2;
+
 const int _androidAutoDefaultPageSize = 100;
 const int _androidAutoMaxPageSize = 200;
 const int _androidAutoSearchResultsPerLibrary = 50;
@@ -14,9 +20,15 @@ const String _androidAutoSortFieldTitle = 'title';
 const String _androidAutoSortFieldAuthor = 'author';
 const String _androidAutoSortFieldAdded = 'added';
 
-const Map<String, String> _androidAutoSortFieldToApiSort = <String, String>{
+const Map<String, String> _androidAutoBookSortFieldToApiSort = <String, String>{
   _androidAutoSortFieldTitle: 'media.metadata.title',
   _androidAutoSortFieldAuthor: 'media.metadata.authorName',
+  _androidAutoSortFieldAdded: 'addedAt',
+};
+
+const Map<String, String> _androidAutoPodcastSortFieldToApiSort = <String, String>{
+  _androidAutoSortFieldTitle: 'media.metadata.title',
+  _androidAutoSortFieldAuthor: 'media.metadata.author',
   _androidAutoSortFieldAdded: 'addedAt',
 };
 
@@ -174,6 +186,11 @@ extension _BGAudioHandlerAndroidAutoEntry on BGAudioHandler {
       return _androidAutoLibraryTabChildren(libraryTabInfo.libraryId, libraryTabInfo.tab, paging);
     }
 
+    final podcastItemId = _androidAutoPodcastItemIdFromNode(parentMediaId);
+    if (podcastItemId != null) {
+      return _androidAutoPodcastEpisodesForItem(podcastItemId, paging);
+    }
+
     final authorInfo = _androidAutoAuthorNodeFromId(parentMediaId);
     if (authorInfo != null) {
       return _androidAutoItemsForAuthor(authorInfo.libraryId, authorInfo.authorId, paging);
@@ -226,7 +243,11 @@ extension _BGAudioHandlerAndroidAutoEntry on BGAudioHandler {
       return null;
     }
 
-    if (target.episodeId != null && episode != null) {
+    if (target.episodeId != null) {
+      if (episode == null) {
+        return null;
+      }
+
       return _androidAutoPlayableFromEpisode(
         item: item,
         episode: episode,
@@ -268,13 +289,15 @@ extension _BGAudioHandlerAndroidAutoEntry on BGAudioHandler {
     );
 
     final libraries = await _androidAutoFetchLibraries();
-    final bookLibraries = libraries.where((library) => library.mediaType == 'book').toList(growable: false);
-    if (bookLibraries.isEmpty) {
+    final mediaLibraries = libraries
+        .where((library) => library.mediaType == 'book' || library.mediaType == 'podcast')
+        .toList(growable: false);
+    if (mediaLibraries.isEmpty) {
       return const <MediaItem>[];
     }
 
     final searchResults = await Future.wait(
-      bookLibraries.map((library) async {
+      mediaLibraries.map((library) async {
         try {
           final response = await api.getLibraryApi().getSearchLibrary(library.id, trimmedQuery, limit: perLibraryLimit);
           return (library: library, result: response.data);
@@ -293,21 +316,20 @@ extension _BGAudioHandlerAndroidAutoEntry on BGAudioHandler {
     final seen = <String>{};
 
     for (final entry in searchResults) {
-      final libraryItems = entry.result?.book ?? const <SearchLibraryResult>[];
+      final libraryItems = <SearchLibraryResult>[...?entry.result?.book, ...?entry.result?.podcast];
+
       for (final searchResult in libraryItems) {
         final libraryItem = searchResult.libraryItem;
-        if (libraryItem == null || !_androidAutoIsPlayableAudioItem(libraryItem)) {
+        if (libraryItem == null) {
           continue;
         }
 
-        final mediaId = _androidAutoItemPlaybackId(libraryItem.id);
-        if (!seen.add(mediaId)) {
+        final mediaItem = _androidAutoMediaEntryFromLibraryItem(libraryItem);
+        if (mediaItem == null || !seen.add(mediaItem.id)) {
           continue;
         }
 
-        mediaItems.add(
-          _androidAutoPlayableFromLibraryItem(libraryItem, mediaId: mediaId, subtitlePrefix: entry.library.name),
-        );
+        mediaItems.add(mediaItem);
       }
     }
 
@@ -339,8 +361,24 @@ extension _BGAudioHandlerAndroidAutoEntry on BGAudioHandler {
         return;
       }
 
-      if (target.episodeId != null && episode != null) {
-        await playPodcastEpisode(item, episode);
+      if (target.episodeId != null) {
+        if (episode == null) {
+          return;
+        }
+
+        final resolvedEpisode = episode;
+        final orderedEpisodes = await _androidAutoOrderedPlayablePodcastEpisodes(item);
+        final episodeIndex = orderedEpisodes.indexWhere((entry) => entry.id == resolvedEpisode.id);
+        await playPodcastEpisode(
+          item,
+          resolvedEpisode,
+          episodeIndex: episodeIndex < 0 ? null : episodeIndex,
+          orderedEpisodes: orderedEpisodes,
+        );
+        return;
+      }
+
+      if (_androidAutoIsPodcastLibraryItem(item)) {
         return;
       }
 
@@ -356,6 +394,27 @@ extension _BGAudioHandlerAndroidAutoEntry on BGAudioHandler {
       return;
     }
 
-    await _androidAutoPlayFromMediaId(results.first.id, extras: extras);
+    for (final result in results) {
+      if (_androidAutoPlaybackTargetFromMediaId(result.id) != null) {
+        await _androidAutoPlayFromMediaId(result.id, extras: extras);
+        return;
+      }
+
+      final podcastItemId = _androidAutoPodcastItemIdFromNode(result.id);
+      if (podcastItemId == null) {
+        continue;
+      }
+
+      final episodes = await _androidAutoPodcastEpisodesForItem(
+        podcastItemId,
+        const _AndroidAutoPagingOptions(page: 0, pageSize: 1, hasExplicitPaging: true),
+      );
+      if (episodes.isEmpty) {
+        continue;
+      }
+
+      await _androidAutoPlayFromMediaId(episodes.first.id, extras: extras);
+      return;
+    }
   }
 }

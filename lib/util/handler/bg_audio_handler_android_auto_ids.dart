@@ -121,6 +121,10 @@ extension _BGAudioHandlerAndroidAutoIds on BGAudioHandler {
     return '${_androidAutoLibraryNodeId(libraryId)}/narrator/${Uri.encodeComponent(narrator)}';
   }
 
+  String _androidAutoPodcastNodeId(String itemId) {
+    return 'aa/podcast/item/${Uri.encodeComponent(itemId)}';
+  }
+
   String _androidAutoItemPlaybackId(String itemId) {
     return 'aa/play/item/${Uri.encodeComponent(itemId)}';
   }
@@ -240,6 +244,15 @@ extension _BGAudioHandlerAndroidAutoIds on BGAudioHandler {
     }
 
     return (libraryId: Uri.decodeComponent(segments[2]), narrator: Uri.decodeComponent(segments[4]));
+  }
+
+  String? _androidAutoPodcastItemIdFromNode(String mediaId) {
+    final segments = _androidAutoSegments(mediaId);
+    if (segments.length != 4 || segments[0] != 'aa' || segments[1] != 'podcast' || segments[2] != 'item') {
+      return null;
+    }
+
+    return Uri.decodeComponent(segments[3]);
   }
 
   List<String> _androidAutoSegments(String value) {

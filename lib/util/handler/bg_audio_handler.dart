@@ -14,6 +14,7 @@ import 'package:yaabsa/api/library/search_library.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/library_items/series.dart';
+import 'package:yaabsa/api/me/media_progress.dart';
 import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/api/list/collection.dart';
 import 'package:yaabsa/api/list/playlist.dart';

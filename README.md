@@ -22,6 +22,7 @@ Below is a list of all features, but I want to *highlight* a few, as this client
 - eBook/PDF support **with** *syncable* annotations (EPUBs only)
 - subtitle support **with** karaoke-style highlighting support (later planned to be extended like Whispersync)
 - Support for all platforms Linux, Android, Android Automotive, iOS, macOS, Windows with responsive design
+- More actions directly via the notification player
 
 ## Compatibility Matrix
 

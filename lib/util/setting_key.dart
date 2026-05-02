@@ -22,6 +22,8 @@ class SettingKeys {
   static const String downloadPath = 'download_path';
   static const String androidAutoLibrarySortDescending = 'android_auto_library_sort_descending';
   static const String androidAutoLibrarySortField = 'android_auto_library_sort_field';
+  static const String androidAutoPodcastSortDescending = 'android_auto_podcast_sort_descending';
+  static const String androidAutoPodcastSortField = 'android_auto_podcast_sort_field';
   static const String androidAutoGroupByLetters = 'android_auto_group_by_letters';
   static const String waitForSync = 'wait_for_sync';
   static const String progressPerChapter = 'progress_per_chapter';
@@ -75,6 +77,8 @@ final defaultSettings = {
   SettingKeys.downloadPath: null,
   SettingKeys.androidAutoLibrarySortDescending: false,
   SettingKeys.androidAutoLibrarySortField: 'title',
+  SettingKeys.androidAutoPodcastSortDescending: true,
+  SettingKeys.androidAutoPodcastSortField: 'added',
   SettingKeys.androidAutoGroupByLetters: true,
   SettingKeys.waitForSync: true,
   SettingKeys.progressPerChapter: false,

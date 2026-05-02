@@ -167,14 +167,14 @@ extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
     try {
       return await runRequest(sort);
     } catch (e) {
-      if (sort != null && sort != _androidAutoSortFieldToApiSort[_androidAutoSortFieldTitle]) {
+      if (sort != null && sort != _androidAutoBookSortFieldToApiSort[_androidAutoSortFieldTitle]) {
         try {
           logger(
             'Retrying Android Auto library fetch for $libraryId with fallback title sort after sort "$sort" failed: $e',
             tag: 'AudioHandler',
             level: InfoLevel.warning,
           );
-          return await runRequest(_androidAutoSortFieldToApiSort[_androidAutoSortFieldTitle]);
+          return await runRequest(_androidAutoBookSortFieldToApiSort[_androidAutoSortFieldTitle]);
         } catch (_) {}
       }
 
@@ -278,11 +278,33 @@ extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
     }
   }
 
+  Future<Library?> _androidAutoLibraryForId(String libraryId) async {
+    final libraries = await _androidAutoFetchLibraries();
+    for (final library in libraries) {
+      if (library.id == libraryId) {
+        return library;
+      }
+    }
+    return null;
+  }
+
+  Future<bool> _androidAutoLibraryIsPodcast(String libraryId) async {
+    final library = await _androidAutoLibraryForId(libraryId);
+    return library?.mediaType == 'podcast';
+  }
+
   Future<bool> _androidAutoLibrarySortDescending() async {
     final user = await _androidAutoCurrentUser();
     return _ref
         .read(settingsManagerProvider.notifier)
         .getUserSetting<bool>(user?.id, SettingKeys.androidAutoLibrarySortDescending, defaultValue: false);
+  }
+
+  Future<bool> _androidAutoPodcastSortDescending() async {
+    final user = await _androidAutoCurrentUser();
+    return _ref
+        .read(settingsManagerProvider.notifier)
+        .getUserSetting<bool>(user?.id, SettingKeys.androidAutoPodcastSortDescending, defaultValue: true);
   }
 
   Future<String> _androidAutoLibrarySortField() async {
@@ -295,16 +317,56 @@ extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
           defaultValue: _androidAutoSortFieldTitle,
         );
 
-    if (!_androidAutoSortFieldToApiSort.containsKey(sortField)) {
+    if (!_androidAutoBookSortFieldToApiSort.containsKey(sortField)) {
       return _androidAutoSortFieldTitle;
     }
 
     return sortField;
   }
 
+  Future<String> _androidAutoPodcastSortField() async {
+    final user = await _androidAutoCurrentUser();
+    final sortField = _ref
+        .read(settingsManagerProvider.notifier)
+        .getUserSetting<String>(
+          user?.id,
+          SettingKeys.androidAutoPodcastSortField,
+          defaultValue: _androidAutoSortFieldAdded,
+        );
+
+    if (!_androidAutoPodcastSortFieldToApiSort.containsKey(sortField)) {
+      return _androidAutoSortFieldAdded;
+    }
+
+    return sortField;
+  }
+
+  Future<bool> _androidAutoSortDescendingForLibrary(String libraryId) async {
+    if (await _androidAutoLibraryIsPodcast(libraryId)) {
+      return _androidAutoPodcastSortDescending();
+    }
+
+    return _androidAutoLibrarySortDescending();
+  }
+
   Future<String> _androidAutoLibrarySortApiField() async {
     final sortField = await _androidAutoLibrarySortField();
-    return _androidAutoSortFieldToApiSort[sortField] ?? _androidAutoSortFieldToApiSort[_androidAutoSortFieldTitle]!;
+    return _androidAutoBookSortFieldToApiSort[sortField] ??
+        _androidAutoBookSortFieldToApiSort[_androidAutoSortFieldTitle]!;
+  }
+
+  Future<String> _androidAutoPodcastSortApiField() async {
+    final sortField = await _androidAutoPodcastSortField();
+    return _androidAutoPodcastSortFieldToApiSort[sortField] ??
+        _androidAutoPodcastSortFieldToApiSort[_androidAutoSortFieldAdded]!;
+  }
+
+  Future<String> _androidAutoSortApiFieldForLibrary(String libraryId) async {
+    if (await _androidAutoLibraryIsPodcast(libraryId)) {
+      return _androidAutoPodcastSortApiField();
+    }
+
+    return _androidAutoLibrarySortApiField();
   }
 
   Future<bool> _androidAutoGroupByLettersEnabled() async {
@@ -332,15 +394,5 @@ extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
       logger('Failed to ping server for Android Auto connection check', tag: 'AudioHandler', level: InfoLevel.warning);
       return false;
     }
-  }
-
-  Future<String> _androidAutoLibraryNameForId(String libraryId) async {
-    final libraries = await _androidAutoFetchLibraries();
-    for (final library in libraries) {
-      if (library.id == libraryId) {
-        return library.name;
-      }
-    }
-    return 'Library';
   }
 }

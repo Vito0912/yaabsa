@@ -6,19 +6,61 @@ extension _BGAudioHandlerAndroidAutoMedia on BGAudioHandler {
     final seen = <String>{};
 
     for (final item in items) {
-      if (!_androidAutoIsPlayableAudioItem(item)) {
+      final mediaItem = _androidAutoMediaEntryFromLibraryItem(item, subtitlePrefix: subtitlePrefix);
+      if (mediaItem == null) {
         continue;
       }
 
-      final mediaId = _androidAutoItemPlaybackId(item.id);
-      if (!seen.add(mediaId)) {
+      if (!seen.add(mediaItem.id)) {
         continue;
       }
 
-      mediaItems.add(_androidAutoPlayableFromLibraryItem(item, mediaId: mediaId, subtitlePrefix: subtitlePrefix));
+      mediaItems.add(mediaItem);
     }
 
     return mediaItems;
+  }
+
+  MediaItem? _androidAutoMediaEntryFromLibraryItem(LibraryItem item, {String? subtitlePrefix, Uri? artUriOverride}) {
+    if (!_androidAutoIsSupportedAudioItem(item)) {
+      return null;
+    }
+
+    if (_androidAutoIsPodcastLibraryItem(item)) {
+      return _androidAutoPodcastBrowsableFromLibraryItem(
+        item,
+        subtitlePrefix: subtitlePrefix,
+        artUriOverride: artUriOverride,
+      );
+    }
+
+    if (!_androidAutoIsPlayableAudioItem(item)) {
+      return null;
+    }
+
+    return _androidAutoPlayableFromLibraryItem(
+      item,
+      mediaId: _androidAutoItemPlaybackId(item.id),
+      subtitlePrefix: subtitlePrefix,
+      artUriOverride: artUriOverride,
+    );
+  }
+
+  bool _androidAutoIsPodcastLibraryItem(LibraryItem item) {
+    return item.mediaType == 'podcast' || item.media?.podcastMedia != null;
+  }
+
+  bool _androidAutoIsSupportedAudioItem(LibraryItem item) {
+    final media = item.media;
+    if (_androidAutoIsPodcastLibraryItem(item)) {
+      return media != null;
+    }
+
+    if (media == null) {
+      return false;
+    }
+
+    return media.hasAudio;
   }
 
   bool _androidAutoIsPlayableAudioItem(LibraryItem item) {
@@ -27,17 +69,54 @@ extension _BGAudioHandlerAndroidAutoMedia on BGAudioHandler {
       return false;
     }
 
-    if (item.mediaType == 'podcast') {
-      final episodes = media.podcastMedia?.episodes ?? const <Episode>[];
-      for (final episode in episodes) {
-        if (episode.audioFile != null) {
-          return true;
-        }
-      }
+    if (_androidAutoIsPodcastLibraryItem(item)) {
       return false;
     }
 
     return media.hasAudio;
+  }
+
+  List<Episode> _androidAutoPlayablePodcastEpisodes(LibraryItem item) {
+    final episodes = item.media?.podcastMedia?.episodes ?? const <Episode>[];
+    return episodes.where((episode) => episode.audioFile != null).toList(growable: false);
+  }
+
+  Future<List<Episode>> _androidAutoOrderedPlayablePodcastEpisodes(LibraryItem item) async {
+    final episodes = _androidAutoPlayablePodcastEpisodes(item).toList(growable: true);
+    if (episodes.isEmpty) {
+      return const <Episode>[];
+    }
+
+    episodes.sort(_androidAutoPodcastEpisodeNewestFirstComparator);
+
+    final descending = await _androidAutoPodcastSortDescending();
+    if (!descending) {
+      return episodes.reversed.toList(growable: false);
+    }
+
+    return episodes;
+  }
+
+  int _androidAutoPodcastEpisodeNewestFirstComparator(Episode left, Episode right) {
+    final byTimestamp = _androidAutoPodcastEpisodeSortTimestamp(
+      right,
+    ).compareTo(_androidAutoPodcastEpisodeSortTimestamp(left));
+    if (byTimestamp != 0) {
+      return byTimestamp;
+    }
+
+    final byIndex = (right.index ?? -1).compareTo(left.index ?? -1);
+    if (byIndex != 0) {
+      return byIndex;
+    }
+
+    final leftTitle = (left.title ?? '').trim().toLowerCase();
+    final rightTitle = (right.title ?? '').trim().toLowerCase();
+    return rightTitle.compareTo(leftTitle);
+  }
+
+  int _androidAutoPodcastEpisodeSortTimestamp(Episode episode) {
+    return episode.publishedAt ?? episode.addedAt ?? episode.updatedAt ?? 0;
   }
 
   Episode? _androidAutoEpisodeForItem(LibraryItem item, String episodeId) {
@@ -86,16 +165,7 @@ extension _BGAudioHandlerAndroidAutoMedia on BGAudioHandler {
       );
     }
 
-    if (!_androidAutoIsPlayableAudioItem(item)) {
-      return null;
-    }
-
-    return _androidAutoPlayableFromLibraryItem(
-      item,
-      mediaId: _androidAutoItemPlaybackId(item.id),
-      subtitlePrefix: 'Downloaded',
-      artUriOverride: artUri,
-    );
+    return _androidAutoMediaEntryFromLibraryItem(item, subtitlePrefix: 'Downloaded', artUriOverride: artUri);
   }
 
   MediaItem _androidAutoBrowsableItem({
@@ -159,6 +229,9 @@ extension _BGAudioHandlerAndroidAutoMedia on BGAudioHandler {
     ];
 
     final subtitle = subtitleParts.isEmpty ? item.subtitle : subtitleParts.join(' - ');
+    final completionExtras = _androidAutoIsPodcastLibraryItem(item)
+        ? const <String, dynamic>{}
+        : _androidAutoCompletionExtras(itemId: item.id);
 
     return _androidAutoPlayableItem(
       id: mediaId,
@@ -167,6 +240,31 @@ extension _BGAudioHandlerAndroidAutoMedia on BGAudioHandler {
       artist: item.authorString,
       artUri: artUriOverride ?? _androidAutoCoverUri(item),
       duration: _androidAutoDurationFromSeconds(item.media?.duration()),
+      extras: <String, dynamic>{
+        ...completionExtras,
+        'itemId': item.id,
+        if (item.libraryId != null) 'libraryId': item.libraryId,
+      },
+    );
+  }
+
+  MediaItem _androidAutoPodcastBrowsableFromLibraryItem(
+    LibraryItem item, {
+    String? subtitlePrefix,
+    Uri? artUriOverride,
+  }) {
+    final subtitleParts = <String>[
+      if (subtitlePrefix != null && subtitlePrefix.trim().isNotEmpty) subtitlePrefix.trim(),
+      if (item.authorString != null && item.authorString!.trim().isNotEmpty) item.authorString!.trim(),
+    ];
+
+    final subtitle = subtitleParts.isEmpty ? item.subtitle : subtitleParts.join(' - ');
+
+    return _androidAutoBrowsableItem(
+      id: _androidAutoPodcastNodeId(item.id),
+      title: item.title,
+      subtitle: subtitle,
+      artUri: artUriOverride ?? _androidAutoCoverUri(item),
       extras: <String, dynamic>{'itemId': item.id, if (item.libraryId != null) 'libraryId': item.libraryId},
     );
   }
@@ -182,11 +280,15 @@ extension _BGAudioHandlerAndroidAutoMedia on BGAudioHandler {
         ? episode.title!.trim()
         : item.title;
 
+    final hasPrefix = subtitlePrefix != null && subtitlePrefix.trim().isNotEmpty;
     final subtitle = (episode.subtitle != null && episode.subtitle!.trim().isNotEmpty)
         ? episode.subtitle!.trim()
-        : subtitlePrefix == null || subtitlePrefix.trim().isEmpty
-        ? item.title
-        : '${subtitlePrefix.trim()} - ${item.title}';
+        : hasPrefix
+        ? '${subtitlePrefix.trim()} - ${item.title}'
+        : _androidAutoIsPodcastLibraryItem(item)
+        ? null
+        : item.title;
+    final completionExtras = _androidAutoCompletionExtras(itemId: item.id, episodeId: episode.id);
 
     return _androidAutoPlayableItem(
       id: mediaIdOverride ?? _androidAutoEpisodePlaybackId(item.id, episode.id),
@@ -196,11 +298,37 @@ extension _BGAudioHandlerAndroidAutoMedia on BGAudioHandler {
       artUri: artUriOverride ?? _androidAutoCoverUri(item),
       duration: _androidAutoDurationFromSeconds(episode.audioFile?.duration),
       extras: <String, dynamic>{
+        ...completionExtras,
         'itemId': item.id,
         'episodeId': episode.id,
         if (item.libraryId != null) 'libraryId': item.libraryId,
       },
     );
+  }
+
+  Map<String, dynamic> _androidAutoCompletionExtras({required String itemId, String? episodeId}) {
+    final progressMap = _ref.read(mediaProgressProvider).value ?? const <String, MediaProgress>{};
+    final progress = progressMap[mediaProgressKey(itemId, episodeId)];
+    if (progress == null) {
+      return <String, dynamic>{_androidAutoCompletionStatusExtrasKey: _androidAutoCompletionStatusNotPlayed};
+    }
+
+    final normalizedProgress = progress.progress.clamp(0.0, 1.0).toDouble();
+    if (progress.isFinished || normalizedProgress >= 0.999) {
+      return <String, dynamic>{
+        _androidAutoCompletionStatusExtrasKey: _androidAutoCompletionStatusFullyPlayed,
+        _androidAutoCompletionPercentageExtrasKey: 1.0,
+      };
+    }
+
+    if (normalizedProgress <= 0) {
+      return <String, dynamic>{_androidAutoCompletionStatusExtrasKey: _androidAutoCompletionStatusNotPlayed};
+    }
+
+    return <String, dynamic>{
+      _androidAutoCompletionStatusExtrasKey: _androidAutoCompletionStatusPartiallyPlayed,
+      _androidAutoCompletionPercentageExtrasKey: normalizedProgress,
+    };
   }
 
   Uri? _androidAutoCoverUri(LibraryItem item) {
