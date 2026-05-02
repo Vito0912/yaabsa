@@ -27,15 +27,11 @@ Below is a list of all features, but I want to *highlight* a few, as this client
 ## Compatibility Matrix
 
 > [!NOTE]
-> For best playback experience merge all audio files into one file.
-
-> [!NOTE]
 >
 > - ✅: Feature is available and tested for the platform before the release on at least one personal device.
 > - ❓: Feature is available but not tested for the platform before the release. The features should work, but they are not guaranteed to work.
 > - ❌: Feature is not available for the platform
 > - 🅿️: Feature is planned for the platform, but not yet implemented.
-> - L: Low priority feature.
 >
 > If a feature already has a 🅿️, ❓, or ✅ and ❌ for the other platforms for the same feature, it is not planned to be implemented, either because it is not possible or not worth the effort for a single platform. However, PRs will not be closed. Issues will
 
@@ -91,7 +87,7 @@ Below is a list of all features, but I want to *highlight* a few, as this client
 | Caching            | ✅      | ✅   | ✅      | ✅    | ✅    |
 | Downloads          | ✅      | ❓   | ❓      | ✅\*  | ✅    |
 | Headers            | ✅      | ✅   | ✅      | ✅    | ✅    |
-| Car                | ✅      | 🅿️L  | ❌      | ❌    | ❌    |
+| Car                | ✅      | 🅿️   | ❌      | ❌    | ❌    |
 | Android Automotive | ✅      | ❌   | ❌      | ❌    | ❌    |
 
 \* Only supports the default download location, due to sandboxing limitations. Will be addressed in the future.

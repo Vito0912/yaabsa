@@ -33,7 +33,8 @@ class PodcastEpisodeTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final progressValue = (progress?.progress ?? 0).clamp(0.0, 1.0).toDouble();
-    final statusLabel = podcastEpisodeCompleted(progress)
+    final isFinished = podcastEpisodeCompleted(progress);
+    final statusLabel = isFinished
         ? 'Complete'
         : podcastEpisodeInProgress(progress)
         ? 'In Progress'
@@ -48,6 +49,20 @@ class PodcastEpisodeTile extends StatelessWidget {
     final backgroundColor = isCurrentEpisode
         ? colorScheme.primaryContainer.withValues(alpha: 0.18)
         : colorScheme.surfaceContainerLow;
+    final showProgressRing = progressValue > 0 && !isFinished;
+    final isPlayEnabled = onPlayPressed != null;
+    final playIcon = isCurrentEpisode && isPlayingCurrentEpisode
+        ? Icons.pause_rounded
+        : (isFinished ? Icons.replay_rounded : Icons.play_arrow_rounded);
+    final playTooltip = isCurrentEpisode && isPlayingCurrentEpisode ? 'Pause' : (isFinished ? 'Replay' : 'Play');
+    final playBackgroundColor = isPlayEnabled
+        ? (isFinished ? colorScheme.primary : colorScheme.surface.withAlpha(230))
+        : colorScheme.surfaceContainerHighest;
+    final playIconColor = isPlayEnabled
+        ? (isFinished ? colorScheme.onPrimary : colorScheme.onSurfaceVariant)
+        : colorScheme.onSurfaceVariant.withValues(alpha: 0.6);
+    const playButtonTouchSize = 48.0;
+    const playButtonVisualSize = 40.0;
 
     return Material(
       color: backgroundColor,
@@ -101,12 +116,43 @@ class PodcastEpisodeTile extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  IconButton.filled(
-                    onPressed: onPlayPressed,
-                    icon: Icon(
-                      isCurrentEpisode && isPlayingCurrentEpisode ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                  SizedBox(
+                    width: playButtonTouchSize,
+                    height: playButtonTouchSize,
+                    child: Center(
+                      child: Container(
+                        width: playButtonVisualSize,
+                        height: playButtonVisualSize,
+                        decoration: BoxDecoration(borderRadius: BorderRadius.circular(100), color: playBackgroundColor),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            if (showProgressRing)
+                              SizedBox(
+                                width: playButtonVisualSize - 4,
+                                height: playButtonVisualSize - 4,
+                                child: CircularProgressIndicator(
+                                  value: progressValue,
+                                  strokeWidth: 3,
+                                  backgroundColor: Colors.white24,
+                                  valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
+                                ),
+                              ),
+                            IconButton(
+                              onPressed: onPlayPressed,
+                              tooltip: playTooltip,
+                              constraints: const BoxConstraints.tightFor(
+                                width: playButtonVisualSize,
+                                height: playButtonVisualSize,
+                              ),
+                              padding: EdgeInsets.zero,
+                              icon: Icon(playIcon, color: playIconColor, size: isFinished ? 20 : 18),
+                              splashRadius: 10,
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                    tooltip: isCurrentEpisode && isPlayingCurrentEpisode ? 'Pause' : 'Play',
                   ),
                   const SizedBox(width: 4),
                   IconButton.filledTonal(
@@ -152,13 +198,6 @@ class PodcastEpisodeTile extends StatelessWidget {
                   ),
                 ],
               ),
-              if (progressValue > 0) ...[
-                const SizedBox(height: 8),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(99),
-                  child: LinearProgressIndicator(value: progressValue, minHeight: 3.5),
-                ),
-              ],
             ],
           ),
         ),
