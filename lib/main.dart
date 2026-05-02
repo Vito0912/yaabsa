@@ -15,6 +15,15 @@ import 'package:yaabsa/util/setting_key.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+Future<void> _resumeLastPlayedOnStartup() async {
+  try {
+    await containerRef.read(currentUserProvider.future);
+    await audioHandler.playLastPlayedIfEnabledOnStartup();
+  } catch (e, s) {
+    logger('Startup last-played resume failed: $e\\n$s', tag: 'Main', level: InfoLevel.warning);
+  }
+}
+
 void main() {
   runZonedGuarded(
     () async {
@@ -31,6 +40,7 @@ void main() {
 
       Init.late();
       runApp(UncontrolledProviderScope(container: containerRef, child: MyApp()));
+      unawaited(_resumeLastPlayedOnStartup());
     },
     (error, stack) {
       logger('Uncaught Dart error: $error\n$stack', tag: 'ZoneError', level: InfoLevel.error);

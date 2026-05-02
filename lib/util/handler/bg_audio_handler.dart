@@ -1,6 +1,7 @@
 // ignore_for_file: unused_element_parameter
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
@@ -182,6 +183,116 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   String _queueItemReferenceKey({required String itemId, String? episodeId}) {
     return '$itemId::${episodeId ?? ''}';
+  }
+
+  Future<void> _persistLastPlayedQueueItem({required String itemId, String? episodeId}) async {
+    final userId = _ref.read(currentUserProvider).value?.id;
+    if (userId == null || userId.isEmpty) {
+      return;
+    }
+
+    final db = _ref.read(appDatabaseProvider);
+    final payload = jsonEncode(<String, dynamic>{'itemId': itemId, 'episodeId': episodeId});
+
+    try {
+      await db.setUserSetting(userId, SettingKeys.lastPlayedQueueItem, payload);
+    } catch (e, s) {
+      logger(
+        'Failed to persist last played item for user $userId: $e\\n$s',
+        tag: 'AudioHandler',
+        level: InfoLevel.warning,
+      );
+    }
+  }
+
+  QueueItem? _decodeLastPlayedQueueItem(String? rawValue) {
+    if (rawValue == null || rawValue.trim().isEmpty) {
+      return null;
+    }
+
+    try {
+      final decoded = jsonDecode(rawValue);
+      if (decoded is! Map) {
+        return null;
+      }
+
+      final itemIdValue = decoded['itemId'];
+      if (itemIdValue is! String || itemIdValue.trim().isEmpty) {
+        return null;
+      }
+
+      final episodeIdValue = decoded['episodeId'];
+      final episodeId = episodeIdValue is String && episodeIdValue.trim().isNotEmpty ? episodeIdValue.trim() : null;
+
+      return QueueItem(itemId: itemIdValue.trim(), episodeId: episodeId);
+    } catch (e) {
+      logger('Failed to decode last played item payload: $e', tag: 'AudioHandler', level: InfoLevel.warning);
+      return null;
+    }
+  }
+
+  Future<bool> playLastPlayed({bool requireStartupSettingEnabled = false, bool resumeCurrentIfPaused = true}) async {
+    if (requireStartupSettingEnabled) {
+      final autoPlayEnabled = _ref
+          .read(settingsManagerProvider.notifier)
+          .getGlobalSetting<bool>(SettingKeys.autoPlayLastPlayedOnLaunch);
+      if (!autoPlayEnabled) {
+        return false;
+      }
+    }
+
+    if (_currentMediaItem != null) {
+      if (resumeCurrentIfPaused && !playerControlState.playing) {
+        await play();
+        return true;
+      }
+      return false;
+    }
+
+    if (playerControlState.playing || _queueTransitionLoading || queueList.isNotEmpty) {
+      return false;
+    }
+
+    final userId = _ref.read(currentUserProvider).value?.id;
+    if (userId == null || userId.isEmpty) {
+      return false;
+    }
+
+    final db = _ref.read(appDatabaseProvider);
+    final rawLastPlayed = (await db.getUserSetting(userId, SettingKeys.lastPlayedQueueItem))?.value;
+    final lastPlayedItem = _decodeLastPlayedQueueItem(rawLastPlayed);
+    if (lastPlayedItem == null) {
+      return false;
+    }
+
+    final progress = await _ref
+        .read(mediaProgressProvider.notifier)
+        .fetchOrRefreshIndividualProgress(lastPlayedItem.itemId, episodeId: lastPlayedItem.episodeId);
+
+    if (progress?.isFinished ?? false) {
+      logger(
+        'Last played item ${lastPlayedItem.itemId} is finished. Skipping resume.',
+        tag: 'AudioHandler',
+        level: InfoLevel.debug,
+      );
+      return false;
+    }
+
+    final resumePosition = Duration(
+      microseconds: ((progress?.currentTime ?? 0) * Duration.microsecondsPerSecond).round(),
+    );
+
+    await playItemFromPosition(
+      itemId: lastPlayedItem.itemId,
+      episodeId: lastPlayedItem.episodeId,
+      position: resumePosition,
+    );
+
+    return true;
+  }
+
+  Future<bool> playLastPlayedIfEnabledOnStartup() {
+    return playLastPlayed(requireStartupSettingEnabled: true, resumeCurrentIfPaused: false);
   }
 
   bool isInQueue(String itemId, {String? episodeId}) {
@@ -509,6 +620,9 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   set _currentMediaItem(InternalMedia? mediaItem) {
     __currentMediaItem = mediaItem;
     _currentTrackIndex = 0;
+    if (mediaItem != null) {
+      unawaited(_persistLastPlayedQueueItem(itemId: mediaItem.itemId, episodeId: mediaItem.episodeId));
+    }
     mediaItemStream.add(mediaItem);
     _refreshPlayerControlState();
     _emitShouldShowPlayer();

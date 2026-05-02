@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
@@ -47,7 +48,7 @@ class TrayManager extends ConsumerStatefulWidget {
             ),
           ),
         MenuItem.separator(),
-        MenuItem(key: TrayManager.playLatestKey, label: 'Play Latest'),
+        MenuItem(key: TrayManager.playLatestKey, label: 'Play Last Played'),
         MenuItem.separator(),
         MenuItem(key: TrayManager.exitKey, label: 'Exit App'),
       ],
@@ -93,8 +94,17 @@ class _TrayManagerState extends ConsumerState<TrayManager> with TrayListener {
   void onTrayMenuItemClick(MenuItem menuItem) {
     switch (menuItem.key) {
       case TrayManager.playLatestKey:
-        logger('Play latest clicked', tag: 'TrayManager', level: InfoLevel.info);
-        // TODO: Implement
+        unawaited(
+          audioHandler.playLastPlayed().then((started) {
+            logger(
+              started
+                  ? 'Tray action resumed last played item.'
+                  : 'Tray action did not find a resumable last played item.',
+              tag: 'TrayManager',
+              level: InfoLevel.info,
+            );
+          }),
+        );
         break;
       case TrayManager.playPauseKey:
         audioHandler.playerControlState.playing ? audioHandler.pause() : audioHandler.play();

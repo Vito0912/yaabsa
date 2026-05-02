@@ -29,6 +29,12 @@ class GlobalPlayerSettings extends StatelessWidget {
           description: 'When enabled, a More button will be shown, giving more quick actions',
           settingKey: SettingKeys.showNotificationMoreButton,
         ),
+        SettingSwitch(
+          label: 'Auto-play last played on app start',
+          description:
+              'When enabled and nothing is currently playing, app launch will resume the last played item if it is not finished.',
+          settingKey: SettingKeys.autoPlayLastPlayedOnLaunch,
+        ),
         SettingSwitch(label: 'Keep Screen On', settingKey: SettingKeys.keepScreenOn),
       ],
     );

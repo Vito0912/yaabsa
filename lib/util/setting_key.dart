@@ -9,6 +9,7 @@ class SettingKeys {
   static const String keepScreenOn = 'keep_screen_on';
   static const String lockMediaNotification = 'lock_media_notification';
   static const String showNotificationMoreButton = 'show_notification_more_button';
+  static const String autoPlayLastPlayedOnLaunch = 'auto_play_last_played_on_launch';
   static const String language = 'language';
   static const String sidebarCollapsed = 'sidebar_collapsed';
   static const String autoQueue = 'auto_queue';
@@ -52,6 +53,7 @@ class SettingKeys {
   static const String playbackSpeed = 'playback_speed';
   static const String volume = 'volume';
   static const String playerSeekBarMode = 'player_seek_bar_mode';
+  static const String lastPlayedQueueItem = 'last_played_queue_item';
 
   static const String subtitlesEnabled = 'subtitles_enabled';
   static const String subtitleSpeakerHighlighting = 'subtitle_speaker_highlighting';
@@ -65,6 +67,7 @@ final defaultSettings = {
   SettingKeys.bufferSize: 5 * 1024 * 1024,
   SettingKeys.lockMediaNotification: false,
   SettingKeys.showNotificationMoreButton: false,
+  SettingKeys.autoPlayLastPlayedOnLaunch: false,
   SettingKeys.keepScreenOn: false,
   SettingKeys.language: 'en-US',
   SettingKeys.sidebarCollapsed: false,
