@@ -294,7 +294,7 @@ jobs:
         run: |
           PAGES_URL="https://${REPO_OWNER}.github.io/${REPO_NAME}/"
           HOMEPAGE_URL="https://github.com/${REPO_SLUG}"
-          ICON_URL="https://raw.githubusercontent.com/${REPO_SLUG}/master/assets/logo_blue_big_abs.svg"
+          ICON_URL="https://raw.githubusercontent.com/${REPO_SLUG}/master/assets/logo_blue_fill.svg"
           GPG_KEY_B64="$(gpg --export "$FLATPAK_GPG_KEY_ID" | base64 -w 0)"
           mkdir -p flatpak-pages
           cp -R flatpak-repo/. flatpak-pages/

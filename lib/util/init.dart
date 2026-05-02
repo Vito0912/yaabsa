@@ -150,6 +150,7 @@ class Init {
       config: AudioServiceConfig(
         androidNotificationChannelId: 'de.vito0912.yaabsa.audio',
         androidNotificationChannelName: 'Playback',
+        androidNotificationIcon: 'drawable/ic_launcher_monochrome',
         androidNotificationOngoing: false,
         androidStopForegroundOnPause: false,
         preloadArtwork: true,

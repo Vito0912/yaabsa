@@ -4,7 +4,7 @@ set -euo pipefail
 app_name="yaabsa"
 packaging_dir="linux/packaging/rpm"
 output_dir="output/linux"
-icon_path="assets/logo_blue_big_abs.svg"
+icon_path="assets/logo_blue_fill.svg"
 
 if [[ -d "build/linux/x64/release/bundle" ]]; then
   bundle_dir="build/linux/x64/release/bundle"

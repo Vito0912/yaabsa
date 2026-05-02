@@ -22,7 +22,7 @@ if ($parts.Count -gt 3) {
 $msixVersion = "$($parts[0]).$($parts[1]).$($parts[2]).$buildPart"
 
 $outputDir = Join-Path $repoRoot "output\windows"
-$logoPath = Join-Path $repoRoot "assets\logo_blue_big_abs.png"
+$logoPath = Join-Path $repoRoot "assets\logo_blue_fill.png"
 if (-not (Test-Path $logoPath)) {
   throw "MSIX logo not found at $logoPath"
 }

@@ -25,7 +25,7 @@ class TrayManager extends ConsumerStatefulWidget {
     }
 
     // TODO: Icon for Windows
-    await trayManager.setIcon('assets/logo_blue_big_abs.png');
+    await trayManager.setIcon('assets/logo_blue_fill.png');
     Menu menu = Menu(
       items: [
         if (audioHandler.currentMediaItem != null)

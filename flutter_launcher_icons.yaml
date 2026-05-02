@@ -1,0 +1,28 @@
+# flutter pub run flutter_launcher_icons
+flutter_launcher_icons:
+  image_path: "assets/logo_blue_fill.png"
+
+  android: "launcher_icon"
+  image_path_android: "assets/logo_blue_fill.png"
+  min_sdk_android: 21 # android min sdk min:16, default 21
+  adaptive_icon_foreground_inset: 16
+  adaptive_icon_background: "#1330b9"
+  adaptive_icon_foreground: "assets/logo_light_fill.png"
+  adaptive_icon_monochrome: "assets/logo_dark_fill.png"
+
+  ios: true
+  image_path_ios: "assets/logo_blue_fill.png"
+  remove_alpha_ios: true
+  # image_path_ios_dark_transparent: "assets/icon/icon_dark.png"
+  image_path_ios_tinted_grayscale: "assets/logo_dark_fill.png"
+  desaturate_tinted_to_grayscale_ios: true
+  background_color_ios: "#ffffff"
+
+  windows:
+    generate: true
+    image_path: "assets/logo_blue_fill.png"
+    icon_size: 128 # min:48, max:256, default: 48
+
+  macos:
+    generate: true
+    image_path: "assets/logo_blue_fill.png"

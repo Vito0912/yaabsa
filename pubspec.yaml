@@ -2,7 +2,8 @@ name: yaabsa
 description: "An improved cross-platform app for Audiobookshelf"
 publish_to: 'none'
 
-version: 1.1.0+10
+# Always use even numbers!
+version: 1.1.1+12
 
 environment:
   sdk: ^3.8.0
@@ -94,6 +95,8 @@ dev_dependencies:
   json_serializable: ^6.12.0
   drift_dev: ^2.31.0
   riverpod_generator: ^4.0.3
+  flutter_launcher_icons: ^0.14.2
+
 
 dependency_overrides:
   sqlite3: ^3.3.1
@@ -103,4 +106,4 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/logo_blue_big_abs.png
+    - assets/logo_blue_fill.png

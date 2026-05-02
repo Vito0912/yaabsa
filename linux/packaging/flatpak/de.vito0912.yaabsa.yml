@@ -161,5 +161,5 @@ modules:
       - type: file
         path: de.vito0912.yaabsa.metainfo.xml
       - type: file
-        path: ../../../assets/logo_blue_big_abs.svg
+        path: ../../../assets/logo_blue_fill.svg
         dest-filename: app-icon.svg
