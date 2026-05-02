@@ -172,6 +172,48 @@ class SignIn extends HookConsumerWidget {
       return fetchStatus(showErrors: showErrors);
     }
 
+    Future<void> initializeSelectedLibraryAfterLogin({
+      required AppDatabase db,
+      required String userId,
+      required ABSApi? api,
+      String? serverDefaultLibraryId,
+    }) async {
+      final normalizedDefaultLibraryId = serverDefaultLibraryId?.trim();
+
+      if (normalizedDefaultLibraryId != null && normalizedDefaultLibraryId.isNotEmpty) {
+        await db.setUserSetting(userId, 'selectedLibraryId', normalizedDefaultLibraryId);
+      }
+
+      if (api == null) {
+        return;
+      }
+
+      try {
+        final librariesResponse = await api.getLibraryApi().getLibraries();
+        final libraries = librariesResponse.data?.libraries;
+        if (libraries == null || libraries.isEmpty) {
+          return;
+        }
+
+        final hasValidDefault =
+            normalizedDefaultLibraryId != null &&
+            normalizedDefaultLibraryId.isNotEmpty &&
+            libraries.any((library) => library.id == normalizedDefaultLibraryId);
+
+        final selectedLibraryId = hasValidDefault ? normalizedDefaultLibraryId : libraries.first.id;
+
+        if (selectedLibraryId.isNotEmpty) {
+          await db.setUserSetting(userId, 'selectedLibraryId', selectedLibraryId);
+        }
+      } catch (e, s) {
+        logger(
+          'Failed to initialize selected library after login for user $userId: $e\\n$s',
+          tag: 'SignIn',
+          level: InfoLevel.warning,
+        );
+      }
+    }
+
     Future<void> validateAndSignIn() async {
       errorMessage.value = null;
 
@@ -198,6 +240,8 @@ class SignIn extends HookConsumerWidget {
 
       try {
         late final User loggedInUser;
+        ABSApi? authenticatedApi;
+        String? serverDefaultLibraryId;
 
         if (useApiKey.value) {
           final apiKey = apiKeyController.text.trim();
@@ -218,6 +262,7 @@ class SignIn extends HookConsumerWidget {
           }
 
           loggedInUser = userData.copyWith(apiKey: apiKey);
+          authenticatedApi = api;
         } else {
           final username = usernameController.text.trim();
           final password = passwordController.text;
@@ -229,7 +274,9 @@ class SignIn extends HookConsumerWidget {
 
           logger('Attempting login to server: $normalizedServer with username: $username', tag: 'SignIn');
 
-          final apiResponse = await buildServerApi(normalizedServer).getMeApi().login(
+          final api = buildServerApi(normalizedServer);
+
+          final apiResponse = await api.getMeApi().login(
             loginRequest: LoginRequest(username: username, password: password),
             returnTokens: true,
           );
@@ -242,6 +289,13 @@ class SignIn extends HookConsumerWidget {
           }
 
           loggedInUser = loginData.user.copyWith(setting: loginData.serverSettings);
+          serverDefaultLibraryId = loginData.userDefaultLibraryId;
+
+          final token = loggedInUser.preferredAuthToken;
+          if (token != null && token.isNotEmpty) {
+            api.setBearerAuth('BearerAuth', token);
+            authenticatedApi = api;
+          }
         }
 
         final serverUri = Uri.parse(normalizedServer);
@@ -257,6 +311,14 @@ class SignIn extends HookConsumerWidget {
             ),
           ),
         );
+
+        await initializeSelectedLibraryAfterLogin(
+          db: db,
+          userId: loggedInUser.id,
+          api: authenticatedApi,
+          serverDefaultLibraryId: serverDefaultLibraryId,
+        );
+
         await db.setActiveUserId(loggedInUser.id);
 
         ref.invalidate(allStoredUsersProvider);

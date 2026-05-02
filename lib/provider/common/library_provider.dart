@@ -71,6 +71,7 @@ class SelectedLibraryId extends _$SelectedLibraryId {
   Stream<String?> build() {
     final db = ref.watch(appDatabaseProvider);
     final userId = ref.watch(activeUserIdProvider).value;
+    final librariesAsync = ref.watch(userLibrariesProvider);
 
     if (userId == null) {
       logger('SelectedLibraryIdProvider: No active user, returning null stream.', tag: 'SelectedLibraryId');
@@ -79,40 +80,44 @@ class SelectedLibraryId extends _$SelectedLibraryId {
 
     final stream = db.watchUserSetting(userId, 'selectedLibraryId').map((e) => e?.value);
 
-    unawaited(_maybeAutoSelectFirstLibrary(userId));
+    if (librariesAsync.hasValue) {
+      final libraries = librariesAsync.value ?? const <Library>[];
+      unawaited(_ensureSelectionForLibraries(userId: userId, libraries: libraries));
+    }
 
     logger('SelectedLibraryIdProvider: Watching selected library ID for user $userId.', tag: 'SelectedLibraryId');
     return stream;
   }
 
-  Future<void> _maybeAutoSelectFirstLibrary(String userId) async {
+  Future<void> _ensureSelectionForLibraries({required String userId, required List<Library> libraries}) async {
     final db = ref.read(appDatabaseProvider);
     final currentSelectedId = (await db.getUserSetting(userId, 'selectedLibraryId'))?.value;
 
-    if (currentSelectedId == null) {
-      try {
-        final libraries = await ref.read(userLibrariesProvider.future);
-        if (libraries.isNotEmpty) {
-          final firstLibraryId = libraries.first.id;
-          logger(
-            'SelectedLibraryIdProvider: No library selected for user $userId. Auto-selecting first library: $firstLibraryId.',
-            tag: 'SelectedLibraryId',
-          );
-          await set(firstLibraryId);
-        } else {
-          logger(
-            'SelectedLibraryIdProvider: No library selected for user $userId and no libraries available to auto-select.',
-            tag: 'SelectedLibraryId',
-          );
-        }
-      } catch (e, s) {
-        logger(
-          'SelectedLibraryIdProvider: Failed to auto-select first library for user $userId: $e\\n$s',
-          tag: 'SelectedLibraryId',
-          level: InfoLevel.warning,
-        );
-      }
+    if (libraries.isEmpty) {
+      return;
     }
+
+    final hasValidSelection = currentSelectedId != null && libraries.any((library) => library.id == currentSelectedId);
+    if (hasValidSelection) {
+      return;
+    }
+
+    final fallbackLibraryId = libraries.first.id;
+
+    if (currentSelectedId == null) {
+      logger(
+        'SelectedLibraryIdProvider: No library selected for user $userId. Auto-selecting first library: $fallbackLibraryId.',
+        tag: 'SelectedLibraryId',
+      );
+    } else {
+      logger(
+        'SelectedLibraryIdProvider: Selected library "$currentSelectedId" is unavailable for user $userId. Falling back to first library: $fallbackLibraryId.',
+        tag: 'SelectedLibraryId',
+        level: InfoLevel.warning,
+      );
+    }
+
+    await db.setUserSetting(userId, 'selectedLibraryId', fallbackLibraryId);
   }
 
   Future<void> set(String? libraryId) async {

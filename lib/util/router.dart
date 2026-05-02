@@ -97,6 +97,10 @@ final globalRouter = GoRouter(
       return '/add-user';
     }
 
+    if (activeUserId != null && isLoginRoute) {
+      return '/';
+    }
+
     return null;
   },
   routes: [
