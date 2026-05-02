@@ -68,7 +68,7 @@ final class SelectedLibraryIdProvider extends $StreamNotifierProvider<SelectedLi
   SelectedLibraryId create() => SelectedLibraryId();
 }
 
-String _$selectedLibraryIdHash() => r'eda535cd6c125a5bafb156ffb75a9d88d700608b';
+String _$selectedLibraryIdHash() => r'6d0a4bf2cc7e373de94300680daceeaac84df0a2';
 
 abstract class _$SelectedLibraryId extends $StreamNotifier<String?> {
   Stream<String?> build();
