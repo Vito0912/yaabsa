@@ -78,6 +78,9 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   int _queueEntryCounter = 0;
   int _autoQueueGeneration = 0;
   _AutoQueueState? _autoQueueState;
+  DateTime? _pausedAt;
+  String? _pausedItemId;
+  String? _pausedEpisodeId;
   final BehaviorSubject<int> _queueLengthSubject = BehaviorSubject<int>.seeded(0);
   final BehaviorSubject<PlayerQueueSnapshot> _queueSnapshotSubject = BehaviorSubject<PlayerQueueSnapshot>.seeded(
     const PlayerQueueSnapshot(),
@@ -183,6 +186,115 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   String _queueItemReferenceKey({required String itemId, String? episodeId}) {
     return '$itemId::${episodeId ?? ''}';
+  }
+
+  void _clearSmartRewindPauseMarker() {
+    _pausedAt = null;
+    _pausedItemId = null;
+    _pausedEpisodeId = null;
+  }
+
+  void _recordPausedPlaybackMarker() {
+    if (_currentMediaItem == null) {
+      _clearSmartRewindPauseMarker();
+      return;
+    }
+
+    _pausedAt = DateTime.now();
+    _pausedItemId = _currentMediaItem!.itemId;
+    _pausedEpisodeId = _currentMediaItem!.episodeId;
+  }
+
+  bool _hasPauseMarkerForCurrentItem() {
+    if (_currentMediaItem == null || _pausedAt == null) {
+      return false;
+    }
+
+    return _queueItemsMatch(
+      leftItemId: _currentMediaItem!.itemId,
+      leftEpisodeId: _currentMediaItem!.episodeId,
+      rightItemId: _pausedItemId ?? '',
+      rightEpisodeId: _pausedEpisodeId,
+    );
+  }
+
+  Duration _smartRewindDurationForPause(Duration pausedFor) {
+    final settingManager = _ref.read(settingsManagerProvider.notifier);
+
+    final shortPauseThresholdSeconds = settingManager.getGlobalSetting<int>(
+      SettingKeys.smartRewindShortPauseThresholdSeconds,
+    );
+    final longPauseThresholdSeconds = settingManager.getGlobalSetting<int>(
+      SettingKeys.smartRewindLongPauseThresholdSeconds,
+    );
+
+    final shortThreshold = shortPauseThresholdSeconds < 1 ? 1 : shortPauseThresholdSeconds;
+    final longThresholdSeed = longPauseThresholdSeconds < 1 ? shortThreshold : longPauseThresholdSeconds;
+    final longThreshold = longThresholdSeed < shortThreshold ? shortThreshold : longThresholdSeed;
+
+    final shortRewindSeconds = settingManager.getGlobalSetting<int>(SettingKeys.smartRewindShortRewindSeconds);
+    final mediumRewindSeconds = settingManager.getGlobalSetting<int>(SettingKeys.smartRewindMediumRewindSeconds);
+    final longRewindSeconds = settingManager.getGlobalSetting<int>(SettingKeys.smartRewindLongRewindSeconds);
+
+    final shortRewind = shortRewindSeconds < 1 ? 1 : shortRewindSeconds;
+    final mediumRewind = mediumRewindSeconds < 1 ? shortRewind : mediumRewindSeconds;
+    final longRewind = longRewindSeconds < 1 ? mediumRewind : longRewindSeconds;
+
+    final pausedSeconds = pausedFor.inSeconds;
+    if (pausedSeconds <= shortThreshold) {
+      return Duration(seconds: shortRewind);
+    }
+    if (pausedSeconds <= longThreshold) {
+      return Duration(seconds: mediumRewind);
+    }
+    return Duration(seconds: longRewind);
+  }
+
+  Future<void> _applySmartRewindOnResumeIfNeeded() async {
+    if (_currentMediaItem == null || playerControlState.playing) {
+      return;
+    }
+
+    if (!_hasPauseMarkerForCurrentItem()) {
+      _clearSmartRewindPauseMarker();
+      return;
+    }
+
+    final settingManager = _ref.read(settingsManagerProvider.notifier);
+    final smartRewindEnabled = settingManager.getGlobalSetting<bool>(SettingKeys.smartRewindEnabled);
+    if (!smartRewindEnabled) {
+      _clearSmartRewindPauseMarker();
+      return;
+    }
+
+    final pausedAt = _pausedAt;
+    if (pausedAt == null) {
+      _clearSmartRewindPauseMarker();
+      return;
+    }
+
+    final pausedFor = DateTime.now().difference(pausedAt);
+    final rewindBy = _smartRewindDurationForPause(pausedFor);
+    final currentPosition = position;
+
+    if (rewindBy <= Duration.zero || currentPosition <= Duration.zero) {
+      _clearSmartRewindPauseMarker();
+      return;
+    }
+
+    final rewoundPosition = currentPosition - rewindBy;
+    final targetPosition = rewoundPosition.isNegative ? Duration.zero : rewoundPosition;
+
+    if (targetPosition < currentPosition) {
+      await seek(targetPosition);
+      logger(
+        'Applied smart rewind (${rewindBy.inSeconds}s) after pause (${pausedFor.inSeconds}s).',
+        tag: 'AudioHandler',
+        level: InfoLevel.debug,
+      );
+    }
+
+    _clearSmartRewindPauseMarker();
   }
 
   Future<void> _persistLastPlayedQueueItem({required String itemId, String? episodeId}) async {
@@ -1079,10 +1191,12 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         );
 
     if (shouldSwitchToQueuedItem) {
+      _clearSmartRewindPauseMarker();
       await _prepareForQueuedItemTransition();
     }
 
     if (_currentMediaItem != null) {
+      await _applySmartRewindOnResumeIfNeeded();
       _setQueueTransitionLoading(false);
       await _syncedPlay();
       return Future.value();
@@ -1103,6 +1217,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       _setQueueTransitionLoading(false);
       return Future.value();
     }
+    _clearSmartRewindPauseMarker();
     _lastQueueItem = nextItem;
     _currentMediaItem = await _ref
         .read(sessionRepositoryProvider)
@@ -1162,6 +1277,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       await _setSource(ignoreSavedProgress: true);
     }
 
+    _clearSmartRewindPauseMarker();
     await seek(position);
     await play();
     TrayManager.update();
@@ -1207,6 +1323,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     final shouldStopCastPlayback = isCastControlActive;
 
     _setQueueTransitionLoading(false);
+    _clearSmartRewindPauseMarker();
     _currentMediaItem = null;
     _currentTrackIndex = 0;
     PlayerUtils.disableWakelock(_ref);
@@ -1246,6 +1363,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   Future<void> pause() async {
     PlayerUtils.disableWakelock(_ref);
     if (isCastControlActive) {
+      _clearSmartRewindPauseMarker();
       await GoogleCastRemoteMediaClient.instance.pause();
       _refreshPlayerControlState();
       await _updatePlaybackState();
@@ -1253,6 +1371,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       return Future.value();
     }
     await _player.pause();
+    _recordPausedPlaybackMarker();
     TrayManager.update();
     return Future.value();
   }

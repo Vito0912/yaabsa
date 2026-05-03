@@ -14,6 +14,12 @@ class SettingKeys {
   static const String sidebarCollapsed = 'sidebar_collapsed';
   static const String autoQueue = 'auto_queue';
   static const String autoQueueIncludeSeriesOutsideContext = 'auto_queue_include_series_outside_context';
+  static const String smartRewindEnabled = 'smart_rewind_enabled';
+  static const String smartRewindShortPauseThresholdSeconds = 'smart_rewind_short_pause_threshold_seconds';
+  static const String smartRewindLongPauseThresholdSeconds = 'smart_rewind_long_pause_threshold_seconds';
+  static const String smartRewindShortRewindSeconds = 'smart_rewind_short_rewind_seconds';
+  static const String smartRewindMediumRewindSeconds = 'smart_rewind_medium_rewind_seconds';
+  static const String smartRewindLongRewindSeconds = 'smart_rewind_long_rewind_seconds';
 
   // User-Specific Settings
   static const String syncInterval = 'sync_interval';
@@ -73,6 +79,12 @@ final defaultSettings = {
   SettingKeys.sidebarCollapsed: false,
   SettingKeys.autoQueue: true,
   SettingKeys.autoQueueIncludeSeriesOutsideContext: false,
+  SettingKeys.smartRewindEnabled: false,
+  SettingKeys.smartRewindShortPauseThresholdSeconds: 60,
+  SettingKeys.smartRewindLongPauseThresholdSeconds: 900,
+  SettingKeys.smartRewindShortRewindSeconds: 5,
+  SettingKeys.smartRewindMediumRewindSeconds: 30,
+  SettingKeys.smartRewindLongRewindSeconds: 60,
 
   SettingKeys.syncInterval: 10,
   SettingKeys.syncOnlyOnWifi: false,
