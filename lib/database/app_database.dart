@@ -62,6 +62,20 @@ class StoredSyncs extends Table {
   Set<Column> get primaryKey => {sessionId};
 }
 
+@DataClassName('StoredMediaProgressEntry')
+class StoredMediaProgress extends Table {
+  TextColumn get progressId => text()();
+  TextColumn get userId => text()();
+  TextColumn get itemId => text()();
+  TextColumn get episodeId => text().nullable()();
+
+  DateTimeColumn get lastUpdated => dateTime()();
+  TextColumn get mediaProgress => text()();
+
+  @override
+  Set<Column> get primaryKey => {progressId};
+}
+
 @DataClassName('StoredDownloadsEntry')
 class StoredDownloads extends Table {
   TextColumn get itemId => text()();
@@ -94,7 +108,9 @@ class PlayerHistory extends Table {
   // TODO: Indexes for performance
 }
 
-@DriftDatabase(tables: [GlobalSettings, UserSettings, StoredUsers, StoredSyncs, StoredDownloads, PlayerHistory])
+@DriftDatabase(
+  tables: [GlobalSettings, UserSettings, StoredUsers, StoredSyncs, StoredMediaProgress, StoredDownloads, PlayerHistory],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase({AuthSecretStore? authSecretStore})
     : _authSecretStore = authSecretStore ?? AuthSecretStore(),
@@ -107,7 +123,7 @@ class AppDatabase extends _$AppDatabase {
   final AuthSecretStore _authSecretStore;
 
   @override
-  int get schemaVersion => 14;
+  int get schemaVersion => 15;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -135,6 +151,9 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from <= 13) {
         await m.createTable(playerHistory);
+      }
+      if (from <= 14) {
+        await m.createTable(storedMediaProgress);
       }
     },
     beforeOpen: (details) async {},
@@ -444,6 +463,72 @@ class AppDatabase extends _$AppDatabase {
     return query.go();
   }
 
+  String _storedMediaProgressId({required String userId, required String itemId, required String? episodeId}) {
+    final normalizedEpisodeId = episodeId?.trim() ?? '';
+    return '$userId::$itemId::$normalizedEpisodeId';
+  }
+
+  Expression<bool> _storedMediaProgressWhereExpression({
+    required String userId,
+    required String itemId,
+    required String? episodeId,
+  }) {
+    var whereClause = storedMediaProgress.userId.equals(userId) & storedMediaProgress.itemId.equals(itemId);
+    if (episodeId != null) {
+      whereClause = whereClause & storedMediaProgress.episodeId.equals(episodeId);
+    } else {
+      whereClause = whereClause & storedMediaProgress.episodeId.isNull();
+    }
+    return whereClause;
+  }
+
+  Future<void> addOrUpdateStoredMediaProgress({
+    required String userId,
+    required String itemId,
+    required String? episodeId,
+    required DateTime lastUpdated,
+    required String mediaProgress,
+  }) {
+    final companion = StoredMediaProgressCompanion(
+      progressId: Value(_storedMediaProgressId(userId: userId, itemId: itemId, episodeId: episodeId)),
+      userId: Value(userId),
+      itemId: Value(itemId),
+      episodeId: Value(episodeId),
+      lastUpdated: Value(lastUpdated),
+      mediaProgress: Value(mediaProgress),
+    );
+
+    return into(storedMediaProgress).insert(
+      companion,
+      onConflict: DoUpdate(
+        (old) => StoredMediaProgressCompanion(
+          userId: Value(userId),
+          itemId: Value(itemId),
+          episodeId: Value(episodeId),
+          lastUpdated: Value(lastUpdated),
+          mediaProgress: Value(mediaProgress),
+        ),
+        target: [storedMediaProgress.progressId],
+        where: (old) => old.lastUpdated.isSmallerThanValue(lastUpdated),
+      ),
+    );
+  }
+
+  Future<void> deleteStoredMediaProgress(String userId, String itemId, {String? episodeId}) {
+    final query = delete(storedMediaProgress)
+      ..where((tbl) => _storedMediaProgressWhereExpression(userId: userId, itemId: itemId, episodeId: episodeId));
+    return query.go();
+  }
+
+  Future<void> deleteStoredMediaProgressByUser(String userId) {
+    final query = delete(storedMediaProgress)..where((tbl) => tbl.userId.equals(userId));
+    return query.go();
+  }
+
+  Future<List<StoredMediaProgressEntry>> getStoredMediaProgressByUser(String userId) async {
+    return await (select(storedMediaProgress)..where((tbl) => tbl.userId.equals(userId))).get();
+  }
+
   // Sync management
   Future<void> addOrUpdateSync(StoredSyncsCompanion companion) {
     return into(storedSyncs).insert(
@@ -475,6 +560,10 @@ class AppDatabase extends _$AppDatabase {
 
   Future<List<StoredSyncEntry>> getAllSyncs() async {
     return await select(storedSyncs).get();
+  }
+
+  Future<List<StoredSyncEntry>> getAllSyncsByUser(String userId) async {
+    return await (select(storedSyncs)..where((tbl) => tbl.userId.equals(userId))).get();
   }
 
   // Basic setting operations
@@ -607,6 +696,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<void> deleteStoredUser(String userId) async {
+    await deleteStoredMediaProgressByUser(userId);
     await (delete(storedUsers)..where((tbl) => tbl.id.equals(userId))).go();
     await _authSecretStore.deleteForUser(userId);
   }

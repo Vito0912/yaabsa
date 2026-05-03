@@ -1099,6 +1099,361 @@ class StoredSyncsCompanion extends UpdateCompanion<StoredSyncEntry> {
   }
 }
 
+class $StoredMediaProgressTable extends StoredMediaProgress
+    with TableInfo<$StoredMediaProgressTable, StoredMediaProgressEntry> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $StoredMediaProgressTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _progressIdMeta = const VerificationMeta('progressId');
+  @override
+  late final GeneratedColumn<String> progressId = GeneratedColumn<String>(
+    'progress_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _itemIdMeta = const VerificationMeta('itemId');
+  @override
+  late final GeneratedColumn<String> itemId = GeneratedColumn<String>(
+    'item_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _episodeIdMeta = const VerificationMeta('episodeId');
+  @override
+  late final GeneratedColumn<String> episodeId = GeneratedColumn<String>(
+    'episode_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _lastUpdatedMeta = const VerificationMeta('lastUpdated');
+  @override
+  late final GeneratedColumn<DateTime> lastUpdated = GeneratedColumn<DateTime>(
+    'last_updated',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _mediaProgressMeta = const VerificationMeta('mediaProgress');
+  @override
+  late final GeneratedColumn<String> mediaProgress = GeneratedColumn<String>(
+    'media_progress',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [progressId, userId, itemId, episodeId, lastUpdated, mediaProgress];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'stored_media_progress';
+  @override
+  VerificationContext validateIntegrity(Insertable<StoredMediaProgressEntry> instance, {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('progress_id')) {
+      context.handle(_progressIdMeta, progressId.isAcceptableOrUnknown(data['progress_id']!, _progressIdMeta));
+    } else if (isInserting) {
+      context.missing(_progressIdMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(_userIdMeta, userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('item_id')) {
+      context.handle(_itemIdMeta, itemId.isAcceptableOrUnknown(data['item_id']!, _itemIdMeta));
+    } else if (isInserting) {
+      context.missing(_itemIdMeta);
+    }
+    if (data.containsKey('episode_id')) {
+      context.handle(_episodeIdMeta, episodeId.isAcceptableOrUnknown(data['episode_id']!, _episodeIdMeta));
+    }
+    if (data.containsKey('last_updated')) {
+      context.handle(_lastUpdatedMeta, lastUpdated.isAcceptableOrUnknown(data['last_updated']!, _lastUpdatedMeta));
+    } else if (isInserting) {
+      context.missing(_lastUpdatedMeta);
+    }
+    if (data.containsKey('media_progress')) {
+      context.handle(
+        _mediaProgressMeta,
+        mediaProgress.isAcceptableOrUnknown(data['media_progress']!, _mediaProgressMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_mediaProgressMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {progressId};
+  @override
+  StoredMediaProgressEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return StoredMediaProgressEntry(
+      progressId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}progress_id'])!,
+      userId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
+      itemId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}item_id'])!,
+      episodeId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}episode_id']),
+      lastUpdated: attachedDatabase.typeMapping.read(DriftSqlType.dateTime, data['${effectivePrefix}last_updated'])!,
+      mediaProgress: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}media_progress'])!,
+    );
+  }
+
+  @override
+  $StoredMediaProgressTable createAlias(String alias) {
+    return $StoredMediaProgressTable(attachedDatabase, alias);
+  }
+}
+
+class StoredMediaProgressEntry extends DataClass implements Insertable<StoredMediaProgressEntry> {
+  final String progressId;
+  final String userId;
+  final String itemId;
+  final String? episodeId;
+  final DateTime lastUpdated;
+  final String mediaProgress;
+  const StoredMediaProgressEntry({
+    required this.progressId,
+    required this.userId,
+    required this.itemId,
+    this.episodeId,
+    required this.lastUpdated,
+    required this.mediaProgress,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['progress_id'] = Variable<String>(progressId);
+    map['user_id'] = Variable<String>(userId);
+    map['item_id'] = Variable<String>(itemId);
+    if (!nullToAbsent || episodeId != null) {
+      map['episode_id'] = Variable<String>(episodeId);
+    }
+    map['last_updated'] = Variable<DateTime>(lastUpdated);
+    map['media_progress'] = Variable<String>(mediaProgress);
+    return map;
+  }
+
+  StoredMediaProgressCompanion toCompanion(bool nullToAbsent) {
+    return StoredMediaProgressCompanion(
+      progressId: Value(progressId),
+      userId: Value(userId),
+      itemId: Value(itemId),
+      episodeId: episodeId == null && nullToAbsent ? const Value.absent() : Value(episodeId),
+      lastUpdated: Value(lastUpdated),
+      mediaProgress: Value(mediaProgress),
+    );
+  }
+
+  factory StoredMediaProgressEntry.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return StoredMediaProgressEntry(
+      progressId: serializer.fromJson<String>(json['progressId']),
+      userId: serializer.fromJson<String>(json['userId']),
+      itemId: serializer.fromJson<String>(json['itemId']),
+      episodeId: serializer.fromJson<String?>(json['episodeId']),
+      lastUpdated: serializer.fromJson<DateTime>(json['lastUpdated']),
+      mediaProgress: serializer.fromJson<String>(json['mediaProgress']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'progressId': serializer.toJson<String>(progressId),
+      'userId': serializer.toJson<String>(userId),
+      'itemId': serializer.toJson<String>(itemId),
+      'episodeId': serializer.toJson<String?>(episodeId),
+      'lastUpdated': serializer.toJson<DateTime>(lastUpdated),
+      'mediaProgress': serializer.toJson<String>(mediaProgress),
+    };
+  }
+
+  StoredMediaProgressEntry copyWith({
+    String? progressId,
+    String? userId,
+    String? itemId,
+    Value<String?> episodeId = const Value.absent(),
+    DateTime? lastUpdated,
+    String? mediaProgress,
+  }) => StoredMediaProgressEntry(
+    progressId: progressId ?? this.progressId,
+    userId: userId ?? this.userId,
+    itemId: itemId ?? this.itemId,
+    episodeId: episodeId.present ? episodeId.value : this.episodeId,
+    lastUpdated: lastUpdated ?? this.lastUpdated,
+    mediaProgress: mediaProgress ?? this.mediaProgress,
+  );
+  StoredMediaProgressEntry copyWithCompanion(StoredMediaProgressCompanion data) {
+    return StoredMediaProgressEntry(
+      progressId: data.progressId.present ? data.progressId.value : this.progressId,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      itemId: data.itemId.present ? data.itemId.value : this.itemId,
+      episodeId: data.episodeId.present ? data.episodeId.value : this.episodeId,
+      lastUpdated: data.lastUpdated.present ? data.lastUpdated.value : this.lastUpdated,
+      mediaProgress: data.mediaProgress.present ? data.mediaProgress.value : this.mediaProgress,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StoredMediaProgressEntry(')
+          ..write('progressId: $progressId, ')
+          ..write('userId: $userId, ')
+          ..write('itemId: $itemId, ')
+          ..write('episodeId: $episodeId, ')
+          ..write('lastUpdated: $lastUpdated, ')
+          ..write('mediaProgress: $mediaProgress')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(progressId, userId, itemId, episodeId, lastUpdated, mediaProgress);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is StoredMediaProgressEntry &&
+          other.progressId == this.progressId &&
+          other.userId == this.userId &&
+          other.itemId == this.itemId &&
+          other.episodeId == this.episodeId &&
+          other.lastUpdated == this.lastUpdated &&
+          other.mediaProgress == this.mediaProgress);
+}
+
+class StoredMediaProgressCompanion extends UpdateCompanion<StoredMediaProgressEntry> {
+  final Value<String> progressId;
+  final Value<String> userId;
+  final Value<String> itemId;
+  final Value<String?> episodeId;
+  final Value<DateTime> lastUpdated;
+  final Value<String> mediaProgress;
+  final Value<int> rowid;
+  const StoredMediaProgressCompanion({
+    this.progressId = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.itemId = const Value.absent(),
+    this.episodeId = const Value.absent(),
+    this.lastUpdated = const Value.absent(),
+    this.mediaProgress = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  StoredMediaProgressCompanion.insert({
+    required String progressId,
+    required String userId,
+    required String itemId,
+    this.episodeId = const Value.absent(),
+    required DateTime lastUpdated,
+    required String mediaProgress,
+    this.rowid = const Value.absent(),
+  }) : progressId = Value(progressId),
+       userId = Value(userId),
+       itemId = Value(itemId),
+       lastUpdated = Value(lastUpdated),
+       mediaProgress = Value(mediaProgress);
+  static Insertable<StoredMediaProgressEntry> custom({
+    Expression<String>? progressId,
+    Expression<String>? userId,
+    Expression<String>? itemId,
+    Expression<String>? episodeId,
+    Expression<DateTime>? lastUpdated,
+    Expression<String>? mediaProgress,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (progressId != null) 'progress_id': progressId,
+      if (userId != null) 'user_id': userId,
+      if (itemId != null) 'item_id': itemId,
+      if (episodeId != null) 'episode_id': episodeId,
+      if (lastUpdated != null) 'last_updated': lastUpdated,
+      if (mediaProgress != null) 'media_progress': mediaProgress,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  StoredMediaProgressCompanion copyWith({
+    Value<String>? progressId,
+    Value<String>? userId,
+    Value<String>? itemId,
+    Value<String?>? episodeId,
+    Value<DateTime>? lastUpdated,
+    Value<String>? mediaProgress,
+    Value<int>? rowid,
+  }) {
+    return StoredMediaProgressCompanion(
+      progressId: progressId ?? this.progressId,
+      userId: userId ?? this.userId,
+      itemId: itemId ?? this.itemId,
+      episodeId: episodeId ?? this.episodeId,
+      lastUpdated: lastUpdated ?? this.lastUpdated,
+      mediaProgress: mediaProgress ?? this.mediaProgress,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (progressId.present) {
+      map['progress_id'] = Variable<String>(progressId.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (itemId.present) {
+      map['item_id'] = Variable<String>(itemId.value);
+    }
+    if (episodeId.present) {
+      map['episode_id'] = Variable<String>(episodeId.value);
+    }
+    if (lastUpdated.present) {
+      map['last_updated'] = Variable<DateTime>(lastUpdated.value);
+    }
+    if (mediaProgress.present) {
+      map['media_progress'] = Variable<String>(mediaProgress.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StoredMediaProgressCompanion(')
+          ..write('progressId: $progressId, ')
+          ..write('userId: $userId, ')
+          ..write('itemId: $itemId, ')
+          ..write('episodeId: $episodeId, ')
+          ..write('lastUpdated: $lastUpdated, ')
+          ..write('mediaProgress: $mediaProgress, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $StoredDownloadsTable extends StoredDownloads with TableInfo<$StoredDownloadsTable, StoredDownloadsEntry> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -1755,6 +2110,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $UserSettingsTable userSettings = $UserSettingsTable(this);
   late final $StoredUsersTable storedUsers = $StoredUsersTable(this);
   late final $StoredSyncsTable storedSyncs = $StoredSyncsTable(this);
+  late final $StoredMediaProgressTable storedMediaProgress = $StoredMediaProgressTable(this);
   late final $StoredDownloadsTable storedDownloads = $StoredDownloadsTable(this);
   late final $PlayerHistoryTable playerHistory = $PlayerHistoryTable(this);
   @override
@@ -1765,6 +2121,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     userSettings,
     storedUsers,
     storedSyncs,
+    storedMediaProgress,
     storedDownloads,
     playerHistory,
   ];
@@ -2321,6 +2678,186 @@ typedef $$StoredSyncsTableProcessedTableManager =
       StoredSyncEntry,
       PrefetchHooks Function()
     >;
+typedef $$StoredMediaProgressTableCreateCompanionBuilder =
+    StoredMediaProgressCompanion Function({
+      required String progressId,
+      required String userId,
+      required String itemId,
+      Value<String?> episodeId,
+      required DateTime lastUpdated,
+      required String mediaProgress,
+      Value<int> rowid,
+    });
+typedef $$StoredMediaProgressTableUpdateCompanionBuilder =
+    StoredMediaProgressCompanion Function({
+      Value<String> progressId,
+      Value<String> userId,
+      Value<String> itemId,
+      Value<String?> episodeId,
+      Value<DateTime> lastUpdated,
+      Value<String> mediaProgress,
+      Value<int> rowid,
+    });
+
+class $$StoredMediaProgressTableFilterComposer extends Composer<_$AppDatabase, $StoredMediaProgressTable> {
+  $$StoredMediaProgressTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get progressId =>
+      $composableBuilder(column: $table.progressId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get itemId =>
+      $composableBuilder(column: $table.itemId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get episodeId =>
+      $composableBuilder(column: $table.episodeId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get lastUpdated =>
+      $composableBuilder(column: $table.lastUpdated, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get mediaProgress =>
+      $composableBuilder(column: $table.mediaProgress, builder: (column) => ColumnFilters(column));
+}
+
+class $$StoredMediaProgressTableOrderingComposer extends Composer<_$AppDatabase, $StoredMediaProgressTable> {
+  $$StoredMediaProgressTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get progressId =>
+      $composableBuilder(column: $table.progressId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get itemId =>
+      $composableBuilder(column: $table.itemId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get episodeId =>
+      $composableBuilder(column: $table.episodeId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get lastUpdated =>
+      $composableBuilder(column: $table.lastUpdated, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get mediaProgress =>
+      $composableBuilder(column: $table.mediaProgress, builder: (column) => ColumnOrderings(column));
+}
+
+class $$StoredMediaProgressTableAnnotationComposer extends Composer<_$AppDatabase, $StoredMediaProgressTable> {
+  $$StoredMediaProgressTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get progressId => $composableBuilder(column: $table.progressId, builder: (column) => column);
+
+  GeneratedColumn<String> get userId => $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get itemId => $composableBuilder(column: $table.itemId, builder: (column) => column);
+
+  GeneratedColumn<String> get episodeId => $composableBuilder(column: $table.episodeId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastUpdated =>
+      $composableBuilder(column: $table.lastUpdated, builder: (column) => column);
+
+  GeneratedColumn<String> get mediaProgress =>
+      $composableBuilder(column: $table.mediaProgress, builder: (column) => column);
+}
+
+class $$StoredMediaProgressTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $StoredMediaProgressTable,
+          StoredMediaProgressEntry,
+          $$StoredMediaProgressTableFilterComposer,
+          $$StoredMediaProgressTableOrderingComposer,
+          $$StoredMediaProgressTableAnnotationComposer,
+          $$StoredMediaProgressTableCreateCompanionBuilder,
+          $$StoredMediaProgressTableUpdateCompanionBuilder,
+          (
+            StoredMediaProgressEntry,
+            BaseReferences<_$AppDatabase, $StoredMediaProgressTable, StoredMediaProgressEntry>,
+          ),
+          StoredMediaProgressEntry,
+          PrefetchHooks Function()
+        > {
+  $$StoredMediaProgressTableTableManager(_$AppDatabase db, $StoredMediaProgressTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () => $$StoredMediaProgressTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () => $$StoredMediaProgressTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () => $$StoredMediaProgressTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> progressId = const Value.absent(),
+                Value<String> userId = const Value.absent(),
+                Value<String> itemId = const Value.absent(),
+                Value<String?> episodeId = const Value.absent(),
+                Value<DateTime> lastUpdated = const Value.absent(),
+                Value<String> mediaProgress = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => StoredMediaProgressCompanion(
+                progressId: progressId,
+                userId: userId,
+                itemId: itemId,
+                episodeId: episodeId,
+                lastUpdated: lastUpdated,
+                mediaProgress: mediaProgress,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String progressId,
+                required String userId,
+                required String itemId,
+                Value<String?> episodeId = const Value.absent(),
+                required DateTime lastUpdated,
+                required String mediaProgress,
+                Value<int> rowid = const Value.absent(),
+              }) => StoredMediaProgressCompanion.insert(
+                progressId: progressId,
+                userId: userId,
+                itemId: itemId,
+                episodeId: episodeId,
+                lastUpdated: lastUpdated,
+                mediaProgress: mediaProgress,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0.map((e) => (e.readTable(table), BaseReferences(db, table, e))).toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$StoredMediaProgressTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $StoredMediaProgressTable,
+      StoredMediaProgressEntry,
+      $$StoredMediaProgressTableFilterComposer,
+      $$StoredMediaProgressTableOrderingComposer,
+      $$StoredMediaProgressTableAnnotationComposer,
+      $$StoredMediaProgressTableCreateCompanionBuilder,
+      $$StoredMediaProgressTableUpdateCompanionBuilder,
+      (StoredMediaProgressEntry, BaseReferences<_$AppDatabase, $StoredMediaProgressTable, StoredMediaProgressEntry>),
+      StoredMediaProgressEntry,
+      PrefetchHooks Function()
+    >;
 typedef $$StoredDownloadsTableCreateCompanionBuilder =
     StoredDownloadsCompanion Function({
       required String itemId,
@@ -2657,6 +3194,8 @@ class $AppDatabaseManager {
   $$UserSettingsTableTableManager get userSettings => $$UserSettingsTableTableManager(_db, _db.userSettings);
   $$StoredUsersTableTableManager get storedUsers => $$StoredUsersTableTableManager(_db, _db.storedUsers);
   $$StoredSyncsTableTableManager get storedSyncs => $$StoredSyncsTableTableManager(_db, _db.storedSyncs);
+  $$StoredMediaProgressTableTableManager get storedMediaProgress =>
+      $$StoredMediaProgressTableTableManager(_db, _db.storedMediaProgress);
   $$StoredDownloadsTableTableManager get storedDownloads =>
       $$StoredDownloadsTableTableManager(_db, _db.storedDownloads);
   $$PlayerHistoryTableTableManager get playerHistory => $$PlayerHistoryTableTableManager(_db, _db.playerHistory);

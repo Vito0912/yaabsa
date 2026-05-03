@@ -1362,9 +1362,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       level: InfoLevel.debug,
     );
 
-    if (currentPosition > Duration.zero) {
-      await seek(currentPosition);
-    }
+    await seek(currentPosition);
     await _player.play();
   }
 
