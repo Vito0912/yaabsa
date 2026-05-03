@@ -2,13 +2,9 @@
 
 An improved unofficial cross-platform app for Audiobookshelf
 
-> [!NOTE]
-> If you have problems or issues, you can create an issue.\
-> Please note that this client is a project I started because it lacks features; it is mainly a personal project.\
-> There are many options now, most of them just vibe-coded, and I do not want to add another app to the pile. This App by no means is AI-free, but not vibed  
-> If you find this app or see me mention it in a thread because of one of its unique features, please note that, since it is a personal project, any changes are very personal/opiniated.
->
-> If you have better **ideas** for **design**, I am open to restructuring or redesigning the app
+[![Play Store](https://img.shields.io/badge/Google_Play-414141?style=for-the-badge&logo=google-play&logoColor=white)](https://play.google.com/store/apps/details?id=de.vito0912.yaabsa) - Currently, access is invite‑only. To join the beta, email me at fito0912(@)duck.com (or the mail at my GitHub profile) with the email address you use for the Play Store. After I add you to the private beta, you can use [this link](https://play.google.com/apps/internaltest/4701675908338514340) and download via the Play Store.
+
+Other platforms can be downloaded from the [Actions-tab](https://github.com/Vito0912/yaabsa/actions). Search the latest action that contains a build for you wanted platform.
 
 ## Usage of AI
 
@@ -18,11 +14,19 @@ As I myself criticize the lack of disclosure about AI, which most ABS apps now u
 
 Below is a list of all features, but I want to *highlight* a few, as this client has features that are only and or very rarely found in other clients:
 
-- **First** and **only** client that supports Android Automotive with desktop/large displays in mind
+- **First** and **only** client that supports Android Automotive with desktop/large displays in mind (support for while-driving experience planned)
 - eBook/PDF support **with** *syncable* annotations (EPUBs only)
 - subtitle support **with** karaoke-style highlighting support (later planned to be extended like Whispersync)
 - Support for all platforms Linux, Android, Android Automotive, iOS, macOS, Windows with responsive design
 - More actions directly via the notification player
+
+
+> [!NOTE]
+> Please note that this client is a mainly personal project I started because it lacks features\
+> There are many options now, most of them just vibe-coded, and I do not want to add another app to the pile. This App by no means is AI-free, but not vibed  
+> If you find this app or see me mention it in a thread because of one of its unique features, please note that, since it is a personal project, any changes are very personal/opiniated.
+>
+> If you have better **ideas** for **design**, I am open to restructuring or redesigning the app
 
 ## Compatibility Matrix
 
@@ -88,9 +92,10 @@ Below is a list of all features, but I want to *highlight* a few, as this client
 | Downloads          | ✅      | ❓   | ❓      | ✅\*  | ✅    |
 | Headers            | ✅      | ✅   | ✅      | ✅    | ✅    |
 | Car                | ✅      | 🅿️   | ❌      | ❌    | ❌    |
-| Android Automotive | ✅      | ❌   | ❌      | ❌    | ❌    |
+| Android Automotive | ✅\**   | ❌   | ❌      | ❌    | ❌    |
 
 \* Only supports the default download location, due to sandboxing limitations. Will be addressed in the future.
+\** On most cars, only the park experience works currently. More support is planned.
 
 ## Platform hints
 
