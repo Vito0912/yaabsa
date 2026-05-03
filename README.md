@@ -2,7 +2,7 @@
 
 An improved unofficial cross-platform app for Audiobookshelf
 
-[![Play Store](https://img.shields.io/badge/Google_Play-414141?style=for-the-badge&logo=google-play&logoColor=white)](https://play.google.com/store/apps/details?id=de.vito0912.yaabsa) - Currently, access is invite‑only. To join the beta, send an email while signed into the Play Store, then use [this link](https://play.google.com/apps/internaltest/4701675908338514340) after I add you to the private beta.
+[![Play Store](https://img.shields.io/badge/Google_Play-414141?style=for-the-badge&logo=google-play&logoColor=white)](https://play.google.com/store/apps/details?id=de.vito0912.yaabsa) - Currently, access is invite‑only. To join the beta, email me at fito0912(@)duck.com (or the mail at my GitHub profile) with the email address you use for the Play Store. After I add you to the private beta, you can use [this link](https://play.google.com/apps/internaltest/4701675908338514340) and download via the Play Store.
 
 Other platforms can be downloaded from the [Actions-tab](https://github.com/Vito0912/yaabsa/actions). Search the latest action that contains a build for you wanted platform.
 
