@@ -7,17 +7,40 @@ part of 'server.dart';
 // **************************************************************************
 
 _Server _$ServerFromJson(Map<String, dynamic> json) => _Server(
-  port: (json['port'] as num).toInt(),
-  host: json['host'] as String,
-  ssl: json['ssl'] as bool,
-  subdirectory: json['subdirectory'] as String?,
-  headers: (json['headers'] as Map<String, dynamic>?)?.map((k, e) => MapEntry(k, e as String)),
+  externalPort: (json['port'] as num).toInt(),
+  externalHost: json['host'] as String,
+  externalSsl: json['ssl'] as bool,
+  externalSubdirectory: json['subdirectory'] as String?,
+  headers: (json['headers'] as Map<String, dynamic>?)?.map(
+    (k, e) => MapEntry(k, e as String),
+  ),
+  localHost: json['localHost'] as String?,
+  localPort: (json['localPort'] as num?)?.toInt(),
+  localSsl: json['localSsl'] as bool?,
+  localSubdirectory: json['localSubdirectory'] as String?,
+  activeConnection:
+      $enumDecodeNullable(
+        _$ServerConnectionEnumMap,
+        json['activeConnection'],
+        unknownValue: ServerConnection.external,
+      ) ??
+      ServerConnection.external,
 );
 
 Map<String, dynamic> _$ServerToJson(_Server instance) => <String, dynamic>{
-  'port': instance.port,
-  'host': instance.host,
-  'ssl': instance.ssl,
-  'subdirectory': instance.subdirectory,
+  'port': instance.externalPort,
+  'host': instance.externalHost,
+  'ssl': instance.externalSsl,
+  'subdirectory': instance.externalSubdirectory,
   'headers': instance.headers,
+  'localHost': instance.localHost,
+  'localPort': instance.localPort,
+  'localSsl': instance.localSsl,
+  'localSubdirectory': instance.localSubdirectory,
+  'activeConnection': _$ServerConnectionEnumMap[instance.activeConnection]!,
+};
+
+const _$ServerConnectionEnumMap = {
+  ServerConnection.external: 'external',
+  ServerConnection.local: 'local',
 };

@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Server {
 
- int get port; set port(int value); String get host; set host(String value); bool get ssl; set ssl(bool value); String? get subdirectory; set subdirectory(String? value); Map<String, String>? get headers; set headers(Map<String, String>? value);
+@JsonKey(name: 'port') int get externalPort;@JsonKey(name: 'port') set externalPort(int value);@JsonKey(name: 'host') String get externalHost;@JsonKey(name: 'host') set externalHost(String value);@JsonKey(name: 'ssl') bool get externalSsl;@JsonKey(name: 'ssl') set externalSsl(bool value);@JsonKey(name: 'subdirectory') String? get externalSubdirectory;@JsonKey(name: 'subdirectory') set externalSubdirectory(String? value); Map<String, String>? get headers; set headers(Map<String, String>? value); String? get localHost; set localHost(String? value); int? get localPort; set localPort(int? value); bool? get localSsl; set localSsl(bool? value); String? get localSubdirectory; set localSubdirectory(String? value);@JsonKey(unknownEnumValue: ServerConnection.external) ServerConnection get activeConnection;@JsonKey(unknownEnumValue: ServerConnection.external) set activeConnection(ServerConnection value);
 /// Create a copy of Server
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,7 +30,7 @@ $ServerCopyWith<Server> get copyWith => _$ServerCopyWithImpl<Server>(this as Ser
 
 @override
 String toString() {
-  return 'Server(port: $port, host: $host, ssl: $ssl, subdirectory: $subdirectory, headers: $headers)';
+  return 'Server(externalPort: $externalPort, externalHost: $externalHost, externalSsl: $externalSsl, externalSubdirectory: $externalSubdirectory, headers: $headers, localHost: $localHost, localPort: $localPort, localSsl: $localSsl, localSubdirectory: $localSubdirectory, activeConnection: $activeConnection)';
 }
 
 
@@ -41,7 +41,7 @@ abstract mixin class $ServerCopyWith<$Res>  {
   factory $ServerCopyWith(Server value, $Res Function(Server) _then) = _$ServerCopyWithImpl;
 @useResult
 $Res call({
- int port, String host, bool ssl, String? subdirectory, Map<String, String>? headers
+@JsonKey(name: 'port') int externalPort,@JsonKey(name: 'host') String externalHost,@JsonKey(name: 'ssl') bool externalSsl,@JsonKey(name: 'subdirectory') String? externalSubdirectory, Map<String, String>? headers, String? localHost, int? localPort, bool? localSsl, String? localSubdirectory,@JsonKey(unknownEnumValue: ServerConnection.external) ServerConnection activeConnection
 });
 
 
@@ -58,14 +58,19 @@ class _$ServerCopyWithImpl<$Res>
 
 /// Create a copy of Server
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? port = null,Object? host = null,Object? ssl = null,Object? subdirectory = freezed,Object? headers = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? externalPort = null,Object? externalHost = null,Object? externalSsl = null,Object? externalSubdirectory = freezed,Object? headers = freezed,Object? localHost = freezed,Object? localPort = freezed,Object? localSsl = freezed,Object? localSubdirectory = freezed,Object? activeConnection = null,}) {
   return _then(_self.copyWith(
-port: null == port ? _self.port : port // ignore: cast_nullable_to_non_nullable
-as int,host: null == host ? _self.host : host // ignore: cast_nullable_to_non_nullable
-as String,ssl: null == ssl ? _self.ssl : ssl // ignore: cast_nullable_to_non_nullable
-as bool,subdirectory: freezed == subdirectory ? _self.subdirectory : subdirectory // ignore: cast_nullable_to_non_nullable
+externalPort: null == externalPort ? _self.externalPort : externalPort // ignore: cast_nullable_to_non_nullable
+as int,externalHost: null == externalHost ? _self.externalHost : externalHost // ignore: cast_nullable_to_non_nullable
+as String,externalSsl: null == externalSsl ? _self.externalSsl : externalSsl // ignore: cast_nullable_to_non_nullable
+as bool,externalSubdirectory: freezed == externalSubdirectory ? _self.externalSubdirectory : externalSubdirectory // ignore: cast_nullable_to_non_nullable
 as String?,headers: freezed == headers ? _self.headers : headers // ignore: cast_nullable_to_non_nullable
-as Map<String, String>?,
+as Map<String, String>?,localHost: freezed == localHost ? _self.localHost : localHost // ignore: cast_nullable_to_non_nullable
+as String?,localPort: freezed == localPort ? _self.localPort : localPort // ignore: cast_nullable_to_non_nullable
+as int?,localSsl: freezed == localSsl ? _self.localSsl : localSsl // ignore: cast_nullable_to_non_nullable
+as bool?,localSubdirectory: freezed == localSubdirectory ? _self.localSubdirectory : localSubdirectory // ignore: cast_nullable_to_non_nullable
+as String?,activeConnection: null == activeConnection ? _self.activeConnection : activeConnection // ignore: cast_nullable_to_non_nullable
+as ServerConnection,
   ));
 }
 
@@ -150,10 +155,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int port,  String host,  bool ssl,  String? subdirectory,  Map<String, String>? headers)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'port')  int externalPort, @JsonKey(name: 'host')  String externalHost, @JsonKey(name: 'ssl')  bool externalSsl, @JsonKey(name: 'subdirectory')  String? externalSubdirectory,  Map<String, String>? headers,  String? localHost,  int? localPort,  bool? localSsl,  String? localSubdirectory, @JsonKey(unknownEnumValue: ServerConnection.external)  ServerConnection activeConnection)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Server() when $default != null:
-return $default(_that.port,_that.host,_that.ssl,_that.subdirectory,_that.headers);case _:
+return $default(_that.externalPort,_that.externalHost,_that.externalSsl,_that.externalSubdirectory,_that.headers,_that.localHost,_that.localPort,_that.localSsl,_that.localSubdirectory,_that.activeConnection);case _:
   return orElse();
 
 }
@@ -171,10 +176,10 @@ return $default(_that.port,_that.host,_that.ssl,_that.subdirectory,_that.headers
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int port,  String host,  bool ssl,  String? subdirectory,  Map<String, String>? headers)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'port')  int externalPort, @JsonKey(name: 'host')  String externalHost, @JsonKey(name: 'ssl')  bool externalSsl, @JsonKey(name: 'subdirectory')  String? externalSubdirectory,  Map<String, String>? headers,  String? localHost,  int? localPort,  bool? localSsl,  String? localSubdirectory, @JsonKey(unknownEnumValue: ServerConnection.external)  ServerConnection activeConnection)  $default,) {final _that = this;
 switch (_that) {
 case _Server():
-return $default(_that.port,_that.host,_that.ssl,_that.subdirectory,_that.headers);case _:
+return $default(_that.externalPort,_that.externalHost,_that.externalSsl,_that.externalSubdirectory,_that.headers,_that.localHost,_that.localPort,_that.localSsl,_that.localSubdirectory,_that.activeConnection);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -191,10 +196,10 @@ return $default(_that.port,_that.host,_that.ssl,_that.subdirectory,_that.headers
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int port,  String host,  bool ssl,  String? subdirectory,  Map<String, String>? headers)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'port')  int externalPort, @JsonKey(name: 'host')  String externalHost, @JsonKey(name: 'ssl')  bool externalSsl, @JsonKey(name: 'subdirectory')  String? externalSubdirectory,  Map<String, String>? headers,  String? localHost,  int? localPort,  bool? localSsl,  String? localSubdirectory, @JsonKey(unknownEnumValue: ServerConnection.external)  ServerConnection activeConnection)?  $default,) {final _that = this;
 switch (_that) {
 case _Server() when $default != null:
-return $default(_that.port,_that.host,_that.ssl,_that.subdirectory,_that.headers);case _:
+return $default(_that.externalPort,_that.externalHost,_that.externalSsl,_that.externalSubdirectory,_that.headers,_that.localHost,_that.localPort,_that.localSsl,_that.localSubdirectory,_that.activeConnection);case _:
   return null;
 
 }
@@ -206,14 +211,19 @@ return $default(_that.port,_that.host,_that.ssl,_that.subdirectory,_that.headers
 @JsonSerializable()
 
 class _Server extends Server {
-   _Server({required this.port, required this.host, required this.ssl, this.subdirectory, this.headers}): super._();
+   _Server({@JsonKey(name: 'port') required this.externalPort, @JsonKey(name: 'host') required this.externalHost, @JsonKey(name: 'ssl') required this.externalSsl, @JsonKey(name: 'subdirectory') this.externalSubdirectory, this.headers, this.localHost, this.localPort, this.localSsl, this.localSubdirectory, @JsonKey(unknownEnumValue: ServerConnection.external) this.activeConnection = ServerConnection.external}): super._();
   factory _Server.fromJson(Map<String, dynamic> json) => _$ServerFromJson(json);
 
-@override  int port;
-@override  String host;
-@override  bool ssl;
-@override  String? subdirectory;
+@override@JsonKey(name: 'port')  int externalPort;
+@override@JsonKey(name: 'host')  String externalHost;
+@override@JsonKey(name: 'ssl')  bool externalSsl;
+@override@JsonKey(name: 'subdirectory')  String? externalSubdirectory;
 @override  Map<String, String>? headers;
+@override  String? localHost;
+@override  int? localPort;
+@override  bool? localSsl;
+@override  String? localSubdirectory;
+@override@JsonKey(unknownEnumValue: ServerConnection.external)  ServerConnection activeConnection;
 
 /// Create a copy of Server
 /// with the given fields replaced by the non-null parameter values.
@@ -230,7 +240,7 @@ Map<String, dynamic> toJson() {
 
 @override
 String toString() {
-  return 'Server(port: $port, host: $host, ssl: $ssl, subdirectory: $subdirectory, headers: $headers)';
+  return 'Server(externalPort: $externalPort, externalHost: $externalHost, externalSsl: $externalSsl, externalSubdirectory: $externalSubdirectory, headers: $headers, localHost: $localHost, localPort: $localPort, localSsl: $localSsl, localSubdirectory: $localSubdirectory, activeConnection: $activeConnection)';
 }
 
 
@@ -241,7 +251,7 @@ abstract mixin class _$ServerCopyWith<$Res> implements $ServerCopyWith<$Res> {
   factory _$ServerCopyWith(_Server value, $Res Function(_Server) _then) = __$ServerCopyWithImpl;
 @override @useResult
 $Res call({
- int port, String host, bool ssl, String? subdirectory, Map<String, String>? headers
+@JsonKey(name: 'port') int externalPort,@JsonKey(name: 'host') String externalHost,@JsonKey(name: 'ssl') bool externalSsl,@JsonKey(name: 'subdirectory') String? externalSubdirectory, Map<String, String>? headers, String? localHost, int? localPort, bool? localSsl, String? localSubdirectory,@JsonKey(unknownEnumValue: ServerConnection.external) ServerConnection activeConnection
 });
 
 
@@ -258,14 +268,19 @@ class __$ServerCopyWithImpl<$Res>
 
 /// Create a copy of Server
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? port = null,Object? host = null,Object? ssl = null,Object? subdirectory = freezed,Object? headers = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? externalPort = null,Object? externalHost = null,Object? externalSsl = null,Object? externalSubdirectory = freezed,Object? headers = freezed,Object? localHost = freezed,Object? localPort = freezed,Object? localSsl = freezed,Object? localSubdirectory = freezed,Object? activeConnection = null,}) {
   return _then(_Server(
-port: null == port ? _self.port : port // ignore: cast_nullable_to_non_nullable
-as int,host: null == host ? _self.host : host // ignore: cast_nullable_to_non_nullable
-as String,ssl: null == ssl ? _self.ssl : ssl // ignore: cast_nullable_to_non_nullable
-as bool,subdirectory: freezed == subdirectory ? _self.subdirectory : subdirectory // ignore: cast_nullable_to_non_nullable
+externalPort: null == externalPort ? _self.externalPort : externalPort // ignore: cast_nullable_to_non_nullable
+as int,externalHost: null == externalHost ? _self.externalHost : externalHost // ignore: cast_nullable_to_non_nullable
+as String,externalSsl: null == externalSsl ? _self.externalSsl : externalSsl // ignore: cast_nullable_to_non_nullable
+as bool,externalSubdirectory: freezed == externalSubdirectory ? _self.externalSubdirectory : externalSubdirectory // ignore: cast_nullable_to_non_nullable
 as String?,headers: freezed == headers ? _self.headers : headers // ignore: cast_nullable_to_non_nullable
-as Map<String, String>?,
+as Map<String, String>?,localHost: freezed == localHost ? _self.localHost : localHost // ignore: cast_nullable_to_non_nullable
+as String?,localPort: freezed == localPort ? _self.localPort : localPort // ignore: cast_nullable_to_non_nullable
+as int?,localSsl: freezed == localSsl ? _self.localSsl : localSsl // ignore: cast_nullable_to_non_nullable
+as bool?,localSubdirectory: freezed == localSubdirectory ? _self.localSubdirectory : localSubdirectory // ignore: cast_nullable_to_non_nullable
+as String?,activeConnection: null == activeConnection ? _self.activeConnection : activeConnection // ignore: cast_nullable_to_non_nullable
+as ServerConnection,
   ));
 }
 

@@ -12,6 +12,7 @@ import 'package:yaabsa/screens/settings/library_settings.dart';
 import 'package:yaabsa/screens/settings/license_settings.dart';
 import 'package:yaabsa/screens/settings/log_view.dart';
 import 'package:yaabsa/screens/settings/reader_settings.dart';
+import 'package:yaabsa/screens/settings/server_connection_settings.dart';
 import 'package:yaabsa/util/aaos_service.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/network/dio_factory.dart';
@@ -221,6 +222,11 @@ class MainSettingsScreen extends ConsumerWidget {
               SettingsNavigationSection(
                 title: "${currentUser.username}'s Preferences",
                 items: [
+                  SettingsNavigationItem(
+                    icon: Icons.dns_outlined,
+                    title: 'Server Connection',
+                    onTap: () => context.push(ServerConnectionSettings.routeName),
+                  ),
                   SettingsNavigationItem(
                     icon: Icons.play_circle_outline_rounded,
                     title: 'Player Settings',

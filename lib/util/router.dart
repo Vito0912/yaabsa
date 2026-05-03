@@ -33,6 +33,7 @@ import 'package:yaabsa/screens/settings/player/player_settings_sleep_timer.dart'
 import 'package:yaabsa/screens/settings/player/player_settings_smart_rewind.dart';
 import 'package:yaabsa/screens/settings/player/player_settings_subtitles.dart';
 import 'package:yaabsa/screens/settings/reader_settings.dart';
+import 'package:yaabsa/screens/settings/server_connection_settings.dart';
 import 'package:yaabsa/screens/settings/settings_screen.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/handler/tray_handler.dart';
@@ -151,6 +152,10 @@ final globalRouter = GoRouter(
                     GoRoute(path: LibrarySettings.routeName, builder: (context, state) => LibrarySettings()),
                     GoRoute(path: AndroidAutoSettings.routeName, builder: (context, state) => AndroidAutoSettings()),
                     GoRoute(path: CachingSettings.routeName, builder: (context, state) => CachingSettings()),
+                    GoRoute(
+                      path: ServerConnectionSettings.routeName,
+                      builder: (context, state) => const ServerConnectionSettings(),
+                    ),
                     GoRoute(
                       path: CachingGeneralSettings.routeName,
                       builder: (context, state) => CachingGeneralSettings(),

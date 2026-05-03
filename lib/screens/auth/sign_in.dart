@@ -298,16 +298,14 @@ class SignIn extends HookConsumerWidget {
           }
         }
 
-        final serverUri = Uri.parse(normalizedServer);
         final headers = buildRequestHeaders(serverHeaders: customHeaders.value);
         final db = ref.read(appDatabaseProvider);
         await db.addOrUpdateStoredUser(
           loggedInUser.copyWith(
-            server: Server(
-              host: serverUri.host,
-              port: serverUri.port,
-              ssl: serverUri.scheme == 'https',
+            server: Server.fromExternalAddress(
+              externalAddress: normalizedServer,
               headers: headers.isEmpty ? null : headers,
+              activeConnection: ServerConnection.external,
             ),
           ),
         );

@@ -12,7 +12,8 @@ part of 'server_status_provider.dart';
 @ProviderFor(serverStatus)
 final serverStatusProvider = ServerStatusProvider._();
 
-final class ServerStatusProvider extends $FunctionalProvider<AsyncValue<bool>, bool, Stream<bool>>
+final class ServerStatusProvider
+    extends $FunctionalProvider<AsyncValue<bool>, bool, Stream<bool>>
     with $FutureModifier<bool>, $StreamProvider<bool> {
   ServerStatusProvider._()
     : super(
@@ -30,7 +31,8 @@ final class ServerStatusProvider extends $FunctionalProvider<AsyncValue<bool>, b
 
   @$internal
   @override
-  $StreamProviderElement<bool> $createElement($ProviderPointer pointer) => $StreamProviderElement(pointer);
+  $StreamProviderElement<bool> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
 
   @override
   Stream<bool> create(Ref ref) {
@@ -38,4 +40,4 @@ final class ServerStatusProvider extends $FunctionalProvider<AsyncValue<bool>, b
   }
 }
 
-String _$serverStatusHash() => r'd77a26a5351b616362c4a6c2d3a11d6fc3b0a6e2';
+String _$serverStatusHash() => r'3d12242be4c452996f50df4eb072a15b5fafcb8d';

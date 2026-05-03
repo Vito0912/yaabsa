@@ -1,10 +1,14 @@
 import 'dart:async';
 
+import 'package:yaabsa/api/me/server.dart';
+import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/provider/core/server_reachability_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/player/session_provider.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/network/dio_factory.dart';
+import 'package:yaabsa/util/network/request_headers.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -54,20 +58,50 @@ Stream<bool> serverStatus(Ref ref) async* {
       return;
     }
 
-    final absApi = ref.read(absApiProvider);
-    if (absApi == null) {
-      markUnreachable('absApi.null');
+    final currentUser = ref.read(currentUserProvider).value;
+    final server = currentUser?.server;
+    if (currentUser == null || server == null) {
+      markUnreachable('current_user_or_server.null');
       return;
     }
 
-    try {
-      await absApi.getMeApi().getPing();
-      markReachable('ping.success');
-    } on DioException {
-      markUnreachable('ping.dio_exception');
-    } catch (_) {
-      markUnreachable('ping.unknown_exception');
+    final localUrl = server.localUrl;
+    if (localUrl != null) {
+      final localReachable = await _isServerReachable(
+        baseUrl: localUrl,
+        headers: server.headers,
+        bearerToken: currentUser.preferredAuthToken,
+      );
+      if (localReachable) {
+        await _setActiveConnection(
+          ref: ref,
+          currentUser: currentUser,
+          nextConnection: ServerConnection.local,
+          reason: 'ping.local.success',
+        );
+        markReachable('ping.local.success');
+        return;
+      }
     }
+
+    final externalReachable = await _isServerReachable(
+      baseUrl: server.externalUrl,
+      headers: server.headers,
+      bearerToken: currentUser.preferredAuthToken,
+    );
+
+    if (externalReachable) {
+      await _setActiveConnection(
+        ref: ref,
+        currentUser: currentUser,
+        nextConnection: ServerConnection.external,
+        reason: localUrl == null ? 'ping.external.success' : 'ping.external.fallback_success',
+      );
+      markReachable(localUrl == null ? 'ping.external.success' : 'ping.external.fallback_success');
+      return;
+    }
+
+    markUnreachable(localUrl == null ? 'ping.external.failed' : 'ping.local_and_external.failed');
   };
 
   unawaited(checkStatus());
@@ -77,13 +111,7 @@ Stream<bool> serverStatus(Ref ref) async* {
     unawaited(checkStatus());
   });
 
-  ref.listen(absApiProvider, (previous, next) {
-    if (identical(previous, next) && previous?.dio.options.baseUrl == next?.dio.options.baseUrl) {
-      if ((previous == null && next != null) || (previous != null && next == null)) {
-      } else {
-        return;
-      }
-    }
+  ref.listen(currentUserProvider, (previous, next) {
     timer?.cancel();
     unawaited(checkStatus());
   });
@@ -162,5 +190,73 @@ Future<void> _onServerReachable(Ref ref, {required bool reconnected}) async {
     }
   } finally {
     _isSyncReplayInProgress = false;
+  }
+}
+
+Future<bool> _isServerReachable({
+  required String baseUrl,
+  required Map<String, String>? headers,
+  required String? bearerToken,
+}) async {
+  final requestHeaders = buildRequestHeaders(serverHeaders: headers, bearerToken: bearerToken);
+  final dio = createNativeDio(
+    options: BaseOptions(
+      baseUrl: baseUrl,
+      connectTimeout: const Duration(seconds: 3),
+      receiveTimeout: const Duration(seconds: 3),
+      headers: requestHeaders.isEmpty ? null : requestHeaders,
+    ),
+  );
+
+  try {
+    await dio.get('/ping');
+    return true;
+  } on DioException {
+    return false;
+  } catch (_) {
+    return false;
+  } finally {
+    dio.close(force: true);
+  }
+}
+
+Future<void> _setActiveConnection({
+  required Ref ref,
+  required User currentUser,
+  required ServerConnection nextConnection,
+  required String reason,
+}) async {
+  final server = currentUser.server;
+  if (server == null) {
+    return;
+  }
+
+  final previousConnection = server.activeConnection;
+  server.setConnection(nextConnection);
+
+  if (previousConnection == server.activeConnection) {
+    return;
+  }
+
+  logger(
+    'Switching server connection ${previousConnection.name} -> ${server.activeConnection.name} '
+    'for user ${currentUser.username} via $reason',
+    tag: 'ServerStatusProvider',
+    level: InfoLevel.debug,
+  );
+
+  try {
+    final activeApi = ref.read(absApiProvider);
+    if (activeApi != null) {
+      activeApi.dio.options.baseUrl = server.url;
+    }
+
+    await ref.read(appDatabaseProvider).addOrUpdateStoredUser(currentUser);
+  } catch (e, s) {
+    logger(
+      'Failed to persist server connection switch for user ${currentUser.id}: $e\n$s',
+      tag: 'ServerStatusProvider',
+      level: InfoLevel.warning,
+    );
   }
 }
