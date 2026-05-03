@@ -67,6 +67,7 @@ class SettingKeys {
   static const String playbackSpeed = 'playback_speed';
   static const String volume = 'volume';
   static const String playerSeekBarMode = 'player_seek_bar_mode';
+  static const String playerSeekBarShowChapterMarkers = 'player_seek_bar_show_chapter_markers';
   static const String lastPlayedQueueItem = 'last_played_queue_item';
 
   static const String subtitlesEnabled = 'subtitles_enabled';
@@ -138,6 +139,7 @@ final defaultSettings = {
   SettingKeys.playbackSpeed: 1.0,
   SettingKeys.volume: 1.0,
   SettingKeys.playerSeekBarMode: PlayerSeekBarMode.full.name,
+  SettingKeys.playerSeekBarShowChapterMarkers: true,
   SettingKeys.subtitlesEnabled: true,
   SettingKeys.subtitleSpeakerHighlighting: true,
   SettingKeys.subtitleReadAlong: true,

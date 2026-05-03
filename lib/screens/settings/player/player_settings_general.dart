@@ -32,6 +32,11 @@ class PlayerSettingsGeneral extends ConsumerWidget {
           valueLabels: PlayerSeekBarMode.values.map((mode) => mode.label).toList(),
           settingKey: SettingKeys.playerSeekBarMode,
         ),
+        SettingSwitch(
+          label: 'Show chapter markers on seek bar',
+          description: 'Display chapter boundary markers on the full timeline seek bar.',
+          settingKey: SettingKeys.playerSeekBarShowChapterMarkers,
+        ),
         SettingSlider<int>(
           label: 'Fast forward interval',
           description: 'How many seconds to skip when jumping forward.',

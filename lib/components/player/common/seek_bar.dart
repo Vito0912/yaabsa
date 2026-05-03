@@ -272,8 +272,8 @@ class SeekBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Listen for persisted setting changes and resolve from cache for immediate in-app updates.
     ref.watch(globalSettingByKeyProvider(SettingKeys.playerSeekBarMode));
+    ref.watch(globalSettingByKeyProvider(SettingKeys.playerSeekBarShowChapterMarkers));
     final settingsManager = ref.read(settingsManagerProvider.notifier);
 
     final Stream<Duration> positionStream = audioHandler.positionStream;
@@ -297,8 +297,15 @@ class SeekBar extends ConsumerWidget {
                     defaultValue: PlayerSeekBarMode.full.name,
                   ),
                 );
+                final showChapterMarkers = settingsManager.getGlobalSetting<bool>(
+                  SettingKeys.playerSeekBarShowChapterMarkers,
+                  defaultValue: defaultSettings[SettingKeys.playerSeekBarShowChapterMarkers] as bool? ?? true,
+                );
                 final chapters = chaptersSnapshot.data ?? const <InternalChapter>[];
                 final currentChapter = _getCurrentChapter(chapters, currentPosition);
+                final fullTimelineMarkers = showChapterMarkers
+                    ? chapters.map((chapter) => chapter.start.toDuration).toList(growable: false)
+                    : const <Duration>[];
 
                 final shouldShowChapter =
                     (configuredMode == PlayerSeekBarMode.chapter || configuredMode == PlayerSeekBarMode.both) &&
@@ -345,7 +352,7 @@ class SeekBar extends ConsumerWidget {
                       leftTime: currentPosition,
                       rightTime: totalDuration,
                       onSeek: (seekPosition) => audioHandler.seek(seekPosition),
-                      markers: chapters.map((chapter) => chapter.start.toDuration).toList(),
+                      markers: fullTimelineMarkers,
                     ),
                   );
                 }
