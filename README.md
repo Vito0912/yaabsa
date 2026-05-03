@@ -2,9 +2,32 @@
 
 An improved unofficial cross-platform app for Audiobookshelf
 
+## Installation
+
+### Android
+
 [![Play Store](https://img.shields.io/badge/Google_Play-414141?style=for-the-badge&logo=google-play&logoColor=white)](https://play.google.com/store/apps/details?id=de.vito0912.yaabsa) - Currently, access is invite‑only. To join the beta, email me at fito0912(@)duck.com (or the mail at my GitHub profile) with the email address you use for the Play Store. After I add you to the private beta, you can use [this link](https://play.google.com/apps/internaltest/4701675908338514340) and download via the Play Store.
 
-Other platforms can be downloaded from the [Actions-tab](https://github.com/Vito0912/yaabsa/actions). Search the latest action that contains a build for you wanted platform.
+Download the latest APK from the the releases page. Note that `automotive` are builds for AAOS, not your mobile. Please use `auto`, which stands for Android Auto and is the build for mobile devices.
+
+### Linux
+
+Use the Flatpak *(recommended)*:\
+`flatpak remote-add --if-not-exists yaabsa https://Vito0912.github.io/yaabsa/de.vito0912.yaabsa.flatpakrepo --user`\
+Install with:\
+`flatpak install yaabsa de.vito0912.yaabsa --user`
+
+For all other installation methods, please refer to the [Platform hints](#platform-hints) section below and download them from the releases page.
+
+### Windows
+
+Microsoft Store will follow
+
+Download the latest installer from the releases page.
+
+### MacOS, iOS
+
+Both of them will follow later. Both can already be built from source.
 
 ## Usage of AI
 

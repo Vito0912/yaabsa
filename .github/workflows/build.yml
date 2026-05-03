@@ -7,7 +7,14 @@ on:
       - "linux/**"
       - "windows/**"
       - "android/**"
+      - "pubspec.yaml"
   workflow_dispatch:
+    inputs:
+      force_version_bump:
+        description: "Treat current pubspec version as bumped"
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   changes:
@@ -17,7 +24,13 @@ jobs:
       android: ${{ steps.filter.outputs.android }}
       linux: ${{ steps.filter.outputs.linux }}
       windows: ${{ steps.filter.outputs.windows }}
+      pubspec: ${{ steps.filter.outputs.pubspec }}
       any: ${{ steps.filter.outputs.any }}
+      version_bumped: ${{ steps.version.outputs.version_bumped }}
+      force_version_bump: ${{ steps.version.outputs.force_version_bump }}
+      app_version: ${{ steps.version.outputs.app_version }}
+      previous_app_version: ${{ steps.version.outputs.previous_app_version }}
+      release_tag: ${{ steps.version.outputs.release_tag }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -37,11 +50,53 @@ jobs:
               - 'linux/**'
             windows:
               - 'windows/**'
+            pubspec:
+              - 'pubspec.yaml'
             any:
               - 'lib/**'
               - 'android/**'
               - 'linux/**'
               - 'windows/**'
+              - 'pubspec.yaml'
+
+      - name: Detect pubspec version bump
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          current_version="$(awk '/^version:/ {print $2; exit}' pubspec.yaml || true)"
+          previous_version=""
+          base_ref="${{ github.event.before }}"
+
+          if [[ "${{ github.event_name }}" == "push" && -n "$base_ref" && "$base_ref" != "0000000000000000000000000000000000000000" ]]; then
+            previous_version="$(git show "$base_ref":pubspec.yaml 2>/dev/null | awk '/^version:/ {print $2; exit}' || true)"
+          elif git rev-parse --verify HEAD^ >/dev/null 2>&1; then
+            previous_version="$(git show HEAD^:pubspec.yaml 2>/dev/null | awk '/^version:/ {print $2; exit}' || true)"
+          fi
+
+          version_bumped="false"
+          if [[ -n "$current_version" && -n "$previous_version" && "$current_version" != "$previous_version" ]]; then
+            version_bumped="true"
+          fi
+
+          force_version_bump="${{ github.event_name == 'workflow_dispatch' && github.event.inputs.force_version_bump || 'false' }}"
+          if [[ "$force_version_bump" == "true" ]]; then
+            version_bumped="true"
+          fi
+
+          sanitized_version="${current_version//+/-}"
+          release_tag="v${sanitized_version}-pre"
+
+          echo "app_version=$current_version" >> "$GITHUB_OUTPUT"
+          echo "previous_app_version=$previous_version" >> "$GITHUB_OUTPUT"
+          echo "version_bumped=$version_bumped" >> "$GITHUB_OUTPUT"
+          echo "force_version_bump=$force_version_bump" >> "$GITHUB_OUTPUT"
+          echo "release_tag=$release_tag" >> "$GITHUB_OUTPUT"
+
+          echo "Detected version: '$current_version' (previous: '$previous_version')"
+          echo "Force version bump override: $force_version_bump"
+          echo "Version bumped: $version_bumped"
 
   check-requirements:
     runs-on: ubuntu-latest
@@ -90,7 +145,7 @@ jobs:
     needs:
       - changes
       - check-requirements
-    if: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.linux == 'true' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.version_bumped == 'true' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.linux == 'true' }}
     timeout-minutes: 20
     steps:
       - name: Checkout
@@ -163,7 +218,7 @@ jobs:
     needs:
       - changes
       - check-requirements
-    if: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.linux == 'true' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.version_bumped == 'true' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.linux == 'true' }}
     timeout-minutes: 35
     steps:
       - name: Checkout
@@ -175,15 +230,16 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Make Flutter SDK safe for git
-        run: git config --global --add safe.directory "$FLUTTER_ROOT" || true
+      - name: Add flatpak repo
+        run: |
+          sudo add-apt-repository ppa:flatpak/stable -y
+
+      - name: Update apt
+        run: |
+          sudo apt-get update
 
       - name: Install apt dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y software-properties-common
-          sudo add-apt-repository ppa:flatpak/stable -y
-          sudo apt-get update
           sudo apt-get install -y \
             build-essential \
             libgtk-3-dev \
@@ -335,7 +391,7 @@ jobs:
     needs:
       - changes
       - check-requirements
-    if: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.linux == 'true' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.version_bumped == 'true' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.linux == 'true' }}
     timeout-minutes: 20
     steps:
       - name: Checkout
@@ -356,7 +412,7 @@ jobs:
     needs:
       - changes
       - check-requirements
-    if: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.android == 'true' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.version_bumped == 'true' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.android == 'true' }}
     timeout-minutes: 20
     steps:
       - name: Checkout
@@ -455,7 +511,7 @@ jobs:
     needs:
       - changes
       - check-requirements
-    if: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.windows == 'true' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.version_bumped == 'true' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.windows == 'true' }}
     timeout-minutes: 20
     steps:
       - name: Checkout
@@ -518,3 +574,53 @@ jobs:
         with:
           name: windows-bundle
           path: output/windows/*.zip
+
+  create-prerelease:
+    runs-on: ubuntu-latest
+    needs:
+      - changes
+      - build-linux
+      - build-flatpak
+      - build-snap
+      - build-android
+      - build-windows
+    if: ${{ needs.changes.outputs.version_bumped == 'true' }}
+    permissions:
+      contents: write
+    steps:
+      - name: Download all workflow artifacts
+        uses: actions/download-artifact@v8
+        with:
+          path: release-assets
+
+      - name: Prepare release files
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mkdir -p dist
+          find release-assets -type f -print0 | while IFS= read -r -d '' file; do
+            relative_path="${file#release-assets/}"
+            safe_name="${relative_path//\//__}"
+            cp "$file" "dist/$safe_name"
+          done
+
+          ls -lh dist
+
+      - name: Create prerelease
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ needs.changes.outputs.release_tag }}
+          name: ${{ needs.changes.outputs.release_tag }}
+          prerelease: true
+          overwrite_files: true
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          body: |
+            Automated prerelease generated after pubspec version bump or manual override.
+            Manual override used: ${{ needs.changes.outputs.force_version_bump }}
+            Version: ${{ needs.changes.outputs.app_version }}
+            Previous version: ${{ needs.changes.outputs.previous_app_version }}
+            Commit: ${{ github.sha }}
+          files: |
+            dist/*
