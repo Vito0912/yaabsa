@@ -1,3 +1,5 @@
+// ignore_for_file: constant_identifier_names
+
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 

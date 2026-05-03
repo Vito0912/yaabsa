@@ -79,16 +79,16 @@ void logger(String message, {String? tag, InfoLevel level = InfoLevel.info}) {
 
     switch (level) {
       case InfoLevel.debug:
-        print('\x1B[34m$fallbackMessage\x1B[0m');
+        debugPrint('\x1B[34m$fallbackMessage\x1B[0m');
         break;
       case InfoLevel.info:
-        print('\x1B[32m$fallbackMessage\x1B[0m');
+        debugPrint('\x1B[32m$fallbackMessage\x1B[0m');
         break;
       case InfoLevel.warning:
-        print('\x1B[33m$fallbackMessage\x1B[0m');
+        debugPrint('\x1B[33m$fallbackMessage\x1B[0m');
         break;
       case InfoLevel.error:
-        print('\x1B[31m$fallbackMessage\x1B[0m');
+        debugPrint('\x1B[31m$fallbackMessage\x1B[0m');
         break;
     }
   }

@@ -6,14 +6,15 @@ import 'package:flutter/material.dart';
 
 class LicenseSettings {
   static Future<void> showLicensePage({required BuildContext context, bool useRootNavigator = false}) async {
-    final CapturedThemes themes = InheritedTheme.capture(
-      from: context,
-      to: Navigator.of(context, rootNavigator: useRootNavigator).context,
-    );
+    final navigator = Navigator.of(context, rootNavigator: useRootNavigator);
+    final CapturedThemes themes = InheritedTheme.capture(from: context, to: navigator.context);
 
     final String deviceInfo = await _getDeviceInfo();
+    if (!context.mounted) {
+      return;
+    }
 
-    Navigator.of(context, rootNavigator: useRootNavigator).push(
+    navigator.push(
       MaterialPageRoute<void>(
         builder: (BuildContext context) => themes.wrap(
           LicensePage(

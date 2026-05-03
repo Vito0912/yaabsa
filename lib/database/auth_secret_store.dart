@@ -17,8 +17,7 @@ class AuthSecrets {
 }
 
 class AuthSecretStore {
-  AuthSecretStore({FlutterSecureStorage? storage})
-    : _storage = storage ?? const FlutterSecureStorage(aOptions: AndroidOptions(encryptedSharedPreferences: true));
+  AuthSecretStore({FlutterSecureStorage? storage}) : _storage = storage ?? const FlutterSecureStorage();
 
   final FlutterSecureStorage _storage;
 

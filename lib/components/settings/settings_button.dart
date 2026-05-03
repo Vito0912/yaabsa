@@ -83,13 +83,13 @@ class SettingButton extends ConsumerWidget {
                               backgroundColor: isDestructive ? theme.colorScheme.error : theme.colorScheme.primary,
                               foregroundColor: isDestructive ? theme.colorScheme.onError : theme.colorScheme.onPrimary,
                               elevation: 2,
-                              shadowColor: theme.colorScheme.shadow.withOpacity(0.2),
+                              shadowColor: theme.colorScheme.shadow.withValues(alpha: 0.2),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                             ).copyWith(
                               overlayColor: WidgetStateProperty.all(
-                                (isDestructive ? theme.colorScheme.onError : theme.colorScheme.onPrimary).withOpacity(
-                                  0.1,
+                                (isDestructive ? theme.colorScheme.onError : theme.colorScheme.onPrimary).withValues(
+                                  alpha: 0.1,
                                 ),
                               ),
                             ),

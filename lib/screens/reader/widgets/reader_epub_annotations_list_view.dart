@@ -76,11 +76,19 @@ class _ReaderEpubAnnotationsListViewState extends State<ReaderEpubAnnotationsLis
   Future<void> _removeBookmark(String cfi) async {
     try {
       await widget.epubController.removeBookmark(cfi: cfi);
+      if (!mounted) {
+        return;
+      }
+
       setState(() {
         bookmarks.removeWhere((bookmark) => bookmark.cfi == cfi);
       });
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Bookmark removed')));
     } catch (e) {
+      if (!mounted) {
+        return;
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error removing bookmark: $e')));
     }
   }

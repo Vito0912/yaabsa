@@ -101,7 +101,7 @@ class MeApi {
   }
 
   Future<Response<Bookmark>> createBookmark(
-    itemId, {
+    String itemId, {
     required CreateBookmarkRequest createBookmarkRequest,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -119,8 +119,8 @@ class MeApi {
   }
 
   Future<bool> deleteBookmark(
-    itemId,
-    time, {
+    String itemId,
+    int time, {
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,

@@ -258,7 +258,7 @@ class _FilterSectionState extends State<_FilterSection> {
       duration: const Duration(milliseconds: 180),
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: _isExpanded ? colorScheme.secondaryContainer.withOpacity(0.45) : colorScheme.surfaceContainerLow,
+        color: _isExpanded ? colorScheme.secondaryContainer.withValues(alpha: 0.45) : colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: _isExpanded ? colorScheme.primary : colorScheme.outlineVariant,

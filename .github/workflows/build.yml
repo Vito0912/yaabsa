@@ -83,11 +83,7 @@ jobs:
           exit 1)
 
       - name: Check if errors are present
-        run: |
-          if flutter analyze 2>&1 | grep -q -E 'error:'; 
-          then exit 1
-          else exit 0
-          fi
+        run: flutter analyze | grep "No issues found!" || (echo "Analyzer found issues. Please fix them and commit the changes." && exit 1)
 
   build-linux:
     runs-on: ubuntu-latest

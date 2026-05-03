@@ -26,6 +26,7 @@ linter:
 analyzer:
   errors:
     invalid_annotation_target: ignore
+    todo: ignore
 formatter:
   page_width: 120
 

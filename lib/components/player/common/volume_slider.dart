@@ -68,7 +68,6 @@ class VolumeSlider extends StatelessWidget {
               final volume = (snapshot.data ?? 1.0).clamp(0.0, BGAudioHandler.maxVolume).toDouble();
               final sliderValue = _volumeToSliderValue(volume);
               return Slider(
-                year2023: false,
                 value: sliderValue,
                 min: 0.0,
                 max: 1.0,

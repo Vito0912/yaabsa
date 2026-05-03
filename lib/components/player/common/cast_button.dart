@@ -47,6 +47,10 @@ Future<void> showCastDevicePicker(BuildContext context, {bool ensureInitialized 
 
   if (ensureInitialized) {
     final initialized = await ChromeCastService.ensureInitialized();
+    if (!context.mounted) {
+      return;
+    }
+
     if (!initialized) {
       _showCastMessage(context, 'Chrome Cast is unavailable on this device.');
       return;
@@ -70,6 +74,10 @@ Future<void> showCastDevicePicker(BuildContext context, {bool ensureInitialized 
       return;
     }
 
+    if (!context.mounted) {
+      return;
+    }
+
     await _connectAndCast(context, selectedDevice);
   } finally {
     await GoogleCastDiscoveryManager.instance.stopDiscovery();
@@ -87,9 +95,17 @@ void _showCastMessage(BuildContext context, String message) {
 Future<void> _disconnectSession(BuildContext context) async {
   try {
     await GoogleCastSessionManager.instance.endSessionAndStopCasting();
+    if (!context.mounted) {
+      return;
+    }
+
     audioHandler.deactivateCastControl();
     _showCastMessage(context, 'Disconnected from cast device.');
   } catch (e) {
+    if (!context.mounted) {
+      return;
+    }
+
     _showCastMessage(context, 'Failed to disconnect: $e');
   }
 }
@@ -101,20 +117,36 @@ Future<void> _connectAndCast(BuildContext context, GoogleCastDevice device) asyn
         ? await _waitForConnectedSession()
         : GoogleCastSessionManager.instance.hasConnectedSession;
 
+    if (!context.mounted) {
+      return;
+    }
+
     if (!connected) {
       _showCastMessage(context, 'Unable to connect to ${device.friendlyName}.');
       return;
     }
 
     final castTarget = await _castCurrentTrack(context);
+    if (!context.mounted) {
+      return;
+    }
+
     if (castTarget == null) {
       return;
     }
 
     await audioHandler.pause();
+    if (!context.mounted) {
+      return;
+    }
+
     audioHandler.activateCastControl(contentId: castTarget.contentId, trackIndex: castTarget.trackIndex);
     _showCastMessage(context, 'Casting to ${device.friendlyName}.');
   } catch (e) {
+    if (!context.mounted) {
+      return;
+    }
+
     logger('Failed to connect and cast: $e', tag: 'CastButton', level: InfoLevel.warning);
     _showCastMessage(context, 'Failed to cast: $e');
   }
@@ -262,6 +294,10 @@ class _CastButtonState extends ConsumerState<CastButton> {
     }
 
     final initialized = _isInitialized || await _ensureInitialized();
+    if (!mounted) {
+      return;
+    }
+
     if (!initialized) {
       _showCastMessage(context, 'Chrome Cast is unavailable on this device.');
       return;

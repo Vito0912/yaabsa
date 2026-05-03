@@ -17,7 +17,7 @@ class ControlButton extends StatelessWidget {
         if (playerState == null ||
             playerState.processingState == ProcessingState.loading ||
             playerState.processingState == ProcessingState.buffering) {
-          return const CircularProgressIndicator(year2023: false);
+          return const CircularProgressIndicator();
         }
 
         return IconButton(
