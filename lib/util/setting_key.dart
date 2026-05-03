@@ -14,6 +14,8 @@ class SettingKeys {
   static const String sidebarCollapsed = 'sidebar_collapsed';
   static const String autoQueue = 'auto_queue';
   static const String autoQueueIncludeSeriesOutsideContext = 'auto_queue_include_series_outside_context';
+  static const String sleepTimerExpireAction = 'sleep_timer_expire_action';
+  static const String sleepTimerAutoRewindMinutes = 'sleep_timer_auto_rewind_minutes';
   static const String smartRewindEnabled = 'smart_rewind_enabled';
   static const String smartRewindShortPauseThresholdSeconds = 'smart_rewind_short_pause_threshold_seconds';
   static const String smartRewindLongPauseThresholdSeconds = 'smart_rewind_long_pause_threshold_seconds';
@@ -79,6 +81,8 @@ final defaultSettings = {
   SettingKeys.sidebarCollapsed: false,
   SettingKeys.autoQueue: true,
   SettingKeys.autoQueueIncludeSeriesOutsideContext: false,
+  SettingKeys.sleepTimerExpireAction: SleepTimerExpireAction.stop.name,
+  SettingKeys.sleepTimerAutoRewindMinutes: 0,
   SettingKeys.smartRewindEnabled: false,
   SettingKeys.smartRewindShortPauseThresholdSeconds: 60,
   SettingKeys.smartRewindLongPauseThresholdSeconds: 900,
@@ -128,6 +132,45 @@ final defaultSettings = {
 };
 
 enum AppThemeMode { light, dark, system }
+
+enum SleepTimerExpireAction {
+  stop,
+  pause;
+
+  static SleepTimerExpireAction fromSettingValue(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return SleepTimerExpireAction.stop;
+    }
+
+    final normalized = value.trim().toLowerCase();
+
+    for (final action in SleepTimerExpireAction.values) {
+      if (action.name == normalized) {
+        return action;
+      }
+    }
+
+    if (normalized.startsWith('sleeptimerexpireaction.')) {
+      final suffix = normalized.split('.').last;
+      for (final action in SleepTimerExpireAction.values) {
+        if (action.name == suffix) {
+          return action;
+        }
+      }
+    }
+
+    return SleepTimerExpireAction.stop;
+  }
+
+  String get label {
+    switch (this) {
+      case SleepTimerExpireAction.stop:
+        return 'Stop playback';
+      case SleepTimerExpireAction.pause:
+        return 'Pause playback';
+    }
+  }
+}
 
 enum PlayerSeekBarMode {
   chapter,

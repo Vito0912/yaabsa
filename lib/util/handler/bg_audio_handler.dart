@@ -25,6 +25,7 @@ import 'package:yaabsa/models/internal_download.dart';
 import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
+import 'package:yaabsa/provider/core/server_reachability_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/player/session_provider.dart';
@@ -188,6 +189,55 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     return '$itemId::${episodeId ?? ''}';
   }
 
+  Duration _rewindPosition(Duration position, Duration rewindBy) {
+    if (rewindBy <= Duration.zero) {
+      return position;
+    }
+
+    final rewoundPosition = position - rewindBy;
+    return rewoundPosition.isNegative ? Duration.zero : rewoundPosition;
+  }
+
+  Future<void> applySleepTimerAutoRewindNow() async {
+    if (_currentMediaItem == null) {
+      return;
+    }
+
+    final rewindMinutes = _ref
+        .read(settingsManagerProvider.notifier)
+        .getGlobalSetting<int>(SettingKeys.sleepTimerAutoRewindMinutes);
+
+    if (rewindMinutes <= 0) {
+      return;
+    }
+
+    final rewindBy = Duration(minutes: rewindMinutes);
+    final currentPosition = position;
+    final targetPosition = _rewindPosition(currentPosition, rewindBy);
+    if (targetPosition >= currentPosition) {
+      return;
+    }
+
+    await seek(targetPosition);
+
+    final currentPositionSeconds = targetPosition.inMicroseconds / Duration.microsecondsPerSecond;
+    final canReachServer = _ref.read(serverReachabilityProvider);
+
+    try {
+      await _ref
+          .read(sessionRepositoryProvider)
+          .syncOpenSession(currentPositionSeconds, 0.3, canReachServer: canReachServer);
+    } catch (e) {
+      logger('Failed to sync sleep timer rewind before stop: $e', tag: 'AudioHandler', level: InfoLevel.warning);
+    }
+
+    logger(
+      'Applied sleep timer auto-rewind (${rewindBy.inMinutes} min) before stop at ${targetPosition.inSeconds}s.',
+      tag: 'AudioHandler',
+      level: InfoLevel.debug,
+    );
+  }
+
   void _clearSmartRewindPauseMarker() {
     _pausedAt = null;
     _pausedItemId = null;
@@ -282,8 +332,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       return;
     }
 
-    final rewoundPosition = currentPosition - rewindBy;
-    final targetPosition = rewoundPosition.isNegative ? Duration.zero : rewoundPosition;
+    final targetPosition = _rewindPosition(currentPosition, rewindBy);
 
     if (targetPosition < currentPosition) {
       await seek(targetPosition);
@@ -1217,6 +1266,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       _setQueueTransitionLoading(false);
       return Future.value();
     }
+
     _clearSmartRewindPauseMarker();
     _lastQueueItem = nextItem;
     _currentMediaItem = await _ref

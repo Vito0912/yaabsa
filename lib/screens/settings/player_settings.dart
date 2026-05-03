@@ -99,6 +99,20 @@ class PlayerSettings extends ConsumerWidget {
           settingKey: SettingKeys.smartRewindLongRewindSeconds,
           enabled: smartRewindEnabled,
         ),
+        SettingDropdown<String>(
+          label: 'Sleep timer end action',
+          description: 'Choose whether playback is stopped or paused when the sleep timer expires.',
+          values: SleepTimerExpireAction.values.map((action) => action.name).toList(),
+          valueLabels: SleepTimerExpireAction.values.map((action) => action.label).toList(),
+          settingKey: SettingKeys.sleepTimerExpireAction,
+        ),
+        SettingSlider<int>(
+          label: 'Sleep timer end rewind',
+          description: 'After sleep timer stops playback, rewind this much when the same item is played again.',
+          values: const [0, 5, 10, 15, 30],
+          valueLabels: const ['Off', '5 min', '10 min', '15 min', '30 min'],
+          settingKey: SettingKeys.sleepTimerAutoRewindMinutes,
+        ),
         SettingSwitch(
           label: 'Auto queue',
           description:

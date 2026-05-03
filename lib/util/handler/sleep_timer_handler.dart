@@ -1,8 +1,10 @@
 // lib/provider/sleep_timer_handler.dart
 import 'dart:async';
 
+import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/setting_key.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'sleep_timer_handler.g.dart';
@@ -158,9 +160,24 @@ class SleepTimerHandler extends _$SleepTimerHandler {
   }
 
   void _onTimerExpired() {
-    logger('Sleep timer expired, stopping playback', tag: 'SleepTimer', level: InfoLevel.info);
+    final actionSetting = ref
+        .read(settingsManagerProvider.notifier)
+        .getGlobalSetting<String>(SettingKeys.sleepTimerExpireAction);
+    final action = SleepTimerExpireAction.fromSettingValue(actionSetting);
 
-    audioHandler.stop();
+    if (action == SleepTimerExpireAction.pause) {
+      logger('Sleep timer expired, pausing playback', tag: 'SleepTimer', level: InfoLevel.info);
+      unawaited(() async {
+        await audioHandler.applySleepTimerAutoRewindNow();
+        await audioHandler.pause();
+      }());
+    } else {
+      logger('Sleep timer expired, stopping playback', tag: 'SleepTimer', level: InfoLevel.info);
+      unawaited(() async {
+        await audioHandler.applySleepTimerAutoRewindNow();
+        await audioHandler.stop();
+      }());
+    }
 
     _timer = null;
     _startTime = null;
