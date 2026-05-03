@@ -7,21 +7,25 @@ import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
 class SeekBar extends ConsumerWidget {
-  const SeekBar({super.key, this.trackHeight = 10.0});
+  const SeekBar({super.key, this.trackHeight = 10.0, this.timeLabelsBelow = false, this.timeLabelFontSize = 12.0});
 
   final double trackHeight;
+  final bool timeLabelsBelow;
+  final double timeLabelFontSize;
 
   String _formatDuration(Duration? duration) {
-    if (duration == null) return "--:--";
+    if (duration == null) return '--:--';
+
     String twoDigits(int n) => n.toString().padLeft(2, '0');
     final hours = duration.inHours;
     final minutes = duration.inMinutes.remainder(60);
     final seconds = duration.inSeconds.remainder(60);
+
     if (hours > 0) {
       return '$hours:${twoDigits(minutes)}:${twoDigits(seconds)}';
-    } else {
-      return '${twoDigits(minutes)}:${twoDigits(seconds)}';
     }
+
+    return '${twoDigits(minutes)}:${twoDigits(seconds)}';
   }
 
   InternalChapter? _getCurrentChapter(List<InternalChapter> chapters, Duration currentPosition) {
@@ -60,6 +64,154 @@ class SeekBar extends ConsumerWidget {
     return value;
   }
 
+  List<double> _resolveMarkerOffsets({
+    required List<Duration> markers,
+    required Duration rangeStart,
+    required Duration rangeEnd,
+    required double sliderWidth,
+  }) {
+    final rangeDuration = rangeEnd - rangeStart;
+    final rangeSeconds = rangeDuration.inMilliseconds / 1000.0;
+    if (rangeSeconds <= 0 || sliderWidth <= 0 || markers.isEmpty) {
+      return const <double>[];
+    }
+
+    final rawOffsets = <double>[];
+    for (final marker in markers) {
+      if (marker <= rangeStart || marker >= rangeEnd) {
+        continue;
+      }
+
+      final markerSeconds = (marker - rangeStart).inMilliseconds / 1000.0;
+      final offset = (markerSeconds / rangeSeconds) * sliderWidth;
+      rawOffsets.add(offset.clamp(0.0, sliderWidth).toDouble());
+    }
+
+    if (rawOffsets.length <= 1) {
+      return rawOffsets;
+    }
+
+    rawOffsets.sort();
+
+    final markerCount = rawOffsets.length;
+    final minVisualGap = markerCount <= 24
+        ? 0.0
+        : markerCount <= 60
+        ? 2.0
+        : markerCount <= 140
+        ? 3.0
+        : 4.0;
+
+    if (minVisualGap == 0.0) {
+      return rawOffsets;
+    }
+
+    final filtered = <double>[rawOffsets.first];
+    for (var i = 1; i < rawOffsets.length; i++) {
+      if (rawOffsets[i] - filtered.last >= minVisualGap) {
+        filtered.add(rawOffsets[i]);
+      }
+    }
+
+    return filtered;
+  }
+
+  Widget _buildTimeLabel(BuildContext context, Duration time) {
+    return Text(
+      _formatDuration(time),
+      style: TextStyle(
+        fontSize: timeLabelFontSize,
+        fontFamily: 'monospace',
+        fontFeatures: const [FontFeature.tabularFigures()],
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.9),
+      ),
+    );
+  }
+
+  Widget _buildSeekSlider({
+    required BuildContext context,
+    required Duration rangeStart,
+    required Duration rangeEnd,
+    required double sliderValue,
+    required double maxSliderValue,
+    required bool hasSeekRange,
+    required List<Duration> markers,
+    required void Function(double seconds) executeSeek,
+  }) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: timeLabelsBelow ? 0 : 4),
+      child: SliderTheme(
+        data: SliderTheme.of(context).copyWith(
+          trackHeight: trackHeight,
+          trackShape: const RectangularSliderTrackShape(),
+          thumbShape: const RoundSliderThumbShape(
+            enabledThumbRadius: 0.0,
+            disabledThumbRadius: 0.0,
+            pressedElevation: 0.0,
+          ),
+          overlayShape: SliderComponentShape.noOverlay,
+          activeTrackColor: Theme.of(context).colorScheme.primary,
+          inactiveTrackColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+        ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final sliderWidth = constraints.maxWidth;
+            final markerOffsets = _resolveMarkerOffsets(
+              markers: markers,
+              rangeStart: rangeStart,
+              rangeEnd: rangeEnd,
+              sliderWidth: sliderWidth,
+            );
+
+            final markerCount = markerOffsets.length;
+            final markerWidth = markerCount <= 24
+                ? 2.4
+                : markerCount <= 70
+                ? 2.0
+                : markerCount <= 140
+                ? 1.6
+                : 1.2;
+            final markerAlpha = markerCount <= 24
+                ? 0.95
+                : markerCount <= 70
+                ? 0.9
+                : markerCount <= 140
+                ? 0.84
+                : 0.78;
+
+            return Stack(
+              children: [
+                Slider(
+                  value: sliderValue.clamp(0.0, hasSeekRange ? maxSliderValue : 0.0),
+                  min: 0.0,
+                  max: hasSeekRange ? maxSliderValue : 1.0,
+                  activeColor: Theme.of(context).colorScheme.primary,
+                  inactiveColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+                  onChanged: hasSeekRange ? executeSeek : null,
+                  onChangeEnd: hasSeekRange ? executeSeek : null,
+                ),
+                for (final offset in markerOffsets)
+                  Positioned(
+                    left: (offset - (markerWidth / 2))
+                        .clamp(0.0, sliderWidth > markerWidth ? sliderWidth - markerWidth : 0.0)
+                        .toDouble(),
+                    child: Container(
+                      width: markerWidth,
+                      height: trackHeight + 2,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.tertiary.withValues(alpha: markerAlpha),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
   Widget _buildSeekRow({
     required BuildContext context,
     required Duration rangeStart,
@@ -81,97 +233,39 @@ class SeekBar extends ConsumerWidget {
       onSeek(seekPosition);
     }
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+    final slider = _buildSeekSlider(
+      context: context,
+      rangeStart: rangeStart,
+      rangeEnd: rangeEnd,
+      sliderValue: sliderValue,
+      maxSliderValue: maxSliderValue,
+      hasSeekRange: hasSeekRange,
+      markers: markers,
+      executeSeek: executeSeek,
+    );
+
+    if (timeLabelsBelow) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          slider,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(2, 2, 2, 0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [_buildTimeLabel(context, leftTime), _buildTimeLabel(context, rightTime)],
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Row(
       children: [
-        Row(
-          children: [
-            Text(
-              _formatDuration(leftTime),
-              style: const TextStyle(
-                fontSize: 12,
-                fontFamily: 'monospace',
-                fontFeatures: [FontFeature.tabularFigures()],
-              ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                child: SliderTheme(
-                  data: SliderTheme.of(context).copyWith(
-                    trackHeight: trackHeight,
-                    trackShape: const RectangularSliderTrackShape(),
-                    thumbShape: const RoundSliderThumbShape(
-                      enabledThumbRadius: 0.0,
-                      disabledThumbRadius: 0.0,
-                      pressedElevation: 0.0,
-                    ),
-                    overlayShape: SliderComponentShape.noOverlay,
-                    activeTrackColor: Theme.of(context).colorScheme.primary,
-                    inactiveTrackColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
-                  ),
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final sliderWidth = constraints.maxWidth;
-                      final rangeSeconds = rangeDuration.inMilliseconds / 1000.0;
-
-                      final markerOffsets = <double>[];
-                      if (rangeSeconds > 0) {
-                        for (final marker in markers) {
-                          if (marker <= rangeStart || marker >= rangeEnd) {
-                            continue;
-                          }
-                          final markerSeconds = (marker - rangeStart).inMilliseconds / 1000.0;
-                          markerOffsets.add((markerSeconds / rangeSeconds) * sliderWidth);
-                        }
-                      }
-
-                      return Stack(
-                        children: [
-                          Slider(
-                            value: sliderValue.clamp(0.0, hasSeekRange ? maxSliderValue : 0.0),
-                            min: 0.0,
-                            max: hasSeekRange ? maxSliderValue : 1.0,
-                            activeColor: Theme.of(context).colorScheme.primary,
-                            inactiveColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
-                            onChanged: hasSeekRange
-                                ? (newValue) {
-                                    executeSeek(newValue);
-                                  }
-                                : null,
-                            onChangeEnd: hasSeekRange
-                                ? (endValue) {
-                                    executeSeek(endValue);
-                                  }
-                                : null,
-                          ),
-                          for (final offset in markerOffsets)
-                            Positioned(
-                              left: offset,
-                              child: Container(
-                                width: 1.0,
-                                height: trackHeight,
-                                color: Theme.of(context).colorScheme.secondaryContainer.withValues(alpha: 0.75),
-                              ),
-                            ),
-                        ],
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ),
-            Text(
-              _formatDuration(rightTime),
-              style: const TextStyle(
-                fontSize: 12,
-                fontFamily: 'monospace',
-                fontFeatures: [FontFeature.tabularFigures()],
-              ),
-            ),
-          ],
-        ),
+        _buildTimeLabel(context, leftTime),
+        Expanded(child: slider),
+        _buildTimeLabel(context, rightTime),
       ],
     );
   }

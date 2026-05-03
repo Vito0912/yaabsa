@@ -14,6 +14,7 @@ import 'package:yaabsa/components/common/cover_zoom_view.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/screens/player/car_mode_screen.dart';
 import 'package:yaabsa/screens/player/chapter.dart';
 import 'package:yaabsa/screens/player/play_history_view.dart';
 import 'package:yaabsa/screens/player/queue.dart';
@@ -25,7 +26,6 @@ import 'package:yaabsa/util/setting_key.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:just_audio/just_audio.dart';
 import 'dart:async';
 
 enum _PlayerLayoutType { mobile, tablet, desktop }
@@ -94,7 +94,7 @@ class _PlayerState extends State<Player> {
   }
 
   void _openCarMode(BuildContext context) {
-    Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const _CarModeScreen()));
+    Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const CarModeScreen()));
   }
 
   void _openPlayHistory(BuildContext context) {
@@ -608,121 +608,6 @@ class _PlayerAppBarMenuItem extends StatelessWidget {
         const SizedBox(width: 12),
         Text(label),
       ],
-    );
-  }
-}
-
-class _CarModeScreen extends ConsumerWidget {
-  const _CarModeScreen();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final api = ref.watch(absApiProvider);
-
-    return Scaffold(
-      appBar: AppBar(title: const Text('Car Mode'), actions: const [StopButton()]),
-      body: StreamBuilder<InternalMedia?>(
-        stream: audioHandler.mediaItemStream.stream,
-        builder: (context, snapshot) {
-          if (!snapshot.hasData || snapshot.data == null) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          final media = snapshot.data!;
-
-          return Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _CoverArt(api: api, media: media, size: 260),
-                      const SizedBox(height: 20),
-                      Text(
-                        media.title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.headlineSmall,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        media.author ?? 'Unknown Author',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(
-                          context,
-                        ).textTheme.titleMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 12),
-                const SeekBar(trackHeight: 18.0),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _CarControl(icon: Icons.replay_10, onPressed: () => audioHandler.rewind()),
-                    const _CarPlayPauseControl(),
-                    _CarControl(icon: Icons.forward_10, onPressed: () => audioHandler.fastForward()),
-                  ],
-                ),
-                const SizedBox(height: 18),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _CarControl extends StatelessWidget {
-  const _CarControl({required this.icon, required this.onPressed});
-
-  final IconData icon;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton.filledTonal(
-      onPressed: onPressed,
-      icon: Icon(icon),
-      iconSize: 46,
-      style: IconButton.styleFrom(minimumSize: const Size(96, 96)),
-    );
-  }
-}
-
-class _CarPlayPauseControl extends StatelessWidget {
-  const _CarPlayPauseControl();
-
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<PlayerState>(
-      stream: audioHandler.playerControlStateStream,
-      initialData: audioHandler.playerControlState,
-      builder: (context, snapshot) {
-        final playerState = snapshot.data;
-        final isPlaying = playerState?.playing ?? false;
-        return IconButton.filled(
-          onPressed: () {
-            if (isPlaying) {
-              audioHandler.pause();
-            } else {
-              audioHandler.play();
-            }
-          },
-          icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
-          iconSize: 56,
-          style: IconButton.styleFrom(minimumSize: const Size(116, 116)),
-        );
-      },
     );
   }
 }
