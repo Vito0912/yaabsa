@@ -5,6 +5,7 @@ import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'sleep_timer_handler.g.dart';
@@ -34,24 +35,142 @@ class SleepTimerData {
 class SleepTimerHandler extends _$SleepTimerHandler {
   Timer? _timer;
   DateTime? _startTime;
+  StreamSubscription<PlayerState>? _playerStateSubscription;
+  bool _wasPlaybackRunning = false;
 
   @override
   SleepTimerData build() {
+    _attachPlaybackStateListener();
+
     ref.onDispose(() {
       _timer?.cancel();
       _timer = null;
+
+      _playerStateSubscription?.cancel();
+      _playerStateSubscription = null;
     });
 
     return const SleepTimerData(remainingTime: Duration.zero, state: SleepTimerState.inactive);
   }
 
+  void _attachPlaybackStateListener() {
+    try {
+      _wasPlaybackRunning = audioHandler.playerControlState.playing;
+      _playerStateSubscription = audioHandler.playerControlStateStream.listen(_handlePlayerStateChanged);
+    } catch (e) {
+      logger('Failed to attach sleep timer playback listener: $e', tag: 'SleepTimer', level: InfoLevel.warning);
+    }
+  }
+
+  void _handlePlayerStateChanged(PlayerState playerState) {
+    final isRunning = playerState.playing;
+    final wasRunning = _wasPlaybackRunning;
+    _wasPlaybackRunning = isRunning;
+
+    if (!wasRunning && isRunning) {
+      unawaited(_tryAutoRestartSleepTimerOnPlaybackStart());
+    }
+  }
+
+  int _normalizeMinutesOfDay(int value) {
+    final modulo = value % (24 * 60);
+    return modulo < 0 ? modulo + (24 * 60) : modulo;
+  }
+
+  bool _isWithinAutoRestartTimeRange() {
+    final settingManager = ref.read(settingsManagerProvider.notifier);
+    final useTimeRange = settingManager.getGlobalSetting<bool>(SettingKeys.sleepTimerAutoRestartUseTimeRange);
+    if (!useTimeRange) {
+      return true;
+    }
+
+    final startMinutesRaw = settingManager.getGlobalSetting<int>(SettingKeys.sleepTimerAutoRestartRangeStartMinutes);
+    final endMinutesRaw = settingManager.getGlobalSetting<int>(SettingKeys.sleepTimerAutoRestartRangeEndMinutes);
+    final startMinutes = _normalizeMinutesOfDay(startMinutesRaw);
+    final endMinutes = _normalizeMinutesOfDay(endMinutesRaw);
+
+    final now = DateTime.now();
+    final nowMinutes = now.hour * 60 + now.minute;
+
+    if (startMinutes == endMinutes) {
+      return true;
+    }
+
+    if (startMinutes < endMinutes) {
+      return nowMinutes >= startMinutes && nowMinutes < endMinutes;
+    }
+
+    return nowMinutes >= startMinutes || nowMinutes < endMinutes;
+  }
+
+  Future<void> _setAutoRestartSuppressed(bool value) async {
+    try {
+      await ref
+          .read(settingsManagerProvider.notifier)
+          .setGlobalSetting<bool>(SettingKeys.sleepTimerAutoRestartSuppressed, value);
+    } catch (e) {
+      logger('Failed to update sleep timer auto-restart suppression: $e', tag: 'SleepTimer', level: InfoLevel.warning);
+    }
+  }
+
+  Future<void> _persistLastDuration(Duration duration) async {
+    final minutes = duration.inMinutes < 1 ? 1 : duration.inMinutes;
+    try {
+      await ref
+          .read(settingsManagerProvider.notifier)
+          .setGlobalSetting<int>(SettingKeys.sleepTimerLastDurationMinutes, minutes);
+    } catch (e) {
+      logger('Failed to persist last sleep timer duration: $e', tag: 'SleepTimer', level: InfoLevel.warning);
+    }
+  }
+
+  Future<void> _tryAutoRestartSleepTimerOnPlaybackStart() async {
+    if (state.isActive) {
+      return;
+    }
+
+    final settingManager = ref.read(settingsManagerProvider.notifier);
+    final autoRestartEnabled = settingManager.getGlobalSetting<bool>(SettingKeys.sleepTimerAutoRestartEnabled);
+    if (!autoRestartEnabled) {
+      return;
+    }
+
+    final autoRestartSuppressed = settingManager.getGlobalSetting<bool>(SettingKeys.sleepTimerAutoRestartSuppressed);
+    if (autoRestartSuppressed) {
+      logger('Sleep timer auto-restart is suppressed after manual stop', tag: 'SleepTimer', level: InfoLevel.debug);
+      return;
+    }
+
+    if (!_isWithinAutoRestartTimeRange()) {
+      logger(
+        'Sleep timer auto-restart skipped outside configured time range',
+        tag: 'SleepTimer',
+        level: InfoLevel.debug,
+      );
+      return;
+    }
+
+    final rememberedMinutes = settingManager.getGlobalSetting<int>(SettingKeys.sleepTimerLastDurationMinutes);
+    final safeMinutes = rememberedMinutes < 1 ? 30 : rememberedMinutes;
+
+    logger('Auto-restarting sleep timer for $safeMinutes minutes', tag: 'SleepTimer', level: InfoLevel.info);
+    start(Duration(minutes: safeMinutes));
+  }
+
   void start(Duration duration) {
-    if (state.isRunning) {
-      stop();
+    if (duration <= Duration.zero) {
+      return;
+    }
+
+    if (state.isActive) {
+      stop(suppressAutoRestart: false);
     }
 
     _startTime = DateTime.now();
     _timer?.cancel();
+
+    unawaited(_setAutoRestartSuppressed(false));
+    unawaited(_persistLastDuration(duration));
 
     logger('Sleep timer started for ${duration.inMinutes} minutes', tag: 'SleepTimer', level: InfoLevel.info);
 
@@ -60,10 +179,14 @@ class SleepTimerHandler extends _$SleepTimerHandler {
     _startTimer(duration);
   }
 
-  void stop() {
+  void stop({bool suppressAutoRestart = true}) {
     _timer?.cancel();
     _timer = null;
     _startTime = null;
+
+    if (suppressAutoRestart) {
+      unawaited(_setAutoRestartSuppressed(true));
+    }
 
     logger('Sleep timer stopped', tag: 'SleepTimer', level: InfoLevel.info);
 
@@ -98,6 +221,8 @@ class SleepTimerHandler extends _$SleepTimerHandler {
 
     _startTime = DateTime.now();
 
+    unawaited(_setAutoRestartSuppressed(false));
+
     logger('Sleep timer resumed', tag: 'SleepTimer', level: InfoLevel.info);
 
     state = state.copyWith(state: SleepTimerState.running);
@@ -113,6 +238,7 @@ class SleepTimerHandler extends _$SleepTimerHandler {
     logger('Sleep timer extended by ${additionalTime.inMinutes} minutes', tag: 'SleepTimer', level: InfoLevel.info);
 
     state = state.copyWith(remainingTime: newRemainingTime, totalDuration: newTotalDuration);
+    unawaited(_persistLastDuration(newTotalDuration));
   }
 
   void reset() {
@@ -136,6 +262,8 @@ class SleepTimerHandler extends _$SleepTimerHandler {
     state = SleepTimerData(remainingTime: totalDuration, state: SleepTimerState.running, totalDuration: totalDuration);
 
     _startTimer(totalDuration);
+    unawaited(_setAutoRestartSuppressed(false));
+    unawaited(_persistLastDuration(totalDuration));
   }
 
   void _startTimer(Duration duration) {

@@ -188,6 +188,8 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
 
     return SettingsPageScaffold(
       title: 'Library Settings',
+      embedded: true,
+      showEmbeddedBackButton: true,
       children: [
         currentUser.when(
           data: (user) {

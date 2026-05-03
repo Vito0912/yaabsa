@@ -1,15 +1,16 @@
 import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
+import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/settings/android_auto_settings.dart';
 import 'package:yaabsa/screens/settings/appearance_settings.dart';
 import 'package:yaabsa/screens/settings/caching_settings.dart';
-import 'package:yaabsa/screens/settings/global_player_settings.dart';
+import 'package:yaabsa/screens/settings/player/global_player_settings.dart';
+import 'package:yaabsa/screens/settings/player/player_settings.dart';
 import 'package:yaabsa/screens/settings/library_settings.dart';
 import 'package:yaabsa/screens/settings/license_settings.dart';
 import 'package:yaabsa/screens/settings/log_view.dart';
-import 'package:yaabsa/screens/settings/player_settings.dart';
 import 'package:yaabsa/screens/settings/reader_settings.dart';
 import 'package:yaabsa/util/aaos_service.dart';
 import 'package:yaabsa/util/logger.dart';
@@ -22,89 +23,7 @@ import 'package:go_router/go_router.dart';
 class MainSettingsScreen extends ConsumerWidget {
   const MainSettingsScreen({super.key});
 
-  Widget _buildSectionTitle(BuildContext context, String title) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20.0, 28.0, 20.0, 12.0),
-      child: Text(
-        title.toUpperCase(),
-        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-          color: Theme.of(context).colorScheme.primary,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0.8,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSettingsCardTile({
-    required BuildContext context,
-    required IconData icon,
-    required String title,
-    String? subtitle,
-    required VoidCallback onTap,
-    Widget? trailing,
-    bool isFirstInCard = false,
-    bool isLastInCard = false,
-  }) {
-    final shape = RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(
-        top: isFirstInCard ? const Radius.circular(16.0) : Radius.zero,
-        bottom: isLastInCard ? const Radius.circular(16.0) : Radius.zero,
-      ),
-    );
-
-    return Material(
-      color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
-      shape: shape,
-      child: InkWell(
-        onTap: onTap,
-        customBorder: shape,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 14.0),
-          child: Row(
-            children: [
-              Icon(icon, color: Theme.of(context).colorScheme.primary, size: 22),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500)),
-                    if (subtitle != null && subtitle.isNotEmpty) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        subtitle,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.7),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              trailing ??
-                  Icon(
-                    Icons.arrow_forward_ios,
-                    size: 16,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.6),
-                  ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDivider({bool isWithinCard = false}) {
-    return Divider(
-      height: 1,
-      thickness: 1,
-      color: Colors.grey.withOpacity(0.1),
-      indent: isWithinCard ? 58 : 20,
-      endIndent: isWithinCard ? 0 : 20,
-    );
-  }
+  static const String routeName = '/settings';
 
   Future<void> _deleteUser(BuildContext context, WidgetRef ref, User user) async {
     final db = ref.read(appDatabaseProvider);
@@ -195,7 +114,17 @@ class MainSettingsScreen extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _buildSectionTitle(context, 'Active Account'),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 28, 20, 12),
+              child: Text(
+                'ACTIVE ACCOUNT',
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.8,
+                ),
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Card(
@@ -230,7 +159,7 @@ class MainSettingsScreen extends ConsumerWidget {
                                   Text(
                                     currentUser.server?.url ?? 'No server connected',
                                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                      color: Theme.of(context).colorScheme.onPrimaryContainer.withOpacity(0.8),
+                                      color: Theme.of(context).colorScheme.onPrimaryContainer.withValues(alpha: 0.8),
                                     ),
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -289,31 +218,20 @@ class MainSettingsScreen extends ConsumerWidget {
               ),
             ),
             if (currentUser != null) ...[
-              _buildSectionTitle(context, "${currentUser.username}'s Preferences"),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16.0),
-                  child: Column(
-                    children: [
-                      _buildSettingsCardTile(
-                        context: context,
-                        icon: Icons.play_circle_outline_rounded,
-                        title: 'Player Settings',
-                        onTap: () => context.push(PlayerSettings.routeName),
-                        isFirstInCard: true,
-                      ),
-                      _buildDivider(isWithinCard: true),
-                      _buildSettingsCardTile(
-                        context: context,
-                        icon: Icons.menu_book_rounded,
-                        title: 'Ebook-Reader Settings',
-                        onTap: () => context.push(ReaderSettings.routeName),
-                        isLastInCard: true,
-                      ),
-                    ],
+              SettingsNavigationSection(
+                title: "${currentUser.username}'s Preferences",
+                items: [
+                  SettingsNavigationItem(
+                    icon: Icons.play_circle_outline_rounded,
+                    title: 'Player Settings',
+                    onTap: () => context.push(PlayerSettings.routeName),
                   ),
-                ),
+                  SettingsNavigationItem(
+                    icon: Icons.menu_book_rounded,
+                    title: 'Ebook-Reader Settings',
+                    onTap: () => context.push(ReaderSettings.routeName),
+                  ),
+                ],
               ),
             ],
           ],
@@ -428,106 +346,73 @@ class MainSettingsScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 _buildUserManagementSection(context, ref),
-                _buildSectionTitle(context, 'Application Settings'),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(16.0),
-                    child: Column(
-                      children: [
-                        _buildSettingsCardTile(
-                          context: context,
+                StreamBuilder<AaosTelemetryState>(
+                  stream: AaosService.instance.stream,
+                  initialData: AaosService.instance.currentState,
+                  builder: (context, snapshot) {
+                    final aaosState = snapshot.data ?? AaosService.instance.currentState;
+
+                    return SettingsNavigationSection(
+                      title: 'Application Settings',
+                      items: [
+                        SettingsNavigationItem(
                           icon: Icons.palette_outlined,
                           title: 'Appearance',
                           onTap: () => context.push(AppearanceSettings.routeName),
-                          isFirstInCard: true,
                         ),
-                        _buildDivider(isWithinCard: true),
-                        _buildSettingsCardTile(
-                          context: context,
+                        SettingsNavigationItem(
                           icon: Icons.play_circle_outline_outlined,
                           title: 'Global Player',
                           onTap: () => context.push(GlobalPlayerSettings.routeName),
                         ),
-                        _buildDivider(isWithinCard: true),
-                        _buildSettingsCardTile(
-                          context: context,
+                        SettingsNavigationItem(
                           icon: Icons.library_books_outlined,
                           title: 'Library Behaviour',
                           onTap: () => context.push(LibrarySettings.routeName),
                         ),
-                        _buildDivider(isWithinCard: true),
-                        StreamBuilder<AaosTelemetryState>(
-                          stream: AaosService.instance.stream,
-                          initialData: AaosService.instance.currentState,
-                          builder: (context, snapshot) {
-                            final aaosState = snapshot.data ?? AaosService.instance.currentState;
-
-                            return _buildSettingsCardTile(
-                              context: context,
-                              icon: Icons.directions_car_filled_outlined,
-                              title: aaosState.isAutomotiveDevice ? 'AAOS' : 'Android Auto',
-                              onTap: () => context.push(AndroidAutoSettings.routeName),
-                            );
-                          },
+                        SettingsNavigationItem(
+                          icon: Icons.directions_car_filled_outlined,
+                          title: aaosState.isAutomotiveDevice ? 'AAOS' : 'Android Auto',
+                          onTap: () => context.push(AndroidAutoSettings.routeName),
                         ),
-                        _buildDivider(isWithinCard: true),
-                        _buildSettingsCardTile(
-                          context: context,
+                        SettingsNavigationItem(
                           icon: Icons.cached_outlined,
                           title: 'Caching',
                           onTap: () => context.push(CachingSettings.routeName),
-                          isLastInCard: true,
                         ),
                       ],
-                    ),
-                  ),
+                    );
+                  },
                 ),
-                _buildSectionTitle(context, 'About & Support'),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(16.0),
-                    child: Column(
-                      children: [
-                        _buildSettingsCardTile(
-                          context: context,
-                          icon: Icons.code_rounded,
-                          title: 'View on GitHub',
-                          onTap: () => ScaffoldMessenger.of(
-                            context,
-                          ).showSnackBar(const SnackBar(content: Text('Navigate to View on GitHub'))),
-                          isFirstInCard: true,
-                        ),
-                        _buildDivider(isWithinCard: true),
-                        _buildSettingsCardTile(
-                          context: context,
-                          icon: Icons.bug_report_outlined,
-                          title: 'Report an Issue',
-                          onTap: () => ScaffoldMessenger.of(
-                            context,
-                          ).showSnackBar(const SnackBar(content: Text('Navigate to Report an Issue'))),
-                        ),
-                        _buildDivider(isWithinCard: true),
-                        _buildSettingsCardTile(
-                          context: context,
-                          icon: Icons.article_outlined,
-                          title: 'Logs',
-                          onTap: () =>
-                              Navigator.push(context, MaterialPageRoute(builder: (context) => const LogView())),
-                        ),
-                        _buildDivider(isWithinCard: true),
-                        _buildSettingsCardTile(
-                          context: context,
-                          icon: Icons.info_outline_rounded,
-                          title: 'Information & Attribution',
-                          subtitle: 'Licenses, App version, licenses, etc.',
-                          onTap: () => LicenseSettings.showLicensePage(context: context),
-                          isLastInCard: true,
-                        ),
-                      ],
+                SettingsNavigationSection(
+                  title: 'About & Support',
+                  items: [
+                    SettingsNavigationItem(
+                      icon: Icons.code_rounded,
+                      title: 'View on GitHub',
+                      onTap: () => ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(const SnackBar(content: Text('Navigate to View on GitHub'))),
                     ),
-                  ),
+                    SettingsNavigationItem(
+                      icon: Icons.bug_report_outlined,
+                      title: 'Report an Issue',
+                      onTap: () => ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(const SnackBar(content: Text('Navigate to Report an Issue'))),
+                    ),
+                    SettingsNavigationItem(
+                      icon: Icons.article_outlined,
+                      title: 'Logs',
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const LogView())),
+                    ),
+                    SettingsNavigationItem(
+                      icon: Icons.info_outline_rounded,
+                      title: 'Information & Attribution',
+                      subtitle: 'Licenses, App version, licenses, etc.',
+                      onTap: () => LicenseSettings.showLicensePage(context: context),
+                    ),
+                  ],
                 ),
               ],
             ),

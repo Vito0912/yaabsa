@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io' show Platform;
 
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/screens/auth/sign_in.dart';
@@ -14,17 +16,25 @@ import 'package:yaabsa/screens/main/series_detail_view.dart';
 import 'package:yaabsa/screens/player/play_history_view.dart';
 import 'package:yaabsa/screens/player/player.dart';
 import 'package:yaabsa/screens/player/subtitle_reading_mode.dart';
-import 'package:yaabsa/screens/settings/android_auto_settings.dart';
 import 'package:yaabsa/screens/reader/reader.dart';
+import 'package:yaabsa/screens/settings/android_auto/android_auto_library_settings.dart';
+import 'package:yaabsa/screens/settings/android_auto/android_auto_podcast_library_settings.dart';
+import 'package:yaabsa/screens/settings/android_auto_settings.dart';
 import 'package:yaabsa/screens/settings/appearance_settings.dart';
+import 'package:yaabsa/screens/settings/caching/caching_general_settings.dart';
+import 'package:yaabsa/screens/settings/caching/caching_route_settings.dart';
 import 'package:yaabsa/screens/settings/caching_settings.dart';
-import 'package:yaabsa/screens/settings/global_player_settings.dart';
 import 'package:yaabsa/screens/settings/library_settings.dart';
-import 'package:yaabsa/screens/settings/player_settings.dart';
+import 'package:yaabsa/screens/settings/player/global_player_settings.dart';
+import 'package:yaabsa/screens/settings/player/player_settings.dart';
+import 'package:yaabsa/screens/settings/player/player_settings_general.dart';
+import 'package:yaabsa/screens/settings/player/player_settings_shake_controls.dart';
+import 'package:yaabsa/screens/settings/player/player_settings_sleep_timer.dart';
+import 'package:yaabsa/screens/settings/player/player_settings_smart_rewind.dart';
+import 'package:yaabsa/screens/settings/player/player_settings_subtitles.dart';
 import 'package:yaabsa/screens/settings/reader_settings.dart';
+import 'package:yaabsa/screens/settings/settings_screen.dart';
 import 'package:yaabsa/util/globals.dart';
-import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:yaabsa/util/handler/tray_handler.dart';
 
 const String _bootRoutePath = '/boot';
@@ -97,10 +107,6 @@ final globalRouter = GoRouter(
       return '/add-user';
     }
 
-    if (activeUserId != null && isLoginRoute) {
-      return '/';
-    }
-
     return null;
   },
   routes: [
@@ -125,26 +131,61 @@ final globalRouter = GoRouter(
             return child;
           },
           routes: [
-            GoRoute(path: GlobalPlayerSettings.routeName, builder: (context, state) => GlobalPlayerSettings()),
-            GoRoute(path: PlayerSettings.routeName, builder: (context, state) => PlayerSettings()),
-            GoRoute(path: AppearanceSettings.routeName, builder: (context, state) => AppearanceSettings()),
-            GoRoute(path: CachingSettings.routeName, builder: (context, state) => CachingSettings()),
-            GoRoute(path: LibrarySettings.routeName, builder: (context, state) => LibrarySettings()),
-            GoRoute(path: AndroidAutoSettings.routeName, builder: (context, state) => AndroidAutoSettings()),
-            GoRoute(path: ReaderSettings.routeName, builder: (context, state) => ReaderSettings()),
-            // For player
+            GoRoute(
+              path: MainSettingsScreen.routeName,
+              redirect: (context, state) => '/?tab=settings&intent=settings-main',
+            ),
             ShellRoute(
               builder: (BuildContext context, GoRouterState state, Widget child) {
                 return child;
               },
               routes: [
                 GoRoute(path: '/', builder: (context, state) => LayoutHome()),
-                // For anything that should show the app bar. Responsive
                 ShellRoute(
                   builder: (BuildContext context, GoRouterState state, Widget child) {
                     return LayoutHome(child: child);
                   },
                   routes: [
+                    GoRoute(path: AppearanceSettings.routeName, builder: (context, state) => AppearanceSettings()),
+                    GoRoute(path: GlobalPlayerSettings.routeName, builder: (context, state) => GlobalPlayerSettings()),
+                    GoRoute(path: LibrarySettings.routeName, builder: (context, state) => LibrarySettings()),
+                    GoRoute(path: AndroidAutoSettings.routeName, builder: (context, state) => AndroidAutoSettings()),
+                    GoRoute(path: CachingSettings.routeName, builder: (context, state) => CachingSettings()),
+                    GoRoute(
+                      path: CachingGeneralSettings.routeName,
+                      builder: (context, state) => CachingGeneralSettings(),
+                    ),
+                    GoRoute(path: CachingRouteSettings.routeName, builder: (context, state) => CachingRouteSettings()),
+                    GoRoute(path: PlayerSettings.routeName, builder: (context, state) => PlayerSettings()),
+                    GoRoute(path: ReaderSettings.routeName, builder: (context, state) => ReaderSettings()),
+                    GoRoute(
+                      path: PlayerSettingsGeneral.routeName,
+                      builder: (context, state) => PlayerSettingsGeneral(),
+                    ),
+                    GoRoute(
+                      path: PlayerSettingsSmartRewind.routeName,
+                      builder: (context, state) => PlayerSettingsSmartRewind(),
+                    ),
+                    GoRoute(
+                      path: PlayerSettingsSleepTimer.routeName,
+                      builder: (context, state) => PlayerSettingsSleepTimer(),
+                    ),
+                    GoRoute(
+                      path: PlayerSettingsSubtitles.routeName,
+                      builder: (context, state) => PlayerSettingsSubtitles(),
+                    ),
+                    GoRoute(
+                      path: PlayerSettingsShakeControls.routeName,
+                      builder: (context, state) => PlayerSettingsShakeControls(),
+                    ),
+                    GoRoute(
+                      path: AndroidAutoLibrarySettings.routeName,
+                      builder: (context, state) => AndroidAutoLibrarySettings(),
+                    ),
+                    GoRoute(
+                      path: AndroidAutoPodcastLibrarySettings.routeName,
+                      builder: (context, state) => AndroidAutoPodcastLibrarySettings(),
+                    ),
                     GoRoute(
                       path: '/item/:id',
                       builder: (context, state) => LibraryItemView(state.pathParameters['id']!),

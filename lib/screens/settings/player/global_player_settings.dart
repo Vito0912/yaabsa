@@ -1,8 +1,8 @@
+import 'package:flutter/material.dart';
 import 'package:yaabsa/components/settings/settings_slider.dart';
 import 'package:yaabsa/components/settings/settings_switch.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/setting_key.dart';
-import 'package:flutter/material.dart';
 
 class GlobalPlayerSettings extends StatelessWidget {
   const GlobalPlayerSettings({super.key});
@@ -13,6 +13,8 @@ class GlobalPlayerSettings extends StatelessWidget {
   Widget build(BuildContext context) {
     return SettingsPageScaffold(
       title: 'Global Player Settings',
+      embedded: true,
+      showEmbeddedBackButton: true,
       children: [
         SettingSlider<int>(
           label: 'Max buffer size',

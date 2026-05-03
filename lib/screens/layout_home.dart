@@ -308,6 +308,8 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
         'authors' => 'Authors',
         'narrators' => 'Narrators',
         'downloads' => 'Downloads',
+        'settings' => 'Settings',
+        'about' => 'About',
         _ => 'Shelf',
       };
 

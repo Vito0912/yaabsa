@@ -13,6 +13,8 @@ class AppearanceSettings extends StatelessWidget {
   Widget build(BuildContext context) {
     return SettingsPageScaffold(
       title: 'Appearance Settings',
+      embedded: true,
+      showEmbeddedBackButton: true,
       children: [
         SettingDropdown(
           label: 'Design',

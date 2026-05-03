@@ -16,6 +16,12 @@ class SettingKeys {
   static const String autoQueueIncludeSeriesOutsideContext = 'auto_queue_include_series_outside_context';
   static const String sleepTimerExpireAction = 'sleep_timer_expire_action';
   static const String sleepTimerAutoRewindMinutes = 'sleep_timer_auto_rewind_minutes';
+  static const String sleepTimerAutoRestartEnabled = 'sleep_timer_auto_restart_enabled';
+  static const String sleepTimerAutoRestartUseTimeRange = 'sleep_timer_auto_restart_use_time_range';
+  static const String sleepTimerAutoRestartRangeStartMinutes = 'sleep_timer_auto_restart_range_start_minutes';
+  static const String sleepTimerAutoRestartRangeEndMinutes = 'sleep_timer_auto_restart_range_end_minutes';
+  static const String sleepTimerLastDurationMinutes = 'sleep_timer_last_duration_minutes';
+  static const String sleepTimerAutoRestartSuppressed = 'sleep_timer_auto_restart_suppressed';
   static const String smartRewindEnabled = 'smart_rewind_enabled';
   static const String smartRewindShortPauseThresholdSeconds = 'smart_rewind_short_pause_threshold_seconds';
   static const String smartRewindLongPauseThresholdSeconds = 'smart_rewind_long_pause_threshold_seconds';
@@ -83,6 +89,12 @@ final defaultSettings = {
   SettingKeys.autoQueueIncludeSeriesOutsideContext: false,
   SettingKeys.sleepTimerExpireAction: SleepTimerExpireAction.stop.name,
   SettingKeys.sleepTimerAutoRewindMinutes: 0,
+  SettingKeys.sleepTimerAutoRestartEnabled: false,
+  SettingKeys.sleepTimerAutoRestartUseTimeRange: false,
+  SettingKeys.sleepTimerAutoRestartRangeStartMinutes: 21 * 60,
+  SettingKeys.sleepTimerAutoRestartRangeEndMinutes: 7 * 60,
+  SettingKeys.sleepTimerLastDurationMinutes: 30,
+  SettingKeys.sleepTimerAutoRestartSuppressed: false,
   SettingKeys.smartRewindEnabled: false,
   SettingKeys.smartRewindShortPauseThresholdSeconds: 60,
   SettingKeys.smartRewindLongPauseThresholdSeconds: 900,

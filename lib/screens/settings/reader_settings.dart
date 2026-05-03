@@ -8,7 +8,12 @@ class ReaderSettings extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SettingsPageScaffold(title: 'Reader Settings', children: [_ComingSoonSettingBody()]);
+    return const SettingsPageScaffold(
+      title: 'Reader Settings',
+      embedded: true,
+      showEmbeddedBackButton: true,
+      children: [_ComingSoonSettingBody()],
+    );
   }
 }
 

@@ -6,6 +6,7 @@ import 'package:yaabsa/util/device_capabilities.dart';
 import 'package:yaabsa/util/handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/handler/download_handler.dart';
 import 'package:yaabsa/util/handler/shake_handler.dart';
+import 'package:yaabsa/util/handler/sleep_timer_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -26,6 +27,7 @@ class Init {
   }
 
   static BGAudioHandler? _audioHandler;
+  static bool _sleepTimerKeepAliveAttached = false;
 
   static bool _isContainerRuntime() {
     return Platform.environment.containsKey('CONTAINER') ||
@@ -183,6 +185,11 @@ class Init {
   }
 
   static Future<void> late() async {
+    if (!_sleepTimerKeepAliveAttached) {
+      containerRef.listen<SleepTimerData>(sleepTimerHandlerProvider, (previous, next) {}, fireImmediately: true);
+      _sleepTimerKeepAliveAttached = true;
+    }
+
     if (DeviceCapabilities.supportsShakeActions) {
       rewindShakeHandler = ShakeRewindHandler();
     } else {
