@@ -106,12 +106,15 @@ Widget buildItemActionButtons({
   required bool hasAudio,
   required bool hasBook,
   required bool canDownload,
+  required bool isDownloadInProgress,
+  required bool isDownloaded,
   required bool isQueued,
   bool queueEnabled = true,
   required VoidCallback onPlay,
   required VoidCallback onQueueToggle,
   required VoidCallback onRead,
   required VoidCallback onDownload,
+  required VoidCallback onDeleteDownload,
 }) {
   return LayoutBuilder(
     builder: (context, constraints) {
@@ -140,10 +143,13 @@ Widget buildItemActionButtons({
       final smallActions = _buildSmallActionButtons(
         context,
         showDownload: canDownload,
+        isDownloadInProgress: isDownloadInProgress,
+        isDownloaded: isDownloaded,
         showQueue: hasAudio,
         isQueued: isQueued,
         queueEnabled: queueEnabled,
         onDownload: onDownload,
+        onDeleteDownload: onDeleteDownload,
         onQueueToggle: onQueueToggle,
       );
 
@@ -181,18 +187,23 @@ Widget buildItemActionButtons({
 Widget _buildSmallActionButtons(
   BuildContext context, {
   required bool showDownload,
+  required bool isDownloadInProgress,
+  required bool isDownloaded,
   required bool showQueue,
   required bool isQueued,
   required bool queueEnabled,
   required VoidCallback onDownload,
+  required VoidCallback onDeleteDownload,
   required VoidCallback onQueueToggle,
 }) {
   final children = <Widget>[
     if (showDownload)
       IconButton.filledTonal(
-        onPressed: onDownload,
-        tooltip: 'Download',
-        icon: const Icon(Icons.download_rounded),
+        onPressed: isDownloadInProgress ? null : (isDownloaded ? onDeleteDownload : onDownload),
+        tooltip: isDownloadInProgress ? 'Downloading' : (isDownloaded ? 'Delete download' : 'Download'),
+        icon: isDownloadInProgress
+            ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.2))
+            : Icon(isDownloaded ? Icons.delete_outline_rounded : Icons.download_rounded),
         visualDensity: VisualDensity.compact,
       ),
     if (showQueue)

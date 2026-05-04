@@ -1,3 +1,4 @@
+import 'package:background_downloader/background_downloader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +7,8 @@ import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/components/app/item/library_item_view_components.dart';
 import 'package:yaabsa/components/common/connection_issue_view.dart';
 import 'package:yaabsa/components/common/cover_zoom_view.dart';
+import 'package:yaabsa/database/app_database.dart';
+import 'package:yaabsa/models/internal_download.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/handler/bg_audio_handler.dart';
@@ -77,78 +80,157 @@ class LibraryItemBookView extends ConsumerWidget {
       onFilterTap: (filter) => openLibraryWithFilter(context, ref, filter: filter),
     );
 
-    return StreamBuilder<PlayerQueueSnapshot>(
-      stream: audioHandler.queueSnapshotStream,
-      initialData: audioHandler.queueSnapshot,
-      builder: (context, queueSnapshot) {
-        final isQueued = queueSnapshot.data?.entries.any((entry) => entry.item.itemId == item.id) ?? false;
-        return StreamBuilder<PlayerState>(
-          stream: audioHandler.playerControlStateStream,
-          initialData: audioHandler.playerControlState,
-          builder: (context, playerStateSnapshot) {
-            final isCurrentItem = audioHandler.currentMediaItem?.itemId == item.id;
+    final currentUser = ref.watch(currentUserProvider).value;
+    final appDatabase = ref.watch(appDatabaseProvider);
+    final storedDownloadsStream = currentUser == null
+        ? Stream<List<InternalDownload>>.value(const <InternalDownload>[])
+        : appDatabase.watchStoredDownloadsByUser(currentUser.id);
 
-            return SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(horizontalPadding, 8, horizontalPadding, 16),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: maxWidth),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      LibraryItemTopContent(
-                        isLargeScreen: isLargeScreen,
-                        title: item.title,
-                        subtitle: item.subtitle,
-                        cover: topCover,
-                        actionButtons: buildItemActionButtons(
-                          hasAudio: hasAudio,
-                          hasBook: hasBook,
-                          canDownload: canDownload,
-                          isQueued: isQueued,
-                          queueEnabled: !isCurrentItem,
-                          onPlay: () {
-                            audioHandler.playLibraryItem(item);
-                          },
-                          onRead: () {
-                            context.push('/ebook/${item.id}');
-                          },
-                          onDownload: () {
-                            downloadHandler.downloadFile(item.id);
-                          },
-                          onQueueToggle: () {
-                            if (isQueued) {
-                              audioHandler.removeFromQueueByItemId(item.id);
-                              return;
-                            }
+    return StreamBuilder<List<TaskRecord>>(
+      stream: downloadHandler.taskQueueStream,
+      initialData: const <TaskRecord>[],
+      builder: (context, taskSnapshot) {
+        final activeTasks = taskSnapshot.data ?? const <TaskRecord>[];
+        final isDownloadInProgress = activeTasks.any((task) => downloadHandler.taskBelongsToItem(task, item.id));
 
-                            audioHandler.addLibraryItemToQueue(item);
-                          },
+        return StreamBuilder<List<InternalDownload>>(
+          stream: storedDownloadsStream,
+          initialData: const <InternalDownload>[],
+          builder: (context, storedSnapshot) {
+            final storedDownloads = storedSnapshot.data ?? const <InternalDownload>[];
+            final storedDownload = _findBookDownload(storedDownloads, item.id);
+            final isDownloaded = storedDownload?.isComplete ?? false;
+
+            return StreamBuilder<PlayerQueueSnapshot>(
+              stream: audioHandler.queueSnapshotStream,
+              initialData: audioHandler.queueSnapshot,
+              builder: (context, queueSnapshot) {
+                final isQueued = queueSnapshot.data?.entries.any((entry) => entry.item.itemId == item.id) ?? false;
+                return StreamBuilder<PlayerState>(
+                  stream: audioHandler.playerControlStateStream,
+                  initialData: audioHandler.playerControlState,
+                  builder: (context, playerStateSnapshot) {
+                    final isCurrentItem = audioHandler.currentMediaItem?.itemId == item.id;
+
+                    return SingleChildScrollView(
+                      padding: EdgeInsets.fromLTRB(horizontalPadding, 8, horizontalPadding, 16),
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: maxWidth),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              LibraryItemTopContent(
+                                isLargeScreen: isLargeScreen,
+                                title: item.title,
+                                subtitle: item.subtitle,
+                                cover: topCover,
+                                actionButtons: buildItemActionButtons(
+                                  hasAudio: hasAudio,
+                                  hasBook: hasBook,
+                                  canDownload: canDownload,
+                                  isDownloadInProgress: isDownloadInProgress,
+                                  isDownloaded: isDownloaded,
+                                  isQueued: isQueued,
+                                  queueEnabled: !isCurrentItem,
+                                  onPlay: () {
+                                    audioHandler.playLibraryItem(item);
+                                  },
+                                  onRead: () {
+                                    context.push('/ebook/${item.id}');
+                                  },
+                                  onDownload: () async {
+                                    try {
+                                      await downloadHandler.downloadFile(item.id);
+                                      if (!context.mounted) {
+                                        return;
+                                      }
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(const SnackBar(content: Text('Download added to queue.')));
+                                    } catch (e) {
+                                      if (!context.mounted) {
+                                        return;
+                                      }
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(SnackBar(content: Text('Could not start download: $e')));
+                                    }
+                                  },
+                                  onDeleteDownload: () async {
+                                    if (currentUser == null || storedDownload == null) {
+                                      return;
+                                    }
+                                    try {
+                                      final result = await downloadHandler.deleteDownloadedItem(
+                                        storedDownload,
+                                        userId: currentUser.id,
+                                      );
+                                      if (!context.mounted) {
+                                        return;
+                                      }
+                                      final failedSuffix = result.failedFiles > 0
+                                          ? ' ${result.failedFiles} file(s) could not be removed.'
+                                          : '';
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text('Deleted ${result.deletedFiles} file(s).$failedSuffix')),
+                                      );
+                                    } catch (e) {
+                                      if (!context.mounted) {
+                                        return;
+                                      }
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(SnackBar(content: Text('Could not delete download: $e')));
+                                    }
+                                  },
+                                  onQueueToggle: () {
+                                    if (isQueued) {
+                                      audioHandler.removeFromQueueByItemId(item.id);
+                                      return;
+                                    }
+
+                                    audioHandler.addLibraryItemToQueue(item);
+                                  },
+                                ),
+                                metadataRows: metadataRows,
+                                item: item,
+                                onBack: () => context.pop(),
+                              ),
+                              LibraryItemMediaSections(
+                                itemId: item.id,
+                                chapters: chapters,
+                                audioFiles: audioFiles,
+                                ebookFile: ebookFile,
+                                onChapterTap: (chapter) {
+                                  audioHandler.playItemFromPosition(
+                                    itemId: item.id,
+                                    position: Duration(seconds: chapter.start.round()),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
                         ),
-                        metadataRows: metadataRows,
-                        item: item,
-                        onBack: () => context.pop(),
                       ),
-                      LibraryItemMediaSections(
-                        itemId: item.id,
-                        chapters: chapters,
-                        audioFiles: audioFiles,
-                        ebookFile: ebookFile,
-                        onChapterTap: (chapter) {
-                          audioHandler.playItemFromPosition(
-                            itemId: item.id,
-                            position: Duration(seconds: chapter.start.round()),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+                    );
+                  },
+                );
+              },
             );
           },
         );
       },
     );
+  }
+
+  InternalDownload? _findBookDownload(List<InternalDownload> downloads, String itemId) {
+    for (final download in downloads) {
+      final targetId = download.item?.id ?? download.episode?.libraryItemId;
+      if (targetId == itemId && download.episode == null) {
+        return download;
+      }
+    }
+    return null;
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:yaabsa/api/library_items/audio_track.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
@@ -46,6 +47,27 @@ class SessionRepository {
     }
 
     return null;
+  }
+
+  Uri? _localCoverUriFromPath(String? rawPath) {
+    if (rawPath == null) {
+      return null;
+    }
+
+    final trimmed = rawPath.trim();
+    if (trimmed.isEmpty) {
+      return null;
+    }
+
+    final parsed = Uri.tryParse(trimmed);
+    if (parsed != null && parsed.scheme.isNotEmpty) {
+      if (parsed.scheme == 'file' || parsed.scheme == 'content' || parsed.scheme == 'urlbookmark') {
+        return parsed;
+      }
+      return null;
+    }
+
+    return Uri.file(trimmed, windows: Platform.isWindows);
   }
 
   Future<void> closeSession() async {
@@ -136,6 +158,10 @@ class SessionRepository {
 
     final hasCoverPath =
         (_currentSession!.coverPath?.isNotEmpty ?? false) || (_currentSession!.libraryItem?.hasCover ?? false);
+    final localCoverUri = _localCoverUriFromPath(downloaded?.coverPath);
+    final remoteCoverUri = hasCoverPath && api != null
+        ? api.getLibraryItemApi().getCoverUri(_currentSession!.libraryItemId)
+        : null;
 
     final InternalMedia internalMedia = InternalMedia(
       libraryId: _currentSession!.libraryId!,
@@ -147,7 +173,7 @@ class SessionRepository {
       series: _currentSession!.libraryItem?.seriesName,
       seriesPosition: _currentSession!.libraryItem?.seriesPosition,
       author: _currentSession!.libraryItem?.authorString,
-      cover: hasCoverPath && api != null ? api.getLibraryItemApi().getCoverUri(_currentSession!.libraryItemId) : null,
+      cover: localCoverUri ?? remoteCoverUri,
       chapters: _currentSession!.chapters?.map((e) => e.toInternalChapter()).toList(),
       tracks: downloaded != null
           ? downloaded.tracks

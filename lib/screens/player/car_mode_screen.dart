@@ -185,11 +185,15 @@ class _CarModeCoverArt extends StatelessWidget {
   Widget build(BuildContext context) {
     const fallback = CoverPlaceholder(borderRadius: 14);
     final currentApi = api;
+    final requestHeaders = currentApi == null
+        ? const <String, String>{}
+        : normalizeImageRequestHeaders(currentApi.dio.options.headers);
+    final imageProvider = coverImageProviderFromUri(media.cover, requestHeaders: requestHeaders);
 
     return SizedBox(
       width: size,
       height: size,
-      child: currentApi == null || media.cover == null
+      child: imageProvider == null
           ? fallback
           : ClipRRect(
               borderRadius: BorderRadius.circular(14),
@@ -200,11 +204,16 @@ class _CarModeCoverArt extends StatelessWidget {
                     openCoverZoomView(
                       context,
                       coverUri: media.cover!,
-                      requestHeaders: normalizeImageRequestHeaders(currentApi.dio.options.headers),
+                      requestHeaders: requestHeaders,
                       semanticsLabel: media.title,
                     );
                   },
-                  child: currentApi.getLibraryItemApi().getLibraryItemCover(media.itemId),
+                  child: Image(
+                    image: imageProvider,
+                    fit: BoxFit.cover,
+                    filterQuality: FilterQuality.low,
+                    errorBuilder: (context, error, stackTrace) => fallback,
+                  ),
                 ),
               ),
             ),

@@ -38,7 +38,7 @@ As I myself criticize the lack of disclosure about AI, which most ABS apps now u
 Below is a list of all features, but I want to *highlight* a few, as this client has features that are only and or very rarely found in other clients:
 
 - **First** and **only** client that supports Android Automotive with desktop/large displays in mind (support for while-driving experience planned)
-- eBook/PDF support **with** *syncable* annotations (EPUBs only)
+- eBook/PDF support **with** *syncable* annotations
 - subtitle support **with** karaoke-style highlighting support (later planned to be extended like Whispersync)
 - Support for all platforms Linux, Android, Android Automotive, iOS, macOS, Windows with responsive design
 - More actions directly via the notification player
@@ -94,6 +94,8 @@ Below is a list of all features, but I want to *highlight* a few, as this client
 | Play History                    | ✅      | ✅  | ❓      | ✅    | ✅    |
 | Shake to rewind                 | ✅      | ✅  | ❌      | ❌    | ❌    |
 | Cast                            | ✅      | ❓  | ❌      | ❌    | ❌    |
+| Auto-Download next in queue     | ❌      | ❌  | ❌      | ❌    | ❌    |
+| Auto-Resume                     | ✅      | ✅  | ✅      | ✅    | ✅    |
 
 ### E-Reader
 
@@ -108,14 +110,15 @@ Below is a list of all features, but I want to *highlight* a few, as this client
 
 ### Other Features
 
-| Feature            | Android | iOS  | Windows | MacOS | Linux |
-| ------------------ | ------- | ---- | ------- | ----- | ----- |
-| Sync               | ✅      | ✅   | ✅      | ✅    | ✅    |
-| Caching            | ✅      | ✅   | ✅      | ✅    | ✅    |
-| Downloads          | ✅      | ❓   | ❓      | ✅\*  | ✅    |
-| Headers            | ✅      | ✅   | ✅      | ✅    | ✅    |
-| Car                | ✅      | 🅿️   | ❌      | ❌    | ❌    |
-| Android Automotive | ✅\**   | ❌   | ❌      | ❌    | ❌    |
+| Feature             | Android | iOS  | Windows | MacOS | Linux |
+| ------------------- | ------- | ---- | ------- | ----- | ----- |
+| Sync                | ✅      | ✅   | ✅      | ✅    | ✅    |
+| Caching             | ✅      | ✅   | ✅      | ✅    | ✅    |
+| Downloads           | ✅      | ❓   | ❓      | ✅\*  | ✅    |
+| Headers             | ✅      | ✅   | ✅      | ✅    | ✅    |
+| Tray/Statusbar Icon | ❌      | ❌   | ❓      | ❓    | ✅    |
+| Car                 | ✅      | 🅿️   | ❌      | ❌    | ❌    |
+| Android Automotive  | ✅\**   | ❌   | ❌      | ❌    | ❌    |
 
 \* Only supports the default download location, due to sandboxing limitations. Will be addressed in the future.
 \** On most cars, only the park experience works currently. More support is planned.

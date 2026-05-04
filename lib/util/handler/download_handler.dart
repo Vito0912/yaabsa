@@ -86,7 +86,11 @@ class DownloadHandler {
     });
     await _downloader.database.deleteRecordsWithIds(ids);
 
-    _downloader.configure();
+    if (Platform.isAndroid) {
+      await _downloader.configure(androidConfig: [(Config.runInForeground, Config.always)]);
+    } else {
+      await _downloader.configure();
+    }
 
     await _downloader.trackTasks();
 
@@ -97,9 +101,57 @@ class DownloadHandler {
 
   Future<void> _updateTaskQueue() async {
     final List<TaskRecord> tasks = (await _downloader.database.allRecords())
-        .where((task) => task.status != TaskStatus.complete)
+        .where((task) => task.status.isNotFinalState)
         .toList();
     _taskQueueController.add(tasks);
+  }
+
+  Future<bool> cancelTask(String taskId) async {
+    final canceled = await _downloader.cancelTaskWithId(taskId);
+    await _updateTaskQueue();
+    return canceled;
+  }
+
+  bool taskBelongsToItem(TaskRecord task, String itemId, {String? episodeId}) {
+    if (!task.status.isNotFinalState) {
+      return false;
+    }
+    if (task.group != itemId) {
+      return false;
+    }
+
+    final normalizedItemId = itemId.replaceAll(RegExp(r'[^A-Za-z0-9_.-]'), '_');
+    final normalizedEpisodeId = (episodeId ?? 'item').replaceAll(RegExp(r'[^A-Za-z0-9_.-]'), '_');
+    return task.taskId.startsWith('${normalizedItemId}_${normalizedEpisodeId}_');
+  }
+
+  Future<void> _ensureNotificationPermissionForDownloads() async {
+    if (!Platform.isAndroid && !Platform.isIOS) {
+      return;
+    }
+
+    final permissionType = PermissionType.notifications;
+    var status = await _downloader.permissions.status(permissionType);
+    if (status == PermissionStatus.granted || status == PermissionStatus.partial) {
+      return;
+    }
+
+    if (await _downloader.permissions.shouldShowRationale(permissionType)) {
+      logger(
+        'Notification permission rationale should be shown before requesting downloads notifications.',
+        tag: 'DownloadHandler',
+        level: InfoLevel.info,
+      );
+    }
+
+    status = await _downloader.permissions.request(permissionType);
+    if (status == PermissionStatus.granted || status == PermissionStatus.partial) {
+      return;
+    }
+
+    throw Exception(
+      'Notifications permission is required for reliable background downloads. Please enable notifications and try again.',
+    );
   }
 
   Future<void> downloadFile(String itemId, {String? episodeId, bool ebook = false}) async {
@@ -120,6 +172,8 @@ class DownloadHandler {
     if (resolvedItem.mediaType == 'podcast' && episodeId == null) {
       throw Exception('Episode ID must be provided for podcast items.');
     }
+
+    await _ensureNotificationPermissionForDownloads();
 
     final sourceFiles = _collectDownloadSourceFiles(resolvedItem, episodeId: episodeId, ebook: ebook);
     if (sourceFiles.isEmpty) {
@@ -281,7 +335,20 @@ class DownloadHandler {
         .read(appDatabaseProvider)
         .deleteStoredDownload(itemId, _ref.read(currentUserProvider).value!.id, episodeId: episodeId);
 
-    await _downloader.downloadBatch(downloadTasks);
+    final enqueueResults = await _downloader.enqueueAll(downloadTasks);
+    final queuedTasks = enqueueResults.where((result) => result).length;
+    if (queuedTasks == 0) {
+      throw Exception('Could not queue download. Please check your connection and try again.');
+    }
+    if (queuedTasks != downloadTasks.length) {
+      logger(
+        'Only $queuedTasks/${downloadTasks.length} download task(s) were queued for item $itemId.',
+        tag: 'DownloadHandler',
+        level: InfoLevel.warning,
+      );
+    }
+
+    await _updateTaskQueue();
   }
 
   Future<void> _storeCompletedDownload(TaskRecord update) async {

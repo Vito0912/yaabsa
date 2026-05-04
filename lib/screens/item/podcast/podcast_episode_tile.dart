@@ -10,6 +10,8 @@ class PodcastEpisodeTile extends StatelessWidget {
     required this.episode,
     required this.progress,
     required this.canDownload,
+    required this.isDownloading,
+    required this.isDownloaded,
     required this.isQueued,
     required this.isCurrentEpisode,
     required this.isPlayingCurrentEpisode,
@@ -17,11 +19,14 @@ class PodcastEpisodeTile extends StatelessWidget {
     required this.onPlayPressed,
     required this.onQueueToggle,
     this.onDownloadPressed,
+    this.onDeletePressed,
   });
 
   final Episode episode;
   final MediaProgress? progress;
   final bool canDownload;
+  final bool isDownloading;
+  final bool isDownloaded;
   final bool isQueued;
   final bool isCurrentEpisode;
   final bool isPlayingCurrentEpisode;
@@ -29,6 +34,7 @@ class PodcastEpisodeTile extends StatelessWidget {
   final VoidCallback? onPlayPressed;
   final VoidCallback onQueueToggle;
   final VoidCallback? onDownloadPressed;
+  final VoidCallback? onDeletePressed;
 
   @override
   Widget build(BuildContext context) {
@@ -163,9 +169,11 @@ class PodcastEpisodeTile extends StatelessWidget {
                   if (canDownload) ...[
                     const SizedBox(width: 4),
                     IconButton.filledTonal(
-                      onPressed: onDownloadPressed,
-                      icon: const Icon(Icons.download_rounded),
-                      tooltip: 'Download',
+                      onPressed: isDownloading ? null : (isDownloaded ? onDeletePressed : onDownloadPressed),
+                      icon: isDownloading
+                          ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.2))
+                          : Icon(isDownloaded ? Icons.delete_outline_rounded : Icons.download_rounded),
+                      tooltip: isDownloading ? 'Downloading' : (isDownloaded ? 'Delete download' : 'Download'),
                     ),
                   ],
                 ],
