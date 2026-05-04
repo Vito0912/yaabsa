@@ -137,7 +137,6 @@ modules:
           - type: git
             url: https://git.ffmpeg.org/ffmpeg.git
             branch: release/8.1
-            commit: 75d37c499da2a9fd50e3ef5a69c7dd87cd96f62a
 
   - shared-modules/libayatana-appindicator/libayatana-appindicator-gtk3.json
 
