@@ -26,6 +26,7 @@ jobs:
       windows: ${{ steps.filter.outputs.windows }}
       pubspec: ${{ steps.filter.outputs.pubspec }}
       any: ${{ steps.filter.outputs.any }}
+      build_skip: ${{ steps.build_skip.outputs.build_skip }}
       version_bumped: ${{ steps.version.outputs.version_bumped }}
       force_version_bump: ${{ steps.version.outputs.force_version_bump }}
       app_version: ${{ steps.version.outputs.app_version }}
@@ -58,6 +59,40 @@ jobs:
               - 'linux/**'
               - 'windows/**'
               - 'pubspec.yaml'
+
+      - name: Detect build skip flag from commit message
+        id: build_skip
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          build_skip="false"
+          commit_messages=""
+          base_ref="${{ github.event.before }}"
+
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            if [[ -n "$base_ref" && "$base_ref" != "0000000000000000000000000000000000000000" ]]; then
+              commit_messages="$(git log --format=%B "$base_ref..${{ github.sha }}" || true)"
+            fi
+
+            if [[ -z "$commit_messages" ]]; then
+              commit_messages="$(git log -1 --format=%B || true)"
+            fi
+          fi
+
+          if [[ -n "$commit_messages" ]]; then
+            lower_messages="$(printf '%s' "$commit_messages" | tr '[:upper:]' '[:lower:]')"
+            if [[ "$lower_messages" == *"build skip"* ]]; then
+              build_skip="true"
+            fi
+          fi
+
+          echo "build_skip=$build_skip" >> "$GITHUB_OUTPUT"
+          echo "Build skip requested: $build_skip"
+
+          if [[ "$build_skip" == "true" ]]; then
+            echo "Running just requirements"
+          fi
 
       - name: Detect pubspec version bump
         id: version
@@ -145,7 +180,7 @@ jobs:
     needs:
       - changes
       - check-requirements
-    if: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.version_bumped == 'true' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.linux == 'true' }}
+    if: ${{ (github.event_name == 'workflow_dispatch' || needs.changes.outputs.version_bumped == 'true' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.linux == 'true') && needs.changes.outputs.build_skip != 'true' }}
     timeout-minutes: 20
     steps:
       - name: Checkout
@@ -218,7 +253,7 @@ jobs:
     needs:
       - changes
       - check-requirements
-    if: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.version_bumped == 'true' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.linux == 'true' }}
+    if: ${{ (github.event_name == 'workflow_dispatch' || needs.changes.outputs.version_bumped == 'true' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.linux == 'true') && needs.changes.outputs.build_skip != 'true' }}
     timeout-minutes: 35
     steps:
       - name: Checkout
@@ -391,7 +426,7 @@ jobs:
     needs:
       - changes
       - check-requirements
-    if: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.version_bumped == 'true' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.linux == 'true' }}
+    if: ${{ (github.event_name == 'workflow_dispatch' || needs.changes.outputs.version_bumped == 'true' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.linux == 'true') && needs.changes.outputs.build_skip != 'true' }}
     timeout-minutes: 20
     steps:
       - name: Checkout
@@ -412,7 +447,7 @@ jobs:
     needs:
       - changes
       - check-requirements
-    if: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.version_bumped == 'true' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.android == 'true' }}
+    if: ${{ (github.event_name == 'workflow_dispatch' || needs.changes.outputs.version_bumped == 'true' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.android == 'true') && needs.changes.outputs.build_skip != 'true' }}
     timeout-minutes: 20
     steps:
       - name: Checkout
@@ -511,7 +546,7 @@ jobs:
     needs:
       - changes
       - check-requirements
-    if: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.version_bumped == 'true' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.windows == 'true' }}
+    if: ${{ (github.event_name == 'workflow_dispatch' || needs.changes.outputs.version_bumped == 'true' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.windows == 'true') && needs.changes.outputs.build_skip != 'true' }}
     timeout-minutes: 20
     steps:
       - name: Checkout
@@ -584,7 +619,7 @@ jobs:
       - build-snap
       - build-android
       - build-windows
-    if: ${{ needs.changes.outputs.version_bumped == 'true' }}
+    if: ${{ needs.changes.outputs.version_bumped == 'true' && needs.changes.outputs.build_skip != 'true' }}
     permissions:
       contents: write
     steps:

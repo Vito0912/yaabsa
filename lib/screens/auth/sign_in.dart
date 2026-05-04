@@ -578,7 +578,10 @@ String? _normalizeServerAddress(String input) {
     return null;
   }
 
-  final normalized = uri.replace(path: '', query: null, fragment: null).toString();
+  final pathSegments = uri.pathSegments.where((segment) => segment.trim().isNotEmpty).toList(growable: false);
+  final normalizedPath = pathSegments.isEmpty ? '' : '/${pathSegments.join('/')}';
+
+  final normalized = uri.replace(path: normalizedPath, query: null, fragment: null).toString();
   return normalized.endsWith('/') ? normalized.substring(0, normalized.length - 1) : normalized;
 }
 
