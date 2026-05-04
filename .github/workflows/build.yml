@@ -31,6 +31,7 @@ jobs:
       force_version_bump: ${{ steps.version.outputs.force_version_bump }}
       app_version: ${{ steps.version.outputs.app_version }}
       previous_app_version: ${{ steps.version.outputs.previous_app_version }}
+      file_version: ${{ steps.version.outputs.file_version }}
       release_tag: ${{ steps.version.outputs.release_tag }}
     steps:
       - name: Checkout
@@ -101,6 +102,11 @@ jobs:
           set -euo pipefail
 
           current_version="$(awk '/^version:/ {print $2; exit}' pubspec.yaml || true)"
+          if [[ -z "$current_version" ]]; then
+            echo "Unable to detect current pubspec version from pubspec.yaml"
+            exit 1
+          fi
+
           previous_version=""
           base_ref="${{ github.event.before }}"
 
@@ -120,16 +126,19 @@ jobs:
             version_bumped="true"
           fi
 
-          sanitized_version="${current_version//+/-}"
-          release_tag="v${sanitized_version}-pre"
+          version_without_build="${current_version%%+*}"
+          file_version="v${version_without_build}"
+          release_tag="${file_version}-pre"
 
           echo "app_version=$current_version" >> "$GITHUB_OUTPUT"
           echo "previous_app_version=$previous_version" >> "$GITHUB_OUTPUT"
           echo "version_bumped=$version_bumped" >> "$GITHUB_OUTPUT"
           echo "force_version_bump=$force_version_bump" >> "$GITHUB_OUTPUT"
+          echo "file_version=$file_version" >> "$GITHUB_OUTPUT"
           echo "release_tag=$release_tag" >> "$GITHUB_OUTPUT"
 
           echo "Detected version: '$current_version' (previous: '$previous_version')"
+          echo "File version label: $file_version"
           echo "Force version bump override: $force_version_bump"
           echo "Version bumped: $version_bumped"
 
@@ -215,38 +224,99 @@ jobs:
       - name: Build bundle
         run: flutter build linux --release
 
+      - name: Package Linux bundle artifact
+        shell: bash
+        env:
+          FILE_VERSION: ${{ needs.changes.outputs.file_version }}
+        run: |
+          set -euo pipefail
+
+          bundle_dir="$(find build/linux -type d -path '*/release/bundle' | head -n 1)"
+          if [[ -z "$bundle_dir" ]]; then
+            echo "Linux release bundle directory not found."
+            exit 1
+          fi
+
+          mkdir -p output/linux
+          tar -C "$bundle_dir" -czf "output/linux/yaabsa_${FILE_VERSION}.tar.gz" .
+
       - name: Upload Linux bundle artifact
         uses: actions/upload-artifact@v7
         with:
           name: linux-bundle
-          path: build/linux/**/release/bundle/*
+          path: output/linux/yaabsa_*.tar.gz
 
       - name: Build appimage
         run: bash linux/packaging/appimage/build.sh
+
+      - name: Rename Linux appimage artifact
+        shell: bash
+        env:
+          FILE_VERSION: ${{ needs.changes.outputs.file_version }}
+        run: |
+          set -euo pipefail
+
+          appimage_file="$(find output/linux -maxdepth 1 -type f -name '*.AppImage' | head -n 1)"
+          if [[ -z "$appimage_file" ]]; then
+            echo "Linux AppImage artifact not found."
+            exit 1
+          fi
+
+          mv "$appimage_file" "output/linux/yaabsa_${FILE_VERSION}.AppImage"
 
       - name: Upload Linux appimage artifact
         uses: actions/upload-artifact@v7
         with:
           name: linux-appimage
-          path: output/linux/*.AppImage
+          path: output/linux/yaabsa_*.AppImage
 
       - name: Build deb
         run: bash linux/packaging/deb/build.sh
+
+      - name: Rename Linux deb artifact
+        shell: bash
+        env:
+          FILE_VERSION: ${{ needs.changes.outputs.file_version }}
+        run: |
+          set -euo pipefail
+
+          deb_file="$(find output/linux -maxdepth 1 -type f -name '*.deb' | head -n 1)"
+          if [[ -z "$deb_file" ]]; then
+            echo "Linux deb artifact not found."
+            exit 1
+          fi
+
+          mv "$deb_file" "output/linux/yaabsa_${FILE_VERSION}.deb"
 
       - name: Upload Linux deb artifact
         uses: actions/upload-artifact@v7
         with:
           name: linux-deb
-          path: output/linux/*.deb
+          path: output/linux/yaabsa_*.deb
 
       - name: Build rpm
         run: bash linux/packaging/rpm/build.sh
+
+      - name: Rename Linux rpm artifact
+        shell: bash
+        env:
+          FILE_VERSION: ${{ needs.changes.outputs.file_version }}
+        run: |
+          set -euo pipefail
+
+          rpm_file="$(find output/linux -maxdepth 1 -type f -name '*.rpm' | head -n 1)"
+          if [[ -z "$rpm_file" ]]; then
+            echo "Linux rpm artifact not found."
+            exit 1
+          fi
+
+          mv "$rpm_file" "output/linux/yaabsa_${FILE_VERSION}.rpm"
 
       - name: Upload Linux rpm artifact
         uses: actions/upload-artifact@v7
         with:
           name: linux-rpm
-          path: output/linux/*.rpm
+          path: output/linux/yaabsa_*.rpm
 
   build-flatpak:
     runs-on: ubuntu-latest
@@ -399,11 +469,26 @@ jobs:
         with:
           path: flatpak-pages
 
+      - name: Rename Flatpak artifact
+        shell: bash
+        env:
+          FILE_VERSION: ${{ needs.changes.outputs.file_version }}
+        run: |
+          set -euo pipefail
+
+          if [[ ! -f de.vito0912.yaabsa.flatpak ]]; then
+            echo "Flatpak bundle not found."
+            exit 1
+          fi
+
+          mkdir -p output/linux
+          mv de.vito0912.yaabsa.flatpak "output/linux/yaabsa_${FILE_VERSION}.flatpak"
+
       - name: Upload Flatpak artifact
         uses: actions/upload-artifact@v7
         with:
           name: linux-flatpak
-          path: de.vito0912.yaabsa.flatpak
+          path: output/linux/yaabsa_*.flatpak
 
   deploy-flatpak-pages:
     if: github.ref == 'refs/heads/master'
@@ -436,11 +521,27 @@ jobs:
         id: build
         uses: snapcore/action-build@v1
 
+      - name: Rename Snap artifact
+        shell: bash
+        env:
+          FILE_VERSION: ${{ needs.changes.outputs.file_version }}
+        run: |
+          set -euo pipefail
+
+          snap_file="${{ steps.build.outputs.snap }}"
+          if [[ -z "$snap_file" || ! -f "$snap_file" ]]; then
+            echo "Snap artifact not found at '$snap_file'."
+            exit 1
+          fi
+
+          mkdir -p output/linux
+          cp "$snap_file" "output/linux/yaabsa_${FILE_VERSION}.snap"
+
       - name: Upload Snap artifact
         uses: actions/upload-artifact@v7
         with:
           name: linux-snap
-          path: ${{ steps.build.outputs.snap }}
+          path: output/linux/yaabsa_*.snap
 
   build-android:
     runs-on: ubuntu-latest
@@ -511,29 +612,78 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
+      - name: Rename Android artifacts
+        shell: bash
+        env:
+          FILE_VERSION: ${{ needs.changes.outputs.file_version }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+
+          mkdir -p output/android/auto
+          mkdir -p output/android/aaos
+
+          auto_bundle_candidates=(build/app/outputs/bundle/autoRelease/*.aab)
+          if [[ ${#auto_bundle_candidates[@]} -eq 0 ]]; then
+            echo "Android Auto app bundle not found."
+            exit 1
+          fi
+          cp "${auto_bundle_candidates[0]}" "output/android/auto/yaabsa_${FILE_VERSION}.appbundle"
+
+          auto_apk_candidates=(build/app/outputs/flutter-apk/*auto-release*.apk)
+          if [[ ${#auto_apk_candidates[@]} -eq 0 ]]; then
+            echo "Android Auto APK artifacts not found."
+            exit 1
+          fi
+          for apk in "${auto_apk_candidates[@]}"; do
+            base_name="$(basename "$apk")"
+            platform="${base_name#app-auto-}"
+            platform="${platform%-release.apk}"
+            cp "$apk" "output/android/auto/yaabsa_${platform}_${FILE_VERSION}.apk"
+          done
+
+          aaos_bundle_candidates=(build/app/outputs/bundle/automotiveRelease/*.aab)
+          if [[ ${#aaos_bundle_candidates[@]} -eq 0 ]]; then
+            echo "Android Automotive app bundle not found."
+            exit 1
+          fi
+          cp "${aaos_bundle_candidates[0]}" "output/android/aaos/yaabsa_AAOS_${FILE_VERSION}.appbundle"
+
+          aaos_apk_candidates=(build/app/outputs/flutter-apk/*automotive-release*.apk)
+          if [[ ${#aaos_apk_candidates[@]} -eq 0 ]]; then
+            echo "Android Automotive APK artifacts not found."
+            exit 1
+          fi
+          for apk in "${aaos_apk_candidates[@]}"; do
+            base_name="$(basename "$apk")"
+            platform="${base_name#app-automotive-}"
+            platform="${platform%-release.apk}"
+            cp "$apk" "output/android/aaos/yaabsa_AAOS_${platform}_${FILE_VERSION}.apk"
+          done
+
       - name: Upload Android appbundle artifact
         uses: actions/upload-artifact@v7
         with:
           name: android-appbundle
-          path: build/app/outputs/bundle/autoRelease/*.aab
+          path: output/android/auto/*.appbundle
 
       - name: Upload Android apk artifact
         uses: actions/upload-artifact@v7
         with:
           name: android-apk
-          path: build/app/outputs/flutter-apk/*auto-release*.apk
+          path: output/android/auto/*.apk
 
       - name: Upload Android Automotive appbundle artifact
         uses: actions/upload-artifact@v7
         with:
           name: android-automotive-appbundle
-          path: build/app/outputs/bundle/automotiveRelease/*.aab
+          path: output/android/aaos/*.appbundle
 
       - name: Upload Android Automotive apk artifact
         uses: actions/upload-artifact@v7
         with:
           name: android-automotive-apk
-          path: build/app/outputs/flutter-apk/*automotive-release*.apk
+          path: output/android/aaos/*.apk
 
       - name: Clean up
         if: always()
@@ -590,25 +740,48 @@ jobs:
             throw "Windows release bundle not found."
           }
           New-Item -ItemType Directory -Path "output/windows" -Force | Out-Null
-          Compress-Archive -Path "$bundleDir/*" -DestinationPath "output/windows/yaabsa-windows-bundle.zip" -Force
+          Compress-Archive -Path "$bundleDir/*" -DestinationPath "output/windows/windows-bundle.zip" -Force
+
+      - name: Rename Windows artifacts
+        shell: pwsh
+        env:
+          FILE_VERSION: ${{ needs.changes.outputs.file_version }}
+        run: |
+          $msix = Get-ChildItem -Path "output/windows" -Filter "*.msix" | Select-Object -First 1
+          if (-not $msix) {
+            throw "Windows msix artifact not found."
+          }
+          Move-Item -Path $msix.FullName -Destination ("output/windows/yaabsa_{0}.msix" -f $env:FILE_VERSION) -Force
+
+          $exe = Get-ChildItem -Path "output/windows" -Filter "*.exe" | Select-Object -First 1
+          if (-not $exe) {
+            throw "Windows exe artifact not found."
+          }
+          Move-Item -Path $exe.FullName -Destination ("output/windows/yaabsa_{0}.exe" -f $env:FILE_VERSION) -Force
+
+          $bundleZip = Get-Item "output/windows/windows-bundle.zip" -ErrorAction SilentlyContinue
+          if (-not $bundleZip) {
+            throw "Windows bundle zip not found."
+          }
+          Move-Item -Path $bundleZip.FullName -Destination ("output/windows/yaabsa_{0}.zip" -f $env:FILE_VERSION) -Force
 
       - name: Upload Windows msix artifact
         uses: actions/upload-artifact@v7
         with:
           name: windows-msix
-          path: output/windows/*.msix
+          path: output/windows/yaabsa_*.msix
 
       - name: Upload Windows exe artifact
         uses: actions/upload-artifact@v7
         with:
           name: windows-exe
-          path: output/windows/*.exe
+          path: output/windows/yaabsa_*.exe
 
       - name: Upload Windows bundle artifact
         uses: actions/upload-artifact@v7
         with:
           name: windows-bundle
-          path: output/windows/*.zip
+          path: output/windows/yaabsa_*.zip
 
   create-prerelease:
     runs-on: ubuntu-latest
@@ -634,11 +807,15 @@ jobs:
           set -euo pipefail
 
           mkdir -p dist
-          find release-assets -type f -print0 | while IFS= read -r -d '' file; do
-            relative_path="${file#release-assets/}"
-            safe_name="${relative_path//\//__}"
-            cp "$file" "dist/$safe_name"
-          done
+          while IFS= read -r -d '' file; do
+            file_name="$(basename "$file")"
+            target_file="dist/$file_name"
+            if [[ -e "$target_file" ]]; then
+              echo "Duplicate release asset name found: $file_name"
+              exit 1
+            fi
+            cp "$file" "$target_file"
+          done < <(find release-assets -type f -print0)
 
           ls -lh dist
 
@@ -652,10 +829,8 @@ jobs:
           generate_release_notes: true
           fail_on_unmatched_files: true
           body: |
-            Automated prerelease generated after pubspec version bump or manual override.
-            Manual override used: ${{ needs.changes.outputs.force_version_bump }}
-            Version: ${{ needs.changes.outputs.app_version }}
-            Previous version: ${{ needs.changes.outputs.previous_app_version }}
-            Commit: ${{ github.sha }}
+            This pre-release has been automatically generated from commit ${{ github.sha }}.
+
+            You can download the built artifacts from the "Assets" section below.
           files: |
             dist/*
