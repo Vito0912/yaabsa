@@ -809,9 +809,16 @@ jobs:
           mkdir -p dist
           while IFS= read -r -d '' file; do
             file_name="$(basename "$file")"
-            target_file="dist/$file_name"
+            artifact_key="$(basename "$(dirname "$file")")"
+
+            if [[ "$artifact_key" == "github-pages" ]]; then
+              continue
+            fi
+
+            target_name="${artifact_key}-${file_name}"
+            target_file="dist/$target_name"
             if [[ -e "$target_file" ]]; then
-              echo "Duplicate release asset name found: $file_name"
+              echo "Duplicate release asset name found: $target_name"
               exit 1
             fi
             cp "$file" "$target_file"
