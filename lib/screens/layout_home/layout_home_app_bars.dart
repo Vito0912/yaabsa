@@ -2,7 +2,84 @@ import 'package:flutter/material.dart';
 import 'package:yaabsa/components/app/download_status.dart';
 import 'package:yaabsa/components/app/library_switcher.dart';
 import 'package:yaabsa/components/app/user_switcher.dart';
+import 'package:yaabsa/provider/core/multi_select_app_bar_provider.dart';
 import 'package:yaabsa/screens/layout_home/navigation_item_config.dart';
+
+class LayoutHomeMultiSelectAppBar extends StatelessWidget {
+  const LayoutHomeMultiSelectAppBar({
+    super.key,
+    required this.state,
+    this.showSidebarToggle = false,
+    this.isSidebarCollapsed = false,
+    this.onSidebarToggle,
+  });
+
+  final MultiSelectAppBarState state;
+  final bool showSidebarToggle;
+  final bool isSidebarCollapsed;
+  final VoidCallback? onSidebarToggle;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      top: true,
+      bottom: false,
+      left: false,
+      right: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(6, 6, 10, 6),
+        child: Row(
+          children: [
+            if (showSidebarToggle)
+              IconButton(
+                tooltip: isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar',
+                onPressed: onSidebarToggle,
+                icon: Icon(isSidebarCollapsed ? Icons.arrow_right : Icons.arrow_left),
+              ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Text(
+                state.selectedCount == 1 ? '1 selected' : '${state.selectedCount} selected',
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            const Spacer(),
+            if (state.isBusy)
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: Theme.of(context).colorScheme.primary),
+                ),
+              ),
+            for (var index = 0; index < state.actions.length; index++) ...[
+              if (index > 0) const SizedBox(width: 4),
+              IconButton(
+                tooltip: state.actions[index].tooltip,
+                onPressed: (!state.isBusy && state.actions[index].enabled) ? state.actions[index].onPressed : null,
+                icon: Icon(state.actions[index].icon, size: 20),
+              ),
+            ],
+            if (state.actions.isNotEmpty) const SizedBox(width: 4),
+            IconButton(
+              tooltip: 'Clear selection',
+              onPressed: state.isBusy ? null : state.onClearSelection,
+              icon: const Icon(Icons.close_rounded),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 class LayoutHomeMobileAppBar extends StatelessWidget {
   const LayoutHomeMobileAppBar({

@@ -109,6 +109,13 @@ Below is a list of all features, but I want to *highlight* a few, as this client
 
 \* You can only load in annotations, but not create new ones for ePUBs
 
+### Server Management
+
+| Feature            | Android | iOS  | Windows | MacOS | Linux |
+| ------------------ | ------- | ---- | ------- | ----- | ----- |
+| Manage Playlists   | ✅      | ✅   | ✅      | ✅    | ✅    |
+| Manage Collections | ✅      | ✅   | ✅      | ✅    | ✅    |
+
 ### Other Features
 
 | Feature             | Android | iOS  | Windows | MacOS | Linux |

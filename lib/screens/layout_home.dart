@@ -18,6 +18,7 @@ import 'package:yaabsa/screens/main/stats_view.dart';
 import 'package:yaabsa/screens/player/play_bar.dart';
 import 'package:yaabsa/screens/settings/settings_screen.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
+import 'package:yaabsa/provider/core/multi_select_app_bar_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/setting_key.dart';
@@ -369,24 +370,28 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
     final bool isSidebarCollapsed = !canExpandSidebar || _isSidebarCollapsed;
     final SidebarVariant sidebarVariant = _sidebarVariantFor(isTablet: isTablet, isCollapsed: isSidebarCollapsed);
     final Widget currentContent = _resolveCurrentContent(safeSelectedIndex, primaryItems, advancedMenuItems);
+    final multiSelectAppBarState = ref.watch(multiSelectAppBarProvider);
 
     if (isMobile) {
       return Scaffold(
         body: Column(
           children: [
-            LayoutHomeMobileAppBar(
-              isSearchExpanded: _isMobileSearchExpanded,
-              searchController: _searchController,
-              searchQuery: _searchQuery,
-              advancedMenuItems: advancedMenuItems,
-              advancedMenuStartIndex: primaryItems.length,
-              onSearchChanged: _onSearchChanged,
-              onSearchSubmitted: _submitSearch,
-              onExpandSearch: _expandMobileSearch,
-              onCollapseSearch: _collapseMobileSearch,
-              onClearSearch: _clearSearch,
-              onAdvancedItemSelected: _onAppBarItemTapped,
-            ),
+            if (multiSelectAppBarState != null)
+              LayoutHomeMultiSelectAppBar(state: multiSelectAppBarState)
+            else
+              LayoutHomeMobileAppBar(
+                isSearchExpanded: _isMobileSearchExpanded,
+                searchController: _searchController,
+                searchQuery: _searchQuery,
+                advancedMenuItems: advancedMenuItems,
+                advancedMenuStartIndex: primaryItems.length,
+                onSearchChanged: _onSearchChanged,
+                onSearchSubmitted: _submitSearch,
+                onExpandSearch: _expandMobileSearch,
+                onCollapseSearch: _collapseMobileSearch,
+                onClearSearch: _clearSearch,
+                onAdvancedItemSelected: _onAppBarItemTapped,
+              ),
 
             Expanded(child: currentContent),
             StreamBuilder<bool>(
@@ -436,16 +441,24 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
           Expanded(
             child: Column(
               children: [
-                LayoutHomeNonMobileAppBar(
-                  isTablet: isTablet,
-                  isSidebarCollapsed: isSidebarCollapsed,
-                  searchController: _searchController,
-                  searchQuery: _searchQuery,
-                  onSearchChanged: _onSearchChanged,
-                  onSearchSubmitted: _submitSearch,
-                  onClearSearch: _clearSearch,
-                  onSidebarToggle: () => _setSidebarCollapsed(!isSidebarCollapsed),
-                ),
+                if (multiSelectAppBarState != null)
+                  LayoutHomeMultiSelectAppBar(
+                    state: multiSelectAppBarState,
+                    showSidebarToggle: true,
+                    isSidebarCollapsed: isSidebarCollapsed,
+                    onSidebarToggle: () => _setSidebarCollapsed(!isSidebarCollapsed),
+                  )
+                else
+                  LayoutHomeNonMobileAppBar(
+                    isTablet: isTablet,
+                    isSidebarCollapsed: isSidebarCollapsed,
+                    searchController: _searchController,
+                    searchQuery: _searchQuery,
+                    onSearchChanged: _onSearchChanged,
+                    onSearchSubmitted: _submitSearch,
+                    onClearSearch: _clearSearch,
+                    onSidebarToggle: () => _setSidebarCollapsed(!isSidebarCollapsed),
+                  ),
                 Expanded(
                   child: Column(
                     children: [

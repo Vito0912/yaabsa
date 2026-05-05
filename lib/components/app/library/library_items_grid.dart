@@ -9,6 +9,8 @@ import 'package:yaabsa/util/layout_sizes.dart';
 const int _libraryPrefetchThreshold = 8;
 const int _libraryApproxScrollPastCount = 24;
 
+typedef LibraryGridSelectionCallback = void Function(String itemId, int index);
+
 class LibraryItemsGrid extends StatelessWidget {
   const LibraryItemsGrid({
     super.key,
@@ -33,8 +35,8 @@ class LibraryItemsGrid extends StatelessWidget {
   final ValueChanged<int> onEnsureLoadedForIndex;
   final bool selectionMode;
   final Set<String> selectedItemIds;
-  final ValueChanged<String>? onToggleSelection;
-  final ValueChanged<String>? onEnterSelectionMode;
+  final LibraryGridSelectionCallback? onToggleSelection;
+  final LibraryGridSelectionCallback? onEnterSelectionMode;
   final void Function(LibraryItem item, int index)? onPlayItem;
 
   @override
@@ -75,11 +77,12 @@ class LibraryItemsGrid extends StatelessWidget {
               api,
               showProgress: true,
               squareCover: true,
+              enableHoverSelection: true,
               onPlay: onPlayItem == null ? null : () => onPlayItem!(item, index),
               selectionMode: selectionMode,
               isSelected: selectedItemIds.contains(item.id),
-              onToggleSelection: onToggleSelection == null ? null : () => onToggleSelection!(item.id),
-              onEnterSelectionMode: onEnterSelectionMode == null ? null : () => onEnterSelectionMode!(item.id),
+              onToggleSelection: onToggleSelection == null ? null : () => onToggleSelection!(item.id, index),
+              onEnterSelectionMode: onEnterSelectionMode == null ? null : () => onEnterSelectionMode!(item.id, index),
             );
           },
         );

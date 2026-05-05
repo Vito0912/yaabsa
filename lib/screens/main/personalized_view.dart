@@ -9,6 +9,7 @@ import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/library_items/series.dart';
 import 'package:yaabsa/api/me/media_progress.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
+import 'package:yaabsa/components/app/library/library_multi_select_host.dart';
 import 'package:yaabsa/components/common/author_card.dart';
 import 'package:yaabsa/components/common/library_item_widget.dart';
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
@@ -44,6 +45,7 @@ class PersonalizedView extends HookConsumerWidget {
       showShelfPlayButtonSettingValue.value,
       defaultSettings[SettingKeys.personalizedShelfShowPlayVisibleButton] as bool,
     );
+    final currentUser = ref.watch(currentUserProvider).value;
     final mediaProgressMap = ref.watch(mediaProgressProvider).asData?.value ?? const <String, MediaProgress>{};
 
     Future<void> refreshPersonalizedLibrary({bool withLoading = false}) {
@@ -97,46 +99,61 @@ class PersonalizedView extends HookConsumerWidget {
                 : 10.0;
             final verticalPadding = width >= 1200 ? 22.0 : 14.0;
             final libraryTileWidth = appGridTileWidth;
-
-            return Stack(
-              children: [
-                Positioned.fill(
-                  child: Column(
-                    children: [
-                      if (!serverReachable) const _PersonalizedConnectionBanner(),
-                      Expanded(
-                        child: RefreshIndicator(
-                          onRefresh: refreshPersonalizedLibrary,
-                          child: ListView.separated(
-                            controller: scrollController,
-                            physics: const AlwaysScrollableScrollPhysics(),
-                            padding: EdgeInsets.fromLTRB(
-                              horizontalPadding,
-                              verticalPadding,
-                              horizontalPadding,
-                              verticalPadding,
+            final visibleLibraryItems = _collectVisibleShelfLibraryItems(sections);
+            final canManageBooks = selectedLibrary.mediaType == 'book';
+            return LibraryMultiSelectHost(
+              scopeKey: 'shelf:${selectedLibrary.id}',
+              libraryId: selectedLibrary.id,
+              visibleItems: visibleLibraryItems,
+              canAddToPlaylist: canManageBooks && currentUser != null,
+              canAddToCollection: canManageBooks && (currentUser?.permissions.update ?? false),
+              currentUserId: currentUser?.id,
+              builder: (context, selection) {
+                return Stack(
+                  children: [
+                    Positioned.fill(
+                      child: Column(
+                        children: [
+                          if (!serverReachable) const _PersonalizedConnectionBanner(),
+                          Expanded(
+                            child: RefreshIndicator(
+                              onRefresh: refreshPersonalizedLibrary,
+                              child: ListView.separated(
+                                controller: scrollController,
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                padding: EdgeInsets.fromLTRB(
+                                  horizontalPadding,
+                                  verticalPadding,
+                                  horizontalPadding,
+                                  verticalPadding,
+                                ),
+                                itemCount: sections.length,
+                                separatorBuilder: (context, index) => const SizedBox(height: 12),
+                                itemBuilder: (context, index) {
+                                  final section = sections[index];
+                                  return _SectionRow(
+                                    section: section,
+                                    api: api,
+                                    libraryTileWidth: libraryTileWidth,
+                                    viewportWidth: width,
+                                    showPlayVisibleButton: showShelfPlayButton,
+                                    mediaProgressMap: mediaProgressMap,
+                                    selectionMode: selection.selectionMode,
+                                    selectedItemIds: selection.selectedItemIds,
+                                    onToggleSelection: selection.toggleSelectionById,
+                                    onEnterSelectionMode: selection.enterSelectionById,
+                                  );
+                                },
+                              ),
                             ),
-                            itemCount: sections.length,
-                            separatorBuilder: (context, index) => const SizedBox(height: 12),
-                            itemBuilder: (context, index) {
-                              final section = sections[index];
-                              return _SectionRow(
-                                section: section,
-                                api: api,
-                                libraryTileWidth: libraryTileWidth,
-                                viewportWidth: width,
-                                showPlayVisibleButton: showShelfPlayButton,
-                                mediaProgressMap: mediaProgressMap,
-                              );
-                            },
                           ),
-                        ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
-                ScrollToTopButton(controller: scrollController),
-              ],
+                    ),
+                    ScrollToTopButton(controller: scrollController),
+                  ],
+                );
+              },
             );
           },
         );
@@ -337,6 +354,27 @@ List<_SectionData> _buildSections(PersonalizedLibrary library) {
   return sections;
 }
 
+List<LibraryItem> _collectVisibleShelfLibraryItems(List<_SectionData> sections) {
+  final items = <LibraryItem>[];
+  final seenIds = <String>{};
+
+  for (final section in sections) {
+    for (final entity in section.entities) {
+      if (entity is! LibraryItem) {
+        continue;
+      }
+
+      if (!seenIds.add(entity.id)) {
+        continue;
+      }
+
+      items.add(entity);
+    }
+  }
+
+  return items;
+}
+
 class _SectionRow extends StatelessWidget {
   const _SectionRow({
     required this.section,
@@ -345,6 +383,10 @@ class _SectionRow extends StatelessWidget {
     required this.viewportWidth,
     required this.showPlayVisibleButton,
     required this.mediaProgressMap,
+    required this.selectionMode,
+    required this.selectedItemIds,
+    required this.onToggleSelection,
+    required this.onEnterSelectionMode,
   });
 
   final _SectionData section;
@@ -353,6 +395,10 @@ class _SectionRow extends StatelessWidget {
   final double viewportWidth;
   final bool showPlayVisibleButton;
   final Map<String, MediaProgress> mediaProgressMap;
+  final bool selectionMode;
+  final Set<String> selectedItemIds;
+  final ValueChanged<String> onToggleSelection;
+  final ValueChanged<String> onEnterSelectionMode;
 
   bool get _supportsPlayVisibleButton {
     return section.id == _continueListeningShelfId || section.id == _newestEpisodesShelfId;
@@ -451,7 +497,8 @@ class _SectionRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final scrollController = ScrollController();
     final playableEntries = _collectPlayableEntries();
-    final canShowPlayVisibleButton = showPlayVisibleButton && _supportsPlayVisibleButton && playableEntries.isNotEmpty;
+    final canShowPlayVisibleButton =
+        !selectionMode && showPlayVisibleButton && _supportsPlayVisibleButton && playableEntries.isNotEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -525,6 +572,10 @@ class _SectionRow extends StatelessWidget {
           libraryTileWidth: libraryTileWidth,
           viewportWidth: viewportWidth,
           scrollController: scrollController,
+          selectionMode: selectionMode,
+          selectedItemIds: selectedItemIds,
+          onToggleSelection: onToggleSelection,
+          onEnterSelectionMode: onEnterSelectionMode,
         ),
       ],
     );
@@ -546,6 +597,10 @@ class _SectionList extends StatelessWidget {
     required this.libraryTileWidth,
     required this.viewportWidth,
     required this.scrollController,
+    required this.selectionMode,
+    required this.selectedItemIds,
+    required this.onToggleSelection,
+    required this.onEnterSelectionMode,
   });
 
   final _SectionData section;
@@ -553,6 +608,10 @@ class _SectionList extends StatelessWidget {
   final double libraryTileWidth;
   final double viewportWidth;
   final ScrollController scrollController;
+  final bool selectionMode;
+  final Set<String> selectedItemIds;
+  final ValueChanged<String> onToggleSelection;
+  final ValueChanged<String> onEnterSelectionMode;
 
   @override
   Widget build(BuildContext context) {
@@ -574,13 +633,28 @@ class _SectionList extends StatelessWidget {
     );
   }
 
+  Widget _buildLibraryItemTile(LibraryItem item) {
+    return SizedBox(
+      width: libraryTileWidth,
+      child: LibraryItemWidget(
+        item,
+        api,
+        showProgress: true,
+        compact: true,
+        squareCover: true,
+        enableHoverSelection: true,
+        selectionMode: selectionMode,
+        isSelected: selectedItemIds.contains(item.id),
+        onToggleSelection: () => onToggleSelection(item.id),
+        onEnterSelectionMode: () => onEnterSelectionMode(item.id),
+      ),
+    );
+  }
+
   Widget _buildEntityTile(BuildContext context, Object entity, double seriesTileWidth) {
     switch (section.kind) {
       case _ShelfEntityKind.libraryItem:
-        return SizedBox(
-          width: libraryTileWidth,
-          child: LibraryItemWidget(entity as LibraryItem, api, showProgress: true, compact: true, squareCover: true),
-        );
+        return _buildLibraryItemTile(entity as LibraryItem);
       case _ShelfEntityKind.series:
         final series = entity as Series;
         final seriesEntry = MultiBookEntryData.fromSeries(series);
@@ -614,10 +688,7 @@ class _SectionList extends StatelessWidget {
         );
       case _ShelfEntityKind.episode:
         if (entity is LibraryItem) {
-          return SizedBox(
-            width: libraryTileWidth,
-            child: LibraryItemWidget(entity, api, showProgress: true, compact: true, squareCover: true),
-          );
+          return _buildLibraryItemTile(entity);
         }
 
         final episode = entity as Episode;

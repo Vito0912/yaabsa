@@ -17,6 +17,7 @@ Future<void> runManagedListMutation({
   required String successMessage,
   required String errorFallback,
   bool popOnSuccess = false,
+  VoidCallback? onSuccess,
 }) async {
   final messenger = ScaffoldMessenger.of(context);
 
@@ -30,6 +31,8 @@ Future<void> runManagedListMutation({
     if (popOnSuccess && Navigator.of(context).canPop()) {
       Navigator.of(context).pop();
     }
+
+    onSuccess?.call();
 
     messenger.showSnackBar(SnackBar(content: Text(successMessage)));
   } catch (error) {
