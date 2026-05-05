@@ -1,4 +1,6 @@
+import 'package:yaabsa/api/library/stats/listening_sessions_page.dart';
 import 'package:yaabsa/api/library/stats/user_listening_stats.dart';
+import 'package:yaabsa/api/library/stats/year_in_review_stats.dart';
 import 'package:yaabsa/api/me/bookmark.dart';
 import 'package:yaabsa/api/me/login.dart';
 import 'package:yaabsa/api/me/media_progress.dart';
@@ -159,6 +161,93 @@ class MeApi {
     return ABSApi.makeApiGetRequest(
       route: '/api/users/$userId/listening-stats',
       fromJson: (data) => UserListeningStats.fromJson(data),
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
+      queryParams: {},
+    );
+  }
+
+  Future<Response<UserListeningStats>> getMeListeningStats({
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiGetRequest(
+      route: '/api/me/listening-stats',
+      fromJson: (data) => UserListeningStats.fromJson(data),
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
+      queryParams: {},
+    );
+  }
+
+  Future<Response<ListeningSessionsPage>> getMeListeningSessions({
+    int page = 0,
+    int itemsPerPage = 10,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiGetRequest(
+      route: '/api/me/listening-sessions',
+      fromJson: (data) => ListeningSessionsPage.fromJson(data),
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
+      queryParams: {'page': page, 'itemsPerPage': itemsPerPage},
+    );
+  }
+
+  Future<Response<ListeningSessionsPage>> getUserListeningSessions(
+    String userId, {
+    int page = 0,
+    int itemsPerPage = 10,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiGetRequest(
+      route: '/api/users/$userId/listening-sessions',
+      fromJson: (data) => ListeningSessionsPage.fromJson(data),
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
+      queryParams: {'page': page, 'itemsPerPage': itemsPerPage},
+    );
+  }
+
+  Future<Response<YearInReviewStats>> getMeStatsForYear(
+    int year, {
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiGetRequest(
+      route: '/api/me/stats/year/$year',
+      fromJson: (data) => YearInReviewStats.fromJson(data),
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
+      queryParams: {},
+    );
+  }
+
+  Future<Response<YearInReviewStats>> getAdminStatsForYear(
+    int year, {
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiGetRequest(
+      route: '/api/stats/year/$year',
+      fromJson: (data) => YearInReviewStats.fromJson(data),
       cancelToken: cancelToken,
       headers: headers,
       extra: extra,

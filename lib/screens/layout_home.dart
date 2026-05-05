@@ -14,6 +14,7 @@ import 'package:yaabsa/screens/main/personalized_view.dart';
 import 'package:yaabsa/screens/main/playlist_view.dart';
 import 'package:yaabsa/screens/main/search_view.dart';
 import 'package:yaabsa/screens/main/series_view.dart';
+import 'package:yaabsa/screens/main/stats_view.dart';
 import 'package:yaabsa/screens/player/play_bar.dart';
 import 'package:yaabsa/screens/settings/settings_screen.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
@@ -81,6 +82,7 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
 
     _downloadsMenuItem = const NavigationItemConfig(icon: Icons.download, label: "Downloads", page: Downloads());
     _advancedMenuItems = const [
+      NavigationItemConfig(icon: Icons.bar_chart_rounded, label: "Stats", page: StatsView()),
       NavigationItemConfig(icon: Icons.settings, label: "Settings", page: MainSettingsScreen()),
       NavigationItemConfig(
         icon: Icons.info_outline,
@@ -308,6 +310,7 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
         'authors' => 'Authors',
         'narrators' => 'Narrators',
         'downloads' => 'Downloads',
+        'stats' => 'Stats',
         'settings' => 'Settings',
         'about' => 'About',
         _ => 'Shelf',
