@@ -42,11 +42,12 @@ class MultiBookEntryData {
     final bookIds = _dedupeItemIds(
       playlist.items?.map((item) => item.libraryItem?.id ?? item.itemId) ?? const <String>[],
     );
+    final description = playlist.description?.trim();
 
     return MultiBookEntryData(
       id: playlist.id,
       title: playlist.name,
-      subtitle: itemCount != null ? '$itemCount books' : null,
+      subtitle: description != null && description.isNotEmpty ? description : null,
       bookItemIds: bookIds,
       totalBooks: itemCount ?? bookIds.length,
     );
@@ -55,11 +56,12 @@ class MultiBookEntryData {
   factory MultiBookEntryData.fromCollection(Collection collection) {
     final itemCount = collection.items?.length;
     final bookIds = _dedupeItemIds(collection.items?.map((item) => item.id) ?? const <String>[]);
+    final description = collection.description?.trim();
 
     return MultiBookEntryData(
       id: collection.id,
       title: collection.name,
-      subtitle: itemCount != null ? '$itemCount books' : null,
+      subtitle: description != null && description.isNotEmpty ? description : null,
       bookItemIds: bookIds,
       totalBooks: itemCount ?? bookIds.length,
     );
@@ -79,6 +81,7 @@ class MultiBookEntryWidget extends StatelessWidget {
     required this.entry,
     super.key,
     this.onTap,
+    this.onLongPress,
     this.maxBooksToShow = defaultMultiBookPreviewLimit,
     this.compact = false,
     this.squareCover = true,
@@ -89,6 +92,7 @@ class MultiBookEntryWidget extends StatelessWidget {
   final ABSApi api;
   final MultiBookEntryData entry;
   final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
   final int maxBooksToShow;
   final bool compact;
   final bool squareCover;
@@ -131,11 +135,11 @@ class MultiBookEntryWidget extends StatelessWidget {
       ],
     );
 
-    if (onTap == null) return content;
+    if (onTap == null && onLongPress == null) return content;
 
     return Material(
       color: Colors.transparent,
-      child: InkWell(onTap: onTap, borderRadius: BorderRadius.circular(16), child: content),
+      child: InkWell(onTap: onTap, onLongPress: onLongPress, borderRadius: BorderRadius.circular(16), child: content),
     );
   }
 

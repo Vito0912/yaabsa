@@ -3,8 +3,11 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/list/collection.dart';
 import 'package:yaabsa/components/common/connection_issue_view.dart';
+import 'package:yaabsa/components/common/list_entity_missing_view.dart';
+import 'package:yaabsa/components/common/managed_list_operations.dart';
 import 'package:yaabsa/components/common/library_item_widget.dart';
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
 import 'package:yaabsa/components/common/scroll_to_top_button.dart';
@@ -42,26 +45,36 @@ class CollectionDetailView extends HookConsumerWidget {
       if (allCollectionsAsync.isLoading) {
         return const Center(child: CircularProgressIndicator());
       }
-      return ConnectionIssueView(
+      if (allCollectionsAsync.hasError) {
+        return ConnectionIssueView.requestFailed(
+          error: allCollectionsAsync.error ?? Exception('Unknown collection loading error.'),
+          title: 'Collection details could not be loaded',
+          onRetry: () => ref.read(collectionsProvider(libraryId).notifier).refresh(withLoading: true),
+        );
+      }
+
+      return const ListEntityMissingView(
         icon: Icons.collections_bookmark_outlined,
-        title: 'Collection details could not be loaded',
-        message: 'Reconnect and retry to load this collection.',
-        onRetry: () => ref.read(collectionsProvider(libraryId).notifier).refresh(withLoading: true),
+        title: 'Collection is no longer available',
+        message: 'It may have been deleted from this library.',
       );
     }
 
     final collectionItems = resolvedCollection.items ?? const [];
+    final currentUser = ref.watch(currentUserProvider).value;
+    final canEditCollection = currentUser?.permissions.update ?? false;
+    final canDeleteCollection = currentUser?.permissions.delete ?? false;
+    final description = resolvedCollection.description?.trim();
 
     return LayoutBuilder(
       builder: (context, constraints) {
         final gridLayout = appCenteredGridLayout(constraints.maxWidth);
         final horizontalPadding = gridLayout.horizontalPadding;
-        final subtitle = _resolveSubtitle(resolvedEntry, collectionItems.length);
 
         return Column(
           children: [
             Padding(
-              padding: EdgeInsets.fromLTRB(horizontalPadding, 10, horizontalPadding, 8),
+              padding: const EdgeInsets.fromLTRB(8, 10, 8, 8),
               child: Row(
                 children: [
                   IconButton(
@@ -78,19 +91,57 @@ class CollectionDetailView extends HookConsumerWidget {
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                   ),
+                  if (canEditCollection || canDeleteCollection)
+                    PopupMenuButton<_CollectionDetailAction>(
+                      tooltip: 'Collection actions',
+                      onSelected: (action) => _handleCollectionAction(
+                        context: context,
+                        ref: ref,
+                        libraryId: libraryId,
+                        collection: resolvedCollection,
+                        action: action,
+                      ),
+                      itemBuilder: (context) {
+                        final items = <PopupMenuEntry<_CollectionDetailAction>>[];
+                        if (canEditCollection) {
+                          items.add(
+                            const PopupMenuItem<_CollectionDetailAction>(
+                              value: _CollectionDetailAction.editBooks,
+                              child: Text('Edit books'),
+                            ),
+                          );
+                          items.add(
+                            const PopupMenuItem<_CollectionDetailAction>(
+                              value: _CollectionDetailAction.edit,
+                              child: Text('Edit details'),
+                            ),
+                          );
+                        }
+                        if (canDeleteCollection) {
+                          items.add(
+                            const PopupMenuItem<_CollectionDetailAction>(
+                              value: _CollectionDetailAction.delete,
+                              child: Text('Delete collection'),
+                            ),
+                          );
+                        }
+
+                        return items;
+                      },
+                    ),
                 ],
               ),
             ),
-            if (subtitle != null)
+            if (description != null && description.isNotEmpty)
               Padding(
-                padding: EdgeInsets.fromLTRB(horizontalPadding + 58, 0, horizontalPadding, 10),
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    subtitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall,
+                    description,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                 ),
               ),
@@ -166,14 +217,85 @@ MultiBookEntryData? _resolveEntry(String collectionId, MultiBookEntryData? initi
   return initialEntry;
 }
 
-String? _resolveSubtitle(MultiBookEntryData? entry, int itemCount) {
-  if (entry != null && entry.subtitle != null && entry.subtitle!.isNotEmpty) {
-    return entry.subtitle;
+Future<void> _handleCollectionAction({
+  required BuildContext context,
+  required WidgetRef ref,
+  required String libraryId,
+  required Collection collection,
+  required _CollectionDetailAction action,
+}) async {
+  switch (action) {
+    case _CollectionDetailAction.editBooks:
+      await _editCollectionBooks(context: context, ref: ref, libraryId: libraryId, collection: collection);
+      break;
+    case _CollectionDetailAction.edit:
+      await _editCollection(context: context, ref: ref, libraryId: libraryId, collection: collection);
+      break;
+    case _CollectionDetailAction.delete:
+      await _deleteCollection(context: context, ref: ref, libraryId: libraryId, collection: collection);
+      break;
   }
-
-  if (itemCount > 0) {
-    return '$itemCount books';
-  }
-
-  return null;
 }
+
+Future<void> _editCollectionBooks({
+  required BuildContext context,
+  required WidgetRef ref,
+  required String libraryId,
+  required Collection collection,
+}) async {
+  final collectionItems = collection.items ?? const <LibraryItem>[];
+  await editManagedListBooks(
+    context: context,
+    title: 'Edit books',
+    confirmLabel: 'Save books',
+    selectionRequired: true,
+    initialBooks: collectionItems,
+    onSave: (bookIds) => ref
+        .read(collectionsProvider(libraryId).notifier)
+        .replaceBooksInCollection(
+          collection.id,
+          currentBookIds: collectionItems.map((item) => item.id).toList(growable: false),
+          desiredBookIds: bookIds,
+        ),
+    successMessage: 'Collection books updated.',
+    errorFallback: 'Could not update collection books.',
+  );
+}
+
+Future<void> _editCollection({
+  required BuildContext context,
+  required WidgetRef ref,
+  required String libraryId,
+  required Collection collection,
+}) async {
+  await editManagedListDetails(
+    context: context,
+    title: 'Edit collection',
+    initialName: collection.name,
+    initialDescription: collection.description,
+    onSave: ({required name, description}) => ref
+        .read(collectionsProvider(libraryId).notifier)
+        .updateCollection(collection.id, name: name, description: description),
+    successMessage: 'Collection updated.',
+    errorFallback: 'Could not update collection.',
+  );
+}
+
+Future<void> _deleteCollection({
+  required BuildContext context,
+  required WidgetRef ref,
+  required String libraryId,
+  required Collection collection,
+}) async {
+  await deleteManagedListEntity(
+    context: context,
+    title: 'Delete collection?',
+    message: '"${collection.name}" will be permanently removed.',
+    onDelete: () => ref.read(collectionsProvider(libraryId).notifier).deleteCollection(collection.id),
+    successMessage: 'Collection deleted.',
+    errorFallback: 'Could not delete collection.',
+    popOnSuccess: true,
+  );
+}
+
+enum _CollectionDetailAction { editBooks, edit, delete }

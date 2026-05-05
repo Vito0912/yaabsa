@@ -75,7 +75,7 @@ Below is a list of all features, but I want to *highlight* a few, as this client
 | Author             | ✅      | ✅  | ✅      | ✅    | ✅    |
 | Narrator           | ✅      | ✅  | ✅      | ✅    | ✅    |
 | Search             | ✅      | ✅  | ✅      | ✅    | ✅    |
-| Stats              | 🅿️      | 🅿️  | 🅿️      | 🅿️    | 🅿️    |
+| Stats              | ✅      | ✅  | ✅      | ✅    | ✅    |
 
 ### Player
 
@@ -94,8 +94,9 @@ Below is a list of all features, but I want to *highlight* a few, as this client
 | Play History                    | ✅      | ✅  | ❓      | ✅    | ✅    |
 | Shake to rewind                 | ✅      | ✅  | ❌      | ❌    | ❌    |
 | Cast                            | ✅      | ❓  | ❌      | ❌    | ❌    |
-| Auto-Download next in queue     | ❌      | ❌  | ❌      | ❌    | ❌    |
+| Auto-Download next in queue     | 🅿️      | 🅿️  | 🅿️      | 🅿️    | 🅿️    |
 | Auto-Resume                     | ✅      | ✅  | ✅      | ✅    | ✅    |
+| Subtitles (karaoke-style)       | ✅      | ✅  | ✅      | ✅    | ✅    |
 
 ### E-Reader
 
