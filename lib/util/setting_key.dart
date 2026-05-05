@@ -79,7 +79,7 @@ class SettingKeys {
 final defaultSettings = {
   SettingKeys.appThemeMode: AppThemeMode.dark.toString(),
   SettingKeys.currentUserId: null,
-  SettingKeys.appLogLevel: InfoLevel.info.toString(),
+  SettingKeys.appLogLevel: InfoLevel.warning.toString(),
   SettingKeys.bufferSize: 5 * 1024 * 1024,
   SettingKeys.lockMediaNotification: false,
   SettingKeys.showNotificationMoreButton: false,

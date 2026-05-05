@@ -28,7 +28,15 @@ void main() {
   runZonedGuarded(
     () async {
       await Init.globals();
-      await containerRef.read(settingsManagerProvider.notifier).ensureInitialized();
+      final settingsManager = containerRef.read(settingsManagerProvider.notifier);
+      await settingsManager.ensureInitialized();
+
+      final startupLogLevelSetting = settingsManager.getGlobalSetting<String>(
+        SettingKeys.appLogLevel,
+        defaultValue: InfoLevel.warning.toString(),
+      );
+      appLoggerService.setMinimumLevel(InfoLevel.fromSettingValue(startupLogLevelSetting));
+
       unawaited(containerRef.read(currentUserProvider.future));
       unawaited(containerRef.read(serverStatusProvider.future));
       containerRef.read(absSocketClientProvider);
@@ -54,6 +62,10 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final appThemeSetting = ref.watch(globalSettingByKeyProvider(SettingKeys.appThemeMode)).asData?.value;
+    final appLogLevelSetting = ref.watch(globalSettingByKeyProvider(SettingKeys.appLogLevel)).asData?.value;
+
+    appLoggerService.setMinimumLevel(InfoLevel.fromSettingValue(appLogLevelSetting));
+
     final appTheme = appThemeSetting ?? (defaultSettings[SettingKeys.appThemeMode] as String);
     return MaterialApp.router(
       routerConfig: globalRouter,

@@ -7,7 +7,56 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'logger.freezed.dart';
 
-enum InfoLevel { debug, info, warning, error }
+enum InfoLevel {
+  debug,
+  info,
+  warning,
+  error;
+
+  static InfoLevel fromSettingValue(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return InfoLevel.warning;
+    }
+
+    final normalized = value.trim().toLowerCase();
+
+    for (final level in InfoLevel.values) {
+      if (level.name == normalized) {
+        return level;
+      }
+    }
+
+    if (normalized.startsWith('infolevel.')) {
+      final suffix = normalized.split('.').last;
+      for (final level in InfoLevel.values) {
+        if (level.name == suffix) {
+          return level;
+        }
+      }
+    }
+
+    for (final level in InfoLevel.values) {
+      if (level.toString().toLowerCase() == normalized) {
+        return level;
+      }
+    }
+
+    return InfoLevel.warning;
+  }
+
+  int get priority {
+    switch (this) {
+      case InfoLevel.debug:
+        return 0;
+      case InfoLevel.info:
+        return 1;
+      case InfoLevel.warning:
+        return 2;
+      case InfoLevel.error:
+        return 3;
+    }
+  }
+}
 
 @freezed
 abstract class LogEntry with _$LogEntry {
@@ -23,10 +72,28 @@ class AppLoggerService {
   static const int _maxLogEntries = 1000;
   final _logController = StreamController<LogEntry>.broadcast();
   final ListQueue<LogEntry> _logHistory = ListQueue<LogEntry>(_maxLogEntries);
+  InfoLevel _minimumLevel = InfoLevel.warning;
 
   Stream<LogEntry> get logStream => _logController.stream;
 
   List<LogEntry> get logHistory => _logHistory.toList();
+
+  InfoLevel get minimumLevel => _minimumLevel;
+
+  void setMinimumLevel(InfoLevel level) {
+    final resolvedLevel = kDebugMode ? InfoLevel.debug : level;
+    if (_minimumLevel == resolvedLevel) {
+      return;
+    }
+    _minimumLevel = resolvedLevel;
+  }
+
+  bool shouldLog(InfoLevel level) {
+    if (kDebugMode) {
+      return true;
+    }
+    return level.priority >= _minimumLevel.priority;
+  }
 
   void _addLogEntry(LogEntry entry) {
     if (_logHistory.length >= _maxLogEntries && _logHistory.isNotEmpty) {
@@ -66,6 +133,10 @@ final bool _isReleaseConsoleLoggingEnabled = _isTruthyEnvValue(Platform.environm
 bool get _shouldPrintToConsole => kDebugMode || _isReleaseConsoleLoggingEnabled;
 
 void logger(String message, {String? tag, InfoLevel level = InfoLevel.info}) {
+  if (!appLoggerService.shouldLog(level)) {
+    return;
+  }
+
   final now = DateTime.now();
 
   final logEntry = LogEntry(timestamp: now, message: message, level: level, tag: tag);

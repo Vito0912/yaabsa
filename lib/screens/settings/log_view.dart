@@ -1,37 +1,21 @@
-import 'package:yaabsa/util/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
+import 'package:yaabsa/screens/settings/widgets/log_entry_tile.dart';
+import 'package:yaabsa/util/log_exporter.dart';
+import 'package:yaabsa/util/logger.dart';
 
 class LogView extends HookWidget {
   const LogView({super.key});
-
-  String _levelToString(InfoLevel level) {
-    switch (level) {
-      case InfoLevel.debug:
-        return "DEBUG";
-      case InfoLevel.info:
-        return "INFO";
-      case InfoLevel.warning:
-        return "WARNING";
-      case InfoLevel.error:
-        return "ERROR";
-    }
-  }
-
-  String _formatSingleLogEntry(LogEntry log) {
-    final timestampStr = _formatTimestamp(log.timestamp);
-    final levelStr = _levelToString(log.level);
-    final tagStr = log.tag != null ? "[${log.tag}] " : "";
-    return '$timestampStr [$levelStr] $tagStr${log.message}';
-  }
 
   void _copyRawLogs(BuildContext context, List<LogEntry> logs) {
     if (logs.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No logs to copy.')));
       return;
     }
-    final rawLogs = logs.map(_formatSingleLogEntry).join('\n');
+
+    final rawLogs = formatLogsForExport(logs);
     Clipboard.setData(ClipboardData(text: rawLogs));
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Raw logs copied to clipboard!')));
   }
@@ -39,11 +23,11 @@ class LogView extends HookWidget {
   void _copyGitHubLogs(BuildContext context, List<LogEntry> logs) {
     final buffer = StringBuffer();
     buffer.writeln('<details>');
-    buffer.writeln('<summary>Logs (${logs.length} ${logs.length == 1 ? "entry" : "entries"})</summary>');
+    buffer.writeln('<summary>Logs (${logs.length} ${logs.length == 1 ? 'entry' : 'entries'})</summary>');
     buffer.writeln('');
     buffer.writeln('```text');
     if (logs.isNotEmpty) {
-      buffer.write(logs.map(_formatSingleLogEntry).join('\n'));
+      buffer.write(logs.map(formatLogEntryForExport).join('\n'));
     }
     buffer.writeln('');
     buffer.writeln('```');
@@ -56,310 +40,233 @@ class LogView extends HookWidget {
     ).showSnackBar(const SnackBar(content: Text('GitHub formatted logs copied to clipboard!')));
   }
 
+  Future<void> _exportLogs(BuildContext context, List<LogEntry> logs) async {
+    if (logs.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No logs to export.')));
+      return;
+    }
+
+    try {
+      final exportResult = await exportLogsAsLogFile(logs);
+
+      if (!context.mounted) {
+        return;
+      }
+
+      final destinationDescription = exportResult.usedSaveDialog
+          ? 'selected location'
+          : 'app storage fallback location';
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Logs exported to .log file ($destinationDescription): ${exportResult.filePath}',
+            maxLines: 4,
+            overflow: TextOverflow.ellipsis,
+          ),
+          duration: const Duration(seconds: 6),
+        ),
+      );
+    } catch (error) {
+      if (!context.mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to export logs: $error')));
+    }
+  }
+
   void _scrollToTop(ScrollController controller) {
     if (controller.hasClients) {
-      controller.animateTo(
-        controller.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeInOut,
-      );
+      controller.animateTo(0, duration: const Duration(milliseconds: 400), curve: Curves.easeInOut);
     }
   }
 
   void _scrollToBottom(ScrollController controller) {
     if (controller.hasClients) {
-      controller.animateTo(0, duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
+      controller.animateTo(
+        controller.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOut,
+      );
     }
+  }
+
+  Widget _buildEmptyState(BuildContext context, {required bool isLoading}) {
+    final theme = Theme.of(context);
+    if (isLoading) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(width: 28, height: 28, child: CircularProgressIndicator(strokeWidth: 2.5)),
+            const SizedBox(height: 10),
+            Text(
+              'Loading logs...',
+              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.article_outlined, size: 44, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6)),
+          const SizedBox(height: 10),
+          Text('No logs yet', style: theme.textTheme.titleMedium),
+          const SizedBox(height: 6),
+          Text(
+            'Logs will appear here as they are generated.',
+            style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final streamSnapshot = useStream(appLoggerService.logStream);
-    final List<LogEntry> logs = appLoggerService.logHistory;
+    final logs = appLoggerService.logHistory;
     final scrollController = useScrollController();
     final autoScrollEnabled = useState(true);
+    final isExporting = useState(false);
+    final screenSize = MediaQuery.sizeOf(context);
+    final horizontalPadding = screenSize.width < 420 ? 8.0 : 12.0;
+    final listHeight = (screenSize.height * 0.72).clamp(240.0, 1200.0);
+
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     useEffect(() {
       if (logs.isNotEmpty && scrollController.hasClients && autoScrollEnabled.value) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (scrollController.hasClients) {
-            scrollController.animateTo(
-              scrollController.position.maxScrollExtent,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOut,
-            );
+            _scrollToBottom(scrollController);
           }
         });
       }
       return null;
     }, [logs.length, autoScrollEnabled.value]);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Logs'),
-        elevation: 0,
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
-      ),
-      body: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16.0),
+    return SettingsPageScaffold(
+      title: 'Logs',
+      maxWidth: double.infinity,
+      padding: const EdgeInsets.only(bottom: 24),
+      children: [
+        Padding(
+          padding: EdgeInsets.fromLTRB(horizontalPadding, 12, horizontalPadding, 0),
+          child: Container(
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              border: Border(bottom: BorderSide(color: Theme.of(context).dividerColor, width: 0.5)),
+              color: colorScheme.surfaceContainerLowest,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.6)),
             ),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Expanded(
-                      child: FilledButton.icon(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      FilledButton.icon(
+                        onPressed: () => _copyRawLogs(context, logs),
                         icon: const Icon(Icons.copy_outlined, size: 18),
                         label: const Text('Copy Raw'),
-                        onPressed: () => _copyRawLogs(context, logs),
-                        style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 12)),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: FilledButton.icon(
+                      FilledButton.tonalIcon(
+                        onPressed: () => _copyGitHubLogs(context, logs),
                         icon: const Icon(Icons.code_outlined, size: 18),
                         label: const Text('Copy GitHub'),
-                        onPressed: () => _copyGitHubLogs(context, logs),
-                        style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 12)),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      '${logs.length} ${logs.length == 1 ? "entry" : "entries"}',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                      OutlinedButton.icon(
+                        onPressed: isExporting.value
+                            ? null
+                            : () async {
+                                isExporting.value = true;
+                                await _exportLogs(context, logs);
+                                if (context.mounted) {
+                                  isExporting.value = false;
+                                }
+                              },
+                        icon: isExporting.value
+                            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                            : const Icon(Icons.save_alt_outlined, size: 18),
+                        label: Text(isExporting.value ? 'Exporting .log...' : 'Export .log'),
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: autoScrollEnabled.value
-                            ? Theme.of(context).colorScheme.primaryContainer
-                            : Theme.of(context).colorScheme.errorContainer,
-                        borderRadius: BorderRadius.circular(12),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: colorScheme.surfaceContainerHigh,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          '${logs.length} ${logs.length == 1 ? 'entry' : 'entries'}',
+                          style: theme.textTheme.labelMedium,
+                        ),
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            autoScrollEnabled.value ? Icons.play_arrow : Icons.pause,
-                            size: 14,
-                            color: autoScrollEnabled.value
-                                ? Theme.of(context).colorScheme.onPrimaryContainer
-                                : Theme.of(context).colorScheme.onErrorContainer,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            autoScrollEnabled.value ? 'Auto-scroll ON' : 'Auto-scroll OFF',
-                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color: autoScrollEnabled.value
-                                  ? Theme.of(context).colorScheme.onPrimaryContainer
-                                  : Theme.of(context).colorScheme.onErrorContainer,
-                            ),
-                          ),
-                        ],
+                      const Spacer(),
+                      IconButton(
+                        tooltip: 'Scroll to top',
+                        onPressed: logs.isEmpty ? null : () => _scrollToTop(scrollController),
+                        icon: const Icon(Icons.vertical_align_top_rounded),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                      IconButton(
+                        tooltip: 'Scroll to bottom',
+                        onPressed: logs.isEmpty ? null : () => _scrollToBottom(scrollController),
+                        icon: const Icon(Icons.vertical_align_bottom_rounded),
+                      ),
+                      const SizedBox(width: 4),
+                      Text('Auto-scroll', style: theme.textTheme.bodySmall),
+                      Switch.adaptive(
+                        value: autoScrollEnabled.value,
+                        onChanged: (value) => autoScrollEnabled.value = value,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
-          if (logs.isEmpty && streamSnapshot.connectionState == ConnectionState.waiting) ...[
-            Expanded(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const CircularProgressIndicator(),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Loading logs...',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+        ),
+        Padding(
+          padding: EdgeInsets.fromLTRB(horizontalPadding, 12, horizontalPadding, 0),
+          child: Container(
+            height: listHeight,
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerLowest,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.6)),
             ),
-          ] else if (logs.isEmpty) ...[
-            Expanded(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.article_outlined,
-                      size: 64,
-                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+            child: logs.isEmpty
+                ? _buildEmptyState(context, isLoading: streamSnapshot.connectionState == ConnectionState.waiting)
+                : Scrollbar(
+                    controller: scrollController,
+                    thumbVisibility: true,
+                    child: ListView.separated(
+                      controller: scrollController,
+                      padding: const EdgeInsets.all(12),
+                      itemCount: logs.length,
+                      separatorBuilder: (_, _) => const SizedBox(height: 8),
+                      itemBuilder: (context, index) {
+                        final log = logs[index];
+                        return LogEntryTile(entry: log);
+                      },
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No logs yet',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Logs will appear here as they are generated',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ] else ...[
-            Expanded(
-              child: ListView.builder(
-                reverse: true,
-                controller: scrollController,
-                itemCount: logs.length,
-                padding: const EdgeInsets.all(8),
-                itemBuilder: (context, index) {
-                  final log = logs[index];
-                  return Container(
-                    margin: const EdgeInsets.symmetric(vertical: 3),
-                    decoration: BoxDecoration(
-                      color: _getColorForLevel(log.level).withValues(alpha: 0.03),
-                      border: Border.all(color: _getColorForLevel(log.level).withValues(alpha: 0.1), width: 1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                      dense: true,
-                      leading: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: _getColorForLevel(log.level).withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Icon(_getIconForLevel(log.level), color: _getColorForLevel(log.level), size: 18),
-                      ),
-                      title: Text(log.message, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-                      subtitle: Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Row(
-                          children: [
-                            Text(
-                              _formatTimestamp(log.timestamp),
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.6),
-                                fontFamily: 'monospace',
-                              ),
-                            ),
-                            if (log.tag != null) ...[
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: Theme.of(context).colorScheme.surfaceContainer,
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  log.tag!,
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ],
-      ),
-      floatingActionButton: logs.isNotEmpty
-          ? Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                FloatingActionButton.small(
-                  heroTag: "scroll_top",
-                  onPressed: () => _scrollToTop(scrollController),
-                  tooltip: 'Scroll to top',
-                  child: const Icon(Icons.keyboard_arrow_up),
-                ),
-                const SizedBox(height: 8),
-                FloatingActionButton.small(
-                  heroTag: "scroll_bottom",
-                  onPressed: () => _scrollToBottom(scrollController),
-                  tooltip: 'Scroll to bottom',
-                  child: const Icon(Icons.keyboard_arrow_down),
-                ),
-                const SizedBox(height: 8),
-                FloatingActionButton.small(
-                  heroTag: "auto_scroll",
-                  onPressed: () {
-                    autoScrollEnabled.value = !autoScrollEnabled.value;
-                  },
-                  tooltip: autoScrollEnabled.value ? 'Disable auto-scroll' : 'Enable auto-scroll',
-                  backgroundColor: autoScrollEnabled.value
-                      ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context).colorScheme.error,
-                  foregroundColor: autoScrollEnabled.value
-                      ? Theme.of(context).colorScheme.onPrimary
-                      : Theme.of(context).colorScheme.onError,
-                  child: Icon(autoScrollEnabled.value ? Icons.pause : Icons.play_arrow),
-                ),
-              ],
-            )
-          : null,
+                  ),
+          ),
+        ),
+      ],
     );
-  }
-
-  String _formatTimestamp(DateTime timestamp) {
-    return '${timestamp.year}-${timestamp.month.toString().padLeft(2, '0')}-${timestamp.day.toString().padLeft(2, '0')} ${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}:${timestamp.second.toString().padLeft(2, '0')}';
-  }
-
-  IconData _getIconForLevel(InfoLevel level) {
-    switch (level) {
-      case InfoLevel.debug:
-        return Icons.bug_report_outlined;
-      case InfoLevel.info:
-        return Icons.info_outline;
-      case InfoLevel.warning:
-        return Icons.warning_amber_outlined;
-      case InfoLevel.error:
-        return Icons.error_outline;
-    }
-  }
-
-  Color _getColorForLevel(InfoLevel level) {
-    switch (level) {
-      case InfoLevel.debug:
-        return Colors.blueAccent;
-      case InfoLevel.info:
-        return Colors.green;
-      case InfoLevel.warning:
-        return Colors.orangeAccent;
-      case InfoLevel.error:
-        return Colors.redAccent;
-    }
   }
 }
