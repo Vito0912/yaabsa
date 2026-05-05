@@ -67,6 +67,7 @@ class SettingKeys {
   static const String playbackSpeed = 'playback_speed';
   static const String volume = 'volume';
   static const String playerSeekBarMode = 'player_seek_bar_mode';
+  static const String playerSeekBarMarkerMode = 'player_seek_bar_marker_mode';
   static const String playerSeekBarShowChapterMarkers = 'player_seek_bar_show_chapter_markers';
   static const String lastPlayedQueueItem = 'last_played_queue_item';
 
@@ -139,6 +140,7 @@ final defaultSettings = {
   SettingKeys.playbackSpeed: 1.0,
   SettingKeys.volume: 1.0,
   SettingKeys.playerSeekBarMode: PlayerSeekBarMode.full.name,
+  SettingKeys.playerSeekBarMarkerMode: SeekBarMarkerMode.both.name,
   SettingKeys.playerSeekBarShowChapterMarkers: true,
   SettingKeys.subtitlesEnabled: true,
   SettingKeys.subtitleSpeakerHighlighting: true,
@@ -235,6 +237,72 @@ enum PlayerSeekBarMode {
         return 'Full';
       case PlayerSeekBarMode.both:
         return 'Both';
+    }
+  }
+}
+
+enum SeekBarMarkerMode {
+  none,
+  chapters,
+  bookmarks,
+  both;
+
+  static SeekBarMarkerMode fromSettingValue(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return SeekBarMarkerMode.both;
+    }
+
+    final normalized = value.trim().toLowerCase();
+
+    for (final mode in SeekBarMarkerMode.values) {
+      if (mode.name == normalized) {
+        return mode;
+      }
+    }
+
+    if (normalized.startsWith('seekbarmarkermode.')) {
+      final suffix = normalized.split('.').last;
+      for (final mode in SeekBarMarkerMode.values) {
+        if (mode.name == suffix) {
+          return mode;
+        }
+      }
+    }
+
+    if (normalized == 'true') {
+      return SeekBarMarkerMode.chapters;
+    }
+    if (normalized == 'false') {
+      return SeekBarMarkerMode.none;
+    }
+
+    for (final mode in SeekBarMarkerMode.values) {
+      if (mode.label.toLowerCase() == normalized) {
+        return mode;
+      }
+    }
+
+    return SeekBarMarkerMode.both;
+  }
+
+  bool get showChapterMarkers {
+    return this == SeekBarMarkerMode.chapters || this == SeekBarMarkerMode.both;
+  }
+
+  bool get showBookmarks {
+    return this == SeekBarMarkerMode.bookmarks || this == SeekBarMarkerMode.both;
+  }
+
+  String get label {
+    switch (this) {
+      case SeekBarMarkerMode.none:
+        return 'None';
+      case SeekBarMarkerMode.chapters:
+        return 'Only chapters';
+      case SeekBarMarkerMode.bookmarks:
+        return 'Only bookmarks';
+      case SeekBarMarkerMode.both:
+        return 'Bookmarks and chapters';
     }
   }
 }

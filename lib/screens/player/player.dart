@@ -14,6 +14,7 @@ import 'package:yaabsa/components/common/cover_zoom_view.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/screens/player/bookmarks_sheet.dart';
 import 'package:yaabsa/screens/player/car_mode_screen.dart';
 import 'package:yaabsa/screens/player/chapter.dart';
 import 'package:yaabsa/screens/player/play_history_view.dart';
@@ -30,16 +31,16 @@ import 'dart:async';
 
 enum _PlayerLayoutType { mobile, tablet, desktop }
 
-enum _PlayerAppBarMenuAction { queue, carMode, playHistory, cast }
+enum _PlayerAppBarMenuAction { queue, addBookmark, carMode, playHistory, cast }
 
-class Player extends StatefulWidget {
+class Player extends ConsumerStatefulWidget {
   const Player({super.key});
 
   @override
-  State<Player> createState() => _PlayerState();
+  ConsumerState<Player> createState() => _PlayerState();
 }
 
-class _PlayerState extends State<Player> {
+class _PlayerState extends ConsumerState<Player> {
   bool _didAutoOpenCarMode = false;
   StreamSubscription<AaosTelemetryState>? _aaosAutoOpenSubscription;
 
@@ -109,10 +110,28 @@ class _PlayerState extends State<Player> {
     );
   }
 
+  void _showBookmarksSheet(BuildContext context) {
+    final messenger = ScaffoldMessenger.of(context);
+    final media = audioHandler.currentMediaItem;
+    if (media == null) {
+      messenger.showSnackBar(const SnackBar(content: Text('No active media to bookmark.')));
+      return;
+    }
+
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (context) => PlayerBookmarksSheet(itemId: media.itemId, itemTitle: media.title),
+    );
+  }
+
   Future<void> _handleAppBarMenuAction(BuildContext context, _PlayerAppBarMenuAction action) async {
     switch (action) {
       case _PlayerAppBarMenuAction.queue:
         _showQueueSheet(context);
+      case _PlayerAppBarMenuAction.addBookmark:
+        _showBookmarksSheet(context);
       case _PlayerAppBarMenuAction.carMode:
         _openCarMode(context);
       case _PlayerAppBarMenuAction.playHistory:
@@ -136,6 +155,13 @@ class _PlayerState extends State<Player> {
         ),
       );
     }
+
+    items.add(
+      const PopupMenuItem<_PlayerAppBarMenuAction>(
+        value: _PlayerAppBarMenuAction.addBookmark,
+        child: _PlayerAppBarMenuItem(icon: Icons.bookmarks_outlined, label: 'Bookmarks'),
+      ),
+    );
 
     items.addAll([
       const PopupMenuItem<_PlayerAppBarMenuAction>(

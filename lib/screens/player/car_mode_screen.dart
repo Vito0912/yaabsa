@@ -139,7 +139,12 @@ class CarModeScreen extends ConsumerWidget {
                         SizedBox(height: topGap),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 12),
-                          child: const SeekBar(trackHeight: 20.0, timeLabelsBelow: true, timeLabelFontSize: 24.0),
+                          child: const SeekBar(
+                            trackHeight: 20.0,
+                            timeLabelsBelow: true,
+                            timeLabelFontSize: 24.0,
+                            previewLabelFontSize: 30.0,
+                          ),
                         ),
                         SizedBox(height: seekGap),
                         Row(
