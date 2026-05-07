@@ -7,6 +7,7 @@ class SeekBarRow extends StatelessWidget {
     super.key,
     required this.trackHeight,
     required this.timeLabelsBelow,
+    required this.showTimeLabels,
     required this.timeLabelFontSize,
     required this.previewLabelFontSize,
     required this.rangeStart,
@@ -23,6 +24,7 @@ class SeekBarRow extends StatelessWidget {
 
   final double trackHeight;
   final bool timeLabelsBelow;
+  final bool showTimeLabels;
   final double timeLabelFontSize;
   final double? previewLabelFontSize;
   final Duration rangeStart;
@@ -52,7 +54,7 @@ class SeekBarRow extends StatelessWidget {
       formatDuration(time),
       style: TextStyle(
         fontSize: timeLabelFontSize,
-        fontFamily: 'monospace',
+        fontFamily: !timeLabelsBelow ? 'monospace' : null,
         fontFeatures: const [FontFeature.tabularFigures()],
         color: colorScheme.onSurface.withValues(alpha: 0.9),
       ),
@@ -86,6 +88,10 @@ class SeekBarRow extends StatelessWidget {
       buildPreviewLabel: buildPreviewLabel,
       previewLabelFontSize: previewLabelFontSize,
     );
+
+    if (!showTimeLabels) {
+      return slider;
+    }
 
     if (timeLabelsBelow) {
       return Column(

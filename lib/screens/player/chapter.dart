@@ -1,12 +1,14 @@
 import 'package:yaabsa/models/internal_media.dart';
+import 'package:yaabsa/screens/player/player_empty_state_mode.dart';
 import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:flutter/material.dart';
 
 class ChapterView extends StatefulWidget {
-  const ChapterView({super.key, this.maxHeight});
+  const ChapterView({super.key, this.maxHeight, this.emptyMode = PlayerCollectionEmptyMode.full});
 
   final double? maxHeight;
+  final PlayerCollectionEmptyMode emptyMode;
 
   @override
   State<ChapterView> createState() => _ChapterViewState();
@@ -33,7 +35,14 @@ class _ChapterViewState extends State<ChapterView> {
         }
         final chapters = mediaItem.chapters;
         if (chapters == null || chapters.isEmpty) {
-          final empty = _ChapterEmptyState(title: mediaItem.title);
+          if (widget.emptyMode == PlayerCollectionEmptyMode.hide) {
+            return const SizedBox.shrink();
+          }
+
+          final empty = widget.emptyMode == PlayerCollectionEmptyMode.compact
+              ? const _ChapterCompactEmptyState()
+              : _ChapterEmptyState(title: mediaItem.title);
+
           if (widget.maxHeight != null) {
             return SizedBox(height: widget.maxHeight, child: empty);
           }
@@ -92,6 +101,30 @@ class _ChapterViewState extends State<ChapterView> {
           },
         );
       },
+    );
+  }
+}
+
+class _ChapterCompactEmptyState extends StatelessWidget {
+  const _ChapterCompactEmptyState();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.menu_book_outlined, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
+          const SizedBox(width: 6),
+          Text(
+            'No chapters available',
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -42,7 +42,7 @@ Below is a list of all features, but I want to *highlight* a few, as this client
 - subtitle support **with** karaoke-style highlighting support (later planned to be extended like Whispersync)
 - Support for all platforms Linux, Android, Android Automotive, iOS, macOS, Windows with responsive design
 - More actions directly via the notification player
-
+- You can **customize the player** components and move them around
 
 > [!NOTE]
 > Please note that this client is a mainly personal project I started because it lacks features\
@@ -135,7 +135,7 @@ Below is a list of all features, but I want to *highlight* a few, as this client
 
 The releases are used daily on Android and Linux. Other OSes should not break, but they are not tested more deeply. Issues with iOS should be easy to catch since, while not used daily, it is still used.
 
-### Linux
+### Linux requirements
 
 For the best experience and security, please use the Flatpak. It includes everything you need and is easy to remove later.
 The Snap package is currently broken and might be removed in the future.

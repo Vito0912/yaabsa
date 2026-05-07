@@ -219,13 +219,14 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
         ),
     ];
 
+    final appBarNotifier = ref.read(multiSelectAppBarProvider.notifier);
+
     void scheduleAppBarSync() {
       Future<void>(() {
         if (!context.mounted) {
           return;
         }
 
-        final appBarNotifier = ref.read(multiSelectAppBarProvider.notifier);
         if (selectionMode.value && effectiveSelectedItemIds.isNotEmpty) {
           appBarNotifier.update(
             MultiSelectAppBarState(
@@ -243,9 +244,7 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
     }
 
     void scheduleAppBarClearForScope() {
-      Future<void>(() {
-        ref.read(multiSelectAppBarProvider.notifier).clearIfOwner(scopeKey);
-      });
+      appBarNotifier.clearIfOwner(scopeKey);
     }
 
     useEffect(

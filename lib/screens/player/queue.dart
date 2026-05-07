@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:yaabsa/screens/player/player_empty_state_mode.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/handler/bg_audio_handler.dart';
 
 class PlayerQueueView extends StatelessWidget {
-  const PlayerQueueView({super.key, this.showEmptyIcon = true});
+  const PlayerQueueView({super.key, this.showEmptyIcon = true, this.emptyMode = PlayerCollectionEmptyMode.full});
 
   final bool showEmptyIcon;
+  final PlayerCollectionEmptyMode emptyMode;
 
   @override
   Widget build(BuildContext context) {
@@ -18,6 +20,14 @@ class PlayerQueueView extends StatelessWidget {
         final entries = queueSnapshot.entries;
 
         if (entries.isEmpty) {
+          if (emptyMode == PlayerCollectionEmptyMode.hide) {
+            return const SizedBox.shrink();
+          }
+
+          if (emptyMode == PlayerCollectionEmptyMode.compact) {
+            return const _QueueCompactEmptyState();
+          }
+
           return _QueueEmptyState(
             showIcon: showEmptyIcon,
             autoQueueRemaining: queueSnapshot.autoQueueRemaining,
@@ -52,6 +62,30 @@ class PlayerQueueView extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+class _QueueCompactEmptyState extends StatelessWidget {
+  const _QueueCompactEmptyState();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.queue_music_rounded, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
+          const SizedBox(width: 6),
+          Text(
+            'Queue is empty',
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+          ),
+        ],
+      ),
     );
   }
 }

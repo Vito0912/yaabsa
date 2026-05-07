@@ -15,12 +15,14 @@ class SeekBar extends ConsumerWidget {
     super.key,
     this.trackHeight = 10.0,
     this.timeLabelsBelow = false,
+    this.showTimeLabels = true,
     this.timeLabelFontSize = 12.0,
     this.previewLabelFontSize,
   });
 
   final double trackHeight;
   final bool timeLabelsBelow;
+  final bool showTimeLabels;
   final double timeLabelFontSize;
   final double? previewLabelFontSize;
 
@@ -155,6 +157,7 @@ class SeekBar extends ConsumerWidget {
                     SeekBarRow(
                       trackHeight: trackHeight,
                       timeLabelsBelow: timeLabelsBelow,
+                      showTimeLabels: showTimeLabels,
                       timeLabelFontSize: timeLabelFontSize,
                       previewLabelFontSize: previewLabelFontSize,
                       rangeStart: chapterStart,
@@ -180,6 +183,7 @@ class SeekBar extends ConsumerWidget {
                     SeekBarRow(
                       trackHeight: trackHeight,
                       timeLabelsBelow: timeLabelsBelow,
+                      showTimeLabels: showTimeLabels,
                       timeLabelFontSize: timeLabelFontSize,
                       previewLabelFontSize: previewLabelFontSize,
                       rangeStart: Duration.zero,

@@ -173,8 +173,8 @@ class _SubtitleContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final padding = compact
-        ? const EdgeInsets.symmetric(horizontal: 8, vertical: 7)
-        : const EdgeInsets.symmetric(horizontal: 10, vertical: 9);
+        ? const EdgeInsets.symmetric(horizontal: 4, vertical: 4)
+        : const EdgeInsets.symmetric(horizontal: 4, vertical: 4);
 
     return Padding(
       padding: EdgeInsets.only(top: compact ? 4 : 6),
@@ -239,19 +239,7 @@ class _SubtitleCueView extends StatelessWidget {
 
     final cueWindow = Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [content]);
 
-    final accent = accentColor;
-    if (accent == null) {
-      return cueWindow;
-    }
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: accent.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(8),
-        border: Border(left: BorderSide(color: accent, width: 3.0)),
-      ),
-      child: Padding(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6), child: cueWindow),
-    );
+    return SingleChildScrollView(child: cueWindow);
   }
 }
 
@@ -262,6 +250,8 @@ class _EmptySubtitleBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(height: compact ? 18 : 22, width: double.infinity);
+    return Center(
+      child: SizedBox(height: compact ? 18 : 22, width: double.infinity),
+    );
   }
 }

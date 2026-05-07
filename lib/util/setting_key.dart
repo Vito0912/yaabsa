@@ -69,6 +69,7 @@ class SettingKeys {
   static const String playerSeekBarMode = 'player_seek_bar_mode';
   static const String playerSeekBarMarkerMode = 'player_seek_bar_marker_mode';
   static const String playerSeekBarShowChapterMarkers = 'player_seek_bar_show_chapter_markers';
+  static const String playerLayoutConfig = 'player_layout_config';
   static const String lastPlayedQueueItem = 'last_played_queue_item';
 
   static const String subtitlesEnabled = 'subtitles_enabled';
@@ -142,6 +143,7 @@ final defaultSettings = {
   SettingKeys.playerSeekBarMode: PlayerSeekBarMode.full.name,
   SettingKeys.playerSeekBarMarkerMode: SeekBarMarkerMode.both.name,
   SettingKeys.playerSeekBarShowChapterMarkers: true,
+  SettingKeys.playerLayoutConfig: '',
   SettingKeys.subtitlesEnabled: true,
   SettingKeys.subtitleSpeakerHighlighting: true,
   SettingKeys.subtitleReadAlong: true,

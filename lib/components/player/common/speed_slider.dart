@@ -17,10 +17,23 @@ class SpeedSlider extends StatelessWidget {
       initialData: defaultSpeed,
       builder: (context, snapshot) {
         final speed = (snapshot.data ?? defaultSpeed).clamp(minSpeed, maxSpeed);
-        return OutlinedButton.icon(
-          onPressed: () => _openSpeedSheet(context, speed),
-          icon: const Icon(Icons.speed_rounded),
-          label: Text('Speed ${speed.toStringAsFixed(1)}x'),
+        return SizedBox(
+          height: 48,
+          width: 48,
+
+          child: IconButton(
+            onPressed: () => _openSpeedSheet(context, speed),
+
+            icon: Text(
+              '${speed.toStringAsFixed(1)}x',
+              style: TextStyle(
+                letterSpacing: -1.25,
+                fontFeatures: [const FontFeature.tabularFigures()],
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                fontSize: 16,
+              ),
+            ),
+          ),
         );
       },
     );

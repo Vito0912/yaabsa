@@ -27,6 +27,9 @@ analyzer:
   errors:
     invalid_annotation_target: ignore
     todo: ignore
+  exclude:
+    - packages/**
+
 formatter:
   page_width: 120
 

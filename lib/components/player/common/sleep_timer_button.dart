@@ -10,12 +10,20 @@ class SleepTimerButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final sleepTimer = ref.watch(sleepTimerHandlerProvider);
     final isActive = sleepTimer.isActive;
-    final label = isActive ? 'Sleep ${_formatTime(sleepTimer.remainingTime)}' : 'Sleep timer';
 
-    return OutlinedButton.icon(
-      onPressed: () => _showSleepTimerModal(context, ref),
-      icon: Icon(isActive ? Icons.bedtime : Icons.bedtime_outlined),
-      label: Text(label),
+    return SizedBox(
+      width: 48,
+      height: 48,
+      child: IconButton(
+        onPressed: () => _showSleepTimerModal(context, ref),
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+        icon: isActive
+            ? Text(
+                _formatTime(sleepTimer.remainingTime),
+                style: TextStyle(color: Colors.lightGreenAccent.withValues(alpha: 0.8)),
+              )
+            : Icon(isActive ? Icons.bedtime : Icons.bedtime_outlined),
+      ),
     );
   }
 
@@ -25,9 +33,9 @@ class SleepTimerButton extends ConsumerWidget {
     final seconds = duration.inSeconds.remainder(60);
 
     if (hours > 0) {
-      return '${hours}h ${minutes}m';
+      return '${hours}h';
     } else if (minutes > 0) {
-      return '${minutes}m ${seconds}s';
+      return '${minutes}m';
     } else {
       return '${seconds}s';
     }
