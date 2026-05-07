@@ -653,7 +653,7 @@ jobs:
             echo "Android Auto app bundle not found."
             exit 1
           fi
-          cp "${auto_bundle_candidates[0]}" "output/android/auto/yaabsa_${FILE_VERSION}.appbundle"
+          cp "${auto_bundle_candidates[0]}" "output/android/auto/yaabsa_${FILE_VERSION}.aab"
 
           auto_apk_candidates=(build/app/outputs/flutter-apk/*auto-release*.apk)
           if [[ ${#auto_apk_candidates[@]} -eq 0 ]]; then
@@ -672,7 +672,7 @@ jobs:
             echo "Android Automotive app bundle not found."
             exit 1
           fi
-          cp "${aaos_bundle_candidates[0]}" "output/android/aaos/yaabsa_AAOS_${FILE_VERSION}.appbundle"
+          cp "${aaos_bundle_candidates[0]}" "output/android/aaos/yaabsa_AAOS_${FILE_VERSION}.aab"
 
           aaos_apk_candidates=(build/app/outputs/flutter-apk/*automotive-release*.apk)
           if [[ ${#aaos_apk_candidates[@]} -eq 0 ]]; then
@@ -690,7 +690,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: android-appbundle
-          path: output/android/auto/*.appbundle
+          path: output/android/auto/*.aab
 
       - name: Upload Android apk artifact
         uses: actions/upload-artifact@v7
@@ -702,7 +702,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: android-automotive-appbundle
-          path: output/android/aaos/*.appbundle
+          path: output/android/aaos/*.aab
 
       - name: Upload Android Automotive apk artifact
         uses: actions/upload-artifact@v7
@@ -811,7 +811,7 @@ jobs:
           path: output/windows/yaabsa_*.zip
 
   create-prerelease:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     needs:
       - changes
       - build-linux
@@ -868,3 +868,52 @@ jobs:
             You can download the built artifacts from the "Assets" section below.
           files: |
             dist/*
+
+  publish-android:
+    runs-on: ubuntu-slim
+    needs: create-prerelease
+    if: ${{ needs.changes.outputs.version_bumped == 'true' && needs.changes.outputs.build_skip != 'true' }}
+    steps:
+      - name: Download Android artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: android-appbundle
+          path: android-release
+
+      - name: Download Android Automotive artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: android-automotive-appbundle
+          path: android-automotive-release
+
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Move files
+        run: |
+          mv android-release/*.aab android-release/yaabsa.aab
+          mv android-automotive-release/*.aab android-automotive-release/yaabsa_aaos.aab
+
+      - name: Publish Android appbundle to Play Store
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
+          packageName: de.vito0912.yaabsa
+          releaseFile: android-release/yaabsa.aab
+          track: qa
+          releaseName: ${{ needs.changes.outputs.release_tag }}
+          status: completed
+          inAppUpdatePriority: 2
+          whatsNewDirectory: android/whatsnew
+
+      - name: Publish Android Automotive appbundle to Play Store
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
+          packageName: de.vito0912.yaabsa
+          releaseFile: android-automotive-release/yaabsa_aaos.aab
+          track: automotive:qa
+          releaseName: ${{ needs.changes.outputs.release_tag }} AAOS
+          status: completed
+          inAppUpdatePriority: 2
+          whatsNewDirectory: android/whatsnew
