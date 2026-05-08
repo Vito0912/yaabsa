@@ -6,7 +6,7 @@ import 'package:yaabsa/util/globals.dart';
 
 enum PlayerComponentType { cover, mediaInfo, seekBar, controls, utilities, subtitles, chapters, queue }
 
-enum PlayerUtilityType { sleepTimer, speed, chapter, volume }
+enum PlayerUtilityType { sleepTimer, speed, chapter, volume, queue }
 
 enum PlayerLayoutScreenSize {
   mobile,
@@ -218,6 +218,8 @@ extension PlayerUtilityTypeX on PlayerUtilityType {
         return 'Chapter Picker';
       case PlayerUtilityType.volume:
         return 'Volume';
+      case PlayerUtilityType.queue:
+        return 'Queue';
     }
   }
 
@@ -277,6 +279,7 @@ const List<PlayerUtilityType> defaultPlayerUtilityOrder = <PlayerUtilityType>[
   PlayerUtilityType.chapter,
   PlayerUtilityType.volume,
   PlayerUtilityType.sleepTimer,
+  PlayerUtilityType.queue,
 ];
 
 const Map<PlayerComponentType, PlayerComponentConstraints> _componentConstraints =
@@ -934,11 +937,11 @@ List<PlayerUtilityType> _defaultUtilityOrderForScreen(PlayerLayoutScreenSize scr
 List<PlayerUtilityType> _defaultHiddenUtilitiesForScreen(PlayerLayoutScreenSize screenSize) {
   switch (screenSize) {
     case PlayerLayoutScreenSize.mobile:
-      return const <PlayerUtilityType>[PlayerUtilityType.volume];
+      return const <PlayerUtilityType>[];
     case PlayerLayoutScreenSize.tablet:
-      return const <PlayerUtilityType>[PlayerUtilityType.chapter, PlayerUtilityType.volume];
+      return const <PlayerUtilityType>[PlayerUtilityType.chapter, PlayerUtilityType.queue];
     case PlayerLayoutScreenSize.desktop:
-      return const <PlayerUtilityType>[PlayerUtilityType.volume, PlayerUtilityType.chapter];
+      return const <PlayerUtilityType>[PlayerUtilityType.chapter, PlayerUtilityType.queue];
   }
 }
 

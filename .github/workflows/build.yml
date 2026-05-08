@@ -874,6 +874,9 @@ jobs:
     needs: create-prerelease
     if: ${{ needs.changes.outputs.version_bumped == 'true' && needs.changes.outputs.build_skip != 'true' }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
       - name: Download Android artifacts
         uses: actions/download-artifact@v8
         with:
@@ -885,9 +888,6 @@ jobs:
         with:
           name: android-automotive-appbundle
           path: android-automotive-release
-
-      - name: Checkout
-        uses: actions/checkout@v6
 
       - name: Move files
         run: |

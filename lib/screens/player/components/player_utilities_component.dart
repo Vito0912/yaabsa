@@ -4,6 +4,7 @@ import 'package:yaabsa/components/player/common/speed_slider.dart';
 import 'package:yaabsa/components/player/common/volume_slider.dart';
 import 'package:yaabsa/screens/player/chapter_quick_picker.dart';
 import 'package:yaabsa/screens/player/layout/player_layout_config.dart';
+import 'package:yaabsa/screens/player/queue_quick_picker.dart';
 
 class PlayerUtilitiesComponent extends StatelessWidget {
   const PlayerUtilitiesComponent({
@@ -48,6 +49,8 @@ class PlayerUtilitiesComponent extends StatelessWidget {
         return ChapterQuickPicker(enabled: hasChapters);
       case PlayerUtilityType.volume:
         return const VolumeSlider();
+      case PlayerUtilityType.queue:
+        return const QueueQuickPicker();
     }
   }
 }
