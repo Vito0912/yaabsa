@@ -900,7 +900,7 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           packageName: de.vito0912.yaabsa
           releaseFile: android-release/yaabsa.aab
-          track: qa
+          track: internal
           releaseName: ${{ needs.changes.outputs.release_tag }}
           status: completed
           inAppUpdatePriority: 2
@@ -912,7 +912,7 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           packageName: de.vito0912.yaabsa
           releaseFile: android-automotive-release/yaabsa_aaos.aab
-          track: automotive:qa
+          track: automotive:internal
           releaseName: ${{ needs.changes.outputs.release_tag }} AAOS
           status: completed
           inAppUpdatePriority: 2
