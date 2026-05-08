@@ -20,6 +20,7 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/auth/widgets/glow_orb.dart';
 import 'package:yaabsa/screens/auth/widgets/sign_in_advanced_options.dart';
 import 'package:yaabsa/screens/auth/widgets/sign_in_auth_section.dart';
+import 'package:yaabsa/screens/auth/widgets/sign_in_error_panel.dart';
 import 'package:yaabsa/screens/auth/widgets/sign_in_header_editor_dialog.dart';
 import 'package:yaabsa/screens/auth/widgets/sign_in_server_status.dart';
 import 'package:yaabsa/util/logger.dart';
@@ -40,6 +41,7 @@ class SignIn extends HookConsumerWidget {
     final useApiKey = useState(false);
     final isStatusLoading = useState(false);
     final errorMessage = useState<String?>(null);
+    final loginErrorDetails = useState<String?>(null);
     final status = useState<ServerStatus?>(null);
     final statusError = useState<String?>(null);
     final lastCheckedServer = useState<String?>(null);
@@ -64,6 +66,11 @@ class SignIn extends HookConsumerWidget {
         ),
         basePathOverride: baseUrl,
       );
+    }
+
+    void setErrorMessage(String? message, {String? details}) {
+      errorMessage.value = message;
+      loginErrorDetails.value = details;
     }
 
     Future<void> showHeaderEditor({String? originalHeaderName}) async {
@@ -100,7 +107,7 @@ class SignIn extends HookConsumerWidget {
 
     Future<ServerStatus?> fetchStatus({required bool showErrors}) async {
       if (showErrors) {
-        errorMessage.value = null;
+        setErrorMessage(null);
       }
 
       final normalizedServer = _normalizeServerAddress(serverAddressController.text.trim());
@@ -215,24 +222,24 @@ class SignIn extends HookConsumerWidget {
     }
 
     Future<void> validateAndSignIn() async {
-      errorMessage.value = null;
+      setErrorMessage(null);
 
       final normalizedServer = _normalizeServerAddress(serverAddressController.text.trim());
       if (normalizedServer == null) {
-        errorMessage.value = 'Please enter a valid server address.';
+        setErrorMessage('Please enter a valid server address.');
         return;
       }
       _setControllerTextKeepingCursor(serverAddressController, normalizedServer);
 
       final currentStatus = await ensureStatusForServer(normalizedServer, showErrors: true);
       if (currentStatus == null) {
-        errorMessage.value = statusError.value ?? 'Unable to verify server status.';
+        setErrorMessage(statusError.value ?? 'Unable to verify server status.');
         return;
       }
 
       final allowsLocal = currentStatus.authMethods.contains('local');
       if (!useApiKey.value && !allowsLocal) {
-        errorMessage.value = 'Local login is disabled on this server. Use OpenID Connect instead.';
+        setErrorMessage('Local login is disabled on this server. Use OpenID Connect instead.');
         return;
       }
 
@@ -246,7 +253,7 @@ class SignIn extends HookConsumerWidget {
         if (useApiKey.value) {
           final apiKey = apiKeyController.text.trim();
           if (apiKey.isEmpty) {
-            errorMessage.value = 'API key is required.';
+            setErrorMessage('API key is required.');
             return;
           }
 
@@ -257,7 +264,7 @@ class SignIn extends HookConsumerWidget {
           final userResponse = await api.getMeApi().getUser();
           final userData = userResponse.data;
           if (userData == null) {
-            errorMessage.value = 'API key authentication failed: Invalid response.';
+            setErrorMessage('API key authentication failed: Invalid response.');
             return;
           }
 
@@ -268,7 +275,7 @@ class SignIn extends HookConsumerWidget {
           final password = passwordController.text;
 
           if (username.isEmpty || password.isEmpty) {
-            errorMessage.value = 'Username and password are required.';
+            setErrorMessage('Username and password are required.');
             return;
           }
 
@@ -284,7 +291,7 @@ class SignIn extends HookConsumerWidget {
           final loginData = apiResponse.data;
 
           if (loginData == null) {
-            errorMessage.value = 'Login failed: Invalid response from server.';
+            setErrorMessage('Login failed: Invalid response from server.');
             return;
           }
 
@@ -325,33 +332,36 @@ class SignIn extends HookConsumerWidget {
         if (!context.mounted) return;
         context.go('/');
       } on DioException catch (e) {
-        errorMessage.value = _parseDioErrorMessage(e, fallback: 'Login failed.');
-      } catch (e) {
-        errorMessage.value = 'Login failed: $e';
+        setErrorMessage(_parseDioErrorMessage(e, fallback: 'Login failed.'), details: null);
+      } catch (e, s) {
+        setErrorMessage(
+          'Login failed: $e',
+          details: _buildLoginErrorDetails(error: e, stackTrace: s),
+        );
       } finally {
         isLoading.value = false;
       }
     }
 
     Future<void> startOpenIdConnect() async {
-      errorMessage.value = null;
+      setErrorMessage(null);
 
       final normalizedServer = _normalizeServerAddress(serverAddressController.text.trim());
       if (normalizedServer == null) {
-        errorMessage.value = 'Please enter a valid server address first.';
+        setErrorMessage('Please enter a valid server address first.');
         return;
       }
       _setControllerTextKeepingCursor(serverAddressController, normalizedServer);
 
       final currentStatus = await ensureStatusForServer(normalizedServer, showErrors: true);
       if (currentStatus == null) {
-        errorMessage.value = statusError.value ?? 'Unable to verify server status.';
+        setErrorMessage(statusError.value ?? 'Unable to verify server status.');
         return;
       }
 
       final allowsOpenId = currentStatus.authMethods.contains('openid');
       if (!allowsOpenId) {
-        errorMessage.value = 'OpenID Connect is not enabled on this server.';
+        setErrorMessage('OpenID Connect is not enabled on this server.');
         return;
       }
 
@@ -374,7 +384,7 @@ class SignIn extends HookConsumerWidget {
       final launched = await launchUrl(authUri, mode: LaunchMode.externalApplication);
 
       if (!launched && context.mounted) {
-        errorMessage.value = 'Could not open the OpenID login page.';
+        setErrorMessage('Could not open the OpenID login page.');
         return;
       }
 
@@ -528,6 +538,10 @@ class SignIn extends HookConsumerWidget {
                             onValidateAndSignIn: validateAndSignIn,
                             onStartOpenIdConnect: startOpenIdConnect,
                           ),
+                          if (errorMessage.value != null) ...[
+                            const SizedBox(height: 12),
+                            SignInErrorPanel(message: errorMessage.value!, stackTraceDetails: loginErrorDetails.value),
+                          ],
                           SignInAdvancedOptions(
                             isExpanded: advancedOptionsExpanded.value,
                             onExpandedChanged: (value) => advancedOptionsExpanded.value = value,
@@ -536,7 +550,7 @@ class SignIn extends HookConsumerWidget {
                             useApiKey: useApiKey.value,
                             onUseApiKeyChanged: (value) {
                               useApiKey.value = value;
-                              errorMessage.value = null;
+                              setErrorMessage(null);
                               if (value) {
                                 advancedOptionsExpanded.value = true;
                               }
@@ -546,14 +560,6 @@ class SignIn extends HookConsumerWidget {
                             onEditHeader: (headerName) => showHeaderEditor(originalHeaderName: headerName),
                             onRemoveHeader: removeHeader,
                           ),
-                          if (errorMessage.value != null) ...[
-                            const SizedBox(height: 12),
-                            Text(
-                              errorMessage.value!,
-                              textAlign: TextAlign.center,
-                              style: textTheme.bodyMedium?.copyWith(color: colorScheme.error),
-                            ),
-                          ],
                         ],
                       ),
                     ),
@@ -604,6 +610,18 @@ String _parseDioErrorMessage(DioException exception, {required String fallback})
   }
 
   return fallback;
+}
+
+String _buildLoginErrorDetails({required Object error, required StackTrace stackTrace}) {
+  final buffer = StringBuffer()
+    ..writeln('Error: $error')
+    ..writeln('Type: ${error.runtimeType}');
+
+  buffer
+    ..writeln('Stack trace:')
+    ..writeln(stackTrace.toString());
+
+  return buffer.toString();
 }
 
 String _generateCodeVerifier() {
