@@ -4,7 +4,7 @@
         android:required="true" />
 
     <application>
-        <activity android:name="com.ryanheise.audioservice.AudioServiceActivity">
+        <activity android:name="de.vito0912.yaabsa.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

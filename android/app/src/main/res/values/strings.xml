@@ -1,4 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">yaabsa</string>
+    <string name="widget_player_name">Yaabsa Player</string>
+    <string name="widget_player_description">Now playing controls</string>
+    <string name="widget_player_title_default">Now playing</string>
+    <string name="widget_player_artwork_desc">Current playback artwork</string>
+    <string name="widget_player_previous">Previous</string>
+    <string name="widget_player_rewind">Jump back</string>
+    <string name="widget_player_play_pause">Play or pause</string>
+    <string name="widget_player_fast_forward">Jump forward</string>
+    <string name="widget_player_next">Next</string>
+    <string name="widget_player_stop">Stop playback</string>
+
+    <string name="widget_shelf_name">Yaabsa Shelf Card</string>
+    <string name="widget_shelf_description">Shows items from one shelf</string>
+    <string name="widget_shelf_title_default">Shelf</string>
+    <string name="widget_shelf_configure">Configure shelf</string>
+
+    <string name="widget_quick_play_name">Yaabsa Quick Play</string>
+    <string name="widget_quick_play_description">Resume your last audiobook instantly</string>
+    <string name="widget_quick_play_title">Quick Play</string>
+    <string name="widget_quick_play_subtitle">Last audiobook</string>
+    <string name="widget_quick_play_subtitle_default">Last audiobook</string>
+    <string name="widget_quick_play_cover_desc">Cover of last played item</string>
+    <string name="widget_quick_play_button">Play last audiobook</string>
+
+    <string name="widget_config_title">Choose Shelf</string>
+    <string name="widget_config_subtitle">Select the shelf this widget should display.</string>
+    <string name="widget_config_populate_all">Populate all</string>
+    <string name="widget_config_cancel">Cancel</string>
 </resources>

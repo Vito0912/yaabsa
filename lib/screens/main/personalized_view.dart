@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
@@ -23,6 +25,7 @@ import 'package:yaabsa/provider/library/personalized_library_provider.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/util/widget_bridge.dart';
 
 class PersonalizedView extends HookConsumerWidget {
   const PersonalizedView({super.key});
@@ -47,6 +50,50 @@ class PersonalizedView extends HookConsumerWidget {
     );
     final currentUser = ref.watch(currentUserProvider).value;
     final mediaProgressMap = ref.watch(mediaProgressProvider).asData?.value ?? const <String, MediaProgress>{};
+    final personalizedLibraryForWidgets = personalizedLibraryAsyncValue.asData?.value;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final appLifecycleState = useAppLifecycleState();
+
+    useEffect(
+      () {
+        final personalizedLibrary = personalizedLibraryForWidgets;
+        if (personalizedLibrary == null) {
+          return null;
+        }
+
+        unawaited(
+          Future<void>(() async {
+            await WidgetBridge.publishPersonalizedLibrarySnapshots(
+              userId: currentUser?.id,
+              userName: currentUser?.username,
+              libraryId: selectedLibrary.id,
+              libraryName: selectedLibrary.name,
+              personalizedLibrary: personalizedLibrary,
+              isDarkMode: isDarkMode,
+            );
+
+            if (appLifecycleState == AppLifecycleState.resumed) {
+              final shouldPopulateAll = await WidgetBridge.consumePopulateAllRequest();
+              if (shouldPopulateAll) {
+                await WidgetBridge.triggerWidgetUpdate();
+              }
+            }
+          }),
+        );
+
+        return null;
+      },
+      [
+        selectedLibrary.id,
+        selectedLibrary.name,
+        personalizedLibraryForWidgets,
+        isDarkMode,
+        appLifecycleState,
+        currentUser?.id,
+        currentUser?.username,
+        currentUser?.preferredAuthToken,
+      ],
+    );
 
     Future<void> refreshPersonalizedLibrary({bool withLoading = false}) {
       return ref
