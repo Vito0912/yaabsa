@@ -127,6 +127,7 @@ Below is a list of all features, but I want to *highlight* a few, as this client
 | Tray/Statusbar Icon | ❌      | ❌   | ❓      | ❓    | ✅    |
 | Car                 | ✅      | 🅿️   | ❌      | ❌    | ❌    |
 | Android Automotive  | ✅\**   | ❌   | ❌      | ❌    | ❌    |
+| Widgets             | ✅      | 🅿️   | ❌      | ❌    | 🅿️    |
 
 \* Only supports the default download location, due to sandboxing limitations. Will be addressed in the future.
 \** On most cars, only the park experience works currently. More support is planned.
