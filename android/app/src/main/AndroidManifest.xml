@@ -14,7 +14,7 @@
             android:usesCleartextTraffic="true"
             android:networkSecurityConfig="@xml/network_security_config">
         <activity
-                android:name="com.ryanheise.audioservice.AudioServiceActivity"
+            android:name="de.vito0912.yaabsa.MainActivity"
                 android:exported="true"
                 android:launchMode="singleTop"
                 android:taskAffinity=""
@@ -71,6 +71,48 @@
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
         </receiver>
+
+        <receiver
+            android:name="de.vito0912.yaabsa.PlayerControlWidgetProvider"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/player_control_widget_info" />
+        </receiver>
+
+        <receiver
+            android:name="de.vito0912.yaabsa.ShelfCardWidgetProvider"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/shelf_card_widget_info" />
+        </receiver>
+
+        <receiver
+            android:name="de.vito0912.yaabsa.QuickPlayWidgetProvider"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/quick_play_widget_info" />
+        </receiver>
+
+        <activity
+            android:name="de.vito0912.yaabsa.WidgetConfigActivity"
+            android:exported="true"
+            android:label="@string/widget_shelf_name"
+            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

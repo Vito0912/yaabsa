@@ -56,6 +56,7 @@ const String _androidAutoCustomActionSpeed = 'aa.custom.speed';
 const String _androidAutoCustomActionMoreMenu = 'aa.custom.more.menu';
 const String _androidAutoCustomActionMoreClose = 'aa.custom.more.close';
 const String _androidAutoCustomActionStop = 'aa.custom.stop';
+const String _widgetCustomActionPlayLast = 'widget.play_last';
 
 const String _androidAutoIconReplay = 'drawable/replay';
 const String _androidAutoIconForwardMedia = 'drawable/forward_media';
@@ -596,6 +597,12 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   @override
   Future<dynamic> customAction(String name, [Map<String, dynamic>? extras]) async {
+    if (name == _widgetCustomActionPlayLast) {
+      final started = await playLastPlayed();
+      logger('Widget custom action: play last (started=$started)', tag: 'AudioHandler', level: InfoLevel.info);
+      return <String, dynamic>{'handled': true, 'started': started};
+    }
+
     if (name == _androidAutoCustomActionRewind) {
       _setAndroidAutoMoreMenuVisible(false);
 
