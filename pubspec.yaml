@@ -3,7 +3,7 @@ description: "An improved cross-platform app for Audiobookshelf"
 publish_to: 'none'
 
 # Always use even numbers!
-version: 1.1.10+30
+version: 1.1.11+32
 
 environment:
   sdk: ^3.8.0
