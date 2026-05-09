@@ -4,12 +4,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
+import 'package:yaabsa/components/app/item/item_more_actions_button.dart';
+import 'package:yaabsa/components/app/item/item_progress_actions.dart';
 import 'package:yaabsa/components/app/item/library_item_view_components.dart';
 import 'package:yaabsa/components/common/connection_issue_view.dart';
 import 'package:yaabsa/components/common/cover_zoom_view.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/models/internal_download.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/screens/player/play_history_view.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/item_view_navigation.dart';
@@ -191,6 +194,19 @@ class LibraryItemBookView extends ConsumerWidget {
                                     }
 
                                     audioHandler.addLibraryItemToQueue(item);
+                                  },
+                                  onMoreActionSelected: (action) async {
+                                    switch (action) {
+                                      case ItemMoreAction.markAsFinished:
+                                        await markLibraryItemAsFinished(context: context, ref: ref, item: item);
+                                        return;
+                                      case ItemMoreAction.playHistory:
+                                        if (!context.mounted) {
+                                          return;
+                                        }
+                                        context.push(PlayHistoryView.routeName);
+                                        return;
+                                    }
                                   },
                                 ),
                                 metadataRows: metadataRows,

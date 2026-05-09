@@ -6,6 +6,8 @@ import 'package:just_audio/just_audio.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/me/media_progress.dart';
+import 'package:yaabsa/components/app/item/item_more_actions_button.dart';
+import 'package:yaabsa/components/app/item/item_progress_actions.dart';
 import 'package:yaabsa/components/common/connection_issue_view.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/models/internal_download.dart';
@@ -16,6 +18,7 @@ import 'package:yaabsa/screens/item/podcast/podcast_episode_tile.dart';
 import 'package:yaabsa/screens/item/podcast/podcast_episode_utils.dart';
 import 'package:yaabsa/screens/item/podcast/podcast_episodes_header_card.dart';
 import 'package:yaabsa/screens/item/podcast/podcast_header_card.dart';
+import 'package:yaabsa/screens/player/play_history_view.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/handler/bg_audio_handler.dart';
 
@@ -122,6 +125,19 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                                   onPlayLatest: firstPlayableEpisode == null
                                       ? null
                                       : () => _playEpisode(firstPlayableEpisode, visibleEpisodes),
+                                  onMoreActionSelected: (action) async {
+                                    switch (action) {
+                                      case ItemMoreAction.markAsFinished:
+                                        await markLibraryItemAsFinished(context: context, ref: ref, item: widget.item);
+                                        return;
+                                      case ItemMoreAction.playHistory:
+                                        if (!context.mounted) {
+                                          return;
+                                        }
+                                        context.push(PlayHistoryView.routeName);
+                                        return;
+                                    }
+                                  },
                                   onToggleDescription: () {
                                     setState(() {
                                       _showFullDescription = !_showFullDescription;

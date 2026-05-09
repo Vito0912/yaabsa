@@ -256,9 +256,9 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
     }
   }
 
-  Future<void> refreshAllProgress() async {
+  Future<void> refreshAllProgress({bool clearBefore = true}) async {
     final previousMap = state.asData?.value ?? <String, MediaProgress>{};
-    state = const AsyncLoading<Map<String, MediaProgress>>();
+    if (clearBefore) state = const AsyncLoading<Map<String, MediaProgress>>();
 
     final userId = _activeUserId();
     final localMap = await _loadLocalProgressMap(userId: userId);
