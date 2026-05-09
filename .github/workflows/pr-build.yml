@@ -102,9 +102,22 @@ jobs:
           echo "Update the PR body using the template and select at least one platform."
           exit 1
 
-  build-linux:
+  check-requirements:
     runs-on: ubuntu-latest
     needs: detect-targets
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          
+      - name: Run check
+        uses: ./.github/actions/check-requirements
+
+  build-linux:
+    runs-on: ubuntu-latest
+    needs: check-requirements
     if: ${{ needs.detect-targets.outputs.linux == 'true' }}
     permissions:
       contents: read
@@ -148,7 +161,7 @@ jobs:
 
   build-windows:
     runs-on: windows-latest
-    needs: detect-targets
+    needs: check-requirements
     if: ${{ needs.detect-targets.outputs.windows == 'true' }}
     permissions:
       contents: read
@@ -177,7 +190,7 @@ jobs:
 
   build-android-auto:
     runs-on: ubuntu-latest
-    needs: detect-targets
+    needs: check-requirements
     if: ${{ needs.detect-targets.outputs.android_auto == 'true' }}
     permissions:
       contents: read
@@ -212,7 +225,7 @@ jobs:
 
   build-android-automotive:
     runs-on: ubuntu-latest
-    needs: detect-targets
+    needs: check-requirements
     if: ${{ needs.detect-targets.outputs.android_automotive == 'true' }}
     permissions:
       contents: read

@@ -157,51 +157,9 @@ jobs:
         with:
           submodules: recursive
 
-      # For context for contributors:
-      # The flatpak run depends on the launchpad PPA, because Ubuntu 24.04 does not ship with the latest flatpak-builder
-      # Thus the PPA repo is needed. At the time of writing (05.05.2026) Canonical has massive issues with providing stable connection
-      # For now over 4 days. To not spend useless resources, this check needs to be passed before doing anything else.
-      # Once GitHub runners support Ubuntu 26 this is not required anymore. The addition of the ppa should then also be removed from that build step
-      - name: Check if launchpad is reachable
-        run: |
-          if ! curl -sSf https://ppa.launchpadcontent.net/flatpak/stable/ubuntu > /dev/null; then
-            echo "Launchpad API is not reachable"
-            exit 1
-          fi
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Check formatting
-        run: dart format --set-exit-if-changed lib
-
-      - name: Check generated files
-        run: dart run build_runner build --delete-conflicting-outputs
-
-      - name: Format
-        run: dart format lib
-
-      - name: Check if files changed
-        run: |
-          if [[ -n $(git status --porcelain) ]]; then
-            echo "Generated files are not up to date. Please run 'dart run build_runner build --delete-conflicting-outputs' and commit the changes."
-            exit 1
-          fi
-
-      - name: Check if flutter fixes are available
-        run: dart fix lib/ --dry-run | grep "Nothing to fix!" || (echo "Flutter fixes are
-          available. Please run 'dart fix . --apply' and commit the changes." &&
-          exit 1)
-
-      - name: Check if errors are present
-        run: flutter analyze lib | grep "No issues found!" || (echo "Analyzer found issues in yaabsa sources. Please fix them and commit the changes." && exit 1)
-
+      - name: Run check
+        uses: ./.github/actions/check-requirements
+      
   build-linux:
     runs-on: ubuntu-latest
     needs:
