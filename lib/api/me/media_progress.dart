@@ -15,9 +15,9 @@ abstract class MediaProgress with _$MediaProgress {
     @JsonKey(name: "episodeId") required String? episodeId,
     @JsonKey(name: "mediaItemId") required String mediaItemId,
     @JsonKey(name: "mediaItemType") @MediaItemTypeConverter() required MediaItemType mediaItemType,
-    @JsonKey(name: "duration") required double duration,
-    @JsonKey(name: "progress") required double progress,
-    @JsonKey(name: "currentTime") required double currentTime,
+    @AllowNullableForDoubleConverter() @JsonKey(name: "duration") required double duration,
+    @AllowNullableForDoubleConverter() @JsonKey(name: "progress") required double progress,
+    @AllowNullableForDoubleConverter() @JsonKey(name: "currentTime") required double currentTime,
     @JsonKey(name: "isFinished") required bool isFinished,
     @JsonKey(name: "hideFromContinueListening") bool? hideFromContinueListening,
     @IntToStringConverter() @JsonKey(name: "ebookLocation") String? ebookLocation,
@@ -40,6 +40,26 @@ class IntToStringConverter implements JsonConverter<String, dynamic> {
 
   @override
   dynamic toJson(String object) {
+    return object;
+  }
+}
+
+class AllowNullableForDoubleConverter implements JsonConverter<double, dynamic> {
+  const AllowNullableForDoubleConverter();
+
+  @override
+  double fromJson(dynamic json) {
+    if (json == null || (json is String && json.isEmpty)) {
+      return 0;
+    }
+    if (json is num) {
+      return json.toDouble();
+    }
+    throw FormatException('Expected a number or null, but got: $json');
+  }
+
+  @override
+  dynamic toJson(double object) {
     return object;
   }
 }
