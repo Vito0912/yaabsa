@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/api/me/bookmark.dart';
 import 'package:yaabsa/provider/player/user_bookmarks_provider.dart';
+import 'package:yaabsa/screens/player/components/bookmark_title_dialog.dart';
 import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/globals.dart';
 
@@ -35,33 +36,8 @@ class _PlayerBookmarksSheetState extends ConsumerState<PlayerBookmarksSheet> {
     return filtered;
   }
 
-  Future<String?> _promptBookmarkTitle({required String defaultTitle}) async {
-    final controller = TextEditingController(text: defaultTitle);
-    final title = await showDialog<String>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Create bookmark'),
-          content: TextField(
-            controller: controller,
-            autofocus: true,
-            textInputAction: TextInputAction.done,
-            decoration: const InputDecoration(labelText: 'Bookmark text', hintText: 'Enter bookmark text'),
-            onSubmitted: (value) => Navigator.of(dialogContext).pop(value),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Cancel')),
-            FilledButton(
-              onPressed: () => Navigator.of(dialogContext).pop(controller.text),
-              child: const Text('Create'),
-            ),
-          ],
-        );
-      },
-    );
-
-    controller.dispose();
-    return title;
+  Future<String?> _promptBookmarkTitle() {
+    return BookmarkTitleDialog.show(context);
   }
 
   Future<void> _startCreateBookmarkFlow() async {
@@ -78,8 +54,7 @@ class _PlayerBookmarksSheetState extends ConsumerState<PlayerBookmarksSheet> {
       return;
     }
 
-    final suggestedTitle = 'Bookmark ${position.toHhMmString()}';
-    final inputTitle = await _promptBookmarkTitle(defaultTitle: suggestedTitle);
+    final inputTitle = await _promptBookmarkTitle();
     if (!mounted || inputTitle == null) {
       return;
     }
