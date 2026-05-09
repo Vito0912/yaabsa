@@ -466,6 +466,7 @@ class _PlayerState extends ConsumerState<Player> {
           showNarrator: placement.showNarrator,
           showSeries: placement.showSeries,
           textAlignMode: placement.textAlign,
+          fontScale: placement.mediaInfoFontScale,
         );
       case PlayerComponentType.seekBar:
         content = PlayerSeekBarComponent(

@@ -143,6 +143,18 @@ class _PlayerComponentSettingsSheetState extends State<PlayerComponentSettingsSh
                     _updatePlacement(placement.copyWith(textAlign: mode));
                   },
                 ),
+                const SizedBox(height: 10),
+                Text('Font scale ${placement.mediaInfoFontScale.toStringAsFixed(2)}x'),
+                Slider(
+                  value: placement.mediaInfoFontScale.clamp(0.75, 1.6),
+                  min: 0.75,
+                  max: 1.6,
+                  divisions: 17,
+                  label: '${placement.mediaInfoFontScale.toStringAsFixed(2)}x',
+                  onChanged: (double value) {
+                    _updatePlacement(placement.copyWith(mediaInfoFontScale: value));
+                  },
+                ),
               ],
               if (widget.componentType == PlayerComponentType.cover) ...<Widget>[
                 const SizedBox(height: 10),
