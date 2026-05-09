@@ -14,8 +14,7 @@ permissions: {}
 jobs:
   detect-targets:
     runs-on: ubuntu-latest
-    permissions:
-      issues: write
+    permissions: {}
     outputs:
       linux: ${{ steps.parse.outputs.linux }}
       windows: ${{ steps.parse.outputs.windows }}
@@ -60,11 +59,11 @@ jobs:
               normalized_label = match.group('label').strip().casefold()
               key = label_to_key.get(normalized_label)
               if key is None:
-                continue
+                  continue
 
               seen_expected_labels.add(normalized_label)
               if match.group('mark').strip().lower() == 'x':
-                selected[key] = True
+                  selected[key] = True
 
           any_selected = any(selected.values())
 
@@ -94,69 +93,11 @@ jobs:
           print('Validation status:', 'valid' if is_valid else f'invalid ({failure_reason})')
           PY
 
-      - name: Comment when platform selection is invalid
-        if: ${{ steps.parse.outputs.valid != 'true' }}
-        uses: actions/github-script@v8
-        continue-on-error: true
-        env:
-          FAILURE_REASON: ${{ steps.parse.outputs.failure_reason }}
-        with:
-          script: |
-            const marker = '<!-- pr-platform-selection-validation -->';
-            const reason = process.env.FAILURE_REASON;
-
-            let reasonText = '- The Platforms Affected section is missing or has modified labels. Please restore the template labels exactly.';
-            if (reason === 'no_platform_selected') {
-              reasonText = '- No platform is selected. Select at least one checkbox under Platforms Affected.';
-            }
-
-            const body = [
-              marker,
-              'CI could not start platform builds for this PR.',
-              '',
-              reasonText,
-              '',
-              'The PR description must include the Platforms Affected section from the template with these exact labels:',
-              '- Linux',
-              '- Windows',
-              '- Android (and Android Auto)',
-              '- Android Automotive',
-            ].join('\n');
-
-            const { owner, repo } = context.repo;
-            const issue_number = context.issue.number;
-
-            const { data: comments } = await github.rest.issues.listComments({
-              owner,
-              repo,
-              issue_number,
-              per_page: 100,
-            });
-
-            const existing = comments.find(
-              (comment) => comment.user?.type === 'Bot' && comment.body?.includes(marker),
-            );
-
-            if (existing) {
-              await github.rest.issues.updateComment({
-                owner,
-                repo,
-                comment_id: existing.id,
-                body,
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner,
-                repo,
-                issue_number,
-                body,
-              });
-            }
-
       - name: Fail when platform selection is invalid
-        if: ${{ steps.parse.outputs.valid != 'true' }}
+        if: ${{ steps.parse.outputs.valid == 'false' }}
         shell: bash
         run: |
+          echo "Invalid PR platform selection: ${{ steps.parse.outputs.failure_reason }}"
           echo "Update the PR body using the template and select at least one platform."
           exit 1
 
