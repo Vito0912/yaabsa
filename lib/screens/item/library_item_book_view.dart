@@ -11,6 +11,7 @@ import 'package:yaabsa/components/common/connection_issue_view.dart';
 import 'package:yaabsa/components/common/cover_zoom_view.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/models/internal_download.dart';
+import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/player/play_history_view.dart';
 import 'package:yaabsa/util/globals.dart';
@@ -82,6 +83,8 @@ class LibraryItemBookView extends ConsumerWidget {
       sizeBytes: sizeBytes,
       onFilterTap: (filter) => openLibraryWithFilter(context, ref, filter: filter),
     );
+    final progressByKey = ref.watch(mediaProgressProvider).asData?.value;
+    final isItemFinished = progressByKey != null && isLibraryItemFinished(item, progressByKey);
 
     final currentUser = ref.watch(currentUserProvider).value;
     final appDatabase = ref.watch(appDatabaseProvider);
@@ -195,10 +198,14 @@ class LibraryItemBookView extends ConsumerWidget {
 
                                     audioHandler.addLibraryItemToQueue(item);
                                   },
+                                  showMarkAsUnfinished: isItemFinished,
                                   onMoreActionSelected: (action) async {
                                     switch (action) {
                                       case ItemMoreAction.markAsFinished:
                                         await markLibraryItemAsFinished(context: context, ref: ref, item: item);
+                                        return;
+                                      case ItemMoreAction.markAsUnfinished:
+                                        await markLibraryItemAsUnfinished(context: context, ref: ref, item: item);
                                         return;
                                       case ItemMoreAction.playHistory:
                                         if (!context.mounted) {

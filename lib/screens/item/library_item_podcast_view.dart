@@ -59,6 +59,8 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
 
     final allEpisodes = podcastMedia.episodes ?? const <Episode>[];
     final progressMap = ref.watch(mediaProgressProvider).asData?.value ?? const <String, MediaProgress>{};
+    final supportsMarkAction = supportsFinishedProgressUpdates(widget.item);
+    final isItemFinished = isLibraryItemFinished(widget.item, progressMap);
     final visibleEpisodes = _buildVisibleEpisodes(allEpisodes, progressMap);
     final firstPlayableEpisode = visibleEpisodes.where((episode) => episode.audioFile != null).firstOrNull;
 
@@ -130,6 +132,13 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                                       case ItemMoreAction.markAsFinished:
                                         await markLibraryItemAsFinished(context: context, ref: ref, item: widget.item);
                                         return;
+                                      case ItemMoreAction.markAsUnfinished:
+                                        await markLibraryItemAsUnfinished(
+                                          context: context,
+                                          ref: ref,
+                                          item: widget.item,
+                                        );
+                                        return;
                                       case ItemMoreAction.playHistory:
                                         if (!context.mounted) {
                                           return;
@@ -138,6 +147,8 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                                         return;
                                     }
                                   },
+                                  showMarkAction: supportsMarkAction,
+                                  showMarkAsUnfinished: isItemFinished,
                                   onToggleDescription: () {
                                     setState(() {
                                       _showFullDescription = !_showFullDescription;

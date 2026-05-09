@@ -117,6 +117,8 @@ Widget buildItemActionButtons({
   required VoidCallback onDownload,
   required VoidCallback onDeleteDownload,
   Future<void> Function(ItemMoreAction action)? onMoreActionSelected,
+  bool showMarkAsUnfinished = false,
+  bool showMarkAction = true,
 }) {
   return LayoutBuilder(
     builder: (context, constraints) {
@@ -155,6 +157,8 @@ Widget buildItemActionButtons({
         onQueueToggle: onQueueToggle,
         showMoreActions: onMoreActionSelected != null,
         onMoreActionSelected: onMoreActionSelected,
+        showMarkAsUnfinished: showMarkAsUnfinished,
+        showMarkAction: showMarkAction,
       );
 
       final placeSmallBelowPrimary = constraints.maxWidth < 360 || !hasPrimaryActions;
@@ -201,6 +205,8 @@ Widget _buildSmallActionButtons(
   required VoidCallback onQueueToggle,
   required bool showMoreActions,
   required Future<void> Function(ItemMoreAction action)? onMoreActionSelected,
+  required bool showMarkAsUnfinished,
+  required bool showMarkAction,
 }) {
   final children = <Widget>[
     if (showDownload)
@@ -219,7 +225,12 @@ Widget _buildSmallActionButtons(
         icon: Icon(isQueued ? Icons.playlist_remove_rounded : Icons.queue_music_rounded),
         visualDensity: VisualDensity.compact,
       ),
-    if (showMoreActions && onMoreActionSelected != null) ItemMoreActionsButton(onActionSelected: onMoreActionSelected),
+    if (showMoreActions && onMoreActionSelected != null)
+      ItemMoreActionsButton(
+        onActionSelected: onMoreActionSelected,
+        showMarkAction: showMarkAction,
+        showMarkAsUnfinished: showMarkAsUnfinished,
+      ),
   ];
 
   if (children.isEmpty) {

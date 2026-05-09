@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum ItemMoreAction { markAsFinished, playHistory }
+enum ItemMoreAction { markAsFinished, markAsUnfinished, playHistory }
 
 class ItemMoreActionsButton extends StatelessWidget {
   const ItemMoreActionsButton({
@@ -8,11 +8,15 @@ class ItemMoreActionsButton extends StatelessWidget {
     required this.onActionSelected,
     this.enabled = true,
     this.tooltip = 'More actions',
+    this.showMarkAction = true,
+    this.showMarkAsUnfinished = false,
   });
 
   final Future<void> Function(ItemMoreAction action) onActionSelected;
   final bool enabled;
   final String tooltip;
+  final bool showMarkAction;
+  final bool showMarkAsUnfinished;
 
   Future<void> _openActionDialog(BuildContext context) async {
     final selectedAction = await showDialog<ItemMoreAction>(
@@ -23,11 +27,14 @@ class ItemMoreActionsButton extends StatelessWidget {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              ListTile(
-                leading: const Icon(Icons.task_alt_rounded),
-                title: const Text('Mark As Finished'),
-                onTap: () => Navigator.of(dialogContext).pop(ItemMoreAction.markAsFinished),
-              ),
+              if (showMarkAction)
+                ListTile(
+                  leading: Icon(showMarkAsUnfinished ? Icons.remove_done_rounded : Icons.task_alt_rounded),
+                  title: Text(showMarkAsUnfinished ? 'Mark As Unfinished' : 'Mark As Finished'),
+                  onTap: () => Navigator.of(
+                    dialogContext,
+                  ).pop(showMarkAsUnfinished ? ItemMoreAction.markAsUnfinished : ItemMoreAction.markAsFinished),
+                ),
               ListTile(
                 leading: const Icon(Icons.history_rounded),
                 title: const Text('Play History'),

@@ -17,6 +17,8 @@ class PodcastHeaderCard extends StatelessWidget {
     required this.onToggleDescription,
     this.onPlayLatest,
     this.onMoreActionSelected,
+    this.showMarkAsUnfinished = false,
+    this.showMarkAction = true,
   });
 
   final LibraryItem item;
@@ -29,6 +31,8 @@ class PodcastHeaderCard extends StatelessWidget {
   final VoidCallback? onPlayLatest;
   final VoidCallback onToggleDescription;
   final Future<void> Function(ItemMoreAction action)? onMoreActionSelected;
+  final bool showMarkAsUnfinished;
+  final bool showMarkAction;
 
   @override
   Widget build(BuildContext context) {
@@ -70,6 +74,8 @@ class PodcastHeaderCard extends StatelessWidget {
                     duration: duration,
                     onPlayLatest: onPlayLatest,
                     onMoreActionSelected: onMoreActionSelected,
+                    showMarkAsUnfinished: showMarkAsUnfinished,
+                    showMarkAction: showMarkAction,
                   ),
                 ],
               )
@@ -90,6 +96,8 @@ class PodcastHeaderCard extends StatelessWidget {
                       duration: duration,
                       onPlayLatest: onPlayLatest,
                       onMoreActionSelected: onMoreActionSelected,
+                      showMarkAsUnfinished: showMarkAsUnfinished,
+                      showMarkAction: showMarkAction,
                     ),
                   ),
                 ],
@@ -122,6 +130,8 @@ class _PodcastHeaderText extends StatelessWidget {
     required this.duration,
     this.onPlayLatest,
     this.onMoreActionSelected,
+    this.showMarkAsUnfinished = false,
+    this.showMarkAction = true,
   });
 
   final LibraryItem item;
@@ -130,6 +140,8 @@ class _PodcastHeaderText extends StatelessWidget {
   final Duration? duration;
   final VoidCallback? onPlayLatest;
   final Future<void> Function(ItemMoreAction action)? onMoreActionSelected;
+  final bool showMarkAsUnfinished;
+  final bool showMarkAction;
 
   @override
   Widget build(BuildContext context) {
@@ -172,7 +184,11 @@ class _PodcastHeaderText extends StatelessWidget {
             ),
             if (onMoreActionSelected != null) ...[
               const SizedBox(width: 8),
-              ItemMoreActionsButton(onActionSelected: onMoreActionSelected!),
+              ItemMoreActionsButton(
+                onActionSelected: onMoreActionSelected!,
+                showMarkAction: showMarkAction,
+                showMarkAsUnfinished: showMarkAsUnfinished,
+              ),
             ],
           ],
         ),
