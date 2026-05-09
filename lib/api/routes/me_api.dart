@@ -335,6 +335,60 @@ class MeApi {
     );
   }
 
+  Future<void> patchMediaProgress(
+    String itemId, {
+    String? episodeId,
+    required Map<String, dynamic> updatePayload,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    var route = '/api/me/progress/$itemId';
+    if (episodeId != null) {
+      route = '/api/me/progress/$itemId/$episodeId';
+    }
+
+    await ABSApi.makeApiPatchRequest(
+      route: route,
+      fromJson: null,
+      bodyData: updatePayload,
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
+    );
+  }
+
+  Future<void> batchUpdateMediaProgress(
+    List<Map<String, dynamic>> updatePayloads, {
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    if (updatePayloads.isEmpty) {
+      return;
+    }
+
+    final options = Options(
+      method: 'PATCH',
+      headers: <String, dynamic>{...?headers},
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {'type': 'http', 'scheme': 'bearer', 'name': 'BearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+    );
+
+    await _dio.request<Object>(
+      '/api/me/progress/batch/update',
+      data: updatePayloads,
+      options: options,
+      cancelToken: cancelToken,
+    );
+  }
+
   Future<void> updateBookProgress(
     String itemId, {
     required double progress,

@@ -6,6 +6,8 @@ import 'package:just_audio/just_audio.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/me/media_progress.dart';
+import 'package:yaabsa/components/app/item/item_more_actions_button.dart';
+import 'package:yaabsa/components/app/item/item_progress_actions.dart';
 import 'package:yaabsa/components/common/connection_issue_view.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/models/internal_download.dart';
@@ -16,6 +18,7 @@ import 'package:yaabsa/screens/item/podcast/podcast_episode_tile.dart';
 import 'package:yaabsa/screens/item/podcast/podcast_episode_utils.dart';
 import 'package:yaabsa/screens/item/podcast/podcast_episodes_header_card.dart';
 import 'package:yaabsa/screens/item/podcast/podcast_header_card.dart';
+import 'package:yaabsa/screens/player/play_history_view.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/handler/bg_audio_handler.dart';
 
@@ -196,6 +199,11 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                                                 final episode = visibleEpisodes[index];
                                                 final episodeProgress =
                                                     progressMap[mediaProgressKey(widget.item.id, episode.id)];
+                                                final isEpisodeFinished = isPodcastEpisodeFinished(
+                                                  item: widget.item,
+                                                  episode: episode,
+                                                  progressByKey: progressMap,
+                                                );
                                                 final isQueued = queueSnapshot.entries.any(
                                                   (entry) =>
                                                       entry.item.itemId == widget.item.id &&
@@ -265,6 +273,36 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                                                           userId: currentUser.id,
                                                         )
                                                       : null,
+                                                  showMarkAsUnfinished: isEpisodeFinished,
+                                                  onMoreActionSelected: (action) async {
+                                                    switch (action) {
+                                                      case ItemMoreAction.markAsFinished:
+                                                        await markPodcastEpisodeAsFinished(
+                                                          context: context,
+                                                          ref: ref,
+                                                          item: widget.item,
+                                                          episode: episode,
+                                                        );
+                                                        return;
+                                                      case ItemMoreAction.markAsUnfinished:
+                                                        await markPodcastEpisodeAsUnfinished(
+                                                          context: context,
+                                                          ref: ref,
+                                                          item: widget.item,
+                                                          episode: episode,
+                                                        );
+                                                        return;
+                                                      case ItemMoreAction.addToPlaylist:
+                                                      case ItemMoreAction.addToCollection:
+                                                        return;
+                                                      case ItemMoreAction.playHistory:
+                                                        if (!context.mounted) {
+                                                          return;
+                                                        }
+                                                        context.push(PlayHistoryView.routeName);
+                                                        return;
+                                                    }
+                                                  },
                                                 );
                                               },
                                             ),

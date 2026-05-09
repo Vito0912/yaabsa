@@ -51,7 +51,7 @@ jobs:
           seen_expected_labels = set()
 
           checkbox_pattern = re.compile(
-              r'^\s*[-*]\s*\[(?P<mark>[ xX])\]\s*(?P<label>.+?)\s*$',
+              r'^\s*[-*]\s*\[(?P<mark>[^\]]*)\]\s*(?P<label>.+?)\s*$',
               re.MULTILINE,
           )
 
@@ -62,7 +62,8 @@ jobs:
                   continue
 
               seen_expected_labels.add(normalized_label)
-              if match.group('mark').strip().lower() == 'x':
+              # Check if 'x' is anywhere inside the brackets
+              if 'x' in match.group('mark').lower():
                   selected[key] = True
 
           any_selected = any(selected.values())
@@ -82,10 +83,10 @@ jobs:
           output_path = os.environ['GITHUB_OUTPUT']
           with open(output_path, 'a', encoding='utf-8') as output_file:
               for key, value in selected.items():
-                  output_file.write(f"{key}={'true' if value else 'false'}\\n")
-              output_file.write(f"any={'true' if any_selected else 'false'}\\n")
-              output_file.write(f"valid={'true' if is_valid else 'false'}\\n")
-              output_file.write(f"failure_reason={failure_reason}\\n")
+                  output_file.write(f"{key}={'true' if value else 'false'}\n")
+              output_file.write(f"any={'true' if any_selected else 'false'}\n")
+              output_file.write(f"valid={'true' if is_valid else 'false'}\n")
+              output_file.write(f"failure_reason={failure_reason}\n")
 
           selected_keys = [key for key, value in selected.items() if value]
           print('Selected targets:', ', '.join(selected_keys) if selected_keys else 'none')

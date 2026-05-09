@@ -4,8 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:yaabsa/components/app/item/item_progress_actions.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
+import 'package:yaabsa/api/me/media_progress.dart';
 import 'package:yaabsa/components/app/library/library_multi_select_actions.dart';
+import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/core/multi_select_app_bar_provider.dart';
 
 class LibraryMultiSelectBindings {
@@ -166,6 +169,11 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
       orderedSelectedBookIds.add(item.id);
     }
     final selectedIdsSignature = orderedSelectedBookIds.join(',');
+    final selectedItems = visibleItems
+        .where((item) => effectiveSelectedItemIds.contains(item.id))
+        .toList(growable: false);
+    final progressByKey = ref.watch(mediaProgressProvider).asData?.value ?? const <String, MediaProgress>{};
+    final allSelectedFinished = areAllSupportedLibraryItemsFinished(selectedItems, progressByKey);
 
     Future<void> runAction(Future<void> Function() action) async {
       if (selectionBusy.value) {
@@ -217,6 +225,30 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
             );
           },
         ),
+      MultiSelectAppBarAction(
+        icon: allSelectedFinished ? Icons.remove_done_rounded : Icons.task_alt_rounded,
+        tooltip: allSelectedFinished ? 'Mark selected as unfinished' : 'Mark selected as finished',
+        enabled: !selectionBusy.value,
+        onPressed: () {
+          runAction(() {
+            if (allSelectedFinished) {
+              return markLibraryItemsAsUnfinished(
+                context: context,
+                ref: ref,
+                items: selectedItems,
+                onSuccess: clearSelection,
+              );
+            }
+
+            return markLibraryItemsAsFinished(
+              context: context,
+              ref: ref,
+              items: selectedItems,
+              onSuccess: clearSelection,
+            );
+          });
+        },
+      ),
     ];
 
     final appBarNotifier = ref.read(multiSelectAppBarProvider.notifier);
@@ -258,6 +290,7 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
         selectionMode.value,
         selectionBusy.value,
         selectedIdsSignature,
+        allSelectedFinished,
         actions.length,
         canAddToPlaylist,
         canAddToCollection,

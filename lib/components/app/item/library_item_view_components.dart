@@ -8,6 +8,7 @@ import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/library_items/media_metadata.dart';
 import 'package:yaabsa/components/app/item/item_description.dart';
 import 'package:yaabsa/components/app/item/item_detail_components.dart';
+import 'package:yaabsa/components/app/item/item_more_actions_button.dart';
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
 import 'package:yaabsa/util/item_formatters.dart';
 
@@ -115,11 +116,16 @@ Widget buildItemActionButtons({
   required VoidCallback onRead,
   required VoidCallback onDownload,
   required VoidCallback onDeleteDownload,
+  Future<void> Function(ItemMoreAction action)? onMoreActionSelected,
+  bool showMarkAsUnfinished = false,
+  bool showMarkAction = true,
+  bool showAddToPlaylist = false,
+  bool showAddToCollection = false,
 }) {
   return LayoutBuilder(
     builder: (context, constraints) {
       final hasPrimaryActions = hasBook || hasAudio;
-      final hasSmallActions = canDownload || hasAudio;
+      final hasSmallActions = canDownload || hasAudio || onMoreActionSelected != null;
       final primaryActions = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -151,6 +157,12 @@ Widget buildItemActionButtons({
         onDownload: onDownload,
         onDeleteDownload: onDeleteDownload,
         onQueueToggle: onQueueToggle,
+        showMoreActions: onMoreActionSelected != null,
+        onMoreActionSelected: onMoreActionSelected,
+        showMarkAsUnfinished: showMarkAsUnfinished,
+        showMarkAction: showMarkAction,
+        showAddToPlaylist: showAddToPlaylist,
+        showAddToCollection: showAddToCollection,
       );
 
       final placeSmallBelowPrimary = constraints.maxWidth < 360 || !hasPrimaryActions;
@@ -195,6 +207,12 @@ Widget _buildSmallActionButtons(
   required VoidCallback onDownload,
   required VoidCallback onDeleteDownload,
   required VoidCallback onQueueToggle,
+  required bool showMoreActions,
+  required Future<void> Function(ItemMoreAction action)? onMoreActionSelected,
+  required bool showMarkAsUnfinished,
+  required bool showMarkAction,
+  required bool showAddToPlaylist,
+  required bool showAddToCollection,
 }) {
   final children = <Widget>[
     if (showDownload)
@@ -212,6 +230,14 @@ Widget _buildSmallActionButtons(
         tooltip: queueEnabled ? (isQueued ? 'Remove from queue' : 'Add to queue') : 'Currently playing',
         icon: Icon(isQueued ? Icons.playlist_remove_rounded : Icons.queue_music_rounded),
         visualDensity: VisualDensity.compact,
+      ),
+    if (showMoreActions && onMoreActionSelected != null)
+      ItemMoreActionsButton(
+        onActionSelected: onMoreActionSelected,
+        showMarkAction: showMarkAction,
+        showMarkAsUnfinished: showMarkAsUnfinished,
+        showAddToPlaylist: showAddToPlaylist,
+        showAddToCollection: showAddToCollection,
       ),
   ];
 

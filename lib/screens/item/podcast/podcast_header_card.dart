@@ -155,10 +155,15 @@ class _PodcastHeaderText extends StatelessWidget {
           ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
         const SizedBox(height: 10),
-        FilledButton.icon(
-          onPressed: onPlayLatest,
-          icon: const Icon(Icons.play_arrow_rounded),
-          label: const Text('Play'),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            FilledButton.icon(
+              onPressed: onPlayLatest,
+              icon: const Icon(Icons.play_arrow_rounded),
+              label: const Text('Play'),
+            ),
+          ],
         ),
       ],
     );
