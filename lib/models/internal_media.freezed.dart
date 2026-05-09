@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$InternalMedia {
 
-@JsonKey(name: "libraryId") String get libraryId;@JsonKey(name: "libraryId") set libraryId(String value);@JsonKey(name: "itemId") String get itemId;@JsonKey(name: "itemId") set itemId(String value);@JsonKey(name: "episodeId") String? get episodeId;@JsonKey(name: "episodeId") set episodeId(String? value);@JsonKey(name: "sessionId") String get sessionId;@JsonKey(name: "sessionId") set sessionId(String value);@JsonKey(name: "title") String get title;@JsonKey(name: "title") set title(String value);@JsonKey(name: "subtitle") String? get subtitle;@JsonKey(name: "subtitle") set subtitle(String? value);@JsonKey(name: "author") String? get author;@JsonKey(name: "author") set author(String? value);@JsonKey(name: "series") String? get series;@JsonKey(name: "series") set series(String? value);@JsonKey(name: "seriesPosition") String? get seriesPosition;@JsonKey(name: "seriesPosition") set seriesPosition(String? value);@JsonKey(name: "cover") Uri? get cover;@JsonKey(name: "cover") set cover(Uri? value);@JsonKey(name: "tracks") List<InternalTrack> get tracks;@JsonKey(name: "tracks") set tracks(List<InternalTrack> value);@JsonKey(name: "chapters") List<InternalChapter>? get chapters;@JsonKey(name: "chapters") set chapters(List<InternalChapter>? value);// Removed incorrect defaultValue: false
+@JsonKey(name: "libraryId") String get libraryId;@JsonKey(name: "libraryId") set libraryId(String value);@JsonKey(name: "itemId") String get itemId;@JsonKey(name: "itemId") set itemId(String value);@JsonKey(name: "episodeId") String? get episodeId;@JsonKey(name: "episodeId") set episodeId(String? value);@JsonKey(name: "sessionId") String get sessionId;@JsonKey(name: "sessionId") set sessionId(String value);@JsonKey(name: "title") String get title;@JsonKey(name: "title") set title(String value);@JsonKey(name: "subtitle") String? get subtitle;@JsonKey(name: "subtitle") set subtitle(String? value);@JsonKey(name: "author") String? get author;@JsonKey(name: "author") set author(String? value);@JsonKey(name: "narrator") String? get narrator;@JsonKey(name: "narrator") set narrator(String? value);@JsonKey(name: "series") String? get series;@JsonKey(name: "series") set series(String? value);@JsonKey(name: "seriesPosition") String? get seriesPosition;@JsonKey(name: "seriesPosition") set seriesPosition(String? value);@JsonKey(name: "cover") Uri? get cover;@JsonKey(name: "cover") set cover(Uri? value);@JsonKey(name: "tracks") List<InternalTrack> get tracks;@JsonKey(name: "tracks") set tracks(List<InternalTrack> value);@JsonKey(name: "chapters") List<InternalChapter>? get chapters;@JsonKey(name: "chapters") set chapters(List<InternalChapter>? value);// Removed incorrect defaultValue: false
 @JsonKey(name: "duration") double? get duration;// Removed incorrect defaultValue: false
 @JsonKey(name: "duration") set duration(double? value);@JsonKey(name: "local", defaultValue: false) bool get local;@JsonKey(name: "local", defaultValue: false) set local(bool value);// SAF is for Android only
 @JsonKey(name: "saf") bool get saf;// SAF is for Android only
@@ -34,7 +34,7 @@ $InternalMediaCopyWith<InternalMedia> get copyWith => _$InternalMediaCopyWithImp
 
 @override
 String toString() {
-  return 'InternalMedia(libraryId: $libraryId, itemId: $itemId, episodeId: $episodeId, sessionId: $sessionId, title: $title, subtitle: $subtitle, author: $author, series: $series, seriesPosition: $seriesPosition, cover: $cover, tracks: $tracks, chapters: $chapters, duration: $duration, local: $local, saf: $saf)';
+  return 'InternalMedia(libraryId: $libraryId, itemId: $itemId, episodeId: $episodeId, sessionId: $sessionId, title: $title, subtitle: $subtitle, author: $author, narrator: $narrator, series: $series, seriesPosition: $seriesPosition, cover: $cover, tracks: $tracks, chapters: $chapters, duration: $duration, local: $local, saf: $saf)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $InternalMediaCopyWith<$Res>  {
   factory $InternalMediaCopyWith(InternalMedia value, $Res Function(InternalMedia) _then) = _$InternalMediaCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: "libraryId") String libraryId,@JsonKey(name: "itemId") String itemId,@JsonKey(name: "episodeId") String? episodeId,@JsonKey(name: "sessionId") String sessionId,@JsonKey(name: "title") String title,@JsonKey(name: "subtitle") String? subtitle,@JsonKey(name: "author") String? author,@JsonKey(name: "series") String? series,@JsonKey(name: "seriesPosition") String? seriesPosition,@JsonKey(name: "cover") Uri? cover,@JsonKey(name: "tracks") List<InternalTrack> tracks,@JsonKey(name: "chapters") List<InternalChapter>? chapters,@JsonKey(name: "duration") double? duration,@JsonKey(name: "local", defaultValue: false) bool local,@JsonKey(name: "saf") bool saf
+@JsonKey(name: "libraryId") String libraryId,@JsonKey(name: "itemId") String itemId,@JsonKey(name: "episodeId") String? episodeId,@JsonKey(name: "sessionId") String sessionId,@JsonKey(name: "title") String title,@JsonKey(name: "subtitle") String? subtitle,@JsonKey(name: "author") String? author,@JsonKey(name: "narrator") String? narrator,@JsonKey(name: "series") String? series,@JsonKey(name: "seriesPosition") String? seriesPosition,@JsonKey(name: "cover") Uri? cover,@JsonKey(name: "tracks") List<InternalTrack> tracks,@JsonKey(name: "chapters") List<InternalChapter>? chapters,@JsonKey(name: "duration") double? duration,@JsonKey(name: "local", defaultValue: false) bool local,@JsonKey(name: "saf") bool saf
 });
 
 
@@ -62,7 +62,7 @@ class _$InternalMediaCopyWithImpl<$Res>
 
 /// Create a copy of InternalMedia
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? libraryId = null,Object? itemId = null,Object? episodeId = freezed,Object? sessionId = null,Object? title = null,Object? subtitle = freezed,Object? author = freezed,Object? series = freezed,Object? seriesPosition = freezed,Object? cover = freezed,Object? tracks = null,Object? chapters = freezed,Object? duration = freezed,Object? local = null,Object? saf = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? libraryId = null,Object? itemId = null,Object? episodeId = freezed,Object? sessionId = null,Object? title = null,Object? subtitle = freezed,Object? author = freezed,Object? narrator = freezed,Object? series = freezed,Object? seriesPosition = freezed,Object? cover = freezed,Object? tracks = null,Object? chapters = freezed,Object? duration = freezed,Object? local = null,Object? saf = null,}) {
   return _then(_self.copyWith(
 libraryId: null == libraryId ? _self.libraryId : libraryId // ignore: cast_nullable_to_non_nullable
 as String,itemId: null == itemId ? _self.itemId : itemId // ignore: cast_nullable_to_non_nullable
@@ -71,6 +71,7 @@ as String?,sessionId: null == sessionId ? _self.sessionId : sessionId // ignore:
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,subtitle: freezed == subtitle ? _self.subtitle : subtitle // ignore: cast_nullable_to_non_nullable
 as String?,author: freezed == author ? _self.author : author // ignore: cast_nullable_to_non_nullable
+as String?,narrator: freezed == narrator ? _self.narrator : narrator // ignore: cast_nullable_to_non_nullable
 as String?,series: freezed == series ? _self.series : series // ignore: cast_nullable_to_non_nullable
 as String?,seriesPosition: freezed == seriesPosition ? _self.seriesPosition : seriesPosition // ignore: cast_nullable_to_non_nullable
 as String?,cover: freezed == cover ? _self.cover : cover // ignore: cast_nullable_to_non_nullable
@@ -164,10 +165,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "libraryId")  String libraryId, @JsonKey(name: "itemId")  String itemId, @JsonKey(name: "episodeId")  String? episodeId, @JsonKey(name: "sessionId")  String sessionId, @JsonKey(name: "title")  String title, @JsonKey(name: "subtitle")  String? subtitle, @JsonKey(name: "author")  String? author, @JsonKey(name: "series")  String? series, @JsonKey(name: "seriesPosition")  String? seriesPosition, @JsonKey(name: "cover")  Uri? cover, @JsonKey(name: "tracks")  List<InternalTrack> tracks, @JsonKey(name: "chapters")  List<InternalChapter>? chapters, @JsonKey(name: "duration")  double? duration, @JsonKey(name: "local", defaultValue: false)  bool local, @JsonKey(name: "saf")  bool saf)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "libraryId")  String libraryId, @JsonKey(name: "itemId")  String itemId, @JsonKey(name: "episodeId")  String? episodeId, @JsonKey(name: "sessionId")  String sessionId, @JsonKey(name: "title")  String title, @JsonKey(name: "subtitle")  String? subtitle, @JsonKey(name: "author")  String? author, @JsonKey(name: "narrator")  String? narrator, @JsonKey(name: "series")  String? series, @JsonKey(name: "seriesPosition")  String? seriesPosition, @JsonKey(name: "cover")  Uri? cover, @JsonKey(name: "tracks")  List<InternalTrack> tracks, @JsonKey(name: "chapters")  List<InternalChapter>? chapters, @JsonKey(name: "duration")  double? duration, @JsonKey(name: "local", defaultValue: false)  bool local, @JsonKey(name: "saf")  bool saf)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _InternalMedia() when $default != null:
-return $default(_that.libraryId,_that.itemId,_that.episodeId,_that.sessionId,_that.title,_that.subtitle,_that.author,_that.series,_that.seriesPosition,_that.cover,_that.tracks,_that.chapters,_that.duration,_that.local,_that.saf);case _:
+return $default(_that.libraryId,_that.itemId,_that.episodeId,_that.sessionId,_that.title,_that.subtitle,_that.author,_that.narrator,_that.series,_that.seriesPosition,_that.cover,_that.tracks,_that.chapters,_that.duration,_that.local,_that.saf);case _:
   return orElse();
 
 }
@@ -185,10 +186,10 @@ return $default(_that.libraryId,_that.itemId,_that.episodeId,_that.sessionId,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "libraryId")  String libraryId, @JsonKey(name: "itemId")  String itemId, @JsonKey(name: "episodeId")  String? episodeId, @JsonKey(name: "sessionId")  String sessionId, @JsonKey(name: "title")  String title, @JsonKey(name: "subtitle")  String? subtitle, @JsonKey(name: "author")  String? author, @JsonKey(name: "series")  String? series, @JsonKey(name: "seriesPosition")  String? seriesPosition, @JsonKey(name: "cover")  Uri? cover, @JsonKey(name: "tracks")  List<InternalTrack> tracks, @JsonKey(name: "chapters")  List<InternalChapter>? chapters, @JsonKey(name: "duration")  double? duration, @JsonKey(name: "local", defaultValue: false)  bool local, @JsonKey(name: "saf")  bool saf)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "libraryId")  String libraryId, @JsonKey(name: "itemId")  String itemId, @JsonKey(name: "episodeId")  String? episodeId, @JsonKey(name: "sessionId")  String sessionId, @JsonKey(name: "title")  String title, @JsonKey(name: "subtitle")  String? subtitle, @JsonKey(name: "author")  String? author, @JsonKey(name: "narrator")  String? narrator, @JsonKey(name: "series")  String? series, @JsonKey(name: "seriesPosition")  String? seriesPosition, @JsonKey(name: "cover")  Uri? cover, @JsonKey(name: "tracks")  List<InternalTrack> tracks, @JsonKey(name: "chapters")  List<InternalChapter>? chapters, @JsonKey(name: "duration")  double? duration, @JsonKey(name: "local", defaultValue: false)  bool local, @JsonKey(name: "saf")  bool saf)  $default,) {final _that = this;
 switch (_that) {
 case _InternalMedia():
-return $default(_that.libraryId,_that.itemId,_that.episodeId,_that.sessionId,_that.title,_that.subtitle,_that.author,_that.series,_that.seriesPosition,_that.cover,_that.tracks,_that.chapters,_that.duration,_that.local,_that.saf);case _:
+return $default(_that.libraryId,_that.itemId,_that.episodeId,_that.sessionId,_that.title,_that.subtitle,_that.author,_that.narrator,_that.series,_that.seriesPosition,_that.cover,_that.tracks,_that.chapters,_that.duration,_that.local,_that.saf);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -205,10 +206,10 @@ return $default(_that.libraryId,_that.itemId,_that.episodeId,_that.sessionId,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "libraryId")  String libraryId, @JsonKey(name: "itemId")  String itemId, @JsonKey(name: "episodeId")  String? episodeId, @JsonKey(name: "sessionId")  String sessionId, @JsonKey(name: "title")  String title, @JsonKey(name: "subtitle")  String? subtitle, @JsonKey(name: "author")  String? author, @JsonKey(name: "series")  String? series, @JsonKey(name: "seriesPosition")  String? seriesPosition, @JsonKey(name: "cover")  Uri? cover, @JsonKey(name: "tracks")  List<InternalTrack> tracks, @JsonKey(name: "chapters")  List<InternalChapter>? chapters, @JsonKey(name: "duration")  double? duration, @JsonKey(name: "local", defaultValue: false)  bool local, @JsonKey(name: "saf")  bool saf)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "libraryId")  String libraryId, @JsonKey(name: "itemId")  String itemId, @JsonKey(name: "episodeId")  String? episodeId, @JsonKey(name: "sessionId")  String sessionId, @JsonKey(name: "title")  String title, @JsonKey(name: "subtitle")  String? subtitle, @JsonKey(name: "author")  String? author, @JsonKey(name: "narrator")  String? narrator, @JsonKey(name: "series")  String? series, @JsonKey(name: "seriesPosition")  String? seriesPosition, @JsonKey(name: "cover")  Uri? cover, @JsonKey(name: "tracks")  List<InternalTrack> tracks, @JsonKey(name: "chapters")  List<InternalChapter>? chapters, @JsonKey(name: "duration")  double? duration, @JsonKey(name: "local", defaultValue: false)  bool local, @JsonKey(name: "saf")  bool saf)?  $default,) {final _that = this;
 switch (_that) {
 case _InternalMedia() when $default != null:
-return $default(_that.libraryId,_that.itemId,_that.episodeId,_that.sessionId,_that.title,_that.subtitle,_that.author,_that.series,_that.seriesPosition,_that.cover,_that.tracks,_that.chapters,_that.duration,_that.local,_that.saf);case _:
+return $default(_that.libraryId,_that.itemId,_that.episodeId,_that.sessionId,_that.title,_that.subtitle,_that.author,_that.narrator,_that.series,_that.seriesPosition,_that.cover,_that.tracks,_that.chapters,_that.duration,_that.local,_that.saf);case _:
   return null;
 
 }
@@ -220,7 +221,7 @@ return $default(_that.libraryId,_that.itemId,_that.episodeId,_that.sessionId,_th
 @JsonSerializable()
 
 class _InternalMedia extends InternalMedia {
-   _InternalMedia({@JsonKey(name: "libraryId") required this.libraryId, @JsonKey(name: "itemId") required this.itemId, @JsonKey(name: "episodeId") required this.episodeId, @JsonKey(name: "sessionId") required this.sessionId, @JsonKey(name: "title") required this.title, @JsonKey(name: "subtitle") this.subtitle, @JsonKey(name: "author") this.author, @JsonKey(name: "series") this.series, @JsonKey(name: "seriesPosition") this.seriesPosition, @JsonKey(name: "cover") this.cover, @JsonKey(name: "tracks") required this.tracks, @JsonKey(name: "chapters") this.chapters, @JsonKey(name: "duration") this.duration, @JsonKey(name: "local", defaultValue: false) required this.local, @JsonKey(name: "saf") required this.saf}): super._();
+   _InternalMedia({@JsonKey(name: "libraryId") required this.libraryId, @JsonKey(name: "itemId") required this.itemId, @JsonKey(name: "episodeId") required this.episodeId, @JsonKey(name: "sessionId") required this.sessionId, @JsonKey(name: "title") required this.title, @JsonKey(name: "subtitle") this.subtitle, @JsonKey(name: "author") this.author, @JsonKey(name: "narrator") this.narrator, @JsonKey(name: "series") this.series, @JsonKey(name: "seriesPosition") this.seriesPosition, @JsonKey(name: "cover") this.cover, @JsonKey(name: "tracks") required this.tracks, @JsonKey(name: "chapters") this.chapters, @JsonKey(name: "duration") this.duration, @JsonKey(name: "local", defaultValue: false) required this.local, @JsonKey(name: "saf") required this.saf}): super._();
   factory _InternalMedia.fromJson(Map<String, dynamic> json) => _$InternalMediaFromJson(json);
 
 @override@JsonKey(name: "libraryId")  String libraryId;
@@ -230,6 +231,7 @@ class _InternalMedia extends InternalMedia {
 @override@JsonKey(name: "title")  String title;
 @override@JsonKey(name: "subtitle")  String? subtitle;
 @override@JsonKey(name: "author")  String? author;
+@override@JsonKey(name: "narrator")  String? narrator;
 @override@JsonKey(name: "series")  String? series;
 @override@JsonKey(name: "seriesPosition")  String? seriesPosition;
 @override@JsonKey(name: "cover")  Uri? cover;
@@ -256,7 +258,7 @@ Map<String, dynamic> toJson() {
 
 @override
 String toString() {
-  return 'InternalMedia(libraryId: $libraryId, itemId: $itemId, episodeId: $episodeId, sessionId: $sessionId, title: $title, subtitle: $subtitle, author: $author, series: $series, seriesPosition: $seriesPosition, cover: $cover, tracks: $tracks, chapters: $chapters, duration: $duration, local: $local, saf: $saf)';
+  return 'InternalMedia(libraryId: $libraryId, itemId: $itemId, episodeId: $episodeId, sessionId: $sessionId, title: $title, subtitle: $subtitle, author: $author, narrator: $narrator, series: $series, seriesPosition: $seriesPosition, cover: $cover, tracks: $tracks, chapters: $chapters, duration: $duration, local: $local, saf: $saf)';
 }
 
 
@@ -267,7 +269,7 @@ abstract mixin class _$InternalMediaCopyWith<$Res> implements $InternalMediaCopy
   factory _$InternalMediaCopyWith(_InternalMedia value, $Res Function(_InternalMedia) _then) = __$InternalMediaCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: "libraryId") String libraryId,@JsonKey(name: "itemId") String itemId,@JsonKey(name: "episodeId") String? episodeId,@JsonKey(name: "sessionId") String sessionId,@JsonKey(name: "title") String title,@JsonKey(name: "subtitle") String? subtitle,@JsonKey(name: "author") String? author,@JsonKey(name: "series") String? series,@JsonKey(name: "seriesPosition") String? seriesPosition,@JsonKey(name: "cover") Uri? cover,@JsonKey(name: "tracks") List<InternalTrack> tracks,@JsonKey(name: "chapters") List<InternalChapter>? chapters,@JsonKey(name: "duration") double? duration,@JsonKey(name: "local", defaultValue: false) bool local,@JsonKey(name: "saf") bool saf
+@JsonKey(name: "libraryId") String libraryId,@JsonKey(name: "itemId") String itemId,@JsonKey(name: "episodeId") String? episodeId,@JsonKey(name: "sessionId") String sessionId,@JsonKey(name: "title") String title,@JsonKey(name: "subtitle") String? subtitle,@JsonKey(name: "author") String? author,@JsonKey(name: "narrator") String? narrator,@JsonKey(name: "series") String? series,@JsonKey(name: "seriesPosition") String? seriesPosition,@JsonKey(name: "cover") Uri? cover,@JsonKey(name: "tracks") List<InternalTrack> tracks,@JsonKey(name: "chapters") List<InternalChapter>? chapters,@JsonKey(name: "duration") double? duration,@JsonKey(name: "local", defaultValue: false) bool local,@JsonKey(name: "saf") bool saf
 });
 
 
@@ -284,7 +286,7 @@ class __$InternalMediaCopyWithImpl<$Res>
 
 /// Create a copy of InternalMedia
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? libraryId = null,Object? itemId = null,Object? episodeId = freezed,Object? sessionId = null,Object? title = null,Object? subtitle = freezed,Object? author = freezed,Object? series = freezed,Object? seriesPosition = freezed,Object? cover = freezed,Object? tracks = null,Object? chapters = freezed,Object? duration = freezed,Object? local = null,Object? saf = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? libraryId = null,Object? itemId = null,Object? episodeId = freezed,Object? sessionId = null,Object? title = null,Object? subtitle = freezed,Object? author = freezed,Object? narrator = freezed,Object? series = freezed,Object? seriesPosition = freezed,Object? cover = freezed,Object? tracks = null,Object? chapters = freezed,Object? duration = freezed,Object? local = null,Object? saf = null,}) {
   return _then(_InternalMedia(
 libraryId: null == libraryId ? _self.libraryId : libraryId // ignore: cast_nullable_to_non_nullable
 as String,itemId: null == itemId ? _self.itemId : itemId // ignore: cast_nullable_to_non_nullable
@@ -293,6 +295,7 @@ as String?,sessionId: null == sessionId ? _self.sessionId : sessionId // ignore:
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,subtitle: freezed == subtitle ? _self.subtitle : subtitle // ignore: cast_nullable_to_non_nullable
 as String?,author: freezed == author ? _self.author : author // ignore: cast_nullable_to_non_nullable
+as String?,narrator: freezed == narrator ? _self.narrator : narrator // ignore: cast_nullable_to_non_nullable
 as String?,series: freezed == series ? _self.series : series // ignore: cast_nullable_to_non_nullable
 as String?,seriesPosition: freezed == seriesPosition ? _self.seriesPosition : seriesPosition // ignore: cast_nullable_to_non_nullable
 as String?,cover: freezed == cover ? _self.cover : cover // ignore: cast_nullable_to_non_nullable

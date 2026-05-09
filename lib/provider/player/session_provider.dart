@@ -162,6 +162,13 @@ class SessionRepository {
     final remoteCoverUri = hasCoverPath && api != null
         ? api.getLibraryItemApi().getCoverUri(_currentSession!.libraryItemId)
         : null;
+    final metadataNarrators = _currentSession!.mediaMetadata?.bookMetadata?.narrators
+        ?.map((entry) => entry.trim())
+        .where((entry) => entry.isNotEmpty)
+        .toList(growable: false);
+    final narrator =
+        _currentSession!.libraryItem?.narratorString ??
+        ((metadataNarrators == null || metadataNarrators.isEmpty) ? null : metadataNarrators.join(', '));
 
     final InternalMedia internalMedia = InternalMedia(
       libraryId: _currentSession!.libraryId!,
@@ -173,6 +180,7 @@ class SessionRepository {
       series: _currentSession!.libraryItem?.seriesName,
       seriesPosition: _currentSession!.libraryItem?.seriesPosition,
       author: _currentSession!.libraryItem?.authorString,
+      narrator: narrator,
       cover: localCoverUri ?? remoteCoverUri,
       chapters: _currentSession!.chapters?.map((e) => e.toInternalChapter()).toList(),
       tracks: downloaded != null

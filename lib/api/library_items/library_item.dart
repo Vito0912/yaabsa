@@ -55,6 +55,23 @@ abstract class LibraryItem with _$LibraryItem {
     return media?.bookMedia?.metadata.authors?.map((e) => e.name).join(', ') ?? media?.podcastMedia?.metadata.author;
   }
 
+  String? get narratorString {
+    final narrators = media?.bookMedia?.metadata.narrators;
+    if (narrators == null || narrators.isEmpty) {
+      return null;
+    }
+
+    final normalized = narrators
+        .map((entry) => entry.trim())
+        .where((entry) => entry.isNotEmpty)
+        .toList(growable: false);
+    if (normalized.isEmpty) {
+      return null;
+    }
+
+    return normalized.join(', ');
+  }
+
   String? get seriesName {
     return media?.bookMedia?.metadata.series?.firstOrNull?.name;
   }

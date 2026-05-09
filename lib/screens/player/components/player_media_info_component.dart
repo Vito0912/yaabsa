@@ -10,6 +10,7 @@ class PlayerMediaInfoComponent extends StatelessWidget {
     required this.showNarrator,
     required this.showSeries,
     required this.textAlignMode,
+    required this.fontScale,
   });
 
   final InternalMedia media;
@@ -17,64 +18,55 @@ class PlayerMediaInfoComponent extends StatelessWidget {
   final bool showNarrator;
   final bool showSeries;
   final PlayerMetadataTextAlign textAlignMode;
+  final double fontScale;
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (BuildContext context, BoxConstraints constraints) {
-        final scale = (constraints.maxHeight / 120).clamp(0.75, 1.5);
-        final textAlign = textAlignMode.textAlign;
-        final crossAxis = textAlignMode.crossAxisAlignment;
+    final resolvedScale = fontScale.clamp(0.75, 1.6);
+    final textAlign = textAlignMode.textAlign;
+    final crossAxis = textAlignMode.crossAxisAlignment;
 
-        final titleStyle = Theme.of(
-          context,
-        ).textTheme.titleMedium?.copyWith(fontSize: (Theme.of(context).textTheme.titleMedium?.fontSize ?? 16) * scale);
+    final titleStyle = Theme.of(context).textTheme.titleMedium?.copyWith(
+      fontSize: (Theme.of(context).textTheme.titleLarge?.fontSize ?? 16) * resolvedScale,
+    );
 
-        final detailStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-          fontSize: (Theme.of(context).textTheme.bodyMedium?.fontSize ?? 14) * (scale * 0.9),
-        );
+    final detailStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(
+      color: Theme.of(context).colorScheme.onSurfaceVariant,
+      fontSize: (Theme.of(context).textTheme.bodyLarge?.fontSize ?? 14) * (resolvedScale * 0.9),
+    );
 
-        final seriesText = media.series == null || media.series!.trim().isEmpty
-            ? null
-            : media.seriesPosition == null || media.seriesPosition!.trim().isEmpty
-            ? media.series!.trim()
-            : '${media.series!.trim()} #${media.seriesPosition!.trim()}';
+    final seriesText = media.series == null || media.series!.trim().isEmpty
+        ? null
+        : media.seriesPosition == null || media.seriesPosition!.trim().isEmpty
+        ? media.series!.trim()
+        : '${media.series!.trim()} #${media.seriesPosition!.trim()}';
 
-        final narratorText = media.subtitle?.trim();
+    final narratorText = media.narrator?.trim();
 
-        return Column(
-          crossAxisAlignment: crossAxis,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            Text(media.title, textAlign: textAlign, maxLines: 3, overflow: TextOverflow.ellipsis, style: titleStyle),
-            if (showAuthor && media.author?.trim().isNotEmpty == true) ...<Widget>[
-              const SizedBox(height: 4),
-              Text(
-                media.author!.trim(),
-                textAlign: textAlign,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: detailStyle,
-              ),
-            ],
-            if (showNarrator && narratorText?.isNotEmpty == true) ...<Widget>[
-              const SizedBox(height: 3),
-              Text(
-                'Narrator: ${narratorText!}',
-                textAlign: textAlign,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: detailStyle,
-              ),
-            ],
-            if (showSeries && seriesText != null) ...<Widget>[
-              const SizedBox(height: 3),
-              Text(seriesText, textAlign: textAlign, maxLines: 2, overflow: TextOverflow.ellipsis, style: detailStyle),
-            ],
-          ],
-        );
-      },
+    return Column(
+      crossAxisAlignment: crossAxis,
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: <Widget>[
+        Text(media.title, textAlign: textAlign, maxLines: 3, overflow: TextOverflow.ellipsis, style: titleStyle),
+        if (showAuthor && media.author?.trim().isNotEmpty == true) ...<Widget>[
+          const SizedBox(height: 4),
+          Text(
+            media.author!.trim(),
+            textAlign: textAlign,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: detailStyle,
+          ),
+        ],
+        if (showNarrator && narratorText?.isNotEmpty == true) ...<Widget>[
+          const SizedBox(height: 3),
+          Text(narratorText!, textAlign: textAlign, maxLines: 2, overflow: TextOverflow.ellipsis, style: detailStyle),
+        ],
+        if (showSeries && seriesText != null) ...<Widget>[
+          const SizedBox(height: 3),
+          Text(seriesText, textAlign: textAlign, maxLines: 2, overflow: TextOverflow.ellipsis, style: detailStyle),
+        ],
+      ],
     );
   }
 }

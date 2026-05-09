@@ -6,7 +6,7 @@ import 'package:yaabsa/util/globals.dart';
 
 enum PlayerComponentType { cover, mediaInfo, seekBar, controls, utilities, subtitles, chapters, queue }
 
-enum PlayerUtilityType { sleepTimer, speed, chapter, volume, queue }
+enum PlayerUtilityType { sleepTimer, speed, bookmarks, chapter, volume, queue }
 
 enum PlayerLayoutScreenSize {
   mobile,
@@ -214,6 +214,8 @@ extension PlayerUtilityTypeX on PlayerUtilityType {
         return 'Sleep Timer';
       case PlayerUtilityType.speed:
         return 'Playback Speed';
+      case PlayerUtilityType.bookmarks:
+        return 'Bookmarks';
       case PlayerUtilityType.chapter:
         return 'Chapter Picker';
       case PlayerUtilityType.volume:
@@ -276,6 +278,7 @@ const List<PlayerComponentType> defaultPlayerComponentOrder = <PlayerComponentTy
 
 const List<PlayerUtilityType> defaultPlayerUtilityOrder = <PlayerUtilityType>[
   PlayerUtilityType.speed,
+  PlayerUtilityType.bookmarks,
   PlayerUtilityType.chapter,
   PlayerUtilityType.volume,
   PlayerUtilityType.sleepTimer,
@@ -380,6 +383,7 @@ class PlayerComponentPlacement {
     this.showSeries = true,
     this.textAlign = PlayerMetadataTextAlign.start,
     this.scale = 1.0,
+    this.mediaInfoFontScale = 1.0,
     this.coverFitMode = PlayerCoverFitMode.height,
     this.seekTimePlacement = PlayerSeekTimePlacement.inline,
     this.seekTrackHeight = 8.0,
@@ -399,6 +403,7 @@ class PlayerComponentPlacement {
   final bool showSeries;
   final PlayerMetadataTextAlign textAlign;
   final double scale;
+  final double mediaInfoFontScale;
   final PlayerCoverFitMode coverFitMode;
   final PlayerSeekTimePlacement seekTimePlacement;
   final double seekTrackHeight;
@@ -419,6 +424,7 @@ class PlayerComponentPlacement {
       'showSeries': showSeries,
       'textAlign': textAlign.name,
       'scale': scale,
+      'mediaInfoFontScale': mediaInfoFontScale,
       'coverFitMode': coverFitMode.name,
       'seekTimePlacement': seekTimePlacement.name,
       'seekTrackHeight': seekTrackHeight,
@@ -446,6 +452,7 @@ class PlayerComponentPlacement {
       showSeries: _boolFromDynamic(map['showSeries'], true),
       textAlign: PlayerMetadataTextAlign.fromSettingValue(map['textAlign']?.toString()),
       scale: (map['scale'] is num) ? (map['scale'] as num).toDouble() : 1.0,
+      mediaInfoFontScale: _doubleFromDynamic(map['mediaInfoFontScale'], 1.0),
       coverFitMode: PlayerCoverFitMode.fromSettingValue(map['coverFitMode']?.toString()),
       seekTimePlacement: PlayerSeekTimePlacement.fromSettingValue(map['seekTimePlacement']?.toString()),
       seekTrackHeight: _doubleFromDynamic(map['seekTrackHeight'], 8.0),
@@ -466,6 +473,7 @@ class PlayerComponentPlacement {
     bool? showSeries,
     PlayerMetadataTextAlign? textAlign,
     double? scale,
+    double? mediaInfoFontScale,
     PlayerCoverFitMode? coverFitMode,
     PlayerSeekTimePlacement? seekTimePlacement,
     double? seekTrackHeight,
@@ -485,6 +493,7 @@ class PlayerComponentPlacement {
       showSeries: showSeries ?? this.showSeries,
       textAlign: textAlign ?? this.textAlign,
       scale: scale ?? this.scale,
+      mediaInfoFontScale: mediaInfoFontScale ?? this.mediaInfoFontScale,
       coverFitMode: coverFitMode ?? this.coverFitMode,
       seekTimePlacement: seekTimePlacement ?? this.seekTimePlacement,
       seekTrackHeight: seekTrackHeight ?? this.seekTrackHeight,
@@ -539,9 +548,14 @@ class PlayerLayoutProfile {
         ? List<PlayerUtilityType>.from(fallbackUtilityOrder)
         : _mergeWithDefaultUtilities(parsedUtilityOrder, fallbackOrder: fallbackUtilityOrder);
 
-    final hiddenUtilities = _dedupeUtilities(
-      _utilityListFromDynamic(map['hiddenUtilities']),
-    ).where((type) => utilityOrder.contains(type)).toList(growable: false);
+    final savedHiddenUtilities = _dedupeUtilities(_utilityListFromDynamic(map['hiddenUtilities']));
+    final parsedUtilitySet = parsedUtilityOrder.toSet();
+    final defaultHiddenUtilities = _defaultHiddenUtilitiesForScreen(screenSize).toSet();
+    final hiddenUtilities = _dedupeUtilities(<PlayerUtilityType>[
+      ...savedHiddenUtilities,
+      for (final utility in utilityOrder)
+        if (!parsedUtilitySet.contains(utility) && defaultHiddenUtilities.contains(utility)) utility,
+    ]).where((type) => utilityOrder.contains(type)).toList(growable: false);
 
     return PlayerLayoutProfile(
       placements: mergedPlacements,
@@ -937,11 +951,11 @@ List<PlayerUtilityType> _defaultUtilityOrderForScreen(PlayerLayoutScreenSize scr
 List<PlayerUtilityType> _defaultHiddenUtilitiesForScreen(PlayerLayoutScreenSize screenSize) {
   switch (screenSize) {
     case PlayerLayoutScreenSize.mobile:
-      return const <PlayerUtilityType>[];
+      return const <PlayerUtilityType>[PlayerUtilityType.bookmarks];
     case PlayerLayoutScreenSize.tablet:
-      return const <PlayerUtilityType>[PlayerUtilityType.chapter, PlayerUtilityType.queue];
+      return const <PlayerUtilityType>[PlayerUtilityType.bookmarks, PlayerUtilityType.chapter, PlayerUtilityType.queue];
     case PlayerLayoutScreenSize.desktop:
-      return const <PlayerUtilityType>[PlayerUtilityType.chapter, PlayerUtilityType.queue];
+      return const <PlayerUtilityType>[PlayerUtilityType.bookmarks, PlayerUtilityType.chapter, PlayerUtilityType.queue];
   }
 }
 
