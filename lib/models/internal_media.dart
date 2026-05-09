@@ -21,6 +21,7 @@ abstract class InternalMedia with _$InternalMedia {
     @JsonKey(name: "title") required String title,
     @JsonKey(name: "subtitle") String? subtitle,
     @JsonKey(name: "author") String? author,
+    @JsonKey(name: "narrator") String? narrator,
     @JsonKey(name: "series") String? series,
     @JsonKey(name: "seriesPosition") String? seriesPosition,
     @JsonKey(name: "cover") Uri? cover,

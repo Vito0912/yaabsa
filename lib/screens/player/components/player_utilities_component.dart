@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:yaabsa/components/player/common/sleep_timer_button.dart';
+import 'package:yaabsa/components/player/common/bookmarks_button.dart';
 import 'package:yaabsa/components/player/common/speed_slider.dart';
 import 'package:yaabsa/components/player/common/volume_slider.dart';
 import 'package:yaabsa/screens/player/chapter_quick_picker.dart';
@@ -43,6 +44,8 @@ class PlayerUtilitiesComponent extends StatelessWidget {
     switch (utility) {
       case PlayerUtilityType.sleepTimer:
         return const SleepTimerButton();
+      case PlayerUtilityType.bookmarks:
+        return const BookmarksButton();
       case PlayerUtilityType.speed:
         return const SpeedSlider();
       case PlayerUtilityType.chapter:
