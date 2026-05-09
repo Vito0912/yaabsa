@@ -8,6 +8,9 @@ on:
       - "windows/**"
       - "android/**"
       - "pubspec.yaml"
+    branches:
+      - master
+      - dev
   workflow_dispatch:
     inputs:
       force_version_bump:
@@ -342,6 +345,7 @@ jobs:
       - check-requirements
     if: ${{ (github.event_name == 'workflow_dispatch' || needs.changes.outputs.version_bumped == 'true' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.linux == 'true') && needs.changes.outputs.build_skip != 'true' }}
     timeout-minutes: 35
+    environment: prod
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -573,6 +577,7 @@ jobs:
       - check-requirements
     if: ${{ (github.event_name == 'workflow_dispatch' || needs.changes.outputs.version_bumped == 'true' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.android == 'true') && needs.changes.outputs.build_skip != 'true' }}
     timeout-minutes: 20
+    environment: prod
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -873,6 +878,7 @@ jobs:
     runs-on: ubuntu-slim
     needs: create-prerelease
     if: ${{ needs.changes.outputs.version_bumped == 'true' && needs.changes.outputs.build_skip != 'true' }}
+    environment: prod
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -902,7 +908,7 @@ jobs:
           releaseFile: android-release/yaabsa.aab
           track: internal
           releaseName: ${{ needs.changes.outputs.release_tag }}
-          status: completed
+          status: draft
           inAppUpdatePriority: 2
           whatsNewDirectory: android/whatsnew
 
@@ -914,6 +920,6 @@ jobs:
           releaseFile: android-automotive-release/yaabsa_aaos.aab
           track: automotive:internal
           releaseName: ${{ needs.changes.outputs.release_tag }} AAOS
-          status: completed
+          status: draft
           inAppUpdatePriority: 2
           whatsNewDirectory: android/whatsnew

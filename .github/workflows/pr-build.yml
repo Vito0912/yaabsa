@@ -1,0 +1,304 @@
+name: PR builds
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - edited
+      - ready_for_review
+
+permissions: {}
+
+jobs:
+  detect-targets:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    outputs:
+      linux: ${{ steps.parse.outputs.linux }}
+      windows: ${{ steps.parse.outputs.windows }}
+      android_auto: ${{ steps.parse.outputs.android_auto }}
+      android_automotive: ${{ steps.parse.outputs.android_automotive }}
+      any: ${{ steps.parse.outputs.any }}
+      valid: ${{ steps.parse.outputs.valid }}
+      failure_reason: ${{ steps.parse.outputs.failure_reason }}
+    steps:
+      - name: Parse selected platforms from PR body
+        id: parse
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import re
+
+          event_path = os.environ['GITHUB_EVENT_PATH']
+          with open(event_path, 'r', encoding='utf-8') as event_file:
+              event_payload = json.load(event_file)
+
+          pr_body = (event_payload.get('pull_request') or {}).get('body') or ''
+
+          expected_labels = {
+              'linux': 'Linux',
+              'windows': 'Windows',
+              'android_auto': 'Android (and Android Auto)',
+              'android_automotive': 'Android Automotive',
+          }
+
+          label_to_key = {label.casefold(): key for key, label in expected_labels.items()}
+          selected = {key: False for key in expected_labels}
+          seen_expected_labels = set()
+
+          checkbox_pattern = re.compile(
+              r'^\s*[-*]\s*\[(?P<mark>[ xX])\]\s*(?P<label>.+?)\s*$',
+              re.MULTILINE,
+          )
+
+          for match in checkbox_pattern.finditer(pr_body):
+              normalized_label = match.group('label').strip().casefold()
+              key = label_to_key.get(normalized_label)
+              if key is None:
+                continue
+
+              seen_expected_labels.add(normalized_label)
+              if match.group('mark').strip().lower() == 'x':
+                selected[key] = True
+
+          any_selected = any(selected.values())
+
+          expected_label_set = {label.casefold() for label in expected_labels.values()}
+          template_matches = seen_expected_labels == expected_label_set
+
+          if not template_matches:
+              failure_reason = 'platform_section_missing_or_modified'
+          elif not any_selected:
+              failure_reason = 'no_platform_selected'
+          else:
+              failure_reason = ''
+
+          is_valid = template_matches and any_selected
+
+          output_path = os.environ['GITHUB_OUTPUT']
+          with open(output_path, 'a', encoding='utf-8') as output_file:
+              for key, value in selected.items():
+                  output_file.write(f"{key}={'true' if value else 'false'}\\n")
+              output_file.write(f"any={'true' if any_selected else 'false'}\\n")
+              output_file.write(f"valid={'true' if is_valid else 'false'}\\n")
+              output_file.write(f"failure_reason={failure_reason}\\n")
+
+          selected_keys = [key for key, value in selected.items() if value]
+          print('Selected targets:', ', '.join(selected_keys) if selected_keys else 'none')
+          print('Template matches expected labels:', 'yes' if template_matches else 'no')
+          print('Validation status:', 'valid' if is_valid else f'invalid ({failure_reason})')
+          PY
+
+      - name: Comment when platform selection is invalid
+        if: ${{ steps.parse.outputs.valid != 'true' }}
+        uses: actions/github-script@v8
+        continue-on-error: true
+        env:
+          FAILURE_REASON: ${{ steps.parse.outputs.failure_reason }}
+        with:
+          script: |
+            const marker = '<!-- pr-platform-selection-validation -->';
+            const reason = process.env.FAILURE_REASON;
+
+            let reasonText = '- The Platforms Affected section is missing or has modified labels. Please restore the template labels exactly.';
+            if (reason === 'no_platform_selected') {
+              reasonText = '- No platform is selected. Select at least one checkbox under Platforms Affected.';
+            }
+
+            const body = [
+              marker,
+              'CI could not start platform builds for this PR.',
+              '',
+              reasonText,
+              '',
+              'The PR description must include the Platforms Affected section from the template with these exact labels:',
+              '- Linux',
+              '- Windows',
+              '- Android (and Android Auto)',
+              '- Android Automotive',
+            ].join('\n');
+
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner,
+              repo,
+              issue_number,
+              per_page: 100,
+            });
+
+            const existing = comments.find(
+              (comment) => comment.user?.type === 'Bot' && comment.body?.includes(marker),
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body,
+              });
+            }
+
+      - name: Fail when platform selection is invalid
+        if: ${{ steps.parse.outputs.valid != 'true' }}
+        shell: bash
+        run: |
+          echo "Update the PR body using the template and select at least one platform."
+          exit 1
+
+  build-linux:
+    runs-on: ubuntu-latest
+    needs: detect-targets
+    if: ${{ needs.detect-targets.outputs.linux == 'true' }}
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install apt dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            libgtk-3-dev \
+            libgtk-3-0 \
+            libblkid1 \
+            liblzma5 \
+            libsecret-1-0 \
+            libsecret-1-dev \
+            libmpv-dev \
+            mpv \
+            libayatana-appindicator3-dev
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Post Get
+        uses: ./.github/actions/post-get
+        with:
+          flow: pr-build-linux
+
+      - name: Build Linux debug bundle
+        run: flutter build linux --debug
+
+  build-windows:
+    runs-on: windows-latest
+    needs: detect-targets
+    if: ${{ needs.detect-targets.outputs.windows == 'true' }}
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Post Get
+        uses: ./.github/actions/post-get
+        with:
+          flow: pr-build-windows
+
+      - name: Build Windows debug bundle
+        run: flutter build windows --debug
+
+  build-android-auto:
+    runs-on: ubuntu-latest
+    needs: detect-targets
+    if: ${{ needs.detect-targets.outputs.android_auto == 'true' }}
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Post Get
+        uses: ./.github/actions/post-get
+        with:
+          flow: pr-build-android-auto
+
+      - name: Build Android Auto debug APK
+        run: flutter build apk --flavor auto --debug
+
+  build-android-automotive:
+    runs-on: ubuntu-latest
+    needs: detect-targets
+    if: ${{ needs.detect-targets.outputs.android_automotive == 'true' }}
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Post Get
+        uses: ./.github/actions/post-get
+        with:
+          flow: pr-build-android-automotive
+
+      - name: Build Android Automotive debug APK
+        run: flutter build apk --flavor automotive --debug
