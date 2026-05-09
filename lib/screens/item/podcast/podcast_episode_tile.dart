@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/api/me/media_progress.dart';
+import 'package:yaabsa/components/app/item/item_more_actions_button.dart';
 import 'package:yaabsa/screens/item/podcast/podcast_episode_utils.dart';
+import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/item_formatters.dart';
 
 class PodcastEpisodeTile extends StatelessWidget {
@@ -20,6 +22,8 @@ class PodcastEpisodeTile extends StatelessWidget {
     required this.onQueueToggle,
     this.onDownloadPressed,
     this.onDeletePressed,
+    this.onMoreActionSelected,
+    this.showMarkAsUnfinished = false,
   });
 
   final Episode episode;
@@ -35,6 +39,8 @@ class PodcastEpisodeTile extends StatelessWidget {
   final VoidCallback onQueueToggle;
   final VoidCallback? onDownloadPressed;
   final VoidCallback? onDeletePressed;
+  final Future<void> Function(ItemMoreAction action)? onMoreActionSelected;
+  final bool showMarkAsUnfinished;
 
   @override
   Widget build(BuildContext context) {
@@ -69,6 +75,13 @@ class PodcastEpisodeTile extends StatelessWidget {
         : colorScheme.onSurfaceVariant.withValues(alpha: 0.6);
     const playButtonTouchSize = 48.0;
     const playButtonVisualSize = 40.0;
+    Widget secondaryActionButton(Widget child) {
+      return SizedBox(
+        width: playButtonTouchSize,
+        height: playButtonTouchSize,
+        child: Center(child: child),
+      );
+    }
 
     return Material(
       color: backgroundColor,
@@ -160,20 +173,35 @@ class PodcastEpisodeTile extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 4),
-                  IconButton.filledTonal(
-                    onPressed: isCurrentEpisode ? null : onQueueToggle,
-                    icon: Icon(isQueued ? Icons.playlist_remove_rounded : Icons.queue_music_rounded),
-                    tooltip: isCurrentEpisode ? 'Currently playing' : (isQueued ? 'Remove from queue' : 'Add to queue'),
-                  ),
-                  if (canDownload) ...[
-                    const SizedBox(width: 4),
+                  const SizedBox(width: 8),
+                  secondaryActionButton(
                     IconButton.filledTonal(
-                      onPressed: isDownloading ? null : (isDownloaded ? onDeletePressed : onDownloadPressed),
-                      icon: isDownloading
-                          ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.2))
-                          : Icon(isDownloaded ? Icons.delete_outline_rounded : Icons.download_rounded),
-                      tooltip: isDownloading ? 'Downloading' : (isDownloaded ? 'Delete download' : 'Download'),
+                      onPressed: isCurrentEpisode ? null : onQueueToggle,
+                      icon: Icon(isQueued ? Icons.playlist_remove_rounded : Icons.queue_music_rounded),
+                      tooltip: isCurrentEpisode
+                          ? 'Currently playing'
+                          : (isQueued ? 'Remove from queue' : 'Add to queue'),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ),
+                  if (canDownload && !context.isMobile) ...[
+                    secondaryActionButton(
+                      IconButton.filledTonal(
+                        onPressed: isDownloading ? null : (isDownloaded ? onDeletePressed : onDownloadPressed),
+                        icon: isDownloading
+                            ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.2))
+                            : Icon(isDownloaded ? Icons.delete_outline_rounded : Icons.download_rounded),
+                        tooltip: isDownloading ? 'Downloading' : (isDownloaded ? 'Delete download' : 'Download'),
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    ),
+                  ],
+                  if (onMoreActionSelected != null) ...[
+                    secondaryActionButton(
+                      ItemMoreActionsButton(
+                        onActionSelected: onMoreActionSelected!,
+                        showMarkAsUnfinished: showMarkAsUnfinished,
+                      ),
                     ),
                   ],
                 ],

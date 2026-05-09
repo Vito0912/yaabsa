@@ -87,6 +87,8 @@ class LibraryItemBookView extends ConsumerWidget {
     final isItemFinished = progressByKey != null && isLibraryItemFinished(item, progressByKey);
 
     final currentUser = ref.watch(currentUserProvider).value;
+    final canAddToPlaylist = canAddLibraryItemToPlaylist(item, currentUser?.id);
+    final canAddToCollection = canAddLibraryItemToCollection(item, canUpdate: currentUser?.permissions.update ?? false);
     final appDatabase = ref.watch(appDatabaseProvider);
     final storedDownloadsStream = currentUser == null
         ? Stream<List<InternalDownload>>.value(const <InternalDownload>[])
@@ -199,6 +201,8 @@ class LibraryItemBookView extends ConsumerWidget {
                                     audioHandler.addLibraryItemToQueue(item);
                                   },
                                   showMarkAsUnfinished: isItemFinished,
+                                  showAddToPlaylist: canAddToPlaylist,
+                                  showAddToCollection: canAddToCollection,
                                   onMoreActionSelected: (action) async {
                                     switch (action) {
                                       case ItemMoreAction.markAsFinished:
@@ -206,6 +210,22 @@ class LibraryItemBookView extends ConsumerWidget {
                                         return;
                                       case ItemMoreAction.markAsUnfinished:
                                         await markLibraryItemAsUnfinished(context: context, ref: ref, item: item);
+                                        return;
+                                      case ItemMoreAction.addToPlaylist:
+                                        await addLibraryItemToPlaylist(
+                                          context: context,
+                                          ref: ref,
+                                          item: item,
+                                          currentUserId: currentUser?.id,
+                                        );
+                                        return;
+                                      case ItemMoreAction.addToCollection:
+                                        await addLibraryItemToCollection(
+                                          context: context,
+                                          ref: ref,
+                                          item: item,
+                                          canUpdate: currentUser?.permissions.update ?? false,
+                                        );
                                         return;
                                       case ItemMoreAction.playHistory:
                                         if (!context.mounted) {

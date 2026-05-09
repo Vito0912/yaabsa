@@ -59,8 +59,6 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
 
     final allEpisodes = podcastMedia.episodes ?? const <Episode>[];
     final progressMap = ref.watch(mediaProgressProvider).asData?.value ?? const <String, MediaProgress>{};
-    final supportsMarkAction = supportsFinishedProgressUpdates(widget.item);
-    final isItemFinished = isLibraryItemFinished(widget.item, progressMap);
     final visibleEpisodes = _buildVisibleEpisodes(allEpisodes, progressMap);
     final firstPlayableEpisode = visibleEpisodes.where((episode) => episode.audioFile != null).firstOrNull;
 
@@ -127,28 +125,6 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                                   onPlayLatest: firstPlayableEpisode == null
                                       ? null
                                       : () => _playEpisode(firstPlayableEpisode, visibleEpisodes),
-                                  onMoreActionSelected: (action) async {
-                                    switch (action) {
-                                      case ItemMoreAction.markAsFinished:
-                                        await markLibraryItemAsFinished(context: context, ref: ref, item: widget.item);
-                                        return;
-                                      case ItemMoreAction.markAsUnfinished:
-                                        await markLibraryItemAsUnfinished(
-                                          context: context,
-                                          ref: ref,
-                                          item: widget.item,
-                                        );
-                                        return;
-                                      case ItemMoreAction.playHistory:
-                                        if (!context.mounted) {
-                                          return;
-                                        }
-                                        context.push(PlayHistoryView.routeName);
-                                        return;
-                                    }
-                                  },
-                                  showMarkAction: supportsMarkAction,
-                                  showMarkAsUnfinished: isItemFinished,
                                   onToggleDescription: () {
                                     setState(() {
                                       _showFullDescription = !_showFullDescription;
@@ -223,6 +199,11 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                                                 final episode = visibleEpisodes[index];
                                                 final episodeProgress =
                                                     progressMap[mediaProgressKey(widget.item.id, episode.id)];
+                                                final isEpisodeFinished = isPodcastEpisodeFinished(
+                                                  item: widget.item,
+                                                  episode: episode,
+                                                  progressByKey: progressMap,
+                                                );
                                                 final isQueued = queueSnapshot.entries.any(
                                                   (entry) =>
                                                       entry.item.itemId == widget.item.id &&
@@ -292,6 +273,36 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                                                           userId: currentUser.id,
                                                         )
                                                       : null,
+                                                  showMarkAsUnfinished: isEpisodeFinished,
+                                                  onMoreActionSelected: (action) async {
+                                                    switch (action) {
+                                                      case ItemMoreAction.markAsFinished:
+                                                        await markPodcastEpisodeAsFinished(
+                                                          context: context,
+                                                          ref: ref,
+                                                          item: widget.item,
+                                                          episode: episode,
+                                                        );
+                                                        return;
+                                                      case ItemMoreAction.markAsUnfinished:
+                                                        await markPodcastEpisodeAsUnfinished(
+                                                          context: context,
+                                                          ref: ref,
+                                                          item: widget.item,
+                                                          episode: episode,
+                                                        );
+                                                        return;
+                                                      case ItemMoreAction.addToPlaylist:
+                                                      case ItemMoreAction.addToCollection:
+                                                        return;
+                                                      case ItemMoreAction.playHistory:
+                                                        if (!context.mounted) {
+                                                          return;
+                                                        }
+                                                        context.push(PlayHistoryView.routeName);
+                                                        return;
+                                                    }
+                                                  },
                                                 );
                                               },
                                             ),

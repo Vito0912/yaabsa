@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
-import 'package:yaabsa/components/app/item/item_more_actions_button.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/item_formatters.dart';
 
@@ -16,9 +15,6 @@ class PodcastHeaderCard extends StatelessWidget {
     required this.onBack,
     required this.onToggleDescription,
     this.onPlayLatest,
-    this.onMoreActionSelected,
-    this.showMarkAsUnfinished = false,
-    this.showMarkAction = true,
   });
 
   final LibraryItem item;
@@ -30,9 +26,6 @@ class PodcastHeaderCard extends StatelessWidget {
   final VoidCallback onBack;
   final VoidCallback? onPlayLatest;
   final VoidCallback onToggleDescription;
-  final Future<void> Function(ItemMoreAction action)? onMoreActionSelected;
-  final bool showMarkAsUnfinished;
-  final bool showMarkAction;
 
   @override
   Widget build(BuildContext context) {
@@ -73,9 +66,6 @@ class PodcastHeaderCard extends StatelessWidget {
                     visibleEpisodes: visibleEpisodes,
                     duration: duration,
                     onPlayLatest: onPlayLatest,
-                    onMoreActionSelected: onMoreActionSelected,
-                    showMarkAsUnfinished: showMarkAsUnfinished,
-                    showMarkAction: showMarkAction,
                   ),
                 ],
               )
@@ -95,9 +85,6 @@ class PodcastHeaderCard extends StatelessWidget {
                       visibleEpisodes: visibleEpisodes,
                       duration: duration,
                       onPlayLatest: onPlayLatest,
-                      onMoreActionSelected: onMoreActionSelected,
-                      showMarkAsUnfinished: showMarkAsUnfinished,
-                      showMarkAction: showMarkAction,
                     ),
                   ),
                 ],
@@ -129,9 +116,6 @@ class _PodcastHeaderText extends StatelessWidget {
     required this.visibleEpisodes,
     required this.duration,
     this.onPlayLatest,
-    this.onMoreActionSelected,
-    this.showMarkAsUnfinished = false,
-    this.showMarkAction = true,
   });
 
   final LibraryItem item;
@@ -139,9 +123,6 @@ class _PodcastHeaderText extends StatelessWidget {
   final int visibleEpisodes;
   final Duration? duration;
   final VoidCallback? onPlayLatest;
-  final Future<void> Function(ItemMoreAction action)? onMoreActionSelected;
-  final bool showMarkAsUnfinished;
-  final bool showMarkAction;
 
   @override
   Widget build(BuildContext context) {
@@ -182,14 +163,6 @@ class _PodcastHeaderText extends StatelessWidget {
               icon: const Icon(Icons.play_arrow_rounded),
               label: const Text('Play'),
             ),
-            if (onMoreActionSelected != null) ...[
-              const SizedBox(width: 8),
-              ItemMoreActionsButton(
-                onActionSelected: onMoreActionSelected!,
-                showMarkAction: showMarkAction,
-                showMarkAsUnfinished: showMarkAsUnfinished,
-              ),
-            ],
           ],
         ),
       ],

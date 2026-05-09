@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum ItemMoreAction { markAsFinished, markAsUnfinished, playHistory }
+enum ItemMoreAction { markAsFinished, markAsUnfinished, addToPlaylist, addToCollection, playHistory }
 
 class ItemMoreActionsButton extends StatelessWidget {
   const ItemMoreActionsButton({
@@ -10,6 +10,8 @@ class ItemMoreActionsButton extends StatelessWidget {
     this.tooltip = 'More actions',
     this.showMarkAction = true,
     this.showMarkAsUnfinished = false,
+    this.showAddToPlaylist = false,
+    this.showAddToCollection = false,
   });
 
   final Future<void> Function(ItemMoreAction action) onActionSelected;
@@ -17,6 +19,8 @@ class ItemMoreActionsButton extends StatelessWidget {
   final String tooltip;
   final bool showMarkAction;
   final bool showMarkAsUnfinished;
+  final bool showAddToPlaylist;
+  final bool showAddToCollection;
 
   Future<void> _openActionDialog(BuildContext context) async {
     final selectedAction = await showDialog<ItemMoreAction>(
@@ -34,6 +38,18 @@ class ItemMoreActionsButton extends StatelessWidget {
                   onTap: () => Navigator.of(
                     dialogContext,
                   ).pop(showMarkAsUnfinished ? ItemMoreAction.markAsUnfinished : ItemMoreAction.markAsFinished),
+                ),
+              if (showAddToPlaylist)
+                ListTile(
+                  leading: const Icon(Icons.playlist_add_rounded),
+                  title: const Text('Add To Playlist'),
+                  onTap: () => Navigator.of(dialogContext).pop(ItemMoreAction.addToPlaylist),
+                ),
+              if (showAddToCollection)
+                ListTile(
+                  leading: const Icon(Icons.collections_bookmark_outlined),
+                  title: const Text('Add To Collection'),
+                  onTap: () => Navigator.of(dialogContext).pop(ItemMoreAction.addToCollection),
                 ),
               ListTile(
                 leading: const Icon(Icons.history_rounded),
