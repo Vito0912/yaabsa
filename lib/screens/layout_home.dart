@@ -178,14 +178,51 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
       label = _allAppBarItems[index].label;
     }
 
+    if (label == null) {
+      return;
+    }
+
+    final tabIntent = _tabIntentForLabel(label);
+
     setState(() {
       _selectedIndex = index;
-      _lastSelectedLabel = label ?? _lastSelectedLabel;
+      _lastSelectedLabel = label;
       _currentlyDisplayedPageSource = _PageSource.internal;
       _searchQuery = '';
       _searchController.clear();
       _isMobileSearchExpanded = false;
     });
+
+    _syncRouteToTab(tabIntent);
+  }
+
+  String _tabIntentForLabel(String label) {
+    return switch (label) {
+      'Shelf' => 'shelf',
+      'Library' => 'library',
+      'Collections' => 'collections',
+      'Playlists' => 'playlists',
+      'Series' => 'series',
+      'Authors' => 'authors',
+      'Narrators' => 'narrators',
+      'Downloads' => 'downloads',
+      'Stats' => 'stats',
+      'Settings' => 'settings',
+      'About' => 'about',
+      _ => 'shelf',
+    };
+  }
+
+  void _syncRouteToTab(String tabIntent) {
+    final uri = GoRouterState.of(context).uri;
+    final currentTab = uri.queryParameters['tab'] ?? 'shelf';
+    final isOnRootRoute = uri.path == '/';
+
+    if (isOnRootRoute && currentTab == tabIntent) {
+      return;
+    }
+
+    context.go('/?tab=$tabIntent&intent=${DateTime.now().microsecondsSinceEpoch}');
   }
 
   void _submitSearch(String value) {
@@ -304,6 +341,7 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
     final intentKey = queryParameters['intent'] ?? tabIntent;
     if (tabIntent != null && intentKey != null && intentKey != _lastConsumedTabIntent) {
       final targetLabel = switch (tabIntent) {
+        'shelf' => 'Shelf',
         'library' => 'Library',
         'collections' => 'Collections',
         'playlists' => 'Playlists',
