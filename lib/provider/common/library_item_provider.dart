@@ -44,6 +44,7 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
     String? sort,
     int? desc,
     String? filter,
+    bool useCurrentFilterFallback = true,
     int? collapseseries,
     String? include,
   }) async {
@@ -58,7 +59,7 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
       page: page,
       sort: sort ?? currentVal?.sort,
       desc: desc ?? currentVal?.desc,
-      filter: normalizeLibraryFilterQuery(filter ?? currentVal?.filter),
+      filter: normalizeLibraryFilterQuery(useCurrentFilterFallback ? (filter ?? currentVal?.filter) : filter),
       collapseseries: collapseseries ?? currentVal?.collapseseries,
       include: include ?? currentVal?.include,
     );
@@ -175,17 +176,20 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
     final currentLoadedState = state.asData?.value;
     final targetLibraryId = currentLoadedState?.libraryId ?? libraryId;
 
-    final newFilter = clearFilter ? null : (filter ?? currentLoadedState?.filter ?? initialFilter);
-    var newSort = sort ?? currentLoadedState?.sort ?? initialSort;
-    var newDesc = desc ?? currentLoadedState?.desc ?? initialDesc;
+    final newFilter = clearFilter
+        ? null
+        : (filter ?? (currentLoadedState != null ? currentLoadedState.filter : initialFilter));
+    var newSort = sort ?? (currentLoadedState != null ? currentLoadedState.sort : initialSort);
+    var newDesc = desc ?? (currentLoadedState != null ? currentLoadedState.desc : initialDesc);
 
     if (newSort == LibrarySortValue.sequence.wireValue && !_isSeriesFilterQuery(newFilter)) {
       newSort = defaultLibrarySortWireValue;
       newDesc = defaultLibrarySortDesc;
     }
 
-    final newCollapseSeries = collapseseries ?? currentLoadedState?.collapseseries ?? initialCollapseSeries;
-    final newInclude = include ?? currentLoadedState?.include ?? initialInclude;
+    final newCollapseSeries =
+        collapseseries ?? (currentLoadedState != null ? currentLoadedState.collapseseries : initialCollapseSeries);
+    final newInclude = include ?? (currentLoadedState != null ? currentLoadedState.include : initialInclude);
 
     if (currentLoadedState == null) {
       state = const AsyncValue.loading();
@@ -198,6 +202,7 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
         sort: newSort,
         desc: newDesc,
         filter: newFilter,
+        useCurrentFilterFallback: false,
         collapseseries: newCollapseSeries,
         include: newInclude,
       );
@@ -234,6 +239,13 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
   Future<void> refresh() async {
     final currentLoadedState = state.asData?.value;
     final targetLibraryId = currentLoadedState?.libraryId ?? libraryId;
+    final refreshSort = currentLoadedState != null ? currentLoadedState.sort : initialSort;
+    final refreshDesc = currentLoadedState != null ? currentLoadedState.desc : initialDesc;
+    final refreshFilter = currentLoadedState != null ? currentLoadedState.filter : initialFilter;
+    final refreshCollapseSeries = currentLoadedState != null
+        ? currentLoadedState.collapseseries
+        : initialCollapseSeries;
+    final refreshInclude = currentLoadedState != null ? currentLoadedState.include : initialInclude;
 
     if (currentLoadedState == null) {
       state = const AsyncValue.loading();
@@ -243,11 +255,12 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
       final newState = await _fetchItems(
         targetLibraryId,
         0,
-        sort: currentLoadedState?.sort ?? initialSort,
-        desc: currentLoadedState?.desc ?? initialDesc,
-        filter: currentLoadedState?.filter ?? initialFilter,
-        collapseseries: currentLoadedState?.collapseseries ?? initialCollapseSeries,
-        include: currentLoadedState?.include ?? initialInclude,
+        sort: refreshSort,
+        desc: refreshDesc,
+        filter: refreshFilter,
+        useCurrentFilterFallback: false,
+        collapseseries: refreshCollapseSeries,
+        include: refreshInclude,
       );
       state = AsyncData(newState);
     } catch (e, s) {

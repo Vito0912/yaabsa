@@ -88,6 +88,22 @@ class _ActiveUserIdNotifier extends ChangeNotifier {
 
 final _activeUserIdNotifier = _ActiveUserIdNotifier();
 
+bool _shouldUseStaticHomeShellTransition(BuildContext context) {
+  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    return true;
+  }
+
+  return !context.isMobile;
+}
+
+Page<void> _buildAdaptiveHomeShellPage(BuildContext context, GoRouterState state, Widget child) {
+  if (_shouldUseStaticHomeShellTransition(context)) {
+    return NoTransitionPage<void>(key: state.pageKey, child: child);
+  }
+
+  return MaterialPage<void>(key: state.pageKey, child: child);
+}
+
 final globalRouter = GoRouter(
   initialLocation: '/',
   refreshListenable: _activeUserIdNotifier,
@@ -143,8 +159,8 @@ final globalRouter = GoRouter(
               routes: [
                 GoRoute(path: '/', builder: (context, state) => LayoutHome()),
                 ShellRoute(
-                  builder: (BuildContext context, GoRouterState state, Widget child) {
-                    return LayoutHome(child: child);
+                  pageBuilder: (BuildContext context, GoRouterState state, Widget child) {
+                    return _buildAdaptiveHomeShellPage(context, state, LayoutHome(child: child));
                   },
                   routes: [
                     GoRoute(path: AppearanceSettings.routeName, builder: (context, state) => AppearanceSettings()),
