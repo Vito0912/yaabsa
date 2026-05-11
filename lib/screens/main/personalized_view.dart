@@ -24,6 +24,7 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/library/personalized_library_provider.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
+import 'package:yaabsa/util/server_management_preferences.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:yaabsa/util/widget_bridge.dart';
 
@@ -49,6 +50,8 @@ class PersonalizedView extends HookConsumerWidget {
       defaultSettings[SettingKeys.personalizedShelfShowPlayVisibleButton] as bool,
     );
     final currentUser = ref.watch(currentUserProvider).value;
+    ref.watch(userSettingsWatcherProvider);
+    final managementPreferences = readServerManagementPreferences(ref, currentUser?.id);
     final mediaProgressMap = ref.watch(mediaProgressProvider).asData?.value ?? const <String, MediaProgress>{};
     final personalizedLibraryForWidgets = personalizedLibraryAsyncValue.asData?.value;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
@@ -148,13 +151,15 @@ class PersonalizedView extends HookConsumerWidget {
             final libraryTileWidth = appGridTileWidth;
             final visibleLibraryItems = _collectVisibleShelfLibraryItems(sections);
             final canManageBooks = selectedLibrary.mediaType == 'book';
+            final hasUpdatePermission = currentUser?.permissions.update ?? false;
+            final hasDeletePermission = currentUser?.permissions.delete ?? false;
             return LibraryMultiSelectHost(
               scopeKey: 'shelf:${selectedLibrary.id}',
               libraryId: selectedLibrary.id,
               visibleItems: visibleLibraryItems,
               canAddToPlaylist: canManageBooks && currentUser != null,
-              canAddToCollection: canManageBooks && (currentUser?.permissions.update ?? false),
-              canDeleteItems: canManageBooks && (currentUser?.permissions.delete ?? false),
+              canAddToCollection: canManageBooks && hasUpdatePermission && managementPreferences.collectionsEnabled,
+              canDeleteItems: canManageBooks && hasDeletePermission && managementPreferences.deleteItemsEnabled,
               currentUserId: currentUser?.id,
               onAfterDelete: () => refreshPersonalizedLibrary(withLoading: false),
               builder: (context, selection) {

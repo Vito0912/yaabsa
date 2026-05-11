@@ -11,6 +11,7 @@ import 'package:yaabsa/components/app/item/library_item_view_components.dart';
 import 'package:yaabsa/components/common/connection_issue_view.dart';
 import 'package:yaabsa/components/common/cover_zoom_view.dart';
 import 'package:yaabsa/database/app_database.dart';
+import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/models/internal_download.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
@@ -18,6 +19,7 @@ import 'package:yaabsa/screens/player/play_history_view.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/item_view_navigation.dart';
+import 'package:yaabsa/util/server_management_preferences.dart';
 
 class LibraryItemBookView extends ConsumerWidget {
   const LibraryItemBookView({super.key, required this.item, required this.canDownload});
@@ -88,9 +90,17 @@ class LibraryItemBookView extends ConsumerWidget {
     final isItemFinished = progressByKey != null && isLibraryItemFinished(item, progressByKey);
 
     final currentUser = ref.watch(currentUserProvider).value;
+    ref.watch(userSettingsWatcherProvider);
+    final managementPreferences = readServerManagementPreferences(ref, currentUser?.id);
     final canAddToPlaylist = canAddLibraryItemToPlaylist(item, currentUser?.id);
-    final canAddToCollection = canAddLibraryItemToCollection(item, canUpdate: currentUser?.permissions.update ?? false);
-    final canDeleteItem = canDeleteAudiobook(item: item, hasDeletePermission: currentUser?.permissions.delete ?? false);
+    final canAddToCollection = canAddLibraryItemToCollection(
+      item,
+      canUpdate: (currentUser?.permissions.update ?? false) && managementPreferences.collectionsEnabled,
+    );
+    final canDeleteItem = canDeleteAudiobook(
+      item: item,
+      hasDeletePermission: (currentUser?.permissions.delete ?? false) && managementPreferences.deleteItemsEnabled,
+    );
     final appDatabase = ref.watch(appDatabaseProvider);
     final storedDownloadsStream = currentUser == null
         ? Stream<List<InternalDownload>>.value(const <InternalDownload>[])

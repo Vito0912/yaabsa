@@ -13,6 +13,7 @@ import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/server_management_preferences.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
 class LibraryView extends HookConsumerWidget {
@@ -31,6 +32,8 @@ class LibraryView extends HookConsumerWidget {
 
     final appDatabase = ref.watch(appDatabaseProvider);
     final currentUser = ref.watch(currentUserProvider).value;
+    ref.watch(userSettingsWatcherProvider);
+    final managementPreferences = readServerManagementPreferences(ref, currentUser?.id);
     final collapseSeriesFallback = currentUser == null
         ? false
         : ref
@@ -63,14 +66,16 @@ class LibraryView extends HookConsumerWidget {
           data: (state) {
             final items = state.items;
             final canManageBooks = selectedLibrary.mediaType == 'book';
+            final hasUpdatePermission = currentUser?.permissions.update ?? false;
+            final hasDeletePermission = currentUser?.permissions.delete ?? false;
             return LibraryMultiSelectHost(
               scopeKey: 'library:$libraryId:${initialFilter ?? ''}',
               libraryId: libraryId,
               visibleItems: items,
               enableShiftRange: true,
               canAddToPlaylist: canManageBooks && currentUser != null,
-              canAddToCollection: canManageBooks && (currentUser?.permissions.update ?? false),
-              canDeleteItems: canManageBooks && (currentUser?.permissions.delete ?? false),
+              canAddToCollection: canManageBooks && hasUpdatePermission && managementPreferences.collectionsEnabled,
+              canDeleteItems: canManageBooks && hasDeletePermission && managementPreferences.deleteItemsEnabled,
               currentUserId: currentUser?.id,
               onAfterDelete: () => ref.read(itemsProvider.notifier).refresh(),
               builder: (context, selection) {

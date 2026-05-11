@@ -34,6 +34,7 @@ import 'package:yaabsa/screens/settings/player/player_settings_smart_rewind.dart
 import 'package:yaabsa/screens/settings/player/player_settings_subtitles.dart';
 import 'package:yaabsa/screens/settings/reader_settings.dart';
 import 'package:yaabsa/screens/settings/server_connection_settings.dart';
+import 'package:yaabsa/screens/settings/server_management_settings.dart';
 import 'package:yaabsa/screens/settings/settings_screen.dart';
 import 'package:yaabsa/screens/settings/theme_settings.dart';
 import 'package:yaabsa/util/globals.dart';
@@ -173,6 +174,10 @@ final globalRouter = GoRouter(
                     GoRoute(
                       path: ServerConnectionSettings.routeName,
                       builder: (context, state) => const ServerConnectionSettings(),
+                    ),
+                    GoRoute(
+                      path: ServerManagementSettings.routeName,
+                      builder: (context, state) => const ServerManagementSettings(),
                     ),
                     GoRoute(
                       path: CachingGeneralSettings.routeName,

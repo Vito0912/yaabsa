@@ -8,9 +8,11 @@ import 'package:yaabsa/components/common/connection_issue_view.dart';
 import 'package:yaabsa/components/common/managed_list_operations.dart';
 import 'package:yaabsa/components/common/managed_multi_book_view.dart';
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
+import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/common/collection_provider.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/util/server_management_preferences.dart';
 
 class CollectionView extends HookConsumerWidget {
   const CollectionView({super.key});
@@ -31,8 +33,12 @@ class CollectionView extends HookConsumerWidget {
     }
 
     final currentUser = ref.watch(currentUserProvider).value;
-    final canEditCollections = currentUser?.permissions.update ?? false;
-    final canDeleteCollections = currentUser?.permissions.delete ?? false;
+    ref.watch(userSettingsWatcherProvider);
+    final managementPreferences = readServerManagementPreferences(ref, currentUser?.id);
+    final collectionsManagementEnabled = managementPreferences.collectionsEnabled;
+    final hasCollectionManagementPermission = currentUser?.permissions.update ?? false;
+    final canEditCollections = hasCollectionManagementPermission && collectionsManagementEnabled;
+    final canDeleteCollections = hasCollectionManagementPermission && collectionsManagementEnabled;
     final canCreateCollections = canEditCollections && selectedLibrary.mediaType == 'book';
 
     final collectionStateAsync = ref.watch(collectionsProvider(libraryId));
