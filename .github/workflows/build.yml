@@ -863,21 +863,25 @@ jobs:
         with:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           packageName: de.vito0912.yaabsa
-          releaseFile: android-release/yaabsa.aab
-          track: internal
+          releaseFiles: [android-release/yaabsa.aab]
+          tracks: [internal]
+          changesNotSentForReview: true
           releaseName: ${{ needs.changes.outputs.release_tag }}
           status: draft
           inAppUpdatePriority: 2
           whatsNewDirectory: android/whatsnew
+        continue-on-error: true
 
       - name: Publish Android Automotive appbundle to Play Store
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           packageName: de.vito0912.yaabsa
-          releaseFile: android-automotive-release/yaabsa_aaos.aab
-          track: automotive:internal
+          releaseFiles: [android-automotive-release/yaabsa_aaos.aab]
+          tracks: [automotive:internal]
+          changesNotSentForReview: true
           releaseName: ${{ needs.changes.outputs.release_tag }} AAOS
           status: draft
           inAppUpdatePriority: 2
           whatsNewDirectory: android/whatsnew
+        continue-on-error: true
