@@ -154,7 +154,9 @@ class PersonalizedView extends HookConsumerWidget {
               visibleItems: visibleLibraryItems,
               canAddToPlaylist: canManageBooks && currentUser != null,
               canAddToCollection: canManageBooks && (currentUser?.permissions.update ?? false),
+              canDeleteItems: canManageBooks && (currentUser?.permissions.delete ?? false),
               currentUserId: currentUser?.id,
+              onAfterDelete: () => refreshPersonalizedLibrary(withLoading: false),
               builder: (context, selection) {
                 return Stack(
                   children: [

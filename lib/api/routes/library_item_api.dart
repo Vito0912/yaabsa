@@ -56,6 +56,48 @@ class LibraryItemApi {
     );
   }
 
+  Future<bool> deleteLibraryItem(
+    String itemId, {
+    bool hardDelete = false,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiDeleteRequest(
+      route: '/api/items/$itemId?hard=${hardDelete ? 1 : 0}',
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
+    );
+  }
+
+  Future<bool> deleteLibraryItems(
+    List<String> libraryItemIds, {
+    bool hardDelete = false,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    if (libraryItemIds.isEmpty) {
+      return true;
+    }
+
+    final response = await ABSApi.makeApiPostRequest<bool>(
+      route: '/api/items/batch/delete?hard=${hardDelete ? 1 : 0}',
+      fromJson: null,
+      bodyData: <String, dynamic>{'libraryItemIds': libraryItemIds},
+      returnData: true,
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
+    );
+
+    final statusCode = response.statusCode;
+    return statusCode != null && statusCode >= 200 && statusCode < 300;
+  }
+
   Widget getLibraryItemCover(String id, {LibraryItem? item, double? width, double? height}) {
     if (item != null && !item.hasCover) {
       return const CoverPlaceholder();

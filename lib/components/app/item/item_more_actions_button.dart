@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum ItemMoreAction { markAsFinished, markAsUnfinished, addToPlaylist, addToCollection, playHistory }
+enum ItemMoreAction { markAsFinished, markAsUnfinished, addToPlaylist, addToCollection, deleteItem, playHistory }
 
 class ItemMoreActionsButton extends StatelessWidget {
   const ItemMoreActionsButton({
@@ -12,6 +12,7 @@ class ItemMoreActionsButton extends StatelessWidget {
     this.showMarkAsUnfinished = false,
     this.showAddToPlaylist = false,
     this.showAddToCollection = false,
+    this.showDeleteItem = false,
   });
 
   final Future<void> Function(ItemMoreAction action) onActionSelected;
@@ -21,6 +22,7 @@ class ItemMoreActionsButton extends StatelessWidget {
   final bool showMarkAsUnfinished;
   final bool showAddToPlaylist;
   final bool showAddToCollection;
+  final bool showDeleteItem;
 
   Future<void> _openActionDialog(BuildContext context) async {
     final selectedAction = await showDialog<ItemMoreAction>(
@@ -50,6 +52,12 @@ class ItemMoreActionsButton extends StatelessWidget {
                   leading: const Icon(Icons.collections_bookmark_outlined),
                   title: const Text('Add To Collection'),
                   onTap: () => Navigator.of(dialogContext).pop(ItemMoreAction.addToCollection),
+                ),
+              if (showDeleteItem)
+                ListTile(
+                  leading: Icon(Icons.delete_outline_rounded, color: Theme.of(dialogContext).colorScheme.error),
+                  title: Text('Delete Audiobook', style: TextStyle(color: Theme.of(dialogContext).colorScheme.error)),
+                  onTap: () => Navigator.of(dialogContext).pop(ItemMoreAction.deleteItem),
                 ),
               ListTile(
                 leading: const Icon(Icons.history_rounded),

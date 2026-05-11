@@ -121,6 +121,7 @@ Widget buildItemActionButtons({
   bool showMarkAction = true,
   bool showAddToPlaylist = false,
   bool showAddToCollection = false,
+  bool showDeleteItem = false,
 }) {
   return LayoutBuilder(
     builder: (context, constraints) {
@@ -163,6 +164,7 @@ Widget buildItemActionButtons({
         showMarkAction: showMarkAction,
         showAddToPlaylist: showAddToPlaylist,
         showAddToCollection: showAddToCollection,
+        showDeleteItem: showDeleteItem,
       );
 
       final placeSmallBelowPrimary = constraints.maxWidth < 360 || !hasPrimaryActions;
@@ -213,6 +215,7 @@ Widget _buildSmallActionButtons(
   required bool showMarkAction,
   required bool showAddToPlaylist,
   required bool showAddToCollection,
+  required bool showDeleteItem,
 }) {
   final children = <Widget>[
     if (showDownload)
@@ -238,6 +241,7 @@ Widget _buildSmallActionButtons(
         showMarkAsUnfinished: showMarkAsUnfinished,
         showAddToPlaylist: showAddToPlaylist,
         showAddToCollection: showAddToCollection,
+        showDeleteItem: showDeleteItem,
       ),
   ];
 

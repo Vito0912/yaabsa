@@ -70,7 +70,9 @@ class LibraryView extends HookConsumerWidget {
               enableShiftRange: true,
               canAddToPlaylist: canManageBooks && currentUser != null,
               canAddToCollection: canManageBooks && (currentUser?.permissions.update ?? false),
+              canDeleteItems: canManageBooks && (currentUser?.permissions.delete ?? false),
               currentUserId: currentUser?.id,
+              onAfterDelete: () => ref.read(itemsProvider.notifier).refresh(),
               builder: (context, selection) {
                 return Stack(
                   children: [

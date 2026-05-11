@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
+import 'package:yaabsa/components/app/item/item_delete_actions.dart';
 import 'package:yaabsa/components/app/item/item_more_actions_button.dart';
 import 'package:yaabsa/components/app/item/item_progress_actions.dart';
 import 'package:yaabsa/components/app/item/library_item_view_components.dart';
@@ -89,6 +90,7 @@ class LibraryItemBookView extends ConsumerWidget {
     final currentUser = ref.watch(currentUserProvider).value;
     final canAddToPlaylist = canAddLibraryItemToPlaylist(item, currentUser?.id);
     final canAddToCollection = canAddLibraryItemToCollection(item, canUpdate: currentUser?.permissions.update ?? false);
+    final canDeleteItem = canDeleteAudiobook(item: item, hasDeletePermission: currentUser?.permissions.delete ?? false);
     final appDatabase = ref.watch(appDatabaseProvider);
     final storedDownloadsStream = currentUser == null
         ? Stream<List<InternalDownload>>.value(const <InternalDownload>[])
@@ -203,6 +205,7 @@ class LibraryItemBookView extends ConsumerWidget {
                                   showMarkAsUnfinished: isItemFinished,
                                   showAddToPlaylist: canAddToPlaylist,
                                   showAddToCollection: canAddToCollection,
+                                  showDeleteItem: canDeleteItem,
                                   onMoreActionSelected: (action) async {
                                     switch (action) {
                                       case ItemMoreAction.markAsFinished:
@@ -225,6 +228,14 @@ class LibraryItemBookView extends ConsumerWidget {
                                           ref: ref,
                                           item: item,
                                           canUpdate: currentUser?.permissions.update ?? false,
+                                        );
+                                        return;
+                                      case ItemMoreAction.deleteItem:
+                                        await deleteAudiobookWithConfirmation(
+                                          context: context,
+                                          ref: ref,
+                                          item: item,
+                                          popOnSuccess: true,
                                         );
                                         return;
                                       case ItemMoreAction.playHistory:
