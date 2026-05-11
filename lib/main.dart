@@ -6,6 +6,7 @@ import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart' show appName, audioHandler, containerRef;
 import 'package:yaabsa/util/aaos_service.dart';
+import 'package:yaabsa/util/app_theme.dart';
 import 'package:yaabsa/util/chrome_cast_service.dart';
 import 'package:yaabsa/util/handler/tray_handler.dart' show TrayManager;
 import 'package:yaabsa/util/init.dart' show Init;
@@ -22,6 +23,11 @@ Future<void> _resumeLastPlayedOnStartup() async {
   } catch (e, s) {
     logger('Startup last-played resume failed: $e\\n$s', tag: 'Main', level: InfoLevel.warning);
   }
+}
+
+int _parseColorChannelSetting(String? value, int fallback) {
+  final parsed = int.tryParse(value ?? '');
+  return (parsed ?? fallback).clamp(0, 255).toInt();
 }
 
 void main() {
@@ -61,28 +67,47 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final appThemeSetting = ref.watch(globalSettingByKeyProvider(SettingKeys.appThemeMode)).asData?.value;
+    final appThemeModeSetting = ref.watch(globalSettingByKeyProvider(SettingKeys.appThemeMode)).asData?.value;
+    final appThemePresetSetting = ref.watch(globalSettingByKeyProvider(SettingKeys.appThemePreset)).asData?.value;
+    final customRedSetting = ref.watch(globalSettingByKeyProvider(SettingKeys.appThemeCustomRed)).asData?.value;
+    final customGreenSetting = ref.watch(globalSettingByKeyProvider(SettingKeys.appThemeCustomGreen)).asData?.value;
+    final customBlueSetting = ref.watch(globalSettingByKeyProvider(SettingKeys.appThemeCustomBlue)).asData?.value;
     final appLogLevelSetting = ref.watch(globalSettingByKeyProvider(SettingKeys.appLogLevel)).asData?.value;
 
     appLoggerService.setMinimumLevel(InfoLevel.fromSettingValue(appLogLevelSetting));
 
-    final appTheme = appThemeSetting ?? (defaultSettings[SettingKeys.appThemeMode] as String);
+    final appThemeMode = AppThemeMode.fromSettingValue(appThemeModeSetting);
+    final appThemePreset = AppThemePreset.fromSettingValue(appThemePresetSetting);
+    final useAmoledDark = appThemeMode == AppThemeMode.amoled;
+    final materialThemeMode = useAmoledDark ? ThemeMode.dark : toMaterialThemeMode(appThemeMode);
+
+    final defaultRed = defaultSettings[SettingKeys.appThemeCustomRed] as int? ?? 15;
+    final defaultGreen = defaultSettings[SettingKeys.appThemeCustomGreen] as int? ?? 118;
+    final defaultBlue = defaultSettings[SettingKeys.appThemeCustomBlue] as int? ?? 110;
+
+    final customSeedColor = Color.fromARGB(
+      0xFF,
+      _parseColorChannelSetting(customRedSetting, defaultRed),
+      _parseColorChannelSetting(customGreenSetting, defaultGreen),
+      _parseColorChannelSetting(customBlueSetting, defaultBlue),
+    );
+
     return MaterialApp.router(
       routerConfig: globalRouter,
       title: appName,
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF0F766E),
-          brightness:
-              {
-                AppThemeMode.dark.toString(): Brightness.dark,
-                AppThemeMode.light.toString(): Brightness.light,
-                AppThemeMode.system.toString(): Theme.of(context).brightness,
-              }[appTheme] ??
-              Brightness.light,
-        ),
+      themeMode: materialThemeMode,
+      theme: buildAppThemeData(
+        brightness: Brightness.light,
+        preset: appThemePreset,
+        customSeedColor: customSeedColor,
+        useAmoledDark: useAmoledDark,
+      ),
+      darkTheme: buildAppThemeData(
+        brightness: Brightness.dark,
+        preset: appThemePreset,
+        customSeedColor: customSeedColor,
+        useAmoledDark: useAmoledDark,
       ),
     );
   }

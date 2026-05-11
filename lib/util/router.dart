@@ -35,6 +35,7 @@ import 'package:yaabsa/screens/settings/player/player_settings_subtitles.dart';
 import 'package:yaabsa/screens/settings/reader_settings.dart';
 import 'package:yaabsa/screens/settings/server_connection_settings.dart';
 import 'package:yaabsa/screens/settings/settings_screen.dart';
+import 'package:yaabsa/screens/settings/theme_settings.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/handler/tray_handler.dart';
 
@@ -148,6 +149,7 @@ final globalRouter = GoRouter(
                   },
                   routes: [
                     GoRoute(path: AppearanceSettings.routeName, builder: (context, state) => AppearanceSettings()),
+                    GoRoute(path: ThemeSettings.routeName, builder: (context, state) => const ThemeSettings()),
                     GoRoute(path: GlobalPlayerSettings.routeName, builder: (context, state) => GlobalPlayerSettings()),
                     GoRoute(path: LibrarySettings.routeName, builder: (context, state) => LibrarySettings()),
                     GoRoute(path: AndroidAutoSettings.routeName, builder: (context, state) => AndroidAutoSettings()),

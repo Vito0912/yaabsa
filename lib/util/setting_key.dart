@@ -3,6 +3,10 @@ import 'package:yaabsa/util/logger.dart';
 class SettingKeys {
   // Global Settings
   static const String appThemeMode = 'app_theme_mode';
+  static const String appThemePreset = 'app_theme_preset';
+  static const String appThemeCustomRed = 'app_theme_custom_red';
+  static const String appThemeCustomGreen = 'app_theme_custom_green';
+  static const String appThemeCustomBlue = 'app_theme_custom_blue';
   static const String currentUserId = 'current_user_id';
   static const String appLogLevel = 'app_log_level';
   static const String bufferSize = 'buffer_size';
@@ -79,6 +83,10 @@ class SettingKeys {
 
 final defaultSettings = {
   SettingKeys.appThemeMode: AppThemeMode.dark.toString(),
+  SettingKeys.appThemePreset: AppThemePreset.yaabsa.toString(),
+  SettingKeys.appThemeCustomRed: 15,
+  SettingKeys.appThemeCustomGreen: 118,
+  SettingKeys.appThemeCustomBlue: 110,
   SettingKeys.currentUserId: null,
   SettingKeys.appLogLevel: InfoLevel.warning.toString(),
   SettingKeys.bufferSize: 5 * 1024 * 1024,
@@ -149,7 +157,105 @@ final defaultSettings = {
   SettingKeys.subtitleReadAlong: true,
 };
 
-enum AppThemeMode { light, dark, system }
+enum AppThemeMode {
+  light,
+  dark,
+  amoled,
+  system;
+
+  static AppThemeMode fromSettingValue(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return AppThemeMode.dark;
+    }
+
+    final normalized = value.trim().toLowerCase();
+
+    for (final mode in AppThemeMode.values) {
+      if (mode.name == normalized || 'appthememode.${mode.name}' == normalized) {
+        return mode;
+      }
+    }
+
+    return AppThemeMode.dark;
+  }
+
+  String get label {
+    switch (this) {
+      case AppThemeMode.light:
+        return 'Light';
+      case AppThemeMode.dark:
+        return 'Dark';
+      case AppThemeMode.amoled:
+        return 'AMOLED';
+      case AppThemeMode.system:
+        return 'System';
+    }
+  }
+}
+
+enum AppThemePreset {
+  yaabsa,
+  ember,
+  moss,
+  cobalt,
+  rose,
+  custom;
+
+  static AppThemePreset fromSettingValue(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return AppThemePreset.yaabsa;
+    }
+
+    final normalized = value.trim().toLowerCase();
+
+    if (normalized == 'amoled' || normalized == 'appthemepreset.amoled') {
+      // Keep old stored AMOLED preset values functional by falling back to the default preset.
+      return AppThemePreset.yaabsa;
+    }
+
+    for (final preset in AppThemePreset.values) {
+      if (preset.name == normalized || 'appthemepreset.${preset.name}' == normalized) {
+        return preset;
+      }
+    }
+
+    return AppThemePreset.yaabsa;
+  }
+
+  String get label {
+    switch (this) {
+      case AppThemePreset.yaabsa:
+        return 'Yaabsa';
+      case AppThemePreset.ember:
+        return 'Ember';
+      case AppThemePreset.moss:
+        return 'Moss';
+      case AppThemePreset.cobalt:
+        return 'Cobalt';
+      case AppThemePreset.rose:
+        return 'Rose';
+      case AppThemePreset.custom:
+        return 'Custom';
+    }
+  }
+
+  String get description {
+    switch (this) {
+      case AppThemePreset.yaabsa:
+        return 'Balanced teal accent with soft contrast.';
+      case AppThemePreset.ember:
+        return 'Warm orange highlights and energetic surfaces.';
+      case AppThemePreset.moss:
+        return 'Natural green tones with a calmer look.';
+      case AppThemePreset.cobalt:
+        return 'Cool blue accents with a crisp interface feel.';
+      case AppThemePreset.rose:
+        return 'Rosy highlights with a softer modern touch.';
+      case AppThemePreset.custom:
+        return 'Build your own color profile.';
+    }
+  }
+}
 
 enum SleepTimerExpireAction {
   stop,
