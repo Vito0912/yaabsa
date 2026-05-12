@@ -114,9 +114,16 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
       final updatedItem = payload.libraryItem;
       if (updatedItem != null) {
         _cachedItems[widget.currentItemId] = updatedItem;
+        applyLibraryItemUpdateLocally(
+          container: ref.container,
+          item: updatedItem,
+          invalidateItemCache: () {
+            ref.invalidate(libraryItemProvider(updatedItem.id));
+          },
+        );
+      } else {
+        ref.invalidate(libraryItemProvider(widget.currentItemId));
       }
-
-      ref.invalidate(libraryItemProvider(widget.currentItemId));
       await widget.onItemSaved(widget.currentItemId, updatedItem);
 
       if (!mounted) {

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/database/auth_secret_store.dart';
 import 'package:yaabsa/models/internal_download.dart';
@@ -461,6 +462,38 @@ class AppDatabase extends _$AppDatabase {
       query.where((tbl) => tbl.episodeId.equals(episodeId));
     }
     return query.go();
+  }
+
+  Future<void> updateStoredDownloadItemSnapshot({
+    required String itemId,
+    required String userId,
+    required LibraryItem item,
+  }) async {
+    final entries = await (select(
+      storedDownloads,
+    )..where((tbl) => tbl.itemId.equals(itemId) & tbl.userId.equals(userId))).get();
+
+    if (entries.isEmpty) {
+      return;
+    }
+
+    for (final entry in entries) {
+      final parsedDownload = _decodeStoredDownloadOrNull(entry);
+      if (parsedDownload == null) {
+        continue;
+      }
+
+      final updatedDownload = parsedDownload.copyWith(item: item);
+      final whereClause = _storedDownloadWhereExpression(
+        itemId: entry.itemId,
+        userId: entry.userId,
+        episodeId: entry.episodeId,
+      );
+
+      await (update(storedDownloads)..where((tbl) => whereClause)).write(
+        StoredDownloadsCompanion(download: Value(jsonEncode(updatedDownload.toJson()))),
+      );
+    }
   }
 
   String _storedMediaProgressId({required String userId, required String itemId, required String? episodeId}) {

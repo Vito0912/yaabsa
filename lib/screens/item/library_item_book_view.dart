@@ -16,7 +16,6 @@ import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/models/internal_download.dart';
 import 'package:yaabsa/provider/common/library_filter_data_provider.dart';
-import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/player/play_history_view.dart';
@@ -324,9 +323,7 @@ class LibraryItemBookView extends ConsumerWidget {
                     Navigator.of(dialogContext).pop();
                   }
                 },
-                onItemSaved: (savedItemId, updatedItem) async {
-                  ref.invalidate(libraryItemProvider(item.id));
-                },
+                onItemSaved: (_, _) async {},
               ),
             ],
           ),

@@ -153,7 +153,11 @@ class LibraryView extends HookConsumerWidget {
                         onClose: () {
                           editingItemId.value = null;
                         },
-                        onItemSaved: (_, _) async {
+                        onItemSaved: (_, updatedItem) async {
+                          if (updatedItem != null) {
+                            ref.read(itemsProvider.notifier).applyLocalItemUpdate(updatedItem);
+                            return;
+                          }
                           await ref.read(itemsProvider.notifier).refresh();
                         },
                       ),

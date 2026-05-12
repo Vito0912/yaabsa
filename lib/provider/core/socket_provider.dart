@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/api/socket/abs_socket_client.dart';
+import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
@@ -13,6 +14,15 @@ ABSSocketClient absSocketClient(Ref ref) {
   final socketClient = ABSSocketClient(
     onUserItemProgressUpdated: (event) {
       ref.read(mediaProgressProvider.notifier).applyRemoteProgressUpdate(event.data);
+    },
+    onItemUpdated: (item) {
+      applyLibraryItemUpdateLocally(
+        container: ref.container,
+        item: item,
+        invalidateItemCache: () {
+          ref.invalidate(libraryItemProvider(item.id));
+        },
+      );
     },
   );
 
