@@ -276,6 +276,8 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                                                   showMarkAsUnfinished: isEpisodeFinished,
                                                   onMoreActionSelected: (action) async {
                                                     switch (action) {
+                                                      case ItemMoreAction.editItem:
+                                                        return;
                                                       case ItemMoreAction.markAsFinished:
                                                         await markPodcastEpisodeAsFinished(
                                                           context: context,

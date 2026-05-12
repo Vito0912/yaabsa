@@ -25,6 +25,8 @@ class LibraryItemsGrid extends StatelessWidget {
     this.onToggleSelection,
     this.onEnterSelectionMode,
     this.onPlayItem,
+    this.canEditItems = false,
+    this.onEditItem,
   });
 
   final ScrollController scrollController;
@@ -38,6 +40,8 @@ class LibraryItemsGrid extends StatelessWidget {
   final LibraryGridSelectionCallback? onToggleSelection;
   final LibraryGridSelectionCallback? onEnterSelectionMode;
   final void Function(LibraryItem item, int index)? onPlayItem;
+  final bool canEditItems;
+  final void Function(LibraryItem item, int index)? onEditItem;
 
   @override
   Widget build(BuildContext context) {
@@ -79,6 +83,8 @@ class LibraryItemsGrid extends StatelessWidget {
               squareCover: true,
               enableHoverSelection: true,
               onPlay: onPlayItem == null ? null : () => onPlayItem!(item, index),
+              canEdit: canEditItems,
+              onEdit: onEditItem == null ? null : () => onEditItem!(item, index),
               selectionMode: selectionMode,
               isSelected: selectedItemIds.contains(item.id),
               onToggleSelection: onToggleSelection == null ? null : () => onToggleSelection!(item.id, index),

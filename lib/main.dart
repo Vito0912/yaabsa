@@ -14,6 +14,8 @@ import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/router.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_quill/flutter_quill.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 Future<void> _resumeLastPlayedOnStartup() async {
@@ -96,6 +98,12 @@ class MyApp extends ConsumerWidget {
       routerConfig: globalRouter,
       title: appName,
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        FlutterQuillLocalizations.delegate,
+      ],
       themeMode: materialThemeMode,
       theme: buildAppThemeData(
         brightness: Brightness.light,

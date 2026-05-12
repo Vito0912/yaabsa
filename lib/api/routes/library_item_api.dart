@@ -1,6 +1,8 @@
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/library_items/playback_session.dart';
 import 'package:yaabsa/api/library_items/request/play_library_item_request.dart';
+import 'package:yaabsa/api/library_items/request/update_library_item_media_request.dart';
+import 'package:yaabsa/api/library_items/update_library_item_media_response.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/components/common/cover_loading_placeholder.dart';
 import 'package:yaabsa/components/common/cover_placeholder.dart';
@@ -96,6 +98,24 @@ class LibraryItemApi {
 
     final statusCode = response.statusCode;
     return statusCode != null && statusCode >= 200 && statusCode < 300;
+  }
+
+  Future<Response<UpdateLibraryItemMediaResponse>> updateLibraryItemMedia(
+    String itemId, {
+    required UpdateLibraryItemMediaRequest request,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiPatchRequest(
+      route: '/api/items/$itemId/media',
+      fromJson: (data) => UpdateLibraryItemMediaResponse.fromJson(data),
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
+      bodyData: request.toJson(),
+    );
   }
 
   Widget getLibraryItemCover(String id, {LibraryItem? item, double? width, double? height}) {

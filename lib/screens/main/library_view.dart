@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:yaabsa/components/app/item/editor/library_item_edit_overlay.dart';
 import 'package:yaabsa/components/app/library/library_filter_toolbar.dart';
 import 'package:yaabsa/components/app/library/library_items_grid.dart';
 import 'package:yaabsa/components/app/library/library_multi_select_host.dart';
@@ -24,6 +25,7 @@ class LibraryView extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scrollController = useScrollController();
+    final editingItemId = useState<String?>(null);
     final selectedLibrary = ref.watch(selectedLibraryProvider);
 
     if (selectedLibrary == null) {
@@ -68,6 +70,18 @@ class LibraryView extends HookConsumerWidget {
             final canManageBooks = selectedLibrary.mediaType == 'book';
             final hasUpdatePermission = currentUser?.permissions.update ?? false;
             final hasDeletePermission = currentUser?.permissions.delete ?? false;
+            final canEditItems = hasUpdatePermission && managementPreferences.editItemsEnabled;
+            final editableItemIds = items
+                .where((item) => item.collapsedSeries == null)
+                .map((item) => item.id)
+                .toList(growable: false);
+
+            if (editingItemId.value != null && !editableItemIds.contains(editingItemId.value)) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                editingItemId.value = null;
+              });
+            }
+
             return LibraryMultiSelectHost(
               scopeKey: 'library:$libraryId:${initialFilter ?? ''}',
               libraryId: libraryId,
@@ -115,12 +129,34 @@ class LibraryView extends HookConsumerWidget {
                                     selectedItemIds: selection.selectedItemIds,
                                     onToggleSelection: (_, index) => selection.toggleSelectionByIndex(index),
                                     onEnterSelectionMode: (_, index) => selection.enterSelectionByIndex(index),
+                                    canEditItems: canEditItems,
+                                    onEditItem: (item, _) {
+                                      if (selection.selectionMode || item.collapsedSeries != null) {
+                                        return;
+                                      }
+                                      editingItemId.value = item.id;
+                                    },
                                   ),
                           ),
                         ],
                       ),
                     ),
                     ScrollToTopButton(controller: scrollController),
+                    if (editingItemId.value != null && editableItemIds.contains(editingItemId.value))
+                      LibraryItemEditOverlay(
+                        orderedItemIds: editableItemIds,
+                        currentItemId: editingItemId.value!,
+                        filterData: filterDataAsync.asData?.value,
+                        onSelectItem: (itemId) {
+                          editingItemId.value = itemId;
+                        },
+                        onClose: () {
+                          editingItemId.value = null;
+                        },
+                        onItemSaved: (_, _) async {
+                          await ref.read(itemsProvider.notifier).refresh();
+                        },
+                      ),
                   ],
                 );
               },
