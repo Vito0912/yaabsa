@@ -160,7 +160,6 @@ class _LibraryItemWidgetState extends ConsumerState<LibraryItemWidget> {
         final canShowEditControls =
             widget.canEdit && widget.onEdit != null && !widget.selectionMode && !isCollapsedSeriesCard;
         final showDesktopHoverEdit = canShowEditControls && _isDesktopPlatform && _isHovered;
-        final showMobileOverflowEdit = canShowEditControls && !_isDesktopPlatform;
         final topRightPrimaryTop = 4.0;
         final desktopEditLeft = showSelectionDot ? 38.0 : 4.0;
 
@@ -368,34 +367,6 @@ class _LibraryItemWidgetState extends ConsumerState<LibraryItemWidget> {
                             ),
                           ),
                   ),
-                  if (showMobileOverflowEdit)
-                    Positioned(
-                      top: 4,
-                      right: 4,
-                      child: PopupMenuButton<_CardQuickAction>(
-                        tooltip: 'Item actions',
-                        icon: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(100),
-                            color: colorScheme.surface.withValues(alpha: 0.85),
-                            border: Border.all(color: colorScheme.outline),
-                          ),
-                          padding: const EdgeInsets.all(6),
-                          child: Icon(Icons.more_vert_rounded, size: 14, color: colorScheme.onSurfaceVariant),
-                        ),
-                        itemBuilder: (context) => const [
-                          PopupMenuItem<_CardQuickAction>(
-                            value: _CardQuickAction.edit,
-                            child: Row(children: [Icon(Icons.edit_rounded), SizedBox(width: 10), Text('Edit details')]),
-                          ),
-                        ],
-                        onSelected: (action) {
-                          if (action == _CardQuickAction.edit) {
-                            widget.onEdit?.call();
-                          }
-                        },
-                      ),
-                    ),
                   if (showDesktopHoverEdit)
                     Positioned(
                       top: 4,
@@ -519,5 +490,3 @@ class _LibraryItemWidgetState extends ConsumerState<LibraryItemWidget> {
     return null;
   }
 }
-
-enum _CardQuickAction { edit }

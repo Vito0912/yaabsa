@@ -115,6 +115,10 @@ Below is a list of all features, but I want to *highlight* a few, as this client
 | ------------------ | ------- | ---- | ------- | ----- | ----- |
 | Manage Playlists   | ✅      | ✅   | ✅      | ✅    | ✅    |
 | Manage Collections | ✅      | ✅   | ✅      | ✅    | ✅    |
+| Edit items         | ✅      | ✅   | ✅      | ✅    | ✅    |
+| Delete items       | ✅      | ✅   | ✅      | ✅    | ✅    |
+| Match items        | 🅿️      | 🅿️   | 🅿️      | 🅿️    | 🅿️    |
+| Bulk editing       | 🅿️      | 🅿️   | 🅿️      | 🅿️    | 🅿️    |
 
 ### Other Features
 
