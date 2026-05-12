@@ -863,8 +863,8 @@ jobs:
         with:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           packageName: de.vito0912.yaabsa
-          releaseFiles: [android-release/yaabsa.aab]
-          tracks: [internal]
+          releaseFiles: android-release/yaabsa.aab
+          tracks: internal
           changesNotSentForReview: true
           releaseName: ${{ needs.changes.outputs.release_tag }}
           status: draft
@@ -877,8 +877,8 @@ jobs:
         with:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           packageName: de.vito0912.yaabsa
-          releaseFiles: [android-automotive-release/yaabsa_aaos.aab]
-          tracks: [automotive:internal]
+          releaseFiles: android-automotive-release/yaabsa_aaos.aab
+          tracks: automotive:internal
           changesNotSentForReview: true
           releaseName: ${{ needs.changes.outputs.release_tag }} AAOS
           status: draft
