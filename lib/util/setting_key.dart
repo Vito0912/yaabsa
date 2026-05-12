@@ -47,6 +47,11 @@ class SettingKeys {
   static const String personalizedShelfShowPlayVisibleButton = 'personalized_shelf_show_play_visible_button';
   static const String waitForSync = 'wait_for_sync';
   static const String progressPerChapter = 'progress_per_chapter';
+  static const String serverManagementCollections = 'server_management_collections';
+  static const String serverManagementDeleteItems = 'server_management_delete_items';
+  static const String serverManagementEditItems = 'server_management_edit_items';
+  static const String serverManagementEditChapters = 'server_management_edit_chapters';
+  static const String serverManagementAllowMatchesQuickMatches = 'server_management_allow_matches_quick_matches';
   static const String shakeToResetSleepTimer = 'shake_to_reset_sleep_timer';
   static const String shakeToRewind = 'shake_to_rewind';
   static const String shakeSensitivity = 'shake_sensitivity';
@@ -126,6 +131,11 @@ final defaultSettings = {
   SettingKeys.personalizedShelfShowPlayVisibleButton: false,
   SettingKeys.waitForSync: true,
   SettingKeys.progressPerChapter: false,
+  SettingKeys.serverManagementCollections: true,
+  SettingKeys.serverManagementDeleteItems: false,
+  SettingKeys.serverManagementEditItems: false,
+  SettingKeys.serverManagementEditChapters: true,
+  SettingKeys.serverManagementAllowMatchesQuickMatches: false,
   SettingKeys.shakeToResetSleepTimer: false,
   SettingKeys.shakeToRewind: false,
   SettingKeys.shakeSensitivity: 2.0,

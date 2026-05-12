@@ -11,11 +11,13 @@ import 'package:yaabsa/components/common/managed_list_operations.dart';
 import 'package:yaabsa/components/common/library_item_widget.dart';
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
 import 'package:yaabsa/components/common/scroll_to_top_button.dart';
+import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/common/collection_provider.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
+import 'package:yaabsa/util/server_management_preferences.dart';
 
 class CollectionDetailView extends HookConsumerWidget {
   const CollectionDetailView({required this.collectionId, super.key, this.initialEntry});
@@ -62,8 +64,12 @@ class CollectionDetailView extends HookConsumerWidget {
 
     final collectionItems = resolvedCollection.items ?? const [];
     final currentUser = ref.watch(currentUserProvider).value;
-    final canEditCollection = currentUser?.permissions.update ?? false;
-    final canDeleteCollection = currentUser?.permissions.delete ?? false;
+    ref.watch(userSettingsWatcherProvider);
+    final managementPreferences = readServerManagementPreferences(ref, currentUser?.id);
+    final collectionsManagementEnabled = managementPreferences.collectionsEnabled;
+    final hasCollectionManagementPermission = currentUser?.permissions.update ?? false;
+    final canEditCollection = hasCollectionManagementPermission && collectionsManagementEnabled;
+    final canDeleteCollection = hasCollectionManagementPermission && collectionsManagementEnabled;
     final description = resolvedCollection.description?.trim();
 
     return LayoutBuilder(

@@ -58,12 +58,22 @@ abstract class Media with _$Media {
   double duration({String? episodeId}) {
     if (podcastMedia != null) {
       if (episodeId != null) {
-        final episode = podcastMedia!.episodes?.firstWhere((e) => e.id == episodeId);
+        final episode = podcastMedia!.episodes?.where((e) => e.id == episodeId).firstOrNull;
         return episode?.audioFile?.duration ?? 0;
       }
-      return podcastMedia!.episodes?.map((e) => e.audioFile!.duration ?? 0).reduce((a, b) => a + b) ?? 0;
+      final episodes = podcastMedia!.episodes;
+      if (episodes == null || episodes.isEmpty) {
+        return 0;
+      }
+
+      return episodes.fold<double>(0, (total, episode) => total + (episode.audioFile?.duration ?? 0));
     } else {
-      return bookMedia?.audioFiles?.map((e) => e.duration ?? 0).reduce((a, b) => a + b) ?? 0;
+      final audioFiles = bookMedia?.audioFiles;
+      if (audioFiles == null || audioFiles.isEmpty) {
+        return 0;
+      }
+
+      return audioFiles.fold<double>(0, (total, audioFile) => total + (audioFile.duration ?? 0));
     }
   }
 }

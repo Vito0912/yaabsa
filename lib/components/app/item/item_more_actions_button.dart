@@ -1,6 +1,14 @@
 import 'package:flutter/material.dart';
 
-enum ItemMoreAction { markAsFinished, markAsUnfinished, addToPlaylist, addToCollection, playHistory }
+enum ItemMoreAction {
+  editItem,
+  markAsFinished,
+  markAsUnfinished,
+  addToPlaylist,
+  addToCollection,
+  deleteItem,
+  playHistory,
+}
 
 class ItemMoreActionsButton extends StatelessWidget {
   const ItemMoreActionsButton({
@@ -9,18 +17,22 @@ class ItemMoreActionsButton extends StatelessWidget {
     this.enabled = true,
     this.tooltip = 'More actions',
     this.showMarkAction = true,
+    this.showEditItem = false,
     this.showMarkAsUnfinished = false,
     this.showAddToPlaylist = false,
     this.showAddToCollection = false,
+    this.showDeleteItem = false,
   });
 
   final Future<void> Function(ItemMoreAction action) onActionSelected;
   final bool enabled;
   final String tooltip;
   final bool showMarkAction;
+  final bool showEditItem;
   final bool showMarkAsUnfinished;
   final bool showAddToPlaylist;
   final bool showAddToCollection;
+  final bool showDeleteItem;
 
   Future<void> _openActionDialog(BuildContext context) async {
     final selectedAction = await showDialog<ItemMoreAction>(
@@ -31,6 +43,12 @@ class ItemMoreActionsButton extends StatelessWidget {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              if (showEditItem)
+                ListTile(
+                  leading: const Icon(Icons.edit_rounded),
+                  title: const Text('Edit item'),
+                  onTap: () => Navigator.of(dialogContext).pop(ItemMoreAction.editItem),
+                ),
               if (showMarkAction)
                 ListTile(
                   leading: Icon(showMarkAsUnfinished ? Icons.remove_done_rounded : Icons.task_alt_rounded),
@@ -50,6 +68,12 @@ class ItemMoreActionsButton extends StatelessWidget {
                   leading: const Icon(Icons.collections_bookmark_outlined),
                   title: const Text('Add To Collection'),
                   onTap: () => Navigator.of(dialogContext).pop(ItemMoreAction.addToCollection),
+                ),
+              if (showDeleteItem)
+                ListTile(
+                  leading: Icon(Icons.delete_outline_rounded, color: Theme.of(dialogContext).colorScheme.error),
+                  title: Text('Delete Audiobook', style: TextStyle(color: Theme.of(dialogContext).colorScheme.error)),
+                  onTap: () => Navigator.of(dialogContext).pop(ItemMoreAction.deleteItem),
                 ),
               ListTile(
                 leading: const Icon(Icons.history_rounded),

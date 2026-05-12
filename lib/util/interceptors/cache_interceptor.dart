@@ -73,10 +73,54 @@ const List<CacheRouteDefinition> cacheRouteDefinitions = [
   ),
 ];
 
+final StoreRef<String, dynamic> _cacheStore = StoreRef.main();
+
+Future<void> invalidateCachedLibraryItemEntries({
+  required ProviderContainer container,
+  required String itemId,
+  String? libraryId,
+}) async {
+  final userId = container.read(currentUserProvider).value?.id ?? container.read(absApiProvider)?.user?.id;
+  if (userId == null || userId.isEmpty) {
+    return;
+  }
+
+  final routeFragments = <String>{'/api/items/$itemId'};
+  if (libraryId != null && libraryId.isNotEmpty) {
+    routeFragments.add('/api/libraries/$libraryId/items');
+  }
+
+  final records = await _cacheStore.find(cacheDb);
+  final keysToDelete = <String>[];
+  for (final record in records) {
+    final key = record.key;
+    if (!key.startsWith(userId)) {
+      continue;
+    }
+
+    final matchesUpdatedItem = routeFragments.any(key.contains);
+    if (!matchesUpdatedItem) {
+      continue;
+    }
+
+    keysToDelete.add(key);
+  }
+
+  for (final key in keysToDelete) {
+    await _cacheStore.record(key).delete(cacheDb);
+  }
+
+  if (keysToDelete.isNotEmpty) {
+    logger(
+      'Invalidated ${keysToDelete.length} cache entries for item $itemId',
+      tag: 'CacheInterceptor',
+      level: InfoLevel.debug,
+    );
+  }
+}
+
 // TODO: Replace by Drift cache
 class CacheInterceptor extends Interceptor {
-  final StoreRef<String, dynamic> _store = StoreRef.main();
-
   final ProviderContainer container;
   final bool cachingEnabled;
   final bool boostLoading;
@@ -97,7 +141,7 @@ class CacheInterceptor extends Interceptor {
 
     if (matchingRoute != null) {
       final String cacheKey = _getCacheKey(options.uri);
-      final cachedData = await _store.record(cacheKey).get(cacheDb);
+      final cachedData = await _cacheStore.record(cacheKey).get(cacheDb);
 
       if (cachedData != null) {
         final DateTime cachedTime = DateTime.parse(cachedData['timestamp']);
@@ -154,7 +198,7 @@ class CacheInterceptor extends Interceptor {
         response.statusCode! < 300) {
       final String cacheKey = _getCacheKey(response.requestOptions.uri);
       logger('Caching: ${response.requestOptions.uri.toString()}', tag: 'CacheInterceptor', level: InfoLevel.debug);
-      await _store.record(cacheKey).put(cacheDb, {
+      await _cacheStore.record(cacheKey).put(cacheDb, {
         'data': response.data,
         'statusCode': response.statusCode,
         'statusMessage': response.statusMessage,
@@ -172,7 +216,7 @@ class CacheInterceptor extends Interceptor {
 
     if (matchingRoute != null) {
       final String cacheKey = _getCacheKey(err.requestOptions.uri);
-      _store.record(cacheKey).get(cacheDb).then((cachedData) {
+      _cacheStore.record(cacheKey).get(cacheDb).then((cachedData) {
         if (cachedData != null) {
           try {
             final decodedHeaders = jsonDecode(cachedData['headers']) as Map<String, dynamic>;

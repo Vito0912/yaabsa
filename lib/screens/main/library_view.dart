@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:yaabsa/components/app/item/editor/library_item_edit_overlay.dart';
 import 'package:yaabsa/components/app/library/library_filter_toolbar.dart';
 import 'package:yaabsa/components/app/library/library_items_grid.dart';
 import 'package:yaabsa/components/app/library/library_multi_select_host.dart';
@@ -13,6 +14,7 @@ import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/server_management_preferences.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
 class LibraryView extends HookConsumerWidget {
@@ -23,6 +25,7 @@ class LibraryView extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scrollController = useScrollController();
+    final editingItemId = useState<String?>(null);
     final selectedLibrary = ref.watch(selectedLibraryProvider);
 
     if (selectedLibrary == null) {
@@ -31,6 +34,8 @@ class LibraryView extends HookConsumerWidget {
 
     final appDatabase = ref.watch(appDatabaseProvider);
     final currentUser = ref.watch(currentUserProvider).value;
+    ref.watch(userSettingsWatcherProvider);
+    final managementPreferences = readServerManagementPreferences(ref, currentUser?.id);
     final collapseSeriesFallback = currentUser == null
         ? false
         : ref
@@ -63,14 +68,30 @@ class LibraryView extends HookConsumerWidget {
           data: (state) {
             final items = state.items;
             final canManageBooks = selectedLibrary.mediaType == 'book';
+            final hasUpdatePermission = currentUser?.permissions.update ?? false;
+            final hasDeletePermission = currentUser?.permissions.delete ?? false;
+            final canEditItems = hasUpdatePermission && managementPreferences.editItemsEnabled;
+            final editableItemIds = items
+                .where((item) => item.collapsedSeries == null)
+                .map((item) => item.id)
+                .toList(growable: false);
+
+            if (editingItemId.value != null && !editableItemIds.contains(editingItemId.value)) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                editingItemId.value = null;
+              });
+            }
+
             return LibraryMultiSelectHost(
               scopeKey: 'library:$libraryId:${initialFilter ?? ''}',
               libraryId: libraryId,
               visibleItems: items,
               enableShiftRange: true,
               canAddToPlaylist: canManageBooks && currentUser != null,
-              canAddToCollection: canManageBooks && (currentUser?.permissions.update ?? false),
+              canAddToCollection: canManageBooks && hasUpdatePermission && managementPreferences.collectionsEnabled,
+              canDeleteItems: canManageBooks && hasDeletePermission && managementPreferences.deleteItemsEnabled,
               currentUserId: currentUser?.id,
+              onAfterDelete: () => ref.read(itemsProvider.notifier).refresh(),
               builder: (context, selection) {
                 return Stack(
                   children: [
@@ -108,12 +129,38 @@ class LibraryView extends HookConsumerWidget {
                                     selectedItemIds: selection.selectedItemIds,
                                     onToggleSelection: (_, index) => selection.toggleSelectionByIndex(index),
                                     onEnterSelectionMode: (_, index) => selection.enterSelectionByIndex(index),
+                                    canEditItems: canEditItems,
+                                    onEditItem: (item, _) {
+                                      if (selection.selectionMode || item.collapsedSeries != null) {
+                                        return;
+                                      }
+                                      editingItemId.value = item.id;
+                                    },
                                   ),
                           ),
                         ],
                       ),
                     ),
                     ScrollToTopButton(controller: scrollController),
+                    if (editingItemId.value != null && editableItemIds.contains(editingItemId.value))
+                      LibraryItemEditOverlay(
+                        orderedItemIds: editableItemIds,
+                        currentItemId: editingItemId.value!,
+                        filterData: filterDataAsync.asData?.value,
+                        onSelectItem: (itemId) {
+                          editingItemId.value = itemId;
+                        },
+                        onClose: () {
+                          editingItemId.value = null;
+                        },
+                        onItemSaved: (_, updatedItem) async {
+                          if (updatedItem != null) {
+                            ref.read(itemsProvider.notifier).applyLocalItemUpdate(updatedItem);
+                            return;
+                          }
+                          await ref.read(itemsProvider.notifier).refresh();
+                        },
+                      ),
                   ],
                 );
               },

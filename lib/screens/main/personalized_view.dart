@@ -11,6 +11,7 @@ import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/library_items/series.dart';
 import 'package:yaabsa/api/me/media_progress.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
+import 'package:yaabsa/components/app/item/editor/library_item_edit_overlay.dart';
 import 'package:yaabsa/components/app/library/library_multi_select_host.dart';
 import 'package:yaabsa/components/common/author_card.dart';
 import 'package:yaabsa/components/common/library_item_widget.dart';
@@ -18,12 +19,14 @@ import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
 import 'package:yaabsa/components/common/scroll_to_top_button.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
+import 'package:yaabsa/provider/common/library_filter_data_provider.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/library/personalized_library_provider.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
+import 'package:yaabsa/util/server_management_preferences.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:yaabsa/util/widget_bridge.dart';
 
@@ -33,6 +36,7 @@ class PersonalizedView extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scrollController = useScrollController();
+    final editingItemId = useState<String?>(null);
     final selectedLibrary = ref.watch(selectedLibraryProvider);
 
     if (selectedLibrary == null) {
@@ -48,7 +52,10 @@ class PersonalizedView extends HookConsumerWidget {
       showShelfPlayButtonSettingValue.value,
       defaultSettings[SettingKeys.personalizedShelfShowPlayVisibleButton] as bool,
     );
+    final filterDataAsync = ref.watch(libraryFilterDataProvider(selectedLibrary.id));
     final currentUser = ref.watch(currentUserProvider).value;
+    ref.watch(userSettingsWatcherProvider);
+    final managementPreferences = readServerManagementPreferences(ref, currentUser?.id);
     final mediaProgressMap = ref.watch(mediaProgressProvider).asData?.value ?? const <String, MediaProgress>{};
     final personalizedLibraryForWidgets = personalizedLibraryAsyncValue.asData?.value;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
@@ -148,13 +155,29 @@ class PersonalizedView extends HookConsumerWidget {
             final libraryTileWidth = appGridTileWidth;
             final visibleLibraryItems = _collectVisibleShelfLibraryItems(sections);
             final canManageBooks = selectedLibrary.mediaType == 'book';
+            final hasUpdatePermission = currentUser?.permissions.update ?? false;
+            final hasDeletePermission = currentUser?.permissions.delete ?? false;
+            final canEditItems = hasUpdatePermission && managementPreferences.editItemsEnabled;
+            final editableItemIds = visibleLibraryItems
+                .where((item) => item.collapsedSeries == null)
+                .map((item) => item.id)
+                .toList(growable: false);
+
+            if (editingItemId.value != null && !editableItemIds.contains(editingItemId.value)) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                editingItemId.value = null;
+              });
+            }
+
             return LibraryMultiSelectHost(
               scopeKey: 'shelf:${selectedLibrary.id}',
               libraryId: selectedLibrary.id,
               visibleItems: visibleLibraryItems,
               canAddToPlaylist: canManageBooks && currentUser != null,
-              canAddToCollection: canManageBooks && (currentUser?.permissions.update ?? false),
+              canAddToCollection: canManageBooks && hasUpdatePermission && managementPreferences.collectionsEnabled,
+              canDeleteItems: canManageBooks && hasDeletePermission && managementPreferences.deleteItemsEnabled,
               currentUserId: currentUser?.id,
+              onAfterDelete: () => refreshPersonalizedLibrary(withLoading: false),
               builder: (context, selection) {
                 return Stack(
                   children: [
@@ -189,6 +212,13 @@ class PersonalizedView extends HookConsumerWidget {
                                     selectedItemIds: selection.selectedItemIds,
                                     onToggleSelection: selection.toggleSelectionById,
                                     onEnterSelectionMode: selection.enterSelectionById,
+                                    canEditItems: canEditItems,
+                                    onEditItem: (item) {
+                                      if (selection.selectionMode || item.collapsedSeries != null) {
+                                        return;
+                                      }
+                                      editingItemId.value = item.id;
+                                    },
                                   );
                                 },
                               ),
@@ -198,6 +228,21 @@ class PersonalizedView extends HookConsumerWidget {
                       ),
                     ),
                     ScrollToTopButton(controller: scrollController),
+                    if (editingItemId.value != null && editableItemIds.contains(editingItemId.value))
+                      LibraryItemEditOverlay(
+                        orderedItemIds: editableItemIds,
+                        currentItemId: editingItemId.value!,
+                        filterData: filterDataAsync.asData?.value,
+                        onSelectItem: (itemId) {
+                          editingItemId.value = itemId;
+                        },
+                        onClose: () {
+                          editingItemId.value = null;
+                        },
+                        onItemSaved: (_, _) async {
+                          await refreshPersonalizedLibrary(withLoading: false);
+                        },
+                      ),
                   ],
                 );
               },
@@ -434,6 +479,8 @@ class _SectionRow extends StatelessWidget {
     required this.selectedItemIds,
     required this.onToggleSelection,
     required this.onEnterSelectionMode,
+    required this.canEditItems,
+    required this.onEditItem,
   });
 
   final _SectionData section;
@@ -446,6 +493,8 @@ class _SectionRow extends StatelessWidget {
   final Set<String> selectedItemIds;
   final ValueChanged<String> onToggleSelection;
   final ValueChanged<String> onEnterSelectionMode;
+  final bool canEditItems;
+  final ValueChanged<LibraryItem> onEditItem;
 
   bool get _supportsPlayVisibleButton {
     return section.id == _continueListeningShelfId || section.id == _newestEpisodesShelfId;
@@ -623,6 +672,8 @@ class _SectionRow extends StatelessWidget {
           selectedItemIds: selectedItemIds,
           onToggleSelection: onToggleSelection,
           onEnterSelectionMode: onEnterSelectionMode,
+          canEditItems: canEditItems,
+          onEditItem: onEditItem,
         ),
       ],
     );
@@ -648,6 +699,8 @@ class _SectionList extends StatelessWidget {
     required this.selectedItemIds,
     required this.onToggleSelection,
     required this.onEnterSelectionMode,
+    required this.canEditItems,
+    required this.onEditItem,
   });
 
   final _SectionData section;
@@ -659,6 +712,8 @@ class _SectionList extends StatelessWidget {
   final Set<String> selectedItemIds;
   final ValueChanged<String> onToggleSelection;
   final ValueChanged<String> onEnterSelectionMode;
+  final bool canEditItems;
+  final ValueChanged<LibraryItem> onEditItem;
 
   @override
   Widget build(BuildContext context) {
@@ -692,6 +747,8 @@ class _SectionList extends StatelessWidget {
         enableHoverSelection: true,
         selectionMode: selectionMode,
         isSelected: selectedItemIds.contains(item.id),
+        canEdit: canEditItems,
+        onEdit: () => onEditItem(item),
         onToggleSelection: () => onToggleSelection(item.id),
         onEnterSelectionMode: () => onEnterSelectionMode(item.id),
       ),

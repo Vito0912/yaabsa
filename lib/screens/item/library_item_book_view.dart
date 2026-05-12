@@ -3,20 +3,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:yaabsa/api/library/filter_data/library_filter_data.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
+import 'package:yaabsa/components/app/item/editor/library_item_edit_overlay.dart';
+import 'package:yaabsa/components/app/item/item_delete_actions.dart';
 import 'package:yaabsa/components/app/item/item_more_actions_button.dart';
 import 'package:yaabsa/components/app/item/item_progress_actions.dart';
 import 'package:yaabsa/components/app/item/library_item_view_components.dart';
 import 'package:yaabsa/components/common/connection_issue_view.dart';
 import 'package:yaabsa/components/common/cover_zoom_view.dart';
 import 'package:yaabsa/database/app_database.dart';
+import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/models/internal_download.dart';
+import 'package:yaabsa/provider/common/library_filter_data_provider.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/player/play_history_view.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/item_view_navigation.dart';
+import 'package:yaabsa/util/server_management_preferences.dart';
 
 class LibraryItemBookView extends ConsumerWidget {
   const LibraryItemBookView({super.key, required this.item, required this.canDownload});
@@ -87,8 +93,19 @@ class LibraryItemBookView extends ConsumerWidget {
     final isItemFinished = progressByKey != null && isLibraryItemFinished(item, progressByKey);
 
     final currentUser = ref.watch(currentUserProvider).value;
+    ref.watch(userSettingsWatcherProvider);
+    final managementPreferences = readServerManagementPreferences(ref, currentUser?.id);
+    final canEditItems = (currentUser?.permissions.update ?? false) && managementPreferences.editItemsEnabled;
+    final filterData = item.libraryId == null ? null : ref.watch(libraryFilterDataProvider(item.libraryId!)).value;
     final canAddToPlaylist = canAddLibraryItemToPlaylist(item, currentUser?.id);
-    final canAddToCollection = canAddLibraryItemToCollection(item, canUpdate: currentUser?.permissions.update ?? false);
+    final canAddToCollection = canAddLibraryItemToCollection(
+      item,
+      canUpdate: (currentUser?.permissions.update ?? false) && managementPreferences.collectionsEnabled,
+    );
+    final canDeleteItem = canDeleteAudiobook(
+      item: item,
+      hasDeletePermission: (currentUser?.permissions.delete ?? false) && managementPreferences.deleteItemsEnabled,
+    );
     final appDatabase = ref.watch(appDatabaseProvider);
     final storedDownloadsStream = currentUser == null
         ? Stream<List<InternalDownload>>.value(const <InternalDownload>[])
@@ -201,10 +218,15 @@ class LibraryItemBookView extends ConsumerWidget {
                                     audioHandler.addLibraryItemToQueue(item);
                                   },
                                   showMarkAsUnfinished: isItemFinished,
+                                  showEditItem: canEditItems,
                                   showAddToPlaylist: canAddToPlaylist,
                                   showAddToCollection: canAddToCollection,
+                                  showDeleteItem: canDeleteItem,
                                   onMoreActionSelected: (action) async {
                                     switch (action) {
+                                      case ItemMoreAction.editItem:
+                                        await _openSingleItemEditor(context, ref, item: item, filterData: filterData);
+                                        return;
                                       case ItemMoreAction.markAsFinished:
                                         await markLibraryItemAsFinished(context: context, ref: ref, item: item);
                                         return;
@@ -225,6 +247,14 @@ class LibraryItemBookView extends ConsumerWidget {
                                           ref: ref,
                                           item: item,
                                           canUpdate: currentUser?.permissions.update ?? false,
+                                        );
+                                        return;
+                                      case ItemMoreAction.deleteItem:
+                                        await deleteAudiobookWithConfirmation(
+                                          context: context,
+                                          ref: ref,
+                                          item: item,
+                                          popOnSuccess: true,
                                         );
                                         return;
                                       case ItemMoreAction.playHistory:
@@ -262,6 +292,41 @@ class LibraryItemBookView extends ConsumerWidget {
               },
             );
           },
+        );
+      },
+    );
+  }
+
+  Future<void> _openSingleItemEditor(
+    BuildContext context,
+    WidgetRef ref, {
+    required LibraryItem item,
+    required LibraryFilterData? filterData,
+  }) async {
+    await showGeneralDialog<void>(
+      context: context,
+      barrierLabel: 'Edit item',
+      barrierDismissible: false,
+      barrierColor: Colors.transparent,
+      pageBuilder: (dialogContext, animation, secondaryAnimation) {
+        return Material(
+          type: MaterialType.transparency,
+          child: Stack(
+            children: [
+              LibraryItemEditOverlay(
+                orderedItemIds: [item.id],
+                currentItemId: item.id,
+                filterData: filterData,
+                onSelectItem: (_) {},
+                onClose: () {
+                  if (Navigator.of(dialogContext).canPop()) {
+                    Navigator.of(dialogContext).pop();
+                  }
+                },
+                onItemSaved: (_, _) async {},
+              ),
+            ],
+          ),
         );
       },
     );
