@@ -1,6 +1,8 @@
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/library_items/playback_session.dart';
 import 'package:yaabsa/api/library_items/request/play_library_item_request.dart';
+import 'package:yaabsa/api/library_items/request/update_library_item_media_request.dart';
+import 'package:yaabsa/api/library_items/update_library_item_media_response.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/components/common/cover_loading_placeholder.dart';
 import 'package:yaabsa/components/common/cover_placeholder.dart';
@@ -53,6 +55,66 @@ class LibraryItemApi {
       extra: extra,
       dio: _dio,
       bodyData: playRequest.toJson(),
+    );
+  }
+
+  Future<bool> deleteLibraryItem(
+    String itemId, {
+    bool hardDelete = false,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiDeleteRequest(
+      route: '/api/items/$itemId?hard=${hardDelete ? 1 : 0}',
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
+    );
+  }
+
+  Future<bool> deleteLibraryItems(
+    List<String> libraryItemIds, {
+    bool hardDelete = false,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    if (libraryItemIds.isEmpty) {
+      return true;
+    }
+
+    final response = await ABSApi.makeApiPostRequest<bool>(
+      route: '/api/items/batch/delete?hard=${hardDelete ? 1 : 0}',
+      fromJson: null,
+      bodyData: <String, dynamic>{'libraryItemIds': libraryItemIds},
+      returnData: true,
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
+    );
+
+    final statusCode = response.statusCode;
+    return statusCode != null && statusCode >= 200 && statusCode < 300;
+  }
+
+  Future<Response<UpdateLibraryItemMediaResponse>> updateLibraryItemMedia(
+    String itemId, {
+    required UpdateLibraryItemMediaRequest request,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiPatchRequest(
+      route: '/api/items/$itemId/media',
+      fromJson: (data) => UpdateLibraryItemMediaResponse.fromJson(data),
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
+      bodyData: request.toJson(),
     );
   }
 

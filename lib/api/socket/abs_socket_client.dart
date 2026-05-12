@@ -1,15 +1,21 @@
 import 'package:socket_io_client/socket_io_client.dart' as io;
+import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/socket/events/user_item_progress_updated_event.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/network/request_headers.dart';
 
 typedef UserItemProgressUpdatedHandler = void Function(UserItemProgressUpdatedEvent event);
+typedef ItemUpdatedHandler = void Function(LibraryItem item);
 
 class ABSSocketClient {
-  ABSSocketClient({required UserItemProgressUpdatedHandler onUserItemProgressUpdated})
-    : _onUserItemProgressUpdated = onUserItemProgressUpdated;
+  ABSSocketClient({
+    required UserItemProgressUpdatedHandler onUserItemProgressUpdated,
+    required ItemUpdatedHandler onItemUpdated,
+  }) : _onUserItemProgressUpdated = onUserItemProgressUpdated,
+       _onItemUpdated = onItemUpdated;
 
   final UserItemProgressUpdatedHandler _onUserItemProgressUpdated;
+  final ItemUpdatedHandler _onItemUpdated;
 
   io.Socket? _socket;
   String? _serverUrl;
@@ -119,6 +125,26 @@ class ABSSocketClient {
           tag: 'ABSSocketClient',
           level: InfoLevel.error,
         );
+      }
+    });
+
+    socket.on("item_updated", (dynamic payload) {
+      final payloadJson = _payloadToJson(payload);
+      if (payloadJson == null) {
+        logger(
+          'Received malformed item_updated payload: ${_stringifyPayload(payload)}',
+          tag: 'ABSSocketClient',
+          level: InfoLevel.warning,
+        );
+        return;
+      }
+
+      try {
+        final updatedItem = LibraryItem.fromJson(payloadJson);
+        _onItemUpdated(updatedItem);
+        logger('Processed item_updated event for id ${updatedItem.id}', tag: 'ABSSocketClient', level: InfoLevel.debug);
+      } catch (e, s) {
+        logger('Failed to parse item_updated payload: $e\n$s', tag: 'ABSSocketClient', level: InfoLevel.error);
       }
     });
   }

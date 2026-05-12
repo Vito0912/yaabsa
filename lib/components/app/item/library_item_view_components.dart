@@ -119,8 +119,10 @@ Widget buildItemActionButtons({
   Future<void> Function(ItemMoreAction action)? onMoreActionSelected,
   bool showMarkAsUnfinished = false,
   bool showMarkAction = true,
+  bool showEditItem = false,
   bool showAddToPlaylist = false,
   bool showAddToCollection = false,
+  bool showDeleteItem = false,
 }) {
   return LayoutBuilder(
     builder: (context, constraints) {
@@ -161,8 +163,10 @@ Widget buildItemActionButtons({
         onMoreActionSelected: onMoreActionSelected,
         showMarkAsUnfinished: showMarkAsUnfinished,
         showMarkAction: showMarkAction,
+        showEditItem: showEditItem,
         showAddToPlaylist: showAddToPlaylist,
         showAddToCollection: showAddToCollection,
+        showDeleteItem: showDeleteItem,
       );
 
       final placeSmallBelowPrimary = constraints.maxWidth < 360 || !hasPrimaryActions;
@@ -211,8 +215,10 @@ Widget _buildSmallActionButtons(
   required Future<void> Function(ItemMoreAction action)? onMoreActionSelected,
   required bool showMarkAsUnfinished,
   required bool showMarkAction,
+  required bool showEditItem,
   required bool showAddToPlaylist,
   required bool showAddToCollection,
+  required bool showDeleteItem,
 }) {
   final children = <Widget>[
     if (showDownload)
@@ -235,9 +241,11 @@ Widget _buildSmallActionButtons(
       ItemMoreActionsButton(
         onActionSelected: onMoreActionSelected,
         showMarkAction: showMarkAction,
+        showEditItem: showEditItem,
         showMarkAsUnfinished: showMarkAsUnfinished,
         showAddToPlaylist: showAddToPlaylist,
         showAddToCollection: showAddToCollection,
+        showDeleteItem: showDeleteItem,
       ),
   ];
 

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:yaabsa/components/app/item/item_delete_actions.dart';
 import 'package:yaabsa/components/app/item/item_progress_actions.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/me/media_progress.dart';
@@ -42,8 +43,10 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
     required this.visibleItems,
     required this.canAddToPlaylist,
     required this.canAddToCollection,
+    required this.canDeleteItems,
     required this.currentUserId,
     required this.builder,
+    this.onAfterDelete,
     this.enableShiftRange = false,
     super.key,
   });
@@ -53,7 +56,9 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
   final List<LibraryItem> visibleItems;
   final bool canAddToPlaylist;
   final bool canAddToCollection;
+  final bool canDeleteItems;
   final String? currentUserId;
+  final Future<void> Function()? onAfterDelete;
   final bool enableShiftRange;
   final LibraryMultiSelectViewBuilder builder;
 
@@ -174,6 +179,7 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
         .toList(growable: false);
     final progressByKey = ref.watch(mediaProgressProvider).asData?.value ?? const <String, MediaProgress>{};
     final allSelectedFinished = areAllSupportedLibraryItemsFinished(selectedItems, progressByKey);
+    final hasDeletableSelectedItems = selectedItems.any(isAudiobookLibraryItem);
 
     Future<void> runAction(Future<void> Function() action) async {
       if (selectionBusy.value) {
@@ -249,6 +255,29 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
           });
         },
       ),
+      if (canDeleteItems)
+        MultiSelectAppBarAction(
+          icon: Icons.delete_outline_rounded,
+          tooltip: hasDeletableSelectedItems ? 'Delete selected audiobooks' : 'No selected audiobooks can be deleted',
+          enabled: !selectionBusy.value && hasDeletableSelectedItems,
+          onPressed: () {
+            runAction(() async {
+              final deleted = await deleteAudiobooksInBulkWithConfirmation(
+                context: context,
+                ref: ref,
+                selectedItems: selectedItems,
+              );
+              if (!deleted) {
+                return;
+              }
+
+              clearSelection();
+              if (onAfterDelete != null) {
+                await onAfterDelete!();
+              }
+            });
+          },
+        ),
     ];
 
     final appBarNotifier = ref.read(multiSelectAppBarProvider.notifier);
