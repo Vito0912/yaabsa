@@ -117,6 +117,7 @@ Below is a list of all features, but I want to *highlight* a few, as this client
 | Manage Collections | ✅      | ✅   | ✅      | ✅    | ✅    |
 | Edit items         | ✅      | ✅   | ✅      | ✅    | ✅    |
 | Delete items       | ✅      | ✅   | ✅      | ✅    | ✅    |
+| Upload items       | ✅      | ✅   | ✅      | ✅    | ✅    |
 | Match items        | 🅿️      | 🅿️   | 🅿️      | 🅿️    | 🅿️    |
 | Bulk editing       | 🅿️      | 🅿️   | 🅿️      | 🅿️    | 🅿️    |
 

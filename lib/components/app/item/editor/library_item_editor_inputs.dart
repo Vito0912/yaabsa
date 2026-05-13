@@ -4,6 +4,7 @@ import 'package:yaabsa/api/library/filter_data/library_filter_named_entity.dart'
 import 'package:yaabsa/components/app/item/editor/library_item_editor_autocomplete_sheet.dart';
 import 'package:yaabsa/components/app/item/editor/library_item_editor_field_container.dart';
 import 'package:yaabsa/components/app/item/editor/library_item_edit_models.dart';
+import 'package:yaabsa/components/common/styled_form_fields.dart';
 
 class LibraryItemEditorSectionCard extends StatelessWidget {
   const LibraryItemEditorSectionCard({super.key, required this.title, required this.child, this.subtitle});
@@ -60,31 +61,13 @@ class LibraryItemEditorTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final defaultBorder = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(10),
-      borderSide: libraryItemEditorSoftBorderSide(context, alpha: 0.34),
-    );
-    final focusedBorder = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(10),
-      borderSide: libraryItemEditorSoftBorderSide(context, alpha: 0.5),
-    );
-
-    return TextField(
+    return YaabsaTextField(
+      label: label,
       controller: controller,
-      keyboardType: keyboardType,
+      hintText: hintText,
       maxLines: maxLines,
+      keyboardType: keyboardType,
       onChanged: onChanged,
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hintText,
-        filled: true,
-        fillColor: colorScheme.surfaceContainer,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        border: defaultBorder,
-        enabledBorder: defaultBorder,
-        focusedBorder: focusedBorder,
-      ),
     );
   }
 }

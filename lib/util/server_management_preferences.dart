@@ -7,6 +7,7 @@ class ServerManagementPreferences {
   final bool deleteItemsEnabled;
   final bool editItemsEnabled;
   final bool editChaptersEnabled;
+  final bool uploadItemsEnabled;
   final bool allowMatchesQuickMatchesEnabled;
 
   const ServerManagementPreferences({
@@ -14,11 +15,13 @@ class ServerManagementPreferences {
     required this.deleteItemsEnabled,
     required this.editItemsEnabled,
     required this.editChaptersEnabled,
+    required this.uploadItemsEnabled,
     required this.allowMatchesQuickMatchesEnabled,
   });
 }
 
 ServerManagementPreferences readServerManagementPreferences(WidgetRef ref, String? userId) {
+  ref.watch(userSettingsWatcherProvider);
   final settingsManager = ref.read(settingsManagerProvider.notifier);
 
   bool readBool(String key, bool fallbackDefault) {
@@ -35,6 +38,7 @@ ServerManagementPreferences readServerManagementPreferences(WidgetRef ref, Strin
     deleteItemsEnabled: readBool(SettingKeys.serverManagementDeleteItems, false),
     editItemsEnabled: readBool(SettingKeys.serverManagementEditItems, false),
     editChaptersEnabled: readBool(SettingKeys.serverManagementEditChapters, true),
+    uploadItemsEnabled: readBool(SettingKeys.serverManagementUploadItems, false),
     allowMatchesQuickMatchesEnabled: readBool(SettingKeys.serverManagementAllowMatchesQuickMatches, false),
   );
 }

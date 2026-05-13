@@ -6,6 +6,7 @@ import 'package:yaabsa/api/routes/library_item_api.dart';
 import 'package:yaabsa/api/routes/list_api.dart';
 import 'package:yaabsa/api/routes/me_api.dart';
 import 'package:yaabsa/api/routes/session_api.dart';
+import 'package:yaabsa/api/routes/upload_api.dart';
 import 'package:yaabsa/util/network/dio_factory.dart';
 import 'package:dio/dio.dart';
 
@@ -262,5 +263,9 @@ class ABSApi {
 
   ListApi getListApi() {
     return ListApi(dio);
+  }
+
+  UploadApi getUploadApi() {
+    return UploadApi(dio);
   }
 }
