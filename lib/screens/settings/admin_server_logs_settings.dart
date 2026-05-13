@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:yaabsa/components/settings/admin_server_logs_view.dart';
 import 'package:yaabsa/screens/settings/admin_server_settings.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 
@@ -14,7 +15,7 @@ class AdminServerLogsSettings extends StatelessWidget {
       embedded: true,
       showEmbeddedBackButton: true,
       embeddedBackFallbackRoute: AdminServerSettings.routeName,
-      children: const [SizedBox.shrink()],
+      children: const [AdminServerLogsView()],
     );
   }
 }

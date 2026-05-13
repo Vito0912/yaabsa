@@ -6,6 +6,7 @@ import 'package:yaabsa/util/network/request_headers.dart';
 
 typedef UserItemProgressUpdatedHandler = void Function(UserItemProgressUpdatedEvent event);
 typedef ItemUpdatedHandler = void Function(LibraryItem item);
+typedef ServerLogHandler = void Function(Map<String, dynamic> logEntry);
 
 class ABSSocketClient {
   ABSSocketClient({
@@ -16,6 +17,10 @@ class ABSSocketClient {
 
   final UserItemProgressUpdatedHandler _onUserItemProgressUpdated;
   final ItemUpdatedHandler _onItemUpdated;
+  final Map<String, ServerLogHandler> _serverLogHandlers = <String, ServerLogHandler>{};
+
+  int _nextServerLogHandlerId = 0;
+  int _serverLogListenerLevel = 2;
 
   io.Socket? _socket;
   String? _serverUrl;
@@ -23,6 +28,23 @@ class ABSSocketClient {
   String? _headersSignature;
 
   bool get isConnected => _socket?.connected ?? false;
+
+  String addServerLogListener(ServerLogHandler handler) {
+    final listenerId = 'log_listener_${_nextServerLogHandlerId++}';
+    _serverLogHandlers[listenerId] = handler;
+    _applyServerLogListenerState();
+    return listenerId;
+  }
+
+  void removeServerLogListener(String listenerId) {
+    _serverLogHandlers.remove(listenerId);
+    _applyServerLogListenerState();
+  }
+
+  void setServerLogListenerLevel(int level) {
+    _serverLogListenerLevel = level;
+    _applyServerLogListenerState();
+  }
 
   void connect({required String serverUrl, required String apiToken, Map<String, String>? headers}) {
     final normalizedServerUrl = _normalizeServerUrl(serverUrl);
@@ -90,6 +112,7 @@ class ABSSocketClient {
 
     socket.on("init", (dynamic payload) {
       logger('Socket authenticated successfully', tag: 'ABSSocketClient', level: InfoLevel.debug);
+      _applyServerLogListenerState();
     });
 
     socket.on("invalid_token", (dynamic payload) {
@@ -147,6 +170,27 @@ class ABSSocketClient {
         logger('Failed to parse item_updated payload: $e\n$s', tag: 'ABSSocketClient', level: InfoLevel.error);
       }
     });
+
+    socket.on("log", (dynamic payload) {
+      final payloadJson = _payloadToJson(payload);
+      if (payloadJson == null) {
+        logger(
+          'Received malformed log payload: ${_stringifyPayload(payload)}',
+          tag: 'ABSSocketClient',
+          level: InfoLevel.warning,
+        );
+        return;
+      }
+
+      final handlers = _serverLogHandlers.values.toList(growable: false);
+      for (final handler in handlers) {
+        try {
+          handler(payloadJson);
+        } catch (e, s) {
+          logger('Server log handler failed: $e\n$s', tag: 'ABSSocketClient', level: InfoLevel.warning);
+        }
+      }
+    });
   }
 
   void _authenticateSocket() {
@@ -198,6 +242,20 @@ class ABSSocketClient {
     } catch (_) {
       return '<unprintable>';
     }
+  }
+
+  void _applyServerLogListenerState() {
+    final socket = _socket;
+    if (socket == null || !socket.connected) {
+      return;
+    }
+
+    if (_serverLogHandlers.isEmpty) {
+      socket.emit('remove_log_listener');
+      return;
+    }
+
+    socket.emit('set_log_listener', _serverLogListenerLevel);
   }
 
   void _disposeSocket() {

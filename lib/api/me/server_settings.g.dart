@@ -25,12 +25,13 @@ _ServerSettings _$ServerSettingsFromJson(Map<String, dynamic> json) => _ServerSe
   loggerScannerLogsToKeep: (json['loggerScannerLogsToKeep'] as num?)?.toInt(),
   homeBookshelfView: (json['homeBookshelfView'] as num?)?.toInt(),
   bookshelfView: (json['bookshelfView'] as num?)?.toInt(),
+  allowedOrigins: (json['allowedOrigins'] as List<dynamic>?)?.map((e) => e as String).toList(),
   sortingIgnorePrefix: json['sortingIgnorePrefix'] as bool?,
   sortingPrefixes: (json['sortingPrefixes'] as List<dynamic>?)?.map((e) => e as String).toList(),
   chromecastEnabled: json['chromecastEnabled'] as bool?,
   dateFormat: json['dateFormat'] as String?,
   language: json['language'] as String?,
-  logLevel: (json['logLevel'] as num?)?.toInt(),
+  logLevel: $enumDecodeNullable(_$LogLevelEnumMap, json['logLevel']),
   version: json['version'] as String?,
 );
 
@@ -53,11 +54,14 @@ Map<String, dynamic> _$ServerSettingsToJson(_ServerSettings instance) => <String
   'loggerScannerLogsToKeep': instance.loggerScannerLogsToKeep,
   'homeBookshelfView': instance.homeBookshelfView,
   'bookshelfView': instance.bookshelfView,
+  'allowedOrigins': instance.allowedOrigins,
   'sortingIgnorePrefix': instance.sortingIgnorePrefix,
   'sortingPrefixes': instance.sortingPrefixes,
   'chromecastEnabled': instance.chromecastEnabled,
   'dateFormat': instance.dateFormat,
   'language': instance.language,
-  'logLevel': instance.logLevel,
+  'logLevel': _$LogLevelEnumMap[instance.logLevel],
   'version': instance.version,
 };
+
+const _$LogLevelEnumMap = {LogLevel.debug: 1, LogLevel.info: 2, LogLevel.warn: 3, LogLevel.error: 4};
