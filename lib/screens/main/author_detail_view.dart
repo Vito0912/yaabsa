@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:yaabsa/api/library/filter_data/library_filter_named_entity.dart';
-import 'package:yaabsa/api/library/request/library_filter.dart';
-import 'package:yaabsa/api/library/search_library_author.dart';
+import 'package:yaabsa/api/library/author_details.dart';
+import 'package:yaabsa/api/routes/abs_api.dart';
+import 'package:yaabsa/components/app/library/author_detail_content.dart';
 import 'package:yaabsa/components/common/author_card.dart';
-import 'package:yaabsa/provider/common/library_filter_data_provider.dart';
-import 'package:yaabsa/provider/common/library_provider.dart';
-import 'package:yaabsa/provider/common/library_search_provider.dart';
-import 'package:yaabsa/screens/main/library_view.dart';
+import 'package:yaabsa/components/common/connection_issue_view.dart';
+import 'package:yaabsa/provider/common/library_author_provider.dart';
+import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 
 class AuthorDetailView extends ConsumerWidget {
@@ -18,41 +17,63 @@ class AuthorDetailView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selectedLibrary = ref.watch(selectedLibraryProvider);
-    if (selectedLibrary == null) {
-      return const Center(child: Text('No library selected. Please select a library via the switcher.'));
+    final api = ref.watch(absApiProvider);
+    if (api == null) {
+      return ConnectionIssueView.offline();
     }
 
-    if (selectedLibrary.mediaType != 'book') {
-      return const Center(child: Text('Authors are available only for book libraries.'));
-    }
+    final authorDetailsAsync = ref.watch(libraryAuthorProvider(authorId));
+    return authorDetailsAsync.when(
+      skipLoadingOnRefresh: true,
+      skipLoadingOnReload: true,
+      data: (author) => _AuthorDetailLoadedView(author: author, api: api),
+      loading: () => Column(
+        children: [
+          _AuthorTopSection(
+            authorId: authorId,
+            title: authorId,
+            subtitle: null,
+            description: null,
+            isLoadingDetails: true,
+          ),
+          const Expanded(child: Center(child: CircularProgressIndicator())),
+        ],
+      ),
+      error: (error, stackTrace) => ConnectionIssueView.requestFailed(
+        error: error,
+        title: 'Error loading author details',
+        onRetry: () async {
+          ref.invalidate(libraryAuthorProvider(authorId));
+          await ref.read(libraryAuthorProvider(authorId).future);
+        },
+      ),
+    );
+  }
+}
 
-    final libraryId = selectedLibrary.id;
-    final filterData = ref.watch(libraryFilterDataProvider(libraryId)).value;
-    final fallbackAuthor = _findAuthorById(filterData?.authors, authorId);
+class _AuthorDetailLoadedView extends StatelessWidget {
+  const _AuthorDetailLoadedView({required this.author, required this.api});
 
-    final searchAsync = fallbackAuthor == null
-        ? const AsyncValue<SearchLibraryAuthor?>.data(null)
-        : ref.watch(_authorDetailsProvider(_AuthorLookupInput(authorId: authorId, query: fallbackAuthor.name)));
+  final AuthorDetails author;
+  final ABSApi api;
 
-    final resolvedAuthor = searchAsync.value;
-    final title = resolvedAuthor?.name ?? fallbackAuthor?.name ?? authorId;
-    final description = resolvedAuthor?.description;
-    final subtitle = resolvedAuthor == null || resolvedAuthor.numBooks <= 0
-        ? null
-        : '${resolvedAuthor.numBooks} ${resolvedAuthor.numBooks == 1 ? 'book' : 'books'}';
-    final authorFilter = LibraryFilter.grouped(LibraryFilterGroup.authors, authorId).queryValue;
+  @override
+  Widget build(BuildContext context) {
+    final numBooks = author.libraryItems.length;
+    final subtitle = numBooks <= 0 ? null : '$numBooks ${numBooks == 1 ? 'book' : 'books'}';
 
     return Column(
       children: [
         _AuthorTopSection(
-          authorId: authorId,
-          title: title,
+          authorId: author.id,
+          title: author.name,
           subtitle: subtitle,
-          description: description,
-          isLoadingDetails: searchAsync.isLoading && !searchAsync.hasValue,
+          description: author.description,
+          isLoadingDetails: false,
         ),
-        Expanded(child: LibraryView(initialFilter: authorFilter)),
+        Expanded(
+          child: AuthorDetailContent(author: author, api: api),
+        ),
       ],
     );
   }
@@ -146,59 +167,4 @@ class _AuthorTopSection extends StatelessWidget {
       ),
     );
   }
-}
-
-final _authorDetailsProvider = FutureProvider.autoDispose.family<SearchLibraryAuthor?, _AuthorLookupInput>((
-  ref,
-  input,
-) async {
-  final searchResult = await ref.watch(librarySearchProvider(input.query).future);
-  final candidates = searchResult?.authors;
-  if (candidates == null || candidates.isEmpty) {
-    return null;
-  }
-
-  for (final candidate in candidates) {
-    if (candidate.id == input.authorId) {
-      return candidate;
-    }
-  }
-
-  final targetName = input.query.toLowerCase();
-  for (final candidate in candidates) {
-    if (candidate.name.toLowerCase() == targetName) {
-      return candidate;
-    }
-  }
-
-  return candidates.first;
-});
-
-class _AuthorLookupInput {
-  const _AuthorLookupInput({required this.authorId, required this.query});
-
-  final String authorId;
-  final String query;
-
-  @override
-  bool operator ==(Object other) {
-    return other is _AuthorLookupInput && other.authorId == authorId && other.query == query;
-  }
-
-  @override
-  int get hashCode => Object.hash(authorId, query);
-}
-
-LibraryFilterNamedEntity? _findAuthorById(List<LibraryFilterNamedEntity>? authors, String authorId) {
-  if (authors == null) {
-    return null;
-  }
-
-  for (final author in authors) {
-    if (author.id == authorId) {
-      return author;
-    }
-  }
-
-  return null;
 }
