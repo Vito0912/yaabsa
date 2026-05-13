@@ -51,6 +51,7 @@ class SettingKeys {
   static const String serverManagementDeleteItems = 'server_management_delete_items';
   static const String serverManagementEditItems = 'server_management_edit_items';
   static const String serverManagementEditChapters = 'server_management_edit_chapters';
+  static const String serverManagementUploadItems = 'server_management_upload_items';
   static const String serverManagementAllowMatchesQuickMatches = 'server_management_allow_matches_quick_matches';
   static const String shakeToResetSleepTimer = 'shake_to_reset_sleep_timer';
   static const String shakeToRewind = 'shake_to_rewind';
@@ -135,6 +136,7 @@ final defaultSettings = {
   SettingKeys.serverManagementDeleteItems: false,
   SettingKeys.serverManagementEditItems: false,
   SettingKeys.serverManagementEditChapters: true,
+  SettingKeys.serverManagementUploadItems: false,
   SettingKeys.serverManagementAllowMatchesQuickMatches: false,
   SettingKeys.shakeToResetSleepTimer: false,
   SettingKeys.shakeToRewind: false,

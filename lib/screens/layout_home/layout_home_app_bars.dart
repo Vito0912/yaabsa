@@ -95,6 +95,8 @@ class LayoutHomeMobileAppBar extends StatelessWidget {
     required this.onCollapseSearch,
     required this.onClearSearch,
     required this.onAdvancedItemSelected,
+    required this.showUploadAction,
+    this.onUploadSelected,
   });
 
   final bool isSearchExpanded;
@@ -108,6 +110,8 @@ class LayoutHomeMobileAppBar extends StatelessWidget {
   final VoidCallback onCollapseSearch;
   final VoidCallback onClearSearch;
   final ValueChanged<int> onAdvancedItemSelected;
+  final bool showUploadAction;
+  final VoidCallback? onUploadSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -179,23 +183,52 @@ class LayoutHomeMobileAppBar extends StatelessWidget {
   }
 
   Widget _buildAdvancedMenuButton(BuildContext context) {
-    return PopupMenuButton<int>(
+    return PopupMenuButton<String>(
       icon: const Icon(Icons.more_vert),
-      onSelected: (index) => onAdvancedItemSelected(index + advancedMenuStartIndex),
+      onSelected: (value) {
+        if (value == '__upload__') {
+          onUploadSelected?.call();
+          return;
+        }
+
+        final parsedIndex = int.tryParse(value);
+        if (parsedIndex == null) {
+          return;
+        }
+        onAdvancedItemSelected(parsedIndex);
+      },
       itemBuilder: (BuildContext context) {
-        return advancedMenuItems.asMap().entries.map((entry) {
-          final NavigationItemConfig item = entry.value;
-          return PopupMenuItem<int>(
-            value: entry.key,
-            child: Row(
-              children: [
-                Icon(item.icon, color: Theme.of(context).iconTheme.color ?? Theme.of(context).colorScheme.onSurface),
-                const SizedBox(width: 12),
-                Text(item.label),
-              ],
+        return [
+          if (showUploadAction)
+            PopupMenuItem<String>(
+              value: '__upload__',
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.cloud_upload_outlined,
+                    color: Theme.of(context).iconTheme.color ?? Theme.of(context).colorScheme.onSurface,
+                  ),
+                  const SizedBox(width: 12),
+                  const Text('Upload'),
+                ],
+              ),
             ),
-          );
-        }).toList();
+          if (showUploadAction) const PopupMenuDivider(),
+          ...advancedMenuItems.asMap().entries.map((entry) {
+            final item = entry.value;
+            final itemIndex = entry.key + advancedMenuStartIndex;
+            return PopupMenuItem<String>(
+              value: '$itemIndex',
+              child: Row(
+                children: [
+                  Icon(item.icon, color: Theme.of(context).iconTheme.color ?? Theme.of(context).colorScheme.onSurface),
+                  const SizedBox(width: 12),
+                  Text(item.label),
+                ],
+              ),
+            );
+          }),
+        ];
       },
     );
   }
@@ -212,6 +245,8 @@ class LayoutHomeNonMobileAppBar extends StatelessWidget {
     required this.onSearchSubmitted,
     required this.onClearSearch,
     required this.onSidebarToggle,
+    required this.showUploadButton,
+    this.onUploadPressed,
   });
 
   final bool isTablet;
@@ -222,6 +257,8 @@ class LayoutHomeNonMobileAppBar extends StatelessWidget {
   final ValueChanged<String> onSearchSubmitted;
   final VoidCallback onClearSearch;
   final VoidCallback onSidebarToggle;
+  final bool showUploadButton;
+  final VoidCallback? onUploadPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -267,9 +304,21 @@ class LayoutHomeNonMobileAppBar extends StatelessWidget {
                 child: FittedBox(
                   fit: BoxFit.scaleDown,
                   alignment: Alignment.centerRight,
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
-                    children: [DownloadStatus(), SizedBox(width: 4), LibrarySwitcher()],
+                    children: [
+                      const DownloadStatus(),
+                      if (showUploadButton) ...[
+                        const SizedBox(width: 4),
+                        _IconContainerButton(
+                          icon: Icons.cloud_upload_outlined,
+                          onTap: onUploadPressed,
+                          tooltip: 'Open uploader',
+                        ),
+                      ],
+                      const SizedBox(width: 4),
+                      const LibrarySwitcher(),
+                    ],
                   ),
                 ),
               ),
@@ -328,14 +377,15 @@ class _LayoutHomeSearchField extends StatelessWidget {
 }
 
 class _IconContainerButton extends StatelessWidget {
-  const _IconContainerButton({required this.icon, required this.onTap});
+  const _IconContainerButton({required this.icon, this.onTap, this.tooltip});
 
   final IconData icon;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
+  final String? tooltip;
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    final button = InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
@@ -349,5 +399,11 @@ class _IconContainerButton extends StatelessWidget {
         child: Icon(icon, color: Theme.of(context).colorScheme.onSurfaceVariant),
       ),
     );
+
+    if (tooltip == null || tooltip!.trim().isEmpty) {
+      return button;
+    }
+
+    return Tooltip(message: tooltip!, child: button);
   }
 }

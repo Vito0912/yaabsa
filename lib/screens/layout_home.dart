@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:yaabsa/components/app/upload/library_upload_panel.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/screens/main/downloads.dart';
 import 'package:yaabsa/screens/main/collection_view.dart';
@@ -21,6 +22,7 @@ import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/core/multi_select_app_bar_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/server_management_preferences.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -46,7 +48,24 @@ class PlaceholderPage extends StatelessWidget {
 class LayoutHome extends ConsumerStatefulWidget {
   const LayoutHome({super.key, this.child});
 
+  static const String openUploadQueryKey = 'openUpload';
+  static const String openUploadQueryValue = '1';
+  static const String uploadIntentQueryKey = 'uploadIntent';
+
   final Widget? child;
+
+  static String uploadModeLocation({String tab = 'settings'}) {
+    final intent = DateTime.now().microsecondsSinceEpoch.toString();
+    return Uri(
+      path: '/',
+      queryParameters: {
+        'tab': tab,
+        'intent': intent,
+        openUploadQueryKey: openUploadQueryValue,
+        uploadIntentQueryKey: intent,
+      },
+    ).toString();
+  }
 
   @override
   ConsumerState<LayoutHome> createState() => _LayoutHomeState();
@@ -56,6 +75,7 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
   int _selectedIndex = 0;
   String? _lastSelectedLabel;
   String? _lastConsumedTabIntent;
+  String? _lastConsumedUploadIntent;
   _PageSource _currentlyDisplayedPageSource = _PageSource.internal;
   String? _bootstrappedUserId;
   final TextEditingController _searchController = TextEditingController();
@@ -63,6 +83,8 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
   String _searchQuery = '';
   bool _isMobileSearchExpanded = false;
   bool _isSidebarCollapsed = false;
+  bool _isUploadPageVisible = false;
+  bool _isUploadInProgress = false;
 
   late final List<NavigationItemConfig> _allAppBarItems;
   late final NavigationItemConfig _downloadsMenuItem;
@@ -165,6 +187,15 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
   }
 
   void _onAppBarItemTapped(int index) {
+    unawaited(_onAppBarItemTappedAsync(index));
+  }
+
+  Future<void> _onAppBarItemTappedAsync(int index) async {
+    final canLeaveUploadPage = await _confirmLeaveUploadPageIfNeeded();
+    if (!canLeaveUploadPage) {
+      return;
+    }
+
     final selectedLibrary = ref.read(selectedLibraryProvider);
     final primaryItems = _visiblePrimaryItems(libraryMediaType: selectedLibrary?.mediaType);
     final canDownload = ref.read(currentUserProvider).value?.permissions.download ?? false;
@@ -191,6 +222,8 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
       _searchQuery = '';
       _searchController.clear();
       _isMobileSearchExpanded = false;
+      _isUploadPageVisible = false;
+      _isUploadInProgress = false;
     });
 
     _syncRouteToTab(tabIntent);
@@ -226,15 +259,32 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
   }
 
   void _submitSearch(String value) {
+    unawaited(_submitSearchAsync(value));
+  }
+
+  Future<void> _submitSearchAsync(String value) async {
+    if (_isUploadPageVisible) {
+      final canLeaveUploadPage = await _confirmLeaveUploadPageIfNeeded();
+      if (!canLeaveUploadPage) {
+        return;
+      }
+    }
+
     final query = value.trim();
     _searchDebounce?.cancel();
     setState(() {
       _currentlyDisplayedPageSource = _PageSource.internal;
       _searchQuery = query;
+      _isUploadPageVisible = false;
+      _isUploadInProgress = false;
     });
   }
 
   void _onSearchChanged(String value) {
+    if (_isUploadPageVisible) {
+      return;
+    }
+
     _searchDebounce?.cancel();
     _searchDebounce = Timer(const Duration(milliseconds: 250), () {
       if (!mounted) {
@@ -275,6 +325,91 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
       containerRef
           .read(settingsManagerProvider.notifier)
           .setGlobalSetting<bool>(SettingKeys.sidebarCollapsed, isCollapsed),
+    );
+  }
+
+  void _onUploadProgressChanged(bool isUploading) {
+    if (!mounted || _isUploadInProgress == isUploading) {
+      return;
+    }
+
+    setState(() {
+      _isUploadInProgress = isUploading;
+    });
+  }
+
+  Future<bool> _confirmLeaveUploadPageIfNeeded() async {
+    if (!_isUploadPageVisible || !_isUploadInProgress) {
+      return true;
+    }
+
+    final shouldLeave = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Leave upload page?'),
+          content: const Text('Leaving this page now cancels active uploads. Continue?'),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Stay here')),
+            FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Leave page')),
+          ],
+        );
+      },
+    );
+
+    return shouldLeave == true;
+  }
+
+  void _openOrCloseUploadPage() {
+    unawaited(_openOrCloseUploadPageAsync());
+  }
+
+  Future<void> _openOrCloseUploadPageAsync() async {
+    if (_isUploadPageVisible) {
+      final canLeave = await _confirmLeaveUploadPageIfNeeded();
+      if (!canLeave || !mounted) {
+        return;
+      }
+
+      setState(() {
+        _isUploadPageVisible = false;
+        _isUploadInProgress = false;
+      });
+      return;
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _isUploadPageVisible = true;
+      _currentlyDisplayedPageSource = _PageSource.internal;
+      _searchQuery = '';
+      _searchController.clear();
+      _isMobileSearchExpanded = false;
+    });
+  }
+
+  Widget _wrapWithUploadPageBackHandling(Widget child) {
+    return PopScope(
+      canPop: !_isUploadPageVisible,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop || !_isUploadPageVisible) {
+          return;
+        }
+
+        final canLeave = await _confirmLeaveUploadPageIfNeeded();
+        if (!canLeave || !mounted) {
+          return;
+        }
+
+        setState(() {
+          _isUploadPageVisible = false;
+          _isUploadInProgress = false;
+        });
+      },
+      child: child,
     );
   }
 
@@ -331,9 +466,28 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
 
     final bool isMobile = context.isMobile;
     final bool isTablet = context.isTablet;
+    final currentUser = ref.watch(currentUserProvider).value;
     final selectedLibrary = ref.watch(selectedLibraryProvider);
+    final serverManagementPreferences = readServerManagementPreferences(ref, currentUser?.id);
+    final canUpload =
+        selectedLibrary != null &&
+        (currentUser?.permissions.upload ?? false) &&
+        serverManagementPreferences.uploadItemsEnabled;
+
+    if (!canUpload && _isUploadPageVisible) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) {
+          return;
+        }
+        setState(() {
+          _isUploadPageVisible = false;
+          _isUploadInProgress = false;
+        });
+      });
+    }
+
     final primaryItems = _visiblePrimaryItems(libraryMediaType: selectedLibrary?.mediaType);
-    final canDownload = ref.watch(currentUserProvider).value?.permissions.download ?? false;
+    final canDownload = currentUser?.permissions.download ?? false;
     final advancedMenuItems = _visibleAdvancedMenuItems(canDownload: canDownload);
 
     final queryParameters = GoRouterState.of(context).uri.queryParameters;
@@ -363,12 +517,34 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
         setState(() {
           _selectedIndex = targetIndex >= 0 ? targetIndex : 0;
           _currentlyDisplayedPageSource = _PageSource.internal;
+          _isUploadPageVisible = false;
+          _isUploadInProgress = false;
           _lastSelectedLabel = navigationItems.isNotEmpty
               ? (targetIndex >= 0 ? navigationItems[targetIndex].label : navigationItems.first.label)
               : _lastSelectedLabel;
         });
       });
     }
+
+    final shouldOpenUploadMode = queryParameters[LayoutHome.openUploadQueryKey] == LayoutHome.openUploadQueryValue;
+    final uploadIntent = queryParameters[LayoutHome.uploadIntentQueryKey];
+    if (shouldOpenUploadMode && uploadIntent != null && uploadIntent != _lastConsumedUploadIntent) {
+      _lastConsumedUploadIntent = uploadIntent;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !canUpload) {
+          return;
+        }
+
+        setState(() {
+          _isUploadPageVisible = true;
+          _currentlyDisplayedPageSource = _PageSource.internal;
+          _searchQuery = '';
+          _searchController.clear();
+          _isMobileSearchExpanded = false;
+        });
+      });
+    }
+
     final combinedItems = <NavigationItemConfig>[...primaryItems, ...advancedMenuItems];
     final maxIndex = combinedItems.length - 1;
 
@@ -407,108 +583,123 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
     final bool canExpandSidebar = !isMobile;
     final bool isSidebarCollapsed = !canExpandSidebar || _isSidebarCollapsed;
     final SidebarVariant sidebarVariant = _sidebarVariantFor(isTablet: isTablet, isCollapsed: isSidebarCollapsed);
-    final Widget currentContent = _resolveCurrentContent(safeSelectedIndex, primaryItems, advancedMenuItems);
+    final resolvedContent = _resolveCurrentContent(safeSelectedIndex, primaryItems, advancedMenuItems);
+    final Widget currentContent = (canUpload && _isUploadPageVisible)
+        ? LibraryUploadPanel(
+            selectedLibrary: selectedLibrary,
+            onClose: _openOrCloseUploadPage,
+            onUploadingChanged: _onUploadProgressChanged,
+          )
+        : resolvedContent;
     final multiSelectAppBarState = ref.watch(multiSelectAppBarProvider);
 
     if (isMobile) {
-      return Scaffold(
-        body: Column(
-          children: [
-            if (multiSelectAppBarState != null)
-              LayoutHomeMultiSelectAppBar(state: multiSelectAppBarState)
-            else
-              LayoutHomeMobileAppBar(
-                isSearchExpanded: _isMobileSearchExpanded,
-                searchController: _searchController,
-                searchQuery: _searchQuery,
-                advancedMenuItems: advancedMenuItems,
-                advancedMenuStartIndex: primaryItems.length,
-                onSearchChanged: _onSearchChanged,
-                onSearchSubmitted: _submitSearch,
-                onExpandSearch: _expandMobileSearch,
-                onCollapseSearch: _collapseMobileSearch,
-                onClearSearch: _clearSearch,
-                onAdvancedItemSelected: _onAppBarItemTapped,
-              ),
+      return _wrapWithUploadPageBackHandling(
+        Scaffold(
+          body: Column(
+            children: [
+              if (multiSelectAppBarState != null)
+                LayoutHomeMultiSelectAppBar(state: multiSelectAppBarState)
+              else
+                LayoutHomeMobileAppBar(
+                  isSearchExpanded: _isMobileSearchExpanded,
+                  searchController: _searchController,
+                  searchQuery: _searchQuery,
+                  advancedMenuItems: advancedMenuItems,
+                  advancedMenuStartIndex: primaryItems.length,
+                  onSearchChanged: _onSearchChanged,
+                  onSearchSubmitted: _submitSearch,
+                  onExpandSearch: _expandMobileSearch,
+                  onCollapseSearch: _collapseMobileSearch,
+                  onClearSearch: _clearSearch,
+                  onAdvancedItemSelected: _onAppBarItemTapped,
+                  showUploadAction: canUpload,
+                  onUploadSelected: canUpload ? _openOrCloseUploadPage : null,
+                ),
 
-            Expanded(child: currentContent),
-            StreamBuilder<bool>(
-              stream: audioHandler.shouldShowPlayer,
-              initialData: audioHandler.shouldShowPlayerNow,
-              builder: (context, snapshot) {
-                final showPlayer = snapshot.data == true;
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: LayoutHomeMobileNavBar.horizontalMargin),
-                  child: SafeArea(
-                    top: false,
-                    left: false,
-                    right: false,
-                    bottom: !showPlayer,
-                    minimum: EdgeInsets.only(bottom: showPlayer ? 8 : LayoutHomeMobileNavBar.floatingBottomMargin),
-                    child: LayoutHomeMobileNavBar(
-                      items: primaryItems,
-                      selectedIndex: safeSelectedIndex,
-                      onItemTap: _onAppBarItemTapped,
+              Expanded(child: currentContent),
+              StreamBuilder<bool>(
+                stream: audioHandler.shouldShowPlayer,
+                initialData: audioHandler.shouldShowPlayerNow,
+                builder: (context, snapshot) {
+                  final showPlayer = snapshot.data == true;
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: LayoutHomeMobileNavBar.horizontalMargin),
+                    child: SafeArea(
+                      top: false,
+                      left: false,
+                      right: false,
+                      bottom: !showPlayer,
+                      minimum: EdgeInsets.only(bottom: showPlayer ? 8 : LayoutHomeMobileNavBar.floatingBottomMargin),
+                      child: LayoutHomeMobileNavBar(
+                        items: primaryItems,
+                        selectedIndex: safeSelectedIndex,
+                        onItemTap: _onAppBarItemTapped,
+                      ),
                     ),
-                  ),
-                );
-              },
-            ),
-            const PlayBar(includeBottomSafeArea: true, attachedToBottom: true),
-          ],
+                  );
+                },
+              ),
+              const PlayBar(includeBottomSafeArea: true, attachedToBottom: true),
+            ],
+          ),
         ),
       );
     }
 
-    return Scaffold(
-      body: Row(
-        children: [
-          SafeArea(
-            top: true,
-            bottom: false,
-            left: true,
-            right: false,
-            child: LayoutHomeSidebar(
-              variant: sidebarVariant,
-              selectedIndex: safeSelectedIndex,
-              primaryItems: primaryItems,
-              secondaryItems: advancedMenuItems,
-              onItemTap: _onAppBarItemTapped,
+    return _wrapWithUploadPageBackHandling(
+      Scaffold(
+        body: Row(
+          children: [
+            SafeArea(
+              top: true,
+              bottom: false,
+              left: true,
+              right: false,
+              child: LayoutHomeSidebar(
+                variant: sidebarVariant,
+                selectedIndex: safeSelectedIndex,
+                primaryItems: primaryItems,
+                secondaryItems: advancedMenuItems,
+                onItemTap: _onAppBarItemTapped,
+              ),
             ),
-          ),
-          Expanded(
-            child: Column(
-              children: [
-                if (multiSelectAppBarState != null)
-                  LayoutHomeMultiSelectAppBar(
-                    state: multiSelectAppBarState,
-                    showSidebarToggle: true,
-                    isSidebarCollapsed: isSidebarCollapsed,
-                    onSidebarToggle: () => _setSidebarCollapsed(!isSidebarCollapsed),
-                  )
-                else
-                  LayoutHomeNonMobileAppBar(
-                    isTablet: isTablet,
-                    isSidebarCollapsed: isSidebarCollapsed,
-                    searchController: _searchController,
-                    searchQuery: _searchQuery,
-                    onSearchChanged: _onSearchChanged,
-                    onSearchSubmitted: _submitSearch,
-                    onClearSearch: _clearSearch,
-                    onSidebarToggle: () => _setSidebarCollapsed(!isSidebarCollapsed),
+            Expanded(
+              child: Column(
+                children: [
+                  if (multiSelectAppBarState != null)
+                    LayoutHomeMultiSelectAppBar(
+                      state: multiSelectAppBarState,
+                      showSidebarToggle: true,
+                      isSidebarCollapsed: isSidebarCollapsed,
+                      onSidebarToggle: () => _setSidebarCollapsed(!isSidebarCollapsed),
+                    )
+                  else
+                    LayoutHomeNonMobileAppBar(
+                      isTablet: isTablet,
+                      isSidebarCollapsed: isSidebarCollapsed,
+                      searchController: _searchController,
+                      searchQuery: _searchQuery,
+                      onSearchChanged: _onSearchChanged,
+                      onSearchSubmitted: _submitSearch,
+                      onClearSearch: _clearSearch,
+                      onSidebarToggle: () => _setSidebarCollapsed(!isSidebarCollapsed),
+                      showUploadButton: canUpload,
+                      onUploadPressed: canUpload ? _openOrCloseUploadPage : null,
+                    ),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Expanded(child: currentContent),
+                        const PlayBar(),
+                      ],
+                    ),
                   ),
-                Expanded(
-                  child: Column(
-                    children: [
-                      Expanded(child: currentContent),
-                      const PlayBar(),
-                    ],
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

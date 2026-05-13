@@ -50,6 +50,7 @@ dependencies:
   connectivity_plus: ^7.1.1
   url_launcher: ^6.3.2
   file_picker: ^11.0.2 # https://github.com/miguelpruivo/flutter_file_picker/pull/1981#issuecomment-4288987328
+  desktop_drop: ^0.7.1
   flutter_secure_storage: ^10.0.0
   rxdart: ^0.28.0
   background_downloader: ^9.5.4 # iOS needs background fetch | Testing needed for iOS, Android | https://pub.dev/packages/background_downloader

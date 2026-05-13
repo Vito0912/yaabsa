@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:yaabsa/components/settings/server_management_upload_mode_button.dart';
 import 'package:yaabsa/components/settings/settings_switch.dart';
+import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/database/settings_manager.dart';
+import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/screens/layout_home.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
-import 'package:yaabsa/util/server_management_preferences.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
 class ServerManagementSettings extends ConsumerWidget {
@@ -15,7 +19,7 @@ class ServerManagementSettings extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentUserAsync = ref.watch(currentUserProvider);
-    ref.watch(userSettingsWatcherProvider);
+    final selectedLibrary = ref.watch(selectedLibraryProvider);
 
     return SettingsPageScaffold(
       title: 'Server Management',
@@ -31,17 +35,16 @@ class ServerManagementSettings extends ConsumerWidget {
               );
             }
 
-            final preferences = readServerManagementPreferences(ref, currentUser.id);
             final canUpdateItems = currentUser.permissions.update;
             final canDeleteItems = currentUser.permissions.delete;
-            final canEnableMatches = canUpdateItems && preferences.editItemsEnabled;
+            final canUploadItems = currentUser.permissions.upload;
+            final appDatabase = ref.watch(appDatabaseProvider);
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 SettingSwitch(
                   label: 'Collections',
-                  description: 'Show add-to-collection actions and collection action menus (edit/delete/create).',
                   settingKey: SettingKeys.serverManagementCollections,
                   userId: canUpdateItems ? currentUser.id : null,
                   defaultValue: true,
@@ -50,7 +53,6 @@ class ServerManagementSettings extends ConsumerWidget {
                 ),
                 SettingSwitch(
                   label: 'Delete items',
-                  description: 'Show delete-item actions in item menus and bulk selection.',
                   settingKey: SettingKeys.serverManagementDeleteItems,
                   userId: canDeleteItems ? currentUser.id : null,
                   defaultValue: false,
@@ -59,7 +61,6 @@ class ServerManagementSettings extends ConsumerWidget {
                 ),
                 SettingSwitch(
                   label: 'Edit items',
-                  description: 'Show item editing actions for this user.',
                   settingKey: SettingKeys.serverManagementEditItems,
                   userId: canUpdateItems ? currentUser.id : null,
                   defaultValue: false,
@@ -68,7 +69,6 @@ class ServerManagementSettings extends ConsumerWidget {
                 ),
                 SettingSwitch(
                   label: 'Edit chapters',
-                  description: 'Show chapter editing actions for this user.',
                   settingKey: SettingKeys.serverManagementEditChapters,
                   userId: canUpdateItems ? currentUser.id : null,
                   defaultValue: true,
@@ -76,13 +76,38 @@ class ServerManagementSettings extends ConsumerWidget {
                   disabledReason: canUpdateItems ? null : 'Requires edit-item permission.',
                 ),
                 SettingSwitch(
-                  label: 'Allow matches and quick matches',
-                  description: 'Show matching tools that require edit-item permission.',
-                  settingKey: SettingKeys.serverManagementAllowMatchesQuickMatches,
-                  userId: canUpdateItems ? currentUser.id : null,
+                  label: 'Upload items',
+                  settingKey: SettingKeys.serverManagementUploadItems,
+                  userId: canUploadItems ? currentUser.id : null,
                   defaultValue: false,
-                  enabled: canEnableMatches,
-                  disabledReason: canUpdateItems ? 'Enable "Edit items" first.' : 'Requires edit-item permission.',
+                  enabled: canUploadItems,
+                  disabledReason: canUploadItems ? null : 'Requires upload permission.',
+                ),
+                StreamBuilder<UserSettingEntry?>(
+                  stream: appDatabase.watchUserSetting(currentUser.id, SettingKeys.serverManagementEditItems),
+                  builder: (context, snapshot) {
+                    final editItemsEnabled = SettingsParser.decodeValue<bool>(
+                      snapshot.data?.value,
+                      defaultSettings[SettingKeys.serverManagementEditItems] as bool? ?? false,
+                    );
+                    final canEnableMatches = canUpdateItems && editItemsEnabled;
+
+                    return SettingSwitch(
+                      label: 'Allow matches and quick matches',
+                      settingKey: SettingKeys.serverManagementAllowMatchesQuickMatches,
+                      userId: canUpdateItems ? currentUser.id : null,
+                      defaultValue: false,
+                      enabled: canEnableMatches,
+                      disabledReason: canUpdateItems ? 'Enable "Edit items" first.' : 'Requires edit-item permission.',
+                    );
+                  },
+                ),
+                const Divider(height: 28),
+                ServerManagementUploadModeButton(
+                  userId: currentUser.id,
+                  canUploadItems: canUploadItems,
+                  hasSelectedLibrary: selectedLibrary != null,
+                  onPressed: () => context.go(LayoutHome.uploadModeLocation(tab: 'settings')),
                 ),
               ],
             );
