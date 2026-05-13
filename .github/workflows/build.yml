@@ -19,6 +19,10 @@ on:
         type: boolean
         default: false
 
+concurrency:
+  group: production-build
+  cancel-in-progress: true
+
 jobs:
   changes:
     runs-on: ubuntu-latest
