@@ -13,7 +13,7 @@ const int _androidAutoCompletionStatusFullyPlayed = 2;
 
 const int _androidAutoDefaultPageSize = 100;
 const int _androidAutoMaxPageSize = 200;
-const int _androidAutoSearchResultsPerLibrary = 50;
+const int _androidAutoSearchResultsPerLibrary = 4;
 const int _androidAutoLetterGroupingThreshold = 30;
 
 const String _androidAutoSortFieldTitle = 'title';
