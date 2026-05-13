@@ -1,5 +1,6 @@
 // lib/provider/sleep_timer_handler.dart
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/util/globals.dart';
@@ -11,6 +12,11 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'sleep_timer_handler.g.dart';
 
 enum SleepTimerState { inactive, running, paused }
+
+const Duration _sleepTimerTickInterval = Duration(seconds: 1);
+const Duration _sleepTimerUiUpdateInterval = Duration(milliseconds: 500);
+const Duration _sleepTimerFadeOutDuration = Duration(seconds: 30);
+const double _sleepTimerFadeCurveExponent = 1.8;
 
 class SleepTimerData {
   final Duration remainingTime;
@@ -34,9 +40,12 @@ class SleepTimerData {
 @riverpod
 class SleepTimerHandler extends _$SleepTimerHandler {
   Timer? _timer;
-  DateTime? _startTime;
+  DateTime? _countdownStartTime;
+  Duration? _countdownRunDuration;
   StreamSubscription<PlayerState>? _playerStateSubscription;
   bool _wasPlaybackRunning = false;
+  bool _pauseTriggeredByPlayback = false;
+  double? _fadeBaseVolume;
 
   @override
   SleepTimerData build() {
@@ -45,9 +54,13 @@ class SleepTimerHandler extends _$SleepTimerHandler {
     ref.onDispose(() {
       _timer?.cancel();
       _timer = null;
+      _countdownStartTime = null;
+      _countdownRunDuration = null;
 
       _playerStateSubscription?.cancel();
       _playerStateSubscription = null;
+
+      unawaited(_restoreFadeVolumeIfNeeded());
     });
 
     return const SleepTimerData(remainingTime: Duration.zero, state: SleepTimerState.inactive);
@@ -67,9 +80,73 @@ class SleepTimerHandler extends _$SleepTimerHandler {
     final wasRunning = _wasPlaybackRunning;
     _wasPlaybackRunning = isRunning;
 
+    if (wasRunning && !isRunning && state.isRunning) {
+      pause(triggeredByPlaybackPause: true);
+      return;
+    }
+
     if (!wasRunning && isRunning) {
+      if (_pauseTriggeredByPlayback && state.state == SleepTimerState.paused) {
+        resume();
+        return;
+      }
+
       unawaited(_tryAutoRestartSleepTimerOnPlaybackStart());
     }
+  }
+
+  bool _isFadeOutEnabled() {
+    return ref.read(settingsManagerProvider.notifier).getGlobalSetting<bool>(SettingKeys.sleepTimerFadeOutEnabled);
+  }
+
+  Duration _remainingForCurrentRun() {
+    final countdownStartTime = _countdownStartTime;
+    final countdownRunDuration = _countdownRunDuration;
+    if (countdownStartTime == null || countdownRunDuration == null) {
+      return state.remainingTime;
+    }
+
+    final elapsed = DateTime.now().difference(countdownStartTime);
+    final remaining = countdownRunDuration - elapsed;
+    return remaining.isNegative ? Duration.zero : remaining;
+  }
+
+  Future<void> _setPlayerVolumeSafely(double volume, {required String reason}) async {
+    try {
+      await audioHandler.setVolume(volume);
+    } catch (e) {
+      logger('Failed to set volume during $reason: $e', tag: 'SleepTimer', level: InfoLevel.warning);
+    }
+  }
+
+  Future<void> _restoreFadeVolumeIfNeeded() async {
+    final fadeBaseVolume = _fadeBaseVolume;
+    if (fadeBaseVolume == null) {
+      return;
+    }
+
+    _fadeBaseVolume = null;
+    await _setPlayerVolumeSafely(fadeBaseVolume, reason: 'sleep timer fade volume restore');
+  }
+
+  void _applyFadeOutIfNeeded(Duration remaining) {
+    if (!_isFadeOutEnabled() || remaining > _sleepTimerFadeOutDuration) {
+      unawaited(_restoreFadeVolumeIfNeeded());
+      return;
+    }
+
+    _fadeBaseVolume ??= audioHandler.player.volume;
+    final fadeBaseVolume = _fadeBaseVolume;
+    if (fadeBaseVolume == null || fadeBaseVolume <= 0) {
+      return;
+    }
+
+    final progress = remaining.inMilliseconds / _sleepTimerFadeOutDuration.inMilliseconds;
+    final clampedProgress = progress.clamp(0.0, 1.0);
+    final curvedProgress = math.pow(clampedProgress, _sleepTimerFadeCurveExponent).toDouble();
+    final targetVolume = (fadeBaseVolume * curvedProgress).clamp(0.0, fadeBaseVolume).toDouble();
+
+    unawaited(_setPlayerVolumeSafely(targetVolume, reason: 'sleep timer fade out'));
   }
 
   int _normalizeMinutesOfDay(int value) {
@@ -166,8 +243,9 @@ class SleepTimerHandler extends _$SleepTimerHandler {
       stop(suppressAutoRestart: false);
     }
 
-    _startTime = DateTime.now();
-    _timer?.cancel();
+    _pauseTriggeredByPlayback = false;
+
+    unawaited(_restoreFadeVolumeIfNeeded());
 
     unawaited(_setAutoRestartSuppressed(false));
     unawaited(_persistLastDuration(duration));
@@ -182,7 +260,11 @@ class SleepTimerHandler extends _$SleepTimerHandler {
   void stop({bool suppressAutoRestart = true}) {
     _timer?.cancel();
     _timer = null;
-    _startTime = null;
+    _countdownStartTime = null;
+    _countdownRunDuration = null;
+    _pauseTriggeredByPlayback = false;
+
+    unawaited(_restoreFadeVolumeIfNeeded());
 
     if (suppressAutoRestart) {
       unawaited(_setAutoRestartSuppressed(true));
@@ -193,21 +275,18 @@ class SleepTimerHandler extends _$SleepTimerHandler {
     state = const SleepTimerData(remainingTime: Duration.zero, state: SleepTimerState.inactive);
   }
 
-  void pause() {
+  void pause({bool triggeredByPlaybackPause = false}) {
     if (!state.isRunning) return;
+
+    final remainingTime = _remainingForCurrentRun();
 
     _timer?.cancel();
     _timer = null;
+    _countdownStartTime = null;
+    _countdownRunDuration = null;
+    _pauseTriggeredByPlayback = triggeredByPlaybackPause;
 
-    Duration remainingTime = state.remainingTime;
-    if (_startTime != null && state.totalDuration != null) {
-      final elapsed = DateTime.now().difference(_startTime!);
-      remainingTime = state.totalDuration! - elapsed;
-
-      if (remainingTime.isNegative) {
-        remainingTime = Duration.zero;
-      }
-    }
+    unawaited(_restoreFadeVolumeIfNeeded());
 
     logger('Sleep timer paused', tag: 'SleepTimer', level: InfoLevel.info);
 
@@ -219,7 +298,7 @@ class SleepTimerHandler extends _$SleepTimerHandler {
       return;
     }
 
-    _startTime = DateTime.now();
+    _pauseTriggeredByPlayback = false;
 
     unawaited(_setAutoRestartSuppressed(false));
 
@@ -230,14 +309,22 @@ class SleepTimerHandler extends _$SleepTimerHandler {
   }
 
   void extend(Duration additionalTime) {
-    if (!state.isActive) return;
+    if (!state.isActive || additionalTime <= Duration.zero) return;
 
-    final newRemainingTime = state.remainingTime + additionalTime;
-    final newTotalDuration = (state.totalDuration ?? Duration.zero) + additionalTime;
+    final isRunning = state.isRunning;
+    final baseRemainingTime = isRunning ? _remainingForCurrentRun() : state.remainingTime;
+    final newRemainingTime = baseRemainingTime + additionalTime;
+    final newTotalDuration = (state.totalDuration ?? baseRemainingTime) + additionalTime;
 
     logger('Sleep timer extended by ${additionalTime.inMinutes} minutes', tag: 'SleepTimer', level: InfoLevel.info);
 
     state = state.copyWith(remainingTime: newRemainingTime, totalDuration: newTotalDuration);
+
+    if (isRunning) {
+      _startTimer(newRemainingTime);
+      _applyFadeOutIfNeeded(newRemainingTime);
+    }
+
     unawaited(_persistLastDuration(newTotalDuration));
   }
 
@@ -249,16 +336,19 @@ class SleepTimerHandler extends _$SleepTimerHandler {
 
     logger('Sleep timer reset to ${totalDuration.inMinutes} minutes', tag: 'SleepTimer', level: InfoLevel.info);
 
+    _pauseTriggeredByPlayback = false;
+    unawaited(_restoreFadeVolumeIfNeeded());
+
     _timer?.cancel();
     _timer = null;
+    _countdownStartTime = null;
+    _countdownRunDuration = null;
 
     if (state.state == SleepTimerState.paused) {
-      _startTime = null;
       state = state.copyWith(remainingTime: totalDuration, totalDuration: totalDuration);
       return;
     }
 
-    _startTime = DateTime.now();
     state = SleepTimerData(remainingTime: totalDuration, state: SleepTimerState.running, totalDuration: totalDuration);
 
     _startTimer(totalDuration);
@@ -267,20 +357,20 @@ class SleepTimerHandler extends _$SleepTimerHandler {
   }
 
   void _startTimer(Duration duration) {
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_startTime == null) {
-        timer.cancel();
-        return;
-      }
+    _timer?.cancel();
+    _countdownStartTime = DateTime.now();
+    _countdownRunDuration = duration;
 
-      final elapsed = DateTime.now().difference(_startTime!);
-      final remaining = duration - elapsed;
+    _timer = Timer.periodic(_sleepTimerTickInterval, (timer) {
+      final remaining = _remainingForCurrentRun();
 
       if (remaining <= Duration.zero) {
         _onTimerExpired();
         timer.cancel();
       } else {
-        if ((state.remainingTime - remaining).abs() >= const Duration(seconds: 5)) {
+        _applyFadeOutIfNeeded(remaining);
+
+        if ((state.remainingTime - remaining).abs() >= _sleepTimerUiUpdateInterval) {
           state = state.copyWith(remainingTime: remaining);
         }
       }
@@ -293,24 +383,32 @@ class SleepTimerHandler extends _$SleepTimerHandler {
         .getGlobalSetting<String>(SettingKeys.sleepTimerExpireAction);
     final action = SleepTimerExpireAction.fromSettingValue(actionSetting);
 
-    if (action == SleepTimerExpireAction.pause) {
-      logger('Sleep timer expired, pausing playback', tag: 'SleepTimer', level: InfoLevel.info);
-      unawaited(() async {
-        await audioHandler.applySleepTimerAutoRewindNow();
-        await audioHandler.pause();
-      }());
-    } else {
-      logger('Sleep timer expired, stopping playback', tag: 'SleepTimer', level: InfoLevel.info);
-      unawaited(() async {
-        await audioHandler.applySleepTimerAutoRewindNow();
-        await audioHandler.stop();
-      }());
-    }
-
     _timer = null;
-    _startTime = null;
+    _countdownStartTime = null;
+    _countdownRunDuration = null;
+    _pauseTriggeredByPlayback = false;
 
     state = const SleepTimerData(remainingTime: Duration.zero, state: SleepTimerState.inactive);
+
+    unawaited(_executeExpireAction(action));
+  }
+
+  Future<void> _executeExpireAction(SleepTimerExpireAction action) async {
+    try {
+      if (action == SleepTimerExpireAction.pause) {
+        logger('Sleep timer expired, pausing playback', tag: 'SleepTimer', level: InfoLevel.info);
+        await audioHandler.applySleepTimerAutoRewindNow();
+        await audioHandler.pause();
+      } else {
+        logger('Sleep timer expired, stopping playback', tag: 'SleepTimer', level: InfoLevel.info);
+        await audioHandler.applySleepTimerAutoRewindNow();
+        await audioHandler.stop();
+      }
+    } catch (e) {
+      logger('Failed to run sleep timer expiry action: $e', tag: 'SleepTimer', level: InfoLevel.warning);
+    } finally {
+      await _restoreFadeVolumeIfNeeded();
+    }
   }
 }
 
