@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/screens/settings/admin_item_metadata_utils_settings.dart';
 import 'package:yaabsa/screens/layout_home.dart';
 import 'package:yaabsa/screens/settings/admin_server_logs_settings.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
@@ -68,6 +69,14 @@ class AdminServerSettings extends ConsumerWidget {
                       enabled: isAdminUser,
                       disabledReason: isAdminUser ? null : 'Requires an admin account.',
                       onTap: isAdminUser ? () => context.go(LayoutHome.uploadModeLocation(tab: 'settings')) : null,
+                    ),
+                    SettingsNavigationItem(
+                      icon: Icons.category_outlined,
+                      title: 'Item Metadata Utils',
+                      subtitle: 'Manage tags, genres and custom metadata providers.',
+                      enabled: isAdminUser,
+                      disabledReason: isAdminUser ? null : 'Requires an admin account.',
+                      onTap: isAdminUser ? () => context.push(AdminItemMetadataUtilsSettings.routeName) : null,
                     ),
                   ],
                 ),

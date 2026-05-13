@@ -1,5 +1,7 @@
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/library_items/playback_session.dart';
+import 'package:yaabsa/api/library_items/batch_update_library_items_response.dart';
+import 'package:yaabsa/api/library_items/request/batch_update_library_item_request.dart';
 import 'package:yaabsa/api/library_items/request/play_library_item_request.dart';
 import 'package:yaabsa/api/library_items/request/update_library_item_media_request.dart';
 import 'package:yaabsa/api/library_items/update_library_item_media_response.dart';
@@ -98,6 +100,50 @@ class LibraryItemApi {
 
     final statusCode = response.statusCode;
     return statusCode != null && statusCode >= 200 && statusCode < 300;
+  }
+
+  Future<BatchUpdateLibraryItemsResponse> batchUpdateLibraryItems(
+    List<BatchUpdateLibraryItemRequest> updatePayloads, {
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    if (updatePayloads.isEmpty) {
+      return const BatchUpdateLibraryItemsResponse(success: true, updates: 0);
+    }
+
+    final requestBody = updatePayloads.map((payload) => payload.toJson()).toList(growable: false);
+
+    final options = Options(
+      method: 'POST',
+      headers: <String, dynamic>{...?headers},
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {'type': 'http', 'scheme': 'bearer', 'name': 'BearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+    );
+
+    final response = await _dio.request<Object>(
+      '/api/items/batch/update',
+      data: requestBody,
+      options: options,
+      cancelToken: cancelToken,
+    );
+
+    final rawData = response.data;
+    final parsedData = rawData is Map<String, dynamic>
+        ? rawData
+        : rawData is Map
+        ? Map<String, dynamic>.from(rawData)
+        : <String, dynamic>{
+            'success': response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300,
+            'updates': 0,
+          };
+
+    return BatchUpdateLibraryItemsResponse.fromJson(parsedData);
   }
 
   Future<Response<UpdateLibraryItemMediaResponse>> updateLibraryItemMedia(
