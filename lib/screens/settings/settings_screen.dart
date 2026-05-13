@@ -1,5 +1,6 @@
 import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
+import 'package:yaabsa/components/settings/management_settings_section.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
@@ -396,6 +397,19 @@ class MainSettingsScreen extends ConsumerWidget {
                     );
                   },
                 ),
+                ref
+                    .watch(currentUserProvider)
+                    .when(
+                      data: (currentUser) {
+                        if (currentUser == null) {
+                          return const SizedBox.shrink();
+                        }
+
+                        return ManagementSettingsSection(currentUser: currentUser);
+                      },
+                      loading: () => const SizedBox.shrink(),
+                      error: (error, stackTrace) => const SizedBox.shrink(),
+                    ),
                 SettingsNavigationSection(
                   title: 'About & Support',
                   items: [

@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:yaabsa/components/settings/server_management_upload_mode_button.dart';
 import 'package:yaabsa/components/settings/settings_switch.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/database/settings_manager.dart';
-import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
-import 'package:yaabsa/screens/layout_home.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
@@ -19,7 +15,6 @@ class ServerManagementSettings extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentUserAsync = ref.watch(currentUserProvider);
-    final selectedLibrary = ref.watch(selectedLibraryProvider);
 
     return SettingsPageScaffold(
       title: 'Server Management',
@@ -101,13 +96,6 @@ class ServerManagementSettings extends ConsumerWidget {
                       disabledReason: canUpdateItems ? 'Enable "Edit items" first.' : 'Requires edit-item permission.',
                     );
                   },
-                ),
-                const Divider(height: 28),
-                ServerManagementUploadModeButton(
-                  userId: currentUser.id,
-                  canUploadItems: canUploadItems,
-                  hasSelectedLibrary: selectedLibrary != null,
-                  onPressed: () => context.go(LayoutHome.uploadModeLocation(tab: 'settings')),
                 ),
               ],
             );

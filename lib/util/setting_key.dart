@@ -53,6 +53,10 @@ class SettingKeys {
   static const String serverManagementEditChapters = 'server_management_edit_chapters';
   static const String serverManagementUploadItems = 'server_management_upload_items';
   static const String serverManagementAllowMatchesQuickMatches = 'server_management_allow_matches_quick_matches';
+  static const String toolsRemoveAuthorsWithoutBooks = 'tools_remove_authors_without_books';
+  static const String toolsForceMetadataRefresh = 'tools_force_metadata_refresh';
+  static const String toolsMatchAudiobookChapters = 'tools_match_audiobook_chapters';
+  static const String toolsSplitGenresTags = 'tools_split_genres_tags';
   static const String shakeToResetSleepTimer = 'shake_to_reset_sleep_timer';
   static const String shakeToRewind = 'shake_to_rewind';
   static const String shakeSensitivity = 'shake_sensitivity';
@@ -138,6 +142,10 @@ final defaultSettings = {
   SettingKeys.serverManagementEditChapters: true,
   SettingKeys.serverManagementUploadItems: false,
   SettingKeys.serverManagementAllowMatchesQuickMatches: false,
+  SettingKeys.toolsRemoveAuthorsWithoutBooks: false,
+  SettingKeys.toolsForceMetadataRefresh: false,
+  SettingKeys.toolsMatchAudiobookChapters: false,
+  SettingKeys.toolsSplitGenresTags: false,
   SettingKeys.shakeToResetSleepTimer: false,
   SettingKeys.shakeToRewind: false,
   SettingKeys.shakeSensitivity: 2.0,

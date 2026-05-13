@@ -20,11 +20,14 @@ import 'package:yaabsa/screens/reader/reader.dart';
 import 'package:yaabsa/screens/settings/android_auto/android_auto_library_settings.dart';
 import 'package:yaabsa/screens/settings/android_auto/android_auto_podcast_library_settings.dart';
 import 'package:yaabsa/screens/settings/android_auto_settings.dart';
+import 'package:yaabsa/screens/settings/admin_server_logs_settings.dart';
+import 'package:yaabsa/screens/settings/admin_server_settings.dart';
 import 'package:yaabsa/screens/settings/appearance_settings.dart';
 import 'package:yaabsa/screens/settings/caching/caching_general_settings.dart';
 import 'package:yaabsa/screens/settings/caching/caching_route_settings.dart';
 import 'package:yaabsa/screens/settings/caching_settings.dart';
 import 'package:yaabsa/screens/settings/library_settings.dart';
+import 'package:yaabsa/screens/settings/path_tag_genre_update_settings.dart';
 import 'package:yaabsa/screens/settings/player/global_player_settings.dart';
 import 'package:yaabsa/screens/settings/player/player_settings.dart';
 import 'package:yaabsa/screens/settings/player/player_settings_general.dart';
@@ -37,6 +40,7 @@ import 'package:yaabsa/screens/settings/server_connection_settings.dart';
 import 'package:yaabsa/screens/settings/server_management_settings.dart';
 import 'package:yaabsa/screens/settings/settings_screen.dart';
 import 'package:yaabsa/screens/settings/theme_settings.dart';
+import 'package:yaabsa/screens/settings/tools_settings.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/handler/tray_handler.dart';
 
@@ -178,6 +182,19 @@ final globalRouter = GoRouter(
                     GoRoute(
                       path: ServerManagementSettings.routeName,
                       builder: (context, state) => const ServerManagementSettings(),
+                    ),
+                    GoRoute(
+                      path: AdminServerSettings.routeName,
+                      builder: (context, state) => const AdminServerSettings(),
+                    ),
+                    GoRoute(
+                      path: AdminServerLogsSettings.routeName,
+                      builder: (context, state) => const AdminServerLogsSettings(),
+                    ),
+                    GoRoute(path: ToolsSettings.routeName, builder: (context, state) => const ToolsSettings()),
+                    GoRoute(
+                      path: PathTagGenreUpdateSettings.routeName,
+                      builder: (context, state) => const PathTagGenreUpdateSettings(),
                     ),
                     GoRoute(
                       path: CachingGeneralSettings.routeName,
