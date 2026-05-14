@@ -908,7 +908,7 @@ jobs:
       - changes
       - check-requirements
     if: ${{ (github.event_name == 'workflow_dispatch' || needs.changes.outputs.version_bumped == 'true' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.ios == 'true') && needs.changes.outputs.build_skip != 'true' }}
-    timeout-minutes: 40
+    timeout-minutes: 15
     environment: prod
     steps:
       - name: Checkout
@@ -975,7 +975,7 @@ jobs:
       - name: Upload iOS to TestFlight
         uses: apple-actions/upload-testflight-build@v4
         with:
-          app-path: build/ios/ipa/*.ipa
+          app-path: build/ios/ipa/Yaabsa.ipa
           issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
           api-key-id: ${{ secrets.APPSTORE_KEY_ID }}
           api-private-key: ${{ secrets.APPSTORE_PRIVATE_KEY }}
@@ -987,7 +987,7 @@ jobs:
       - changes
       - check-requirements
     if: ${{ (github.event_name == 'workflow_dispatch' || needs.changes.outputs.version_bumped == 'true' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.macos == 'true') && needs.changes.outputs.build_skip != 'true' }}
-    timeout-minutes: 40
+    timeout-minutes: 20
     environment: prod
     steps:
       - name: Checkout
