@@ -6,17 +6,22 @@ import 'package:yaabsa/util/network/request_headers.dart';
 
 typedef UserItemProgressUpdatedHandler = void Function(UserItemProgressUpdatedEvent event);
 typedef ItemUpdatedHandler = void Function(LibraryItem item);
+typedef BatchQuickMatchCompleteHandler =
+    void Function({required bool success, required int updates, required int unmatched});
 typedef ServerLogHandler = void Function(Map<String, dynamic> logEntry);
 
 class ABSSocketClient {
   ABSSocketClient({
     required UserItemProgressUpdatedHandler onUserItemProgressUpdated,
     required ItemUpdatedHandler onItemUpdated,
+    required BatchQuickMatchCompleteHandler onBatchQuickMatchComplete,
   }) : _onUserItemProgressUpdated = onUserItemProgressUpdated,
-       _onItemUpdated = onItemUpdated;
+       _onItemUpdated = onItemUpdated,
+       _onBatchQuickMatchComplete = onBatchQuickMatchComplete;
 
   final UserItemProgressUpdatedHandler _onUserItemProgressUpdated;
   final ItemUpdatedHandler _onItemUpdated;
+  final BatchQuickMatchCompleteHandler _onBatchQuickMatchComplete;
   final Map<String, ServerLogHandler> _serverLogHandlers = <String, ServerLogHandler>{};
 
   int _nextServerLogHandlerId = 0;
@@ -171,6 +176,36 @@ class ABSSocketClient {
       }
     });
 
+    socket.on("batch_quickmatch_complete", (dynamic payload) {
+      final payloadJson = _payloadToJson(payload);
+      if (payloadJson == null) {
+        logger(
+          'Received malformed batch_quickmatch_complete payload: ${_stringifyPayload(payload)}',
+          tag: 'ABSSocketClient',
+          level: InfoLevel.warning,
+        );
+        return;
+      }
+
+      try {
+        final success = _boolFromDynamic(payloadJson['success']);
+        final updates = _intFromDynamic(payloadJson['updates']);
+        final unmatched = _intFromDynamic(payloadJson['unmatched']);
+        _onBatchQuickMatchComplete(success: success, updates: updates, unmatched: unmatched);
+        logger(
+          'Processed batch_quickmatch_complete event (success=$success, updates=$updates, unmatched=$unmatched)',
+          tag: 'ABSSocketClient',
+          level: InfoLevel.debug,
+        );
+      } catch (e, s) {
+        logger(
+          'Failed to parse batch_quickmatch_complete payload: $e\n$s',
+          tag: 'ABSSocketClient',
+          level: InfoLevel.error,
+        );
+      }
+    });
+
     socket.on("log", (dynamic payload) {
       final payloadJson = _payloadToJson(payload);
       if (payloadJson == null) {
@@ -242,6 +277,38 @@ class ABSSocketClient {
     } catch (_) {
       return '<unprintable>';
     }
+  }
+
+  int _intFromDynamic(dynamic value) {
+    if (value is int) {
+      return value;
+    }
+    if (value is num) {
+      return value.toInt();
+    }
+    if (value is String) {
+      return int.tryParse(value.trim()) ?? 0;
+    }
+    return 0;
+  }
+
+  bool _boolFromDynamic(dynamic value) {
+    if (value is bool) {
+      return value;
+    }
+    if (value is num) {
+      return value != 0;
+    }
+    if (value is String) {
+      final normalized = value.trim().toLowerCase();
+      if (normalized == 'true' || normalized == '1') {
+        return true;
+      }
+      if (normalized == 'false' || normalized == '0') {
+        return false;
+      }
+    }
+    return false;
   }
 
   void _applyServerLogListenerState() {

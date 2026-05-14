@@ -20,7 +20,7 @@ class AdminForceMetadataRefreshTool extends ConsumerWidget {
       child: ListTile(
         leading: const Icon(Icons.refresh_outlined),
         title: const Text('Force metadata refresh'),
-        subtitle: const Text('Temporarily tags selected library items and then removes the force tag again.'),
+        subtitle: const Text('Recreates the metadata.json files for all items'),
         trailing: OutlinedButton(onPressed: () => _openDialog(context, ref), child: const Text('Run')),
       ),
     );

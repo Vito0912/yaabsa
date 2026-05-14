@@ -71,6 +71,8 @@ class LibraryView extends HookConsumerWidget {
             final hasUpdatePermission = currentUser?.permissions.update ?? false;
             final hasDeletePermission = currentUser?.permissions.delete ?? false;
             final canEditItems = hasUpdatePermission && managementPreferences.editItemsEnabled;
+            final canQuickMatchItems =
+                canManageBooks && canEditItems && managementPreferences.allowMatchesQuickMatchesEnabled;
             final editableItemIds = items
                 .where((item) => item.collapsedSeries == null)
                 .map((item) => item.id)
@@ -89,6 +91,7 @@ class LibraryView extends HookConsumerWidget {
               enableShiftRange: true,
               canAddToPlaylist: canManageBooks && currentUser != null,
               canAddToCollection: canManageBooks && hasUpdatePermission && managementPreferences.collectionsEnabled,
+              canQuickMatchItems: canQuickMatchItems,
               canDeleteItems: canManageBooks && hasDeletePermission && managementPreferences.deleteItemsEnabled,
               currentUserId: currentUser?.id,
               onAfterDelete: () => ref.read(itemsProvider.notifier).refresh(),

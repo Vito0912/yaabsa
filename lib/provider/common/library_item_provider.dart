@@ -6,6 +6,7 @@ import 'package:yaabsa/api/library/request/library_sort.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/provider/library/personalized_library_provider.dart';
 import 'package:yaabsa/util/interceptors/cache_interceptor.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -46,7 +47,11 @@ void applyLibraryItemUpdateLocally({
   LibraryItemsNotifier? listNotifier,
 }) {
   _pendingLibraryItemOverridesById[item.id] = item;
-  listNotifier?.applyLocalItemUpdate(item);
+  LibraryItemsNotifier.applyLocalItemUpdateToAllActive(item);
+  PersonalizedLibraryNotifier.applyLocalItemUpdateToAllActive(item);
+  if (listNotifier != null && !LibraryItemsNotifier.isNotifierActive(listNotifier)) {
+    listNotifier.applyLocalItemUpdate(item);
+  }
   invalidateItemCache();
   unawaited(_syncStoredDownloadItemSnapshot(container: container, item: item));
 }
@@ -73,7 +78,20 @@ Future<void> _syncStoredDownloadItemSnapshot({required ProviderContainer contain
 
 @Riverpod(keepAlive: true)
 class LibraryItemsNotifier extends _$LibraryItemsNotifier {
+  static final Set<LibraryItemsNotifier> _activeNotifiers = <LibraryItemsNotifier>{};
+
   bool _isEnsuringIndex = false;
+
+  static void applyLocalItemUpdateToAllActive(LibraryItem updatedItem) {
+    final activeSnapshot = List<LibraryItemsNotifier>.from(_activeNotifiers);
+    for (final notifier in activeSnapshot) {
+      notifier.applyLocalItemUpdate(updatedItem);
+    }
+  }
+
+  static bool isNotifierActive(LibraryItemsNotifier notifier) {
+    return _activeNotifiers.contains(notifier);
+  }
 
   Future<LibraryItemState> _fetchItems(
     String libraryId,
@@ -140,6 +158,11 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
     int? initialCollapseSeries,
     String? initialInclude,
   }) async {
+    _activeNotifiers.add(this);
+    ref.onDispose(() {
+      _activeNotifiers.remove(this);
+    });
+
     return _fetchItems(
       libraryId,
       0,

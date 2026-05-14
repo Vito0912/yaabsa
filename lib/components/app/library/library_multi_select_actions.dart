@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:yaabsa/api/library_items/request/batch_quick_match_library_items_request.dart';
 import 'package:yaabsa/api/list/collection.dart';
 import 'package:yaabsa/api/list/playlist.dart';
+import 'package:yaabsa/components/app/item/match/quick_match_options_dialog.dart';
 import 'package:yaabsa/components/app/library/library_target_picker_sheet.dart';
 import 'package:yaabsa/components/common/managed_list_operations.dart';
 import 'package:yaabsa/provider/common/collection_provider.dart';
+import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/common/playlist_provider.dart';
+import 'package:yaabsa/provider/core/user_providers.dart';
 
 Future<void> addSelectedBooksToPlaylist({
   required BuildContext context,
@@ -111,4 +115,91 @@ Future<void> addSelectedBooksToCollection({
     errorFallback: 'Could not add books to collection.',
     onSuccess: onSuccess,
   );
+}
+
+Future<void> quickMatchSelectedBooks({
+  required BuildContext context,
+  required WidgetRef ref,
+  required String libraryId,
+  required List<String> selectedBookIds,
+  required VoidCallback onSuccess,
+}) async {
+  if (selectedBookIds.isEmpty) {
+    return;
+  }
+
+  final defaultProvider = _resolveLibraryDefaultProvider(ref: ref, libraryId: libraryId);
+
+  final options = await showQuickMatchOptionsDialog(
+    context: context,
+    mediaType: 'book',
+    title: 'Quick match selected books',
+    description: 'Pick a provider and choose whether cover/details should overwrite current metadata.',
+    confirmLabel: 'Run for ${selectedBookIds.length}',
+    initialProvider: defaultProvider,
+  );
+
+  if (!context.mounted || options == null) {
+    return;
+  }
+
+  final api = ref.read(absApiProvider);
+  if (api == null) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No API session available.')));
+    }
+    return;
+  }
+
+  try {
+    final response = await api.getLibraryItemApi().batchQuickMatchLibraryItems(
+      request: BatchQuickMatchLibraryItemsRequest(libraryItemIds: selectedBookIds, options: options),
+    );
+
+    if (!context.mounted) {
+      return;
+    }
+
+    final updates = response.updates;
+    final responseError = response.error?.trim();
+
+    final message = responseError != null && responseError.isNotEmpty
+        ? responseError
+        : updates > 0
+        ? 'Metadata change request sent for ${selectedBookIds.length == 1 ? '1 book' : '${selectedBookIds.length} books'}.'
+        : 'Metadata change request sent.';
+
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+
+    onSuccess();
+  } catch (error) {
+    if (!context.mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not quick match selected books: $error')));
+  }
+}
+
+String? _resolveLibraryDefaultProvider({required WidgetRef ref, required String libraryId}) {
+  final selectedLibrary = ref.read(selectedLibraryProvider);
+  if (selectedLibrary?.id == libraryId && selectedLibrary?.provider.trim().isNotEmpty == true) {
+    return selectedLibrary?.provider;
+  }
+
+  final userLibraries = ref.read(userLibrariesProvider).value;
+  if (userLibraries != null) {
+    for (final library in userLibraries) {
+      if (library.id != libraryId || library.provider.trim().isEmpty) {
+        continue;
+      }
+      return library.provider;
+    }
+  }
+
+  if (selectedLibrary?.provider.trim().isNotEmpty == true) {
+    return selectedLibrary?.provider;
+  }
+
+  return null;
 }

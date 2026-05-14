@@ -11,6 +11,7 @@ import 'package:yaabsa/api/me/media_progress.dart';
 import 'package:yaabsa/components/app/library/library_multi_select_actions.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/core/multi_select_app_bar_provider.dart';
+import 'package:yaabsa/provider/core/socket_provider.dart';
 
 class LibraryMultiSelectBindings {
   const LibraryMultiSelectBindings({
@@ -43,6 +44,7 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
     required this.visibleItems,
     required this.canAddToPlaylist,
     required this.canAddToCollection,
+    required this.canQuickMatchItems,
     required this.canDeleteItems,
     required this.currentUserId,
     required this.builder,
@@ -56,6 +58,7 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
   final List<LibraryItem> visibleItems;
   final bool canAddToPlaylist;
   final bool canAddToCollection;
+  final bool canQuickMatchItems;
   final bool canDeleteItems;
   final String? currentUserId;
   final Future<void> Function()? onAfterDelete;
@@ -64,6 +67,22 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen<SocketBatchQuickMatchComplete?>(socketBatchQuickMatchCompleteProvider, (previous, next) {
+      if (next == null) {
+        return;
+      }
+
+      if (previous?.timestamp == next.timestamp || !context.mounted) {
+        return;
+      }
+
+      final updateLabel = next.updates == 1 ? '1 book' : '${next.updates} books';
+      final message = next.success && next.updates > 0
+          ? 'Metadata change request completed. $updateLabel updated.'
+          : 'Metadata change request completed.';
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    });
+
     final selectionMode = useState(false);
     final selectedItemIds = useState<Set<String>>(<String>{});
     final selectionAnchorIndex = useState<int?>(null);
@@ -231,6 +250,23 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
             );
           },
         ),
+      if (canQuickMatchItems)
+        MultiSelectAppBarAction(
+          icon: Icons.auto_fix_high_rounded,
+          tooltip: 'Quick match selected books',
+          enabled: !selectionBusy.value,
+          onPressed: () {
+            runAction(
+              () => quickMatchSelectedBooks(
+                context: context,
+                ref: ref,
+                libraryId: libraryId,
+                selectedBookIds: orderedSelectedBookIds,
+                onSuccess: clearSelection,
+              ),
+            );
+          },
+        ),
       MultiSelectAppBarAction(
         icon: allSelectedFinished ? Icons.remove_done_rounded : Icons.task_alt_rounded,
         tooltip: allSelectedFinished ? 'Mark selected as unfinished' : 'Mark selected as finished',
@@ -323,6 +359,7 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
         actions.length,
         canAddToPlaylist,
         canAddToCollection,
+        canQuickMatchItems,
         currentUserId,
       ],
     );

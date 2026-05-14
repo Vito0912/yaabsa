@@ -65,7 +65,7 @@ class AdminServerSettings extends ConsumerWidget {
                     SettingsNavigationItem(
                       icon: Icons.upload_file_outlined,
                       title: 'Upload',
-                      subtitle: 'Open upload mode from settings.',
+                      subtitle: 'Open upload.',
                       enabled: isAdminUser,
                       disabledReason: isAdminUser ? null : 'Requires an admin account.',
                       onTap: isAdminUser ? () => context.go(LayoutHome.uploadModeLocation(tab: 'settings')) : null,

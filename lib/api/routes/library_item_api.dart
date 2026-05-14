@@ -1,8 +1,12 @@
+import 'package:yaabsa/api/library_items/batch_quick_match_library_items_response.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/library_items/playback_session.dart';
+import 'package:yaabsa/api/library_items/quick_match_library_item_response.dart';
 import 'package:yaabsa/api/library_items/batch_update_library_items_response.dart';
+import 'package:yaabsa/api/library_items/request/batch_quick_match_library_items_request.dart';
 import 'package:yaabsa/api/library_items/request/batch_update_library_item_request.dart';
 import 'package:yaabsa/api/library_items/request/play_library_item_request.dart';
+import 'package:yaabsa/api/library_items/request/quick_match_library_item_options.dart';
 import 'package:yaabsa/api/library_items/request/update_library_item_media_request.dart';
 import 'package:yaabsa/api/library_items/update_library_item_media_response.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
@@ -144,6 +148,107 @@ class LibraryItemApi {
           };
 
     return BatchUpdateLibraryItemsResponse.fromJson(parsedData);
+  }
+
+  Future<BatchQuickMatchLibraryItemsResponse> batchQuickMatchLibraryItems({
+    required BatchQuickMatchLibraryItemsRequest request,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    if (request.libraryItemIds.isEmpty) {
+      return const BatchQuickMatchLibraryItemsResponse(success: true, updates: 0, unmatched: 0);
+    }
+
+    final dioOptions = Options(
+      method: 'POST',
+      headers: <String, dynamic>{...?headers},
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {'type': 'http', 'scheme': 'bearer', 'name': 'BearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+    );
+
+    final response = await _dio.request<Object>(
+      '/api/items/batch/quickmatch',
+      data: request.toJson(),
+      options: dioOptions,
+      cancelToken: cancelToken,
+    );
+
+    final rawData = response.data;
+    final parsedData = rawData is Map<String, dynamic>
+        ? rawData
+        : rawData is Map
+        ? Map<String, dynamic>.from(rawData)
+        : <String, dynamic>{
+            'success': response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300,
+            'updates': 0,
+            'unmatched': request.libraryItemIds.length,
+          };
+
+    final normalizedData = Map<String, dynamic>.from(parsedData);
+    normalizedData.putIfAbsent(
+      'success',
+      () => response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300,
+    );
+    normalizedData.putIfAbsent('updates', () {
+      return parsedData['updated'] ??
+          parsedData['matched'] ??
+          parsedData['numUpdated'] ??
+          parsedData['numMatched'] ??
+          0;
+    });
+    normalizedData.putIfAbsent('unmatched', () {
+      return parsedData['notMatched'] ??
+          parsedData['numUnmatched'] ??
+          parsedData['unmatchedCount'] ??
+          parsedData['numNotMatched'] ??
+          0;
+    });
+
+    return BatchQuickMatchLibraryItemsResponse.fromJson(normalizedData);
+  }
+
+  Future<QuickMatchLibraryItemResponse> quickMatchLibraryItem(
+    String itemId, {
+    required QuickMatchLibraryItemOptions request,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    final dioOptions = Options(
+      method: 'POST',
+      headers: <String, dynamic>{...?headers},
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {'type': 'http', 'scheme': 'bearer', 'name': 'BearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+    );
+
+    final response = await _dio.request<Object>(
+      '/api/items/$itemId/match',
+      data: request.toJson(),
+      options: dioOptions,
+      cancelToken: cancelToken,
+    );
+
+    final rawData = response.data;
+    final parsedData = rawData is Map<String, dynamic>
+        ? rawData
+        : rawData is Map
+        ? Map<String, dynamic>.from(rawData)
+        : <String, dynamic>{
+            'updated': response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300,
+          };
+
+    return QuickMatchLibraryItemResponse.fromJson(parsedData);
   }
 
   Future<Response<UpdateLibraryItemMediaResponse>> updateLibraryItemMedia(

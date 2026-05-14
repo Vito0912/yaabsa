@@ -57,6 +57,7 @@ class SettingKeys {
   static const String toolsForceMetadataRefresh = 'tools_force_metadata_refresh';
   static const String toolsMatchAudiobookChapters = 'tools_match_audiobook_chapters';
   static const String toolsSplitGenresTags = 'tools_split_genres_tags';
+  static const String manualMatchLastConfiguration = 'manual_match_last_configuration';
   static const String shakeToResetSleepTimer = 'shake_to_reset_sleep_timer';
   static const String shakeToRewind = 'shake_to_rewind';
   static const String shakeSensitivity = 'shake_sensitivity';
@@ -146,6 +147,7 @@ final defaultSettings = {
   SettingKeys.toolsForceMetadataRefresh: false,
   SettingKeys.toolsMatchAudiobookChapters: false,
   SettingKeys.toolsSplitGenresTags: false,
+  SettingKeys.manualMatchLastConfiguration: '',
   SettingKeys.shakeToResetSleepTimer: false,
   SettingKeys.shakeToRewind: false,
   SettingKeys.shakeSensitivity: 2.0,

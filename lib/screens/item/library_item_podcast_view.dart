@@ -277,6 +277,8 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                                                   onMoreActionSelected: (action) async {
                                                     switch (action) {
                                                       case ItemMoreAction.editItem:
+                                                      case ItemMoreAction.quickMatch:
+                                                      case ItemMoreAction.manualMatch:
                                                         return;
                                                       case ItemMoreAction.markAsFinished:
                                                         await markPodcastEpisodeAsFinished(
