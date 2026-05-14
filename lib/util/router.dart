@@ -13,6 +13,7 @@ import 'package:yaabsa/screens/main/collection_detail_view.dart';
 import 'package:yaabsa/screens/main/narrator_detail_view.dart';
 import 'package:yaabsa/screens/main/playlist_detail_view.dart';
 import 'package:yaabsa/screens/main/series_detail_view.dart';
+import 'package:yaabsa/screens/main/user_listening_sessions_view.dart';
 import 'package:yaabsa/screens/player/play_history_view.dart';
 import 'package:yaabsa/screens/player/player.dart';
 import 'package:yaabsa/screens/player/subtitle_reading_mode.dart';
@@ -22,6 +23,7 @@ import 'package:yaabsa/screens/settings/android_auto/android_auto_podcast_librar
 import 'package:yaabsa/screens/settings/android_auto_settings.dart';
 import 'package:yaabsa/screens/settings/admin_item_metadata_utils_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_logs_settings.dart';
+import 'package:yaabsa/screens/settings/admin_server_sessions_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_settings.dart';
 import 'package:yaabsa/screens/settings/appearance_settings.dart';
 import 'package:yaabsa/screens/settings/caching/caching_general_settings.dart';
@@ -149,7 +151,19 @@ final globalRouter = GoRouter(
           path: '/ebook/:id',
           builder: (context, state) => Reader(itemId: state.pathParameters['id']!),
         ),
-        GoRoute(path: PlayHistoryView.routeName, builder: (context, state) => PlayHistoryView()),
+        GoRoute(
+          path: PlayHistoryView.routeName,
+          builder: (context, state) {
+            final itemId = state.uri.queryParameters['itemId'];
+            final episodeId = state.uri.queryParameters['episodeId'];
+            final itemTitle = state.uri.queryParameters['itemTitle'];
+            return PlayHistoryView(itemId: itemId, episodeId: episodeId, itemTitle: itemTitle);
+          },
+        ),
+        GoRoute(
+          path: UserListeningSessionsView.routeName,
+          builder: (context, state) => const UserListeningSessionsView(),
+        ),
         ShellRoute(
           builder: (BuildContext context, GoRouterState state, Widget child) {
             return child;
@@ -191,6 +205,10 @@ final globalRouter = GoRouter(
                     GoRoute(
                       path: AdminServerLogsSettings.routeName,
                       builder: (context, state) => const AdminServerLogsSettings(),
+                    ),
+                    GoRoute(
+                      path: AdminServerSessionsSettings.routeName,
+                      builder: (context, state) => const AdminServerSessionsSettings(),
                     ),
                     GoRoute(
                       path: AdminItemMetadataUtilsSettings.routeName,

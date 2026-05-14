@@ -304,7 +304,13 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                                                         if (!context.mounted) {
                                                           return;
                                                         }
-                                                        context.push(PlayHistoryView.routeName);
+                                                        context.push(
+                                                          PlayHistoryView.location(
+                                                            itemId: widget.item.id,
+                                                            episodeId: episode.id,
+                                                            itemTitle: podcastEpisodeTitle(episode),
+                                                          ),
+                                                        );
                                                         return;
                                                     }
                                                   },

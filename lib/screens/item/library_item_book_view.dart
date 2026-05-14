@@ -276,7 +276,7 @@ class LibraryItemBookView extends ConsumerWidget {
                                         if (!context.mounted) {
                                           return;
                                         }
-                                        context.push(PlayHistoryView.routeName);
+                                        context.push(PlayHistoryView.location(itemId: item.id, itemTitle: item.title));
                                         return;
                                     }
                                   },

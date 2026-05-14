@@ -21,6 +21,10 @@ String formatDurationLong(Duration duration) {
     }
     return '${duration.inHours} hr $minutes min';
   }
+  if (duration.inMinutes == 0) {
+    final seconds = duration.inSeconds;
+    return '$seconds sec';
+  }
   return '${duration.inMinutes} min';
 }
 

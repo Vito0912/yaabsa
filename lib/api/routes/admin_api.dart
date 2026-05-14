@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:yaabsa/api/admin/admin_users_response.dart';
 import 'package:yaabsa/api/admin/create_custom_metadata_provider_request.dart';
 import 'package:yaabsa/api/admin/create_custom_metadata_provider_response.dart';
 import 'package:yaabsa/api/admin/custom_metadata_providers_response.dart';
@@ -68,6 +69,22 @@ class AdminApi {
     return ABSApi.makeApiGetRequest(
       route: '/api/logger-data',
       fromJson: (data) => LoggerData.fromJson(data as Map<String, dynamic>),
+      queryParams: {},
+      dio: _dio,
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+    );
+  }
+
+  Future<Response<AdminUsersResponse>> getUsers({
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiGetRequest(
+      route: '/api/users',
+      fromJson: (data) => AdminUsersResponse.fromDynamic(data),
       queryParams: {},
       dio: _dio,
       cancelToken: cancelToken,

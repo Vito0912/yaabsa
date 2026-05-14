@@ -6,6 +6,7 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/settings/admin_item_metadata_utils_settings.dart';
 import 'package:yaabsa/screens/layout_home.dart';
 import 'package:yaabsa/screens/settings/admin_server_logs_settings.dart';
+import 'package:yaabsa/screens/settings/admin_server_sessions_settings.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 
 class AdminServerSettings extends ConsumerWidget {
@@ -61,6 +62,14 @@ class AdminServerSettings extends ConsumerWidget {
                       enabled: isAdminUser,
                       disabledReason: isAdminUser ? null : 'Requires an admin account.',
                       onTap: isAdminUser ? () => context.push(AdminServerLogsSettings.routeName) : null,
+                    ),
+                    SettingsNavigationItem(
+                      icon: Icons.query_stats_rounded,
+                      title: 'Sessions',
+                      subtitle: 'Browse and manage listening sessions.',
+                      enabled: isAdminUser,
+                      disabledReason: isAdminUser ? null : 'Requires an admin account.',
+                      onTap: isAdminUser ? () => context.push(AdminServerSessionsSettings.routeName) : null,
                     ),
                     SettingsNavigationItem(
                       icon: Icons.upload_file_outlined,
