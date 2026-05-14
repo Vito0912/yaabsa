@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/api/admin/server_log_entry.dart';
 import 'package:yaabsa/api/me/server_settings.dart';
-import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/api/socket/abs_socket_client.dart';
 import 'package:yaabsa/provider/core/socket_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
@@ -68,24 +67,34 @@ class _AdminServerLogsViewState extends ConsumerState<AdminServerLogsView> {
     return normalizedType == 'admin' || normalizedType == 'root';
   }
 
-  Future<void> _initializeForUser(User user) async {
+  Future<void> _initializeForCurrentUser() async {
     _detachSocketListener();
 
     setState(() {
       _errorMessage = null;
       _isLoading = true;
-      _listenerLogLevel = user.setting?.logLevel ?? LogLevel.info;
       _loadedLogs.clear();
       _visibleLogText = '';
     });
 
     try {
       final api = ref.read(absApiProvider);
+      final currentUser = ref.read(currentUserProvider).value;
       if (api == null) {
         throw StateError('No active API client.');
       }
+      if (currentUser == null) {
+        throw StateError('No active user.');
+      }
 
       final loggerResponse = await api.getAdminApi().getLoggerData();
+      final authResponse = await api.getMeApi().checkLogin();
+
+      final resolvedServerLogLevel = authResponse.data?.serverSettings.logLevel;
+      if (resolvedServerLogLevel == null) {
+        throw StateError('Server did not return the current log level.');
+      }
+
       final loadedLogs = loggerResponse.data?.currentDailyLogs ?? const <ServerLogEntry>[];
       final trimmedLogs = loadedLogs.length > _maxLogLines
           ? loadedLogs.sublist(loadedLogs.length - _maxLogLines)
@@ -96,6 +105,7 @@ class _AdminServerLogsViewState extends ConsumerState<AdminServerLogsView> {
       }
 
       setState(() {
+        _listenerLogLevel = resolvedServerLogLevel;
         _loadedLogs
           ..clear()
           ..addAll(trimmedLogs);
@@ -183,12 +193,9 @@ class _AdminServerLogsViewState extends ConsumerState<AdminServerLogsView> {
       return;
     }
 
-    final previousLevel = _listenerLogLevel;
-
     setState(() {
       _isUpdatingLogLevel = true;
       _errorMessage = null;
-      _listenerLogLevel = nextLogLevel;
     });
 
     try {
@@ -197,20 +204,15 @@ class _AdminServerLogsViewState extends ConsumerState<AdminServerLogsView> {
         throw StateError('No active API client.');
       }
 
-      final response = await api.getAdminApi().updateServerSettings(
+      await api.getAdminApi().updateServerSettings(
         settingsUpdate: ServerSettings(id: "server-settings", logLevel: nextLogLevel),
       );
-      final resolvedLevel = response.data?.logLevel ?? nextLogLevel;
 
       if (!mounted) {
         return;
       }
 
-      setState(() {
-        _listenerLogLevel = resolvedLevel;
-      });
-
-      _ensureSocketClient().setServerLogListenerLevel(resolvedLevel.value);
+      await _initializeForCurrentUser();
     } on DioException catch (error) {
       if (!mounted) {
         return;
@@ -220,24 +222,18 @@ class _AdminServerLogsViewState extends ConsumerState<AdminServerLogsView> {
       final serverMessage = responseError is String ? responseError : null;
 
       setState(() {
-        _listenerLogLevel = previousLevel;
         _errorMessage = serverMessage == null || serverMessage.isEmpty
             ? 'Failed to update server log level: ${error.message ?? error.runtimeType}'
             : 'Failed to update server log level: $serverMessage';
       });
-
-      _ensureSocketClient().setServerLogListenerLevel(previousLevel.value);
     } catch (error) {
       if (!mounted) {
         return;
       }
 
       setState(() {
-        _listenerLogLevel = previousLevel;
         _errorMessage = 'Failed to update server log level: $error';
       });
-
-      _ensureSocketClient().setServerLogListenerLevel(previousLevel.value);
     } finally {
       if (mounted) {
         setState(() {
@@ -273,9 +269,11 @@ class _AdminServerLogsViewState extends ConsumerState<AdminServerLogsView> {
   }
 
   void _rebuildVisibleLogText() {
+    final levelFilteredLogs = _loadedLogs.where((log) => log.level >= _listenerLogLevel.value);
+
     final searchableLogs = _searchText.isEmpty
-        ? _loadedLogs
-        : _loadedLogs.where((log) {
+        ? levelFilteredLogs
+        : levelFilteredLogs.where((log) {
             final searchable = '${log.timestamp} ${log.levelName} ${log.source ?? ''} ${log.message}'.toLowerCase();
             return searchable.contains(_searchText);
           });
@@ -321,7 +319,7 @@ class _AdminServerLogsViewState extends ConsumerState<AdminServerLogsView> {
             if (!mounted) {
               return;
             }
-            unawaited(_initializeForUser(currentUser));
+            unawaited(_initializeForCurrentUser());
           });
         }
 
