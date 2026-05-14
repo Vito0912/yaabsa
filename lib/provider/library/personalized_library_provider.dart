@@ -1,6 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:yaabsa/api/library/personalized_library.dart';
-import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:dio/dio.dart';
@@ -9,93 +8,9 @@ part 'personalized_library_provider.g.dart';
 
 final Map<String, PersonalizedLibrary> _personalizedLibraryCacheByLibraryId = {};
 
-ShelfEntry<LibraryItem>? _replaceLibraryItemInShelf(ShelfEntry<LibraryItem>? shelf, LibraryItem updatedItem) {
-  if (shelf == null) {
-    return null;
-  }
-
-  var changed = false;
-  final updatedEntities = List<LibraryItem>.from(shelf.entities);
-  for (var i = 0; i < updatedEntities.length; i++) {
-    if (updatedEntities[i].id != updatedItem.id) {
-      continue;
-    }
-
-    updatedEntities[i] = updatedItem;
-    changed = true;
-  }
-
-  if (!changed) {
-    return shelf;
-  }
-
-  return shelf.copyWith(entities: updatedEntities);
-}
-
-List<ShelfEntry<LibraryItem>> _replaceLibraryItemInShelfList(
-  List<ShelfEntry<LibraryItem>> shelves,
-  LibraryItem updatedItem,
-) {
-  var changed = false;
-  final updatedShelves = <ShelfEntry<LibraryItem>>[];
-
-  for (final shelf in shelves) {
-    final updatedShelf = _replaceLibraryItemInShelf(shelf, updatedItem);
-    if (!identical(updatedShelf, shelf)) {
-      changed = true;
-    }
-    updatedShelves.add(updatedShelf!);
-  }
-
-  if (!changed) {
-    return shelves;
-  }
-
-  return updatedShelves;
-}
-
-PersonalizedLibrary _replaceLibraryItemInPersonalizedLibrary(PersonalizedLibrary library, LibraryItem updatedItem) {
-  final updatedContinueListening = _replaceLibraryItemInShelf(library.continueListening, updatedItem);
-  final updatedRecentlyAdded = _replaceLibraryItemInShelf(library.recentlyAdded, updatedItem);
-  final updatedDiscover = _replaceLibraryItemInShelf(library.discover, updatedItem);
-  final updatedListenAgain = _replaceLibraryItemInShelf(library.listenAgain, updatedItem);
-  final updatedContinueSeries = _replaceLibraryItemInShelf(library.continueSeries, updatedItem);
-  final updatedExtraLibraryShelves = _replaceLibraryItemInShelfList(library.extraLibraryShelves, updatedItem);
-
-  final hasChanges =
-      !identical(updatedContinueListening, library.continueListening) ||
-      !identical(updatedRecentlyAdded, library.recentlyAdded) ||
-      !identical(updatedDiscover, library.discover) ||
-      !identical(updatedListenAgain, library.listenAgain) ||
-      !identical(updatedContinueSeries, library.continueSeries) ||
-      !identical(updatedExtraLibraryShelves, library.extraLibraryShelves);
-
-  if (!hasChanges) {
-    return library;
-  }
-
-  return library.copyWith(
-    continueListening: updatedContinueListening,
-    recentlyAdded: updatedRecentlyAdded,
-    discover: updatedDiscover,
-    listenAgain: updatedListenAgain,
-    continueSeries: updatedContinueSeries,
-    extraLibraryShelves: updatedExtraLibraryShelves,
-  );
-}
-
 @Riverpod(keepAlive: true)
 class PersonalizedLibraryNotifier extends _$PersonalizedLibraryNotifier {
-  static final Set<PersonalizedLibraryNotifier> _activeNotifiers = <PersonalizedLibraryNotifier>{};
-
   CancelToken? _activeRequestToken;
-
-  static void applyLocalItemUpdateToAllActive(LibraryItem updatedItem) {
-    final activeSnapshot = List<PersonalizedLibraryNotifier>.from(_activeNotifiers);
-    for (final notifier in activeSnapshot) {
-      notifier.applyLocalItemUpdate(updatedItem);
-    }
-  }
 
   Future<PersonalizedLibrary?> _fetchPersonalizedLibrary(String libraryId) async {
     final api = ref.read(absApiProvider);
@@ -161,28 +76,11 @@ class PersonalizedLibraryNotifier extends _$PersonalizedLibraryNotifier {
 
   @override
   Future<PersonalizedLibrary?> build(String libraryId) async {
-    _activeNotifiers.add(this);
     ref.onDispose(() {
-      _activeNotifiers.remove(this);
       _activeRequestToken?.cancel('Personalized provider disposed');
       _activeRequestToken = null;
     });
     return _fetchPersonalizedLibrary(libraryId);
-  }
-
-  void applyLocalItemUpdate(LibraryItem updatedItem) {
-    final currentLibrary = state.asData?.value;
-    if (currentLibrary == null) {
-      return;
-    }
-
-    final updatedLibrary = _replaceLibraryItemInPersonalizedLibrary(currentLibrary, updatedItem);
-    if (identical(updatedLibrary, currentLibrary)) {
-      return;
-    }
-
-    _personalizedLibraryCacheByLibraryId[libraryId] = updatedLibrary;
-    state = AsyncValue.data(updatedLibrary);
   }
 
   Future<void> refresh(String libraryId, {bool withLoading = false}) async {

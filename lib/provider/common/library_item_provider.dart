@@ -1,13 +1,9 @@
-import 'dart:async';
-
 import 'package:yaabsa/api/library/request/library_filter.dart';
 import 'package:yaabsa/api/library/request/library_items_request.dart';
 import 'package:yaabsa/api/library/request/library_sort.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
-import 'package:yaabsa/provider/library/personalized_library_provider.dart';
-import 'package:yaabsa/util/interceptors/cache_interceptor.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -38,60 +34,9 @@ abstract class LibraryItemState with _$LibraryItemState {
 
 const defaultLibraryItemsRequest = LibraryItemsRequest(limit: _itemsPerPage, page: 0);
 
-final Map<String, LibraryItem> _pendingLibraryItemOverridesById = <String, LibraryItem>{};
-
-void applyLibraryItemUpdateLocally({
-  required ProviderContainer container,
-  required LibraryItem item,
-  required void Function() invalidateItemCache,
-  LibraryItemsNotifier? listNotifier,
-}) {
-  _pendingLibraryItemOverridesById[item.id] = item;
-  LibraryItemsNotifier.applyLocalItemUpdateToAllActive(item);
-  PersonalizedLibraryNotifier.applyLocalItemUpdateToAllActive(item);
-  if (listNotifier != null && !LibraryItemsNotifier.isNotifierActive(listNotifier)) {
-    listNotifier.applyLocalItemUpdate(item);
-  }
-  invalidateItemCache();
-  unawaited(_syncStoredDownloadItemSnapshot(container: container, item: item));
-}
-
-Future<void> _syncStoredDownloadItemSnapshot({required ProviderContainer container, required LibraryItem item}) async {
-  try {
-    final userId = container.read(currentUserProvider).value?.id ?? container.read(absApiProvider)?.user?.id;
-    if (userId == null || userId.isEmpty) {
-      return;
-    }
-
-    await container
-        .read(appDatabaseProvider)
-        .updateStoredDownloadItemSnapshot(itemId: item.id, userId: userId, item: item);
-    await invalidateCachedLibraryItemEntries(container: container, itemId: item.id, libraryId: item.libraryId);
-  } catch (e, s) {
-    logger(
-      'Failed to sync stored download item snapshot for ${item.id}: $e\n$s',
-      tag: 'libraryItemProvider',
-      level: InfoLevel.warning,
-    );
-  }
-}
-
 @Riverpod(keepAlive: true)
 class LibraryItemsNotifier extends _$LibraryItemsNotifier {
-  static final Set<LibraryItemsNotifier> _activeNotifiers = <LibraryItemsNotifier>{};
-
   bool _isEnsuringIndex = false;
-
-  static void applyLocalItemUpdateToAllActive(LibraryItem updatedItem) {
-    final activeSnapshot = List<LibraryItemsNotifier>.from(_activeNotifiers);
-    for (final notifier in activeSnapshot) {
-      notifier.applyLocalItemUpdate(updatedItem);
-    }
-  }
-
-  static bool isNotifierActive(LibraryItemsNotifier notifier) {
-    return _activeNotifiers.contains(notifier);
-  }
 
   Future<LibraryItemState> _fetchItems(
     String libraryId,
@@ -158,11 +103,6 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
     int? initialCollapseSeries,
     String? initialInclude,
   }) async {
-    _activeNotifiers.add(this);
-    ref.onDispose(() {
-      _activeNotifiers.remove(this);
-    });
-
     return _fetchItems(
       libraryId,
       0,
@@ -331,22 +271,6 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
       }
     }
   }
-
-  void applyLocalItemUpdate(LibraryItem updatedItem) {
-    final currentLoadedState = state.asData?.value;
-    if (currentLoadedState == null) {
-      return;
-    }
-
-    final existingIndex = currentLoadedState.items.indexWhere((item) => item.id == updatedItem.id);
-    if (existingIndex < 0) {
-      return;
-    }
-
-    final updatedItems = List<LibraryItem>.from(currentLoadedState.items);
-    updatedItems[existingIndex] = updatedItem;
-    state = AsyncData(currentLoadedState.copyWith(items: updatedItems));
-  }
 }
 
 bool _isSeriesFilterQuery(String? filter) {
@@ -360,12 +284,6 @@ Future<LibraryItem> libraryItem(Ref ref, String itemId, {String? episodeId}) asy
   final db = ref.read(appDatabaseProvider);
   if (absApi == null || absApi.user == null) {
     throw Exception('User not authenticated or API not available.');
-  }
-
-  final pendingOverride = _pendingLibraryItemOverridesById.remove(itemId);
-  if (pendingOverride != null) {
-    logger('Returning pending local override for item $itemId', tag: 'libraryItemProvider', level: InfoLevel.debug);
-    return pendingOverride;
   }
 
   final download = await db.getStoredDownload(itemId, absApi.user!.id, episodeId: episodeId);

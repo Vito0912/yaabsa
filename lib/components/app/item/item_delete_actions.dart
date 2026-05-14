@@ -3,13 +3,11 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/components/common/library_item_delete_dialog.dart';
 import 'package:yaabsa/components/common/managed_list_operations.dart';
-import 'package:yaabsa/provider/common/library_item_provider.dart';
+import 'package:yaabsa/provider/common/library_item_sync.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
-import 'package:yaabsa/provider/library/personalized_library_provider.dart';
 
 void invalidateLibraryItemLists(WidgetRef ref) {
-  ref.invalidate(libraryItemsProvider);
-  ref.invalidate(personalizedLibraryProvider);
+  invalidateLibraryItemConsumers(container: ref.container);
 }
 
 bool isAudiobookLibraryItem(LibraryItem item) {

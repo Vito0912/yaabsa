@@ -8,6 +8,7 @@ import 'package:yaabsa/components/app/item/editor/library_item_edit_models.dart'
 import 'package:yaabsa/components/app/item/editor/library_item_editor_form.dart';
 import 'package:yaabsa/components/common/list_management_dialogs.dart';
 import 'package:yaabsa/provider/common/library_item_provider.dart';
+import 'package:yaabsa/provider/common/library_item_sync.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 
@@ -114,15 +115,9 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
       final updatedItem = payload.libraryItem;
       if (updatedItem != null) {
         _cachedItems[widget.currentItemId] = updatedItem;
-        applyLibraryItemUpdateLocally(
-          container: ref.container,
-          item: updatedItem,
-          invalidateItemCache: () {
-            ref.invalidate(libraryItemProvider(updatedItem.id));
-          },
-        );
+        await processLibraryItemUpdate(container: ref.container, item: updatedItem, source: 'editor.save');
       } else {
-        ref.invalidate(libraryItemProvider(widget.currentItemId));
+        invalidateLibraryItemConsumers(container: ref.container, itemId: widget.currentItemId);
       }
       await widget.onItemSaved(widget.currentItemId, updatedItem);
 

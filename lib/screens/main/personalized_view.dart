@@ -242,9 +242,7 @@ class PersonalizedView extends HookConsumerWidget {
                         onClose: () {
                           editingItemId.value = null;
                         },
-                        onItemSaved: (_, _) async {
-                          await refreshPersonalizedLibrary(withLoading: false);
-                        },
+                        onItemSaved: (_, _) async {},
                       ),
                   ],
                 );
