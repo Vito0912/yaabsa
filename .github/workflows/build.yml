@@ -7,6 +7,8 @@ on:
       - "linux/**"
       - "windows/**"
       - "android/**"
+      - "ios/**"
+      - "macos/**"
       - "pubspec.yaml"
     branches:
       - master
@@ -31,6 +33,8 @@ jobs:
       android: ${{ steps.filter.outputs.android }}
       linux: ${{ steps.filter.outputs.linux }}
       windows: ${{ steps.filter.outputs.windows }}
+      ios: ${{ steps.filter.outputs.ios }}
+      macos: ${{ steps.filter.outputs.macos }}
       pubspec: ${{ steps.filter.outputs.pubspec }}
       any: ${{ steps.filter.outputs.any }}
       build_skip: ${{ steps.build_skip.outputs.build_skip }}
@@ -60,6 +64,10 @@ jobs:
               - 'linux/**'
             windows:
               - 'windows/**'
+            ios:
+              - 'ios/**'
+            macos:
+              - 'macos/**'
             pubspec:
               - 'pubspec.yaml'
             any:
@@ -67,6 +75,8 @@ jobs:
               - 'android/**'
               - 'linux/**'
               - 'windows/**'
+              - 'ios/**'
+              - 'macos/**'
               - 'pubspec.yaml'
 
       - name: Detect build skip flag from commit message
@@ -786,6 +796,8 @@ jobs:
       - build-snap
       - build-android
       - build-windows
+      - build-ios
+      - build-macos
     if: ${{ needs.changes.outputs.version_bumped == 'true' && needs.changes.outputs.build_skip != 'true' }}
     permissions:
       contents: write
@@ -888,4 +900,174 @@ jobs:
           status: draft
           inAppUpdatePriority: 2
           whatsNewDirectory: android/whatsnew
+        continue-on-error: true
+
+  build-ios:
+    runs-on: macos-26
+    needs:
+      - changes
+      - check-requirements
+    if: ${{ (github.event_name == 'workflow_dispatch' || needs.changes.outputs.version_bumped == 'true' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.ios == 'true') && needs.changes.outputs.build_skip != 'true' }}
+    timeout-minutes: 40
+    environment: prod
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Select Xcode 26.4.1
+        run: |
+          test -d /Applications/Xcode_26.4.1.app
+          sudo xcode-select -s /Applications/Xcode_26.4.1.app
+          xcodebuild -version
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Post Get
+        uses: ./.github/actions/post-get
+        with:
+          flow: build-ios
+
+      - name: Build Unsigned iOS App
+        run: |
+          flutter build ios --release --no-codesign
+          mkdir -p build/ios/iphoneos/Payload
+          cp -R build/ios/iphoneos/Runner.app build/ios/iphoneos/Payload
+          cd build/ios/iphoneos
+          zip -qq -r yaabsa_${{ needs.changes.outputs.file_version }}_unsigned.ipa Payload
+
+      - name: Upload Unsigned iOS Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ios-sideload-build
+          path: build/ios/iphoneos/yaabsa_*_unsigned.ipa
+
+      - name: Install iOS Certificate and Profile
+        env:
+          APPLE_CERT: ${{ secrets.APPLE_CERT_P12_BASE64 }}
+          APPLE_CERT_PW: ${{ secrets.APPLE_CERT_PASSWORD }}
+          IOS_PROV: ${{ secrets.IOS_PROV_PROFILE_BASE64 }}
+        run: |
+          KEYCHAIN_PATH=$RUNNER_TEMP/build.keychain
+          security create-keychain -p "runner_temp" $KEYCHAIN_PATH
+          security default-keychain -s $KEYCHAIN_PATH
+          security unlock-keychain -p "runner_temp" $KEYCHAIN_PATH
+          security set-keychain-settings -t 3600 -u $KEYCHAIN_PATH
+
+          echo -n "$APPLE_CERT" | base64 --decode -o $RUNNER_TEMP/apple_cert.p12
+          security import $RUNNER_TEMP/apple_cert.p12 -k $KEYCHAIN_PATH -P "$APPLE_CERT_PW" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "runner_temp" $KEYCHAIN_PATH
+
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo -n "$IOS_PROV" | base64 --decode -o ~/Library/MobileDevice/Provisioning\ Profiles/ios_app_store.mobileprovision
+
+      - name: Build Signed iOS App (IPA)
+        run: flutter build ipa --release --export-options-plist=ios/ExportOptions.plist
+
+      - name: Upload iOS to TestFlight
+        uses: apple-actions/upload-testflight-build@v4
+        with:
+          app-path: build/ios/ipa/*.ipa
+          issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
+          api-key-id: ${{ secrets.APPSTORE_KEY_ID }}
+          api-private-key: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+        continue-on-error: true
+
+  build-macos:
+    runs-on: macos-26
+    needs:
+      - changes
+      - check-requirements
+    if: ${{ (github.event_name == 'workflow_dispatch' || needs.changes.outputs.version_bumped == 'true' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.macos == 'true') && needs.changes.outputs.build_skip != 'true' }}
+    timeout-minutes: 40
+    environment: prod
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Select Xcode 26.4.1
+        run: |
+          test -d /Applications/Xcode_26.4.1.app
+          sudo xcode-select -s /Applications/Xcode_26.4.1.app
+          xcodebuild -version
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Disable macOS code signing for CI
+        run: |
+          echo "CODE_SIGNING_ALLOWED=NO" >> macos/Flutter/Flutter-Release.xcconfig
+          echo "CODE_SIGNING_REQUIRED=NO" >> macos/Flutter/Flutter-Release.xcconfig
+
+      - name: Build Unsigned macOS App
+        run: |
+          flutter build macos --release
+          cd build/macos/Build/Products/Release
+          zip -qq -r yaabsa_${{ needs.changes.outputs.file_version }}_macos_unsigned.zip yaabsa.app
+
+      - name: Undo macOS code signing changes
+        run: |
+          sed -i '' '/CODE_SIGNING_ALLOWED/d' macos/Flutter/Flutter-Release.xcconfig
+          sed -i '' '/CODE_SIGNING_REQUIRED/d' macos/Flutter/Flutter-Release.xcconfig
+
+      - name: Upload Unsigned macOS Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: macos-sideload-build
+          path: build/macos/Build/Products/Release/yaabsa_*_macos_unsigned.zip
+
+      - name: Install macOS Certificates and Profile
+        env:
+          APPLE_CERT: ${{ secrets.APPLE_CERT_P12_BASE64 }}
+          APPLE_CERT_PW: ${{ secrets.APPLE_CERT_PASSWORD }}
+          MAC_INST_CERT: ${{ secrets.MAC_INSTALLER_CERT_BASE64 }}
+          MAC_INST_CERT_PW: ${{ secrets.MAC_INSTALLER_CERT_PASSWORD }}
+          MAC_PROV: ${{ secrets.MAC_PROV_PROFILE_BASE64 }}
+        run: |
+          KEYCHAIN_PATH=$RUNNER_TEMP/build.keychain
+          security create-keychain -p "runner_temp" $KEYCHAIN_PATH
+          security default-keychain -s $KEYCHAIN_PATH
+          security unlock-keychain -p "runner_temp" $KEYCHAIN_PATH
+          security set-keychain-settings -t 3600 -u $KEYCHAIN_PATH
+
+          echo -n "$APPLE_CERT" | base64 --decode -o $RUNNER_TEMP/apple_cert.p12
+          echo -n "$MAC_INST_CERT" | base64 --decode -o $RUNNER_TEMP/mac_installer.p12
+
+          security import $RUNNER_TEMP/apple_cert.p12 -k $KEYCHAIN_PATH -P "$APPLE_CERT_PW" -T /usr/bin/codesign
+          security import $RUNNER_TEMP/mac_installer.p12 -k $KEYCHAIN_PATH -P "$MAC_INST_CERT_PW" -T /usr/bin/productbuild
+          
+          security set-key-partition-list -S apple-tool:,apple:,codesign:,productbuild: -s -k "runner_temp" $KEYCHAIN_PATH
+
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo -n "$MAC_PROV" | base64 --decode -o ~/Library/MobileDevice/Provisioning\ Profiles/mac_app_store.provisionprofile
+
+      - name: Build Signed macOS App (PKG)
+        run: |
+          flutter build macos --release
+          
+          xcrun productbuild --component "build/macos/Build/Products/Release/yaabsa.app" /Applications --sign "${{ secrets.MAC_INSTALLER_IDENTITY }}" "build/macos/Build/Products/Release/yaabsa.pkg"
+
+      - name: Upload macOS to TestFlight
+        uses: apple-actions/upload-testflight-build@v4
+        with:
+          app-path: build/macos/Build/Products/Release/yaabsa.pkg
+          issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
+          api-key-id: ${{ secrets.APPSTORE_KEY_ID }}
+          api-private-key: ${{ secrets.APPSTORE_PRIVATE_KEY }}
         continue-on-error: true
