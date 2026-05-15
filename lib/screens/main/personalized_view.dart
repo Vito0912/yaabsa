@@ -158,6 +158,8 @@ class PersonalizedView extends HookConsumerWidget {
             final hasUpdatePermission = currentUser?.permissions.update ?? false;
             final hasDeletePermission = currentUser?.permissions.delete ?? false;
             final canEditItems = hasUpdatePermission && managementPreferences.editItemsEnabled;
+            final canQuickMatchItems =
+                canManageBooks && canEditItems && managementPreferences.allowMatchesQuickMatchesEnabled;
             final editableItemIds = visibleLibraryItems
                 .where((item) => item.collapsedSeries == null)
                 .map((item) => item.id)
@@ -175,6 +177,7 @@ class PersonalizedView extends HookConsumerWidget {
               visibleItems: visibleLibraryItems,
               canAddToPlaylist: canManageBooks && currentUser != null,
               canAddToCollection: canManageBooks && hasUpdatePermission && managementPreferences.collectionsEnabled,
+              canQuickMatchItems: canQuickMatchItems,
               canDeleteItems: canManageBooks && hasDeletePermission && managementPreferences.deleteItemsEnabled,
               currentUserId: currentUser?.id,
               onAfterDelete: () => refreshPersonalizedLibrary(withLoading: false),
@@ -239,9 +242,7 @@ class PersonalizedView extends HookConsumerWidget {
                         onClose: () {
                           editingItemId.value = null;
                         },
-                        onItemSaved: (_, _) async {
-                          await refreshPersonalizedLibrary(withLoading: false);
-                        },
+                        onItemSaved: (_, _) async {},
                       ),
                   ],
                 );

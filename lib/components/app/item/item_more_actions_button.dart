@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 enum ItemMoreAction {
   editItem,
+  quickMatch,
+  manualMatch,
   markAsFinished,
   markAsUnfinished,
   addToPlaylist,
@@ -22,6 +24,8 @@ class ItemMoreActionsButton extends StatelessWidget {
     this.showAddToPlaylist = false,
     this.showAddToCollection = false,
     this.showDeleteItem = false,
+    this.showQuickMatch = false,
+    this.showManualMatch = false,
   });
 
   final Future<void> Function(ItemMoreAction action) onActionSelected;
@@ -33,6 +37,8 @@ class ItemMoreActionsButton extends StatelessWidget {
   final bool showAddToPlaylist;
   final bool showAddToCollection;
   final bool showDeleteItem;
+  final bool showQuickMatch;
+  final bool showManualMatch;
 
   Future<void> _openActionDialog(BuildContext context) async {
     final selectedAction = await showDialog<ItemMoreAction>(
@@ -48,6 +54,18 @@ class ItemMoreActionsButton extends StatelessWidget {
                   leading: const Icon(Icons.edit_rounded),
                   title: const Text('Edit item'),
                   onTap: () => Navigator.of(dialogContext).pop(ItemMoreAction.editItem),
+                ),
+              if (showQuickMatch)
+                ListTile(
+                  leading: const Icon(Icons.auto_fix_high_rounded),
+                  title: const Text('Quick Match'),
+                  onTap: () => Navigator.of(dialogContext).pop(ItemMoreAction.quickMatch),
+                ),
+              if (showManualMatch)
+                ListTile(
+                  leading: const Icon(Icons.manage_search_rounded),
+                  title: const Text('Manual Match'),
+                  onTap: () => Navigator.of(dialogContext).pop(ItemMoreAction.manualMatch),
                 ),
               if (showMarkAction)
                 ListTile(

@@ -24,14 +24,26 @@ abstract class ServerSettings with _$ServerSettings {
     @JsonKey(name: "loggerScannerLogsToKeep") int? loggerScannerLogsToKeep,
     @JsonKey(name: "homeBookshelfView") int? homeBookshelfView,
     @JsonKey(name: "bookshelfView") int? bookshelfView,
+    @JsonKey(name: "allowedOrigins") List<String>? allowedOrigins,
     @JsonKey(name: "sortingIgnorePrefix") bool? sortingIgnorePrefix,
     @JsonKey(name: "sortingPrefixes") List<String>? sortingPrefixes,
     @JsonKey(name: "chromecastEnabled") bool? chromecastEnabled,
     @JsonKey(name: "dateFormat") String? dateFormat,
     @JsonKey(name: "language") String? language,
-    @JsonKey(name: "logLevel") int? logLevel,
+    @JsonKey(name: "logLevel") LogLevel? logLevel,
     @JsonKey(name: "version") String? version,
   }) = _ServerSettings;
 
   factory ServerSettings.fromJson(Map<String, dynamic> json) => _$ServerSettingsFromJson(json);
+}
+
+@JsonEnum(valueField: 'value')
+enum LogLevel {
+  debug(1),
+  info(2),
+  warn(3),
+  error(4);
+
+  const LogLevel(this.value);
+  final int value;
 }

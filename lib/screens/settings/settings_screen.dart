@@ -1,5 +1,6 @@
 import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
+import 'package:yaabsa/components/settings/management_settings_section.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
@@ -18,6 +19,7 @@ import 'package:yaabsa/util/aaos_service.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/network/dio_factory.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -77,6 +79,11 @@ class MainSettingsScreen extends ConsumerWidget {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to delete user ${user.username}: $e')));
     }
+  }
+
+  bool _hasAnyServerManagementPermission(User user) {
+    final permissions = user.permissions;
+    return permissions.update || permissions.delete || permissions.upload;
   }
 
   void _showDeleteUserConfirmationDialog(BuildContext context, User user, WidgetRef ref) {
@@ -228,11 +235,12 @@ class MainSettingsScreen extends ConsumerWidget {
                     title: 'Server Connection',
                     onTap: () => context.push(ServerConnectionSettings.routeName),
                   ),
-                  SettingsNavigationItem(
-                    icon: Icons.admin_panel_settings_outlined,
-                    title: 'Server Management',
-                    onTap: () => context.push(ServerManagementSettings.routeName),
-                  ),
+                  if (_hasAnyServerManagementPermission(currentUser))
+                    SettingsNavigationItem(
+                      icon: Icons.admin_panel_settings_outlined,
+                      title: 'Server Management',
+                      onTap: () => context.push(ServerManagementSettings.routeName),
+                    ),
                   SettingsNavigationItem(
                     icon: Icons.play_circle_outline_rounded,
                     title: 'Player Settings',
@@ -348,6 +356,8 @@ class MainSettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final showAndroidAutoSettings = !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+
     return ListView(
       padding: const EdgeInsets.only(bottom: 24),
       children: <Widget>[
@@ -382,11 +392,12 @@ class MainSettingsScreen extends ConsumerWidget {
                           title: 'Library Behaviour',
                           onTap: () => context.push(LibrarySettings.routeName),
                         ),
-                        SettingsNavigationItem(
-                          icon: Icons.directions_car_filled_outlined,
-                          title: aaosState.isAutomotiveDevice ? 'AAOS' : 'Android Auto',
-                          onTap: () => context.push(AndroidAutoSettings.routeName),
-                        ),
+                        if (showAndroidAutoSettings)
+                          SettingsNavigationItem(
+                            icon: Icons.directions_car_filled_outlined,
+                            title: aaosState.isAutomotiveDevice ? 'AAOS' : 'Android Auto',
+                            onTap: () => context.push(AndroidAutoSettings.routeName),
+                          ),
                         SettingsNavigationItem(
                           icon: Icons.cached_outlined,
                           title: 'Caching',
@@ -396,6 +407,19 @@ class MainSettingsScreen extends ConsumerWidget {
                     );
                   },
                 ),
+                ref
+                    .watch(currentUserProvider)
+                    .when(
+                      data: (currentUser) {
+                        if (currentUser == null) {
+                          return const SizedBox.shrink();
+                        }
+
+                        return ManagementSettingsSection(currentUser: currentUser);
+                      },
+                      loading: () => const SizedBox.shrink(),
+                      error: (error, stackTrace) => const SizedBox.shrink(),
+                    ),
                 SettingsNavigationSection(
                   title: 'About & Support',
                   items: [

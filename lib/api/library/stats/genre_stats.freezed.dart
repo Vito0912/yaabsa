@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$GenreStats {
 
-@JsonKey(name: "genre") String get genre;@JsonKey(name: "count") int get count;
+@JsonKey(name: "genre") String get genre;@JsonKey(name: "count", fromJson: jsonIntRequiredFromDynamic) int get count;
 /// Create a copy of GenreStats
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $GenreStatsCopyWith<$Res>  {
   factory $GenreStatsCopyWith(GenreStats value, $Res Function(GenreStats) _then) = _$GenreStatsCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: "genre") String genre,@JsonKey(name: "count") int count
+@JsonKey(name: "genre") String genre,@JsonKey(name: "count", fromJson: jsonIntRequiredFromDynamic) int count
 });
 
 
@@ -154,7 +154,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "genre")  String genre, @JsonKey(name: "count")  int count)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "genre")  String genre, @JsonKey(name: "count", fromJson: jsonIntRequiredFromDynamic)  int count)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _GenreStats() when $default != null:
 return $default(_that.genre,_that.count);case _:
@@ -175,7 +175,7 @@ return $default(_that.genre,_that.count);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "genre")  String genre, @JsonKey(name: "count")  int count)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "genre")  String genre, @JsonKey(name: "count", fromJson: jsonIntRequiredFromDynamic)  int count)  $default,) {final _that = this;
 switch (_that) {
 case _GenreStats():
 return $default(_that.genre,_that.count);case _:
@@ -195,7 +195,7 @@ return $default(_that.genre,_that.count);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "genre")  String genre, @JsonKey(name: "count")  int count)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "genre")  String genre, @JsonKey(name: "count", fromJson: jsonIntRequiredFromDynamic)  int count)?  $default,) {final _that = this;
 switch (_that) {
 case _GenreStats() when $default != null:
 return $default(_that.genre,_that.count);case _:
@@ -210,11 +210,11 @@ return $default(_that.genre,_that.count);case _:
 @JsonSerializable()
 
 class _GenreStats implements GenreStats {
-  const _GenreStats({@JsonKey(name: "genre") required this.genre, @JsonKey(name: "count") required this.count});
+  const _GenreStats({@JsonKey(name: "genre") required this.genre, @JsonKey(name: "count", fromJson: jsonIntRequiredFromDynamic) required this.count});
   factory _GenreStats.fromJson(Map<String, dynamic> json) => _$GenreStatsFromJson(json);
 
 @override@JsonKey(name: "genre") final  String genre;
-@override@JsonKey(name: "count") final  int count;
+@override@JsonKey(name: "count", fromJson: jsonIntRequiredFromDynamic) final  int count;
 
 /// Create a copy of GenreStats
 /// with the given fields replaced by the non-null parameter values.
@@ -249,7 +249,7 @@ abstract mixin class _$GenreStatsCopyWith<$Res> implements $GenreStatsCopyWith<$
   factory _$GenreStatsCopyWith(_GenreStats value, $Res Function(_GenreStats) _then) = __$GenreStatsCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: "genre") String genre,@JsonKey(name: "count") int count
+@JsonKey(name: "genre") String genre,@JsonKey(name: "count", fromJson: jsonIntRequiredFromDynamic) int count
 });
 
 

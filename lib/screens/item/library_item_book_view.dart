@@ -6,6 +6,8 @@ import 'package:just_audio/just_audio.dart';
 import 'package:yaabsa/api/library/filter_data/library_filter_data.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/components/app/item/editor/library_item_edit_overlay.dart';
+import 'package:yaabsa/components/app/item/match/library_item_manual_match_dialog.dart';
+import 'package:yaabsa/components/app/item/match/library_item_quick_match_actions.dart';
 import 'package:yaabsa/components/app/item/item_delete_actions.dart';
 import 'package:yaabsa/components/app/item/item_more_actions_button.dart';
 import 'package:yaabsa/components/app/item/item_progress_actions.dart';
@@ -97,6 +99,7 @@ class LibraryItemBookView extends ConsumerWidget {
     ref.watch(userSettingsWatcherProvider);
     final managementPreferences = readServerManagementPreferences(ref, currentUser?.id);
     final canEditItems = (currentUser?.permissions.update ?? false) && managementPreferences.editItemsEnabled;
+    final canUseMatchTools = canEditItems && managementPreferences.allowMatchesQuickMatchesEnabled;
     final filterData = item.libraryId == null ? null : ref.watch(libraryFilterDataProvider(item.libraryId!)).value;
     final canAddToPlaylist = canAddLibraryItemToPlaylist(item, currentUser?.id);
     final canAddToCollection = canAddLibraryItemToCollection(
@@ -224,6 +227,8 @@ class LibraryItemBookView extends ConsumerWidget {
                                   },
                                   showMarkAsUnfinished: isItemFinished,
                                   showEditItem: canEditItems,
+                                  showQuickMatch: canUseMatchTools,
+                                  showManualMatch: canUseMatchTools,
                                   showAddToPlaylist: canAddToPlaylist,
                                   showAddToCollection: canAddToCollection,
                                   showDeleteItem: canDeleteItem,
@@ -231,6 +236,16 @@ class LibraryItemBookView extends ConsumerWidget {
                                     switch (action) {
                                       case ItemMoreAction.editItem:
                                         await _openSingleItemEditor(context, ref, item: item, filterData: filterData);
+                                        return;
+                                      case ItemMoreAction.quickMatch:
+                                        await quickMatchSingleItem(context: context, ref: ref, item: item);
+                                        return;
+                                      case ItemMoreAction.manualMatch:
+                                        await showLibraryItemManualMatchDialog(
+                                          context: context,
+                                          item: item,
+                                          filterData: filterData,
+                                        );
                                         return;
                                       case ItemMoreAction.markAsFinished:
                                         await markLibraryItemAsFinished(context: context, ref: ref, item: item);
@@ -266,7 +281,7 @@ class LibraryItemBookView extends ConsumerWidget {
                                         if (!context.mounted) {
                                           return;
                                         }
-                                        context.push(PlayHistoryView.routeName);
+                                        context.push(PlayHistoryView.location(itemId: item.id, itemTitle: item.title));
                                         return;
                                     }
                                   },

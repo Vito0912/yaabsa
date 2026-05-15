@@ -1,4 +1,5 @@
 import 'package:yaabsa/api/me/user.dart';
+import 'package:yaabsa/api/routes/admin_api.dart';
 import 'package:yaabsa/api/routes/interceptors/bearer_auth_interceptor.dart';
 import 'package:yaabsa/api/routes/interceptors/o_auth_interceptor.dart';
 import 'package:yaabsa/api/routes/library_api.dart';
@@ -267,5 +268,9 @@ class ABSApi {
 
   UploadApi getUploadApi() {
     return UploadApi(dio);
+  }
+
+  AdminApi getAdminApi() {
+    return AdminApi(dio);
   }
 }

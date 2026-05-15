@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$LibraryItemSizeStats {
 
-@JsonKey(name: "id") String get id;@JsonKey(name: "size") int get size;@JsonKey(name: "title") String get title;
+@JsonKey(name: "id") String get id;@JsonKey(name: "size", fromJson: jsonIntRequiredFromDynamic) int get size;@JsonKey(name: "title") String get title;
 /// Create a copy of LibraryItemSizeStats
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $LibraryItemSizeStatsCopyWith<$Res>  {
   factory $LibraryItemSizeStatsCopyWith(LibraryItemSizeStats value, $Res Function(LibraryItemSizeStats) _then) = _$LibraryItemSizeStatsCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: "id") String id,@JsonKey(name: "size") int size,@JsonKey(name: "title") String title
+@JsonKey(name: "id") String id,@JsonKey(name: "size", fromJson: jsonIntRequiredFromDynamic) int size,@JsonKey(name: "title") String title
 });
 
 
@@ -155,7 +155,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "size")  int size, @JsonKey(name: "title")  String title)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "size", fromJson: jsonIntRequiredFromDynamic)  int size, @JsonKey(name: "title")  String title)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _LibraryItemSizeStats() when $default != null:
 return $default(_that.id,_that.size,_that.title);case _:
@@ -176,7 +176,7 @@ return $default(_that.id,_that.size,_that.title);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "size")  int size, @JsonKey(name: "title")  String title)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "size", fromJson: jsonIntRequiredFromDynamic)  int size, @JsonKey(name: "title")  String title)  $default,) {final _that = this;
 switch (_that) {
 case _LibraryItemSizeStats():
 return $default(_that.id,_that.size,_that.title);case _:
@@ -196,7 +196,7 @@ return $default(_that.id,_that.size,_that.title);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "id")  String id, @JsonKey(name: "size")  int size, @JsonKey(name: "title")  String title)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "id")  String id, @JsonKey(name: "size", fromJson: jsonIntRequiredFromDynamic)  int size, @JsonKey(name: "title")  String title)?  $default,) {final _that = this;
 switch (_that) {
 case _LibraryItemSizeStats() when $default != null:
 return $default(_that.id,_that.size,_that.title);case _:
@@ -211,11 +211,11 @@ return $default(_that.id,_that.size,_that.title);case _:
 @JsonSerializable()
 
 class _LibraryItemSizeStats implements LibraryItemSizeStats {
-  const _LibraryItemSizeStats({@JsonKey(name: "id") required this.id, @JsonKey(name: "size") required this.size, @JsonKey(name: "title") required this.title});
+  const _LibraryItemSizeStats({@JsonKey(name: "id") required this.id, @JsonKey(name: "size", fromJson: jsonIntRequiredFromDynamic) required this.size, @JsonKey(name: "title") required this.title});
   factory _LibraryItemSizeStats.fromJson(Map<String, dynamic> json) => _$LibraryItemSizeStatsFromJson(json);
 
 @override@JsonKey(name: "id") final  String id;
-@override@JsonKey(name: "size") final  int size;
+@override@JsonKey(name: "size", fromJson: jsonIntRequiredFromDynamic) final  int size;
 @override@JsonKey(name: "title") final  String title;
 
 /// Create a copy of LibraryItemSizeStats
@@ -251,7 +251,7 @@ abstract mixin class _$LibraryItemSizeStatsCopyWith<$Res> implements $LibraryIte
   factory _$LibraryItemSizeStatsCopyWith(_LibraryItemSizeStats value, $Res Function(_LibraryItemSizeStats) _then) = __$LibraryItemSizeStatsCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: "id") String id,@JsonKey(name: "size") int size,@JsonKey(name: "title") String title
+@JsonKey(name: "id") String id,@JsonKey(name: "size", fromJson: jsonIntRequiredFromDynamic) int size,@JsonKey(name: "title") String title
 });
 
 

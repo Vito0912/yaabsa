@@ -107,11 +107,6 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
     _advancedMenuItems = const [
       NavigationItemConfig(icon: Icons.bar_chart_rounded, label: "Stats", page: StatsView()),
       NavigationItemConfig(icon: Icons.settings, label: "Settings", page: MainSettingsScreen()),
-      NavigationItemConfig(
-        icon: Icons.info_outline,
-        label: "About",
-        page: PlaceholderPage(title: "About Page Content"),
-      ),
     ];
 
     _currentlyDisplayedPageSource = _pageSourceFor(widget.child);
@@ -241,7 +236,6 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
       'Downloads' => 'downloads',
       'Stats' => 'stats',
       'Settings' => 'settings',
-      'About' => 'about',
       _ => 'shelf',
     };
   }
@@ -505,7 +499,6 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
         'downloads' => 'Downloads',
         'stats' => 'Stats',
         'settings' => 'Settings',
-        'about' => 'About',
         _ => 'Shelf',
       };
 

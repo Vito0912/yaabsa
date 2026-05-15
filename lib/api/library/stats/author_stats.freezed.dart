@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AuthorStats {
 
-@JsonKey(name: "id") String get id;@JsonKey(name: "name") String get name;@JsonKey(name: "count") int get count;
+@JsonKey(name: "id") String get id;@JsonKey(name: "name") String get name;@JsonKey(name: "count", fromJson: jsonIntRequiredFromDynamic) int get count;
 /// Create a copy of AuthorStats
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $AuthorStatsCopyWith<$Res>  {
   factory $AuthorStatsCopyWith(AuthorStats value, $Res Function(AuthorStats) _then) = _$AuthorStatsCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: "id") String id,@JsonKey(name: "name") String name,@JsonKey(name: "count") int count
+@JsonKey(name: "id") String id,@JsonKey(name: "name") String name,@JsonKey(name: "count", fromJson: jsonIntRequiredFromDynamic) int count
 });
 
 
@@ -155,7 +155,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "name")  String name, @JsonKey(name: "count")  int count)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "name")  String name, @JsonKey(name: "count", fromJson: jsonIntRequiredFromDynamic)  int count)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AuthorStats() when $default != null:
 return $default(_that.id,_that.name,_that.count);case _:
@@ -176,7 +176,7 @@ return $default(_that.id,_that.name,_that.count);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "name")  String name, @JsonKey(name: "count")  int count)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "name")  String name, @JsonKey(name: "count", fromJson: jsonIntRequiredFromDynamic)  int count)  $default,) {final _that = this;
 switch (_that) {
 case _AuthorStats():
 return $default(_that.id,_that.name,_that.count);case _:
@@ -196,7 +196,7 @@ return $default(_that.id,_that.name,_that.count);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "id")  String id, @JsonKey(name: "name")  String name, @JsonKey(name: "count")  int count)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "id")  String id, @JsonKey(name: "name")  String name, @JsonKey(name: "count", fromJson: jsonIntRequiredFromDynamic)  int count)?  $default,) {final _that = this;
 switch (_that) {
 case _AuthorStats() when $default != null:
 return $default(_that.id,_that.name,_that.count);case _:
@@ -211,12 +211,12 @@ return $default(_that.id,_that.name,_that.count);case _:
 @JsonSerializable()
 
 class _AuthorStats implements AuthorStats {
-  const _AuthorStats({@JsonKey(name: "id") required this.id, @JsonKey(name: "name") required this.name, @JsonKey(name: "count") required this.count});
+  const _AuthorStats({@JsonKey(name: "id") required this.id, @JsonKey(name: "name") required this.name, @JsonKey(name: "count", fromJson: jsonIntRequiredFromDynamic) required this.count});
   factory _AuthorStats.fromJson(Map<String, dynamic> json) => _$AuthorStatsFromJson(json);
 
 @override@JsonKey(name: "id") final  String id;
 @override@JsonKey(name: "name") final  String name;
-@override@JsonKey(name: "count") final  int count;
+@override@JsonKey(name: "count", fromJson: jsonIntRequiredFromDynamic) final  int count;
 
 /// Create a copy of AuthorStats
 /// with the given fields replaced by the non-null parameter values.
@@ -251,7 +251,7 @@ abstract mixin class _$AuthorStatsCopyWith<$Res> implements $AuthorStatsCopyWith
   factory _$AuthorStatsCopyWith(_AuthorStats value, $Res Function(_AuthorStats) _then) = __$AuthorStatsCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: "id") String id,@JsonKey(name: "name") String name,@JsonKey(name: "count") int count
+@JsonKey(name: "id") String id,@JsonKey(name: "name") String name,@JsonKey(name: "count", fromJson: jsonIntRequiredFromDynamic) int count
 });
 
 

@@ -79,6 +79,8 @@ class UploadApi {
     required String title,
     String? author,
     String? provider,
+    bool fallbackTitleOnly = false,
+    String? libraryItemId,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
     CancelToken? cancelToken,
@@ -88,6 +90,8 @@ class UploadApi {
       'title': title,
       if (author != null && author.trim().isNotEmpty) 'author': author.trim(),
       if (provider != null && provider.trim().isNotEmpty) 'provider': provider.trim(),
+      if (fallbackTitleOnly) 'fallbackTitleOnly': '1',
+      if (libraryItemId != null && libraryItemId.trim().isNotEmpty) 'id': libraryItemId.trim(),
     };
 
     return _dio.get<Object>(

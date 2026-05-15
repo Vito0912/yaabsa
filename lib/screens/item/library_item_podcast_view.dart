@@ -278,6 +278,8 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                                                   onMoreActionSelected: (action) async {
                                                     switch (action) {
                                                       case ItemMoreAction.editItem:
+                                                      case ItemMoreAction.quickMatch:
+                                                      case ItemMoreAction.manualMatch:
                                                         return;
                                                       case ItemMoreAction.markAsFinished:
                                                         await markPodcastEpisodeAsFinished(
@@ -303,7 +305,13 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                                                         if (!context.mounted) {
                                                           return;
                                                         }
-                                                        context.push(PlayHistoryView.routeName);
+                                                        context.push(
+                                                          PlayHistoryView.location(
+                                                            itemId: widget.item.id,
+                                                            episodeId: episode.id,
+                                                            itemTitle: podcastEpisodeTitle(episode),
+                                                          ),
+                                                        );
                                                         return;
                                                     }
                                                   },

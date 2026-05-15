@@ -18,11 +18,9 @@ class LibraryItemView extends ConsumerWidget {
     return itemAsync.when(
       data: (item) {
         final isPodcast = item.mediaType == 'podcast' || item.media?.podcastMedia != null;
-        if (isPodcast) {
-          return LibraryItemPodcastView(item: item, canDownload: canDownload);
-        }
-
-        return LibraryItemBookView(item: item, canDownload: canDownload);
+        return isPodcast
+            ? LibraryItemPodcastView(item: item, canDownload: canDownload)
+            : LibraryItemBookView(item: item, canDownload: canDownload);
       },
       error: (error, stackTrace) {
         return ConnectionIssueView.requestFailed(

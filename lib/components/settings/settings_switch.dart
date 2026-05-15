@@ -122,10 +122,7 @@ class SettingSwitch extends ConsumerWidget {
     TextTheme textTheme,
     ValueChanged<bool> onValueChanged,
   ) {
-    final details = <String>[
-      if (description != null && description!.isNotEmpty) description!,
-      if (!enabled && disabledReason != null && disabledReason!.isNotEmpty) disabledReason!,
-    ];
+    final details = <String>[if (!enabled && disabledReason != null && disabledReason!.isNotEmpty) disabledReason!];
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
@@ -142,13 +139,26 @@ class SettingSwitch extends ConsumerWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Flexible(
-                      child: Text(
-                        label,
-                        style: textTheme.titleMedium?.copyWith(color: enabled ? null : theme.disabledColor),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            label,
+                            style: textTheme.titleMedium?.copyWith(color: enabled ? null : theme.disabledColor),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                          if (description != null && description!.isNotEmpty)
+                            Text(
+                              description!,
+                              style: textTheme.bodySmall?.copyWith(
+                                color: enabled ? theme.colorScheme.onSurfaceVariant : theme.disabledColor,
+                              ),
+                            ),
+                        ],
                       ),
                     ),
+                    const SizedBox(width: 8),
                     if (icon != null && tooltip != null)
                       Padding(
                         padding: const EdgeInsets.only(left: 6.0),

@@ -93,7 +93,19 @@ class _PlayerState extends ConsumerState<Player> {
   }
 
   void _openPlayHistory(BuildContext context) {
-    context.push(PlayHistoryView.routeName);
+    final currentMedia = audioHandler.currentMediaItem;
+    if (currentMedia == null) {
+      context.push(PlayHistoryView.routeName);
+      return;
+    }
+
+    context.push(
+      PlayHistoryView.location(
+        itemId: currentMedia.itemId,
+        episodeId: currentMedia.episodeId,
+        itemTitle: currentMedia.title,
+      ),
+    );
   }
 
   void _showQuickSettings(BuildContext context) {

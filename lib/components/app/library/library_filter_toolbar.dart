@@ -29,6 +29,8 @@ class LibraryFilterToolbar extends StatelessWidget {
   final Future<void> Function(LibrarySortSelection sortSelection) onSortSelected;
   final Future<void> Function() onClearFilter;
 
+  static const double _maxButtonWidth = 180.0;
+
   @override
   Widget build(BuildContext context) {
     final activeFilterLabel = _resolveActiveFilterLabel(activeFilter, filterDataAsync.value);
@@ -39,8 +41,8 @@ class LibraryFilterToolbar extends StatelessWidget {
       activeDesc: activeSortDesc,
     );
 
-    final filterButtonLabel = activeFilterLabel == null ? 'Filter' : 'Filter: ${_truncateLabel(activeFilterLabel)}';
-    final sortButtonLabel = 'Sort: ${_truncateLabel(activeSortLabel)}';
+    final filterButtonLabel = activeFilterLabel == null ? 'Filter' : _truncateLabel(activeFilterLabel);
+    final sortButtonLabel = _truncateLabel(activeSortLabel);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
@@ -52,17 +54,23 @@ class LibraryFilterToolbar extends StatelessWidget {
           runSpacing: 8,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            OutlinedButton.icon(
-              onPressed: () => _openFilterSheet(context),
-              icon: filterDataAsync.isLoading
-                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Icon(Icons.filter_alt_rounded),
-              label: Text(filterButtonLabel),
+            ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: _maxButtonWidth),
+              child: OutlinedButton.icon(
+                onPressed: () => _openFilterSheet(context),
+                icon: filterDataAsync.isLoading
+                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Icon(Icons.filter_alt_rounded),
+                label: Text(filterButtonLabel, overflow: TextOverflow.ellipsis),
+              ),
             ),
-            OutlinedButton.icon(
-              onPressed: () => _openSortSheet(context),
-              icon: const Icon(Icons.sort_rounded),
-              label: Text(sortButtonLabel),
+            ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: _maxButtonWidth),
+              child: OutlinedButton.icon(
+                onPressed: () => _openSortSheet(context),
+                icon: const Icon(Icons.sort_rounded),
+                label: Text(sortButtonLabel, overflow: TextOverflow.ellipsis),
+              ),
             ),
           ],
         ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:yaabsa/components/app/download_status.dart';
 import 'package:yaabsa/components/app/library_switcher.dart';
+import 'package:yaabsa/components/app/tasks/task_notification_widget.dart';
 import 'package:yaabsa/components/app/user_switcher.dart';
 import 'package:yaabsa/provider/core/multi_select_app_bar_provider.dart';
 import 'package:yaabsa/screens/layout_home/navigation_item_config.dart';
@@ -166,6 +167,8 @@ class LayoutHomeMobileAppBar extends StatelessWidget {
                     children: [
                       _IconContainerButton(icon: Icons.search_rounded, onTap: onExpandSearch),
                       const SizedBox(width: 6),
+                      const TaskNotificationWidget(),
+                      const SizedBox(width: 6),
                       const DownloadStatus(),
                       const SizedBox(width: 4),
                       const LibrarySwitcher(),
@@ -307,6 +310,8 @@ class LayoutHomeNonMobileAppBar extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      const TaskNotificationWidget(),
+                      const SizedBox(width: 4),
                       const DownloadStatus(),
                       if (showUploadButton) ...[
                         const SizedBox(width: 4),

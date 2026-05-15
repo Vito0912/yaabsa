@@ -1,21 +1,62 @@
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/socket/events/user_item_progress_updated_event.dart';
+import 'package:yaabsa/api/tasks/abs_task.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/network/request_headers.dart';
 
 typedef UserItemProgressUpdatedHandler = void Function(UserItemProgressUpdatedEvent event);
 typedef ItemUpdatedHandler = void Function(LibraryItem item);
+typedef BatchQuickMatchCompleteHandler =
+    void Function({required bool success, required int updates, required int unmatched});
+typedef TaskEventHandler = void Function(AbsTask task);
+typedef MetadataEmbedQueueUpdateHandler = void Function({required String libraryItemId, required bool queued});
+typedef TrackStateHandler = void Function({required String libraryItemId, required String ino});
+typedef TrackProgressHandler =
+    void Function({required String libraryItemId, required String ino, required double progress});
+typedef TaskProgressHandler = void Function({required String libraryItemId, required double progress});
+typedef ServerLogHandler = void Function(Map<String, dynamic> logEntry);
 
 class ABSSocketClient {
   ABSSocketClient({
     required UserItemProgressUpdatedHandler onUserItemProgressUpdated,
     required ItemUpdatedHandler onItemUpdated,
+    required BatchQuickMatchCompleteHandler onBatchQuickMatchComplete,
+    required TaskEventHandler onTaskStarted,
+    required TaskEventHandler onTaskFinished,
+    required TaskEventHandler onTaskUpdated,
+    required MetadataEmbedQueueUpdateHandler onMetadataEmbedQueueUpdate,
+    required TrackStateHandler onTrackStarted,
+    required TrackProgressHandler onTrackProgress,
+    required TrackStateHandler onTrackFinished,
+    required TaskProgressHandler onTaskProgress,
   }) : _onUserItemProgressUpdated = onUserItemProgressUpdated,
-       _onItemUpdated = onItemUpdated;
+       _onItemUpdated = onItemUpdated,
+       _onBatchQuickMatchComplete = onBatchQuickMatchComplete,
+       _onTaskStarted = onTaskStarted,
+       _onTaskFinished = onTaskFinished,
+       _onTaskUpdated = onTaskUpdated,
+       _onMetadataEmbedQueueUpdate = onMetadataEmbedQueueUpdate,
+       _onTrackStarted = onTrackStarted,
+       _onTrackProgress = onTrackProgress,
+       _onTrackFinished = onTrackFinished,
+       _onTaskProgress = onTaskProgress;
 
   final UserItemProgressUpdatedHandler _onUserItemProgressUpdated;
   final ItemUpdatedHandler _onItemUpdated;
+  final BatchQuickMatchCompleteHandler _onBatchQuickMatchComplete;
+  final TaskEventHandler _onTaskStarted;
+  final TaskEventHandler _onTaskFinished;
+  final TaskEventHandler _onTaskUpdated;
+  final MetadataEmbedQueueUpdateHandler _onMetadataEmbedQueueUpdate;
+  final TrackStateHandler _onTrackStarted;
+  final TrackProgressHandler _onTrackProgress;
+  final TrackStateHandler _onTrackFinished;
+  final TaskProgressHandler _onTaskProgress;
+  final Map<String, ServerLogHandler> _serverLogHandlers = <String, ServerLogHandler>{};
+
+  int _nextServerLogHandlerId = 0;
+  int _serverLogListenerLevel = 2;
 
   io.Socket? _socket;
   String? _serverUrl;
@@ -23,6 +64,23 @@ class ABSSocketClient {
   String? _headersSignature;
 
   bool get isConnected => _socket?.connected ?? false;
+
+  String addServerLogListener(ServerLogHandler handler) {
+    final listenerId = 'log_listener_${_nextServerLogHandlerId++}';
+    _serverLogHandlers[listenerId] = handler;
+    _applyServerLogListenerState();
+    return listenerId;
+  }
+
+  void removeServerLogListener(String listenerId) {
+    _serverLogHandlers.remove(listenerId);
+    _applyServerLogListenerState();
+  }
+
+  void setServerLogListenerLevel(int level) {
+    _serverLogListenerLevel = level;
+    _applyServerLogListenerState();
+  }
 
   void connect({required String serverUrl, required String apiToken, Map<String, String>? headers}) {
     final normalizedServerUrl = _normalizeServerUrl(serverUrl);
@@ -90,6 +148,7 @@ class ABSSocketClient {
 
     socket.on("init", (dynamic payload) {
       logger('Socket authenticated successfully', tag: 'ABSSocketClient', level: InfoLevel.debug);
+      _applyServerLogListenerState();
     });
 
     socket.on("invalid_token", (dynamic payload) {
@@ -147,6 +206,186 @@ class ABSSocketClient {
         logger('Failed to parse item_updated payload: $e\n$s', tag: 'ABSSocketClient', level: InfoLevel.error);
       }
     });
+
+    socket.on("batch_quickmatch_complete", (dynamic payload) {
+      final payloadJson = _payloadToJson(payload);
+      if (payloadJson == null) {
+        logger(
+          'Received malformed batch_quickmatch_complete payload: ${_stringifyPayload(payload)}',
+          tag: 'ABSSocketClient',
+          level: InfoLevel.warning,
+        );
+        return;
+      }
+
+      try {
+        final success = _boolFromDynamic(payloadJson['success']);
+        final updates = _intFromDynamic(payloadJson['updates']);
+        final unmatched = _intFromDynamic(payloadJson['unmatched']);
+        _onBatchQuickMatchComplete(success: success, updates: updates, unmatched: unmatched);
+        logger(
+          'Processed batch_quickmatch_complete event (success=$success, updates=$updates, unmatched=$unmatched)',
+          tag: 'ABSSocketClient',
+          level: InfoLevel.debug,
+        );
+      } catch (e, s) {
+        logger(
+          'Failed to parse batch_quickmatch_complete payload: $e\n$s',
+          tag: 'ABSSocketClient',
+          level: InfoLevel.error,
+        );
+      }
+    });
+
+    socket.on("task_started", (dynamic payload) {
+      final task = _taskFromPayload(payload, eventName: 'task_started');
+      if (task == null) {
+        return;
+      }
+
+      _onTaskStarted(task);
+      logger(
+        'Processed task_started event for action ${task.action} (${task.id})',
+        tag: 'ABSSocketClient',
+        level: InfoLevel.debug,
+      );
+    });
+
+    socket.on("task_finished", (dynamic payload) {
+      final task = _taskFromPayload(payload, eventName: 'task_finished');
+      if (task == null) {
+        return;
+      }
+
+      _onTaskFinished(task);
+      logger(
+        'Processed task_finished event for action ${task.action} (${task.id})',
+        tag: 'ABSSocketClient',
+        level: InfoLevel.debug,
+      );
+    });
+
+    socket.on("task_updated", (dynamic payload) {
+      final task = _taskFromPayload(payload, eventName: 'task_updated');
+      if (task == null) {
+        return;
+      }
+
+      _onTaskUpdated(task);
+      logger(
+        'Processed task_updated event for action ${task.action} (${task.id})',
+        tag: 'ABSSocketClient',
+        level: InfoLevel.debug,
+      );
+    });
+
+    socket.on("metadata_embed_queue_update", (dynamic payload) {
+      final payloadJson = _payloadToJson(payload);
+      if (payloadJson == null) {
+        logger(
+          'Received malformed metadata_embed_queue_update payload: ${_stringifyPayload(payload)}',
+          tag: 'ABSSocketClient',
+          level: InfoLevel.warning,
+        );
+        return;
+      }
+
+      final libraryItemId = _stringFromDynamic(payloadJson['libraryItemId']);
+      if (libraryItemId == null || libraryItemId.isEmpty) {
+        logger(
+          'metadata_embed_queue_update payload missing libraryItemId: ${_stringifyPayload(payload)}',
+          tag: 'ABSSocketClient',
+          level: InfoLevel.warning,
+        );
+        return;
+      }
+
+      final queued = _boolFromDynamic(payloadJson['queued']);
+      _onMetadataEmbedQueueUpdate(libraryItemId: libraryItemId, queued: queued);
+    });
+
+    socket.on("track_started", (dynamic payload) {
+      final payloadJson = _payloadToJson(payload);
+      if (payloadJson == null) {
+        return;
+      }
+
+      final libraryItemId = _stringFromDynamic(payloadJson['libraryItemId']);
+      final ino = _stringFromDynamic(payloadJson['ino']);
+      if (libraryItemId == null || libraryItemId.isEmpty || ino == null || ino.isEmpty) {
+        return;
+      }
+
+      _onTrackStarted(libraryItemId: libraryItemId, ino: ino);
+    });
+
+    socket.on("track_progress", (dynamic payload) {
+      final payloadJson = _payloadToJson(payload);
+      if (payloadJson == null) {
+        return;
+      }
+
+      final libraryItemId = _stringFromDynamic(payloadJson['libraryItemId']);
+      final ino = _stringFromDynamic(payloadJson['ino']);
+      final progress = _doubleFromDynamic(payloadJson['progress']);
+
+      if (libraryItemId == null || libraryItemId.isEmpty || ino == null || ino.isEmpty) {
+        return;
+      }
+
+      _onTrackProgress(libraryItemId: libraryItemId, ino: ino, progress: progress);
+    });
+
+    socket.on("track_finished", (dynamic payload) {
+      final payloadJson = _payloadToJson(payload);
+      if (payloadJson == null) {
+        return;
+      }
+
+      final libraryItemId = _stringFromDynamic(payloadJson['libraryItemId']);
+      final ino = _stringFromDynamic(payloadJson['ino']);
+      if (libraryItemId == null || libraryItemId.isEmpty || ino == null || ino.isEmpty) {
+        return;
+      }
+
+      _onTrackFinished(libraryItemId: libraryItemId, ino: ino);
+    });
+
+    socket.on("task_progress", (dynamic payload) {
+      final payloadJson = _payloadToJson(payload);
+      if (payloadJson == null) {
+        return;
+      }
+
+      final libraryItemId = _stringFromDynamic(payloadJson['libraryItemId']);
+      if (libraryItemId == null || libraryItemId.isEmpty) {
+        return;
+      }
+
+      final progress = _doubleFromDynamic(payloadJson['progress']);
+      _onTaskProgress(libraryItemId: libraryItemId, progress: progress);
+    });
+
+    socket.on("log", (dynamic payload) {
+      final payloadJson = _payloadToJson(payload);
+      if (payloadJson == null) {
+        logger(
+          'Received malformed log payload: ${_stringifyPayload(payload)}',
+          tag: 'ABSSocketClient',
+          level: InfoLevel.warning,
+        );
+        return;
+      }
+
+      final handlers = _serverLogHandlers.values.toList(growable: false);
+      for (final handler in handlers) {
+        try {
+          handler(payloadJson);
+        } catch (e, s) {
+          logger('Server log handler failed: $e\n$s', tag: 'ABSSocketClient', level: InfoLevel.warning);
+        }
+      }
+    });
   }
 
   void _authenticateSocket() {
@@ -175,6 +414,25 @@ class ABSSocketClient {
     return null;
   }
 
+  AbsTask? _taskFromPayload(dynamic payload, {required String eventName}) {
+    final payloadJson = _payloadToJson(payload);
+    if (payloadJson == null) {
+      logger(
+        'Received malformed $eventName payload: ${_stringifyPayload(payload)}',
+        tag: 'ABSSocketClient',
+        level: InfoLevel.warning,
+      );
+      return null;
+    }
+
+    try {
+      return AbsTask.fromJson(payloadJson);
+    } catch (e, s) {
+      logger('Failed to parse $eventName payload: $e\n$s', tag: 'ABSSocketClient', level: InfoLevel.error);
+      return null;
+    }
+  }
+
   String _normalizeServerUrl(String serverUrl) {
     if (serverUrl.endsWith('/')) {
       return serverUrl.substring(0, serverUrl.length - 1);
@@ -198,6 +456,79 @@ class ABSSocketClient {
     } catch (_) {
       return '<unprintable>';
     }
+  }
+
+  int _intFromDynamic(dynamic value) {
+    if (value is int) {
+      return value;
+    }
+    if (value is num) {
+      return value.toInt();
+    }
+    if (value is String) {
+      return int.tryParse(value.trim()) ?? 0;
+    }
+    return 0;
+  }
+
+  double _doubleFromDynamic(dynamic value) {
+    if (value is double) {
+      return value;
+    }
+    if (value is num) {
+      return value.toDouble();
+    }
+    if (value is String) {
+      return double.tryParse(value.trim()) ?? 0;
+    }
+    return 0;
+  }
+
+  String? _stringFromDynamic(dynamic value) {
+    if (value == null) {
+      return null;
+    }
+
+    if (value is String) {
+      final trimmed = value.trim();
+      return trimmed.isEmpty ? null : trimmed;
+    }
+
+    final asString = value.toString().trim();
+    return asString.isEmpty ? null : asString;
+  }
+
+  bool _boolFromDynamic(dynamic value) {
+    if (value is bool) {
+      return value;
+    }
+    if (value is num) {
+      return value != 0;
+    }
+    if (value is String) {
+      final normalized = value.trim().toLowerCase();
+      if (normalized == 'true' || normalized == '1') {
+        return true;
+      }
+      if (normalized == 'false' || normalized == '0') {
+        return false;
+      }
+    }
+    return false;
+  }
+
+  void _applyServerLogListenerState() {
+    final socket = _socket;
+    if (socket == null || !socket.connected) {
+      return;
+    }
+
+    if (_serverLogHandlers.isEmpty) {
+      socket.emit('remove_log_listener');
+      return;
+    }
+
+    socket.emit('set_log_listener', _serverLogListenerLevel);
   }
 
   void _disposeSocket() {

@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/api/library_items/playback_session.dart';
 import 'package:yaabsa/components/common/connection_issue_view.dart';
 import 'package:yaabsa/models/advanced_listening_analytics_state.dart';
 import 'package:yaabsa/models/advanced_listening_stats.dart';
 import 'package:yaabsa/provider/common/stats_provider.dart';
+import 'package:yaabsa/screens/main/user_listening_sessions_view.dart';
 import 'package:yaabsa/screens/main/stats/stats_advanced_dashboard.dart';
 import 'package:yaabsa/screens/main/stats/stats_activity_section.dart';
 import 'package:yaabsa/screens/main/stats/stats_activity_totals_card.dart';
 import 'package:yaabsa/screens/main/stats/stats_expandable_panel.dart';
+import 'package:yaabsa/screens/main/stats/stats_navigation_panel.dart';
 import 'package:yaabsa/screens/main/stats/stats_recent_sessions_list.dart';
 import 'package:yaabsa/screens/main/stats/stats_section_card.dart';
 import 'package:yaabsa/screens/main/stats/stats_summary_grid.dart';
@@ -117,8 +120,7 @@ class _StatsViewState extends ConsumerState<StatsView> {
     return const AsyncValue.loading();
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildOverviewTab() {
     final listeningStatsAsync = ref.watch(listeningStatsProvider);
     final activityAsync = ref.watch(listeningActivityStatsProvider);
     final yearStatsAsync = _yearInRewindExpanded ? ref.watch(yearInReviewStatsProvider(_selectedYear)) : null;
@@ -132,8 +134,6 @@ class _StatsViewState extends ConsumerState<StatsView> {
         physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsets.all(context.isMobile ? 12 : 18),
         children: [
-          Text('Stats', style: Theme.of(context).textTheme.headlineSmall),
-          const SizedBox(height: 12),
           listeningStatsAsync.when(
             skipLoadingOnRefresh: true,
             skipLoadingOnReload: true,
@@ -283,12 +283,40 @@ class _StatsViewState extends ConsumerState<StatsView> {
                           child: Center(child: CircularProgressIndicator()),
                         ),
                 ),
+                const SizedBox(height: 10),
+                StatsNavigationPanel(
+                  title: 'Sessions',
+                  icon: Icons.history_rounded,
+                  onTap: () {
+                    context.push(UserListeningSessionsView.routeName);
+                  },
+                ),
               ],
             ),
           ),
           const SizedBox(height: 24),
         ],
       ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: EdgeInsets.fromLTRB(
+            context.isMobile ? 12 : 18,
+            context.isMobile ? 10 : 14,
+            context.isMobile ? 12 : 18,
+            0,
+          ),
+          child: Text('Stats', style: Theme.of(context).textTheme.headlineSmall),
+        ),
+        const SizedBox(height: 8),
+        Expanded(child: _buildOverviewTab()),
+      ],
     );
   }
 }

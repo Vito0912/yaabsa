@@ -8,7 +8,7 @@ part of 'library_item_size_stats.dart';
 
 _LibraryItemSizeStats _$LibraryItemSizeStatsFromJson(Map<String, dynamic> json) => _LibraryItemSizeStats(
   id: json['id'] as String,
-  size: (json['size'] as num).toInt(),
+  size: jsonIntRequiredFromDynamic(json['size']),
   title: json['title'] as String,
 );
 

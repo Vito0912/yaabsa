@@ -13,6 +13,7 @@ import 'package:yaabsa/screens/main/collection_detail_view.dart';
 import 'package:yaabsa/screens/main/narrator_detail_view.dart';
 import 'package:yaabsa/screens/main/playlist_detail_view.dart';
 import 'package:yaabsa/screens/main/series_detail_view.dart';
+import 'package:yaabsa/screens/main/user_listening_sessions_view.dart';
 import 'package:yaabsa/screens/player/play_history_view.dart';
 import 'package:yaabsa/screens/player/player.dart';
 import 'package:yaabsa/screens/player/subtitle_reading_mode.dart';
@@ -20,11 +21,18 @@ import 'package:yaabsa/screens/reader/reader.dart';
 import 'package:yaabsa/screens/settings/android_auto/android_auto_library_settings.dart';
 import 'package:yaabsa/screens/settings/android_auto/android_auto_podcast_library_settings.dart';
 import 'package:yaabsa/screens/settings/android_auto_settings.dart';
+import 'package:yaabsa/screens/settings/admin_item_metadata_utils_settings.dart';
+import 'package:yaabsa/screens/settings/admin_server_library_stats_settings.dart';
+import 'package:yaabsa/screens/settings/admin_server_logs_settings.dart';
+import 'package:yaabsa/screens/settings/admin_server_sessions_settings.dart';
+import 'package:yaabsa/screens/settings/admin_server_settings.dart';
+import 'package:yaabsa/screens/settings/admin_server_users_settings.dart';
 import 'package:yaabsa/screens/settings/appearance_settings.dart';
 import 'package:yaabsa/screens/settings/caching/caching_general_settings.dart';
 import 'package:yaabsa/screens/settings/caching/caching_route_settings.dart';
 import 'package:yaabsa/screens/settings/caching_settings.dart';
 import 'package:yaabsa/screens/settings/library_settings.dart';
+import 'package:yaabsa/screens/settings/path_tag_genre_update_settings.dart';
 import 'package:yaabsa/screens/settings/player/global_player_settings.dart';
 import 'package:yaabsa/screens/settings/player/player_settings.dart';
 import 'package:yaabsa/screens/settings/player/player_settings_general.dart';
@@ -37,6 +45,7 @@ import 'package:yaabsa/screens/settings/server_connection_settings.dart';
 import 'package:yaabsa/screens/settings/server_management_settings.dart';
 import 'package:yaabsa/screens/settings/settings_screen.dart';
 import 'package:yaabsa/screens/settings/theme_settings.dart';
+import 'package:yaabsa/screens/settings/tools_settings.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/handler/tray_handler.dart';
 
@@ -144,7 +153,19 @@ final globalRouter = GoRouter(
           path: '/ebook/:id',
           builder: (context, state) => Reader(itemId: state.pathParameters['id']!),
         ),
-        GoRoute(path: PlayHistoryView.routeName, builder: (context, state) => PlayHistoryView()),
+        GoRoute(
+          path: PlayHistoryView.routeName,
+          builder: (context, state) {
+            final itemId = state.uri.queryParameters['itemId'];
+            final episodeId = state.uri.queryParameters['episodeId'];
+            final itemTitle = state.uri.queryParameters['itemTitle'];
+            return PlayHistoryView(itemId: itemId, episodeId: episodeId, itemTitle: itemTitle);
+          },
+        ),
+        GoRoute(
+          path: UserListeningSessionsView.routeName,
+          builder: (context, state) => const UserListeningSessionsView(),
+        ),
         ShellRoute(
           builder: (BuildContext context, GoRouterState state, Widget child) {
             return child;
@@ -178,6 +199,35 @@ final globalRouter = GoRouter(
                     GoRoute(
                       path: ServerManagementSettings.routeName,
                       builder: (context, state) => const ServerManagementSettings(),
+                    ),
+                    GoRoute(
+                      path: AdminServerSettings.routeName,
+                      builder: (context, state) => const AdminServerSettings(),
+                    ),
+                    GoRoute(
+                      path: AdminServerLogsSettings.routeName,
+                      builder: (context, state) => const AdminServerLogsSettings(),
+                    ),
+                    GoRoute(
+                      path: AdminServerLibraryStatsSettings.routeName,
+                      builder: (context, state) => const AdminServerLibraryStatsSettings(),
+                    ),
+                    GoRoute(
+                      path: AdminServerSessionsSettings.routeName,
+                      builder: (context, state) => const AdminServerSessionsSettings(),
+                    ),
+                    GoRoute(
+                      path: AdminServerUsersSettings.routeName,
+                      builder: (context, state) => const AdminServerUsersSettings(),
+                    ),
+                    GoRoute(
+                      path: AdminItemMetadataUtilsSettings.routeName,
+                      builder: (context, state) => const AdminItemMetadataUtilsSettings(),
+                    ),
+                    GoRoute(path: ToolsSettings.routeName, builder: (context, state) => const ToolsSettings()),
+                    GoRoute(
+                      path: PathTagGenreUpdateSettings.routeName,
+                      builder: (context, state) => const PathTagGenreUpdateSettings(),
                     ),
                     GoRoute(
                       path: CachingGeneralSettings.routeName,

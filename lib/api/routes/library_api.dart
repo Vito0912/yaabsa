@@ -1,3 +1,5 @@
+import 'package:yaabsa/api/library/author_details.dart';
+import 'package:yaabsa/api/library/library_authors.dart';
 import 'package:yaabsa/api/library/library_items.dart';
 import 'package:yaabsa/api/library/personalized_library.dart';
 import 'package:yaabsa/api/library/request/library_items_request.dart';
@@ -138,6 +140,62 @@ class LibraryApi {
       extra: extra,
       dio: _dio,
       queryParams: request.toJson(),
+    );
+  }
+
+  Future<Response<LibraryAuthors>> getLibraryAuthors(
+    String libraryId,
+    LibraryItemsRequest request, {
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiGetRequest(
+      route: '/api/libraries/$libraryId/authors',
+      fromJson: (data) => LibraryAuthors.fromJson(data as Map<String, dynamic>),
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
+      queryParams: request.toJson(),
+    );
+  }
+
+  Future<Response<AuthorDetails>> getAuthorById(
+    String authorId, {
+    String? include,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    final queryParams = <String, dynamic>{};
+    if (include != null && include.isNotEmpty) {
+      queryParams['include'] = include;
+    }
+
+    return ABSApi.makeApiGetRequest(
+      route: '/api/authors/$authorId',
+      fromJson: (data) => AuthorDetails.fromJson(data as Map<String, dynamic>),
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
+      queryParams: queryParams,
+    );
+  }
+
+  Future<bool> deleteAuthor(
+    String authorId, {
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiDeleteRequest(
+      route: '/api/authors/$authorId',
+      dio: _dio,
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
     );
   }
 

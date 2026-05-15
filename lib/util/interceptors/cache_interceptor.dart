@@ -85,9 +85,22 @@ Future<void> invalidateCachedLibraryItemEntries({
     return;
   }
 
-  final routeFragments = <String>{'/api/items/$itemId'};
+  final routeFragments = <String>{
+    '/api/items/$itemId',
+    '/api/playlists',
+    '/api/collections',
+    '/api/series/',
+    '/api/authors/',
+  };
   if (libraryId != null && libraryId.isNotEmpty) {
-    routeFragments.add('/api/libraries/$libraryId/items');
+    routeFragments.addAll(<String>{
+      '/api/libraries/$libraryId',
+      '/api/libraries/$libraryId/items',
+      '/api/libraries/$libraryId/personalized',
+      '/api/libraries/$libraryId/search',
+      '/api/libraries/$libraryId/series',
+      '/api/libraries/$libraryId/authors',
+    });
   }
 
   final records = await _cacheStore.find(cacheDb);
