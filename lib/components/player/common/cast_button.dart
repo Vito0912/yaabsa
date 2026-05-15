@@ -83,12 +83,11 @@ Future<_ResolvedCastTrack?> _resolveRemoteCastTrack({
       mediaPlayer: '$appName cast',
     );
 
-    final remoteSession =
-        (await api.getLibraryItemApi().playLibraryItem(
-          media.itemId,
-          episodeId: media.episodeId,
-          playRequest: playRequest,
-        )).data;
+    final remoteSession = (await api.getLibraryItemApi().playLibraryItem(
+      media.itemId,
+      episodeId: media.episodeId,
+      playRequest: playRequest,
+    )).data;
 
     if (remoteSession == null) {
       return null;
