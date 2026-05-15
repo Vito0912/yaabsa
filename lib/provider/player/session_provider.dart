@@ -208,11 +208,11 @@ class SessionRepository {
       return false;
     }
 
-    final MediaProgress? updatedProgress = await ref
-        .read(mediaProgressProvider.notifier)
-        .updateMediaProgress(_currentSession!.libraryItemId, currentTime, _currentSession!);
-
     if (_isLocalSession || !canReachServer) {
+      final MediaProgress? updatedProgress = await ref
+          .read(mediaProgressProvider.notifier)
+          .updateMediaProgress(_currentSession!.libraryItemId, currentTime, _currentSession!);
+
       logger(
         _isLocalSession
             ? 'Session is local; storing sync locally'
@@ -226,6 +226,10 @@ class SessionRepository {
 
     final ABSApi? api = ref.read(absApiProvider);
     if (api == null) {
+      final MediaProgress? updatedProgress = await ref
+          .read(mediaProgressProvider.notifier)
+          .updateMediaProgress(_currentSession!.libraryItemId, currentTime, _currentSession!);
+
       logger('No API available, storing sync locally.', tag: 'SessionRepository', level: InfoLevel.warning);
       return _addLocal(currentTime, timeListened, updatedProgress);
     }
@@ -245,6 +249,10 @@ class SessionRepository {
       return result;
     } catch (e) {
       logger('Failed to sync open session', tag: 'SessionRepository', level: InfoLevel.warning);
+      final MediaProgress? updatedProgress = await ref
+          .read(mediaProgressProvider.notifier)
+          .updateMediaProgress(_currentSession!.libraryItemId, currentTime, _currentSession!);
+
       return _addLocal(currentTime, timeListened, updatedProgress);
     }
   }

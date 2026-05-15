@@ -102,7 +102,7 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
     final Map<String, MediaProgress> result = {};
     for (var p in progressList) {
       final key = _progressKeyFromMediaProgress(p);
-      if (!result.containsKey(key) || ((p.lastUpdate ?? 0) > (result[key]?.lastUpdate ?? 0))) {
+      if (!result.containsKey(key) || (_lastUpdatedMillis(p) > _lastUpdatedMillis(result[key]))) {
         result[key] = p;
       }
     }
@@ -332,9 +332,20 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
 
       await _persistProgress(remoteProgress);
 
-      final MediaProgress resolvedProgress = localProgress == null
-          ? remoteProgress
-          : _preferMostRecentProgress(localProgress, remoteProgress, preferIncomingOnTie: true);
+      late final MediaProgress resolvedProgress;
+      if (localProgress == null) {
+        resolvedProgress = remoteProgress;
+      } else if (localProgress.isFinished != remoteProgress.isFinished) {
+        resolvedProgress = remoteProgress;
+        logger(
+          'Preferring remote progress for $key due to finished-state change '
+          '(local=${localProgress.isFinished}, remote=${remoteProgress.isFinished}).',
+          tag: 'MediaProgressProvider',
+          level: InfoLevel.debug,
+        );
+      } else {
+        resolvedProgress = _preferMostRecentProgress(localProgress, remoteProgress, preferIncomingOnTie: true);
+      }
 
       final Map<String, MediaProgress> currentMap = state.asData?.value ?? <String, MediaProgress>{};
       final Map<String, MediaProgress> updatedMap = {...currentMap, key: resolvedProgress};
@@ -456,15 +467,29 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
     final Map<String, MediaProgress> currentMap = state.asData?.value ?? <String, MediaProgress>{};
     final existingProgress = currentMap[key];
 
-    if (_lastUpdatedMillis(progress) < _lastUpdatedMillis(existingProgress)) {
+    final incomingLastUpdated = _lastUpdatedMillis(progress);
+    final existingLastUpdated = _lastUpdatedMillis(existingProgress);
+    final finishedStateChanged = existingProgress != null && progress.isFinished != existingProgress.isFinished;
+
+    if (incomingLastUpdated < existingLastUpdated && !finishedStateChanged) {
       logger(
-        'Ignoring stale remote progress update for key $key.',
+        'Ignoring stale remote progress update for key $key '
+        '(incoming=$incomingLastUpdated, existing=$existingLastUpdated).',
         tag: 'MediaProgressProvider',
         level: InfoLevel.debug,
       );
 
       unawaited(_persistProgress(progress));
       return;
+    }
+
+    if (incomingLastUpdated < existingLastUpdated && finishedStateChanged) {
+      logger(
+        'Accepting older remote progress update for key $key due to finished-state change '
+        '(incomingFinished=${progress.isFinished}, existingFinished=${existingProgress.isFinished}).',
+        tag: 'MediaProgressProvider',
+        level: InfoLevel.debug,
+      );
     }
 
     state = AsyncData({...currentMap, key: progress});
