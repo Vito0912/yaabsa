@@ -14,6 +14,7 @@ import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
 import 'package:yaabsa/components/common/scroll_to_top_button.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/common/playlist_provider.dart';
+import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
@@ -28,6 +29,7 @@ class PlaylistDetailView extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final scrollController = useScrollController();
     final selectedLibrary = ref.watch(selectedLibraryProvider);
+    final serverReachable = ref.watch(serverStatusProvider).value ?? false;
     if (selectedLibrary == null) {
       return const Center(child: Text('No library selected. Please select a library via the switcher.'));
     }
@@ -49,6 +51,12 @@ class PlaylistDetailView extends HookConsumerWidget {
         return const Center(child: CircularProgressIndicator());
       }
       if (allPlaylistsAsync.hasError) {
+        if (!serverReachable) {
+          return ConnectionIssueView.offline(
+            onRetry: () => ref.read(playlistsProvider(libraryId).notifier).refresh(withLoading: true),
+          );
+        }
+
         return ConnectionIssueView.requestFailed(
           error: allPlaylistsAsync.error ?? Exception('Unknown playlist loading error.'),
           title: 'Playlist details could not be loaded',

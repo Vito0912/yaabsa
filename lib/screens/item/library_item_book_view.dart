@@ -12,6 +12,7 @@ import 'package:yaabsa/components/app/item/item_progress_actions.dart';
 import 'package:yaabsa/components/app/item/library_item_view_components.dart';
 import 'package:yaabsa/components/common/connection_issue_view.dart';
 import 'package:yaabsa/components/common/cover_zoom_view.dart';
+import 'package:yaabsa/components/common/loading_snackbar.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/models/internal_download.dart';
@@ -187,9 +188,13 @@ class LibraryItemBookView extends ConsumerWidget {
                                       return;
                                     }
                                     try {
-                                      final result = await downloadHandler.deleteDownloadedItem(
-                                        storedDownload,
-                                        userId: currentUser.id,
+                                      final result = await runWithLoadingSnackBar(
+                                        context: context,
+                                        message: 'Deleting downloaded files...',
+                                        action: () => downloadHandler.deleteDownloadedItem(
+                                          storedDownload,
+                                          userId: currentUser.id,
+                                        ),
                                       );
                                       if (!context.mounted) {
                                         return;

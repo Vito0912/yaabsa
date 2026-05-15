@@ -15,6 +15,7 @@ import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/handler/player_history_handler.dart';
+import 'package:yaabsa/util/local_cover_path.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/player_utils.dart';
 import 'package:dio/dio.dart';
@@ -158,7 +159,11 @@ class SessionRepository {
 
     final hasCoverPath =
         (_currentSession!.coverPath?.isNotEmpty ?? false) || (_currentSession!.libraryItem?.hasCover ?? false);
-    final localCoverUri = _localCoverUriFromPath(downloaded?.coverPath);
+    final resolvedLocalCoverPath = await resolveDisplayCoverPath(
+      downloaded?.coverPath,
+      cacheKey: '$userId:$itemId:${episodeId ?? 'item'}',
+    );
+    final localCoverUri = _localCoverUriFromPath(resolvedLocalCoverPath ?? downloaded?.coverPath);
     final remoteCoverUri = hasCoverPath && api != null
         ? api.getLibraryItemApi().getCoverUri(_currentSession!.libraryItemId)
         : null;
