@@ -27,7 +27,9 @@ Download the latest installer from the releases page.
 
 ### MacOS, iOS
 
-Both of them will follow later. Both can already be built from source.
+[Testflight](https://testflight.apple.com/join/fSyXDKFf)\
+
+Unsigned builds can be downloaded from the releases page.
 
 ## Usage of AI
 
@@ -111,15 +113,21 @@ Below is a list of all features, but I want to *highlight* a few, as this client
 
 ### Server Management
 
-| Feature            | Android | iOS  | Windows | MacOS | Linux |
-| ------------------ | ------- | ---- | ------- | ----- | ----- |
-| Manage Playlists   | ✅      | ✅   | ✅      | ✅    | ✅    |
-| Manage Collections | ✅      | ✅   | ✅      | ✅    | ✅    |
-| Edit items         | ✅      | ✅   | ✅      | ✅    | ✅    |
-| Delete items       | ✅      | ✅   | ✅      | ✅    | ✅    |
-| Upload items       | ✅      | ✅   | ✅      | ✅    | ✅    |
-| Match items        | 🅿️      | 🅿️   | 🅿️      | 🅿️    | 🅿️    |
-| Bulk editing       | 🅿️      | 🅿️   | 🅿️      | 🅿️    | 🅿️    |
+| Feature               | Android | iOS  | Windows | MacOS | Linux |
+| --------------------- | ------- | ---- | ------- | ----- | ----- |
+| Manage Playlists      | ✅      | ✅   | ✅      | ✅    | ✅    |
+| Manage Collections    | ✅      | ✅   | ✅      | ✅    | ✅    |
+| Edit items            | ✅      | ✅   | ✅      | ✅    | ✅    |
+| Delete items          | ✅      | ✅   | ✅      | ✅    | ✅    |
+| Upload items          | ✅      | ✅   | ✅      | ✅    | ✅    |
+| Match items           | ✅      | ✅   | ✅      | ✅    | ✅    |
+| Bulk editing          | 🅿️      | 🅿️   | 🅿️      | 🅿️    | 🅿️    |
+| User management       | ✅      | ✅   | ✅      | ✅    | ✅    |
+| Embedding/Encoding    | ✅      | ✅   | ✅      | ✅    | ✅    |
+| Metadata utils        | ✅      | ✅   | ✅      | ✅    | ✅    |
+| Listening Sessions\*  | ✅      | ✅   | ✅      | ✅    | ✅    |
+
+\* Also allows editing sessions
 
 ### Other Features
 
@@ -134,7 +142,7 @@ Below is a list of all features, but I want to *highlight* a few, as this client
 | Android Automotive  | ✅\**   | ❌   | ❌      | ❌    | ❌    |
 | Widgets             | ✅      | 🅿️   | ❌      | ❌    | 🅿️    |
 
-\* Only supports the default download location, due to sandboxing limitations. Will be addressed in the future.
+\* Only supports the default download location, due to sandboxing limitations. Will be addressed in the future.\
 \** On most cars, only the park experience works currently. More support is planned.
 
 ## Platform hints

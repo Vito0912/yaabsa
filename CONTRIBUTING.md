@@ -6,7 +6,11 @@ While developing, make sure you have a sperate process with the following comman
 dart run build_runner build --delete-conflicting-outputs; dart fix lib --apply; dart format lib
 ```
 
-TODO: Fix styling because macOS Layout differs and is bad
+This is recommended as this will be checked if you open a pull request.
+
+## Android
+
+You need to build and run the app via the `auto` flavor. This can be done through the command line with `flutter run --flavor auto -d <device_id>` or through your IDE by selecting the correct flavor in the run configuration.
 
 ## Running/Building iOS
 
