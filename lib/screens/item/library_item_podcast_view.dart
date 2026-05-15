@@ -9,6 +9,7 @@ import 'package:yaabsa/api/me/media_progress.dart';
 import 'package:yaabsa/components/app/item/item_more_actions_button.dart';
 import 'package:yaabsa/components/app/item/item_progress_actions.dart';
 import 'package:yaabsa/components/common/connection_issue_view.dart';
+import 'package:yaabsa/components/common/loading_snackbar.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/models/internal_download.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
@@ -409,7 +410,11 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
 
   Future<void> _deleteEpisodeDownload({required InternalDownload download, required String userId}) async {
     try {
-      final result = await downloadHandler.deleteDownloadedItem(download, userId: userId);
+      final result = await runWithLoadingSnackBar(
+        context: context,
+        message: 'Deleting downloaded files...',
+        action: () => downloadHandler.deleteDownloadedItem(download, userId: userId),
+      );
       if (!mounted) {
         return;
       }

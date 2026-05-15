@@ -18,6 +18,7 @@ import 'package:yaabsa/models/internal_download.dart';
 import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/util/android_saf.dart';
 import 'package:yaabsa/util/download_destination.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/network/request_headers.dart';
@@ -203,68 +204,70 @@ class DownloadHandler {
 
     final destination = await resolveDownloadTaskDestination(_downloader, customDownloadLocation, resolvedItem.id);
 
-    final downloadTasks = sourceFiles
-        .map((source) {
-          final taskId = _taskIdFor(source.ino, resolvedItem.id, episodeId);
-          final filename = _sanitizeFilename(
-            source.filename,
-            fileIndex: source.fileIndex,
-            fallbackExtension: source.extension,
-          );
-          final metaData = jsonEncode(
-            _CompletedTaskMetaData(
-              itemId: resolvedItem.id,
-              userId: user.id,
-              episodeId: episodeId,
-              track: source.track,
-              expectedFileCount: expectedFileCount,
-              fileInode: source.ino,
-              fileIndex: source.fileIndex,
-              fileKind: source.fileKind,
-              fileName: filename,
-              fileMimeType: source.mimeType,
-              saf: destination.saf,
-              libraryId: resolvedItem.libraryId,
-              serverUrl: server.url,
-              serverHost: server.host,
-              serverPort: server.port,
-              serverSsl: server.ssl,
-              title: resolvedItem.title,
-            ).toJson(),
-          );
+    final List<Task> downloadTasks = <Task>[];
+    for (final source in sourceFiles) {
+      final taskId = _taskIdFor(source.ino, resolvedItem.id, episodeId);
+      final filename = _sanitizeFilename(
+        source.filename,
+        fileIndex: source.fileIndex,
+        fallbackExtension: source.extension,
+      );
+      final metaData = jsonEncode(
+        _CompletedTaskMetaData(
+          itemId: resolvedItem.id,
+          userId: user.id,
+          episodeId: episodeId,
+          track: source.track,
+          expectedFileCount: expectedFileCount,
+          fileInode: source.ino,
+          fileIndex: source.fileIndex,
+          fileKind: source.fileKind,
+          fileName: filename,
+          fileMimeType: source.mimeType,
+          saf: destination.saf,
+          libraryId: resolvedItem.libraryId,
+          serverUrl: server.url,
+          serverHost: server.host,
+          serverPort: server.port,
+          serverSsl: server.ssl,
+          title: resolvedItem.title,
+        ).toJson(),
+      );
+      final downloadUrl = '${server.url}/api/items/${resolvedItem.id}/file/${source.ino}/download';
 
-          if (destination.usesUriTask) {
-            return UriDownloadTask(
-              group: resolvedItem.id,
-              taskId: taskId,
-              url: '${server.url}/api/items/${resolvedItem.id}/file/${source.ino}/download',
-              filename: filename,
-              displayName: resolvedItem.title,
-              headers: requestHeaders,
-              updates: Updates.statusAndProgress,
-              metaData: metaData,
-              retries: 3,
-              allowPause: true,
-              directoryUri: destination.directoryUri!,
-            );
-          }
-
-          return DownloadTask(
-            group: resolvedItem.id,
+      if (destination.usesUriTask) {
+        downloadTasks.add(
+          await _buildUriDownloadTask(
+            destination: destination,
+            item: resolvedItem,
+            source: source,
             taskId: taskId,
-            url: '${server.url}/api/items/${resolvedItem.id}/file/${source.ino}/download',
             filename: filename,
-            displayName: resolvedItem.title,
-            headers: requestHeaders,
-            baseDirectory: destination.baseDirectory!,
-            directory: destination.directory!,
-            updates: Updates.statusAndProgress,
+            requestHeaders: requestHeaders,
             metaData: metaData,
-            retries: 3,
-            allowPause: true,
-          );
-        })
-        .toList(growable: false);
+            downloadUrl: downloadUrl,
+          ),
+        );
+        continue;
+      }
+
+      downloadTasks.add(
+        DownloadTask(
+          group: resolvedItem.id,
+          taskId: taskId,
+          url: downloadUrl,
+          filename: filename,
+          displayName: resolvedItem.title,
+          headers: requestHeaders,
+          baseDirectory: destination.baseDirectory!,
+          directory: destination.directory!,
+          updates: Updates.statusAndProgress,
+          metaData: metaData,
+          retries: 3,
+          allowPause: true,
+        ),
+      );
+    }
 
     if (downloadTasks.length == 1) {
       _downloader.configureNotificationForGroup(
@@ -351,6 +354,57 @@ class DownloadHandler {
     await _updateTaskQueue();
   }
 
+  Future<UriDownloadTask> _buildUriDownloadTask({
+    required DownloadTaskDestination destination,
+    required LibraryItem item,
+    required _DownloadSourceFile source,
+    required String taskId,
+    required String filename,
+    required Map<String, String> requestHeaders,
+    required String metaData,
+    required String downloadUrl,
+  }) async {
+    final baseTask = UriDownloadTask(
+      group: item.id,
+      taskId: taskId,
+      url: downloadUrl,
+      filename: filename,
+      displayName: item.title,
+      headers: requestHeaders,
+      updates: Updates.statusAndProgress,
+      metaData: metaData,
+      retries: 3,
+      allowPause: true,
+      directoryUri: destination.directoryUri!,
+    );
+
+    if (!_supportsAndroidSafPreparedFiles(destination)) {
+      return baseTask;
+    }
+
+    final preparedFileUri = await AndroidSafHelper.prepareDownloadFile(
+      rootTreeUri: destination.directoryUri!,
+      relativeDirectory: item.id,
+      filename: filename,
+      mimeType: source.mimeType,
+    );
+
+    if (preparedFileUri == null) {
+      throw Exception(
+        'Could not prepare the selected Android SAF folder for download. Please re-select the folder and try again.',
+      );
+    }
+
+    final taskJson = Map<String, dynamic>.from(baseTask.toJson())
+      ..['filename'] = AndroidSafHelper.packFilenameWithUri(filename, preparedFileUri);
+    return UriDownloadTask.fromJson(taskJson);
+  }
+
+  bool _supportsAndroidSafPreparedFiles(DownloadTaskDestination destination) {
+    final directoryUri = destination.directoryUri;
+    return Platform.isAndroid && destination.saf && directoryUri != null && directoryUri.scheme == 'content';
+  }
+
   Future<void> _storeCompletedDownload(TaskRecord update) async {
     try {
       final parsedMetaData = _parseMetaData(update.task.metaData);
@@ -407,7 +461,12 @@ class DownloadHandler {
       final trackUri = _trackUriFromStoredUrl(storedTrackUrl);
       final resolvedUser = await _resolveUserForDownload(parsedMetaData.userId);
 
-      final coverPath = await _storeCoverLocally(item: item, user: resolvedUser, trackUri: trackUri);
+      final coverPath = await _storeCoverLocally(
+        item: item,
+        user: resolvedUser,
+        trackUri: trackUri,
+        metaData: parsedMetaData,
+      );
 
       final sidecarPath = await _writeFileSidecar(
         fileUri: trackUri,
@@ -548,9 +607,36 @@ class DownloadHandler {
     }
   }
 
-  Future<String?> _storeCoverLocally({required LibraryItem? item, required User? user, required Uri? trackUri}) async {
+  Future<String?> _storeCoverLocally({
+    required LibraryItem? item,
+    required User? user,
+    required Uri? trackUri,
+    required _CompletedTaskMetaData metaData,
+  }) async {
     if (item == null || !item.hasCover || user == null) {
       return null;
+    }
+
+    final safRootUri = _resolveAndroidSafRootUri(trackUri: trackUri, userId: metaData.userId);
+    if (Platform.isAndroid && metaData.saf && trackUri?.scheme == 'content' && safRootUri != null) {
+      final coverBytes = await _downloadCoverBytes(user: user, itemId: item.id);
+      if (coverBytes == null || coverBytes.isEmpty) {
+        return null;
+      }
+
+      final extension = _coverExtensionFor(item, coverBytes: coverBytes);
+      final coverUri = await AndroidSafHelper.prepareDownloadFile(
+        rootTreeUri: safRootUri,
+        relativeDirectory: metaData.itemId,
+        filename: 'cover$extension',
+        mimeType: _mimeTypeForExtension(extension),
+      );
+      if (coverUri == null) {
+        return null;
+      }
+
+      final saved = await _writeBytesToUri(coverUri, coverBytes);
+      return saved ? coverUri.toString() : null;
     }
 
     final trackFile = _trackFileFromUri(trackUri);
@@ -668,12 +754,8 @@ class DownloadHandler {
     required _CompletedTaskMetaData metaData,
     required String? coverPath,
   }) async {
-    final downloadedFile = _trackFileFromUri(fileUri);
-    if (downloadedFile == null) {
-      return null;
-    }
+    final downloadedFileName = _resolveDownloadedFileName(fileUri: fileUri, metaData: metaData);
 
-    final sidecarFile = File('${downloadedFile.path}.yaabsa.json');
     final payload = DownloadSidecar(
       itemId: metaData.itemId,
       episodeId: metaData.episodeId,
@@ -693,11 +775,35 @@ class DownloadHandler {
       fileInode: metaData.fileInode,
       fileIndex: metaData.fileIndex,
       fileKind: metaData.fileKind,
-      fileName: p.basename(downloadedFile.path),
+      fileName: downloadedFileName,
       fileMimeType: metaData.fileMimeType ?? metaData.track?.mimeType,
       coverPath: coverPath,
       createdAtEpochMs: DateTime.now().millisecondsSinceEpoch,
     );
+
+    final safRootUri = _resolveAndroidSafRootUri(trackUri: fileUri, userId: metaData.userId);
+    if (Platform.isAndroid && metaData.saf && fileUri?.scheme == 'content' && safRootUri != null) {
+      final sidecarFilename = '$downloadedFileName.yaabsa.json';
+      final sidecarUri = await AndroidSafHelper.prepareDownloadFile(
+        rootTreeUri: safRootUri,
+        relativeDirectory: metaData.itemId,
+        filename: sidecarFilename,
+        mimeType: 'application/json',
+      );
+      if (sidecarUri == null) {
+        return null;
+      }
+
+      final saved = await _writeBytesToUri(sidecarUri, Uint8List.fromList(utf8.encode(jsonEncode(payload.toJson()))));
+      return saved ? sidecarUri.toString() : null;
+    }
+
+    final downloadedFile = _trackFileFromUri(fileUri);
+    if (downloadedFile == null) {
+      return null;
+    }
+
+    final sidecarFile = File('${downloadedFile.path}.yaabsa.json');
 
     try {
       await sidecarFile.parent.create(recursive: true);
@@ -710,6 +816,102 @@ class DownloadHandler {
         level: InfoLevel.warning,
       );
       return null;
+    }
+  }
+
+  Uri? _resolveAndroidSafRootUri({required Uri? trackUri, required String userId}) {
+    final fromTrack = _deriveAndroidSafRootFromTrackUri(trackUri);
+    if (fromTrack != null) {
+      return fromTrack;
+    }
+    return _resolveAndroidSafRootUriForUser(userId);
+  }
+
+  Uri? _deriveAndroidSafRootFromTrackUri(Uri? trackUri) {
+    if (!Platform.isAndroid || trackUri == null || trackUri.scheme != 'content') {
+      return null;
+    }
+
+    final path = trackUri.path;
+    final treeMarker = '/tree/';
+    final documentMarker = '/document/';
+    final treeIndex = path.indexOf(treeMarker);
+    if (treeIndex < 0) {
+      return null;
+    }
+
+    final treeIdStart = treeIndex + treeMarker.length;
+    final documentIndex = path.indexOf(documentMarker, treeIdStart);
+    if (documentIndex < 0 || documentIndex <= treeIdStart) {
+      return null;
+    }
+
+    final encodedTreeId = path.substring(treeIdStart, documentIndex);
+    if (encodedTreeId.isEmpty) {
+      return null;
+    }
+
+    return trackUri.replace(path: '/tree/$encodedTreeId/document/$encodedTreeId');
+  }
+
+  Uri? _resolveAndroidSafRootUriForUser(String userId) {
+    if (!Platform.isAndroid) {
+      return null;
+    }
+
+    final rawLocation = _ref
+        .read(settingsManagerProvider.notifier)
+        .getUserSetting<String>(userId, SettingKeys.downloadPath, defaultValue: '');
+    final parsed = parseDownloadLocationSetting(rawLocation);
+    if (parsed == null || parsed.scheme != 'content') {
+      return null;
+    }
+    return parsed;
+  }
+
+  String _resolveDownloadedFileName({required Uri? fileUri, required _CompletedTaskMetaData metaData}) {
+    if (fileUri?.scheme == 'file') {
+      final fromUri = p.basename(fileUri?.path ?? '');
+      if (fromUri.isNotEmpty && fromUri != '.') {
+        return fromUri;
+      }
+    }
+
+    final fromMetaData = (metaData.fileName ?? '').trim();
+    if (fromMetaData.isNotEmpty) {
+      return fromMetaData;
+    }
+
+    final fromInode = metaData.fileInode.trim();
+    if (fromInode.isNotEmpty) {
+      return fromInode;
+    }
+
+    return 'download_${metaData.fileIndex + 1}';
+  }
+
+  Future<bool> _writeBytesToUri(Uri destinationUri, Uint8List bytes) async {
+    final tempFile = File(
+      p.join(
+        Directory.systemTemp.path,
+        'yaabsa_saf_${DateTime.now().microsecondsSinceEpoch}_${destinationUri.hashCode}.tmp',
+      ),
+    );
+
+    try {
+      await tempFile.parent.create(recursive: true);
+      await tempFile.writeAsBytes(bytes, flush: true);
+      final copiedUri = await _downloader.uri.copyFile(tempFile.uri, destinationUri);
+      return copiedUri != null;
+    } catch (e, s) {
+      logger('Failed to write bytes to URI $destinationUri: $e\n$s', tag: 'DownloadHandler', level: InfoLevel.warning);
+      return false;
+    } finally {
+      try {
+        if (await tempFile.exists()) {
+          await tempFile.delete();
+        }
+      } catch (_) {}
     }
   }
 

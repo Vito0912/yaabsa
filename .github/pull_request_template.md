@@ -9,6 +9,8 @@
 - [ ] Linux
 - [ ] Windows
 - [ ] Android (and Android Auto)
+- [ ] iOS
+- [ ] macOS
 - [ ] Android Automotive
 
 ## Additional Notes

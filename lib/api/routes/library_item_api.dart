@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:yaabsa/api/library_items/batch_quick_match_library_items_response.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/library_items/playback_session.dart';
@@ -388,6 +390,18 @@ class LibraryItemApi {
       return const CoverPlaceholder();
     }
 
+    final localCoverUri = _resolveLocalCoverUri(item);
+    final localCoverPath = localCoverUri == null ? null : _toLocalFilePath(localCoverUri);
+    if (localCoverPath != null) {
+      return Image.file(
+        File(localCoverPath),
+        width: width,
+        height: height,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => const CoverPlaceholder(),
+      );
+    }
+
     final uri = _buildCoverUri(id, item: item, width: width, height: height);
 
     return CachedNetworkImage(
@@ -408,6 +422,11 @@ class LibraryItemApi {
   }
 
   Uri _buildCoverUri(String id, {LibraryItem? item, double? width, double? height}) {
+    final localCoverUri = _resolveLocalCoverUri(item);
+    if (localCoverUri != null) {
+      return localCoverUri;
+    }
+
     final queryParams = <String, String>{};
 
     final widthPx = width?.round();
@@ -427,5 +446,56 @@ class LibraryItemApi {
 
     final base = Uri.parse('${_dio.options.baseUrl}/api/items/$id/cover');
     return queryParams.isEmpty ? base : base.replace(queryParameters: queryParams);
+  }
+
+  Uri? _resolveLocalCoverUri(LibraryItem? item) {
+    final rawCoverPath = item?.coverPath?.trim();
+    if (rawCoverPath == null || rawCoverPath.isEmpty) {
+      return null;
+    }
+
+    if (Platform.isWindows && RegExp(r'^[a-zA-Z]:[\\/]').hasMatch(rawCoverPath)) {
+      final file = File(rawCoverPath);
+      if (file.existsSync()) {
+        return file.uri;
+      }
+      return null;
+    }
+
+    final parsed = Uri.tryParse(rawCoverPath);
+    if (parsed == null) {
+      return null;
+    }
+
+    if (parsed.scheme.isEmpty) {
+      final file = File(rawCoverPath);
+      if (file.existsSync()) {
+        return file.uri;
+      }
+      return null;
+    }
+
+    if (parsed.scheme == 'file' || parsed.scheme == 'content' || parsed.scheme == 'urlbookmark') {
+      return parsed;
+    }
+
+    return null;
+  }
+
+  String? _toLocalFilePath(Uri uri) {
+    if (uri.scheme == 'file') {
+      try {
+        return uri.toFilePath(windows: Platform.isWindows);
+      } catch (_) {
+        return null;
+      }
+    }
+
+    if (uri.scheme.isEmpty) {
+      final path = uri.toString();
+      return path.isEmpty ? null : path;
+    }
+
+    return null;
   }
 }

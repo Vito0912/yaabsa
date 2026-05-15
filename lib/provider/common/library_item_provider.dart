@@ -4,6 +4,8 @@ import 'package:yaabsa/api/library/request/library_sort.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/util/interceptors/cache_interceptor.dart';
+import 'package:yaabsa/util/local_cover_path.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -288,8 +290,13 @@ Future<LibraryItem> libraryItem(Ref ref, String itemId, {String? episodeId}) asy
 
   final download = await db.getStoredDownload(itemId, absApi.user!.id, episodeId: episodeId);
   if (download != null && download.item != null) {
+    final resolvedCoverPath = await resolveDisplayCoverPath(
+      download.coverPath,
+      cacheKey: '${absApi.user!.id}:$itemId:${episodeId ?? 'item'}',
+    );
+
     logger('Returning local download for item $itemId', tag: 'libraryItemProvider', level: InfoLevel.debug);
-    return download.item!;
+    return _withLocalCoverPath(download.item!, resolvedCoverPath ?? download.coverPath);
   }
 
   try {
@@ -302,6 +309,42 @@ Future<LibraryItem> libraryItem(Ref ref, String itemId, {String? episodeId}) asy
   } catch (e) {
     throw Exception('Failed to fetch library item $itemId: $e');
   }
+}
+
+LibraryItem _withLocalCoverPath(LibraryItem item, String? coverPathOverride) {
+  final normalizedCoverPath = coverPathOverride?.trim();
+  if (normalizedCoverPath == null || normalizedCoverPath.isEmpty) {
+    return item;
+  }
+
+  final media = item.media;
+  if (media == null) {
+    return item;
+  }
+
+  final bookMedia = media.bookMedia;
+  if (bookMedia != null) {
+    if (bookMedia.coverPath == normalizedCoverPath) {
+      return item;
+    }
+
+    return item.copyWith(
+      media: media.copyWith(bookMedia: bookMedia.copyWith(coverPath: normalizedCoverPath)),
+    );
+  }
+
+  final podcastMedia = media.podcastMedia;
+  if (podcastMedia != null) {
+    if (podcastMedia.coverPath == normalizedCoverPath) {
+      return item;
+    }
+
+    return item.copyWith(
+      media: media.copyWith(podcastMedia: podcastMedia.copyWith(coverPath: normalizedCoverPath)),
+    );
+  }
+
+  return item;
 }
 
 @Riverpod(keepAlive: true)

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:yaabsa/api/library/library.dart';
 import 'package:yaabsa/database/app_database.dart';
@@ -10,6 +11,9 @@ part 'library_provider.g.dart';
 
 final Map<String, Library> _selectedLibraryCacheByUserId = {};
 final Map<String, List<Library>> _userLibrariesCacheByUserId = {};
+final Set<String> _selectedLibrarySnapshotHydratedUserIds = <String>{};
+
+const String _selectedLibrarySnapshotSettingKey = 'selectedLibrarySnapshot';
 
 /// Provider to fetch all libraries for the current user.
 @riverpod
@@ -74,8 +78,14 @@ class SelectedLibraryId extends _$SelectedLibraryId {
     final librariesAsync = ref.watch(userLibrariesProvider);
 
     if (userId == null) {
+      _selectedLibraryCacheByUserId.clear();
+      _selectedLibrarySnapshotHydratedUserIds.clear();
       logger('SelectedLibraryIdProvider: No active user, returning null stream.', tag: 'SelectedLibraryId');
       return Stream.value(null);
+    }
+
+    if (_selectedLibrarySnapshotHydratedUserIds.add(userId)) {
+      unawaited(_hydrateSelectedLibraryCache(userId: userId));
     }
 
     final stream = db.watchUserSetting(userId, 'selectedLibraryId').map((e) => e?.value);
@@ -98,11 +108,19 @@ class SelectedLibraryId extends _$SelectedLibraryId {
     }
 
     final hasValidSelection = currentSelectedId != null && libraries.any((library) => library.id == currentSelectedId);
+
+    final resolvedLibrary = hasValidSelection
+        ? libraries.firstWhere((library) => library.id == currentSelectedId)
+        : libraries.first;
+
+    _selectedLibraryCacheByUserId[userId] = resolvedLibrary;
+    await _persistSelectedLibrarySnapshot(userId: userId, library: resolvedLibrary);
+
     if (hasValidSelection) {
       return;
     }
 
-    final fallbackLibraryId = libraries.first.id;
+    final fallbackLibraryId = resolvedLibrary.id;
 
     if (currentSelectedId == null) {
       logger(
@@ -120,6 +138,52 @@ class SelectedLibraryId extends _$SelectedLibraryId {
     await db.setUserSetting(userId, 'selectedLibraryId', fallbackLibraryId);
   }
 
+  Future<void> _hydrateSelectedLibraryCache({required String userId}) async {
+    final db = ref.read(appDatabaseProvider);
+
+    try {
+      final rawSnapshot = (await db.getUserSetting(userId, _selectedLibrarySnapshotSettingKey))?.value;
+      if (rawSnapshot == null || rawSnapshot.trim().isEmpty) {
+        return;
+      }
+
+      final decoded = jsonDecode(rawSnapshot);
+      if (decoded is! Map) {
+        return;
+      }
+
+      final library = Library.fromJson(Map<String, dynamic>.from(decoded));
+      _selectedLibraryCacheByUserId[userId] = library;
+      ref.invalidate(selectedLibraryProvider);
+    } catch (e, s) {
+      logger(
+        'SelectedLibraryIdProvider: Failed to hydrate selected library snapshot for user $userId: $e\n$s',
+        tag: 'SelectedLibraryId',
+        level: InfoLevel.warning,
+      );
+    }
+  }
+
+  Future<void> _persistSelectedLibrarySnapshot({required String userId, required Library library}) async {
+    final db = ref.read(appDatabaseProvider);
+    final encodedSnapshot = jsonEncode(library.toJson());
+
+    try {
+      final existingSnapshot = (await db.getUserSetting(userId, _selectedLibrarySnapshotSettingKey))?.value;
+      if (existingSnapshot == encodedSnapshot) {
+        return;
+      }
+
+      await db.setUserSetting(userId, _selectedLibrarySnapshotSettingKey, encodedSnapshot);
+    } catch (e, s) {
+      logger(
+        'SelectedLibraryIdProvider: Failed to persist selected library snapshot for user $userId: $e\n$s',
+        tag: 'SelectedLibraryId',
+        level: InfoLevel.warning,
+      );
+    }
+  }
+
   Future<void> set(String? libraryId) async {
     final db = ref.read(appDatabaseProvider);
     final userId = ref.read(activeUserIdProvider).value;
@@ -129,6 +193,15 @@ class SelectedLibraryId extends _$SelectedLibraryId {
       tag: 'SelectedLibraryId',
     );
     await db.setUserSetting(userId, 'selectedLibraryId', libraryId);
+
+    final libraries = ref.read(userLibrariesProvider).value ?? const <Library>[];
+    for (final library in libraries) {
+      if (library.id == libraryId) {
+        _selectedLibraryCacheByUserId[userId] = library;
+        await _persistSelectedLibrarySnapshot(userId: userId, library: library);
+        break;
+      }
+    }
   }
 }
 
@@ -137,6 +210,7 @@ Library? selectedLibrary(Ref ref) {
   final activeUserId = ref.watch(activeUserIdProvider).value;
   if (activeUserId == null) {
     _selectedLibraryCacheByUserId.clear();
+    _selectedLibrarySnapshotHydratedUserIds.clear();
     return null;
   }
 
@@ -198,6 +272,15 @@ Library? selectedLibrary(Ref ref) {
     return library;
   } catch (e) {
     if (librariesAsync.isLoading || selectedIdAsync.isLoading) {
+      return cachedLibrary;
+    }
+
+    if (cachedLibrary != null) {
+      logger(
+        'SelectedLibraryProvider: Selected library ID "$selectedId" not found in fetched libraries. Using cached selected library ${cachedLibrary.id}.',
+        tag: 'SelectedLibrary',
+        level: InfoLevel.warning,
+      );
       return cachedLibrary;
     }
 
