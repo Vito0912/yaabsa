@@ -42,9 +42,13 @@ class Player extends ConsumerStatefulWidget {
 }
 
 class _PlayerState extends ConsumerState<Player> {
+  static const double _minimizeDragDistanceThreshold = 64;
+  static const double _minimizeDragVelocityThreshold = 520;
+
   bool _didAutoOpenCarMode = false;
   bool _isEditMode = false;
   bool _allowOverlapUnlocked = false;
+  double _verticalDragDelta = 0;
   PlayerLayoutConfig? _layoutDraft;
   Future<void> _persistSequence = Future<void>.value();
   StreamSubscription<AaosTelemetryState>? _aaosAutoOpenSubscription;
@@ -106,6 +110,48 @@ class _PlayerState extends ConsumerState<Player> {
         itemTitle: currentMedia.title,
       ),
     );
+  }
+
+  void _closePlayerIfOpen() {
+    if (!mounted) {
+      return;
+    }
+
+    final location = GoRouterState.of(context).matchedLocation;
+    if (location != '/player') {
+      return;
+    }
+
+    if (Navigator.of(context).canPop()) {
+      context.pop();
+    } else {
+      context.go('/');
+    }
+  }
+
+  void _scheduleClosePlayerIfOpen() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _closePlayerIfOpen();
+    });
+  }
+
+  void _handleVerticalDragStart(DragStartDetails details) {
+    _verticalDragDelta = 0;
+  }
+
+  void _handleVerticalDragUpdate(DragUpdateDetails details) {
+    _verticalDragDelta += details.delta.dy;
+  }
+
+  void _handleVerticalDragEnd(DragEndDetails details) {
+    final velocity = details.primaryVelocity ?? 0;
+    final draggedDownEnough = _verticalDragDelta >= _minimizeDragDistanceThreshold;
+    final flungDown = velocity >= _minimizeDragVelocityThreshold;
+    _verticalDragDelta = 0;
+
+    if (draggedDownEnough || flungDown) {
+      _closePlayerIfOpen();
+    }
   }
 
   void _showQuickSettings(BuildContext context) {
@@ -525,23 +571,6 @@ class _PlayerState extends ConsumerState<Player> {
         .map((placement) => placement.type)
         .toList(growable: false);
 
-    void closePlayerIfOpen() {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!context.mounted) {
-          return;
-        }
-
-        final location = GoRouterState.of(context).matchedLocation;
-        if (location == '/player') {
-          if (Navigator.of(context).canPop()) {
-            context.pop();
-          } else {
-            context.go('/');
-          }
-        }
-      });
-    }
-
     final appBar = _isEditMode
         ? AppBar(
             title: Text('Edit ${activeScreenSize.label} Layout'),
@@ -653,92 +682,99 @@ class _PlayerState extends ConsumerState<Player> {
           );
 
     final ABSApi? api = ref.watch(absApiProvider);
+    final enableSwipeToMinimize = isMobile && !_isEditMode;
 
     return Scaffold(
       appBar: appBar,
-      body: StreamBuilder<bool>(
-        stream: audioHandler.queueTransitionLoadingStream,
-        initialData: audioHandler.queueTransitionLoading,
-        builder: (BuildContext context, AsyncSnapshot<bool> transitionSnapshot) {
-          final isTransitionLoading = transitionSnapshot.data == true;
+      body: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onVerticalDragStart: enableSwipeToMinimize ? _handleVerticalDragStart : null,
+        onVerticalDragUpdate: enableSwipeToMinimize ? _handleVerticalDragUpdate : null,
+        onVerticalDragEnd: enableSwipeToMinimize ? _handleVerticalDragEnd : null,
+        child: StreamBuilder<bool>(
+          stream: audioHandler.queueTransitionLoadingStream,
+          initialData: audioHandler.queueTransitionLoading,
+          builder: (BuildContext context, AsyncSnapshot<bool> transitionSnapshot) {
+            final isTransitionLoading = transitionSnapshot.data == true;
 
-          return StreamBuilder<InternalMedia?>(
-            stream: audioHandler.mediaItemStream.stream,
-            initialData: audioHandler.currentMediaItem,
-            builder: (BuildContext context, AsyncSnapshot<InternalMedia?> mediaSnapshot) {
-              if (mediaSnapshot.connectionState == ConnectionState.waiting && mediaSnapshot.data == null) {
-                return const Center(child: CircularProgressIndicator());
-              }
-
-              final media = mediaSnapshot.data;
-              if (media == null) {
-                if (isTransitionLoading) {
-                  return const _PlayerTransitionLoadingView();
+            return StreamBuilder<InternalMedia?>(
+              stream: audioHandler.mediaItemStream.stream,
+              initialData: audioHandler.currentMediaItem,
+              builder: (BuildContext context, AsyncSnapshot<InternalMedia?> mediaSnapshot) {
+                if (mediaSnapshot.connectionState == ConnectionState.waiting && mediaSnapshot.data == null) {
+                  return const Center(child: CircularProgressIndicator());
                 }
 
-                closePlayerIfOpen();
-                return const SizedBox.shrink();
-              }
+                final media = mediaSnapshot.data;
+                if (media == null) {
+                  if (isTransitionLoading) {
+                    return const _PlayerTransitionLoadingView();
+                  }
 
-              return StreamBuilder<PlayerQueueSnapshot>(
-                stream: audioHandler.queueSnapshotStream,
-                initialData: audioHandler.queueSnapshot,
-                builder: (BuildContext context, AsyncSnapshot<PlayerQueueSnapshot> queueSnapshot) {
-                  final queueState = queueSnapshot.data ?? const PlayerQueueSnapshot();
-                  final screenSize = PlayerLayoutScreenSize.fromBreakpoint(context.breakpoint);
-                  final profile = _activeProfileForScreen(screenSize);
-                  final hasChapters = media.chapters?.isNotEmpty == true;
-                  final hasQueue = queueState.entries.isNotEmpty;
+                  _scheduleClosePlayerIfOpen();
+                  return const SizedBox.shrink();
+                }
 
-                  return Padding(
-                    padding: EdgeInsets.all(context.isMobile ? 2 : 4),
-                    child: PlayerGridCanvas(
-                      screenSize: screenSize,
-                      profile: profile,
-                      editMode: _isEditMode,
-                      isPlacementVisible: (PlayerComponentPlacement placement) {
-                        return _shouldRenderPlacement(
-                          placement: placement,
-                          hasChapters: hasChapters,
-                          hasQueue: hasQueue,
-                        );
-                      },
-                      componentBuilder: (PlayerComponentPlacement placement) {
-                        return _buildComponent(
-                          placement: placement,
-                          profile: profile,
-                          api: api,
-                          media: media,
-                          hasChapters: hasChapters,
-                        );
-                      },
-                      onMovePlacement: _isEditMode
-                          ? (PlayerComponentType type, int deltaX, int deltaY) {
-                              _movePlacement(screenSize, type, deltaX, deltaY);
-                            }
-                          : null,
-                      onResizePlacement: _isEditMode
-                          ? (PlayerComponentType type, int deltaWidth, int deltaHeight) {
-                              _resizePlacement(screenSize, type, deltaWidth, deltaHeight);
-                            }
-                          : null,
-                      onOpenSettings: _isEditMode
-                          ? (PlayerComponentType type) {
-                              _showComponentSettings(context, screenSize, type);
-                            }
-                          : null,
-                      onHidePlacement: _isEditMode
-                          ? (PlayerComponentType type) {
-                              _setComponentVisibility(context, screenSize, type, false);
-                            }
-                          : null,
-                    ),
-                  );
-                },
-              );
-            },
-          );
-        },
+                return StreamBuilder<PlayerQueueSnapshot>(
+                  stream: audioHandler.queueSnapshotStream,
+                  initialData: audioHandler.queueSnapshot,
+                  builder: (BuildContext context, AsyncSnapshot<PlayerQueueSnapshot> queueSnapshot) {
+                    final queueState = queueSnapshot.data ?? const PlayerQueueSnapshot();
+                    final screenSize = PlayerLayoutScreenSize.fromBreakpoint(context.breakpoint);
+                    final profile = _activeProfileForScreen(screenSize);
+                    final hasChapters = media.chapters?.isNotEmpty == true;
+                    final hasQueue = queueState.entries.isNotEmpty;
+
+                    return Padding(
+                      padding: EdgeInsets.all(context.isMobile ? 2 : 4),
+                      child: PlayerGridCanvas(
+                        screenSize: screenSize,
+                        profile: profile,
+                        editMode: _isEditMode,
+                        isPlacementVisible: (PlayerComponentPlacement placement) {
+                          return _shouldRenderPlacement(
+                            placement: placement,
+                            hasChapters: hasChapters,
+                            hasQueue: hasQueue,
+                          );
+                        },
+                        componentBuilder: (PlayerComponentPlacement placement) {
+                          return _buildComponent(
+                            placement: placement,
+                            profile: profile,
+                            api: api,
+                            media: media,
+                            hasChapters: hasChapters,
+                          );
+                        },
+                        onMovePlacement: _isEditMode
+                            ? (PlayerComponentType type, int deltaX, int deltaY) {
+                                _movePlacement(screenSize, type, deltaX, deltaY);
+                              }
+                            : null,
+                        onResizePlacement: _isEditMode
+                            ? (PlayerComponentType type, int deltaWidth, int deltaHeight) {
+                                _resizePlacement(screenSize, type, deltaWidth, deltaHeight);
+                              }
+                            : null,
+                        onOpenSettings: _isEditMode
+                            ? (PlayerComponentType type) {
+                                _showComponentSettings(context, screenSize, type);
+                              }
+                            : null,
+                        onHidePlacement: _isEditMode
+                            ? (PlayerComponentType type) {
+                                _setComponentVisibility(context, screenSize, type, false);
+                              }
+                            : null,
+                      ),
+                    );
+                  },
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }

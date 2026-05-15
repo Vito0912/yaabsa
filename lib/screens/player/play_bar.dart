@@ -26,9 +26,35 @@ class _PlayBarState extends State<PlayBar> {
   static const double _desktopCoverWidth = 62;
   static const double _desktopCoverRadius = 8;
   static const double _coverSpacing = 10;
+  static const double _expandDragDistanceThreshold = 44;
+  static const double _expandDragVelocityThreshold = 420;
 
   bool _isHovered = false;
   bool _isSeekBarHovered = false;
+  double _verticalDragDelta = 0;
+
+  void _openFullPlayer() {
+    context.push('/player');
+  }
+
+  void _handleVerticalDragStart(DragStartDetails details) {
+    _verticalDragDelta = 0;
+  }
+
+  void _handleVerticalDragUpdate(DragUpdateDetails details) {
+    _verticalDragDelta += details.delta.dy;
+  }
+
+  void _handleVerticalDragEnd(DragEndDetails details) {
+    final velocity = details.primaryVelocity ?? 0;
+    final draggedUpEnough = _verticalDragDelta <= -_expandDragDistanceThreshold;
+    final flungUp = velocity <= -_expandDragVelocityThreshold;
+    _verticalDragDelta = 0;
+
+    if (draggedUpEnough || flungUp) {
+      _openFullPlayer();
+    }
+  }
 
   void _setSeekBarHovered(bool isHovered) {
     if (_isSeekBarHovered == isHovered) {
@@ -139,26 +165,32 @@ class _PlayBarState extends State<PlayBar> {
                 child: Material(
                   color: Colors.transparent,
                   borderRadius: borderRadius,
-                  child: InkWell(
-                    onTap: () => context.push('/player'),
-                    borderRadius: borderRadius,
-                    mouseCursor: SystemMouseCursors.click,
-                    onHover: (hovering) {
-                      if (_isHovered == hovering) return;
-                      setState(() => _isHovered = hovering);
-                    },
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 160),
-                      curve: Curves.easeOut,
-                      padding: innerPadding,
-                      decoration: BoxDecoration(
-                        color: (_isHovered && !_isSeekBarHovered) ? hoveredColor : baseColor,
-                        borderRadius: borderRadius,
-                        border: border,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onVerticalDragStart: _handleVerticalDragStart,
+                    onVerticalDragUpdate: _handleVerticalDragUpdate,
+                    onVerticalDragEnd: _handleVerticalDragEnd,
+                    child: InkWell(
+                      onTap: _openFullPlayer,
+                      borderRadius: borderRadius,
+                      mouseCursor: SystemMouseCursors.click,
+                      onHover: (hovering) {
+                        if (_isHovered == hovering) return;
+                        setState(() => _isHovered = hovering);
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 160),
+                        curve: Curves.easeOut,
+                        padding: innerPadding,
+                        decoration: BoxDecoration(
+                          color: (_isHovered && !_isSeekBarHovered) ? hoveredColor : baseColor,
+                          borderRadius: borderRadius,
+                          border: border,
+                        ),
+                        child: isTransitionLoading
+                            ? const _PlayBarTransitionLoadingContent()
+                            : _buildReadyContent(context),
                       ),
-                      child: isTransitionLoading
-                          ? const _PlayBarTransitionLoadingContent()
-                          : _buildReadyContent(context),
                     ),
                   ),
                 ),
