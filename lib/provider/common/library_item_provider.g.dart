@@ -204,7 +204,7 @@ final class LibraryItemProvider extends $FunctionalProvider<AsyncValue<LibraryIt
   }
 }
 
-String _$libraryItemHash() => r'82081bb8db77a71bd82dd3bceea525e05f31ad70';
+String _$libraryItemHash() => r'29eeeadff8f7be074394f173c828e6c1b9aba6b7';
 
 final class LibraryItemFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<LibraryItem>, (String, {String? episodeId})> {
