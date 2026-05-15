@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$LibraryStats {
 
-@JsonKey(name: "totalItems") int? get totalItems;@JsonKey(name: "totalAuthors") int? get totalAuthors;@JsonKey(name: "totalGenres") int? get totalGenres;@JsonKey(name: "totalDuration") double? get totalDuration;@JsonKey(name: "longestItems") List<LibraryItemDurationStats>? get longestItems;@JsonKey(name: "numAudioTracks") int? get numAudioTracks;@JsonKey(name: "totalSize") int? get totalSize;@JsonKey(name: "largestItems") List<LibraryItemSizeStats>? get largestItems;@JsonKey(name: "authorsWithCount") List<AuthorStats>? get authorsWithCount;@JsonKey(name: "genresWithCount") List<GenreStats>? get genresWithCount;
+@JsonKey(name: "totalItems", fromJson: jsonIntFromDynamic) int? get totalItems;@JsonKey(name: "totalAuthors", fromJson: jsonIntFromDynamic) int? get totalAuthors;@JsonKey(name: "totalGenres", fromJson: jsonIntFromDynamic) int? get totalGenres;@JsonKey(name: "totalDuration", fromJson: jsonDoubleFromDynamic) double? get totalDuration;@JsonKey(name: "longestItems") List<LibraryItemDurationStats> get longestItems;@JsonKey(name: "numAudioTracks", fromJson: jsonIntFromDynamic) int? get numAudioTracks;@JsonKey(name: "totalSize", fromJson: jsonIntFromDynamic) int? get totalSize;@JsonKey(name: "largestItems") List<LibraryItemSizeStats> get largestItems;@JsonKey(name: "authorsWithCount") List<AuthorStats> get authorsWithCount;@JsonKey(name: "genresWithCount") List<GenreStats> get genresWithCount;
 /// Create a copy of LibraryStats
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $LibraryStatsCopyWith<$Res>  {
   factory $LibraryStatsCopyWith(LibraryStats value, $Res Function(LibraryStats) _then) = _$LibraryStatsCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: "totalItems") int? totalItems,@JsonKey(name: "totalAuthors") int? totalAuthors,@JsonKey(name: "totalGenres") int? totalGenres,@JsonKey(name: "totalDuration") double? totalDuration,@JsonKey(name: "longestItems") List<LibraryItemDurationStats>? longestItems,@JsonKey(name: "numAudioTracks") int? numAudioTracks,@JsonKey(name: "totalSize") int? totalSize,@JsonKey(name: "largestItems") List<LibraryItemSizeStats>? largestItems,@JsonKey(name: "authorsWithCount") List<AuthorStats>? authorsWithCount,@JsonKey(name: "genresWithCount") List<GenreStats>? genresWithCount
+@JsonKey(name: "totalItems", fromJson: jsonIntFromDynamic) int? totalItems,@JsonKey(name: "totalAuthors", fromJson: jsonIntFromDynamic) int? totalAuthors,@JsonKey(name: "totalGenres", fromJson: jsonIntFromDynamic) int? totalGenres,@JsonKey(name: "totalDuration", fromJson: jsonDoubleFromDynamic) double? totalDuration,@JsonKey(name: "longestItems") List<LibraryItemDurationStats> longestItems,@JsonKey(name: "numAudioTracks", fromJson: jsonIntFromDynamic) int? numAudioTracks,@JsonKey(name: "totalSize", fromJson: jsonIntFromDynamic) int? totalSize,@JsonKey(name: "largestItems") List<LibraryItemSizeStats> largestItems,@JsonKey(name: "authorsWithCount") List<AuthorStats> authorsWithCount,@JsonKey(name: "genresWithCount") List<GenreStats> genresWithCount
 });
 
 
@@ -65,19 +65,19 @@ class _$LibraryStatsCopyWithImpl<$Res>
 
 /// Create a copy of LibraryStats
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? totalItems = freezed,Object? totalAuthors = freezed,Object? totalGenres = freezed,Object? totalDuration = freezed,Object? longestItems = freezed,Object? numAudioTracks = freezed,Object? totalSize = freezed,Object? largestItems = freezed,Object? authorsWithCount = freezed,Object? genresWithCount = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? totalItems = freezed,Object? totalAuthors = freezed,Object? totalGenres = freezed,Object? totalDuration = freezed,Object? longestItems = null,Object? numAudioTracks = freezed,Object? totalSize = freezed,Object? largestItems = null,Object? authorsWithCount = null,Object? genresWithCount = null,}) {
   return _then(_self.copyWith(
 totalItems: freezed == totalItems ? _self.totalItems : totalItems // ignore: cast_nullable_to_non_nullable
 as int?,totalAuthors: freezed == totalAuthors ? _self.totalAuthors : totalAuthors // ignore: cast_nullable_to_non_nullable
 as int?,totalGenres: freezed == totalGenres ? _self.totalGenres : totalGenres // ignore: cast_nullable_to_non_nullable
 as int?,totalDuration: freezed == totalDuration ? _self.totalDuration : totalDuration // ignore: cast_nullable_to_non_nullable
-as double?,longestItems: freezed == longestItems ? _self.longestItems : longestItems // ignore: cast_nullable_to_non_nullable
-as List<LibraryItemDurationStats>?,numAudioTracks: freezed == numAudioTracks ? _self.numAudioTracks : numAudioTracks // ignore: cast_nullable_to_non_nullable
+as double?,longestItems: null == longestItems ? _self.longestItems : longestItems // ignore: cast_nullable_to_non_nullable
+as List<LibraryItemDurationStats>,numAudioTracks: freezed == numAudioTracks ? _self.numAudioTracks : numAudioTracks // ignore: cast_nullable_to_non_nullable
 as int?,totalSize: freezed == totalSize ? _self.totalSize : totalSize // ignore: cast_nullable_to_non_nullable
-as int?,largestItems: freezed == largestItems ? _self.largestItems : largestItems // ignore: cast_nullable_to_non_nullable
-as List<LibraryItemSizeStats>?,authorsWithCount: freezed == authorsWithCount ? _self.authorsWithCount : authorsWithCount // ignore: cast_nullable_to_non_nullable
-as List<AuthorStats>?,genresWithCount: freezed == genresWithCount ? _self.genresWithCount : genresWithCount // ignore: cast_nullable_to_non_nullable
-as List<GenreStats>?,
+as int?,largestItems: null == largestItems ? _self.largestItems : largestItems // ignore: cast_nullable_to_non_nullable
+as List<LibraryItemSizeStats>,authorsWithCount: null == authorsWithCount ? _self.authorsWithCount : authorsWithCount // ignore: cast_nullable_to_non_nullable
+as List<AuthorStats>,genresWithCount: null == genresWithCount ? _self.genresWithCount : genresWithCount // ignore: cast_nullable_to_non_nullable
+as List<GenreStats>,
   ));
 }
 
@@ -162,7 +162,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "totalItems")  int? totalItems, @JsonKey(name: "totalAuthors")  int? totalAuthors, @JsonKey(name: "totalGenres")  int? totalGenres, @JsonKey(name: "totalDuration")  double? totalDuration, @JsonKey(name: "longestItems")  List<LibraryItemDurationStats>? longestItems, @JsonKey(name: "numAudioTracks")  int? numAudioTracks, @JsonKey(name: "totalSize")  int? totalSize, @JsonKey(name: "largestItems")  List<LibraryItemSizeStats>? largestItems, @JsonKey(name: "authorsWithCount")  List<AuthorStats>? authorsWithCount, @JsonKey(name: "genresWithCount")  List<GenreStats>? genresWithCount)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "totalItems", fromJson: jsonIntFromDynamic)  int? totalItems, @JsonKey(name: "totalAuthors", fromJson: jsonIntFromDynamic)  int? totalAuthors, @JsonKey(name: "totalGenres", fromJson: jsonIntFromDynamic)  int? totalGenres, @JsonKey(name: "totalDuration", fromJson: jsonDoubleFromDynamic)  double? totalDuration, @JsonKey(name: "longestItems")  List<LibraryItemDurationStats> longestItems, @JsonKey(name: "numAudioTracks", fromJson: jsonIntFromDynamic)  int? numAudioTracks, @JsonKey(name: "totalSize", fromJson: jsonIntFromDynamic)  int? totalSize, @JsonKey(name: "largestItems")  List<LibraryItemSizeStats> largestItems, @JsonKey(name: "authorsWithCount")  List<AuthorStats> authorsWithCount, @JsonKey(name: "genresWithCount")  List<GenreStats> genresWithCount)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _LibraryStats() when $default != null:
 return $default(_that.totalItems,_that.totalAuthors,_that.totalGenres,_that.totalDuration,_that.longestItems,_that.numAudioTracks,_that.totalSize,_that.largestItems,_that.authorsWithCount,_that.genresWithCount);case _:
@@ -183,7 +183,7 @@ return $default(_that.totalItems,_that.totalAuthors,_that.totalGenres,_that.tota
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "totalItems")  int? totalItems, @JsonKey(name: "totalAuthors")  int? totalAuthors, @JsonKey(name: "totalGenres")  int? totalGenres, @JsonKey(name: "totalDuration")  double? totalDuration, @JsonKey(name: "longestItems")  List<LibraryItemDurationStats>? longestItems, @JsonKey(name: "numAudioTracks")  int? numAudioTracks, @JsonKey(name: "totalSize")  int? totalSize, @JsonKey(name: "largestItems")  List<LibraryItemSizeStats>? largestItems, @JsonKey(name: "authorsWithCount")  List<AuthorStats>? authorsWithCount, @JsonKey(name: "genresWithCount")  List<GenreStats>? genresWithCount)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "totalItems", fromJson: jsonIntFromDynamic)  int? totalItems, @JsonKey(name: "totalAuthors", fromJson: jsonIntFromDynamic)  int? totalAuthors, @JsonKey(name: "totalGenres", fromJson: jsonIntFromDynamic)  int? totalGenres, @JsonKey(name: "totalDuration", fromJson: jsonDoubleFromDynamic)  double? totalDuration, @JsonKey(name: "longestItems")  List<LibraryItemDurationStats> longestItems, @JsonKey(name: "numAudioTracks", fromJson: jsonIntFromDynamic)  int? numAudioTracks, @JsonKey(name: "totalSize", fromJson: jsonIntFromDynamic)  int? totalSize, @JsonKey(name: "largestItems")  List<LibraryItemSizeStats> largestItems, @JsonKey(name: "authorsWithCount")  List<AuthorStats> authorsWithCount, @JsonKey(name: "genresWithCount")  List<GenreStats> genresWithCount)  $default,) {final _that = this;
 switch (_that) {
 case _LibraryStats():
 return $default(_that.totalItems,_that.totalAuthors,_that.totalGenres,_that.totalDuration,_that.longestItems,_that.numAudioTracks,_that.totalSize,_that.largestItems,_that.authorsWithCount,_that.genresWithCount);case _:
@@ -203,7 +203,7 @@ return $default(_that.totalItems,_that.totalAuthors,_that.totalGenres,_that.tota
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "totalItems")  int? totalItems, @JsonKey(name: "totalAuthors")  int? totalAuthors, @JsonKey(name: "totalGenres")  int? totalGenres, @JsonKey(name: "totalDuration")  double? totalDuration, @JsonKey(name: "longestItems")  List<LibraryItemDurationStats>? longestItems, @JsonKey(name: "numAudioTracks")  int? numAudioTracks, @JsonKey(name: "totalSize")  int? totalSize, @JsonKey(name: "largestItems")  List<LibraryItemSizeStats>? largestItems, @JsonKey(name: "authorsWithCount")  List<AuthorStats>? authorsWithCount, @JsonKey(name: "genresWithCount")  List<GenreStats>? genresWithCount)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "totalItems", fromJson: jsonIntFromDynamic)  int? totalItems, @JsonKey(name: "totalAuthors", fromJson: jsonIntFromDynamic)  int? totalAuthors, @JsonKey(name: "totalGenres", fromJson: jsonIntFromDynamic)  int? totalGenres, @JsonKey(name: "totalDuration", fromJson: jsonDoubleFromDynamic)  double? totalDuration, @JsonKey(name: "longestItems")  List<LibraryItemDurationStats> longestItems, @JsonKey(name: "numAudioTracks", fromJson: jsonIntFromDynamic)  int? numAudioTracks, @JsonKey(name: "totalSize", fromJson: jsonIntFromDynamic)  int? totalSize, @JsonKey(name: "largestItems")  List<LibraryItemSizeStats> largestItems, @JsonKey(name: "authorsWithCount")  List<AuthorStats> authorsWithCount, @JsonKey(name: "genresWithCount")  List<GenreStats> genresWithCount)?  $default,) {final _that = this;
 switch (_that) {
 case _LibraryStats() when $default != null:
 return $default(_that.totalItems,_that.totalAuthors,_that.totalGenres,_that.totalDuration,_that.longestItems,_that.numAudioTracks,_that.totalSize,_that.largestItems,_that.authorsWithCount,_that.genresWithCount);case _:
@@ -218,49 +218,41 @@ return $default(_that.totalItems,_that.totalAuthors,_that.totalGenres,_that.tota
 @JsonSerializable()
 
 class _LibraryStats implements LibraryStats {
-  const _LibraryStats({@JsonKey(name: "totalItems") this.totalItems, @JsonKey(name: "totalAuthors") this.totalAuthors, @JsonKey(name: "totalGenres") this.totalGenres, @JsonKey(name: "totalDuration") this.totalDuration, @JsonKey(name: "longestItems") final  List<LibraryItemDurationStats>? longestItems, @JsonKey(name: "numAudioTracks") this.numAudioTracks, @JsonKey(name: "totalSize") this.totalSize, @JsonKey(name: "largestItems") final  List<LibraryItemSizeStats>? largestItems, @JsonKey(name: "authorsWithCount") final  List<AuthorStats>? authorsWithCount, @JsonKey(name: "genresWithCount") final  List<GenreStats>? genresWithCount}): _longestItems = longestItems,_largestItems = largestItems,_authorsWithCount = authorsWithCount,_genresWithCount = genresWithCount;
+  const _LibraryStats({@JsonKey(name: "totalItems", fromJson: jsonIntFromDynamic) this.totalItems, @JsonKey(name: "totalAuthors", fromJson: jsonIntFromDynamic) this.totalAuthors, @JsonKey(name: "totalGenres", fromJson: jsonIntFromDynamic) this.totalGenres, @JsonKey(name: "totalDuration", fromJson: jsonDoubleFromDynamic) this.totalDuration, @JsonKey(name: "longestItems") final  List<LibraryItemDurationStats> longestItems = const <LibraryItemDurationStats>[], @JsonKey(name: "numAudioTracks", fromJson: jsonIntFromDynamic) this.numAudioTracks, @JsonKey(name: "totalSize", fromJson: jsonIntFromDynamic) this.totalSize, @JsonKey(name: "largestItems") final  List<LibraryItemSizeStats> largestItems = const <LibraryItemSizeStats>[], @JsonKey(name: "authorsWithCount") final  List<AuthorStats> authorsWithCount = const <AuthorStats>[], @JsonKey(name: "genresWithCount") final  List<GenreStats> genresWithCount = const <GenreStats>[]}): _longestItems = longestItems,_largestItems = largestItems,_authorsWithCount = authorsWithCount,_genresWithCount = genresWithCount;
   factory _LibraryStats.fromJson(Map<String, dynamic> json) => _$LibraryStatsFromJson(json);
 
-@override@JsonKey(name: "totalItems") final  int? totalItems;
-@override@JsonKey(name: "totalAuthors") final  int? totalAuthors;
-@override@JsonKey(name: "totalGenres") final  int? totalGenres;
-@override@JsonKey(name: "totalDuration") final  double? totalDuration;
- final  List<LibraryItemDurationStats>? _longestItems;
-@override@JsonKey(name: "longestItems") List<LibraryItemDurationStats>? get longestItems {
-  final value = _longestItems;
-  if (value == null) return null;
+@override@JsonKey(name: "totalItems", fromJson: jsonIntFromDynamic) final  int? totalItems;
+@override@JsonKey(name: "totalAuthors", fromJson: jsonIntFromDynamic) final  int? totalAuthors;
+@override@JsonKey(name: "totalGenres", fromJson: jsonIntFromDynamic) final  int? totalGenres;
+@override@JsonKey(name: "totalDuration", fromJson: jsonDoubleFromDynamic) final  double? totalDuration;
+ final  List<LibraryItemDurationStats> _longestItems;
+@override@JsonKey(name: "longestItems") List<LibraryItemDurationStats> get longestItems {
   if (_longestItems is EqualUnmodifiableListView) return _longestItems;
   // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(value);
+  return EqualUnmodifiableListView(_longestItems);
 }
 
-@override@JsonKey(name: "numAudioTracks") final  int? numAudioTracks;
-@override@JsonKey(name: "totalSize") final  int? totalSize;
- final  List<LibraryItemSizeStats>? _largestItems;
-@override@JsonKey(name: "largestItems") List<LibraryItemSizeStats>? get largestItems {
-  final value = _largestItems;
-  if (value == null) return null;
+@override@JsonKey(name: "numAudioTracks", fromJson: jsonIntFromDynamic) final  int? numAudioTracks;
+@override@JsonKey(name: "totalSize", fromJson: jsonIntFromDynamic) final  int? totalSize;
+ final  List<LibraryItemSizeStats> _largestItems;
+@override@JsonKey(name: "largestItems") List<LibraryItemSizeStats> get largestItems {
   if (_largestItems is EqualUnmodifiableListView) return _largestItems;
   // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(value);
+  return EqualUnmodifiableListView(_largestItems);
 }
 
- final  List<AuthorStats>? _authorsWithCount;
-@override@JsonKey(name: "authorsWithCount") List<AuthorStats>? get authorsWithCount {
-  final value = _authorsWithCount;
-  if (value == null) return null;
+ final  List<AuthorStats> _authorsWithCount;
+@override@JsonKey(name: "authorsWithCount") List<AuthorStats> get authorsWithCount {
   if (_authorsWithCount is EqualUnmodifiableListView) return _authorsWithCount;
   // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(value);
+  return EqualUnmodifiableListView(_authorsWithCount);
 }
 
- final  List<GenreStats>? _genresWithCount;
-@override@JsonKey(name: "genresWithCount") List<GenreStats>? get genresWithCount {
-  final value = _genresWithCount;
-  if (value == null) return null;
+ final  List<GenreStats> _genresWithCount;
+@override@JsonKey(name: "genresWithCount") List<GenreStats> get genresWithCount {
   if (_genresWithCount is EqualUnmodifiableListView) return _genresWithCount;
   // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(value);
+  return EqualUnmodifiableListView(_genresWithCount);
 }
 
 
@@ -297,7 +289,7 @@ abstract mixin class _$LibraryStatsCopyWith<$Res> implements $LibraryStatsCopyWi
   factory _$LibraryStatsCopyWith(_LibraryStats value, $Res Function(_LibraryStats) _then) = __$LibraryStatsCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: "totalItems") int? totalItems,@JsonKey(name: "totalAuthors") int? totalAuthors,@JsonKey(name: "totalGenres") int? totalGenres,@JsonKey(name: "totalDuration") double? totalDuration,@JsonKey(name: "longestItems") List<LibraryItemDurationStats>? longestItems,@JsonKey(name: "numAudioTracks") int? numAudioTracks,@JsonKey(name: "totalSize") int? totalSize,@JsonKey(name: "largestItems") List<LibraryItemSizeStats>? largestItems,@JsonKey(name: "authorsWithCount") List<AuthorStats>? authorsWithCount,@JsonKey(name: "genresWithCount") List<GenreStats>? genresWithCount
+@JsonKey(name: "totalItems", fromJson: jsonIntFromDynamic) int? totalItems,@JsonKey(name: "totalAuthors", fromJson: jsonIntFromDynamic) int? totalAuthors,@JsonKey(name: "totalGenres", fromJson: jsonIntFromDynamic) int? totalGenres,@JsonKey(name: "totalDuration", fromJson: jsonDoubleFromDynamic) double? totalDuration,@JsonKey(name: "longestItems") List<LibraryItemDurationStats> longestItems,@JsonKey(name: "numAudioTracks", fromJson: jsonIntFromDynamic) int? numAudioTracks,@JsonKey(name: "totalSize", fromJson: jsonIntFromDynamic) int? totalSize,@JsonKey(name: "largestItems") List<LibraryItemSizeStats> largestItems,@JsonKey(name: "authorsWithCount") List<AuthorStats> authorsWithCount,@JsonKey(name: "genresWithCount") List<GenreStats> genresWithCount
 });
 
 
@@ -314,19 +306,19 @@ class __$LibraryStatsCopyWithImpl<$Res>
 
 /// Create a copy of LibraryStats
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? totalItems = freezed,Object? totalAuthors = freezed,Object? totalGenres = freezed,Object? totalDuration = freezed,Object? longestItems = freezed,Object? numAudioTracks = freezed,Object? totalSize = freezed,Object? largestItems = freezed,Object? authorsWithCount = freezed,Object? genresWithCount = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? totalItems = freezed,Object? totalAuthors = freezed,Object? totalGenres = freezed,Object? totalDuration = freezed,Object? longestItems = null,Object? numAudioTracks = freezed,Object? totalSize = freezed,Object? largestItems = null,Object? authorsWithCount = null,Object? genresWithCount = null,}) {
   return _then(_LibraryStats(
 totalItems: freezed == totalItems ? _self.totalItems : totalItems // ignore: cast_nullable_to_non_nullable
 as int?,totalAuthors: freezed == totalAuthors ? _self.totalAuthors : totalAuthors // ignore: cast_nullable_to_non_nullable
 as int?,totalGenres: freezed == totalGenres ? _self.totalGenres : totalGenres // ignore: cast_nullable_to_non_nullable
 as int?,totalDuration: freezed == totalDuration ? _self.totalDuration : totalDuration // ignore: cast_nullable_to_non_nullable
-as double?,longestItems: freezed == longestItems ? _self._longestItems : longestItems // ignore: cast_nullable_to_non_nullable
-as List<LibraryItemDurationStats>?,numAudioTracks: freezed == numAudioTracks ? _self.numAudioTracks : numAudioTracks // ignore: cast_nullable_to_non_nullable
+as double?,longestItems: null == longestItems ? _self._longestItems : longestItems // ignore: cast_nullable_to_non_nullable
+as List<LibraryItemDurationStats>,numAudioTracks: freezed == numAudioTracks ? _self.numAudioTracks : numAudioTracks // ignore: cast_nullable_to_non_nullable
 as int?,totalSize: freezed == totalSize ? _self.totalSize : totalSize // ignore: cast_nullable_to_non_nullable
-as int?,largestItems: freezed == largestItems ? _self._largestItems : largestItems // ignore: cast_nullable_to_non_nullable
-as List<LibraryItemSizeStats>?,authorsWithCount: freezed == authorsWithCount ? _self._authorsWithCount : authorsWithCount // ignore: cast_nullable_to_non_nullable
-as List<AuthorStats>?,genresWithCount: freezed == genresWithCount ? _self._genresWithCount : genresWithCount // ignore: cast_nullable_to_non_nullable
-as List<GenreStats>?,
+as int?,largestItems: null == largestItems ? _self._largestItems : largestItems // ignore: cast_nullable_to_non_nullable
+as List<LibraryItemSizeStats>,authorsWithCount: null == authorsWithCount ? _self._authorsWithCount : authorsWithCount // ignore: cast_nullable_to_non_nullable
+as List<AuthorStats>,genresWithCount: null == genresWithCount ? _self._genresWithCount : genresWithCount // ignore: cast_nullable_to_non_nullable
+as List<GenreStats>,
   ));
 }
 

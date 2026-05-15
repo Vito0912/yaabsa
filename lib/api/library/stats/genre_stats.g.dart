@@ -7,7 +7,7 @@ part of 'genre_stats.dart';
 // **************************************************************************
 
 _GenreStats _$GenreStatsFromJson(Map<String, dynamic> json) =>
-    _GenreStats(genre: json['genre'] as String, count: (json['count'] as num).toInt());
+    _GenreStats(genre: json['genre'] as String, count: jsonIntRequiredFromDynamic(json['count']));
 
 Map<String, dynamic> _$GenreStatsToJson(_GenreStats instance) => <String, dynamic>{
   'genre': instance.genre,

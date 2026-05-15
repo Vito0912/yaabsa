@@ -5,6 +5,7 @@ import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/settings/admin_item_metadata_utils_settings.dart';
 import 'package:yaabsa/screens/layout_home.dart';
+import 'package:yaabsa/screens/settings/admin_server_library_stats_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_logs_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_sessions_settings.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
@@ -55,6 +56,14 @@ class AdminServerSettings extends ConsumerWidget {
                   title: 'Admin Subsettings',
                   topPadding: 0,
                   items: [
+                    SettingsNavigationItem(
+                      icon: Icons.insert_chart_outlined_rounded,
+                      title: 'Library Stats',
+                      subtitle: 'View top genres, authors, and size/runtime rankings per library.',
+                      enabled: isAdminUser,
+                      disabledReason: isAdminUser ? null : 'Requires an admin account.',
+                      onTap: isAdminUser ? () => context.push(AdminServerLibraryStatsSettings.routeName) : null,
+                    ),
                     SettingsNavigationItem(
                       icon: Icons.receipt_long_outlined,
                       title: 'Logs',

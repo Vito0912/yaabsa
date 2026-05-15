@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$LibraryItemDurationStats {
 
-@JsonKey(name: "id") String get id;@JsonKey(name: "duration") double get duration;@JsonKey(name: "title") String get title;
+@JsonKey(name: "id") String get id;@JsonKey(name: "duration", fromJson: jsonDoubleRequiredFromDynamic) double get duration;@JsonKey(name: "title") String get title;
 /// Create a copy of LibraryItemDurationStats
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $LibraryItemDurationStatsCopyWith<$Res>  {
   factory $LibraryItemDurationStatsCopyWith(LibraryItemDurationStats value, $Res Function(LibraryItemDurationStats) _then) = _$LibraryItemDurationStatsCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: "id") String id,@JsonKey(name: "duration") double duration,@JsonKey(name: "title") String title
+@JsonKey(name: "id") String id,@JsonKey(name: "duration", fromJson: jsonDoubleRequiredFromDynamic) double duration,@JsonKey(name: "title") String title
 });
 
 
@@ -155,7 +155,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "duration")  double duration, @JsonKey(name: "title")  String title)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "duration", fromJson: jsonDoubleRequiredFromDynamic)  double duration, @JsonKey(name: "title")  String title)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _LibraryItemDurationStats() when $default != null:
 return $default(_that.id,_that.duration,_that.title);case _:
@@ -176,7 +176,7 @@ return $default(_that.id,_that.duration,_that.title);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "duration")  double duration, @JsonKey(name: "title")  String title)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "duration", fromJson: jsonDoubleRequiredFromDynamic)  double duration, @JsonKey(name: "title")  String title)  $default,) {final _that = this;
 switch (_that) {
 case _LibraryItemDurationStats():
 return $default(_that.id,_that.duration,_that.title);case _:
@@ -196,7 +196,7 @@ return $default(_that.id,_that.duration,_that.title);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "id")  String id, @JsonKey(name: "duration")  double duration, @JsonKey(name: "title")  String title)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "id")  String id, @JsonKey(name: "duration", fromJson: jsonDoubleRequiredFromDynamic)  double duration, @JsonKey(name: "title")  String title)?  $default,) {final _that = this;
 switch (_that) {
 case _LibraryItemDurationStats() when $default != null:
 return $default(_that.id,_that.duration,_that.title);case _:
@@ -211,11 +211,11 @@ return $default(_that.id,_that.duration,_that.title);case _:
 @JsonSerializable()
 
 class _LibraryItemDurationStats implements LibraryItemDurationStats {
-  const _LibraryItemDurationStats({@JsonKey(name: "id") required this.id, @JsonKey(name: "duration") required this.duration, @JsonKey(name: "title") required this.title});
+  const _LibraryItemDurationStats({@JsonKey(name: "id") required this.id, @JsonKey(name: "duration", fromJson: jsonDoubleRequiredFromDynamic) required this.duration, @JsonKey(name: "title") required this.title});
   factory _LibraryItemDurationStats.fromJson(Map<String, dynamic> json) => _$LibraryItemDurationStatsFromJson(json);
 
 @override@JsonKey(name: "id") final  String id;
-@override@JsonKey(name: "duration") final  double duration;
+@override@JsonKey(name: "duration", fromJson: jsonDoubleRequiredFromDynamic) final  double duration;
 @override@JsonKey(name: "title") final  String title;
 
 /// Create a copy of LibraryItemDurationStats
@@ -251,7 +251,7 @@ abstract mixin class _$LibraryItemDurationStatsCopyWith<$Res> implements $Librar
   factory _$LibraryItemDurationStatsCopyWith(_LibraryItemDurationStats value, $Res Function(_LibraryItemDurationStats) _then) = __$LibraryItemDurationStatsCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: "id") String id,@JsonKey(name: "duration") double duration,@JsonKey(name: "title") String title
+@JsonKey(name: "id") String id,@JsonKey(name: "duration", fromJson: jsonDoubleRequiredFromDynamic) double duration,@JsonKey(name: "title") String title
 });
 
 

@@ -8,7 +8,7 @@ part of 'library_item_duration_stats.dart';
 
 _LibraryItemDurationStats _$LibraryItemDurationStatsFromJson(Map<String, dynamic> json) => _LibraryItemDurationStats(
   id: json['id'] as String,
-  duration: (json['duration'] as num).toDouble(),
+  duration: jsonDoubleRequiredFromDynamic(json['duration']),
   title: json['title'] as String,
 );
 
