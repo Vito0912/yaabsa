@@ -955,6 +955,7 @@ jobs:
           APPLE_CERT: ${{ secrets.APPLE_CERT_P12_BASE64 }}
           APPLE_CERT_PW: ${{ secrets.APPLE_CERT_PASSWORD }}
           IOS_PROV: ${{ secrets.IOS_PROV_PROFILE_BASE64 }}
+        if: ${{ needs.changes.outputs.version_bumped == 'true' && needs.changes.outputs.build_skip != 'true' }}
         run: |
           KEYCHAIN_PATH=$RUNNER_TEMP/build.keychain
           security create-keychain -p "runner_temp" $KEYCHAIN_PATH
@@ -970,10 +971,12 @@ jobs:
           echo -n "$IOS_PROV" | base64 --decode -o ~/Library/MobileDevice/Provisioning\ Profiles/ios_app_store.mobileprovision
 
       - name: Build Signed iOS App (IPA)
+        if: ${{ needs.changes.outputs.version_bumped == 'true' && needs.changes.outputs.build_skip != 'true' }}
         run: flutter build ipa --release --export-options-plist=ios/ExportOptions.plist
 
       - name: Upload iOS to TestFlight
         uses: apple-actions/upload-testflight-build@v4
+        if: ${{ needs.changes.outputs.version_bumped == 'true' && needs.changes.outputs.build_skip != 'true' }}
         with:
           app-path: build/ios/ipa/Yaabsa.ipa
           issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
@@ -1049,10 +1052,11 @@ jobs:
           echo -n "$APPLE_CERT" | base64 --decode -o $RUNNER_TEMP/apple_cert.p12
           echo -n "$MAC_INST_CERT" | base64 --decode -o $RUNNER_TEMP/mac_installer.p12
 
-          security import $RUNNER_TEMP/apple_cert.p12 -k $KEYCHAIN_PATH -P "$APPLE_CERT_PW" -T /usr/bin/codesign
-          security import $RUNNER_TEMP/mac_installer.p12 -k $KEYCHAIN_PATH -P "$MAC_INST_CERT_PW" -T /usr/bin/productbuild
+          security import $RUNNER_TEMP/apple_cert.p12 -k $KEYCHAIN_PATH -P "$APPLE_CERT_PW" -A
+          security import $RUNNER_TEMP/mac_installer.p12 -k $KEYCHAIN_PATH -P "$MAC_INST_CERT_PW" -A
           
           security set-key-partition-list -S apple-tool:,apple:,codesign:,productbuild: -s -k "runner_temp" $KEYCHAIN_PATH
+          security list-keychains -d user -s $KEYCHAIN_PATH login.keychain
 
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           echo -n "$MAC_PROV" | base64 --decode -o ~/Library/MobileDevice/Provisioning\ Profiles/mac_app_store.provisionprofile
