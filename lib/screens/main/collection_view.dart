@@ -11,6 +11,7 @@ import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/common/collection_provider.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
+import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/server_management_preferences.dart';
 
@@ -21,6 +22,7 @@ class CollectionView extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final scrollController = useScrollController();
     final selectedLibrary = ref.watch(selectedLibraryProvider);
+    final serverReachable = ref.watch(serverStatusProvider).value ?? false;
 
     if (selectedLibrary == null) {
       return const Center(child: Text('No library selected. Please select a library via the switcher.'));
@@ -84,11 +86,19 @@ class CollectionView extends HookConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stackTrace) => ConnectionIssueView.requestFailed(
-        error: error,
-        title: 'Error loading collections',
-        onRetry: () => ref.read(collectionsProvider(libraryId).notifier).refresh(withLoading: true),
-      ),
+      error: (error, stackTrace) {
+        if (!serverReachable) {
+          return ConnectionIssueView.offline(
+            onRetry: () => ref.read(collectionsProvider(libraryId).notifier).refresh(withLoading: true),
+          );
+        }
+
+        return ConnectionIssueView.requestFailed(
+          error: error,
+          title: 'Error loading collections',
+          onRetry: () => ref.read(collectionsProvider(libraryId).notifier).refresh(withLoading: true),
+        );
+      },
     );
   }
 }

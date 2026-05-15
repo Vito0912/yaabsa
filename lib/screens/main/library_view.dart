@@ -12,6 +12,7 @@ import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/common/library_filter_data_provider.dart';
 import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
+import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/server_management_preferences.dart';
@@ -27,6 +28,7 @@ class LibraryView extends HookConsumerWidget {
     final scrollController = useScrollController();
     final editingItemId = useState<String?>(null);
     final selectedLibrary = ref.watch(selectedLibraryProvider);
+    final serverReachable = ref.watch(serverStatusProvider).value ?? false;
 
     if (selectedLibrary == null) {
       return const Center(child: Text('No library selected. Please select a library via the switcher.'));
@@ -167,13 +169,23 @@ class LibraryView extends HookConsumerWidget {
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (err, stack) => ConnectionIssueView.requestFailed(
-            error: err,
-            title: 'Error loading library items',
-            onRetry: () async {
-              await ref.read(itemsProvider.notifier).refresh();
-            },
-          ),
+          error: (err, stack) {
+            if (!serverReachable) {
+              return ConnectionIssueView.offline(
+                onRetry: () async {
+                  await ref.read(itemsProvider.notifier).refresh();
+                },
+              );
+            }
+
+            return ConnectionIssueView.requestFailed(
+              error: err,
+              title: 'Error loading library items',
+              onRetry: () async {
+                await ref.read(itemsProvider.notifier).refresh();
+              },
+            );
+          },
         );
       },
     );

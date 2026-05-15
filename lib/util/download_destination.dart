@@ -117,9 +117,7 @@ Future<DownloadTaskDestination> resolveDownloadTaskDestination(
         throw Exception('The selected Android folder is no longer accessible. Please pick it again.');
       }
 
-      final itemDirectory = await downloader.uri.createDirectory(activatedUri, itemId, persistedUriPermission: true);
-
-      return DownloadTaskDestination.uri(directoryUri: itemDirectory);
+      return DownloadTaskDestination.uri(directoryUri: activatedUri);
     }
 
     if (Platform.isLinux || Platform.isWindows) {
