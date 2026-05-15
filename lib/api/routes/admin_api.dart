@@ -11,6 +11,7 @@ import 'package:yaabsa/api/admin/metadata_term_update_response.dart';
 import 'package:yaabsa/api/admin/tags_response.dart';
 import 'package:yaabsa/api/me/server_settings.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
+import 'package:yaabsa/api/tasks/abs_task_list_response.dart';
 
 class AdminApi {
   AdminApi(this._dio);
@@ -70,6 +71,23 @@ class AdminApi {
       route: '/api/logger-data',
       fromJson: (data) => LoggerData.fromJson(data as Map<String, dynamic>),
       queryParams: {},
+      dio: _dio,
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+    );
+  }
+
+  Future<Response<AbsTaskListResponse>> getTasks({
+    bool includeQueue = false,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiGetRequest(
+      route: '/api/tasks',
+      fromJson: (data) => AbsTaskListResponse.fromJson(data as Map<String, dynamic>),
+      queryParams: {'include': includeQueue ? 'queue' : null},
       dio: _dio,
       cancelToken: cancelToken,
       headers: headers,

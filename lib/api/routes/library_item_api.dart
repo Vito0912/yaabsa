@@ -269,6 +269,120 @@ class LibraryItemApi {
     );
   }
 
+  Future<Response<Map<String, dynamic>>> getLibraryItemMetadataObject(
+    String itemId, {
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiGetRequest(
+      route: '/api/items/$itemId/metadata-object',
+      fromJson: (data) {
+        if (data is Map<String, dynamic>) {
+          return data;
+        }
+        if (data is Map) {
+          return Map<String, dynamic>.from(data);
+        }
+        return <String, dynamic>{};
+      },
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
+      queryParams: {},
+    );
+  }
+
+  Future<bool> startEmbedMetadata(
+    String itemId, {
+    bool backup = false,
+    bool forceEmbedChapters = false,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    final route = Uri(
+      path: '/api/tools/item/$itemId/embed-metadata',
+      queryParameters: <String, String>{
+        'backup': backup ? '1' : '0',
+        if (forceEmbedChapters) 'forceEmbedChapters': '1',
+      },
+    ).toString();
+
+    final response = await _dio.request<Object>(
+      route,
+      options: Options(
+        method: 'POST',
+        headers: <String, dynamic>{...?headers},
+        extra: <String, dynamic>{
+          'secure': <Map<String, String>>[
+            {'type': 'http', 'scheme': 'bearer', 'name': 'BearerAuth'},
+          ],
+          ...?extra,
+        },
+        contentType: 'application/json',
+      ),
+      cancelToken: cancelToken,
+    );
+
+    final statusCode = response.statusCode;
+    return statusCode != null && statusCode >= 200 && statusCode < 300;
+  }
+
+  Future<bool> startEncodeM4b(
+    String itemId, {
+    required String codec,
+    required String bitrate,
+    required int channels,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    final route = Uri(
+      path: '/api/tools/item/$itemId/encode-m4b',
+      queryParameters: <String, String>{
+        if (codec.trim().isNotEmpty) 'codec': codec.trim(),
+        if (bitrate.trim().isNotEmpty) 'bitrate': bitrate.trim(),
+        'channels': channels.toString(),
+      },
+    ).toString();
+
+    final response = await _dio.request<Object>(
+      route,
+      options: Options(
+        method: 'POST',
+        headers: <String, dynamic>{...?headers},
+        extra: <String, dynamic>{
+          'secure': <Map<String, String>>[
+            {'type': 'http', 'scheme': 'bearer', 'name': 'BearerAuth'},
+          ],
+          ...?extra,
+        },
+        contentType: 'application/json',
+      ),
+      cancelToken: cancelToken,
+    );
+
+    final statusCode = response.statusCode;
+    return statusCode != null && statusCode >= 200 && statusCode < 300;
+  }
+
+  Future<bool> cancelEncodeM4b(
+    String itemId, {
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiDeleteRequest(
+      route: '/api/tools/item/$itemId/encode-m4b',
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
+    );
+  }
+
   Widget getLibraryItemCover(String id, {LibraryItem? item, double? width, double? height}) {
     if (item != null && !item.hasCover) {
       return const CoverPlaceholder();
