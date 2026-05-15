@@ -1071,6 +1071,7 @@ jobs:
         uses: apple-actions/upload-testflight-build@v4
         with:
           app-path: build/macos/Build/Products/Release/yaabsa.pkg
+          app-type: macos
           issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
           api-key-id: ${{ secrets.APPSTORE_KEY_ID }}
           api-private-key: ${{ secrets.APPSTORE_PRIVATE_KEY }}

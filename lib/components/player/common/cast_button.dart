@@ -4,9 +4,14 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_chrome_cast/flutter_chrome_cast.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:yaabsa/api/library_items/audio_track.dart';
+import 'package:yaabsa/api/library_items/request/play_library_item_request.dart';
+import 'package:yaabsa/models/internal_media.dart';
+import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/chrome_cast_service.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/player_utils.dart';
 
 String? _resolveCastAvailabilityMessage() {
   final media = audioHandler.currentMediaItem;
@@ -26,11 +31,129 @@ String? _resolveCastAvailabilityMessage() {
   }
 
   final trackUri = Uri.tryParse(trackUrl);
-  if (trackUri == null || !(trackUri.scheme == 'http' || trackUri.scheme == 'https')) {
-    return 'Casting currently is not supported for local files.';
+  if (trackUri == null) {
+    return 'Current track does not have a playable URL.';
+  }
+
+  if (!_isHttpUri(trackUri) && containerRef.read(absApiProvider) == null) {
+    return 'Casting local downloads requires an active server connection.';
   }
 
   return null;
+}
+
+bool _isHttpUri(Uri uri) {
+  return uri.scheme == 'http' || uri.scheme == 'https';
+}
+
+AudioTrack? _selectRemoteCastTrack({
+  required List<AudioTrack> remoteTracks,
+  required InternalTrack currentTrack,
+  required int currentTrackIndex,
+}) {
+  for (final remoteTrack in remoteTracks) {
+    if (remoteTrack.index != null && remoteTrack.index == currentTrack.index) {
+      return remoteTrack;
+    }
+  }
+
+  if (currentTrackIndex >= 0 && currentTrackIndex < remoteTracks.length) {
+    return remoteTracks[currentTrackIndex];
+  }
+
+  return remoteTracks.isNotEmpty ? remoteTracks.first : null;
+}
+
+Future<_ResolvedCastTrack?> _resolveRemoteCastTrack({
+  required InternalMedia media,
+  required InternalTrack currentTrack,
+  required int currentTrackIndex,
+}) async {
+  final api = containerRef.read(absApiProvider);
+  if (api == null) {
+    return null;
+  }
+
+  try {
+    final playRequest = PlayLibraryItemRequest(
+      deviceInfo: await PlayerUtils.getDeviceInfo(),
+      forceDirectPlay: false,
+      forceTranscode: false,
+      supportedMimeTypes: await PlayerUtils.getSupportedMimeTypes(),
+      mediaPlayer: '$appName cast',
+    );
+
+    final remoteSession = (await api.getLibraryItemApi().playLibraryItem(
+      media.itemId,
+      episodeId: media.episodeId,
+      playRequest: playRequest,
+    )).data;
+
+    if (remoteSession == null) {
+      return null;
+    }
+
+    final remoteTracks = remoteSession.audioTracks ?? const <AudioTrack>[];
+    final remoteTrack = _selectRemoteCastTrack(
+      remoteTracks: remoteTracks,
+      currentTrack: currentTrack,
+      currentTrackIndex: currentTrackIndex,
+    );
+    if (remoteTrack == null) {
+      return null;
+    }
+
+    final resolvedRemoteIndex = remoteTrack.index ?? currentTrack.index;
+    final remoteTrackUrl = remoteTrack
+        .toInternalTrack(api.basePathOverride, remoteSession.id, localIndex: resolvedRemoteIndex)
+        .url;
+
+    if (remoteTrackUrl == null || remoteTrackUrl.isEmpty) {
+      return null;
+    }
+
+    final remoteUri = Uri.tryParse(remoteTrackUrl);
+    if (remoteUri == null || !_isHttpUri(remoteUri)) {
+      return null;
+    }
+
+    return _ResolvedCastTrack(uri: remoteUri, mimeType: remoteTrack.mimeType);
+  } catch (e, s) {
+    logger('Failed to resolve remote cast track for ${media.id}: $e\n$s', tag: 'CastButton', level: InfoLevel.warning);
+    return null;
+  }
+}
+
+Future<_ResolvedCastTrack?> _resolveCastTrack({
+  required InternalMedia media,
+  required InternalTrack currentTrack,
+  required int currentTrackIndex,
+}) async {
+  final trackUrl = currentTrack.url;
+  if (trackUrl == null || trackUrl.isEmpty) {
+    return null;
+  }
+
+  final parsedTrackUri = Uri.tryParse(trackUrl);
+  if (parsedTrackUri != null && _isHttpUri(parsedTrackUri)) {
+    return _ResolvedCastTrack(uri: parsedTrackUri, mimeType: currentTrack.mimeType);
+  }
+
+  return _resolveRemoteCastTrack(media: media, currentTrack: currentTrack, currentTrackIndex: currentTrackIndex);
+}
+
+Uri? _resolveCastCoverUri(InternalMedia media) {
+  final coverUri = media.cover;
+  if (coverUri != null && _isHttpUri(coverUri)) {
+    return coverUri;
+  }
+
+  final api = containerRef.read(absApiProvider);
+  if (api == null) {
+    return null;
+  }
+
+  return api.getLibraryItemApi().getCoverUri(media.itemId);
 }
 
 Future<void> showCastDevicePicker(BuildContext context, {bool ensureInitialized = true}) async {
@@ -182,22 +305,29 @@ Future<_CastTarget?> _castCurrentTrack(BuildContext context) async {
   }
 
   final currentTrack = media.tracks[currentTrackIndex];
-  final trackUrl = currentTrack.url;
-
-  if (trackUrl == null || trackUrl.isEmpty) {
-    _showCastMessage(context, 'Current track does not have a playable URL.');
+  final resolvedCastTrack = await _resolveCastTrack(
+    media: media,
+    currentTrack: currentTrack,
+    currentTrackIndex: currentTrackIndex,
+  );
+  if (!context.mounted) {
     return null;
   }
 
-  final trackUri = Uri.tryParse(trackUrl);
-  if (trackUri == null || !(trackUri.scheme == 'http' || trackUri.scheme == 'https')) {
-    _showCastMessage(context, 'Casting currently is not supported for local files.');
+  if (resolvedCastTrack == null) {
+    final hasApi = containerRef.read(absApiProvider) != null;
+    _showCastMessage(
+      context,
+      hasApi
+          ? 'Unable to prepare a server stream for this item.'
+          : 'Casting local downloads requires an active server connection.',
+    );
     return null;
   }
 
   final metadataImages = <GoogleCastImage>[];
-  final coverUri = media.cover;
-  if (coverUri != null && (coverUri.scheme == 'http' || coverUri.scheme == 'https')) {
+  final coverUri = _resolveCastCoverUri(media);
+  if (coverUri != null) {
     metadataImages.add(GoogleCastImage(url: coverUri));
   }
 
@@ -207,7 +337,9 @@ Future<_CastTarget?> _castCurrentTrack(BuildContext context) async {
     images: metadataImages.isEmpty ? null : metadataImages,
   );
 
-  final contentType = currentTrack.mimeType.isNotEmpty ? currentTrack.mimeType : 'audio/mpeg';
+  final contentType = resolvedCastTrack.mimeType.isNotEmpty
+      ? resolvedCastTrack.mimeType
+      : (currentTrack.mimeType.isNotEmpty ? currentTrack.mimeType : 'audio/mpeg');
 
   final GoogleCastMediaInformation mediaInfo;
   if (Platform.isAndroid) {
@@ -215,7 +347,7 @@ Future<_CastTarget?> _castCurrentTrack(BuildContext context) async {
       contentId: media.id,
       streamType: CastMediaStreamType.buffered,
       contentType: contentType,
-      contentUrl: trackUri,
+      contentUrl: resolvedCastTrack.uri,
       metadata: metadata,
     );
   } else {
@@ -223,7 +355,7 @@ Future<_CastTarget?> _castCurrentTrack(BuildContext context) async {
       contentId: media.id,
       streamType: CastMediaStreamType.buffered,
       contentType: contentType,
-      contentUrl: trackUri,
+      contentUrl: resolvedCastTrack.uri,
       metadata: metadata,
     );
   }
@@ -245,6 +377,13 @@ class _CastTarget {
 
   final String contentId;
   final int trackIndex;
+}
+
+class _ResolvedCastTrack {
+  const _ResolvedCastTrack({required this.uri, required this.mimeType});
+
+  final Uri uri;
+  final String mimeType;
 }
 
 class CastButton extends ConsumerStatefulWidget {
