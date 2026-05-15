@@ -1644,7 +1644,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   Future<dynamic> _setSource({Duration initialPosition = Duration.zero, bool ignoreSavedProgress = false}) async {
     if (_currentMediaItem == null) return Future.value();
-    final source = _currentMediaItem!.toAudioSources(headers: currentRequestHeaders);
+    final requestHeaders = currentRequestHeaders;
+    final source = _currentMediaItem!.toAudioSources(headers: requestHeaders);
     if (!ignoreSavedProgress) {
       final currentProgress = _ref.read(
         mediaProgressProvider.select((asyncValue) {
@@ -1667,8 +1668,24 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     logger('Setting source with initial position: $initialPosition', tag: 'AudioHandler', level: InfoLevel.debug);
 
     final trackIndex = _currentMediaItem!.getIndexForDuration(initialPosition);
+    final trackCount = _currentMediaItem!.tracks.length;
 
-    await player.setAudioSources(source, initialIndex: trackIndex, initialPosition: Duration.zero, preload: true);
+    logger(
+      'Startup diagnostics enabled (trackIndex=$trackIndex, trackCount=$trackCount, headerKeys=${requestHeaders.keys.toList()})',
+      tag: 'AudioHandler',
+      level: InfoLevel.debug,
+    );
+
+    final setSourceStopwatch = Stopwatch()..start();
+    await player.setAudioSources(source, initialIndex: trackIndex, initialPosition: Duration.zero, preload: false);
+    setSourceStopwatch.stop();
+
+    logger(
+      'setAudioSources completed in ${setSourceStopwatch.elapsedMilliseconds}ms '
+      '(trackIndex=$trackIndex, trackCount=$trackCount, preload=false)',
+      tag: 'AudioHandler',
+      level: InfoLevel.debug,
+    );
   }
 
   Map<String, String> get currentRequestHeaders {

@@ -166,7 +166,7 @@ class Init {
     );
 
     // TODO: Setting
-    JustAudioMediaKit.prefetchPlaylist = true;
+    JustAudioMediaKit.prefetchPlaylist = false;
     logger('AudioHandler initialized', tag: 'Init', level: InfoLevel.info);
     return _audioHandler!;
   }
