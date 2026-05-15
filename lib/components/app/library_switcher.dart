@@ -45,6 +45,7 @@ class LibrarySwitcher extends ConsumerWidget {
     WidgetRef ref,
     List<Library> libraries,
     String? selectedLibraryId, {
+    String? fallbackName,
     required bool compact,
   }) {
     Library? selectedLibrary;
@@ -54,7 +55,7 @@ class LibrarySwitcher extends ConsumerWidget {
         break;
       }
     }
-    final selectedName = selectedLibrary?.name ?? 'Library';
+    final selectedName = selectedLibrary?.name ?? fallbackName ?? 'Library';
 
     return PopupMenuButton<String>(
       tooltip: 'Select library',
@@ -101,20 +102,42 @@ class LibrarySwitcher extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final userLibrariesAsyncValue = ref.watch(userLibrariesProvider);
     final selectedLibraryId = ref.watch(selectedLibraryIdProvider);
+    final selectedLibrary = ref.watch(selectedLibraryProvider);
 
     return userLibrariesAsyncValue.when(
       data: (libraries) {
         if (libraries.isEmpty) {
-          return _chipButton(context, 'No library', compact: true);
+          return _chipButton(context, selectedLibrary?.name ?? 'No library', compact: true);
         }
         return PlatformBuilder(
-          mobileBuilder: (ctx) => _buildSelector(ctx, ref, libraries, selectedLibraryId.value, compact: true),
-          tabletBuilder: (ctx) => _buildSelector(ctx, ref, libraries, selectedLibraryId.value, compact: false),
-          desktopBuilder: (ctx) => _buildSelector(ctx, ref, libraries, selectedLibraryId.value, compact: false),
+          mobileBuilder: (ctx) => _buildSelector(
+            ctx,
+            ref,
+            libraries,
+            selectedLibraryId.value,
+            fallbackName: selectedLibrary?.name,
+            compact: true,
+          ),
+          tabletBuilder: (ctx) => _buildSelector(
+            ctx,
+            ref,
+            libraries,
+            selectedLibraryId.value,
+            fallbackName: selectedLibrary?.name,
+            compact: false,
+          ),
+          desktopBuilder: (ctx) => _buildSelector(
+            ctx,
+            ref,
+            libraries,
+            selectedLibraryId.value,
+            fallbackName: selectedLibrary?.name,
+            compact: false,
+          ),
         );
       },
       loading: () => const SizedBox(width: 26, height: 26, child: CircularProgressIndicator(strokeWidth: 2)),
-      error: (error, stack) => _chipButton(context, 'Library error', compact: true),
+      error: (error, stack) => _chipButton(context, selectedLibrary?.name ?? 'Library error', compact: true),
     );
   }
 }

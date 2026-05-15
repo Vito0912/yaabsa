@@ -7,6 +7,7 @@ import 'package:yaabsa/components/common/narrator_card.dart';
 import 'package:yaabsa/components/common/scroll_to_top_button.dart';
 import 'package:yaabsa/provider/common/library_filter_data_provider.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
+import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/util/globals.dart';
 
 class NarratorsView extends HookConsumerWidget {
@@ -16,6 +17,7 @@ class NarratorsView extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final scrollController = useScrollController();
     final selectedLibrary = ref.watch(selectedLibraryProvider);
+    final serverReachable = ref.watch(serverStatusProvider).value ?? false;
 
     if (selectedLibrary == null) {
       return const Center(child: Text('No library selected. Please select a library via the switcher.'));
@@ -90,14 +92,25 @@ class NarratorsView extends HookConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stackTrace) => ConnectionIssueView.requestFailed(
-        error: error,
-        title: 'Error loading narrators',
-        onRetry: () async {
-          ref.invalidate(libraryFilterDataProvider(libraryId));
-          await ref.read(libraryFilterDataProvider(libraryId).future);
-        },
-      ),
+      error: (error, stackTrace) {
+        if (!serverReachable) {
+          return ConnectionIssueView.offline(
+            onRetry: () async {
+              ref.invalidate(libraryFilterDataProvider(libraryId));
+              await ref.read(libraryFilterDataProvider(libraryId).future);
+            },
+          );
+        }
+
+        return ConnectionIssueView.requestFailed(
+          error: error,
+          title: 'Error loading narrators',
+          onRetry: () async {
+            ref.invalidate(libraryFilterDataProvider(libraryId));
+            await ref.read(libraryFilterDataProvider(libraryId).future);
+          },
+        );
+      },
     );
   }
 }

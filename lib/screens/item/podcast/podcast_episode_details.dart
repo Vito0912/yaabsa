@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
+import 'package:yaabsa/components/common/loading_snackbar.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/models/internal_download.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
@@ -227,9 +228,13 @@ class PodcastEpisodeDetailsContent extends ConsumerWidget {
                                       ? null
                                       : () async {
                                           try {
-                                            final result = await downloadHandler.deleteDownloadedItem(
-                                              episodeDownload,
-                                              userId: currentUserId,
+                                            final result = await runWithLoadingSnackBar(
+                                              context: context,
+                                              message: 'Deleting downloaded files...',
+                                              action: () => downloadHandler.deleteDownloadedItem(
+                                                episodeDownload,
+                                                userId: currentUserId,
+                                              ),
                                             );
                                             if (!context.mounted) {
                                               return;

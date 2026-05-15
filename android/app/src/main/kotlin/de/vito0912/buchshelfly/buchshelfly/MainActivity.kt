@@ -1,9 +1,11 @@
 package de.vito0912.yaabsa
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import androidx.documentfile.provider.DocumentFile
 import com.ryanheise.audioservice.AudioServiceActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
@@ -12,6 +14,7 @@ import io.flutter.plugin.common.MethodChannel
 class MainActivity : AudioServiceActivity() {
 	companion object {
 		private const val WIDGET_CHANNEL = "de.vito0912.yaabsa/widget"
+		private const val SAF_CHANNEL = "de.vito0912.yaabsa/saf"
 		private const val WIDGET_COMMAND_DELAY_MS = 700L
 	}
 
@@ -42,6 +45,99 @@ class MainActivity : AudioServiceActivity() {
 					else -> result.notImplemented()
 				}
 			}
+
+		MethodChannel(flutterEngine.dartExecutor.binaryMessenger, SAF_CHANNEL)
+			.setMethodCallHandler { call, result ->
+				when (call.method) {
+					"prepareDownloadFile" -> handlePrepareDownloadFile(call, result)
+					else -> result.notImplemented()
+				}
+			}
+	}
+
+	private fun handlePrepareDownloadFile(call: MethodCall, result: MethodChannel.Result) {
+		val rootTreeUriRaw = call.argument<String>("rootTreeUri")?.trim().orEmpty()
+		val relativeDirectory = call.argument<String>("relativeDirectory")?.trim().orEmpty()
+		val filename = call.argument<String>("filename")?.trim().orEmpty()
+		val mimeType = call.argument<String>("mimeType")?.trim().orEmpty().ifEmpty { "application/octet-stream" }
+
+		if (rootTreeUriRaw.isEmpty() || filename.isEmpty()) {
+			result.error(
+				"invalid_args",
+				"prepareDownloadFile expects non-empty rootTreeUri and filename.",
+				null
+			)
+			return
+		}
+
+		val rootTreeUri = try {
+			Uri.parse(rootTreeUriRaw)
+		} catch (e: Exception) {
+			result.error("invalid_uri", "Invalid rootTreeUri: ${e.message}", null)
+			return
+		}
+
+		if (rootTreeUri.scheme != "content") {
+			result.error("invalid_uri", "rootTreeUri must be a content:// URI.", null)
+			return
+		}
+
+		val rootDirectory = DocumentFile.fromTreeUri(applicationContext, rootTreeUri)
+		if (rootDirectory == null || !rootDirectory.exists() || !rootDirectory.isDirectory) {
+			result.error("invalid_root", "Selected SAF root directory is not accessible.", null)
+			return
+		}
+
+		val targetDirectory = resolveOrCreateSafDirectory(rootDirectory, relativeDirectory)
+		if (targetDirectory == null || !targetDirectory.exists() || !targetDirectory.isDirectory) {
+			result.error("directory_failed", "Could not resolve target SAF directory.", null)
+			return
+		}
+
+		val existingEntry = targetDirectory.findFile(filename)
+		if (existingEntry != null && existingEntry.exists()) {
+			if (!existingEntry.isFile) {
+				result.error("invalid_target", "Target exists but is not a file.", null)
+				return
+			}
+			result.success(existingEntry.uri.toString())
+			return
+		}
+
+		val createdFile = targetDirectory.createFile(mimeType, filename)
+		if (createdFile == null || !createdFile.exists()) {
+			result.error("create_failed", "Could not create target file in SAF directory.", null)
+			return
+		}
+
+		result.success(createdFile.uri.toString())
+	}
+
+	private fun resolveOrCreateSafDirectory(rootDirectory: DocumentFile, relativeDirectory: String): DocumentFile? {
+		if (relativeDirectory.isBlank()) {
+			return rootDirectory
+		}
+
+		val segments = relativeDirectory
+			.split('/', '\\')
+			.map { it.trim() }
+			.filter { it.isNotEmpty() }
+
+		var current: DocumentFile = rootDirectory
+		for (segment in segments) {
+			var next = current.findFile(segment)
+			if (next == null || !next.exists()) {
+				next = current.createDirectory(segment)
+			} else if (!next.isDirectory) {
+				return null
+			}
+			if (next == null) {
+				return null
+			}
+			current = next
+		}
+
+		return current
 	}
 
 	private fun handleWidgetLaunchIntent(intent: Intent?) {
