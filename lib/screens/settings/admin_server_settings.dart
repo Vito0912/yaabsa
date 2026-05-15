@@ -8,6 +8,7 @@ import 'package:yaabsa/screens/layout_home.dart';
 import 'package:yaabsa/screens/settings/admin_server_library_stats_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_logs_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_sessions_settings.dart';
+import 'package:yaabsa/screens/settings/admin_server_users_settings.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 
 class AdminServerSettings extends ConsumerWidget {
@@ -71,6 +72,14 @@ class AdminServerSettings extends ConsumerWidget {
                       enabled: isAdminUser,
                       disabledReason: isAdminUser ? null : 'Requires an admin account.',
                       onTap: isAdminUser ? () => context.push(AdminServerLogsSettings.routeName) : null,
+                    ),
+                    SettingsNavigationItem(
+                      icon: Icons.group_outlined,
+                      title: 'Users',
+                      subtitle: 'Create, edit, disable, unlink OpenID, and delete users.',
+                      enabled: isAdminUser,
+                      disabledReason: isAdminUser ? null : 'Requires an admin account.',
+                      onTap: isAdminUser ? () => context.push(AdminServerUsersSettings.routeName) : null,
                     ),
                     SettingsNavigationItem(
                       icon: Icons.query_stats_rounded,

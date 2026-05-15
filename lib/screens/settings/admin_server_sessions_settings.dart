@@ -19,30 +19,35 @@ class AdminServerSessionsSettings extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(10, 12, 20, 8),
-          child: Row(
-            children: [
-              IconButton(
-                tooltip: 'Back',
-                onPressed: () => _handleBack(context),
-                icon: const Icon(Icons.arrow_back_rounded),
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 700),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 12, 20, 8),
+              child: Row(
+                children: [
+                  IconButton(
+                    tooltip: 'Back',
+                    onPressed: () => _handleBack(context),
+                    icon: const Icon(Icons.arrow_back_rounded),
+                  ),
+                  Expanded(
+                    child: Text(
+                      'Listening Sessions',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
               ),
-              Expanded(
-                child: Text(
-                  'Listening Sessions',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
-                ),
-              ),
-            ],
-          ),
+            ),
+            Expanded(
+              child: const Padding(padding: EdgeInsets.symmetric(horizontal: 12), child: AdminServerSessionsView()),
+            ),
+          ],
         ),
-        Expanded(
-          child: const Padding(padding: EdgeInsets.symmetric(horizontal: 12), child: AdminServerSessionsView()),
-        ),
-      ],
+      ),
     );
   }
 }
