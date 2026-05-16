@@ -880,10 +880,9 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           packageName: de.vito0912.yaabsa
           releaseFiles: android-release/yaabsa.aab
-          tracks: internal
-          changesNotSentForReview: true
+          tracks: Alpha,Old
           releaseName: ${{ needs.changes.outputs.release_tag }}
-          status: draft
+          status: completed
           inAppUpdatePriority: 2
           whatsNewDirectory: android/whatsnew
         continue-on-error: true
@@ -894,10 +893,9 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           packageName: de.vito0912.yaabsa
           releaseFiles: android-automotive-release/yaabsa_aaos.aab
-          tracks: automotive:internal
-          changesNotSentForReview: true
+          tracks: automotive:AAOS
           releaseName: ${{ needs.changes.outputs.release_tag }} AAOS
-          status: draft
+          status: completed
           inAppUpdatePriority: 2
           whatsNewDirectory: android/whatsnew
         continue-on-error: true
