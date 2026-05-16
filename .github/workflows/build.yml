@@ -1,4 +1,4 @@
-name: Build test for all platforms
+name: Build release artifacts
 
 on:
   push:
@@ -1067,6 +1067,13 @@ jobs:
           
           xcrun productbuild --component "build/macos/Build/Products/Release/yaabsa.app" /Applications --sign "${{ secrets.MAC_INSTALLER_IDENTITY }}" "build/macos/Build/Products/Release/yaabsa.pkg"
 
+      - name: Install Transporter
+        run: |
+          url="https://itunesconnect.apple.com/WebObjects/iTunesConnect.woa/ra/resources/download/public/Transporter__OSX/bin/"
+          curl -fsSL "$url" -o "/tmp/itmstransporter.pkg"
+          sudo installer -pkg "/tmp/itmstransporter.pkg" -target /
+          /usr/local/itms/bin/iTMSTransporter -help
+
       - name: Upload macOS to TestFlight
         uses: apple-actions/upload-testflight-build@v4
         with:
@@ -1075,4 +1082,5 @@ jobs:
           issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
           api-key-id: ${{ secrets.APPSTORE_KEY_ID }}
           api-private-key: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+          backend: transporter
         continue-on-error: true

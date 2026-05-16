@@ -1,35 +1,40 @@
 # yaabsa
 
+[![Build test for all platforms](https://github.com/Vito0912/yaabsa/actions/workflows/build.yml/badge.svg)](https://github.com/Vito0912/yaabsa/actions/workflows/build.yml)
+
 An improved unofficial cross-platform app for Audiobookshelf
 
 ## Installation
 
-### Android
+![Android](https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white) [![Play Store](https://img.shields.io/badge/Google_Play-414141?style=for-the-badge&logo=google-play&logoColor=white)](https://play.google.com/store/apps/details?id=de.vito0912.yaabsa)
 
-[![Play Store](https://img.shields.io/badge/Google_Play-414141?style=for-the-badge&logo=google-play&logoColor=white)](https://play.google.com/store/apps/details?id=de.vito0912.yaabsa) - Currently, access is invite‑only. To join the beta, email me at fito0912(@)duck.com (or the mail at my GitHub profile) with the email address you use for the Play Store. After I add you to the private beta, you can use [this link](https://play.google.com/apps/internaltest/4701675908338514340) and download via the Play Store.
+* Currently, access is invite‑only. To join the beta, email me at fito0912(@)duck.com (or the mail at my GitHub profile) with the email address you use for the Play Store. After I add you to the private beta, you can use [this link](https://play.google.com/apps/internaltest/4701675908338514340) and download via the Play Store.
+* Download the latest APK from the releases page. Note that `AAOS` are only compatible with Android Automotive.
 
-Download the latest APK from the the releases page. Note that `automotive` are builds for AAOS, not your mobile. Please use `auto`, which stands for Android Auto and is the build for mobile devices.
+![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black) [![Flatpak](https://img.shields.io/badge/Flatpak-4A90E2?style=for-the-badge&logo=flatpak&logoColor=white)](https://Vito0912.github.io/yaabsa/de.vito0912.yaabsa.flatpakrepo)
 
-### Linux
+* _Use the Flatpak (recommended)_:
 
-Use the Flatpak *(recommended)*:\
-`flatpak remote-add --if-not-exists yaabsa https://Vito0912.github.io/yaabsa/de.vito0912.yaabsa.flatpakrepo --user`\
-Install with:\
-`flatpak install yaabsa de.vito0912.yaabsa --user`
+  ```bash
+  flatpak remote-add --if-not-exists yaabsa https://Vito0912.github.io/yaabsa/de.vito0912.yaabsa.flatpakrepo --user
+  flatpak install yaabsa de.vito0912.yaabsa --user
+  ```
 
-For all other installation methods, please refer to the [Platform hints](#platform-hints) section below and download them from the releases page.
+* For all other installation methods, please refer to the [Platform hints](#platform-hints) section below and download them from the releases page.
 
-### Windows
+![macOS](https://img.shields.io/badge/macOS-000000?style=for-the-badge&logo=apple&logoColor=white) [![TestFlight](https://img.shields.io/badge/TestFlight-00C7B7?style=for-the-badge&logo=testflight&logoColor=white)](https://testflight.apple.com/join/fSyXDKFf)
 
-Microsoft Store will follow
+* Join the beta via TestFlight using the button above.
+* Alternatively, download the latest app bundle from the releases page.
 
-Download the latest installer from the releases page.
+![iOS](https://img.shields.io/badge/iOS-000000?style=for-the-badge&logo=apple&logoColor=white) [![TestFlight](https://img.shields.io/badge/TestFlight-00C7B7?style=for-the-badge&logo=testflight&logoColor=white)](https://testflight.apple.com/join/fSyXDKFf)
 
-### MacOS, iOS
+* Join the beta via TestFlight using the button above.
+* Alternatively, download the latest IPA from the releases page to use it with tools like AltStore.
 
-[Testflight](https://testflight.apple.com/join/fSyXDKFf)\
+![Windows](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white)
 
-Unsigned builds can be downloaded from the releases page.
+* Download the latest installer from the releases page. _(Microsoft Store availability will follow)._
 
 ## Usage of AI
 
@@ -37,14 +42,14 @@ As I myself criticize the lack of disclosure about AI, which most ABS apps now u
 
 ## Features, features, features
 
-Below is a list of all features, but I want to *highlight* a few, as this client has features that are only and or very rarely found in other clients:
+Below is a list of all features, but I want to _highlight_ a few, as this client has features that are only and or very rarely found in other clients:
 
-- **First** and **only** client that supports Android Automotive with desktop/large displays in mind (support for while-driving experience planned)
-- eBook/PDF support **with** *syncable* annotations
-- subtitle support **with** karaoke-style highlighting support (later planned to be extended like Whispersync)
-- Support for all platforms Linux, Android, Android Automotive, iOS, macOS, Windows with responsive design
-- More actions directly via the notification player
-- You can **customize the player** components and move them around
+* **First** and **only** client that supports Android Automotive with desktop/large displays in mind (support for while-driving experience planned)
+* eBook/PDF support **with** _syncable_ annotations
+* subtitle support **with** karaoke-style highlighting support (later planned to be extended like Whispersync)
+* Support for all platforms Linux, Android, Android Automotive, iOS, macOS, Windows with responsive design
+* More actions directly via the notification player
+* You can **customize the player** components and move them around
 
 > [!NOTE]
 > Please note that this client is a mainly personal project I started because it lacks features\
@@ -57,10 +62,10 @@ Below is a list of all features, but I want to *highlight* a few, as this client
 
 > [!NOTE]
 >
-> - ✅: Feature is available and tested for the platform before the release on at least one personal device.
-> - ❓: Feature is available but not tested for the platform before the release. The features should work, but they are not guaranteed to work.
-> - ❌: Feature is not available for the platform
-> - 🅿️: Feature is planned for the platform, but not yet implemented.
+> * ✅: Feature is available and tested for the platform before the release on at least one personal device.
+> * ❓: Feature is available but not tested for the platform before the release. The features should work, but they are not guaranteed to work.
+> * ❌: Feature is not available for the platform, due to missing libraries. It does not mean that it will never be available
+> * 🅿️: Feature is planned for the platform, but not yet implemented.
 >
 > If a feature already has a 🅿️, ❓, or ✅ and ❌ for the other platforms for the same feature, it is not planned to be implemented, either because it is not possible or not worth the effort for a single platform. However, PRs will not be closed. Issues will
 
@@ -156,5 +161,5 @@ The Snap package is currently broken and might be removed in the future.
 For all other installation methods, you need to make sure that the correct dependencies are installed on your system. If the app starts with a black screen, please set the ENV `YAABSA_RELEASE_CONSOLE_LOG=1`, as this will log issues if you start the application from the terminal.
 In general, you need the following dependencies:
 
-- libmpv
-- libsecret
+* libmpv
+* libsecret
