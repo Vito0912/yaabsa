@@ -100,7 +100,7 @@ class QuickPlayWidgetProvider : AppWidgetProvider() {
         }
 
         fun updateAll(context: Context) {
-            val manager = AppWidgetManager.getInstance(context)
+            val manager = WidgetRuntimeSupport.appWidgetManagerOrNull(context) ?: return
             val component = android.content.ComponentName(context, QuickPlayWidgetProvider::class.java)
             val ids = manager.getAppWidgetIds(component)
             updateWidgets(context, manager, ids)

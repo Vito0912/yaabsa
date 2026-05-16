@@ -35,6 +35,11 @@ object WidgetMediaSessionObserver {
 
     fun ensureConnected(context: Context) {
         val localContext = context.applicationContext
+        if (!WidgetRuntimeSupport.isWidgetSupportEnabled(localContext)) {
+            clearController()
+            return
+        }
+
         appContext = localContext
 
         if (mediaController != null || isConnecting) {
@@ -103,6 +108,10 @@ object WidgetMediaSessionObserver {
 
     private fun scheduleReconnect() {
         val context = appContext ?: return
+        if (!WidgetRuntimeSupport.isWidgetSupportEnabled(context)) {
+            clearController()
+            return
+        }
 
         reconnectRunnable?.let { mainHandler.removeCallbacks(it) }
         reconnectRunnable = Runnable {

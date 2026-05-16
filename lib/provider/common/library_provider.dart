@@ -92,7 +92,11 @@ class SelectedLibraryId extends _$SelectedLibraryId {
 
     if (librariesAsync.hasValue) {
       final libraries = librariesAsync.value ?? const <Library>[];
-      unawaited(_ensureSelectionForLibraries(userId: userId, libraries: libraries));
+      unawaited(
+        Future<void>(() async {
+          await _ensureSelectionForLibraries(userId: userId, libraries: libraries);
+        }),
+      );
     }
 
     logger('SelectedLibraryIdProvider: Watching selected library ID for user $userId.', tag: 'SelectedLibraryId');
@@ -154,7 +158,11 @@ class SelectedLibraryId extends _$SelectedLibraryId {
 
       final library = Library.fromJson(Map<String, dynamic>.from(decoded));
       _selectedLibraryCacheByUserId[userId] = library;
-      ref.invalidate(selectedLibraryProvider);
+      unawaited(
+        Future<void>(() async {
+          ref.invalidate(selectedLibraryProvider);
+        }),
+      );
     } catch (e, s) {
       logger(
         'SelectedLibraryIdProvider: Failed to hydrate selected library snapshot for user $userId: $e\n$s',

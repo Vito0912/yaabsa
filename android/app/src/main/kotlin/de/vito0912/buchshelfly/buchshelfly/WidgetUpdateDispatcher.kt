@@ -6,35 +6,51 @@ import android.content.Context
 
 object WidgetUpdateDispatcher {
     fun updateAll(context: Context) {
+        if (!WidgetRuntimeSupport.isWidgetSupportEnabled(context)) {
+            return
+        }
+
         updatePlayerWidgets(context)
         updateQuickPlayWidgets(context)
         updateShelfWidgets(context)
     }
 
     fun updatePlayerWidgets(context: Context) {
-        WidgetMediaSessionObserver.ensureConnected(context)
-        val manager = AppWidgetManager.getInstance(context)
+        val manager = WidgetRuntimeSupport.appWidgetManagerOrNull(context) ?: return
         val component = ComponentName(context, PlayerControlWidgetProvider::class.java)
         val ids = manager.getAppWidgetIds(component)
+        if (ids.isEmpty()) {
+            return
+        }
+
+        WidgetMediaSessionObserver.ensureConnected(context)
         PlayerControlWidgetProvider.updateWidgets(context, manager, ids)
     }
 
     fun updateQuickPlayWidgets(context: Context) {
-        val manager = AppWidgetManager.getInstance(context)
+        val manager = WidgetRuntimeSupport.appWidgetManagerOrNull(context) ?: return
         val component = ComponentName(context, QuickPlayWidgetProvider::class.java)
         val ids = manager.getAppWidgetIds(component)
+        if (ids.isEmpty()) {
+            return
+        }
+
         QuickPlayWidgetProvider.updateWidgets(context, manager, ids)
     }
 
     fun updateShelfWidgets(context: Context) {
-        val manager = AppWidgetManager.getInstance(context)
+        val manager = WidgetRuntimeSupport.appWidgetManagerOrNull(context) ?: return
         val component = ComponentName(context, ShelfCardWidgetProvider::class.java)
         val ids = manager.getAppWidgetIds(component)
+        if (ids.isEmpty()) {
+            return
+        }
+
         ShelfCardWidgetProvider.updateWidgets(context, manager, ids)
     }
 
     fun updateSingleWidget(context: Context, appWidgetId: Int) {
-        val manager = AppWidgetManager.getInstance(context)
+        val manager = WidgetRuntimeSupport.appWidgetManagerOrNull(context) ?: return
         val info = manager.getAppWidgetInfo(appWidgetId) ?: return
         val providerClassName = info.provider.className
 

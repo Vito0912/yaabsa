@@ -20,6 +20,10 @@ class MainActivity : AudioServiceActivity() {
 
 	private val widgetCommandHandler = Handler(Looper.getMainLooper())
 
+	private fun isWidgetSupportEnabled(): Boolean {
+		return WidgetRuntimeSupport.isWidgetSupportEnabled(applicationContext)
+	}
+
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 		handleWidgetLaunchIntent(intent)
@@ -141,6 +145,10 @@ class MainActivity : AudioServiceActivity() {
 	}
 
 	private fun handleWidgetLaunchIntent(intent: Intent?) {
+		if (!isWidgetSupportEnabled()) {
+			return
+		}
+
 		if (intent == null) {
 			return
 		}
@@ -181,6 +189,11 @@ class MainActivity : AudioServiceActivity() {
 	}
 
 	private fun handlePublishShelfSnapshot(call: MethodCall, result: MethodChannel.Result) {
+		if (!isWidgetSupportEnabled()) {
+			result.success(false)
+			return
+		}
+
 		val userId = call.argument<String>("userId")?.trim()?.ifEmpty { null }
 		val userName = call.argument<String>("userName")?.trim()?.ifEmpty { null }
 		val libraryId = call.argument<String>("libraryId")?.trim().orEmpty()
@@ -214,6 +227,11 @@ class MainActivity : AudioServiceActivity() {
 	}
 
 	private fun handlePublishWidgetConfig(call: MethodCall, result: MethodChannel.Result) {
+		if (!isWidgetSupportEnabled()) {
+			result.success(false)
+			return
+		}
+
 		val appWidgetId = parseAppWidgetId(call.argument<Any>("appWidgetId"))
 		if (appWidgetId == null || appWidgetId < 0) {
 			result.error("invalid_widget_id", "publishWidgetConfig requires a valid appWidgetId.", null)
@@ -242,6 +260,11 @@ class MainActivity : AudioServiceActivity() {
 	}
 
 	private fun handlePublishWidgetTheme(call: MethodCall, result: MethodChannel.Result) {
+		if (!isWidgetSupportEnabled()) {
+			result.success(false)
+			return
+		}
+
 		val isDarkMode = call.argument<Boolean>("isDarkMode")
 		if (isDarkMode == null) {
 			result.error("invalid_theme", "publishWidgetTheme requires a boolean isDarkMode argument.", null)
@@ -254,10 +277,20 @@ class MainActivity : AudioServiceActivity() {
 	}
 
 	private fun handleConsumePopulateAllRequest(result: MethodChannel.Result) {
+		if (!isWidgetSupportEnabled()) {
+			result.success(false)
+			return
+		}
+
 		result.success(WidgetStorage.consumePopulateAllRequest(applicationContext))
 	}
 
 	private fun handleTriggerWidgetUpdate(call: MethodCall, result: MethodChannel.Result) {
+		if (!isWidgetSupportEnabled()) {
+			result.success(false)
+			return
+		}
+
 		val appWidgetId = parseAppWidgetId(call.argument<Any>("appWidgetId"))
 		if (appWidgetId != null && appWidgetId >= 0) {
 			WidgetUpdateDispatcher.updateSingleWidget(applicationContext, appWidgetId)
