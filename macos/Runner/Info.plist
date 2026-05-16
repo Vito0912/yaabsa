@@ -28,6 +28,8 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.books</string>
 	<key>NSAppTransportSecurity</key>
     <dict>
         <key>NSAllowsArbitraryLoads</key>
@@ -35,6 +37,12 @@
     </dict>
     <key>NSMotionUsageDescription</key>
     <string>This app needs access to the accelerometer to allow actions when you shake your device. You can reset the sleep timer or rewind the current audio by shaking. The app only listens for these actions if the setting is turned on and you can use the feature (for example, shaking to rewind only works if audio is playing). No acceleration data is sent anywhere.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>${PRODUCT_NAME} uses the local network to discover Cast-enabled devices on your WiFi network.</string>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>${PRODUCT_NAME} needs access to audio files to add the possibility of uploading them to the server.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>${PRODUCT_NAME} needs access to covers to add the possibility of uploading covers to the server.</string>
 	<key>ITSAppUsesNonExemptEncryption</key>  
 	<false/>
 </dict>
