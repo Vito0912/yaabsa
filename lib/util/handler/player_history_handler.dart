@@ -5,7 +5,7 @@ import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:drift/drift.dart';
 
-enum PlayerHistoryType { sync, syncOffline, play, pause, stop, seek }
+enum PlayerHistoryType { sync, syncOffline, play, pause, stop, seek, localSync }
 
 class PlayerHistoryHandler {
   static Future<void> addPlayerHistory(PlayerHistoryType type) async {

@@ -186,6 +186,8 @@ class _PlayHistoryLocalTabState extends ConsumerState<PlayHistoryLocalTab> {
         return Icons.sync;
       case PlayerHistoryType.syncOffline:
         return Icons.sync_disabled;
+      case PlayerHistoryType.localSync:
+        return Icons.sync_alt;
     }
   }
 
@@ -203,6 +205,8 @@ class _PlayHistoryLocalTabState extends ConsumerState<PlayHistoryLocalTab> {
         return Theme.of(context).colorScheme.primary;
       case PlayerHistoryType.syncOffline:
         return Colors.grey;
+      case PlayerHistoryType.localSync:
+        return Colors.purple;
     }
   }
 
@@ -220,6 +224,8 @@ class _PlayHistoryLocalTabState extends ConsumerState<PlayHistoryLocalTab> {
         return 'Sync';
       case PlayerHistoryType.syncOffline:
         return 'Sync Offline';
+      case PlayerHistoryType.localSync:
+        return 'Local Sync';
     }
   }
 

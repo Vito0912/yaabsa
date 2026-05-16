@@ -208,15 +208,30 @@ class SessionRepository {
       return false;
     }
 
-    if (_isLocalSession || !canReachServer) {
+    if (_isLocalSession) {
+      final MediaProgress? updatedProgress = await ref
+          .read(mediaProgressProvider.notifier)
+          .updateMediaProgress(_currentSession!.libraryItemId, currentTime, _currentSession!);
+
+      if (canReachServer) {
+        final syncedRemotely = await _syncLocalSessionProgressDirectly(currentTime, updatedProgress);
+        if (syncedRemotely) {
+          return true;
+        }
+      }
+
+      logger('Session is local; storing sync locally', tag: 'SessionRepository', level: InfoLevel.debug);
+
+      return _addLocal(currentTime, timeListened, updatedProgress);
+    }
+
+    if (!canReachServer) {
       final MediaProgress? updatedProgress = await ref
           .read(mediaProgressProvider.notifier)
           .updateMediaProgress(_currentSession!.libraryItemId, currentTime, _currentSession!);
 
       logger(
-        _isLocalSession
-            ? 'Session is local; storing sync locally'
-            : 'Server is offline/unreachable by watcher; storing sync locally',
+        'Server is offline/unreachable by watcher; storing sync locally',
         tag: 'SessionRepository',
         level: InfoLevel.debug,
       );
@@ -254,6 +269,35 @@ class SessionRepository {
           .updateMediaProgress(_currentSession!.libraryItemId, currentTime, _currentSession!);
 
       return _addLocal(currentTime, timeListened, updatedProgress);
+    }
+  }
+
+  Future<bool> _syncLocalSessionProgressDirectly(double currentTime, MediaProgress? updatedProgress) async {
+    final PlaybackSession? currentSession = _currentSession;
+    final ABSApi? api = ref.read(absApiProvider);
+
+    if (currentSession == null || api == null) {
+      return false;
+    }
+
+    final String effectiveUserId = _activeUserId ?? currentSession.userId;
+    final double duration = currentSession.duration ?? 0;
+    final double normalizedProgress = duration > 0 ? (currentTime / duration).clamp(0.0, 1.0).toDouble() : 0.0;
+    final MediaProgress progressToSync =
+        updatedProgress ?? currentSession.toMediaProgress(null, effectiveUserId, normalizedProgress, currentTime);
+
+    try {
+      await api.getMeApi().createUpdateMediaProgress(
+        currentSession.libraryItemId,
+        progressToSync,
+        episodeId: currentSession.episodeId,
+      );
+
+      PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.localSync);
+      return true;
+    } catch (e) {
+      logger('Failed direct local progress sync: $e', tag: 'SessionRepository', level: InfoLevel.warning);
+      return false;
     }
   }
 

@@ -1263,7 +1263,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       _forceQueueSwitchOnNextPlay = false;
       await _applySmartRewindOnResumeIfNeeded();
       _setQueueTransitionLoading(false);
-      await _syncedPlay();
+      await _syncedPlay(restoreProgress: true);
       return Future.value();
     }
 
@@ -1346,7 +1346,11 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
     _clearSmartRewindPauseMarker();
     await seek(position);
-    await play();
+    if (isCastControlActive) {
+      await play();
+    } else {
+      await _syncedPlay();
+    }
     TrayManager.update();
   }
 
@@ -1354,38 +1358,82 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     mediaItem.add(_currentMediaItem?.toMediaItem());
 
     if (_currentMediaItem == null) return Future.value();
-
-    if (!restoreProgress) {
-      await _player.play();
-      return Future.value();
-    }
-
-    Duration currentPosition = Duration.zero;
-
-    final progress = await _ref
-        .read(mediaProgressProvider.notifier)
-        .fetchOrRefreshIndividualProgress(_currentMediaItem!.itemId, episodeId: _currentMediaItem!.episodeId);
-
-    if (progress?.isFinished ?? false) {
-      currentPosition = Duration.zero;
-      logger('Item marked finished; starting from beginning instead', tag: 'AudioHandler', level: InfoLevel.debug);
-    } else {
-      currentPosition = Duration(microseconds: ((progress?.currentTime ?? 0) * Duration.microsecondsPerSecond).round());
-    }
-
+    final resumeItem = _currentMediaItem!;
+    final startPosition = position;
     logger(
-      'Current position: $currentPosition, player position: ${_player.position}, progress: ${progress?.currentTime}',
-      tag: 'AudioHandler',
-      level: InfoLevel.debug,
-    );
-
-    await seek(currentPosition);
-    logger(
-      'Starting playback for item: ${_currentMediaItem!.itemId} (${_currentMediaItem!.episodeId ?? 'item'}) from position: $currentPosition',
+      'Starting playback for item: ${resumeItem.itemId} (${resumeItem.episodeId ?? 'item'}) from position: $startPosition (restoreProgress=$restoreProgress, castControl=$isCastControlActive)',
       tag: 'AudioHandler',
       level: InfoLevel.info,
     );
+
+    if (restoreProgress && !isCastControlActive) {
+      unawaited(_reconcileResumeProgressInBackground(resumeItem));
+    }
+
     await _player.play();
+  }
+
+  Future<void> _reconcileResumeProgressInBackground(InternalMedia resumeItem) async {
+    const driftThreshold = Duration(seconds: 10);
+
+    try {
+      final progress = await _ref
+          .read(mediaProgressProvider.notifier)
+          .fetchOrRefreshIndividualProgress(resumeItem.itemId, episodeId: resumeItem.episodeId);
+
+      final currentMedia = _currentMediaItem;
+      if (currentMedia == null ||
+          !_queueItemsMatch(
+            leftItemId: currentMedia.itemId,
+            leftEpisodeId: currentMedia.episodeId,
+            rightItemId: resumeItem.itemId,
+            rightEpisodeId: resumeItem.episodeId,
+          )) {
+        logger(
+          'Background resume reconcile aborted: current media item changed or is null (current=${currentMedia?.itemId}(${currentMedia?.episodeId ?? 'item'}), resume=${resumeItem.itemId}(${resumeItem.episodeId ?? 'item'}))',
+          tag: 'AudioHandler',
+          level: InfoLevel.debug,
+        );
+        return;
+      }
+
+      if (progress == null) {
+        logger(
+          'Background resume reconcile: no progress found for item ${resumeItem.itemId} (${resumeItem.episodeId ?? 'item'}), skipping reconcile',
+          tag: 'AudioHandler',
+          level: InfoLevel.debug,
+        );
+        return;
+      }
+
+      final remotePosition = progress.isFinished
+          ? Duration.zero
+          : Duration(microseconds: (progress.currentTime * Duration.microsecondsPerSecond).round());
+      final currentAbsolutePosition = position;
+      final positionDrift = (remotePosition - currentAbsolutePosition).abs();
+
+      logger(
+        'Background resume reconcile for item: ${resumeItem.itemId} (${resumeItem.episodeId ?? 'item'}), '
+        'current position: $currentAbsolutePosition, remote position: $remotePosition, drift: $positionDrift',
+        tag: 'AudioHandler',
+        level: InfoLevel.debug,
+      );
+
+      if (positionDrift < driftThreshold) {
+        return;
+      }
+
+      logger(
+        'Background resume reconcile detected position drift of $positionDrift. '
+        'Seeking from $currentAbsolutePosition to $remotePosition',
+        tag: 'AudioHandler',
+        level: InfoLevel.info,
+      );
+
+      await seek(remotePosition);
+    } catch (e) {
+      logger('Background resume reconcile failed: $e', tag: 'AudioHandler', level: InfoLevel.warning);
+    }
   }
 
   @override
