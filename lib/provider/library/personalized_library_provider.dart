@@ -12,7 +12,7 @@ final Map<String, PersonalizedLibrary> _personalizedLibraryCacheByLibraryId = {}
 class PersonalizedLibraryNotifier extends _$PersonalizedLibraryNotifier {
   CancelToken? _activeRequestToken;
 
-  Future<PersonalizedLibrary?> _fetchPersonalizedLibrary(String libraryId) async {
+  Future<PersonalizedLibrary?> _fetchPersonalizedLibrary(String libraryId, {bool bypassCache = false}) async {
     final api = ref.read(absApiProvider);
     final cachedLibrary = _personalizedLibraryCacheByLibraryId[libraryId];
 
@@ -33,7 +33,11 @@ class PersonalizedLibraryNotifier extends _$PersonalizedLibraryNotifier {
     _activeRequestToken = cancelToken;
 
     try {
-      final response = await api.getLibraryApi().getPersonalized(libraryId, cancelToken: cancelToken);
+      final response = await api.getLibraryApi().getPersonalized(
+        libraryId,
+        cancelToken: cancelToken,
+        extra: bypassCache ? const <String, dynamic>{'noCache': true} : null,
+      );
       final data = response.data;
       if (data != null) {
         _personalizedLibraryCacheByLibraryId[libraryId] = data;
@@ -83,13 +87,13 @@ class PersonalizedLibraryNotifier extends _$PersonalizedLibraryNotifier {
     return _fetchPersonalizedLibrary(libraryId);
   }
 
-  Future<void> refresh(String libraryId, {bool withLoading = false}) async {
+  Future<void> refresh(String libraryId, {bool withLoading = false, bool bypassCache = false}) async {
     if (withLoading) {
       state = const AsyncValue.loading();
     }
 
     final fallbackData = state.value ?? _personalizedLibraryCacheByLibraryId[libraryId];
-    final nextState = await AsyncValue.guard(() => _fetchPersonalizedLibrary(libraryId));
+    final nextState = await AsyncValue.guard(() => _fetchPersonalizedLibrary(libraryId, bypassCache: bypassCache));
 
     if (!ref.mounted) {
       return;

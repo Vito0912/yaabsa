@@ -10,6 +10,7 @@ import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/core/server_tasks_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/provider/library/personalized_shelf_refresh.dart';
 import 'package:yaabsa/util/logger.dart';
 
 part 'socket_provider.g.dart';
@@ -50,10 +51,27 @@ class SocketBatchQuickMatchCompleteNotifier extends Notifier<SocketBatchQuickMat
 @Riverpod(keepAlive: true)
 ABSSocketClient absSocketClient(Ref ref) {
   final serverTasksNotifier = ref.read(serverTasksProvider.notifier);
+  final container = ref.container;
 
   final socketClient = ABSSocketClient(
     onUserItemProgressUpdated: (event) {
-      ref.read(mediaProgressProvider.notifier).applyRemoteProgressUpdate(event.data);
+      final progress = event.data;
+      final key = mediaProgressKey(progress.libraryItemId, progress.episodeId);
+      final existingProgress = ref.read(mediaProgressProvider).value?[key];
+      final becameFinished = progress.isFinished && existingProgress?.isFinished != true;
+
+      ref.read(mediaProgressProvider.notifier).applyRemoteProgressUpdate(progress);
+
+      if (becameFinished) {
+        unawaited(
+          refreshPersonalizedShelfForCompletedItem(
+            container: container,
+            itemId: progress.libraryItemId,
+            sourceTag: 'SocketProvider',
+            reason: 'remote finished progress update',
+          ),
+        );
+      }
     },
     onItemUpdated: (item) {
       unawaited(processLibraryItemUpdate(container: ref.container, item: item, source: 'socket.item_updated'));
