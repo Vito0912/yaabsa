@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/api/routes/admin_api.dart';
 import 'package:yaabsa/api/routes/interceptors/bearer_auth_interceptor.dart';
@@ -59,9 +61,48 @@ class ABSApi {
     }
   }
 
+  static bool _looksLikeJsonPayload(String value) {
+    if (value.isEmpty) {
+      return false;
+    }
+
+    final startsWithObject = value.startsWith('{') && value.endsWith('}');
+    final startsWithArray = value.startsWith('[') && value.endsWith(']');
+    final quotedJsonString = value.startsWith('"') && value.endsWith('"');
+    return startsWithObject || startsWithArray || quotedJsonString;
+  }
+
+  static Object? _normalizeResponsePayload(Object? payload) {
+    if (payload is! String) {
+      return payload;
+    }
+
+    final trimmed = payload.trim();
+    if (!_looksLikeJsonPayload(trimmed)) {
+      return payload;
+    }
+
+    try {
+      final decoded = jsonDecode(trimmed);
+      if (decoded is String) {
+        final nested = decoded.trim();
+        if (_looksLikeJsonPayload(nested)) {
+          try {
+            return jsonDecode(nested);
+          } on FormatException {
+            return decoded;
+          }
+        }
+      }
+      return decoded;
+    } on FormatException {
+      return payload;
+    }
+  }
+
   static Future<Response<T>> makeApiPostRequest<T>({
     required String route,
-    required Function(Map<String, dynamic>)? fromJson,
+    required Function(dynamic)? fromJson,
     required Map<String, dynamic>? bodyData,
     required Dio dio,
     T? returnData,
@@ -86,8 +127,8 @@ class ABSApi {
       T? responseData;
 
       if (fromJson != null) {
-        final rawResponse = response.data;
-        responseData = rawResponse == null ? null : fromJson(rawResponse as Map<String, dynamic>);
+        final rawResponse = _normalizeResponsePayload(response.data);
+        responseData = rawResponse == null ? null : fromJson(rawResponse);
       }
 
       return Response<T>(
@@ -149,7 +190,7 @@ class ABSApi {
       final response = await dio.request<Object>(uri, options: options, cancelToken: cancelToken);
 
       T? responseData;
-      final rawResponse = response.data;
+      final rawResponse = _normalizeResponsePayload(response.data);
       responseData = rawResponse == null ? null : fromJson(rawResponse);
 
       return Response<T>(
@@ -202,7 +243,7 @@ class ABSApi {
 
   static Future<Response<T>> makeApiPatchRequest<T>({
     required String route,
-    required Function(Map<String, dynamic>)? fromJson,
+    required Function(dynamic)? fromJson,
     required Map<String, dynamic>? bodyData,
     required Dio dio,
     T? returnData,
@@ -227,8 +268,8 @@ class ABSApi {
       T? responseData;
 
       if (fromJson != null) {
-        final rawResponse = response.data;
-        responseData = rawResponse == null ? null : fromJson(rawResponse as Map<String, dynamic>);
+        final rawResponse = _normalizeResponsePayload(response.data);
+        responseData = rawResponse == null ? null : fromJson(rawResponse);
       }
 
       return Response<T>(

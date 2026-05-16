@@ -211,7 +211,6 @@ class _EncoderActionCard extends StatelessWidget {
                       : const Icon(Icons.stop_circle_outlined),
                   label: Text(isCanceling ? 'Canceling...' : 'Cancel'),
                 ),
-                const Spacer(),
                 FilledButton.icon(
                   onPressed: (isStarting || isCanceling || isTaskRunning) ? null : onStartEncoding,
                   icon: isStarting || isTaskRunning

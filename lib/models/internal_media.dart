@@ -4,7 +4,8 @@ import 'package:audio_service/audio_service.dart';
 import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:just_audio/just_audio.dart' show AudioSource;
+import 'package:just_audio/just_audio.dart'
+    show AudioSource, ProgressiveAudioSource, ProgressiveAudioSourceOptions, AndroidExtractorOptions;
 
 part 'internal_media.freezed.dart';
 part 'internal_media.g.dart';
@@ -53,6 +54,27 @@ abstract class InternalMedia with _$InternalMedia {
     );
   }
 
+  static const ProgressiveAudioSourceOptions _progressiveSourceOptions = ProgressiveAudioSourceOptions(
+    androidExtractorOptions: AndroidExtractorOptions(constantBitrateSeekingEnabled: true),
+  );
+
+  static bool _isAdaptiveStream(Uri uri) {
+    final lowerPath = uri.path.toLowerCase();
+    final lowerFragment = uri.fragment.toLowerCase();
+    return lowerPath.endsWith('.m3u8') ||
+        lowerPath.endsWith('.mpd') ||
+        lowerFragment.endsWith('.m3u8') ||
+        lowerFragment.endsWith('.mpd');
+  }
+
+  AudioSource _buildNetworkAudioSource(Uri uri, {Map<String, String>? headers}) {
+    if (_isAdaptiveStream(uri)) {
+      return AudioSource.uri(uri, headers: headers);
+    }
+
+    return ProgressiveAudioSource(uri, headers: headers, options: _progressiveSourceOptions);
+  }
+
   List<AudioSource> toAudioSources({Map<String, String>? headers}) {
     if (local) {
       logger('Using local audio sources', tag: 'InternalMedia', level: InfoLevel.debug);
@@ -74,7 +96,10 @@ abstract class InternalMedia with _$InternalMedia {
         if (saf || (hasExplicitScheme && !isFileUri)) {
           final uri = Uri.parse(url);
           final shouldAttachHeaders = uri.scheme == 'http' || uri.scheme == 'https';
-          return AudioSource.uri(uri, headers: shouldAttachHeaders ? effectiveHeaders : null);
+          if (shouldAttachHeaders) {
+            return _buildNetworkAudioSource(uri, headers: effectiveHeaders);
+          }
+          return AudioSource.uri(uri);
         }
 
         if (isFileUri) {
@@ -85,6 +110,9 @@ abstract class InternalMedia with _$InternalMedia {
         return AudioSource.file(url);
       } else {
         final uri = Uri.parse(url);
+        if (uri.scheme == 'http' || uri.scheme == 'https') {
+          return _buildNetworkAudioSource(uri, headers: effectiveHeaders);
+        }
         return AudioSource.uri(uri, headers: effectiveHeaders);
       }
     }).toList();

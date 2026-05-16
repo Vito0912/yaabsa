@@ -71,6 +71,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   late final PlaybackSyncService _syncService;
   StreamSubscription<PlayerException>? _errorSubscription;
   StreamSubscription<PlayerState>? _playerStateSubscription;
+  StreamSubscription<int?>? _playerCurrentIndexSubscription;
   StreamSubscription<GoogleCastSession?>? _castSessionSubscription;
   StreamSubscription<GoggleCastMediaStatus?>? _castMediaStatusSubscription;
   bool _isDisposing = false;
@@ -1212,12 +1213,13 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   }
 
   Future<void> _prepareForQueuedItemTransition() async {
+    final transitionPosition = position;
     _setQueueTransitionLoading(true);
     _currentMediaItem = null;
     _currentTrackIndex = 0;
 
     try {
-      await _syncService.flush();
+      await _syncService.flush(positionOverride: transitionPosition);
       await _ref.read(sessionRepositoryProvider).closeSession();
     } catch (e) {
       logger('Error preparing queued transition: $e', tag: 'AudioHandler', level: InfoLevel.error);
@@ -1388,6 +1390,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   @override
   Future<void> stop({bool clearQueue = true}) async {
+    final stopPosition = position;
     final shouldStopCastPlayback = isCastControlActive;
 
     _setQueueTransitionLoading(false);
@@ -1410,7 +1413,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       _emitQueueState();
     }
     try {
-      await _syncService.flush();
+      await _syncService.flush(positionOverride: stopPosition);
       await _ref.read(sessionRepositoryProvider).closeSession();
     } catch (e) {
       logger('Error closing session: $e', tag: 'AudioHandler', level: InfoLevel.error);
@@ -1584,8 +1587,9 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     logger('Buffer size: $bufferSize', tag: 'AudioHandler', level: InfoLevel.debug);
 
     final AndroidLoadControl androidLoadControl = AndroidLoadControl(
-      minBufferDuration: Duration(seconds: 50),
       maxBufferDuration: Duration(seconds: 300),
+      bufferForPlaybackDuration: Duration(milliseconds: 500),
+      bufferForPlaybackAfterRebufferDuration: Duration(seconds: 5),
       backBufferDuration: Duration(seconds: 120),
       targetBufferBytes: bufferSize,
     );
@@ -1603,7 +1607,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       darwinLoadControl: iOSLoadControl,
     );
 
-    _player = AudioPlayer(audioLoadConfiguration: loadCfg);
+    final disableHeaderProxy = Platform.isAndroid || Platform.isLinux;
+    _player = AudioPlayer(audioLoadConfiguration: loadCfg, useProxyForRequestHeaders: !disableHeaderProxy);
     _playerControlStateSubject = BehaviorSubject<PlayerState>.seeded(_player.playerState);
 
     _errorSubscription = _player.errorStream.listen((error) {
@@ -1647,6 +1652,20 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       }
       _refreshPlayerControlState();
       _updatePlaybackState();
+    });
+
+    _playerCurrentIndexSubscription = _player.currentIndexStream.listen((index) {
+      if (_isDisposing || index == null || index < 0) {
+        return;
+      }
+
+      if (_currentTrackIndex == index) {
+        return;
+      }
+
+      _currentTrackIndex = index;
+      _refreshPlayerControlState();
+      unawaited(_updatePlaybackState());
     });
 
     _setupCastStateListeners();
@@ -1736,11 +1755,13 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     final castActive = isCastControlActive;
     final controlState = castActive ? playerControlState : _player.playerState;
     final playPauseControl = controlState.playing ? MediaControl.pause : MediaControl.play;
-    final updatePosition = castActive ? position : _player.position;
+    final updatePosition = position;
     final effectiveSpeed = castActive
         ? (GoogleCastRemoteMediaClient.instance.mediaStatus?.playbackRate.toDouble() ?? _player.speed)
         : _player.speed;
-    final bufferedPosition = castActive ? updatePosition : _player.bufferedPosition;
+    final bufferedPosition = castActive
+        ? updatePosition
+        : (_currentMediaItem?.offsetForTrack(_currentTrackIndex) ?? Duration.zero) + _player.bufferedPosition;
     final controls = isMoreMenuVisible
         ? <MediaControl>[
             MediaControl.custom(
@@ -1817,6 +1838,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     _errorSubscription = null;
     await _playerStateSubscription?.cancel();
     _playerStateSubscription = null;
+    await _playerCurrentIndexSubscription?.cancel();
+    _playerCurrentIndexSubscription = null;
     await _castSessionSubscription?.cancel();
     _castSessionSubscription = null;
     await _castMediaStatusSubscription?.cancel();

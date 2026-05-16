@@ -55,14 +55,14 @@ class PlaybackSyncService {
     });
   }
 
-  Future<void> _stopSync() async {
+  Future<void> _stopSync({Duration? positionOverride}) async {
     _syncTimer?.cancel();
     _syncTimer = null;
-    await _sync();
+    await _sync(positionOverride: positionOverride);
   }
 
-  Future<bool> _sync() async {
-    final Duration currentPositionDuration = _handler.position;
+  Future<bool> _sync({Duration? positionOverride}) async {
+    final Duration currentPositionDuration = positionOverride ?? _handler.position;
     final double currentPositionSeconds = currentPositionDuration.inMicroseconds / Duration.microsecondsPerSecond;
     double listenedTime = 0;
 
@@ -101,8 +101,8 @@ class PlaybackSyncService {
         .syncOpenSession(currentPositionSeconds, listenedTime, canReachServer: canReachServer);
   }
 
-  Future<bool> flush() async {
-    await _stopSync();
+  Future<bool> flush({Duration? positionOverride}) async {
+    await _stopSync(positionOverride: positionOverride);
     _currentSegmentStartTime = null;
     return true;
   }
