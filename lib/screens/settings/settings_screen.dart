@@ -242,6 +242,11 @@ class MainSettingsScreen extends ConsumerWidget {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
                       ),
                       onPressed: () {
+                        if (AaosService.instance.currentState.isAutomotiveDevice) {
+                          context.go('/add-user');
+                          return;
+                        }
+
                         context.push('/add-user');
                       },
                     ),

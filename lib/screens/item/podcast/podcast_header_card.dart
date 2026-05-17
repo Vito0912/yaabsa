@@ -14,7 +14,11 @@ class PodcastHeaderCard extends StatelessWidget {
     required this.showFullDescription,
     required this.onBack,
     required this.onToggleDescription,
+    this.isCurrentPlayableEpisode = false,
+    this.isPlayingCurrentPlayableEpisode = false,
+    this.isLoadingCurrentPlayableEpisode = false,
     this.onPlayLatest,
+    this.onPauseLatest,
   });
 
   final LibraryItem item;
@@ -24,7 +28,11 @@ class PodcastHeaderCard extends StatelessWidget {
   final Duration? duration;
   final bool showFullDescription;
   final VoidCallback onBack;
+  final bool isCurrentPlayableEpisode;
+  final bool isPlayingCurrentPlayableEpisode;
+  final bool isLoadingCurrentPlayableEpisode;
   final VoidCallback? onPlayLatest;
+  final VoidCallback? onPauseLatest;
   final VoidCallback onToggleDescription;
 
   @override
@@ -65,7 +73,11 @@ class PodcastHeaderCard extends StatelessWidget {
                     totalEpisodes: totalEpisodes,
                     visibleEpisodes: visibleEpisodes,
                     duration: duration,
+                    isCurrentPlayableEpisode: isCurrentPlayableEpisode,
+                    isPlayingCurrentPlayableEpisode: isPlayingCurrentPlayableEpisode,
+                    isLoadingCurrentPlayableEpisode: isLoadingCurrentPlayableEpisode,
                     onPlayLatest: onPlayLatest,
+                    onPauseLatest: onPauseLatest,
                   ),
                 ],
               )
@@ -84,7 +96,11 @@ class PodcastHeaderCard extends StatelessWidget {
                       totalEpisodes: totalEpisodes,
                       visibleEpisodes: visibleEpisodes,
                       duration: duration,
+                      isCurrentPlayableEpisode: isCurrentPlayableEpisode,
+                      isPlayingCurrentPlayableEpisode: isPlayingCurrentPlayableEpisode,
+                      isLoadingCurrentPlayableEpisode: isLoadingCurrentPlayableEpisode,
                       onPlayLatest: onPlayLatest,
+                      onPauseLatest: onPauseLatest,
                     ),
                   ),
                 ],
@@ -115,14 +131,22 @@ class _PodcastHeaderText extends StatelessWidget {
     required this.totalEpisodes,
     required this.visibleEpisodes,
     required this.duration,
+    required this.isCurrentPlayableEpisode,
+    required this.isPlayingCurrentPlayableEpisode,
+    required this.isLoadingCurrentPlayableEpisode,
     this.onPlayLatest,
+    this.onPauseLatest,
   });
 
   final LibraryItem item;
   final int totalEpisodes;
   final int visibleEpisodes;
   final Duration? duration;
+  final bool isCurrentPlayableEpisode;
+  final bool isPlayingCurrentPlayableEpisode;
+  final bool isLoadingCurrentPlayableEpisode;
   final VoidCallback? onPlayLatest;
+  final VoidCallback? onPauseLatest;
 
   @override
   Widget build(BuildContext context) {
@@ -130,6 +154,15 @@ class _PodcastHeaderText extends StatelessWidget {
     final author = metadata?.author;
     final countLabel = '$visibleEpisodes / $totalEpisodes episodes';
     final durationLabel = duration == null ? null : formatDurationLong(duration!);
+    final playLabel = isLoadingCurrentPlayableEpisode
+        ? 'Loading'
+        : (isPlayingCurrentPlayableEpisode ? 'Pause' : (isCurrentPlayableEpisode ? 'Resume' : 'Play'));
+    final iconWidget = isLoadingCurrentPlayableEpisode
+        ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.2))
+        : Icon(isPlayingCurrentPlayableEpisode ? Icons.pause_rounded : Icons.play_arrow_rounded);
+    final onPressed = isLoadingCurrentPlayableEpisode
+        ? null
+        : (isPlayingCurrentPlayableEpisode ? onPauseLatest : onPlayLatest);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -157,13 +190,7 @@ class _PodcastHeaderText extends StatelessWidget {
         const SizedBox(height: 10),
         Row(
           mainAxisSize: MainAxisSize.min,
-          children: [
-            FilledButton.icon(
-              onPressed: onPlayLatest,
-              icon: const Icon(Icons.play_arrow_rounded),
-              label: const Text('Play'),
-            ),
-          ],
+          children: [FilledButton.icon(onPressed: onPressed, icon: iconWidget, label: Text(playLabel))],
         ),
       ],
     );

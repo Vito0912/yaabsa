@@ -6,6 +6,10 @@ import 'package:yaabsa/provider/library/personalized_library_provider.dart';
 import 'package:yaabsa/util/interceptors/cache_interceptor.dart';
 import 'package:yaabsa/util/logger.dart';
 
+const Duration _personalizedShelfRefreshMinInterval = Duration(seconds: 30);
+final Map<String, DateTime> _lastPersonalizedShelfRefreshByKey = <String, DateTime>{};
+final Set<String> _personalizedShelfRefreshInFlight = <String>{};
+
 Future<bool> refreshPersonalizedShelfForCompletedItem({
   required ProviderContainer container,
   required String itemId,
@@ -48,11 +52,33 @@ Future<bool> refreshPersonalizedShelfForCompletedItem({
     return false;
   }
 
+  final refreshKey = '$resolvedLibraryId:$itemId';
+  final now = DateTime.now();
+  final lastRefreshAt = _lastPersonalizedShelfRefreshByKey[refreshKey];
+  if (lastRefreshAt != null && now.difference(lastRefreshAt) < _personalizedShelfRefreshMinInterval) {
+    logger(
+      'Skipping shelf refresh after $reason for $itemId in library $resolvedLibraryId: throttled.',
+      tag: sourceTag,
+      level: InfoLevel.debug,
+    );
+    return false;
+  }
+
+  if (!_personalizedShelfRefreshInFlight.add(refreshKey)) {
+    logger(
+      'Skipping shelf refresh after $reason for $itemId in library $resolvedLibraryId: already in flight.',
+      tag: sourceTag,
+      level: InfoLevel.debug,
+    );
+    return false;
+  }
+
   try {
     await invalidateCachedLibraryItemEntries(container: container, itemId: itemId, libraryId: resolvedLibraryId);
     await container
         .read(personalizedLibraryProvider(resolvedLibraryId).notifier)
         .refresh(resolvedLibraryId, bypassCache: true);
+    _lastPersonalizedShelfRefreshByKey[refreshKey] = DateTime.now();
     logger(
       'Refreshed personalized shelf after $reason for $itemId in library $resolvedLibraryId.',
       tag: sourceTag,
@@ -66,5 +92,7 @@ Future<bool> refreshPersonalizedShelfForCompletedItem({
       level: InfoLevel.warning,
     );
     return false;
+  } finally {
+    _personalizedShelfRefreshInFlight.remove(refreshKey);
   }
 }

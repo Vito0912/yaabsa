@@ -3,6 +3,7 @@ import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/api/me/media_progress.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
+import 'package:yaabsa/components/common/library_item_overlay_play_button.dart';
 import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/util/globals.dart';
@@ -286,75 +287,15 @@ class _LibraryItemWidgetState extends ConsumerState<LibraryItemWidget> {
                               alignment: Alignment.center,
                               children: [
                                 if (widget.libraryItem.media?.hasAudio ?? false)
-                                  SizedBox(
-                                    width: 36,
-                                    height: 36,
-                                    child: Stack(
-                                      alignment: Alignment.center,
-                                      children: [
-                                        if (showProgressRing)
-                                          SizedBox(
-                                            width: 34,
-                                            height: 34,
-                                            child: CircularProgressIndicator(
-                                              value: progressValue,
-                                              strokeWidth: 3,
-                                              backgroundColor: Colors.white24,
-                                              valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
-                                            ),
-                                          ),
-                                        IconButton(
-                                          tooltip: isPlayingCurrentItem ? 'Pause' : (isFinished ? 'Replay' : 'Play'),
-                                          icon: Icon(
-                                            isPlayingCurrentItem
-                                                ? Icons.pause
-                                                : isFinished
-                                                ? Icons.replay
-                                                : Icons.play_arrow,
-                                            size: isFinished ? 18 : 16,
-                                            color: isFinished ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
-                                          ),
-                                          iconSize: isFinished ? 20 : 16,
-                                          onPressed: () {
-                                            if (isPlayingCurrentItem) {
-                                              audioHandler.pause();
-                                              return;
-                                            }
-
-                                            if (isCurrentItem) {
-                                              audioHandler.play();
-                                              return;
-                                            }
-
-                                            if (widget.onPlay != null) {
-                                              widget.onPlay!();
-                                              return;
-                                            }
-
-                                            if (widget.libraryItem.mediaType == 'podcast') {
-                                              final podcastEpisodes = _playablePodcastEpisodes();
-                                              final episodeToPlay = shelfEpisode ?? podcastEpisodes.firstOrNull;
-
-                                              if (episodeToPlay != null) {
-                                                final episodeIndex = podcastEpisodes.indexWhere(
-                                                  (episode) => episode.id == episodeToPlay.id,
-                                                );
-                                                audioHandler.playPodcastEpisode(
-                                                  widget.libraryItem,
-                                                  episodeToPlay,
-                                                  episodeIndex: episodeIndex < 0 ? null : episodeIndex,
-                                                  orderedEpisodes: podcastEpisodes,
-                                                );
-                                                return;
-                                              }
-                                            }
-
-                                            audioHandler.playLibraryItem(widget.libraryItem);
-                                          },
-                                          splashRadius: 8,
-                                        ),
-                                      ],
-                                    ),
+                                  LibraryItemOverlayPlayButton(
+                                    libraryItem: widget.libraryItem,
+                                    shelfEpisode: shelfEpisode,
+                                    showProgressRing: showProgressRing,
+                                    progressValue: progressValue,
+                                    isFinished: isFinished,
+                                    isCurrentItem: isCurrentItem,
+                                    isPlayingCurrentItem: isPlayingCurrentItem,
+                                    onPlay: widget.onPlay,
                                   ),
                                 if (!(widget.libraryItem.media?.hasAudio ?? false) &&
                                     (widget.libraryItem.media?.hasBook ?? false))
