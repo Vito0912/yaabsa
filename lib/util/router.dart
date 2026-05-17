@@ -46,6 +46,7 @@ import 'package:yaabsa/screens/settings/server_management_settings.dart';
 import 'package:yaabsa/screens/settings/settings_screen.dart';
 import 'package:yaabsa/screens/settings/theme_settings.dart';
 import 'package:yaabsa/screens/settings/tools_settings.dart';
+import 'package:yaabsa/util/aaos_service.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/handler/tray_handler.dart';
 
@@ -133,6 +134,13 @@ final globalRouter = GoRouter(
 
     if (activeUserId == null && !isLoginRoute) {
       return '/add-user';
+    }
+
+    if (AaosService.instance.currentState.isAutomotiveDevice) {
+      final loc = state.matchedLocation;
+      if (loc.startsWith('/player') || loc.startsWith('/ebook') || loc == PlayHistoryView.routeName || loc == UserListeningSessionsView.routeName) {
+        return '/';
+      }
     }
 
     return null;

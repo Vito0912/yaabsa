@@ -3,12 +3,30 @@
         android:name="android.hardware.type.automotive"
         android:required="true" />
 
-    <application>
-        <activity android:name="de.vito0912.yaabsa.MainActivity">
+    <application
+        android:appCategory="audio">
+        <meta-data
+            android:name="com.android.automotive"
+            android:resource="@xml/automotive_app_desc" />
+        <meta-data
+            android:name="com.google.android.automotive.media.TEMPLATE_VERSION"
+            android:value="2" />
+
+        <service android:name="com.ryanheise.audioservice.AudioService"
+                 android:foregroundServiceType="mediaPlayback"
+                 android:exported="true"
+                 xmlns:tools="http://schemas.android.com/tools"
+                 tools:ignore="Instantiatable">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-                <category android:name="android.intent.category.CAR_LAUNCHER" />
+                <action android:name="android.media.browse.MediaBrowserService" />
+            </intent-filter>
+        </service>
+
+        <activity android:name="de.vito0912.yaabsa.MainActivity"
+                  android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.APPLICATION_PREFERENCES" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
     </application>

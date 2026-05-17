@@ -109,6 +109,29 @@ class MainSettingsScreen extends ConsumerWidget {
     );
   }
 
+  void _showSignOutCurrentUserConfirmationDialog(BuildContext context, User user, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text('Sign Out Current Account?'),
+          content: Text('Sign out from "${user.username}" on this device?'),
+          actions: <Widget>[
+            TextButton(child: const Text('Cancel'), onPressed: () => Navigator.of(dialogContext).pop()),
+            TextButton(
+              child: Text('Sign Out', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              onPressed: () async {
+                Navigator.of(dialogContext).pop();
+                await _deleteUser(context, ref, user);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Widget _buildUserManagementSection(BuildContext context, WidgetRef ref) {
     final asyncCurrentUser = ref.watch(currentUserProvider);
     final asyncAllUsers = ref.watch(allStoredUsersProvider);
@@ -117,7 +140,7 @@ class MainSettingsScreen extends ConsumerWidget {
       data: (currentUser) {
         final allUsersList = asyncAllUsers.asData?.value ?? [];
         final otherUsers = currentUser != null
-            ? allUsersList.where((user) => user.username != currentUser.username).toList()
+            ? allUsersList.where((user) => user.id != currentUser.id).toList()
             : allUsersList;
 
         return Column(
@@ -235,7 +258,8 @@ class MainSettingsScreen extends ConsumerWidget {
                     title: 'Server Connection',
                     onTap: () => context.push(ServerConnectionSettings.routeName),
                   ),
-                  if (_hasAnyServerManagementPermission(currentUser))
+                  if (!AaosService.instance.currentState.isAutomotiveDevice &&
+                      _hasAnyServerManagementPermission(currentUser))
                     SettingsNavigationItem(
                       icon: Icons.admin_panel_settings_outlined,
                       title: 'Server Management',
@@ -246,11 +270,12 @@ class MainSettingsScreen extends ConsumerWidget {
                     title: 'Player Settings',
                     onTap: () => context.push(PlayerSettings.routeName),
                   ),
-                  SettingsNavigationItem(
-                    icon: Icons.menu_book_rounded,
-                    title: 'Ebook-Reader Settings',
-                    onTap: () => context.push(ReaderSettings.routeName),
-                  ),
+                  if (!AaosService.instance.currentState.isAutomotiveDevice)
+                    SettingsNavigationItem(
+                      icon: Icons.menu_book_rounded,
+                      title: 'Ebook-Reader Settings',
+                      onTap: () => context.push(ReaderSettings.routeName),
+                    ),
                 ],
               ),
             ],
@@ -294,6 +319,34 @@ class MainSettingsScreen extends ConsumerWidget {
                     child: ListView(
                       controller: scrollController,
                       children: [
+                        if (currentUser != null)
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                            child: Text('Current Account', style: Theme.of(context).textTheme.labelLarge),
+                          ),
+                        if (currentUser != null)
+                          ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                              child: Text(currentUser.username.substring(0, 1).toUpperCase()),
+                            ),
+                            title: Text(currentUser.username),
+                            subtitle: Text(currentUser.server?.url ?? 'No server'),
+                            trailing: IconButton(
+                              icon: Icon(Icons.logout_rounded, color: Theme.of(context).colorScheme.error),
+                              tooltip: 'Sign out this account',
+                              onPressed: () {
+                                Navigator.pop(bottomSheetContext);
+                                _showSignOutCurrentUserConfirmationDialog(context, currentUser, ref);
+                              },
+                            ),
+                          ),
+                        if (currentUser != null) const Divider(height: 1),
+                        if (otherUsers.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                            child: Text('Other Accounts', style: Theme.of(context).textTheme.labelLarge),
+                          ),
                         if (otherUsers.isEmpty)
                           Padding(
                             padding: const EdgeInsets.all(20.0),
@@ -373,35 +426,55 @@ class MainSettingsScreen extends ConsumerWidget {
                   initialData: AaosService.instance.currentState,
                   builder: (context, snapshot) {
                     final aaosState = snapshot.data ?? AaosService.instance.currentState;
+                    final isAaos = aaosState.isAutomotiveDevice;
 
-                    return SettingsNavigationSection(
-                      title: 'Application Settings',
-                      items: [
-                        SettingsNavigationItem(
-                          icon: Icons.palette_outlined,
-                          title: 'Appearance',
-                          onTap: () => context.push(AppearanceSettings.routeName),
-                        ),
-                        SettingsNavigationItem(
-                          icon: Icons.play_circle_outline_outlined,
-                          title: 'Global Player',
-                          onTap: () => context.push(GlobalPlayerSettings.routeName),
-                        ),
-                        SettingsNavigationItem(
-                          icon: Icons.library_books_outlined,
-                          title: 'Library Behaviour',
-                          onTap: () => context.push(LibrarySettings.routeName),
-                        ),
-                        if (showAndroidAutoSettings)
-                          SettingsNavigationItem(
-                            icon: Icons.directions_car_filled_outlined,
-                            title: aaosState.isAutomotiveDevice ? 'AAOS' : 'Android Auto',
-                            onTap: () => context.push(AndroidAutoSettings.routeName),
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (isAaos)
+                          SettingsNavigationSection(
+                            title: 'Car Integration',
+                            items: [
+                              SettingsNavigationItem(
+                                icon: Icons.play_circle_outline,
+                                title: 'Open Car Library',
+                                subtitle: 'Switch to the system Media Center',
+                                onTap: () async {
+                                  await AaosService.instance.launchMediaCenter(finishActivity: true);
+                                },
+                              ),
+                            ],
                           ),
-                        SettingsNavigationItem(
-                          icon: Icons.cached_outlined,
-                          title: 'Caching',
-                          onTap: () => context.push(CachingSettings.routeName),
+                        SettingsNavigationSection(
+                          title: 'Application Settings',
+                          items: [
+                            SettingsNavigationItem(
+                              icon: Icons.palette_outlined,
+                              title: 'Appearance',
+                              onTap: () => context.push(AppearanceSettings.routeName),
+                            ),
+                            SettingsNavigationItem(
+                              icon: Icons.play_circle_outline_outlined,
+                              title: 'Global Player',
+                              onTap: () => context.push(GlobalPlayerSettings.routeName),
+                            ),
+                            SettingsNavigationItem(
+                              icon: Icons.library_books_outlined,
+                              title: 'Library Behaviour',
+                              onTap: () => context.push(LibrarySettings.routeName),
+                            ),
+                            if (showAndroidAutoSettings)
+                              SettingsNavigationItem(
+                                icon: Icons.directions_car_filled_outlined,
+                                title: aaosState.isAutomotiveDevice ? 'AAOS' : 'Android Auto',
+                                onTap: () => context.push(AndroidAutoSettings.routeName),
+                              ),
+                            SettingsNavigationItem(
+                              icon: Icons.cached_outlined,
+                              title: 'Caching',
+                              onTap: () => context.push(CachingSettings.routeName),
+                            ),
+                          ],
                         ),
                       ],
                     );
@@ -411,7 +484,7 @@ class MainSettingsScreen extends ConsumerWidget {
                     .watch(currentUserProvider)
                     .when(
                       data: (currentUser) {
-                        if (currentUser == null) {
+                        if (currentUser == null || AaosService.instance.currentState.isAutomotiveDevice) {
                           return const SizedBox.shrink();
                         }
 
