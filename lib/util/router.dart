@@ -138,7 +138,10 @@ final globalRouter = GoRouter(
 
     if (AaosService.instance.currentState.isAutomotiveDevice) {
       final loc = state.matchedLocation;
-      if (loc.startsWith('/player') || loc.startsWith('/ebook') || loc == PlayHistoryView.routeName || loc == UserListeningSessionsView.routeName) {
+      if (loc.startsWith('/player') ||
+          loc.startsWith('/ebook') ||
+          loc == PlayHistoryView.routeName ||
+          loc == UserListeningSessionsView.routeName) {
         return '/';
       }
     }
