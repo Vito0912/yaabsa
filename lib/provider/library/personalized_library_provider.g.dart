@@ -50,7 +50,7 @@ final class PersonalizedLibraryNotifierProvider
   }
 }
 
-String _$personalizedLibraryNotifierHash() => r'4af3c461293698cb99c751927472a153f27ab3d7';
+String _$personalizedLibraryNotifierHash() => r'e023c7abe792b8419bf9e38b15114d338aaffec7';
 
 final class PersonalizedLibraryNotifierFamily extends $Family
     with
