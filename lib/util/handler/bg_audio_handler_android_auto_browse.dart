@@ -1,12 +1,30 @@
 part of 'bg_audio_handler.dart';
 
 extension _BGAudioHandlerAndroidAutoBrowse on BGAudioHandler {
-  List<MediaItem> _androidAutoRootItems() {
+  Future<List<MediaItem>> _androidAutoRootItems() async {
+    final isAutomotiveSystem = await _androidAutoIsAutomotiveSystem();
+
     return <MediaItem>[
-      _androidAutoBrowsableItem(id: _androidAutoContinueNodeId, title: 'Continue', categoryStyle: true),
-      _androidAutoBrowsableItem(id: _androidAutoRecentNodeId, title: 'Recent', categoryStyle: true),
-      _androidAutoBrowsableItem(id: _androidAutoLibrariesNodeId, title: 'Libraries', categoryStyle: true),
-      _androidAutoBrowsableItem(id: _androidAutoDownloadsNodeId, title: 'Downloads', categoryStyle: true),
+      _androidAutoBrowsableItem(
+        id: _androidAutoContinueNodeId,
+        title: 'Continue',
+        artUri: _androidAutoDrawableIconUri('continue_ic'),
+        categoryStyle: true,
+      ),
+      _androidAutoBrowsableItem(
+        id: _androidAutoRecentNodeId,
+        title: 'Recent',
+        artUri: _androidAutoDrawableIconUri('recent'),
+        categoryStyle: true,
+      ),
+      _androidAutoBrowsableItem(
+        id: _androidAutoLibrariesNodeId,
+        title: 'Libraries',
+        artUri: _androidAutoDrawableIconUri('apps'),
+        categoryStyle: true,
+      ),
+      if (!isAutomotiveSystem)
+        _androidAutoBrowsableItem(id: _androidAutoDownloadsNodeId, title: 'Downloads', categoryStyle: true),
     ];
   }
 
@@ -151,6 +169,7 @@ extension _BGAudioHandlerAndroidAutoBrowse on BGAudioHandler {
           (tab) =>
               tab != _AndroidAutoLibraryTab.authors &&
               tab != _AndroidAutoLibraryTab.series &&
+              tab != _AndroidAutoLibraryTab.continueSeries &&
               tab != _AndroidAutoLibraryTab.narrators,
         )
         .toList(growable: false);
@@ -197,6 +216,8 @@ extension _BGAudioHandlerAndroidAutoBrowse on BGAudioHandler {
         return _androidAutoPlaylistNodes(libraryId, paging);
       case _AndroidAutoLibraryTab.discovery:
         return _androidAutoDiscoveryItems(libraryId, paging);
+      case _AndroidAutoLibraryTab.continueSeries:
+        return _androidAutoContinueSeriesItems(libraryId, paging);
       case _AndroidAutoLibraryTab.narrators:
         return _androidAutoNarratorNodes(libraryId, paging);
     }
@@ -351,6 +372,27 @@ extension _BGAudioHandlerAndroidAutoBrowse on BGAudioHandler {
     for (final item in discoveryItems) {
       final mediaItem = _androidAutoMediaEntryFromLibraryItem(item);
       if (mediaItem == null) {
+        continue;
+      }
+      mediaItems.add(mediaItem);
+    }
+
+    return paging.hasExplicitPaging ? _androidAutoApplyPaging(mediaItems, paging) : mediaItems;
+  }
+
+  Future<List<MediaItem>> _androidAutoContinueSeriesItems(String libraryId, _AndroidAutoPagingOptions paging) async {
+    final personalized = await _androidAutoFetchPersonalizedLibrary(libraryId);
+    final continueSeriesItems = personalized?.continueSeries?.entities ?? const <LibraryItem>[];
+    if (continueSeriesItems.isEmpty) {
+      return const <MediaItem>[];
+    }
+
+    final mediaItems = <MediaItem>[];
+    final seen = <String>{};
+
+    for (final item in continueSeriesItems) {
+      final mediaItem = _androidAutoMediaEntryFromLibraryItem(item);
+      if (mediaItem == null || !seen.add(mediaItem.id)) {
         continue;
       }
       mediaItems.add(mediaItem);
@@ -649,8 +691,31 @@ extension _BGAudioHandlerAndroidAutoBrowse on BGAudioHandler {
       _AndroidAutoLibraryTab.collections => 'collections_bookmark',
       _AndroidAutoLibraryTab.playlists => 'playlist_play',
       _AndroidAutoLibraryTab.discovery => 'star',
+      _AndroidAutoLibraryTab.continueSeries => 'history',
     };
 
-    return Uri.parse('android.resource://${packageInfo.packageName}/drawable/$drawableName');
+    return _androidAutoDrawableIconUri(drawableName);
+  }
+
+  Uri _androidAutoDrawableIconUri(String drawableName) {
+    final packageName = _androidAutoDrawablePackageName();
+    final uri = Uri(scheme: 'android.resource', host: packageName, path: '/drawable/$drawableName');
+
+    logger('AAOS drawable icon URI: $uri', tag: 'AudioHandler', level: InfoLevel.debug);
+
+    return uri;
+  }
+
+  String _androidAutoDrawablePackageName() {
+    try {
+      final currentPackageName = packageInfo.packageName.trim();
+      if (currentPackageName.isNotEmpty) {
+        return currentPackageName;
+      }
+    } catch (_) {
+      // Fall through to conservative defaults if package info is unavailable.
+    }
+
+    return kDebugMode ? 'de.vito0912.yaabsa.dev' : 'de.vito0912.yaabsa';
   }
 }

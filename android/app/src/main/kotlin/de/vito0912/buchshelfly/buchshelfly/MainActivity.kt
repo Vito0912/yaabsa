@@ -1,6 +1,7 @@
 package de.vito0912.yaabsa
 
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
@@ -15,6 +16,11 @@ class MainActivity : AudioServiceActivity() {
 	companion object {
 		private const val WIDGET_CHANNEL = "de.vito0912.yaabsa/widget"
 		private const val SAF_CHANNEL = "de.vito0912.yaabsa/saf"
+		private const val AAOS_CHANNEL = "de.vito0912.yaabsa/aaos"
+		private const val AAOS_SETTINGS_ACTION = "android.intent.action.APPLICATION_PREFERENCES"
+		private const val AAOS_MEDIA_TEMPLATE_ACTION = "android.car.intent.action.MEDIA_TEMPLATE"
+		private const val AAOS_MEDIA_TEMPLATE_V2_ACTION = "androidx.car.app.mediaextensions.action.MEDIA_TEMPLATE_V2"
+		private const val AAOS_MEDIA_COMPONENT_EXTRA = "android.car.intent.extra.MEDIA_COMPONENT"
 		private const val WIDGET_COMMAND_DELAY_MS = 700L
 	}
 
@@ -24,15 +30,66 @@ class MainActivity : AudioServiceActivity() {
 		return WidgetRuntimeSupport.isWidgetSupportEnabled(applicationContext)
 	}
 
+	private var aaosChannel: MethodChannel? = null
+	private var pendingAaosOpenSettings = false
+
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 		handleWidgetLaunchIntent(intent)
+		handleAaosIntent(intent)
+		if (maybeLaunchMediaCenterFromMainIntent(intent)) {
+			return
+		}
 	}
 
 	override fun onNewIntent(intent: Intent) {
 		super.onNewIntent(intent)
 		setIntent(intent)
 		handleWidgetLaunchIntent(intent)
+		handleAaosIntent(intent)
+		if (maybeLaunchMediaCenterFromMainIntent(intent)) {
+			return
+		}
+	}
+
+	private fun maybeLaunchMediaCenterFromMainIntent(intent: Intent): Boolean {
+		if (!packageManager.hasSystemFeature(PackageManager.FEATURE_AUTOMOTIVE)) {
+			return false
+		}
+
+		if (intent.action == AAOS_SETTINGS_ACTION || intent.getBooleanExtra("openSettings", false)) {
+			return false
+		}
+
+		if (intent.action != Intent.ACTION_MAIN) {
+			return false
+		}
+
+		return launchMediaCenterInternal(finishActivity = true)
+	}
+
+	private fun handleAaosIntent(intent: Intent) {
+		val shouldOpenSettings = intent.action == AAOS_SETTINGS_ACTION || intent.getBooleanExtra("openSettings", false)
+		if (!shouldOpenSettings) {
+			return
+		}
+
+		intent.removeExtra("openSettings")
+		pendingAaosOpenSettings = true
+		notifyAaosOpenSettingsIfPending()
+	}
+
+	private fun notifyAaosOpenSettingsIfPending() {
+		if (!pendingAaosOpenSettings) {
+			return
+		}
+
+		val channel = aaosChannel ?: return
+		pendingAaosOpenSettings = false
+
+		Handler(Looper.getMainLooper()).postDelayed({
+			channel.invokeMethod("openSettings", null)
+		}, 300)
 	}
 
 	override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -57,6 +114,51 @@ class MainActivity : AudioServiceActivity() {
 					else -> result.notImplemented()
 				}
 			}
+
+		aaosChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, AAOS_CHANNEL)
+		aaosChannel?.setMethodCallHandler { call, result ->
+			when (call.method) {
+				"launchMediaCenter" -> handleLaunchMediaCenter(call, result)
+				else -> result.notImplemented()
+			}
+		}
+		notifyAaosOpenSettingsIfPending()
+	}
+
+	private fun handleLaunchMediaCenter(call: MethodCall, result: MethodChannel.Result) {
+		try {
+			val finishActivity = call.argument<Boolean>("finishActivity") ?: false
+			result.success(launchMediaCenterInternal(finishActivity = finishActivity))
+		} catch (e: Exception) {
+			result.error("LAUNCH_FAILED", "Failed to launch Media Center: ${e.message}", null)
+		}
+	}
+
+	private fun launchMediaCenterInternal(finishActivity: Boolean): Boolean {
+		val componentName = android.content.ComponentName(packageName, "com.ryanheise.audioservice.AudioService")
+		val mediaHostIntent = buildMediaHostIntent(componentName)
+
+		return try {
+			startActivity(mediaHostIntent)
+			if (finishActivity && !isFinishing) {
+				finish()
+			}
+			true
+		} catch (_: Exception) {
+			false
+		}
+	}
+
+	private fun buildMediaHostIntent(componentName: android.content.ComponentName): Intent {
+		val supportsMediaTemplateV2 = packageManager.queryIntentActivities(
+			Intent(AAOS_MEDIA_TEMPLATE_V2_ACTION),
+			PackageManager.MATCH_DEFAULT_ONLY or PackageManager.MATCH_SYSTEM_ONLY,
+		).isNotEmpty()
+
+		val action = if (supportsMediaTemplateV2) AAOS_MEDIA_TEMPLATE_V2_ACTION else AAOS_MEDIA_TEMPLATE_ACTION
+		return Intent(action)
+			.putExtra(AAOS_MEDIA_COMPONENT_EXTRA, componentName.flattenToString())
+			.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 	}
 
 	private fun handlePrepareDownloadFile(call: MethodCall, result: MethodChannel.Result) {

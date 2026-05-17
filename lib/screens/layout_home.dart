@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:yaabsa/components/app/upload/library_upload_panel.dart';
 import 'package:yaabsa/database/settings_manager.dart';
+import 'package:yaabsa/screens/automotive/aaos_settings_scaffold.dart';
 import 'package:yaabsa/screens/main/downloads.dart';
 import 'package:yaabsa/screens/main/collection_view.dart';
 import 'package:yaabsa/screens/main/authors_view.dart';
@@ -27,6 +28,7 @@ import 'package:yaabsa/util/setting_key.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:yaabsa/util/aaos_service.dart';
 
 enum _PageSource { internal, child }
 
@@ -85,6 +87,7 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
   bool _isSidebarCollapsed = false;
   bool _isUploadPageVisible = false;
   bool _isUploadInProgress = false;
+  bool _didRequestAaosMediaCenterLaunch = false;
 
   late final List<NavigationItemConfig> _allAppBarItems;
   late final NavigationItemConfig _downloadsMenuItem;
@@ -458,9 +461,43 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
       return const _LayoutHomeStartupScreen();
     }
 
+    final currentUser = ref.watch(currentUserProvider).value;
+
+    if (AaosService.instance.currentState.isAutomotiveDevice) {
+      final aaosQuery = GoRouterState.of(context).uri.queryParameters;
+      final isSettingsRoute = aaosQuery['tab'] == 'settings';
+
+      if (widget.child != null) {
+        return AaosSettingsScaffold(backTarget: AaosSettingsBackTarget.settingsHome, child: widget.child!);
+      }
+
+      if (isSettingsRoute) {
+        return const AaosSettingsScaffold(backTarget: AaosSettingsBackTarget.mediaCenter, child: MainSettingsScreen());
+      }
+
+      if (currentUser != null && !_didRequestAaosMediaCenterLaunch) {
+        _didRequestAaosMediaCenterLaunch = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          if (!mounted) {
+            return;
+          }
+
+          final launched = await AaosService.instance.launchMediaCenter(finishActivity: true);
+          if (!mounted || launched) {
+            return;
+          }
+        });
+      }
+
+      if (currentUser != null) {
+        return const _LayoutHomeStartupScreen();
+      }
+
+      return const AaosSettingsScaffold(backTarget: AaosSettingsBackTarget.mediaCenter, child: MainSettingsScreen());
+    }
+
     final bool isMobile = context.isMobile;
     final bool isTablet = context.isTablet;
-    final currentUser = ref.watch(currentUserProvider).value;
     final selectedLibrary = ref.watch(selectedLibraryProvider);
     final serverManagementPreferences = readServerManagementPreferences(ref, currentUser?.id);
     final canUpload =

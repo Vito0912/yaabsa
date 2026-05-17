@@ -341,7 +341,20 @@ extension _BGAudioHandlerAndroidAutoMedia on BGAudioHandler {
       return null;
     }
 
-    return api.getLibraryItemApi().getCoverUri(item.id);
+    final coverUri = api.getLibraryItemApi().getCoverUri(item.id, item: item);
+    final scheme = coverUri.scheme.toLowerCase();
+    if (scheme != 'http' && scheme != 'https') {
+      return coverUri;
+    }
+
+    final token = _ref.read(currentUserProvider).value?.preferredAuthToken?.trim();
+    if (token == null || token.isEmpty) {
+      return coverUri;
+    }
+
+    final nextQuery = <String, String>{...coverUri.queryParameters};
+    nextQuery.putIfAbsent('token', () => token);
+    return coverUri.replace(queryParameters: nextQuery);
   }
 
   Uri? _androidAutoUriFromPathOrUri(String? pathOrUri) {

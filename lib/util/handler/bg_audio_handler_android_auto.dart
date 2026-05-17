@@ -4,6 +4,9 @@ const String _androidAutoContinueNodeId = 'aa/continue';
 const String _androidAutoRecentNodeId = 'aa/recent';
 const String _androidAutoLibrariesNodeId = 'aa/libraries';
 const String _androidAutoDownloadsNodeId = 'aa/downloads';
+const String _androidAutoAutomotiveFeatureFlag = 'android.hardware.type.automotive';
+
+bool? _androidAutoIsAutomotiveSystemCache;
 
 const String _androidAutoCompletionStatusExtrasKey = 'android.media.extra.PLAYBACK_STATUS';
 const String _androidAutoCompletionPercentageExtrasKey = 'androidx.media.MediaItem.Extras.COMPLETION_PERCENTAGE';
@@ -65,7 +68,7 @@ class _AndroidAutoLibraryItemsPage {
   bool get hasMore => ((page + 1) * pageSize) < total;
 }
 
-enum _AndroidAutoLibraryTab { all, authors, series, collections, playlists, discovery, narrators }
+enum _AndroidAutoLibraryTab { all, authors, series, collections, playlists, discovery, continueSeries, narrators }
 
 extension _AndroidAutoLibraryTabX on _AndroidAutoLibraryTab {
   String get key {
@@ -82,6 +85,8 @@ extension _AndroidAutoLibraryTabX on _AndroidAutoLibraryTab {
         return 'playlists';
       case _AndroidAutoLibraryTab.discovery:
         return 'discovery';
+      case _AndroidAutoLibraryTab.continueSeries:
+        return 'continue-series';
       case _AndroidAutoLibraryTab.narrators:
         return 'narrators';
     }
@@ -101,6 +106,8 @@ extension _AndroidAutoLibraryTabX on _AndroidAutoLibraryTab {
         return 'Playlists';
       case _AndroidAutoLibraryTab.discovery:
         return 'Discovery';
+      case _AndroidAutoLibraryTab.continueSeries:
+        return 'Continue Series';
       case _AndroidAutoLibraryTab.narrators:
         return 'Narrators';
     }
@@ -125,9 +132,37 @@ extension _AndroidAutoLibraryTabX on _AndroidAutoLibraryTab {
   }
 }
 
+Future<bool> _androidAutoIsAutomotiveSystem() async {
+  if (!Platform.isAndroid) {
+    return false;
+  }
+
+  final cached = _androidAutoIsAutomotiveSystemCache;
+  if (cached != null) {
+    return cached;
+  }
+
+  try {
+    final androidInfo = await DeviceInfoPlugin().androidInfo;
+    final isAutomotive = androidInfo.systemFeatures.contains(_androidAutoAutomotiveFeatureFlag);
+    _androidAutoIsAutomotiveSystemCache = isAutomotive;
+    return isAutomotive;
+  } catch (error) {
+    logger(
+      'Failed to detect automotive system for car browse root: $error',
+      tag: 'AudioHandler',
+      level: InfoLevel.warning,
+    );
+    _androidAutoIsAutomotiveSystemCache = false;
+    return false;
+  }
+}
+
 extension _BGAudioHandlerAndroidAutoEntry on BGAudioHandler {
   Future<List<MediaItem>> _androidAutoGetChildren(String parentMediaId, {Map<String, dynamic>? options}) async {
     final paging = _androidAutoPagingFromOptions(options);
+
+    await _androidAutoEnsureProgressLoaded();
 
     if (parentMediaId == AudioService.browsableRootId) {
       return _androidAutoRootItems();

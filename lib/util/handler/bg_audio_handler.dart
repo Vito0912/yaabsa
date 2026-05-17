@@ -5,6 +5,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_chrome_cast/flutter_chrome_cast.dart';
 import 'package:yaabsa/api/library/filter_data/library_filter_data.dart';
 import 'package:yaabsa/api/library/library.dart';
@@ -1502,6 +1504,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       TrayManager.update();
       return Future.value();
     }
+
     await _player.pause();
     _recordPausedPlaybackMarker();
     TrayManager.update();

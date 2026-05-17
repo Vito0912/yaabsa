@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/services.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/router.dart';
 
 class AaosTelemetryState {
   const AaosTelemetryState({required this.isAndroid, required this.isAutomotiveDevice, this.statusMessage});
@@ -36,6 +38,7 @@ class AaosService {
   static final AaosService instance = AaosService._();
 
   static const String _automotiveFeatureFlag = 'android.hardware.type.automotive';
+  static const MethodChannel _channel = MethodChannel('de.vito0912.yaabsa/aaos');
 
   final DeviceInfoPlugin _deviceInfoPlugin = DeviceInfoPlugin();
   final StreamController<AaosTelemetryState> _stateController = StreamController<AaosTelemetryState>.broadcast();
@@ -68,6 +71,13 @@ class AaosService {
             : 'Android Automotive OS not detected on this device.',
       ),
     );
+
+    _channel.setMethodCallHandler((call) async {
+      if (call.method == 'openSettings') {
+        final intent = DateTime.now().microsecondsSinceEpoch;
+        globalRouter.go('/?tab=settings&intent=aaos-$intent');
+      }
+    });
   }
 
   Future<bool> _detectAutomotiveDevice() async {
@@ -76,6 +86,19 @@ class AaosService {
       return androidInfo.systemFeatures.contains(_automotiveFeatureFlag);
     } catch (error) {
       logger('Failed to detect AAOS feature flag: $error', tag: 'AAOS', level: InfoLevel.warning);
+      return false;
+    }
+  }
+
+  Future<bool> launchMediaCenter({bool finishActivity = false}) async {
+    try {
+      if (!Platform.isAndroid || !currentState.isAutomotiveDevice) {
+        return false;
+      }
+      final result = await _channel.invokeMethod<bool>('launchMediaCenter', {'finishActivity': finishActivity});
+      return result ?? false;
+    } catch (e) {
+      logger('Failed to launch AAOS Media Center: $e', tag: 'AAOS', level: InfoLevel.error);
       return false;
     }
   }

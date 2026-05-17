@@ -1,6 +1,23 @@
 part of 'bg_audio_handler.dart';
 
 extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
+  Future<void> _androidAutoEnsureProgressLoaded() async {
+    final progressState = _ref.read(mediaProgressProvider);
+    if (progressState.hasValue || progressState.isLoading) {
+      return;
+    }
+
+    try {
+      await _ref.read(mediaProgressProvider.future);
+    } catch (e) {
+      logger(
+        'Failed to pre-load media progress for Android Auto browse: $e',
+        tag: 'AudioHandler',
+        level: InfoLevel.warning,
+      );
+    }
+  }
+
   Future<List<Library>> _androidAutoFetchLibraries() async {
     final api = _ref.read(absApiProvider);
     if (api == null) {
