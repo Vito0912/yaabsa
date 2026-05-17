@@ -880,10 +880,9 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           packageName: de.vito0912.yaabsa
           releaseFiles: android-release/yaabsa.aab
-          tracks: internal
-          changesNotSentForReview: true
+          tracks: Alpha,Old
           releaseName: ${{ needs.changes.outputs.release_tag }}
-          status: draft
+          status: completed
           inAppUpdatePriority: 2
           whatsNewDirectory: android/whatsnew
         continue-on-error: true
@@ -894,10 +893,9 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           packageName: de.vito0912.yaabsa
           releaseFiles: android-automotive-release/yaabsa_aaos.aab
-          tracks: automotive:internal
-          changesNotSentForReview: true
+          tracks: automotive:AAOS
           releaseName: ${{ needs.changes.outputs.release_tag }} AAOS
-          status: draft
+          status: completed
           inAppUpdatePriority: 2
           whatsNewDirectory: android/whatsnew
         continue-on-error: true
@@ -1036,6 +1034,7 @@ jobs:
           path: build/macos/Build/Products/Release/yaabsa_*_macos_unsigned.zip
 
       - name: Install macOS Certificates and Profile
+        if: ${{ needs.changes.outputs.version_bumped == 'true' && needs.changes.outputs.build_skip != 'true' }}
         env:
           APPLE_CERT: ${{ secrets.APPLE_CERT_P12_BASE64 }}
           APPLE_CERT_PW: ${{ secrets.APPLE_CERT_PASSWORD }}
@@ -1062,12 +1061,14 @@ jobs:
           echo -n "$MAC_PROV" | base64 --decode -o ~/Library/MobileDevice/Provisioning\ Profiles/mac_app_store.provisionprofile
 
       - name: Build Signed macOS App (PKG)
+        if: ${{ needs.changes.outputs.version_bumped == 'true' && needs.changes.outputs.build_skip != 'true' }}
         run: |
           flutter build macos --release
           
           xcrun productbuild --component "build/macos/Build/Products/Release/yaabsa.app" /Applications --sign "${{ secrets.MAC_INSTALLER_IDENTITY }}" "build/macos/Build/Products/Release/yaabsa.pkg"
 
       - name: Install Transporter
+        if: ${{ needs.changes.outputs.version_bumped == 'true' && needs.changes.outputs.build_skip != 'true' }}
         run: |
           url="https://itunesconnect.apple.com/WebObjects/iTunesConnect.woa/ra/resources/download/public/Transporter__OSX/bin/"
           curl -fsSL "$url" -o "/tmp/itmstransporter.pkg"
@@ -1076,6 +1077,7 @@ jobs:
 
       - name: Upload macOS to TestFlight
         uses: apple-actions/upload-testflight-build@v4
+        if: ${{ needs.changes.outputs.version_bumped == 'true' && needs.changes.outputs.build_skip != 'true' }}
         with:
           app-path: build/macos/Build/Products/Release/yaabsa.pkg
           app-type: macos

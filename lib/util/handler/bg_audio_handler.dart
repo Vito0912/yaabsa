@@ -25,6 +25,7 @@ import 'package:yaabsa/models/internal_download.dart';
 import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
+import 'package:yaabsa/provider/library/personalized_shelf_refresh.dart';
 import 'package:yaabsa/provider/core/server_reachability_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
@@ -1438,6 +1439,17 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   @override
   Future<void> stop({bool clearQueue = true}) async {
+    if (_currentMediaItem != null) {
+      unawaited(
+        refreshPersonalizedShelfForCompletedItem(
+          container: _ref,
+          itemId: _currentMediaItem!.itemId,
+          preferredLibraryId: _currentMediaItem!.libraryId,
+          sourceTag: 'AudioHandler',
+          reason: 'playback stop',
+        ),
+      );
+    }
     final stopPosition = position;
     final shouldStopCastPlayback = isCastControlActive;
 
@@ -1683,14 +1695,24 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       }
 
       if (state.processingState == ProcessingState.completed) {
-        if (_currentMediaItem == null) return;
+        final finishedMedia = _currentMediaItem;
+        if (finishedMedia == null) return;
         logger(
-          'Current track index: $_currentTrackIndex, total tracks: ${_currentMediaItem!.tracks.length}',
+          'Current track index: $_currentTrackIndex, total tracks: ${finishedMedia.tracks.length}',
           tag: 'AudioHandler',
           level: InfoLevel.debug,
         );
         await _syncService.flush();
         await _ref.read(sessionRepositoryProvider).closeSession();
+        unawaited(
+          refreshPersonalizedShelfForCompletedItem(
+            container: _ref,
+            itemId: finishedMedia.itemId,
+            preferredLibraryId: finishedMedia.libraryId,
+            sourceTag: 'AudioHandler',
+            reason: 'playback completed',
+          ),
+        );
 
         if (queueList.isNotEmpty) {
           await play();
