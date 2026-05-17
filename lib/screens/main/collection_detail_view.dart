@@ -17,6 +17,7 @@ import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
 import 'package:yaabsa/util/server_management_preferences.dart';
 
@@ -184,11 +185,13 @@ class CollectionDetailView extends HookConsumerWidget {
                               showProgress: true,
                               squareCover: true,
                               onPlay: () {
-                                audioHandler.playLibraryItemFromCollectionView(
+                                audioHandler.playLibraryItem(
                                   item,
-                                  libraryId: libraryId,
-                                  collectionId: collectionId,
-                                  itemIndex: index,
+                                  autoQueueStart: AutoQueueStart(
+                                    type: AutoQueueStartType.collection,
+                                    sourceId: collectionId,
+                                    globalIndex: index,
+                                  ),
                                 );
                               },
                             );

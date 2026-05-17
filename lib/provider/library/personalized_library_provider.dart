@@ -6,15 +6,24 @@ import 'package:dio/dio.dart';
 
 part 'personalized_library_provider.g.dart';
 
-final Map<String, PersonalizedLibrary> _personalizedLibraryCacheByLibraryId = {};
+final Map<String, PersonalizedLibrary> _personalizedLibraryCacheByUserLibraryKey = {};
+
+String _personalizedCacheKey({required String libraryId, required String? userId}) {
+  return '${userId ?? ''}:$libraryId';
+}
 
 @Riverpod(keepAlive: true)
 class PersonalizedLibraryNotifier extends _$PersonalizedLibraryNotifier {
   CancelToken? _activeRequestToken;
 
-  Future<PersonalizedLibrary?> _fetchPersonalizedLibrary(String libraryId, {bool bypassCache = false}) async {
+  Future<PersonalizedLibrary?> _fetchPersonalizedLibrary(
+    String libraryId, {
+    required String? userId,
+    bool bypassCache = false,
+  }) async {
     final api = ref.read(absApiProvider);
-    final cachedLibrary = _personalizedLibraryCacheByLibraryId[libraryId];
+    final cacheKey = _personalizedCacheKey(libraryId: libraryId, userId: userId);
+    final cachedLibrary = _personalizedLibraryCacheByUserLibraryKey[cacheKey];
 
     if (api == null) {
       if (cachedLibrary != null) {
@@ -40,7 +49,7 @@ class PersonalizedLibraryNotifier extends _$PersonalizedLibraryNotifier {
       );
       final data = response.data;
       if (data != null) {
-        _personalizedLibraryCacheByLibraryId[libraryId] = data;
+        _personalizedLibraryCacheByUserLibraryKey[cacheKey] = data;
       }
       return data;
     } on DioException catch (e, s) {
@@ -80,20 +89,28 @@ class PersonalizedLibraryNotifier extends _$PersonalizedLibraryNotifier {
 
   @override
   Future<PersonalizedLibrary?> build(String libraryId) async {
+    final activeUserId = ref.read(currentUserProvider).value?.id;
+
     ref.onDispose(() {
       _activeRequestToken?.cancel('Personalized provider disposed');
       _activeRequestToken = null;
     });
-    return _fetchPersonalizedLibrary(libraryId);
+
+    return _fetchPersonalizedLibrary(libraryId, userId: activeUserId);
   }
 
   Future<void> refresh(String libraryId, {bool withLoading = false, bool bypassCache = false}) async {
+    final activeUserId = ref.read(currentUserProvider).value?.id;
+    final cacheKey = _personalizedCacheKey(libraryId: libraryId, userId: activeUserId);
+
     if (withLoading) {
       state = const AsyncValue.loading();
     }
 
-    final fallbackData = state.value ?? _personalizedLibraryCacheByLibraryId[libraryId];
-    final nextState = await AsyncValue.guard(() => _fetchPersonalizedLibrary(libraryId, bypassCache: bypassCache));
+    final fallbackData = state.value ?? _personalizedLibraryCacheByUserLibraryKey[cacheKey];
+    final nextState = await AsyncValue.guard(
+      () => _fetchPersonalizedLibrary(libraryId, userId: activeUserId, bypassCache: bypassCache),
+    );
 
     if (!ref.mounted) {
       return;

@@ -16,6 +16,7 @@ import 'package:yaabsa/api/me/status.dart';
 import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/database/app_database.dart';
+import 'package:yaabsa/provider/core/user_scope_invalidation.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/auth/widgets/glow_orb.dart';
 import 'package:yaabsa/screens/auth/widgets/sign_in_advanced_options.dart';
@@ -328,6 +329,21 @@ class SignIn extends HookConsumerWidget {
 
         ref.invalidate(allStoredUsersProvider);
         ref.invalidate(currentUserProvider);
+        invalidateUserScopedProviders(ref);
+
+        try {
+          await db
+              .watchGlobalSetting('activeUserId')
+              .map((setting) => setting?.value)
+              .firstWhere((activeUserId) => activeUserId == loggedInUser.id)
+              .timeout(const Duration(seconds: 2));
+        } on TimeoutException {
+          logger(
+            'Timed out waiting for activeUserId to publish ${loggedInUser.id} after sign in.',
+            tag: 'SignIn',
+            level: InfoLevel.debug,
+          );
+        }
 
         if (!context.mounted) return;
         context.go('/');

@@ -110,8 +110,12 @@ Widget buildItemActionButtons({
   required bool isDownloadInProgress,
   required bool isDownloaded,
   required bool isQueued,
+  required bool isCurrentItem,
+  required bool isPlayingCurrentItem,
+  required bool isLoadingCurrentItem,
   bool queueEnabled = true,
   required VoidCallback onPlay,
+  required VoidCallback onPause,
   required VoidCallback onQueueToggle,
   required VoidCallback onRead,
   required VoidCallback onDownload,
@@ -130,6 +134,9 @@ Widget buildItemActionButtons({
     builder: (context, constraints) {
       final hasPrimaryActions = hasBook || hasAudio;
       final hasSmallActions = canDownload || hasAudio || onMoreActionSelected != null;
+      final playLabel = isLoadingCurrentItem
+          ? 'Loading'
+          : (isPlayingCurrentItem ? 'Pause' : (isCurrentItem ? 'Resume' : 'Play'));
       final primaryActions = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -142,7 +149,13 @@ Widget buildItemActionButtons({
             ),
           if (hasBook && hasAudio) const SizedBox(height: 8),
           if (hasAudio)
-            FilledButton.icon(onPressed: onPlay, icon: const Icon(Icons.play_arrow_rounded), label: const Text('Play')),
+            FilledButton.icon(
+              onPressed: isLoadingCurrentItem ? null : (isPlayingCurrentItem ? onPause : onPlay),
+              icon: isLoadingCurrentItem
+                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.2))
+                  : Icon(isPlayingCurrentItem ? Icons.pause_rounded : Icons.play_arrow_rounded),
+              label: Text(playLabel),
+            ),
         ],
       );
 
