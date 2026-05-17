@@ -6,9 +6,10 @@ An improved unofficial cross-platform app for Audiobookshelf
 
 ## Installation
 
-![Android](https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white) [![Play Store](https://img.shields.io/badge/Google_Play-414141?style=for-the-badge&logo=google-play&logoColor=white)](https://play.google.com/store/apps/details?id=de.vito0912.yaabsa) [![Play Store Beta](https://img.shields.io/badge/Internal_Test-ff8400?style=for-the-badge&logo=google-play&logoColor=white)](https://play.google.com/apps/testing/de.vito0912.yaabsa)
+![Android](https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white) [![Play Store](https://img.shields.io/badge/Google_Play-414141?style=for-the-badge&logo=google-play&logoColor=white)](https://play.google.com/store/apps/details?id=de.vito0912.yaabsa) [![Play Store Beta](https://img.shields.io/badge/Closed_Testing-ff8400?style=for-the-badge&logo=google-play&logoColor=white)](https://play.google.com/apps/testing/de.vito0912.yaabsa)
 
-* Currently, access is invite‑only. To join the beta, email me at fito0912(@)duck.com (or the mail at my GitHub profile) with the email address you use for the Play Store. After I add you to the internal test, you can use the links above to access the app. Please also mention if you just want to access the normal, AAOS or both versions of the app.
+* Currently, access is invite‑only due to Google's restrictions for new apps. To join the closed testing, email me at fito0912(@)duck.com (or the mail at my GitHub profile) with the email address you use for the Play Store. After I add you to the closed testing, you can use the links above to access the app. Please also mention if you just want to access the normal, AAOS or both versions of the app.\
+If you don't want to do that, which is very understandable, you can also download the APK from the releases page, but you won't get automatic updates that way. These are exactly the same files that are uploaded to the Play Store.
 * Download the latest APK from the releases page. Note that `AAOS` are only compatible with Android Automotive.
 
 ![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black) [![Flatpak](https://img.shields.io/badge/Flatpak-4A90E2?style=for-the-badge&logo=flatpak&logoColor=white)](https://Vito0912.github.io/yaabsa/de.vito0912.yaabsa.flatpakrepo)

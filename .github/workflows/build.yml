@@ -850,7 +850,9 @@ jobs:
 
   publish-android:
     runs-on: ubuntu-slim
-    needs: create-prerelease
+    needs: 
+      - create-prerelease
+      - changes
     if: ${{ needs.changes.outputs.version_bumped == 'true' && needs.changes.outputs.build_skip != 'true' }}
     environment: prod
     steps:
