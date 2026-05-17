@@ -160,6 +160,23 @@ Future<bool> _androidAutoIsAutomotiveSystem() async {
 
 extension _BGAudioHandlerAndroidAutoEntry on BGAudioHandler {
   Future<List<MediaItem>> _androidAutoGetChildren(String parentMediaId, {Map<String, dynamic>? options}) async {
+    final activeUserId = (await _ref.read(appDatabaseProvider).getGlobalSetting('activeUserId'))?.value;
+    if (activeUserId == null || activeUserId.isEmpty) {
+      playbackState.add(
+        playbackState.value.copyWith(
+          processingState: AudioProcessingState.error,
+          errorCode: 3,
+          errorMessage: 'Authentication required',
+        ),
+      );
+      throw PlatformException(
+        code: 'authentication_expired',
+        message: 'Authentication required',
+      );
+    } else if (playbackState.value.errorCode == 3) {
+      await _updatePlaybackState();
+    }
+
     final paging = _androidAutoPagingFromOptions(options);
 
     await _androidAutoEnsureProgressLoaded();

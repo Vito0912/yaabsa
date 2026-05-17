@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:audio_service/audio_service.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:flutter/services.dart';
 import 'package:flutter_chrome_cast/flutter_chrome_cast.dart';
 import 'package:yaabsa/api/library/filter_data/library_filter_data.dart';
 import 'package:yaabsa/api/library/library.dart';
@@ -82,6 +83,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   StreamSubscription<int?>? _playerCurrentIndexSubscription;
   StreamSubscription<GoogleCastSession?>? _castSessionSubscription;
   StreamSubscription<GoggleCastMediaStatus?>? _castMediaStatusSubscription;
+  StreamSubscription<dynamic>? _activeUserSubscription;
   bool _isDisposing = false;
   List<PlayerQueueEntry> queueList = [];
   QueueItem? _lastQueueItem;
@@ -1991,6 +1993,27 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       _updatePlaybackState();
     });
 
+    _activeUserSubscription = _ref.read(appDatabaseProvider).watchGlobalSetting('activeUserId').listen((setting) {
+      if (_isDisposing) return;
+      final activeUserId = setting?.value;
+      if (activeUserId != null && activeUserId.isNotEmpty) {
+        if (playbackState.value.errorCode == 3) {
+          unawaited(_updatePlaybackState());
+        }
+      } else {
+        playbackState.add(
+          playbackState.value.copyWith(
+            processingState: AudioProcessingState.error,
+            errorCode: 3,
+            errorMessage: 'Authentication required',
+          ),
+        );
+      }
+      try {
+        AudioServiceBackground.notifyChildrenChanged(AudioService.browsableRootId);
+      } catch (_) {}
+    });
+
     _playerCurrentIndexSubscription = _player.currentIndexStream.listen((index) {
       if (_isDisposing || index == null || index < 0) {
         return;
@@ -2182,6 +2205,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     _castSessionSubscription = null;
     await _castMediaStatusSubscription?.cancel();
     _castMediaStatusSubscription = null;
+    await _activeUserSubscription?.cancel();
+    _activeUserSubscription = null;
     await _syncService.dispose();
     await _player.dispose();
     await mediaItemStream.close();
