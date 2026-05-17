@@ -4,6 +4,7 @@ import 'package:yaabsa/components/platform_builder.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/provider/core/user_scope_invalidation.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -50,6 +51,7 @@ class UserSwitcher extends ConsumerWidget {
       if (value == currentUser?.id) return;
       final db = ref.read(appDatabaseProvider);
       await db.setActiveUserId(value);
+      invalidateUserScopedProviders(ref);
     }
   }
 

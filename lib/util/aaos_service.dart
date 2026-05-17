@@ -74,6 +74,16 @@ class AaosService {
 
     _channel.setMethodCallHandler((call) async {
       if (call.method == 'openSettings') {
+        final currentUri = globalRouter.routeInformationProvider.value.uri;
+        if (currentUri.path.startsWith('/add-user')) {
+          return;
+        }
+
+        final isAlreadyInSettings = currentUri.path == '/' && currentUri.queryParameters['tab'] == 'settings';
+        if (isAlreadyInSettings) {
+          return;
+        }
+
         final intent = DateTime.now().microsecondsSinceEpoch;
         globalRouter.go('/?tab=settings&intent=aaos-$intent');
       }

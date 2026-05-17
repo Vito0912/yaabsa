@@ -880,7 +880,7 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           packageName: de.vito0912.yaabsa
           releaseFiles: android-release/yaabsa.aab
-          tracks: Alpha,Old
+          tracks: alpha,Old
           releaseName: ${{ needs.changes.outputs.release_tag }}
           status: completed
           inAppUpdatePriority: 2

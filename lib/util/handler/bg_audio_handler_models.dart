@@ -46,6 +46,18 @@ class PlayerQueueSnapshot {
   final bool canLoadMoreAutoQueue;
 }
 
+enum AutoQueueStartType { none, series, playlist, collection }
+
+class AutoQueueStart {
+  const AutoQueueStart({required this.type, this.sourceId, this.globalIndex});
+
+  const AutoQueueStart.none() : type = AutoQueueStartType.none, sourceId = null, globalIndex = null;
+
+  final AutoQueueStartType type;
+  final String? sourceId;
+  final int? globalIndex;
+}
+
 enum _AutoQueueSourceType { series, playlist, collection, podcast }
 
 class _AutoQueueRequestContext {
