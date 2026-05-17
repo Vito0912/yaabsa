@@ -158,11 +158,6 @@ class SelectedLibraryId extends _$SelectedLibraryId {
 
       final library = Library.fromJson(Map<String, dynamic>.from(decoded));
       _selectedLibraryCacheByUserId[userId] = library;
-      unawaited(
-        Future<void>(() async {
-          ref.invalidate(selectedLibraryProvider);
-        }),
-      );
     } catch (e, s) {
       logger(
         'SelectedLibraryIdProvider: Failed to hydrate selected library snapshot for user $userId: $e\n$s',

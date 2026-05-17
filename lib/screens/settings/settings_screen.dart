@@ -3,6 +3,7 @@ import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/components/settings/management_settings_section.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/database/app_database.dart';
+import 'package:yaabsa/provider/core/user_scope_invalidation.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/settings/android_auto_settings.dart';
 import 'package:yaabsa/screens/settings/appearance_settings.dart';
@@ -19,6 +20,7 @@ import 'package:yaabsa/util/aaos_service.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/network/dio_factory.dart';
 import 'package:dio/dio.dart';
+import 'dart:async';
 import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -72,6 +74,7 @@ class MainSettingsScreen extends ConsumerWidget {
 
       ref.invalidate(allStoredUsersProvider);
       ref.invalidate(currentUserProvider);
+      invalidateUserScopedProviders(ref);
 
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Deleted user ${user.username}')));
@@ -84,6 +87,35 @@ class MainSettingsScreen extends ConsumerWidget {
   bool _hasAnyServerManagementPermission(User user) {
     final permissions = user.permissions;
     return permissions.update || permissions.delete || permissions.upload;
+  }
+
+  Future<void> _switchActiveUser(BuildContext context, WidgetRef ref, User user) async {
+    final db = ref.read(appDatabaseProvider);
+
+    await db.setActiveUserId(user.id);
+    ref.invalidate(currentUserProvider);
+    ref.invalidate(allStoredUsersProvider);
+    invalidateUserScopedProviders(ref);
+
+    try {
+      await db
+          .watchGlobalSetting('activeUserId')
+          .map((setting) => setting?.value)
+          .firstWhere((activeUserId) => activeUserId == user.id)
+          .timeout(const Duration(seconds: 2));
+    } on TimeoutException {
+      logger(
+        'Timed out waiting for activeUserId to publish ${user.id} after account switch.',
+        tag: 'MainSettingsScreen',
+        level: InfoLevel.debug,
+      );
+    }
+
+    if (!context.mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Switched to ${user.username}')));
   }
 
   void _showDeleteUserConfirmationDialog(BuildContext context, User user, WidgetRef ref) {
@@ -376,16 +408,8 @@ class MainSettingsScreen extends ConsumerWidget {
                                   icon: Icon(Icons.swap_horiz_rounded, color: Theme.of(context).colorScheme.primary),
                                   tooltip: 'Switch to this user',
                                   onPressed: () async {
-                                    final db = ref.read(appDatabaseProvider);
-                                    await db.setActiveUserId(user.id);
-                                    ref.invalidate(currentUserProvider);
-                                    ref.invalidate(allStoredUsersProvider);
-
-                                    if (!context.mounted) return;
                                     Navigator.pop(bottomSheetContext);
-                                    ScaffoldMessenger.of(
-                                      context,
-                                    ).showSnackBar(SnackBar(content: Text('Switched to ${user.username}')));
+                                    await _switchActiveUser(context, ref, user);
                                   },
                                 ),
                                 IconButton(
