@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class AdminUserSelectableOption {
   const AdminUserSelectableOption({required this.id, required this.label, this.subtitle});
 
@@ -38,7 +40,10 @@ class AdminUserMultiSelectCard extends StatelessWidget {
         Row(
           children: [
             Expanded(child: Text(title, style: Theme.of(context).textTheme.titleSmall)),
-            Text('${selectedIds.length}/${options.length}', style: Theme.of(context).textTheme.bodySmall),
+            Text(
+              S.current.componentsSettingsAdminUsersAdminUserMultiSelectCardText(selectedIds.length, options.length),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
           ],
         ),
         const SizedBox(height: 4),
@@ -50,7 +55,7 @@ class AdminUserMultiSelectCard extends StatelessWidget {
                   : () {
                       onSelectionChanged(options.map((option) => option.id).toSet());
                     },
-              child: const Text('Select all'),
+              child: Text(S.current.componentsSettingsAdminUsersAdminUserMultiSelectCardSelectAll),
             ),
             const SizedBox(width: 8),
             TextButton(
@@ -59,7 +64,7 @@ class AdminUserMultiSelectCard extends StatelessWidget {
                   : () {
                       onSelectionChanged(<String>{});
                     },
-              child: const Text('Clear all'),
+              child: Text(S.current.componentsSettingsAdminUsersAdminUserMultiSelectCardClearAll),
             ),
           ],
         ),

@@ -20,6 +20,8 @@ import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class PlaylistDetailView extends HookConsumerWidget {
   const PlaylistDetailView({required this.playlistId, super.key, this.initialEntry});
 
@@ -32,7 +34,7 @@ class PlaylistDetailView extends HookConsumerWidget {
     final selectedLibrary = ref.watch(selectedLibraryProvider);
     final serverReachable = ref.watch(serverStatusProvider).value ?? false;
     if (selectedLibrary == null) {
-      return const Center(child: Text('No library selected. Please select a library via the switcher.'));
+      return Center(child: Text(S.current.screensMainPlaylistDetailViewNoLibrarySelectedPleaseSelectA));
     }
 
     final api = ref.watch(absApiProvider);
@@ -92,7 +94,7 @@ class PlaylistDetailView extends HookConsumerWidget {
                   IconButton(
                     onPressed: () => context.pop(),
                     icon: const Icon(Icons.arrow_back_rounded),
-                    tooltip: 'Back',
+                    tooltip: S.current.screensMainPlaylistDetailViewBack,
                   ),
                   const SizedBox(width: 6),
                   Expanded(
@@ -105,7 +107,7 @@ class PlaylistDetailView extends HookConsumerWidget {
                   ),
                   if (canManagePlaylist)
                     PopupMenuButton<_PlaylistDetailAction>(
-                      tooltip: 'Playlist actions',
+                      tooltip: S.current.screensMainPlaylistDetailViewPlaylistActions,
                       onSelected: (action) => _handlePlaylistAction(
                         context: context,
                         ref: ref,
@@ -118,20 +120,20 @@ class PlaylistDetailView extends HookConsumerWidget {
                         final items = <PopupMenuEntry<_PlaylistDetailAction>>[];
                         if (allowBookSelection) {
                           items.add(
-                            const PopupMenuItem<_PlaylistDetailAction>(
+                            PopupMenuItem<_PlaylistDetailAction>(
                               value: _PlaylistDetailAction.editBooks,
-                              child: Text('Edit books'),
+                              child: Text(S.current.screensMainPlaylistDetailViewEditBooks),
                             ),
                           );
                         }
-                        items.addAll(const [
+                        items.addAll([
                           PopupMenuItem<_PlaylistDetailAction>(
                             value: _PlaylistDetailAction.edit,
-                            child: Text('Edit details'),
+                            child: Text(S.current.screensMainPlaylistDetailViewEditDetails),
                           ),
                           PopupMenuItem<_PlaylistDetailAction>(
                             value: _PlaylistDetailAction.delete,
-                            child: Text('Delete playlist'),
+                            child: Text(S.current.screensMainPlaylistDetailViewDeletePlaylist),
                           ),
                         ]);
                         return items;
@@ -159,7 +161,7 @@ class PlaylistDetailView extends HookConsumerWidget {
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    '$missingCount playlist entr${missingCount == 1 ? 'y is' : 'ies are'} not directly displayable.',
+                    S.current.playlistDetailMissingEntriesMessage(missingCount),
                     style: Theme.of(
                       context,
                     ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
@@ -167,7 +169,7 @@ class PlaylistDetailView extends HookConsumerWidget {
                 ),
               ),
             if (libraryItems.isEmpty)
-              const Expanded(child: Center(child: Text('No library items found in this playlist.')))
+              Expanded(child: Center(child: Text(S.current.screensMainPlaylistDetailViewNoLibraryItemsFoundInThis)))
             else
               Expanded(
                 child: Stack(

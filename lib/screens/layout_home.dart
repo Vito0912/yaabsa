@@ -30,6 +30,8 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/util/aaos_service.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 enum _PageSource { internal, child }
 
 class PlaceholderPage extends StatelessWidget {
@@ -344,11 +346,17 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Leave upload page?'),
-          content: const Text('Leaving this page now cancels active uploads. Continue?'),
+          title: Text(S.current.screensLayoutHomeLeaveUploadPage),
+          content: Text(S.current.screensLayoutHomeLeavingThisPageNowCancelsActive),
           actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Stay here')),
-            FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Leave page')),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(S.current.screensLayoutHomeStayHere),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(S.current.screensLayoutHomeLeavePage),
+            ),
           ],
         );
       },

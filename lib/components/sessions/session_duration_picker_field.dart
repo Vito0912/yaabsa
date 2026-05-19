@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:yaabsa/util/item_formatters.dart';
+
+import 'package:yaabsa/generated/l10n.dart';
 
 class SessionDurationPickerField extends StatelessWidget {
   const SessionDurationPickerField({
@@ -56,10 +60,7 @@ class SessionDurationPickerField extends StatelessWidget {
   String _formatDuration(double? value) {
     final totalSeconds = (value ?? 0).round();
     final duration = Duration(seconds: totalSeconds);
-    final hours = duration.inHours;
-    final minutes = duration.inMinutes.remainder(60);
-    final secondsPart = duration.inSeconds.remainder(60);
-    return '$hours:${minutes.toString().padLeft(2, '0')}:${secondsPart.toString().padLeft(2, '0')}';
+    return formatDurationShort(duration);
   }
 }
 
@@ -108,7 +109,7 @@ class _SessionDurationPickerDialogState extends State<_SessionDurationPickerDial
               alignment: WrapAlignment.center,
               children: [
                 _DurationStepper(
-                  label: 'Hours',
+                  label: S.current.componentsSessionsSessionDurationPickerFieldHours,
                   width: stepperWidth,
                   value: _hours,
                   onDecrement: _hours > 0
@@ -125,7 +126,7 @@ class _SessionDurationPickerDialogState extends State<_SessionDurationPickerDial
                   },
                 ),
                 _DurationStepper(
-                  label: 'Minutes',
+                  label: S.current.componentsSessionsSessionDurationPickerFieldMinutes,
                   width: stepperWidth,
                   value: _minutes,
                   padLeft: true,
@@ -141,7 +142,7 @@ class _SessionDurationPickerDialogState extends State<_SessionDurationPickerDial
                   },
                 ),
                 _DurationStepper(
-                  label: 'Seconds',
+                  label: S.current.componentsSessionsSessionDurationPickerFieldSeconds,
                   width: stepperWidth,
                   value: _seconds,
                   padLeft: true,
@@ -162,13 +163,16 @@ class _SessionDurationPickerDialogState extends State<_SessionDurationPickerDial
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(S.current.componentsSessionsSessionDurationPickerFieldCancel),
+        ),
         FilledButton(
           onPressed: () {
             final totalSeconds = (_hours * 3600) + (_minutes * 60) + _seconds;
             Navigator.of(context).pop(totalSeconds);
           },
-          child: const Text('Set'),
+          child: Text(S.current.componentsSessionsSessionDurationPickerFieldSet),
         ),
       ],
     );
@@ -194,7 +198,10 @@ class _DurationStepper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final displayValue = padLeft ? value.toString().padLeft(2, '0') : value.toString();
+    final locale = Localizations.localeOf(context).toString();
+    final displayValue = padLeft
+        ? NumberFormat('00', locale).format(value)
+        : NumberFormat.decimalPattern(locale).format(value);
 
     return SizedBox(
       width: width,

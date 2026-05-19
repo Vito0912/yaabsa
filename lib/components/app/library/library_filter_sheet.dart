@@ -5,6 +5,8 @@ import 'package:yaabsa/api/library/filter_data/library_filter_data.dart';
 import 'package:yaabsa/api/library/filter_data/library_filter_named_entity.dart';
 import 'package:yaabsa/api/library/request/library_filter.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class LibraryFilterSheet extends StatelessWidget {
   const LibraryFilterSheet({
     super.key,
@@ -69,17 +71,20 @@ class LibraryFilterSheet extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 12, 12, 8),
               child: Row(
                 children: [
-                  const Expanded(
-                    child: Text('Library Filters', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                  Expanded(
+                    child: Text(
+                      S.current.componentsAppLibraryLibraryFilterSheetLibraryFilters,
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                    ),
                   ),
                   if (activeFilter != null)
                     TextButton.icon(
                       onPressed: () => Navigator.of(context).pop(''),
                       icon: const Icon(Icons.filter_alt_off_rounded),
-                      label: const Text('Clear'),
+                      label: Text(S.current.componentsAppLibraryLibraryFilterSheetClear),
                     ),
                   IconButton(
-                    tooltip: 'Close',
+                    tooltip: S.current.componentsAppLibraryLibraryFilterSheetClose,
                     onPressed: () => Navigator.of(context).pop(),
                     icon: const Icon(Icons.close_rounded),
                   ),
@@ -88,7 +93,7 @@ class LibraryFilterSheet extends StatelessWidget {
             ),
             Expanded(
               child: visibleSections.isEmpty
-                  ? const Center(child: Text('No filter options are available for this library yet.'))
+                  ? Center(child: Text(S.current.componentsAppLibraryLibraryFilterSheetNoFilterOptionsAreAvailableFor))
                   : ListView.builder(
                       padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
                       itemCount: visibleSections.length,
@@ -270,7 +275,9 @@ class _FilterSectionState extends State<_FilterSection> {
         child: ExpansionTile(
           title: Text(widget.section.title),
           subtitle: Text(
-            selectedLabel != null ? 'Selected: $selectedLabel' : '${widget.section.options.length} options',
+            selectedLabel != null
+                ? S.current.componentsAppLibraryLibraryFilterSheetSelected(selectedLabel)
+                : S.current.componentsAppLibraryLibraryFilterSheetOptionsCount(widget.section.options.length),
           ),
           tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
           childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
@@ -293,8 +300,8 @@ class _FilterSectionState extends State<_FilterSection> {
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: TextField(
-                  decoration: const InputDecoration(
-                    hintText: 'Search options',
+                  decoration: InputDecoration(
+                    hintText: S.current.componentsAppLibraryLibraryFilterSheetSearchOptions,
                     isDense: true,
                     prefixIcon: Icon(Icons.search_rounded),
                   ),
@@ -306,9 +313,12 @@ class _FilterSectionState extends State<_FilterSection> {
                 ),
               ),
             if (filteredOptions.isEmpty)
-              const Align(
+              Align(
                 alignment: Alignment.centerLeft,
-                child: Padding(padding: EdgeInsets.symmetric(vertical: 8), child: Text('No matching options')),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Text(S.current.componentsAppLibraryLibraryFilterSheetNoMatchingOptions),
+                ),
               )
             else if (filteredOptions.length <= 8)
               Align(

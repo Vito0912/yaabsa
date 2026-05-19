@@ -4,6 +4,8 @@ import 'package:yaabsa/api/library_items/request/quick_match_library_item_option
 import 'package:yaabsa/api/search/search_provider_option.dart';
 import 'package:yaabsa/provider/common/upload_providers.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 Future<QuickMatchLibraryItemOptions?> showQuickMatchOptionsDialog({
   required BuildContext context,
   required String mediaType,
@@ -140,29 +142,33 @@ class _QuickMatchOptionsDialogState extends ConsumerState<QuickMatchOptionsDialo
               const SizedBox(height: 12),
             ],
             providersAsync.when(
-              loading: () => const Padding(
+              loading: () => Padding(
                 padding: EdgeInsets.symmetric(vertical: 8),
                 child: Row(
                   children: [
                     SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.2)),
                     SizedBox(width: 10),
-                    Text('Loading providers...'),
+                    Text(S.current.componentsAppItemMatchQuickMatchOptionsDialogLoadingProviders),
                   ],
                 ),
               ),
               error: (error, _) => Text(
-                'Could not load metadata providers: $error',
+                S.current.componentsAppItemMatchQuickMatchOptionsDialogCouldNotLoadMetadataProviders(error),
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
               data: (loadedProviders) {
                 if (loadedProviders.isEmpty) {
-                  return const Text('No metadata providers are available for this media type.');
+                  return Text(
+                    S.current.componentsAppItemMatchQuickMatchOptionsDialogNoMetadataProvidersAreAvailableFor,
+                  );
                 }
 
                 return DropdownButtonFormField<String>(
                   key: ValueKey<String?>(_provider),
                   initialValue: _provider,
-                  decoration: const InputDecoration(labelText: 'Provider'),
+                  decoration: InputDecoration(
+                    labelText: S.current.componentsAppItemMatchQuickMatchOptionsDialogProvider,
+                  ),
                   items: loadedProviders
                       .map((provider) => DropdownMenuItem<String>(value: provider.value, child: Text(provider.text)))
                       .toList(growable: false),
@@ -178,8 +184,10 @@ class _QuickMatchOptionsDialogState extends ConsumerState<QuickMatchOptionsDialo
             SwitchListTile(
               value: _overrideDetails,
               contentPadding: EdgeInsets.zero,
-              title: const Text('Overwrite current metadata'),
-              subtitle: const Text('Replace existing title, author, description, and related fields.'),
+              title: Text(S.current.componentsAppItemMatchQuickMatchOptionsDialogOverwriteCurrentMetadata),
+              subtitle: Text(
+                S.current.componentsAppItemMatchQuickMatchOptionsDialogReplaceExistingTitleAuthorDescriptionAnd,
+              ),
               onChanged: (value) {
                 setState(() {
                   _overrideDetails = value;
@@ -189,8 +197,8 @@ class _QuickMatchOptionsDialogState extends ConsumerState<QuickMatchOptionsDialo
             SwitchListTile(
               value: _overrideCover,
               contentPadding: EdgeInsets.zero,
-              title: const Text('Overwrite cover image'),
-              subtitle: const Text('Replace current cover artwork when a match provides one.'),
+              title: Text(S.current.componentsAppItemMatchQuickMatchOptionsDialogOverwriteCoverImage),
+              subtitle: Text(S.current.componentsAppItemMatchQuickMatchOptionsDialogReplaceCurrentCoverArtworkWhenA),
               onChanged: (value) {
                 setState(() {
                   _overrideCover = value;
@@ -201,7 +209,10 @@ class _QuickMatchOptionsDialogState extends ConsumerState<QuickMatchOptionsDialo
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(S.current.componentsAppItemMatchQuickMatchOptionsDialogCancel),
+        ),
         FilledButton(
           onPressed: canSubmit
               ? () {

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:yaabsa/util/globals.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:yaabsa/generated/l10n.dart';
 
 class LicenseSettings {
   static Future<void> showLicensePage({required BuildContext context, bool useRootNavigator = false}) async {
@@ -101,7 +102,7 @@ Device Information:
 $deviceInfo
 
 Legal Information:
-This application is provided "as is" without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose and noninfringement.
+${S.current.screensSettingsLicenseSettingsProvidedAsIsWithoutWarranty}
 
 © ${DateTime.now().year} Vito
 See LICENSE file for more details on GitHub.

@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class Downloads extends ConsumerStatefulWidget {
   const Downloads({super.key});
 
@@ -71,16 +73,22 @@ class _DownloadsState extends ConsumerState<Downloads> {
   }
 
   Future<bool> _confirmDelete(int count) async {
-    final label = count == 1 ? 'this download' : 'these $count downloads';
+    final label = S.current.downloadsDeleteConfirmTarget(count);
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete download'),
-        content: Text('Delete $label from local storage and remove it from Downloads?'),
+        title: Text(S.current.screensMainDownloadsDeleteDownload),
+        content: Text(S.current.screensMainDownloadsDeleteFromLocalStorageAndRemove(label)),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Delete')),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(S.current.screensMainDownloadsCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(S.current.screensMainDownloadsDelete),
+          ),
         ],
       ),
     );
@@ -128,15 +136,8 @@ class _DownloadsState extends ConsumerState<Downloads> {
       _selectedDownloadKeys.clear();
     });
 
-    final message = StringBuffer()..write('Deleted $deletedItems item(s), removed $deletedFiles file(s).');
-    if (failedFiles > 0) {
-      message.write(' $failedFiles file(s) could not be removed.');
-    }
-    if (failedItems > 0) {
-      message.write(' $failedItems item(s) failed to delete.');
-    }
-
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message.toString())));
+    final message = S.current.downloadsDeleteSummary(deletedItems, deletedFiles, failedFiles, failedItems);
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -147,7 +148,7 @@ class _DownloadsState extends ConsumerState<Downloads> {
     return currentUser.when(
       data: (user) {
         if (user == null) {
-          return const Center(child: Text('No active user.'));
+          return Center(child: Text(S.current.screensMainDownloadsNoActiveUser));
         }
 
         return StreamBuilder<List<InternalDownload>>(
@@ -159,14 +160,14 @@ class _DownloadsState extends ConsumerState<Downloads> {
 
             if (snapshot.hasError) {
               return ConnectionIssueView.requestFailed(
-                error: snapshot.error ?? 'Unknown error',
-                title: 'Unable to load downloads',
+                error: snapshot.error ?? S.current.commonUnknownError,
+                title: S.current.downloadsUnableToLoad,
               );
             }
 
             final downloads = snapshot.data ?? const <InternalDownload>[];
             if (downloads.isEmpty) {
-              return const Center(child: Text('No downloads available.'));
+              return Center(child: Text(S.current.screensMainDownloadsNoDownloadsAvailable));
             }
 
             final validKeys = downloads.map(_downloadKeyFor).whereType<String>().toSet();
@@ -196,8 +197,8 @@ class _DownloadsState extends ConsumerState<Downloads> {
                       Expanded(
                         child: Text(
                           _selectionMode
-                              ? '${_selectedDownloadKeys.length} selected'
-                              : '${downloads.length} downloaded item(s)',
+                              ? S.current.downloadsSelectedCount(_selectedDownloadKeys.length)
+                              : S.current.downloadsDownloadedItemsCount(downloads.length),
                           style: Theme.of(context).textTheme.labelLarge,
                         ),
                       ),
@@ -205,12 +206,12 @@ class _DownloadsState extends ConsumerState<Downloads> {
                         TextButton.icon(
                           onPressed: _isDeleting ? null : () => _setSelectionMode(true),
                           icon: const Icon(Icons.checklist_rtl),
-                          label: const Text('Select'),
+                          label: Text(S.current.screensMainDownloadsSelect),
                         ),
                       if (_selectionMode)
                         TextButton(
                           onPressed: _isDeleting ? null : () => _setSelectionMode(false),
-                          child: const Text('Cancel'),
+                          child: Text(S.current.screensMainDownloadsCancel),
                         ),
                       if (_selectionMode) const SizedBox(width: 8),
                       if (_selectionMode)
@@ -219,7 +220,7 @@ class _DownloadsState extends ConsumerState<Downloads> {
                               ? null
                               : () => _deleteDownloads(userId: user.id, downloads: selectedDownloads),
                           icon: const Icon(Icons.delete_outline),
-                          label: const Text('Delete'),
+                          label: Text(S.current.screensMainDownloadsDelete),
                         ),
                     ],
                   ),
@@ -249,7 +250,7 @@ class _DownloadsState extends ConsumerState<Downloads> {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => ConnectionIssueView.requestFailed(error: error, title: 'Unable to load downloads'),
+      error: (error, _) => ConnectionIssueView.requestFailed(error: error, title: S.current.downloadsUnableToLoad),
     );
   }
 }

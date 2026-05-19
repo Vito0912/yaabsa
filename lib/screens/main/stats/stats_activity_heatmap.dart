@@ -1,8 +1,11 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:yaabsa/models/listening_activity_stats.dart';
 import 'package:yaabsa/screens/main/stats/stats_formatters.dart';
+
+import 'package:yaabsa/generated/l10n.dart';
 
 class StatsActivityHeatmap extends StatefulWidget {
   const StatsActivityHeatmap({super.key, required this.activity, this.days = 365});
@@ -49,7 +52,16 @@ class _StatsActivityHeatmapState extends State<StatsActivityHeatmap> {
     final values = widget.activity.valuesForLastDays(normalizedDays);
     final maxValue = values.fold<double>(0, (maxValue, value) => math.max(maxValue, value));
     final palette = _palette(Theme.of(context).colorScheme);
-    const weekdayLabels = <String?>['Mon', null, 'Wed', null, 'Fri', null, 'Sun'];
+    final weekdayFormat = DateFormat.E(Localizations.localeOf(context).toString());
+    final weekdayLabels = <String?>[
+      weekdayFormat.format(DateTime.utc(2024, 1, 1)),
+      null,
+      weekdayFormat.format(DateTime.utc(2024, 1, 3)),
+      null,
+      weekdayFormat.format(DateTime.utc(2024, 1, 5)),
+      null,
+      weekdayFormat.format(DateTime.utc(2024, 1, 7)),
+    ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -177,13 +189,19 @@ class _StatsActivityHeatmapState extends State<StatsActivityHeatmap> {
                 spacing: 4,
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  Text('Less', style: Theme.of(context).textTheme.labelSmall),
+                  Text(
+                    S.current.screensMainStatsStatsActivityHeatmapLess,
+                    style: Theme.of(context).textTheme.labelSmall,
+                  ),
                   for (final color in palette)
                     DecoratedBox(
                       decoration: BoxDecoration(borderRadius: BorderRadius.circular(2), color: color),
                       child: SizedBox(width: legendCellSize, height: legendCellSize),
                     ),
-                  Text('More', style: Theme.of(context).textTheme.labelSmall),
+                  Text(
+                    S.current.screensMainStatsStatsActivityHeatmapMore,
+                    style: Theme.of(context).textTheme.labelSmall,
+                  ),
                 ],
               ),
             );
@@ -242,10 +260,7 @@ class _HeatmapCell extends StatelessWidget {
       return child;
     }
 
-    final year = day!.year.toString().padLeft(4, '0');
-    final month = day!.month.toString().padLeft(2, '0');
-    final dayValue = day!.day.toString().padLeft(2, '0');
-    final tooltip = '$year-$month-$dayValue • ${formatListeningSeconds(value)}';
+    final tooltip = '${formatDateLabel(day)} • ${formatListeningSeconds(value)}';
 
     return Tooltip(message: tooltip, child: child);
   }

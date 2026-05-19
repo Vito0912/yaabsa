@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/handler/bg_audio_handler.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class VolumeSliderPanel extends StatelessWidget {
   const VolumeSliderPanel({super.key, required this.axis});
 
@@ -113,7 +115,7 @@ class _HorizontalVolumePanel extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Volume', style: Theme.of(context).textTheme.titleLarge),
+        Text(S.current.componentsPlayerCommonVolumeSliderPanelVolume, style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 12),
         Row(
           children: [
@@ -132,7 +134,10 @@ class _HorizontalVolumePanel extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 8),
-        Text('${(volume * 100).round()}%', style: Theme.of(context).textTheme.bodyMedium),
+        Text(
+          S.current.componentsPlayerCommonVolumeSliderPanelText((volume * 100).round()),
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
       ],
     );
   }

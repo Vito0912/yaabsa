@@ -9,6 +9,8 @@ import 'package:yaabsa/api/socket/abs_socket_client.dart';
 import 'package:yaabsa/provider/core/socket_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class AdminServerLogsView extends ConsumerStatefulWidget {
   const AdminServerLogsView({super.key});
 
@@ -299,17 +301,17 @@ class _AdminServerLogsViewState extends ConsumerState<AdminServerLogsView> {
       data: (currentUser) {
         if (currentUser == null) {
           _detachSocketListener();
-          return const Padding(
+          return Padding(
             padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Text('No active user. Sign in to view server logs.'),
+            child: Text(S.current.componentsSettingsAdminServerLogsViewNoActiveUserSignInTo),
           );
         }
 
         if (!_isAdminType(currentUser.type)) {
           _detachSocketListener();
-          return const Padding(
+          return Padding(
             padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Text('This page requires an admin account.'),
+            child: Text(S.current.componentsSettingsAdminServerLogsViewThisPageRequiresAnAdminAccount),
           );
         }
 
@@ -337,8 +339,8 @@ class _AdminServerLogsViewState extends ConsumerState<AdminServerLogsView> {
                   Expanded(
                     child: TextField(
                       controller: _searchController,
-                      decoration: const InputDecoration(
-                        labelText: 'Search logs',
+                      decoration: InputDecoration(
+                        labelText: S.current.componentsSettingsAdminServerLogsViewSearchLogs,
                         isDense: true,
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.search),
@@ -352,8 +354,8 @@ class _AdminServerLogsViewState extends ConsumerState<AdminServerLogsView> {
                       key: ValueKey<int>(_listenerLogLevel.value),
                       initialValue: _listenerLogLevel.value,
                       isExpanded: true,
-                      decoration: const InputDecoration(
-                        labelText: 'Server Log Level',
+                      decoration: InputDecoration(
+                        labelText: S.current.componentsSettingsAdminServerLogsViewServerLogLevel,
                         isDense: true,
                         border: OutlineInputBorder(),
                       ),
@@ -389,7 +391,7 @@ class _AdminServerLogsViewState extends ConsumerState<AdminServerLogsView> {
                       }
                     },
                   ),
-                  const Text('Auto-scroll'),
+                  Text(S.current.componentsSettingsAdminServerLogsViewAutoScroll),
                   const Spacer(),
                   if (_isUpdatingLogLevel)
                     const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
@@ -410,7 +412,7 @@ class _AdminServerLogsViewState extends ConsumerState<AdminServerLogsView> {
                   child: _isLoading
                       ? const Center(child: CircularProgressIndicator())
                       : _visibleLogText.isEmpty
-                      ? const Center(child: Text('No logs found for the current search.'))
+                      ? Center(child: Text(S.current.componentsSettingsAdminServerLogsViewNoLogsFoundForTheCurrent))
                       : Scrollbar(
                           controller: _scrollController,
                           child: SingleChildScrollView(
@@ -439,7 +441,10 @@ class _AdminServerLogsViewState extends ConsumerState<AdminServerLogsView> {
       ),
       error: (error, stackTrace) => Padding(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-        child: Text('Failed to load user data: $error', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+        child: Text(
+          S.current.componentsSettingsAdminServerLogsViewFailedToLoadUserData(error),
+          style: TextStyle(color: Theme.of(context).colorScheme.error),
+        ),
       ),
     );
   }

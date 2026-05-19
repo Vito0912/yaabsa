@@ -13,6 +13,8 @@ import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 const int _seriesPrefetchThreshold = 8;
 const int _seriesApproxScrollPastCount = 24;
 
@@ -26,11 +28,11 @@ class SeriesView extends HookConsumerWidget {
     final serverReachable = ref.watch(serverStatusProvider).value ?? false;
 
     if (selectedLibrary == null) {
-      return const Center(child: Text('No library selected. Please select a library via the switcher.'));
+      return Center(child: Text(S.current.screensMainSeriesViewNoLibrarySelectedPleaseSelectA));
     }
 
     if (selectedLibrary.mediaType != 'book') {
-      return const Center(child: Text('Series are available only for book libraries.'));
+      return Center(child: Text(S.current.screensMainSeriesViewSeriesAreAvailableOnlyForBook));
     }
 
     final libraryId = selectedLibrary.id;
@@ -59,7 +61,7 @@ class SeriesView extends HookConsumerWidget {
             );
 
             if (seriesItems.isEmpty && !state.hasNextPage && !state.isLoadingNextPage) {
-              return const Center(child: Text('No series found in this library.'));
+              return Center(child: Text(S.current.screensMainSeriesViewNoSeriesFoundInThisLibrary));
             }
 
             return Stack(

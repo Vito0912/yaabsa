@@ -13,6 +13,8 @@ import 'package:yaabsa/components/sessions/listening_sessions_pagination_control
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/logger.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class CurrentUserListeningSessionsTab extends ConsumerStatefulWidget {
   const CurrentUserListeningSessionsTab({super.key});
 
@@ -173,11 +175,21 @@ class _CurrentUserListeningSessionsTabState extends ConsumerState<CurrentUserLis
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Delete Selected Sessions'),
-          content: Text('Delete ${selectedSessions.length} selected session(s)? This cannot be undone.'),
+          title: Text(S.current.componentsSessionsCurrentUserListeningSessionsTabDeleteSelectedSessions),
+          content: Text(
+            S.current.componentsSessionsCurrentUserListeningSessionsTabDeleteSelectedSessionSThisCannot(
+              selectedSessions.length,
+            ),
+          ),
           actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
-            FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Delete')),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(S.current.componentsSessionsCurrentUserListeningSessionsTabCancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(S.current.componentsSessionsCurrentUserListeningSessionsTabDelete),
+            ),
           ],
         );
       },
@@ -230,11 +242,21 @@ class _CurrentUserListeningSessionsTabState extends ConsumerState<CurrentUserLis
 
     final messenger = ScaffoldMessenger.of(context);
     if (deletedCount > 0) {
-      messenger.showSnackBar(SnackBar(content: Text('Deleted $deletedCount session(s).')));
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(S.current.componentsSessionsCurrentUserListeningSessionsTabDeletedSessionS(deletedCount)),
+        ),
+      );
     }
     if (failedSessionIds.isNotEmpty) {
       messenger.showSnackBar(
-        SnackBar(content: Text('Failed to delete ${failedSessionIds.length} session(s). Check logs for details.')),
+        SnackBar(
+          content: Text(
+            S.current.componentsSessionsCurrentUserListeningSessionsTabFailedToDeleteSessionSCheck(
+              failedSessionIds.length,
+            ),
+          ),
+        ),
       );
     }
   }
@@ -301,7 +323,7 @@ class _CurrentUserListeningSessionsTabState extends ConsumerState<CurrentUserLis
     return currentUserAsync.when(
       data: (currentUser) {
         if (currentUser == null) {
-          return const Center(child: Text('No active user.'));
+          return Center(child: Text(S.current.componentsSessionsCurrentUserListeningSessionsTabNoActiveUser));
         }
 
         Widget centeredContent(Widget child) {
@@ -372,7 +394,11 @@ class _CurrentUserListeningSessionsTabState extends ConsumerState<CurrentUserLis
                     padding: const EdgeInsets.only(bottom: 8),
                     child: Row(
                       children: [
-                        Text('${_selectedSessionIds.length} selected'),
+                        Text(
+                          S.current.componentsSessionsCurrentUserListeningSessionsTabSelected(
+                            _selectedSessionIds.length,
+                          ),
+                        ),
                         const Spacer(),
                         FilledButton.icon(
                           onPressed: (_isBulkDeleting || !_canDeleteSelectedSessions(currentUser))
@@ -383,7 +409,7 @@ class _CurrentUserListeningSessionsTabState extends ConsumerState<CurrentUserLis
                           icon: _isBulkDeleting
                               ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
                               : const Icon(Icons.delete_outline_rounded),
-                          label: const Text('Delete Selected'),
+                          label: Text(S.current.componentsSessionsCurrentUserListeningSessionsTabDeleteSelected),
                         ),
                       ],
                     ),
@@ -411,7 +437,8 @@ class _CurrentUserListeningSessionsTabState extends ConsumerState<CurrentUserLis
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(child: Text('Failed to load user: $error')),
+      error: (error, _) =>
+          Center(child: Text(S.current.componentsSessionsCurrentUserListeningSessionsTabFailedToLoadUser(error))),
     );
   }
 }

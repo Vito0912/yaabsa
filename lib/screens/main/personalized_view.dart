@@ -30,6 +30,8 @@ import 'package:yaabsa/util/server_management_preferences.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:yaabsa/util/widget_bridge.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class PersonalizedView extends HookConsumerWidget {
   const PersonalizedView({super.key});
 
@@ -40,7 +42,7 @@ class PersonalizedView extends HookConsumerWidget {
     final selectedLibrary = ref.watch(selectedLibraryProvider);
 
     if (selectedLibrary == null) {
-      return const Center(child: Text('No library selected. Please select a library via the switcher.'));
+      return Center(child: Text(S.current.screensMainPersonalizedViewNoLibrarySelectedPleaseSelectA));
     }
 
     final serverReachable = ref.watch(serverStatusProvider).value ?? false;
@@ -116,8 +118,8 @@ class PersonalizedView extends HookConsumerWidget {
         if (api == null) {
           return _PersonalizedFeedbackView(
             icon: Icons.cloud_off_rounded,
-            title: 'No server connection available',
-            message: 'Pull down to refresh once your connection is back.',
+            title: S.current.screensMainPersonalizedViewNoServerConnectionAvailable,
+            message: S.current.screensMainPersonalizedViewPullDownToRefreshOnceYourConnectionIs,
             onRefresh: refreshPersonalizedLibrary,
           );
         }
@@ -125,10 +127,12 @@ class PersonalizedView extends HookConsumerWidget {
         if (personalizedLibrary == null) {
           return _PersonalizedFeedbackView(
             icon: serverReachable ? Icons.auto_awesome_outlined : Icons.cloud_off_rounded,
-            title: serverReachable ? 'No personalized items found' : 'Personalized shelf is offline',
+            title: serverReachable
+                ? S.current.screensMainPersonalizedViewNoPersonalizedItemsFound
+                : S.current.screensMainPersonalizedViewPersonalizedShelfIsOffline,
             message: serverReachable
-                ? 'No personalized sections are available for this library yet.'
-                : 'Unable to reach the server right now. Pull down to retry.',
+                ? S.current.screensMainPersonalizedViewNoPersonalizedSectionsAreAvailableForThis
+                : S.current.screensMainPersonalizedViewUnableToReachTheServerRightNowPull,
             onRefresh: refreshPersonalizedLibrary,
           );
         }
@@ -137,8 +141,8 @@ class PersonalizedView extends HookConsumerWidget {
         if (sections.isEmpty) {
           return _PersonalizedFeedbackView(
             icon: Icons.view_carousel_outlined,
-            title: 'No personalized sections available yet',
-            message: 'Pull down to refresh and try again.',
+            title: S.current.screensMainPersonalizedViewNoPersonalizedSectionsAvailableYet,
+            message: S.current.screensMainPersonalizedViewPullDownToRefreshAndTryAgain,
             onRefresh: refreshPersonalizedLibrary,
           );
         }
@@ -291,7 +295,7 @@ class _PersonalizedConnectionBanner extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Server connection is unstable. Displaying the latest available shelf data.',
+              S.current.screensMainPersonalizedViewServerConnectionIsUnstableDisplayingThe,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onErrorContainer),
             ),
           ),
@@ -366,14 +370,14 @@ class _PersonalizedFeedbackView extends StatelessWidget {
                               await onRefresh();
                             },
                             icon: const Icon(Icons.refresh_rounded),
-                            label: const Text('Retry'),
+                            label: Text(S.current.screensMainPersonalizedViewRetry),
                           ),
                           OutlinedButton.icon(
                             onPressed: () {
                               context.go('/?tab=downloads&intent=downloads');
                             },
                             icon: const Icon(Icons.download_rounded),
-                            label: const Text('Open Downloads'),
+                            label: Text(S.current.screensMainPersonalizedViewOpenDownloads),
                           ),
                         ],
                       ),
@@ -586,7 +590,9 @@ class _SectionRow extends StatelessWidget {
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to queue visible items: $error')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(S.current.screensMainPersonalizedViewFailedToQueueVisibleItems(error))));
     }
   }
 
@@ -619,7 +625,7 @@ class _SectionRow extends StatelessWidget {
                         _playVisibleShelfItems(context, playableEntries);
                       },
                       icon: const Icon(Icons.playlist_play_rounded, size: 18),
-                      tooltip: 'Queue all items in this shelf',
+                      tooltip: S.current.screensMainPersonalizedViewQueueAllItemsInThisShelf,
                       splashRadius: 1,
                       padding: EdgeInsets.zero,
                     ),

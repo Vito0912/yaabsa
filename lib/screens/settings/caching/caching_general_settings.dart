@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/components/settings/settings_switch_tile.dart';
 import 'package:yaabsa/database/settings_manager.dart';
+import 'package:yaabsa/generated/l10n.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
@@ -17,17 +18,19 @@ class CachingGeneralSettings extends ConsumerWidget {
     final isCachingEnabled = SettingsParser.decodeValue<bool>(cachingSetting, cachingDefault);
 
     return SettingsPageScaffold(
-      title: 'Caching - General',
+      title: S.current.screensSettingsCachingGeneralSettingsTitle,
       embedded: true,
       showEmbeddedBackButton: true,
       embeddedBackFallbackRoute: '/settings/caching',
       children: [
-        const SettingSwitchTile(label: 'Enable caching', settingKey: SettingKeys.caching),
         SettingSwitchTile(
-          label: 'Speedup mode',
-          subtitle:
-              'Combines caching with refreshing the cache after each request. This can briefly show stale data until a refresh finishes.',
-          disabledReason: 'Enable response caching to use speedup mode.',
+          label: S.current.screensSettingsCachingGeneralSettingsEnableCaching,
+          settingKey: SettingKeys.caching,
+        ),
+        SettingSwitchTile(
+          label: S.current.screensSettingsCachingGeneralSettingsSpeedupMode,
+          subtitle: S.current.screensSettingsCachingGeneralSettingsSpeedupModeDescription,
+          disabledReason: S.current.screensSettingsCachingGeneralSettingsEnableCachingDisabledReason,
           settingKey: SettingKeys.boostLoading,
           enabled: isCachingEnabled,
         ),

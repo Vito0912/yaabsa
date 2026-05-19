@@ -26,6 +26,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class MainSettingsScreen extends ConsumerWidget {
   const MainSettingsScreen({super.key});
 
@@ -77,10 +79,14 @@ class MainSettingsScreen extends ConsumerWidget {
       invalidateUserScopedProviders(ref);
 
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Deleted user ${user.username}')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(S.current.screensSettingsSettingsScreenDeletedUser(user.username))));
     } catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to delete user ${user.username}: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.current.screensSettingsSettingsScreenFailedToDeleteUser(user.username, e.toString()))),
+      );
     }
   }
 
@@ -115,7 +121,9 @@ class MainSettingsScreen extends ConsumerWidget {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Switched to ${user.username}')));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(S.current.screensSettingsSettingsScreenSwitchedTo(user.username))));
   }
 
   void _showDeleteUserConfirmationDialog(BuildContext context, User user, WidgetRef ref) {
@@ -124,12 +132,18 @@ class MainSettingsScreen extends ConsumerWidget {
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text('Delete User?'),
-          content: Text('Are you sure you want to delete "${user.username}"? This action cannot be undone.'),
+          title: Text(S.current.screensSettingsSettingsScreenDeleteUser),
+          content: Text(S.current.screensSettingsSettingsScreenAreYouSureYouWantTo(user.username)),
           actions: <Widget>[
-            TextButton(child: const Text('Cancel'), onPressed: () => Navigator.of(dialogContext).pop()),
             TextButton(
-              child: Text('Delete', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              child: Text(S.current.screensSettingsSettingsScreenCancel),
+              onPressed: () => Navigator.of(dialogContext).pop(),
+            ),
+            TextButton(
+              child: Text(
+                S.current.screensSettingsSettingsScreenDelete,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
               onPressed: () async {
                 Navigator.of(dialogContext).pop();
                 await _deleteUser(context, ref, user);
@@ -147,12 +161,18 @@ class MainSettingsScreen extends ConsumerWidget {
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text('Sign Out Current Account?'),
-          content: Text('Sign out from "${user.username}" on this device?'),
+          title: Text(S.current.screensSettingsSettingsScreenSignOutCurrentAccount),
+          content: Text(S.current.screensSettingsSettingsScreenSignOutFromOnThisDevice(user.username)),
           actions: <Widget>[
-            TextButton(child: const Text('Cancel'), onPressed: () => Navigator.of(dialogContext).pop()),
             TextButton(
-              child: Text('Sign Out', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              child: Text(S.current.screensSettingsSettingsScreenCancel),
+              onPressed: () => Navigator.of(dialogContext).pop(),
+            ),
+            TextButton(
+              child: Text(
+                S.current.screensSettingsSettingsScreenSignOut,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
               onPressed: () async {
                 Navigator.of(dialogContext).pop();
                 await _deleteUser(context, ref, user);
@@ -181,7 +201,7 @@ class MainSettingsScreen extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 28, 20, 12),
               child: Text(
-                'ACTIVE ACCOUNT',
+                S.current.screensSettingsSettingsScreenActiveACCOUNT,
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
                   color: Theme.of(context).colorScheme.primary,
                   fontWeight: FontWeight.w600,
@@ -234,7 +254,7 @@ class MainSettingsScreen extends ConsumerWidget {
                         )
                       : Center(
                           child: Text(
-                            'No active user.',
+                            S.current.screensSettingsSettingsScreenNoActiveUser,
                             style: Theme.of(
                               context,
                             ).textTheme.titleMedium?.copyWith(color: Theme.of(context).colorScheme.onPrimaryContainer),
@@ -250,7 +270,7 @@ class MainSettingsScreen extends ConsumerWidget {
                   Expanded(
                     child: OutlinedButton.icon(
                       icon: const Icon(Icons.manage_accounts_outlined),
-                      label: const Text('Manage Accounts'),
+                      label: Text(S.current.screensSettingsSettingsScreenManageAccounts),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         foregroundColor: Theme.of(context).colorScheme.primary,
@@ -266,7 +286,7 @@ class MainSettingsScreen extends ConsumerWidget {
                   Expanded(
                     child: ElevatedButton.icon(
                       icon: const Icon(Icons.person_add_alt_1_outlined),
-                      label: const Text('Add Account'),
+                      label: Text(S.current.screensSettingsSettingsScreenAddAccount),
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         backgroundColor: Theme.of(context).colorScheme.primary,
@@ -310,7 +330,7 @@ class MainSettingsScreen extends ConsumerWidget {
                   if (!AaosService.instance.currentState.isAutomotiveDevice)
                     SettingsNavigationItem(
                       icon: Icons.menu_book_rounded,
-                      title: 'Ebook-Reader Settings',
+                      title: S.current.screensSettingsSettingsScreenEbookReaderSettings,
                       onTap: () => context.push(ReaderSettings.routeName),
                     ),
                 ],
@@ -325,7 +345,10 @@ class MainSettingsScreen extends ConsumerWidget {
       ),
       error: (e, st) => Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Text('Error loading user data: $e', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+        child: Text(
+          S.current.screensSettingsSettingsScreenErrorLoadingUserData(e.toString()),
+          style: TextStyle(color: Theme.of(context).colorScheme.error),
+        ),
       ),
     );
   }
@@ -350,7 +373,10 @@ class MainSettingsScreen extends ConsumerWidget {
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(16.0),
-                    child: Text('Manage Accounts', style: Theme.of(context).textTheme.titleLarge),
+                    child: Text(
+                      S.current.screensSettingsSettingsScreenManageAccounts,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
                   ),
                   Expanded(
                     child: ListView(
@@ -359,7 +385,10 @@ class MainSettingsScreen extends ConsumerWidget {
                         if (currentUser != null)
                           Padding(
                             padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-                            child: Text('Current Account', style: Theme.of(context).textTheme.labelLarge),
+                            child: Text(
+                              S.current.screensSettingsSettingsScreenCurrentAccount,
+                              style: Theme.of(context).textTheme.labelLarge,
+                            ),
                           ),
                         if (currentUser != null)
                           ListTile(
@@ -368,10 +397,10 @@ class MainSettingsScreen extends ConsumerWidget {
                               child: Text(currentUser.username.substring(0, 1).toUpperCase()),
                             ),
                             title: Text(currentUser.username),
-                            subtitle: Text(currentUser.server?.url ?? 'No server'),
+                            subtitle: Text(currentUser.server?.url ?? S.current.screensSettingsSettingsScreenNoServer),
                             trailing: IconButton(
                               icon: Icon(Icons.logout_rounded, color: Theme.of(context).colorScheme.error),
-                              tooltip: 'Sign out this account',
+                              tooltip: S.current.screensSettingsSettingsScreenSignOutThisAccount,
                               onPressed: () {
                                 Navigator.pop(bottomSheetContext);
                                 _showSignOutCurrentUserConfirmationDialog(context, currentUser, ref);
@@ -382,13 +411,16 @@ class MainSettingsScreen extends ConsumerWidget {
                         if (otherUsers.isNotEmpty)
                           Padding(
                             padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                            child: Text('Other Accounts', style: Theme.of(context).textTheme.labelLarge),
+                            child: Text(
+                              S.current.screensSettingsSettingsScreenOtherAccounts,
+                              style: Theme.of(context).textTheme.labelLarge,
+                            ),
                           ),
                         if (otherUsers.isEmpty)
                           Padding(
                             padding: const EdgeInsets.all(20.0),
                             child: Text(
-                              'No other accounts available.',
+                              S.current.screensSettingsSettingsScreenNoOtherAccountsAvailable,
                               textAlign: TextAlign.center,
                               style: Theme.of(context).textTheme.bodyMedium,
                             ),
@@ -400,13 +432,13 @@ class MainSettingsScreen extends ConsumerWidget {
                               child: Text(user.username.substring(0, 1).toUpperCase()),
                             ),
                             title: Text(user.username),
-                            subtitle: Text(user.server?.url ?? 'No server'),
+                            subtitle: Text(user.server?.url ?? S.current.screensSettingsSettingsScreenNoServer),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 IconButton(
                                   icon: Icon(Icons.swap_horiz_rounded, color: Theme.of(context).colorScheme.primary),
-                                  tooltip: 'Switch to this user',
+                                  tooltip: S.current.screensSettingsSettingsScreenSwitchToThisUser,
                                   onPressed: () async {
                                     Navigator.pop(bottomSheetContext);
                                     await _switchActiveUser(context, ref, user);
@@ -414,7 +446,7 @@ class MainSettingsScreen extends ConsumerWidget {
                                 ),
                                 IconButton(
                                   icon: Icon(Icons.delete_outline_rounded, color: Theme.of(context).colorScheme.error),
-                                  tooltip: 'Delete this user',
+                                  tooltip: S.current.screensSettingsSettingsScreenDeleteThisUser,
                                   onPressed: () {
                                     Navigator.pop(bottomSheetContext);
                                     _showDeleteUserConfirmationDialog(context, user, ref);
@@ -462,12 +494,12 @@ class MainSettingsScreen extends ConsumerWidget {
                       children: [
                         if (isAaos)
                           SettingsNavigationSection(
-                            title: 'Car Integration',
+                            title: S.current.screensSettingsSettingsScreenCarIntegration,
                             items: [
                               SettingsNavigationItem(
                                 icon: Icons.play_circle_outline,
-                                title: 'Open Car Library',
-                                subtitle: 'Switch to the system Media Center',
+                                title: S.current.screensSettingsSettingsScreenOpenCarLibrary,
+                                subtitle: S.current.screensSettingsSettingsScreenSwitchToTheSystemMediaCenter,
                                 onTap: () async {
                                   await AaosService.instance.launchMediaCenter(finishActivity: true);
                                 },
@@ -475,32 +507,34 @@ class MainSettingsScreen extends ConsumerWidget {
                             ],
                           ),
                         SettingsNavigationSection(
-                          title: 'Application Settings',
+                          title: S.current.screensSettingsSettingsScreenApplicationSettings,
                           items: [
                             SettingsNavigationItem(
                               icon: Icons.palette_outlined,
-                              title: 'Appearance',
+                              title: S.current.screensSettingsSettingsScreenAppearance,
                               onTap: () => context.push(AppearanceSettings.routeName),
                             ),
                             SettingsNavigationItem(
                               icon: Icons.play_circle_outline_outlined,
-                              title: 'Global Player',
+                              title: S.current.screensSettingsSettingsScreenGlobalPlayer,
                               onTap: () => context.push(GlobalPlayerSettings.routeName),
                             ),
                             SettingsNavigationItem(
                               icon: Icons.library_books_outlined,
-                              title: 'Library Behaviour',
+                              title: S.current.screensSettingsSettingsScreenLibraryBehaviour,
                               onTap: () => context.push(LibrarySettings.routeName),
                             ),
                             if (showAndroidAutoSettings)
                               SettingsNavigationItem(
                                 icon: Icons.directions_car_filled_outlined,
-                                title: aaosState.isAutomotiveDevice ? 'AAOS' : 'Android Auto',
+                                title: aaosState.isAutomotiveDevice
+                                    ? S.current.commonAaos
+                                    : S.current.commonAndroidAuto,
                                 onTap: () => context.push(AndroidAutoSettings.routeName),
                               ),
                             SettingsNavigationItem(
                               icon: Icons.cached_outlined,
-                              title: 'Caching',
+                              title: S.current.screensSettingsSettingsScreenCaching,
                               onTap: () => context.push(CachingSettings.routeName),
                             ),
                           ],
@@ -523,31 +557,31 @@ class MainSettingsScreen extends ConsumerWidget {
                       error: (error, stackTrace) => const SizedBox.shrink(),
                     ),
                 SettingsNavigationSection(
-                  title: 'About & Support',
+                  title: S.current.screensSettingsSettingsScreenAboutAndSupport,
                   items: [
                     SettingsNavigationItem(
                       icon: Icons.code_rounded,
-                      title: 'View on GitHub',
-                      onTap: () => ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(const SnackBar(content: Text('Navigate to View on GitHub'))),
+                      title: S.current.screensSettingsSettingsScreenViewOnGitHub,
+                      onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(S.current.screensSettingsSettingsScreenNavigateToViewOnGitHub)),
+                      ),
                     ),
                     SettingsNavigationItem(
                       icon: Icons.bug_report_outlined,
-                      title: 'Report an Issue',
-                      onTap: () => ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(const SnackBar(content: Text('Navigate to Report an Issue'))),
+                      title: S.current.screensSettingsSettingsScreenReportAnIssue,
+                      onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(S.current.screensSettingsSettingsScreenNavigateToReportAnIssue)),
+                      ),
                     ),
                     SettingsNavigationItem(
                       icon: Icons.article_outlined,
-                      title: 'Logs',
+                      title: S.current.screensSettingsSettingsScreenLogs,
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const LogView())),
                     ),
                     SettingsNavigationItem(
                       icon: Icons.info_outline_rounded,
-                      title: 'Information & Attribution',
-                      subtitle: 'Licenses, App version, licenses, etc.',
+                      title: S.current.screensSettingsSettingsScreenInformationAndAttribution,
+                      subtitle: S.current.screensSettingsSettingsScreenLicensesAppVersionAndAttribution,
                       onTap: () => LicenseSettings.showLicensePage(context: context),
                     ),
                   ],

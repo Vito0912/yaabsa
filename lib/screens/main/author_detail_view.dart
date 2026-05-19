@@ -10,6 +10,8 @@ import 'package:yaabsa/provider/common/library_author_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class AuthorDetailView extends ConsumerWidget {
   const AuthorDetailView({super.key, required this.authorId});
 
@@ -41,7 +43,7 @@ class AuthorDetailView extends ConsumerWidget {
       ),
       error: (error, stackTrace) => ConnectionIssueView.requestFailed(
         error: error,
-        title: 'Error loading author details',
+        title: S.current.authorDetailErrorLoadingDetails,
         onRetry: () async {
           ref.invalidate(libraryAuthorProvider(authorId));
           await ref.read(libraryAuthorProvider(authorId).future);
@@ -60,7 +62,7 @@ class _AuthorDetailLoadedView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final numBooks = author.libraryItems.length;
-    final subtitle = numBooks <= 0 ? null : '$numBooks ${numBooks == 1 ? 'book' : 'books'}';
+    final subtitle = numBooks <= 0 ? null : S.current.authorDetailBookCount(numBooks);
 
     return Column(
       children: [
@@ -122,7 +124,7 @@ class _AuthorTopSection extends StatelessWidget {
                   context.go('/?tab=authors&intent=${DateTime.now().microsecondsSinceEpoch}');
                 },
                 icon: const Icon(Icons.arrow_back_rounded),
-                tooltip: 'Back',
+                tooltip: S.current.screensMainAuthorDetailViewBack,
               ),
               const SizedBox(width: 6),
               AuthorImage(authorId: authorId, width: imageSize, height: imageSize, borderRadius: 14),

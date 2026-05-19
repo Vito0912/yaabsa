@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class SignInAdvancedOptions extends StatelessWidget {
   const SignInAdvancedOptions({
     super.key,
@@ -38,7 +40,7 @@ class SignInAdvancedOptions extends StatelessWidget {
         TextButton.icon(
           onPressed: isLoading ? null : () => onExpandedChanged(!isExpanded),
           icon: Icon(isExpanded ? Icons.expand_less_rounded : Icons.expand_more_rounded),
-          label: const Text('Advanced Options'),
+          label: Text(S.current.screensAuthWidgetsSignInAdvancedOptionsAdvancedOptions),
         ),
         if (isExpanded)
           Container(
@@ -56,23 +58,26 @@ class SignInAdvancedOptions extends StatelessWidget {
                     value: useApiKey,
                     contentPadding: EdgeInsets.zero,
                     onChanged: isLoading ? null : onUseApiKeyChanged,
-                    title: const Text('Use API Key'),
-                    subtitle: const Text('Authenticate with a generated API key instead of username/password.'),
+                    title: Text(S.current.screensAuthWidgetsSignInAdvancedOptionsUseAPIKey),
+                    subtitle: Text(S.current.screensAuthWidgetsSignInAdvancedOptionsAuthenticateWithAGeneratedAPIKey),
                   ),
                 Row(
                   children: [
-                    Text('Custom Headers', style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
+                    Text(
+                      S.current.screensAuthWidgetsSignInAdvancedOptionsCustomHeaders,
+                      style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                    ),
                     const Spacer(),
                     TextButton.icon(
                       onPressed: isLoading ? null : onAddHeader,
                       icon: const Icon(Icons.add_rounded),
-                      label: const Text('Add Header'),
+                      label: Text(S.current.screensAuthWidgetsSignInAdvancedOptionsAddHeader),
                     ),
                   ],
                 ),
                 if (customHeaders.isEmpty)
                   Text(
-                    'No custom headers configured.',
+                    S.current.screensAuthWidgetsSignInAdvancedOptionsNoCustomHeadersConfigured,
                     style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
                   )
                 else
@@ -86,12 +91,12 @@ class SignInAdvancedOptions extends StatelessWidget {
                         spacing: 0,
                         children: [
                           IconButton(
-                            tooltip: 'Edit header',
+                            tooltip: S.current.screensAuthWidgetsSignInAdvancedOptionsEditHeader,
                             onPressed: isLoading ? null : () => onEditHeader(entry.key),
                             icon: const Icon(Icons.edit_outlined),
                           ),
                           IconButton(
-                            tooltip: 'Remove header',
+                            tooltip: S.current.screensAuthWidgetsSignInAdvancedOptionsRemoveHeader,
                             onPressed: isLoading ? null : () => onRemoveHeader(entry.key),
                             icon: const Icon(Icons.delete_outline),
                           ),

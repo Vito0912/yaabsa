@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:yaabsa/util/logger.dart';
 
 class LogEntryTile extends StatelessWidget {
@@ -39,7 +40,7 @@ class LogEntryTile extends StatelessWidget {
                     spacing: 8,
                     runSpacing: 6,
                     children: [
-                      _MetaChip(label: _formatTimestamp(entry.timestamp)),
+                      _MetaChip(label: _formatTimestamp(context, entry.timestamp)),
                       _MetaChip(label: entry.level.name.toUpperCase()),
                       if (entry.tag != null && entry.tag!.trim().isNotEmpty) _MetaChip(label: entry.tag!.trim()),
                     ],
@@ -53,9 +54,8 @@ class LogEntryTile extends StatelessWidget {
     );
   }
 
-  String _formatTimestamp(DateTime timestamp) {
-    return '${timestamp.year}-${timestamp.month.toString().padLeft(2, '0')}-${timestamp.day.toString().padLeft(2, '0')} '
-        '${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}:${timestamp.second.toString().padLeft(2, '0')}';
+  String _formatTimestamp(BuildContext context, DateTime timestamp) {
+    return DateFormat.yMd(Localizations.localeOf(context).toString()).add_Hms().format(timestamp);
   }
 
   IconData _iconForLevel(InfoLevel level) {

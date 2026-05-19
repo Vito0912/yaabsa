@@ -3,6 +3,8 @@ import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/item_formatters.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class PodcastHeaderCard extends StatelessWidget {
   const PodcastHeaderCard({
     super.key,
@@ -53,9 +55,16 @@ class PodcastHeaderCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                IconButton(onPressed: onBack, icon: const Icon(Icons.arrow_back_rounded), tooltip: 'Back'),
+                IconButton(
+                  onPressed: onBack,
+                  icon: const Icon(Icons.arrow_back_rounded),
+                  tooltip: S.current.screensItemPodcastPodcastHeaderCardBack,
+                ),
                 const SizedBox(width: 4),
-                Text('Podcast', style: Theme.of(context).textTheme.titleSmall),
+                Text(
+                  S.current.screensItemPodcastPodcastHeaderCardPodcast,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
               ],
             ),
             const SizedBox(height: 8),
@@ -107,7 +116,10 @@ class PodcastHeaderCard extends StatelessWidget {
               ),
             if (hasDescription) ...[
               const SizedBox(height: 10),
-              Text('DESCRIPTION', style: Theme.of(context).textTheme.labelSmall),
+              Text(
+                S.current.screensItemPodcastPodcastHeaderCardDescription,
+                style: Theme.of(context).textTheme.labelSmall,
+              ),
               const SizedBox(height: 6),
               Text(
                 showFullDescription ? description : previewDescription!,
@@ -116,7 +128,14 @@ class PodcastHeaderCard extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: 4),
-              TextButton(onPressed: onToggleDescription, child: Text(showFullDescription ? 'Show less' : 'Show more')),
+              TextButton(
+                onPressed: onToggleDescription,
+                child: Text(
+                  showFullDescription
+                      ? S.current.componentsAppItemItemDescriptionShowLess
+                      : S.current.componentsAppItemItemDescriptionShowMore,
+                ),
+              ),
             ],
           ],
         ),

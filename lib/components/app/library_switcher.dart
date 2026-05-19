@@ -4,6 +4,8 @@ import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class LibrarySwitcher extends ConsumerWidget {
   const LibrarySwitcher({super.key});
 
@@ -58,7 +60,7 @@ class LibrarySwitcher extends ConsumerWidget {
     final selectedName = selectedLibrary?.name ?? fallbackName ?? 'Library';
 
     return PopupMenuButton<String>(
-      tooltip: 'Select library',
+      tooltip: S.current.componentsAppLibrarySwitcherSelectLibrary,
       onSelected: (String newLibraryId) async {
         await ref.read(selectedLibraryIdProvider.notifier).set(newLibraryId);
       },

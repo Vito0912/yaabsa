@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:yaabsa/models/internal_annotation.dart';
 import 'package:yaabsa/screens/reader/models/pdf_annotation_entry.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class ReaderPdfAnnotationsListView extends StatelessWidget {
   const ReaderPdfAnnotationsListView({super.key, required this.annotations, required this.onRemove, this.onEdit});
 
@@ -46,14 +48,17 @@ class ReaderPdfAnnotationsListView extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             child: Text(
-              'Annotations',
+              S.current.screensReaderWidgetsReaderPdfAnnotationsListViewAnnotations,
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
             ),
           ),
           if (annotations.isEmpty)
             Expanded(
               child: Center(
-                child: Text('No annotations found', style: TextStyle(color: colorScheme.onSurfaceVariant)),
+                child: Text(
+                  S.current.screensReaderWidgetsReaderPdfAnnotationsListViewNoAnnotationsFound,
+                  style: TextStyle(color: colorScheme.onSurfaceVariant),
+                ),
               ),
             )
           else
@@ -70,9 +75,15 @@ class ReaderPdfAnnotationsListView extends StatelessWidget {
                           height: 24,
                           decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(4)),
                         ),
-                        title: Text('Page ${annotation.pageNumber}', style: TextStyle(color: colorScheme.onSurface)),
+                        title: Text(
+                          S.current.screensReaderWidgetsReaderPdfAnnotationsListViewPage(annotation.pageNumber),
+                          style: TextStyle(color: colorScheme.onSurface),
+                        ),
                         subtitle: Text(
-                          'Range ${annotation.start}-${annotation.end}',
+                          S.current.screensReaderWidgetsReaderPdfAnnotationsListViewRange(
+                            annotation.start,
+                            annotation.end,
+                          ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(color: colorScheme.onSurfaceVariant),
@@ -101,11 +112,17 @@ class ReaderPdfAnnotationsListView extends StatelessWidget {
                           ),
                         ),
                         title: Text(
-                          'Page ${annotation.pageNumber} (${thickness.toInt()}px)',
+                          S.current.screensReaderWidgetsReaderPdfAnnotationsListViewPagePx(
+                            annotation.pageNumber,
+                            thickness.toInt(),
+                          ),
                           style: TextStyle(color: colorScheme.onSurface),
                         ),
                         subtitle: Text(
-                          'Range ${annotation.start}-${annotation.end}',
+                          S.current.screensReaderWidgetsReaderPdfAnnotationsListViewRange(
+                            annotation.start,
+                            annotation.end,
+                          ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(color: colorScheme.onSurfaceVariant),
@@ -131,7 +148,10 @@ class ReaderPdfAnnotationsListView extends StatelessWidget {
                             border: Border.all(color: colorScheme.outlineVariant),
                           ),
                         ),
-                        title: Text('Page ${annotation.pageNumber}', style: TextStyle(color: colorScheme.onSurface)),
+                        title: Text(
+                          S.current.screensReaderWidgetsReaderPdfAnnotationsListViewPage(annotation.pageNumber),
+                          style: TextStyle(color: colorScheme.onSurface),
+                        ),
                         subtitle: Text(
                           (annotation.noteText == null || annotation.noteText!.isEmpty)
                               ? 'No note'
@@ -147,12 +167,12 @@ class ReaderPdfAnnotationsListView extends StatelessWidget {
                               IconButton(
                                 icon: const Icon(Icons.edit_outlined),
                                 onPressed: () => onEdit!(annotation),
-                                tooltip: 'Edit bookmark',
+                                tooltip: S.current.screensReaderWidgetsReaderPdfAnnotationsListViewEditBookmark,
                               ),
                             IconButton(
                               icon: const Icon(Icons.delete_outline),
                               onPressed: () => onRemove(annotation),
-                              tooltip: 'Delete annotation',
+                              tooltip: S.current.screensReaderWidgetsReaderPdfAnnotationsListViewDeleteAnnotation,
                             ),
                           ],
                         ),

@@ -9,6 +9,8 @@ import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/common/library_search_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class SearchView extends HookConsumerWidget {
   const SearchView({required this.query, super.key});
 
@@ -19,7 +21,7 @@ class SearchView extends HookConsumerWidget {
     final scrollController = useScrollController();
     final selectedLibrary = ref.watch(selectedLibraryProvider);
     if (selectedLibrary == null) {
-      return const Center(child: Text('No library selected. Please select a library via the switcher.'));
+      return Center(child: Text(S.current.screensMainSearchViewNoLibrarySelectedPleaseSelectA));
     }
 
     final searchAsync = ref.watch(librarySearchProvider(query));
@@ -29,7 +31,7 @@ class SearchView extends HookConsumerWidget {
       skipLoadingOnReload: true,
       data: (searchResult) {
         if (searchResult == null) {
-          return const Center(child: Text('No results found.'));
+          return Center(child: Text(S.current.screensMainSearchViewNoResultsFound));
         }
 
         final resultItems = _buildLibraryItems(searchResult);
@@ -42,7 +44,7 @@ class SearchView extends HookConsumerWidget {
             (searchResult.genres?.isNotEmpty ?? false);
 
         if (resultItems.isEmpty && !hasMetadataResults) {
-          return Center(child: Text('No results found for "$query".'));
+          return Center(child: Text(S.current.screensMainSearchViewNoResultsFoundFor(query)));
         }
 
         return Stack(
@@ -52,7 +54,10 @@ class SearchView extends HookConsumerWidget {
                 controller: scrollController,
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
                 children: [
-                  Text('Search results for "$query"', style: Theme.of(context).textTheme.headlineSmall),
+                  Text(
+                    S.current.screensMainSearchViewSearchResultsFor(query),
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
                   const SizedBox(height: 12),
                   if (resultItems.isNotEmpty) _SearchResultItems(items: resultItems),
                   if (searchResult.series?.isNotEmpty ?? false) ...[
@@ -105,7 +110,7 @@ class SearchView extends HookConsumerWidget {
       error: (err, stack) => Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Text('Error loading search results: $err', textAlign: TextAlign.center),
+          child: Text(S.current.screensMainSearchViewErrorLoadingSearchResults(err), textAlign: TextAlign.center),
         ),
       ),
     );

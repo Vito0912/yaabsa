@@ -10,6 +10,8 @@ import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/util/globals.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class NarratorsView extends HookConsumerWidget {
   const NarratorsView({super.key});
 
@@ -20,11 +22,11 @@ class NarratorsView extends HookConsumerWidget {
     final serverReachable = ref.watch(serverStatusProvider).value ?? false;
 
     if (selectedLibrary == null) {
-      return const Center(child: Text('No library selected. Please select a library via the switcher.'));
+      return Center(child: Text(S.current.screensMainNarratorsViewNoLibrarySelectedPleaseSelectA));
     }
 
     if (selectedLibrary.mediaType != 'book') {
-      return const Center(child: Text('Narrators are available only for book libraries.'));
+      return Center(child: Text(S.current.screensMainNarratorsViewNarratorsAreAvailableOnlyForBook));
     }
 
     final libraryId = selectedLibrary.id;
@@ -44,7 +46,7 @@ class NarratorsView extends HookConsumerWidget {
         final sortedNarrators = [...narrators]..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
 
         if (sortedNarrators.isEmpty) {
-          return const Center(child: Text('No narrators found in this library.'));
+          return Center(child: Text(S.current.screensMainNarratorsViewNoNarratorsFoundInThisLibrary));
         }
 
         final horizontalPadding = context.isDesktop

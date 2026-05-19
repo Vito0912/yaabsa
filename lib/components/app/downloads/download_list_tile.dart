@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:yaabsa/components/app/downloads/download_cover_thumbnail.dart';
 import 'package:yaabsa/models/internal_download.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class DownloadListTile extends StatelessWidget {
   const DownloadListTile({
     super.key,
@@ -41,17 +43,17 @@ class DownloadListTile extends StatelessWidget {
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Downloaded files: $downloadedFiles/$totalFiles'),
+          Text(S.current.componentsAppDownloadsDownloadListTileDownloadedFiles(downloadedFiles, totalFiles)),
           const SizedBox(height: 4),
           ClipRRect(
             borderRadius: BorderRadius.circular(99),
             child: LinearProgressIndicator(value: downloadRatio, minHeight: 5),
           ),
           if (!download.isComplete)
-            const Padding(
+            Padding(
               padding: EdgeInsets.only(top: 4),
               child: Text(
-                'Warning: Download unfinished or incomplete. Not available for offline use yet.',
+                S.current.componentsAppDownloadsDownloadListTileWarningDownloadUnfinishedOrIncompleteNot,
                 style: TextStyle(color: Colors.red),
               ),
             ),
@@ -60,7 +62,7 @@ class DownloadListTile extends StatelessWidget {
       trailing: selectionMode
           ? null
           : IconButton(
-              tooltip: 'Delete download',
+              tooltip: S.current.componentsAppDownloadsDownloadListTileDeleteDownload,
               onPressed: isDeleting ? null : onDelete,
               icon: const Icon(Icons.delete_outline),
             ),

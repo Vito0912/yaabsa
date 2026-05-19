@@ -1,6 +1,7 @@
 import 'dart:collection';
 
 import 'package:dio/dio.dart';
+import 'package:intl/intl.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:yaabsa/api/library/stats/listening_sessions_page.dart';
 import 'package:yaabsa/api/library/stats/user_listening_stats.dart';
@@ -18,15 +19,13 @@ part 'stats_provider.g.dart';
 
 const int _advancedSessionsPageSize = 100;
 
-const List<String> _weekdayLabels = <String>[
-  'Monday',
-  'Tuesday',
-  'Wednesday',
-  'Thursday',
-  'Friday',
-  'Saturday',
-  'Sunday',
-];
+List<String> _weekdayLabels() {
+  final locale = Intl.getCurrentLocale();
+  return List<String>.generate(7, (index) {
+    final day = DateTime.utc(2024, 1, 1 + index);
+    return DateFormat.EEEE(locale).format(day);
+  }, growable: false);
+}
 
 @riverpod
 Future<UserListeningStats> listeningStats(Ref ref) async {
@@ -225,8 +224,9 @@ AdvancedListeningStats _calculateAdvancedListeningStats({
 
   final itemAggregates = <String, _ItemAggregate>{};
   final authorAggregates = <String, _EntityAggregate>{};
+  final weekdayLabels = _weekdayLabels();
 
-  final weekdayTotals = <String, double>{for (final label in _weekdayLabels) label: 0};
+  final weekdayTotals = <String, double>{for (final label in weekdayLabels) label: 0};
   final hourlyTotals = <int, double>{for (var hour = 0; hour < 24; hour++) hour: 0};
   final monthlyTotals = SplayTreeMap<String, double>();
 
@@ -300,13 +300,13 @@ AdvancedListeningStats _calculateAdvancedListeningStats({
         Duration.millisecondsPerDay;
     sessionDays.add(dayEpoch);
 
-    final weekdayLabel = _weekdayLabels[timestamp.weekday - 1];
+    final weekdayLabel = weekdayLabels[timestamp.weekday - 1];
     weekdayTotals[weekdayLabel] = (weekdayTotals[weekdayLabel] ?? 0) + sessionListeningTime;
 
     final hour = timestamp.hour;
     hourlyTotals[hour] = (hourlyTotals[hour] ?? 0) + sessionListeningTime;
 
-    final monthLabel = '${timestamp.year}-${timestamp.month.toString().padLeft(2, '0')}';
+    final monthLabel = timestamp.toIso8601String().substring(0, 7);
     monthlyTotals[monthLabel] = (monthlyTotals[monthLabel] ?? 0) + sessionListeningTime;
   }
 
@@ -353,12 +353,12 @@ AdvancedListeningStats _calculateAdvancedListeningStats({
           return b.sessions.compareTo(a.sessions);
         });
 
-  final weekdayBreakdown = _weekdayLabels
+  final weekdayBreakdown = weekdayLabels
       .map((label) => AdvancedTimeBucket(label: label, totalListeningTime: weekdayTotals[label] ?? 0))
       .toList(growable: false);
 
   final hourlyBreakdown = List<AdvancedTimeBucket>.generate(24, (hour) {
-    final label = '${hour.toString().padLeft(2, '0')}:00';
+    final label = DateFormat.jm(Intl.getCurrentLocale()).format(DateTime(2024, 1, 1, hour));
     return AdvancedTimeBucket(label: label, totalListeningTime: hourlyTotals[hour] ?? 0);
   });
 

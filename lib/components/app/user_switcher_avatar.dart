@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:yaabsa/generated/l10n.dart';
 
 class UserSwitcherAvatar extends StatelessWidget {
   const UserSwitcherAvatar({super.key, required this.username, required this.compact, required this.serverReachable});
@@ -9,6 +10,7 @@ class UserSwitcherAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = S.of(context);
     final colorScheme = Theme.of(context).colorScheme;
     final avatarRadius = compact ? 13.0 : 14.0;
     final indicatorSize = compact ? 9.0 : 10.0;
@@ -18,13 +20,13 @@ class UserSwitcherAvatar extends StatelessWidget {
     String indicatorTooltip;
     if (serverReachable == true) {
       indicatorColor = const Color(0xFF2E7D32);
-      indicatorTooltip = 'Server reachable';
+      indicatorTooltip = l10n.componentsAppUserSwitcherAvatarServerReachable;
     } else if (serverReachable == false) {
       indicatorColor = colorScheme.error;
-      indicatorTooltip = 'Server connection problems';
+      indicatorTooltip = l10n.componentsAppUserSwitcherAvatarServerConnectionProblems;
     } else {
       indicatorColor = colorScheme.outline;
-      indicatorTooltip = 'Checking server status';
+      indicatorTooltip = l10n.componentsAppUserSwitcherAvatarCheckingServerStatus;
     }
 
     return Tooltip(

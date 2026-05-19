@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:yaabsa/api/me/bookmark.dart';
 import 'package:yaabsa/components/player/common/seek_bar_row.dart';
 import 'package:yaabsa/components/player/common/seek_bar_slider.dart';
@@ -31,16 +32,16 @@ class SeekBar extends ConsumerWidget {
       return '--:--';
     }
 
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final twoDigits = NumberFormat('00', Intl.getCurrentLocale());
     final hours = duration.inHours;
     final minutes = duration.inMinutes.remainder(60);
     final seconds = duration.inSeconds.remainder(60);
 
     if (hours > 0) {
-      return '$hours:${twoDigits(minutes)}:${twoDigits(seconds)}';
+      return '$hours:${twoDigits.format(minutes)}:${twoDigits.format(seconds)}';
     }
 
-    return '${twoDigits(minutes)}:${twoDigits(seconds)}';
+    return '${twoDigits.format(minutes)}:${twoDigits.format(seconds)}';
   }
 
   InternalChapter? _getCurrentChapter(List<InternalChapter> chapters, Duration currentPosition) {

@@ -10,6 +10,8 @@ import 'package:yaabsa/util/setting_key.dart';
 import 'package:yaabsa/util/subtitles/subtitle_loader.dart';
 import 'package:yaabsa/util/subtitles/subtitle_parser.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class SubtitleReadingModeView extends ConsumerStatefulWidget {
   const SubtitleReadingModeView({super.key});
 
@@ -63,7 +65,7 @@ class _SubtitleReadingModeViewState extends ConsumerState<SubtitleReadingModeVie
       defaultValue: defaultSettings[SettingKeys.subtitleReadAlong] as bool? ?? true,
     );
     if (!subtitlesEnabled) {
-      return const Center(child: Text('Subtitles are disabled in player settings.'));
+      return Center(child: Text(S.current.screensPlayerSubtitleReadingModeSubtitlesAreDisabledInPlayerSettings));
     }
 
     return StreamBuilder(
@@ -72,7 +74,7 @@ class _SubtitleReadingModeViewState extends ConsumerState<SubtitleReadingModeVie
       builder: (context, mediaSnapshot) {
         final media = mediaSnapshot.data;
         if (media == null) {
-          return const Center(child: Text('Start playback to use continuous subtitle reading mode.'));
+          return Center(child: Text(S.current.screensPlayerSubtitleReadingModeStartPlaybackToUseContinuousSubtitle));
         }
 
         final subtitleFuture = loadSubtitleDocumentForItem(
@@ -91,7 +93,7 @@ class _SubtitleReadingModeViewState extends ConsumerState<SubtitleReadingModeVie
 
             final loaded = subtitleSnapshot.data;
             if (loaded == null) {
-              return const Center(child: Text('No subtitles available for this title.'));
+              return Center(child: Text(S.current.screensPlayerSubtitleReadingModeNoSubtitlesAvailableForThisTitle));
             }
 
             final document = loaded.document;
@@ -108,7 +110,7 @@ class _SubtitleReadingModeViewState extends ConsumerState<SubtitleReadingModeVie
                 }
 
                 if (cueIndex < 0 || cueIndex >= document.cues.length) {
-                  return const Center(child: Text('Waiting for subtitle cue...'));
+                  return Center(child: Text(S.current.screensPlayerSubtitleReadingModeWaitingForSubtitleCue));
                 }
 
                 final activeParagraphIndex = paragraphLayout.cueToParagraphIndex[cueIndex];

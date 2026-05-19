@@ -7,6 +7,8 @@ import 'package:yaabsa/api/list/collection.dart';
 import 'package:yaabsa/api/list/playlist.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 const int defaultMultiBookPreviewLimit = 5;
 const int _maxRenderedSeriesCovers = 5;
 
@@ -349,7 +351,10 @@ class _ExtraCountBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.72), borderRadius: BorderRadius.circular(99)),
-      child: Text('+$hiddenBookCount', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Colors.white)),
+      child: Text(
+        S.current.componentsCommonMultiBookEntryWidgetText(hiddenBookCount),
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Colors.white),
+      ),
     );
   }
 }

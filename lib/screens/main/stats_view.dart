@@ -19,6 +19,8 @@ import 'package:yaabsa/screens/main/stats/stats_weekday_breakdown.dart';
 import 'package:yaabsa/screens/main/stats/stats_year_rewind_section.dart';
 import 'package:yaabsa/util/globals.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class StatsView extends ConsumerStatefulWidget {
   const StatsView({super.key});
 
@@ -59,13 +61,17 @@ class _StatsViewState extends ConsumerState<StatsView> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Load advanced analytics?'),
-          content: const Text(
-            'Advanced mode fetches every listening-session page and can take time on large accounts.',
-          ),
+          title: Text(S.current.screensMainStatsViewLoadAdvancedAnalytics),
+          content: Text(S.current.screensMainStatsViewAdvancedModeFetchesEveryListeningSession),
           actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
-            FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Load')),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(S.current.screensMainStatsViewCancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(S.current.screensMainStatsViewLoad),
+            ),
           ],
         );
       },
@@ -178,7 +184,10 @@ class _StatsViewState extends ConsumerState<StatsView> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text('Recent Sessions', style: Theme.of(context).textTheme.titleSmall),
+                                      Text(
+                                        S.current.screensMainStatsViewRecentSessions,
+                                        style: Theme.of(context).textTheme.titleSmall,
+                                      ),
                                       const SizedBox(height: 8),
                                       StatsRecentSessionsList(sessions: recentSessions, maxItems: 5),
                                     ],
@@ -195,7 +204,7 @@ class _StatsViewState extends ConsumerState<StatsView> {
                   StatsSectionCard(
                     title: 'Activity Range',
                     trailing: IconButton(
-                      tooltip: 'Refresh activity',
+                      tooltip: S.current.screensMainStatsViewRefreshActivity,
                       onPressed: _refreshActivity,
                       icon: const Icon(Icons.refresh_rounded),
                     ),
@@ -269,7 +278,7 @@ class _StatsViewState extends ConsumerState<StatsView> {
                           child: OutlinedButton.icon(
                             onPressed: _enableAdvancedMode,
                             icon: const Icon(Icons.analytics_outlined),
-                            label: const Text('Load Advanced Analytics'),
+                            label: Text(S.current.screensMainStatsViewLoadAdvancedAnalytics2),
                           ),
                         )
                       : advancedAnalyticsState != null
@@ -312,7 +321,7 @@ class _StatsViewState extends ConsumerState<StatsView> {
             context.isMobile ? 12 : 18,
             0,
           ),
-          child: Text('Stats', style: Theme.of(context).textTheme.headlineSmall),
+          child: Text(S.current.screensMainStatsViewStats, style: Theme.of(context).textTheme.headlineSmall),
         ),
         const SizedBox(height: 8),
         Expanded(child: _buildOverviewTab()),

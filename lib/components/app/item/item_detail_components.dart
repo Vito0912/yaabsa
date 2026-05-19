@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class ItemHeroCard extends StatelessWidget {
   const ItemHeroCard({
     super.key,
@@ -36,9 +38,16 @@ class ItemHeroCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                IconButton(onPressed: onBack, icon: const Icon(Icons.arrow_back_rounded), tooltip: 'Back'),
+                IconButton(
+                  onPressed: onBack,
+                  icon: const Icon(Icons.arrow_back_rounded),
+                  tooltip: S.current.componentsAppItemItemDetailComponentsBack,
+                ),
                 const SizedBox(width: 4),
-                Text('Book details', style: Theme.of(context).textTheme.titleSmall),
+                Text(
+                  S.current.componentsAppItemItemDetailComponentsBookDetails,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
               ],
             ),
             const SizedBox(height: 6),
@@ -250,7 +259,8 @@ class _InlineLinkValues extends StatelessWidget {
     return Wrap(
       children: [
         for (int i = 0; i < values.length; i++) ...[
-          if (i > 0) Text(', ', style: textStyle?.copyWith(color: muted)),
+          if (i > 0)
+            Text(S.current.componentsAppItemItemDetailComponentsText, style: textStyle?.copyWith(color: muted)),
           _InlineLinkText(label: values[i].label, onTap: values[i].onTap, color: surface),
         ],
       ],

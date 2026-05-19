@@ -1,9 +1,12 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:yaabsa/api/library_items/audio_file.dart';
 import 'package:yaabsa/api/library_items/chapter.dart';
 import 'package:yaabsa/util/item_formatters.dart';
+
+import 'package:yaabsa/generated/l10n.dart';
 
 class LibraryItemEmbeddingView extends StatelessWidget {
   const LibraryItemEmbeddingView({
@@ -44,10 +47,10 @@ class LibraryItemEmbeddingView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (audioFiles.isEmpty) {
-      return const Center(
+      return Center(
         child: Padding(
           padding: EdgeInsets.all(24),
-          child: Text('No audio tracks are available for metadata embedding.'),
+          child: Text(S.current.componentsAppItemEditorLibraryItemEmbeddingViewNoAudioTracksAreAvailableFor),
         ),
       );
     }
@@ -102,7 +105,7 @@ class LibraryItemEmbeddingView extends StatelessWidget {
                 SizedBox(
                   width: panelWidth,
                   child: _ToolPanel(
-                    title: 'Metadata To Embed',
+                    title: S.current.componentsAppItemEditorLibraryItemEmbeddingViewMetadataToEmbed,
                     child: isMetadataLoading
                         ? const Center(
                             child: Padding(padding: EdgeInsets.all(18), child: CircularProgressIndicator()),
@@ -113,7 +116,7 @@ class LibraryItemEmbeddingView extends StatelessWidget {
                 SizedBox(
                   width: panelWidth,
                   child: _ToolPanel(
-                    title: 'Chapters To Embed',
+                    title: S.current.componentsAppItemEditorLibraryItemEmbeddingViewChaptersToEmbed,
                     child: _ChapterRows(chapters: chapters),
                   ),
                 ),
@@ -155,12 +158,12 @@ class _EmbedActionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final controlsLocked = isRequestInFlight || isTaskRunning || isTaskQueued;
     final startLabel = isRequestInFlight
-        ? 'Submitting...'
+        ? S.current.componentsAppItemEditorLibraryItemEmbeddingViewSubmitting
         : isTaskRunning
-        ? 'Running...'
+        ? S.current.componentsAppItemEditorLibraryItemEmbeddingViewRunning
         : isTaskQueued
-        ? 'Queued'
-        : 'Start Embed';
+        ? S.current.componentsAppItemEditorLibraryItemEmbeddingViewQueued
+        : S.current.componentsAppItemEditorLibraryItemEmbeddingViewStartEmbed;
 
     return Card(
       child: Padding(
@@ -168,24 +171,27 @@ class _EmbedActionCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Embedding', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              S.current.componentsAppItemEditorLibraryItemEmbeddingViewEmbedding,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 4),
             SwitchListTile.adaptive(
               dense: true,
               contentPadding: EdgeInsets.zero,
               value: backupAudioFiles,
               onChanged: controlsLocked ? null : onBackupAudioFilesChanged,
-              title: const Text('Backup audio files before embedding'),
+              title: Text(S.current.componentsAppItemEditorLibraryItemEmbeddingViewBackupAudioFilesBeforeEmbedding),
             ),
             SwitchListTile.adaptive(
               dense: true,
               contentPadding: EdgeInsets.zero,
               value: forceEmbedChapters,
               onChanged: controlsLocked ? null : onForceEmbedChaptersChanged,
-              title: const Text('Force chapter embedding'),
+              title: Text(S.current.componentsAppItemEditorLibraryItemEmbeddingViewForceChapterEmbedding),
             ),
             Text(
-              'Forces chapter markers to be rewritten in the output files, even when chapters already exist.',
+              S.current.componentsAppItemEditorLibraryItemEmbeddingViewForcesChapterMarkersToBeRewritten,
               style: Theme.of(
                 context,
               ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
@@ -199,7 +205,7 @@ class _EmbedActionCard extends StatelessWidget {
                 OutlinedButton.icon(
                   onPressed: isRequestInFlight ? null : onRefreshMetadataObject,
                   icon: const Icon(Icons.refresh_rounded),
-                  label: const Text('Refresh Metadata'),
+                  label: Text(S.current.componentsAppItemEditorLibraryItemEmbeddingViewRefreshMetadata),
                 ),
                 FilledButton.icon(
                   onPressed: controlsLocked ? null : onStartEmbedding,
@@ -253,9 +259,9 @@ class _MetadataRows extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (entries.isEmpty) {
-      return const Padding(
+      return Padding(
         padding: EdgeInsets.symmetric(vertical: 10),
-        child: Text('No metadata object returned by the server.'),
+        child: Text(S.current.componentsAppItemEditorLibraryItemEmbeddingViewNoMetadataObjectReturnedByThe),
       );
     }
 
@@ -299,7 +305,10 @@ class _ChapterRows extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (chapters.isEmpty) {
-      return const Padding(padding: EdgeInsets.symmetric(vertical: 10), child: Text('No chapters available.'));
+      return Padding(
+        padding: EdgeInsets.symmetric(vertical: 10),
+        child: Text(S.current.componentsAppItemEditorLibraryItemEmbeddingViewNoChaptersAvailable),
+      );
     }
 
     return Column(
@@ -319,7 +328,10 @@ class _ChapterRows extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text(_formatClock(chapters[i].start), style: Theme.of(context).textTheme.bodySmall),
                 const SizedBox(width: 8),
-                Text('→', style: Theme.of(context).textTheme.bodySmall),
+                Text(
+                  S.current.componentsAppItemEditorLibraryItemEmbeddingViewText,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
                 const SizedBox(width: 8),
                 Text(_formatClock(chapters[i].end), style: Theme.of(context).textTheme.bodySmall),
                 const SizedBox(width: 8),
@@ -402,10 +414,11 @@ String _formatMetadataValue(dynamic value) {
 String _formatClock(double seconds) {
   final totalSeconds = seconds.round();
   final duration = Duration(seconds: totalSeconds);
+  final twoDigits = NumberFormat('00', Intl.getCurrentLocale());
 
   final hours = duration.inHours;
-  final minutes = duration.inMinutes.remainder(60).toString().padLeft(2, '0');
-  final secs = duration.inSeconds.remainder(60).toString().padLeft(2, '0');
+  final minutes = twoDigits.format(duration.inMinutes.remainder(60));
+  final secs = twoDigits.format(duration.inSeconds.remainder(60));
 
   if (hours > 0) {
     return '$hours:$minutes:$secs';

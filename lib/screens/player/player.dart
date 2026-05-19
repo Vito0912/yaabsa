@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/components/player/common/cast_button.dart';
 import 'package:yaabsa/components/player/common/stop_button.dart';
@@ -31,6 +32,8 @@ import 'package:yaabsa/util/chrome_cast_service.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/setting_key.dart';
+
+import 'package:yaabsa/generated/l10n.dart';
 
 enum _PlayerAppBarMenuAction { queue, addBookmark, carMode, playHistory, cast }
 
@@ -166,7 +169,7 @@ class _PlayerState extends ConsumerState<Player> {
     final messenger = ScaffoldMessenger.of(context);
     final media = audioHandler.currentMediaItem;
     if (media == null) {
-      messenger.showSnackBar(const SnackBar(content: Text('No active media to bookmark.')));
+      messenger.showSnackBar(SnackBar(content: Text(S.current.screensPlayerPlayerNoActiveMediaToBookmark)));
       return;
     }
 
@@ -341,7 +344,7 @@ class _PlayerState extends ConsumerState<Player> {
       if (free == null) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('No free grid space available for ${type.label}.')));
+        ).showSnackBar(SnackBar(content: Text(S.current.screensPlayerPlayerNoFreeGridSpaceAvailableFor(type.label))));
         return;
       }
       updated = updated.copyWith(x: free.x, y: free.y);
@@ -405,7 +408,9 @@ class _PlayerState extends ConsumerState<Player> {
     if (!context.mounted) {
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Layout config copied to clipboard.')));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(S.current.screensPlayerPlayerLayoutConfigCopiedToClipboard)));
   }
 
   void _showComponentSettings(BuildContext context, PlayerLayoutScreenSize screenSize, PlayerComponentType type) {
@@ -573,7 +578,7 @@ class _PlayerState extends ConsumerState<Player> {
 
     final appBar = _isEditMode
         ? AppBar(
-            title: Text('Edit ${activeScreenSize.label} Layout'),
+            title: Text(S.current.screensPlayerPlayerEditLayout(activeScreenSize.label)),
             leading: IconButton(
               icon: const Icon(Icons.close_rounded),
               onPressed: () {
@@ -581,12 +586,12 @@ class _PlayerState extends ConsumerState<Player> {
                   _isEditMode = false;
                 });
               },
-              tooltip: 'Exit edit mode',
+              tooltip: S.current.screensPlayerPlayerExitEditMode,
             ),
             actions: <Widget>[
               PopupMenuButton<PlayerComponentType>(
                 enabled: hiddenComponents.isNotEmpty,
-                tooltip: 'Add component',
+                tooltip: S.current.screensPlayerPlayerAddComponent,
                 icon: const Icon(Icons.add_box_rounded),
                 onSelected: (PlayerComponentType type) {
                   _setComponentVisibility(context, activeScreenSize, type, true);
@@ -614,7 +619,9 @@ class _PlayerState extends ConsumerState<Player> {
               ),
               IconButton(
                 icon: Icon(_allowOverlapUnlocked ? Icons.lock_open_rounded : Icons.lock_rounded),
-                tooltip: _allowOverlapUnlocked ? 'Unlocked overlap mode' : 'Locked mode (prevent overlap)',
+                tooltip: _allowOverlapUnlocked
+                    ? S.current.screensPlayerPlayerUnlockedOverlapMode
+                    : S.current.screensPlayerPlayerLockedModePreventOverlap,
                 onPressed: () {
                   setState(() {
                     _allowOverlapUnlocked = !_allowOverlapUnlocked;
@@ -623,21 +630,21 @@ class _PlayerState extends ConsumerState<Player> {
               ),
               IconButton(
                 icon: const Icon(Icons.bug_report_rounded),
-                tooltip: 'Copy layout config',
+                tooltip: S.current.screensPlayerPlayerCopyLayoutConfig,
                 onPressed: () {
                   _copyLayoutConfigToClipboard(context);
                 },
               ),
               IconButton(
                 icon: const Icon(Icons.restart_alt_rounded),
-                tooltip: 'Reset active screen layout',
+                tooltip: S.current.screensPlayerPlayerResetActiveScreenLayout,
                 onPressed: () {
                   _resetProfileForScreen(activeScreenSize);
                 },
               ),
               IconButton(
                 icon: const Icon(Icons.done_rounded),
-                tooltip: 'Done editing',
+                tooltip: S.current.screensPlayerPlayerDoneEditing,
                 onPressed: () {
                   setState(() {
                     _isEditMode = false;
@@ -647,7 +654,7 @@ class _PlayerState extends ConsumerState<Player> {
             ],
           )
         : AppBar(
-            title: const Text('Player'),
+            title: Text(S.current.screensPlayerPlayerPlayer),
             bottom: showTimesUnderAppBar
                 ? const PreferredSize(preferredSize: Size.fromHeight(26), child: _AppBarSeekTimesStrip())
                 : null,
@@ -659,17 +666,17 @@ class _PlayerState extends ConsumerState<Player> {
                     _isEditMode = true;
                   });
                 },
-                tooltip: 'Enter layout edit mode',
+                tooltip: S.current.screensPlayerPlayerEnterLayoutEditMode,
               ),
               IconButton(
                 icon: const Icon(Icons.tune_rounded),
                 onPressed: () => _showQuickSettings(context),
-                tooltip: 'Quick Settings',
+                tooltip: S.current.screensPlayerPlayerQuickSettings,
               ),
               if (!isMobile && castSupported) const CastButton(),
               const StopButton(),
               PopupMenuButton<_PlayerAppBarMenuAction>(
-                tooltip: 'More options',
+                tooltip: S.current.screensPlayerPlayerMoreOptions,
                 icon: const Icon(Icons.more_vert),
                 onSelected: (_PlayerAppBarMenuAction action) async {
                   await _handleAppBarMenuAction(context, action);
@@ -791,7 +798,7 @@ class _PlayerTransitionLoadingView extends StatelessWidget {
         children: <Widget>[
           const SizedBox(width: 28, height: 28, child: CircularProgressIndicator(strokeWidth: 2.6)),
           const SizedBox(height: 10),
-          Text('Loading next item...', style: Theme.of(context).textTheme.bodyMedium),
+          Text(S.current.screensPlayerPlayerLoadingNextItem, style: Theme.of(context).textTheme.bodyMedium),
         ],
       ),
     );
@@ -806,16 +813,16 @@ class _AppBarSeekTimesStrip extends StatelessWidget {
       return '--:--';
     }
 
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final twoDigits = NumberFormat('00', Intl.getCurrentLocale());
     final hours = duration.inHours;
     final minutes = duration.inMinutes.remainder(60);
     final seconds = duration.inSeconds.remainder(60);
 
     if (hours > 0) {
-      return '$hours:${twoDigits(minutes)}:${twoDigits(seconds)}';
+      return '$hours:${twoDigits.format(minutes)}:${twoDigits.format(seconds)}';
     }
 
-    return '${twoDigits(minutes)}:${twoDigits(seconds)}';
+    return '${twoDigits.format(minutes)}:${twoDigits.format(seconds)}';
   }
 
   @override
@@ -870,7 +877,7 @@ class _QueueBottomSheet extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Text('Queue', style: Theme.of(context).textTheme.titleLarge),
+              Text(S.current.screensPlayerPlayerQueue, style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 6),
               const Expanded(child: PlayerQueueView(showEmptyIcon: false)),
             ],
@@ -918,10 +925,10 @@ class _PlayerQuickSettingsSheet extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Text('Quick Player Settings', style: Theme.of(context).textTheme.titleLarge),
+            Text(S.current.screensPlayerPlayerQuickPlayerSettings, style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 4),
             Text(
-              'Timeline mode',
+              S.current.screensPlayerPlayerTimelineMode,
               style: Theme.of(
                 context,
               ).textTheme.titleSmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),

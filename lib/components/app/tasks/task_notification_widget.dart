@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/components/app/tasks/task_notification_panel.dart';
+import 'package:yaabsa/generated/l10n.dart';
 import 'package:yaabsa/provider/core/server_tasks_provider.dart';
 import 'package:yaabsa/util/globals.dart';
 
@@ -31,7 +32,7 @@ class _TaskNotificationWidgetState extends ConsumerState<TaskNotificationWidget>
     final hasUnseenCompletedTask = tasks.any((task) => task.isFinished && !_seenTaskIds.contains(task.id));
 
     return Tooltip(
-      message: tasksRunning ? 'Tasks' : 'Activities',
+      message: tasksRunning ? S.current.commonTasks : S.current.commonActivities,
       child: _NotificationIconButton(
         buttonKey: _notificationButtonKey,
         tasksRunning: tasksRunning,
@@ -103,7 +104,7 @@ class _TaskNotificationWidgetState extends ConsumerState<TaskNotificationWidget>
 
     await showGeneralDialog<void>(
       context: context,
-      barrierLabel: 'Task Activity',
+      barrierLabel: S.current.commonTaskActivity,
       barrierDismissible: true,
       barrierColor: Colors.transparent,
       transitionDuration: const Duration(milliseconds: 120),

@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class ListManagementFormResult {
   const ListManagementFormResult({required this.name, this.description});
 
@@ -43,7 +45,10 @@ Future<bool> showListManagementDeleteDialog({
         title: Text(title),
         content: Text(message),
         actions: [
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(S.current.componentsCommonListManagementDialogsCancel),
+          ),
           FilledButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: Text(confirmLabel)),
         ],
       );
@@ -165,7 +170,7 @@ class _ListManagementFormDialogState extends State<_ListManagementFormDialog> {
                 autofocus: true,
                 textInputAction: TextInputAction.next,
                 decoration: InputDecoration(
-                  labelText: 'Name',
+                  labelText: S.current.componentsCommonListManagementDialogsName,
                   errorText: _showValidationErrors && !_isNameValid ? 'Name is required.' : null,
                 ),
               ),
@@ -175,14 +180,20 @@ class _ListManagementFormDialogState extends State<_ListManagementFormDialog> {
                 minLines: 2,
                 maxLines: 4,
                 textInputAction: TextInputAction.newline,
-                decoration: const InputDecoration(labelText: 'Description', hintText: 'Optional'),
+                decoration: InputDecoration(
+                  labelText: S.current.componentsCommonListManagementDialogsDescription,
+                  hintText: S.current.componentsCommonListManagementDialogsOptional,
+                ),
               ),
             ],
           ),
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(S.current.componentsCommonListManagementDialogsCancel),
+        ),
         FilledButton(onPressed: _isNameValid ? _submit : null, child: Text(widget.confirmLabel)),
       ],
     );

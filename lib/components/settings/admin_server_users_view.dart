@@ -11,6 +11,8 @@ import 'package:yaabsa/components/settings/admin_users/admin_user_list_tile.dart
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class AdminServerUsersView extends ConsumerStatefulWidget {
   const AdminServerUsersView({super.key});
 
@@ -354,7 +356,7 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
         ref.invalidate(currentUserProvider);
       }
 
-      _showMessage(updatedUser.isActive ? 'User enabled.' : 'User disabled.');
+      _showMessage(updatedUser.isActive ? S.current.commonUserEnabled : S.current.commonUserDisabled);
     } catch (error) {
       _showMessage('Failed to update user status: $error');
     } finally {
@@ -378,14 +380,17 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Delete User'),
-          content: Text('Delete user "${user.username}"? This cannot be undone.'),
+          title: Text(S.current.componentsSettingsAdminServerUsersViewDeleteUser),
+          content: Text(S.current.componentsSettingsAdminServerUsersViewDeleteUserThisCannotBeUndone(user.username)),
           actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(S.current.componentsSettingsAdminServerUsersViewCancel),
+            ),
             OutlinedButton(
               onPressed: () => Navigator.of(context).pop(true),
               style: OutlinedButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
-              child: const Text('Delete'),
+              child: Text(S.current.componentsSettingsAdminServerUsersViewDelete),
             ),
           ],
         );
@@ -431,7 +436,7 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
             const SizedBox(width: 10),
             TextButton(
               onPressed: () => unawaited(_loadUserManagementData(showLoading: true)),
-              child: const Text('Retry'),
+              child: Text(S.current.componentsSettingsAdminServerUsersViewRetry),
             ),
           ],
         ),
@@ -453,8 +458,8 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
                 _searchQuery = value;
               });
             },
-            decoration: const InputDecoration(
-              labelText: 'Search users',
+            decoration: InputDecoration(
+              labelText: S.current.componentsSettingsAdminServerUsersViewSearchUsers,
               border: OutlineInputBorder(),
               prefixIcon: Icon(Icons.search),
             ),
@@ -468,12 +473,12 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
                   icon: _isCreatingUser
                       ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
                       : const Icon(Icons.person_add_alt_1_rounded),
-                  label: const Text('Add user'),
+                  label: Text(S.current.componentsSettingsAdminServerUsersViewAddUser),
                 ),
               ),
               const SizedBox(width: 8),
               IconButton(
-                tooltip: 'Refresh',
+                tooltip: S.current.componentsSettingsAdminServerUsersViewRefresh,
                 onPressed: _isLoading ? null : () => unawaited(_loadUserManagementData(showLoading: true)),
                 icon: const Icon(Icons.refresh_rounded),
               ),
@@ -493,8 +498,8 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
                 _searchQuery = value;
               });
             },
-            decoration: const InputDecoration(
-              labelText: 'Search users',
+            decoration: InputDecoration(
+              labelText: S.current.componentsSettingsAdminServerUsersViewSearchUsers,
               border: OutlineInputBorder(),
               prefixIcon: Icon(Icons.search),
             ),
@@ -504,7 +509,7 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
         OutlinedButton.icon(
           onPressed: _isLoading ? null : () => unawaited(_loadUserManagementData(showLoading: true)),
           icon: const Icon(Icons.refresh_rounded),
-          label: const Text('Refresh'),
+          label: Text(S.current.componentsSettingsAdminServerUsersViewRefresh),
         ),
         const SizedBox(width: 10),
         FilledButton.icon(
@@ -512,7 +517,7 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
           icon: _isCreatingUser
               ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
               : const Icon(Icons.person_add_alt_1_rounded),
-          label: const Text('Add user'),
+          label: Text(S.current.componentsSettingsAdminServerUsersViewAddUser),
         ),
       ],
     );
@@ -568,16 +573,16 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
     return currentUserAsync.when(
       data: (currentUser) {
         if (currentUser == null) {
-          return const Padding(
+          return Padding(
             padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Text('No active user. Sign in to manage users.'),
+            child: Text(S.current.componentsSettingsAdminServerUsersViewNoActiveUserSignInTo),
           );
         }
 
         if (!_isAdminType(currentUser.type)) {
-          return const Padding(
+          return Padding(
             padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Text('This page requires an admin account.'),
+            child: Text(S.current.componentsSettingsAdminServerUsersViewThisPageRequiresAnAdminAccount),
           );
         }
 
@@ -617,7 +622,10 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
       ),
       error: (error, _) => Padding(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-        child: Text('Failed to load user data: $error', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+        child: Text(
+          S.current.componentsSettingsAdminServerUsersViewFailedToLoadUserData(error),
+          style: TextStyle(color: Theme.of(context).colorScheme.error),
+        ),
       ),
     );
   }

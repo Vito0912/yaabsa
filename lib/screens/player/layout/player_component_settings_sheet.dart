@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:yaabsa/screens/player/layout/player_layout_config.dart';
 import 'package:yaabsa/screens/player/player_empty_state_mode.dart';
+
+import 'package:yaabsa/generated/l10n.dart';
 
 class PlayerComponentSettingsSheet extends StatefulWidget {
   const PlayerComponentSettingsSheet({
@@ -20,6 +23,13 @@ class PlayerComponentSettingsSheet extends StatefulWidget {
 
 class _PlayerComponentSettingsSheetState extends State<PlayerComponentSettingsSheet> {
   late PlayerLayoutProfile _profile;
+
+  String _formatDecimal(num value, {required int decimalDigits}) {
+    return NumberFormat.decimalPatternDigits(
+      locale: Intl.getCurrentLocale(),
+      decimalDigits: decimalDigits,
+    ).format(value);
+  }
 
   @override
   void initState() {
@@ -74,11 +84,14 @@ class _PlayerComponentSettingsSheetState extends State<PlayerComponentSettingsSh
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              Text('${widget.componentType.label} settings', style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                S.current.screensPlayerLayoutPlayerComponentSettingsSheetSettings(widget.componentType.label),
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               const SizedBox(height: 10),
               SwitchListTile(
                 value: placement.cardStyle,
-                title: const Text('Use card style'),
+                title: Text(S.current.screensPlayerLayoutPlayerComponentSettingsSheetUseCardStyle),
                 onChanged: (bool value) {
                   _updatePlacement(placement.copyWith(cardStyle: value));
                 },
@@ -91,13 +104,17 @@ class _PlayerComponentSettingsSheetState extends State<PlayerComponentSettingsSh
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
-                      Text('Scale ${placement.scale.toStringAsFixed(2)}x'),
+                      Text(
+                        S.current.screensPlayerLayoutPlayerComponentSettingsSheetScaleX(
+                          _formatDecimal(placement.scale, decimalDigits: 2),
+                        ),
+                      ),
                       Slider(
                         value: placement.scale.clamp(0.6, 1.8),
                         min: 0.6,
                         max: 1.8,
                         divisions: 12,
-                        label: '${placement.scale.toStringAsFixed(2)}x',
+                        label: '${_formatDecimal(placement.scale, decimalDigits: 2)}x',
                         onChanged: (double value) {
                           _updatePlacement(placement.copyWith(scale: value));
                         },
@@ -113,26 +130,28 @@ class _PlayerComponentSettingsSheetState extends State<PlayerComponentSettingsSh
                   onChanged: (bool value) {
                     _updatePlacement(placement.copyWith(showAuthor: value));
                   },
-                  title: const Text('Show author'),
+                  title: Text(S.current.screensPlayerLayoutPlayerComponentSettingsSheetShowAuthor),
                 ),
                 SwitchListTile(
                   value: placement.showNarrator,
                   onChanged: (bool value) {
                     _updatePlacement(placement.copyWith(showNarrator: value));
                   },
-                  title: const Text('Show narrator'),
+                  title: Text(S.current.screensPlayerLayoutPlayerComponentSettingsSheetShowNarrator),
                 ),
                 SwitchListTile(
                   value: placement.showSeries,
                   onChanged: (bool value) {
                     _updatePlacement(placement.copyWith(showSeries: value));
                   },
-                  title: const Text('Show series'),
+                  title: Text(S.current.screensPlayerLayoutPlayerComponentSettingsSheetShowSeries),
                 ),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<PlayerMetadataTextAlign>(
                   initialValue: placement.textAlign,
-                  decoration: const InputDecoration(labelText: 'Text alignment'),
+                  decoration: InputDecoration(
+                    labelText: S.current.screensPlayerLayoutPlayerComponentSettingsSheetTextAlignment,
+                  ),
                   items: PlayerMetadataTextAlign.values
                       .map((mode) => DropdownMenuItem<PlayerMetadataTextAlign>(value: mode, child: Text(mode.label)))
                       .toList(growable: false),
@@ -144,13 +163,17 @@ class _PlayerComponentSettingsSheetState extends State<PlayerComponentSettingsSh
                   },
                 ),
                 const SizedBox(height: 10),
-                Text('Font scale ${placement.mediaInfoFontScale.toStringAsFixed(2)}x'),
+                Text(
+                  S.current.screensPlayerLayoutPlayerComponentSettingsSheetFontScaleX(
+                    _formatDecimal(placement.mediaInfoFontScale, decimalDigits: 2),
+                  ),
+                ),
                 Slider(
                   value: placement.mediaInfoFontScale.clamp(0.75, 1.6),
                   min: 0.75,
                   max: 1.6,
                   divisions: 17,
-                  label: '${placement.mediaInfoFontScale.toStringAsFixed(2)}x',
+                  label: '${_formatDecimal(placement.mediaInfoFontScale, decimalDigits: 2)}x',
                   onChanged: (double value) {
                     _updatePlacement(placement.copyWith(mediaInfoFontScale: value));
                   },
@@ -160,7 +183,9 @@ class _PlayerComponentSettingsSheetState extends State<PlayerComponentSettingsSh
                 const SizedBox(height: 10),
                 DropdownButtonFormField<PlayerCoverFitMode>(
                   initialValue: placement.coverFitMode,
-                  decoration: const InputDecoration(labelText: 'Cover fit mode'),
+                  decoration: InputDecoration(
+                    labelText: S.current.screensPlayerLayoutPlayerComponentSettingsSheetCoverFitMode,
+                  ),
                   items: PlayerCoverFitMode.values
                       .map((mode) => DropdownMenuItem<PlayerCoverFitMode>(value: mode, child: Text(mode.label)))
                       .toList(growable: false),
@@ -176,7 +201,9 @@ class _PlayerComponentSettingsSheetState extends State<PlayerComponentSettingsSh
                 const SizedBox(height: 10),
                 DropdownButtonFormField<PlayerSeekTimePlacement>(
                   initialValue: placement.seekTimePlacement,
-                  decoration: const InputDecoration(labelText: 'Time labels position'),
+                  decoration: InputDecoration(
+                    labelText: S.current.screensPlayerLayoutPlayerComponentSettingsSheetTimeLabelsPosition,
+                  ),
                   items: PlayerSeekTimePlacement.values
                       .map((mode) => DropdownMenuItem<PlayerSeekTimePlacement>(value: mode, child: Text(mode.label)))
                       .toList(growable: false),
@@ -188,24 +215,32 @@ class _PlayerComponentSettingsSheetState extends State<PlayerComponentSettingsSh
                   },
                 ),
                 const SizedBox(height: 10),
-                Text('Seek bar height ${placement.seekTrackHeight.toStringAsFixed(1)}'),
+                Text(
+                  S.current.screensPlayerLayoutPlayerComponentSettingsSheetSeekBarHeight(
+                    _formatDecimal(placement.seekTrackHeight, decimalDigits: 1),
+                  ),
+                ),
                 Slider(
                   value: placement.seekTrackHeight.clamp(4.0, 20.0),
                   min: 4.0,
                   max: 20.0,
                   divisions: 16,
-                  label: placement.seekTrackHeight.toStringAsFixed(1),
+                  label: _formatDecimal(placement.seekTrackHeight, decimalDigits: 1),
                   onChanged: (double value) {
                     _updatePlacement(placement.copyWith(seekTrackHeight: value));
                   },
                 ),
-                Text('Time font size ${placement.seekTimeLabelFontSize.toStringAsFixed(1)}'),
+                Text(
+                  S.current.screensPlayerLayoutPlayerComponentSettingsSheetTimeFontSize(
+                    _formatDecimal(placement.seekTimeLabelFontSize, decimalDigits: 1),
+                  ),
+                ),
                 Slider(
                   value: placement.seekTimeLabelFontSize.clamp(8.0, 22.0),
                   min: 8.0,
                   max: 22.0,
                   divisions: 14,
-                  label: placement.seekTimeLabelFontSize.toStringAsFixed(1),
+                  label: _formatDecimal(placement.seekTimeLabelFontSize, decimalDigits: 1),
                   onChanged: (double value) {
                     _updatePlacement(placement.copyWith(seekTimeLabelFontSize: value));
                   },
@@ -216,7 +251,9 @@ class _PlayerComponentSettingsSheetState extends State<PlayerComponentSettingsSh
                 const SizedBox(height: 10),
                 DropdownButtonFormField<PlayerCollectionEmptyMode>(
                   initialValue: placement.emptyMode,
-                  decoration: const InputDecoration(labelText: 'When this component has no data'),
+                  decoration: InputDecoration(
+                    labelText: S.current.screensPlayerLayoutPlayerComponentSettingsSheetWhenThisComponentHasNoData,
+                  ),
                   items: PlayerCollectionEmptyMode.values
                       .map((mode) => DropdownMenuItem<PlayerCollectionEmptyMode>(value: mode, child: Text(mode.label)))
                       .toList(growable: false),
@@ -239,17 +276,21 @@ class _PlayerComponentSettingsSheetState extends State<PlayerComponentSettingsSh
                     margin: const EdgeInsets.only(bottom: 8),
                     child: ListTile(
                       title: Text(utility.label),
-                      subtitle: Text(enabled ? 'Visible' : 'Hidden'),
+                      subtitle: Text(
+                        enabled
+                            ? S.current.screensPlayerLayoutPlayerComponentSettingsSheetVisible
+                            : S.current.screensPlayerLayoutPlayerComponentSettingsSheetHidden,
+                      ),
                       trailing: Wrap(
                         spacing: 2,
                         children: <Widget>[
                           IconButton(
-                            tooltip: 'Move up',
+                            tooltip: S.current.screensPlayerLayoutPlayerComponentSettingsSheetMoveUp,
                             onPressed: index > 0 ? () => _moveUtility(index, -1) : null,
                             icon: const Icon(Icons.arrow_upward_rounded),
                           ),
                           IconButton(
-                            tooltip: 'Move down',
+                            tooltip: S.current.screensPlayerLayoutPlayerComponentSettingsSheetMoveDown,
                             onPressed: index < _profile.utilityOrder.length - 1 ? () => _moveUtility(index, 1) : null,
                             icon: const Icon(Icons.arrow_downward_rounded),
                           ),

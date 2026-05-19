@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:yaabsa/api/library/request/library_author_sort.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class LibraryAuthorSortSheet extends StatelessWidget {
   const LibraryAuthorSortSheet({super.key, required this.activeSort, required this.activeSortDesc});
 
@@ -24,11 +26,14 @@ class LibraryAuthorSortSheet extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 12, 12, 6),
               child: Row(
                 children: [
-                  const Expanded(
-                    child: Text('Sort Authors', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
+                  Expanded(
+                    child: Text(
+                      S.current.componentsAppLibraryAuthorSortSheetSortAuthors,
+                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+                    ),
                   ),
                   IconButton(
-                    tooltip: 'Close',
+                    tooltip: S.current.componentsAppLibraryAuthorSortSheetClose,
                     onPressed: () => Navigator.of(context).pop(),
                     icon: const Icon(Icons.close_rounded),
                   ),
@@ -44,7 +49,13 @@ class LibraryAuthorSortSheet extends StatelessWidget {
                   final option = libraryAuthorSortOptions[index];
                   final isSelected = option == selectedSort;
                   final isDescending = currentSelection.desc == 1;
-                  final trailingText = isSelected ? (isDescending ? 'DESC' : 'ASC') : null;
+                  String? trailingText;
+                  if (isSelected) {
+                    trailingText = 'ASC';
+                    if (isDescending) {
+                      trailingText = 'DESC';
+                    }
+                  }
                   final trailingIcon = isSelected
                       ? (isDescending ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded)
                       : null;

@@ -7,6 +7,8 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class ServerManagementSettings extends ConsumerWidget {
   const ServerManagementSettings({super.key});
 
@@ -24,9 +26,9 @@ class ServerManagementSettings extends ConsumerWidget {
         currentUserAsync.when(
           data: (currentUser) {
             if (currentUser == null) {
-              return const Padding(
+              return Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                child: Text('No active user. Sign in to manage server management visibility settings.'),
+                child: Text(S.current.screensSettingsServerManagementSettingsNoActiveUserSignInTo),
               );
             }
 
@@ -107,7 +109,7 @@ class ServerManagementSettings extends ConsumerWidget {
           error: (error, stackTrace) => Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(
-              'Failed to load user settings: $error',
+              S.current.screensSettingsServerManagementSettingsFailedToLoadUserSettings(error),
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ),

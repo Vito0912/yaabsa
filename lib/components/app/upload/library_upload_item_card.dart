@@ -3,6 +3,8 @@ import 'package:yaabsa/components/app/upload/library_upload_models.dart';
 import 'package:yaabsa/components/common/styled_form_fields.dart';
 import 'package:yaabsa/util/byte_format.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class LibraryUploadItemCard extends StatefulWidget {
   const LibraryUploadItemCard({
     super.key,
@@ -118,7 +120,7 @@ class _LibraryUploadItemCardState extends State<LibraryUploadItemCard> {
                         ),
                         const SizedBox(width: 8),
                         IconButton(
-                          tooltip: 'Remove upload item',
+                          tooltip: S.current.componentsAppUploadLibraryUploadItemCardRemoveUploadItem,
                           onPressed: widget.enabled ? widget.onRemove : null,
                           icon: const Icon(Icons.delete_outline_rounded),
                         ),
@@ -145,7 +147,7 @@ class _LibraryUploadItemCardState extends State<LibraryUploadItemCard> {
                   _buildFetchMetadataButton(context),
                   const SizedBox(width: 4),
                   IconButton(
-                    tooltip: 'Remove upload item',
+                    tooltip: S.current.componentsAppUploadLibraryUploadItemCardRemoveUploadItem,
                     onPressed: widget.enabled ? widget.onRemove : null,
                     icon: const Icon(Icons.delete_outline_rounded),
                   ),
@@ -166,17 +168,21 @@ class _LibraryUploadItemCardState extends State<LibraryUploadItemCard> {
                 children: [
                   Expanded(
                     child: Text(
-                      'Suggested: ${widget.item.pendingMetadata!.title} | ${widget.item.pendingMetadata!.author} | ${widget.item.pendingMetadata!.series}',
+                      S.current.componentsAppUploadLibraryUploadItemCardSuggested(
+                        widget.item.pendingMetadata!.title,
+                        widget.item.pendingMetadata!.author,
+                        widget.item.pendingMetadata!.series,
+                      ),
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ),
                   IconButton(
-                    tooltip: 'Accept metadata suggestion',
+                    tooltip: S.current.componentsAppUploadLibraryUploadItemCardAcceptMetadataSuggestion,
                     onPressed: widget.enabled ? widget.onAcceptPendingMetadata : null,
                     icon: const Icon(Icons.check_rounded),
                   ),
                   IconButton(
-                    tooltip: 'Reject metadata suggestion',
+                    tooltip: S.current.componentsAppUploadLibraryUploadItemCardRejectMetadataSuggestion,
                     onPressed: widget.enabled ? widget.onRejectPendingMetadata : null,
                     icon: const Icon(Icons.close_rounded),
                   ),
@@ -218,7 +224,7 @@ class _LibraryUploadItemCardState extends State<LibraryUploadItemCard> {
                   });
                 },
                 icon: Icon(_isFileListExpanded ? Icons.expand_less_rounded : Icons.expand_more_rounded),
-                label: Text('Files (${widget.item.uploadFiles.length})'),
+                label: Text(S.current.componentsAppUploadLibraryUploadItemCardFiles(widget.item.uploadFiles.length)),
               ),
             ],
           ),
@@ -239,7 +245,10 @@ class _LibraryUploadItemCardState extends State<LibraryUploadItemCard> {
             LinearProgressIndicator(value: widget.item.progress.clamp(0, 1)),
             const SizedBox(height: 4),
             Text(
-              '${formatByteProgress(transferredBytes: widget.item.uploadedBytes, totalBytes: widget.item.totalBytes)} | ${formatByteRate(widget.item.uploadSpeedBytesPerSecond)}',
+              S.current.componentsAppUploadLibraryUploadItemCardText(
+                formatByteProgress(transferredBytes: widget.item.uploadedBytes, totalBytes: widget.item.totalBytes),
+                formatByteRate(widget.item.uploadSpeedBytesPerSecond),
+              ),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
             ),
           ],
@@ -262,7 +271,7 @@ class _LibraryUploadItemCardState extends State<LibraryUploadItemCard> {
       child: OutlinedButton.icon(
         onPressed: widget.canFetchMetadata ? widget.onFetchMetadata : null,
         icon: const Icon(Icons.cloud_download_outlined, size: 18),
-        label: const Text('Fetch metadata'),
+        label: Text(S.current.componentsAppUploadLibraryUploadItemCardFetchMetadata),
         style: OutlinedButton.styleFrom(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           padding: const EdgeInsets.symmetric(horizontal: 12),

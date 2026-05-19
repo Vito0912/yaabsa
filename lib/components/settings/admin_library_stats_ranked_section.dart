@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class AdminLibraryStatsRankedEntry {
   const AdminLibraryStatsRankedEntry({required this.label, required this.value, required this.trailing, this.onTap});
 
@@ -80,7 +82,13 @@ class _RankedEntryRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final content = Row(
       children: [
-        SizedBox(width: 28, child: Text('$rank.', style: Theme.of(context).textTheme.bodySmall)),
+        SizedBox(
+          width: 28,
+          child: Text(
+            S.current.componentsSettingsAdminLibraryStatsRankedSectionText(rank),
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ),
         Expanded(
           child: Text(
             entry.label,

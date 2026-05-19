@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:yaabsa/api/admin/admin_user.dart';
 import 'package:yaabsa/components/settings/admin_users/admin_user_badge.dart';
+
+import 'package:yaabsa/generated/l10n.dart';
 
 enum AdminUserTileAction { edit, toggleActive, unlinkOpenId, delete }
 
@@ -26,16 +29,11 @@ class AdminUserListTile extends StatelessWidget {
 
   String _formatEpoch(int? value) {
     if (value == null || value <= 0) {
-      return 'Unknown';
+      return S.current.componentsSettingsAdminUsersAdminUserListTileUnknown;
     }
 
     final dt = DateTime.fromMillisecondsSinceEpoch(value);
-    final year = dt.year.toString().padLeft(4, '0');
-    final month = dt.month.toString().padLeft(2, '0');
-    final day = dt.day.toString().padLeft(2, '0');
-    final hour = dt.hour.toString().padLeft(2, '0');
-    final minute = dt.minute.toString().padLeft(2, '0');
-    return '$year-$month-$day $hour:$minute';
+    return DateFormat.yMd(Intl.getCurrentLocale()).add_Hm().format(dt);
   }
 
   int _typeRank(String type) {
@@ -94,21 +92,28 @@ class AdminUserListTile extends StatelessWidget {
       enabled: !isBusy,
       onSelected: _onActionSelected,
       itemBuilder: (_) => <PopupMenuEntry<AdminUserTileAction>>[
-        const PopupMenuItem<AdminUserTileAction>(value: AdminUserTileAction.edit, child: Text('Edit user')),
+        PopupMenuItem<AdminUserTileAction>(
+          value: AdminUserTileAction.edit,
+          child: Text(S.current.componentsSettingsAdminUsersAdminUserListTileEditUser),
+        ),
         if (canToggleActive)
           PopupMenuItem<AdminUserTileAction>(
             value: AdminUserTileAction.toggleActive,
-            child: Text(user.isActive ? 'Disable user' : 'Enable user'),
+            child: Text(
+              user.isActive
+                  ? S.current.componentsSettingsAdminUsersAdminUserListTileDisableUser
+                  : S.current.componentsSettingsAdminUsersAdminUserListTileEnableUser,
+            ),
           ),
         if (user.hasLinkedOpenId)
-          const PopupMenuItem<AdminUserTileAction>(
+          PopupMenuItem<AdminUserTileAction>(
             value: AdminUserTileAction.unlinkOpenId,
-            child: Text('Unlink OpenID'),
+            child: Text(S.current.componentsSettingsAdminUsersAdminUserListTileUnlinkOpenID),
           ),
         PopupMenuItem<AdminUserTileAction>(
           value: AdminUserTileAction.delete,
           textStyle: const TextStyle(color: Colors.red),
-          child: const Text('Delete user'),
+          child: Text(S.current.componentsSettingsAdminUsersAdminUserListTileDeleteUser),
         ),
       ],
     );
@@ -125,19 +130,23 @@ class AdminUserListTile extends StatelessWidget {
           OutlinedButton.icon(
             onPressed: isBusy ? null : onEdit,
             icon: const Icon(Icons.edit_outlined, size: 18),
-            label: const Text('Edit'),
+            label: Text(S.current.componentsSettingsAdminUsersAdminUserListTileEdit),
           ),
           if (!user.isRoot)
             OutlinedButton.icon(
               onPressed: isBusy ? null : onToggleActive,
               icon: Icon(user.isActive ? Icons.block_rounded : Icons.check_circle_outline_rounded, size: 18),
-              label: Text(user.isActive ? 'Disable' : 'Enable'),
+              label: Text(
+                user.isActive
+                    ? S.current.componentsSettingsAdminUsersAdminUserListTileDisable
+                    : S.current.componentsSettingsAdminUsersAdminUserListTileEnable,
+              ),
             ),
           OutlinedButton.icon(
             onPressed: isBusy ? null : onDelete,
             style: OutlinedButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
             icon: const Icon(Icons.delete_outline_rounded, size: 18),
-            label: const Text('Delete'),
+            label: Text(S.current.componentsSettingsAdminUsersAdminUserListTileDelete),
           ),
         ],
       ),
@@ -150,9 +159,11 @@ class AdminUserListTile extends StatelessWidget {
     final statusColor = user.isActive ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.outline;
     final email = user.email?.trim();
     final subtitleParts = <String>[
-      (email?.isNotEmpty ?? false) ? (email ?? 'No email') : 'No email',
-      'Created: ${_formatEpoch(user.createdAt)}',
-      'Last seen: ${_formatEpoch(user.lastSeen)}',
+      (email?.isNotEmpty ?? false)
+          ? (email ?? S.current.componentsSettingsAdminUsersAdminUserListTileNoEmail)
+          : S.current.componentsSettingsAdminUsersAdminUserListTileNoEmail,
+      S.current.componentsSettingsAdminUsersAdminUserListTileCreated(_formatEpoch(user.createdAt)),
+      S.current.componentsSettingsAdminUsersAdminUserListTileLastSeen(_formatEpoch(user.lastSeen)),
     ];
 
     return Card(
@@ -179,13 +190,15 @@ class AdminUserListTile extends StatelessWidget {
                       ),
                       AdminUserBadge(label: user.type.toUpperCase(), color: typeColor),
                       AdminUserBadge(
-                        label: user.isActive ? 'ACTIVE' : 'DISABLED',
+                        label: user.isActive
+                            ? S.current.componentsSettingsAdminUsersAdminUserListTileActive
+                            : S.current.componentsSettingsAdminUsersAdminUserListTileDisabled,
                         color: statusColor,
                         icon: user.isActive ? Icons.check_circle_rounded : Icons.do_not_disturb_on_rounded,
                       ),
                       if (user.hasLinkedOpenId)
                         AdminUserBadge(
-                          label: 'OPENID',
+                          label: S.current.componentsSettingsAdminUsersAdminUserListTileOpenId,
                           color: Theme.of(context).colorScheme.secondary,
                           icon: Icons.link_rounded,
                         ),

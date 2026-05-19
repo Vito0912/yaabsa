@@ -4,6 +4,8 @@ import 'package:yaabsa/components/settings/settings_switch.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class SubtitleSettingsSection extends ConsumerWidget {
   const SubtitleSettingsSection({super.key});
 
@@ -14,9 +16,9 @@ class SubtitleSettingsSection extends ConsumerWidget {
     return currentUser.when(
       data: (user) {
         if (user == null) {
-          return const Padding(
+          return Padding(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Text('No active user. Sign in to configure subtitle settings.'),
+            child: Text(S.current.screensSettingsPlayerWidgetsSubtitleSettingsSectionNoActiveUserSignInTo),
           );
         }
 
@@ -25,7 +27,10 @@ class SubtitleSettingsSection extends ConsumerWidget {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
-              child: Text('Subtitles', style: Theme.of(context).textTheme.titleLarge),
+              child: Text(
+                S.current.screensSettingsPlayerWidgetsSubtitleSettingsSectionSubtitles,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
             ),
             const Padding(padding: EdgeInsets.symmetric(horizontal: 16.0), child: Divider(height: 16)),
             SettingSwitch(
@@ -56,7 +61,7 @@ class SubtitleSettingsSection extends ConsumerWidget {
       error: (error, _) => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Text(
-          'Unable to load subtitle settings: $error',
+          S.current.screensSettingsPlayerWidgetsSubtitleSettingsSectionUnableToLoadSubtitleSettings(error),
           style: TextStyle(color: Theme.of(context).colorScheme.error),
         ),
       ),

@@ -24,6 +24,8 @@ import 'package:yaabsa/screens/reader/widgets/reader_thickness_picker_sheet.dart
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/network/request_headers.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 part 'reader_annotation_actions.dart';
 part 'reader_annotation_sync.dart';
 part 'reader_builders.dart';
@@ -137,12 +139,12 @@ class _ReaderState extends ConsumerState<Reader> {
           return userAsync.when(
             data: (user) {
               if (user == null) {
-                return const Center(child: Text('No authenticated user available.'));
+                return Center(child: Text(S.current.screensReaderReaderNoAuthenticatedUserAvailable));
               }
 
               final authToken = user.preferredAuthToken;
               if (authToken == null || authToken.isEmpty) {
-                return const Center(child: Text('Missing authentication token for ebook loading.'));
+                return Center(child: Text(S.current.screensReaderReaderMissingAuthenticationTokenForEbookLoading));
               }
 
               final mode = _resolveReaderMode(item);
@@ -153,7 +155,7 @@ class _ReaderState extends ConsumerState<Reader> {
               return _buildEpubReaderBody(user: user, authToken: authToken, initialCfi: effectiveInitialLocation);
             },
             error: (error, stackTrace) {
-              return Center(child: Text('Failed to load user profile: $error'));
+              return Center(child: Text(S.current.screensReaderReaderFailedToLoadUserProfile(error)));
             },
             loading: () {
               return const Center(child: CircularProgressIndicator());
@@ -161,7 +163,7 @@ class _ReaderState extends ConsumerState<Reader> {
           );
         },
         error: (error, stackTrace) {
-          return Center(child: Text('Failed to load ebook metadata: $error'));
+          return Center(child: Text(S.current.screensReaderReaderFailedToLoadEbookMetadata(error)));
         },
         loading: () {
           return const Center(child: CircularProgressIndicator());

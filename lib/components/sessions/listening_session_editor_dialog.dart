@@ -3,6 +3,9 @@ import 'package:yaabsa/api/library_items/playback_session.dart';
 import 'package:yaabsa/components/sessions/session_duration_picker_field.dart';
 import 'package:yaabsa/components/sessions/listening_session_utils.dart';
 import 'package:yaabsa/screens/main/stats/stats_formatters.dart';
+import 'package:yaabsa/util/item_formatters.dart';
+
+import 'package:yaabsa/generated/l10n.dart';
 
 Future<bool?> showListeningSessionEditorDialog(
   BuildContext context, {
@@ -74,7 +77,7 @@ class _ListeningSessionEditorDialogState extends State<_ListeningSessionEditorDi
 
     if (_startSeconds < 0 || _endSeconds < 0 || _timeListeningSeconds < 0) {
       setState(() {
-        _actionError = 'Start, end and listened time must be non-negative.';
+        _actionError = S.current.componentsSessionsListeningSessionEditorDialogStartEndAndListenedTimeMustBeNonNegative;
       });
       return;
     }
@@ -103,14 +106,16 @@ class _ListeningSessionEditorDialogState extends State<_ListeningSessionEditorDi
       }
 
       setState(() {
-        _actionError = 'Failed to save listening session changes.';
+        _actionError = S.current.componentsSessionsListeningSessionEditorDialogFailedToSaveListeningSessionChanges;
       });
     } catch (error) {
       if (!mounted) {
         return;
       }
       setState(() {
-        _actionError = 'Failed to save listening session changes: $error';
+        _actionError = S.current.componentsSessionsListeningSessionEditorDialogFailedToSaveListeningSessionChangesError(
+          error,
+        );
       });
     } finally {
       if (mounted) {
@@ -131,17 +136,20 @@ class _ListeningSessionEditorDialogState extends State<_ListeningSessionEditorDi
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Delete Session'),
-          content: const Text('Delete this session permanently? This cannot be undone.'),
+          title: Text(S.current.componentsSessionsListeningSessionEditorDialogDeleteSession),
+          content: Text(S.current.componentsSessionsListeningSessionEditorDialogDeleteThisSessionPermanentlyThisCannot),
           actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(S.current.componentsSessionsListeningSessionEditorDialogCancel),
+            ),
             FilledButton(
               style: FilledButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.error,
                 foregroundColor: Theme.of(context).colorScheme.onError,
               ),
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Delete'),
+              child: Text(S.current.componentsSessionsListeningSessionEditorDialogDelete),
             ),
           ],
         );
@@ -169,14 +177,16 @@ class _ListeningSessionEditorDialogState extends State<_ListeningSessionEditorDi
       }
 
       setState(() {
-        _actionError = 'Failed to delete listening session.';
+        _actionError = S.current.componentsSessionsListeningSessionEditorDialogFailedToDeleteListeningSession;
       });
     } catch (error) {
       if (!mounted) {
         return;
       }
       setState(() {
-        _actionError = 'Failed to delete listening session: $error';
+        _actionError = S.current.componentsSessionsListeningSessionEditorDialogFailedToDeleteListeningSessionError(
+          error,
+        );
       });
     } finally {
       if (mounted) {
@@ -206,29 +216,25 @@ class _ListeningSessionEditorDialogState extends State<_ListeningSessionEditorDi
 
   String _formatDurationSeconds(double? value) {
     final totalSeconds = (value ?? 0).round();
-    final duration = Duration(seconds: totalSeconds);
-    final hours = duration.inHours;
-    final minutes = duration.inMinutes.remainder(60);
-    final secondsPart = duration.inSeconds.remainder(60);
-    return '$hours:${minutes.toString().padLeft(2, '0')}:${secondsPart.toString().padLeft(2, '0')}';
+    return formatDurationShort(Duration(seconds: totalSeconds));
   }
 
   String _formatTimestamp(int? value) {
     if (value == null || value <= 0) {
-      return 'Unknown';
+      return S.current.componentsSessionsListeningSessionEditorDialogUnknown;
     }
     return formatDateTimeLabel(DateTime.fromMillisecondsSinceEpoch(value));
   }
 
   String _playMethodLabel(int? value) {
     if (value == null) {
-      return 'Unknown';
+      return S.current.componentsSessionsListeningSessionEditorDialogUnknown;
     }
 
     return switch (value) {
-      0 => 'Direct Play',
-      1 => 'Direct Stream',
-      2 => 'Transcode',
+      0 => S.current.componentsSessionsListeningSessionEditorDialogDirectPlay,
+      1 => S.current.componentsSessionsListeningSessionEditorDialogDirectStream,
+      2 => S.current.componentsSessionsListeningSessionEditorDialogTranscode,
       _ => value.toString(),
     };
   }
@@ -256,30 +262,62 @@ class _ListeningSessionEditorDialogState extends State<_ListeningSessionEditorDi
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildSummaryTile('Author', author.isEmpty ? 'Unknown' : author),
-              if (userLabel != null && userLabel.isNotEmpty) _buildSummaryTile('User', userLabel),
-              _buildSummaryTile('Date', formatDateTimeLabel(listeningSessionDateTime(widget.session))),
-              _buildSummaryTile('Started', _formatTimestamp(widget.session.startedAt)),
-              _buildSummaryTile('Updated', _formatTimestamp(widget.session.updatedAt)),
-              _buildSummaryTile('Duration', _formatDurationSeconds(widget.session.duration)),
-              _buildSummaryTile('Listened', _formatDurationSeconds(widget.session.timeListening)),
-              _buildSummaryTile('Current Position', _formatDurationSeconds(widget.session.currentTime)),
-              _buildSummaryTile('Start Position', _formatDurationSeconds(widget.session.startTime)),
-              _buildSummaryTile('Play Method', _playMethodLabel(widget.session.playMethod)),
-              if (device.isNotEmpty) _buildSummaryTile('Device', device),
-              if (mediaPlayer != null && mediaPlayer.isNotEmpty) _buildSummaryTile('Player', mediaPlayer),
-              if (serverVersion != null && serverVersion.isNotEmpty) _buildSummaryTile('Server Version', serverVersion),
-              _buildSummaryTile('User ID', widget.session.userId),
-              _buildSummaryTile('Item ID', libraryItemId),
-              if (episodeId != null && episodeId.isNotEmpty) _buildSummaryTile('Episode ID', episodeId),
-              _buildSummaryTile('Session ID', widget.session.id),
+              _buildSummaryTile(
+                S.current.componentsSessionsListeningSessionEditorDialogAuthor,
+                author.isEmpty ? S.current.componentsSessionsListeningSessionEditorDialogUnknown : author,
+              ),
+              if (userLabel != null && userLabel.isNotEmpty)
+                _buildSummaryTile(S.current.componentsSessionsListeningSessionEditorDialogUser, userLabel),
+              _buildSummaryTile(
+                S.current.componentsSessionsListeningSessionEditorDialogDate,
+                formatDateTimeLabel(listeningSessionDateTime(widget.session)),
+              ),
+              _buildSummaryTile(
+                S.current.componentsSessionsListeningSessionEditorDialogStarted,
+                _formatTimestamp(widget.session.startedAt),
+              ),
+              _buildSummaryTile(
+                S.current.componentsSessionsListeningSessionEditorDialogUpdated,
+                _formatTimestamp(widget.session.updatedAt),
+              ),
+              _buildSummaryTile(
+                S.current.componentsSessionsListeningSessionEditorDialogDuration,
+                _formatDurationSeconds(widget.session.duration),
+              ),
+              _buildSummaryTile(
+                S.current.componentsSessionsListeningSessionEditorDialogListened,
+                _formatDurationSeconds(widget.session.timeListening),
+              ),
+              _buildSummaryTile(
+                S.current.componentsSessionsListeningSessionEditorDialogCurrentPosition,
+                _formatDurationSeconds(widget.session.currentTime),
+              ),
+              _buildSummaryTile(
+                S.current.componentsSessionsListeningSessionEditorDialogStartPosition,
+                _formatDurationSeconds(widget.session.startTime),
+              ),
+              _buildSummaryTile(
+                S.current.componentsSessionsListeningSessionEditorDialogPlayMethod,
+                _playMethodLabel(widget.session.playMethod),
+              ),
+              if (device.isNotEmpty)
+                _buildSummaryTile(S.current.componentsSessionsListeningSessionEditorDialogDevice, device),
+              if (mediaPlayer != null && mediaPlayer.isNotEmpty)
+                _buildSummaryTile(S.current.componentsSessionsListeningSessionEditorDialogPlayer, mediaPlayer),
+              if (serverVersion != null && serverVersion.isNotEmpty)
+                _buildSummaryTile(S.current.componentsSessionsListeningSessionEditorDialogServerVersion, serverVersion),
+              _buildSummaryTile(S.current.componentsSessionsListeningSessionEditorDialogUserId, widget.session.userId),
+              _buildSummaryTile(S.current.componentsSessionsListeningSessionEditorDialogItemId, libraryItemId),
+              if (episodeId != null && episodeId.isNotEmpty)
+                _buildSummaryTile(S.current.componentsSessionsListeningSessionEditorDialogEpisodeId, episodeId),
+              _buildSummaryTile(S.current.componentsSessionsListeningSessionEditorDialogSessionId, widget.session.id),
               const SizedBox(height: 10),
               if (widget.canEdit)
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     SessionDurationPickerField(
-                      label: 'Start',
+                      label: S.current.componentsSessionsListeningSessionEditorDialogStart,
                       seconds: _startSeconds,
                       enabled: !_isSaving && !_isDeleting,
                       onChanged: (value) {
@@ -290,7 +328,7 @@ class _ListeningSessionEditorDialogState extends State<_ListeningSessionEditorDi
                     ),
                     const SizedBox(height: 10),
                     SessionDurationPickerField(
-                      label: 'End',
+                      label: S.current.componentsSessionsListeningSessionEditorDialogEnd,
                       seconds: _endSeconds,
                       enabled: !_isSaving && !_isDeleting,
                       onChanged: (value) {
@@ -301,7 +339,7 @@ class _ListeningSessionEditorDialogState extends State<_ListeningSessionEditorDi
                     ),
                     const SizedBox(height: 10),
                     SessionDurationPickerField(
-                      label: 'Time Listened',
+                      label: S.current.componentsSessionsListeningSessionEditorDialogTimeListened,
                       seconds: _timeListeningSeconds,
                       enabled: !_isSaving && !_isDeleting,
                       onChanged: (value) {
@@ -316,9 +354,18 @@ class _ListeningSessionEditorDialogState extends State<_ListeningSessionEditorDi
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildSummaryTile('Start', _formatDurationSeconds(widget.session.startTime)),
-                    _buildSummaryTile('End', _formatDurationSeconds(widget.session.currentTime)),
-                    _buildSummaryTile('Listened', _formatDurationSeconds(widget.session.timeListening)),
+                    _buildSummaryTile(
+                      S.current.componentsSessionsListeningSessionEditorDialogStart,
+                      _formatDurationSeconds(widget.session.startTime),
+                    ),
+                    _buildSummaryTile(
+                      S.current.componentsSessionsListeningSessionEditorDialogEnd,
+                      _formatDurationSeconds(widget.session.currentTime),
+                    ),
+                    _buildSummaryTile(
+                      S.current.componentsSessionsListeningSessionEditorDialogListened,
+                      _formatDurationSeconds(widget.session.timeListening),
+                    ),
                   ],
                 ),
               if (_actionError != null && _actionError!.isNotEmpty)
@@ -333,7 +380,7 @@ class _ListeningSessionEditorDialogState extends State<_ListeningSessionEditorDi
       actions: [
         TextButton(
           onPressed: _isSaving || _isDeleting ? null : () => Navigator.of(context).pop(false),
-          child: const Text('Close'),
+          child: Text(S.current.componentsSessionsListeningSessionEditorDialogClose),
         ),
         if (widget.canDelete)
           TextButton(
@@ -341,14 +388,14 @@ class _ListeningSessionEditorDialogState extends State<_ListeningSessionEditorDi
             onPressed: _isSaving || _isDeleting ? null : _delete,
             child: _isDeleting
                 ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
-                : const Text('Delete'),
+                : Text(S.current.componentsSessionsListeningSessionEditorDialogDelete),
           ),
         if (widget.canEdit)
           FilledButton(
             onPressed: _isSaving || _isDeleting ? null : _save,
             child: _isSaving
                 ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
-                : const Text('Save'),
+                : Text(S.current.componentsSessionsListeningSessionEditorDialogSave),
           ),
       ],
     );

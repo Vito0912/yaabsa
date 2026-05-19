@@ -4,6 +4,8 @@ import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:flutter/material.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class ChapterView extends StatefulWidget {
   const ChapterView({super.key, this.maxHeight, this.emptyMode = PlayerCollectionEmptyMode.full});
 
@@ -82,7 +84,10 @@ class _ChapterViewState extends State<ChapterView> {
                 return ListTile(
                   title: Text(chapter.title),
                   subtitle: Text(
-                    '${chapter.start.toDuration.toHhMmString()} - ${chapter.end.toDuration.toHhMmString()}',
+                    S.current.screensPlayerChapterText(
+                      chapter.start.toDuration.toHhMmString(),
+                      chapter.end.toDuration.toHhMmString(),
+                    ),
                   ),
                   selected: chapter == currentChapter,
                   selectedTileColor: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.2),
@@ -118,7 +123,7 @@ class _ChapterCompactEmptyState extends StatelessWidget {
           Icon(Icons.menu_book_outlined, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
           const SizedBox(width: 6),
           Text(
-            'No chapters available',
+            S.current.screensPlayerChapterNoChaptersAvailable,
             style: Theme.of(
               context,
             ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
@@ -144,7 +149,7 @@ class _ChapterEmptyState extends StatelessWidget {
           children: [
             Icon(Icons.menu_book_outlined, size: 36, color: Theme.of(context).colorScheme.onSurfaceVariant),
             const SizedBox(height: 10),
-            Text('No chapters available', style: Theme.of(context).textTheme.titleMedium),
+            Text(S.current.screensPlayerChapterNoChaptersAvailable, style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 4),
             Text(
               title,

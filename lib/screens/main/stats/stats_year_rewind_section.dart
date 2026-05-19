@@ -4,6 +4,8 @@ import 'package:yaabsa/api/library/stats/year_in_review_stats.dart';
 import 'package:yaabsa/screens/main/stats/stats_formatters.dart';
 import 'package:yaabsa/screens/main/stats/stats_ranked_bars.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class StatsYearRewindSection extends StatelessWidget {
   const StatsYearRewindSection({
     super.key,
@@ -30,7 +32,11 @@ class StatsYearRewindSection extends StatelessWidget {
             Expanded(
               child: DropdownButtonFormField<int>(
                 initialValue: availableYears.contains(selectedYear) ? selectedYear : availableYears.first,
-                decoration: const InputDecoration(labelText: 'Year', border: OutlineInputBorder(), isDense: true),
+                decoration: InputDecoration(
+                  labelText: S.current.screensMainStatsStatsYearRewindSectionYear,
+                  border: OutlineInputBorder(),
+                  isDense: true,
+                ),
                 items: [
                   for (final year in availableYears) DropdownMenuItem<int>(value: year, child: Text(year.toString())),
                 ],
@@ -42,7 +48,11 @@ class StatsYearRewindSection extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 10),
-            IconButton(tooltip: 'Refresh', onPressed: onRefresh, icon: const Icon(Icons.refresh_rounded)),
+            IconButton(
+              tooltip: S.current.screensMainStatsStatsYearRewindSectionRefresh,
+              onPressed: onRefresh,
+              icon: const Icon(Icons.refresh_rounded),
+            ),
           ],
         ),
         const SizedBox(height: 14),
@@ -51,7 +61,7 @@ class StatsYearRewindSection extends StatelessWidget {
           skipLoadingOnReload: true,
           data: (stats) {
             if (stats == null) {
-              return const Text('No year-in-review data available for this year.');
+              return Text(S.current.screensMainStatsStatsYearRewindSectionNoYearInReviewDataAvailable);
             }
 
             final totalSessions = stats.totalListeningSessions ?? stats.numListeningSessions ?? 0;
@@ -247,14 +257,17 @@ class _YearSpotlightCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('$year in rewind', style: theme.textTheme.labelLarge),
+            Text(S.current.screensMainStatsStatsYearRewindSectionInRewind(year), style: theme.textTheme.labelLarge),
             const SizedBox(height: 4),
             Text(totalTime, style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700)),
             const SizedBox(height: 2),
             Text(sessions, style: theme.textTheme.bodyMedium),
             if (peakMonth != null) ...[
               const SizedBox(height: 6),
-              Text('Peak month: $peakMonth', style: theme.textTheme.bodySmall),
+              Text(
+                S.current.screensMainStatsStatsYearRewindSectionPeakMonth(peakMonth!),
+                style: theme.textTheme.bodySmall,
+              ),
             ],
           ],
         ),
@@ -311,7 +324,10 @@ class _YearErrorView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Failed to load year-in-review stats.', style: Theme.of(context).textTheme.bodyMedium),
+        Text(
+          S.current.screensMainStatsStatsYearRewindSectionFailedToLoadYearInReview,
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
         const SizedBox(height: 6),
         Text(
           error.toString(),
@@ -320,7 +336,11 @@ class _YearErrorView extends StatelessWidget {
           style: Theme.of(context).textTheme.bodySmall,
         ),
         const SizedBox(height: 10),
-        OutlinedButton.icon(onPressed: onRefresh, icon: const Icon(Icons.refresh_rounded), label: const Text('Retry')),
+        OutlinedButton.icon(
+          onPressed: onRefresh,
+          icon: const Icon(Icons.refresh_rounded),
+          label: Text(S.current.screensMainStatsStatsYearRewindSectionRetry),
+        ),
       ],
     );
   }

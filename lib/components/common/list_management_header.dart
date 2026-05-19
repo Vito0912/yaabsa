@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:yaabsa/generated/l10n.dart';
 
 class ListManagementHeader extends StatelessWidget {
   const ListManagementHeader({
@@ -54,7 +55,7 @@ class ListManagementHeader extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
-                child: Text(createLabel ?? 'Create'),
+                child: Text(createLabel ?? S.current.componentsCommonListManagementHeaderCreate),
               ),
             ),
         ],

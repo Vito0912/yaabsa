@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/database/settings_manager.dart';
+import 'package:yaabsa/generated/l10n.dart';
 import 'package:yaabsa/screens/settings/caching/caching_general_settings.dart';
 import 'package:yaabsa/screens/settings/caching/caching_route_settings.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
@@ -20,25 +21,25 @@ class CachingSettings extends ConsumerWidget {
     final isCachingEnabled = SettingsParser.decodeValue<bool>(cachingSetting, cachingDefault);
 
     return SettingsPageScaffold(
-      title: 'Caching Settings',
+      title: S.current.screensSettingsCachingSettingsTitle,
       embedded: true,
       showEmbeddedBackButton: true,
       children: [
         SettingsNavigationSection(
-          title: 'Caching Subsettings',
+          title: S.current.screensSettingsCachingSettingsSubsettings,
           items: [
             SettingsNavigationItem(
               icon: Icons.tune_rounded,
-              title: 'General',
-              subtitle: 'Enable/disable caching and configure speedup mode behavior.',
+              title: S.current.screensSettingsCachingSettingsGeneral,
+              subtitle: S.current.screensSettingsCachingSettingsGeneralSubtitle,
               onTap: () => context.push(CachingGeneralSettings.routeName),
             ),
             SettingsNavigationItem(
               icon: Icons.route_rounded,
-              title: 'Route Rules',
+              title: S.current.screensSettingsCachingSettingsRouteRules,
               subtitle: isCachingEnabled
-                  ? 'Configure endpoint-level cache behavior.'
-                  : 'Open route rules (editing is disabled until caching is enabled).',
+                  ? S.current.screensSettingsCachingSettingsRouteRulesEnabledSubtitle
+                  : S.current.screensSettingsCachingSettingsRouteRulesDisabledSubtitle,
               onTap: () => context.push(CachingRouteSettings.routeName),
             ),
           ],

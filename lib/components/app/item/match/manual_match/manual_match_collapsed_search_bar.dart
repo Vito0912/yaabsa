@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class ManualMatchCollapsedSearchBar extends StatelessWidget {
   const ManualMatchCollapsedSearchBar({
     super.key,
@@ -17,9 +19,9 @@ class ManualMatchCollapsedSearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final summary = <String>[
-      if (selectedProviderCount > 0) '$selectedProviderCount provider${selectedProviderCount == 1 ? '' : 's'}',
-      if (title.trim().isNotEmpty) 'Title: ${title.trim()}',
-      if (author.trim().isNotEmpty) 'Author: ${author.trim()}',
+      if (selectedProviderCount > 0) S.current.manualMatchCollapsedProvidersCount(selectedProviderCount),
+      if (title.trim().isNotEmpty) S.current.manualMatchCollapsedTitleSummary(title.trim()),
+      if (author.trim().isNotEmpty) S.current.manualMatchCollapsedAuthorSummary(author.trim()),
     ];
 
     return Card(
@@ -27,9 +29,16 @@ class ManualMatchCollapsedSearchBar extends StatelessWidget {
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
         leading: const Icon(Icons.tune_rounded),
-        title: const Text('Search filters collapsed'),
-        subtitle: Text(summary.isEmpty ? 'Tap to edit search filters' : summary.join(' • '), maxLines: 2),
-        trailing: TextButton.icon(onPressed: onExpand, icon: const Icon(Icons.edit_rounded), label: const Text('Edit')),
+        title: Text(S.current.componentsAppItemMatchManualMatchManualMatchCollapsedSearchBarSearchFiltersCollapsed),
+        subtitle: Text(
+          summary.isEmpty ? S.current.manualMatchCollapsedTapToEditFilters : summary.join(' • '),
+          maxLines: 2,
+        ),
+        trailing: TextButton.icon(
+          onPressed: onExpand,
+          icon: const Icon(Icons.edit_rounded),
+          label: Text(S.current.componentsAppItemMatchManualMatchManualMatchCollapsedSearchBarEdit),
+        ),
       ),
     );
   }

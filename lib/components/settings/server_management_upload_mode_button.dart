@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:yaabsa/generated/l10n.dart';
 import 'package:yaabsa/components/settings/settings_button.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/database/settings_manager.dart';
@@ -32,19 +33,22 @@ class ServerManagementUploadModeButton extends ConsumerWidget {
         );
         final enabled = canUploadItems && uploadItemsEnabled && hasSelectedLibrary;
         final disabledReason = !canUploadItems
-            ? 'Requires upload permission.'
+            ? S.current.componentsSettingsServerManagementUploadModeButtonRequiresUploadPermission
             : !uploadItemsEnabled
-            ? 'Enable "Upload items" first.'
+            ? S.current.componentsSettingsServerManagementUploadModeButtonEnableUploadItemsFirst
             : !hasSelectedLibrary
-            ? 'Select a library before opening upload mode.'
+            ? S.current.componentsSettingsServerManagementUploadModeButtonSelectLibraryBeforeOpeningUploadMode
             : null;
 
         return SettingButton(
-          label: 'Open upload',
+          label: S.current.componentsSettingsServerManagementUploadModeButtonOpenUpload,
           description: enabled
               ? null
-              : disabledReason ?? 'Upload mode requires upload permission and enabled upload actions.',
-          buttonText: 'Open',
+              : disabledReason ??
+                    S
+                        .current
+                        .componentsSettingsServerManagementUploadModeButtonUploadModeRequiresUploadPermissionAndEnabledUploadActions,
+          buttonText: S.current.componentsSettingsServerManagementUploadModeButtonOpen,
           buttonIcon: Icons.cloud_upload_outlined,
           onPressed: enabled ? onPressed : null,
         );

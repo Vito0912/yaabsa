@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:yaabsa/api/admin/metadata_term_update_response.dart';
 import 'package:yaabsa/components/common/list_management_dialogs.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 typedef MetadataTermRenameCallback = Future<MetadataTermUpdateResponse> Function(String currentTerm, String newTerm);
 typedef MetadataTermDeleteCallback = Future<MetadataTermUpdateResponse> Function(String term);
 
@@ -84,20 +86,23 @@ class _AdminMetadataTermManagerState extends State<AdminMetadataTermManager> {
             }
 
             return AlertDialog(
-              title: Text('Rename ${widget.entityLabel}'),
+              title: Text(S.current.componentsSettingsAdminMetadataTermManagerRename(widget.entityLabel)),
               content: TextField(
                 controller: controller,
                 autofocus: true,
                 textInputAction: TextInputAction.done,
                 decoration: InputDecoration(
-                  labelText: 'Name',
+                  labelText: S.current.componentsSettingsAdminMetadataTermManagerName,
                   errorText: validationError.isEmpty ? null : validationError,
                 ),
                 onSubmitted: (_) => submit(),
               ),
               actions: [
-                TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Cancel')),
-                FilledButton(onPressed: submit, child: const Text('Save')),
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: Text(S.current.componentsSettingsAdminMetadataTermManagerCancel),
+                ),
+                FilledButton(onPressed: submit, child: Text(S.current.componentsSettingsAdminMetadataTermManagerSave)),
               ],
             );
           },
@@ -133,9 +138,11 @@ class _AdminMetadataTermManagerState extends State<AdminMetadataTermManager> {
       final updatedCount = response.numItemsUpdated;
       final mergeMessage = merged ? ' Existing ${widget.entityLabel} values were merged.' : '';
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Updated $updatedCount item(s).$mergeMessage')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(S.current.componentsSettingsAdminMetadataTermManagerUpdatedItemS(updatedCount, mergeMessage)),
+        ),
+      );
     } catch (error) {
       if (!mounted) {
         return;
@@ -177,9 +184,11 @@ class _AdminMetadataTermManagerState extends State<AdminMetadataTermManager> {
         return;
       }
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Updated ${response.numItemsUpdated} item(s).')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(S.current.componentsSettingsAdminMetadataTermManagerUpdatedItemS2(response.numItemsUpdated)),
+        ),
+      );
     } catch (error) {
       if (!mounted) {
         return;
@@ -207,7 +216,7 @@ class _AdminMetadataTermManagerState extends State<AdminMetadataTermManager> {
             children: [
               const Spacer(),
               IconButton(
-                tooltip: 'Refresh ${widget.entityLabel}s',
+                tooltip: S.current.componentsSettingsAdminMetadataTermManagerRefreshS(widget.entityLabel),
                 onPressed: _isBusy ? null : _handleRefresh,
                 icon: const Icon(Icons.refresh_outlined),
               ),
@@ -244,12 +253,16 @@ class _AdminMetadataTermManagerState extends State<AdminMetadataTermManager> {
                                 const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2))
                               else ...[
                                 IconButton(
-                                  tooltip: 'Rename ${widget.entityLabel}',
+                                  tooltip: S.current.componentsSettingsAdminMetadataTermManagerRename(
+                                    widget.entityLabel,
+                                  ),
                                   onPressed: _isBusy ? null : () => _renameTerm(term),
                                   icon: const Icon(Icons.edit_outlined),
                                 ),
                                 IconButton(
-                                  tooltip: 'Delete ${widget.entityLabel}',
+                                  tooltip: S.current.componentsSettingsAdminMetadataTermManagerDelete(
+                                    widget.entityLabel,
+                                  ),
                                   onPressed: _isBusy ? null : () => _deleteTerm(term),
                                   icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error),
                                 ),

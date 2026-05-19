@@ -10,6 +10,8 @@ import 'package:yaabsa/components/player/common/seek_bar.dart';
 import 'package:yaabsa/components/player/common/stop_button.dart';
 import 'package:yaabsa/util/globals.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class PlayBar extends StatefulWidget {
   const PlayBar({super.key, this.includeBottomSafeArea = true, this.attachedToBottom = false});
 
@@ -247,11 +249,13 @@ class _PlayBarTransitionLoadingContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Row(
+    return Row(
       children: [
         SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.2)),
         SizedBox(width: 10),
-        Expanded(child: Text('Loading next item...', maxLines: 1, overflow: TextOverflow.ellipsis)),
+        Expanded(
+          child: Text(S.current.screensPlayerPlayBarLoadingNextItem, maxLines: 1, overflow: TextOverflow.ellipsis),
+        ),
       ],
     );
   }

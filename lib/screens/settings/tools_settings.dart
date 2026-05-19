@@ -8,6 +8,8 @@ import 'package:yaabsa/screens/settings/path_tag_genre_update_settings.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class ToolsSettings extends ConsumerWidget {
   const ToolsSettings({super.key});
 
@@ -25,9 +27,9 @@ class ToolsSettings extends ConsumerWidget {
         currentUserAsync.when(
           data: (currentUser) {
             if (currentUser == null) {
-              return const Padding(
+              return Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                child: Text('No active user. Sign in to configure tools.'),
+                child: Text(S.current.screensSettingsToolsSettingsNoActiveUserSignInTo),
               );
             }
 
@@ -37,7 +39,7 @@ class ToolsSettings extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 2, 20, 6),
                   child: Text(
-                    'These tools add functionality beyond standard ABS behavior. They coordinate multiple API calls to accomplish a task, so edge cases can happen. All tools are disabled by default. Enabling a tool can add controls to the UI, while other tools live only in subpages below.',
+                    S.current.screensSettingsToolsSettingsTheseToolsAddFunctionalityBeyondStandard,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ),
@@ -95,7 +97,7 @@ class ToolsSettings extends ConsumerWidget {
           error: (error, stackTrace) => Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(
-              'Failed to load user settings: $error',
+              S.current.screensSettingsToolsSettingsFailedToLoadUserSettings(error),
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ),

@@ -7,6 +7,8 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 const String _sortFieldTitle = 'title';
 const String _sortFieldAuthor = 'author';
 const String _sortFieldAdded = 'added';
@@ -41,7 +43,13 @@ class _AndroidAutoPodcastLibrarySettingsState extends ConsumerState<AndroidAutoP
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update sort field: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            S.current.screensSettingsAndroidAutoAndroidAutoPodcastLibrarySettingsFailedToUpdateSortField(e),
+          ),
+        ),
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -65,9 +73,9 @@ class _AndroidAutoPodcastLibrarySettingsState extends ConsumerState<AndroidAutoP
         currentUser.when(
           data: (user) {
             if (user == null) {
-              return const Padding(
+              return Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                child: Text('No active user. Sign in to configure Android Auto podcast settings.'),
+                child: Text(S.current.screensSettingsAndroidAutoAndroidAutoPodcastLibrarySettingsNoActiveUserSignInTo),
               );
             }
 
@@ -101,11 +109,22 @@ class _AndroidAutoPodcastLibrarySettingsState extends ConsumerState<AndroidAutoP
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       child: DropdownButtonFormField<String>(
                         initialValue: safeSortField,
-                        decoration: const InputDecoration(labelText: 'Sort By'),
-                        items: const [
-                          DropdownMenuItem<String>(value: _sortFieldTitle, child: Text('Title')),
-                          DropdownMenuItem<String>(value: _sortFieldAuthor, child: Text('Author')),
-                          DropdownMenuItem<String>(value: _sortFieldAdded, child: Text('Date Added')),
+                        decoration: InputDecoration(
+                          labelText: S.current.screensSettingsAndroidAutoAndroidAutoPodcastLibrarySettingsSortBy,
+                        ),
+                        items: [
+                          DropdownMenuItem<String>(
+                            value: _sortFieldTitle,
+                            child: Text(S.current.screensSettingsAndroidAutoAndroidAutoPodcastLibrarySettingsTitle),
+                          ),
+                          DropdownMenuItem<String>(
+                            value: _sortFieldAuthor,
+                            child: Text(S.current.screensSettingsAndroidAutoAndroidAutoPodcastLibrarySettingsAuthor),
+                          ),
+                          DropdownMenuItem<String>(
+                            value: _sortFieldAdded,
+                            child: Text(S.current.screensSettingsAndroidAutoAndroidAutoPodcastLibrarySettingsDateAdded),
+                          ),
                         ],
                         onChanged: _isUpdatingSortField
                             ? null
@@ -125,8 +144,12 @@ class _AndroidAutoPodcastLibrarySettingsState extends ConsumerState<AndroidAutoP
             padding: EdgeInsets.all(16),
             child: Center(child: CircularProgressIndicator()),
           ),
-          error: (error, _) =>
-              Padding(padding: const EdgeInsets.all(16), child: Text('Failed to load user settings: $error')),
+          error: (error, _) => Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              S.current.screensSettingsAndroidAutoAndroidAutoPodcastLibrarySettingsFailedToLoadUserSettings(error),
+            ),
+          ),
         ),
       ],
     );

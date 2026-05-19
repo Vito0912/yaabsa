@@ -4,6 +4,8 @@ import 'package:yaabsa/models/listening_activity_stats.dart';
 import 'package:yaabsa/screens/main/stats/stats_activity_heatmap.dart';
 import 'package:yaabsa/screens/main/stats/stats_activity_range_chart.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class StatsActivitySection extends StatelessWidget {
   const StatsActivitySection({super.key, required this.activityAsync, required this.onRefresh});
 
@@ -29,7 +31,10 @@ class StatsActivitySection extends StatelessWidget {
       error: (error, _) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Failed to load listening activity.', style: Theme.of(context).textTheme.bodyMedium),
+          Text(
+            S.current.screensMainStatsStatsActivitySectionFailedToLoadListeningActivity,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
           const SizedBox(height: 6),
           Text(
             error.toString(),
@@ -41,7 +46,7 @@ class StatsActivitySection extends StatelessWidget {
           OutlinedButton.icon(
             onPressed: onRefresh,
             icon: const Icon(Icons.refresh_rounded),
-            label: const Text('Retry Activity'),
+            label: Text(S.current.screensMainStatsStatsActivitySectionRetryActivity),
           ),
         ],
       ),

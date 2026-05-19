@@ -14,6 +14,8 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/admin_item_metadata_tools.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 enum _MetadataTermType { tag, genre }
 
 class AdminItemMetadataUtilsView extends ConsumerStatefulWidget {
@@ -229,16 +231,16 @@ class _AdminItemMetadataUtilsViewState extends ConsumerState<AdminItemMetadataUt
     return currentUserAsync.when(
       data: (currentUser) {
         if (currentUser == null) {
-          return const Padding(
+          return Padding(
             padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Text('No active user. Sign in to manage item metadata utilities.'),
+            child: Text(S.current.componentsSettingsAdminItemMetadataUtilsViewNoActiveUserSignInTo),
           );
         }
 
         if (!_isAdminType(currentUser.type)) {
-          return const Padding(
+          return Padding(
             padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Text('This page requires an admin account.'),
+            child: Text(S.current.componentsSettingsAdminItemMetadataUtilsViewThisPageRequiresAnAdminAccount),
           );
         }
 
@@ -359,7 +361,10 @@ class _AdminItemMetadataUtilsViewState extends ConsumerState<AdminItemMetadataUt
       ),
       error: (error, stackTrace) => Padding(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-        child: Text('Failed to load user data: $error', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+        child: Text(
+          S.current.componentsSettingsAdminItemMetadataUtilsViewFailedToLoadUserData(error),
+          style: TextStyle(color: Theme.of(context).colorScheme.error),
+        ),
       ),
     );
   }
@@ -383,7 +388,10 @@ class _MetadataUtilsErrorCard extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(child: Text(message)),
             const SizedBox(width: 10),
-            TextButton(onPressed: () => unawaited(onRetry()), child: const Text('Retry')),
+            TextButton(
+              onPressed: () => unawaited(onRetry()),
+              child: Text(S.current.componentsSettingsAdminItemMetadataUtilsViewRetry),
+            ),
           ],
         ),
       ),

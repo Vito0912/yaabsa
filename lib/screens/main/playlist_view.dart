@@ -15,6 +15,8 @@ import 'package:yaabsa/provider/common/playlist_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class PlaylistView extends HookConsumerWidget {
   const PlaylistView({super.key});
 
@@ -25,7 +27,7 @@ class PlaylistView extends HookConsumerWidget {
     final serverReachable = ref.watch(serverStatusProvider).value ?? false;
 
     if (selectedLibrary == null) {
-      return const Center(child: Text('No library selected. Please select a library via the switcher.'));
+      return Center(child: Text(S.current.screensMainPlaylistViewNoLibrarySelectedPleaseSelectA));
     }
 
     final libraryId = selectedLibrary.id;
@@ -130,17 +132,17 @@ Future<void> _showPlaylistActionsSheet({
             if (allowBookSelection)
               ListTile(
                 leading: const Icon(Icons.menu_book_rounded),
-                title: const Text('Edit books'),
+                title: Text(S.current.screensMainPlaylistViewEditBooks),
                 onTap: () => Navigator.of(sheetContext).pop(_PlaylistAction.editBooks),
               ),
             ListTile(
               leading: const Icon(Icons.edit_outlined),
-              title: const Text('Edit details'),
+              title: Text(S.current.screensMainPlaylistViewEditDetails),
               onTap: () => Navigator.of(sheetContext).pop(_PlaylistAction.edit),
             ),
             ListTile(
               leading: const Icon(Icons.delete_outline_rounded),
-              title: const Text('Delete playlist'),
+              title: Text(S.current.screensMainPlaylistViewDeletePlaylist),
               onTap: () => Navigator.of(sheetContext).pop(_PlaylistAction.delete),
             ),
           ],

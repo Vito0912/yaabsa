@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class SleepTimerButton extends ConsumerWidget {
   const SleepTimerButton({super.key});
 
@@ -89,10 +91,16 @@ class _SleepTimerModalState extends State<SleepTimerModal> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Sleep timer', style: Theme.of(context).textTheme.titleLarge),
+          Text(
+            S.current.componentsPlayerCommonSleepTimerButtonSleepTimer,
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
           const SizedBox(height: 8),
           if (sleepTimer.isActive)
-            Text('Remaining ${_formatTime(sleepTimer.remainingTime)}', style: Theme.of(context).textTheme.bodyMedium),
+            Text(
+              S.current.componentsPlayerCommonSleepTimerButtonRemaining(_formatTime(sleepTimer.remainingTime)),
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
@@ -126,7 +134,7 @@ class _SleepTimerModalState extends State<SleepTimerModal> {
                     setState(() {});
                   },
                   icon: Icon(sleepTimer.isRunning ? Icons.pause : Icons.play_arrow),
-                  label: Text(sleepTimer.isRunning ? 'Pause' : 'Resume'),
+                  label: Text(sleepTimer.isRunning ? S.current.commonPause : S.current.commonResume),
                 ),
                 OutlinedButton.icon(
                   onPressed: () {
@@ -134,7 +142,7 @@ class _SleepTimerModalState extends State<SleepTimerModal> {
                     setState(() {});
                   },
                   icon: const Icon(Icons.add),
-                  label: const Text('+5m'),
+                  label: Text(S.current.componentsPlayerCommonSleepTimerButtonK5m),
                 ),
                 FilledButton.tonalIcon(
                   onPressed: () {
@@ -143,7 +151,7 @@ class _SleepTimerModalState extends State<SleepTimerModal> {
                     HapticFeedback.lightImpact();
                   },
                   icon: const Icon(Icons.stop),
-                  label: const Text('Stop'),
+                  label: Text(S.current.componentsPlayerCommonSleepTimerButtonStop),
                 ),
               ],
             ),
@@ -155,15 +163,18 @@ class _SleepTimerModalState extends State<SleepTimerModal> {
                   controller: _customController,
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  decoration: const InputDecoration(
-                    labelText: 'Custom minutes',
-                    hintText: 'Minutes',
+                  decoration: InputDecoration(
+                    labelText: S.current.componentsPlayerCommonSleepTimerButtonCustomMinutes,
+                    hintText: S.current.componentsPlayerCommonSleepTimerButtonMinutes,
                     border: OutlineInputBorder(),
                   ),
                 ),
               ),
               const SizedBox(width: 8),
-              FilledButton(onPressed: _handleCustomInput, child: const Text('Start')),
+              FilledButton(
+                onPressed: _handleCustomInput,
+                child: Text(S.current.componentsPlayerCommonSleepTimerButtonStart),
+              ),
             ],
           ),
         ],
@@ -177,9 +188,12 @@ class _SleepTimerModalState extends State<SleepTimerModal> {
 
     final minutes = int.tryParse(input);
     if (minutes == null || minutes <= 0) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: const Text('Not valid'), backgroundColor: Theme.of(context).colorScheme.error));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(S.current.componentsPlayerCommonSleepTimerButtonNotValid),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
       return;
     }
 

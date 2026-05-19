@@ -15,6 +15,8 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/main/stats/stats_formatters.dart';
 import 'package:yaabsa/util/logger.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class AdminServerSessionsView extends ConsumerStatefulWidget {
   const AdminServerSessionsView({super.key});
 
@@ -324,11 +326,21 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Delete Selected Sessions'),
-          content: Text('Delete ${selectedSessions.length} selected session(s)? This cannot be undone.'),
+          title: Text(S.current.componentsSettingsAdminServerSessionsViewDeleteSelectedSessions),
+          content: Text(
+            S.current.componentsSettingsAdminServerSessionsViewDeleteSelectedSessionSThisCannot(
+              selectedSessions.length,
+            ),
+          ),
           actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
-            FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Delete')),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(S.current.componentsSettingsAdminServerSessionsViewCancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(S.current.componentsSettingsAdminServerSessionsViewDelete),
+            ),
           ],
         );
       },
@@ -381,11 +393,17 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
 
     final messenger = ScaffoldMessenger.of(context);
     if (deletedCount > 0) {
-      messenger.showSnackBar(SnackBar(content: Text('Deleted $deletedCount session(s).')));
+      messenger.showSnackBar(
+        SnackBar(content: Text(S.current.componentsSettingsAdminServerSessionsViewDeletedSessionS(deletedCount))),
+      );
     }
     if (failedSessionIds.isNotEmpty) {
       messenger.showSnackBar(
-        SnackBar(content: Text('Failed to delete ${failedSessionIds.length} session(s). Check logs for details.')),
+        SnackBar(
+          content: Text(
+            S.current.componentsSettingsAdminServerSessionsViewFailedToDeleteSessionSCheck(failedSessionIds.length),
+          ),
+        ),
       );
     }
   }
@@ -484,7 +502,7 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
               onPressed: () {
                 unawaited(_loadAllData());
               },
-              child: const Text('Retry'),
+              child: Text(S.current.componentsSettingsAdminServerSessionsViewRetry),
             ),
           ],
         ),
@@ -529,7 +547,7 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
             padding: const EdgeInsets.only(top: 8),
             child: Row(
               children: [
-                Text('${_selectedLibrarySessionIds.length} selected'),
+                Text(S.current.componentsSettingsAdminServerSessionsViewSelected(_selectedLibrarySessionIds.length)),
                 const Spacer(),
                 FilledButton.icon(
                   onPressed: (_isBulkDeleting || !_canDeleteSelectedLibrarySessions(canDelete))
@@ -540,7 +558,7 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
                   icon: _isBulkDeleting
                       ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
                       : const Icon(Icons.delete_outline_rounded),
-                  label: const Text('Delete Selected'),
+                  label: Text(S.current.componentsSettingsAdminServerSessionsViewDeleteSelected),
                 ),
               ],
             ),
@@ -622,9 +640,9 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
         Card(
           margin: EdgeInsets.zero,
           child: sortedSessions.isEmpty
-              ? const Padding(
+              ? Padding(
                   padding: EdgeInsets.symmetric(horizontal: 12, vertical: 18),
-                  child: Center(child: Text('No shared sessions found.')),
+                  child: Center(child: Text(S.current.componentsSettingsAdminServerSessionsViewNoSharedSessionsFound)),
                 )
               : ListView.separated(
                   itemCount: sortedSessions.length,
@@ -679,9 +697,9 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
     return currentUserAsync.when(
       data: (currentUser) {
         if (currentUser == null) {
-          return const Padding(
+          return Padding(
             padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Text('No active user. Sign in to manage sessions.'),
+            child: Text(S.current.componentsSettingsAdminServerSessionsViewNoActiveUserSignInTo),
           );
         }
 
@@ -693,9 +711,9 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
         }
 
         if (!_isAdminType(currentUser.type)) {
-          return const Padding(
+          return Padding(
             padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Text('This page requires an admin account.'),
+            child: Text(S.current.componentsSettingsAdminServerSessionsViewThisPageRequiresAnAdminAccount),
           );
         }
 
@@ -726,9 +744,15 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
                     Expanded(
                       child: DropdownButtonFormField<String?>(
                         initialValue: _selectedFilterUserId,
-                        decoration: const InputDecoration(labelText: 'Filter by User', border: OutlineInputBorder()),
+                        decoration: InputDecoration(
+                          labelText: S.current.componentsSettingsAdminServerSessionsViewFilterByUser,
+                          border: OutlineInputBorder(),
+                        ),
                         items: [
-                          const DropdownMenuItem<String?>(value: null, child: Text('All Users')),
+                          DropdownMenuItem<String?>(
+                            value: null,
+                            child: Text(S.current.componentsSettingsAdminServerSessionsViewAllUsers),
+                          ),
                           ..._availableUsers.map(
                             (user) => DropdownMenuItem<String?>(value: user.id, child: Text(user.username)),
                           ),
@@ -742,7 +766,7 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
                     ),
                     const SizedBox(width: 10),
                     IconButton(
-                      tooltip: 'Refresh sessions',
+                      tooltip: S.current.componentsSettingsAdminServerSessionsViewRefreshSessions,
                       onPressed: (_isLoadingUsers || _isLoadingLibrarySessions || _isLoadingOpenSessions)
                           ? null
                           : () {
@@ -769,7 +793,10 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
       ),
       error: (error, _) => Padding(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-        child: Text('Failed to load user data: $error', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+        child: Text(
+          S.current.componentsSettingsAdminServerSessionsViewFailedToLoadUserData(error),
+          style: TextStyle(color: Theme.of(context).colorScheme.error),
+        ),
       ),
     );
   }

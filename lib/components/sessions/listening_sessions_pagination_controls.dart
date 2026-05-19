@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class ListeningSessionsPaginationControls extends StatelessWidget {
   const ListeningSessionsPaginationControls({
     required this.page,
@@ -65,24 +67,32 @@ class ListeningSessionsPaginationControls extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Expanded(child: Text('Total: $total', overflow: TextOverflow.ellipsis)),
-                  Text('Page $currentPage / $clampedPages'),
+                  Expanded(
+                    child: Text(
+                      S.current.componentsSessionsListeningSessionsPaginationControlsTotal(total),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Text(S.current.componentsSessionsListeningSessionsPaginationControlsPage(currentPage, clampedPages)),
                 ],
               ),
               const SizedBox(height: 8),
               Row(
                 children: [
-                  Text('Per page:', style: Theme.of(context).textTheme.bodyMedium),
+                  Text(
+                    S.current.componentsSessionsListeningSessionsPaginationControlsPerPage,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
                   const SizedBox(width: 6),
                   buildPerPageSelector(),
                   const Spacer(),
                   IconButton(
-                    tooltip: 'Previous page',
+                    tooltip: S.current.componentsSessionsListeningSessionsPaginationControlsPreviousPage,
                     onPressed: isLoading ? null : onPrevious,
                     icon: const Icon(Icons.chevron_left_rounded),
                   ),
                   IconButton(
-                    tooltip: 'Next page',
+                    tooltip: S.current.componentsSessionsListeningSessionsPaginationControlsNextPage,
                     onPressed: isLoading ? null : onNext,
                     icon: const Icon(Icons.chevron_right_rounded),
                   ),
@@ -94,20 +104,31 @@ class ListeningSessionsPaginationControls extends StatelessWidget {
 
         return Row(
           children: [
-            Expanded(child: Text('Total: $total', overflow: TextOverflow.ellipsis)),
-            Text('Per page:', style: Theme.of(context).textTheme.bodyMedium),
+            Expanded(
+              child: Text(
+                S.current.componentsSessionsListeningSessionsPaginationControlsTotal(total),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            Text(
+              S.current.componentsSessionsListeningSessionsPaginationControlsPerPage,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
             const SizedBox(width: 6),
             buildPerPageSelector(),
             const SizedBox(width: 12),
-            Text('Page $currentPage / $clampedPages', style: Theme.of(context).textTheme.bodyMedium),
+            Text(
+              S.current.componentsSessionsListeningSessionsPaginationControlsPage(currentPage, clampedPages),
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
             const SizedBox(width: 8),
             IconButton(
-              tooltip: 'Previous page',
+              tooltip: S.current.componentsSessionsListeningSessionsPaginationControlsPreviousPage,
               onPressed: isLoading ? null : onPrevious,
               icon: const Icon(Icons.chevron_left_rounded),
             ),
             IconButton(
-              tooltip: 'Next page',
+              tooltip: S.current.componentsSessionsListeningSessionsPaginationControlsNextPage,
               onPressed: isLoading ? null : onNext,
               icon: const Icon(Icons.chevron_right_rounded),
             ),

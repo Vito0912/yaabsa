@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:yaabsa/api/library/request/library_filter.dart';
 import 'package:yaabsa/screens/main/library_view.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class NarratorDetailView extends StatelessWidget {
   const NarratorDetailView({super.key, required this.narratorName});
 
@@ -28,7 +30,7 @@ class NarratorDetailView extends StatelessWidget {
                   context.go('/?tab=narrators&intent=${DateTime.now().microsecondsSinceEpoch}');
                 },
                 icon: const Icon(Icons.arrow_back_rounded),
-                tooltip: 'Back',
+                tooltip: S.current.screensMainNarratorDetailViewBack,
               ),
               const SizedBox(width: 6),
               Expanded(

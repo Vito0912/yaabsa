@@ -5,28 +5,28 @@ extension _ReaderBuilders on _ReaderState {
     final hasSelection = isEpubMode ? _hasValidEpubSelection : _hasValidPdfSelection;
 
     return AppBar(
-      title: const Text('Ebook Reader'),
+      title: Text(S.current.screensReaderReaderBuildersEbookReader),
       actions: [
         IconButton(
           icon: Icon(Icons.highlight, color: hasSelection ? Colors.yellow : Colors.grey),
           onPressed: () => _showColorPicker(annotationType: AnnotationType.highlight, isEpubMode: isEpubMode),
-          tooltip: 'Highlight',
+          tooltip: S.current.screensReaderReaderBuildersHighlight,
         ),
         IconButton(
           icon: Icon(Icons.format_underlined, color: hasSelection ? Colors.blue : Colors.grey),
           onPressed: () => _showColorPicker(annotationType: AnnotationType.underline, isEpubMode: isEpubMode),
-          tooltip: 'Underline',
+          tooltip: S.current.screensReaderReaderBuildersUnderline,
         ),
         if (!isEpubMode)
           IconButton(
             icon: Icon(Icons.bookmark_add_outlined, color: hasSelection ? Colors.amber : Colors.grey),
             onPressed: () => _showColorPicker(annotationType: AnnotationType.bookmark, isEpubMode: false),
-            tooltip: 'Bookmark',
+            tooltip: S.current.screensReaderReaderBuildersBookmark,
           ),
         IconButton(
           icon: const Icon(Icons.list),
           onPressed: isEpubMode ? _showAnnotationsList : _showPdfAnnotationsList,
-          tooltip: 'View Annotations',
+          tooltip: S.current.screensReaderReaderBuildersViewAnnotations,
         ),
       ],
     );

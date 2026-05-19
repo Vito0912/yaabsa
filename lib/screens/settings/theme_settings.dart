@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:yaabsa/components/settings/theme_appearance_section.dart';
+import 'package:yaabsa/generated/l10n.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 
 class ThemeSettings extends StatelessWidget {
@@ -9,11 +10,11 @@ class ThemeSettings extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SettingsPageScaffold(
-      title: 'Theme',
+    return SettingsPageScaffold(
+      title: S.current.screensSettingsThemeSettingsTitle,
       embedded: true,
       showEmbeddedBackButton: true,
-      children: [ThemeAppearanceSection()],
+      children: const [ThemeAppearanceSection()],
     );
   }
 }

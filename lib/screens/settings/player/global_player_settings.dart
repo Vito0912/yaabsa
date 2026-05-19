@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:yaabsa/generated/l10n.dart';
 import 'package:yaabsa/components/settings/settings_slider.dart';
 import 'package:yaabsa/components/settings/settings_switch.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
@@ -12,32 +13,36 @@ class GlobalPlayerSettings extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SettingsPageScaffold(
-      title: 'Global Player Settings',
+      title: S.current.screensSettingsPlayerGlobalPlayerSettingsTitle,
       embedded: true,
       showEmbeddedBackButton: true,
       children: [
         SettingSlider<int>(
-          label: 'Max buffer size',
-          tooltip:
-              'Maximum size of the buffer in bytes. This is just a hint for the player and may not be respected by the OS. No more than 5 minutes should be cac.',
+          label: S.current.screensSettingsPlayerGlobalPlayerSettingsMaxBufferSize,
+          tooltip: S.current.screensSettingsPlayerGlobalPlayerSettingsMaxBufferSizeTooltip,
           icon: Icons.info_outline,
           values: const [512 * 1024, 1024 * 1024, 2 * 1024 * 1024, 5 * 1024 * 1024, 10 * 1024 * 1024],
           valueLabels: const ['512 KB', '1 MB', '2 MB', '5 MB', '10 MB'],
           settingKey: SettingKeys.bufferSize,
         ),
-        SettingSwitch(label: 'Lock Media Notification', settingKey: SettingKeys.lockMediaNotification),
         SettingSwitch(
-          label: 'Show notification More button',
-          description: 'When enabled, a More button will be shown, giving more quick actions',
+          label: S.current.screensSettingsPlayerGlobalPlayerSettingsLockMediaNotification,
+          settingKey: SettingKeys.lockMediaNotification,
+        ),
+        SettingSwitch(
+          label: S.current.screensSettingsPlayerGlobalPlayerSettingsShowNotificationMoreButton,
+          description: S.current.screensSettingsPlayerGlobalPlayerSettingsShowNotificationMoreButtonDescription,
           settingKey: SettingKeys.showNotificationMoreButton,
         ),
         SettingSwitch(
-          label: 'Auto-play last played on app start',
-          description:
-              'When enabled and nothing is currently playing, app launch will resume the last played item if it is not finished.',
+          label: S.current.screensSettingsPlayerGlobalPlayerSettingsAutoPlayLastPlayedOnAppStart,
+          description: S.current.screensSettingsPlayerGlobalPlayerSettingsAutoPlayLastPlayedOnAppStartDescription,
           settingKey: SettingKeys.autoPlayLastPlayedOnLaunch,
         ),
-        SettingSwitch(label: 'Keep Screen On', settingKey: SettingKeys.keepScreenOn),
+        SettingSwitch(
+          label: S.current.screensSettingsPlayerGlobalPlayerSettingsKeepScreenOn,
+          settingKey: SettingKeys.keepScreenOn,
+        ),
       ],
     );
   }

@@ -10,6 +10,8 @@ import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class CarModeScreen extends ConsumerWidget {
   const CarModeScreen({super.key});
 
@@ -35,7 +37,7 @@ class CarModeScreen extends ConsumerWidget {
     final api = ref.watch(absApiProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Car Mode'), actions: const [StopButton()]),
+      appBar: AppBar(title: Text(S.current.screensPlayerCarModeScreenCarMode), actions: const [StopButton()]),
       body: StreamBuilder<InternalMedia?>(
         stream: audioHandler.mediaItemStream.stream,
         builder: (context, snapshot) {

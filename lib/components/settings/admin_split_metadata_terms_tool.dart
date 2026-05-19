@@ -8,13 +8,15 @@ import 'package:yaabsa/components/settings/admin_tool_library_selector.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/admin_item_metadata_tools.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class AdminSplitMetadataTermsTool extends ConsumerWidget {
   const AdminSplitMetadataTermsTool({super.key, required this.splitType, this.onCompleted});
 
   final MetadataSplitType splitType;
   final Future<void> Function()? onCompleted;
 
-  String get _label => splitType == MetadataSplitType.tags ? 'Split Tags' : 'Split Genres';
+  String get _label => S.current.adminSplitMetadataTermsToolLabel(_splitTypeToken(splitType));
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -28,7 +30,9 @@ class AdminSplitMetadataTermsTool extends ConsumerWidget {
   Future<void> _openDialog(BuildContext context, WidgetRef ref) async {
     final api = ref.read(absApiProvider);
     if (api == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No active API client.')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(S.current.componentsSettingsAdminSplitMetadataTermsToolNoActiveAPIClient)));
       return;
     }
 
@@ -45,7 +49,13 @@ class AdminSplitMetadataTermsTool extends ConsumerWidget {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'Split ${result.termsSplit} composite $noun value(s), touched ${result.itemsChanged} item(s), and applied ${result.itemsUpdated} update(s) across ${result.librariesProcessed} librar${result.librariesProcessed == 1 ? 'y' : 'ies'}.',
+          S.current.adminSplitMetadataTermsToolResultSummary(
+            result.termsSplit,
+            noun,
+            result.itemsChanged,
+            result.itemsUpdated,
+            result.librariesProcessed,
+          ),
         ),
       ),
     );
@@ -54,6 +64,10 @@ class AdminSplitMetadataTermsTool extends ConsumerWidget {
       await onCompleted!();
     }
   }
+}
+
+String _splitTypeToken(MetadataSplitType splitType) {
+  return splitType == MetadataSplitType.tags ? 'tags' : 'genres';
 }
 
 class _SplitMetadataTermsDialog extends StatefulWidget {
@@ -112,7 +126,7 @@ class _SplitMetadataTermsDialogState extends State<_SplitMetadataTermsDialog> {
       }
 
       setState(() {
-        _errorMessage = 'Failed to load libraries: $error';
+        _errorMessage = S.current.adminSplitMetadataTermsToolFailedToLoadLibraries(error);
       });
     } finally {
       if (mounted) {
@@ -130,7 +144,7 @@ class _SplitMetadataTermsDialogState extends State<_SplitMetadataTermsDialog> {
 
     if (_selectedLibraryIds.isEmpty) {
       setState(() {
-        _errorMessage = 'Select at least one library.';
+        _errorMessage = S.current.adminSplitMetadataTermsToolSelectAtLeastOneLibrary;
       });
       return;
     }
@@ -138,7 +152,7 @@ class _SplitMetadataTermsDialogState extends State<_SplitMetadataTermsDialog> {
     final delimiter = _delimiterController.text;
     if (delimiter.trim().isEmpty) {
       setState(() {
-        _errorMessage = 'Delimiter cannot be empty.';
+        _errorMessage = S.current.adminSplitMetadataTermsToolDelimiterCannotBeEmpty;
       });
       return;
     }
@@ -166,7 +180,7 @@ class _SplitMetadataTermsDialogState extends State<_SplitMetadataTermsDialog> {
       }
 
       setState(() {
-        _errorMessage = 'Failed to split $_noun: $error';
+        _errorMessage = S.current.adminSplitMetadataTermsToolFailedToSplit(_noun, error);
       });
     } finally {
       if (mounted) {
@@ -182,7 +196,7 @@ class _SplitMetadataTermsDialogState extends State<_SplitMetadataTermsDialog> {
     final busy = _isRunning || _isLoadingLibraries;
 
     return AlertDialog(
-      title: Text('Split ${widget.splitType == MetadataSplitType.tags ? 'Tags' : 'Genres'}'),
+      title: Text(S.current.adminSplitMetadataTermsToolLabel(_splitTypeToken(widget.splitType))),
       content: SizedBox(
         width: 640,
         child: SingleChildScrollView(
@@ -191,16 +205,16 @@ class _SplitMetadataTermsDialogState extends State<_SplitMetadataTermsDialog> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'This tool splits combined $_noun values using the delimiter below and updates affected items in the selected libraries.',
+                S.current.componentsSettingsAdminSplitMetadataTermsToolThisToolSplitsCombinedValuesUsing(_noun),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: _delimiterController,
                 enabled: !busy,
-                decoration: const InputDecoration(
-                  labelText: 'Delimiter',
-                  helperText: 'Example: "," splits "Fantasy, Sci-Fi" into two values.',
+                decoration: InputDecoration(
+                  labelText: S.current.componentsSettingsAdminSplitMetadataTermsToolDelimiter,
+                  helperText: S.current.componentsSettingsAdminSplitMetadataTermsToolExampleSplitsFantasySciFiInto,
                 ),
               ),
               const SizedBox(height: 10),
@@ -231,8 +245,16 @@ class _SplitMetadataTermsDialogState extends State<_SplitMetadataTermsDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: busy ? null : () => Navigator.of(context).pop(), child: const Text('Cancel')),
-        FilledButton(onPressed: busy ? null : _runTool, child: Text(_isRunning ? 'Running...' : 'Run Tool')),
+        TextButton(
+          onPressed: busy ? null : () => Navigator.of(context).pop(),
+          child: Text(S.current.componentsSettingsAdminSplitMetadataTermsToolCancel),
+        ),
+        FilledButton(
+          onPressed: busy ? null : _runTool,
+          child: Text(
+            _isRunning ? S.current.adminSplitMetadataTermsToolRunning : S.current.adminSplitMetadataTermsToolRunTool,
+          ),
+        ),
       ],
     );
   }

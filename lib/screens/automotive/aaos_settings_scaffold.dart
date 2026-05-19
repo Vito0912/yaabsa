@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/util/aaos_service.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 enum AaosSettingsBackTarget { mediaCenter, settingsHome }
 
 class AaosSettingsScaffold extends StatelessWidget {
@@ -42,7 +44,7 @@ class AaosSettingsScaffold extends StatelessWidget {
         title: Text(title),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          tooltip: 'Back',
+          tooltip: S.current.screensAutomotiveAaosSettingsScaffoldBack,
           onPressed: () async {
             await _handleBack(context);
           },
@@ -50,7 +52,7 @@ class AaosSettingsScaffold extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            tooltip: 'Refresh',
+            tooltip: S.current.screensAutomotiveAaosSettingsScaffoldRefresh,
             onPressed: () {
               _refreshCurrentRoute(context);
             },

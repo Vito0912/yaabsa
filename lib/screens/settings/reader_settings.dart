@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class ReaderSettings extends StatelessWidget {
   const ReaderSettings({super.key});
 
@@ -24,7 +26,10 @@ class _ComingSoonSettingBody extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-      child: Text('Reader-specific settings will appear here.', style: Theme.of(context).textTheme.bodyLarge),
+      child: Text(
+        S.current.screensSettingsReaderSettingsReaderSpecificSettingsWillAppearHere,
+        style: Theme.of(context).textTheme.bodyLarge,
+      ),
     );
   }
 }

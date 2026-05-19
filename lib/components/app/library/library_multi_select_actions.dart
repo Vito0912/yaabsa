@@ -11,6 +11,8 @@ import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/common/playlist_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 Future<void> addSelectedBooksToPlaylist({
   required BuildContext context,
   required WidgetRef ref,
@@ -25,9 +27,9 @@ Future<void> addSelectedBooksToPlaylist({
 
   final targetOption = await showLibraryTargetPickerSheet(
     context: context,
-    title: 'Add to playlist',
-    emptyMessage: 'No editable playlists found.',
-    loadErrorMessage: 'Could not load playlists.',
+    title: S.current.libraryMultiSelectAddToPlaylistTitle,
+    emptyMessage: S.current.libraryMultiSelectNoEditablePlaylistsFound,
+    loadErrorMessage: S.current.libraryMultiSelectCouldNotLoadPlaylists,
     loadOptions: () async {
       final playlistsNotifier = ref.read(playlistsProvider(libraryId).notifier);
       var playlists = ref.read(playlistsProvider(libraryId)).value?.items ?? const <Playlist>[];
@@ -58,10 +60,8 @@ Future<void> addSelectedBooksToPlaylist({
     context: context,
     action: () =>
         ref.read(playlistsProvider(libraryId).notifier).addBooksToPlaylist(targetOption.id, bookIds: selectedBookIds),
-    successMessage: selectedBookIds.length == 1
-        ? 'Added 1 book to "${targetOption.title}".'
-        : 'Added ${selectedBookIds.length} books to "${targetOption.title}".',
-    errorFallback: 'Could not add books to playlist.',
+    successMessage: S.current.libraryMultiSelectAddedBooksToPlaylist(selectedBookIds.length, targetOption.title),
+    errorFallback: S.current.libraryMultiSelectCouldNotAddBooksToPlaylist,
     onSuccess: onSuccess,
   );
 }
@@ -79,9 +79,9 @@ Future<void> addSelectedBooksToCollection({
 
   final targetOption = await showLibraryTargetPickerSheet(
     context: context,
-    title: 'Add to collection',
-    emptyMessage: 'No collections found.',
-    loadErrorMessage: 'Could not load collections.',
+    title: S.current.libraryMultiSelectAddToCollectionTitle,
+    emptyMessage: S.current.libraryMultiSelectNoCollectionsFound,
+    loadErrorMessage: S.current.libraryMultiSelectCouldNotLoadCollections,
     loadOptions: () async {
       final collectionsNotifier = ref.read(collectionsProvider(libraryId).notifier);
       var collections = ref.read(collectionsProvider(libraryId)).value?.items ?? const <Collection>[];
@@ -109,10 +109,8 @@ Future<void> addSelectedBooksToCollection({
     action: () => ref
         .read(collectionsProvider(libraryId).notifier)
         .addBooksToCollection(targetOption.id, bookIds: selectedBookIds),
-    successMessage: selectedBookIds.length == 1
-        ? 'Added 1 book to "${targetOption.title}".'
-        : 'Added ${selectedBookIds.length} books to "${targetOption.title}".',
-    errorFallback: 'Could not add books to collection.',
+    successMessage: S.current.libraryMultiSelectAddedBooksToCollection(selectedBookIds.length, targetOption.title),
+    errorFallback: S.current.libraryMultiSelectCouldNotAddBooksToCollection,
     onSuccess: onSuccess,
   );
 }
@@ -133,9 +131,9 @@ Future<void> quickMatchSelectedBooks({
   final options = await showQuickMatchOptionsDialog(
     context: context,
     mediaType: 'book',
-    title: 'Quick match selected books',
-    description: 'Pick a provider and choose whether cover/details should overwrite current metadata.',
-    confirmLabel: 'Run for ${selectedBookIds.length}',
+    title: S.current.libraryMultiSelectQuickMatchSelectedBooksTitle,
+    description: S.current.libraryMultiSelectQuickMatchSelectedBooksDescription,
+    confirmLabel: S.current.libraryMultiSelectQuickMatchRunFor(selectedBookIds.length),
     initialProvider: defaultProvider,
   );
 
@@ -146,7 +144,9 @@ Future<void> quickMatchSelectedBooks({
   final api = ref.read(absApiProvider);
   if (api == null) {
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No API session available.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.current.componentsAppLibraryLibraryMultiSelectActionsNoAPISessionAvailable)),
+      );
     }
     return;
   }
@@ -166,8 +166,8 @@ Future<void> quickMatchSelectedBooks({
     final message = responseError != null && responseError.isNotEmpty
         ? responseError
         : updates > 0
-        ? 'Metadata change request sent for ${selectedBookIds.length == 1 ? '1 book' : '${selectedBookIds.length} books'}.'
-        : 'Metadata change request sent.';
+        ? S.current.libraryMultiSelectMetadataChangeRequestSentForBooks(selectedBookIds.length)
+        : S.current.libraryMultiSelectMetadataChangeRequestSent;
 
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
 
@@ -177,7 +177,11 @@ Future<void> quickMatchSelectedBooks({
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not quick match selected books: $error')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(S.current.componentsAppLibraryLibraryMultiSelectActionsCouldNotQuickMatchSelectedBooks(error)),
+      ),
+    );
   }
 }
 

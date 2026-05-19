@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:yaabsa/generated/l10n.dart';
 
 class ConnectionIssueView extends StatelessWidget {
   const ConnectionIssueView({
@@ -12,7 +13,7 @@ class ConnectionIssueView extends StatelessWidget {
     this.secondaryActionLabel,
     this.onSecondaryAction,
     this.showDownloadsShortcut = true,
-    this.retryLabel = 'Retry',
+    this.retryLabel,
   });
 
   factory ConnectionIssueView.offline({
@@ -26,8 +27,8 @@ class ConnectionIssueView extends StatelessWidget {
     return ConnectionIssueView(
       key: key,
       icon: Icons.cloud_off_rounded,
-      title: 'No server connection available',
-      message: message ?? 'This section requires an active server connection. Reconnect and try again.',
+      title: S.current.componentsCommonConnectionIssueViewNoServerConnectionAvailable,
+      message: message ?? S.current.componentsCommonConnectionIssueViewRequiresActiveServerConnection,
       onRetry: onRetry,
       secondaryActionLabel: secondaryActionLabel,
       onSecondaryAction: onSecondaryAction,
@@ -39,17 +40,22 @@ class ConnectionIssueView extends StatelessWidget {
     Key? key,
     required Object error,
     Future<void> Function()? onRetry,
-    String title = 'Unable to load content',
-    String message = 'Please try again. If the issue persists, check your server connection.',
+    String title = '',
+    String message = '',
     String? secondaryActionLabel,
     Future<void> Function()? onSecondaryAction,
     bool showDownloadsShortcut = true,
   }) {
+    final effectiveTitle = title.isEmpty ? S.current.componentsCommonConnectionIssueViewUnableToLoadContent : title;
+    final effectiveMessage = message.isEmpty
+        ? S.current.componentsCommonConnectionIssueViewTryAgainAndCheckServerConnection
+        : message;
+
     return ConnectionIssueView(
       key: key,
       icon: Icons.error_outline_rounded,
-      title: title,
-      message: message,
+      title: effectiveTitle,
+      message: effectiveMessage,
       details: error.toString(),
       onRetry: onRetry,
       secondaryActionLabel: secondaryActionLabel,
@@ -66,7 +72,7 @@ class ConnectionIssueView extends StatelessWidget {
   final String? secondaryActionLabel;
   final Future<void> Function()? onSecondaryAction;
   final bool showDownloadsShortcut;
-  final String retryLabel;
+  final String? retryLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -78,7 +84,10 @@ class ConnectionIssueView extends StatelessWidget {
                 context.go('/?tab=downloads&intent=downloads');
               }
             : null);
-    final effectiveSecondaryLabel = secondaryActionLabel ?? (showDownloadsShortcut ? 'Open Downloads' : null);
+    final effectiveSecondaryLabel =
+        secondaryActionLabel ??
+        (showDownloadsShortcut ? S.current.componentsCommonConnectionIssueViewOpenDownloads : null);
+    final effectiveRetryLabel = retryLabel ?? S.current.componentsCommonConnectionIssueViewRetry;
 
     return Center(
       child: Padding(
@@ -120,7 +129,7 @@ class ConnectionIssueView extends StatelessWidget {
                           await onRetry!();
                         },
                         icon: const Icon(Icons.refresh_rounded),
-                        label: Text(retryLabel),
+                        label: Text(effectiveRetryLabel),
                       ),
                     if (effectiveSecondaryAction != null &&
                         effectiveSecondaryLabel != null &&

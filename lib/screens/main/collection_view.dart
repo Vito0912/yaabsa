@@ -15,6 +15,8 @@ import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/server_management_preferences.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class CollectionView extends HookConsumerWidget {
   const CollectionView({super.key});
 
@@ -25,7 +27,7 @@ class CollectionView extends HookConsumerWidget {
     final serverReachable = ref.watch(serverStatusProvider).value ?? false;
 
     if (selectedLibrary == null) {
-      return const Center(child: Text('No library selected. Please select a library via the switcher.'));
+      return Center(child: Text(S.current.screensMainCollectionViewNoLibrarySelectedPleaseSelectA));
     }
 
     final libraryId = selectedLibrary.id;
@@ -123,19 +125,19 @@ Future<void> _showCollectionActionsSheet({
             if (canEditCollections)
               ListTile(
                 leading: const Icon(Icons.menu_book_rounded),
-                title: const Text('Edit books'),
+                title: Text(S.current.screensMainCollectionViewEditBooks),
                 onTap: () => Navigator.of(sheetContext).pop(_CollectionAction.editBooks),
               ),
             if (canEditCollections)
               ListTile(
                 leading: const Icon(Icons.edit_outlined),
-                title: const Text('Edit details'),
+                title: Text(S.current.screensMainCollectionViewEditDetails),
                 onTap: () => Navigator.of(sheetContext).pop(_CollectionAction.edit),
               ),
             if (canDeleteCollections)
               ListTile(
                 leading: const Icon(Icons.delete_outline_rounded),
-                title: const Text('Delete collection'),
+                title: Text(S.current.screensMainCollectionViewDeleteCollection),
                 onTap: () => Navigator.of(sheetContext).pop(_CollectionAction.delete),
               ),
           ],

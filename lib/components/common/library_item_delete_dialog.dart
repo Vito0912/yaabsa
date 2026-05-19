@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 enum LibraryItemDeleteMode { absOnly, absAndFileSystem }
 
 Future<LibraryItemDeleteMode?> showLibraryItemDeleteDialog({
@@ -24,12 +26,8 @@ class LibraryItemDeleteDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final isSingle = deleteCount == 1;
-
-    final title = isSingle ? 'Delete audiobook?' : 'Delete audiobooks?';
-    final warning = isSingle
-        ? 'This action will remove the audiobook from Audiobookshelf and cannot be undone.'
-        : 'This action will remove $deleteCount audiobooks from Audiobookshelf and cannot be undone.';
+    final title = S.current.componentsCommonLibraryItemDeleteDialogDeleteAudiobookQuestion(deleteCount);
+    final warning = S.current.componentsCommonLibraryItemDeleteDialogDeleteWarning(deleteCount);
 
     return AlertDialog(
       title: Text(title),
@@ -42,14 +40,14 @@ class LibraryItemDeleteDialog extends StatelessWidget {
             Text(warning),
             const SizedBox(height: 8),
             Text(
-              'Choose deletion mode:',
+              S.current.componentsCommonLibraryItemDeleteDialogChooseDeletionMode,
               style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
             ),
             if (skippedCount > 0)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
-                  '$skippedCount selected item(s) are not audiobooks and will be skipped.',
+                  S.current.componentsCommonLibraryItemDeleteDialogSelectedItemSAreNotAudiobooks(skippedCount),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
                 ),
               ),
@@ -72,7 +70,12 @@ class LibraryItemDeleteDialog extends StatelessWidget {
           ],
         ),
       ),
-      actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel'))],
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(S.current.componentsCommonLibraryItemDeleteDialogCancel),
+        ),
+      ],
     );
   }
 }

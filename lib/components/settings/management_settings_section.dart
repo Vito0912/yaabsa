@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/api/me/user.dart';
+import 'package:yaabsa/generated/l10n.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/screens/settings/admin_server_settings.dart';
 import 'package:yaabsa/screens/settings/tools_settings.dart';
@@ -20,18 +21,18 @@ class ManagementSettingsSection extends StatelessWidget {
     final isAdminUser = _isAdminUser;
 
     return SettingsNavigationSection(
-      title: 'Management',
+      title: S.current.componentsSettingsManagementSettingsSectionManagement,
       items: [
         if (isAdminUser)
           SettingsNavigationItem(
             icon: Icons.admin_panel_settings_outlined,
-            title: 'Admin Server Settings',
+            title: S.current.componentsSettingsManagementSettingsSectionAdminServerSettings,
             enabled: isAdminUser,
             onTap: isAdminUser ? () => context.push(AdminServerSettings.routeName) : null,
           ),
         SettingsNavigationItem(
           icon: Icons.handyman_outlined,
-          title: 'Tools',
+          title: S.current.componentsSettingsManagementSettingsSectionTools,
           onTap: () => context.push(ToolsSettings.routeName),
         ),
       ],

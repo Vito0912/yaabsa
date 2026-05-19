@@ -23,6 +23,8 @@ import 'package:yaabsa/screens/player/play_history_view.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/handler/bg_audio_handler.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class LibraryItemPodcastView extends ConsumerStatefulWidget {
   const LibraryItemPodcastView({super.key, required this.item, required this.canDownload});
 
@@ -55,7 +57,7 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
 
     final podcastMedia = widget.item.media?.podcastMedia;
     if (podcastMedia == null) {
-      return const Center(child: Text('Podcast metadata is unavailable.'));
+      return Center(child: Text(S.current.screensItemLibraryItemPodcastViewPodcastMetadataIsUnavailable));
     }
 
     final allEpisodes = podcastMedia.episodes ?? const <Episode>[];
@@ -221,11 +223,13 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                                               ),
                                               const Divider(height: 1),
                                               if (visibleEpisodes.isEmpty)
-                                                const Padding(
+                                                Padding(
                                                   padding: EdgeInsets.all(24),
                                                   child: Center(
                                                     child: Text(
-                                                      'No episodes match the current search/filter settings.',
+                                                      S
+                                                          .current
+                                                          .screensItemLibraryItemPodcastViewNoEpisodesMatchTheCurrentSearch,
                                                     ),
                                                   ),
                                                 )
@@ -432,12 +436,16 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Download added to queue.')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(S.current.screensItemLibraryItemPodcastViewDownloadAddedToQueue)));
     } catch (e) {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not start download: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(S.current.screensItemLibraryItemPodcastViewCouldNotStartDownload(e))));
     }
   }
 
@@ -460,15 +468,19 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
       if (!mounted) {
         return;
       }
-      final failedSuffix = result.failedFiles > 0 ? ' ${result.failedFiles} file(s) could not be removed.' : '';
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Deleted ${result.deletedFiles} file(s).$failedSuffix')));
+      final failedSuffix = S.current.downloadDeleteFailedSuffix(result.failedFiles);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(S.current.screensItemLibraryItemPodcastViewDeletedFileS(result.deletedFiles, failedSuffix)),
+        ),
+      );
     } catch (e) {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not delete download: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(S.current.screensItemLibraryItemPodcastViewCouldNotDeleteDownload(e))));
     }
   }
 

@@ -6,6 +6,8 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/player/play_history_local_tab.dart';
 import 'package:yaabsa/util/globals.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class PlayHistoryView extends ConsumerWidget {
   const PlayHistoryView({super.key, this.itemId, this.episodeId, this.itemTitle});
 
@@ -38,14 +40,17 @@ class PlayHistoryView extends ConsumerWidget {
 
     if (user == null || resolvedItemId == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Play History')),
-        body: const Center(
+        appBar: AppBar(title: Text(S.current.screensPlayerPlayHistoryViewPlayHistory)),
+        body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Icons.history, size: 64, color: Colors.grey),
               SizedBox(height: 16),
-              Text('No user or media item available', style: TextStyle(fontSize: 16, color: Colors.grey)),
+              Text(
+                S.current.screensPlayerPlayHistoryViewNoUserOrMediaItemAvailable,
+                style: TextStyle(fontSize: 16, color: Colors.grey),
+              ),
             ],
           ),
         ),
@@ -56,7 +61,7 @@ class PlayHistoryView extends ConsumerWidget {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Play History'),
+          title: Text(S.current.screensPlayerPlayHistoryViewPlayHistory),
           bottom: const TabBar(
             tabs: [
               Tab(text: 'Local History'),
@@ -105,7 +110,7 @@ class _PlayHistorySessionsTab extends ConsumerWidget {
     return itemAsync.when(
       data: (item) => LibraryItemListeningSessionsTab(item: item, initialEpisodeId: episodeId),
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(child: Text('Failed to load item sessions: $error')),
+      error: (error, _) => Center(child: Text(S.current.screensPlayerPlayHistoryViewFailedToLoadItemSessions(error))),
     );
   }
 }

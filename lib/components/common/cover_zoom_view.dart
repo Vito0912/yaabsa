@@ -4,6 +4,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:yaabsa/components/common/cover_placeholder.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 Map<String, String> normalizeImageRequestHeaders(Map<String, dynamic>? headers) {
   if (headers == null || headers.isEmpty) {
     return const <String, String>{};
@@ -150,7 +152,7 @@ class _CoverZoomView extends StatelessWidget {
                 top: 8,
                 right: 8,
                 child: IconButton(
-                  tooltip: 'Close',
+                  tooltip: S.current.componentsCommonCoverZoomViewClose,
                   onPressed: () => Navigator.of(context).maybePop(),
                   style: IconButton.styleFrom(
                     backgroundColor: Colors.black.withValues(alpha: 0.4),

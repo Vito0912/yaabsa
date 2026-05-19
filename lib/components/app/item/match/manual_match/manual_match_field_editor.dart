@@ -3,6 +3,8 @@ import 'package:yaabsa/components/app/item/editor/library_item_editor_inputs.dar
 import 'package:yaabsa/components/app/item/match/manual_match/manual_match_description_field.dart';
 import 'package:yaabsa/components/app/item/match/manual_match/manual_match_models.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class ManualMatchFieldEditor extends StatelessWidget {
   const ManualMatchFieldEditor({
     super.key,
@@ -73,7 +75,7 @@ class ManualMatchFieldEditor extends StatelessWidget {
                   if (field != ManualMatchField.cover) ...[
                     const SizedBox(height: 4),
                     Text(
-                      'Current: $currentLabel',
+                      S.current.componentsAppItemMatchManualMatchManualMatchFieldEditorCurrent(currentLabel),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(
@@ -147,7 +149,7 @@ class ManualMatchFieldEditor extends StatelessWidget {
         }
         onTextChanged(serialized);
       },
-      hintText: 'Add value',
+      hintText: S.current.componentsAppItemMatchManualMatchManualMatchFieldEditorAddValue,
     );
   }
 
@@ -161,9 +163,15 @@ class ManualMatchFieldEditor extends StatelessWidget {
         isDense: true,
         contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       ),
-      items: const [
-        DropdownMenuItem<bool>(value: true, child: Text('Yes')),
-        DropdownMenuItem<bool>(value: false, child: Text('No')),
+      items: [
+        DropdownMenuItem<bool>(
+          value: true,
+          child: Text(S.current.componentsAppItemMatchManualMatchManualMatchFieldEditorYes),
+        ),
+        DropdownMenuItem<bool>(
+          value: false,
+          child: Text(S.current.componentsAppItemMatchManualMatchManualMatchFieldEditorNo),
+        ),
       ],
     );
   }
@@ -172,7 +180,7 @@ class ManualMatchFieldEditor extends StatelessWidget {
     return Row(
       children: [
         Text(
-          'Mode:',
+          S.current.componentsAppItemMatchManualMatchManualMatchFieldEditorMode,
           style: Theme.of(
             context,
           ).textTheme.labelMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),

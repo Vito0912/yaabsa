@@ -6,6 +6,8 @@ import 'package:yaabsa/components/app/user_switcher.dart';
 import 'package:yaabsa/provider/core/multi_select_app_bar_provider.dart';
 import 'package:yaabsa/screens/layout_home/navigation_item_config.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class LayoutHomeMultiSelectAppBar extends StatelessWidget {
   const LayoutHomeMultiSelectAppBar({
     super.key,
@@ -33,7 +35,7 @@ class LayoutHomeMultiSelectAppBar extends StatelessWidget {
           children: [
             if (showSidebarToggle)
               IconButton(
-                tooltip: isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar',
+                tooltip: isSidebarCollapsed ? S.current.layoutHomeExpandSidebar : S.current.layoutHomeCollapseSidebar,
                 onPressed: onSidebarToggle,
                 icon: Icon(isSidebarCollapsed ? Icons.arrow_right : Icons.arrow_left),
               ),
@@ -44,7 +46,7 @@ class LayoutHomeMultiSelectAppBar extends StatelessWidget {
                 borderRadius: BorderRadius.circular(999),
               ),
               child: Text(
-                state.selectedCount == 1 ? '1 selected' : '${state.selectedCount} selected',
+                S.current.layoutHomeSelectedCount(state.selectedCount),
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onPrimaryContainer,
                   fontWeight: FontWeight.w700,
@@ -71,7 +73,7 @@ class LayoutHomeMultiSelectAppBar extends StatelessWidget {
             ],
             if (state.actions.isNotEmpty) const SizedBox(width: 4),
             IconButton(
-              tooltip: 'Clear selection',
+              tooltip: S.current.screensLayoutHomeLayoutHomeAppBarsClearSelection,
               onPressed: state.isBusy ? null : state.onClearSelection,
               icon: const Icon(Icons.close_rounded),
             ),
@@ -212,7 +214,7 @@ class LayoutHomeMobileAppBar extends StatelessWidget {
                     color: Theme.of(context).iconTheme.color ?? Theme.of(context).colorScheme.onSurface,
                   ),
                   const SizedBox(width: 12),
-                  const Text('Upload'),
+                  Text(S.current.screensLayoutHomeLayoutHomeAppBarsUpload),
                 ],
               ),
             ),
@@ -277,7 +279,7 @@ class LayoutHomeNonMobileAppBar extends StatelessWidget {
         child: Row(
           children: [
             IconButton(
-              tooltip: isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar',
+              tooltip: isSidebarCollapsed ? S.current.layoutHomeExpandSidebar : S.current.layoutHomeCollapseSidebar,
               onPressed: onSidebarToggle,
               icon: Icon(isSidebarCollapsed ? Icons.arrow_right : Icons.arrow_left),
             ),
@@ -318,7 +320,7 @@ class LayoutHomeNonMobileAppBar extends StatelessWidget {
                         _IconContainerButton(
                           icon: Icons.cloud_upload_outlined,
                           onTap: onUploadPressed,
-                          tooltip: 'Open uploader',
+                          tooltip: S.current.screensLayoutHomeLayoutHomeAppBarsOpenUploader,
                         ),
                       ],
                       const SizedBox(width: 4),
@@ -365,11 +367,15 @@ class _LayoutHomeSearchField extends StatelessWidget {
         onChanged: onChanged,
         onSubmitted: onSubmitted,
         decoration: InputDecoration(
-          hintText: 'Search this library',
+          hintText: S.current.screensLayoutHomeLayoutHomeAppBarsSearchThisLibrary,
           isDense: true,
           prefixIcon: const Icon(Icons.search_rounded),
           suffixIcon: searchQuery.isNotEmpty
-              ? IconButton(tooltip: 'Clear search', onPressed: onClear, icon: const Icon(Icons.close_rounded))
+              ? IconButton(
+                  tooltip: S.current.screensLayoutHomeLayoutHomeAppBarsClearSearch,
+                  onPressed: onClear,
+                  icon: const Icon(Icons.close_rounded),
+                )
               : null,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
           contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),

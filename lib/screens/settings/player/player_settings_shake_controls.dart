@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:yaabsa/generated/l10n.dart';
 import 'package:yaabsa/screens/settings/player/player_settings.dart';
 import 'package:yaabsa/screens/settings/player/widgets/shake_settings_section.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
@@ -14,7 +15,7 @@ class PlayerSettingsShakeControls extends StatelessWidget {
     final supportsShakeActions = DeviceCapabilities.supportsShakeActions;
 
     return SettingsPageScaffold(
-      title: 'Player - Shake Controls',
+      title: S.current.screensSettingsPlayerPlayerSettingsShakeControlsTitle,
       embedded: true,
       showEmbeddedBackButton: true,
       embeddedBackFallbackRoute: PlayerSettings.routeName,
@@ -23,7 +24,7 @@ class PlayerSettingsShakeControls extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Text(
-              'Shake controls are not available on this device.',
+              S.current.screensSettingsPlayerPlayerSettingsShakeControlsUnavailableOnThisDevice,
               style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
           ),

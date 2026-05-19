@@ -4,6 +4,8 @@ import 'package:yaabsa/api/library/search_library.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/provider/common/library_search_provider.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 Future<List<String>?> showBookEditorSheet({
   required BuildContext context,
   required String title,
@@ -144,7 +146,8 @@ class _BookEditorSheetState extends ConsumerState<_BookEditorSheet> {
         actions: [
           if (widget.skipLabel != null)
             TextButton(onPressed: () => Navigator.of(context).pop(<String>[]), child: Text(widget.skipLabel!)),
-          if (_selectedIds.isNotEmpty) TextButton(onPressed: _clearSelection, child: const Text('Unselect all')),
+          if (_selectedIds.isNotEmpty)
+            TextButton(onPressed: _clearSelection, child: Text(S.current.componentsCommonBookEditorSheetUnselectAll)),
           Padding(
             padding: const EdgeInsets.only(right: 8),
             child: FilledButton(
@@ -164,9 +167,9 @@ class _BookEditorSheetState extends ConsumerState<_BookEditorSheet> {
               TextField(
                 controller: _searchController,
                 textInputAction: TextInputAction.search,
-                decoration: const InputDecoration(
-                  labelText: 'Search books',
-                  hintText: 'Title, author, or series',
+                decoration: InputDecoration(
+                  labelText: S.current.componentsCommonBookEditorSheetSearchBooks,
+                  hintText: S.current.componentsCommonBookEditorSheetTitleAuthorOrSeries,
                   prefixIcon: Icon(Icons.search_rounded),
                 ),
               ),
@@ -236,7 +239,7 @@ class _SearchResultsList extends StatelessWidget {
     if (searchQuery.isEmpty) {
       return Center(
         child: Text(
-          'Search books to add',
+          S.current.componentsCommonBookEditorSheetSearchBooksToAdd,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
       );
@@ -248,7 +251,7 @@ class _SearchResultsList extends StatelessWidget {
         if (candidates.isEmpty) {
           return Center(
             child: Text(
-              'No matching books found.',
+              S.current.componentsCommonBookEditorSheetNoMatchingBooksFound,
               style: Theme.of(
                 context,
               ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
@@ -280,7 +283,7 @@ class _SearchResultsList extends StatelessWidget {
       error: (error, stackTrace) {
         return Center(
           child: Text(
-            'Search failed. Please try another query.',
+            S.current.componentsCommonBookEditorSheetSearchFailedPleaseTryAnotherQuery,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.error),
           ),
         );
@@ -314,13 +317,16 @@ class _SelectedBooksPane extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Selected (${selectedIds.length})', style: Theme.of(context).textTheme.titleSmall),
+            Text(
+              S.current.componentsCommonBookEditorSheetSelected(selectedIds.length),
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
             const SizedBox(height: 8),
             Expanded(
               child: selectedIds.isEmpty
                   ? Center(
                       child: Text(
-                        'No books selected.',
+                        S.current.componentsCommonBookEditorSheetNoBooksSelected,
                         style: Theme.of(
                           context,
                         ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),

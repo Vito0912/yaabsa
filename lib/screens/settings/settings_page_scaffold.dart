@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class SettingsPageScaffold extends StatelessWidget {
   const SettingsPageScaffold({
     required this.title,
@@ -41,7 +43,7 @@ class SettingsPageScaffold extends StatelessWidget {
             children: [
               if (showEmbeddedBackButton)
                 IconButton(
-                  tooltip: 'Back',
+                  tooltip: S.current.screensSettingsSettingsPageScaffoldBack,
                   onPressed: () => _handleEmbeddedBack(context),
                   icon: const Icon(Icons.arrow_back_rounded),
                 ),

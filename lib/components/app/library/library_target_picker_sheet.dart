@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class LibraryTargetPickerOption {
   const LibraryTargetPickerOption({required this.id, required this.title, this.subtitle});
 
@@ -207,7 +209,7 @@ class _LibraryTargetPickerErrorContent extends StatelessWidget {
                   OutlinedButton.icon(
                     onPressed: onRetry,
                     icon: const Icon(Icons.refresh_rounded),
-                    label: const Text('Retry'),
+                    label: Text(S.current.componentsAppLibraryLibraryTargetPickerSheetRetry),
                   ),
                 ],
               ),

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:yaabsa/components/app/item/match/manual_match/manual_match_field_editor.dart';
 import 'package:yaabsa/components/app/item/match/manual_match/manual_match_models.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class ManualMatchEditorPane extends StatelessWidget {
   const ManualMatchEditorPane({
     super.key,
@@ -47,7 +49,7 @@ class ManualMatchEditorPane extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Text(
-              'Select a match result to choose which metadata fields to apply.',
+              S.current.componentsAppItemMatchManualMatchManualMatchEditorPaneSelectAMatchResultToChoose,
               style: Theme.of(context).textTheme.bodyMedium,
               textAlign: TextAlign.center,
             ),
@@ -60,9 +62,9 @@ class ManualMatchEditorPane extends StatelessWidget {
       margin: EdgeInsets.zero,
       child: Column(
         children: [
-          const ListTile(
+          ListTile(
             leading: Icon(Icons.edit_note_rounded),
-            title: Text('Apply fields'),
+            title: Text(S.current.componentsAppItemMatchManualMatchManualMatchEditorPaneApplyFields),
             dense: true,
             contentPadding: EdgeInsets.symmetric(horizontal: 12),
           ),
@@ -70,7 +72,7 @@ class ManualMatchEditorPane extends StatelessWidget {
           CheckboxListTile(
             value: allFieldsSelected,
             onChanged: saving ? null : (value) => onToggleAll(value ?? false),
-            title: const Text('Select all available fields'),
+            title: Text(S.current.componentsAppItemMatchManualMatchManualMatchEditorPaneSelectAllAvailableFields),
             controlAffinity: ListTileControlAffinity.leading,
             dense: true,
             contentPadding: const EdgeInsets.symmetric(horizontal: 12),

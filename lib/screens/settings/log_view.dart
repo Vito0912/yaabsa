@@ -6,24 +6,28 @@ import 'package:yaabsa/screens/settings/widgets/log_entry_tile.dart';
 import 'package:yaabsa/util/log_exporter.dart';
 import 'package:yaabsa/util/logger.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class LogView extends HookWidget {
   const LogView({super.key});
 
   void _copyRawLogs(BuildContext context, List<LogEntry> logs) {
     if (logs.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No logs to copy.')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(S.current.screensSettingsLogViewNoLogsToCopy)));
       return;
     }
 
     final rawLogs = formatLogsForExport(logs);
     Clipboard.setData(ClipboardData(text: rawLogs));
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Raw logs copied to clipboard!')));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(S.current.screensSettingsLogViewRawLogsCopiedToClipboard)));
   }
 
   void _copyGitHubLogs(BuildContext context, List<LogEntry> logs) {
     final buffer = StringBuffer();
     buffer.writeln('<details>');
-    buffer.writeln('<summary>Logs (${logs.length} ${logs.length == 1 ? 'entry' : 'entries'})</summary>');
+    buffer.writeln(S.current.settingsLogViewSummaryLogs(logs.length));
     buffer.writeln('');
     buffer.writeln('```text');
     if (logs.isNotEmpty) {
@@ -37,12 +41,14 @@ class LogView extends HookWidget {
     Clipboard.setData(ClipboardData(text: buffer.toString()));
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(const SnackBar(content: Text('GitHub formatted logs copied to clipboard!')));
+    ).showSnackBar(SnackBar(content: Text(S.current.screensSettingsLogViewGithubFormattedLogsCopiedToClipboard)));
   }
 
   Future<void> _exportLogs(BuildContext context, List<LogEntry> logs) async {
     if (logs.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No logs to export.')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(S.current.screensSettingsLogViewNoLogsToExport)));
       return;
     }
 
@@ -54,13 +60,13 @@ class LogView extends HookWidget {
       }
 
       final destinationDescription = exportResult.usedSaveDialog
-          ? 'selected location'
-          : 'app storage fallback location';
+          ? S.current.settingsLogViewSelectedLocation
+          : S.current.settingsLogViewAppStorageFallbackLocation;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Logs exported to .log file ($destinationDescription): ${exportResult.filePath}',
+            S.current.screensSettingsLogViewLogsExportedToLogFile(destinationDescription, exportResult.filePath),
             maxLines: 4,
             overflow: TextOverflow.ellipsis,
           ),
@@ -72,7 +78,9 @@ class LogView extends HookWidget {
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to export logs: $error')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(S.current.screensSettingsLogViewFailedToExportLogs(error))));
     }
   }
 
@@ -102,7 +110,7 @@ class LogView extends HookWidget {
             const SizedBox(width: 28, height: 28, child: CircularProgressIndicator(strokeWidth: 2.5)),
             const SizedBox(height: 10),
             Text(
-              'Loading logs...',
+              S.current.screensSettingsLogViewLoadingLogs,
               style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
             ),
           ],
@@ -116,10 +124,10 @@ class LogView extends HookWidget {
         children: [
           Icon(Icons.article_outlined, size: 44, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6)),
           const SizedBox(height: 10),
-          Text('No logs yet', style: theme.textTheme.titleMedium),
+          Text(S.current.screensSettingsLogViewNoLogsYet, style: theme.textTheme.titleMedium),
           const SizedBox(height: 6),
           Text(
-            'Logs will appear here as they are generated.',
+            S.current.screensSettingsLogViewLogsWillAppearHereAsThey,
             style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
           ),
         ],
@@ -153,7 +161,7 @@ class LogView extends HookWidget {
     }, [logs.length, autoScrollEnabled.value]);
 
     return SettingsPageScaffold(
-      title: 'Logs',
+      title: S.current.settingsLogViewTitle,
       maxWidth: double.infinity,
       padding: const EdgeInsets.only(bottom: 24),
       children: [
@@ -177,12 +185,12 @@ class LogView extends HookWidget {
                       FilledButton.icon(
                         onPressed: () => _copyRawLogs(context, logs),
                         icon: const Icon(Icons.copy_outlined, size: 18),
-                        label: const Text('Copy Raw'),
+                        label: Text(S.current.screensSettingsLogViewCopyRaw),
                       ),
                       FilledButton.tonalIcon(
                         onPressed: () => _copyGitHubLogs(context, logs),
                         icon: const Icon(Icons.code_outlined, size: 18),
-                        label: const Text('Copy GitHub'),
+                        label: Text(S.current.screensSettingsLogViewCopyGitHub),
                       ),
                       OutlinedButton.icon(
                         onPressed: isExporting.value
@@ -197,7 +205,11 @@ class LogView extends HookWidget {
                         icon: isExporting.value
                             ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
                             : const Icon(Icons.save_alt_outlined, size: 18),
-                        label: Text(isExporting.value ? 'Exporting .log...' : 'Export .log'),
+                        label: Text(
+                          isExporting.value
+                              ? S.current.settingsLogViewExportingLog
+                              : S.current.settingsLogViewExportLog,
+                        ),
                       ),
                     ],
                   ),
@@ -211,23 +223,23 @@ class LogView extends HookWidget {
                           borderRadius: BorderRadius.circular(999),
                         ),
                         child: Text(
-                          '${logs.length} ${logs.length == 1 ? 'entry' : 'entries'}',
+                          S.current.settingsLogViewEntriesCount(logs.length),
                           style: theme.textTheme.labelMedium,
                         ),
                       ),
                       const Spacer(),
                       IconButton(
-                        tooltip: 'Scroll to top',
+                        tooltip: S.current.screensSettingsLogViewScrollToTop,
                         onPressed: logs.isEmpty ? null : () => _scrollToTop(scrollController),
                         icon: const Icon(Icons.vertical_align_top_rounded),
                       ),
                       IconButton(
-                        tooltip: 'Scroll to bottom',
+                        tooltip: S.current.screensSettingsLogViewScrollToBottom,
                         onPressed: logs.isEmpty ? null : () => _scrollToBottom(scrollController),
                         icon: const Icon(Icons.vertical_align_bottom_rounded),
                       ),
                       const SizedBox(width: 4),
-                      Text('Auto-scroll', style: theme.textTheme.bodySmall),
+                      Text(S.current.screensSettingsLogViewAutoScroll, style: theme.textTheme.bodySmall),
                       Switch.adaptive(
                         value: autoScrollEnabled.value,
                         onChanged: (value) => autoScrollEnabled.value = value,

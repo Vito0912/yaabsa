@@ -28,6 +28,8 @@ import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/network/dio_factory.dart';
 import 'package:yaabsa/util/network/request_headers.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class SignIn extends HookConsumerWidget {
   const SignIn({super.key});
 
@@ -406,8 +408,8 @@ class SignIn extends HookConsumerWidget {
 
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('OpenID flow opened in your browser. Finish sign-in there and return to the app.'),
+        SnackBar(
+          content: Text(S.current.screensAuthSignInOpenidFlowOpenedInYourBrowser),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -497,20 +499,20 @@ class SignIn extends HookConsumerWidget {
                                           context.go('/');
                                         }
                                       },
-                                tooltip: 'Back',
+                                tooltip: S.current.screensAuthSignInBack,
                                 icon: const Icon(Icons.arrow_back_rounded),
                               ),
                             ),
                             const SizedBox(height: 4),
                           ],
                           Text(
-                            'Yaabsa',
+                            S.current.screensAuthSignInYaabsa,
                             textAlign: TextAlign.center,
                             style: textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700),
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            'Sign in to your Audiobookshelf server',
+                            S.current.screensAuthSignInSignInToYourAudiobookshelfServer,
                             textAlign: TextAlign.center,
                             style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
                           ),
@@ -519,8 +521,8 @@ class SignIn extends HookConsumerWidget {
                             controller: serverAddressController,
                             keyboardType: TextInputType.url,
                             decoration: InputDecoration(
-                              labelText: 'Server Address',
-                              hintText: 'https://your-audiobookshelf.example',
+                              labelText: S.current.screensAuthSignInServerAddress,
+                              hintText: S.current.screensAuthSignInHttpsYourAudiobookshelfExample,
                               prefixIcon: const Icon(Icons.dns_outlined),
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                             ),

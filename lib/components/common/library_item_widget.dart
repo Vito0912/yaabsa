@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:yaabsa/generated/l10n.dart';
 
 class LibraryItemWidget extends ConsumerStatefulWidget {
   const LibraryItemWidget(
@@ -247,9 +248,7 @@ class _LibraryItemWidgetState extends ConsumerState<LibraryItemWidget> {
                     right: 4,
                     child: isCollapsedSeriesCard
                         ? Tooltip(
-                            message:
-                                '$collapsedSeriesBookCount '
-                                '${collapsedSeriesBookCount == 1 ? 'book' : 'books'} in series',
+                            message: S.current.libraryItemWidgetBooksInSeries(collapsedSeriesBookCount),
                             child: Container(
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(100),

@@ -138,7 +138,10 @@ class ABSSocketClient {
     });
 
     socket.on("disconnect", (dynamic reason) {
-      final message = reason == null ? 'Socket disconnected' : 'Socket disconnected: $reason';
+      var message = 'Socket disconnected';
+      if (reason != null) {
+        message = 'Socket disconnected: $reason';
+      }
       logger(message, tag: 'ABSSocketClient', level: InfoLevel.debug);
     });
 

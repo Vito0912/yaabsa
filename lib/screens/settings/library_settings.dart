@@ -13,6 +13,8 @@ import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/download_destination.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class LibrarySettings extends ConsumerStatefulWidget {
   const LibrarySettings({super.key});
 
@@ -72,12 +74,16 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Download location updated.')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(S.current.screensSettingsLibrarySettingsDownloadLocationUpdated)));
     } catch (e) {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update location: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(S.current.screensSettingsLibrarySettingsFailedToUpdateLocation(e))));
     } finally {
       if (mounted) {
         setState(() => _isPicking = false);
@@ -99,12 +105,16 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Using default download location.')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(S.current.screensSettingsLibrarySettingsUsingDefaultDownloadLocation)));
     } catch (e) {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update location: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(S.current.screensSettingsLibrarySettingsFailedToUpdateLocation(e))));
     } finally {
       if (mounted) {
         setState(() => _isPicking = false);
@@ -131,12 +141,12 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
             children: [
               ListTile(
                 leading: const Icon(Icons.folder_open),
-                title: const Text('Choose folder'),
+                title: Text(S.current.screensSettingsLibrarySettingsChooseFolder),
                 onTap: () => Navigator.of(context).pop(_LocationAction.choose),
               ),
               ListTile(
                 leading: const Icon(Icons.restart_alt_rounded),
-                title: const Text('Use default location'),
+                title: Text(S.current.screensSettingsLibrarySettingsUseDefaultLocation),
                 onTap: () => Navigator.of(context).pop(_LocationAction.useDefault),
               ),
             ],
@@ -171,9 +181,9 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
         return;
       }
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to update collapse series setting: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.current.screensSettingsLibrarySettingsFailedToUpdateCollapseSeriesSetting(e))),
+      );
     } finally {
       if (mounted) {
         setState(() => _isUpdatingCollapseSeries = false);
@@ -194,9 +204,9 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
         currentUser.when(
           data: (user) {
             if (user == null) {
-              return const Padding(
+              return Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                child: Text('No active user. Sign in to configure download settings.'),
+                child: Text(S.current.screensSettingsLibrarySettingsNoActiveUserSignInTo),
               );
             }
 
@@ -223,7 +233,7 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
                         return SettingButton(
                           label: 'Download Location',
                           description: currentLocationDisplay,
-                          buttonText: hasCustomLocation ? 'Change' : 'Choose',
+                          buttonText: hasCustomLocation ? S.current.commonChange : S.current.commonChoose,
                           buttonIcon: Icons.folder_open,
                           onPressed: supportsCustomDownloadLocation
                               ? () => _handleLocationAction(user.id, hasCustomLocation: hasCustomLocation)
@@ -256,7 +266,7 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
                             children: [
                               Flexible(
                                 child: Text(
-                                  'Collapse Series',
+                                  S.current.screensSettingsLibrarySettingsCollapseSeries,
                                   style: theme.textTheme.titleMedium?.copyWith(
                                     color: _isUpdatingCollapseSeries ? theme.disabledColor : null,
                                   ),
@@ -284,8 +294,10 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
             padding: EdgeInsets.all(16),
             child: Center(child: CircularProgressIndicator()),
           ),
-          error: (error, _) =>
-              Padding(padding: const EdgeInsets.all(16), child: Text('Failed to load user settings: $error')),
+          error: (error, _) => Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(S.current.screensSettingsLibrarySettingsFailedToLoadUserSettings(error)),
+          ),
         ),
         const SettingSwitchTile(
           label: 'Show Shelf Play Button',

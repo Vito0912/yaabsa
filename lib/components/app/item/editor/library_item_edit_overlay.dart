@@ -20,6 +20,8 @@ import 'package:yaabsa/provider/core/server_tasks_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 enum _LibraryItemEditorTab { details, embedding, encoder }
 
 class LibraryItemEditOverlay extends ConsumerStatefulWidget {
@@ -130,11 +132,11 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
   String _tabTitle(_LibraryItemEditorTab tab) {
     switch (tab) {
       case _LibraryItemEditorTab.details:
-        return 'Details';
+        return S.current.componentsAppItemEditorLibraryItemEditOverlayTabDetails;
       case _LibraryItemEditorTab.embedding:
-        return 'Embedding';
+        return S.current.componentsAppItemEditorLibraryItemEditOverlayTabEmbedding;
       case _LibraryItemEditorTab.encoder:
-        return 'Encoder';
+        return S.current.componentsAppItemEditorLibraryItemEditOverlayTabEncoder;
     }
   }
 
@@ -186,7 +188,7 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
     if (api == null) {
       if (mounted) {
         setState(() {
-          _toolErrorMessage = 'No server connection available.';
+          _toolErrorMessage = S.current.componentsAppItemEditorLibraryItemEditOverlayNoServerConnectionAvailable;
         });
       }
       return;
@@ -212,7 +214,9 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
       }
 
       setState(() {
-        _toolErrorMessage = 'Failed to load metadata object: ${_extractApiMessage(error)}';
+        _toolErrorMessage = S.current.componentsAppItemEditorLibraryItemEditOverlayFailedToLoadMetadataObject(
+          _extractApiMessage(error),
+        );
       });
     } finally {
       if (mounted) {
@@ -231,7 +235,7 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
     final api = ref.read(absApiProvider);
     if (api == null) {
       setState(() {
-        _toolErrorMessage = 'No server connection available.';
+        _toolErrorMessage = S.current.componentsAppItemEditorLibraryItemEditOverlayNoServerConnectionAvailable;
       });
       return;
     }
@@ -253,7 +257,9 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
       }
 
       setState(() {
-        _toolErrorMessage = 'Failed to start embedding: ${_extractApiMessage(error)}';
+        _toolErrorMessage = S.current.componentsAppItemEditorLibraryItemEditOverlayFailedToStartEmbedding(
+          _extractApiMessage(error),
+        );
       });
     } finally {
       if (mounted) {
@@ -272,7 +278,7 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
     final api = ref.read(absApiProvider);
     if (api == null) {
       setState(() {
-        _toolErrorMessage = 'No server connection available.';
+        _toolErrorMessage = S.current.componentsAppItemEditorLibraryItemEditOverlayNoServerConnectionAvailable;
       });
       return;
     }
@@ -299,7 +305,9 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
       }
 
       setState(() {
-        _toolErrorMessage = 'Failed to start M4B encoding: ${_extractApiMessage(error)}';
+        _toolErrorMessage = S.current.componentsAppItemEditorLibraryItemEditOverlayFailedToStartM4bEncoding(
+          _extractApiMessage(error),
+        );
       });
     } finally {
       if (mounted) {
@@ -318,7 +326,7 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
     final api = ref.read(absApiProvider);
     if (api == null) {
       setState(() {
-        _toolErrorMessage = 'No server connection available.';
+        _toolErrorMessage = S.current.componentsAppItemEditorLibraryItemEditOverlayNoServerConnectionAvailable;
       });
       return;
     }
@@ -336,7 +344,9 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
       }
 
       setState(() {
-        _toolErrorMessage = 'Failed to cancel encoding: ${_extractApiMessage(error)}';
+        _toolErrorMessage = S.current.componentsAppItemEditorLibraryItemEditOverlayFailedToCancelEncoding(
+          _extractApiMessage(error),
+        );
       });
     } finally {
       if (mounted) {
@@ -362,7 +372,7 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
 
       final statusCode = error.response?.statusCode;
       if (statusCode != null) {
-        return 'Request failed ($statusCode).';
+        return S.current.componentsAppItemEditorLibraryItemEditOverlayRequestFailed(statusCode);
       }
 
       final dioMessage = error.message;
@@ -431,7 +441,9 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
     final api = ref.read(absApiProvider);
     if (api == null) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No server connection available.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(S.current.componentsAppItemEditorLibraryItemEditOverlayNoServerConnectionAvailable)),
+        );
       }
       return;
     }
@@ -448,7 +460,7 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
       final payload = response.data;
 
       if (payload == null || !payload.updated) {
-        throw Exception('Update request failed.');
+        throw Exception(S.current.componentsAppItemEditorLibraryItemEditOverlayUpdateRequestFailed);
       }
 
       final updatedItem = payload.libraryItem;
@@ -464,13 +476,18 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Saved item details.')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(S.current.componentsAppItemEditorLibraryItemEditOverlaySavedItemDetails)));
     } catch (error) {
       if (!mounted) {
         return;
       }
 
-      final message = listManagementErrorMessage(error, fallback: 'Could not save item details.');
+      final message = listManagementErrorMessage(
+        error,
+        fallback: S.current.componentsAppItemEditorLibraryItemEditOverlayCouldNotSaveItemDetails,
+      );
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     } finally {
       if (mounted) {
@@ -512,11 +529,17 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
 
     final embeddingErrorMessage = (localErrorMessage != null && localErrorMessage.isNotEmpty)
         ? localErrorMessage
-        : _taskFailureMessage(embedTask, fallback: 'Embedding task failed.');
+        : _taskFailureMessage(
+            embedTask,
+            fallback: S.current.componentsAppItemEditorLibraryItemEditOverlayEmbeddingTaskFailed,
+          );
 
     final encodingErrorMessage = (localErrorMessage != null && localErrorMessage.isNotEmpty)
         ? localErrorMessage
-        : _taskFailureMessage(encodeTask, fallback: 'M4B encoding task failed.');
+        : _taskFailureMessage(
+            encodeTask,
+            fallback: S.current.componentsAppItemEditorLibraryItemEditOverlayM4bEncodingTaskFailed,
+          );
 
     final availableTabs = _availableTabsForItem(activeItem, currentUserType);
     final selectedTab = availableTabs.contains(_selectedTab) ? _selectedTab : availableTabs.first;
@@ -677,7 +700,10 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
                                     child: Padding(
                                       padding: const EdgeInsets.all(20),
                                       child: Text(
-                                        'Could not load item details for editing.\n$error',
+                                        S.current
+                                            .componentsAppItemEditorLibraryItemEditOverlayCouldNotLoadItemDetailsFor(
+                                              error,
+                                            ),
                                         textAlign: TextAlign.center,
                                       ),
                                     ),
@@ -736,7 +762,7 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
     }
 
     final titleText = Text(
-      'Edit item',
+      S.current.componentsAppItemEditorLibraryItemEditOverlayEditItem,
       style: Theme.of(context).textTheme.labelLarge?.copyWith(color: colorScheme.onPrimaryContainer),
     );
 
@@ -752,7 +778,7 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
               height: 32,
               child: IconButton.filledTonal(
                 onPressed: _hasPrevious ? () => widget.onSelectItem(widget.orderedItemIds[_currentIndex - 1]) : null,
-                tooltip: 'Previous item',
+                tooltip: S.current.componentsAppItemEditorLibraryItemEditOverlayPreviousItem,
                 icon: const Icon(Icons.arrow_back_rounded, size: 16),
               ),
             ),
@@ -784,7 +810,7 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
               height: 32,
               child: IconButton.filledTonal(
                 onPressed: _hasNext ? () => widget.onSelectItem(widget.orderedItemIds[_currentIndex + 1]) : null,
-                tooltip: 'Next item',
+                tooltip: S.current.componentsAppItemEditorLibraryItemEditOverlayNextItem,
                 icon: const Icon(Icons.arrow_forward_rounded, size: 16),
               ),
             ),
@@ -794,7 +820,7 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
             height: 32,
             child: IconButton(
               onPressed: widget.onClose,
-              tooltip: 'Close editor',
+              tooltip: S.current.componentsAppItemEditorLibraryItemEditOverlayCloseEditor,
               icon: const Icon(Icons.close_rounded, size: 16),
             ),
           ),

@@ -1,14 +1,17 @@
+import 'package:intl/intl.dart';
+
 extension DurationExtensions on Duration {
   double get inSecondsPrecise => inMicroseconds / Duration.microsecondsPerSecond;
 
   String toHhMmString() {
-    int totalHours = inHours;
-    int minutes = inMinutes.remainder(60);
-    int seconds = inSeconds.remainder(60);
+    final totalHours = inHours;
+    final minutes = inMinutes.remainder(60);
+    final seconds = inSeconds.remainder(60);
+    final twoDigits = NumberFormat('00', Intl.getCurrentLocale());
     if (totalHours > 0) {
-      return '${totalHours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+      return '${twoDigits.format(totalHours)}:${twoDigits.format(minutes)}:${twoDigits.format(seconds)}';
     } else {
-      return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+      return '${twoDigits.format(minutes)}:${twoDigits.format(seconds)}';
     }
   }
 }

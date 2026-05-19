@@ -27,6 +27,8 @@ import 'package:yaabsa/util/handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/item_view_navigation.dart';
 import 'package:yaabsa/util/server_management_preferences.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class LibraryItemBookView extends ConsumerWidget {
   const LibraryItemBookView({super.key, required this.item, required this.canDownload});
 
@@ -195,16 +197,24 @@ class LibraryItemBookView extends ConsumerWidget {
                                           if (!context.mounted) {
                                             return;
                                           }
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(const SnackBar(content: Text('Download added to queue.')));
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                S.current.screensItemLibraryItemBookViewDownloadAddedToQueue,
+                                              ),
+                                            ),
+                                          );
                                         } catch (e) {
                                           if (!context.mounted) {
                                             return;
                                           }
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(SnackBar(content: Text('Could not start download: $e')));
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                S.current.screensItemLibraryItemBookViewCouldNotStartDownload(e),
+                                              ),
+                                            ),
+                                          );
                                         }
                                       },
                                       onDeleteDownload: () async {
@@ -223,21 +233,28 @@ class LibraryItemBookView extends ConsumerWidget {
                                           if (!context.mounted) {
                                             return;
                                           }
-                                          final failedSuffix = result.failedFiles > 0
-                                              ? ' ${result.failedFiles} file(s) could not be removed.'
-                                              : '';
+                                          final failedSuffix = S.current.downloadDeleteFailedSuffix(result.failedFiles);
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             SnackBar(
-                                              content: Text('Deleted ${result.deletedFiles} file(s).$failedSuffix'),
+                                              content: Text(
+                                                S.current.screensItemLibraryItemBookViewDeletedFileS(
+                                                  result.deletedFiles,
+                                                  failedSuffix,
+                                                ),
+                                              ),
                                             ),
                                           );
                                         } catch (e) {
                                           if (!context.mounted) {
                                             return;
                                           }
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(SnackBar(content: Text('Could not delete download: $e')));
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                S.current.screensItemLibraryItemBookViewCouldNotDeleteDownload(e),
+                                              ),
+                                            ),
+                                          );
                                         }
                                       },
                                       onQueueToggle: () {

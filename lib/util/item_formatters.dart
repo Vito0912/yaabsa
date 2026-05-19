@@ -1,4 +1,5 @@
 import 'package:yaabsa/util/extensions.dart';
+import 'package:intl/intl.dart';
 
 bool hasText(String? value) => value != null && value.trim().isNotEmpty;
 
@@ -38,7 +39,9 @@ String formatBytes(int bytes) {
     unitIndex++;
   }
 
-  final formatted = size >= 100 ? size.toStringAsFixed(0) : size.toStringAsFixed(2);
+  final decimalDigits = size >= 100 ? 0 : 2;
+  final formatter = NumberFormat.decimalPatternDigits(locale: Intl.getCurrentLocale(), decimalDigits: decimalDigits);
+  final formatted = formatter.format(size);
   return '$formatted ${units[unitIndex]}';
 }
 

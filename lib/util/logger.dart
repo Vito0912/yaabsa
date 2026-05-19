@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:intl/intl.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'logger.freezed.dart';
@@ -144,8 +145,7 @@ void logger(String message, {String? tag, InfoLevel level = InfoLevel.info}) {
   appLoggerService._addLogEntry(logEntry);
 
   if (_shouldPrintToConsole) {
-    final formattedDate =
-        '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
+    final formattedDate = DateFormat.yMd(Intl.getCurrentLocale()).add_Hms().format(now);
     final fallbackMessage = '[$formattedDate] [${level.name.toUpperCase()}] [${tag ?? 'FALLBACK'}] $message';
 
     switch (level) {

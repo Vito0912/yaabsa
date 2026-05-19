@@ -25,6 +25,8 @@ import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 Future<bool> showLibraryItemManualMatchDialog({
   required BuildContext context,
   required LibraryItem item,
@@ -102,7 +104,7 @@ class LibraryItemManualMatchDialog extends StatelessWidget {
             children: [
               Spacer(),
               IconButton(
-                tooltip: 'Close',
+                tooltip: S.current.componentsAppItemMatchManualMatchManualMatchDialogClose,
                 onPressed: () => Navigator.of(context).pop(false),
                 icon: const Icon(Icons.close_rounded),
               ),
@@ -256,19 +258,25 @@ class _LibraryItemManualMatchViewState extends ConsumerState<LibraryItemManualMa
 
     final title = _titleController.text.trim();
     if (title.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter a title.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.current.componentsAppItemMatchManualMatchManualMatchDialogPleaseEnterATitle)),
+      );
       return;
     }
 
     final selectedProviders = providers.where((provider) => _selectedProviders.contains(provider.value)).toList();
     if (selectedProviders.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Select at least one provider.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.current.componentsAppItemMatchManualMatchManualMatchDialogSelectAtLeastOneProvider)),
+      );
       return;
     }
 
     final api = ref.read(absApiProvider);
     if (api == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No API session available.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.current.componentsAppItemMatchManualMatchManualMatchDialogNoAPISessionAvailable)),
+      );
       return;
     }
 
@@ -333,7 +341,9 @@ class _LibraryItemManualMatchViewState extends ConsumerState<LibraryItemManualMa
     });
 
     if (collected.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No match results found.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.current.componentsAppItemMatchManualMatchManualMatchDialogNoMatchResultsFound)),
+      );
     }
   }
 
@@ -373,21 +383,27 @@ class _LibraryItemManualMatchViewState extends ConsumerState<LibraryItemManualMa
     }
 
     if (_enabledFields.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Select at least one field to apply.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.current.componentsAppItemMatchManualMatchManualMatchDialogSelectAtLeastOneFieldTo)),
+      );
       return;
     }
 
     final request = _buildUpdateRequest();
     if (request == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('No writable values were selected from this match result.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(S.current.componentsAppItemMatchManualMatchManualMatchDialogNoWritableValuesWereSelectedFrom),
+        ),
+      );
       return;
     }
 
     final api = ref.read(absApiProvider);
     if (api == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No API session available.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.current.componentsAppItemMatchManualMatchManualMatchDialogNoAPISessionAvailable)),
+      );
       return;
     }
 
@@ -415,7 +431,11 @@ class _LibraryItemManualMatchViewState extends ConsumerState<LibraryItemManualMa
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to save manual match: $error')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(S.current.componentsAppItemMatchManualMatchManualMatchDialogFailedToSaveManualMatch(error)),
+        ),
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -1055,9 +1075,15 @@ class _LibraryItemManualMatchViewState extends ConsumerState<LibraryItemManualMa
                             _mobilePaneIndex = index;
                           });
                         },
-                        children: const [
-                          Padding(padding: EdgeInsets.symmetric(horizontal: 12), child: Text('Candidates')),
-                          Padding(padding: EdgeInsets.symmetric(horizontal: 12), child: Text('Selection')),
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 12),
+                            child: Text(S.current.componentsAppItemMatchManualMatchManualMatchDialogCandidates),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 12),
+                            child: Text(S.current.componentsAppItemMatchManualMatchManualMatchDialogSelection),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -1093,7 +1119,7 @@ class _LibraryItemManualMatchViewState extends ConsumerState<LibraryItemManualMa
             children: [
               TextButton(
                 onPressed: _saving ? null : () => Navigator.of(context).pop(false),
-                child: const Text('Cancel'),
+                child: Text(S.current.componentsAppItemMatchManualMatchManualMatchDialogCancel),
               ),
               const SizedBox(width: 8),
               FilledButton.icon(

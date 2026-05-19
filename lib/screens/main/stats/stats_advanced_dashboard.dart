@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:yaabsa/models/advanced_loading_progress_info.dart';
 import 'package:yaabsa/models/advanced_listening_stats.dart';
 import 'package:yaabsa/screens/main/stats/stats_formatters.dart';
 import 'package:yaabsa/screens/main/stats/stats_ranked_bars.dart';
+
+import 'package:yaabsa/generated/l10n.dart';
 
 class StatsAdvancedDashboard extends StatelessWidget {
   const StatsAdvancedDashboard({super.key, required this.statsAsync, required this.onRefresh, this.loadingProgress});
@@ -25,31 +28,79 @@ class StatsAdvancedDashboard extends StatelessWidget {
               spacing: 10,
               runSpacing: 10,
               children: [
-                _MetricChip(label: 'Loaded Pages', value: '${stats.loadedPages}'),
-                _MetricChip(label: 'Loaded Sessions', value: '${stats.totalSessions}'),
-                _MetricChip(label: 'Total Sessions', value: '${stats.totalAvailableSessions}'),
-                _MetricChip(label: 'Total Listening', value: formatListeningSeconds(stats.totalListeningTime)),
-                _MetricChip(label: 'Book Listening', value: formatListeningSeconds(stats.totalBookListeningTime)),
-                _MetricChip(label: 'Podcast Listening', value: formatListeningSeconds(stats.totalPodcastListeningTime)),
-                _MetricChip(label: 'Average Session', value: formatListeningSeconds(stats.averageSessionTime)),
-                _MetricChip(label: 'Median Session', value: formatListeningSeconds(stats.medianSessionTime)),
-                _MetricChip(label: 'Longest Session', value: formatListeningSeconds(stats.longestSessionTime)),
-                _MetricChip(label: 'Unique Items', value: '${stats.uniqueItems}'),
-                _MetricChip(label: 'Unique Authors', value: '${stats.uniqueAuthors}'),
-                _MetricChip(label: 'Longest Streak', value: '${stats.longestStreakDays} day(s)'),
+                _MetricChip(
+                  label: S.current.screensMainStatsStatsAdvancedDashboardLoadedPages,
+                  value: '${stats.loadedPages}',
+                ),
+                _MetricChip(
+                  label: S.current.screensMainStatsStatsAdvancedDashboardLoadedSessions,
+                  value: '${stats.totalSessions}',
+                ),
+                _MetricChip(
+                  label: S.current.screensMainStatsStatsAdvancedDashboardTotalSessions,
+                  value: '${stats.totalAvailableSessions}',
+                ),
+                _MetricChip(
+                  label: S.current.screensMainStatsStatsAdvancedDashboardTotalListening,
+                  value: formatListeningSeconds(stats.totalListeningTime),
+                ),
+                _MetricChip(
+                  label: S.current.screensMainStatsStatsAdvancedDashboardBookListening,
+                  value: formatListeningSeconds(stats.totalBookListeningTime),
+                ),
+                _MetricChip(
+                  label: S.current.screensMainStatsStatsAdvancedDashboardPodcastListening,
+                  value: formatListeningSeconds(stats.totalPodcastListeningTime),
+                ),
+                _MetricChip(
+                  label: S.current.screensMainStatsStatsAdvancedDashboardAverageSession,
+                  value: formatListeningSeconds(stats.averageSessionTime),
+                ),
+                _MetricChip(
+                  label: S.current.screensMainStatsStatsAdvancedDashboardMedianSession,
+                  value: formatListeningSeconds(stats.medianSessionTime),
+                ),
+                _MetricChip(
+                  label: S.current.screensMainStatsStatsAdvancedDashboardLongestSession,
+                  value: formatListeningSeconds(stats.longestSessionTime),
+                ),
+                _MetricChip(
+                  label: S.current.screensMainStatsStatsAdvancedDashboardUniqueItems,
+                  value: '${stats.uniqueItems}',
+                ),
+                _MetricChip(
+                  label: S.current.screensMainStatsStatsAdvancedDashboardUniqueAuthors,
+                  value: '${stats.uniqueAuthors}',
+                ),
+                _MetricChip(
+                  label: S.current.screensMainStatsStatsAdvancedDashboardLongestStreak,
+                  value: S.current.statsAdvancedLongestStreakDays(stats.longestStreakDays),
+                ),
                 if (stats.favoriteWeekday != null)
-                  _MetricChip(label: 'Favorite Weekday', value: stats.favoriteWeekday!),
+                  _MetricChip(
+                    label: S.current.screensMainStatsStatsAdvancedDashboardFavoriteWeekday,
+                    value: stats.favoriteWeekday!,
+                  ),
                 if (stats.favoriteHour != null)
-                  _MetricChip(label: 'Favorite Hour', value: '${stats.favoriteHour!.toString().padLeft(2, '0')}:00'),
+                  _MetricChip(
+                    label: S.current.screensMainStatsStatsAdvancedDashboardFavoriteHour,
+                    value: DateFormat.jm(Intl.getCurrentLocale()).format(DateTime(2024, 1, 1, stats.favoriteHour!)),
+                  ),
                 if (stats.firstSessionAt != null)
-                  _MetricChip(label: 'First Session', value: formatDateTimeLabel(fromEpochMs(stats.firstSessionAt))),
+                  _MetricChip(
+                    label: S.current.screensMainStatsStatsAdvancedDashboardFirstSession,
+                    value: formatDateTimeLabel(fromEpochMs(stats.firstSessionAt)),
+                  ),
                 if (stats.lastSessionAt != null)
-                  _MetricChip(label: 'Last Session', value: formatDateTimeLabel(fromEpochMs(stats.lastSessionAt))),
+                  _MetricChip(
+                    label: S.current.screensMainStatsStatsAdvancedDashboardLastSession,
+                    value: formatDateTimeLabel(fromEpochMs(stats.lastSessionAt)),
+                  ),
               ],
             ),
             const SizedBox(height: 16),
             _SubSection(
-              title: 'Top Items',
+              title: S.current.screensMainStatsStatsAdvancedDashboardTopItems,
               child: StatsRankedBars(
                 entries: [
                   for (final item in stats.topItems)
@@ -60,12 +111,12 @@ class StatsAdvancedDashboard extends StatelessWidget {
                     ),
                 ],
                 maxItems: 10,
-                emptyMessage: 'No top items available.',
+                emptyMessage: S.current.screensMainStatsStatsAdvancedDashboardNoTopItemsAvailable,
               ),
             ),
             const SizedBox(height: 16),
             _SubSection(
-              title: 'Top Authors',
+              title: S.current.screensMainStatsStatsAdvancedDashboardTopAuthors,
               child: StatsRankedBars(
                 entries: [
                   for (final author in stats.topAuthors)
@@ -76,12 +127,12 @@ class StatsAdvancedDashboard extends StatelessWidget {
                     ),
                 ],
                 maxItems: 10,
-                emptyMessage: 'No top authors available.',
+                emptyMessage: S.current.screensMainStatsStatsAdvancedDashboardNoTopAuthorsAvailable,
               ),
             ),
             const SizedBox(height: 16),
             _SubSection(
-              title: 'Weekday Breakdown',
+              title: S.current.screensMainStatsStatsAdvancedDashboardWeekdayBreakdown,
               child: StatsRankedBars(
                 entries: [
                   for (final bucket in stats.weekdayBreakdown)
@@ -92,12 +143,12 @@ class StatsAdvancedDashboard extends StatelessWidget {
                     ),
                 ],
                 maxItems: 7,
-                emptyMessage: 'No weekday data available.',
+                emptyMessage: S.current.screensMainStatsStatsAdvancedDashboardNoWeekdayDataAvailable,
               ),
             ),
             const SizedBox(height: 16),
             _SubSection(
-              title: 'Busiest Hours',
+              title: S.current.screensMainStatsStatsAdvancedDashboardBusiestHours,
               child: StatsRankedBars(
                 entries: [
                   for (final bucket in stats.hourlyBreakdown)
@@ -108,13 +159,13 @@ class StatsAdvancedDashboard extends StatelessWidget {
                     ),
                 ],
                 maxItems: 8,
-                emptyMessage: 'No hourly data available.',
+                emptyMessage: S.current.screensMainStatsStatsAdvancedDashboardNoHourlyDataAvailable,
               ),
             ),
             if (stats.monthlyBreakdown.isNotEmpty) ...[
               const SizedBox(height: 16),
               _SubSection(
-                title: 'Top Months',
+                title: S.current.screensMainStatsStatsAdvancedDashboardTopMonths,
                 child: StatsRankedBars(
                   entries: [
                     for (final bucket in stats.monthlyBreakdown)
@@ -125,7 +176,7 @@ class StatsAdvancedDashboard extends StatelessWidget {
                       ),
                   ],
                   maxItems: 10,
-                  emptyMessage: 'No monthly data available.',
+                  emptyMessage: S.current.screensMainStatsStatsAdvancedDashboardNoMonthlyDataAvailable,
                 ),
               ),
             ],
@@ -145,12 +196,20 @@ class StatsAdvancedDashboard extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Loading advanced analytics...', style: Theme.of(context).textTheme.bodyMedium),
+            Text(
+              S.current.screensMainStatsStatsAdvancedDashboardLoadingAdvancedAnalytics,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
             const SizedBox(height: 8),
             LinearProgressIndicator(value: progressValue),
             const SizedBox(height: 8),
             Text(
-              'Pages ${progress.loadedPages}/$totalPagesLabel • Sessions ${progress.loadedSessions}/$totalSessionsLabel',
+              S.current.screensMainStatsStatsAdvancedDashboardPagesSessions(
+                progress.loadedPages,
+                totalPagesLabel,
+                progress.loadedSessions,
+                totalSessionsLabel,
+              ),
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
@@ -159,7 +218,10 @@ class StatsAdvancedDashboard extends StatelessWidget {
       error: (error, _) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Failed to compute advanced stats.', style: Theme.of(context).textTheme.bodyMedium),
+          Text(
+            S.current.screensMainStatsStatsAdvancedDashboardFailedToComputeAdvancedStats,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
           const SizedBox(height: 6),
           Text(
             error.toString(),
@@ -171,7 +233,7 @@ class StatsAdvancedDashboard extends StatelessWidget {
           OutlinedButton.icon(
             onPressed: onRefresh,
             icon: const Icon(Icons.refresh_rounded),
-            label: const Text('Retry Advanced Mode'),
+            label: Text(S.current.screensMainStatsStatsAdvancedDashboardRetryAdvancedMode),
           ),
         ],
       ),

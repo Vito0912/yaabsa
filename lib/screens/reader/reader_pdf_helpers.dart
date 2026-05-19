@@ -191,20 +191,23 @@ extension _ReaderPdfHelpers on _ReaderState {
             autofocus: true,
             maxLines: 3,
             minLines: 1,
-            decoration: const InputDecoration(labelText: 'Text', hintText: 'Add an optional note'),
+            decoration: InputDecoration(
+              labelText: S.current.screensReaderReaderPdfHelpersText,
+              hintText: S.current.screensReaderReaderPdfHelpersAddAnOptionalNote,
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(dialogContext).pop(null);
               },
-              child: const Text('Cancel'),
+              child: Text(S.current.screensReaderReaderPdfHelpersCancel),
             ),
             FilledButton(
               onPressed: () {
                 Navigator.of(dialogContext).pop(controller.text.trim());
               },
-              child: const Text('Save'),
+              child: Text(S.current.screensReaderReaderPdfHelpersSave),
             ),
           ],
         );
@@ -494,7 +497,7 @@ extension _ReaderPdfHelpers on _ReaderState {
               children: [
                 if (showEdit)
                   IconButton(
-                    tooltip: 'Edit bookmark',
+                    tooltip: S.current.screensReaderReaderPdfHelpersEditBookmark,
                     iconSize: 18,
                     color: Colors.white,
                     visualDensity: VisualDensity.compact,
@@ -502,7 +505,7 @@ extension _ReaderPdfHelpers on _ReaderState {
                     icon: const Icon(Icons.edit_outlined),
                   ),
                 IconButton(
-                  tooltip: 'Delete annotation',
+                  tooltip: S.current.screensReaderReaderPdfHelpersDeleteAnnotation,
                   iconSize: 18,
                   color: Colors.white,
                   visualDensity: VisualDensity.compact,

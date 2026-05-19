@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/api/search/search_provider_option.dart';
 import 'package:yaabsa/components/app/item/match/manual_match/manual_match_provider_dropdown.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class ManualMatchSearchCard extends StatelessWidget {
   const ManualMatchSearchCard({
     super.key,
@@ -34,9 +36,9 @@ class ManualMatchSearchCard extends StatelessWidget {
             final providerField = _buildProviderField(context);
             final titleField = TextField(
               controller: titleController,
-              decoration: const InputDecoration(
-                labelText: 'Title',
-                hintText: 'Search title',
+              decoration: InputDecoration(
+                labelText: S.current.componentsAppItemMatchManualMatchManualMatchSearchCardTitle,
+                hintText: S.current.componentsAppItemMatchManualMatchManualMatchSearchCardSearchTitle,
                 border: OutlineInputBorder(),
               ),
               textInputAction: TextInputAction.search,
@@ -44,7 +46,10 @@ class ManualMatchSearchCard extends StatelessWidget {
             );
             final authorField = TextField(
               controller: authorController,
-              decoration: const InputDecoration(labelText: 'Author', border: OutlineInputBorder()),
+              decoration: InputDecoration(
+                labelText: S.current.componentsAppItemMatchManualMatchManualMatchSearchCardAuthor,
+                border: OutlineInputBorder(),
+              ),
               textInputAction: TextInputAction.search,
               onSubmitted: (_) => onSearch(),
             );
@@ -53,7 +58,7 @@ class ManualMatchSearchCard extends StatelessWidget {
               icon: searching
                   ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2.2))
                   : const Icon(Icons.search_rounded),
-              label: Text(searching ? 'Searching...' : 'Search'),
+              label: Text(searching ? S.current.commonSearching : S.current.commonSearch),
             );
 
             if (constraints.maxWidth >= 980) {
@@ -107,24 +112,27 @@ class ManualMatchSearchCard extends StatelessWidget {
 
   Widget _buildProviderField(BuildContext context) {
     return providersAsync.when(
-      loading: () => const InputDecorator(
-        decoration: InputDecoration(labelText: 'Providers', border: OutlineInputBorder()),
+      loading: () => InputDecorator(
+        decoration: InputDecoration(
+          labelText: S.current.componentsAppItemMatchManualMatchManualMatchSearchCardProviders,
+          border: OutlineInputBorder(),
+        ),
         child: Row(
           children: [
             SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2.0)),
             SizedBox(width: 8),
-            Text('Loading...'),
+            Text(S.current.componentsAppItemMatchManualMatchManualMatchSearchCardLoading),
           ],
         ),
       ),
       error: (error, _) => InputDecorator(
         decoration: InputDecoration(
-          labelText: 'Providers',
+          labelText: S.current.componentsAppItemMatchManualMatchManualMatchSearchCardProviders,
           border: const OutlineInputBorder(),
-          errorText: 'Failed to load providers',
+          errorText: S.current.componentsAppItemMatchManualMatchManualMatchSearchCardFailedToLoadProviders,
         ),
         child: Text(
-          '$error',
+          S.current.componentsAppItemMatchManualMatchManualMatchSearchCardText(error),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: Theme.of(context).textTheme.bodySmall,
@@ -132,9 +140,12 @@ class ManualMatchSearchCard extends StatelessWidget {
       ),
       data: (providers) {
         if (providers.isEmpty) {
-          return const InputDecorator(
-            decoration: InputDecoration(labelText: 'Providers', border: OutlineInputBorder()),
-            child: Text('No providers available'),
+          return InputDecorator(
+            decoration: InputDecoration(
+              labelText: S.current.componentsAppItemMatchManualMatchManualMatchSearchCardProviders,
+              border: OutlineInputBorder(),
+            ),
+            child: Text(S.current.componentsAppItemMatchManualMatchManualMatchSearchCardNoProvidersAvailable),
           );
         }
 

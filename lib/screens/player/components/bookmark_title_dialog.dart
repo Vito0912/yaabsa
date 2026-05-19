@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class BookmarkTitleDialog extends StatefulWidget {
   const BookmarkTitleDialog({super.key});
 
@@ -29,7 +31,7 @@ class _BookmarkTitleDialogState extends State<BookmarkTitleDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Create bookmark'),
+      title: Text(S.current.screensPlayerComponentsBookmarkTitleDialogCreateBookmark),
       content: TextField(
         controller: _titleController,
         autofocus: true,
@@ -37,11 +39,20 @@ class _BookmarkTitleDialogState extends State<BookmarkTitleDialog> {
         textInputAction: TextInputAction.newline,
         minLines: 3,
         maxLines: 6,
-        decoration: const InputDecoration(labelText: 'Bookmark text', hintText: 'Enter bookmark'),
+        decoration: InputDecoration(
+          labelText: S.current.screensPlayerComponentsBookmarkTitleDialogBookmarkText,
+          hintText: S.current.screensPlayerComponentsBookmarkTitleDialogEnterBookmark,
+        ),
       ),
       actions: <Widget>[
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
-        FilledButton(onPressed: () => Navigator.of(context).pop(_titleController.text), child: const Text('Create')),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(S.current.screensPlayerComponentsBookmarkTitleDialogCancel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(_titleController.text),
+          child: Text(S.current.screensPlayerComponentsBookmarkTitleDialogCreate),
+        ),
       ],
     );
   }

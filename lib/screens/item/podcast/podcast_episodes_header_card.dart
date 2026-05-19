@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:yaabsa/screens/item/podcast/podcast_episode_utils.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class PodcastEpisodesHeaderCard extends StatelessWidget {
   const PodcastEpisodesHeaderCard({
     super.key,
@@ -42,10 +44,14 @@ class PodcastEpisodesHeaderCard extends StatelessWidget {
       decoration: InputDecoration(
         isDense: true,
         prefixIcon: const Icon(Icons.search_rounded),
-        hintText: 'Search episodes by title',
+        hintText: S.current.screensItemPodcastPodcastEpisodesHeaderCardSearchEpisodesByTitle,
         suffixIcon: searchQuery.trim().isEmpty
             ? null
-            : IconButton(onPressed: onClearSearch, icon: const Icon(Icons.close_rounded), tooltip: 'Clear search'),
+            : IconButton(
+                onPressed: onClearSearch,
+                icon: const Icon(Icons.close_rounded),
+                tooltip: S.current.screensItemPodcastPodcastEpisodesHeaderCardClearSearch,
+              ),
         border: const OutlineInputBorder(),
       ),
     );
@@ -83,7 +89,10 @@ class PodcastEpisodesHeaderCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Episodes', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              S.current.screensItemPodcastPodcastEpisodesHeaderCardEpisodes,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 2),
             Text(
               resultLabel,

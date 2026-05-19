@@ -4,6 +4,8 @@ import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/aaos_service.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class ParkedExperienceScreen extends StatelessWidget {
   const ParkedExperienceScreen({super.key});
 
@@ -11,18 +13,18 @@ class ParkedExperienceScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Car Media App'),
+        title: Text(S.current.screensAutomotiveParkedExperienceCarMediaApp),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
-            tooltip: 'Settings',
+            tooltip: S.current.screensAutomotiveParkedExperienceSettings,
             onPressed: () {
               context.go('/?tab=settings');
             },
           ),
           IconButton(
             icon: const Icon(Icons.logout),
-            tooltip: 'Logout',
+            tooltip: S.current.screensAutomotiveParkedExperienceLogout,
             onPressed: () async {
               await containerRef.read(appDatabaseProvider).clearActiveUserId();
             },
@@ -42,7 +44,7 @@ class ParkedExperienceScreen extends StatelessWidget {
                   children: [
                     ElevatedButton.icon(
                       icon: const Icon(Icons.play_circle_outline),
-                      label: const Text('Open Media Center'),
+                      label: Text(S.current.screensAutomotiveParkedExperienceOpenMediaCenter),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Theme.of(context).colorScheme.primary,
                         foregroundColor: Theme.of(context).colorScheme.onPrimary,
@@ -54,7 +56,7 @@ class ParkedExperienceScreen extends StatelessWidget {
                     const SizedBox(width: 16),
                     OutlinedButton.icon(
                       icon: const Icon(Icons.settings),
-                      label: const Text('Settings'),
+                      label: Text(S.current.screensAutomotiveParkedExperienceSettings),
                       onPressed: () {
                         context.go('/?tab=settings');
                       },

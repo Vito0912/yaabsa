@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:yaabsa/api/admin/admin_user_permissions.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class AdminUserPermissionsEditor extends StatelessWidget {
   const AdminUserPermissionsEditor({
     super.key,
@@ -22,40 +24,43 @@ class AdminUserPermissionsEditor extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Permissions', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+            Text(
+              S.current.componentsSettingsAdminUsersAdminUserPermissionsEditorPermissions,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            ),
             const SizedBox(height: 4),
             _PermissionSwitch(
-              label: 'Can download',
+              label: S.current.componentsSettingsAdminUsersAdminUserPermissionsEditorCanDownload,
               value: permissions.download,
               enabled: enabled,
               onChanged: (value) => onChanged(permissions.copyWith(download: value)),
             ),
             _PermissionSwitch(
-              label: 'Can update',
+              label: S.current.componentsSettingsAdminUsersAdminUserPermissionsEditorCanUpdate,
               value: permissions.update,
               enabled: enabled,
               onChanged: (value) => onChanged(permissions.copyWith(update: value)),
             ),
             _PermissionSwitch(
-              label: 'Can delete',
+              label: S.current.componentsSettingsAdminUsersAdminUserPermissionsEditorCanDelete,
               value: permissions.delete,
               enabled: enabled,
               onChanged: (value) => onChanged(permissions.copyWith(delete: value)),
             ),
             _PermissionSwitch(
-              label: 'Can upload',
+              label: S.current.componentsSettingsAdminUsersAdminUserPermissionsEditorCanUpload,
               value: permissions.upload,
               enabled: enabled,
               onChanged: (value) => onChanged(permissions.copyWith(upload: value)),
             ),
             _PermissionSwitch(
-              label: 'Can create eReader devices',
+              label: S.current.componentsSettingsAdminUsersAdminUserPermissionsEditorCanCreateEreaderDevices,
               value: permissions.createEreader,
               enabled: enabled,
               onChanged: (value) => onChanged(permissions.copyWith(createEreader: value)),
             ),
             _PermissionSwitch(
-              label: 'Can access explicit content',
+              label: S.current.componentsSettingsAdminUsersAdminUserPermissionsEditorCanAccessExplicitContent,
               value: permissions.accessExplicitContent,
               enabled: enabled,
               onChanged: (value) => onChanged(permissions.copyWith(accessExplicitContent: value)),

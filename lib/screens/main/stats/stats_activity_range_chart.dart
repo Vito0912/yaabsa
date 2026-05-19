@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:yaabsa/models/listening_activity_stats.dart';
 import 'package:yaabsa/screens/main/stats/stats_formatters.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class StatsActivityRangeChart extends StatefulWidget {
   const StatsActivityRangeChart({super.key, required this.activity});
 
@@ -40,7 +42,7 @@ class _StatsActivityRangeChartState extends State<StatsActivityRangeChart> {
           children: [
             for (final range in _ranges)
               ChoiceChip(
-                label: Text('${range}d'),
+                label: Text(S.current.screensMainStatsStatsActivityRangeChartD(range)),
                 selected: _selectedRange == range,
                 onSelected: (selected) {
                   if (!selected) {
@@ -149,7 +151,10 @@ class _StatsActivityRangeChartState extends State<StatsActivityRangeChart> {
                                 return SideTitleWidget(
                                   meta: meta,
                                   space: 6,
-                                  child: Text('${day.month}/${day.day}', style: Theme.of(context).textTheme.labelSmall),
+                                  child: Text(
+                                    S.current.screensMainStatsStatsActivityRangeChartText(day.month, day.day),
+                                    style: Theme.of(context).textTheme.labelSmall,
+                                  ),
                                 );
                               },
                             ),
@@ -183,7 +188,10 @@ class _StatsActivityRangeChartState extends State<StatsActivityRangeChart> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(_formatDate(start), style: Theme.of(context).textTheme.labelSmall),
-            Text('Last $_selectedRange days', style: Theme.of(context).textTheme.labelSmall),
+            Text(
+              S.current.screensMainStatsStatsActivityRangeChartLastDays(_selectedRange),
+              style: Theme.of(context).textTheme.labelSmall,
+            ),
             Text(_formatDate(end), style: Theme.of(context).textTheme.labelSmall),
           ],
         ),
@@ -192,10 +200,7 @@ class _StatsActivityRangeChartState extends State<StatsActivityRangeChart> {
   }
 
   String _formatDate(DateTime value) {
-    final year = value.year.toString().padLeft(4, '0');
-    final month = value.month.toString().padLeft(2, '0');
-    final day = value.day.toString().padLeft(2, '0');
-    return '$year-$month-$day';
+    return formatDateLabel(value);
   }
 
   double _bottomLabelInterval(int points) {

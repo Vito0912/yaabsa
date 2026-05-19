@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/components/common/book_editor_sheet.dart';
 import 'package:yaabsa/components/common/list_management_dialogs.dart';
+import 'package:yaabsa/generated/l10n.dart';
 
 typedef ManagedCreateListCallback =
     Future<void> Function({required String name, String? description, required List<String> bookIds});
@@ -57,7 +58,11 @@ Future<void> createManagedListEntity({
   required String successMessage,
   required String errorFallback,
 }) async {
-  final metadata = await showListManagementFormDialog(context: context, title: formTitle, confirmLabel: 'Next');
+  final metadata = await showListManagementFormDialog(
+    context: context,
+    title: formTitle,
+    confirmLabel: S.current.componentsCommonManagedListOperationsNext,
+  );
 
   if (!context.mounted || metadata == null) {
     return;
@@ -126,7 +131,7 @@ Future<void> editManagedListDetails({
   final result = await showListManagementFormDialog(
     context: context,
     title: title,
-    confirmLabel: 'Save',
+    confirmLabel: S.current.componentsCommonManagedListOperationsSave,
     initialName: initialName,
     initialDescription: initialDescription,
   );

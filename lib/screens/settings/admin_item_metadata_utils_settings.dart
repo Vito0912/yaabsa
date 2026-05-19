@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:yaabsa/components/settings/admin_item_metadata_utils_view.dart';
 import 'package:yaabsa/screens/settings/admin_server_settings.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class AdminItemMetadataUtilsSettings extends StatelessWidget {
   const AdminItemMetadataUtilsSettings({super.key});
 
@@ -26,13 +28,13 @@ class AdminItemMetadataUtilsSettings extends StatelessWidget {
           child: Row(
             children: [
               IconButton(
-                tooltip: 'Back',
+                tooltip: S.current.screensSettingsAdminItemMetadataUtilsSettingsBack,
                 onPressed: () => _handleBack(context),
                 icon: const Icon(Icons.arrow_back_rounded),
               ),
               Expanded(
                 child: Text(
-                  'Item Metadata Utils',
+                  S.current.screensSettingsAdminItemMetadataUtilsSettingsItemMetadataUtils,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
                 ),
               ),

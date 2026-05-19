@@ -7,6 +7,8 @@ import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 Future<void> quickMatchSingleItem({
   required BuildContext context,
   required WidgetRef ref,
@@ -31,7 +33,9 @@ Future<void> quickMatchSingleItem({
   final api = ref.read(absApiProvider);
   if (api == null) {
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No API session available.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.current.componentsAppItemMatchLibraryItemQuickMatchActionsNoAPISessionAvailable)),
+      );
     }
     return;
   }
@@ -67,7 +71,9 @@ Future<void> quickMatchSingleItem({
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not run quick match: $error')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(S.current.componentsAppItemMatchLibraryItemQuickMatchActionsCouldNotRunQuickMatch(error))),
+    );
   }
 }
 

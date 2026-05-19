@@ -345,7 +345,7 @@ class DownloadHandler {
     }
     if (queuedTasks != downloadTasks.length) {
       logger(
-        'Only $queuedTasks/${downloadTasks.length} download task(s) were queued for item $itemId.',
+        'Only $queuedTasks/${downloadTasks.length} download tasks were queued for item $itemId.',
         tag: 'DownloadHandler',
         level: InfoLevel.warning,
       );

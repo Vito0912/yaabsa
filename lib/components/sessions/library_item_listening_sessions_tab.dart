@@ -15,6 +15,8 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/item/podcast/podcast_episode_utils.dart';
 import 'package:yaabsa/util/logger.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class LibraryItemListeningSessionsTab extends ConsumerStatefulWidget {
   const LibraryItemListeningSessionsTab({super.key, required this.item, this.initialEpisodeId});
 
@@ -217,11 +219,21 @@ class _LibraryItemListeningSessionsTabState extends ConsumerState<LibraryItemLis
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Delete Selected Sessions'),
-          content: Text('Delete ${selectedSessions.length} selected session(s)? This cannot be undone.'),
+          title: Text(S.current.componentsSessionsLibraryItemListeningSessionsTabDeleteSelectedSessions),
+          content: Text(
+            S.current.componentsSessionsLibraryItemListeningSessionsTabDeleteSelectedSessionSThisCannot(
+              selectedSessions.length,
+            ),
+          ),
           actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
-            FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Delete')),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(S.current.componentsSessionsLibraryItemListeningSessionsTabCancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(S.current.componentsSessionsLibraryItemListeningSessionsTabDelete),
+            ),
           ],
         );
       },
@@ -274,11 +286,21 @@ class _LibraryItemListeningSessionsTabState extends ConsumerState<LibraryItemLis
 
     final messenger = ScaffoldMessenger.of(context);
     if (deletedCount > 0) {
-      messenger.showSnackBar(SnackBar(content: Text('Deleted $deletedCount session(s).')));
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(S.current.componentsSessionsLibraryItemListeningSessionsTabDeletedSessionS(deletedCount)),
+        ),
+      );
     }
     if (failedSessionIds.isNotEmpty) {
       messenger.showSnackBar(
-        SnackBar(content: Text('Failed to delete ${failedSessionIds.length} session(s). Check logs for details.')),
+        SnackBar(
+          content: Text(
+            S.current.componentsSessionsLibraryItemListeningSessionsTabFailedToDeleteSessionSCheck(
+              failedSessionIds.length,
+            ),
+          ),
+        ),
       );
     }
   }
@@ -322,7 +344,7 @@ class _LibraryItemListeningSessionsTabState extends ConsumerState<LibraryItemLis
     return currentUserAsync.when(
       data: (currentUser) {
         if (currentUser == null) {
-          return const Center(child: Text('No active user.'));
+          return Center(child: Text(S.current.componentsSessionsLibraryItemListeningSessionsTabNoActiveUser));
         }
 
         if (_activeUserId != currentUser.id) {
@@ -350,13 +372,16 @@ class _LibraryItemListeningSessionsTabState extends ConsumerState<LibraryItemLis
                   padding: const EdgeInsets.only(bottom: 12),
                   child: DropdownButtonFormField<String?>(
                     initialValue: _selectedEpisodeId,
-                    decoration: const InputDecoration(
-                      labelText: 'Filter by Episode',
+                    decoration: InputDecoration(
+                      labelText: S.current.componentsSessionsLibraryItemListeningSessionsTabFilterByEpisode,
                       border: OutlineInputBorder(),
                       isDense: true,
                     ),
                     items: [
-                      const DropdownMenuItem<String?>(value: null, child: Text('All Episodes')),
+                      DropdownMenuItem<String?>(
+                        value: null,
+                        child: Text(S.current.componentsSessionsLibraryItemListeningSessionsTabAllEpisodes),
+                      ),
                       ..._episodes.map(
                         (episode) =>
                             DropdownMenuItem<String?>(value: episode.id, child: Text(podcastEpisodeTitle(episode))),
@@ -403,7 +428,9 @@ class _LibraryItemListeningSessionsTabState extends ConsumerState<LibraryItemLis
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Row(
                     children: [
-                      Text('${_selectedSessionIds.length} selected'),
+                      Text(
+                        S.current.componentsSessionsLibraryItemListeningSessionsTabSelected(_selectedSessionIds.length),
+                      ),
                       const Spacer(),
                       FilledButton.icon(
                         onPressed: (_isBulkDeleting || !_canDeleteSelectedSessions(currentUser))
@@ -414,7 +441,7 @@ class _LibraryItemListeningSessionsTabState extends ConsumerState<LibraryItemLis
                         icon: _isBulkDeleting
                             ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
                             : const Icon(Icons.delete_outline_rounded),
-                        label: const Text('Delete Selected'),
+                        label: Text(S.current.componentsSessionsLibraryItemListeningSessionsTabDeleteSelected),
                       ),
                     ],
                   ),
@@ -439,7 +466,8 @@ class _LibraryItemListeningSessionsTabState extends ConsumerState<LibraryItemLis
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, _) => Center(child: Text('Failed to load user: $error')),
+      error: (error, _) =>
+          Center(child: Text(S.current.componentsSessionsLibraryItemListeningSessionsTabFailedToLoadUser(error))),
     );
   }
 }

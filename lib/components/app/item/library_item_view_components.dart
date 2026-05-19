@@ -12,6 +12,8 @@ import 'package:yaabsa/components/app/item/item_more_actions_button.dart';
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
 import 'package:yaabsa/util/item_formatters.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 List<ItemMetadataRowData> buildItemMetadataRows(
   BuildContext context, {
   required MediaMetadata? metadata,
@@ -23,7 +25,7 @@ List<ItemMetadataRowData> buildItemMetadataRows(
   return <ItemMetadataRowData>[
     if (metadata?.series != null && metadata!.series!.isNotEmpty)
       ItemMetadataRowData(
-        label: 'Series',
+        label: S.current.componentsAppItemLibraryItemViewComponentsSeries,
         values: metadata.series!
             .map(
               (series) => ItemLinkValue(
@@ -35,14 +37,14 @@ List<ItemMetadataRowData> buildItemMetadataRows(
       ),
     if (metadata?.authors != null && metadata!.authors!.isNotEmpty)
       ItemMetadataRowData(
-        label: 'Authors',
+        label: S.current.componentsAppItemLibraryItemViewComponentsAuthors,
         values: metadata.authors!
             .map((author) => ItemLinkValue(label: author.name, onTap: () => context.push('/author/${author.id}')))
             .toList(),
       ),
     if (metadata?.narrators != null && metadata!.narrators!.isNotEmpty)
       ItemMetadataRowData(
-        label: 'Narrators',
+        label: S.current.componentsAppItemLibraryItemViewComponentsNarrators,
         values: metadata.narrators!
             .map(
               (narrator) => ItemLinkValue(
@@ -52,10 +54,14 @@ List<ItemMetadataRowData> buildItemMetadataRows(
             )
             .toList(),
       ),
-    if (hasText(metadata?.publishedYear)) ItemMetadataRowData(label: 'Published year', value: metadata!.publishedYear!),
+    if (hasText(metadata?.publishedYear))
+      ItemMetadataRowData(
+        label: S.current.componentsAppItemLibraryItemViewComponentsPublishedYear,
+        value: metadata!.publishedYear!,
+      ),
     if (hasText(metadata?.publisher))
       ItemMetadataRowData(
-        label: 'Publisher',
+        label: S.current.componentsAppItemLibraryItemViewComponentsPublisher,
         values: [
           ItemLinkValue(
             label: metadata!.publisher!,
@@ -65,7 +71,7 @@ List<ItemMetadataRowData> buildItemMetadataRows(
       ),
     if (metadata?.genres != null && metadata!.genres!.isNotEmpty)
       ItemMetadataRowData(
-        label: 'Genres',
+        label: S.current.componentsAppItemLibraryItemViewComponentsGenres,
         values: metadata.genres!
             .map(
               (genre) => ItemLinkValue(
@@ -77,7 +83,7 @@ List<ItemMetadataRowData> buildItemMetadataRows(
       ),
     if (tags != null && tags.isNotEmpty)
       ItemMetadataRowData(
-        label: 'Tags',
+        label: S.current.componentsAppItemLibraryItemViewComponentsTags,
         values: tags
             .map(
               (tag) => ItemLinkValue(
@@ -89,7 +95,7 @@ List<ItemMetadataRowData> buildItemMetadataRows(
       ),
     if (hasText(metadata?.language))
       ItemMetadataRowData(
-        label: 'Language',
+        label: S.current.componentsAppItemLibraryItemViewComponentsLanguage,
         values: [
           ItemLinkValue(
             label: metadata!.language!,
@@ -98,8 +104,16 @@ List<ItemMetadataRowData> buildItemMetadataRows(
           ),
         ],
       ),
-    if (duration != null) ItemMetadataRowData(label: 'Duration', value: formatDurationLong(duration)),
-    if (sizeBytes != null && sizeBytes > 0) ItemMetadataRowData(label: 'Size', value: formatBytes(sizeBytes)),
+    if (duration != null)
+      ItemMetadataRowData(
+        label: S.current.componentsAppItemLibraryItemViewComponentsDuration,
+        value: formatDurationLong(duration),
+      ),
+    if (sizeBytes != null && sizeBytes > 0)
+      ItemMetadataRowData(
+        label: S.current.componentsAppItemLibraryItemViewComponentsSize,
+        value: formatBytes(sizeBytes),
+      ),
   ];
 }
 
@@ -135,8 +149,12 @@ Widget buildItemActionButtons({
       final hasPrimaryActions = hasBook || hasAudio;
       final hasSmallActions = canDownload || hasAudio || onMoreActionSelected != null;
       final playLabel = isLoadingCurrentItem
-          ? 'Loading'
-          : (isPlayingCurrentItem ? 'Pause' : (isCurrentItem ? 'Resume' : 'Play'));
+          ? S.current.componentsAppItemLibraryItemViewComponentsLoading
+          : (isPlayingCurrentItem
+                ? S.current.componentsAppItemLibraryItemViewComponentsPause
+                : (isCurrentItem
+                      ? S.current.componentsAppItemLibraryItemViewComponentsResume
+                      : S.current.componentsAppItemLibraryItemViewComponentsPlay));
       final primaryActions = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -145,7 +163,7 @@ Widget buildItemActionButtons({
               onPressed: onRead,
               style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12)),
               icon: const Icon(Icons.menu_book_rounded),
-              label: const Text('Read'),
+              label: Text(S.current.componentsAppItemLibraryItemViewComponentsRead),
             ),
           if (hasBook && hasAudio) const SizedBox(height: 8),
           if (hasAudio)
@@ -243,7 +261,11 @@ Widget _buildSmallActionButtons(
     if (showDownload)
       IconButton.filledTonal(
         onPressed: isDownloadInProgress ? null : (isDownloaded ? onDeleteDownload : onDownload),
-        tooltip: isDownloadInProgress ? 'Downloading' : (isDownloaded ? 'Delete download' : 'Download'),
+        tooltip: isDownloadInProgress
+            ? S.current.componentsAppItemLibraryItemViewComponentsDownloading
+            : (isDownloaded
+                  ? S.current.componentsAppItemLibraryItemViewComponentsDeleteDownload
+                  : S.current.componentsAppItemLibraryItemViewComponentsDownload),
         icon: isDownloadInProgress
             ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.2))
             : Icon(isDownloaded ? Icons.delete_outline_rounded : Icons.download_rounded),
@@ -252,7 +274,11 @@ Widget _buildSmallActionButtons(
     if (showQueue)
       IconButton.filledTonal(
         onPressed: queueEnabled ? onQueueToggle : null,
-        tooltip: queueEnabled ? (isQueued ? 'Remove from queue' : 'Add to queue') : 'Currently playing',
+        tooltip: queueEnabled
+            ? (isQueued
+                  ? S.current.componentsAppItemLibraryItemViewComponentsRemoveFromQueue
+                  : S.current.componentsAppItemLibraryItemViewComponentsAddToQueue)
+            : S.current.componentsAppItemLibraryItemViewComponentsCurrentlyPlaying,
         icon: Icon(isQueued ? Icons.playlist_remove_rounded : Icons.queue_music_rounded),
         visualDensity: VisualDensity.compact,
       ),
@@ -323,14 +349,22 @@ class _ChapterTableHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 2),
       child: Row(
         children: [
-          Expanded(child: Text('Chapter', style: style)),
+          Expanded(child: Text(S.current.componentsAppItemLibraryItemViewComponentsChapter, style: style)),
           SizedBox(
             width: 74,
-            child: Text('Start', style: style, textAlign: TextAlign.right),
+            child: Text(
+              S.current.componentsAppItemLibraryItemViewComponentsStart,
+              style: style,
+              textAlign: TextAlign.right,
+            ),
           ),
           SizedBox(
             width: 74,
-            child: Text('Length', style: style, textAlign: TextAlign.right),
+            child: Text(
+              S.current.componentsAppItemLibraryItemViewComponentsLength,
+              style: style,
+              textAlign: TextAlign.right,
+            ),
           ),
         ],
       ),
@@ -434,7 +468,7 @@ class LibraryItemMediaSections extends StatelessWidget {
         if (chapters.isNotEmpty) ...[
           const SizedBox(height: 8),
           ItemExpandableSection(
-            title: 'Chapters (${chapters.length})',
+            title: S.current.componentsAppItemLibraryItemViewComponentsChaptersCount(chapters.length),
             children: [
               const _ChapterTableHeader(),
               ...chapters.map(
@@ -451,7 +485,7 @@ class LibraryItemMediaSections extends StatelessWidget {
         if (audioFiles.isNotEmpty) ...[
           const SizedBox(height: 8),
           ItemExpandableSection(
-            title: 'Audio files (${audioFiles.length})',
+            title: S.current.componentsAppItemLibraryItemViewComponentsAudioFilesCount(audioFiles.length),
             children: audioFiles
                 .map(
                   (audioFile) => ListTile(
@@ -469,7 +503,7 @@ class LibraryItemMediaSections extends StatelessWidget {
         if (ebookFile != null) ...[
           const SizedBox(height: 8),
           ItemExpandableSection(
-            title: 'Ebook files',
+            title: S.current.componentsAppItemLibraryItemViewComponentsEbookFiles,
             children: [
               ListTile(
                 dense: true,

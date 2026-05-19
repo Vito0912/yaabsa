@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tray_manager/tray_manager.dart';
+import 'package:yaabsa/generated/l10n.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/logger.dart';
 
@@ -37,7 +38,7 @@ class TrayManager extends ConsumerStatefulWidget {
               items: [
                 MenuItem(
                   key: TrayManager.playPauseKey,
-                  label: audioHandler.playerControlState.playing ? 'Pause' : 'Play',
+                  label: audioHandler.playerControlState.playing ? S.current.commonPause : S.current.commonPlay,
                 ),
                 MenuItem(key: TrayManager.stopKey, label: 'Stop'),
                 MenuItem(key: TrayManager.nextKey, label: 'Next'),

@@ -6,6 +6,8 @@ import 'package:yaabsa/components/player/common/volume_slider_panel.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/handler/bg_audio_handler.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class VolumeSlider extends StatefulWidget {
   const VolumeSlider({super.key});
 
@@ -58,7 +60,7 @@ class _VolumeSliderState extends State<VolumeSlider> {
                 width: _buttonSize.width,
                 height: _buttonSize.height,
                 child: IconButton(
-                  tooltip: 'Volume ${(volume * 100).round()}%',
+                  tooltip: S.current.componentsPlayerCommonVolumeSliderVolume((volume * 100).round()),
                   onPressed: () => _handlePress(context, volume),
                   color: isBoosted ? colorScheme.primary : colorScheme.onSurface.withValues(alpha: 0.6),
                   icon: Icon(_iconForVolume(volume)),

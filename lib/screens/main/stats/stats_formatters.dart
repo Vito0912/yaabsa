@@ -1,32 +1,42 @@
 import 'package:yaabsa/util/item_formatters.dart';
+import 'package:intl/intl.dart';
 
-String formatListeningSeconds(num? seconds, {String fallback = '0 min'}) {
+import 'package:yaabsa/generated/l10n.dart';
+
+String formatListeningSeconds(num? seconds, {String? fallback}) {
+  final resolvedFallback = fallback ?? S.current.screensMainStatsStatsFormattersZeroMinutes;
   if (seconds == null || seconds <= 0) {
-    return fallback;
+    return resolvedFallback;
   }
 
   return formatDurationLong(Duration(seconds: seconds.round()));
 }
 
-String formatListeningSecondsShort(num? seconds, {String fallback = '0:00'}) {
+String formatListeningSecondsShort(num? seconds, {String? fallback}) {
+  final resolvedFallback = fallback ?? S.current.screensMainStatsStatsFormattersZeroClock;
   if (seconds == null || seconds <= 0) {
-    return fallback;
+    return resolvedFallback;
   }
 
   return formatDurationShort(Duration(seconds: seconds.round()));
 }
 
-String formatDateTimeLabel(DateTime? dateTime) {
+String formatDateLabel(DateTime? dateTime, {String? fallback}) {
+  final resolvedFallback = fallback ?? S.current.screensMainStatsStatsFormattersUnknown;
   if (dateTime == null) {
-    return 'Unknown';
+    return resolvedFallback;
   }
 
-  final year = dateTime.year.toString().padLeft(4, '0');
-  final month = dateTime.month.toString().padLeft(2, '0');
-  final day = dateTime.day.toString().padLeft(2, '0');
-  final hour = dateTime.hour.toString().padLeft(2, '0');
-  final minute = dateTime.minute.toString().padLeft(2, '0');
-  return '$year-$month-$day $hour:$minute';
+  return DateFormat.yMd(Intl.getCurrentLocale()).format(dateTime);
+}
+
+String formatDateTimeLabel(DateTime? dateTime, {String? fallback}) {
+  final resolvedFallback = fallback ?? S.current.screensMainStatsStatsFormattersUnknown;
+  if (dateTime == null) {
+    return resolvedFallback;
+  }
+
+  return DateFormat.yMd(Intl.getCurrentLocale()).add_Hm().format(dateTime);
 }
 
 DateTime? fromEpochMs(int? value) {

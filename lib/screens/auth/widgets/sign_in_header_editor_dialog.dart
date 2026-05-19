@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class SignInHeaderEntry {
   const SignInHeaderEntry({required this.name, required this.value});
 
@@ -26,7 +28,11 @@ Future<SignInHeaderEntry?> showSignInHeaderEditorDialog({
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              title: Text(originalHeaderName == null ? 'Add Header' : 'Edit Header'),
+              title: Text(
+                originalHeaderName == null
+                    ? S.current.screensAuthWidgetsSignInAdvancedOptionsAddHeader
+                    : S.current.screensAuthWidgetsSignInAdvancedOptionsEditHeader,
+              ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -34,12 +40,16 @@ Future<SignInHeaderEntry?> showSignInHeaderEditorDialog({
                     controller: keyController,
                     autofocus: true,
                     textInputAction: TextInputAction.next,
-                    decoration: const InputDecoration(labelText: 'Header Name'),
+                    decoration: InputDecoration(
+                      labelText: S.current.screensAuthWidgetsSignInHeaderEditorDialogHeaderName,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   TextField(
                     controller: valueController,
-                    decoration: const InputDecoration(labelText: 'Header Value'),
+                    decoration: InputDecoration(
+                      labelText: S.current.screensAuthWidgetsSignInHeaderEditorDialogHeaderValue,
+                    ),
                   ),
                   if (dialogError != null) ...[
                     const SizedBox(height: 12),
@@ -51,7 +61,10 @@ Future<SignInHeaderEntry?> showSignInHeaderEditorDialog({
                 ],
               ),
               actions: [
-                TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Cancel')),
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: Text(S.current.screensAuthWidgetsSignInHeaderEditorDialogCancel),
+                ),
                 FilledButton(
                   onPressed: () {
                     final key = keyController.text.trim();
@@ -59,7 +72,7 @@ Future<SignInHeaderEntry?> showSignInHeaderEditorDialog({
 
                     if (key.isEmpty || value.isEmpty) {
                       setDialogState(() {
-                        dialogError = 'Header name and value are required.';
+                        dialogError = S.current.screensAuthWidgetsSignInHeaderEditorDialogHeaderNameAndValueAreRequired;
                       });
                       return;
                     }
@@ -70,14 +83,15 @@ Future<SignInHeaderEntry?> showSignInHeaderEditorDialog({
                     );
                     if (hasDuplicate) {
                       setDialogState(() {
-                        dialogError = 'A header with this name already exists.';
+                        dialogError =
+                            S.current.screensAuthWidgetsSignInHeaderEditorDialogAHeaderWithThisNameAlreadyExists;
                       });
                       return;
                     }
 
                     Navigator.of(dialogContext).pop(SignInHeaderEntry(name: key, value: value));
                   },
-                  child: const Text('Save'),
+                  child: Text(S.current.screensAuthWidgetsSignInHeaderEditorDialogSave),
                 ),
               ],
             );

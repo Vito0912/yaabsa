@@ -6,6 +6,8 @@ import 'package:yaabsa/components/app/item/editor/library_item_editor_field_cont
 import 'package:yaabsa/components/app/item/editor/library_item_edit_models.dart';
 import 'package:yaabsa/components/common/styled_form_fields.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class LibraryItemEditorSectionCard extends StatelessWidget {
   const LibraryItemEditorSectionCard({super.key, required this.title, required this.child, this.subtitle});
 
@@ -352,14 +354,14 @@ class _LibraryItemEditorSeriesListState extends State<LibraryItemEditorSeriesLis
         context: context,
         builder: (dialogContext) {
           return AlertDialog(
-            title: const Text('Series number'),
+            title: Text(S.current.componentsAppItemEditorLibraryItemEditorInputsSeriesNumber),
             content: TextField(
               controller: controller,
               autofocus: true,
               inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[\x21-\x7E]'))],
-              decoration: const InputDecoration(
-                labelText: 'Sequence',
-                hintText: 'e.g. 1,2.5,03 (no spaces)',
+              decoration: InputDecoration(
+                labelText: S.current.componentsAppItemEditorLibraryItemEditorInputsSequence,
+                hintText: S.current.componentsAppItemEditorLibraryItemEditorInputsEG12503,
                 border: OutlineInputBorder(),
               ),
               onSubmitted: (value) {
@@ -371,13 +373,13 @@ class _LibraryItemEditorSeriesListState extends State<LibraryItemEditorSeriesLis
                 onPressed: () {
                   Navigator.of(dialogContext).pop(_sanitizeSequence(initialValue));
                 },
-                child: const Text('Skip'),
+                child: Text(S.current.componentsAppItemEditorLibraryItemEditorInputsSkip),
               ),
               FilledButton(
                 onPressed: () {
                   Navigator.of(dialogContext).pop(_sanitizeSequence(controller.text));
                 },
-                child: const Text('Save'),
+                child: Text(S.current.componentsAppItemEditorLibraryItemEditorInputsSave),
               ),
             ],
           );
@@ -387,9 +389,11 @@ class _LibraryItemEditorSeriesListState extends State<LibraryItemEditorSeriesLis
       return value;
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Could not open the series sequence prompt. Please try again.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(S.current.componentsAppItemEditorLibraryItemEditorInputsCouldNotOpenTheSeriesSequence),
+          ),
+        );
       }
       return null;
     } finally {
@@ -461,7 +465,10 @@ class _LibraryItemEditorSeriesListState extends State<LibraryItemEditorSeriesLis
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Series', style: Theme.of(context).textTheme.labelMedium),
+        Text(
+          S.current.componentsAppItemEditorLibraryItemEditorInputsSeries,
+          style: Theme.of(context).textTheme.labelMedium,
+        ),
         const SizedBox(height: 4),
         if (showSuggestions && filteredSuggestions.isNotEmpty)
           LibraryItemEditorAutocompleteSheet(
@@ -509,7 +516,9 @@ class _LibraryItemEditorSeriesListState extends State<LibraryItemEditorSeriesLis
                 child: TextField(
                   controller: _controller,
                   style: Theme.of(context).textTheme.bodySmall,
-                  decoration: const InputDecoration.collapsed(hintText: 'Add series'),
+                  decoration: InputDecoration.collapsed(
+                    hintText: S.current.componentsAppItemEditorLibraryItemEditorInputsAddSeries,
+                  ),
                   onChanged: (value) {
                     setState(() {
                       _query = value;

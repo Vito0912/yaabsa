@@ -11,6 +11,8 @@ import 'package:yaabsa/components/app/item/editor/library_item_editor_field_cont
 import 'package:yaabsa/components/app/item/editor/library_item_editor_inputs.dart';
 import 'package:yaabsa/util/globals.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class LibraryItemEditorForm extends StatefulWidget {
   const LibraryItemEditorForm({
     super.key,
@@ -186,7 +188,9 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No changes to save.')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(S.current.componentsAppItemEditorLibraryItemEditorFormNoChangesToSave)));
       return;
     }
 
@@ -245,7 +249,7 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
               OutlinedButton.icon(
                 onPressed: widget.isSaving ? null : widget.onClose,
                 icon: const Icon(Icons.close_rounded),
-                label: const Text('Close'),
+                label: Text(S.current.componentsAppItemEditorLibraryItemEditorFormClose),
               ),
               const Spacer(),
               FilledButton.icon(
@@ -253,7 +257,7 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
                 icon: widget.isSaving
                     ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2.2))
                     : const Icon(Icons.save_rounded),
-                label: Text(widget.isSaving ? 'Saving...' : 'Save changes'),
+                label: Text(widget.isSaving ? S.current.commonSaving : S.current.commonSaveChanges),
               ),
             ],
           ),
@@ -300,7 +304,7 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
         LibraryItemEditorTextField(
           label: 'Release date',
           controller: _releaseDateController,
-          hintText: 'YYYY-MM-DD',
+          hintText: S.current.componentsAppItemEditorLibraryItemEditorFormYyyyMMDD,
           onChanged: (_) => setState(() {}),
         ),
       LibraryItemEditorTextField(
@@ -335,7 +339,7 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
         LibraryItemEditorTextField(
           label: 'Podcast type',
           controller: _podcastTypeController,
-          hintText: 'episodic or serial',
+          hintText: S.current.componentsAppItemEditorLibraryItemEditorFormEpisodicOrSerial,
           onChanged: (_) => setState(() {}),
         ),
       _MetadataFlagsField(
@@ -358,7 +362,10 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Metadata', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontSize: 15)),
+        Text(
+          S.current.componentsAppItemEditorLibraryItemEditorFormMetadata,
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(fontSize: 15),
+        ),
         const SizedBox(height: 4),
         _ResponsiveEditorFields(children: fields),
       ],
@@ -446,7 +453,10 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Description', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontSize: 15)),
+        Text(
+          S.current.componentsAppItemEditorLibraryItemEditorFormDescription,
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(fontSize: 15),
+        ),
         const SizedBox(height: 4),
         LibraryItemEditorFieldContainer(
           padding: EdgeInsets.zero,

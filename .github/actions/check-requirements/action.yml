@@ -47,6 +47,46 @@ runs:
           exit 1
         fi
 
+    - name: intl_utils
+      shell: bash
+      run: dart run intl_utils:generate
+
+    - name: Format
+      shell: bash
+      run: dart format lib
+
+    - name: Check if files changed
+      shell: bash
+      run: |
+        if [[ -n $(git status --porcelain) ]]; then
+          echo "Generated files are not up to date. Please run 'dart run intl_utils:generate' and commit the changes."
+          exit 1
+        fi
+
+    - name: Add arb_utils
+      shell: bash
+      run: dart pub global activate arb_utils
+
+    - name: Get all .arb files in lib/l10n and run arb_utils sort lib/l10n/*.arb
+      shell: bash
+      run: |
+        for file in lib/l10n/*.arb; do
+          arb_utils sort "$file"
+          arb_utils generate-meta "$file"
+        done
+
+    - name: Format
+      shell: bash
+      run: dart format lib
+
+    - name: Check if files changed
+      shell: bash
+      run: |
+        if [[ -n $(git status --porcelain) ]]; then
+          echo "Generated files are not up to date. Please run 'arb_utils sort' and 'arb_utils generate-meta' and commit the changes."
+          exit 1
+        fi
+
     - name: Check if flutter fixes are available
       shell: bash
       run: dart fix lib/ --dry-run | grep "Nothing to fix!" || (echo "Flutter fixes are

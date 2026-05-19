@@ -21,6 +21,8 @@ import 'package:yaabsa/util/handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
 import 'package:yaabsa/util/server_management_preferences.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class CollectionDetailView extends HookConsumerWidget {
   const CollectionDetailView({required this.collectionId, super.key, this.initialEntry});
 
@@ -33,7 +35,7 @@ class CollectionDetailView extends HookConsumerWidget {
     final selectedLibrary = ref.watch(selectedLibraryProvider);
     final serverReachable = ref.watch(serverStatusProvider).value ?? false;
     if (selectedLibrary == null) {
-      return const Center(child: Text('No library selected. Please select a library via the switcher.'));
+      return Center(child: Text(S.current.screensMainCollectionDetailViewNoLibrarySelectedPleaseSelectA));
     }
 
     final api = ref.watch(absApiProvider);
@@ -95,7 +97,7 @@ class CollectionDetailView extends HookConsumerWidget {
                   IconButton(
                     onPressed: () => context.pop(),
                     icon: const Icon(Icons.arrow_back_rounded),
-                    tooltip: 'Back',
+                    tooltip: S.current.screensMainCollectionDetailViewBack,
                   ),
                   const SizedBox(width: 6),
                   Expanded(
@@ -108,7 +110,7 @@ class CollectionDetailView extends HookConsumerWidget {
                   ),
                   if (canEditCollection || canDeleteCollection)
                     PopupMenuButton<_CollectionDetailAction>(
-                      tooltip: 'Collection actions',
+                      tooltip: S.current.screensMainCollectionDetailViewCollectionActions,
                       onSelected: (action) => _handleCollectionAction(
                         context: context,
                         ref: ref,
@@ -120,23 +122,23 @@ class CollectionDetailView extends HookConsumerWidget {
                         final items = <PopupMenuEntry<_CollectionDetailAction>>[];
                         if (canEditCollection) {
                           items.add(
-                            const PopupMenuItem<_CollectionDetailAction>(
+                            PopupMenuItem<_CollectionDetailAction>(
                               value: _CollectionDetailAction.editBooks,
-                              child: Text('Edit books'),
+                              child: Text(S.current.screensMainCollectionDetailViewEditBooks),
                             ),
                           );
                           items.add(
-                            const PopupMenuItem<_CollectionDetailAction>(
+                            PopupMenuItem<_CollectionDetailAction>(
                               value: _CollectionDetailAction.edit,
-                              child: Text('Edit details'),
+                              child: Text(S.current.screensMainCollectionDetailViewEditDetails),
                             ),
                           );
                         }
                         if (canDeleteCollection) {
                           items.add(
-                            const PopupMenuItem<_CollectionDetailAction>(
+                            PopupMenuItem<_CollectionDetailAction>(
                               value: _CollectionDetailAction.delete,
-                              child: Text('Delete collection'),
+                              child: Text(S.current.screensMainCollectionDetailViewDeleteCollection),
                             ),
                           );
                         }
@@ -161,7 +163,9 @@ class CollectionDetailView extends HookConsumerWidget {
                 ),
               ),
             if (collectionItems.isEmpty)
-              const Expanded(child: Center(child: Text('No books found in this collection.')))
+              Expanded(
+                child: Center(child: Text(S.current.screensMainCollectionDetailViewNoBooksFoundInThisCollection)),
+              )
             else
               Expanded(
                 child: Stack(

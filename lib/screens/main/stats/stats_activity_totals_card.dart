@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/models/listening_activity_stats.dart';
 import 'package:yaabsa/screens/main/stats/stats_formatters.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class StatsActivityTotalsCard extends StatelessWidget {
   const StatsActivityTotalsCard({super.key, required this.activityAsync, required this.onRefresh});
 
@@ -24,7 +26,10 @@ class StatsActivityTotalsCard extends StatelessWidget {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: Text('Listening Time Totals', style: Theme.of(context).textTheme.titleMedium),
+              child: Text(
+                S.current.screensMainStatsStatsActivityTotalsCardListeningTimeTotals,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
             ),
             Row(
               children: [
@@ -50,7 +55,7 @@ class StatsActivityTotalsCard extends StatelessWidget {
         child: OutlinedButton.icon(
           onPressed: onRefresh,
           icon: const Icon(Icons.refresh_rounded),
-          label: const Text('Retry totals'),
+          label: Text(S.current.screensMainStatsStatsActivityTotalsCardRetryTotals),
         ),
       ),
     );

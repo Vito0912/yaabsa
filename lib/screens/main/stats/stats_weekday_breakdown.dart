@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:yaabsa/api/library/stats/days_of_week.dart';
 import 'package:yaabsa/screens/main/stats/stats_formatters.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class StatsWeekdayBreakdown extends StatelessWidget {
   const StatsWeekdayBreakdown({super.key, required this.dayOfWeek});
 
@@ -22,7 +24,10 @@ class StatsWeekdayBreakdown extends StatelessWidget {
     final maxValue = entries.fold<double>(0, (max, current) => current.value > max ? current.value : max);
 
     if (maxValue <= 0) {
-      return Text('No weekday listening data available.', style: Theme.of(context).textTheme.bodyMedium);
+      return Text(
+        S.current.screensMainStatsStatsWeekdayBreakdownNoWeekdayListeningDataAvailable,
+        style: Theme.of(context).textTheme.bodyMedium,
+      );
     }
 
     final theme = Theme.of(context);

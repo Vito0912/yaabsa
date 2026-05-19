@@ -3,6 +3,8 @@ import 'package:yaabsa/api/admin/create_custom_metadata_provider_request.dart';
 import 'package:yaabsa/api/admin/custom_metadata_provider.dart';
 import 'package:yaabsa/components/common/list_management_dialogs.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 typedef CreateCustomMetadataProviderCallback =
     Future<CustomMetadataProvider?> Function(CreateCustomMetadataProviderRequest payload);
 typedef DeleteCustomMetadataProviderCallback = Future<void> Function(CustomMetadataProvider provider);
@@ -74,7 +76,9 @@ class _AdminCustomMetadataProviderManagerState extends State<AdminCustomMetadata
       }
 
       final name = provider?.name ?? payload.name;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Added provider "$name".')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.current.componentsSettingsAdminCustomMetadataProviderManagerAddedProvider(name))),
+      );
     } catch (error) {
       if (!mounted) {
         return;
@@ -139,7 +143,9 @@ class _AdminCustomMetadataProviderManagerState extends State<AdminCustomMetadata
       }
 
       final name = recreatedProvider?.name ?? payload.name;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Updated provider "$name".')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.current.componentsSettingsAdminCustomMetadataProviderManagerUpdatedProvider(name))),
+      );
     } catch (error) {
       if (!mounted) {
         return;
@@ -181,7 +187,11 @@ class _AdminCustomMetadataProviderManagerState extends State<AdminCustomMetadata
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Deleted provider "${provider.name}".')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(S.current.componentsSettingsAdminCustomMetadataProviderManagerDeletedProvider(provider.name)),
+        ),
+      );
     } catch (error) {
       if (!mounted) {
         return;
@@ -210,14 +220,14 @@ class _AdminCustomMetadataProviderManagerState extends State<AdminCustomMetadata
               Spacer(),
               const SizedBox(width: 12),
               IconButton(
-                tooltip: 'Refresh providers',
+                tooltip: S.current.componentsSettingsAdminCustomMetadataProviderManagerRefreshProviders,
                 onPressed: _isBusy ? null : _handleRefresh,
                 icon: const Icon(Icons.refresh_outlined),
               ),
               FilledButton.icon(
                 onPressed: _isBusy ? null : _showAddProviderDialog,
                 icon: const Icon(Icons.add),
-                label: const Text('Add'),
+                label: Text(S.current.componentsSettingsAdminCustomMetadataProviderManagerAdd),
               ),
             ],
           ),
@@ -229,7 +239,11 @@ class _AdminCustomMetadataProviderManagerState extends State<AdminCustomMetadata
                 ? ListView(
                     physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
-                    children: const [Text('No custom metadata providers found.')],
+                    children: [
+                      Text(
+                        S.current.componentsSettingsAdminCustomMetadataProviderManagerNoCustomMetadataProvidersFound,
+                      ),
+                    ],
                   )
                 : ListView.separated(
                     physics: const AlwaysScrollableScrollPhysics(),
@@ -249,7 +263,9 @@ class _AdminCustomMetadataProviderManagerState extends State<AdminCustomMetadata
                             children: [
                               Text(provider.url),
                               if (provider.authHeaderValue != null && provider.authHeaderValue!.trim().isNotEmpty)
-                                const Text('Auth header configured'),
+                                Text(
+                                  S.current.componentsSettingsAdminCustomMetadataProviderManagerAuthHeaderConfigured,
+                                ),
                             ],
                           ),
                           trailing: processingThisProvider
@@ -260,12 +276,15 @@ class _AdminCustomMetadataProviderManagerState extends State<AdminCustomMetadata
                                     mainAxisAlignment: MainAxisAlignment.end,
                                     children: [
                                       IconButton(
-                                        tooltip: 'Edit provider',
+                                        tooltip:
+                                            S.current.componentsSettingsAdminCustomMetadataProviderManagerEditProvider,
                                         onPressed: _isBusy ? null : () => _editProvider(provider),
                                         icon: const Icon(Icons.edit_outlined),
                                       ),
                                       IconButton(
-                                        tooltip: 'Delete provider',
+                                        tooltip: S
+                                            .current
+                                            .componentsSettingsAdminCustomMetadataProviderManagerDeleteProvider,
                                         onPressed: _isBusy ? null : () => _deleteProvider(provider),
                                         icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error),
                                       ),
@@ -390,7 +409,7 @@ class _CreateCustomMetadataProviderDialogState extends State<_CreateCustomMetada
               TextField(
                 controller: _nameController,
                 decoration: InputDecoration(
-                  labelText: 'Name',
+                  labelText: S.current.componentsSettingsAdminCustomMetadataProviderManagerName,
                   errorText: _showValidation && !_isNameValid ? 'Name is required.' : null,
                 ),
               ),
@@ -398,22 +417,28 @@ class _CreateCustomMetadataProviderDialogState extends State<_CreateCustomMetada
               TextField(
                 controller: _urlController,
                 decoration: InputDecoration(
-                  labelText: 'URL',
-                  hintText: 'https://example.com/path',
+                  labelText: S.current.componentsSettingsAdminCustomMetadataProviderManagerUrl,
+                  hintText: S.current.componentsSettingsAdminCustomMetadataProviderManagerHttpsExampleComPath,
                   errorText: _showValidation && !_isUrlValid ? 'Enter a valid http or https URL.' : null,
                 ),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: _authController,
-                decoration: const InputDecoration(labelText: 'Auth Header Value', hintText: 'Optional'),
+                decoration: InputDecoration(
+                  labelText: S.current.componentsSettingsAdminCustomMetadataProviderManagerAuthHeaderValue,
+                  hintText: S.current.componentsSettingsAdminCustomMetadataProviderManagerOptional,
+                ),
               ),
             ],
           ),
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(S.current.componentsSettingsAdminCustomMetadataProviderManagerCancel),
+        ),
         FilledButton(onPressed: _isFormValid ? _submit : null, child: Text(widget.confirmLabel)),
       ],
     );

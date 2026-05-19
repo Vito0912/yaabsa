@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:yaabsa/generated/l10n.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/screens/settings/player/player_settings_general.dart';
 import 'package:yaabsa/screens/settings/player/player_settings_shake_controls.dart';
@@ -19,50 +20,52 @@ class PlayerSettings extends StatelessWidget {
     final supportsShakeActions = DeviceCapabilities.supportsShakeActions;
 
     return SettingsPageScaffold(
-      title: 'Player Settings',
+      title: S.current.screensSettingsPlayerPlayerSettingsTitle,
       embedded: true,
       showEmbeddedBackButton: true,
       children: [
         SettingsNavigationSection(
-          title: 'Playback',
+          title: S.current.screensSettingsPlayerPlayerSettingsPlayback,
           topPadding: 0,
           items: [
             SettingsNavigationItem(
               icon: Icons.tune_rounded,
-              title: 'General',
-              subtitle: 'Timeline mode, seek intervals, and auto queue behavior.',
+              title: S.current.screensSettingsPlayerPlayerSettingsGeneral,
+              subtitle: S.current.screensSettingsPlayerPlayerSettingsGeneralSubtitle,
               onTap: () => context.push(PlayerSettingsGeneral.routeName),
             ),
             SettingsNavigationItem(
               icon: Icons.replay_rounded,
-              title: 'Smart rewind',
-              subtitle: 'Control how much playback rewinds after pauses.',
+              title: S.current.screensSettingsPlayerPlayerSettingsSmartRewind,
+              subtitle: S.current.screensSettingsPlayerPlayerSettingsSmartRewindSubtitle,
               onTap: () => context.push(PlayerSettingsSmartRewind.routeName),
             ),
             SettingsNavigationItem(
               icon: Icons.bedtime_outlined,
-              title: 'Sleep timer',
-              subtitle: 'Choose timer end behavior and optional automatic restart.',
+              title: S.current.screensSettingsPlayerPlayerSettingsSleepTimer,
+              subtitle: S.current.screensSettingsPlayerPlayerSettingsSleepTimerSubtitle,
               onTap: () => context.push(PlayerSettingsSleepTimer.routeName),
             ),
           ],
         ),
         SettingsNavigationSection(
-          title: 'Accessibility & Device',
+          title: S.current.screensSettingsPlayerPlayerSettingsAccessibilityAndDevice,
           items: [
             SettingsNavigationItem(
               icon: Icons.subtitles_outlined,
-              title: 'Subtitles',
-              subtitle: 'Enable subtitles and reading support behavior.',
+              title: S.current.screensSettingsPlayerPlayerSettingsSubtitles,
+              subtitle: S.current.screensSettingsPlayerPlayerSettingsSubtitlesSubtitle,
               onTap: () => context.push(PlayerSettingsSubtitles.routeName),
             ),
             SettingsNavigationItem(
               icon: Icons.vibration_rounded,
-              title: 'Shake controls',
+              title: S.current.screensSettingsPlayerPlayerSettingsShakeControls,
               subtitle: supportsShakeActions
-                  ? 'Configure shake gestures and sensitivity.'
-                  : 'Available on devices with motion sensors.',
-              disabledReason: supportsShakeActions ? null : 'This device does not support shake controls.',
+                  ? S.current.screensSettingsPlayerPlayerSettingsShakeControlsSupportedSubtitle
+                  : S.current.screensSettingsPlayerPlayerSettingsShakeControlsUnsupportedSubtitle,
+              disabledReason: supportsShakeActions
+                  ? null
+                  : S.current.screensSettingsPlayerPlayerSettingsShakeControlsUnsupportedReason,
               enabled: supportsShakeActions,
               onTap: supportsShakeActions ? () => context.push(PlayerSettingsShakeControls.routeName) : null,
             ),

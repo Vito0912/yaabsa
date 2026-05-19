@@ -296,10 +296,9 @@ class ThemeAppearanceSection extends ConsumerWidget {
   }
 
   String toHex(Color color) {
-    final red = colorRed(color).toRadixString(16).padLeft(2, '0').toUpperCase();
-    final green = colorGreen(color).toRadixString(16).padLeft(2, '0').toUpperCase();
-    final blue = colorBlue(color).toRadixString(16).padLeft(2, '0').toUpperCase();
-    return '#$red$green$blue';
+    final rgbHex = (color.toARGB32() & 0x00FFFFFF).toRadixString(16).toUpperCase();
+    final padded = '000000$rgbHex';
+    return '#${padded.substring(padded.length - 6)}';
   }
 
   int colorRed(Color color) => (color.toARGB32() >> 16) & 0xFF;

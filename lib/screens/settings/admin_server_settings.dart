@@ -11,6 +11,8 @@ import 'package:yaabsa/screens/settings/admin_server_sessions_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_users_settings.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class AdminServerSettings extends ConsumerWidget {
   const AdminServerSettings({super.key});
 
@@ -33,9 +35,9 @@ class AdminServerSettings extends ConsumerWidget {
         currentUserAsync.when(
           data: (currentUser) {
             if (currentUser == null) {
-              return const Padding(
+              return Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                child: Text('No active user. Sign in to open admin server settings.'),
+                child: Text(S.current.screensSettingsAdminServerSettingsNoActiveUserSignInTo),
               );
             }
 
@@ -49,7 +51,7 @@ class AdminServerSettings extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 2, 20, 10),
                   child: Text(
-                    'You currently are managing the server $managedServer',
+                    S.current.screensSettingsAdminServerSettingsYouCurrentlyAreManagingTheServer(managedServer),
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
@@ -117,7 +119,7 @@ class AdminServerSettings extends ConsumerWidget {
           error: (error, stackTrace) => Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(
-              'Failed to load user settings: $error',
+              S.current.screensSettingsAdminServerSettingsFailedToLoadUserSettings(error),
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ),

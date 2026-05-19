@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/components/sessions/current_user_listening_sessions_tab.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class UserListeningSessionsView extends StatelessWidget {
   const UserListeningSessionsView({super.key});
 
@@ -18,7 +20,7 @@ class UserListeningSessionsView extends StatelessWidget {
             child: Row(
               children: [
                 IconButton(
-                  tooltip: 'Back',
+                  tooltip: S.current.screensMainUserListeningSessionsViewBack,
                   onPressed: () {
                     if (Navigator.of(context).canPop()) {
                       context.pop();
@@ -30,7 +32,7 @@ class UserListeningSessionsView extends StatelessWidget {
                 ),
                 Expanded(
                   child: Text(
-                    'Listening Sessions',
+                    S.current.screensMainUserListeningSessionsViewListeningSessions,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
                   ),
                 ),

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 import 'package:yaabsa/util/app_paths.dart';
 import 'package:yaabsa/util/logger.dart';
@@ -75,10 +76,9 @@ Future<String> _buildFallbackPath(String fileName) async {
 }
 
 String _buildLogFileName(DateTime timestamp) {
-  final date =
-      '${timestamp.year}${timestamp.month.toString().padLeft(2, '0')}${timestamp.day.toString().padLeft(2, '0')}';
-  final time =
-      '${timestamp.hour.toString().padLeft(2, '0')}${timestamp.minute.toString().padLeft(2, '0')}${timestamp.second.toString().padLeft(2, '0')}';
+  final digitsOnly = timestamp.toIso8601String().replaceAll(RegExp(r'[^0-9]'), '');
+  final date = digitsOnly.substring(0, 8);
+  final time = digitsOnly.substring(8, 14);
   return 'yaabsa_logs_${date}_$time.log';
 }
 
@@ -96,6 +96,5 @@ String _levelToExportString(InfoLevel level) {
 }
 
 String _formatTimestamp(DateTime timestamp) {
-  return '${timestamp.year}-${timestamp.month.toString().padLeft(2, '0')}-${timestamp.day.toString().padLeft(2, '0')} '
-      '${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}:${timestamp.second.toString().padLeft(2, '0')}';
+  return DateFormat.yMd(Intl.getCurrentLocale()).add_Hms().format(timestamp);
 }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_epub_reader/flutter_epub_reader.dart';
 import 'package:yaabsa/screens/reader/widgets/reader_annotation_tile.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class ReaderEpubAnnotationsListView extends StatefulWidget {
   const ReaderEpubAnnotationsListView({super.key, required this.epubController});
 
@@ -55,9 +57,13 @@ class _ReaderEpubAnnotationsListViewState extends State<ReaderEpubAnnotationsLis
       setState(() {
         highlights.removeWhere((h) => h.cfi == cfi);
       });
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Highlight removed')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.current.screensReaderWidgetsReaderEpubAnnotationsListViewHighlightRemoved)),
+      );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error removing highlight: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.current.screensReaderWidgetsReaderEpubAnnotationsListViewErrorRemovingHighlight(e))),
+      );
     }
   }
 
@@ -67,9 +73,13 @@ class _ReaderEpubAnnotationsListViewState extends State<ReaderEpubAnnotationsLis
       setState(() {
         underlines.removeWhere((u) => u.cfi == cfi);
       });
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Underline removed')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.current.screensReaderWidgetsReaderEpubAnnotationsListViewUnderlineRemoved)),
+      );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error removing underline: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.current.screensReaderWidgetsReaderEpubAnnotationsListViewErrorRemovingUnderline(e))),
+      );
     }
   }
 
@@ -83,13 +93,17 @@ class _ReaderEpubAnnotationsListViewState extends State<ReaderEpubAnnotationsLis
       setState(() {
         bookmarks.removeWhere((bookmark) => bookmark.cfi == cfi);
       });
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Bookmark removed')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.current.screensReaderWidgetsReaderEpubAnnotationsListViewBookmarkRemoved)),
+      );
     } catch (e) {
       if (!mounted) {
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error removing bookmark: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.current.screensReaderWidgetsReaderEpubAnnotationsListViewErrorRemovingBookmark(e))),
+      );
     }
   }
 
@@ -120,14 +134,17 @@ class _ReaderEpubAnnotationsListViewState extends State<ReaderEpubAnnotationsLis
           Container(
             padding: const EdgeInsets.all(16),
             child: Text(
-              'Annotations',
+              S.current.screensReaderWidgetsReaderEpubAnnotationsListViewAnnotations,
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
             ),
           ),
           if (!hasAnnotations)
             Expanded(
               child: Center(
-                child: Text('No annotations found', style: TextStyle(color: colorScheme.onSurfaceVariant)),
+                child: Text(
+                  S.current.screensReaderWidgetsReaderEpubAnnotationsListViewNoAnnotationsFound,
+                  style: TextStyle(color: colorScheme.onSurfaceVariant),
+                ),
               ),
             )
           else
@@ -135,10 +152,10 @@ class _ReaderEpubAnnotationsListViewState extends State<ReaderEpubAnnotationsLis
               child: ListView(
                 children: [
                   if (highlights.isNotEmpty) ...[
-                    sectionTitle('Highlights'),
+                    sectionTitle(S.current.readerEpubAnnotationsHighlights),
                     ...highlights.map(
                       (highlight) => ReaderAnnotationTile(
-                        type: 'Highlight',
+                        type: S.current.readerEpubAnnotationsTypeHighlight,
                         cfi: highlight.cfi,
                         color: highlight.color,
                         onRemove: () => _removeHighlight(highlight.cfi),
@@ -146,10 +163,10 @@ class _ReaderEpubAnnotationsListViewState extends State<ReaderEpubAnnotationsLis
                     ),
                   ],
                   if (underlines.isNotEmpty) ...[
-                    sectionTitle('Underlines'),
+                    sectionTitle(S.current.readerEpubAnnotationsUnderlines),
                     ...underlines.map(
                       (underline) => ReaderAnnotationTile(
-                        type: 'Underline',
+                        type: S.current.readerEpubAnnotationsTypeUnderline,
                         cfi: underline.cfi,
                         color: underline.color,
                         thickness: underline.thickness,
@@ -158,17 +175,18 @@ class _ReaderEpubAnnotationsListViewState extends State<ReaderEpubAnnotationsLis
                     ),
                   ],
                   if (bookmarks.isNotEmpty) ...[
-                    sectionTitle('Bookmarks'),
+                    sectionTitle(S.current.readerEpubAnnotationsBookmarks),
                     ...bookmarks.map((bookmark) {
                       final title = bookmark.title.trim();
+                      final cfiText = bookmark.cfi.length > 30 ? '${bookmark.cfi.substring(0, 30)}...' : bookmark.cfi;
                       return ListTile(
                         leading: const Icon(Icons.bookmark),
                         title: Text(
-                          title.isEmpty ? 'Untitled bookmark' : title,
+                          title.isEmpty ? S.current.readerEpubAnnotationsUntitledBookmark : title,
                           style: TextStyle(color: colorScheme.onSurface),
                         ),
                         subtitle: Text(
-                          'CFI: ${bookmark.cfi.length > 30 ? '${bookmark.cfi.substring(0, 30)}...' : bookmark.cfi}',
+                          S.current.readerEpubAnnotationsCfi(cfiText),
                           style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 12),
                         ),
                         trailing: IconButton(

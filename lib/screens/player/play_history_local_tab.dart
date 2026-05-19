@@ -8,6 +8,8 @@ import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/handler/player_history_handler.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class PlayHistoryLocalTab extends ConsumerStatefulWidget {
   const PlayHistoryLocalTab({super.key, required this.itemId, required this.episodeId});
 
@@ -33,7 +35,7 @@ class _PlayHistoryLocalTabState extends ConsumerState<PlayHistoryLocalTab> {
     final user = ref.watch(currentUserProvider).value;
 
     if (user == null) {
-      return const Center(child: Text('No active user.'));
+      return Center(child: Text(S.current.screensPlayerPlayHistoryLocalTabNoActiveUser));
     }
 
     return StreamBuilder<List<PlayerHistoryEntry>>(
@@ -47,7 +49,7 @@ class _PlayHistoryLocalTabState extends ConsumerState<PlayHistoryLocalTab> {
                 const Icon(Icons.error_outline, size: 64, color: Colors.red),
                 const SizedBox(height: 16),
                 Text(
-                  'Error: ${snapshot.error}',
+                  S.current.screensPlayerPlayHistoryLocalTabError(snapshot.error ?? ''),
                   style: const TextStyle(fontSize: 16, color: Colors.red),
                   textAlign: TextAlign.center,
                 ),
@@ -57,13 +59,16 @@ class _PlayHistoryLocalTabState extends ConsumerState<PlayHistoryLocalTab> {
         }
 
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(
+          return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.history_outlined, size: 64, color: Colors.grey),
                 SizedBox(height: 16),
-                Text('No play history available', style: TextStyle(fontSize: 16, color: Colors.grey)),
+                Text(
+                  S.current.screensPlayerPlayHistoryLocalTabNoPlayHistoryAvailable,
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                ),
               ],
             ),
           );
@@ -96,7 +101,7 @@ class _PlayHistoryLocalTabState extends ConsumerState<PlayHistoryLocalTab> {
     final grouped = <String, List<PlayerHistoryEntry>>{};
 
     for (final entry in history) {
-      final dateKey = DateFormat('yyyy-MM-dd').format(entry.created);
+      final dateKey = entry.created.toIso8601String().substring(0, 10);
       grouped.putIfAbsent(dateKey, () => <PlayerHistoryEntry>[]).add(entry);
     }
 
@@ -116,10 +121,10 @@ class _PlayHistoryLocalTabState extends ConsumerState<PlayHistoryLocalTab> {
     final isYesterday = _isYesterday(dateGroup.date);
 
     final dateLabel = isToday
-        ? 'Today'
+        ? S.current.screensPlayerPlayHistoryLocalTabToday
         : isYesterday
-        ? 'Yesterday'
-        : DateFormat('MMMM d, yyyy').format(dateGroup.date);
+        ? S.current.screensPlayerPlayHistoryLocalTabYesterday
+        : DateFormat.yMMMMd(Intl.getCurrentLocale()).format(dateGroup.date);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -145,7 +150,7 @@ class _PlayHistoryLocalTabState extends ConsumerState<PlayHistoryLocalTab> {
     final icon = _getIconForType(type);
     final color = _getColorForType(context, type);
     final timeText = entry.currentTime.toDuration.toHhMmString();
-    final timestampText = DateFormat('HH:mm:ss').format(entry.created);
+    final timestampText = DateFormat.Hms(Intl.getCurrentLocale()).format(entry.created);
 
     return ListTile(
       leading: CircleAvatar(
@@ -162,7 +167,10 @@ class _PlayHistoryLocalTabState extends ConsumerState<PlayHistoryLocalTab> {
           Text(timestampText, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
         ],
       ),
-      subtitle: Text('Position: $timeText', style: TextStyle(color: Colors.grey[700])),
+      subtitle: Text(
+        S.current.screensPlayerPlayHistoryLocalTabPosition(timeText),
+        style: TextStyle(color: Colors.grey[700]),
+      ),
       onTap: _canSeek(type) ? () => audioHandler.seek(entry.currentTime.toDuration) : null,
       trailing: _canSeek(type) ? Icon(Icons.play_arrow, color: color) : null,
     );

@@ -17,6 +17,8 @@ import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 const int _seriesBooksPrefetchThreshold = 8;
 const int _seriesBooksApproxScrollPastCount = 24;
 
@@ -32,11 +34,11 @@ class SeriesDetailView extends HookConsumerWidget {
     final selectedLibrary = ref.watch(selectedLibraryProvider);
     final serverReachable = ref.watch(serverStatusProvider).value ?? false;
     if (selectedLibrary == null) {
-      return const Center(child: Text('No library selected. Please select a library via the switcher.'));
+      return Center(child: Text(S.current.screensMainSeriesDetailViewNoLibrarySelectedPleaseSelectA));
     }
 
     if (selectedLibrary.mediaType != 'book') {
-      return const Center(child: Text('Series are available only for book libraries.'));
+      return Center(child: Text(S.current.screensMainSeriesDetailViewSeriesAreAvailableOnlyForBook));
     }
 
     final api = ref.watch(absApiProvider);
@@ -82,7 +84,7 @@ class SeriesDetailView extends HookConsumerWidget {
                       IconButton(
                         onPressed: () => context.pop(),
                         icon: const Icon(Icons.arrow_back_rounded),
-                        tooltip: 'Back',
+                        tooltip: S.current.screensMainSeriesDetailViewBack,
                       ),
                       const SizedBox(width: 6),
                       Expanded(
@@ -98,7 +100,7 @@ class SeriesDetailView extends HookConsumerWidget {
                             child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.2)),
                           ),
                           (_, _, true) => Text(
-                            'Series details could not be loaded.',
+                            S.current.screensMainSeriesDetailViewSeriesDetailsCouldNotBeLoaded,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: Theme.of(context).textTheme.titleMedium,
@@ -123,7 +125,7 @@ class SeriesDetailView extends HookConsumerWidget {
                     ),
                   ),
                 if (state.items.isEmpty && !state.hasNextPage && !state.isLoadingNextPage)
-                  const Expanded(child: Center(child: Text('No books found in this series.')))
+                  Expanded(child: Center(child: Text(S.current.screensMainSeriesDetailViewNoBooksFoundInThisSeries)))
                 else
                   Expanded(
                     child: Stack(
@@ -190,7 +192,7 @@ class SeriesDetailView extends HookConsumerWidget {
 
         return ConnectionIssueView.requestFailed(
           error: error,
-          title: 'Error loading series books',
+          title: S.current.seriesDetailErrorLoadingSeriesBooks,
           onRetry: () => ref.read(seriesBooksProvider(booksArgs).notifier).refresh(withLoading: true),
         );
       },
@@ -201,7 +203,7 @@ class SeriesDetailView extends HookConsumerWidget {
 String? _seriesSubtitleFromSeries(Series? series) {
   final numBooks = series?.numBooks;
   if (numBooks == null) return null;
-  return '$numBooks ${numBooks == 1 ? 'book' : 'books'}';
+  return S.current.authorDetailBookCount(numBooks);
 }
 
 int _estimatedItemCount({required int loadedCount, required int totalItems, required bool hasNextPage}) {

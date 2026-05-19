@@ -14,6 +14,8 @@ import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/item_formatters.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class PodcastEpisodeDetailsPage extends StatelessWidget {
   const PodcastEpisodeDetailsPage({
     super.key,
@@ -31,7 +33,7 @@ class PodcastEpisodeDetailsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Episode')),
+      appBar: AppBar(title: Text(S.current.screensItemPodcastPodcastEpisodeDetailsEpisode)),
       body: SafeArea(
         child: PodcastEpisodeDetailsContent(
           item: item,
@@ -143,7 +145,7 @@ class PodcastEpisodeDetailsContent extends ConsumerWidget {
                               child: IconButton(
                                 onPressed: () => Navigator.of(context).pop(),
                                 icon: const Icon(Icons.close_rounded),
-                                tooltip: 'Close',
+                                tooltip: S.current.screensItemPodcastPodcastEpisodeDetailsClose,
                               ),
                             ),
                           Text(podcastEpisodeTitle(episode), style: Theme.of(context).textTheme.titleLarge),
@@ -197,7 +199,11 @@ class PodcastEpisodeDetailsContent extends ConsumerWidget {
                                       ? Icons.pause_rounded
                                       : Icons.play_arrow_rounded,
                                 ),
-                                label: Text(isCurrentEpisode && isPlayingCurrentEpisode ? 'Pause' : 'Play'),
+                                label: Text(
+                                  isCurrentEpisode && isPlayingCurrentEpisode
+                                      ? S.current.commonPause
+                                      : S.current.commonPlay,
+                                ),
                               ),
                               FilledButton.tonalIcon(
                                 onPressed: isCurrentEpisode
@@ -220,7 +226,7 @@ class PodcastEpisodeDetailsContent extends ConsumerWidget {
                                     height: 18,
                                     child: CircularProgressIndicator(strokeWidth: 2.2),
                                   ),
-                                  label: const Text('Downloading'),
+                                  label: Text(S.current.screensItemPodcastPodcastEpisodeDetailsDownloading),
                                 ),
                               if (canDownload && !isDownloading && isDownloaded)
                                 FilledButton.tonalIcon(
@@ -239,25 +245,35 @@ class PodcastEpisodeDetailsContent extends ConsumerWidget {
                                             if (!context.mounted) {
                                               return;
                                             }
-                                            final failedSuffix = result.failedFiles > 0
-                                                ? ' ${result.failedFiles} file(s) could not be removed.'
-                                                : '';
+                                            final failedSuffix = S.current.downloadDeleteFailedSuffix(
+                                              result.failedFiles,
+                                            );
                                             ScaffoldMessenger.of(context).showSnackBar(
                                               SnackBar(
-                                                content: Text('Deleted ${result.deletedFiles} file(s).$failedSuffix'),
+                                                content: Text(
+                                                  S.current.screensItemPodcastPodcastEpisodeDetailsDeletedFileS(
+                                                    result.deletedFiles,
+                                                    failedSuffix,
+                                                  ),
+                                                ),
                                               ),
                                             );
                                           } catch (e) {
                                             if (!context.mounted) {
                                               return;
                                             }
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(SnackBar(content: Text('Could not delete download: $e')));
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  S.current
+                                                      .screensItemPodcastPodcastEpisodeDetailsCouldNotDeleteDownload(e),
+                                                ),
+                                              ),
+                                            );
                                           }
                                         },
                                   icon: const Icon(Icons.delete_outline_rounded),
-                                  label: const Text('Delete download'),
+                                  label: Text(S.current.screensItemPodcastPodcastEpisodeDetailsDeleteDownload),
                                 ),
                               if (canDownload && !isDownloading && !isDownloaded)
                                 FilledButton.tonalIcon(
@@ -267,25 +283,36 @@ class PodcastEpisodeDetailsContent extends ConsumerWidget {
                                       if (!context.mounted) {
                                         return;
                                       }
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(const SnackBar(content: Text('Download added to queue.')));
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            S.current.screensItemPodcastPodcastEpisodeDetailsDownloadAddedToQueue,
+                                          ),
+                                        ),
+                                      );
                                     } catch (e) {
                                       if (!context.mounted) {
                                         return;
                                       }
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(SnackBar(content: Text('Could not start download: $e')));
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            S.current.screensItemPodcastPodcastEpisodeDetailsCouldNotStartDownload(e),
+                                          ),
+                                        ),
+                                      );
                                     }
                                   },
                                   icon: const Icon(Icons.download_rounded),
-                                  label: const Text('Download'),
+                                  label: Text(S.current.screensItemPodcastPodcastEpisodeDetailsDownload),
                                 ),
                             ],
                           ),
                           const SizedBox(height: 14),
-                          Text('Description', style: Theme.of(context).textTheme.titleMedium),
+                          Text(
+                            S.current.screensItemPodcastPodcastEpisodeDetailsDescription,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
                           const SizedBox(height: 8),
                           Expanded(
                             child: SingleChildScrollView(

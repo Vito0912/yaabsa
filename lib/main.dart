@@ -1,10 +1,11 @@
 import 'dart:async';
 
+import 'package:yaabsa/generated/l10n.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/core/socket_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
-import 'package:yaabsa/util/globals.dart' show appName, audioHandler, containerRef;
+import 'package:yaabsa/util/globals.dart' show audioHandler, containerRef;
 import 'package:yaabsa/util/aaos_service.dart';
 import 'package:yaabsa/util/app_theme.dart';
 import 'package:yaabsa/util/chrome_cast_service.dart';
@@ -96,14 +97,16 @@ class MyApp extends ConsumerWidget {
 
     return MaterialApp.router(
       routerConfig: globalRouter,
-      title: appName,
+      onGenerateTitle: (context) => S.of(context).appName,
       debugShowCheckedModeBanner: false,
       localizationsDelegates: const [
+        S.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
         FlutterQuillLocalizations.delegate,
       ],
+      supportedLocales: S.delegate.supportedLocales,
       themeMode: materialThemeMode,
       theme: buildAppThemeData(
         brightness: Brightness.light,

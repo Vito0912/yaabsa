@@ -18,6 +18,8 @@ import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/server_management_preferences.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class LibraryView extends HookConsumerWidget {
   const LibraryView({super.key, this.initialFilter});
 
@@ -31,7 +33,7 @@ class LibraryView extends HookConsumerWidget {
     final serverReachable = ref.watch(serverStatusProvider).value ?? false;
 
     if (selectedLibrary == null) {
-      return const Center(child: Text('No library selected. Please select a library via the switcher.'));
+      return Center(child: Text(S.current.screensMainLibraryViewNoLibrarySelectedPleaseSelectA));
     }
 
     final appDatabase = ref.watch(appDatabaseProvider);
@@ -117,7 +119,7 @@ class LibraryView extends HookConsumerWidget {
                           ),
                           Expanded(
                             child: items.isEmpty && !state.hasNextPage && !state.isLoadingNextPage
-                                ? const Center(child: Text('No items found in this library.'))
+                                ? Center(child: Text(S.current.screensMainLibraryViewNoItemsFoundInThisLibrary))
                                 : LibraryItemsGrid(
                                     scrollController: scrollController,
                                     items: items,

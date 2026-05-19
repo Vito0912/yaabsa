@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:yaabsa/screens/player/bookmarks_sheet.dart';
 import 'package:yaabsa/util/globals.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class BookmarksButton extends StatelessWidget {
   const BookmarksButton({super.key, this.iconSize});
 
@@ -15,13 +17,15 @@ class BookmarksButton extends StatelessWidget {
       child: IconButton(
         iconSize: iconSize,
         color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-        tooltip: 'Bookmarks',
+        tooltip: S.current.componentsPlayerCommonBookmarksButtonBookmarks,
         icon: const Icon(Icons.bookmarks_outlined),
         onPressed: () {
           final messenger = ScaffoldMessenger.of(context);
           final media = audioHandler.currentMediaItem;
           if (media == null) {
-            messenger.showSnackBar(const SnackBar(content: Text('No active media to bookmark.')));
+            messenger.showSnackBar(
+              SnackBar(content: Text(S.current.componentsPlayerCommonBookmarksButtonNoActiveMediaToBookmark)),
+            );
             return;
           }
 

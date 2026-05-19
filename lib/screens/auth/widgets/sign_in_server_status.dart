@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:yaabsa/api/me/status.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class SignInServerStatus extends StatelessWidget {
   const SignInServerStatus({super.key, required this.isLoading, required this.status, required this.error});
 
@@ -22,7 +24,10 @@ class SignInServerStatus extends StatelessWidget {
             child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.onSurfaceVariant),
           ),
           const SizedBox(width: 8),
-          Text('Checking server...', style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant)),
+          Text(
+            S.current.screensAuthWidgetsSignInServerStatusCheckingServer,
+            style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+          ),
         ],
       );
     }

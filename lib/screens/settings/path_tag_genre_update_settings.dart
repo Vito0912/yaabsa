@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:yaabsa/generated/l10n.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/screens/settings/tools_settings.dart';
 
@@ -10,7 +11,7 @@ class PathTagGenreUpdateSettings extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SettingsPageScaffold(
-      title: 'Path Tag and Genre Update',
+      title: S.current.screensSettingsPathTagGenreUpdateSettingsTitle,
       embedded: true,
       showEmbeddedBackButton: true,
       embeddedBackFallbackRoute: ToolsSettings.routeName,

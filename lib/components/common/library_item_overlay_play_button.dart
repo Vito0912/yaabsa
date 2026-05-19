@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
+import 'package:yaabsa/generated/l10n.dart';
 import 'package:yaabsa/util/globals.dart';
 
 class LibraryItemOverlayPlayButton extends StatelessWidget {
@@ -57,8 +58,10 @@ class LibraryItemOverlayPlayButton extends StatelessWidget {
                 ),
               IconButton(
                 tooltip: isLoadingCurrentItem
-                    ? 'Loading...'
-                    : (isPlayingCurrentItem ? 'Pause' : (isFinished ? 'Replay' : 'Play')),
+                    ? S.current.commonLoading
+                    : (isPlayingCurrentItem
+                          ? S.current.commonPause
+                          : (isFinished ? S.current.commonReplay : S.current.commonPlay)),
                 icon: isLoadingCurrentItem
                     ? SizedBox(
                         width: 16,

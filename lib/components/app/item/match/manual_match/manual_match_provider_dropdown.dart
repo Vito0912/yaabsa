@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:yaabsa/api/search/search_provider_option.dart';
 import 'package:yaabsa/util/globals.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class ManualMatchProviderDropdown extends StatelessWidget {
   const ManualMatchProviderDropdown({
     super.key,
@@ -131,9 +133,9 @@ class _ProviderSelectionSheetState extends State<_ProviderSelectionSheet> {
     return Column(
       children: [
         ListTile(
-          title: const Text('Select providers'),
+          title: Text(S.current.componentsAppItemMatchManualMatchManualMatchProviderDropdownSelectProviders),
           trailing: IconButton(
-            tooltip: 'Close',
+            tooltip: S.current.componentsAppItemMatchManualMatchManualMatchProviderDropdownClose,
             onPressed: () => Navigator.of(context).pop(),
             icon: const Icon(Icons.close_rounded),
           ),
@@ -169,11 +171,14 @@ class _ProviderSelectionSheetState extends State<_ProviderSelectionSheet> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(S.current.componentsAppItemMatchManualMatchManualMatchProviderDropdownCancel),
+              ),
               const SizedBox(width: 8),
               FilledButton(
                 onPressed: () => Navigator.of(context).pop(Set<String>.from(_selected)),
-                child: const Text('Apply'),
+                child: Text(S.current.componentsAppItemMatchManualMatchManualMatchProviderDropdownApply),
               ),
             ],
           ),

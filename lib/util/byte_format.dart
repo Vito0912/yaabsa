@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 String formatByteSize(num bytes, {int decimals = 1}) {
   if (bytes <= 0) {
     return '0 B';
@@ -12,7 +14,8 @@ String formatByteSize(num bytes, {int decimals = 1}) {
   }
 
   final precision = unitIndex == 0 ? 0 : decimals;
-  return '${value.toStringAsFixed(precision)} ${units[unitIndex]}';
+  final formatter = NumberFormat.decimalPatternDigits(locale: Intl.getCurrentLocale(), decimalDigits: precision);
+  return '${formatter.format(value)} ${units[unitIndex]}';
 }
 
 String formatByteRate(num bytesPerSecond, {int decimals = 1}) {

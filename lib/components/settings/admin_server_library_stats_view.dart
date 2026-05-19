@@ -12,6 +12,8 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/item_formatters.dart';
 import 'package:yaabsa/util/item_view_navigation.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class AdminServerLibraryStatsView extends ConsumerStatefulWidget {
   const AdminServerLibraryStatsView({super.key});
 
@@ -166,16 +168,16 @@ class _AdminServerLibraryStatsViewState extends ConsumerState<AdminServerLibrary
     return currentUserAsync.when(
       data: (currentUser) {
         if (currentUser == null) {
-          return const Padding(
+          return Padding(
             padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Text('No active user. Sign in to view library stats.'),
+            child: Text(S.current.componentsSettingsAdminServerLibraryStatsViewNoActiveUserSignInTo),
           );
         }
 
         if (!_isAdminType(currentUser.type)) {
-          return const Padding(
+          return Padding(
             padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Text('This page requires an admin account.'),
+            child: Text(S.current.componentsSettingsAdminServerLibraryStatsViewThisPageRequiresAnAdminAccount),
           );
         }
 
@@ -189,9 +191,9 @@ class _AdminServerLibraryStatsViewState extends ConsumerState<AdminServerLibrary
         }
 
         if (selectedLibrary == null) {
-          return const Padding(
+          return Padding(
             padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Text('Select a library from the main view to inspect its stats.'),
+            child: Text(S.current.componentsSettingsAdminServerLibraryStatsViewSelectALibraryFromTheMain),
           );
         }
 
@@ -230,7 +232,7 @@ class _AdminServerLibraryStatsViewState extends ConsumerState<AdminServerLibrary
                   ),
                   const SizedBox(width: 8),
                   IconButton(
-                    tooltip: 'Refresh stats',
+                    tooltip: S.current.componentsSettingsAdminServerLibraryStatsViewRefreshStats,
                     onPressed: isSelectedLibraryLoading
                         ? null
                         : () => unawaited(_refreshLibraryStats(selectedLibraryId)),
@@ -257,9 +259,9 @@ class _AdminServerLibraryStatsViewState extends ConsumerState<AdminServerLibrary
                   child: Center(child: CircularProgressIndicator()),
                 )
               else if (selectedStats == null)
-                const Padding(
+                Padding(
                   padding: EdgeInsets.only(top: 24),
-                  child: Text('No stats available for the selected library.'),
+                  child: Text(S.current.componentsSettingsAdminServerLibraryStatsViewNoStatsAvailableForTheSelected),
                 )
               else ...[
                 const SizedBox(height: 16),
@@ -317,7 +319,10 @@ class _AdminServerLibraryStatsViewState extends ConsumerState<AdminServerLibrary
       ),
       error: (error, stackTrace) => Padding(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-        child: Text('Failed to load user data: $error', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+        child: Text(
+          S.current.componentsSettingsAdminServerLibraryStatsViewFailedToLoadUserData(error),
+          style: TextStyle(color: Theme.of(context).colorScheme.error),
+        ),
       ),
     );
   }
@@ -341,7 +346,7 @@ class _LibraryStatsErrorCard extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(child: Text(message)),
             const SizedBox(width: 10),
-            TextButton(onPressed: onRetry, child: const Text('Retry')),
+            TextButton(onPressed: onRetry, child: Text(S.current.componentsSettingsAdminServerLibraryStatsViewRetry)),
           ],
         ),
       ),

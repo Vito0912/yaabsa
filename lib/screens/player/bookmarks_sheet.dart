@@ -8,6 +8,8 @@ import 'package:yaabsa/screens/player/components/bookmark_title_dialog.dart';
 import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/globals.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class PlayerBookmarksSheet extends ConsumerStatefulWidget {
   const PlayerBookmarksSheet({super.key, required this.itemId, required this.itemTitle});
 
@@ -50,7 +52,7 @@ class _PlayerBookmarksSheetState extends ConsumerState<PlayerBookmarksSheet> {
     if (bookmarkTime <= 0) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Play a little further before creating a bookmark.')));
+      ).showSnackBar(SnackBar(content: Text(S.current.screensPlayerBookmarksSheetPlayALittleFurtherBeforeCreating)));
       return;
     }
 
@@ -61,7 +63,9 @@ class _PlayerBookmarksSheetState extends ConsumerState<PlayerBookmarksSheet> {
 
     final title = inputTitle.trim();
     if (title.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter bookmark text.')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(S.current.screensPlayerBookmarksSheetPleaseEnterBookmarkText)));
       return;
     }
 
@@ -74,7 +78,9 @@ class _PlayerBookmarksSheetState extends ConsumerState<PlayerBookmarksSheet> {
     final position = audioHandler.position;
     final bookmarkTime = position.inSeconds;
     if (bookmarkTime <= 0) {
-      messenger.showSnackBar(const SnackBar(content: Text('Play a little further before creating a bookmark.')));
+      messenger.showSnackBar(
+        SnackBar(content: Text(S.current.screensPlayerBookmarksSheetPlayALittleFurtherBeforeCreating)),
+      );
       return;
     }
 
@@ -92,16 +98,20 @@ class _PlayerBookmarksSheetState extends ConsumerState<PlayerBookmarksSheet> {
       }
 
       if (createdBookmark == null) {
-        messenger.showSnackBar(const SnackBar(content: Text('Failed to create bookmark.')));
+        messenger.showSnackBar(SnackBar(content: Text(S.current.screensPlayerBookmarksSheetFailedToCreateBookmark)));
         return;
       }
 
-      messenger.showSnackBar(SnackBar(content: Text('Bookmark added at ${position.toHhMmString()}')));
+      messenger.showSnackBar(
+        SnackBar(content: Text(S.current.screensPlayerBookmarksSheetBookmarkAddedAt(position.toHhMmString()))),
+      );
     } catch (_) {
       if (!mounted) {
         return;
       }
-      messenger.showSnackBar(const SnackBar(content: Text('Could not create bookmark right now.')));
+      messenger.showSnackBar(
+        SnackBar(content: Text(S.current.screensPlayerBookmarksSheetCouldNotCreateBookmarkRightNow)),
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -128,16 +138,18 @@ class _PlayerBookmarksSheetState extends ConsumerState<PlayerBookmarksSheet> {
       }
 
       if (!deleted) {
-        messenger.showSnackBar(const SnackBar(content: Text('Failed to delete bookmark.')));
+        messenger.showSnackBar(SnackBar(content: Text(S.current.screensPlayerBookmarksSheetFailedToDeleteBookmark)));
         return;
       }
 
-      messenger.showSnackBar(const SnackBar(content: Text('Bookmark deleted.')));
+      messenger.showSnackBar(SnackBar(content: Text(S.current.screensPlayerBookmarksSheetBookmarkDeleted)));
     } catch (_) {
       if (!mounted) {
         return;
       }
-      messenger.showSnackBar(const SnackBar(content: Text('Could not delete bookmark right now.')));
+      messenger.showSnackBar(
+        SnackBar(content: Text(S.current.screensPlayerBookmarksSheetCouldNotDeleteBookmarkRightNow)),
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -163,7 +175,7 @@ class _PlayerBookmarksSheetState extends ConsumerState<PlayerBookmarksSheet> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Bookmarks', style: Theme.of(context).textTheme.titleLarge),
+              Text(S.current.screensPlayerBookmarksSheetBookmarks, style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 4),
               Text(
                 widget.itemTitle,
@@ -180,12 +192,13 @@ class _PlayerBookmarksSheetState extends ConsumerState<PlayerBookmarksSheet> {
                 builder: (context, snapshot) {
                   final position = snapshot.data ?? Duration.zero;
                   final canCreate = !_isCreating && position.inSeconds > 0;
+                  final currentPositionText = position.inSeconds > 0 ? position.toHhMmString() : '--:--';
 
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Current position: ${position.inSeconds > 0 ? position.toHhMmString() : '--:--'}',
+                        S.current.playerBookmarksSheetCurrentPosition(currentPositionText),
                         style: Theme.of(
                           context,
                         ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
@@ -196,7 +209,11 @@ class _PlayerBookmarksSheetState extends ConsumerState<PlayerBookmarksSheet> {
                         icon: _isCreating
                             ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
                             : const Icon(Icons.bookmark_add_outlined),
-                        label: Text(_isCreating ? 'Adding bookmark...' : 'Create bookmark'),
+                        label: Text(
+                          _isCreating
+                              ? S.current.playerBookmarksSheetAddingBookmark
+                              : S.current.playerBookmarksSheetCreateBookmark,
+                        ),
                       ),
                     ],
                   );
@@ -207,7 +224,7 @@ class _PlayerBookmarksSheetState extends ConsumerState<PlayerBookmarksSheet> {
                 child: bookmarks.isEmpty
                     ? Center(
                         child: Text(
-                          'No bookmarks yet',
+                          S.current.screensPlayerBookmarksSheetNoBookmarksYet,
                           style: Theme.of(
                             context,
                           ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
@@ -219,7 +236,9 @@ class _PlayerBookmarksSheetState extends ConsumerState<PlayerBookmarksSheet> {
                         itemBuilder: (context, index) {
                           final bookmark = bookmarks[index];
                           final deleting = _deletingTimes.contains(bookmark.time);
-                          final title = bookmark.title.trim().isEmpty ? 'Untitled bookmark' : bookmark.title.trim();
+                          final title = bookmark.title.trim().isEmpty
+                              ? S.current.playerBookmarksSheetUntitledBookmark
+                              : bookmark.title.trim();
 
                           return ListTile(
                             dense: true,

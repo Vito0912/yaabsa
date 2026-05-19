@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class ReaderThicknessPickerSheet extends StatelessWidget {
   const ReaderThicknessPickerSheet({
     super.key,
@@ -23,13 +25,16 @@ class ReaderThicknessPickerSheet extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Select Underline Thickness',
+            S.current.screensReaderWidgetsReaderThicknessPickerSheetSelectUnderlineThickness,
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
           ),
           const SizedBox(height: 16),
           ...thicknesses.map((thickness) {
             return ListTile(
-              title: Text('${thickness.toInt()}px', style: TextStyle(color: colorScheme.onSurface)),
+              title: Text(
+                S.current.screensReaderWidgetsReaderThicknessPickerSheetPx(thickness.toInt()),
+                style: TextStyle(color: colorScheme.onSurface),
+              ),
               leading: Container(
                 width: 40,
                 height: thickness,

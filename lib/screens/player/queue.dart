@@ -4,6 +4,8 @@ import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/handler/bg_audio_handler.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class PlayerQueueView extends StatelessWidget {
   const PlayerQueueView({super.key, this.showEmptyIcon = true, this.emptyMode = PlayerCollectionEmptyMode.full});
 
@@ -79,7 +81,7 @@ class _QueueCompactEmptyState extends StatelessWidget {
           Icon(Icons.queue_music_rounded, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
           const SizedBox(width: 6),
           Text(
-            'Queue is empty',
+            S.current.screensPlayerQueueQueueIsEmpty,
             style: Theme.of(
               context,
             ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
@@ -122,7 +124,7 @@ class _QueueTile extends StatelessWidget {
 
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Text(
-                      'Loading title...',
+                      S.current.screensPlayerQueueLoadingTitle,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
@@ -149,7 +151,7 @@ class _QueueTile extends StatelessWidget {
                 child: Icon(Icons.auto_awesome_rounded, size: 18, color: Theme.of(context).colorScheme.secondary),
               ),
             IconButton(
-              tooltip: 'Remove from queue',
+              tooltip: S.current.screensPlayerQueueRemoveFromQueue,
               icon: const Icon(Icons.close_rounded),
               onPressed: () {
                 audioHandler.removeQueueEntry(entry.id);
@@ -186,7 +188,11 @@ class _AutoQueueLoadMoreBar extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: Text('and $remaining more to load', style: Theme.of(context).textTheme.bodySmall, maxLines: 2),
+            child: Text(
+              S.current.screensPlayerQueueAndMoreToLoad(remaining),
+              style: Theme.of(context).textTheme.bodySmall,
+              maxLines: 2,
+            ),
           ),
           const SizedBox(width: 8),
           FilledButton.tonal(
@@ -197,7 +203,7 @@ class _AutoQueueLoadMoreBar extends StatelessWidget {
                 : null,
             child: isLoading
                 ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                : const Text('Load more'),
+                : Text(S.current.screensPlayerQueueLoadMore),
           ),
         ],
       ),
@@ -231,7 +237,7 @@ class _QueueEmptyState extends StatelessWidget {
             if (showIcon)
               Icon(Icons.queue_music_rounded, size: 36, color: Theme.of(context).colorScheme.onSurfaceVariant),
             if (showIcon) const SizedBox(height: 10),
-            Text('Queue is empty', style: Theme.of(context).textTheme.titleMedium),
+            Text(S.current.screensPlayerQueueQueueIsEmpty, style: Theme.of(context).textTheme.titleMedium),
             if (autoQueueActive && autoQueueRemaining > 0) ...[
               const SizedBox(height: 8),
               _AutoQueueLoadMoreBar(remaining: autoQueueRemaining, canLoadMore: canLoadMore, isLoading: isLoading),

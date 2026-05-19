@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:yaabsa/api/admin/open_share_session.dart';
 import 'package:yaabsa/screens/main/stats/stats_formatters.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 Future<bool?> showOpenShareSessionDialog(
   BuildContext context, {
   required OpenShareSession session,
@@ -72,17 +74,20 @@ class _OpenShareSessionDialogState extends State<_OpenShareSessionDialog> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Delete Shared Session'),
-          content: const Text('Delete this shared session permanently? This cannot be undone.'),
+          title: Text(S.current.componentsSessionsOpenShareSessionDialogDeleteSharedSession),
+          content: Text(S.current.componentsSessionsOpenShareSessionDialogDeleteThisSharedSessionPermanentlyThis),
           actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(S.current.componentsSessionsOpenShareSessionDialogCancel),
+            ),
             FilledButton(
               style: FilledButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.error,
                 foregroundColor: Theme.of(context).colorScheme.onError,
               ),
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Delete'),
+              child: Text(S.current.componentsSessionsOpenShareSessionDialogDelete),
             ),
           ],
         );
@@ -137,7 +142,7 @@ class _OpenShareSessionDialogState extends State<_OpenShareSessionDialog> {
     final deviceName = widget.session.deviceInfo?.clientName?.trim();
 
     return AlertDialog(
-      title: const Text('Shared Session'),
+      title: Text(S.current.componentsSessionsOpenShareSessionDialogSharedSession),
       content: SizedBox(
         width: 500,
         child: SingleChildScrollView(
@@ -165,14 +170,17 @@ class _OpenShareSessionDialogState extends State<_OpenShareSessionDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: _isDeleting ? null : () => Navigator.of(context).pop(false), child: const Text('Close')),
+        TextButton(
+          onPressed: _isDeleting ? null : () => Navigator.of(context).pop(false),
+          child: Text(S.current.componentsSessionsOpenShareSessionDialogClose),
+        ),
         if (widget.canDelete)
           TextButton(
             style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
             onPressed: _isDeleting ? null : _delete,
             child: _isDeleting
                 ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
-                : const Text('Delete'),
+                : Text(S.current.componentsSessionsOpenShareSessionDialogDelete),
           ),
       ],
     );

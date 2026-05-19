@@ -6,6 +6,8 @@ import 'package:yaabsa/components/common/managed_list_operations.dart';
 import 'package:yaabsa/provider/common/library_item_sync.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 void invalidateLibraryItemLists(WidgetRef ref) {
   invalidateLibraryItemConsumers(container: ref.container);
 }
@@ -50,7 +52,7 @@ Future<bool> deleteAudiobookWithConfirmation({
   if (!isAudiobookLibraryItem(item)) {
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(const SnackBar(content: Text('Only audiobooks can be deleted from this action.')));
+    ).showSnackBar(SnackBar(content: Text(S.current.componentsAppItemItemDeleteActionsOnlyAudiobooksCanBeDeletedFrom)));
     return false;
   }
 
@@ -76,9 +78,9 @@ Future<bool> deleteAudiobookWithConfirmation({
       }
     },
     successMessage: hardDelete
-        ? 'Deleted "${item.title}" from Audiobookshelf and file system.'
-        : 'Deleted "${item.title}" from Audiobookshelf.',
-    errorFallback: 'Could not delete audiobook.',
+        ? S.current.itemDeleteDeletedTitleFromAbsAndFileSystem(item.title)
+        : S.current.itemDeleteDeletedTitleFromAbs(item.title),
+    errorFallback: S.current.itemDeleteCouldNotDeleteAudiobook,
     popOnSuccess: popOnSuccess,
     onSuccess: () {
       didDelete = true;
@@ -101,7 +103,7 @@ Future<bool> deleteAudiobooksInBulkWithConfirmation({
 
   if (deletableItems.isEmpty) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('No selected audiobooks can be deleted. Select audiobook items and try again.')),
+      SnackBar(content: Text(S.current.componentsAppItemItemDeleteActionsNoSelectedAudiobooksCanBeDeleted)),
     );
     return false;
   }
@@ -135,9 +137,9 @@ Future<bool> deleteAudiobooksInBulkWithConfirmation({
       }
     },
     successMessage: hardDelete
-        ? 'Deleted ${deleteIds.length} audiobook(s) from Audiobookshelf and file system.'
-        : 'Deleted ${deleteIds.length} audiobook(s) from Audiobookshelf.',
-    errorFallback: 'Could not delete selected audiobooks.',
+        ? S.current.itemDeleteBulkDeletedFromAbsAndFileSystem(deleteIds.length)
+        : S.current.itemDeleteBulkDeletedFromAbs(deleteIds.length),
+    errorFallback: S.current.itemDeleteCouldNotDeleteSelectedAudiobooks,
     onSuccess: () {
       didDelete = true;
       invalidateLibraryItemLists(ref);

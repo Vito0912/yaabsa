@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:yaabsa/components/app/item/match/manual_match/manual_match_models.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class ManualMatchResultsPane extends StatelessWidget {
   const ManualMatchResultsPane({
     super.key,
@@ -23,15 +25,23 @@ class ManualMatchResultsPane extends StatelessWidget {
         children: [
           ListTile(
             leading: const Icon(Icons.manage_search_rounded),
-            title: const Text('Match candidates'),
-            subtitle: Text(results.isEmpty ? 'No results yet' : '${results.length} result(s)'),
+            title: Text(S.current.componentsAppItemMatchManualMatchManualMatchResultsPaneMatchCandidates),
+            subtitle: Text(
+              results.isEmpty
+                  ? S.current.manualMatchResultsNoResultsYet
+                  : S.current.manualMatchResultsCount(results.length),
+            ),
           ),
           const Divider(height: 1),
           Expanded(
             child: searching
                 ? const Center(child: CircularProgressIndicator())
                 : results.isEmpty
-                ? const Center(child: Text('Run a search to load metadata match results.'))
+                ? Center(
+                    child: Text(
+                      S.current.componentsAppItemMatchManualMatchManualMatchResultsPaneRunASearchToLoadMetadata,
+                    ),
+                  )
                 : ListView.separated(
                     itemCount: results.length,
                     separatorBuilder: (_, _) => const Divider(height: 1),

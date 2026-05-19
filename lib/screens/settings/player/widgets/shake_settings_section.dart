@@ -4,6 +4,8 @@ import 'package:yaabsa/components/settings/settings_switch.dart';
 import 'package:yaabsa/util/device_capabilities.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class ShakeSettingsSection extends StatefulWidget {
   const ShakeSettingsSection({super.key});
 
@@ -46,7 +48,10 @@ class _ShakeSettingsSectionState extends State<ShakeSettingsSection> {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
-              child: Text('Shake Controls', style: Theme.of(context).textTheme.titleLarge),
+              child: Text(
+                S.current.screensSettingsPlayerWidgetsShakeSettingsSectionShakeControls,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
             ),
             const Padding(padding: EdgeInsets.symmetric(horizontal: 16.0), child: Divider(height: 16)),
             SettingSwitch(

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class SignInAuthSection extends StatelessWidget {
   const SignInAuthSection({
     super.key,
@@ -43,7 +45,7 @@ class SignInAuthSection extends StatelessWidget {
             obscureText: true,
             onSubmitted: (_) => onValidateAndSignIn(),
             decoration: InputDecoration(
-              labelText: 'API Key',
+              labelText: S.current.screensAuthWidgetsSignInAuthSectionApiKey,
               prefixIcon: const Icon(Icons.key_rounded),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
             ),
@@ -58,7 +60,7 @@ class SignInAuthSection extends StatelessWidget {
                     child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.onPrimary),
                   )
                 : const Icon(Icons.vpn_key_rounded),
-            label: Text(isLoading ? 'Signing in...' : 'Connect with API Key'),
+            label: Text(isLoading ? S.current.commonSigningIn : S.current.commonConnectWithApiKey),
           ),
         ] else if (allowsLocal) ...[
           const SizedBox(height: 18),
@@ -72,7 +74,7 @@ class SignInAuthSection extends StatelessWidget {
                   textInputAction: TextInputAction.next,
                   autofillHints: const [AutofillHints.username, AutofillHints.email],
                   decoration: InputDecoration(
-                    labelText: 'Username',
+                    labelText: S.current.screensAuthWidgetsSignInAuthSectionUsername,
                     prefixIcon: const Icon(Icons.person_outline_rounded),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
@@ -91,7 +93,7 @@ class SignInAuthSection extends StatelessWidget {
                     onValidateAndSignIn();
                   },
                   decoration: InputDecoration(
-                    labelText: 'Password',
+                    labelText: S.current.screensAuthWidgetsSignInAuthSectionPassword,
                     prefixIcon: const Icon(Icons.password_rounded),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
@@ -114,7 +116,7 @@ class SignInAuthSection extends StatelessWidget {
                     child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.onPrimary),
                   )
                 : const Icon(Icons.login_rounded),
-            label: Text(isLoading ? 'Signing in...' : 'Sign In'),
+            label: Text(isLoading ? S.current.commonSigningIn : S.current.commonSignIn),
           ),
         ],
         if (!useApiKey && allowsOpenId) ...[
@@ -128,7 +130,7 @@ class SignInAuthSection extends StatelessWidget {
         if (!useApiKey && !allowsLocal && !allowsOpenId) ...[
           const SizedBox(height: 12),
           Text(
-            'No supported authentication method is enabled on this server.',
+            S.current.screensAuthWidgetsSignInAuthSectionNoSupportedAuthenticationMethodIsEnabled,
             style: textTheme.bodyMedium?.copyWith(color: colorScheme.error),
           ),
         ],

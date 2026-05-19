@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:yaabsa/api/library_items/playback_session.dart';
 import 'package:yaabsa/screens/main/stats/stats_formatters.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class StatsRecentSessionsList extends StatelessWidget {
   const StatsRecentSessionsList({super.key, required this.sessions, this.maxItems = 8});
 
@@ -11,7 +13,10 @@ class StatsRecentSessionsList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (sessions.isEmpty) {
-      return Text('No recent sessions available.', style: Theme.of(context).textTheme.bodyMedium);
+      return Text(
+        S.current.screensMainStatsStatsRecentSessionsListNoRecentSessionsAvailable,
+        style: Theme.of(context).textTheme.bodyMedium,
+      );
     }
 
     final sorted = List<PlaybackSession>.from(sessions)..sort((a, b) => _sessionTimeMs(b).compareTo(_sessionTimeMs(a)));

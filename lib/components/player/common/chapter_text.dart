@@ -1,6 +1,7 @@
 import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:flutter/material.dart';
+import 'package:yaabsa/generated/l10n.dart';
 
 class ChapterText extends StatelessWidget {
   const ChapterText({super.key});
@@ -16,7 +17,9 @@ class ChapterText extends StatelessWidget {
           stream: audioHandler.chapterStream,
           builder: (BuildContext context, AsyncSnapshot<InternalChapter?> chapterSnapshot) {
             final title = chapterSnapshot.data?.title ?? mediaTitle;
-            final text = (title == null || title.isEmpty) ? 'Now playing' : title;
+            final text = (title == null || title.isEmpty)
+                ? S.current.componentsPlayerCommonChapterTextNowPlaying
+                : title;
 
             return Text(
               text,

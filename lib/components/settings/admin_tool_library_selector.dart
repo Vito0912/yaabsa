@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:yaabsa/api/library/library.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class AdminToolLibrarySelector extends StatelessWidget {
   const AdminToolLibrarySelector({
     super.key,
@@ -26,8 +28,16 @@ class AdminToolLibrarySelector extends StatelessWidget {
       children: [
         Row(
           children: [
-            Expanded(child: Text('Target libraries', style: Theme.of(context).textTheme.titleSmall)),
-            Text('${selectedLibraryIds.length}/${libraries.length}', style: Theme.of(context).textTheme.bodySmall),
+            Expanded(
+              child: Text(
+                S.current.componentsSettingsAdminToolLibrarySelectorTargetLibraries,
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+            ),
+            Text(
+              S.current.componentsSettingsAdminToolLibrarySelectorText(selectedLibraryIds.length, libraries.length),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
           ],
         ),
         const SizedBox(height: 8),
@@ -37,12 +47,12 @@ class AdminToolLibrarySelector extends StatelessWidget {
               onPressed: !enabled || allSelected
                   ? null
                   : () => onSelectionChanged(libraries.map((library) => library.id).toSet()),
-              child: const Text('Select all'),
+              child: Text(S.current.componentsSettingsAdminToolLibrarySelectorSelectAll),
             ),
             const SizedBox(width: 8),
             TextButton(
               onPressed: !enabled || selectedLibraryIds.isEmpty ? null : () => onSelectionChanged(<String>{}),
-              child: const Text('Clear all'),
+              child: Text(S.current.componentsSettingsAdminToolLibrarySelectorClearAll),
             ),
           ],
         ),
@@ -50,7 +60,10 @@ class AdminToolLibrarySelector extends StatelessWidget {
         if (libraries.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Text('No libraries available.', style: Theme.of(context).textTheme.bodyMedium),
+            child: Text(
+              S.current.componentsSettingsAdminToolLibrarySelectorNoLibrariesAvailable,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
           )
         else
           ConstrainedBox(

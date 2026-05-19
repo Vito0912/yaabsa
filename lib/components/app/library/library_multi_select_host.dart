@@ -13,6 +13,8 @@ import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/core/multi_select_app_bar_provider.dart';
 import 'package:yaabsa/provider/core/socket_provider.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class LibraryMultiSelectBindings {
   const LibraryMultiSelectBindings({
     required this.selectionMode,
@@ -76,10 +78,9 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
         return;
       }
 
-      final updateLabel = next.updates == 1 ? '1 book' : '${next.updates} books';
       final message = next.success && next.updates > 0
-          ? 'Metadata change request completed. $updateLabel updated.'
-          : 'Metadata change request completed.';
+          ? S.current.libraryMultiSelectMetadataChangeCompletedWithUpdates(next.updates)
+          : S.current.libraryMultiSelectMetadataChangeCompleted;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     });
 
@@ -218,7 +219,7 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
       if (canAddToPlaylist)
         MultiSelectAppBarAction(
           icon: Icons.playlist_add_rounded,
-          tooltip: 'Add to playlist',
+          tooltip: S.current.componentsAppLibraryLibraryMultiSelectHostAddToPlaylist,
           enabled: !selectionBusy.value,
           onPressed: () {
             runAction(
@@ -236,7 +237,7 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
       if (canAddToCollection)
         MultiSelectAppBarAction(
           icon: Icons.collections_bookmark_outlined,
-          tooltip: 'Add to collection',
+          tooltip: S.current.componentsAppLibraryLibraryMultiSelectHostAddToCollection,
           enabled: !selectionBusy.value,
           onPressed: () {
             runAction(
@@ -253,7 +254,7 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
       if (canQuickMatchItems)
         MultiSelectAppBarAction(
           icon: Icons.auto_fix_high_rounded,
-          tooltip: 'Quick match selected books',
+          tooltip: S.current.componentsAppLibraryLibraryMultiSelectHostQuickMatchSelectedBooks,
           enabled: !selectionBusy.value,
           onPressed: () {
             runAction(

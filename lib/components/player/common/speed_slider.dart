@@ -1,6 +1,13 @@
 import 'package:yaabsa/util/globals.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
+
+import 'package:yaabsa/generated/l10n.dart';
+
+String _formatSpeed(double value, {int decimalDigits = 1}) {
+  return NumberFormat.decimalPatternDigits(locale: Intl.getCurrentLocale(), decimalDigits: decimalDigits).format(value);
+}
 
 class SpeedSlider extends StatelessWidget {
   static const double minSpeed = 0.5;
@@ -25,7 +32,7 @@ class SpeedSlider extends StatelessWidget {
             onPressed: () => _openSpeedSheet(context, speed),
 
             icon: Text(
-              '${speed.toStringAsFixed(1)}x',
+              S.current.componentsPlayerCommonSpeedSliderX(_formatSpeed(speed)),
               style: TextStyle(
                 letterSpacing: -1.25,
                 fontFeatures: [const FontFeature.tabularFigures()],
@@ -85,15 +92,18 @@ class _SpeedSheetState extends State<_SpeedSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Playback speed', style: Theme.of(context).textTheme.titleLarge),
+          Text(S.current.componentsPlayerCommonSpeedSliderPlaybackSpeed, style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 12),
-          Text('${_value.toStringAsFixed(1)}x', style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            S.current.componentsPlayerCommonSpeedSliderX(_formatSpeed(_value)),
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           Slider(
             value: _value,
             min: SpeedSlider.minSpeed,
             max: SpeedSlider.maxSpeed,
             divisions: 25,
-            label: '${_value.toStringAsFixed(1)}x',
+            label: '${_formatSpeed(_value)}x',
             onChanged: (newValue) {
               setState(() {
                 _value = _roundToStep(newValue);
@@ -117,9 +127,9 @@ class _SpeedSheetState extends State<_SpeedSheet> {
             controller: _customController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$'))],
-            decoration: const InputDecoration(
-              labelText: 'Custom value',
-              hintText: '0.5 - 3.0',
+            decoration: InputDecoration(
+              labelText: S.current.componentsPlayerCommonSpeedSliderCustomValue,
+              hintText: S.current.componentsPlayerCommonSpeedSliderK0530,
               suffixText: 'x',
               border: OutlineInputBorder(),
             ),
@@ -129,7 +139,10 @@ class _SpeedSheetState extends State<_SpeedSheet> {
           Row(
             children: [
               Expanded(
-                child: OutlinedButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+                child: OutlinedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(S.current.componentsPlayerCommonSpeedSliderCancel),
+                ),
               ),
               const SizedBox(width: 8),
               Expanded(
@@ -141,7 +154,7 @@ class _SpeedSheetState extends State<_SpeedSheet> {
                     }
                     Navigator.of(context).pop();
                   },
-                  child: const Text('Apply'),
+                  child: Text(S.current.componentsPlayerCommonSpeedSliderApply),
                 ),
               ),
             ],
@@ -190,6 +203,9 @@ class _PresetButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ActionChip(label: Text('${value.toStringAsFixed(1)}x'), onPressed: () => onTap(value));
+    return ActionChip(
+      label: Text(S.current.componentsPlayerCommonSpeedSliderX(_formatSpeed(value))),
+      onPressed: () => onTap(value),
+    );
   }
 }

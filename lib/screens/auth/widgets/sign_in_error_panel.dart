@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class SignInErrorPanel extends StatelessWidget {
   const SignInErrorPanel({super.key, required this.message, this.stackTraceDetails});
 
@@ -60,6 +62,8 @@ class SignInErrorPanel extends StatelessWidget {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Copied')));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(S.current.screensAuthWidgetsSignInErrorPanelCopied)));
   }
 }

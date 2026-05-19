@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:yaabsa/api/library_items/audio_file.dart';
 import 'package:yaabsa/util/item_formatters.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 final double textfieldWidth = 130;
 
 class LibraryItemEncoderView extends StatelessWidget {
@@ -47,8 +49,11 @@ class LibraryItemEncoderView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (audioFiles.isEmpty) {
-      return const Center(
-        child: Padding(padding: EdgeInsets.all(24), child: Text('No audio tracks are available for M4B encoding.')),
+      return Center(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: Text(S.current.componentsAppItemEditorLibraryItemEncoderViewNoAudioTracksAreAvailableFor),
+        ),
       );
     }
 
@@ -135,10 +140,10 @@ class _EncoderActionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final progressPercent = _tryParsePercent(progressLabel);
     final startButtonLabel = isStarting
-        ? 'Submitting...'
+        ? S.current.componentsAppItemEditorLibraryItemEncoderViewSubmitting
         : isTaskRunning
-        ? 'Running...'
-        : 'Start Encode';
+        ? S.current.componentsAppItemEditorLibraryItemEncoderViewRunning
+        : S.current.componentsAppItemEditorLibraryItemEncoderViewStartEncode;
 
     return Card(
       child: Padding(
@@ -146,11 +151,14 @@ class _EncoderActionCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('M4B Encoder', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              S.current.componentsAppItemEditorLibraryItemEncoderViewM4bEncoder,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 4),
             if (isTaskRunning && progressLabel != null && progressLabel!.trim().isNotEmpty) ...[
               Text(
-                'Progress: ${progressLabel!.trim()}',
+                S.current.componentsAppItemEditorLibraryItemEncoderViewProgress(progressLabel!.trim()),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 6),
@@ -166,9 +174,15 @@ class _EncoderActionCard extends StatelessWidget {
                 Expanded(
                   child: SegmentedButton<bool>(
                     showSelectedIcon: false,
-                    segments: const [
-                      ButtonSegment<bool>(value: false, label: Text('Presets')),
-                      ButtonSegment<bool>(value: true, label: Text('Advanced')),
+                    segments: [
+                      ButtonSegment<bool>(
+                        value: false,
+                        label: Text(S.current.componentsAppItemEditorLibraryItemEncoderViewPresets),
+                      ),
+                      ButtonSegment<bool>(
+                        value: true,
+                        label: Text(S.current.componentsAppItemEditorLibraryItemEncoderViewAdvanced),
+                      ),
                     ],
                     selected: <bool>{advancedMode},
                     onSelectionChanged: (selection) {
@@ -209,7 +223,11 @@ class _EncoderActionCard extends StatelessWidget {
                   icon: isCanceling
                       ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2.1))
                       : const Icon(Icons.stop_circle_outlined),
-                  label: Text(isCanceling ? 'Canceling...' : 'Cancel'),
+                  label: Text(
+                    isCanceling
+                        ? S.current.componentsAppItemEditorLibraryItemEncoderViewCanceling
+                        : S.current.componentsAppItemEditorLibraryItemEncoderViewCancel,
+                  ),
                 ),
                 FilledButton.icon(
                   onPressed: (isStarting || isCanceling || isTaskRunning) ? null : onStartEncoding,
@@ -255,7 +273,7 @@ class _PresetOptions extends StatelessWidget {
         SizedBox(
           width: textfieldWidth,
           child: _DropdownCard<String>(
-            label: 'Codec',
+            label: S.current.componentsAppItemEditorLibraryItemEncoderViewCodec,
             value: _safeStringValue(codec, const <String>['copy', 'aac', 'opus']),
             values: const <String>['copy', 'aac', 'opus'],
             display: (value) => value,
@@ -270,7 +288,7 @@ class _PresetOptions extends StatelessWidget {
           SizedBox(
             width: textfieldWidth,
             child: _DropdownCard<String>(
-              label: 'Bitrate',
+              label: S.current.componentsAppItemEditorLibraryItemEncoderViewBitrate,
               value: _safeStringValue(bitrate, const <String>['32k', '64k', '128k', '192k']),
               values: const <String>['32k', '64k', '128k', '192k'],
               display: (value) => value,
@@ -285,10 +303,10 @@ class _PresetOptions extends StatelessWidget {
           SizedBox(
             width: textfieldWidth,
             child: _DropdownCard<int>(
-              label: 'Channels',
+              label: S.current.componentsAppItemEditorLibraryItemEncoderViewChannels,
               value: channels == 1 || channels == 2 ? channels : 2,
               values: const <int>[1, 2],
-              display: (value) => value == 1 ? 'Mono' : 'Stereo',
+              display: (value) => S.current.libraryItemEncoderChannelDisplay(value),
               onChanged: (value) {
                 if (value != null) {
                   onChannelsChanged(value);
@@ -331,7 +349,10 @@ class _AdvancedOptions extends StatelessWidget {
               width: textfieldWidth,
               child: TextFormField(
                 initialValue: codec,
-                decoration: const InputDecoration(labelText: 'Codec', border: OutlineInputBorder()),
+                decoration: InputDecoration(
+                  labelText: S.current.componentsAppItemEditorLibraryItemEncoderViewCodec,
+                  border: OutlineInputBorder(),
+                ),
                 onChanged: onCodecChanged,
               ),
             ),
@@ -339,7 +360,10 @@ class _AdvancedOptions extends StatelessWidget {
               width: textfieldWidth,
               child: TextFormField(
                 initialValue: bitrate,
-                decoration: const InputDecoration(labelText: 'Bitrate', border: OutlineInputBorder()),
+                decoration: InputDecoration(
+                  labelText: S.current.componentsAppItemEditorLibraryItemEncoderViewBitrate,
+                  border: OutlineInputBorder(),
+                ),
                 onChanged: onBitrateChanged,
               ),
             ),
@@ -348,7 +372,10 @@ class _AdvancedOptions extends StatelessWidget {
               child: TextFormField(
                 initialValue: channels.toString(),
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Channels', border: OutlineInputBorder()),
+                decoration: InputDecoration(
+                  labelText: S.current.componentsAppItemEditorLibraryItemEncoderViewChannels,
+                  border: OutlineInputBorder(),
+                ),
                 onChanged: (value) {
                   final parsed = int.tryParse(value.trim());
                   if (parsed != null && parsed > 0) {
@@ -381,7 +408,10 @@ class _TrackPanel extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Audio Tracks', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              S.current.componentsAppItemEditorLibraryItemEncoderViewAudioTracks,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 8),
             for (var i = 0; i < audioFiles.length; i++)
               Container(
@@ -394,7 +424,12 @@ class _TrackPanel extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(width: 28, child: Text('${audioFiles[i].index ?? i + 1}.')),
+                    SizedBox(
+                      width: 28,
+                      child: Text(
+                        S.current.componentsAppItemEditorLibraryItemEncoderViewText(audioFiles[i].index ?? i + 1),
+                      ),
+                    ),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -504,12 +539,22 @@ double? _tryParsePercent(String? value) {
 }
 
 String _trackMeta(AudioFile file) {
-  final codec = file.codec ?? 'unknown codec';
-  final bitrate = file.bitRate == null ? 'unknown bitrate' : '${(file.bitRate! / 1000).round()}k';
-  final channels = file.channels == null ? 'unknown channels' : '${file.channels}ch';
+  final codec = file.codec ?? S.current.componentsAppItemEditorLibraryItemEncoderViewUnknownCodec;
+  final bitrate = file.bitRate == null
+      ? S.current.componentsAppItemEditorLibraryItemEncoderViewUnknownBitrate
+      : S.current.componentsAppItemEditorLibraryItemEncoderViewBitrateKbps((file.bitRate! / 1000).round());
+  final channels = file.channels == null
+      ? S.current.componentsAppItemEditorLibraryItemEncoderViewUnknownChannels
+      : S.current.componentsAppItemEditorLibraryItemEncoderViewChannelsShort(file.channels!);
   final duration = file.duration == null
-      ? 'unknown duration'
+      ? S.current.componentsAppItemEditorLibraryItemEncoderViewUnknownDuration
       : formatDurationLong(Duration(seconds: file.duration!.round()));
 
-  return '$codec • $bitrate • $channels • $duration • ${formatBytes(file.metadata.size)}';
+  return S.current.componentsAppItemEditorLibraryItemEncoderViewTrackMetaLine(
+    codec,
+    bitrate,
+    channels,
+    duration,
+    formatBytes(file.metadata.size),
+  );
 }

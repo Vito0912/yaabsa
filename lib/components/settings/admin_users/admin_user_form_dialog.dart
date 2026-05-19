@@ -6,6 +6,8 @@ import 'package:yaabsa/components/settings/admin_users/admin_user_multi_select_c
 import 'package:yaabsa/components/settings/admin_users/admin_user_permissions_editor.dart';
 import 'package:yaabsa/util/globals.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 enum AdminUserFormMode { create, edit }
 
 class AdminUserFormInitialValue {
@@ -254,13 +256,15 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
       if (success) {
         _hasLinkedOpenId = false;
       } else {
-        _validationError = 'Failed to unlink OpenID.';
+        _validationError = S.current.commonCouldNotUnlinkOpenId;
       }
     });
 
     final messenger = ScaffoldMessenger.maybeOf(context);
     if (messenger != null) {
-      messenger.showSnackBar(SnackBar(content: Text(success ? 'OpenID link removed.' : 'Could not unlink OpenID.')));
+      messenger.showSnackBar(
+        SnackBar(content: Text(success ? S.current.commonOpenIdLinkRemoved : S.current.commonCouldNotUnlinkOpenId)),
+      );
     }
   }
 
@@ -333,7 +337,10 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text('Account', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                Text(
+                  S.current.componentsSettingsAdminUsersAdminUserFormDialogAccount,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                ),
                 const SizedBox(height: 10),
                 TextField(
                   controller: _usernameController,
@@ -341,7 +348,7 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
                   onChanged: (_) => _revalidateUsername(),
                   textInputAction: TextInputAction.next,
                   decoration: InputDecoration(
-                    labelText: 'Username',
+                    labelText: S.current.componentsSettingsAdminUsersAdminUserFormDialogUsername,
                     border: const OutlineInputBorder(),
                     errorText: _usernameError,
                   ),
@@ -354,7 +361,7 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
                   decoration: InputDecoration(
-                    labelText: 'Email',
+                    labelText: S.current.componentsSettingsAdminUsersAdminUserFormDialogEmail,
                     border: const OutlineInputBorder(),
                     errorText: _emailError,
                   ),
@@ -363,7 +370,7 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
                 DropdownButtonFormField<String>(
                   initialValue: _type,
                   decoration: InputDecoration(
-                    labelText: 'Account type',
+                    labelText: S.current.componentsSettingsAdminUsersAdminUserFormDialogAccountType,
                     border: const OutlineInputBorder(),
                     helperText: _canEditType ? null : 'Root account type cannot be changed.',
                   ),
@@ -381,7 +388,7 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
                 const SizedBox(height: 8),
                 SwitchListTile.adaptive(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('User is active'),
+                  title: Text(S.current.componentsSettingsAdminUsersAdminUserFormDialogUserIsActive),
                   subtitle: Text(
                     _isRootType ? 'Root account is always active.' : 'Disabled users cannot log in or access content.',
                   ),
@@ -430,14 +437,14 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Library and Tag Access',
+              S.current.componentsSettingsAdminUsersAdminUserFormDialogLibraryAndTagAccess,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 4),
             SwitchListTile.adaptive(
               dense: true,
               contentPadding: EdgeInsets.zero,
-              title: const Text('Can access all libraries'),
+              title: Text(S.current.componentsSettingsAdminUsersAdminUserFormDialogCanAccessAllLibraries),
               value: _permissions.accessAllLibraries,
               onChanged: _isSubmitting
                   ? null
@@ -467,7 +474,7 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
             SwitchListTile.adaptive(
               dense: true,
               contentPadding: EdgeInsets.zero,
-              title: const Text('Can access all tags'),
+              title: Text(S.current.componentsSettingsAdminUsersAdminUserFormDialogCanAccessAllTags),
               value: _permissions.accessAllTags,
               onChanged: _isSubmitting
                   ? null
@@ -484,8 +491,10 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
               SwitchListTile.adaptive(
                 dense: true,
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Invert selected tags'),
-                subtitle: const Text('When enabled, selected tags are blocked instead of allowed.'),
+                title: Text(S.current.componentsSettingsAdminUsersAdminUserFormDialogInvertSelectedTags),
+                subtitle: Text(
+                  S.current.componentsSettingsAdminUsersAdminUserFormDialogWhenEnabledSelectedTagsAreBlocked,
+                ),
                 value: _permissions.selectedTagsNotAccessible,
                 onChanged: _isSubmitting
                     ? null
@@ -540,7 +549,7 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
                     ),
                   ),
                   IconButton(
-                    tooltip: 'Close',
+                    tooltip: S.current.componentsSettingsAdminUsersAdminUserFormDialogClose,
                     onPressed: (_isSubmitting || _isUnlinking) ? null : () => Navigator.of(context).pop(),
                     icon: const Icon(Icons.close_rounded),
                   ),
@@ -596,12 +605,12 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
                       icon: _isUnlinking
                           ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
                           : const Icon(Icons.link_off_rounded),
-                      label: const Text('Unlink OpenID'),
+                      label: Text(S.current.componentsSettingsAdminUsersAdminUserFormDialogUnlinkOpenID),
                     ),
                   const Spacer(),
                   TextButton(
                     onPressed: (_isSubmitting || _isUnlinking) ? null : () => Navigator.of(context).pop(),
-                    child: const Text('Cancel'),
+                    child: Text(S.current.componentsSettingsAdminUsersAdminUserFormDialogCancel),
                   ),
                   const SizedBox(width: 8),
                   FilledButton.icon(

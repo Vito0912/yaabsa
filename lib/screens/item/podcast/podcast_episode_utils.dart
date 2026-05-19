@@ -1,5 +1,7 @@
 import 'package:yaabsa/api/library_items/episode.dart';
+import 'package:intl/intl.dart';
 import 'package:yaabsa/api/me/media_progress.dart';
+import 'package:yaabsa/generated/l10n.dart';
 
 enum PodcastEpisodeProgressFilter { all, incomplete, inProgress, complete }
 
@@ -22,7 +24,7 @@ bool podcastEpisodeInProgress(MediaProgress? progress) {
 String podcastEpisodeTitle(Episode episode) {
   final title = episode.title;
   if (title == null || title.trim().isEmpty) {
-    return 'Untitled episode';
+    return S.current.screensItemPodcastPodcastEpisodeUtilsUntitledEpisode;
   }
   return title.trim();
 }
@@ -47,10 +49,7 @@ String? podcastFormatEpisodeDate(Episode episode) {
     return null;
   }
 
-  final year = date.year.toString().padLeft(4, '0');
-  final month = date.month.toString().padLeft(2, '0');
-  final day = date.day.toString().padLeft(2, '0');
-  return '$year-$month-$day';
+  return DateFormat.yMd(Intl.getCurrentLocale()).format(date);
 }
 
 String? podcastEpisodeDescriptionPreview(Episode episode) {
@@ -89,25 +88,25 @@ String podcastEpisodeDescriptionFullText(Episode episode) {
 String podcastEpisodeProgressFilterLabel(PodcastEpisodeProgressFilter filter) {
   switch (filter) {
     case PodcastEpisodeProgressFilter.all:
-      return 'All';
+      return S.current.screensItemPodcastPodcastEpisodeUtilsAll;
     case PodcastEpisodeProgressFilter.incomplete:
-      return 'Incomplete';
+      return S.current.screensItemPodcastPodcastEpisodeUtilsIncomplete;
     case PodcastEpisodeProgressFilter.inProgress:
-      return 'In Progress';
+      return S.current.screensItemPodcastPodcastEpisodeUtilsInProgress;
     case PodcastEpisodeProgressFilter.complete:
-      return 'Complete';
+      return S.current.screensItemPodcastPodcastEpisodeUtilsComplete;
   }
 }
 
 String podcastEpisodeSortModeLabel(PodcastEpisodeSortMode mode) {
   switch (mode) {
     case PodcastEpisodeSortMode.newestFirst:
-      return 'Newest';
+      return S.current.screensItemPodcastPodcastEpisodeUtilsNewest;
     case PodcastEpisodeSortMode.oldestFirst:
-      return 'Oldest';
+      return S.current.screensItemPodcastPodcastEpisodeUtilsOldest;
     case PodcastEpisodeSortMode.titleAsc:
-      return 'Title A-Z';
+      return S.current.screensItemPodcastPodcastEpisodeUtilsTitleAZ;
     case PodcastEpisodeSortMode.titleDesc:
-      return 'Title Z-A';
+      return S.current.screensItemPodcastPodcastEpisodeUtilsTitleZA;
   }
 }

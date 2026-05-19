@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:yaabsa/api/library/request/library_sort.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class LibrarySortSheet extends StatelessWidget {
   const LibrarySortSheet({
     super.key,
@@ -38,11 +40,14 @@ class LibrarySortSheet extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 12, 12, 6),
               child: Row(
                 children: [
-                  const Expanded(
-                    child: Text('Sort Library', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
+                  Expanded(
+                    child: Text(
+                      S.current.componentsAppLibraryLibrarySortSheetSortLibrary,
+                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+                    ),
                   ),
                   IconButton(
-                    tooltip: 'Close',
+                    tooltip: S.current.componentsAppLibraryLibrarySortSheetClose,
                     onPressed: () => Navigator.of(context).pop(),
                     icon: const Icon(Icons.close_rounded),
                   ),
@@ -59,7 +64,13 @@ class LibrarySortSheet extends StatelessWidget {
                   final isSelected = option == selectedSort;
                   final isDescending = currentSelection.desc == 1;
                   final isRandom = option == LibrarySortValue.random;
-                  final trailingText = isSelected && !isRandom ? (isDescending ? 'DESC' : 'ASC') : null;
+                  String? trailingText;
+                  if (isSelected && !isRandom) {
+                    trailingText = 'ASC';
+                    if (isDescending) {
+                      trailingText = 'DESC';
+                    }
+                  }
                   final trailingIcon = isSelected && !isRandom
                       ? (isDescending ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded)
                       : null;

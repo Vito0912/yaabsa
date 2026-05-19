@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/api/me/media_progress.dart';
 import 'package:yaabsa/components/app/item/item_more_actions_button.dart';
+import 'package:yaabsa/generated/l10n.dart';
 import 'package:yaabsa/screens/item/podcast/podcast_episode_utils.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/item_formatters.dart';
@@ -66,7 +67,9 @@ class PodcastEpisodeTile extends StatelessWidget {
     final playIcon = isCurrentEpisode && isPlayingCurrentEpisode
         ? Icons.pause_rounded
         : (isFinished ? Icons.replay_rounded : Icons.play_arrow_rounded);
-    final playTooltip = isCurrentEpisode && isPlayingCurrentEpisode ? 'Pause' : (isFinished ? 'Replay' : 'Play');
+    final playTooltip = isCurrentEpisode && isPlayingCurrentEpisode
+        ? S.current.commonPause
+        : (isFinished ? S.current.commonReplay : S.current.commonPlay);
     final playBackgroundColor = isPlayEnabled
         ? (isFinished ? colorScheme.primary : colorScheme.surface.withAlpha(230))
         : colorScheme.surfaceContainerHighest;

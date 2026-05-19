@@ -4,6 +4,8 @@ import 'package:yaabsa/api/tasks/abs_task.dart';
 import 'package:yaabsa/components/app/tasks/task_running_card.dart';
 import 'package:yaabsa/provider/core/server_tasks_provider.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class TaskNotificationPanel extends ConsumerWidget {
   const TaskNotificationPanel({super.key, this.onTaskSelected, this.onClearActivity, this.maxHeight});
 
@@ -33,9 +35,14 @@ class TaskNotificationPanel extends ConsumerWidget {
           children: [
             Row(
               children: [
-                Expanded(child: Text('Task Activity', style: Theme.of(context).textTheme.titleLarge)),
+                Expanded(
+                  child: Text(
+                    S.current.componentsAppTasksTaskNotificationPanelTaskActivity,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ),
                 IconButton(
-                  tooltip: 'Clear completed activity',
+                  tooltip: S.current.componentsAppTasksTaskNotificationPanelClearCompletedActivity,
                   onPressed: hasCompletedTasks
                       ? () {
                           notifier.clearCompletedTaskActivity();
@@ -49,8 +56,8 @@ class TaskNotificationPanel extends ConsumerWidget {
             const SizedBox(height: 2),
             Text(
               runningCount == 0
-                  ? 'No tasks are currently running.'
-                  : '$runningCount task${runningCount == 1 ? '' : 's'} running',
+                  ? S.current.taskNotificationNoTasksRunning
+                  : S.current.taskNotificationTasksRunning(runningCount),
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: 10),
@@ -58,8 +65,11 @@ class TaskNotificationPanel extends ConsumerWidget {
               child: ConstrainedBox(
                 constraints: BoxConstraints(maxHeight: listMaxHeight),
                 child: tasks.isEmpty
-                    ? const Center(
-                        child: Padding(padding: EdgeInsets.symmetric(vertical: 20), child: Text('No tasks yet.')),
+                    ? Center(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 20),
+                          child: Text(S.current.componentsAppTasksTaskNotificationPanelNoTasksYet),
+                        ),
                       )
                     : ListView.separated(
                         shrinkWrap: true,

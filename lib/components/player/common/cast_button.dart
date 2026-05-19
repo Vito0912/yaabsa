@@ -13,30 +13,32 @@ import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/player_utils.dart';
 
-String? _resolveCastAvailabilityMessage() {
+import 'package:yaabsa/generated/l10n.dart';
+
+String? _resolveCastAvailabilityMessage(S l10n) {
   final media = audioHandler.currentMediaItem;
   if (media == null || media.tracks.isEmpty) {
-    return 'Nothing is currently playing to cast.';
+    return l10n.componentsPlayerCommonCastButtonNothingIsCurrentlyPlayingToCast;
   }
 
   final currentTrackIndex = audioHandler.player.currentIndex ?? 0;
   if (currentTrackIndex < 0 || currentTrackIndex >= media.tracks.length) {
-    return 'Unable to determine the current track.';
+    return l10n.componentsPlayerCommonCastButtonUnableToDetermineTheCurrentTrack;
   }
 
   final currentTrack = media.tracks[currentTrackIndex];
   final trackUrl = currentTrack.url;
   if (trackUrl == null || trackUrl.isEmpty) {
-    return 'Current track does not have a playable URL.';
+    return l10n.componentsPlayerCommonCastButtonCurrentTrackDoesNotHaveAPlayableUrl;
   }
 
   final trackUri = Uri.tryParse(trackUrl);
   if (trackUri == null) {
-    return 'Current track does not have a playable URL.';
+    return l10n.componentsPlayerCommonCastButtonCurrentTrackDoesNotHaveAPlayableUrl;
   }
 
   if (!_isHttpUri(trackUri) && containerRef.read(absApiProvider) == null) {
-    return 'Casting local downloads requires an active server connection.';
+    return l10n.componentsPlayerCommonCastButtonCastingLocalDownloadsRequiresAnActiveServerConnection;
   }
 
   return null;
@@ -157,12 +159,13 @@ Uri? _resolveCastCoverUri(InternalMedia media) {
 }
 
 Future<void> showCastDevicePicker(BuildContext context, {bool ensureInitialized = true}) async {
+  final l10n = S.of(context);
   if (!(Platform.isAndroid || Platform.isIOS)) {
-    _showCastMessage(context, 'Chrome Cast is unavailable on this platform.');
+    _showCastMessage(context, l10n.componentsPlayerCommonCastButtonChromeCastIsUnavailableOnThisPlatform);
     return;
   }
 
-  final castUnavailableMessage = _resolveCastAvailabilityMessage();
+  final castUnavailableMessage = _resolveCastAvailabilityMessage(l10n);
   if (castUnavailableMessage != null) {
     _showCastMessage(context, castUnavailableMessage);
     return;
@@ -175,7 +178,7 @@ Future<void> showCastDevicePicker(BuildContext context, {bool ensureInitialized 
     }
 
     if (!initialized) {
-      _showCastMessage(context, 'Chrome Cast is unavailable on this device.');
+      _showCastMessage(context, l10n.componentsPlayerCommonCastButtonChromeCastIsUnavailableOnThisDevice);
       return;
     }
   }
@@ -216,6 +219,7 @@ void _showCastMessage(BuildContext context, String message) {
 }
 
 Future<void> _disconnectSession(BuildContext context) async {
+  final l10n = S.of(context);
   try {
     await GoogleCastSessionManager.instance.endSessionAndStopCasting();
     if (!context.mounted) {
@@ -223,17 +227,18 @@ Future<void> _disconnectSession(BuildContext context) async {
     }
 
     audioHandler.deactivateCastControl();
-    _showCastMessage(context, 'Disconnected from cast device.');
+    _showCastMessage(context, l10n.componentsPlayerCommonCastButtonDisconnectedFromCastDevice);
   } catch (e) {
     if (!context.mounted) {
       return;
     }
 
-    _showCastMessage(context, 'Failed to disconnect: $e');
+    _showCastMessage(context, l10n.componentsPlayerCommonCastButtonFailedToDisconnect(e.toString()));
   }
 }
 
 Future<void> _connectAndCast(BuildContext context, GoogleCastDevice device) async {
+  final l10n = S.of(context);
   try {
     final started = await GoogleCastSessionManager.instance.startSessionWithDevice(device);
     final connected = started
@@ -245,7 +250,7 @@ Future<void> _connectAndCast(BuildContext context, GoogleCastDevice device) asyn
     }
 
     if (!connected) {
-      _showCastMessage(context, 'Unable to connect to ${device.friendlyName}.');
+      _showCastMessage(context, l10n.componentsPlayerCommonCastButtonUnableToConnectTo(device.friendlyName));
       return;
     }
 
@@ -264,14 +269,14 @@ Future<void> _connectAndCast(BuildContext context, GoogleCastDevice device) asyn
     }
 
     audioHandler.activateCastControl(contentId: castTarget.contentId, trackIndex: castTarget.trackIndex);
-    _showCastMessage(context, 'Casting to ${device.friendlyName}.');
+    _showCastMessage(context, l10n.componentsPlayerCommonCastButtonCastingTo(device.friendlyName));
   } catch (e) {
     if (!context.mounted) {
       return;
     }
 
     logger('Failed to connect and cast: $e', tag: 'CastButton', level: InfoLevel.warning);
-    _showCastMessage(context, 'Failed to cast: $e');
+    _showCastMessage(context, l10n.componentsPlayerCommonCastButtonFailedToCast(e.toString()));
   }
 }
 
@@ -292,15 +297,16 @@ Future<bool> _waitForConnectedSession() async {
 }
 
 Future<_CastTarget?> _castCurrentTrack(BuildContext context) async {
+  final l10n = S.of(context);
   final media = audioHandler.currentMediaItem;
   if (media == null || media.tracks.isEmpty) {
-    _showCastMessage(context, 'Nothing is currently playing to cast.');
+    _showCastMessage(context, l10n.componentsPlayerCommonCastButtonNothingIsCurrentlyPlayingToCast);
     return null;
   }
 
   final currentTrackIndex = audioHandler.player.currentIndex ?? 0;
   if (currentTrackIndex < 0 || currentTrackIndex >= media.tracks.length) {
-    _showCastMessage(context, 'Unable to determine the current track.');
+    _showCastMessage(context, l10n.componentsPlayerCommonCastButtonUnableToDetermineTheCurrentTrack);
     return null;
   }
 
@@ -319,8 +325,8 @@ Future<_CastTarget?> _castCurrentTrack(BuildContext context) async {
     _showCastMessage(
       context,
       hasApi
-          ? 'Unable to prepare a server stream for this item.'
-          : 'Casting local downloads requires an active server connection.',
+          ? l10n.componentsPlayerCommonCastButtonUnableToPrepareServerStreamForThisItem
+          : l10n.componentsPlayerCommonCastButtonCastingLocalDownloadsRequiresAnActiveServerConnection,
     );
     return null;
   }
@@ -426,7 +432,8 @@ class _CastButtonState extends ConsumerState<CastButton> {
   }
 
   Future<void> _handlePressed() async {
-    final castUnavailableMessage = _resolveCastAvailabilityMessage();
+    final l10n = S.of(context);
+    final castUnavailableMessage = _resolveCastAvailabilityMessage(l10n);
     if (castUnavailableMessage != null) {
       _showCastMessage(context, castUnavailableMessage);
       return;
@@ -438,7 +445,7 @@ class _CastButtonState extends ConsumerState<CastButton> {
     }
 
     if (!initialized) {
-      _showCastMessage(context, 'Chrome Cast is unavailable on this device.');
+      _showCastMessage(context, l10n.componentsPlayerCommonCastButtonChromeCastIsUnavailableOnThisDevice);
       return;
     }
 
@@ -454,7 +461,7 @@ class _CastButtonState extends ConsumerState<CastButton> {
     if (!_isInitialized && _initializationAttempted) {
       return IconButton(
         onPressed: _handlePressed,
-        tooltip: 'Retry Cast setup',
+        tooltip: S.current.componentsPlayerCommonCastButtonRetryCastSetup,
         iconSize: widget.iconSize,
         icon: const Icon(Icons.cast),
       );
@@ -463,7 +470,7 @@ class _CastButtonState extends ConsumerState<CastButton> {
     if (!_isInitialized) {
       return IconButton(
         onPressed: _handlePressed,
-        tooltip: 'Connect to a cast device',
+        tooltip: S.current.componentsPlayerCommonCastButtonConnectToACastDevice,
         iconSize: widget.iconSize,
         icon: const Icon(Icons.cast),
       );
@@ -479,7 +486,9 @@ class _CastButtonState extends ConsumerState<CastButton> {
 
         return IconButton(
           onPressed: _handlePressed,
-          tooltip: isConnected ? 'Manage cast device' : 'Connect to a cast device',
+          tooltip: isConnected
+              ? S.current.componentsPlayerCommonCastButtonManageCastDevice
+              : S.current.componentsPlayerCommonCastButtonConnectToACastDevice,
           iconSize: widget.iconSize,
           icon: Icon(isConnected ? Icons.cast_connected : Icons.cast),
         );
@@ -503,7 +512,10 @@ class _CastDeviceSheet extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text('Cast Devices', style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                S.current.componentsPlayerCommonCastButtonCastDevices,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               const SizedBox(height: 8),
               StreamBuilder<GoogleCastSession?>(
                 stream: GoogleCastSessionManager.instance.currentSessionStream,
@@ -522,13 +534,13 @@ class _CastDeviceSheet extends StatelessWidget {
                         final devices = devicesSnapshot.data ?? const <GoogleCastDevice>[];
 
                         if (devices.isEmpty && !isConnected) {
-                          return const Center(
+                          return Center(
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2.4)),
                                 SizedBox(height: 10),
-                                Text('Searching for cast devices...'),
+                                Text(S.current.componentsPlayerCommonCastButtonSearchingForCastDevices),
                               ],
                             ),
                           );
@@ -540,7 +552,7 @@ class _CastDeviceSheet extends StatelessWidget {
                               ListTile(
                                 leading: const Icon(Icons.cast_connected),
                                 title: Text(session!.device!.friendlyName),
-                                subtitle: const Text('Connected'),
+                                subtitle: Text(S.current.componentsPlayerCommonCastButtonConnected),
                                 trailing: TextButton(
                                   onPressed: () async {
                                     await onDisconnect();
@@ -548,14 +560,16 @@ class _CastDeviceSheet extends StatelessWidget {
                                       Navigator.of(context).pop();
                                     }
                                   },
-                                  child: const Text('Disconnect'),
+                                  child: Text(S.current.componentsPlayerCommonCastButtonDisconnect),
                                 ),
                               ),
                             for (final device in devices)
                               ListTile(
                                 leading: const Icon(Icons.cast),
                                 title: Text(device.friendlyName),
-                                subtitle: Text(device.modelName ?? 'Unknown model'),
+                                subtitle: Text(
+                                  device.modelName ?? S.of(context).componentsPlayerCommonCastButtonUnknownModel,
+                                ),
                                 onTap: () => Navigator.of(context).pop(device),
                               ),
                           ],

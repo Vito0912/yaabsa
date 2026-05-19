@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 import 'package:yaabsa/components/settings/settings_category.dart';
 import 'package:yaabsa/components/settings/settings_dropdown.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';
+import 'package:yaabsa/generated/l10n.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/screens/settings/theme_settings.dart';
 import 'package:yaabsa/util/logger.dart';
@@ -16,31 +17,38 @@ class AppearanceSettings extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SettingsPageScaffold(
-      title: 'Appearance Settings',
+      title: S.current.screensSettingsAppearanceSettingsTitle,
       embedded: true,
       showEmbeddedBackButton: true,
       children: [
         SettingsNavigationSection(
-          title: 'Display',
+          title: S.current.screensSettingsAppearanceSettingsDisplay,
           topPadding: 0,
           items: [
             SettingsNavigationItem(
               icon: Icons.palette_outlined,
-              title: 'Theme',
-              subtitle: 'Theme mode, preset palette, and custom accent color.',
+              title: S.current.screensSettingsAppearanceSettingsTheme,
+              subtitle: S.current.screensSettingsAppearanceSettingsThemeSubtitle,
               onTap: () => context.push(ThemeSettings.routeName),
             ),
           ],
         ),
-        const SettingsCategory(title: 'General', description: 'Language and diagnostics.', icon: Icons.tune_rounded),
+        SettingsCategory(
+          title: S.current.screensSettingsAppearanceSettingsGeneral,
+          description: S.current.screensSettingsAppearanceSettingsGeneralDescription,
+          icon: Icons.tune_rounded,
+        ),
         SettingDropdown(
-          label: 'Language',
+          label: S.current.screensSettingsAppearanceSettingsLanguage,
           values: ['en-US', 'de-DE'],
-          valueLabels: ['English', 'Deutsch'],
+          valueLabels: [
+            S.current.screensSettingsAppearanceSettingsEnglish,
+            S.current.screensSettingsAppearanceSettingsGerman,
+          ],
           settingKey: SettingKeys.language,
         ),
         SettingDropdown(
-          label: 'Log Level',
+          label: S.current.screensSettingsAppearanceSettingsLogLevel,
           values: InfoLevel.values.map((e) => e.toString()).toList(),
           valueLabels: InfoLevel.values.map((e) => e.name).toList(),
           settingKey: SettingKeys.appLogLevel,

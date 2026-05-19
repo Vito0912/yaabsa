@@ -20,6 +20,8 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/logger.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class LibraryUploadPanel extends ConsumerStatefulWidget {
   const LibraryUploadPanel({super.key, required this.selectedLibrary, required this.onClose, this.onUploadingChanged});
 
@@ -603,7 +605,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
     }
 
     setState(() {
-      _panelMessage = 'Added ${createdItems.length} upload item${createdItems.length == 1 ? '' : 's'}.';
+      _panelMessage = S.current.libraryUploadPanelAddedUploadItems(createdItems.length);
       _items = <UploadItemDraft>[..._items, ...createdItems];
     });
 
@@ -694,14 +696,14 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Path check issues found'),
+          title: Text(S.current.componentsAppUploadLibraryUploadPanelPathCheckIssuesFound),
           content: SizedBox(
             width: 520,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Some items have destination conflicts or path-check errors. Continue anyway?'),
+                Text(S.current.componentsAppUploadLibraryUploadPanelSomeItemsHaveDestinationConflictsOr),
                 const SizedBox(height: 8),
                 Flexible(
                   child: ListView.builder(
@@ -710,7 +712,10 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
                     itemBuilder: (context, index) {
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 2),
-                        child: Text('- ${conflicts[index]}', style: Theme.of(context).textTheme.bodySmall),
+                        child: Text(
+                          S.current.componentsAppUploadLibraryUploadPanelText(conflicts[index]),
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
                       );
                     },
                   ),
@@ -719,8 +724,14 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel upload')),
-            FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Continue anyway')),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(S.current.componentsAppUploadLibraryUploadPanelCancelUpload),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(S.current.componentsAppUploadLibraryUploadPanelContinueAnyway),
+            ),
           ],
         );
       },
@@ -994,7 +1005,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
           uploadSpeedBytesPerSecond: 0,
           uploadedBytes: 0,
           totalBytes: 0,
-          message: attempt == 1 ? 'Uploading...' : 'Retrying upload ($attempt/$maxAttempts)...',
+          message: S.current.libraryUploadPanelUploadAttemptMessage(attempt, maxAttempts),
         ),
       );
 
@@ -1340,14 +1351,14 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
                     Row(
                       children: [
                         IconButton(
-                          tooltip: 'Back',
+                          tooltip: S.current.componentsAppUploadLibraryUploadPanelBack,
                           onPressed: widget.onClose,
                           icon: const Icon(Icons.arrow_back_rounded),
                         ),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
-                            'Upload to ${widget.selectedLibrary.name}',
+                            S.current.componentsAppUploadLibraryUploadPanelUploadTo(widget.selectedLibrary.name),
                             style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
                           ),
                         ),
@@ -1425,7 +1436,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
                             child: ExpansionTile(
                               tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
                               childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
-                              title: const Text('Advanced options'),
+                              title: Text(S.current.componentsAppUploadLibraryUploadPanelAdvancedOptions),
                               children: [
                                 LayoutBuilder(
                                   builder: (context, advancedConstraints) {
@@ -1442,7 +1453,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            'Settings',
+                                            S.current.componentsAppUploadLibraryUploadPanelSettings,
                                             style: Theme.of(
                                               context,
                                             ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
@@ -1487,7 +1498,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
                                           if (!isAdminUser) ...[
                                             const SizedBox(height: 6),
                                             Text(
-                                              'Requires admin role.',
+                                              S.current.componentsAppUploadLibraryUploadPanelRequiresAdminRole,
                                               style: Theme.of(
                                                 context,
                                               ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
@@ -1512,7 +1523,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            'Bulk update queue metadata',
+                                            S.current.componentsAppUploadLibraryUploadPanelBulkUpdateQueueMetadata,
                                             style: Theme.of(
                                               context,
                                             ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
@@ -1545,7 +1556,11 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
                                                               padding: const EdgeInsets.symmetric(horizontal: 10),
                                                             ),
                                                             onPressed: canApplyBulk ? _applyBulkAuthor : null,
-                                                            child: const Text('Apply author'),
+                                                            child: Text(
+                                                              S
+                                                                  .current
+                                                                  .componentsAppUploadLibraryUploadPanelApplyAuthor,
+                                                            ),
                                                           ),
                                                         ),
                                                       ],
@@ -1570,7 +1585,11 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
                                                               padding: const EdgeInsets.symmetric(horizontal: 10),
                                                             ),
                                                             onPressed: canApplyBulk ? _applyBulkSeries : null,
-                                                            child: const Text('Apply series'),
+                                                            child: Text(
+                                                              S
+                                                                  .current
+                                                                  .componentsAppUploadLibraryUploadPanelApplySeries,
+                                                            ),
                                                           ),
                                                         ),
                                                       ],
@@ -1602,7 +1621,9 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
                                                             padding: const EdgeInsets.symmetric(horizontal: 8),
                                                           ),
                                                           onPressed: canApplyBulk ? _applyBulkAuthor : null,
-                                                          child: const Text('Apply author'),
+                                                          child: Text(
+                                                            S.current.componentsAppUploadLibraryUploadPanelApplyAuthor,
+                                                          ),
                                                         ),
                                                       ),
                                                     ],
@@ -1628,7 +1649,9 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
                                                             padding: const EdgeInsets.symmetric(horizontal: 8),
                                                           ),
                                                           onPressed: canApplyBulk ? _applyBulkSeries : null,
-                                                          child: const Text('Apply series'),
+                                                          child: Text(
+                                                            S.current.componentsAppUploadLibraryUploadPanelApplySeries,
+                                                          ),
                                                         ),
                                                       ),
                                                     ],
@@ -1685,7 +1708,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
                                     });
                                   },
                             icon: const Icon(Icons.delete_sweep_outlined),
-                            label: const Text('Clear queue'),
+                            label: Text(S.current.componentsAppUploadLibraryUploadPanelClearQueue),
                           ),
                           if (_isUploading)
                             FilledButton.tonalIcon(
@@ -1697,12 +1720,12 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
                                 });
                               },
                               icon: const Icon(Icons.stop_circle_outlined),
-                              label: const Text('Cancel uploads'),
+                              label: Text(S.current.componentsAppUploadLibraryUploadPanelCancelUploads),
                             ),
                           FilledButton.icon(
                             onPressed: (!_isUploading && hasQueuedItems) ? _startUpload : null,
                             icon: const Icon(Icons.cloud_upload_rounded),
-                            label: const Text('Start upload'),
+                            label: Text(S.current.componentsAppUploadLibraryUploadPanelStartUpload),
                           ),
                         ],
                       )
@@ -1719,7 +1742,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
                                     });
                                   },
                             icon: const Icon(Icons.delete_sweep_outlined),
-                            label: const Text('Clear queue'),
+                            label: Text(S.current.componentsAppUploadLibraryUploadPanelClearQueue),
                           ),
                           if (_isUploading) ...[
                             const SizedBox(width: 8),
@@ -1732,14 +1755,14 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
                                 });
                               },
                               icon: const Icon(Icons.stop_circle_outlined),
-                              label: const Text('Cancel uploads'),
+                              label: Text(S.current.componentsAppUploadLibraryUploadPanelCancelUploads),
                             ),
                           ],
                           const Spacer(),
                           FilledButton.icon(
                             onPressed: (!_isUploading && hasQueuedItems) ? _startUpload : null,
                             icon: const Icon(Icons.cloud_upload_rounded),
-                            label: const Text('Start upload'),
+                            label: Text(S.current.componentsAppUploadLibraryUploadPanelStartUpload),
                           ),
                         ],
                       ),
@@ -1753,7 +1776,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
                         padding: const EdgeInsets.symmetric(vertical: 18),
                         child: Center(
                           child: Text(
-                            'Upload queue is empty. Add files or folders using the drop area above.',
+                            S.current.componentsAppUploadLibraryUploadPanelUploadQueueIsEmptyAddFiles,
                             style: Theme.of(context).textTheme.bodyMedium,
                             textAlign: TextAlign.center,
                           ),
@@ -1846,12 +1869,12 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
               FilledButton.icon(
                 onPressed: _isUploading ? null : _pickFiles,
                 icon: const Icon(Icons.file_open_rounded),
-                label: const Text('Choose files'),
+                label: Text(S.current.componentsAppUploadLibraryUploadPanelChooseFiles),
               ),
               OutlinedButton.icon(
                 onPressed: _isUploading ? null : _pickFolder,
                 icon: const Icon(Icons.folder_open_rounded),
-                label: const Text('Choose folder'),
+                label: Text(S.current.componentsAppUploadLibraryUploadPanelChooseFolder),
               ),
             ],
           ),

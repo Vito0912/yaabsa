@@ -12,6 +12,8 @@ import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/aaos_service.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class AndroidAutoSettings extends ConsumerStatefulWidget {
   const AndroidAutoSettings({super.key});
 
@@ -40,12 +42,17 @@ class _AndroidAutoSettingsState extends ConsumerState<AndroidAutoSettings> {
               children: [
                 Icon(Icons.directions_car_filled, size: 20, color: Theme.of(context).colorScheme.primary),
                 const SizedBox(width: 10),
-                Expanded(child: Text('AAOS mode active', style: Theme.of(context).textTheme.titleSmall)),
+                Expanded(
+                  child: Text(
+                    S.current.screensSettingsAndroidAutoSettingsAaosModeActive,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 8),
             Text(
-              'For now there are no additional AAOS-specific settings.',
+              S.current.screensSettingsAndroidAutoSettingsForNowThereAreNoAdditional,
               style: Theme.of(context).textTheme.bodyMedium,
             ),
           ],
@@ -100,7 +107,9 @@ class _AndroidAutoSettingsState extends ConsumerState<AndroidAutoSettings> {
         final isAaos = aaosState.isAutomotiveDevice;
 
         return SettingsPageScaffold(
-          title: isAaos ? 'AAOS Settings' : 'Android Auto Settings',
+          title: isAaos
+              ? S.current.screensSettingsAndroidAutoSettingsAaosSettings
+              : S.current.screensSettingsAndroidAutoSettingsAndroidAutoSettings,
           embedded: true,
           showEmbeddedBackButton: true,
           children: [
@@ -109,9 +118,9 @@ class _AndroidAutoSettingsState extends ConsumerState<AndroidAutoSettings> {
               currentUser.when(
                 data: (user) {
                   if (user == null) {
-                    return const Padding(
+                    return Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                      child: Text('No active user. Sign in to configure Android Auto browse settings.'),
+                      child: Text(S.current.screensSettingsAndroidAutoSettingsNoActiveUserSignInTo),
                     );
                   }
 
@@ -121,8 +130,10 @@ class _AndroidAutoSettingsState extends ConsumerState<AndroidAutoSettings> {
                   padding: EdgeInsets.all(16),
                   child: Center(child: CircularProgressIndicator()),
                 ),
-                error: (error, _) =>
-                    Padding(padding: const EdgeInsets.all(16), child: Text('Failed to load user settings: $error')),
+                error: (error, _) => Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(S.current.screensSettingsAndroidAutoSettingsFailedToLoadUserSettings(error)),
+                ),
               ),
           ],
         );

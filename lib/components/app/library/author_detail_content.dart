@@ -8,6 +8,8 @@ import 'package:yaabsa/components/common/library_item_widget.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class AuthorDetailContent extends StatelessWidget {
   const AuthorDetailContent({super.key, required this.author, required this.api});
 
@@ -27,12 +29,12 @@ class AuthorDetailContent extends StatelessWidget {
           padding: EdgeInsets.fromLTRB(gridLayout.horizontalPadding, 8, gridLayout.horizontalPadding, 16),
           children: [
             _SectionHeader(
-              title: 'Series',
-              subtitle: '${seriesGroups.length} ${seriesGroups.length == 1 ? 'series' : 'series groups'}',
+              title: S.current.authorDetailSeriesTitle,
+              subtitle: S.current.authorDetailSeriesCount(seriesGroups.length),
             ),
             const SizedBox(height: 8),
             if (seriesGroups.isEmpty)
-              const _SectionEmptyState(message: 'No series found for this author.')
+              _SectionEmptyState(message: S.current.authorDetailNoSeriesFoundForThisAuthor)
             else
               ...seriesGroups.map(
                 (series) => Padding(
@@ -40,10 +42,13 @@ class AuthorDetailContent extends StatelessWidget {
                   child: _AuthorSeriesGroupSection(series: series, api: api),
                 ),
               ),
-            _SectionHeader(title: 'Books', subtitle: '${books.length} ${books.length == 1 ? 'book' : 'books'}'),
+            _SectionHeader(
+              title: S.current.authorDetailBooksTitle,
+              subtitle: S.current.authorDetailBookCount(books.length),
+            ),
             const SizedBox(height: 8),
             if (books.isEmpty)
-              const _SectionEmptyState(message: 'No books found for this author.')
+              _SectionEmptyState(message: S.current.authorDetailNoBooksFoundForThisAuthor)
             else
               _LibraryItemGrid(items: books, api: api, crossAxisCount: gridLayout.crossAxisCount),
           ],
@@ -77,9 +82,12 @@ class _AuthorSeriesGroupSection extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            Text('$itemCount ${itemCount == 1 ? 'book' : 'books'}', style: Theme.of(context).textTheme.bodySmall),
+            Text(S.current.authorDetailBookCount(itemCount), style: Theme.of(context).textTheme.bodySmall),
             const SizedBox(width: 8),
-            TextButton(onPressed: () => context.push('/series/${series.id}'), child: const Text('Open Series')),
+            TextButton(
+              onPressed: () => context.push('/series/${series.id}'),
+              child: Text(S.current.authorDetailOpenSeries),
+            ),
           ],
         ),
         const SizedBox(height: 8),

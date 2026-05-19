@@ -11,6 +11,8 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/network/dio_factory.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 // TODO. Change view
 class ServerConnectionSettings extends ConsumerStatefulWidget {
   const ServerConnectionSettings({super.key});
@@ -103,18 +105,18 @@ class _ServerConnectionSettingsState extends ConsumerState<ServerConnectionSetti
 
     final normalizedExternal = _normalizeServerAddress(_externalServerController.text.trim());
     if (normalizedExternal == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please enter a valid external server URL.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.current.screensSettingsServerConnectionSettingsPleaseEnterAValidExternalServer)),
+      );
       return;
     }
 
     final localInput = _localServerController.text.trim();
     final normalizedLocal = localInput.isEmpty ? null : _normalizeServerAddress(localInput);
     if (localInput.isNotEmpty && normalizedLocal == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please enter a valid local server URL or leave it blank.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.current.screensSettingsServerConnectionSettingsPleaseEnterAValidLocalServer)),
+      );
       return;
     }
 
@@ -123,9 +125,9 @@ class _ServerConnectionSettingsState extends ConsumerState<ServerConnectionSetti
     final wantsCredentialUpdate = username != currentUser.username || password.trim().isNotEmpty;
 
     if (wantsCredentialUpdate && password.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Enter password to update username or credentials.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.current.screensSettingsServerConnectionSettingsEnterPasswordToUpdateUsernameOr)),
+      );
       return;
     }
 
@@ -151,11 +153,13 @@ class _ServerConnectionSettingsState extends ConsumerState<ServerConnectionSetti
 
         final loginData = loginResponse.data;
         if (loginData == null) {
-          throw const FormatException('Credential validation returned no data.');
+          throw FormatException(S.current.screensSettingsServerConnectionSettingsCredentialValidationReturnedNoData);
         }
 
         if (loginData.user.id != currentUser.id) {
-          throw const FormatException('Credentials belong to a different account. Use Add Account instead.');
+          throw FormatException(
+            S.current.screensSettingsServerConnectionSettingsCredentialsBelongToDifferentAccountUseAddAccount,
+          );
         }
 
         updatedUser = loginData.user.copyWith(
@@ -178,22 +182,35 @@ class _ServerConnectionSettingsState extends ConsumerState<ServerConnectionSetti
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Server settings saved.')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(S.current.screensSettingsServerConnectionSettingsServerSettingsSaved)));
       _passwordController.clear();
     } on DioException catch (e) {
       if (!mounted) {
         return;
       }
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(_parseDioErrorMessage(e, fallback: 'Failed to save server settings.'))));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _parseDioErrorMessage(
+              e,
+              fallback: S.current.screensSettingsServerConnectionSettingsFailedToSaveServerSettingsPlain,
+            ),
+          ),
+        ),
+      );
     } catch (e) {
       if (!mounted) {
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to save server settings: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(S.current.screensSettingsServerConnectionSettingsFailedToSaveServerSettings(e.toString())),
+        ),
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -208,16 +225,16 @@ class _ServerConnectionSettingsState extends ConsumerState<ServerConnectionSetti
     final currentUserAsync = ref.watch(currentUserProvider);
 
     return SettingsPageScaffold(
-      title: 'Server Connection',
+      title: S.current.screensSettingsServerConnectionSettingsTitle,
       embedded: true,
       showEmbeddedBackButton: true,
       children: [
         currentUserAsync.when(
           data: (user) {
             if (user == null) {
-              return const Padding(
+              return Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                child: Text('No active user. Sign in before editing server settings.'),
+                child: Text(S.current.screensSettingsServerConnectionSettingsNoActiveUserSignInBefore),
               );
             }
 
@@ -234,7 +251,7 @@ class _ServerConnectionSettingsState extends ConsumerState<ServerConnectionSetti
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
-                          'Server Endpoints',
+                          S.current.screensSettingsServerConnectionSettingsServerEndpoints,
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
                         ),
                         const SizedBox(height: 12),
@@ -242,14 +259,16 @@ class _ServerConnectionSettingsState extends ConsumerState<ServerConnectionSetti
                           controller: _externalServerController,
                           keyboardType: TextInputType.url,
                           enabled: !_isSaving,
-                          decoration: const InputDecoration(
-                            labelText: 'External Server URL',
-                            hintText: 'https://your-audiobookshelf.example',
+                          decoration: InputDecoration(
+                            labelText: S.current.screensSettingsServerConnectionSettingsExternalServerURL,
+                            hintText: S.current.screensSettingsServerConnectionSettingsHttpsYourAudiobookshelfExample,
                             prefixIcon: Icon(Icons.public_rounded),
                           ),
                           validator: (value) {
                             final normalized = _normalizeServerAddress((value ?? '').trim());
-                            return normalized == null ? 'Enter a valid external URL.' : null;
+                            return normalized == null
+                                ? S.current.screensSettingsServerConnectionSettingsEnterAValidExternalUrl
+                                : null;
                           },
                         ),
                         const SizedBox(height: 12),
@@ -257,9 +276,9 @@ class _ServerConnectionSettingsState extends ConsumerState<ServerConnectionSetti
                           controller: _localServerController,
                           keyboardType: TextInputType.url,
                           enabled: !_isSaving,
-                          decoration: const InputDecoration(
-                            labelText: 'Local Server URL (Optional)',
-                            hintText: 'http://192.168.1.25:13378',
+                          decoration: InputDecoration(
+                            labelText: S.current.screensSettingsServerConnectionSettingsLocalServerURLOptional,
+                            hintText: S.current.screensSettingsServerConnectionSettingsHttp19216812513378,
                             prefixIcon: Icon(Icons.lan_rounded),
                           ),
                           validator: (value) {
@@ -268,30 +287,32 @@ class _ServerConnectionSettingsState extends ConsumerState<ServerConnectionSetti
                               return null;
                             }
                             final normalized = _normalizeServerAddress(trimmed);
-                            return normalized == null ? 'Enter a valid local URL or leave blank.' : null;
+                            return normalized == null
+                                ? S.current.screensSettingsServerConnectionSettingsEnterAValidLocalUrlOrLeaveBlank
+                                : null;
                           },
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'The app will try local first and fall back to external when local is unreachable.',
+                          S.current.screensSettingsServerConnectionSettingsTheAppWillTryLocalFirst,
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                         const SizedBox(height: 22),
                         Text(
-                          'Credentials',
+                          S.current.screensSettingsServerConnectionSettingsCredentials,
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
                         ),
                         const SizedBox(height: 12),
                         TextFormField(
                           controller: _usernameController,
                           enabled: !_isSaving,
-                          decoration: const InputDecoration(
-                            labelText: 'Username',
+                          decoration: InputDecoration(
+                            labelText: S.current.screensSettingsServerConnectionSettingsUsername,
                             prefixIcon: Icon(Icons.person_outline_rounded),
                           ),
                           validator: (value) {
                             if ((value ?? '').trim().isEmpty) {
-                              return 'Username cannot be empty.';
+                              return S.current.screensSettingsServerConnectionSettingsUsernameCannotBeEmpty;
                             }
                             return null;
                           },
@@ -302,11 +323,12 @@ class _ServerConnectionSettingsState extends ConsumerState<ServerConnectionSetti
                           enabled: !_isSaving,
                           obscureText: _obscurePassword,
                           decoration: InputDecoration(
-                            labelText: 'Password',
-                            hintText: 'Required only when changing credentials',
+                            labelText: S.current.screensSettingsServerConnectionSettingsPassword,
+                            hintText:
+                                S.current.screensSettingsServerConnectionSettingsRequiredOnlyWhenChangingCredentials,
                             prefixIcon: const Icon(Icons.password_rounded),
                             suffixIcon: IconButton(
-                              tooltip: _obscurePassword ? 'Show password' : 'Hide password',
+                              tooltip: _obscurePassword ? S.current.commonShowPassword : S.current.commonHidePassword,
                               onPressed: _isSaving
                                   ? null
                                   : () {
@@ -320,7 +342,7 @@ class _ServerConnectionSettingsState extends ConsumerState<ServerConnectionSetti
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Leave password empty to keep current credentials and update only server URLs.',
+                          S.current.screensSettingsServerConnectionSettingsLeavePasswordEmptyToKeepCurrent,
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                         const SizedBox(height: 18),
@@ -329,7 +351,7 @@ class _ServerConnectionSettingsState extends ConsumerState<ServerConnectionSetti
                           icon: _isSaving
                               ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
                               : const Icon(Icons.save_outlined),
-                          label: Text(_isSaving ? 'Saving...' : 'Save Changes'),
+                          label: Text(_isSaving ? S.current.commonSaving : S.current.commonSaveChanges),
                         ),
                       ],
                     ),
@@ -342,7 +364,10 @@ class _ServerConnectionSettingsState extends ConsumerState<ServerConnectionSetti
             padding: EdgeInsets.all(24.0),
             child: Center(child: CircularProgressIndicator()),
           ),
-          error: (error, _) => Padding(padding: const EdgeInsets.all(16.0), child: Text('Failed to load user: $error')),
+          error: (error, _) => Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text(S.current.screensSettingsServerConnectionSettingsFailedToLoadUser(error.toString())),
+          ),
         ),
       ],
     );

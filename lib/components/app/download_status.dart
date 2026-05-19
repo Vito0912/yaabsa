@@ -1,6 +1,9 @@
 import 'package:background_downloader/background_downloader.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:yaabsa/util/globals.dart';
+
+import 'package:yaabsa/generated/l10n.dart';
 
 class DownloadStatus extends StatelessWidget {
   const DownloadStatus({super.key});
@@ -24,11 +27,14 @@ class DownloadStatus extends StatelessWidget {
         }
 
         final remainingFiles = tasks.length;
-        final centerLabel = remainingFiles > 99 ? '99+' : '$remainingFiles';
+        var centerLabel = '$remainingFiles';
+        if (remainingFiles > 99) {
+          centerLabel = '99+';
+        }
         final overallProgress = _calculateOverallProgress(tasks);
 
         return Tooltip(
-          message: '$remainingFiles file${remainingFiles == 1 ? '' : 's'} remaining',
+          message: S.current.downloadStatusFilesRemaining(remainingFiles),
           child: InkWell(
             borderRadius: BorderRadius.circular(999),
             onTap: () => _showProgressSheet(context),
@@ -77,15 +83,18 @@ class DownloadStatus extends StatelessWidget {
                 return Center(
                   child: Padding(
                     padding: const EdgeInsets.all(24),
-                    child: Text('Could not load active downloads: ${snapshot.error}'),
+                    child: Text(S.current.componentsAppDownloadStatusCouldNotLoadActiveDownloads(snapshot.error ?? '')),
                   ),
                 );
               }
 
               final tasks = _activeTasks(snapshot.data ?? const <TaskRecord>[]);
               if (tasks.isEmpty) {
-                return const Center(
-                  child: Padding(padding: EdgeInsets.all(24), child: Text('No active downloads.')),
+                return Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(24),
+                    child: Text(S.current.componentsAppDownloadStatusNoActiveDownloads),
+                  ),
                 );
               }
 
@@ -95,10 +104,13 @@ class DownloadStatus extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Downloads in progress', style: Theme.of(context).textTheme.titleMedium),
+                    Text(
+                      S.current.componentsAppDownloadStatusDownloadsInProgress,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                     const SizedBox(height: 4),
                     Text(
-                      '${tasks.length} file${tasks.length == 1 ? '' : 's'} remaining',
+                      S.current.downloadStatusFilesRemaining(tasks.length),
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                     const SizedBox(height: 12),
@@ -119,7 +131,7 @@ class DownloadStatus extends StatelessWidget {
                             contentPadding: EdgeInsets.zero,
                             title: Text(_taskTitle(task), maxLines: 1, overflow: TextOverflow.ellipsis),
                             trailing: IconButton(
-                              tooltip: 'Cancel download',
+                              tooltip: S.current.componentsAppDownloadStatusCancelDownload,
                               icon: const Icon(Icons.close_rounded),
                               onPressed: () async {
                                 try {
@@ -128,16 +140,20 @@ class DownloadStatus extends StatelessWidget {
                                     return;
                                   }
                                   final message = canceled
-                                      ? 'Canceled ${_taskTitle(task)}.'
-                                      : 'Could not cancel ${_taskTitle(task)}.';
+                                      ? S.current.componentsAppDownloadStatusCanceledDownloadTask(_taskTitle(task))
+                                      : S.current.componentsAppDownloadStatusCouldNotCancelDownloadTask(
+                                          _taskTitle(task),
+                                        );
                                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
                                 } catch (e) {
                                   if (!context.mounted) {
                                     return;
                                   }
-                                  ScaffoldMessenger.of(
-                                    context,
-                                  ).showSnackBar(SnackBar(content: Text('Could not cancel download: $e')));
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(S.current.componentsAppDownloadStatusCouldNotCancelDownload(e)),
+                                    ),
+                                  );
                                 }
                               },
                             ),
@@ -152,7 +168,15 @@ class DownloadStatus extends StatelessWidget {
                                   child: LinearProgressIndicator(value: progress, minHeight: 5),
                                 ),
                                 const SizedBox(height: 4),
-                                Text('${_statusLabel(task.status)} | ${(progress * 100).toStringAsFixed(0)}%'),
+                                Text(
+                                  S.current.componentsAppDownloadStatusText(
+                                    _statusLabel(task.status),
+                                    NumberFormat.decimalPatternDigits(
+                                      locale: Intl.getCurrentLocale(),
+                                      decimalDigits: 0,
+                                    ).format(progress * 100),
+                                  ),
+                                ),
                               ],
                             ),
                           );
@@ -253,9 +277,11 @@ class DownloadStatus extends StatelessWidget {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Download Error'),
-        content: Text('Error: $error'),
-        actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK'))],
+        title: Text(S.current.componentsAppDownloadStatusDownloadError),
+        content: Text(S.current.componentsAppDownloadStatusError(error ?? '')),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(S.current.componentsAppDownloadStatusOk)),
+        ],
       ),
     );
   }

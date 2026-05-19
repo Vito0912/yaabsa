@@ -8,6 +8,8 @@ import 'package:yaabsa/components/settings/admin_tool_library_selector.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/admin_item_metadata_tools.dart';
 
+import 'package:yaabsa/generated/l10n.dart';
+
 class AdminForceMetadataRefreshTool extends ConsumerWidget {
   const AdminForceMetadataRefreshTool({super.key, this.onCompleted});
 
@@ -19,9 +21,12 @@ class AdminForceMetadataRefreshTool extends ConsumerWidget {
       margin: EdgeInsets.zero,
       child: ListTile(
         leading: const Icon(Icons.refresh_outlined),
-        title: const Text('Force metadata refresh'),
-        subtitle: const Text('Recreates the metadata.json files for all items'),
-        trailing: OutlinedButton(onPressed: () => _openDialog(context, ref), child: const Text('Run')),
+        title: Text(S.current.componentsSettingsAdminForceMetadataRefreshToolForceMetadataRefresh),
+        subtitle: Text(S.current.componentsSettingsAdminForceMetadataRefreshToolRecreatesTheMetadataJsonFilesFor),
+        trailing: OutlinedButton(
+          onPressed: () => _openDialog(context, ref),
+          child: Text(S.current.componentsSettingsAdminForceMetadataRefreshToolRun),
+        ),
       ),
     );
   }
@@ -29,7 +34,9 @@ class AdminForceMetadataRefreshTool extends ConsumerWidget {
   Future<void> _openDialog(BuildContext context, WidgetRef ref) async {
     final api = ref.read(absApiProvider);
     if (api == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No active API client.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.current.componentsSettingsAdminForceMetadataRefreshToolNoActiveAPIClient)),
+      );
       return;
     }
 
@@ -46,11 +53,7 @@ class AdminForceMetadataRefreshTool extends ConsumerWidget {
     final tagged = result.itemsTagged;
     final libraries = result.librariesProcessed;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Processed $libraries librar${libraries == 1 ? 'y' : 'ies'} and tagged $tagged item(s). Server reported $updated updated item(s).',
-        ),
-      ),
+      SnackBar(content: Text(S.current.adminForceMetadataRefreshToolResultSummary(libraries, tagged, updated))),
     );
 
     if (onCompleted != null) {
@@ -104,7 +107,7 @@ class _ForceMetadataRefreshDialogState extends State<_ForceMetadataRefreshDialog
       }
 
       setState(() {
-        _errorMessage = 'Failed to load libraries: $error';
+        _errorMessage = S.current.adminForceMetadataRefreshToolFailedToLoadLibraries(error);
       });
     } finally {
       if (mounted) {
@@ -122,7 +125,7 @@ class _ForceMetadataRefreshDialogState extends State<_ForceMetadataRefreshDialog
 
     if (_selectedLibraryIds.isEmpty) {
       setState(() {
-        _errorMessage = 'Select at least one library.';
+        _errorMessage = S.current.adminForceMetadataRefreshToolSelectAtLeastOneLibrary;
       });
       return;
     }
@@ -148,7 +151,7 @@ class _ForceMetadataRefreshDialogState extends State<_ForceMetadataRefreshDialog
       }
 
       setState(() {
-        _errorMessage = 'Force metadata refresh failed: $error';
+        _errorMessage = S.current.adminForceMetadataRefreshToolFailed(error);
       });
     } finally {
       if (mounted) {
@@ -164,7 +167,7 @@ class _ForceMetadataRefreshDialogState extends State<_ForceMetadataRefreshDialog
     final busy = _isRunning || _isLoadingLibraries;
 
     return AlertDialog(
-      title: const Text('Force Metadata Refresh'),
+      title: Text(S.current.componentsSettingsAdminForceMetadataRefreshToolForceMetadataRefresh2),
       content: SizedBox(
         width: 640,
         child: SingleChildScrollView(
@@ -173,7 +176,7 @@ class _ForceMetadataRefreshDialogState extends State<_ForceMetadataRefreshDialog
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'This tool appends the "force-metadata" tag to every item in the selected libraries, performs a batch update, then removes the tag via the remove endpoint.',
+                S.current.componentsSettingsAdminForceMetadataRefreshToolThisToolAppendsTheForceMetadata,
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               const SizedBox(height: 12),
@@ -204,8 +207,18 @@ class _ForceMetadataRefreshDialogState extends State<_ForceMetadataRefreshDialog
         ),
       ),
       actions: [
-        TextButton(onPressed: busy ? null : () => Navigator.of(context).pop(), child: const Text('Cancel')),
-        FilledButton(onPressed: busy ? null : _runTool, child: Text(_isRunning ? 'Running...' : 'Run Tool')),
+        TextButton(
+          onPressed: busy ? null : () => Navigator.of(context).pop(),
+          child: Text(S.current.componentsSettingsAdminForceMetadataRefreshToolCancel),
+        ),
+        FilledButton(
+          onPressed: busy ? null : _runTool,
+          child: Text(
+            _isRunning
+                ? S.current.adminForceMetadataRefreshToolRunning
+                : S.current.adminForceMetadataRefreshToolRunTool,
+          ),
+        ),
       ],
     );
   }
