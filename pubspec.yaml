@@ -61,7 +61,11 @@ dependencies:
   vibration: ^3.1.8
   wakelock_plus: ^1.5.2 # TODO: Update to 1.6.0, waiting for file_picker to update dep on package_info_plus
   flutter_html: ^3.0.0
-  flutter_quill: 11.5.0
+  # Currently fix for flutter 3.44 :/
+  flutter_quill:
+    git: 
+      url: https://github.com/jodinathan/flutter-quill.git
+      ref: 2fe373ab961af56e0a8fb6a0064cbbb75613fac6
   html: ^0.15.6
   dart_quill_delta: ^10.8.3
   socket_io_client: ^3.1.4

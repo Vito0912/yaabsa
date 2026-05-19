@@ -47,22 +47,6 @@ runs:
           exit 1
         fi
 
-    - name: intl_utils
-      shell: bash
-      run: dart run intl_utils:generate
-
-    - name: Format
-      shell: bash
-      run: dart format lib
-
-    - name: Check if files changed
-      shell: bash
-      run: |
-        if [[ -n $(git status --porcelain) ]]; then
-          echo "Generated files are not up to date. Please run 'dart run intl_utils:generate' and commit the changes."
-          exit 1
-        fi
-
     - name: Add arb_utils
       shell: bash
       run: dart pub global activate arb_utils
@@ -74,6 +58,10 @@ runs:
           arb_utils sort "$file"
           arb_utils generate-meta "$file"
         done
+
+    - name: intl_utils
+      shell: bash
+      run: dart run intl_utils:generate
 
     - name: Format
       shell: bash
