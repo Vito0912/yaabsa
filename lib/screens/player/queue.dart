@@ -44,7 +44,7 @@ class PlayerQueueView extends StatelessWidget {
                 physics: const ClampingScrollPhysics(),
                 padding: const EdgeInsets.only(bottom: 8),
                 itemCount: entries.length,
-                onReorder: audioHandler.reorderQueue,
+                onReorderItem: audioHandler.reorderQueue,
                 buildDefaultDragHandles: false,
                 itemBuilder: (context, index) {
                   final entry = entries[index];
