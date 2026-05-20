@@ -329,7 +329,7 @@ class _SelectedBooksPane extends StatelessWidget {
                   : ReorderableListView.builder(
                       buildDefaultDragHandles: false,
                       itemCount: selectedIds.length,
-                      onReorder: onReorder,
+                      onReorderItem: onReorder,
                       itemBuilder: (context, index) {
                         final id = selectedIds[index];
                         final item = selectedItemsById[id];
