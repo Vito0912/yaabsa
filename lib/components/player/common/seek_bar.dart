@@ -9,6 +9,9 @@ import 'package:yaabsa/provider/player/user_bookmarks_provider.dart';
 import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:rxdart/rxdart.dart';
+
+const Duration _seekBarUiUpdateInterval = Duration(milliseconds: 400);
 
 class SeekBar extends ConsumerWidget {
   const SeekBar({
@@ -83,6 +86,47 @@ class SeekBar extends ConsumerWidget {
     return '${_formatDuration(position)} - $chapterTitle';
   }
 
+  List<int> _bookmarkSecondsForItem(List<Bookmark> bookmarks, String? itemId) {
+    if (itemId == null) {
+      return const <int>[];
+    }
+
+    return <int>{
+      for (final bookmark in bookmarks)
+        if (bookmark.libraryItemId == itemId && bookmark.time > 0) bookmark.time,
+    }.toList(growable: false);
+  }
+
+  List<SeekTimelineMarker> _buildTimelineMarkers({
+    required SeekBarMarkerMode markerMode,
+    required List<InternalChapter> chapters,
+    required List<int> bookmarkSeconds,
+    required String? currentItemId,
+  }) {
+    final markers = <SeekTimelineMarker>[];
+
+    if (markerMode.showChapterMarkers) {
+      markers.addAll(
+        chapters.map((chapter) {
+          return SeekTimelineMarker(position: chapter.start.toDuration, type: SeekTimelineMarkerType.chapter);
+        }),
+      );
+    }
+
+    if (markerMode.showBookmarks && currentItemId != null) {
+      markers.addAll(
+        bookmarkSeconds.map((seconds) {
+          return SeekTimelineMarker(
+            position: Duration(seconds: seconds),
+            type: SeekTimelineMarkerType.bookmark,
+          );
+        }),
+      );
+    }
+
+    return markers;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final seekBarModeSetting = ref.watch(globalSettingByKeyProvider(SettingKeys.playerSeekBarMode));
@@ -92,43 +136,36 @@ class SeekBar extends ConsumerWidget {
     final configuredMode = PlayerSeekBarMode.fromSettingValue(seekBarModeSetting.asData?.value);
     final markerMode = SeekBarMarkerMode.fromSettingValue(markerModeSetting.asData?.value);
 
-    final positionStream = audioHandler.positionStream;
+    final positionStream = audioHandler.positionStream.sampleTime(_seekBarUiUpdateInterval);
     final totalDurationStream = audioHandler.durationStream;
     final chaptersStream = audioHandler.chaptersStream;
 
-    return StreamBuilder<Duration>(
-      stream: totalDurationStream,
-      builder: (context, totalDurationSnapshot) {
-        final totalDuration = totalDurationSnapshot.data ?? Duration.zero;
+    return StreamBuilder<List<InternalChapter>>(
+      stream: chaptersStream,
+      initialData: audioHandler.currentMediaItem?.chapters ?? const <InternalChapter>[],
+      builder: (context, chaptersSnapshot) {
+        final chapters = chaptersSnapshot.data ?? const <InternalChapter>[];
+        final currentItemId = audioHandler.currentMediaItem?.itemId;
+        final bookmarkSeconds = _bookmarkSecondsForItem(bookmarks, currentItemId);
+        final fullTimelineMarkers = _buildTimelineMarkers(
+          markerMode: markerMode,
+          chapters: chapters,
+          bookmarkSeconds: bookmarkSeconds,
+          currentItemId: currentItemId,
+        );
+
         return StreamBuilder<Duration>(
-          stream: positionStream,
-          builder: (context, positionSnapshot) {
-            final currentPosition = positionSnapshot.data ?? Duration.zero;
-            return StreamBuilder<List<InternalChapter>>(
-              stream: chaptersStream,
-              builder: (context, chaptersSnapshot) {
-                final chapters = chaptersSnapshot.data ?? const <InternalChapter>[];
+          stream: totalDurationStream,
+          initialData: audioHandler.duration,
+          builder: (context, totalDurationSnapshot) {
+            final totalDuration = totalDurationSnapshot.data ?? Duration.zero;
+
+            return StreamBuilder<Duration>(
+              stream: positionStream,
+              initialData: audioHandler.position,
+              builder: (context, positionSnapshot) {
+                final currentPosition = positionSnapshot.data ?? Duration.zero;
                 final currentChapter = _getCurrentChapter(chapters, currentPosition);
-                final currentItemId = audioHandler.currentMediaItem?.itemId;
-
-                final bookmarkSeconds = currentItemId == null
-                    ? const <int>[]
-                    : <int>{
-                        for (final bookmark in bookmarks)
-                          if (bookmark.libraryItemId == currentItemId && bookmark.time > 0) bookmark.time,
-                      }.toList(growable: false);
-
-                final fullTimelineMarkers = <SeekTimelineMarker>[
-                  if (markerMode.showChapterMarkers)
-                    for (final chapter in chapters)
-                      SeekTimelineMarker(position: chapter.start.toDuration, type: SeekTimelineMarkerType.chapter),
-                  if (markerMode.showBookmarks && currentItemId != null)
-                    for (final seconds in bookmarkSeconds)
-                      SeekTimelineMarker(
-                        position: Duration(seconds: seconds),
-                        type: SeekTimelineMarkerType.bookmark,
-                      ),
-                ];
 
                 final shouldShowChapter =
                     (configuredMode == PlayerSeekBarMode.chapter || configuredMode == PlayerSeekBarMode.both) &&
