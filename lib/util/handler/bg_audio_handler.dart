@@ -100,6 +100,9 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   int _streamRecoveryAttempts = 0;
   bool _streamRecoveryInFlight = false;
   int _internalSeekGuardDepth = 0;
+  bool _historyWasPlayingReady = false;
+  bool _historyWasBufferingOrLoading = false;
+  bool _historyWasCompleted = false;
   final BehaviorSubject<int> _queueLengthSubject = BehaviorSubject<int>.seeded(0);
   final BehaviorSubject<PlayerQueueSnapshot> _queueSnapshotSubject = BehaviorSubject<PlayerQueueSnapshot>.seeded(
     const PlayerQueueSnapshot(),
@@ -212,6 +215,29 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   void _setQueueTransitionTargetItem(QueueItem? item) {
     _queueTransitionItemId = item?.itemId;
     _queueTransitionEpisodeId = item?.episodeId;
+  }
+
+  void _recordPlayerHistoryForState(PlayerState state) {
+    final isPlayingReady = state.playing && state.processingState == ProcessingState.ready;
+    final isBufferingOrLoading =
+        state.processingState == ProcessingState.loading || state.processingState == ProcessingState.buffering;
+    final isCompleted = state.processingState == ProcessingState.completed;
+
+    if (isCompleted && !_historyWasCompleted) {
+      PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.stop);
+    }
+
+    if (isBufferingOrLoading && !_historyWasBufferingOrLoading) {
+      PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.pause);
+    }
+
+    if (isPlayingReady && !_historyWasPlayingReady) {
+      PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.play);
+    }
+
+    _historyWasPlayingReady = isPlayingReady;
+    _historyWasBufferingOrLoading = isBufferingOrLoading;
+    _historyWasCompleted = isCompleted;
   }
 
   static double get maxVolume {
@@ -1945,16 +1971,10 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     _playerStateSubscription = _player.playerStateStream.listen((PlayerState state) async {
       if (_isDisposing) return;
       logger(state.toString(), tag: 'AudioHandler', level: InfoLevel.debug);
+      _recordPlayerHistoryForState(state);
 
-      if (state.processingState == ProcessingState.completed) {
-        PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.stop);
-      }
-      if (state.processingState == ProcessingState.loading || state.processingState == ProcessingState.buffering) {
-        PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.pause);
-      }
       if (state.playing && state.processingState == ProcessingState.ready) {
         _resetStreamRecoveryState(clearWindow: true);
-        PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.play);
       }
 
       if (state.processingState == ProcessingState.completed || state.processingState == ProcessingState.idle) {
