@@ -63,6 +63,36 @@ class _SeekBarSliderState extends State<SeekBarSlider> {
   Duration? _previewPosition;
   String? _cachedPreviewKey;
   double _cachedPreviewWidth = 0;
+  List<SeekTimelineMarker>? _cachedMarkers;
+  Duration? _cachedRangeStart;
+  Duration? _cachedRangeEnd;
+  double? _cachedSliderWidth;
+  List<_SeekTimelineMarkerOffset> _cachedMarkerOffsets = const <_SeekTimelineMarkerOffset>[];
+
+  List<_SeekTimelineMarkerOffset> _resolveMarkerOffsetsCached(double sliderWidth) {
+    final shouldRefresh =
+        !identical(_cachedMarkers, widget.markers) ||
+        _cachedRangeStart != widget.rangeStart ||
+        _cachedRangeEnd != widget.rangeEnd ||
+        _cachedSliderWidth == null ||
+        (_cachedSliderWidth! - sliderWidth).abs() >= 0.5;
+
+    if (!shouldRefresh) {
+      return _cachedMarkerOffsets;
+    }
+
+    _cachedMarkerOffsets = _resolveMarkerOffsets(
+      markers: widget.markers,
+      rangeStart: widget.rangeStart,
+      rangeEnd: widget.rangeEnd,
+      sliderWidth: sliderWidth,
+    );
+    _cachedMarkers = widget.markers;
+    _cachedRangeStart = widget.rangeStart;
+    _cachedRangeEnd = widget.rangeEnd;
+    _cachedSliderWidth = sliderWidth;
+    return _cachedMarkerOffsets;
+  }
 
   void _updatePreview({required double dx, required double sliderWidth, required Duration rangeDuration}) {
     if (!widget.hasSeekRange || sliderWidth <= 0) {
@@ -146,12 +176,7 @@ class _SeekBarSliderState extends State<SeekBarSlider> {
           builder: (context, constraints) {
             final sliderWidth = constraints.maxWidth;
             final rangeDuration = widget.rangeEnd - widget.rangeStart;
-            final markerOffsets = _resolveMarkerOffsets(
-              markers: widget.markers,
-              rangeStart: widget.rangeStart,
-              rangeEnd: widget.rangeEnd,
-              sliderWidth: sliderWidth,
-            );
+            final markerOffsets = _resolveMarkerOffsetsCached(sliderWidth);
             final markerProfile = _resolveMarkerPaintProfile(markerOffsets.length);
 
             final previewPosition = _previewPosition;

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/database/settings_manager.dart';
@@ -16,6 +17,11 @@ class PlaybackSyncService {
   final ProviderContainer _ref;
   Timer? _syncTimer;
   StreamSubscription<PlayerState>? _playerStateSubscription;
+  Future<void> _syncQueue = Future<void>.value();
+  int? _effectiveSyncIntervalSeconds;
+
+  static const int _minimumSyncIntervalSeconds = 5;
+  static const int _minimumIosSyncIntervalSeconds = 20;
 
   DateTime? _currentSegmentStartTime;
 
@@ -29,10 +35,10 @@ class PlaybackSyncService {
 
       if (isEffectivelyPlaying) {
         _currentSegmentStartTime ??= DateTime.now();
-        _startSync();
+        unawaited(_startSync());
       } else {
         if (_currentSegmentStartTime != null) {
-          _stopSync();
+          unawaited(_stopSync());
         } else {
           _syncTimer?.cancel();
           _syncTimer = null;
@@ -41,27 +47,61 @@ class PlaybackSyncService {
     });
   }
 
-  Future<void> _startSync() async {
-    if (_syncTimer?.isActive ?? false) {
-      return;
-    }
+  int _resolvedSyncIntervalSeconds() {
     final User? user = _ref.read(currentUserProvider).value;
-    final syncInterval = _ref
+    final configuredInterval = _ref
         .read(settingsManagerProvider.notifier)
         .getUserSetting<int>(user?.id, SettingKeys.syncInterval);
+    final normalizedInterval = configuredInterval < _minimumSyncIntervalSeconds
+        ? _minimumSyncIntervalSeconds
+        : configuredInterval;
 
-    _syncTimer = Timer.periodic(Duration(seconds: syncInterval), (_) {
-      _sync();
+    if (Platform.isIOS && normalizedInterval < _minimumIosSyncIntervalSeconds) {
+      return _minimumIosSyncIntervalSeconds;
+    }
+
+    return normalizedInterval;
+  }
+
+  Future<void> _startSync() async {
+    final intervalSeconds = _resolvedSyncIntervalSeconds();
+    if ((_syncTimer?.isActive ?? false) && _effectiveSyncIntervalSeconds == intervalSeconds) {
+      return;
+    }
+
+    _syncTimer?.cancel();
+    _effectiveSyncIntervalSeconds = intervalSeconds;
+    _syncTimer = Timer.periodic(Duration(seconds: intervalSeconds), (_) {
+      unawaited(_enqueueSync());
     });
+
+    logger('Playback sync timer running every ${intervalSeconds}s', tag: 'PlaybackSyncService', level: InfoLevel.debug);
+  }
+
+  Future<bool> _enqueueSync({Duration? positionOverride, bool force = false}) async {
+    var result = false;
+
+    _syncQueue = _syncQueue.catchError((_) {}).then((_) async {
+      result = await _sync(positionOverride: positionOverride, force: force);
+    });
+
+    await _syncQueue;
+    return result;
   }
 
   Future<void> _stopSync({Duration? positionOverride}) async {
     _syncTimer?.cancel();
     _syncTimer = null;
-    await _sync(positionOverride: positionOverride);
+    await _enqueueSync(positionOverride: positionOverride, force: true);
   }
 
-  Future<bool> _sync({Duration? positionOverride}) async {
+  Future<bool> _sync({Duration? positionOverride, bool force = false}) async {
+    final currentSession = _ref.read(sessionRepositoryProvider).currentSession;
+    if (currentSession == null) {
+      _currentSegmentStartTime = null;
+      return false;
+    }
+
     final Duration currentPositionDuration = positionOverride ?? _handler.position;
     final double currentPositionSeconds = currentPositionDuration.inMicroseconds / Duration.microsecondsPerSecond;
     double listenedTime = 0;
@@ -78,8 +118,7 @@ class PlaybackSyncService {
       }
     }
 
-    // When seeking, this could produce many requests
-    if (listenedTime < 0.3) {
+    if (!force && listenedTime < 0.3) {
       logger(
         'Syncing skipped: listenedTime is too small: $listenedTime',
         tag: 'PlaybackSyncService',
