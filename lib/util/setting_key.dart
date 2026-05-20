@@ -80,6 +80,7 @@ class SettingKeys {
   static const String cacheRouteMe = 'cache_route_me';
 
   static const String playbackSpeed = 'playback_speed';
+  static const String playbackSpeedPerBook = 'playback_speed_per_book';
   static const String volume = 'volume';
   static const String playerSeekBarMode = 'player_seek_bar_mode';
   static const String playerSeekBarMarkerMode = 'player_seek_bar_marker_mode';
@@ -169,6 +170,7 @@ final defaultSettings = {
   SettingKeys.cacheRouteMe: false,
 
   SettingKeys.playbackSpeed: 1.0,
+  SettingKeys.playbackSpeedPerBook: false,
   SettingKeys.volume: 1.0,
   SettingKeys.playerSeekBarMode: PlayerSeekBarMode.full.name,
   SettingKeys.playerSeekBarMarkerMode: SeekBarMarkerMode.both.name,

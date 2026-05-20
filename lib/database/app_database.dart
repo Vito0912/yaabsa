@@ -34,6 +34,17 @@ class UserSettings extends Table {
   Set<Column> get primaryKey => {userId, key};
 }
 
+@DataClassName('BookPlaybackSpeedEntry')
+class BookPlaybackSpeeds extends Table {
+  TextColumn get userId => text()();
+  TextColumn get itemId => text()();
+  RealColumn get speed => real()();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {userId, itemId};
+}
+
 @DataClassName('StoredUserEntry')
 class StoredUsers extends Table {
   TextColumn get id => text()();
@@ -110,7 +121,16 @@ class PlayerHistory extends Table {
 }
 
 @DriftDatabase(
-  tables: [GlobalSettings, UserSettings, StoredUsers, StoredSyncs, StoredMediaProgress, StoredDownloads, PlayerHistory],
+  tables: [
+    GlobalSettings,
+    UserSettings,
+    BookPlaybackSpeeds,
+    StoredUsers,
+    StoredSyncs,
+    StoredMediaProgress,
+    StoredDownloads,
+    PlayerHistory,
+  ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase({AuthSecretStore? authSecretStore})
@@ -124,7 +144,7 @@ class AppDatabase extends _$AppDatabase {
   final AuthSecretStore _authSecretStore;
 
   @override
-  int get schemaVersion => 15;
+  int get schemaVersion => 16;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -155,6 +175,9 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from <= 14) {
         await m.createTable(storedMediaProgress);
+      }
+      if (from <= 15) {
+        await m.createTable(bookPlaybackSpeeds);
       }
     },
     beforeOpen: (details) async {},
@@ -628,6 +651,27 @@ class AppDatabase extends _$AppDatabase {
     return (select(userSettings)..where((tbl) => tbl.userId.equals(userId) & tbl.key.equals(key))).getSingleOrNull();
   }
 
+  Future<void> setBookPlaybackSpeed(String userId, String itemId, double speed) {
+    final companion = BookPlaybackSpeedsCompanion(
+      userId: Value(userId),
+      itemId: Value(itemId),
+      speed: Value(speed),
+      updatedAt: Value(DateTime.now()),
+    );
+    return into(bookPlaybackSpeeds).insert(companion, mode: InsertMode.replace);
+  }
+
+  Future<double?> getBookPlaybackSpeed(String userId, String itemId) async {
+    final entry = await (select(
+      bookPlaybackSpeeds,
+    )..where((tbl) => tbl.userId.equals(userId) & tbl.itemId.equals(itemId))).getSingleOrNull();
+    return entry?.speed;
+  }
+
+  Future<void> deleteBookPlaybackSpeedsByUser(String userId) {
+    return (delete(bookPlaybackSpeeds)..where((tbl) => tbl.userId.equals(userId))).go();
+  }
+
   Future<Map<String, String>> getAllGlobalSettings() async {
     final entries = await select(globalSettings).get();
     return Map.fromEntries(entries.map((e) => MapEntry(e.key, e.value)));
@@ -730,6 +774,7 @@ class AppDatabase extends _$AppDatabase {
 
   Future<void> deleteStoredUser(String userId) async {
     await deleteStoredMediaProgressByUser(userId);
+    await deleteBookPlaybackSpeedsByUser(userId);
     await (delete(storedUsers)..where((tbl) => tbl.id.equals(userId))).go();
     await _authSecretStore.deleteForUser(userId);
   }
