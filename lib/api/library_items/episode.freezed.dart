@@ -15,8 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Episode {
 
-@JsonKey(name: "libraryItemId") String get libraryItemId;@JsonKey(name: "id") String get id;@JsonKey(name: "index") int? get index;@JsonKey(name: "season") String? get season;@JsonKey(name: "episode") String? get episode;@JsonKey(name: "episodeType") String? get episodeType;@JsonKey(name: "title") String? get title;@JsonKey(name: "subtitle") String? get subtitle;@JsonKey(name: "description") String? get description;//TODO: PodcastEnclosure
-@JsonKey(name: "pubDate") String? get pubDate;@JsonKey(name: "audioFile") AudioFile? get audioFile;@JsonKey(name: "publishedAt") int? get publishedAt;@JsonKey(name: "addedAt") int? get addedAt;@JsonKey(name: "updatedAt") int? get updatedAt;
+@JsonKey(name: "libraryItemId") String get libraryItemId;@JsonKey(name: "id") String get id;@JsonKey(name: "index") int? get index;@JsonKey(name: "season") String? get season;@JsonKey(name: "episode") String? get episode;@JsonKey(name: "episodeType") String? get episodeType;@JsonKey(name: "title") String? get title;@JsonKey(name: "subtitle") String? get subtitle;@JsonKey(name: "description") String? get description;@JsonKey(name: "pubDate") String? get pubDate;@JsonKey(name: "audioFile") AudioFile? get audioFile;@JsonKey(name: "publishedAt") int? get publishedAt;@JsonKey(name: "addedAt") int? get addedAt;@JsonKey(name: "updatedAt") int? get updatedAt;
 /// Create a copy of Episode
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -247,7 +246,6 @@ class _Episode implements Episode {
 @override@JsonKey(name: "title") final  String? title;
 @override@JsonKey(name: "subtitle") final  String? subtitle;
 @override@JsonKey(name: "description") final  String? description;
-//TODO: PodcastEnclosure
 @override@JsonKey(name: "pubDate") final  String? pubDate;
 @override@JsonKey(name: "audioFile") final  AudioFile? audioFile;
 @override@JsonKey(name: "publishedAt") final  int? publishedAt;

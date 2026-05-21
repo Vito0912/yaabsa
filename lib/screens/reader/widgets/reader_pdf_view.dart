@@ -96,7 +96,10 @@ class _ReaderPdfViewState extends State<ReaderPdfView> {
           backgroundColor: Colors.black,
           pageAnchor: PdfPageAnchor.all,
           pageAnchorEnd: PdfPageAnchor.all,
-          calculateInitialZoom: (document, controller, fitZoom, coverZoom) => fitZoom,
+          // TODO: Check the use of smart
+          sizeDelegateProvider: PdfViewerSizeDelegateProviderLegacy(
+            calculateInitialZoom: (document, controller, fitZoom, coverZoom) => fitZoom,
+          ),
           scrollByMouseWheel: 0.0,
           onViewerReady: (document, controller) {
             if (!mounted) {
