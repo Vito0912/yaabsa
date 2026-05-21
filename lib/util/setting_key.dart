@@ -20,6 +20,7 @@ class SettingKeys {
   static const String autoQueueIncludeSeriesOutsideContext = 'auto_queue_include_series_outside_context';
   static const String sleepTimerExpireAction = 'sleep_timer_expire_action';
   static const String sleepTimerAutoRewindMinutes = 'sleep_timer_auto_rewind_minutes';
+  static const String sleepTimerFadeOutEnabled = 'sleep_timer_fade_out_enabled';
   static const String sleepTimerAutoRestartEnabled = 'sleep_timer_auto_restart_enabled';
   static const String sleepTimerAutoRestartUseTimeRange = 'sleep_timer_auto_restart_use_time_range';
   static const String sleepTimerAutoRestartRangeStartMinutes = 'sleep_timer_auto_restart_range_start_minutes';
@@ -109,8 +110,9 @@ final defaultSettings = {
   SettingKeys.sidebarCollapsed: false,
   SettingKeys.autoQueue: true,
   SettingKeys.autoQueueIncludeSeriesOutsideContext: false,
-  SettingKeys.sleepTimerExpireAction: SleepTimerExpireAction.stop.name,
+  SettingKeys.sleepTimerExpireAction: SleepTimerExpireAction.pause.name,
   SettingKeys.sleepTimerAutoRewindMinutes: 0,
+  SettingKeys.sleepTimerFadeOutEnabled: true,
   SettingKeys.sleepTimerAutoRestartEnabled: false,
   SettingKeys.sleepTimerAutoRestartUseTimeRange: false,
   SettingKeys.sleepTimerAutoRestartRangeStartMinutes: 21 * 60,
@@ -149,7 +151,7 @@ final defaultSettings = {
   SettingKeys.toolsSplitGenresTags: false,
   SettingKeys.manualMatchLastConfiguration: '',
   SettingKeys.shakeToResetSleepTimer: false,
-  SettingKeys.shakeToRewind: false,
+  SettingKeys.shakeToRewind: true,
   SettingKeys.shakeSensitivity: 2.0,
   SettingKeys.shakeVibrate: true,
   SettingKeys.fastForwardInterval: 10,
