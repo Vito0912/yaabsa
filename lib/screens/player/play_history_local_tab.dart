@@ -6,7 +6,7 @@ import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/globals.dart';
-import 'package:yaabsa/util/handler/player_history_handler.dart';
+import 'package:yaabsa/util/audio_handler/player_history_handler.dart';
 
 class PlayHistoryLocalTab extends ConsumerStatefulWidget {
   const PlayHistoryLocalTab({super.key, required this.itemId, required this.episodeId});

@@ -2,7 +2,7 @@ import 'package:flutter/widgets.dart' show BuildContext, MediaQuery;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sembast/sembast.dart' show Database;
-import 'package:yaabsa/util/handler/bg_audio_handler.dart';
+import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/handler/download_handler.dart';
 import 'package:yaabsa/util/handler/shake_handler.dart';
 

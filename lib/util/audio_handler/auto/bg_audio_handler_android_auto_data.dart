@@ -1,4 +1,4 @@
-part of 'bg_audio_handler.dart';
+part of '../bg_audio_handler.dart';
 
 extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
   Future<void> _androidAutoEnsureProgressLoaded() async {

@@ -1,4 +1,4 @@
-part of 'bg_audio_handler.dart';
+part of '../bg_audio_handler.dart';
 
 extension _BGAudioHandlerAndroidAutoIds on BGAudioHandler {
   _AndroidAutoPlaybackTarget? _androidAutoPlaybackTargetFromMediaId(String mediaId) {

@@ -1,4 +1,4 @@
-part of 'bg_audio_handler.dart';
+part of '../bg_audio_handler.dart';
 
 extension _BGAudioHandlerAndroidAutoBrowse on BGAudioHandler {
   Future<List<MediaItem>> _androidAutoRootItems() async {

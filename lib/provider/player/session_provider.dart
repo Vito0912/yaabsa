@@ -14,7 +14,7 @@ import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
-import 'package:yaabsa/util/handler/player_history_handler.dart';
+import 'package:yaabsa/util/audio_handler/player_history_handler.dart';
 import 'package:yaabsa/util/local_cover_path.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/player_utils.dart';
