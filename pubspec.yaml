@@ -106,7 +106,11 @@ dev_dependencies:
 
 
 dependency_overrides:
-  win32: ^6.2.0
+  quill_native_bridge_windows:
+    git:
+      url: https://github.com/Vito0912/quill-native-bridge.git
+      ref: 8c043047e2c34af3879471b19e44119f0ef6ded8
+      path: quill_native_bridge_windows
 
 flutter:
   uses-material-design: true
