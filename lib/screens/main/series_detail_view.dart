@@ -3,18 +3,22 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:yaabsa/api/library/request/library_filter.dart';
+import 'package:yaabsa/api/library/request/library_sort.dart';
 import 'package:yaabsa/api/library_items/series.dart';
+import 'package:yaabsa/components/app/library/library_sort_sheet.dart';
+import 'package:yaabsa/components/app/series/series_book_grid_item.dart';
+import 'package:yaabsa/components/app/series/series_detail_header.dart';
 import 'package:yaabsa/components/common/connection_issue_view.dart';
 import 'package:yaabsa/components/common/cover_loading_placeholder.dart';
-import 'package:yaabsa/components/common/library_item_widget.dart';
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
 import 'package:yaabsa/components/common/scroll_to_top_button.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/common/series_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
-import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
+import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
 
 const int _seriesBooksPrefetchThreshold = 8;
@@ -29,6 +33,7 @@ class SeriesDetailView extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scrollController = useScrollController();
+    final sortUpdateInFlight = useState(false);
     final selectedLibrary = ref.watch(selectedLibraryProvider);
     final serverReachable = ref.watch(serverStatusProvider).value ?? false;
     if (selectedLibrary == null) {
@@ -57,11 +62,53 @@ class SeriesDetailView extends HookConsumerWidget {
     final booksArgs = SeriesBooksArgs(libraryId: libraryId, seriesId: seriesId);
     final currentBooksProvider = seriesBooksProvider(booksArgs);
     final booksStateAsync = ref.watch(currentBooksProvider);
+    final seriesFilterQuery = LibraryFilter.grouped(LibraryFilterGroup.series, seriesId).queryValue;
 
     return booksStateAsync.when(
       skipLoadingOnRefresh: true,
       skipLoadingOnReload: true,
       data: (state) {
+        final sortLabel = buildLibrarySortLabel(
+          libraryMediaType: selectedLibrary.mediaType,
+          activeFilter: seriesFilterQuery,
+          activeSort: state.sort,
+          activeDesc: state.desc,
+        );
+
+        Future<void> openSortSheet() async {
+          if (sortUpdateInFlight.value) {
+            return;
+          }
+
+          final sortSelection = await showModalBottomSheet<LibrarySortSelection>(
+            context: context,
+            showDragHandle: true,
+            builder: (context) => LibrarySortSheet(
+              libraryMediaType: selectedLibrary.mediaType,
+              activeFilter: seriesFilterQuery,
+              activeSort: state.sort,
+              activeSortDesc: state.desc,
+            ),
+          );
+
+          if (sortSelection == null || !context.mounted) {
+            return;
+          }
+
+          if (sortSelection.sort == state.sort && sortSelection.desc == state.desc) {
+            return;
+          }
+
+          sortUpdateInFlight.value = true;
+          try {
+            await ref.read(currentBooksProvider.notifier).setSort(sortSelection.sort, newDesc: sortSelection.desc);
+          } finally {
+            if (context.mounted) {
+              sortUpdateInFlight.value = false;
+            }
+          }
+        }
+
         return LayoutBuilder(
           builder: (context, constraints) {
             final gridLayout = appCenteredGridLayout(constraints.maxWidth);
@@ -75,53 +122,16 @@ class SeriesDetailView extends HookConsumerWidget {
 
             return Column(
               children: [
-                Padding(
-                  padding: EdgeInsets.fromLTRB(horizontalPadding, 10, horizontalPadding, 8),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        onPressed: () => context.pop(),
-                        icon: const Icon(Icons.arrow_back_rounded),
-                        tooltip: 'Back',
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: switch ((seriesTitle, seriesDetailsAsync.isLoading, seriesDetailsAsync.hasError)) {
-                          (final String title?, _, _) => Text(
-                            title,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          (_, true, _) => const Align(
-                            alignment: Alignment.centerLeft,
-                            child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.2)),
-                          ),
-                          (_, _, true) => Text(
-                            'Series details could not be loaded.',
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          _ => const SizedBox.shrink(),
-                        },
-                      ),
-                    ],
-                  ),
+                SeriesDetailHeader(
+                  title: seriesTitle,
+                  subtitle: seriesSubtitle,
+                  sortLabel: sortLabel,
+                  isTitleLoading: seriesDetailsAsync.isLoading,
+                  hasTitleError: seriesDetailsAsync.hasError,
+                  isSortBusy: sortUpdateInFlight.value,
+                  onBack: () => context.pop(),
+                  onSortPressed: openSortSheet,
                 ),
-                if (seriesSubtitle != null)
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(horizontalPadding + 58, 0, horizontalPadding, 10),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        seriesSubtitle,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ),
-                  ),
                 if (state.items.isEmpty && !state.hasNextPage && !state.isLoadingNextPage)
                   const Expanded(child: Center(child: Text('No books found in this series.')))
                 else
@@ -151,11 +161,10 @@ class SeriesDetailView extends HookConsumerWidget {
 
                                 final item = state.items[index];
 
-                                return LibraryItemWidget(
-                                  item,
-                                  api,
-                                  showProgress: true,
-                                  squareCover: true,
+                                return SeriesBookGridItem(
+                                  item: item,
+                                  api: api,
+                                  seriesId: seriesId,
                                   onPlay: () {
                                     audioHandler.playLibraryItem(
                                       item,
