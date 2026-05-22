@@ -17,8 +17,11 @@ class PodcastHeaderCard extends StatelessWidget {
     this.isCurrentPlayableEpisode = false,
     this.isPlayingCurrentPlayableEpisode = false,
     this.isLoadingCurrentPlayableEpisode = false,
+    this.isFindingEpisodes = false,
     this.onPlayLatest,
     this.onPauseLatest,
+    this.onFindEpisodes,
+    this.onEditPodcast,
   });
 
   final LibraryItem item;
@@ -31,8 +34,11 @@ class PodcastHeaderCard extends StatelessWidget {
   final bool isCurrentPlayableEpisode;
   final bool isPlayingCurrentPlayableEpisode;
   final bool isLoadingCurrentPlayableEpisode;
+  final bool isFindingEpisodes;
   final VoidCallback? onPlayLatest;
   final VoidCallback? onPauseLatest;
+  final VoidCallback? onFindEpisodes;
+  final VoidCallback? onEditPodcast;
   final VoidCallback onToggleDescription;
 
   @override
@@ -76,8 +82,11 @@ class PodcastHeaderCard extends StatelessWidget {
                     isCurrentPlayableEpisode: isCurrentPlayableEpisode,
                     isPlayingCurrentPlayableEpisode: isPlayingCurrentPlayableEpisode,
                     isLoadingCurrentPlayableEpisode: isLoadingCurrentPlayableEpisode,
+                    isFindingEpisodes: isFindingEpisodes,
                     onPlayLatest: onPlayLatest,
                     onPauseLatest: onPauseLatest,
+                    onFindEpisodes: onFindEpisodes,
+                    onEditPodcast: onEditPodcast,
                   ),
                 ],
               )
@@ -99,8 +108,11 @@ class PodcastHeaderCard extends StatelessWidget {
                       isCurrentPlayableEpisode: isCurrentPlayableEpisode,
                       isPlayingCurrentPlayableEpisode: isPlayingCurrentPlayableEpisode,
                       isLoadingCurrentPlayableEpisode: isLoadingCurrentPlayableEpisode,
+                      isFindingEpisodes: isFindingEpisodes,
                       onPlayLatest: onPlayLatest,
                       onPauseLatest: onPauseLatest,
+                      onFindEpisodes: onFindEpisodes,
+                      onEditPodcast: onEditPodcast,
                     ),
                   ),
                 ],
@@ -134,8 +146,11 @@ class _PodcastHeaderText extends StatelessWidget {
     required this.isCurrentPlayableEpisode,
     required this.isPlayingCurrentPlayableEpisode,
     required this.isLoadingCurrentPlayableEpisode,
+    required this.isFindingEpisodes,
     this.onPlayLatest,
     this.onPauseLatest,
+    this.onFindEpisodes,
+    this.onEditPodcast,
   });
 
   final LibraryItem item;
@@ -145,8 +160,11 @@ class _PodcastHeaderText extends StatelessWidget {
   final bool isCurrentPlayableEpisode;
   final bool isPlayingCurrentPlayableEpisode;
   final bool isLoadingCurrentPlayableEpisode;
+  final bool isFindingEpisodes;
   final VoidCallback? onPlayLatest;
   final VoidCallback? onPauseLatest;
+  final VoidCallback? onFindEpisodes;
+  final VoidCallback? onEditPodcast;
 
   @override
   Widget build(BuildContext context) {
@@ -188,9 +206,28 @@ class _PodcastHeaderText extends StatelessWidget {
           ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
         const SizedBox(height: 10),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [FilledButton.icon(onPressed: onPressed, icon: iconWidget, label: Text(playLabel))],
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            FilledButton.icon(onPressed: onPressed, icon: iconWidget, label: Text(playLabel)),
+            if (onFindEpisodes != null)
+              IconButton.filledTonal(
+                onPressed: isFindingEpisodes ? null : onFindEpisodes,
+                tooltip: 'Find episodes',
+                icon: isFindingEpisodes
+                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2.2))
+                    : const Icon(Icons.search_rounded),
+                visualDensity: VisualDensity.compact,
+              ),
+            if (onEditPodcast != null)
+              IconButton.filledTonal(
+                onPressed: onEditPodcast,
+                tooltip: 'Edit podcast',
+                icon: const Icon(Icons.edit_rounded),
+                visualDensity: VisualDensity.compact,
+              ),
+          ],
         ),
       ],
     );

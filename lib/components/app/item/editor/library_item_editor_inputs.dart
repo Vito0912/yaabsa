@@ -72,6 +72,35 @@ class LibraryItemEditorTextField extends StatelessWidget {
   }
 }
 
+class LibraryItemEditorPodcastTypeField extends StatelessWidget {
+  const LibraryItemEditorPodcastTypeField({super.key, required this.value, required this.onChanged});
+
+  final String value;
+  final ValueChanged<String> onChanged;
+
+  static const _allowedValues = <String>{'episodic', 'serial'};
+
+  @override
+  Widget build(BuildContext context) {
+    final selectedValue = _allowedValues.contains(value.trim().toLowerCase()) ? value.trim().toLowerCase() : 'episodic';
+
+    return YaabsaDropdownField<String>(
+      label: 'Podcast type',
+      value: selectedValue,
+      items: const [
+        DropdownMenuItem<String>(value: 'episodic', child: Text('Episodic')),
+        DropdownMenuItem<String>(value: 'serial', child: Text('Serial')),
+      ],
+      onChanged: (nextValue) {
+        if (nextValue == null) {
+          return;
+        }
+        onChanged(nextValue);
+      },
+    );
+  }
+}
+
 class LibraryItemEditorStringChips extends StatefulWidget {
   const LibraryItemEditorStringChips({
     super.key,

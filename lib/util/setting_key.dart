@@ -88,6 +88,7 @@ class SettingKeys {
   static const String playerSeekBarShowChapterMarkers = 'player_seek_bar_show_chapter_markers';
   static const String playerLayoutConfig = 'player_layout_config';
   static const String lastPlayedQueueItem = 'last_played_queue_item';
+  static const String podcastEpisodeProgressFilter = 'podcast_episode_progress_filter';
 
   static const String subtitlesEnabled = 'subtitles_enabled';
   static const String subtitleSpeakerHighlighting = 'subtitle_speaker_highlighting';
@@ -178,6 +179,7 @@ final defaultSettings = {
   SettingKeys.playerSeekBarMarkerMode: SeekBarMarkerMode.both.name,
   SettingKeys.playerSeekBarShowChapterMarkers: true,
   SettingKeys.playerLayoutConfig: '',
+  SettingKeys.podcastEpisodeProgressFilter: 'all',
   SettingKeys.subtitlesEnabled: true,
   SettingKeys.subtitleSpeakerHighlighting: true,
   SettingKeys.subtitleReadAlong: true,
