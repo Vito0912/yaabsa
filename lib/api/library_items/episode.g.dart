@@ -9,18 +9,20 @@ part of 'episode.dart';
 _Episode _$EpisodeFromJson(Map<String, dynamic> json) => _Episode(
   libraryItemId: json['libraryItemId'] as String,
   id: json['id'] as String,
-  index: (json['index'] as num?)?.toInt(),
+  index: jsonIntFromDynamic(json['index']),
   season: json['season'] as String?,
   episode: json['episode'] as String?,
   episodeType: json['episodeType'] as String?,
   title: json['title'] as String?,
   subtitle: json['subtitle'] as String?,
   description: json['description'] as String?,
+  guid: json['guid'] as String?,
+  enclosure: json['enclosure'] == null ? null : EpisodeEnclosure.fromJson(json['enclosure'] as Map<String, dynamic>),
   pubDate: json['pubDate'] as String?,
   audioFile: json['audioFile'] == null ? null : AudioFile.fromJson(json['audioFile'] as Map<String, dynamic>),
-  publishedAt: (json['publishedAt'] as num?)?.toInt(),
-  addedAt: (json['addedAt'] as num?)?.toInt(),
-  updatedAt: (json['updatedAt'] as num?)?.toInt(),
+  publishedAt: jsonIntFromDynamic(json['publishedAt']),
+  addedAt: jsonIntFromDynamic(json['addedAt']),
+  updatedAt: jsonIntFromDynamic(json['updatedAt']),
 );
 
 Map<String, dynamic> _$EpisodeToJson(_Episode instance) => <String, dynamic>{
@@ -33,6 +35,8 @@ Map<String, dynamic> _$EpisodeToJson(_Episode instance) => <String, dynamic>{
   'title': instance.title,
   'subtitle': instance.subtitle,
   'description': instance.description,
+  'guid': instance.guid,
+  'enclosure': instance.enclosure,
   'pubDate': instance.pubDate,
   'audioFile': instance.audioFile,
   'publishedAt': instance.publishedAt,

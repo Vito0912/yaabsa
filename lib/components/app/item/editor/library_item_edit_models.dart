@@ -55,7 +55,6 @@ class LibraryItemEditorDraft {
     required this.abridged,
     required this.releaseDate,
     required this.feedUrl,
-    required this.itunesPageUrl,
     required this.itunesId,
     required this.podcastType,
   });
@@ -80,7 +79,6 @@ class LibraryItemEditorDraft {
   final bool abridged;
   final String releaseDate;
   final String feedUrl;
-  final String itunesPageUrl;
   final String itunesId;
   final String podcastType;
 
@@ -125,7 +123,6 @@ class LibraryItemEditorDraft {
       abridged: bookMetadata?.abridged ?? false,
       releaseDate: (podcastMetadata?.releaseDate ?? '').trim(),
       feedUrl: (podcastMetadata?.feedUrl ?? '').trim(),
-      itunesPageUrl: (podcastMetadata?.itunesPageUrl ?? '').trim(),
       itunesId: (podcastMetadata?.itunesId ?? '').trim(),
       podcastType: (podcastMetadata?.type ?? '').trim(),
     );
@@ -151,7 +148,6 @@ class LibraryItemEditorDraft {
     bool? abridged,
     String? releaseDate,
     String? feedUrl,
-    String? itunesPageUrl,
     String? itunesId,
     String? podcastType,
   }) {
@@ -175,7 +171,6 @@ class LibraryItemEditorDraft {
       abridged: abridged ?? this.abridged,
       releaseDate: releaseDate ?? this.releaseDate,
       feedUrl: feedUrl ?? this.feedUrl,
-      itunesPageUrl: itunesPageUrl ?? this.itunesPageUrl,
       itunesId: itunesId ?? this.itunesId,
       podcastType: podcastType ?? this.podcastType,
     );
@@ -219,10 +214,6 @@ LibraryItemEditorDiff buildLibraryItemEditorDiff({
 
     if (_normalizedText(initial.feedUrl) != _normalizedText(current.feedUrl)) {
       setMetadata((m) => m.copyWith(feedUrl: _normalizedText(current.feedUrl)));
-    }
-
-    if (_normalizedText(initial.itunesPageUrl) != _normalizedText(current.itunesPageUrl)) {
-      setMetadata((m) => m.copyWith(itunesPageUrl: _normalizedText(current.itunesPageUrl)));
     }
 
     if (_normalizedText(initial.itunesId) != _normalizedText(current.itunesId)) {
