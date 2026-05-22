@@ -54,6 +54,12 @@ class PlayerSettingsGeneral extends ConsumerWidget {
           settingKey: SettingKeys.rewindInterval,
         ),
         SettingSwitch(
+          label: 'Remember playback speed per book',
+          description:
+              'When enabled, each book remembers its own playback speed. First-time books start with your last used speed.',
+          settingKey: SettingKeys.playbackSpeedPerBook,
+        ),
+        SettingSwitch(
           label: 'Auto queue',
           description:
               'Automatically queue upcoming books when playback starts from library, series, playlist, or collection views.',

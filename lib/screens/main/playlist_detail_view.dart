@@ -17,7 +17,7 @@ import 'package:yaabsa/provider/common/playlist_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
-import 'package:yaabsa/util/handler/bg_audio_handler.dart';
+import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
 
 class PlaylistDetailView extends HookConsumerWidget {

@@ -1,4 +1,4 @@
-part of 'bg_audio_handler.dart';
+part of '../bg_audio_handler.dart';
 
 extension _BGAudioHandlerAndroidAutoMedia on BGAudioHandler {
   List<MediaItem> _androidAutoMediaItemsFromLibraryItems(List<LibraryItem> items, {required String subtitlePrefix}) {

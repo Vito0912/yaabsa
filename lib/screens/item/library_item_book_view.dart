@@ -23,7 +23,7 @@ import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/player/play_history_view.dart';
 import 'package:yaabsa/util/globals.dart';
-import 'package:yaabsa/util/handler/bg_audio_handler.dart';
+import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/item_view_navigation.dart';
 import 'package:yaabsa/util/server_management_preferences.dart';
 

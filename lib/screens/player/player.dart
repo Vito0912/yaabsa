@@ -29,7 +29,7 @@ import 'package:yaabsa/screens/player/queue.dart';
 import 'package:yaabsa/util/aaos_service.dart';
 import 'package:yaabsa/util/chrome_cast_service.dart';
 import 'package:yaabsa/util/globals.dart';
-import 'package:yaabsa/util/handler/bg_audio_handler.dart';
+import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
 enum _PlayerAppBarMenuAction { queue, addBookmark, carMode, playHistory, cast }

@@ -21,7 +21,7 @@ import 'package:yaabsa/screens/item/podcast/podcast_episodes_header_card.dart';
 import 'package:yaabsa/screens/item/podcast/podcast_header_card.dart';
 import 'package:yaabsa/screens/player/play_history_view.dart';
 import 'package:yaabsa/util/globals.dart';
-import 'package:yaabsa/util/handler/bg_audio_handler.dart';
+import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 
 class LibraryItemPodcastView extends ConsumerStatefulWidget {
   const LibraryItemPodcastView({super.key, required this.item, required this.canDownload});

@@ -11,7 +11,7 @@ import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/item/podcast/podcast_episode_utils.dart';
 import 'package:yaabsa/util/globals.dart';
-import 'package:yaabsa/util/handler/bg_audio_handler.dart';
+import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/item_formatters.dart';
 
 class PodcastEpisodeDetailsPage extends StatelessWidget {
