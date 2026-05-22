@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
+import 'package:yaabsa/components/app/library/library_grid_layout_builder.dart';
 import 'package:yaabsa/components/common/cover_loading_placeholder.dart';
 import 'package:yaabsa/components/common/library_item_widget.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
@@ -45,9 +46,8 @@ class LibraryItemsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (BuildContext context, BoxConstraints constraints) {
-        final gridLayout = appCenteredGridLayout(constraints.maxWidth);
+    return LibraryGridLayoutBuilder(
+      builder: (context, gridLayout, _, _) {
         final loadedCount = items.length;
         final estimatedItemCount = estimateLibraryItemCount(
           loadedCount: loadedCount,
