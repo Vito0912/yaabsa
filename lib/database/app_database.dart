@@ -117,7 +117,16 @@ class PlayerHistory extends Table {
 
   DateTimeColumn get created => dateTime().withDefault(currentDateAndTime)();
 
-  // TODO: Indexes for performance
+  List<Index> get indexes => [
+    Index(
+      'player_history_item_user_created_idx',
+      'CREATE INDEX player_history_item_user_created_idx ON player_history (item_id, user_id, created DESC)',
+    ),
+    Index(
+      'player_history_item_user_episode_created_idx',
+      'CREATE INDEX player_history_item_user_episode_created_idx ON player_history (item_id, user_id, episode_id, created DESC)',
+    ),
+  ];
 }
 
 @DriftDatabase(
@@ -144,7 +153,7 @@ class AppDatabase extends _$AppDatabase {
   final AuthSecretStore _authSecretStore;
 
   @override
-  int get schemaVersion => 16;
+  int get schemaVersion => 17;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -179,6 +188,16 @@ class AppDatabase extends _$AppDatabase {
       if (from <= 15) {
         await m.createTable(bookPlaybackSpeeds);
       }
+      if (from <= 16) {
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS player_history_item_user_created_idx '
+          'ON player_history (item_id, user_id, created DESC)',
+        );
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS player_history_item_user_episode_created_idx '
+          'ON player_history (item_id, user_id, episode_id, created DESC)',
+        );
+      }
     },
     beforeOpen: (details) async {},
   );
@@ -188,12 +207,22 @@ class AppDatabase extends _$AppDatabase {
     return into(playerHistory).insert(companion, mode: InsertMode.insertOrIgnore);
   }
 
-  Stream<List<PlayerHistoryEntry>> watchPlayerHistoryByItem(String itemId, String userId, {String? episodeId}) {
+  Stream<List<PlayerHistoryEntry>> watchPlayerHistoryByItem(
+    String itemId,
+    String userId, {
+    String? episodeId,
+    int limit = 1200,
+  }) {
     final query = select(playerHistory)..where((tbl) => tbl.itemId.equals(itemId) & tbl.userId.equals(userId));
     if (episodeId != null) {
       query.where((tbl) => tbl.episodeId.equals(episodeId));
+    } else {
+      query.where((tbl) => tbl.episodeId.isNull());
     }
     query.orderBy([(tbl) => OrderingTerm.desc(tbl.created)]);
+    if (limit > 0) {
+      query.limit(limit);
+    }
     return query.watch();
   }
 
