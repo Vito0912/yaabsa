@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:yaabsa/util/logger.dart';
 
 class SettingKeys {
@@ -11,6 +12,7 @@ class SettingKeys {
   static const String appLogLevel = 'app_log_level';
   static const String bufferSize = 'buffer_size';
   static const String keepScreenOn = 'keep_screen_on';
+  static const String keepWebsocketConnectionInBackground = 'keep_websocket_connection_in_background';
   static const String lockMediaNotification = 'lock_media_notification';
   static const String showNotificationMoreButton = 'show_notification_more_button';
   static const String autoPlayLastPlayedOnLaunch = 'auto_play_last_played_on_launch';
@@ -95,6 +97,21 @@ class SettingKeys {
   static const String subtitleReadAlong = 'subtitle_read_along';
 }
 
+bool get _defaultEnableOnDesktop {
+  switch (defaultTargetPlatform) {
+    case TargetPlatform.android:
+    case TargetPlatform.iOS:
+      return false;
+    case TargetPlatform.fuchsia:
+    case TargetPlatform.linux:
+    case TargetPlatform.macOS:
+    case TargetPlatform.windows:
+      return true;
+  }
+}
+
+bool get _defaultEnableOnMobile => !_defaultEnableOnDesktop;
+
 final defaultSettings = {
   SettingKeys.appThemeMode: AppThemeMode.dark.toString(),
   SettingKeys.appThemePreset: AppThemePreset.yaabsa.toString(),
@@ -104,10 +121,11 @@ final defaultSettings = {
   SettingKeys.currentUserId: null,
   SettingKeys.appLogLevel: InfoLevel.warning.toString(),
   SettingKeys.bufferSize: 5 * 1024 * 1024,
+  SettingKeys.keepWebsocketConnectionInBackground: !_defaultEnableOnMobile,
   SettingKeys.lockMediaNotification: false,
   SettingKeys.showNotificationMoreButton: false,
   SettingKeys.autoPlayLastPlayedOnLaunch: false,
-  SettingKeys.keepScreenOn: false,
+  SettingKeys.keepScreenOn: _defaultEnableOnDesktop,
   SettingKeys.language: 'en-US',
   SettingKeys.sidebarCollapsed: false,
   SettingKeys.autoQueue: true,
