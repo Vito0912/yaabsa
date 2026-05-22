@@ -37,6 +37,12 @@ class GlobalPlayerSettings extends StatelessWidget {
               'When enabled and nothing is currently playing, app launch will resume the last played item if it is not finished.',
           settingKey: SettingKeys.autoPlayLastPlayedOnLaunch,
         ),
+        SettingSwitch(
+          label: 'Keep websocket active in background',
+          description:
+              'If enabled, the websocket stays connected while the app is in background so updates and tasks can sync when you return. This may increase battery usage. It does not affect playback progress updates when starting playback.',
+          settingKey: SettingKeys.keepWebsocketConnectionInBackground,
+        ),
         SettingSwitch(label: 'Keep Screen On', settingKey: SettingKeys.keepScreenOn),
       ],
     );
