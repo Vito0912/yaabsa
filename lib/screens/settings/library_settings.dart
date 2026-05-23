@@ -5,12 +5,14 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/components/settings/settings_button.dart';
+import 'package:yaabsa/components/settings/settings_slider.dart';
 import 'package:yaabsa/components/settings/settings_switch_tile.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/download_destination.dart';
+import 'package:yaabsa/util/layout_sizes.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
 class LibrarySettings extends ConsumerStatefulWidget {
@@ -191,6 +193,13 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
       embedded: true,
       showEmbeddedBackButton: true,
       children: [
+        SettingSlider<double>(
+          label: 'Library Grid Scale',
+          description: 'Scales library item cards in all grid views.',
+          values: appLibraryGridScaleOptions,
+          valueLabels: appLibraryGridScaleLabels,
+          settingKey: SettingKeys.libraryGridScale,
+        ),
         currentUser.when(
           data: (user) {
             if (user == null) {

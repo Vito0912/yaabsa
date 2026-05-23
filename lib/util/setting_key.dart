@@ -35,6 +35,7 @@ class SettingKeys {
   static const String smartRewindShortRewindSeconds = 'smart_rewind_short_rewind_seconds';
   static const String smartRewindMediumRewindSeconds = 'smart_rewind_medium_rewind_seconds';
   static const String smartRewindLongRewindSeconds = 'smart_rewind_long_rewind_seconds';
+  static const String libraryGridScale = 'library_grid_scale';
 
   // User-Specific Settings
   static const String syncInterval = 'sync_interval';
@@ -145,6 +146,7 @@ final defaultSettings = {
   SettingKeys.smartRewindShortRewindSeconds: 5,
   SettingKeys.smartRewindMediumRewindSeconds: 30,
   SettingKeys.smartRewindLongRewindSeconds: 60,
+  SettingKeys.libraryGridScale: 1.0,
 
   SettingKeys.syncInterval: 10,
   SettingKeys.syncOnlyOnWifi: false,

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/list/collection.dart';
+import 'package:yaabsa/components/app/library/library_grid_layout_builder.dart';
 import 'package:yaabsa/components/common/connection_issue_view.dart';
 import 'package:yaabsa/components/common/list_entity_missing_view.dart';
 import 'package:yaabsa/components/common/managed_list_operations.dart';
@@ -81,9 +82,8 @@ class CollectionDetailView extends HookConsumerWidget {
     final canDeleteCollection = hasCollectionManagementPermission && collectionsManagementEnabled;
     final description = resolvedCollection.description?.trim();
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final gridLayout = appCenteredGridLayout(constraints.maxWidth);
+    return LibraryGridLayoutBuilder(
+      builder: (context, gridLayout, _, _) {
         final horizontalPadding = gridLayout.horizontalPadding;
 
         return Column(

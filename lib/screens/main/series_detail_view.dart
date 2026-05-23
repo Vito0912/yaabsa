@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/api/library/request/library_filter.dart';
 import 'package:yaabsa/api/library/request/library_sort.dart';
 import 'package:yaabsa/api/library_items/series.dart';
+import 'package:yaabsa/components/app/library/library_grid_layout_builder.dart';
 import 'package:yaabsa/components/app/library/library_sort_sheet.dart';
 import 'package:yaabsa/components/app/series/series_book_grid_item.dart';
 import 'package:yaabsa/components/app/series/series_detail_header.dart';
@@ -109,9 +110,8 @@ class SeriesDetailView extends HookConsumerWidget {
           }
         }
 
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            final gridLayout = appCenteredGridLayout(constraints.maxWidth);
+        return LibraryGridLayoutBuilder(
+          builder: (context, gridLayout, _, _) {
             final horizontalPadding = gridLayout.horizontalPadding;
             final loadedCount = state.items.length;
             final estimatedItemCount = _estimatedItemCount(
