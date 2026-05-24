@@ -19,6 +19,7 @@ import 'package:yaabsa/provider/common/upload_providers.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/player_utils.dart';
 
 class LibraryUploadPanel extends ConsumerStatefulWidget {
   const LibraryUploadPanel({super.key, required this.selectedLibrary, required this.onClose, this.onUploadingChanged});
@@ -154,6 +155,9 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
   @override
   void dispose() {
     _cancelAllUploads('Upload canceled because uploader was closed.');
+    if (_isUploading) {
+      PlayerUtils.disableUploadWakelock();
+    }
     _bulkAuthorController.dispose();
     _bulkSeriesController.dispose();
     widget.onUploadingChanged?.call(false);
@@ -332,6 +336,12 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
   void _setUploading(bool value) {
     if (_isUploading == value) {
       return;
+    }
+
+    if (value) {
+      PlayerUtils.enableUploadWakelock();
+    } else {
+      PlayerUtils.disableUploadWakelock();
     }
 
     setState(() {
