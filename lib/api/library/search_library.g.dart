@@ -53,9 +53,9 @@ Map<String, dynamic> _$SearchResultItemToJson(_SearchResultItem instance) => <St
 };
 
 _SearchResultNarrator _$SearchResultNarratorFromJson(Map<String, dynamic> json) =>
-    _SearchResultNarrator(name: json['name'] as String, numItems: (json['numItems'] as num?)?.toInt());
+    _SearchResultNarrator(name: json['name'] as String, numBooks: (json['numBooks'] as num?)?.toInt());
 
 Map<String, dynamic> _$SearchResultNarratorToJson(_SearchResultNarrator instance) => <String, dynamic>{
   'name': instance.name,
-  'numItems': instance.numItems,
+  'numBooks': instance.numBooks,
 };

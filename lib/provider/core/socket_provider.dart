@@ -105,6 +105,26 @@ ABSSocketClient absSocketClient(Ref ref) {
     onItemUpdated: (item) {
       unawaited(processLibraryItemUpdate(container: ref.container, item: item, source: 'socket.item_updated'));
     },
+    onItemAdded: (item) {
+      unawaited(processLibraryItemAdded(container: ref.container, item: item, source: 'socket.item_added'));
+    },
+    onItemRemoved: ({required itemId, libraryId, item}) {
+      unawaited(
+        processLibraryItemRemovedById(
+          container: ref.container,
+          itemId: itemId,
+          libraryId: libraryId,
+          item: item,
+          source: 'socket.item_removed',
+        ),
+      );
+    },
+    onItemsAdded: (items) {
+      unawaited(processLibraryItemsAdded(container: ref.container, items: items, source: 'socket.items_added'));
+    },
+    onItemsUpdated: (items) {
+      unawaited(processLibraryItemsUpdated(container: ref.container, items: items, source: 'socket.items_updated'));
+    },
     onBatchQuickMatchComplete: ({required success, required updates, required unmatched}) {
       ref
           .read(socketBatchQuickMatchCompleteProvider.notifier)

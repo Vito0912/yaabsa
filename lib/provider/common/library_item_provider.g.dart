@@ -57,7 +57,7 @@ final class LibraryItemsNotifierProvider extends $AsyncNotifierProvider<LibraryI
   }
 }
 
-String _$libraryItemsNotifierHash() => r'e77332690c64beef1d2b19b5de9e8882995e8113';
+String _$libraryItemsNotifierHash() => r'34d50421183274fb46054bff6bdc4d55d3fbc11b';
 
 final class LibraryItemsNotifierFamily extends $Family
     with
@@ -204,7 +204,7 @@ final class LibraryItemProvider extends $FunctionalProvider<AsyncValue<LibraryIt
   }
 }
 
-String _$libraryItemHash() => r'29eeeadff8f7be074394f173c828e6c1b9aba6b7';
+String _$libraryItemHash() => r'544db28d602bc543bf31832700b848174523805d';
 
 final class LibraryItemFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<LibraryItem>, (String, {String? episodeId})> {

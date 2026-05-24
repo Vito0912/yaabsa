@@ -167,7 +167,7 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
     );
   }
 
-  Future<void> _submit() async {
+  Future<void> _submit({bool pop = false}) async {
     if (_initialDraft.isPodcast) {
       final releaseDate = _releaseDateController.text.trim();
       if (releaseDate.isNotEmpty && !_isValidIsoDate(releaseDate)) {
@@ -209,6 +209,9 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
     }
 
     await widget.onSave(diff);
+    if (pop && mounted) {
+      widget.onClose?.call();
+    }
   }
 
   bool _isValidIsoDate(String value) {
@@ -305,7 +308,15 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
                 icon: widget.isSaving
                     ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2.2))
                     : const Icon(Icons.save_rounded),
-                label: Text(widget.isSaving ? 'Saving...' : 'Save changes'),
+                label: Text(widget.isSaving ? 'Saving...' : 'Save'),
+              ),
+              const SizedBox(width: 8),
+              FilledButton.icon(
+                onPressed: widget.isSaving ? null : () => _submit(pop: true),
+                icon: widget.isSaving
+                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2.2))
+                    : const Icon(Icons.save_rounded),
+                label: Text(widget.isSaving ? 'Saving...' : 'Save & Close'),
               ),
             ],
           ),

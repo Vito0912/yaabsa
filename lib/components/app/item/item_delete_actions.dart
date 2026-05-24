@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
@@ -6,8 +8,10 @@ import 'package:yaabsa/components/common/managed_list_operations.dart';
 import 'package:yaabsa/provider/common/library_item_sync.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 
-void invalidateLibraryItemLists(WidgetRef ref) {
-  invalidateLibraryItemConsumers(container: ref.container);
+void removeLibraryItemsLocally(WidgetRef ref, Iterable<LibraryItem> removedItems) {
+  for (final removedItem in removedItems) {
+    unawaited(processLibraryItemRemoved(container: ref.container, item: removedItem, source: 'item_delete_actions'));
+  }
 }
 
 bool isAudiobookLibraryItem(LibraryItem item) {
@@ -82,7 +86,7 @@ Future<bool> deleteAudiobookWithConfirmation({
     popOnSuccess: popOnSuccess,
     onSuccess: () {
       didDelete = true;
-      invalidateLibraryItemLists(ref);
+      removeLibraryItemsLocally(ref, <LibraryItem>[item]);
       onSuccess?.call();
     },
   );
@@ -140,7 +144,7 @@ Future<bool> deleteAudiobooksInBulkWithConfirmation({
     errorFallback: 'Could not delete selected audiobooks.',
     onSuccess: () {
       didDelete = true;
-      invalidateLibraryItemLists(ref);
+      removeLibraryItemsLocally(ref, deletableItems);
       onSuccess?.call();
     },
   );

@@ -11,21 +11,50 @@ import 'package:yaabsa/util/setting_key.dart';
 
 class PlayerUtils {
   static final DeviceInfoPlugin _deviceInfoPlugin = DeviceInfoPlugin();
+  static const String _playbackWakelockReason = 'playback';
+  static const String _uploadWakelockReason = 'upload';
+  static final Set<String> _wakelockReasons = <String>{};
+
+  static void _enableWakelockReason(String reason) {
+    final wasEmpty = _wakelockReasons.isEmpty;
+    if (!_wakelockReasons.add(reason)) {
+      return;
+    }
+
+    if (wasEmpty) {
+      WakelockPlus.enable();
+      logger('Wakelock enabled ($reason)', tag: 'PlayerUtils', level: InfoLevel.debug);
+    }
+  }
+
+  static void _disableWakelockReason(String reason) {
+    if (!_wakelockReasons.remove(reason)) {
+      return;
+    }
+
+    if (_wakelockReasons.isEmpty) {
+      WakelockPlus.disable();
+      logger('Wakelock disabled ($reason)', tag: 'PlayerUtils', level: InfoLevel.debug);
+    }
+  }
 
   static void enableWakelock(ProviderContainer ref) {
     final keepScreenOn = ref.read(settingsManagerProvider.notifier).getGlobalSetting<bool>(SettingKeys.keepScreenOn);
     if (keepScreenOn == true) {
-      WakelockPlus.enable();
-      logger('Wakelock enabled', tag: 'PlayerUtils', level: InfoLevel.debug);
+      _enableWakelockReason(_playbackWakelockReason);
     }
   }
 
   static void disableWakelock(ProviderContainer ref) {
-    final keepScreenOn = ref.read(settingsManagerProvider.notifier).getGlobalSetting<bool>(SettingKeys.keepScreenOn);
-    if (keepScreenOn == true) {
-      WakelockPlus.disable();
-      logger('Wakelock disabled', tag: 'PlayerUtils', level: InfoLevel.debug);
-    }
+    _disableWakelockReason(_playbackWakelockReason);
+  }
+
+  static void enableUploadWakelock() {
+    _enableWakelockReason(_uploadWakelockReason);
+  }
+
+  static void disableUploadWakelock() {
+    _disableWakelockReason(_uploadWakelockReason);
   }
 
   static Future<DeviceInfo> getDeviceInfo() async {

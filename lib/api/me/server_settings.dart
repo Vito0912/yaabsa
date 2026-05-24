@@ -39,6 +39,7 @@ abstract class ServerSettings with _$ServerSettings {
 
 @JsonEnum(valueField: 'value')
 enum LogLevel {
+  trace(0),
   debug(1),
   info(2),
   warn(3),

@@ -83,6 +83,7 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
   final TextEditingController _searchController = TextEditingController();
   Timer? _searchDebounce;
   String _searchQuery = '';
+  int? _searchLimit = 5;
   bool _isMobileSearchExpanded = false;
   bool _isSidebarCollapsed = false;
   bool _isUploadPageVisible = false;
@@ -163,7 +164,7 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
       return widget.child!;
     }
     if (_searchQuery.isNotEmpty) {
-      return SearchView(query: _searchQuery);
+      return SearchView(query: _searchQuery, limit: _searchLimit);
     }
     if (selectedIndex < primaryItems.length) {
       return primaryItems[selectedIndex].page;
@@ -218,6 +219,7 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
       _lastSelectedLabel = label;
       _currentlyDisplayedPageSource = _PageSource.internal;
       _searchQuery = '';
+      _searchLimit = 5;
       _searchController.clear();
       _isMobileSearchExpanded = false;
       _isUploadPageVisible = false;
@@ -272,6 +274,7 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
     setState(() {
       _currentlyDisplayedPageSource = _PageSource.internal;
       _searchQuery = query;
+      _searchLimit = null;
       _isUploadPageVisible = false;
       _isUploadInProgress = false;
     });
@@ -290,6 +293,7 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
       setState(() {
         _currentlyDisplayedPageSource = _PageSource.internal;
         _searchQuery = value.trim();
+        _searchLimit = 5;
       });
     });
   }
@@ -309,6 +313,7 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
   void _clearSearch() {
     setState(() {
       _searchQuery = '';
+      _searchLimit = 5;
       _searchController.clear();
     });
   }
@@ -383,6 +388,7 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
       _isUploadPageVisible = true;
       _currentlyDisplayedPageSource = _PageSource.internal;
       _searchQuery = '';
+      _searchLimit = 5;
       _searchController.clear();
       _isMobileSearchExpanded = false;
     });
@@ -569,6 +575,7 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
           _isUploadPageVisible = true;
           _currentlyDisplayedPageSource = _PageSource.internal;
           _searchQuery = '';
+          _searchLimit = 5;
           _searchController.clear();
           _isMobileSearchExpanded = false;
         });

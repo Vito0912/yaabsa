@@ -19,6 +19,7 @@ import 'package:yaabsa/provider/common/library_item_sync.dart';
 import 'package:yaabsa/provider/core/server_tasks_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/interceptors/cache_interceptor.dart';
 
 enum _LibraryItemEditorTab { details, embedding, encoder }
 
@@ -456,7 +457,7 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
         _cachedItems[widget.currentItemId] = updatedItem;
         await processLibraryItemUpdate(container: ref.container, item: updatedItem, source: 'editor.save');
       } else {
-        invalidateLibraryItemConsumers(container: ref.container, itemId: widget.currentItemId);
+        unawaited(invalidateCachedLibraryItemEntries(container: ref.container, itemId: widget.currentItemId));
       }
       await widget.onItemSaved(widget.currentItemId, updatedItem);
 
