@@ -5,6 +5,7 @@ import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/provider/core/user_scope_invalidation.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/provider/social/user_message_consents_provider.dart';
 import 'package:yaabsa/screens/settings/android_auto_settings.dart';
 import 'package:yaabsa/screens/settings/appearance_settings.dart';
 import 'package:yaabsa/screens/settings/caching_settings.dart';
@@ -16,6 +17,7 @@ import 'package:yaabsa/screens/settings/log_view.dart';
 import 'package:yaabsa/screens/settings/reader_settings.dart';
 import 'package:yaabsa/screens/settings/server_connection_settings.dart';
 import 'package:yaabsa/screens/settings/server_management_settings.dart';
+import 'package:yaabsa/screens/settings/social_settings.dart';
 import 'package:yaabsa/util/aaos_service.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/network/dio_factory.dart';
@@ -439,6 +441,7 @@ class MainSettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final showAndroidAutoSettings = !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+    final supportsSocial = ref.watch(userMessageConsentsProvider).asData?.value.serverSupportsSocial ?? false;
 
     return ListView(
       padding: const EdgeInsets.only(bottom: 24),
@@ -487,6 +490,12 @@ class MainSettingsScreen extends ConsumerWidget {
                               title: 'Global Player',
                               onTap: () => context.push(GlobalPlayerSettings.routeName),
                             ),
+                            if (supportsSocial)
+                              SettingsNavigationItem(
+                                icon: Icons.people_alt_outlined,
+                                title: 'Social',
+                                onTap: () => context.push(SocialSettings.routeName),
+                              ),
                             SettingsNavigationItem(
                               icon: Icons.library_books_outlined,
                               title: 'Library Behaviour',

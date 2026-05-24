@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ServerStatus {
 
-@JsonKey(name: 'app') String get app;@JsonKey(name: 'serverVersion') String get serverVersion;@JsonKey(name: 'isInit') bool get isInit;@JsonKey(name: 'language') String get language;@JsonKey(name: 'authMethods') List<String> get authMethods;@JsonKey(name: 'authFormData') AuthFormData? get authFormData;@JsonKey(name: 'ConfigPath') String? get configPath;@JsonKey(name: 'MetadataPath') String? get metadataPath;
+@JsonKey(name: 'app') String get app;@JsonKey(name: 'compatibility') List<String> get compatibility;@JsonKey(name: 'serverVersion') String get serverVersion;@JsonKey(name: 'isInit') bool get isInit;@JsonKey(name: 'language') String get language;@JsonKey(name: 'authMethods') List<String> get authMethods;@JsonKey(name: 'authFormData') AuthFormData? get authFormData;@JsonKey(name: 'ConfigPath') String? get configPath;@JsonKey(name: 'MetadataPath') String? get metadataPath;
 /// Create a copy of ServerStatus
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $ServerStatusCopyWith<ServerStatus> get copyWith => _$ServerStatusCopyWithImpl<S
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ServerStatus&&(identical(other.app, app) || other.app == app)&&(identical(other.serverVersion, serverVersion) || other.serverVersion == serverVersion)&&(identical(other.isInit, isInit) || other.isInit == isInit)&&(identical(other.language, language) || other.language == language)&&const DeepCollectionEquality().equals(other.authMethods, authMethods)&&(identical(other.authFormData, authFormData) || other.authFormData == authFormData)&&(identical(other.configPath, configPath) || other.configPath == configPath)&&(identical(other.metadataPath, metadataPath) || other.metadataPath == metadataPath));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ServerStatus&&(identical(other.app, app) || other.app == app)&&const DeepCollectionEquality().equals(other.compatibility, compatibility)&&(identical(other.serverVersion, serverVersion) || other.serverVersion == serverVersion)&&(identical(other.isInit, isInit) || other.isInit == isInit)&&(identical(other.language, language) || other.language == language)&&const DeepCollectionEquality().equals(other.authMethods, authMethods)&&(identical(other.authFormData, authFormData) || other.authFormData == authFormData)&&(identical(other.configPath, configPath) || other.configPath == configPath)&&(identical(other.metadataPath, metadataPath) || other.metadataPath == metadataPath));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,app,serverVersion,isInit,language,const DeepCollectionEquality().hash(authMethods),authFormData,configPath,metadataPath);
+int get hashCode => Object.hash(runtimeType,app,const DeepCollectionEquality().hash(compatibility),serverVersion,isInit,language,const DeepCollectionEquality().hash(authMethods),authFormData,configPath,metadataPath);
 
 @override
 String toString() {
-  return 'ServerStatus(app: $app, serverVersion: $serverVersion, isInit: $isInit, language: $language, authMethods: $authMethods, authFormData: $authFormData, configPath: $configPath, metadataPath: $metadataPath)';
+  return 'ServerStatus(app: $app, compatibility: $compatibility, serverVersion: $serverVersion, isInit: $isInit, language: $language, authMethods: $authMethods, authFormData: $authFormData, configPath: $configPath, metadataPath: $metadataPath)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $ServerStatusCopyWith<$Res>  {
   factory $ServerStatusCopyWith(ServerStatus value, $Res Function(ServerStatus) _then) = _$ServerStatusCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'app') String app,@JsonKey(name: 'serverVersion') String serverVersion,@JsonKey(name: 'isInit') bool isInit,@JsonKey(name: 'language') String language,@JsonKey(name: 'authMethods') List<String> authMethods,@JsonKey(name: 'authFormData') AuthFormData? authFormData,@JsonKey(name: 'ConfigPath') String? configPath,@JsonKey(name: 'MetadataPath') String? metadataPath
+@JsonKey(name: 'app') String app,@JsonKey(name: 'compatibility') List<String> compatibility,@JsonKey(name: 'serverVersion') String serverVersion,@JsonKey(name: 'isInit') bool isInit,@JsonKey(name: 'language') String language,@JsonKey(name: 'authMethods') List<String> authMethods,@JsonKey(name: 'authFormData') AuthFormData? authFormData,@JsonKey(name: 'ConfigPath') String? configPath,@JsonKey(name: 'MetadataPath') String? metadataPath
 });
 
 
@@ -65,10 +65,11 @@ class _$ServerStatusCopyWithImpl<$Res>
 
 /// Create a copy of ServerStatus
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? app = null,Object? serverVersion = null,Object? isInit = null,Object? language = null,Object? authMethods = null,Object? authFormData = freezed,Object? configPath = freezed,Object? metadataPath = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? app = null,Object? compatibility = null,Object? serverVersion = null,Object? isInit = null,Object? language = null,Object? authMethods = null,Object? authFormData = freezed,Object? configPath = freezed,Object? metadataPath = freezed,}) {
   return _then(_self.copyWith(
 app: null == app ? _self.app : app // ignore: cast_nullable_to_non_nullable
-as String,serverVersion: null == serverVersion ? _self.serverVersion : serverVersion // ignore: cast_nullable_to_non_nullable
+as String,compatibility: null == compatibility ? _self.compatibility : compatibility // ignore: cast_nullable_to_non_nullable
+as List<String>,serverVersion: null == serverVersion ? _self.serverVersion : serverVersion // ignore: cast_nullable_to_non_nullable
 as String,isInit: null == isInit ? _self.isInit : isInit // ignore: cast_nullable_to_non_nullable
 as bool,language: null == language ? _self.language : language // ignore: cast_nullable_to_non_nullable
 as String,authMethods: null == authMethods ? _self.authMethods : authMethods // ignore: cast_nullable_to_non_nullable
@@ -172,10 +173,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'app')  String app, @JsonKey(name: 'serverVersion')  String serverVersion, @JsonKey(name: 'isInit')  bool isInit, @JsonKey(name: 'language')  String language, @JsonKey(name: 'authMethods')  List<String> authMethods, @JsonKey(name: 'authFormData')  AuthFormData? authFormData, @JsonKey(name: 'ConfigPath')  String? configPath, @JsonKey(name: 'MetadataPath')  String? metadataPath)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'app')  String app, @JsonKey(name: 'compatibility')  List<String> compatibility, @JsonKey(name: 'serverVersion')  String serverVersion, @JsonKey(name: 'isInit')  bool isInit, @JsonKey(name: 'language')  String language, @JsonKey(name: 'authMethods')  List<String> authMethods, @JsonKey(name: 'authFormData')  AuthFormData? authFormData, @JsonKey(name: 'ConfigPath')  String? configPath, @JsonKey(name: 'MetadataPath')  String? metadataPath)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ServerStatus() when $default != null:
-return $default(_that.app,_that.serverVersion,_that.isInit,_that.language,_that.authMethods,_that.authFormData,_that.configPath,_that.metadataPath);case _:
+return $default(_that.app,_that.compatibility,_that.serverVersion,_that.isInit,_that.language,_that.authMethods,_that.authFormData,_that.configPath,_that.metadataPath);case _:
   return orElse();
 
 }
@@ -193,10 +194,10 @@ return $default(_that.app,_that.serverVersion,_that.isInit,_that.language,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'app')  String app, @JsonKey(name: 'serverVersion')  String serverVersion, @JsonKey(name: 'isInit')  bool isInit, @JsonKey(name: 'language')  String language, @JsonKey(name: 'authMethods')  List<String> authMethods, @JsonKey(name: 'authFormData')  AuthFormData? authFormData, @JsonKey(name: 'ConfigPath')  String? configPath, @JsonKey(name: 'MetadataPath')  String? metadataPath)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'app')  String app, @JsonKey(name: 'compatibility')  List<String> compatibility, @JsonKey(name: 'serverVersion')  String serverVersion, @JsonKey(name: 'isInit')  bool isInit, @JsonKey(name: 'language')  String language, @JsonKey(name: 'authMethods')  List<String> authMethods, @JsonKey(name: 'authFormData')  AuthFormData? authFormData, @JsonKey(name: 'ConfigPath')  String? configPath, @JsonKey(name: 'MetadataPath')  String? metadataPath)  $default,) {final _that = this;
 switch (_that) {
 case _ServerStatus():
-return $default(_that.app,_that.serverVersion,_that.isInit,_that.language,_that.authMethods,_that.authFormData,_that.configPath,_that.metadataPath);case _:
+return $default(_that.app,_that.compatibility,_that.serverVersion,_that.isInit,_that.language,_that.authMethods,_that.authFormData,_that.configPath,_that.metadataPath);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -213,10 +214,10 @@ return $default(_that.app,_that.serverVersion,_that.isInit,_that.language,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'app')  String app, @JsonKey(name: 'serverVersion')  String serverVersion, @JsonKey(name: 'isInit')  bool isInit, @JsonKey(name: 'language')  String language, @JsonKey(name: 'authMethods')  List<String> authMethods, @JsonKey(name: 'authFormData')  AuthFormData? authFormData, @JsonKey(name: 'ConfigPath')  String? configPath, @JsonKey(name: 'MetadataPath')  String? metadataPath)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'app')  String app, @JsonKey(name: 'compatibility')  List<String> compatibility, @JsonKey(name: 'serverVersion')  String serverVersion, @JsonKey(name: 'isInit')  bool isInit, @JsonKey(name: 'language')  String language, @JsonKey(name: 'authMethods')  List<String> authMethods, @JsonKey(name: 'authFormData')  AuthFormData? authFormData, @JsonKey(name: 'ConfigPath')  String? configPath, @JsonKey(name: 'MetadataPath')  String? metadataPath)?  $default,) {final _that = this;
 switch (_that) {
 case _ServerStatus() when $default != null:
-return $default(_that.app,_that.serverVersion,_that.isInit,_that.language,_that.authMethods,_that.authFormData,_that.configPath,_that.metadataPath);case _:
+return $default(_that.app,_that.compatibility,_that.serverVersion,_that.isInit,_that.language,_that.authMethods,_that.authFormData,_that.configPath,_that.metadataPath);case _:
   return null;
 
 }
@@ -228,10 +229,17 @@ return $default(_that.app,_that.serverVersion,_that.isInit,_that.language,_that.
 @JsonSerializable()
 
 class _ServerStatus implements ServerStatus {
-  const _ServerStatus({@JsonKey(name: 'app') required this.app, @JsonKey(name: 'serverVersion') required this.serverVersion, @JsonKey(name: 'isInit') required this.isInit, @JsonKey(name: 'language') required this.language, @JsonKey(name: 'authMethods') final  List<String> authMethods = const <String>[], @JsonKey(name: 'authFormData') this.authFormData, @JsonKey(name: 'ConfigPath') this.configPath, @JsonKey(name: 'MetadataPath') this.metadataPath}): _authMethods = authMethods;
+  const _ServerStatus({@JsonKey(name: 'app') required this.app, @JsonKey(name: 'compatibility') final  List<String> compatibility = const <String>[], @JsonKey(name: 'serverVersion') required this.serverVersion, @JsonKey(name: 'isInit') required this.isInit, @JsonKey(name: 'language') required this.language, @JsonKey(name: 'authMethods') final  List<String> authMethods = const <String>[], @JsonKey(name: 'authFormData') this.authFormData, @JsonKey(name: 'ConfigPath') this.configPath, @JsonKey(name: 'MetadataPath') this.metadataPath}): _compatibility = compatibility,_authMethods = authMethods;
   factory _ServerStatus.fromJson(Map<String, dynamic> json) => _$ServerStatusFromJson(json);
 
 @override@JsonKey(name: 'app') final  String app;
+ final  List<String> _compatibility;
+@override@JsonKey(name: 'compatibility') List<String> get compatibility {
+  if (_compatibility is EqualUnmodifiableListView) return _compatibility;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_compatibility);
+}
+
 @override@JsonKey(name: 'serverVersion') final  String serverVersion;
 @override@JsonKey(name: 'isInit') final  bool isInit;
 @override@JsonKey(name: 'language') final  String language;
@@ -259,16 +267,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ServerStatus&&(identical(other.app, app) || other.app == app)&&(identical(other.serverVersion, serverVersion) || other.serverVersion == serverVersion)&&(identical(other.isInit, isInit) || other.isInit == isInit)&&(identical(other.language, language) || other.language == language)&&const DeepCollectionEquality().equals(other._authMethods, _authMethods)&&(identical(other.authFormData, authFormData) || other.authFormData == authFormData)&&(identical(other.configPath, configPath) || other.configPath == configPath)&&(identical(other.metadataPath, metadataPath) || other.metadataPath == metadataPath));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ServerStatus&&(identical(other.app, app) || other.app == app)&&const DeepCollectionEquality().equals(other._compatibility, _compatibility)&&(identical(other.serverVersion, serverVersion) || other.serverVersion == serverVersion)&&(identical(other.isInit, isInit) || other.isInit == isInit)&&(identical(other.language, language) || other.language == language)&&const DeepCollectionEquality().equals(other._authMethods, _authMethods)&&(identical(other.authFormData, authFormData) || other.authFormData == authFormData)&&(identical(other.configPath, configPath) || other.configPath == configPath)&&(identical(other.metadataPath, metadataPath) || other.metadataPath == metadataPath));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,app,serverVersion,isInit,language,const DeepCollectionEquality().hash(_authMethods),authFormData,configPath,metadataPath);
+int get hashCode => Object.hash(runtimeType,app,const DeepCollectionEquality().hash(_compatibility),serverVersion,isInit,language,const DeepCollectionEquality().hash(_authMethods),authFormData,configPath,metadataPath);
 
 @override
 String toString() {
-  return 'ServerStatus(app: $app, serverVersion: $serverVersion, isInit: $isInit, language: $language, authMethods: $authMethods, authFormData: $authFormData, configPath: $configPath, metadataPath: $metadataPath)';
+  return 'ServerStatus(app: $app, compatibility: $compatibility, serverVersion: $serverVersion, isInit: $isInit, language: $language, authMethods: $authMethods, authFormData: $authFormData, configPath: $configPath, metadataPath: $metadataPath)';
 }
 
 
@@ -279,7 +287,7 @@ abstract mixin class _$ServerStatusCopyWith<$Res> implements $ServerStatusCopyWi
   factory _$ServerStatusCopyWith(_ServerStatus value, $Res Function(_ServerStatus) _then) = __$ServerStatusCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'app') String app,@JsonKey(name: 'serverVersion') String serverVersion,@JsonKey(name: 'isInit') bool isInit,@JsonKey(name: 'language') String language,@JsonKey(name: 'authMethods') List<String> authMethods,@JsonKey(name: 'authFormData') AuthFormData? authFormData,@JsonKey(name: 'ConfigPath') String? configPath,@JsonKey(name: 'MetadataPath') String? metadataPath
+@JsonKey(name: 'app') String app,@JsonKey(name: 'compatibility') List<String> compatibility,@JsonKey(name: 'serverVersion') String serverVersion,@JsonKey(name: 'isInit') bool isInit,@JsonKey(name: 'language') String language,@JsonKey(name: 'authMethods') List<String> authMethods,@JsonKey(name: 'authFormData') AuthFormData? authFormData,@JsonKey(name: 'ConfigPath') String? configPath,@JsonKey(name: 'MetadataPath') String? metadataPath
 });
 
 
@@ -296,10 +304,11 @@ class __$ServerStatusCopyWithImpl<$Res>
 
 /// Create a copy of ServerStatus
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? app = null,Object? serverVersion = null,Object? isInit = null,Object? language = null,Object? authMethods = null,Object? authFormData = freezed,Object? configPath = freezed,Object? metadataPath = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? app = null,Object? compatibility = null,Object? serverVersion = null,Object? isInit = null,Object? language = null,Object? authMethods = null,Object? authFormData = freezed,Object? configPath = freezed,Object? metadataPath = freezed,}) {
   return _then(_ServerStatus(
 app: null == app ? _self.app : app // ignore: cast_nullable_to_non_nullable
-as String,serverVersion: null == serverVersion ? _self.serverVersion : serverVersion // ignore: cast_nullable_to_non_nullable
+as String,compatibility: null == compatibility ? _self._compatibility : compatibility // ignore: cast_nullable_to_non_nullable
+as List<String>,serverVersion: null == serverVersion ? _self.serverVersion : serverVersion // ignore: cast_nullable_to_non_nullable
 as String,isInit: null == isInit ? _self.isInit : isInit // ignore: cast_nullable_to_non_nullable
 as bool,language: null == language ? _self.language : language // ignore: cast_nullable_to_non_nullable
 as String,authMethods: null == authMethods ? _self._authMethods : authMethods // ignore: cast_nullable_to_non_nullable

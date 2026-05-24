@@ -8,6 +8,7 @@ part of 'status.dart';
 
 _ServerStatus _$ServerStatusFromJson(Map<String, dynamic> json) => _ServerStatus(
   app: json['app'] as String,
+  compatibility: (json['compatibility'] as List<dynamic>?)?.map((e) => e as String).toList() ?? const <String>[],
   serverVersion: json['serverVersion'] as String,
   isInit: json['isInit'] as bool,
   language: json['language'] as String,
@@ -21,6 +22,7 @@ _ServerStatus _$ServerStatusFromJson(Map<String, dynamic> json) => _ServerStatus
 
 Map<String, dynamic> _$ServerStatusToJson(_ServerStatus instance) => <String, dynamic>{
   'app': instance.app,
+  'compatibility': instance.compatibility,
   'serverVersion': instance.serverVersion,
   'isInit': instance.isInit,
   'language': instance.language,
