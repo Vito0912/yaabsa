@@ -55,11 +55,13 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
     }
 
     final currentVal = state.asData?.value;
+    final resolvedSort = sort ?? currentVal?.sort ?? defaultLibrarySortWireValue;
+    final resolvedDesc = desc ?? currentVal?.desc ?? defaultLibrarySortDesc;
     final request = LibraryItemsRequest(
       limit: _itemsPerPage,
       page: page,
-      sort: sort ?? currentVal?.sort,
-      desc: desc ?? currentVal?.desc,
+      sort: resolvedSort,
+      desc: resolvedDesc,
       filter: normalizeLibraryFilterQuery(useCurrentFilterFallback ? (filter ?? currentVal?.filter) : filter),
       collapseseries: collapseseries ?? currentVal?.collapseseries,
       include: include ?? currentVal?.include,
@@ -107,8 +109,8 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
     return _fetchItems(
       libraryId,
       0,
-      sort: initialSort,
-      desc: initialDesc,
+      sort: initialSort ?? defaultLibrarySortWireValue,
+      desc: initialDesc ?? defaultLibrarySortDesc,
       filter: initialFilter,
       collapseseries: initialCollapseSeries,
       include: initialInclude,
@@ -180,8 +182,10 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
     final newFilter = clearFilter
         ? null
         : (filter ?? (currentLoadedState != null ? currentLoadedState.filter : initialFilter));
-    var newSort = sort ?? (currentLoadedState != null ? currentLoadedState.sort : initialSort);
-    var newDesc = desc ?? (currentLoadedState != null ? currentLoadedState.desc : initialDesc);
+    var newSort =
+        sort ?? (currentLoadedState != null ? currentLoadedState.sort : initialSort) ?? defaultLibrarySortWireValue;
+    var newDesc =
+        desc ?? (currentLoadedState != null ? currentLoadedState.desc : initialDesc) ?? defaultLibrarySortDesc;
 
     if (newSort == LibrarySortValue.sequence.wireValue && !_isSeriesFilterQuery(newFilter)) {
       newSort = defaultLibrarySortWireValue;
@@ -240,8 +244,9 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
   Future<void> refresh() async {
     final currentLoadedState = state.asData?.value;
     final targetLibraryId = currentLoadedState?.libraryId ?? libraryId;
-    final refreshSort = currentLoadedState != null ? currentLoadedState.sort : initialSort;
-    final refreshDesc = currentLoadedState != null ? currentLoadedState.desc : initialDesc;
+    final refreshSort =
+        (currentLoadedState != null ? currentLoadedState.sort : initialSort) ?? defaultLibrarySortWireValue;
+    final refreshDesc = (currentLoadedState != null ? currentLoadedState.desc : initialDesc) ?? defaultLibrarySortDesc;
     final refreshFilter = currentLoadedState != null ? currentLoadedState.filter : initialFilter;
     final refreshCollapseSeries = currentLoadedState != null
         ? currentLoadedState.collapseseries

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
+import 'package:yaabsa/screens/settings/widgets/local_log_settings_section.dart';
 import 'package:yaabsa/screens/settings/widgets/log_entry_tile.dart';
 import 'package:yaabsa/util/log_exporter.dart';
 import 'package:yaabsa/util/logger.dart';
@@ -157,6 +158,7 @@ class LogView extends HookWidget {
       maxWidth: double.infinity,
       padding: const EdgeInsets.only(bottom: 24),
       children: [
+        const LocalLogSettingsSection(),
         Padding(
           padding: EdgeInsets.fromLTRB(horizontalPadding, 12, horizontalPadding, 0),
           child: Container(

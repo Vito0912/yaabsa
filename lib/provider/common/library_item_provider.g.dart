@@ -57,7 +57,7 @@ final class LibraryItemsNotifierProvider extends $AsyncNotifierProvider<LibraryI
   }
 }
 
-String _$libraryItemsNotifierHash() => r'e77332690c64beef1d2b19b5de9e8882995e8113';
+String _$libraryItemsNotifierHash() => r'84a0a217aafd25178da5cf936f5508aabed8184c';
 
 final class LibraryItemsNotifierFamily extends $Family
     with
