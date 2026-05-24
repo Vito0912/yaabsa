@@ -8,6 +8,7 @@ import 'package:yaabsa/util/local_cover_path.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:yaabsa/provider/common/library_item_events.dart';
 
 part 'library_item_provider.freezed.dart';
 part 'library_item_provider.g.dart';
@@ -34,6 +35,8 @@ abstract class LibraryItemState with _$LibraryItemState {
 }
 
 const defaultLibraryItemsRequest = LibraryItemsRequest(limit: _itemsPerPage, page: 0);
+final Map<String, LibraryItem> _liveLibraryItemSnapshotById = <String, LibraryItem>{};
+final Set<String> _removedLibraryItemIds = <String>{};
 
 @Riverpod(keepAlive: true)
 class LibraryItemsNotifier extends _$LibraryItemsNotifier {
@@ -106,6 +109,14 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
     int? initialCollapseSeries,
     String? initialInclude,
   }) async {
+    ref.listen<LibraryItemMutation?>(libraryItemMutationProvider, (previous, next) {
+      if (next == null) {
+        return;
+      }
+
+      _applyLibraryItemMutation(next);
+    });
+
     return _fetchItems(
       libraryId,
       0,
@@ -166,6 +177,96 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
     } finally {
       _isEnsuringIndex = false;
     }
+  }
+
+  void _applyLibraryItemMutation(LibraryItemMutation mutation) {
+    final currentLoadedState = state.asData?.value;
+    if (currentLoadedState == null) {
+      return;
+    }
+
+    final stateLibraryId = currentLoadedState.libraryId ?? libraryId;
+    final mutationLibraryId = mutation.libraryId?.trim();
+    final hasLibraryMismatch =
+        mutationLibraryId != null &&
+        mutationLibraryId.isNotEmpty &&
+        stateLibraryId.isNotEmpty &&
+        mutationLibraryId != stateLibraryId;
+
+    final existingIndex = currentLoadedState.items.indexWhere((item) => item.id == mutation.itemId);
+    if (hasLibraryMismatch && existingIndex == -1) {
+      return;
+    }
+
+    final nextItems = List<LibraryItem>.from(currentLoadedState.items);
+    var nextTotal = currentLoadedState.totalItems;
+    var didChange = false;
+
+    switch (mutation.type) {
+      case LibraryItemMutationType.added:
+        final item = mutation.item;
+        if (item == null || hasLibraryMismatch) {
+          return;
+        }
+
+        if (existingIndex >= 0) {
+          nextItems[existingIndex] = item;
+          didChange = true;
+          break;
+        }
+
+        if (!_shouldInsertAddedItem(currentLoadedState)) {
+          return;
+        }
+
+        nextItems.insert(0, item);
+        nextTotal += 1;
+        didChange = true;
+        break;
+      case LibraryItemMutationType.updated:
+        final item = mutation.item;
+        if (item == null || existingIndex == -1) {
+          return;
+        }
+
+        nextItems[existingIndex] = item;
+        didChange = true;
+        break;
+      case LibraryItemMutationType.removed:
+        if (existingIndex == -1) {
+          return;
+        }
+
+        nextItems.removeAt(existingIndex);
+        nextTotal = nextTotal > 0 ? nextTotal - 1 : 0;
+        didChange = true;
+        break;
+    }
+
+    if (!didChange) {
+      return;
+    }
+
+    state = AsyncData(
+      currentLoadedState.copyWith(
+        items: nextItems,
+        totalItems: nextTotal,
+        hasNextPage: nextTotal > nextItems.length,
+        error: null,
+        stackTrace: null,
+      ),
+    );
+  }
+
+  bool _shouldInsertAddedItem(LibraryItemState currentLoadedState) {
+    final activeFilter = currentLoadedState.filter?.trim();
+    if (activeFilter != null && activeFilter.isNotEmpty) {
+      return false;
+    }
+
+    final activeSort = currentLoadedState.sort ?? defaultLibrarySortWireValue;
+    final activeDesc = currentLoadedState.desc ?? defaultLibrarySortDesc;
+    return activeSort == defaultLibrarySortWireValue && activeDesc == 1;
   }
 
   Future<void> _updateAndRefetch({
@@ -288,6 +389,43 @@ bool _isSeriesFilterQuery(String? filter) {
 Future<LibraryItem> libraryItem(Ref ref, String itemId, {String? episodeId}) async {
   final absApi = ref.watch(absApiProvider);
   final db = ref.read(appDatabaseProvider);
+
+  ref.listen<LibraryItemMutation?>(libraryItemMutationProvider, (previous, next) {
+    if (next == null) {
+      return;
+    }
+
+    switch (next.type) {
+      case LibraryItemMutationType.added:
+      case LibraryItemMutationType.updated:
+        final nextItem = next.item;
+        if (nextItem == null) {
+          return;
+        }
+
+        _liveLibraryItemSnapshotById[nextItem.id] = nextItem;
+        _removedLibraryItemIds.remove(nextItem.id);
+        break;
+      case LibraryItemMutationType.removed:
+        _liveLibraryItemSnapshotById.remove(next.itemId);
+        _removedLibraryItemIds.add(next.itemId);
+        break;
+    }
+
+    if (next.itemId == itemId) {
+      ref.invalidateSelf();
+    }
+  });
+
+  if (_removedLibraryItemIds.contains(itemId)) {
+    throw StateError('Library item $itemId was removed.');
+  }
+
+  final liveSnapshot = _liveLibraryItemSnapshotById[itemId];
+  if (liveSnapshot != null) {
+    return liveSnapshot;
+  }
+
   if (absApi == null || absApi.user == null) {
     throw Exception('User not authenticated or API not available.');
   }
@@ -300,7 +438,10 @@ Future<LibraryItem> libraryItem(Ref ref, String itemId, {String? episodeId}) asy
     );
 
     logger('Returning local download for item $itemId', tag: 'libraryItemProvider', level: InfoLevel.debug);
-    return _withLocalCoverPath(download.item!, resolvedCoverPath ?? download.coverPath);
+    final localItem = _withLocalCoverPath(download.item!, resolvedCoverPath ?? download.coverPath);
+    _liveLibraryItemSnapshotById[itemId] = localItem;
+    _removedLibraryItemIds.remove(itemId);
+    return localItem;
   }
 
   try {
@@ -309,6 +450,9 @@ Future<LibraryItem> libraryItem(Ref ref, String itemId, {String? episodeId}) asy
     if (data == null) {
       throw Exception('No data received from API for item $itemId');
     }
+
+    _liveLibraryItemSnapshotById[itemId] = data;
+    _removedLibraryItemIds.remove(itemId);
     return data;
   } catch (e) {
     throw Exception('Failed to fetch library item $itemId: $e');
