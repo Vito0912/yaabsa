@@ -61,6 +61,6 @@ extension _BGAudioHandlerSource on BGAudioHandler {
 
   Map<String, String> get _currentRequestHeadersInternal {
     final user = _ref.read(currentUserProvider).value;
-    return buildRequestHeaders(serverHeaders: user?.server?.headers, bearerToken: user?.preferredAuthToken);
+    return buildRequestHeaders(serverHeaders: user?.server?.headers);
   }
 }
