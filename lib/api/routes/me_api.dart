@@ -10,6 +10,7 @@ import 'package:yaabsa/api/me/request/create_bookmark_request.dart';
 import 'package:yaabsa/api/me/request/login_request.dart';
 import 'package:yaabsa/api/me/status.dart';
 import 'package:yaabsa/api/me/user.dart';
+import 'package:yaabsa/api/me/user_message_consents.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:dio/dio.dart';
@@ -178,6 +179,102 @@ class MeApi {
       dio: _dio,
       queryParams: {},
     );
+  }
+
+  Future<Response<UserMessageConsents>> getUserMessageConsents({
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiGetRequest(
+      route: '/api/me/user-message-consents',
+      fromJson: (data) => UserMessageConsents.fromJson(data as Map<String, dynamic>),
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
+      queryParams: {},
+    );
+  }
+
+  Future<Response<UserMessageConsents>> addUserMessageConsent(
+    String userId, {
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    final route = '/api/me/user-message-consents/$userId';
+
+    return ABSApi.makeApiPostRequest(
+      route: route,
+      fromJson: (data) => UserMessageConsents.fromJson(data as Map<String, dynamic>),
+      bodyData: const <String, dynamic>{},
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
+    );
+  }
+
+  Future<Response<UserMessageConsents>> removeUserMessageConsent(
+    String userId, {
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    final deleted = await ABSApi.makeApiDeleteRequest(
+      route: '/api/me/user-message-consents/$userId',
+      dio: _dio,
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+    );
+
+    if (!deleted) {
+      throw StateError('Failed to remove user message consent for $userId');
+    }
+
+    return getUserMessageConsents(cancelToken: cancelToken, headers: headers, extra: extra);
+  }
+
+  Future<Response<UserMessageConsents>> blockUserMessageConsent(
+    String userId, {
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    final route = '/api/me/user-message-consents/$userId/block';
+
+    return ABSApi.makeApiPostRequest(
+      route: route,
+      fromJson: (data) => UserMessageConsents.fromJson(data as Map<String, dynamic>),
+      bodyData: const <String, dynamic>{},
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
+    );
+  }
+
+  Future<Response<UserMessageConsents>> unblockUserMessageConsent(
+    String userId, {
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    final deleted = await ABSApi.makeApiDeleteRequest(
+      route: '/api/me/user-message-consents/$userId/block',
+      dio: _dio,
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+    );
+
+    if (!deleted) {
+      throw StateError('Failed to unblock user message consent for $userId');
+    }
+
+    return getUserMessageConsents(cancelToken: cancelToken, headers: headers, extra: extra);
   }
 
   Future<Response<UserListeningStats>> getListeningStats(

@@ -1,11 +1,21 @@
 import 'dart:io';
 
+import 'package:yaabsa/components/settings/social/compatibility_learn_more_dialog.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 
 class LicenseSettings {
   static Future<void> showLicensePage({required BuildContext context, bool useRootNavigator = false}) async {
+    final navigator = Navigator.of(context, rootNavigator: useRootNavigator);
+    final CapturedThemes themes = InheritedTheme.capture(from: context, to: navigator.context);
+
+    navigator.push(
+      MaterialPageRoute<void>(builder: (BuildContext pageContext) => themes.wrap(const _InformationAttributionPage())),
+    );
+  }
+
+  static Future<void> showRawLicensePage({required BuildContext context, bool useRootNavigator = false}) async {
     final navigator = Navigator.of(context, rootNavigator: useRootNavigator);
     final CapturedThemes themes = InheritedTheme.capture(from: context, to: navigator.context);
 
@@ -106,5 +116,75 @@ This application is provided "as is" without warranty of any kind, express or im
 © ${DateTime.now().year} Vito
 See LICENSE file for more details on GitHub.
 ''';
+  }
+}
+
+class _InformationAttributionPage extends StatelessWidget {
+  const _InformationAttributionPage();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Information & Attribution')),
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+          children: [
+            Card(
+              elevation: 0,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Compatibilities', style: Theme.of(context).textTheme.titleMedium),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Some advanced app features require server compatibility flags.',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        CompatibilityLearnMoreDialog.show(
+                          context,
+                          content: CompatibilityLearnMoreContent.socialDefaults(),
+                        );
+                      },
+                      icon: const Icon(Icons.info_outline_rounded),
+                      label: const Text('Learn more'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Card(
+              elevation: 0,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Licenses and legal', style: Theme.of(context).textTheme.titleMedium),
+                    const SizedBox(height: 8),
+                    Text(
+                      'View open-source license texts, app version, and device information.',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      onPressed: () => LicenseSettings.showRawLicensePage(context: context),
+                      icon: const Icon(Icons.description_outlined),
+                      label: const Text('Open license details'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

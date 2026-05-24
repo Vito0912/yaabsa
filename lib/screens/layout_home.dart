@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:yaabsa/components/app/upload/library_upload_panel.dart';
+import 'package:yaabsa/components/social/synced_playback_invite_prompt_dialog.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/screens/automotive/aaos_settings_scaffold.dart';
 import 'package:yaabsa/screens/main/downloads.dart';
@@ -22,6 +23,7 @@ import 'package:yaabsa/screens/settings/settings_screen.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/core/multi_select_app_bar_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/provider/social/synced_playback_provider.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/server_management_preferences.dart';
 import 'package:yaabsa/util/setting_key.dart';
@@ -88,6 +90,9 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
   bool _isUploadPageVisible = false;
   bool _isUploadInProgress = false;
   bool _didRequestAaosMediaCenterLaunch = false;
+  String? _activeSyncedInvitePromptId;
+  String? _lastSyncedNoticeId;
+  ProviderSubscription<SyncedPlaybackState>? _syncedPlaybackSubscription;
 
   late final List<NavigationItemConfig> _allAppBarItems;
   late final NavigationItemConfig _downloadsMenuItem;
@@ -118,12 +123,17 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
 
     final settings = containerRef.read(settingsManagerProvider.notifier);
     _isSidebarCollapsed = settings.getGlobalSetting<bool>(SettingKeys.sidebarCollapsed);
+    _syncedPlaybackSubscription = ref.listenManual<SyncedPlaybackState>(
+      syncedPlaybackProvider,
+      _onSyncedPlaybackStateChanged,
+    );
   }
 
   @override
   void dispose() {
     _searchDebounce?.cancel();
     _searchController.dispose();
+    _syncedPlaybackSubscription?.close();
     super.dispose();
   }
 
@@ -361,6 +371,39 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
     unawaited(_openOrCloseUploadPageAsync());
   }
 
+  SyncedPlaybackInviteDecision _mapSyncedPlaybackInviteDecision(SyncedPlaybackInviteDialogDecision decision) {
+    switch (decision) {
+      case SyncedPlaybackInviteDialogDecision.accept:
+        return SyncedPlaybackInviteDecision.accept;
+      case SyncedPlaybackInviteDialogDecision.decline:
+        return SyncedPlaybackInviteDecision.decline;
+      case SyncedPlaybackInviteDialogDecision.ignore:
+        return SyncedPlaybackInviteDecision.ignore;
+    }
+  }
+
+  Future<void> _showSyncedPlaybackInvitePrompt(SyncedPlaybackInvitePrompt prompt) async {
+    final decision = await showDialog<SyncedPlaybackInviteDialogDecision>(
+      context: context,
+      builder: (_) => SyncedPlaybackInvitePromptDialog(senderName: prompt.senderUsername),
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    final notifier = ref.read(syncedPlaybackProvider.notifier);
+    final resolvedDecision = decision == null
+        ? SyncedPlaybackInviteDecision.ignore
+        : _mapSyncedPlaybackInviteDecision(decision);
+
+    await notifier.respondToInvite(promptId: prompt.id, decision: resolvedDecision);
+
+    if (!mounted) {
+      return;
+    }
+  }
+
   Future<void> _openOrCloseUploadPageAsync() async {
     if (_isUploadPageVisible) {
       final canLeave = await _confirmLeaveUploadPageIfNeeded();
@@ -453,6 +496,35 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
 
     _bootstrappedUserId = userId;
     return false;
+  }
+
+  void _onSyncedPlaybackStateChanged(SyncedPlaybackState? previous, SyncedPlaybackState next) {
+    final nextInvite = next.nextInvite;
+
+    if (nextInvite == null) {
+      _activeSyncedInvitePromptId = null;
+    } else if (nextInvite.id != _activeSyncedInvitePromptId) {
+      _activeSyncedInvitePromptId = nextInvite.id;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) {
+          return;
+        }
+        unawaited(_showSyncedPlaybackInvitePrompt(nextInvite));
+      });
+    }
+
+    final nextNotice = next.nextNotice;
+    if (nextNotice != null && nextNotice.id != _lastSyncedNoticeId) {
+      _lastSyncedNoticeId = nextNotice.id;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) {
+          return;
+        }
+        final messenger = ScaffoldMessenger.maybeOf(context);
+        messenger?.showSnackBar(SnackBar(content: Text(nextNotice.message)));
+        ref.read(syncedPlaybackProvider.notifier).consumeNotice(nextNotice.id);
+      });
+    }
   }
 
   @override

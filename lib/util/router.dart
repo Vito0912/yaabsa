@@ -43,6 +43,8 @@ import 'package:yaabsa/screens/settings/player/player_settings_subtitles.dart';
 import 'package:yaabsa/screens/settings/reader_settings.dart';
 import 'package:yaabsa/screens/settings/server_connection_settings.dart';
 import 'package:yaabsa/screens/settings/server_management_settings.dart';
+import 'package:yaabsa/screens/settings/social/social_connections_settings.dart';
+import 'package:yaabsa/screens/settings/social_settings.dart';
 import 'package:yaabsa/screens/settings/settings_screen.dart';
 import 'package:yaabsa/screens/settings/theme_settings.dart';
 import 'package:yaabsa/screens/settings/tools_settings.dart';
@@ -200,6 +202,11 @@ final globalRouter = GoRouter(
                     GoRoute(path: AppearanceSettings.routeName, builder: (context, state) => AppearanceSettings()),
                     GoRoute(path: ThemeSettings.routeName, builder: (context, state) => const ThemeSettings()),
                     GoRoute(path: GlobalPlayerSettings.routeName, builder: (context, state) => GlobalPlayerSettings()),
+                    GoRoute(path: SocialSettings.routeName, builder: (context, state) => const SocialSettings()),
+                    GoRoute(
+                      path: SocialConnectionsSettings.routeName,
+                      builder: (context, state) => const SocialConnectionsSettings(),
+                    ),
                     GoRoute(path: LibrarySettings.routeName, builder: (context, state) => LibrarySettings()),
                     GoRoute(path: AndroidAutoSettings.routeName, builder: (context, state) => AndroidAutoSettings()),
                     GoRoute(path: CachingSettings.routeName, builder: (context, state) => CachingSettings()),

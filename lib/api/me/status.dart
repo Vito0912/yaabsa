@@ -7,6 +7,7 @@ part 'status.g.dart';
 abstract class ServerStatus with _$ServerStatus {
   const factory ServerStatus({
     @JsonKey(name: 'app') required String app,
+    @JsonKey(name: 'compatibility') @Default(<String>[]) List<String> compatibility,
     @JsonKey(name: 'serverVersion') required String serverVersion,
     @JsonKey(name: 'isInit') required bool isInit,
     @JsonKey(name: 'language') required String language,

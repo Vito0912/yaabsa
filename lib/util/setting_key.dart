@@ -66,6 +66,9 @@ class SettingKeys {
   static const String shakeToRewind = 'shake_to_rewind';
   static const String shakeSensitivity = 'shake_sensitivity';
   static const String shakeVibrate = 'shake_vibrate';
+  static const String socialSyncedPlayback = 'social_synced_playback';
+  static const String socialSyncedPlaybackClientId = 'social_synced_playback_client_id';
+  static const String socialSyncedPlaybackAvailabilityCache = 'social_synced_playback_availability_cache';
 
   static const String fastForwardInterval = 'fast_forward_interval';
   static const String rewindInterval = 'rewind_interval';
@@ -176,6 +179,9 @@ final defaultSettings = {
   SettingKeys.shakeToRewind: true,
   SettingKeys.shakeSensitivity: 2.0,
   SettingKeys.shakeVibrate: true,
+  SettingKeys.socialSyncedPlayback: false,
+  SettingKeys.socialSyncedPlaybackClientId: '',
+  SettingKeys.socialSyncedPlaybackAvailabilityCache: '',
   SettingKeys.fastForwardInterval: 10,
   SettingKeys.rewindInterval: 10,
 

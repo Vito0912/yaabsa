@@ -64,4 +64,4 @@ Map<String, dynamic> _$ServerSettingsToJson(_ServerSettings instance) => <String
   'version': instance.version,
 };
 
-const _$LogLevelEnumMap = {LogLevel.debug: 1, LogLevel.info: 2, LogLevel.warn: 3, LogLevel.error: 4};
+const _$LogLevelEnumMap = {LogLevel.trace: 0, LogLevel.debug: 1, LogLevel.info: 2, LogLevel.warn: 3, LogLevel.error: 4};

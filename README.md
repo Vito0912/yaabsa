@@ -51,6 +51,9 @@ Below is a list of all features, but I want to _highlight_ a few, as this client
 * Support for all platforms Linux, Android, Android Automotive, iOS, macOS, Windows with responsive design
 * More actions directly via the notification player
 * You can **customize the player** components and move them around
+* **Synced** playback and syncable progress with other users *
+
+\* Needs custom fork
 
 > [!NOTE]
 > Please note that this client is a mainly personal project I started because it lacks features\
@@ -105,6 +108,9 @@ Below is a list of all features, but I want to _highlight_ a few, as this client
 | Auto-Download next in queue     | 🅿️      | 🅿️  | 🅿️      | 🅿️    | 🅿️    |
 | Auto-Resume                     | ✅      | ✅  | ✅      | ✅    | ✅    |
 | Subtitles (karaoke-style)       | ✅      | ✅  | ✅      | ✅    | ✅    |
+| Synced Playback \*              | ✅      | ✅  | ✅      | ✅    | ✅    |
+
+\* Needs custom fork
 
 ### E-Reader
 
