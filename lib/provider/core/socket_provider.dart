@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:yaabsa/api/me/user.dart';
+import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/api/socket/abs_socket_client.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/common/library_item_sync.dart';
@@ -138,6 +139,7 @@ ABSSocketClient absSocketClient(Ref ref) {
 
   User? currentUser = ref.read(currentUserProvider).value;
   bool canReachServer = ref.read(serverStatusProvider).value ?? false;
+  ABSApi? currentApi = ref.read(absApiProvider);
   final initialKeepSocketSetting = ref
       .read(globalSettingByKeyProvider(SettingKeys.keepWebsocketConnectionInBackground))
       .value;
@@ -156,7 +158,7 @@ ABSSocketClient absSocketClient(Ref ref) {
       return;
     }
 
-    final api = ref.read(absApiProvider);
+    final api = currentApi;
     if (api == null) {
       return;
     }
@@ -265,6 +267,11 @@ ABSSocketClient absSocketClient(Ref ref) {
   ref.listen<AsyncValue<bool>>(serverStatusProvider, (previous, next) {
     canReachServer = next.value ?? false;
     syncSocketConnection();
+    unawaited(hydrateServerTasksForUser(currentUser, serverReachable: canReachServer));
+  });
+
+  ref.listen<ABSApi?>(absApiProvider, (previous, next) {
+    currentApi = next;
     unawaited(hydrateServerTasksForUser(currentUser, serverReachable: canReachServer));
   });
 

@@ -14,7 +14,7 @@ class SocialSyncedPlaybackSection extends StatelessWidget {
 
     return SettingSwitch(
       label: 'Synced playback',
-      description: 'Placeholder switch for future synced playback support.',
+      description: 'Allow mutual users to invite you and keep playback actions synchronized in real time.',
       settingKey: SettingKeys.socialSyncedPlayback,
       userId: userId,
       defaultValue: false,

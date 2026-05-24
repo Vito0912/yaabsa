@@ -33,7 +33,7 @@ final class UserMessageConsentsNotifierProvider
   UserMessageConsentsNotifier create() => UserMessageConsentsNotifier();
 }
 
-String _$userMessageConsentsNotifierHash() => r'5236f32c7d9a6c28828ca7e81f5f9167f566843a';
+String _$userMessageConsentsNotifierHash() => r'ebf41d73d983fec8bf243748d8744354d1945913';
 
 abstract class _$UserMessageConsentsNotifier extends $AsyncNotifier<SocialConnectionState> {
   FutureOr<SocialConnectionState> build();

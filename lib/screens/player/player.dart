@@ -4,12 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:yaabsa/components/player/synced_playback_user_picker_dialog.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/components/player/common/cast_button.dart';
 import 'package:yaabsa/components/player/common/stop_button.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/provider/social/synced_playback_provider.dart';
 import 'package:yaabsa/screens/player/bookmarks_sheet.dart';
 import 'package:yaabsa/screens/player/car_mode_screen.dart';
 import 'package:yaabsa/screens/player/components/player_chapters_component.dart';
@@ -32,7 +34,7 @@ import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
-enum _PlayerAppBarMenuAction { queue, addBookmark, carMode, playHistory, cast }
+enum _PlayerAppBarMenuAction { queue, addBookmark, syncedPlayback, carMode, playHistory, cast }
 
 class Player extends ConsumerStatefulWidget {
   const Player({super.key});
@@ -184,6 +186,8 @@ class _PlayerState extends ConsumerState<Player> {
         _showQueueSheet(context);
       case _PlayerAppBarMenuAction.addBookmark:
         _showBookmarksSheet(context);
+      case _PlayerAppBarMenuAction.syncedPlayback:
+        await _showSyncedPlaybackUserPicker(context);
       case _PlayerAppBarMenuAction.carMode:
         _openCarMode(context);
       case _PlayerAppBarMenuAction.playHistory:
@@ -193,9 +197,44 @@ class _PlayerState extends ConsumerState<Player> {
     }
   }
 
+  Future<void> _showSyncedPlaybackUserPicker(BuildContext context) async {
+    final syncedPlaybackState = ref.read(syncedPlaybackProvider);
+    if (!syncedPlaybackState.showPlayerMenuEntry || syncedPlaybackState.inviteTargets.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('No users available for synced playback.')));
+      return;
+    }
+
+    final selectedUserId = await showDialog<String>(
+      context: context,
+      builder: (_) => SyncedPlaybackUserPickerDialog(users: syncedPlaybackState.inviteTargets),
+    );
+
+    if (selectedUserId == null || selectedUserId.trim().isEmpty) {
+      return;
+    }
+
+    try {
+      await ref.read(syncedPlaybackProvider.notifier).sendInvite(selectedUserId);
+      if (!context.mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Synced playback invite sent.')));
+    } catch (error) {
+      if (!context.mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Could not send synced playback invite: $error')));
+    }
+  }
+
   List<PopupMenuEntry<_PlayerAppBarMenuAction>> _buildOverflowMenuItems({
     required bool isMobile,
     required bool castSupported,
+    required bool showSyncedPlayback,
   }) {
     final items = <PopupMenuEntry<_PlayerAppBarMenuAction>>[];
 
@@ -214,6 +253,15 @@ class _PlayerState extends ConsumerState<Player> {
         child: _PlayerAppBarMenuItem(icon: Icons.bookmarks_outlined, label: 'Bookmarks'),
       ),
     );
+
+    if (showSyncedPlayback) {
+      items.add(
+        const PopupMenuItem<_PlayerAppBarMenuAction>(
+          value: _PlayerAppBarMenuAction.syncedPlayback,
+          child: _PlayerAppBarMenuItem(icon: Icons.people_alt_outlined, label: 'Synced Playback'),
+        ),
+      );
+    }
 
     items.addAll(<PopupMenuEntry<_PlayerAppBarMenuAction>>[
       const PopupMenuItem<_PlayerAppBarMenuAction>(
@@ -559,6 +607,8 @@ class _PlayerState extends ConsumerState<Player> {
 
     final castSupported = ChromeCastService.isSupportedPlatform;
     final isMobile = context.isMobile;
+    final syncedPlaybackState = ref.watch(syncedPlaybackProvider);
+    final showSyncedPlaybackMenuEntry = syncedPlaybackState.showPlayerMenuEntry;
     final activeScreenSize = PlayerLayoutScreenSize.fromBreakpoint(context.breakpoint);
     final activeProfile = _activeProfileForScreen(activeScreenSize);
     final activeSeekBarPlacement = activeProfile.placementFor(PlayerComponentType.seekBar);
@@ -675,7 +725,11 @@ class _PlayerState extends ConsumerState<Player> {
                   await _handleAppBarMenuAction(context, action);
                 },
                 itemBuilder: (BuildContext context) {
-                  return _buildOverflowMenuItems(isMobile: isMobile, castSupported: castSupported);
+                  return _buildOverflowMenuItems(
+                    isMobile: isMobile,
+                    castSupported: castSupported,
+                    showSyncedPlayback: showSyncedPlaybackMenuEntry,
+                  );
                 },
               ),
             ],

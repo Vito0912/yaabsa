@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:yaabsa/api/library_items/library_item.dart';
+import 'package:yaabsa/api/socket/events/user_message_event.dart';
 import 'package:yaabsa/api/socket/events/user_item_progress_updated_event.dart';
 import 'package:yaabsa/api/tasks/abs_task.dart';
 import 'package:yaabsa/util/logger.dart';
@@ -54,6 +57,8 @@ class ABSSocketClient {
   final TrackStateHandler _onTrackFinished;
   final TaskProgressHandler _onTaskProgress;
   final Map<String, ServerLogHandler> _serverLogHandlers = <String, ServerLogHandler>{};
+  final StreamController<SocketUserMessageEvent> _userMessageController =
+      StreamController<SocketUserMessageEvent>.broadcast();
 
   int _nextServerLogHandlerId = 0;
   int _serverLogListenerLevel = 2;
@@ -64,6 +69,7 @@ class ABSSocketClient {
   String? _headersSignature;
 
   bool get isConnected => _socket?.connected ?? false;
+  Stream<SocketUserMessageEvent> get userMessages => _userMessageController.stream;
 
   String addServerLogListener(ServerLogHandler handler) {
     final listenerId = 'log_listener_${_nextServerLogHandlerId++}';
@@ -129,6 +135,31 @@ class ABSSocketClient {
     _disposeSocket();
     _serverUrl = null;
     _headersSignature = null;
+    if (!_userMessageController.isClosed) {
+      _userMessageController.close();
+    }
+  }
+
+  bool sendUserMessage({
+    required String userId,
+    required String message,
+    required String client,
+    required int clientVersion,
+    required String clientId,
+  }) {
+    final socket = _socket;
+    if (socket == null || !socket.connected) {
+      return false;
+    }
+
+    socket.emit('message_user', <String, dynamic>{
+      'userId': userId,
+      'message': message,
+      'client': client,
+      'clientVersion': clientVersion,
+      'clientId': clientId,
+    });
+    return true;
   }
 
   void _registerSocketListeners(io.Socket socket) {
@@ -385,6 +416,47 @@ class ABSSocketClient {
           logger('Server log handler failed: $e\n$s', tag: 'ABSSocketClient', level: InfoLevel.warning);
         }
       }
+    });
+
+    socket.on('user_message', (dynamic payload) {
+      final payloadJson = _payloadToJson(payload);
+      if (payloadJson == null) {
+        logger(
+          'Received malformed user_message payload: ${_stringifyPayload(payload)}',
+          tag: 'ABSSocketClient',
+          level: InfoLevel.warning,
+        );
+        return;
+      }
+
+      try {
+        final event = SocketUserMessageEvent.fromJson(payloadJson);
+        if (!_userMessageController.isClosed) {
+          _userMessageController.add(event);
+        }
+      } catch (error, stackTrace) {
+        logger(
+          'Failed to parse user_message payload: $error\n$stackTrace',
+          tag: 'ABSSocketClient',
+          level: InfoLevel.warning,
+        );
+      }
+    });
+
+    socket.on('user_message_sent', (dynamic payload) {
+      logger(
+        'Processed user_message_sent payload: ${_stringifyPayload(payload)}',
+        tag: 'ABSSocketClient',
+        level: InfoLevel.debug,
+      );
+    });
+
+    socket.on('user_message_error', (dynamic payload) {
+      logger(
+        'Received user_message_error payload: ${_stringifyPayload(payload)}',
+        tag: 'ABSSocketClient',
+        level: InfoLevel.warning,
+      );
     });
   }
 
