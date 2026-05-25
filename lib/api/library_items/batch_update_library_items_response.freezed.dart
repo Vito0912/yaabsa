@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$BatchUpdateLibraryItemsResponse {
 
-@JsonKey(name: 'success') bool get success;@JsonKey(name: 'updates', fromJson: _intFromDynamic) int get updates;
+@JsonKey(name: 'success') bool get success;@JsonKey(name: 'updates', fromJson: jsonIntRequiredFromDynamic) int get updates;
 /// Create a copy of BatchUpdateLibraryItemsResponse
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $BatchUpdateLibraryItemsResponseCopyWith<$Res>  {
   factory $BatchUpdateLibraryItemsResponseCopyWith(BatchUpdateLibraryItemsResponse value, $Res Function(BatchUpdateLibraryItemsResponse) _then) = _$BatchUpdateLibraryItemsResponseCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'success') bool success,@JsonKey(name: 'updates', fromJson: _intFromDynamic) int updates
+@JsonKey(name: 'success') bool success,@JsonKey(name: 'updates', fromJson: jsonIntRequiredFromDynamic) int updates
 });
 
 
@@ -154,7 +154,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'success')  bool success, @JsonKey(name: 'updates', fromJson: _intFromDynamic)  int updates)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'success')  bool success, @JsonKey(name: 'updates', fromJson: jsonIntRequiredFromDynamic)  int updates)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _BatchUpdateLibraryItemsResponse() when $default != null:
 return $default(_that.success,_that.updates);case _:
@@ -175,7 +175,7 @@ return $default(_that.success,_that.updates);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'success')  bool success, @JsonKey(name: 'updates', fromJson: _intFromDynamic)  int updates)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'success')  bool success, @JsonKey(name: 'updates', fromJson: jsonIntRequiredFromDynamic)  int updates)  $default,) {final _that = this;
 switch (_that) {
 case _BatchUpdateLibraryItemsResponse():
 return $default(_that.success,_that.updates);case _:
@@ -195,7 +195,7 @@ return $default(_that.success,_that.updates);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'success')  bool success, @JsonKey(name: 'updates', fromJson: _intFromDynamic)  int updates)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'success')  bool success, @JsonKey(name: 'updates', fromJson: jsonIntRequiredFromDynamic)  int updates)?  $default,) {final _that = this;
 switch (_that) {
 case _BatchUpdateLibraryItemsResponse() when $default != null:
 return $default(_that.success,_that.updates);case _:
@@ -210,11 +210,11 @@ return $default(_that.success,_that.updates);case _:
 @JsonSerializable()
 
 class _BatchUpdateLibraryItemsResponse implements BatchUpdateLibraryItemsResponse {
-  const _BatchUpdateLibraryItemsResponse({@JsonKey(name: 'success') this.success = false, @JsonKey(name: 'updates', fromJson: _intFromDynamic) this.updates = 0});
+  const _BatchUpdateLibraryItemsResponse({@JsonKey(name: 'success') this.success = false, @JsonKey(name: 'updates', fromJson: jsonIntRequiredFromDynamic) this.updates = 0});
   factory _BatchUpdateLibraryItemsResponse.fromJson(Map<String, dynamic> json) => _$BatchUpdateLibraryItemsResponseFromJson(json);
 
 @override@JsonKey(name: 'success') final  bool success;
-@override@JsonKey(name: 'updates', fromJson: _intFromDynamic) final  int updates;
+@override@JsonKey(name: 'updates', fromJson: jsonIntRequiredFromDynamic) final  int updates;
 
 /// Create a copy of BatchUpdateLibraryItemsResponse
 /// with the given fields replaced by the non-null parameter values.
@@ -249,7 +249,7 @@ abstract mixin class _$BatchUpdateLibraryItemsResponseCopyWith<$Res> implements 
   factory _$BatchUpdateLibraryItemsResponseCopyWith(_BatchUpdateLibraryItemsResponse value, $Res Function(_BatchUpdateLibraryItemsResponse) _then) = __$BatchUpdateLibraryItemsResponseCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'success') bool success,@JsonKey(name: 'updates', fromJson: _intFromDynamic) int updates
+@JsonKey(name: 'success') bool success,@JsonKey(name: 'updates', fromJson: jsonIntRequiredFromDynamic) int updates
 });
 
 

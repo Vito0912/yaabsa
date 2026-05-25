@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ServerLogEntry {
 
-@JsonKey(name: 'timestamp') String get timestamp;@JsonKey(name: 'source') String? get source;@JsonKey(name: 'message') String get message;@JsonKey(name: 'levelName') String get levelName;@JsonKey(name: 'level', fromJson: _intFromDynamic) int get level;
+@JsonKey(name: 'timestamp') String get timestamp;@JsonKey(name: 'source') String? get source;@JsonKey(name: 'message') String get message;@JsonKey(name: 'levelName') String get levelName;@JsonKey(name: 'level', fromJson: jsonIntRequiredFromDynamic) int get level;
 /// Create a copy of ServerLogEntry
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $ServerLogEntryCopyWith<$Res>  {
   factory $ServerLogEntryCopyWith(ServerLogEntry value, $Res Function(ServerLogEntry) _then) = _$ServerLogEntryCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'timestamp') String timestamp,@JsonKey(name: 'source') String? source,@JsonKey(name: 'message') String message,@JsonKey(name: 'levelName') String levelName,@JsonKey(name: 'level', fromJson: _intFromDynamic) int level
+@JsonKey(name: 'timestamp') String timestamp,@JsonKey(name: 'source') String? source,@JsonKey(name: 'message') String message,@JsonKey(name: 'levelName') String levelName,@JsonKey(name: 'level', fromJson: jsonIntRequiredFromDynamic) int level
 });
 
 
@@ -157,7 +157,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'timestamp')  String timestamp, @JsonKey(name: 'source')  String? source, @JsonKey(name: 'message')  String message, @JsonKey(name: 'levelName')  String levelName, @JsonKey(name: 'level', fromJson: _intFromDynamic)  int level)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'timestamp')  String timestamp, @JsonKey(name: 'source')  String? source, @JsonKey(name: 'message')  String message, @JsonKey(name: 'levelName')  String levelName, @JsonKey(name: 'level', fromJson: jsonIntRequiredFromDynamic)  int level)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ServerLogEntry() when $default != null:
 return $default(_that.timestamp,_that.source,_that.message,_that.levelName,_that.level);case _:
@@ -178,7 +178,7 @@ return $default(_that.timestamp,_that.source,_that.message,_that.levelName,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'timestamp')  String timestamp, @JsonKey(name: 'source')  String? source, @JsonKey(name: 'message')  String message, @JsonKey(name: 'levelName')  String levelName, @JsonKey(name: 'level', fromJson: _intFromDynamic)  int level)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'timestamp')  String timestamp, @JsonKey(name: 'source')  String? source, @JsonKey(name: 'message')  String message, @JsonKey(name: 'levelName')  String levelName, @JsonKey(name: 'level', fromJson: jsonIntRequiredFromDynamic)  int level)  $default,) {final _that = this;
 switch (_that) {
 case _ServerLogEntry():
 return $default(_that.timestamp,_that.source,_that.message,_that.levelName,_that.level);case _:
@@ -198,7 +198,7 @@ return $default(_that.timestamp,_that.source,_that.message,_that.levelName,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'timestamp')  String timestamp, @JsonKey(name: 'source')  String? source, @JsonKey(name: 'message')  String message, @JsonKey(name: 'levelName')  String levelName, @JsonKey(name: 'level', fromJson: _intFromDynamic)  int level)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'timestamp')  String timestamp, @JsonKey(name: 'source')  String? source, @JsonKey(name: 'message')  String message, @JsonKey(name: 'levelName')  String levelName, @JsonKey(name: 'level', fromJson: jsonIntRequiredFromDynamic)  int level)?  $default,) {final _that = this;
 switch (_that) {
 case _ServerLogEntry() when $default != null:
 return $default(_that.timestamp,_that.source,_that.message,_that.levelName,_that.level);case _:
@@ -213,14 +213,14 @@ return $default(_that.timestamp,_that.source,_that.message,_that.levelName,_that
 @JsonSerializable()
 
 class _ServerLogEntry implements ServerLogEntry {
-  const _ServerLogEntry({@JsonKey(name: 'timestamp') required this.timestamp, @JsonKey(name: 'source') this.source, @JsonKey(name: 'message') required this.message, @JsonKey(name: 'levelName') required this.levelName, @JsonKey(name: 'level', fromJson: _intFromDynamic) required this.level});
+  const _ServerLogEntry({@JsonKey(name: 'timestamp') required this.timestamp, @JsonKey(name: 'source') this.source, @JsonKey(name: 'message') required this.message, @JsonKey(name: 'levelName') required this.levelName, @JsonKey(name: 'level', fromJson: jsonIntRequiredFromDynamic) required this.level});
   factory _ServerLogEntry.fromJson(Map<String, dynamic> json) => _$ServerLogEntryFromJson(json);
 
 @override@JsonKey(name: 'timestamp') final  String timestamp;
 @override@JsonKey(name: 'source') final  String? source;
 @override@JsonKey(name: 'message') final  String message;
 @override@JsonKey(name: 'levelName') final  String levelName;
-@override@JsonKey(name: 'level', fromJson: _intFromDynamic) final  int level;
+@override@JsonKey(name: 'level', fromJson: jsonIntRequiredFromDynamic) final  int level;
 
 /// Create a copy of ServerLogEntry
 /// with the given fields replaced by the non-null parameter values.
@@ -255,7 +255,7 @@ abstract mixin class _$ServerLogEntryCopyWith<$Res> implements $ServerLogEntryCo
   factory _$ServerLogEntryCopyWith(_ServerLogEntry value, $Res Function(_ServerLogEntry) _then) = __$ServerLogEntryCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'timestamp') String timestamp,@JsonKey(name: 'source') String? source,@JsonKey(name: 'message') String message,@JsonKey(name: 'levelName') String levelName,@JsonKey(name: 'level', fromJson: _intFromDynamic) int level
+@JsonKey(name: 'timestamp') String timestamp,@JsonKey(name: 'source') String? source,@JsonKey(name: 'message') String message,@JsonKey(name: 'levelName') String levelName,@JsonKey(name: 'level', fromJson: jsonIntRequiredFromDynamic) int level
 });
 
 

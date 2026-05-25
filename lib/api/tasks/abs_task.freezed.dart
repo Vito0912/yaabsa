@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AbsTask {
 
-@JsonKey(name: 'id') String get id;@JsonKey(name: 'action') String get action;@JsonKey(name: 'data') AbsTaskData? get data;@JsonKey(name: 'title') String? get title;@JsonKey(name: 'titleKey') String? get titleKey;@JsonKey(name: 'titleSubs', fromJson: _stringListFromDynamic) List<String> get titleSubs;@JsonKey(name: 'description') String? get description;@JsonKey(name: 'descriptionKey') String? get descriptionKey;@JsonKey(name: 'descriptionSubs', fromJson: _stringListFromDynamic) List<String> get descriptionSubs;@JsonKey(name: 'error') String? get error;@JsonKey(name: 'errorKey') String? get errorKey;@JsonKey(name: 'errorSubs', fromJson: _stringListFromDynamic) List<String> get errorSubs;@JsonKey(name: 'showSuccess') bool get showSuccess;@JsonKey(name: 'isFailed') bool get isFailed;@JsonKey(name: 'isFinished') bool get isFinished;@JsonKey(name: 'startedAt', fromJson: jsonIntFromDynamic) int? get startedAt;@JsonKey(name: 'finishedAt', fromJson: jsonIntFromDynamic) int? get finishedAt;
+@JsonKey(name: 'id') String get id;@JsonKey(name: 'action') String get action;@JsonKey(name: 'data') AbsTaskData? get data;@JsonKey(name: 'title') String? get title;@JsonKey(name: 'titleKey') String? get titleKey;@JsonKey(name: 'titleSubs', fromJson: jsonStringListFromDynamic) List<String> get titleSubs;@JsonKey(name: 'description') String? get description;@JsonKey(name: 'descriptionKey') String? get descriptionKey;@JsonKey(name: 'descriptionSubs', fromJson: jsonStringListFromDynamic) List<String> get descriptionSubs;@JsonKey(name: 'error') String? get error;@JsonKey(name: 'errorKey') String? get errorKey;@JsonKey(name: 'errorSubs', fromJson: jsonStringListFromDynamic) List<String> get errorSubs;@JsonKey(name: 'showSuccess') bool get showSuccess;@JsonKey(name: 'isFailed') bool get isFailed;@JsonKey(name: 'isFinished') bool get isFinished;@JsonKey(name: 'startedAt', fromJson: jsonIntFromDynamic) int? get startedAt;@JsonKey(name: 'finishedAt', fromJson: jsonIntFromDynamic) int? get finishedAt;
 /// Create a copy of AbsTask
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $AbsTaskCopyWith<$Res>  {
   factory $AbsTaskCopyWith(AbsTask value, $Res Function(AbsTask) _then) = _$AbsTaskCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'id') String id,@JsonKey(name: 'action') String action,@JsonKey(name: 'data') AbsTaskData? data,@JsonKey(name: 'title') String? title,@JsonKey(name: 'titleKey') String? titleKey,@JsonKey(name: 'titleSubs', fromJson: _stringListFromDynamic) List<String> titleSubs,@JsonKey(name: 'description') String? description,@JsonKey(name: 'descriptionKey') String? descriptionKey,@JsonKey(name: 'descriptionSubs', fromJson: _stringListFromDynamic) List<String> descriptionSubs,@JsonKey(name: 'error') String? error,@JsonKey(name: 'errorKey') String? errorKey,@JsonKey(name: 'errorSubs', fromJson: _stringListFromDynamic) List<String> errorSubs,@JsonKey(name: 'showSuccess') bool showSuccess,@JsonKey(name: 'isFailed') bool isFailed,@JsonKey(name: 'isFinished') bool isFinished,@JsonKey(name: 'startedAt', fromJson: jsonIntFromDynamic) int? startedAt,@JsonKey(name: 'finishedAt', fromJson: jsonIntFromDynamic) int? finishedAt
+@JsonKey(name: 'id') String id,@JsonKey(name: 'action') String action,@JsonKey(name: 'data') AbsTaskData? data,@JsonKey(name: 'title') String? title,@JsonKey(name: 'titleKey') String? titleKey,@JsonKey(name: 'titleSubs', fromJson: jsonStringListFromDynamic) List<String> titleSubs,@JsonKey(name: 'description') String? description,@JsonKey(name: 'descriptionKey') String? descriptionKey,@JsonKey(name: 'descriptionSubs', fromJson: jsonStringListFromDynamic) List<String> descriptionSubs,@JsonKey(name: 'error') String? error,@JsonKey(name: 'errorKey') String? errorKey,@JsonKey(name: 'errorSubs', fromJson: jsonStringListFromDynamic) List<String> errorSubs,@JsonKey(name: 'showSuccess') bool showSuccess,@JsonKey(name: 'isFailed') bool isFailed,@JsonKey(name: 'isFinished') bool isFinished,@JsonKey(name: 'startedAt', fromJson: jsonIntFromDynamic) int? startedAt,@JsonKey(name: 'finishedAt', fromJson: jsonIntFromDynamic) int? finishedAt
 });
 
 
@@ -181,7 +181,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'id')  String id, @JsonKey(name: 'action')  String action, @JsonKey(name: 'data')  AbsTaskData? data, @JsonKey(name: 'title')  String? title, @JsonKey(name: 'titleKey')  String? titleKey, @JsonKey(name: 'titleSubs', fromJson: _stringListFromDynamic)  List<String> titleSubs, @JsonKey(name: 'description')  String? description, @JsonKey(name: 'descriptionKey')  String? descriptionKey, @JsonKey(name: 'descriptionSubs', fromJson: _stringListFromDynamic)  List<String> descriptionSubs, @JsonKey(name: 'error')  String? error, @JsonKey(name: 'errorKey')  String? errorKey, @JsonKey(name: 'errorSubs', fromJson: _stringListFromDynamic)  List<String> errorSubs, @JsonKey(name: 'showSuccess')  bool showSuccess, @JsonKey(name: 'isFailed')  bool isFailed, @JsonKey(name: 'isFinished')  bool isFinished, @JsonKey(name: 'startedAt', fromJson: jsonIntFromDynamic)  int? startedAt, @JsonKey(name: 'finishedAt', fromJson: jsonIntFromDynamic)  int? finishedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'id')  String id, @JsonKey(name: 'action')  String action, @JsonKey(name: 'data')  AbsTaskData? data, @JsonKey(name: 'title')  String? title, @JsonKey(name: 'titleKey')  String? titleKey, @JsonKey(name: 'titleSubs', fromJson: jsonStringListFromDynamic)  List<String> titleSubs, @JsonKey(name: 'description')  String? description, @JsonKey(name: 'descriptionKey')  String? descriptionKey, @JsonKey(name: 'descriptionSubs', fromJson: jsonStringListFromDynamic)  List<String> descriptionSubs, @JsonKey(name: 'error')  String? error, @JsonKey(name: 'errorKey')  String? errorKey, @JsonKey(name: 'errorSubs', fromJson: jsonStringListFromDynamic)  List<String> errorSubs, @JsonKey(name: 'showSuccess')  bool showSuccess, @JsonKey(name: 'isFailed')  bool isFailed, @JsonKey(name: 'isFinished')  bool isFinished, @JsonKey(name: 'startedAt', fromJson: jsonIntFromDynamic)  int? startedAt, @JsonKey(name: 'finishedAt', fromJson: jsonIntFromDynamic)  int? finishedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AbsTask() when $default != null:
 return $default(_that.id,_that.action,_that.data,_that.title,_that.titleKey,_that.titleSubs,_that.description,_that.descriptionKey,_that.descriptionSubs,_that.error,_that.errorKey,_that.errorSubs,_that.showSuccess,_that.isFailed,_that.isFinished,_that.startedAt,_that.finishedAt);case _:
@@ -202,7 +202,7 @@ return $default(_that.id,_that.action,_that.data,_that.title,_that.titleKey,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'id')  String id, @JsonKey(name: 'action')  String action, @JsonKey(name: 'data')  AbsTaskData? data, @JsonKey(name: 'title')  String? title, @JsonKey(name: 'titleKey')  String? titleKey, @JsonKey(name: 'titleSubs', fromJson: _stringListFromDynamic)  List<String> titleSubs, @JsonKey(name: 'description')  String? description, @JsonKey(name: 'descriptionKey')  String? descriptionKey, @JsonKey(name: 'descriptionSubs', fromJson: _stringListFromDynamic)  List<String> descriptionSubs, @JsonKey(name: 'error')  String? error, @JsonKey(name: 'errorKey')  String? errorKey, @JsonKey(name: 'errorSubs', fromJson: _stringListFromDynamic)  List<String> errorSubs, @JsonKey(name: 'showSuccess')  bool showSuccess, @JsonKey(name: 'isFailed')  bool isFailed, @JsonKey(name: 'isFinished')  bool isFinished, @JsonKey(name: 'startedAt', fromJson: jsonIntFromDynamic)  int? startedAt, @JsonKey(name: 'finishedAt', fromJson: jsonIntFromDynamic)  int? finishedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'id')  String id, @JsonKey(name: 'action')  String action, @JsonKey(name: 'data')  AbsTaskData? data, @JsonKey(name: 'title')  String? title, @JsonKey(name: 'titleKey')  String? titleKey, @JsonKey(name: 'titleSubs', fromJson: jsonStringListFromDynamic)  List<String> titleSubs, @JsonKey(name: 'description')  String? description, @JsonKey(name: 'descriptionKey')  String? descriptionKey, @JsonKey(name: 'descriptionSubs', fromJson: jsonStringListFromDynamic)  List<String> descriptionSubs, @JsonKey(name: 'error')  String? error, @JsonKey(name: 'errorKey')  String? errorKey, @JsonKey(name: 'errorSubs', fromJson: jsonStringListFromDynamic)  List<String> errorSubs, @JsonKey(name: 'showSuccess')  bool showSuccess, @JsonKey(name: 'isFailed')  bool isFailed, @JsonKey(name: 'isFinished')  bool isFinished, @JsonKey(name: 'startedAt', fromJson: jsonIntFromDynamic)  int? startedAt, @JsonKey(name: 'finishedAt', fromJson: jsonIntFromDynamic)  int? finishedAt)  $default,) {final _that = this;
 switch (_that) {
 case _AbsTask():
 return $default(_that.id,_that.action,_that.data,_that.title,_that.titleKey,_that.titleSubs,_that.description,_that.descriptionKey,_that.descriptionSubs,_that.error,_that.errorKey,_that.errorSubs,_that.showSuccess,_that.isFailed,_that.isFinished,_that.startedAt,_that.finishedAt);case _:
@@ -222,7 +222,7 @@ return $default(_that.id,_that.action,_that.data,_that.title,_that.titleKey,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'id')  String id, @JsonKey(name: 'action')  String action, @JsonKey(name: 'data')  AbsTaskData? data, @JsonKey(name: 'title')  String? title, @JsonKey(name: 'titleKey')  String? titleKey, @JsonKey(name: 'titleSubs', fromJson: _stringListFromDynamic)  List<String> titleSubs, @JsonKey(name: 'description')  String? description, @JsonKey(name: 'descriptionKey')  String? descriptionKey, @JsonKey(name: 'descriptionSubs', fromJson: _stringListFromDynamic)  List<String> descriptionSubs, @JsonKey(name: 'error')  String? error, @JsonKey(name: 'errorKey')  String? errorKey, @JsonKey(name: 'errorSubs', fromJson: _stringListFromDynamic)  List<String> errorSubs, @JsonKey(name: 'showSuccess')  bool showSuccess, @JsonKey(name: 'isFailed')  bool isFailed, @JsonKey(name: 'isFinished')  bool isFinished, @JsonKey(name: 'startedAt', fromJson: jsonIntFromDynamic)  int? startedAt, @JsonKey(name: 'finishedAt', fromJson: jsonIntFromDynamic)  int? finishedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'id')  String id, @JsonKey(name: 'action')  String action, @JsonKey(name: 'data')  AbsTaskData? data, @JsonKey(name: 'title')  String? title, @JsonKey(name: 'titleKey')  String? titleKey, @JsonKey(name: 'titleSubs', fromJson: jsonStringListFromDynamic)  List<String> titleSubs, @JsonKey(name: 'description')  String? description, @JsonKey(name: 'descriptionKey')  String? descriptionKey, @JsonKey(name: 'descriptionSubs', fromJson: jsonStringListFromDynamic)  List<String> descriptionSubs, @JsonKey(name: 'error')  String? error, @JsonKey(name: 'errorKey')  String? errorKey, @JsonKey(name: 'errorSubs', fromJson: jsonStringListFromDynamic)  List<String> errorSubs, @JsonKey(name: 'showSuccess')  bool showSuccess, @JsonKey(name: 'isFailed')  bool isFailed, @JsonKey(name: 'isFinished')  bool isFinished, @JsonKey(name: 'startedAt', fromJson: jsonIntFromDynamic)  int? startedAt, @JsonKey(name: 'finishedAt', fromJson: jsonIntFromDynamic)  int? finishedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _AbsTask() when $default != null:
 return $default(_that.id,_that.action,_that.data,_that.title,_that.titleKey,_that.titleSubs,_that.description,_that.descriptionKey,_that.descriptionSubs,_that.error,_that.errorKey,_that.errorSubs,_that.showSuccess,_that.isFailed,_that.isFinished,_that.startedAt,_that.finishedAt);case _:
@@ -237,7 +237,7 @@ return $default(_that.id,_that.action,_that.data,_that.title,_that.titleKey,_tha
 @JsonSerializable()
 
 class _AbsTask implements AbsTask {
-  const _AbsTask({@JsonKey(name: 'id') required this.id, @JsonKey(name: 'action') this.action = '', @JsonKey(name: 'data') this.data, @JsonKey(name: 'title') this.title, @JsonKey(name: 'titleKey') this.titleKey, @JsonKey(name: 'titleSubs', fromJson: _stringListFromDynamic) final  List<String> titleSubs = const <String>[], @JsonKey(name: 'description') this.description, @JsonKey(name: 'descriptionKey') this.descriptionKey, @JsonKey(name: 'descriptionSubs', fromJson: _stringListFromDynamic) final  List<String> descriptionSubs = const <String>[], @JsonKey(name: 'error') this.error, @JsonKey(name: 'errorKey') this.errorKey, @JsonKey(name: 'errorSubs', fromJson: _stringListFromDynamic) final  List<String> errorSubs = const <String>[], @JsonKey(name: 'showSuccess') this.showSuccess = false, @JsonKey(name: 'isFailed') this.isFailed = false, @JsonKey(name: 'isFinished') this.isFinished = false, @JsonKey(name: 'startedAt', fromJson: jsonIntFromDynamic) this.startedAt, @JsonKey(name: 'finishedAt', fromJson: jsonIntFromDynamic) this.finishedAt}): _titleSubs = titleSubs,_descriptionSubs = descriptionSubs,_errorSubs = errorSubs;
+  const _AbsTask({@JsonKey(name: 'id') required this.id, @JsonKey(name: 'action') this.action = '', @JsonKey(name: 'data') this.data, @JsonKey(name: 'title') this.title, @JsonKey(name: 'titleKey') this.titleKey, @JsonKey(name: 'titleSubs', fromJson: jsonStringListFromDynamic) final  List<String> titleSubs = const <String>[], @JsonKey(name: 'description') this.description, @JsonKey(name: 'descriptionKey') this.descriptionKey, @JsonKey(name: 'descriptionSubs', fromJson: jsonStringListFromDynamic) final  List<String> descriptionSubs = const <String>[], @JsonKey(name: 'error') this.error, @JsonKey(name: 'errorKey') this.errorKey, @JsonKey(name: 'errorSubs', fromJson: jsonStringListFromDynamic) final  List<String> errorSubs = const <String>[], @JsonKey(name: 'showSuccess') this.showSuccess = false, @JsonKey(name: 'isFailed') this.isFailed = false, @JsonKey(name: 'isFinished') this.isFinished = false, @JsonKey(name: 'startedAt', fromJson: jsonIntFromDynamic) this.startedAt, @JsonKey(name: 'finishedAt', fromJson: jsonIntFromDynamic) this.finishedAt}): _titleSubs = titleSubs,_descriptionSubs = descriptionSubs,_errorSubs = errorSubs;
   factory _AbsTask.fromJson(Map<String, dynamic> json) => _$AbsTaskFromJson(json);
 
 @override@JsonKey(name: 'id') final  String id;
@@ -246,7 +246,7 @@ class _AbsTask implements AbsTask {
 @override@JsonKey(name: 'title') final  String? title;
 @override@JsonKey(name: 'titleKey') final  String? titleKey;
  final  List<String> _titleSubs;
-@override@JsonKey(name: 'titleSubs', fromJson: _stringListFromDynamic) List<String> get titleSubs {
+@override@JsonKey(name: 'titleSubs', fromJson: jsonStringListFromDynamic) List<String> get titleSubs {
   if (_titleSubs is EqualUnmodifiableListView) return _titleSubs;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_titleSubs);
@@ -255,7 +255,7 @@ class _AbsTask implements AbsTask {
 @override@JsonKey(name: 'description') final  String? description;
 @override@JsonKey(name: 'descriptionKey') final  String? descriptionKey;
  final  List<String> _descriptionSubs;
-@override@JsonKey(name: 'descriptionSubs', fromJson: _stringListFromDynamic) List<String> get descriptionSubs {
+@override@JsonKey(name: 'descriptionSubs', fromJson: jsonStringListFromDynamic) List<String> get descriptionSubs {
   if (_descriptionSubs is EqualUnmodifiableListView) return _descriptionSubs;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_descriptionSubs);
@@ -264,7 +264,7 @@ class _AbsTask implements AbsTask {
 @override@JsonKey(name: 'error') final  String? error;
 @override@JsonKey(name: 'errorKey') final  String? errorKey;
  final  List<String> _errorSubs;
-@override@JsonKey(name: 'errorSubs', fromJson: _stringListFromDynamic) List<String> get errorSubs {
+@override@JsonKey(name: 'errorSubs', fromJson: jsonStringListFromDynamic) List<String> get errorSubs {
   if (_errorSubs is EqualUnmodifiableListView) return _errorSubs;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_errorSubs);
@@ -309,7 +309,7 @@ abstract mixin class _$AbsTaskCopyWith<$Res> implements $AbsTaskCopyWith<$Res> {
   factory _$AbsTaskCopyWith(_AbsTask value, $Res Function(_AbsTask) _then) = __$AbsTaskCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'id') String id,@JsonKey(name: 'action') String action,@JsonKey(name: 'data') AbsTaskData? data,@JsonKey(name: 'title') String? title,@JsonKey(name: 'titleKey') String? titleKey,@JsonKey(name: 'titleSubs', fromJson: _stringListFromDynamic) List<String> titleSubs,@JsonKey(name: 'description') String? description,@JsonKey(name: 'descriptionKey') String? descriptionKey,@JsonKey(name: 'descriptionSubs', fromJson: _stringListFromDynamic) List<String> descriptionSubs,@JsonKey(name: 'error') String? error,@JsonKey(name: 'errorKey') String? errorKey,@JsonKey(name: 'errorSubs', fromJson: _stringListFromDynamic) List<String> errorSubs,@JsonKey(name: 'showSuccess') bool showSuccess,@JsonKey(name: 'isFailed') bool isFailed,@JsonKey(name: 'isFinished') bool isFinished,@JsonKey(name: 'startedAt', fromJson: jsonIntFromDynamic) int? startedAt,@JsonKey(name: 'finishedAt', fromJson: jsonIntFromDynamic) int? finishedAt
+@JsonKey(name: 'id') String id,@JsonKey(name: 'action') String action,@JsonKey(name: 'data') AbsTaskData? data,@JsonKey(name: 'title') String? title,@JsonKey(name: 'titleKey') String? titleKey,@JsonKey(name: 'titleSubs', fromJson: jsonStringListFromDynamic) List<String> titleSubs,@JsonKey(name: 'description') String? description,@JsonKey(name: 'descriptionKey') String? descriptionKey,@JsonKey(name: 'descriptionSubs', fromJson: jsonStringListFromDynamic) List<String> descriptionSubs,@JsonKey(name: 'error') String? error,@JsonKey(name: 'errorKey') String? errorKey,@JsonKey(name: 'errorSubs', fromJson: jsonStringListFromDynamic) List<String> errorSubs,@JsonKey(name: 'showSuccess') bool showSuccess,@JsonKey(name: 'isFailed') bool isFailed,@JsonKey(name: 'isFinished') bool isFinished,@JsonKey(name: 'startedAt', fromJson: jsonIntFromDynamic) int? startedAt,@JsonKey(name: 'finishedAt', fromJson: jsonIntFromDynamic) int? finishedAt
 });
 
 
@@ -368,7 +368,7 @@ $AbsTaskDataCopyWith<$Res>? get data {
 /// @nodoc
 mixin _$AbsTaskData {
 
-@JsonKey(name: 'libraryItemId', fromJson: _stringFromDynamic) String? get libraryItemId;@JsonKey(name: 'libraryId', fromJson: _stringFromDynamic) String? get libraryId;@JsonKey(name: 'ino', fromJson: _stringFromDynamic) String? get ino;@JsonKey(name: 'encodeOptions') AbsTaskEncodeOptions? get encodeOptions;@JsonKey(name: 'scanResults') AbsTaskScanResults? get scanResults;
+@JsonKey(name: 'libraryItemId', fromJson: jsonStringFromDynamic) String? get libraryItemId;@JsonKey(name: 'libraryId', fromJson: jsonStringFromDynamic) String? get libraryId;@JsonKey(name: 'ino', fromJson: jsonStringFromDynamic) String? get ino;@JsonKey(name: 'encodeOptions') AbsTaskEncodeOptions? get encodeOptions;@JsonKey(name: 'scanResults') AbsTaskScanResults? get scanResults;
 /// Create a copy of AbsTaskData
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -401,7 +401,7 @@ abstract mixin class $AbsTaskDataCopyWith<$Res>  {
   factory $AbsTaskDataCopyWith(AbsTaskData value, $Res Function(AbsTaskData) _then) = _$AbsTaskDataCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'libraryItemId', fromJson: _stringFromDynamic) String? libraryItemId,@JsonKey(name: 'libraryId', fromJson: _stringFromDynamic) String? libraryId,@JsonKey(name: 'ino', fromJson: _stringFromDynamic) String? ino,@JsonKey(name: 'encodeOptions') AbsTaskEncodeOptions? encodeOptions,@JsonKey(name: 'scanResults') AbsTaskScanResults? scanResults
+@JsonKey(name: 'libraryItemId', fromJson: jsonStringFromDynamic) String? libraryItemId,@JsonKey(name: 'libraryId', fromJson: jsonStringFromDynamic) String? libraryId,@JsonKey(name: 'ino', fromJson: jsonStringFromDynamic) String? ino,@JsonKey(name: 'encodeOptions') AbsTaskEncodeOptions? encodeOptions,@JsonKey(name: 'scanResults') AbsTaskScanResults? scanResults
 });
 
 
@@ -534,7 +534,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'libraryItemId', fromJson: _stringFromDynamic)  String? libraryItemId, @JsonKey(name: 'libraryId', fromJson: _stringFromDynamic)  String? libraryId, @JsonKey(name: 'ino', fromJson: _stringFromDynamic)  String? ino, @JsonKey(name: 'encodeOptions')  AbsTaskEncodeOptions? encodeOptions, @JsonKey(name: 'scanResults')  AbsTaskScanResults? scanResults)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'libraryItemId', fromJson: jsonStringFromDynamic)  String? libraryItemId, @JsonKey(name: 'libraryId', fromJson: jsonStringFromDynamic)  String? libraryId, @JsonKey(name: 'ino', fromJson: jsonStringFromDynamic)  String? ino, @JsonKey(name: 'encodeOptions')  AbsTaskEncodeOptions? encodeOptions, @JsonKey(name: 'scanResults')  AbsTaskScanResults? scanResults)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AbsTaskData() when $default != null:
 return $default(_that.libraryItemId,_that.libraryId,_that.ino,_that.encodeOptions,_that.scanResults);case _:
@@ -555,7 +555,7 @@ return $default(_that.libraryItemId,_that.libraryId,_that.ino,_that.encodeOption
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'libraryItemId', fromJson: _stringFromDynamic)  String? libraryItemId, @JsonKey(name: 'libraryId', fromJson: _stringFromDynamic)  String? libraryId, @JsonKey(name: 'ino', fromJson: _stringFromDynamic)  String? ino, @JsonKey(name: 'encodeOptions')  AbsTaskEncodeOptions? encodeOptions, @JsonKey(name: 'scanResults')  AbsTaskScanResults? scanResults)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'libraryItemId', fromJson: jsonStringFromDynamic)  String? libraryItemId, @JsonKey(name: 'libraryId', fromJson: jsonStringFromDynamic)  String? libraryId, @JsonKey(name: 'ino', fromJson: jsonStringFromDynamic)  String? ino, @JsonKey(name: 'encodeOptions')  AbsTaskEncodeOptions? encodeOptions, @JsonKey(name: 'scanResults')  AbsTaskScanResults? scanResults)  $default,) {final _that = this;
 switch (_that) {
 case _AbsTaskData():
 return $default(_that.libraryItemId,_that.libraryId,_that.ino,_that.encodeOptions,_that.scanResults);case _:
@@ -575,7 +575,7 @@ return $default(_that.libraryItemId,_that.libraryId,_that.ino,_that.encodeOption
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'libraryItemId', fromJson: _stringFromDynamic)  String? libraryItemId, @JsonKey(name: 'libraryId', fromJson: _stringFromDynamic)  String? libraryId, @JsonKey(name: 'ino', fromJson: _stringFromDynamic)  String? ino, @JsonKey(name: 'encodeOptions')  AbsTaskEncodeOptions? encodeOptions, @JsonKey(name: 'scanResults')  AbsTaskScanResults? scanResults)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'libraryItemId', fromJson: jsonStringFromDynamic)  String? libraryItemId, @JsonKey(name: 'libraryId', fromJson: jsonStringFromDynamic)  String? libraryId, @JsonKey(name: 'ino', fromJson: jsonStringFromDynamic)  String? ino, @JsonKey(name: 'encodeOptions')  AbsTaskEncodeOptions? encodeOptions, @JsonKey(name: 'scanResults')  AbsTaskScanResults? scanResults)?  $default,) {final _that = this;
 switch (_that) {
 case _AbsTaskData() when $default != null:
 return $default(_that.libraryItemId,_that.libraryId,_that.ino,_that.encodeOptions,_that.scanResults);case _:
@@ -590,12 +590,12 @@ return $default(_that.libraryItemId,_that.libraryId,_that.ino,_that.encodeOption
 @JsonSerializable()
 
 class _AbsTaskData implements AbsTaskData {
-  const _AbsTaskData({@JsonKey(name: 'libraryItemId', fromJson: _stringFromDynamic) this.libraryItemId, @JsonKey(name: 'libraryId', fromJson: _stringFromDynamic) this.libraryId, @JsonKey(name: 'ino', fromJson: _stringFromDynamic) this.ino, @JsonKey(name: 'encodeOptions') this.encodeOptions, @JsonKey(name: 'scanResults') this.scanResults});
+  const _AbsTaskData({@JsonKey(name: 'libraryItemId', fromJson: jsonStringFromDynamic) this.libraryItemId, @JsonKey(name: 'libraryId', fromJson: jsonStringFromDynamic) this.libraryId, @JsonKey(name: 'ino', fromJson: jsonStringFromDynamic) this.ino, @JsonKey(name: 'encodeOptions') this.encodeOptions, @JsonKey(name: 'scanResults') this.scanResults});
   factory _AbsTaskData.fromJson(Map<String, dynamic> json) => _$AbsTaskDataFromJson(json);
 
-@override@JsonKey(name: 'libraryItemId', fromJson: _stringFromDynamic) final  String? libraryItemId;
-@override@JsonKey(name: 'libraryId', fromJson: _stringFromDynamic) final  String? libraryId;
-@override@JsonKey(name: 'ino', fromJson: _stringFromDynamic) final  String? ino;
+@override@JsonKey(name: 'libraryItemId', fromJson: jsonStringFromDynamic) final  String? libraryItemId;
+@override@JsonKey(name: 'libraryId', fromJson: jsonStringFromDynamic) final  String? libraryId;
+@override@JsonKey(name: 'ino', fromJson: jsonStringFromDynamic) final  String? ino;
 @override@JsonKey(name: 'encodeOptions') final  AbsTaskEncodeOptions? encodeOptions;
 @override@JsonKey(name: 'scanResults') final  AbsTaskScanResults? scanResults;
 
@@ -632,7 +632,7 @@ abstract mixin class _$AbsTaskDataCopyWith<$Res> implements $AbsTaskDataCopyWith
   factory _$AbsTaskDataCopyWith(_AbsTaskData value, $Res Function(_AbsTaskData) _then) = __$AbsTaskDataCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'libraryItemId', fromJson: _stringFromDynamic) String? libraryItemId,@JsonKey(name: 'libraryId', fromJson: _stringFromDynamic) String? libraryId,@JsonKey(name: 'ino', fromJson: _stringFromDynamic) String? ino,@JsonKey(name: 'encodeOptions') AbsTaskEncodeOptions? encodeOptions,@JsonKey(name: 'scanResults') AbsTaskScanResults? scanResults
+@JsonKey(name: 'libraryItemId', fromJson: jsonStringFromDynamic) String? libraryItemId,@JsonKey(name: 'libraryId', fromJson: jsonStringFromDynamic) String? libraryId,@JsonKey(name: 'ino', fromJson: jsonStringFromDynamic) String? ino,@JsonKey(name: 'encodeOptions') AbsTaskEncodeOptions? encodeOptions,@JsonKey(name: 'scanResults') AbsTaskScanResults? scanResults
 });
 
 
@@ -691,7 +691,7 @@ $AbsTaskScanResultsCopyWith<$Res>? get scanResults {
 /// @nodoc
 mixin _$AbsTaskEncodeOptions {
 
-@JsonKey(name: 'codec', fromJson: _stringFromDynamic) String? get codec;@JsonKey(name: 'bitrate', fromJson: _stringFromDynamic) String? get bitrate;@JsonKey(name: 'channels', fromJson: jsonIntFromDynamic) int? get channels;
+@JsonKey(name: 'codec', fromJson: jsonStringFromDynamic) String? get codec;@JsonKey(name: 'bitrate', fromJson: jsonStringFromDynamic) String? get bitrate;@JsonKey(name: 'channels', fromJson: jsonIntFromDynamic) int? get channels;
 /// Create a copy of AbsTaskEncodeOptions
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -724,7 +724,7 @@ abstract mixin class $AbsTaskEncodeOptionsCopyWith<$Res>  {
   factory $AbsTaskEncodeOptionsCopyWith(AbsTaskEncodeOptions value, $Res Function(AbsTaskEncodeOptions) _then) = _$AbsTaskEncodeOptionsCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'codec', fromJson: _stringFromDynamic) String? codec,@JsonKey(name: 'bitrate', fromJson: _stringFromDynamic) String? bitrate,@JsonKey(name: 'channels', fromJson: jsonIntFromDynamic) int? channels
+@JsonKey(name: 'codec', fromJson: jsonStringFromDynamic) String? codec,@JsonKey(name: 'bitrate', fromJson: jsonStringFromDynamic) String? bitrate,@JsonKey(name: 'channels', fromJson: jsonIntFromDynamic) int? channels
 });
 
 
@@ -831,7 +831,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'codec', fromJson: _stringFromDynamic)  String? codec, @JsonKey(name: 'bitrate', fromJson: _stringFromDynamic)  String? bitrate, @JsonKey(name: 'channels', fromJson: jsonIntFromDynamic)  int? channels)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'codec', fromJson: jsonStringFromDynamic)  String? codec, @JsonKey(name: 'bitrate', fromJson: jsonStringFromDynamic)  String? bitrate, @JsonKey(name: 'channels', fromJson: jsonIntFromDynamic)  int? channels)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AbsTaskEncodeOptions() when $default != null:
 return $default(_that.codec,_that.bitrate,_that.channels);case _:
@@ -852,7 +852,7 @@ return $default(_that.codec,_that.bitrate,_that.channels);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'codec', fromJson: _stringFromDynamic)  String? codec, @JsonKey(name: 'bitrate', fromJson: _stringFromDynamic)  String? bitrate, @JsonKey(name: 'channels', fromJson: jsonIntFromDynamic)  int? channels)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'codec', fromJson: jsonStringFromDynamic)  String? codec, @JsonKey(name: 'bitrate', fromJson: jsonStringFromDynamic)  String? bitrate, @JsonKey(name: 'channels', fromJson: jsonIntFromDynamic)  int? channels)  $default,) {final _that = this;
 switch (_that) {
 case _AbsTaskEncodeOptions():
 return $default(_that.codec,_that.bitrate,_that.channels);case _:
@@ -872,7 +872,7 @@ return $default(_that.codec,_that.bitrate,_that.channels);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'codec', fromJson: _stringFromDynamic)  String? codec, @JsonKey(name: 'bitrate', fromJson: _stringFromDynamic)  String? bitrate, @JsonKey(name: 'channels', fromJson: jsonIntFromDynamic)  int? channels)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'codec', fromJson: jsonStringFromDynamic)  String? codec, @JsonKey(name: 'bitrate', fromJson: jsonStringFromDynamic)  String? bitrate, @JsonKey(name: 'channels', fromJson: jsonIntFromDynamic)  int? channels)?  $default,) {final _that = this;
 switch (_that) {
 case _AbsTaskEncodeOptions() when $default != null:
 return $default(_that.codec,_that.bitrate,_that.channels);case _:
@@ -887,11 +887,11 @@ return $default(_that.codec,_that.bitrate,_that.channels);case _:
 @JsonSerializable()
 
 class _AbsTaskEncodeOptions implements AbsTaskEncodeOptions {
-  const _AbsTaskEncodeOptions({@JsonKey(name: 'codec', fromJson: _stringFromDynamic) this.codec, @JsonKey(name: 'bitrate', fromJson: _stringFromDynamic) this.bitrate, @JsonKey(name: 'channels', fromJson: jsonIntFromDynamic) this.channels});
+  const _AbsTaskEncodeOptions({@JsonKey(name: 'codec', fromJson: jsonStringFromDynamic) this.codec, @JsonKey(name: 'bitrate', fromJson: jsonStringFromDynamic) this.bitrate, @JsonKey(name: 'channels', fromJson: jsonIntFromDynamic) this.channels});
   factory _AbsTaskEncodeOptions.fromJson(Map<String, dynamic> json) => _$AbsTaskEncodeOptionsFromJson(json);
 
-@override@JsonKey(name: 'codec', fromJson: _stringFromDynamic) final  String? codec;
-@override@JsonKey(name: 'bitrate', fromJson: _stringFromDynamic) final  String? bitrate;
+@override@JsonKey(name: 'codec', fromJson: jsonStringFromDynamic) final  String? codec;
+@override@JsonKey(name: 'bitrate', fromJson: jsonStringFromDynamic) final  String? bitrate;
 @override@JsonKey(name: 'channels', fromJson: jsonIntFromDynamic) final  int? channels;
 
 /// Create a copy of AbsTaskEncodeOptions
@@ -927,7 +927,7 @@ abstract mixin class _$AbsTaskEncodeOptionsCopyWith<$Res> implements $AbsTaskEnc
   factory _$AbsTaskEncodeOptionsCopyWith(_AbsTaskEncodeOptions value, $Res Function(_AbsTaskEncodeOptions) _then) = __$AbsTaskEncodeOptionsCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'codec', fromJson: _stringFromDynamic) String? codec,@JsonKey(name: 'bitrate', fromJson: _stringFromDynamic) String? bitrate,@JsonKey(name: 'channels', fromJson: jsonIntFromDynamic) int? channels
+@JsonKey(name: 'codec', fromJson: jsonStringFromDynamic) String? codec,@JsonKey(name: 'bitrate', fromJson: jsonStringFromDynamic) String? bitrate,@JsonKey(name: 'channels', fromJson: jsonIntFromDynamic) int? channels
 });
 
 

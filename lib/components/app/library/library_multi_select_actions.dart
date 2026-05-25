@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/library_items/request/batch_quick_match_library_items_request.dart';
 import 'package:yaabsa/api/list/collection.dart';
 import 'package:yaabsa/api/list/playlist.dart';
@@ -121,21 +122,23 @@ Future<void> quickMatchSelectedBooks({
   required BuildContext context,
   required WidgetRef ref,
   required String libraryId,
-  required List<String> selectedBookIds,
+  required List<LibraryItem> selectedItems,
   required VoidCallback onSuccess,
 }) async {
-  if (selectedBookIds.isEmpty) {
+  if (selectedItems.isEmpty) {
     return;
   }
+
+  final selectedBookIds = selectedItems.map((item) => item.id).toList(growable: false);
 
   final defaultProvider = _resolveLibraryDefaultProvider(ref: ref, libraryId: libraryId);
 
   final options = await showQuickMatchOptionsDialog(
     context: context,
     mediaType: 'book',
+    previewItems: selectedItems,
     title: 'Quick match selected books',
-    description: 'Pick a provider and choose whether cover/details should overwrite current metadata.',
-    confirmLabel: 'Run for ${selectedBookIds.length}',
+    confirmLabel: 'Start',
     initialProvider: defaultProvider,
   );
 

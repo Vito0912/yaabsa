@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/library_items/request/quick_match_library_item_options.dart';
 import 'package:yaabsa/api/search/search_provider_option.dart';
+import 'package:yaabsa/components/app/item/match/quick_match_preview_dialog.dart';
 import 'package:yaabsa/provider/common/upload_providers.dart';
 
 Future<QuickMatchLibraryItemOptions?> showQuickMatchOptionsDialog({
   required BuildContext context,
   required String mediaType,
+  List<LibraryItem> previewItems = const <LibraryItem>[],
   String title = 'Quick match',
   String? description,
   String confirmLabel = 'Run quick match',
@@ -19,6 +22,7 @@ Future<QuickMatchLibraryItemOptions?> showQuickMatchOptionsDialog({
     builder: (context) {
       return QuickMatchOptionsDialog(
         mediaType: mediaType,
+        previewItems: previewItems,
         title: title,
         description: description,
         confirmLabel: confirmLabel,
@@ -34,6 +38,7 @@ class QuickMatchOptionsDialog extends ConsumerStatefulWidget {
   const QuickMatchOptionsDialog({
     super.key,
     required this.mediaType,
+    required this.previewItems,
     required this.title,
     required this.confirmLabel,
     this.description,
@@ -43,6 +48,7 @@ class QuickMatchOptionsDialog extends ConsumerStatefulWidget {
   });
 
   final String mediaType;
+  final List<LibraryItem> previewItems;
   final String title;
   final String? description;
   final String confirmLabel;
@@ -126,6 +132,7 @@ class _QuickMatchOptionsDialogState extends ConsumerState<QuickMatchOptionsDialo
     _syncProviderSelection(providers);
 
     final canSubmit = providers.isNotEmpty && _provider != null;
+    final canPreview = canSubmit && widget.previewItems.isNotEmpty;
 
     return AlertDialog(
       title: Text(widget.title),
@@ -133,7 +140,7 @@ class _QuickMatchOptionsDialogState extends ConsumerState<QuickMatchOptionsDialo
         width: 440,
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (widget.description != null && widget.description!.trim().isNotEmpty) ...[
               Text(widget.description!),
@@ -197,26 +204,75 @@ class _QuickMatchOptionsDialogState extends ConsumerState<QuickMatchOptionsDialo
                 });
               },
             ),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              alignment: WrapAlignment.end,
+              children: [
+                TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+                OutlinedButton.icon(
+                  onPressed: canPreview
+                      ? () async {
+                          final providerValue = _provider;
+                          if (providerValue == null) {
+                            return;
+                          }
+
+                          final providerLabel = _providerLabel(providers, providerValue);
+
+                          final applied = await showQuickMatchPreviewDialog(
+                            context: context,
+                            items: widget.previewItems,
+                            mediaType: widget.mediaType,
+                            providerValue: providerValue,
+                            providerLabel: providerLabel,
+                            overrideCover: _overrideCover,
+                            overrideDetails: _overrideDetails,
+                          );
+
+                          if (!context.mounted || !applied) {
+                            return;
+                          }
+
+                          Navigator.of(context).pop();
+                        }
+                      : null,
+                  icon: const Icon(Icons.preview_rounded),
+                  label: const Text('Preview'),
+                ),
+                FilledButton(
+                  onPressed: canSubmit
+                      ? () {
+                          Navigator.of(context).pop(
+                            QuickMatchLibraryItemOptions(
+                              provider: _provider,
+                              overrideCover: _overrideCover,
+                              overrideDetails: _overrideDetails,
+                            ),
+                          );
+                        }
+                      : null,
+                  child: Text(widget.confirmLabel),
+                ),
+              ],
+            ),
           ],
         ),
       ),
-      actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
-        FilledButton(
-          onPressed: canSubmit
-              ? () {
-                  Navigator.of(context).pop(
-                    QuickMatchLibraryItemOptions(
-                      provider: _provider,
-                      overrideCover: _overrideCover,
-                      overrideDetails: _overrideDetails,
-                    ),
-                  );
-                }
-              : null,
-          child: Text(widget.confirmLabel),
-        ),
-      ],
     );
+  }
+
+  String _providerLabel(List<SearchProviderOption> providers, String providerValue) {
+    for (final provider in providers) {
+      if (provider.value != providerValue) {
+        continue;
+      }
+
+      final label = provider.text.trim();
+      return label.isEmpty ? providerValue : label;
+    }
+
+    return providerValue;
   }
 }

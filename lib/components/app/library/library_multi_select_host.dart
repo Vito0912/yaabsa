@@ -261,7 +261,7 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
                 context: context,
                 ref: ref,
                 libraryId: libraryId,
-                selectedBookIds: orderedSelectedBookIds,
+                selectedItems: selectedItems,
                 onSuccess: clearSelection,
               ),
             );

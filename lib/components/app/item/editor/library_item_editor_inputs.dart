@@ -380,31 +380,46 @@ class _LibraryItemEditorSeriesListState extends State<LibraryItemEditorSeriesLis
       final value = await showDialog<String>(
         context: context,
         builder: (dialogContext) {
+          var completed = false;
+
+          void complete(String value) {
+            if (completed) {
+              return;
+            }
+            completed = true;
+
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!dialogContext.mounted) {
+                return;
+              }
+              Navigator.of(dialogContext).pop(_sanitizeSequence(value));
+            });
+          }
+
           return AlertDialog(
             title: const Text('Series number'),
             content: TextField(
               controller: controller,
               autofocus: true,
+              textInputAction: TextInputAction.done,
               inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[\x21-\x7E]'))],
               decoration: const InputDecoration(
                 labelText: 'Sequence',
                 hintText: 'e.g. 1,2.5,03 (no spaces)',
                 border: OutlineInputBorder(),
               ),
-              onSubmitted: (value) {
-                Navigator.of(dialogContext).pop(_sanitizeSequence(value));
-              },
+              onSubmitted: complete,
             ),
             actions: [
               TextButton(
                 onPressed: () {
-                  Navigator.of(dialogContext).pop(_sanitizeSequence(initialValue));
+                  complete(initialValue);
                 },
                 child: const Text('Skip'),
               ),
               FilledButton(
                 onPressed: () {
-                  Navigator.of(dialogContext).pop(_sanitizeSequence(controller.text));
+                  complete(controller.text);
                 },
                 child: const Text('Save'),
               ),
@@ -426,12 +441,15 @@ class _LibraryItemEditorSeriesListState extends State<LibraryItemEditorSeriesLis
     }
   }
 
-  Future<void> _queueAddSeries(String value, {String? preferredId}) async {
-    await Future<void>.delayed(Duration.zero);
-    if (!mounted) {
-      return;
-    }
-    await _addSeriesByName(value, preferredId: preferredId);
+  Future<void> _queueAddSeries(String value, {String? preferredId}) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      _addSeriesByName(value, preferredId: preferredId);
+    });
+
+    return Future<void>.value();
   }
 
   Future<void> _addSeriesByName(String rawName, {String? preferredId}) async {

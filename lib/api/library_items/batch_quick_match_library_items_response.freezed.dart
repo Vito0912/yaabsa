@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$BatchQuickMatchLibraryItemsResponse {
 
-@JsonKey(name: 'success') bool get success;@JsonKey(name: 'updates')@JsonKey(fromJson: _intFromDynamic) int get updates;@JsonKey(name: 'unmatched')@JsonKey(fromJson: _intFromDynamic) int get unmatched;@JsonKey(name: 'message') String? get message;@JsonKey(name: 'error') String? get error;
+@JsonKey(name: 'success') bool get success;@JsonKey(name: 'updates')@JsonKey(fromJson: jsonIntFromDynamic) int get updates;@JsonKey(name: 'unmatched')@JsonKey(fromJson: jsonIntFromDynamic) int get unmatched;@JsonKey(name: 'message') String? get message;@JsonKey(name: 'error') String? get error;
 /// Create a copy of BatchQuickMatchLibraryItemsResponse
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $BatchQuickMatchLibraryItemsResponseCopyWith<$Res>  {
   factory $BatchQuickMatchLibraryItemsResponseCopyWith(BatchQuickMatchLibraryItemsResponse value, $Res Function(BatchQuickMatchLibraryItemsResponse) _then) = _$BatchQuickMatchLibraryItemsResponseCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'success') bool success,@JsonKey(name: 'updates')@JsonKey(fromJson: _intFromDynamic) int updates,@JsonKey(name: 'unmatched')@JsonKey(fromJson: _intFromDynamic) int unmatched,@JsonKey(name: 'message') String? message,@JsonKey(name: 'error') String? error
+@JsonKey(name: 'success') bool success,@JsonKey(name: 'updates')@JsonKey(fromJson: jsonIntFromDynamic) int updates,@JsonKey(name: 'unmatched')@JsonKey(fromJson: jsonIntFromDynamic) int unmatched,@JsonKey(name: 'message') String? message,@JsonKey(name: 'error') String? error
 });
 
 
@@ -157,7 +157,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'success')  bool success, @JsonKey(name: 'updates')@JsonKey(fromJson: _intFromDynamic)  int updates, @JsonKey(name: 'unmatched')@JsonKey(fromJson: _intFromDynamic)  int unmatched, @JsonKey(name: 'message')  String? message, @JsonKey(name: 'error')  String? error)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'success')  bool success, @JsonKey(name: 'updates')@JsonKey(fromJson: jsonIntFromDynamic)  int updates, @JsonKey(name: 'unmatched')@JsonKey(fromJson: jsonIntFromDynamic)  int unmatched, @JsonKey(name: 'message')  String? message, @JsonKey(name: 'error')  String? error)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _BatchQuickMatchLibraryItemsResponse() when $default != null:
 return $default(_that.success,_that.updates,_that.unmatched,_that.message,_that.error);case _:
@@ -178,7 +178,7 @@ return $default(_that.success,_that.updates,_that.unmatched,_that.message,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'success')  bool success, @JsonKey(name: 'updates')@JsonKey(fromJson: _intFromDynamic)  int updates, @JsonKey(name: 'unmatched')@JsonKey(fromJson: _intFromDynamic)  int unmatched, @JsonKey(name: 'message')  String? message, @JsonKey(name: 'error')  String? error)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'success')  bool success, @JsonKey(name: 'updates')@JsonKey(fromJson: jsonIntFromDynamic)  int updates, @JsonKey(name: 'unmatched')@JsonKey(fromJson: jsonIntFromDynamic)  int unmatched, @JsonKey(name: 'message')  String? message, @JsonKey(name: 'error')  String? error)  $default,) {final _that = this;
 switch (_that) {
 case _BatchQuickMatchLibraryItemsResponse():
 return $default(_that.success,_that.updates,_that.unmatched,_that.message,_that.error);case _:
@@ -198,7 +198,7 @@ return $default(_that.success,_that.updates,_that.unmatched,_that.message,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'success')  bool success, @JsonKey(name: 'updates')@JsonKey(fromJson: _intFromDynamic)  int updates, @JsonKey(name: 'unmatched')@JsonKey(fromJson: _intFromDynamic)  int unmatched, @JsonKey(name: 'message')  String? message, @JsonKey(name: 'error')  String? error)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'success')  bool success, @JsonKey(name: 'updates')@JsonKey(fromJson: jsonIntFromDynamic)  int updates, @JsonKey(name: 'unmatched')@JsonKey(fromJson: jsonIntFromDynamic)  int unmatched, @JsonKey(name: 'message')  String? message, @JsonKey(name: 'error')  String? error)?  $default,) {final _that = this;
 switch (_that) {
 case _BatchQuickMatchLibraryItemsResponse() when $default != null:
 return $default(_that.success,_that.updates,_that.unmatched,_that.message,_that.error);case _:
@@ -213,12 +213,12 @@ return $default(_that.success,_that.updates,_that.unmatched,_that.message,_that.
 @JsonSerializable()
 
 class _BatchQuickMatchLibraryItemsResponse implements BatchQuickMatchLibraryItemsResponse {
-  const _BatchQuickMatchLibraryItemsResponse({@JsonKey(name: 'success') this.success = false, @JsonKey(name: 'updates')@JsonKey(fromJson: _intFromDynamic) this.updates = 0, @JsonKey(name: 'unmatched')@JsonKey(fromJson: _intFromDynamic) this.unmatched = 0, @JsonKey(name: 'message') this.message, @JsonKey(name: 'error') this.error});
+  const _BatchQuickMatchLibraryItemsResponse({@JsonKey(name: 'success') this.success = false, @JsonKey(name: 'updates')@JsonKey(fromJson: jsonIntFromDynamic) this.updates = 0, @JsonKey(name: 'unmatched')@JsonKey(fromJson: jsonIntFromDynamic) this.unmatched = 0, @JsonKey(name: 'message') this.message, @JsonKey(name: 'error') this.error});
   factory _BatchQuickMatchLibraryItemsResponse.fromJson(Map<String, dynamic> json) => _$BatchQuickMatchLibraryItemsResponseFromJson(json);
 
 @override@JsonKey(name: 'success') final  bool success;
-@override@JsonKey(name: 'updates')@JsonKey(fromJson: _intFromDynamic) final  int updates;
-@override@JsonKey(name: 'unmatched')@JsonKey(fromJson: _intFromDynamic) final  int unmatched;
+@override@JsonKey(name: 'updates')@JsonKey(fromJson: jsonIntFromDynamic) final  int updates;
+@override@JsonKey(name: 'unmatched')@JsonKey(fromJson: jsonIntFromDynamic) final  int unmatched;
 @override@JsonKey(name: 'message') final  String? message;
 @override@JsonKey(name: 'error') final  String? error;
 
@@ -255,7 +255,7 @@ abstract mixin class _$BatchQuickMatchLibraryItemsResponseCopyWith<$Res> impleme
   factory _$BatchQuickMatchLibraryItemsResponseCopyWith(_BatchQuickMatchLibraryItemsResponse value, $Res Function(_BatchQuickMatchLibraryItemsResponse) _then) = __$BatchQuickMatchLibraryItemsResponseCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'success') bool success,@JsonKey(name: 'updates')@JsonKey(fromJson: _intFromDynamic) int updates,@JsonKey(name: 'unmatched')@JsonKey(fromJson: _intFromDynamic) int unmatched,@JsonKey(name: 'message') String? message,@JsonKey(name: 'error') String? error
+@JsonKey(name: 'success') bool success,@JsonKey(name: 'updates')@JsonKey(fromJson: jsonIntFromDynamic) int updates,@JsonKey(name: 'unmatched')@JsonKey(fromJson: jsonIntFromDynamic) int unmatched,@JsonKey(name: 'message') String? message,@JsonKey(name: 'error') String? error
 });
 
 
