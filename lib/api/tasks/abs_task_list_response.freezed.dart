@@ -580,7 +580,7 @@ as List<AbsQueuedEmbedMetadataTaskData>,
 /// @nodoc
 mixin _$AbsQueuedEmbedMetadataTaskData {
 
-@JsonKey(name: 'libraryItemId', fromJson: _stringFromDynamic) String? get libraryItemId;@JsonKey(name: 'libraryId', fromJson: _stringFromDynamic) String? get libraryId;
+@JsonKey(name: 'libraryItemId', fromJson: jsonStringFromDynamic) String? get libraryItemId;@JsonKey(name: 'libraryId', fromJson: jsonStringFromDynamic) String? get libraryId;
 /// Create a copy of AbsQueuedEmbedMetadataTaskData
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -613,7 +613,7 @@ abstract mixin class $AbsQueuedEmbedMetadataTaskDataCopyWith<$Res>  {
   factory $AbsQueuedEmbedMetadataTaskDataCopyWith(AbsQueuedEmbedMetadataTaskData value, $Res Function(AbsQueuedEmbedMetadataTaskData) _then) = _$AbsQueuedEmbedMetadataTaskDataCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'libraryItemId', fromJson: _stringFromDynamic) String? libraryItemId,@JsonKey(name: 'libraryId', fromJson: _stringFromDynamic) String? libraryId
+@JsonKey(name: 'libraryItemId', fromJson: jsonStringFromDynamic) String? libraryItemId,@JsonKey(name: 'libraryId', fromJson: jsonStringFromDynamic) String? libraryId
 });
 
 
@@ -719,7 +719,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'libraryItemId', fromJson: _stringFromDynamic)  String? libraryItemId, @JsonKey(name: 'libraryId', fromJson: _stringFromDynamic)  String? libraryId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'libraryItemId', fromJson: jsonStringFromDynamic)  String? libraryItemId, @JsonKey(name: 'libraryId', fromJson: jsonStringFromDynamic)  String? libraryId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AbsQueuedEmbedMetadataTaskData() when $default != null:
 return $default(_that.libraryItemId,_that.libraryId);case _:
@@ -740,7 +740,7 @@ return $default(_that.libraryItemId,_that.libraryId);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'libraryItemId', fromJson: _stringFromDynamic)  String? libraryItemId, @JsonKey(name: 'libraryId', fromJson: _stringFromDynamic)  String? libraryId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'libraryItemId', fromJson: jsonStringFromDynamic)  String? libraryItemId, @JsonKey(name: 'libraryId', fromJson: jsonStringFromDynamic)  String? libraryId)  $default,) {final _that = this;
 switch (_that) {
 case _AbsQueuedEmbedMetadataTaskData():
 return $default(_that.libraryItemId,_that.libraryId);case _:
@@ -760,7 +760,7 @@ return $default(_that.libraryItemId,_that.libraryId);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'libraryItemId', fromJson: _stringFromDynamic)  String? libraryItemId, @JsonKey(name: 'libraryId', fromJson: _stringFromDynamic)  String? libraryId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'libraryItemId', fromJson: jsonStringFromDynamic)  String? libraryItemId, @JsonKey(name: 'libraryId', fromJson: jsonStringFromDynamic)  String? libraryId)?  $default,) {final _that = this;
 switch (_that) {
 case _AbsQueuedEmbedMetadataTaskData() when $default != null:
 return $default(_that.libraryItemId,_that.libraryId);case _:
@@ -775,11 +775,11 @@ return $default(_that.libraryItemId,_that.libraryId);case _:
 @JsonSerializable()
 
 class _AbsQueuedEmbedMetadataTaskData implements AbsQueuedEmbedMetadataTaskData {
-  const _AbsQueuedEmbedMetadataTaskData({@JsonKey(name: 'libraryItemId', fromJson: _stringFromDynamic) this.libraryItemId, @JsonKey(name: 'libraryId', fromJson: _stringFromDynamic) this.libraryId});
+  const _AbsQueuedEmbedMetadataTaskData({@JsonKey(name: 'libraryItemId', fromJson: jsonStringFromDynamic) this.libraryItemId, @JsonKey(name: 'libraryId', fromJson: jsonStringFromDynamic) this.libraryId});
   factory _AbsQueuedEmbedMetadataTaskData.fromJson(Map<String, dynamic> json) => _$AbsQueuedEmbedMetadataTaskDataFromJson(json);
 
-@override@JsonKey(name: 'libraryItemId', fromJson: _stringFromDynamic) final  String? libraryItemId;
-@override@JsonKey(name: 'libraryId', fromJson: _stringFromDynamic) final  String? libraryId;
+@override@JsonKey(name: 'libraryItemId', fromJson: jsonStringFromDynamic) final  String? libraryItemId;
+@override@JsonKey(name: 'libraryId', fromJson: jsonStringFromDynamic) final  String? libraryId;
 
 /// Create a copy of AbsQueuedEmbedMetadataTaskData
 /// with the given fields replaced by the non-null parameter values.
@@ -814,7 +814,7 @@ abstract mixin class _$AbsQueuedEmbedMetadataTaskDataCopyWith<$Res> implements $
   factory _$AbsQueuedEmbedMetadataTaskDataCopyWith(_AbsQueuedEmbedMetadataTaskData value, $Res Function(_AbsQueuedEmbedMetadataTaskData) _then) = __$AbsQueuedEmbedMetadataTaskDataCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'libraryItemId', fromJson: _stringFromDynamic) String? libraryItemId,@JsonKey(name: 'libraryId', fromJson: _stringFromDynamic) String? libraryId
+@JsonKey(name: 'libraryItemId', fromJson: jsonStringFromDynamic) String? libraryItemId,@JsonKey(name: 'libraryId', fromJson: jsonStringFromDynamic) String? libraryId
 });
 
 

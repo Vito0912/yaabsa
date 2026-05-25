@@ -11,7 +11,7 @@ _ServerLogEntry _$ServerLogEntryFromJson(Map<String, dynamic> json) => _ServerLo
   source: json['source'] as String?,
   message: json['message'] as String,
   levelName: json['levelName'] as String,
-  level: _intFromDynamic(json['level']),
+  level: jsonIntRequiredFromDynamic(json['level']),
 );
 
 Map<String, dynamic> _$ServerLogEntryToJson(_ServerLogEntry instance) => <String, dynamic>{

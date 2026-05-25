@@ -1,4 +1,5 @@
 import 'package:socket_io_client/socket_io_client.dart' as io;
+import 'package:yaabsa/api/json/value_parsers.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/socket/events/user_item_progress_updated_event.dart';
 import 'package:yaabsa/api/tasks/abs_task.dart';
@@ -283,9 +284,9 @@ class ABSSocketClient {
       }
 
       try {
-        final success = _boolFromDynamic(payloadJson['success']);
-        final updates = _intFromDynamic(payloadJson['updates']);
-        final unmatched = _intFromDynamic(payloadJson['unmatched']);
+        final success = jsonBoolRequiredFromDynamic(payloadJson['success']);
+        final updates = jsonIntRequiredFromDynamic(payloadJson['updates']);
+        final unmatched = jsonIntRequiredFromDynamic(payloadJson['unmatched']);
         _onBatchQuickMatchComplete(success: success, updates: updates, unmatched: unmatched);
         logger(
           'Processed batch_quickmatch_complete event (success=$success, updates=$updates, unmatched=$unmatched)',
@@ -354,7 +355,7 @@ class ABSSocketClient {
         return;
       }
 
-      final libraryItemId = _stringFromDynamic(payloadJson['libraryItemId']);
+      final libraryItemId = jsonStringFromDynamic(payloadJson['libraryItemId']);
       if (libraryItemId == null || libraryItemId.isEmpty) {
         logger(
           'metadata_embed_queue_update payload missing libraryItemId: ${_stringifyPayload(payload)}',
@@ -364,7 +365,7 @@ class ABSSocketClient {
         return;
       }
 
-      final queued = _boolFromDynamic(payloadJson['queued']);
+      final queued = jsonBoolRequiredFromDynamic(payloadJson['queued']);
       _onMetadataEmbedQueueUpdate(libraryItemId: libraryItemId, queued: queued);
     });
 
@@ -374,8 +375,8 @@ class ABSSocketClient {
         return;
       }
 
-      final libraryItemId = _stringFromDynamic(payloadJson['libraryItemId']);
-      final ino = _stringFromDynamic(payloadJson['ino']);
+      final libraryItemId = jsonStringFromDynamic(payloadJson['libraryItemId']);
+      final ino = jsonStringFromDynamic(payloadJson['ino']);
       if (libraryItemId == null || libraryItemId.isEmpty || ino == null || ino.isEmpty) {
         return;
       }
@@ -389,9 +390,9 @@ class ABSSocketClient {
         return;
       }
 
-      final libraryItemId = _stringFromDynamic(payloadJson['libraryItemId']);
-      final ino = _stringFromDynamic(payloadJson['ino']);
-      final progress = _doubleFromDynamic(payloadJson['progress']);
+      final libraryItemId = jsonStringFromDynamic(payloadJson['libraryItemId']);
+      final ino = jsonStringFromDynamic(payloadJson['ino']);
+      final progress = jsonDoubleRequiredFromDynamic(payloadJson['progress']);
 
       if (libraryItemId == null || libraryItemId.isEmpty || ino == null || ino.isEmpty) {
         return;
@@ -406,8 +407,8 @@ class ABSSocketClient {
         return;
       }
 
-      final libraryItemId = _stringFromDynamic(payloadJson['libraryItemId']);
-      final ino = _stringFromDynamic(payloadJson['ino']);
+      final libraryItemId = jsonStringFromDynamic(payloadJson['libraryItemId']);
+      final ino = jsonStringFromDynamic(payloadJson['ino']);
       if (libraryItemId == null || libraryItemId.isEmpty || ino == null || ino.isEmpty) {
         return;
       }
@@ -421,12 +422,12 @@ class ABSSocketClient {
         return;
       }
 
-      final libraryItemId = _stringFromDynamic(payloadJson['libraryItemId']);
+      final libraryItemId = jsonStringFromDynamic(payloadJson['libraryItemId']);
       if (libraryItemId == null || libraryItemId.isEmpty) {
         return;
       }
 
-      final progress = _doubleFromDynamic(payloadJson['progress']);
+      final progress = jsonDoubleRequiredFromDynamic(payloadJson['progress']);
       _onTaskProgress(libraryItemId: libraryItemId, progress: progress);
     });
 
@@ -561,9 +562,9 @@ class ABSSocketClient {
 
     final nestedLibraryItemJson = _payloadToJson(payloadJson['libraryItem']);
     final itemId =
-        _stringFromDynamic(payloadJson['id']) ??
-        _stringFromDynamic(payloadJson['libraryItemId']) ??
-        _stringFromDynamic(nestedLibraryItemJson?['id']);
+        jsonStringFromDynamic(payloadJson['id']) ??
+        jsonStringFromDynamic(payloadJson['libraryItemId']) ??
+        jsonStringFromDynamic(nestedLibraryItemJson?['id']);
 
     if (itemId == null || itemId.isEmpty) {
       logger(
@@ -575,7 +576,7 @@ class ABSSocketClient {
     }
 
     final libraryId =
-        _stringFromDynamic(payloadJson['libraryId']) ?? _stringFromDynamic(nestedLibraryItemJson?['libraryId']);
+        jsonStringFromDynamic(payloadJson['libraryId']) ?? jsonStringFromDynamic(nestedLibraryItemJson?['libraryId']);
 
     LibraryItem? item;
     try {
@@ -633,65 +634,6 @@ class ABSSocketClient {
     } catch (_) {
       return '<unprintable>';
     }
-  }
-
-  int _intFromDynamic(dynamic value) {
-    if (value is int) {
-      return value;
-    }
-    if (value is num) {
-      return value.toInt();
-    }
-    if (value is String) {
-      return int.tryParse(value.trim()) ?? 0;
-    }
-    return 0;
-  }
-
-  double _doubleFromDynamic(dynamic value) {
-    if (value is double) {
-      return value;
-    }
-    if (value is num) {
-      return value.toDouble();
-    }
-    if (value is String) {
-      return double.tryParse(value.trim()) ?? 0;
-    }
-    return 0;
-  }
-
-  String? _stringFromDynamic(dynamic value) {
-    if (value == null) {
-      return null;
-    }
-
-    if (value is String) {
-      final trimmed = value.trim();
-      return trimmed.isEmpty ? null : trimmed;
-    }
-
-    final asString = value.toString().trim();
-    return asString.isEmpty ? null : asString;
-  }
-
-  bool _boolFromDynamic(dynamic value) {
-    if (value is bool) {
-      return value;
-    }
-    if (value is num) {
-      return value != 0;
-    }
-    if (value is String) {
-      final normalized = value.trim().toLowerCase();
-      if (normalized == 'true' || normalized == '1') {
-        return true;
-      }
-      if (normalized == 'false' || normalized == '0') {
-        return false;
-      }
-    }
-    return false;
   }
 
   void _applyServerLogListenerState() {

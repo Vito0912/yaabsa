@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:yaabsa/api/json/value_parsers.dart';
 import 'package:yaabsa/api/tasks/abs_task.dart';
 
 part 'abs_task_list_response.freezed.dart';
@@ -28,23 +29,10 @@ abstract class AbsQueuedTaskData with _$AbsQueuedTaskData {
 @freezed
 abstract class AbsQueuedEmbedMetadataTaskData with _$AbsQueuedEmbedMetadataTaskData {
   const factory AbsQueuedEmbedMetadataTaskData({
-    @JsonKey(name: 'libraryItemId', fromJson: _stringFromDynamic) String? libraryItemId,
-    @JsonKey(name: 'libraryId', fromJson: _stringFromDynamic) String? libraryId,
+    @JsonKey(name: 'libraryItemId', fromJson: jsonStringFromDynamic) String? libraryItemId,
+    @JsonKey(name: 'libraryId', fromJson: jsonStringFromDynamic) String? libraryId,
   }) = _AbsQueuedEmbedMetadataTaskData;
 
   factory AbsQueuedEmbedMetadataTaskData.fromJson(Map<String, dynamic> json) =>
       _$AbsQueuedEmbedMetadataTaskDataFromJson(json);
-}
-
-String? _stringFromDynamic(Object? value) {
-  if (value == null) {
-    return null;
-  }
-  if (value is String) {
-    final trimmed = value.trim();
-    return trimmed.isEmpty ? null : trimmed;
-  }
-
-  final asString = value.toString().trim();
-  return asString.isEmpty ? null : asString;
 }
