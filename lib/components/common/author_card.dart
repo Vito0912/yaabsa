@@ -103,12 +103,7 @@ class AuthorImage extends ConsumerWidget {
       return _AuthorImagePlaceholder(width: width, height: height, borderRadius: borderRadius);
     }
 
-    final imageUri = _buildAuthorImageUri(
-      basePath: api.basePathOverride,
-      authorId: authorId,
-      width: width,
-      height: height,
-    );
+    final imageUri = _buildAuthorImageUri(basePath: api.basePathOverride, authorId: authorId, width: width);
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(borderRadius),
@@ -127,16 +122,8 @@ class AuthorImage extends ConsumerWidget {
   }
 }
 
-Uri _buildAuthorImageUri({
-  required String basePath,
-  required String authorId,
-  required double width,
-  required double height,
-}) {
-  final queryParams = <String, String>{
-    if (width > 0) 'width': width.round().toString(),
-    if (height > 0) 'height': height.round().toString(),
-  };
+Uri _buildAuthorImageUri({required String basePath, required String authorId, required double width}) {
+  final queryParams = <String, String>{if (width > 0) 'width': width.round().toString()};
   final base = Uri.parse('$basePath/api/authors/$authorId/image');
   return queryParams.isEmpty ? base : base.replace(queryParameters: queryParams);
 }
@@ -163,7 +150,6 @@ class _AuthorImagePlaceholder extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.7)),
         ),
         child: Icon(Icons.person_outline_rounded, size: width * 0.45, color: colorScheme.onSurfaceVariant),
       ),
