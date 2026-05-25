@@ -53,3 +53,38 @@ int jsonIntRequiredFromDynamic(Object? value) {
 double jsonDoubleRequiredFromDynamic(Object? value) {
   return jsonDoubleFromDynamic(value) ?? 0;
 }
+
+bool? jsonBoolFromDynamic(Object? value) {
+  if (value == null) {
+    return null;
+  }
+
+  if (value is bool) {
+    return value;
+  }
+
+  if (value is num) {
+    return value != 0;
+  }
+
+  if (value is String) {
+    final normalized = value.trim().toLowerCase();
+    if (normalized.isEmpty) {
+      return null;
+    }
+
+    if (normalized == 'true' || normalized == '1' || normalized == 'yes' || normalized == 'on') {
+      return true;
+    }
+
+    if (normalized == 'false' || normalized == '0' || normalized == 'no' || normalized == 'off') {
+      return false;
+    }
+  }
+
+  return null;
+}
+
+bool jsonBoolRequiredFromDynamic(Object? value) {
+  return jsonBoolFromDynamic(value) ?? false;
+}
