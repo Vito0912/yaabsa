@@ -25,7 +25,9 @@ import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/library/personalized_library_provider.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/home_navigation_preferences.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
+import 'package:yaabsa/util/personalized_shelf_preferences.dart';
 import 'package:yaabsa/util/server_management_preferences.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:yaabsa/util/widget_bridge.dart';
@@ -133,7 +135,17 @@ class PersonalizedView extends HookConsumerWidget {
           );
         }
 
-        final sections = _buildSections(personalizedLibrary);
+        var sections = _buildSections(personalizedLibrary);
+        final shelfMediaType = HomeLibraryMediaType.fromLibraryMediaType(selectedLibrary.mediaType);
+        final shelfSettingKey = PersonalizedShelfPreferencesCodec.settingKeyFor(shelfMediaType);
+        final shelfDefaultValue = PersonalizedShelfPreferencesCodec.defaultEncodedFor(shelfMediaType);
+        final shelfSettingValue = currentUser == null
+            ? shelfDefaultValue
+            : ref
+                  .read(settingsManagerProvider.notifier)
+                  .getUserSetting<String>(currentUser.id, shelfSettingKey, defaultValue: shelfDefaultValue);
+        final shelfPreferences = PersonalizedShelfPreferencesCodec.decode(shelfSettingValue, shelfMediaType);
+        sections = _applyShelfSectionPreferences(sections, shelfPreferences);
         if (sections.isEmpty) {
           return _PersonalizedFeedbackView(
             icon: Icons.view_carousel_outlined,
@@ -393,6 +405,19 @@ enum _ShelfEntityKind { libraryItem, series, author, episode }
 
 const _continueListeningShelfId = 'continue-listening';
 const _newestEpisodesShelfId = 'newest-episodes';
+const _recentSeriesShelfId = 'recent-series';
+const _newestAuthorsShelfId = 'newest-authors';
+
+String _preferredShelfTitle(String sectionId, String fallbackTitle) {
+  switch (sectionId) {
+    case _recentSeriesShelfId:
+      return 'Recently Added Series';
+    case _newestAuthorsShelfId:
+      return 'Recently Added Authors';
+    default:
+      return fallbackTitle;
+  }
+}
 
 class _SectionData {
   _SectionData({required this.id, required this.title, required this.kind, required this.entities});
@@ -408,7 +433,14 @@ List<_SectionData> _buildSections(PersonalizedLibrary library) {
 
   void addSection<T>(ShelfEntry<T>? shelf, _ShelfEntityKind kind) {
     if (shelf == null || shelf.entities.isEmpty) return;
-    sections.add(_SectionData(id: shelf.id, title: shelf.label, kind: kind, entities: shelf.entities.cast<Object>()));
+    sections.add(
+      _SectionData(
+        id: shelf.id,
+        title: _preferredShelfTitle(shelf.id, shelf.label),
+        kind: kind,
+        entities: shelf.entities.cast<Object>(),
+      ),
+    );
   }
 
   ShelfEntry<LibraryItem>? newestEpisodesAsLibraryItems;
@@ -445,6 +477,43 @@ List<_SectionData> _buildSections(PersonalizedLibrary library) {
   }
 
   return sections;
+}
+
+List<_SectionData> _applyShelfSectionPreferences(
+  List<_SectionData> sections,
+  PersonalizedShelfPreferences preferences,
+) {
+  if (sections.isEmpty) {
+    return sections;
+  }
+
+  final hiddenSectionIds = preferences.hiddenSectionIds;
+  final sectionById = <String, _SectionData>{};
+  for (final section in sections) {
+    sectionById.putIfAbsent(section.id, () => section);
+  }
+
+  final orderedSections = <_SectionData>[];
+  final includedIds = <String>{};
+
+  for (final sectionId in preferences.orderedSectionIds) {
+    final section = sectionById[sectionId];
+    if (section == null || hiddenSectionIds.contains(section.id) || !includedIds.add(section.id)) {
+      continue;
+    }
+
+    orderedSections.add(section);
+  }
+
+  for (final section in sections) {
+    if (hiddenSectionIds.contains(section.id) || !includedIds.add(section.id)) {
+      continue;
+    }
+
+    orderedSections.add(section);
+  }
+
+  return orderedSections;
 }
 
 List<LibraryItem> _collectVisibleShelfLibraryItems(List<_SectionData> sections) {

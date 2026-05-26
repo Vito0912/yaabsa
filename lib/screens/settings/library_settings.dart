@@ -4,12 +4,15 @@ import 'package:background_downloader/background_downloader.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/components/settings/settings_button.dart';
 import 'package:yaabsa/components/settings/settings_slider.dart';
 import 'package:yaabsa/components/settings/settings_switch_tile.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/screens/settings/library_shelf_settings.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/download_destination.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
@@ -189,17 +192,10 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
     final currentUser = ref.watch(currentUserProvider);
 
     return SettingsPageScaffold(
-      title: 'Library Settings',
+      title: 'General Settings',
       embedded: true,
       showEmbeddedBackButton: true,
       children: [
-        SettingSlider<double>(
-          label: 'Library Grid Scale',
-          description: 'Scales library item cards in all grid views.',
-          values: appLibraryGridScaleOptions,
-          valueLabels: appLibraryGridScaleLabels,
-          settingKey: SettingKeys.libraryGridScale,
-        ),
         currentUser.when(
           data: (user) {
             if (user == null) {
@@ -212,36 +208,24 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                StreamBuilder<UserSettingEntry?>(
-                  stream: appDatabase.watchUserSetting(user.id, SettingKeys.downloadPath),
-                  builder: (context, snapshot) {
-                    final fallbackValue = ref
-                        .read(settingsManagerProvider.notifier)
-                        .getUserSetting<String>(user.id, SettingKeys.downloadPath, defaultValue: '');
-
-                    final currentRawValue = snapshot.data?.value ?? fallbackValue;
-                    final hasCustomLocation = parseDownloadLocationSetting(currentRawValue) != null;
-                    final currentDisplayValue = formatDownloadLocationForDisplay(currentRawValue);
-
-                    return FutureBuilder<String>(
-                      future: _defaultLocationFuture,
-                      builder: (context, defaultLocationSnapshot) {
-                        final defaultLocation = defaultLocationSnapshot.data ?? 'Loading default location...';
-                        final currentLocationDisplay = hasCustomLocation ? currentDisplayValue : defaultLocation;
-
-                        return SettingButton(
-                          label: 'Download Location',
-                          description: currentLocationDisplay,
-                          buttonText: hasCustomLocation ? 'Change' : 'Choose',
-                          buttonIcon: Icons.folder_open,
-                          onPressed: supportsCustomDownloadLocation
-                              ? () => _handleLocationAction(user.id, hasCustomLocation: hasCustomLocation)
-                              : null,
-                          isLoading: _isPicking,
-                        );
-                      },
-                    );
-                  },
+                SettingsNavigationSection(
+                  title: 'Library',
+                  topPadding: 8,
+                  items: [
+                    SettingsNavigationItem(
+                      icon: Icons.view_carousel_outlined,
+                      title: 'Shelf Sections',
+                      subtitle: 'Choose which shelf sections are visible and their order.',
+                      onTap: () => context.push(LibraryShelfSettings.routeName),
+                    ),
+                  ],
+                ),
+                SettingSlider<double>(
+                  label: 'Library Grid Scale',
+                  description: 'Scales library item cards in all grid views.',
+                  values: appLibraryGridScaleOptions,
+                  valueLabels: appLibraryGridScaleLabels,
+                  settingKey: SettingKeys.libraryGridScale,
                 ),
                 StreamBuilder<UserSettingEntry?>(
                   stream: appDatabase.watchUserSetting(user.id, SettingKeys.collapseSeries),
@@ -286,6 +270,42 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
                     );
                   },
                 ),
+                const SettingSwitchTile(
+                  label: 'Show Shelf Play Button',
+                  settingKey: SettingKeys.personalizedShelfShowPlayVisibleButton,
+                  subtitle: 'Adds a play-all button on Continue Listening and Newest Episodes shelves.',
+                ),
+                StreamBuilder<UserSettingEntry?>(
+                  stream: appDatabase.watchUserSetting(user.id, SettingKeys.downloadPath),
+                  builder: (context, snapshot) {
+                    final fallbackValue = ref
+                        .read(settingsManagerProvider.notifier)
+                        .getUserSetting<String>(user.id, SettingKeys.downloadPath, defaultValue: '');
+
+                    final currentRawValue = snapshot.data?.value ?? fallbackValue;
+                    final hasCustomLocation = parseDownloadLocationSetting(currentRawValue) != null;
+                    final currentDisplayValue = formatDownloadLocationForDisplay(currentRawValue);
+
+                    return FutureBuilder<String>(
+                      future: _defaultLocationFuture,
+                      builder: (context, defaultLocationSnapshot) {
+                        final defaultLocation = defaultLocationSnapshot.data ?? 'Loading default location...';
+                        final currentLocationDisplay = hasCustomLocation ? currentDisplayValue : defaultLocation;
+
+                        return SettingButton(
+                          label: 'Download Location',
+                          description: currentLocationDisplay,
+                          buttonText: hasCustomLocation ? 'Change' : 'Choose',
+                          buttonIcon: Icons.folder_open,
+                          onPressed: supportsCustomDownloadLocation
+                              ? () => _handleLocationAction(user.id, hasCustomLocation: hasCustomLocation)
+                              : null,
+                          isLoading: _isPicking,
+                        );
+                      },
+                    );
+                  },
+                ),
               ],
             );
           },
@@ -295,11 +315,6 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
           ),
           error: (error, _) =>
               Padding(padding: const EdgeInsets.all(16), child: Text('Failed to load user settings: $error')),
-        ),
-        const SettingSwitchTile(
-          label: 'Show Shelf Play Button',
-          settingKey: SettingKeys.personalizedShelfShowPlayVisibleButton,
-          subtitle: 'Adds a play-all button on Continue Listening and Newest Episodes shelves.',
         ),
       ],
     );
