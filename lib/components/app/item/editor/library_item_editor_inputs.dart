@@ -109,6 +109,7 @@ class LibraryItemEditorStringChips extends StatefulWidget {
     required this.onChanged,
     this.suggestions = const <String>[],
     this.hintText,
+    this.labelInsideBorder = false,
   });
 
   final String label;
@@ -116,6 +117,7 @@ class LibraryItemEditorStringChips extends StatefulWidget {
   final List<String> suggestions;
   final ValueChanged<List<String>> onChanged;
   final String? hintText;
+  final bool labelInsideBorder;
 
   @override
   State<LibraryItemEditorStringChips> createState() => _LibraryItemEditorStringChipsState();
@@ -160,11 +162,59 @@ class _LibraryItemEditorStringChipsState extends State<LibraryItemEditorStringCh
         .take(8)
         .toList(growable: false);
 
+    final chipsBody = Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      children: [
+        for (final value in widget.values)
+          InputChip(
+            visualDensity: VisualDensity.compact,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            side: BorderSide.none,
+            label: Text(value, style: Theme.of(context).textTheme.bodySmall),
+            onDeleted: () {
+              widget.onChanged(widget.values.where((entry) => entry != value).toList(growable: false));
+            },
+          ),
+        SizedBox(
+          width: 150,
+          child: TextField(
+            controller: _controller,
+            style: Theme.of(context).textTheme.bodySmall,
+            decoration: InputDecoration.collapsed(hintText: widget.hintText ?? 'Add value'),
+            onChanged: (value) {
+              setState(() {
+                _query = value;
+              });
+            },
+            onSubmitted: _addValue,
+          ),
+        ),
+      ],
+    );
+
+    final chipsField = widget.labelInsideBorder
+        ? InputDecorator(
+            isEmpty: widget.values.isEmpty && _query.trim().isEmpty,
+            decoration: yaabsaFieldDecoration(
+              context,
+              label: widget.label,
+              contentPadding: const EdgeInsets.fromLTRB(12, 14, 12, 10),
+            ).copyWith(floatingLabelBehavior: FloatingLabelBehavior.always),
+            child: chipsBody,
+          )
+        : LibraryItemEditorFieldContainer(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            child: chipsBody,
+          );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(widget.label, style: Theme.of(context).textTheme.labelMedium),
-        const SizedBox(height: 4),
+        if (!widget.labelInsideBorder) ...[
+          Text(widget.label, style: Theme.of(context).textTheme.labelMedium),
+          const SizedBox(height: 4),
+        ],
         if (showSuggestions && filteredSuggestions.isNotEmpty)
           LibraryItemEditorAutocompleteSheet(
             suggestions: [
@@ -179,39 +229,7 @@ class _LibraryItemEditorStringChipsState extends State<LibraryItemEditorStringCh
                 ),
             ],
           ),
-        LibraryItemEditorFieldContainer(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          child: Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              for (final value in widget.values)
-                InputChip(
-                  visualDensity: VisualDensity.compact,
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  side: BorderSide.none,
-                  label: Text(value, style: Theme.of(context).textTheme.bodySmall),
-                  onDeleted: () {
-                    widget.onChanged(widget.values.where((entry) => entry != value).toList(growable: false));
-                  },
-                ),
-              SizedBox(
-                width: 150,
-                child: TextField(
-                  controller: _controller,
-                  style: Theme.of(context).textTheme.bodySmall,
-                  decoration: InputDecoration.collapsed(hintText: widget.hintText ?? 'Add value'),
-                  onChanged: (value) {
-                    setState(() {
-                      _query = value;
-                    });
-                  },
-                  onSubmitted: _addValue,
-                ),
-              ),
-            ],
-          ),
-        ),
+        chipsField,
       ],
     );
   }

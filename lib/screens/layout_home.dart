@@ -14,6 +14,7 @@ import 'package:yaabsa/screens/main/library_view.dart';
 import 'package:yaabsa/screens/main/narrators_view.dart';
 import 'package:yaabsa/screens/main/personalized_view.dart';
 import 'package:yaabsa/screens/main/playlist_view.dart';
+import 'package:yaabsa/screens/main/podcast_add_view.dart';
 import 'package:yaabsa/screens/main/search_view.dart';
 import 'package:yaabsa/screens/main/series_view.dart';
 import 'package:yaabsa/screens/main/stats_view.dart';
@@ -149,8 +150,18 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
     return HomeNavigationPreferencesCodec.decode(rawSettingValue, mediaType);
   }
 
-  List<NavigationItemConfig> _visiblePrimaryItems({required HomeNavigationPreferences preferences}) {
-    return preferences.visibleViews.map(_navigationItemForPrimaryView).toList(growable: false);
+  List<NavigationItemConfig> _visiblePrimaryItems({
+    required HomeNavigationPreferences preferences,
+    required bool isAdminUser,
+  }) {
+    final views = <HomePrimaryView>[];
+    for (final view in preferences.visibleViews) {
+      if (view == HomePrimaryView.podcastAdd && !isAdminUser) {
+        continue;
+      }
+      views.add(view);
+    }
+    return views.map(_navigationItemForPrimaryView).toList(growable: false);
   }
 
   NavigationItemConfig _navigationItemForPrimaryView(HomePrimaryView view) {
@@ -163,6 +174,8 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
         return const PersonalizedView();
       case HomePrimaryView.library:
         return const LibraryView();
+      case HomePrimaryView.podcastAdd:
+        return const PodcastAddView();
       case HomePrimaryView.collections:
         return const CollectionView();
       case HomePrimaryView.playlists:
@@ -212,6 +225,11 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
     return primaryItems.first.page;
   }
 
+  bool _isAdminType(String? userType) {
+    final normalized = (userType ?? '').trim().toLowerCase();
+    return normalized == 'admin' || normalized == 'root';
+  }
+
   SidebarVariant _sidebarVariantFor({required bool isTablet, required bool isCollapsed}) {
     if (isCollapsed) {
       return SidebarVariant.collapsed;
@@ -235,7 +253,10 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
       userId: currentUser?.id,
       libraryMediaType: selectedLibrary?.mediaType,
     );
-    final primaryItems = _visiblePrimaryItems(preferences: primaryPreferences);
+    final primaryItems = _visiblePrimaryItems(
+      preferences: primaryPreferences,
+      isAdminUser: _isAdminType(currentUser?.type),
+    );
     final canDownload = ref.read(currentUserProvider).value?.permissions.download ?? false;
     final advancedItems = _visibleAdvancedMenuItems(canDownload: canDownload);
     final combined = <NavigationItemConfig>[...primaryItems, ...advancedItems];
@@ -562,7 +583,10 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
       userId: currentUser?.id,
       libraryMediaType: selectedLibrary?.mediaType,
     );
-    final primaryItems = _visiblePrimaryItems(preferences: primaryPreferences);
+    final primaryItems = _visiblePrimaryItems(
+      preferences: primaryPreferences,
+      isAdminUser: _isAdminType(currentUser?.type),
+    );
     final canDownload = currentUser?.permissions.download ?? false;
     final advancedMenuItems = _visibleAdvancedMenuItems(canDownload: canDownload);
 
