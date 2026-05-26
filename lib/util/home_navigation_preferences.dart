@@ -24,6 +24,7 @@ enum HomeLibraryMediaType {
 enum HomePrimaryView {
   shelf,
   library,
+  podcastAdd,
   collections,
   playlists,
   series,
@@ -40,6 +41,8 @@ enum HomePrimaryView {
         return 'Shelf';
       case HomePrimaryView.library:
         return 'Library';
+      case HomePrimaryView.podcastAdd:
+        return 'Add';
       case HomePrimaryView.collections:
         return 'Collections';
       case HomePrimaryView.playlists:
@@ -59,6 +62,8 @@ enum HomePrimaryView {
         return Icons.home;
       case HomePrimaryView.library:
         return Icons.collections_bookmark_outlined;
+      case HomePrimaryView.podcastAdd:
+        return Icons.add_circle_outline_rounded;
       case HomePrimaryView.collections:
         return Icons.collections_outlined;
       case HomePrimaryView.playlists:
@@ -78,6 +83,10 @@ enum HomePrimaryView {
     }
 
     final normalized = key.trim().toLowerCase();
+    if (normalized == 'add' || normalized == 'podcastadd' || normalized == 'podcast_add') {
+      return HomePrimaryView.podcastAdd;
+    }
+
     for (final view in HomePrimaryView.values) {
       if (view.storageKey == normalized) {
         return view;
@@ -103,7 +112,16 @@ enum HomePrimaryView {
   }
 
   static HomePrimaryView? fromTabIntent(String? tabIntent) {
-    return fromStorageKey(tabIntent);
+    final normalized = tabIntent?.trim().toLowerCase();
+    if (normalized == null || normalized.isEmpty) {
+      return null;
+    }
+
+    if (normalized == 'add' || normalized == 'podcastadd' || normalized == 'podcast_add') {
+      return HomePrimaryView.podcastAdd;
+    }
+
+    return fromStorageKey(normalized);
   }
 }
 
@@ -197,6 +215,7 @@ class HomeNavigationPreferencesCodec {
         return const [
           HomePrimaryView.shelf,
           HomePrimaryView.library,
+          HomePrimaryView.podcastAdd,
           HomePrimaryView.collections,
           HomePrimaryView.playlists,
         ];
