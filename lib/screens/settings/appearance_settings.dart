@@ -1,5 +1,4 @@
 import 'package:go_router/go_router.dart';
-import 'package:yaabsa/components/settings/settings_category.dart';
 import 'package:yaabsa/components/settings/settings_dropdown.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/screens/settings/library_views_settings.dart';
@@ -38,12 +37,16 @@ class AppearanceSettings extends StatelessWidget {
             ),
           ],
         ),
-        const SettingsCategory(title: 'General', description: 'Language preferences.', icon: Icons.tune_rounded),
-        SettingDropdown(
-          label: 'Language',
-          values: ['en-US', 'de-DE'],
-          valueLabels: ['English', 'Deutsch'],
-          settingKey: SettingKeys.language,
+        SettingsNavigationSection(
+          title: 'Other',
+          settings: [
+            SettingDropdown(
+              label: 'Language',
+              values: ['en-US', 'de-DE'],
+              valueLabels: ['English', 'Deutsch'],
+              settingKey: SettingKeys.language,
+            ),
+          ],
         ),
       ],
     );

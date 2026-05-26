@@ -215,96 +215,105 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
                     SettingsNavigationItem(
                       icon: Icons.view_carousel_outlined,
                       title: 'Shelf Sections',
-                      subtitle: 'Choose which shelf sections are visible and their order.',
+                      subtitle: 'Choose which shelf sections are visible and their order',
                       onTap: () => context.push(LibraryShelfSettings.routeName),
                     ),
                   ],
-                ),
-                SettingSlider<double>(
-                  label: 'Library Grid Scale',
-                  description: 'Scales library item cards in all grid views.',
-                  values: appLibraryGridScaleOptions,
-                  valueLabels: appLibraryGridScaleLabels,
-                  settingKey: SettingKeys.libraryGridScale,
-                ),
-                StreamBuilder<UserSettingEntry?>(
-                  stream: appDatabase.watchUserSetting(user.id, SettingKeys.collapseSeries),
-                  builder: (context, snapshot) {
-                    final fallbackValue = ref
-                        .read(settingsManagerProvider.notifier)
-                        .getUserSetting<bool>(user.id, SettingKeys.collapseSeries, defaultValue: false);
+                  settings: [
+                    SettingSlider<double>(
+                      label: 'Library Grid Scale',
+                      description: 'Scales library item cards in all grid views',
+                      values: appLibraryGridScaleOptions,
+                      valueLabels: appLibraryGridScaleLabels,
+                      settingKey: SettingKeys.libraryGridScale,
+                    ),
+                    StreamBuilder<UserSettingEntry?>(
+                      stream: appDatabase.watchUserSetting(user.id, SettingKeys.collapseSeries),
+                      builder: (context, snapshot) {
+                        final fallbackValue = ref
+                            .read(settingsManagerProvider.notifier)
+                            .getUserSetting<bool>(user.id, SettingKeys.collapseSeries, defaultValue: false);
 
-                    final isEnabled = SettingsParser.decodeValue<bool>(snapshot.data?.value, fallbackValue);
-                    final theme = Theme.of(context);
+                        final isEnabled = SettingsParser.decodeValue<bool>(snapshot.data?.value, fallbackValue);
+                        final theme = Theme.of(context);
 
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.center,
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Flexible(
-                                child: Text(
-                                  'Collapse Series',
-                                  style: theme.textTheme.titleMedium?.copyWith(
-                                    color: _isUpdatingCollapseSeries ? theme.disabledColor : null,
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      'Collapse Series',
+                                      style: theme.textTheme.titleMedium?.copyWith(
+                                        color: _isUpdatingCollapseSeries ? theme.disabledColor : null,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                    ),
                                   ),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
-                                ),
-                              ),
-                              Switch(
-                                value: isEnabled,
-                                onChanged: _isUpdatingCollapseSeries
-                                    ? null
-                                    : (value) => _setCollapseSeriesEnabled(user.id, value),
+                                  Switch(
+                                    value: isEnabled,
+                                    onChanged: _isUpdatingCollapseSeries
+                                        ? null
+                                        : (value) => _setCollapseSeriesEnabled(user.id, value),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-                const SettingSwitchTile(
-                  label: 'Show Shelf Play Button',
-                  settingKey: SettingKeys.personalizedShelfShowPlayVisibleButton,
-                  subtitle: 'Adds a play-all button on Continue Listening and Newest Episodes shelves.',
-                ),
-                StreamBuilder<UserSettingEntry?>(
-                  stream: appDatabase.watchUserSetting(user.id, SettingKeys.downloadPath),
-                  builder: (context, snapshot) {
-                    final fallbackValue = ref
-                        .read(settingsManagerProvider.notifier)
-                        .getUserSetting<String>(user.id, SettingKeys.downloadPath, defaultValue: '');
-
-                    final currentRawValue = snapshot.data?.value ?? fallbackValue;
-                    final hasCustomLocation = parseDownloadLocationSetting(currentRawValue) != null;
-                    final currentDisplayValue = formatDownloadLocationForDisplay(currentRawValue);
-
-                    return FutureBuilder<String>(
-                      future: _defaultLocationFuture,
-                      builder: (context, defaultLocationSnapshot) {
-                        final defaultLocation = defaultLocationSnapshot.data ?? 'Loading default location...';
-                        final currentLocationDisplay = hasCustomLocation ? currentDisplayValue : defaultLocation;
-
-                        return SettingButton(
-                          label: 'Download Location',
-                          description: currentLocationDisplay,
-                          buttonText: hasCustomLocation ? 'Change' : 'Choose',
-                          buttonIcon: Icons.folder_open,
-                          onPressed: supportsCustomDownloadLocation
-                              ? () => _handleLocationAction(user.id, hasCustomLocation: hasCustomLocation)
-                              : null,
-                          isLoading: _isPicking,
                         );
                       },
-                    );
-                  },
+                    ),
+
+                    const SettingSwitchTile(
+                      label: 'Show Shelf Play Button',
+                      settingKey: SettingKeys.personalizedShelfShowPlayVisibleButton,
+                      subtitle: 'Adds a play-all button on Continue Listening and Newest Episodes shelves',
+                    ),
+                  ],
+                ),
+
+                SettingsNavigationSection(
+                  title: 'Downloads',
+                  settings: [
+                    StreamBuilder<UserSettingEntry?>(
+                      stream: appDatabase.watchUserSetting(user.id, SettingKeys.downloadPath),
+                      builder: (context, snapshot) {
+                        final fallbackValue = ref
+                            .read(settingsManagerProvider.notifier)
+                            .getUserSetting<String>(user.id, SettingKeys.downloadPath, defaultValue: '');
+
+                        final currentRawValue = snapshot.data?.value ?? fallbackValue;
+                        final hasCustomLocation = parseDownloadLocationSetting(currentRawValue) != null;
+                        final currentDisplayValue = formatDownloadLocationForDisplay(currentRawValue);
+
+                        return FutureBuilder<String>(
+                          future: _defaultLocationFuture,
+                          builder: (context, defaultLocationSnapshot) {
+                            final defaultLocation = defaultLocationSnapshot.data ?? 'Loading default location...';
+                            final currentLocationDisplay = hasCustomLocation ? currentDisplayValue : defaultLocation;
+
+                            return SettingButton(
+                              label: 'Download Location',
+                              description: currentLocationDisplay,
+                              buttonText: hasCustomLocation ? 'Change' : 'Choose',
+                              buttonIcon: Icons.folder_open,
+                              onPressed: supportsCustomDownloadLocation
+                                  ? () => _handleLocationAction(user.id, hasCustomLocation: hasCustomLocation)
+                                  : null,
+                              isLoading: _isPicking,
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ],
                 ),
               ],
             );
