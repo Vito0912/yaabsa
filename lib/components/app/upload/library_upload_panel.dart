@@ -1423,13 +1423,13 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
                           ],
                         );
 
-                        final advancedBulkSection = Container(
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: colorScheme.surfaceContainerLowest,
+                        final advancedBulkSection = Material(
+                          color: colorScheme.surfaceContainerLowest,
+                          shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
+                            side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
                           ),
+                          clipBehavior: Clip.antiAlias,
                           child: Theme(
                             data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
                             child: ExpansionTile(

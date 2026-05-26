@@ -43,12 +43,16 @@ class SettingKeys {
   static const String sortSeriesAscending = 'sort_series_ascending';
   static const String collapseSeries = 'collapse_series';
   static const String downloadPath = 'download_path';
+  static const String homeBookViewPreferences = 'home_book_view_preferences';
+  static const String homePodcastViewPreferences = 'home_podcast_view_preferences';
   static const String androidAutoLibrarySortDescending = 'android_auto_library_sort_descending';
   static const String androidAutoLibrarySortField = 'android_auto_library_sort_field';
   static const String androidAutoPodcastSortDescending = 'android_auto_podcast_sort_descending';
   static const String androidAutoPodcastSortField = 'android_auto_podcast_sort_field';
   static const String androidAutoGroupByLetters = 'android_auto_group_by_letters';
   static const String personalizedShelfShowPlayVisibleButton = 'personalized_shelf_show_play_visible_button';
+  static const String personalizedShelfBookSectionsPreferences = 'personalized_shelf_book_sections_preferences';
+  static const String personalizedShelfPodcastSectionsPreferences = 'personalized_shelf_podcast_sections_preferences';
   static const String waitForSync = 'wait_for_sync';
   static const String progressPerChapter = 'progress_per_chapter';
   static const String serverManagementCollections = 'server_management_collections';
@@ -153,12 +157,20 @@ final defaultSettings = {
   SettingKeys.sortSeriesAscending: false,
   SettingKeys.collapseSeries: false,
   SettingKeys.downloadPath: null,
+  SettingKeys.homeBookViewPreferences:
+      '{"default":"shelf","order":["shelf","library","collections","playlists","series","authors","narrators"],"hidden":[]}',
+  SettingKeys.homePodcastViewPreferences:
+      '{"default":"shelf","order":["shelf","library","collections","playlists"],"hidden":[]}',
   SettingKeys.androidAutoLibrarySortDescending: false,
   SettingKeys.androidAutoLibrarySortField: 'title',
   SettingKeys.androidAutoPodcastSortDescending: true,
   SettingKeys.androidAutoPodcastSortField: 'added',
   SettingKeys.androidAutoGroupByLetters: true,
   SettingKeys.personalizedShelfShowPlayVisibleButton: false,
+  SettingKeys.personalizedShelfBookSectionsPreferences:
+      '{"order":["continue-listening","continue-series","recently-added","discover","listen-again","recent-series","newest-authors"],"hidden":["newest-episodes"]}',
+  SettingKeys.personalizedShelfPodcastSectionsPreferences:
+      '{"order":["continue-listening","newest-episodes","listen-again","recently-added","discover"],"hidden":[]}',
   SettingKeys.waitForSync: true,
   SettingKeys.progressPerChapter: false,
   SettingKeys.serverManagementCollections: true,

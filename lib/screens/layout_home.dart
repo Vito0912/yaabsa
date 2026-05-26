@@ -23,6 +23,7 @@ import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/core/multi_select_app_bar_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/home_navigation_preferences.dart';
 import 'package:yaabsa/util/server_management_preferences.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:flutter/material.dart';
@@ -74,7 +75,7 @@ class LayoutHome extends ConsumerStatefulWidget {
 }
 
 class _LayoutHomeState extends ConsumerState<LayoutHome> {
-  int _selectedIndex = 0;
+  int _selectedIndex = -1;
   String? _lastSelectedLabel;
   String? _lastConsumedTabIntent;
   String? _lastConsumedUploadIntent;
@@ -90,23 +91,12 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
   bool _isUploadInProgress = false;
   bool _didRequestAaosMediaCenterLaunch = false;
 
-  late final List<NavigationItemConfig> _allAppBarItems;
   late final NavigationItemConfig _downloadsMenuItem;
   late final List<NavigationItemConfig> _advancedMenuItems;
 
   @override
   void initState() {
     super.initState();
-    _allAppBarItems = const [
-      NavigationItemConfig(icon: Icons.home, label: "Shelf", page: PersonalizedView()),
-      NavigationItemConfig(icon: Icons.collections_bookmark_outlined, label: "Library", page: LibraryView()),
-      NavigationItemConfig(icon: Icons.collections_outlined, label: "Collections", page: CollectionView()),
-      NavigationItemConfig(icon: Icons.playlist_play_rounded, label: "Playlists", page: PlaylistView()),
-      NavigationItemConfig(icon: Icons.view_column_outlined, label: "Series", page: SeriesView()),
-      NavigationItemConfig(icon: Icons.person_outline_rounded, label: "Authors", page: AuthorsView()),
-      NavigationItemConfig(icon: Icons.record_voice_over_rounded, label: "Narrators", page: NarratorsView()),
-    ];
-
     _downloadsMenuItem = const NavigationItemConfig(icon: Icons.download, label: "Downloads", page: Downloads());
     _advancedMenuItems = const [
       NavigationItemConfig(icon: Icons.bar_chart_rounded, label: "Stats", page: StatsView()),
@@ -114,8 +104,6 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
     ];
 
     _currentlyDisplayedPageSource = _pageSourceFor(widget.child);
-
-    _lastSelectedLabel = _allAppBarItems.isNotEmpty ? _allAppBarItems.first.label : null;
 
     final settings = containerRef.read(settingsManagerProvider.notifier);
     _isSidebarCollapsed = settings.getGlobalSetting<bool>(SettingKeys.sidebarCollapsed);
@@ -145,14 +133,60 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
     return [_downloadsMenuItem, ..._advancedMenuItems];
   }
 
-  List<NavigationItemConfig> _visiblePrimaryItems({required String? libraryMediaType}) {
-    if (libraryMediaType != 'podcast') {
-      return _allAppBarItems;
+  HomeNavigationPreferences _resolvePrimaryPreferences({required String? userId, required String? libraryMediaType}) {
+    final mediaType = HomeLibraryMediaType.fromLibraryMediaType(libraryMediaType);
+    if (userId == null) {
+      return HomeNavigationPreferencesCodec.defaultsFor(mediaType);
     }
 
-    return _allAppBarItems
-        .where((item) => item.label != 'Series' && item.label != 'Authors' && item.label != 'Narrators')
-        .toList(growable: false);
+    final settingKey = HomeNavigationPreferencesCodec.settingKeyFor(mediaType);
+    final encodedDefault = HomeNavigationPreferencesCodec.defaultEncodedFor(mediaType);
+
+    final rawSettingValue = ref
+        .read(settingsManagerProvider.notifier)
+        .getUserSetting<String>(userId, settingKey, defaultValue: encodedDefault);
+
+    return HomeNavigationPreferencesCodec.decode(rawSettingValue, mediaType);
+  }
+
+  List<NavigationItemConfig> _visiblePrimaryItems({required HomeNavigationPreferences preferences}) {
+    return preferences.visibleViews.map(_navigationItemForPrimaryView).toList(growable: false);
+  }
+
+  NavigationItemConfig _navigationItemForPrimaryView(HomePrimaryView view) {
+    return NavigationItemConfig(icon: view.icon, label: view.label, page: _pageForPrimaryView(view));
+  }
+
+  Widget _pageForPrimaryView(HomePrimaryView view) {
+    switch (view) {
+      case HomePrimaryView.shelf:
+        return const PersonalizedView();
+      case HomePrimaryView.library:
+        return const LibraryView();
+      case HomePrimaryView.collections:
+        return const CollectionView();
+      case HomePrimaryView.playlists:
+        return const PlaylistView();
+      case HomePrimaryView.series:
+        return const SeriesView();
+      case HomePrimaryView.authors:
+        return const AuthorsView();
+      case HomePrimaryView.narrators:
+        return const NarratorsView();
+    }
+  }
+
+  int _defaultPrimaryIndex(List<NavigationItemConfig> primaryItems, HomeNavigationPreferences primaryPreferences) {
+    final mappedDefaultIndex = primaryItems.indexWhere((item) => item.label == primaryPreferences.defaultView.label);
+    if (mappedDefaultIndex >= 0) {
+      return mappedDefaultIndex;
+    }
+
+    if (primaryItems.isNotEmpty) {
+      return 0;
+    }
+
+    return -1;
   }
 
   Widget _resolveCurrentContent(
@@ -196,23 +230,25 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
     }
 
     final selectedLibrary = ref.read(selectedLibraryProvider);
-    final primaryItems = _visiblePrimaryItems(libraryMediaType: selectedLibrary?.mediaType);
+    final currentUser = ref.read(currentUserProvider).value;
+    final primaryPreferences = _resolvePrimaryPreferences(
+      userId: currentUser?.id,
+      libraryMediaType: selectedLibrary?.mediaType,
+    );
+    final primaryItems = _visiblePrimaryItems(preferences: primaryPreferences);
     final canDownload = ref.read(currentUserProvider).value?.permissions.download ?? false;
     final advancedItems = _visibleAdvancedMenuItems(canDownload: canDownload);
     final combined = <NavigationItemConfig>[...primaryItems, ...advancedItems];
 
-    String? label;
-    if (index >= 0 && index < combined.length) {
-      label = combined[index].label;
-    } else if (index >= 0 && index < _allAppBarItems.length) {
-      label = _allAppBarItems[index].label;
-    }
-
-    if (label == null) {
+    if (index < 0 || index >= combined.length) {
       return;
     }
 
-    final tabIntent = _tabIntentForLabel(label);
+    final label = combined[index].label;
+
+    final tabIntent = index < primaryItems.length
+        ? (HomePrimaryView.fromLabel(label)?.tabIntent ?? _tabIntentForLabel(label))
+        : _tabIntentForLabel(label);
 
     setState(() {
       _selectedIndex = index;
@@ -230,14 +266,12 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
   }
 
   String _tabIntentForLabel(String label) {
+    final mappedPrimaryView = HomePrimaryView.fromLabel(label);
+    if (mappedPrimaryView != null) {
+      return mappedPrimaryView.tabIntent;
+    }
+
     return switch (label) {
-      'Shelf' => 'shelf',
-      'Library' => 'library',
-      'Collections' => 'collections',
-      'Playlists' => 'playlists',
-      'Series' => 'series',
-      'Authors' => 'authors',
-      'Narrators' => 'narrators',
       'Downloads' => 'downloads',
       'Stats' => 'stats',
       'Settings' => 'settings',
@@ -505,6 +539,7 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
     final bool isMobile = context.isMobile;
     final bool isTablet = context.isTablet;
     final selectedLibrary = ref.watch(selectedLibraryProvider);
+    ref.watch(userSettingsWatcherProvider);
     final serverManagementPreferences = readServerManagementPreferences(ref, currentUser?.id);
     final canUpload =
         selectedLibrary != null &&
@@ -523,7 +558,11 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
       });
     }
 
-    final primaryItems = _visiblePrimaryItems(libraryMediaType: selectedLibrary?.mediaType);
+    final primaryPreferences = _resolvePrimaryPreferences(
+      userId: currentUser?.id,
+      libraryMediaType: selectedLibrary?.mediaType,
+    );
+    final primaryItems = _visiblePrimaryItems(preferences: primaryPreferences);
     final canDownload = currentUser?.permissions.download ?? false;
     final advancedMenuItems = _visibleAdvancedMenuItems(canDownload: canDownload);
 
@@ -531,32 +570,31 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
     final tabIntent = queryParameters['tab'];
     final intentKey = queryParameters['intent'] ?? tabIntent;
     if (tabIntent != null && intentKey != null && intentKey != _lastConsumedTabIntent) {
-      final targetLabel = switch (tabIntent) {
-        'shelf' => 'Shelf',
-        'library' => 'Library',
-        'collections' => 'Collections',
-        'playlists' => 'Playlists',
-        'series' => 'Series',
-        'authors' => 'Authors',
-        'narrators' => 'Narrators',
-        'downloads' => 'Downloads',
-        'stats' => 'Stats',
-        'settings' => 'Settings',
-        _ => 'Shelf',
-      };
+      final targetPrimaryView = HomePrimaryView.fromTabIntent(tabIntent);
+      final targetLabel =
+          targetPrimaryView?.label ??
+          switch (tabIntent) {
+            'downloads' => 'Downloads',
+            'stats' => 'Stats',
+            'settings' => 'Settings',
+            _ => primaryPreferences.defaultView.label,
+          };
 
       final navigationItems = <NavigationItemConfig>[...primaryItems, ...advancedMenuItems];
       final targetIndex = navigationItems.indexWhere((item) => item.label == targetLabel);
+      final fallbackIndex = _defaultPrimaryIndex(primaryItems, primaryPreferences);
       _lastConsumedTabIntent = intentKey;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         setState(() {
-          _selectedIndex = targetIndex >= 0 ? targetIndex : 0;
+          _selectedIndex = targetIndex >= 0 ? targetIndex : (fallbackIndex >= 0 ? fallbackIndex : 0);
           _currentlyDisplayedPageSource = _PageSource.internal;
           _isUploadPageVisible = false;
           _isUploadInProgress = false;
           _lastSelectedLabel = navigationItems.isNotEmpty
-              ? (targetIndex >= 0 ? navigationItems[targetIndex].label : navigationItems.first.label)
+              ? (targetIndex >= 0
+                    ? navigationItems[targetIndex].label
+                    : (fallbackIndex >= 0 ? navigationItems[fallbackIndex].label : navigationItems.first.label))
               : _lastSelectedLabel;
         });
       });
@@ -587,14 +625,11 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
 
     int computeSafeSelectedIndex() {
       if (_selectedIndex >= 0 && _selectedIndex <= maxIndex) {
-        return _selectedIndex;
-      }
-
-      if (_selectedIndex >= 0 && _selectedIndex < _allAppBarItems.length) {
-        final originalLabel = _allAppBarItems[_selectedIndex].label;
-        final mapped = combinedItems.indexWhere((it) => it.label == originalLabel);
-        if (mapped >= 0) return mapped;
-        return 0;
+        final matchesTrackedLabel =
+            _lastSelectedLabel == null || combinedItems[_selectedIndex].label == _lastSelectedLabel;
+        if (matchesTrackedLabel) {
+          return _selectedIndex;
+        }
       }
 
       if (_lastSelectedLabel != null) {
@@ -602,7 +637,12 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
         if (mapped >= 0) return mapped;
       }
 
-      return maxIndex >= 0 ? maxIndex : 0;
+      final fallbackPrimaryIndex = _defaultPrimaryIndex(primaryItems, primaryPreferences);
+      if (fallbackPrimaryIndex >= 0) {
+        return fallbackPrimaryIndex;
+      }
+
+      return maxIndex >= 0 ? 0 : 0;
     }
 
     final safeSelectedIndex = computeSafeSelectedIndex();

@@ -111,7 +111,7 @@ class SettingDropdown<T> extends ConsumerWidget {
     final int safeIndex = currentIndex >= 0 && currentIndex < values.length ? currentIndex : 0;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+      padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 12.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -121,18 +121,36 @@ class SettingDropdown<T> extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Flexible(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Flexible(
-                      child: Text(label, style: textTheme.titleMedium, overflow: TextOverflow.ellipsis, maxLines: 1),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            label,
+                            style: textTheme.titleMedium,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                        ),
+                        if (icon != null && tooltip != null)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 6.0),
+                            child: Tooltip(
+                              message: tooltip!,
+                              child: Icon(icon, size: 20, color: theme.colorScheme.onSurfaceVariant),
+                            ),
+                          ),
+                      ],
                     ),
-                    if (icon != null && tooltip != null)
+                    if (description != null && description!.isNotEmpty)
                       Padding(
-                        padding: const EdgeInsets.only(left: 6.0),
-                        child: Tooltip(
-                          message: tooltip!,
-                          child: Icon(icon, size: 20, color: theme.colorScheme.onSurfaceVariant),
+                        padding: const EdgeInsets.only(top: 4.0),
+                        child: Text(
+                          description!,
+                          style: textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                         ),
                       ),
                   ],
@@ -161,14 +179,6 @@ class SettingDropdown<T> extends ConsumerWidget {
               ),
             ],
           ),
-          if (description != null && description!.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 4.0),
-              child: Text(
-                description!,
-                style: textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-              ),
-            ),
         ],
       ),
     );

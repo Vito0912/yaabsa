@@ -478,6 +478,11 @@ class MainSettingsScreen extends ConsumerWidget {
                           title: 'Application Settings',
                           items: [
                             SettingsNavigationItem(
+                              icon: Icons.library_books_outlined,
+                              title: 'General',
+                              onTap: () => context.push(LibrarySettings.routeName),
+                            ),
+                            SettingsNavigationItem(
                               icon: Icons.palette_outlined,
                               title: 'Appearance',
                               onTap: () => context.push(AppearanceSettings.routeName),
@@ -486,11 +491,6 @@ class MainSettingsScreen extends ConsumerWidget {
                               icon: Icons.play_circle_outline_outlined,
                               title: 'Global Player',
                               onTap: () => context.push(GlobalPlayerSettings.routeName),
-                            ),
-                            SettingsNavigationItem(
-                              icon: Icons.library_books_outlined,
-                              title: 'Library Behaviour',
-                              onTap: () => context.push(LibrarySettings.routeName),
                             ),
                             if (showAndroidAutoSettings)
                               SettingsNavigationItem(

@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:yaabsa/components/settings/settings_category.dart';
+import 'package:yaabsa/components/settings/settings_section_title.dart';
 import 'package:yaabsa/components/settings/theme_color_channel_slider.dart';
 import 'package:yaabsa/components/settings/theme_preset_option_card.dart';
 import 'package:yaabsa/database/settings_manager.dart';
@@ -45,7 +45,7 @@ class ThemeAppearanceSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SettingsCategory(title: 'Theme', icon: Icons.palette_outlined, topPadding: 10),
+        const SettingsSectionTitle(title: 'Theme', topPadding: 10),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Card(
