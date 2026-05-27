@@ -5,6 +5,8 @@ import 'package:yaabsa/api/admin/admin_api_key_response.dart';
 import 'package:yaabsa/api/admin/admin_api_keys_response.dart';
 import 'package:yaabsa/api/admin/admin_backup_list_response.dart';
 import 'package:yaabsa/api/admin/admin_backups_response.dart';
+import 'package:yaabsa/api/admin/admin_email_ereader_devices_response.dart';
+import 'package:yaabsa/api/admin/admin_email_settings_response.dart';
 import 'package:yaabsa/api/admin/admin_rss_feed.dart';
 import 'package:yaabsa/api/admin/admin_user.dart';
 import 'package:yaabsa/api/admin/admin_user_list_response.dart';
@@ -19,6 +21,8 @@ import 'package:yaabsa/api/admin/logger_data.dart';
 import 'package:yaabsa/api/admin/metadata_term_update_response.dart';
 import 'package:yaabsa/api/admin/sorting_prefixes_update_response.dart';
 import 'package:yaabsa/api/admin/tags_response.dart';
+import 'package:yaabsa/api/admin/update_admin_email_ereader_devices_request.dart';
+import 'package:yaabsa/api/admin/update_admin_email_settings_request.dart';
 import 'package:yaabsa/api/admin/update_admin_api_key_request.dart';
 import 'package:yaabsa/api/admin/update_backup_path_request.dart';
 import 'package:yaabsa/api/me/server_settings.dart';
@@ -276,6 +280,92 @@ class AdminApi {
       route: '/api/feeds',
       fromJson: (data) => AdminRssFeedsResponse.fromJson(data as Map<String, dynamic>),
       queryParams: const <String, dynamic>{},
+      dio: _dio,
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+    );
+  }
+
+  Future<Response<AdminEmailSettingsResponse>> getEmailSettings({
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiGetRequest(
+      route: '/api/emails/settings',
+      fromJson: (data) {
+        final parsedData = data is Map<String, dynamic> ? data : Map<String, dynamic>.from(data as Map);
+        return AdminEmailSettingsResponse.fromJson(parsedData);
+      },
+      queryParams: const <String, dynamic>{},
+      dio: _dio,
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+    );
+  }
+
+  Future<Response<AdminEmailSettingsResponse>> updateEmailSettings({
+    required UpdateAdminEmailSettingsRequest payload,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiPatchRequest(
+      route: '/api/emails/settings',
+      fromJson: (data) {
+        final parsedData = data is Map<String, dynamic> ? data : Map<String, dynamic>.from(data as Map);
+        return AdminEmailSettingsResponse.fromJson(parsedData);
+      },
+      bodyData: Map<String, dynamic>.from(payload.toJson())..removeWhere((key, value) => value == null),
+      dio: _dio,
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+    );
+  }
+
+  Future<bool> sendEmailTest({
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    final options = Options(
+      method: 'POST',
+      headers: <String, dynamic>{...?headers},
+      extra: <String, dynamic>{..._secureExtra, ...?extra},
+      contentType: 'application/json',
+    );
+
+    try {
+      final response = await _dio.request<Object>(
+        '/api/emails/test',
+        data: const <String, dynamic>{},
+        options: options,
+        cancelToken: cancelToken,
+      );
+
+      final statusCode = response.statusCode;
+      return statusCode != null && statusCode >= 200 && statusCode < 300;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<Response<AdminEmailEreaderDevicesResponse>> updateEmailEreaderDevices({
+    required UpdateAdminEmailEreaderDevicesRequest payload,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiPostRequest(
+      route: '/api/emails/ereader-devices',
+      fromJson: (data) {
+        final parsedData = data is Map<String, dynamic> ? data : Map<String, dynamic>.from(data as Map);
+        return AdminEmailEreaderDevicesResponse.fromJson(parsedData);
+      },
+      bodyData: payload.toJson(),
       dio: _dio,
       cancelToken: cancelToken,
       headers: headers,

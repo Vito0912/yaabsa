@@ -8,6 +8,7 @@ import 'package:yaabsa/screens/settings/admin_item_metadata_utils_settings.dart'
 import 'package:yaabsa/screens/layout_home.dart';
 import 'package:yaabsa/screens/settings/admin_server_backups_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_configuration_settings.dart';
+import 'package:yaabsa/screens/settings/admin_server_email_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_library_stats_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_logs_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_rss_feeds_settings.dart';
@@ -124,6 +125,14 @@ class AdminServerSettings extends ConsumerWidget {
                       enabled: isAdminUser,
                       disabledReason: isAdminUser ? null : 'Requires an admin account.',
                       onTap: isAdminUser ? () => context.push(AdminServerRssFeedsSettings.routeName) : null,
+                    ),
+                    SettingsNavigationItem(
+                      icon: Icons.alternate_email_rounded,
+                      title: 'E-Mail / E-Reader',
+                      subtitle: 'Configure send-to-device',
+                      enabled: isAdminUser,
+                      disabledReason: isAdminUser ? null : 'Requires an admin account.',
+                      onTap: isAdminUser ? () => context.push(AdminServerEmailSettings.routeName) : null,
                     ),
                     SettingsNavigationItem(
                       icon: Icons.upload_file_outlined,

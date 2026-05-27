@@ -61,6 +61,7 @@ class ExpressiveActionTable<T> extends StatelessWidget {
     this.loading = false,
     this.padding = EdgeInsets.zero,
     this.physics = const AlwaysScrollableScrollPhysics(),
+    this.shrinkWrap = false,
     this.topActions,
     this.topActionsPadding = EdgeInsets.zero,
     this.topActionsSpacing = 10,
@@ -77,6 +78,7 @@ class ExpressiveActionTable<T> extends StatelessWidget {
   final bool loading;
   final EdgeInsetsGeometry padding;
   final ScrollPhysics physics;
+  final bool shrinkWrap;
   final Widget? topActions;
   final EdgeInsetsGeometry topActionsPadding;
   final double topActionsSpacing;
@@ -297,6 +299,7 @@ class ExpressiveActionTable<T> extends StatelessWidget {
 
     return ListView.builder(
       physics: physics,
+      shrinkWrap: shrinkWrap,
       padding: padding,
       itemCount: rows.length + 1,
       itemBuilder: (context, index) {
@@ -397,6 +400,7 @@ class ExpressiveActionTable<T> extends StatelessWidget {
   Widget _buildMobileList(BuildContext context) {
     return ListView.separated(
       physics: physics,
+      shrinkWrap: shrinkWrap,
       padding: padding,
       itemCount: rows.length,
       separatorBuilder: (_, _) => const SizedBox(height: 10),
@@ -409,6 +413,7 @@ class ExpressiveActionTable<T> extends StatelessWidget {
   Widget _buildProgressList() {
     return ListView(
       physics: physics,
+      shrinkWrap: shrinkWrap,
       padding: padding,
       children: const [
         Padding(
@@ -420,7 +425,7 @@ class ExpressiveActionTable<T> extends StatelessWidget {
   }
 
   Widget _buildEmptyList(BuildContext context) {
-    return ListView(physics: physics, padding: padding, children: [_buildEmptyState(context)]);
+    return ListView(physics: physics, shrinkWrap: shrinkWrap, padding: padding, children: [_buildEmptyState(context)]);
   }
 
   Widget _buildTableBody(BuildContext context) {
@@ -455,6 +460,17 @@ class ExpressiveActionTable<T> extends StatelessWidget {
 
         // In very small viewports, prioritizing table scroll space avoids flex overflow.
         if (!hasBoundedHeight || maxHeight <= minHeightForActions) {
+          if (shrinkWrap) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(padding: topActionsPadding, child: actions),
+                SizedBox(height: topActionsSpacing),
+                tableBody,
+              ],
+            );
+          }
           return tableBody;
         }
 
