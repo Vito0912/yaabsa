@@ -7,6 +7,7 @@ import 'package:yaabsa/api/admin/open_share_session.dart';
 import 'package:yaabsa/api/admin/session_user_summary.dart';
 import 'package:yaabsa/api/library_items/playback_session.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
+import 'package:yaabsa/components/common/inputs/expressive_dropdown.dart';
 import 'package:yaabsa/components/sessions/listening_session_editor_dialog.dart';
 import 'package:yaabsa/components/sessions/listening_session_list.dart';
 import 'package:yaabsa/components/sessions/listening_sessions_pagination_controls.dart';
@@ -724,13 +725,13 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
                 Row(
                   children: [
                     Expanded(
-                      child: DropdownButtonFormField<String?>(
-                        initialValue: _selectedFilterUserId,
+                      child: YaabsaExpressiveDropdownField<String?>(
+                        value: _selectedFilterUserId,
                         decoration: const InputDecoration(labelText: 'Filter by User', border: OutlineInputBorder()),
-                        items: [
-                          const DropdownMenuItem<String?>(value: null, child: Text('All Users')),
+                        options: [
+                          const YaabsaDropdownOption<String?>(value: null, label: 'All Users'),
                           ..._availableUsers.map(
-                            (user) => DropdownMenuItem<String?>(value: user.id, child: Text(user.username)),
+                            (user) => YaabsaDropdownOption<String?>(value: user.id, label: user.username),
                           ),
                         ],
                         onChanged: _isLoadingUsers

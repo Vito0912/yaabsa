@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:yaabsa/api/library/filter_data/library_filter_named_entity.dart';
 import 'package:yaabsa/components/app/item/editor/library_item_editor_autocomplete_sheet.dart';
-import 'package:yaabsa/components/app/item/editor/library_item_editor_field_container.dart';
 import 'package:yaabsa/components/app/item/editor/library_item_edit_models.dart';
 import 'package:yaabsa/components/common/inputs/string_chip_list_input.dart';
 import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
@@ -189,6 +188,7 @@ class _LibraryItemEditorNamedEntityChipsState extends State<LibraryItemEditorNam
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final showSuggestions = _query.trim().isNotEmpty;
     final filteredSuggestions = widget.suggestions
         .where(
@@ -201,8 +201,6 @@ class _LibraryItemEditorNamedEntityChipsState extends State<LibraryItemEditorNam
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(widget.label, style: Theme.of(context).textTheme.labelMedium),
-        const SizedBox(height: 4),
         if (showSuggestions && filteredSuggestions.isNotEmpty)
           LibraryItemEditorAutocompleteSheet(
             suggestions: [
@@ -212,13 +210,19 @@ class _LibraryItemEditorNamedEntityChipsState extends State<LibraryItemEditorNam
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   side: BorderSide.none,
                   avatar: const Icon(Icons.person_add_alt_rounded, size: 14),
-                  label: Text(suggestion.name, style: Theme.of(context).textTheme.bodySmall),
+                  label: Text(suggestion.name, style: theme.textTheme.bodySmall),
                   onPressed: () => _addByLabel(suggestion.name),
                 ),
             ],
           ),
-        LibraryItemEditorFieldContainer(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        const SizedBox(height: 4),
+        InputDecorator(
+          decoration: yaabsaFieldDecoration(context, label: widget.label).copyWith(
+            floatingLabelBehavior: FloatingLabelBehavior.always,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          ),
+          isFocused: false,
+          isEmpty: widget.values.isEmpty && _controller.text.trim().isEmpty,
           child: Wrap(
             spacing: 6,
             runSpacing: 6,
@@ -228,24 +232,22 @@ class _LibraryItemEditorNamedEntityChipsState extends State<LibraryItemEditorNam
                   visualDensity: VisualDensity.compact,
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   side: BorderSide.none,
-                  label: Text(entry.name, style: Theme.of(context).textTheme.bodySmall),
+                  label: Text(entry.name, style: theme.textTheme.bodySmall),
                   onDeleted: () {
                     widget.onChanged(widget.values.where((item) => item != entry).toList(growable: false));
                   },
                 ),
-              SizedBox(
-                width: 150,
-                child: TextField(
-                  controller: _controller,
-                  style: Theme.of(context).textTheme.bodySmall,
-                  decoration: InputDecoration.collapsed(hintText: widget.hintText ?? 'Add value'),
-                  onChanged: (value) {
-                    setState(() {
-                      _query = value;
-                    });
-                  },
-                  onSubmitted: _addByLabel,
-                ),
+              ChipListInlineInput(
+                controller: _controller,
+                style: theme.textTheme.bodySmall,
+                hintText: widget.hintText ?? 'Add value',
+                minWidth: 120,
+                onChanged: (value) {
+                  setState(() {
+                    _query = value;
+                  });
+                },
+                onSubmitted: _addByLabel,
               ),
             ],
           ),
@@ -411,6 +413,7 @@ class _LibraryItemEditorSeriesListState extends State<LibraryItemEditorSeriesLis
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final showSuggestions = _query.trim().isNotEmpty;
     final filteredSuggestions = widget.suggestions
         .where((candidate) => !widget.values.any((entry) => entry.name.toLowerCase() == candidate.name.toLowerCase()))
@@ -421,8 +424,6 @@ class _LibraryItemEditorSeriesListState extends State<LibraryItemEditorSeriesLis
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Series', style: Theme.of(context).textTheme.labelMedium),
-        const SizedBox(height: 4),
         if (showSuggestions && filteredSuggestions.isNotEmpty)
           LibraryItemEditorAutocompleteSheet(
             suggestions: [
@@ -432,15 +433,21 @@ class _LibraryItemEditorSeriesListState extends State<LibraryItemEditorSeriesLis
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   side: BorderSide.none,
                   avatar: const Icon(Icons.add_rounded, size: 14),
-                  label: Text(suggestion.name, style: Theme.of(context).textTheme.bodySmall),
+                  label: Text(suggestion.name, style: theme.textTheme.bodySmall),
                   onPressed: () {
                     _queueAddSeries(suggestion.name, preferredId: suggestion.id);
                   },
                 ),
             ],
           ),
-        LibraryItemEditorFieldContainer(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        const SizedBox(height: 4),
+        InputDecorator(
+          decoration: yaabsaFieldDecoration(context, label: 'Series').copyWith(
+            floatingLabelBehavior: FloatingLabelBehavior.always,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          ),
+          isFocused: false,
+          isEmpty: widget.values.isEmpty && _controller.text.trim().isEmpty,
           child: Wrap(
             spacing: 6,
             runSpacing: 6,
@@ -454,7 +461,7 @@ class _LibraryItemEditorSeriesListState extends State<LibraryItemEditorSeriesLis
                     widget.values[index].sequence.trim().isEmpty
                         ? widget.values[index].name
                         : '${widget.values[index].name} #${widget.values[index].sequence.trim()}',
-                    style: Theme.of(context).textTheme.bodySmall,
+                    style: theme.textTheme.bodySmall,
                   ),
                   onPressed: () {
                     _editSequenceAt(index);
@@ -464,21 +471,19 @@ class _LibraryItemEditorSeriesListState extends State<LibraryItemEditorSeriesLis
                     widget.onChanged(next);
                   },
                 ),
-              SizedBox(
-                width: 150,
-                child: TextField(
-                  controller: _controller,
-                  style: Theme.of(context).textTheme.bodySmall,
-                  decoration: const InputDecoration.collapsed(hintText: 'Add series'),
-                  onChanged: (value) {
-                    setState(() {
-                      _query = value;
-                    });
-                  },
-                  onSubmitted: (value) {
-                    _queueAddSeries(value);
-                  },
-                ),
+              ChipListInlineInput(
+                controller: _controller,
+                style: theme.textTheme.bodySmall,
+                hintText: 'Add series',
+                minWidth: 120,
+                onChanged: (value) {
+                  setState(() {
+                    _query = value;
+                  });
+                },
+                onSubmitted: (value) {
+                  _queueAddSeries(value);
+                },
               ),
             ],
           ),

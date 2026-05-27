@@ -1,3 +1,4 @@
+import 'package:yaabsa/components/common/inputs/expressive_dropdown.dart';
 import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/util/setting_key.dart';
@@ -192,30 +193,10 @@ class SettingDropdown<T> extends ConsumerWidget {
       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
     );
 
-    final ButtonStyle baseEntryStyle = MenuItemButton.styleFrom(
-      padding: const EdgeInsetsDirectional.only(start: 8, end: 10),
-      minimumSize: const Size.fromHeight(44),
-      textStyle: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+    final List<YaabsaDropdownOption<T>> options = List.generate(
+      values.length,
+      (index) => YaabsaDropdownOption<T>(value: values[index], label: valueLabels[index]),
     );
-
-    final List<DropdownMenuEntry<T>> entries = List.generate(values.length, (index) {
-      final bool isSelected = values[index] == selectedValue;
-      final Color foregroundColor = isSelected ? theme.colorScheme.onSecondaryContainer : theme.colorScheme.onSurface;
-
-      return DropdownMenuEntry<T>(
-        value: values[index],
-        label: valueLabels[index],
-        trailingIcon: isSelected ? Icon(Icons.check_rounded, size: 18, color: foregroundColor) : null,
-        style: baseEntryStyle.copyWith(
-          backgroundColor: WidgetStatePropertyAll<Color?>(
-            isSelected ? theme.colorScheme.secondaryContainer.withValues(alpha: 0.78) : null,
-          ),
-          foregroundColor: WidgetStatePropertyAll<Color?>(foregroundColor),
-          iconColor: WidgetStatePropertyAll<Color?>(foregroundColor),
-        ),
-      );
-    });
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
@@ -270,36 +251,14 @@ class SettingDropdown<T> extends ConsumerWidget {
               const SizedBox(width: 12),
               SizedBox(
                 width: dropdownWidth,
-                child: DropdownMenuFormField<T>(
-                  initialSelection: selectedValue,
+                child: YaabsaExpressiveDropdownField<T>(
+                  value: selectedValue,
                   enabled: enabled,
+                  options: options,
                   width: dropdownWidth,
-                  menuHeight: 320,
-                  selectOnly: true,
-                  requestFocusOnTap: false,
-                  dropdownMenuEntries: entries,
-                  trailingIcon: Icon(Icons.keyboard_arrow_down_rounded, color: theme.colorScheme.onSurfaceVariant),
-                  selectedTrailingIcon: Icon(
-                    Icons.keyboard_arrow_up_rounded,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                  alignmentOffset: const Offset(0, 4),
-                  menuStyle: MenuStyle(
-                    backgroundColor: WidgetStatePropertyAll<Color>(theme.colorScheme.surfaceContainerHigh),
-                    surfaceTintColor: const WidgetStatePropertyAll<Color>(Colors.transparent),
-                    elevation: const WidgetStatePropertyAll<double>(3),
-                    shape: WidgetStatePropertyAll<OutlinedBorder>(
-                      RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(EdgeInsets.symmetric(vertical: 4)),
-                  ),
-                  textStyle: textTheme.bodyMedium?.copyWith(
-                    color: enabled ? theme.colorScheme.onSurface : theme.disabledColor,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  decorationBuilder: (context, _) => decoration,
-                  onSelected: enabled
-                      ? (T? newValue) {
+                  decoration: decoration,
+                  onChanged: enabled
+                      ? (newValue) {
                           if (newValue != null) {
                             onValueSelected(newValue);
                           }

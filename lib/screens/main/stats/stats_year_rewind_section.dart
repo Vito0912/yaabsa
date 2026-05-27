@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/api/library/stats/year_in_review_stats.dart';
+import 'package:yaabsa/components/common/inputs/expressive_dropdown.dart';
 import 'package:yaabsa/screens/main/stats/stats_formatters.dart';
 import 'package:yaabsa/screens/main/stats/stats_ranked_bars.dart';
 
@@ -28,11 +29,11 @@ class StatsYearRewindSection extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: DropdownButtonFormField<int>(
-                initialValue: availableYears.contains(selectedYear) ? selectedYear : availableYears.first,
+              child: YaabsaExpressiveDropdownField<int>(
+                value: availableYears.contains(selectedYear) ? selectedYear : availableYears.first,
                 decoration: const InputDecoration(labelText: 'Year', border: OutlineInputBorder(), isDense: true),
-                items: [
-                  for (final year in availableYears) DropdownMenuItem<int>(value: year, child: Text(year.toString())),
+                options: [
+                  for (final year in availableYears) YaabsaDropdownOption<int>(value: year, label: year.toString()),
                 ],
                 onChanged: (value) {
                   if (value != null) {

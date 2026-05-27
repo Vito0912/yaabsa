@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/api/admin/server_log_entry.dart';
 import 'package:yaabsa/api/me/server_settings.dart';
 import 'package:yaabsa/api/socket/abs_socket_client.dart';
+import 'package:yaabsa/components/common/inputs/expressive_dropdown.dart';
 import 'package:yaabsa/provider/core/socket_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 
@@ -348,20 +349,19 @@ class _AdminServerLogsViewState extends ConsumerState<AdminServerLogsView> {
                   const SizedBox(width: 12),
                   SizedBox(
                     width: 170,
-                    child: DropdownButtonFormField<int>(
+                    child: YaabsaExpressiveDropdownField<int>(
                       key: ValueKey<int>(_listenerLogLevel.value),
-                      initialValue: _listenerLogLevel.value,
-                      isExpanded: true,
+                      value: _listenerLogLevel.value,
                       decoration: const InputDecoration(
                         labelText: 'Server Log Level',
                         isDense: true,
                         border: OutlineInputBorder(),
                       ),
-                      items: LogLevel.values
+                      options: LogLevel.values
                           .map(
-                            (level) => DropdownMenuItem<int>(value: level.value, child: Text(level.name.toUpperCase())),
+                            (level) => YaabsaDropdownOption<int>(value: level.value, label: level.name.toUpperCase()),
                           )
-                          .toList(),
+                          .toList(growable: false),
                       onChanged: _isUpdatingLogLevel
                           ? null
                           : (value) {

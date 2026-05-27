@@ -8,6 +8,7 @@ import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/library_items/playback_session.dart';
 import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
+import 'package:yaabsa/components/common/inputs/expressive_dropdown.dart';
 import 'package:yaabsa/components/sessions/listening_session_editor_dialog.dart';
 import 'package:yaabsa/components/sessions/listening_session_list.dart';
 import 'package:yaabsa/components/sessions/listening_sessions_pagination_controls.dart';
@@ -348,18 +349,18 @@ class _LibraryItemListeningSessionsTabState extends ConsumerState<LibraryItemLis
               if (_showEpisodeFilter)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: DropdownButtonFormField<String?>(
-                    initialValue: _selectedEpisodeId,
+                  child: YaabsaExpressiveDropdownField<String?>(
+                    value: _selectedEpisodeId,
                     decoration: const InputDecoration(
                       labelText: 'Filter by Episode',
                       border: OutlineInputBorder(),
                       isDense: true,
                     ),
-                    items: [
-                      const DropdownMenuItem<String?>(value: null, child: Text('All Episodes')),
+                    options: [
+                      const YaabsaDropdownOption<String?>(value: null, label: 'All Episodes'),
                       ..._episodes.map(
                         (episode) =>
-                            DropdownMenuItem<String?>(value: episode.id, child: Text(podcastEpisodeTitle(episode))),
+                            YaabsaDropdownOption<String?>(value: episode.id, label: podcastEpisodeTitle(episode)),
                       ),
                     ],
                     onChanged: _isLoading

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:yaabsa/components/app/item/editor/library_item_editor_inputs.dart';
 import 'package:yaabsa/components/app/item/match/manual_match/manual_match_description_field.dart';
 import 'package:yaabsa/components/app/item/match/manual_match/manual_match_models.dart';
+import 'package:yaabsa/components/common/inputs/expressive_dropdown.dart';
 
 class ManualMatchFieldEditor extends StatelessWidget {
   const ManualMatchFieldEditor({
@@ -152,18 +153,18 @@ class ManualMatchFieldEditor extends StatelessWidget {
   }
 
   Widget _buildBooleanInput(BuildContext context) {
-    return DropdownButtonFormField<bool>(
+    return YaabsaExpressiveDropdownField<bool>(
       key: ValueKey<bool?>(boolValue),
-      initialValue: boolValue,
+      value: boolValue,
       onChanged: saving ? null : onBoolChanged,
       decoration: const InputDecoration(
         border: OutlineInputBorder(),
         isDense: true,
         contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       ),
-      items: const [
-        DropdownMenuItem<bool>(value: true, child: Text('Yes')),
-        DropdownMenuItem<bool>(value: false, child: Text('No')),
+      options: const [
+        YaabsaDropdownOption<bool>(value: true, label: 'Yes'),
+        YaabsaDropdownOption<bool>(value: false, label: 'No'),
       ],
     );
   }
@@ -178,20 +179,21 @@ class ManualMatchFieldEditor extends StatelessWidget {
           ).textTheme.labelMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
         const SizedBox(width: 8),
-        DropdownButton<ManualListApplyMode>(
-          value: listMode,
-          isDense: true,
-          onChanged: saving
-              ? null
-              : (value) {
-                  if (value == null) {
-                    return;
-                  }
-                  onListModeChanged(value);
-                },
-          items: ManualListApplyMode.values
-              .map((mode) => DropdownMenuItem<ManualListApplyMode>(value: mode, child: Text(mode.label)))
-              .toList(growable: false),
+        SizedBox(
+          width: 180,
+          child: YaabsaExpressiveDropdown<ManualListApplyMode>(
+            value: listMode,
+            enabled: !saving,
+            options: ManualListApplyMode.values
+                .map((mode) => YaabsaDropdownOption<ManualListApplyMode>(value: mode, label: mode.label))
+                .toList(growable: false),
+            onChanged: (value) {
+              if (value == null) {
+                return;
+              }
+              onListModeChanged(value);
+            },
+          ),
         ),
       ],
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:yaabsa/components/common/inputs/expressive_dropdown.dart';
 
 class ListeningSessionsPaginationControls extends StatelessWidget {
   const ListeningSessionsPaginationControls({
@@ -36,21 +37,20 @@ class ListeningSessionsPaginationControls extends StatelessWidget {
     options.sort((left, right) => left.compareTo(right));
 
     Widget buildPerPageSelector() {
-      return Material(
-        type: MaterialType.transparency,
-        child: DropdownButton<int>(
+      return SizedBox(
+        width: 96,
+        child: YaabsaExpressiveDropdown<int>(
           value: itemsPerPage,
-          onChanged: (isLoading || onItemsPerPageChanged == null)
-              ? null
-              : (value) {
-                  if (value == null) {
-                    return;
-                  }
-                  onItemsPerPageChanged!(value);
-                },
-          items: options
-              .map((option) => DropdownMenuItem<int>(value: option, child: Text(option.toString())))
+          enabled: !isLoading && onItemsPerPageChanged != null,
+          options: options
+              .map((option) => YaabsaDropdownOption<int>(value: option, label: option.toString()))
               .toList(growable: false),
+          onChanged: (value) {
+            if (value == null) {
+              return;
+            }
+            onItemsPerPageChanged?.call(value);
+          },
         ),
       );
     }

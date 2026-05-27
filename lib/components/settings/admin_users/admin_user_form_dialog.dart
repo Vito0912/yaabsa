@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:yaabsa/api/admin/admin_user_permissions.dart';
 import 'package:yaabsa/api/admin/admin_user_upsert_request.dart';
 import 'package:yaabsa/api/library/library.dart';
+import 'package:yaabsa/components/common/inputs/expressive_dropdown.dart';
 import 'package:yaabsa/components/settings/admin_users/admin_user_multi_select_card.dart';
 import 'package:yaabsa/components/settings/admin_users/admin_user_permissions_editor.dart';
 import 'package:yaabsa/util/globals.dart';
@@ -360,20 +361,18 @@ class _AdminUserFormDialogState extends State<_AdminUserFormDialog> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  initialValue: _type,
+                YaabsaExpressiveDropdownField<String>(
+                  value: _type,
                   decoration: InputDecoration(
                     labelText: 'Account type',
                     border: const OutlineInputBorder(),
                     helperText: _canEditType ? null : 'Root account type cannot be changed.',
                   ),
-                  items: accountTypeOptions
+                  options: accountTypeOptions
                       .toList()
                       .map(
-                        (type) => DropdownMenuItem<String>(
-                          value: type,
-                          child: Text(type == 'root' ? 'root (reserved)' : type),
-                        ),
+                        (type) =>
+                            YaabsaDropdownOption<String>(value: type, label: type == 'root' ? 'root (reserved)' : type),
                       )
                       .toList(growable: false),
                   onChanged: (_isSubmitting || !_canEditType) ? null : _onTypeChanged,

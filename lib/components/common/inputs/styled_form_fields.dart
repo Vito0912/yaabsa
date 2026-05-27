@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:yaabsa/components/common/inputs/expressive_dropdown.dart';
 
 InputDecoration yaabsaFieldDecoration(
   BuildContext context, {
@@ -140,16 +141,33 @@ class YaabsaDropdownField<T> extends StatelessWidget {
   final List<DropdownMenuItem<T>> items;
   final ValueChanged<T?>? onChanged;
 
+  List<YaabsaDropdownOption<T>> _mapItemsToOptions() {
+    return items
+        .where((item) => item.value != null || null is T)
+        .map(
+          (item) => YaabsaDropdownOption<T>(
+            value: item.value as T,
+            label: _extractDropdownItemLabel(item.child),
+            enabled: item.enabled,
+            labelWidget: item.child,
+          ),
+        )
+        .toList(growable: false);
+  }
+
+  String _extractDropdownItemLabel(Widget child) {
+    if (child is Text) {
+      return child.data ?? child.textSpan?.toPlainText() ?? '';
+    }
+    return child.toStringShort();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return DropdownButtonFormField<T>(
-      initialValue: value,
-      items: items,
+    return YaabsaExpressiveDropdownField<T>(
+      value: value,
+      options: _mapItemsToOptions(),
       onChanged: enabled ? onChanged : null,
-      isExpanded: isExpanded,
-      borderRadius: BorderRadius.circular(12),
-      menuMaxHeight: 320,
-      icon: const Icon(Icons.keyboard_arrow_down_rounded),
       decoration: yaabsaFieldDecoration(context, label: label, hintText: hintText),
     );
   }

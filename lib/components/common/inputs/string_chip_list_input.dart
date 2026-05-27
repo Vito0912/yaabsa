@@ -4,6 +4,51 @@ import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
 typedef StringChipListInputValidator = String? Function(String value);
 typedef StringChipListInputNormalizer = String Function(String value);
 
+class ChipListInlineInput extends StatelessWidget {
+  const ChipListInlineInput({
+    super.key,
+    required this.controller,
+    required this.hintText,
+    required this.onChanged,
+    required this.onSubmitted,
+    this.style,
+    this.minWidth = 90,
+    this.maxWidth = 180,
+  });
+
+  final TextEditingController controller;
+  final String hintText;
+  final ValueChanged<String> onChanged;
+  final ValueChanged<String> onSubmitted;
+  final TextStyle? style;
+  final double minWidth;
+  final double maxWidth;
+
+  @override
+  Widget build(BuildContext context) {
+    return IntrinsicWidth(
+      child: SizedBox(
+        height: 24,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minWidth: minWidth, maxWidth: maxWidth),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: TextField(
+              controller: controller,
+              style: style,
+              textAlignVertical: TextAlignVertical.center,
+              textInputAction: TextInputAction.done,
+              decoration: InputDecoration.collapsed(hintText: hintText),
+              onChanged: onChanged,
+              onSubmitted: onSubmitted,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class StringChipListInput extends StatefulWidget {
   const StringChipListInput({
     super.key,
@@ -40,26 +85,17 @@ class _StringChipListInputState extends State<StringChipListInput> {
   String? _validationError;
 
   Widget _buildInlineInput(BuildContext context) {
-    return IntrinsicWidth(
-      child: SizedBox(
-        height: 32,
-        child: Align(
-          alignment: Alignment.centerLeft,
-          child: InlineTextField(
-            controller: _controller,
-            style: Theme.of(context).textTheme.bodySmall,
-            hintText: widget.hintText ?? 'Add value',
-            textInputAction: TextInputAction.done,
-            onChanged: (value) {
-              setState(() {
-                _query = value;
-                _validationError = null;
-              });
-            },
-            onSubmitted: _addValue,
-          ),
-        ),
-      ),
+    return ChipListInlineInput(
+      controller: _controller,
+      style: Theme.of(context).textTheme.bodySmall,
+      hintText: widget.hintText ?? 'Add value',
+      onChanged: (value) {
+        setState(() {
+          _query = value;
+          _validationError = null;
+        });
+      },
+      onSubmitted: _addValue,
     );
   }
 
@@ -141,8 +177,6 @@ class _StringChipListInputState extends State<StringChipListInput> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     final showSuggestions = _query.trim().isNotEmpty;
     final filteredSuggestions = widget.suggestions
         .map((entry) => _normalizeValue(entry))
@@ -153,24 +187,32 @@ class _StringChipListInputState extends State<StringChipListInput> {
         .take(8)
         .toList(growable: false);
 
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final hasInlineValue = _controller.text.trim().isNotEmpty;
+    final hasEmptyState =
+        widget.values.isEmpty &&
+        !hasInlineValue &&
+        widget.emptyStateText != null &&
+        widget.emptyStateText!.trim().isNotEmpty;
+
+    final decoration = yaabsaFieldDecoration(context, label: widget.label).copyWith(
+      enabled: widget.enabled,
+      helperText: widget.helperText,
+      errorText: _validationError,
+      floatingLabelBehavior: FloatingLabelBehavior.always,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(widget.label, style: Theme.of(context).textTheme.titleSmall),
-        if (widget.helperText != null && widget.helperText!.trim().isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Text(
-              widget.helperText!,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
-            ),
-          ),
         if (showSuggestions && filteredSuggestions.isNotEmpty)
           Padding(
-            padding: const EdgeInsets.only(top: 8),
+            padding: const EdgeInsets.only(top: 4),
             child: Wrap(
               spacing: 6,
-              runSpacing: 6,
+              runSpacing: 4,
               children: [
                 for (final suggestion in filteredSuggestions)
                   ActionChip(
@@ -178,45 +220,38 @@ class _StringChipListInputState extends State<StringChipListInput> {
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     side: BorderSide.none,
                     avatar: const Icon(Icons.add_rounded, size: 14),
-                    label: Text(suggestion, style: Theme.of(context).textTheme.bodySmall),
+                    label: Text(suggestion, style: theme.textTheme.bodySmall),
                     onPressed: widget.enabled ? () => _addValue(suggestion) : null,
                   ),
               ],
             ),
           ),
-        const SizedBox(height: 8),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          decoration: BoxDecoration(
-            color: colorScheme.surfaceContainer,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.38)),
-          ),
+        const SizedBox(height: 4),
+        InputDecorator(
+          decoration: decoration,
+          isEmpty: widget.values.isEmpty && !hasInlineValue,
+          isFocused: false,
           child: Wrap(
             spacing: 6,
             runSpacing: 6,
             children: [
+              if (hasEmptyState)
+                Text(
+                  widget.emptyStateText!,
+                  style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                ),
               for (final value in widget.values)
                 InputChip(
                   visualDensity: VisualDensity.compact,
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   side: BorderSide.none,
-                  label: Text(value, style: Theme.of(context).textTheme.bodySmall),
+                  label: Text(value, style: theme.textTheme.bodySmall),
                   onDeleted: widget.enabled ? () => _removeValue(value) : null,
                 ),
               if (widget.enabled) _buildInlineInput(context),
             ],
           ),
         ),
-        if (_validationError != null)
-          Padding(
-            padding: const EdgeInsets.only(top: 6, left: 2),
-            child: Text(
-              _validationError!,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.error),
-            ),
-          ),
       ],
     );
   }
