@@ -41,37 +41,6 @@ class LibraryItemEditorSectionCard extends StatelessWidget {
   }
 }
 
-class LibraryItemEditorTextField extends StatelessWidget {
-  const LibraryItemEditorTextField({
-    super.key,
-    required this.label,
-    this.controller,
-    this.hintText,
-    this.maxLines = 1,
-    this.keyboardType,
-    this.onChanged,
-  });
-
-  final String label;
-  final TextEditingController? controller;
-  final String? hintText;
-  final int maxLines;
-  final TextInputType? keyboardType;
-  final ValueChanged<String>? onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return StyledTextField(
-      label: label,
-      controller: controller,
-      hintText: hintText,
-      maxLines: maxLines,
-      keyboardType: keyboardType,
-      onChanged: onChanged,
-    );
-  }
-}
-
 class LibraryItemEditorPodcastTypeField extends StatelessWidget {
   const LibraryItemEditorPodcastTypeField({super.key, required this.value, required this.onChanged});
 

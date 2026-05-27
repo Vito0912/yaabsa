@@ -395,23 +395,22 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
           ),
           const SizedBox(height: 8),
           Row(
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: addButtonEnabled
-                      ? () => _createApiKey(currentUserId: currentUserId, isRootUser: isRootUser)
-                      : null,
-                  icon: _isCreating
-                      ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Icon(Icons.add_rounded),
-                  label: const Text('Add API Key'),
-                ),
-              ),
-              const SizedBox(width: 8),
-              IconButton(
+              IconButton.filledTonal(
                 tooltip: 'Refresh',
                 onPressed: _isLoading ? null : () => unawaited(_loadApiKeysData(showLoading: true)),
                 icon: const Icon(Icons.refresh_rounded),
+              ),
+              const SizedBox(width: 6),
+              IconButton.filled(
+                tooltip: 'Add API key',
+                onPressed: addButtonEnabled
+                    ? () => _createApiKey(currentUserId: currentUserId, isRootUser: isRootUser)
+                    : null,
+                icon: _isCreating
+                    ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Icon(Icons.vpn_key_rounded),
               ),
             ],
           ),
@@ -518,12 +517,6 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _buildToolbar(
-                compact: compact,
-                currentUserId: currentUser.id,
-                isRootUser: isRootUser,
-                canCreate: availableOwners.isNotEmpty,
-              ),
               if (_isLoading && _apiKeys.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 const LinearProgressIndicator(minHeight: 2),
@@ -552,6 +545,12 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
                     onEdit: (apiKey) => _editApiKey(apiKey, isRootUser: isRootUser),
                     onDelete: _deleteApiKey,
                     loading: _isLoading,
+                    topActions: _buildToolbar(
+                      compact: compact,
+                      currentUserId: currentUser.id,
+                      isRootUser: isRootUser,
+                      canCreate: availableOwners.isNotEmpty,
+                    ),
                   ),
                 ),
               ),

@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:yaabsa/api/admin/admin_api_key_response.dart';
 import 'package:yaabsa/api/admin/admin_api_keys_response.dart';
+import 'package:yaabsa/api/admin/admin_backup_list_response.dart';
+import 'package:yaabsa/api/admin/admin_backups_response.dart';
 import 'package:yaabsa/api/admin/admin_user.dart';
 import 'package:yaabsa/api/admin/admin_user_list_response.dart';
 import 'package:yaabsa/api/admin/admin_user_upsert_request.dart';
@@ -17,6 +19,7 @@ import 'package:yaabsa/api/admin/metadata_term_update_response.dart';
 import 'package:yaabsa/api/admin/sorting_prefixes_update_response.dart';
 import 'package:yaabsa/api/admin/tags_response.dart';
 import 'package:yaabsa/api/admin/update_admin_api_key_request.dart';
+import 'package:yaabsa/api/admin/update_backup_path_request.dart';
 import 'package:yaabsa/api/me/server_settings.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/api/tasks/abs_task_list_response.dart';
@@ -245,6 +248,143 @@ class AdminApi {
       headers: headers,
       extra: extra,
     );
+  }
+
+  Future<Response<AdminBackupsResponse>> getBackups({
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiGetRequest(
+      route: '/api/backups',
+      fromJson: (data) => AdminBackupsResponse.fromJson(data as Map<String, dynamic>),
+      queryParams: const <String, dynamic>{},
+      dio: _dio,
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+    );
+  }
+
+  Future<Response<AdminBackupListResponse>> createBackup({
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiPostRequest(
+      route: '/api/backups',
+      fromJson: (data) => AdminBackupListResponse.fromJson(data as Map<String, dynamic>),
+      bodyData: const <String, dynamic>{},
+      dio: _dio,
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+    );
+  }
+
+  Future<Response<AdminBackupListResponse>> deleteBackup(
+    String backupId, {
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    final options = Options(
+      method: 'DELETE',
+      headers: <String, dynamic>{...?headers},
+      extra: <String, dynamic>{..._secureExtra, ...?extra},
+      contentType: 'application/json',
+    );
+
+    final response = await _dio.request<Object>('/api/backups/$backupId', options: options, cancelToken: cancelToken);
+
+    final responseData = response.data;
+    final parsedData = responseData is Map<String, dynamic>
+        ? responseData
+        : responseData is Map
+        ? Map<String, dynamic>.from(responseData)
+        : const <String, dynamic>{};
+
+    return Response<AdminBackupListResponse>(
+      data: AdminBackupListResponse.fromJson(parsedData),
+      headers: response.headers,
+      isRedirect: response.isRedirect,
+      requestOptions: response.requestOptions,
+      redirects: response.redirects,
+      statusCode: response.statusCode,
+      statusMessage: response.statusMessage,
+      extra: response.extra,
+    );
+  }
+
+  Future<Response<AdminBackupListResponse>> uploadBackup({
+    required FormData formData,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    final options = Options(
+      method: 'POST',
+      headers: <String, dynamic>{...?headers},
+      extra: <String, dynamic>{..._secureExtra, ...?extra},
+      contentType: 'multipart/form-data',
+    );
+
+    final response = await _dio.request<Object>(
+      '/api/backups/upload',
+      data: formData,
+      options: options,
+      cancelToken: cancelToken,
+    );
+
+    final responseData = response.data;
+    final parsedData = responseData is Map<String, dynamic>
+        ? responseData
+        : responseData is Map
+        ? Map<String, dynamic>.from(responseData)
+        : const <String, dynamic>{};
+
+    return Response<AdminBackupListResponse>(
+      data: AdminBackupListResponse.fromJson(parsedData),
+      headers: response.headers,
+      isRedirect: response.isRedirect,
+      requestOptions: response.requestOptions,
+      redirects: response.redirects,
+      statusCode: response.statusCode,
+      statusMessage: response.statusMessage,
+      extra: response.extra,
+    );
+  }
+
+  Future<void> updateBackupPath({
+    required UpdateBackupPathRequest payload,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    final options = Options(
+      method: 'PATCH',
+      headers: <String, dynamic>{...?headers},
+      extra: <String, dynamic>{..._secureExtra, ...?extra},
+      contentType: 'application/json',
+    );
+
+    await _dio.request<Object>('/api/backups/path', data: payload.toJson(), options: options, cancelToken: cancelToken);
+  }
+
+  Future<void> applyBackup({
+    required String backupId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    final options = Options(
+      method: 'GET',
+      headers: <String, dynamic>{...?headers},
+      extra: <String, dynamic>{..._secureExtra, ...?extra},
+      contentType: 'application/json',
+    );
+
+    await _dio.request<Object>('/api/backups/$backupId/apply', options: options, cancelToken: cancelToken);
   }
 
   Future<Response<AdminApiKeyResponse>> createApiKey({

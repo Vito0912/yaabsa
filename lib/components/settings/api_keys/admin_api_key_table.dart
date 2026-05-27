@@ -11,6 +11,7 @@ class AdminApiKeyTable extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
     this.loading = false,
+    this.topActions,
   });
 
   final List<AdminApiKey> apiKeys;
@@ -18,6 +19,7 @@ class AdminApiKeyTable extends StatelessWidget {
   final Future<void> Function(AdminApiKey apiKey) onEdit;
   final Future<void> Function(AdminApiKey apiKey) onDelete;
   final bool loading;
+  final Widget? topActions;
 
   String _ownerLabel(AdminApiKey apiKey) {
     final user = apiKey.user;
@@ -99,6 +101,7 @@ class AdminApiKeyTable extends StatelessWidget {
           ),
         ),
       ],
+      topActions: topActions,
       rowId: (apiKey) => apiKey.id,
       busyRowIds: busyApiKeyIds,
       actions: [

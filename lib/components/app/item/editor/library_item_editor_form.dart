@@ -9,6 +9,7 @@ import 'package:yaabsa/components/app/item/editor/library_item_description_codec
 import 'package:yaabsa/components/app/item/editor/library_item_edit_models.dart';
 import 'package:yaabsa/components/app/item/editor/library_item_editor_field_container.dart';
 import 'package:yaabsa/components/app/item/editor/library_item_editor_inputs.dart';
+import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
 import 'package:yaabsa/util/globals.dart';
 
 class LibraryItemEditorForm extends StatefulWidget {
@@ -332,63 +333,49 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
     required List<String> publisherSuggestions,
   }) {
     final fields = <Widget>[
-      LibraryItemEditorTextField(label: 'Title', controller: _titleController, onChanged: (_) => setState(() {})),
+      StyledTextField(label: 'Title', controller: _titleController, onChanged: (_) => setState(() {})),
       if (!isPodcast)
-        LibraryItemEditorTextField(
-          label: 'Subtitle',
-          controller: _subtitleController,
-          onChanged: (_) => setState(() {}),
-        ),
+        StyledTextField(label: 'Subtitle', controller: _subtitleController, onChanged: (_) => setState(() {})),
       if (isPodcast)
-        LibraryItemEditorTextField(
-          label: 'Author',
-          controller: _podcastAuthorController,
-          onChanged: (_) => setState(() {}),
-        ),
+        StyledTextField(label: 'Author', controller: _podcastAuthorController, onChanged: (_) => setState(() {})),
       if (!isPodcast)
-        LibraryItemEditorTextField(
+        StyledTextField(
           label: 'Published year',
           controller: _publishedYearController,
           keyboardType: TextInputType.number,
           onChanged: (_) => setState(() {}),
         ),
       if (!isPodcast)
-        LibraryItemEditorTextField(
+        StyledTextField(
           label: 'Publisher',
           controller: _publisherController,
           hintText: publisherSuggestions.isEmpty ? null : publisherSuggestions.first,
           onChanged: (_) => setState(() {}),
         ),
       if (isPodcast)
-        LibraryItemEditorTextField(
+        StyledTextField(
           label: 'Release date',
           controller: _releaseDateController,
           hintText: 'YYYY-MM-DD',
           onChanged: (_) => setState(() {}),
         ),
-      LibraryItemEditorTextField(
+      StyledTextField(
         label: 'Language',
         controller: _languageController,
         hintText: languageSuggestions.isEmpty ? null : languageSuggestions.first,
         onChanged: (_) => setState(() {}),
       ),
-      if (!isPodcast)
-        LibraryItemEditorTextField(label: 'ISBN', controller: _isbnController, onChanged: (_) => setState(() {})),
-      if (!isPodcast)
-        LibraryItemEditorTextField(label: 'ASIN', controller: _asinController, onChanged: (_) => setState(() {})),
+      if (!isPodcast) StyledTextField(label: 'ISBN', controller: _isbnController, onChanged: (_) => setState(() {})),
+      if (!isPodcast) StyledTextField(label: 'ASIN', controller: _asinController, onChanged: (_) => setState(() {})),
       if (isPodcast)
-        LibraryItemEditorTextField(
+        StyledTextField(
           label: 'Feed URL',
           controller: _feedUrlController,
           hintText: 'https://example.com/feed.xml',
           onChanged: (_) => setState(() {}),
         ),
       if (isPodcast)
-        LibraryItemEditorTextField(
-          label: 'iTunes ID',
-          controller: _itunesIdController,
-          onChanged: (_) => setState(() {}),
-        ),
+        StyledTextField(label: 'iTunes ID', controller: _itunesIdController, onChanged: (_) => setState(() {})),
       if (isPodcast)
         LibraryItemEditorPodcastTypeField(
           value: _podcastTypeValue,

@@ -22,6 +22,7 @@ import 'package:yaabsa/screens/settings/android_auto/android_auto_library_settin
 import 'package:yaabsa/screens/settings/android_auto/android_auto_podcast_library_settings.dart';
 import 'package:yaabsa/screens/settings/android_auto_settings.dart';
 import 'package:yaabsa/screens/settings/admin_item_metadata_utils_settings.dart';
+import 'package:yaabsa/screens/settings/admin_server_backups_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_configuration_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_library_stats_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_logs_settings.dart';
@@ -224,6 +225,10 @@ final globalRouter = GoRouter(
                     GoRoute(
                       path: AdminServerLogsSettings.routeName,
                       builder: (context, state) => const AdminServerLogsSettings(),
+                    ),
+                    GoRoute(
+                      path: AdminServerBackupsSettings.routeName,
+                      builder: (context, state) => const AdminServerBackupsSettings(),
                     ),
                     GoRoute(
                       path: AdminServerLibraryStatsSettings.routeName,

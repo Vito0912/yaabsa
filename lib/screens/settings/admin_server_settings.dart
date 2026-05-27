@@ -6,6 +6,7 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/settings/admin_server_api_keys_settings.dart';
 import 'package:yaabsa/screens/settings/admin_item_metadata_utils_settings.dart';
 import 'package:yaabsa/screens/layout_home.dart';
+import 'package:yaabsa/screens/settings/admin_server_backups_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_configuration_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_library_stats_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_logs_settings.dart';
@@ -82,6 +83,14 @@ class AdminServerSettings extends ConsumerWidget {
                       enabled: isAdminUser,
                       disabledReason: isAdminUser ? null : 'Requires an admin account.',
                       onTap: isAdminUser ? () => context.push(AdminServerLogsSettings.routeName) : null,
+                    ),
+                    SettingsNavigationItem(
+                      icon: Icons.backup_table_outlined,
+                      title: 'Backups',
+                      subtitle: 'Create, upload, download, restore, and configure backup retention.',
+                      enabled: isAdminUser,
+                      disabledReason: isAdminUser ? null : 'Requires an admin account.',
+                      onTap: isAdminUser ? () => context.push(AdminServerBackupsSettings.routeName) : null,
                     ),
                     SettingsNavigationItem(
                       icon: Icons.group_outlined,

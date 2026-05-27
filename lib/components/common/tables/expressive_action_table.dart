@@ -61,6 +61,9 @@ class ExpressiveActionTable<T> extends StatelessWidget {
     this.loading = false,
     this.padding = EdgeInsets.zero,
     this.physics = const AlwaysScrollableScrollPhysics(),
+    this.topActions,
+    this.topActionsPadding = EdgeInsets.zero,
+    this.topActionsSpacing = 10,
   });
 
   final List<T> rows;
@@ -74,6 +77,9 @@ class ExpressiveActionTable<T> extends StatelessWidget {
   final bool loading;
   final EdgeInsetsGeometry padding;
   final ScrollPhysics physics;
+  final Widget? topActions;
+  final EdgeInsetsGeometry topActionsPadding;
+  final double topActionsSpacing;
 
   Color _actionColor(BuildContext context, ExpressiveTableActionTone tone) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -417,8 +423,7 @@ class ExpressiveActionTable<T> extends StatelessWidget {
     return ListView(physics: physics, padding: padding, children: [_buildEmptyState(context)]);
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildTableBody(BuildContext context) {
     if (columns.isEmpty) {
       return _buildEmptyList(context);
     }
@@ -432,5 +437,36 @@ class ExpressiveActionTable<T> extends StatelessWidget {
     }
 
     return context.isMobile ? _buildMobileList(context) : _buildDesktopList(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tableBody = _buildTableBody(context);
+    final actions = topActions;
+    if (actions == null) {
+      return tableBody;
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxHeight = constraints.maxHeight;
+        final hasBoundedHeight = constraints.hasBoundedHeight && maxHeight.isFinite;
+        final minHeightForActions = 72.0 + topActionsSpacing;
+
+        // In very small viewports, prioritizing table scroll space avoids flex overflow.
+        if (!hasBoundedHeight || maxHeight <= minHeightForActions) {
+          return tableBody;
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(padding: topActionsPadding, child: actions),
+            SizedBox(height: topActionsSpacing),
+            Expanded(child: tableBody),
+          ],
+        );
+      },
+    );
   }
 }
