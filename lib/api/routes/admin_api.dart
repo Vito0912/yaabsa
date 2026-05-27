@@ -5,6 +5,7 @@ import 'package:yaabsa/api/admin/admin_api_key_response.dart';
 import 'package:yaabsa/api/admin/admin_api_keys_response.dart';
 import 'package:yaabsa/api/admin/admin_backup_list_response.dart';
 import 'package:yaabsa/api/admin/admin_backups_response.dart';
+import 'package:yaabsa/api/admin/admin_rss_feed.dart';
 import 'package:yaabsa/api/admin/admin_user.dart';
 import 'package:yaabsa/api/admin/admin_user_list_response.dart';
 import 'package:yaabsa/api/admin/admin_user_upsert_request.dart';
@@ -264,6 +265,50 @@ class AdminApi {
       headers: headers,
       extra: extra,
     );
+  }
+
+  Future<Response<AdminRssFeedsResponse>> getFeeds({
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiGetRequest(
+      route: '/api/feeds',
+      fromJson: (data) => AdminRssFeedsResponse.fromJson(data as Map<String, dynamic>),
+      queryParams: const <String, dynamic>{},
+      dio: _dio,
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+    );
+  }
+
+  Future<bool> closeFeed(
+    String feedId, {
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    final options = Options(
+      method: 'POST',
+      headers: <String, dynamic>{...?headers},
+      extra: <String, dynamic>{..._secureExtra, ...?extra},
+      contentType: 'application/json',
+    );
+
+    try {
+      final response = await _dio.request<Object>(
+        '/api/feeds/$feedId/close',
+        data: const <String, dynamic>{},
+        options: options,
+        cancelToken: cancelToken,
+      );
+
+      final statusCode = response.statusCode;
+      return statusCode != null && statusCode >= 200 && statusCode < 300;
+    } catch (_) {
+      return false;
+    }
   }
 
   Future<Response<AdminBackupListResponse>> createBackup({

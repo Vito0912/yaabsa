@@ -10,6 +10,7 @@ import 'package:yaabsa/screens/settings/admin_server_backups_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_configuration_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_library_stats_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_logs_settings.dart';
+import 'package:yaabsa/screens/settings/admin_server_rss_feeds_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_sessions_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_users_settings.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
@@ -115,6 +116,14 @@ class AdminServerSettings extends ConsumerWidget {
                       enabled: isAdminUser,
                       disabledReason: isAdminUser ? null : 'Requires an admin account.',
                       onTap: isAdminUser ? () => context.push(AdminServerSessionsSettings.routeName) : null,
+                    ),
+                    SettingsNavigationItem(
+                      icon: Icons.rss_feed_rounded,
+                      title: 'RSS Feeds',
+                      subtitle: 'Inspect and close server RSS feeds.',
+                      enabled: isAdminUser,
+                      disabledReason: isAdminUser ? null : 'Requires an admin account.',
+                      onTap: isAdminUser ? () => context.push(AdminServerRssFeedsSettings.routeName) : null,
                     ),
                     SettingsNavigationItem(
                       icon: Icons.upload_file_outlined,
