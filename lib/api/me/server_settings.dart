@@ -17,6 +17,8 @@ abstract class ServerSettings with _$ServerSettings {
     @JsonKey(name: "metadataFileFormat") String? metadataFileFormat,
     @JsonKey(name: "rateLimitLoginRequests") int? rateLimitLoginRequests,
     @JsonKey(name: "rateLimitLoginWindow") int? rateLimitLoginWindow,
+    @JsonKey(name: "allowIframe") bool? allowIframe,
+    @JsonKey(name: "backupPath") String? backupPath,
     @JsonKey(name: "backupSchedule") dynamic backupSchedule,
     @JsonKey(name: "backupsToKeep") int? backupsToKeep,
     @JsonKey(name: "maxBackupSize") int? maxBackupSize,
@@ -24,14 +26,17 @@ abstract class ServerSettings with _$ServerSettings {
     @JsonKey(name: "loggerScannerLogsToKeep") int? loggerScannerLogsToKeep,
     @JsonKey(name: "homeBookshelfView") int? homeBookshelfView,
     @JsonKey(name: "bookshelfView") int? bookshelfView,
+    @JsonKey(name: "podcastEpisodeSchedule") String? podcastEpisodeSchedule,
     @JsonKey(name: "allowedOrigins") List<String>? allowedOrigins,
     @JsonKey(name: "sortingIgnorePrefix") bool? sortingIgnorePrefix,
     @JsonKey(name: "sortingPrefixes") List<String>? sortingPrefixes,
     @JsonKey(name: "chromecastEnabled") bool? chromecastEnabled,
     @JsonKey(name: "dateFormat") String? dateFormat,
+    @JsonKey(name: "timeFormat") String? timeFormat,
     @JsonKey(name: "language") String? language,
     @JsonKey(name: "logLevel") LogLevel? logLevel,
     @JsonKey(name: "version") String? version,
+    @JsonKey(name: "buildNumber") int? buildNumber,
   }) = _ServerSettings;
 
   factory ServerSettings.fromJson(Map<String, dynamic> json) => _$ServerSettingsFromJson(json);

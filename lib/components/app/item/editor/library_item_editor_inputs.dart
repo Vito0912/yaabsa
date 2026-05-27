@@ -4,7 +4,8 @@ import 'package:yaabsa/api/library/filter_data/library_filter_named_entity.dart'
 import 'package:yaabsa/components/app/item/editor/library_item_editor_autocomplete_sheet.dart';
 import 'package:yaabsa/components/app/item/editor/library_item_editor_field_container.dart';
 import 'package:yaabsa/components/app/item/editor/library_item_edit_models.dart';
-import 'package:yaabsa/components/common/styled_form_fields.dart';
+import 'package:yaabsa/components/common/inputs/string_chip_list_input.dart';
+import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
 
 class LibraryItemEditorSectionCard extends StatelessWidget {
   const LibraryItemEditorSectionCard({super.key, required this.title, required this.child, this.subtitle});
@@ -61,7 +62,7 @@ class LibraryItemEditorTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return YaabsaTextField(
+    return StyledTextField(
       label: label,
       controller: controller,
       hintText: hintText,
@@ -101,7 +102,7 @@ class LibraryItemEditorPodcastTypeField extends StatelessWidget {
   }
 }
 
-class LibraryItemEditorStringChips extends StatefulWidget {
+class LibraryItemEditorStringChips extends StatelessWidget {
   const LibraryItemEditorStringChips({
     super.key,
     required this.label,
@@ -118,101 +119,13 @@ class LibraryItemEditorStringChips extends StatefulWidget {
   final String? hintText;
 
   @override
-  State<LibraryItemEditorStringChips> createState() => _LibraryItemEditorStringChipsState();
-}
-
-class _LibraryItemEditorStringChipsState extends State<LibraryItemEditorStringChips> {
-  final TextEditingController _controller = TextEditingController();
-  String _query = '';
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _addValue(String rawValue) {
-    final trimmed = rawValue.trim();
-    if (trimmed.isEmpty) {
-      return;
-    }
-
-    final existingLower = widget.values.map((entry) => entry.toLowerCase()).toSet();
-    if (existingLower.contains(trimmed.toLowerCase())) {
-      _controller.clear();
-      return;
-    }
-
-    widget.onChanged(<String>[...widget.values, trimmed]);
-    _controller.clear();
-    setState(() {
-      _query = '';
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final showSuggestions = _query.trim().isNotEmpty;
-    final filteredSuggestions = widget.suggestions
-        .where((candidate) => candidate.trim().isNotEmpty)
-        .where((candidate) => !widget.values.any((selected) => selected.toLowerCase() == candidate.toLowerCase()))
-        .where((candidate) => candidate.toLowerCase().contains(_query.toLowerCase()))
-        .take(8)
-        .toList(growable: false);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(widget.label, style: Theme.of(context).textTheme.labelMedium),
-        const SizedBox(height: 4),
-        if (showSuggestions && filteredSuggestions.isNotEmpty)
-          LibraryItemEditorAutocompleteSheet(
-            suggestions: [
-              for (final suggestion in filteredSuggestions)
-                ActionChip(
-                  visualDensity: VisualDensity.compact,
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  side: BorderSide.none,
-                  avatar: const Icon(Icons.add_rounded, size: 14),
-                  label: Text(suggestion, style: Theme.of(context).textTheme.bodySmall),
-                  onPressed: () => _addValue(suggestion),
-                ),
-            ],
-          ),
-        LibraryItemEditorFieldContainer(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          child: Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              for (final value in widget.values)
-                InputChip(
-                  visualDensity: VisualDensity.compact,
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  side: BorderSide.none,
-                  label: Text(value, style: Theme.of(context).textTheme.bodySmall),
-                  onDeleted: () {
-                    widget.onChanged(widget.values.where((entry) => entry != value).toList(growable: false));
-                  },
-                ),
-              SizedBox(
-                width: 150,
-                child: TextField(
-                  controller: _controller,
-                  style: Theme.of(context).textTheme.bodySmall,
-                  decoration: InputDecoration.collapsed(hintText: widget.hintText ?? 'Add value'),
-                  onChanged: (value) {
-                    setState(() {
-                      _query = value;
-                    });
-                  },
-                  onSubmitted: _addValue,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+    return StringChipListInput(
+      label: label,
+      values: values,
+      onChanged: onChanged,
+      suggestions: suggestions,
+      hintText: hintText,
     );
   }
 }

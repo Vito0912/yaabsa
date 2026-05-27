@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 InputDecoration yaabsaFieldDecoration(
   BuildContext context, {
@@ -28,8 +29,8 @@ InputDecoration yaabsaFieldDecoration(
   );
 }
 
-class YaabsaTextField extends StatelessWidget {
-  const YaabsaTextField({
+class StyledTextField extends StatelessWidget {
+  const StyledTextField({
     super.key,
     required this.label,
     this.controller,
@@ -37,6 +38,12 @@ class YaabsaTextField extends StatelessWidget {
     this.maxLines = 1,
     this.keyboardType,
     this.onChanged,
+    this.onSubmitted,
+    this.textInputAction,
+    this.inputFormatters,
+    this.autofocus = false,
+    this.readOnly = false,
+    this.style,
     this.enabled = true,
   });
 
@@ -46,6 +53,12 @@ class YaabsaTextField extends StatelessWidget {
   final int maxLines;
   final TextInputType? keyboardType;
   final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmitted;
+  final TextInputAction? textInputAction;
+  final List<TextInputFormatter>? inputFormatters;
+  final bool autofocus;
+  final bool readOnly;
+  final TextStyle? style;
   final bool enabled;
 
   @override
@@ -55,8 +68,54 @@ class YaabsaTextField extends StatelessWidget {
       keyboardType: keyboardType,
       maxLines: maxLines,
       onChanged: onChanged,
+      onSubmitted: onSubmitted,
+      textInputAction: textInputAction,
+      inputFormatters: inputFormatters,
+      autofocus: autofocus,
+      readOnly: readOnly,
+      style: style,
       enabled: enabled,
       decoration: yaabsaFieldDecoration(context, label: label, hintText: hintText),
+    );
+  }
+}
+
+class InlineTextField extends StatelessWidget {
+  const InlineTextField({
+    super.key,
+    this.controller,
+    this.hintText,
+    this.onChanged,
+    this.onSubmitted,
+    this.textInputAction,
+    this.inputFormatters,
+    this.autofocus = false,
+    this.enabled = true,
+    this.style,
+  });
+
+  final TextEditingController? controller;
+  final String? hintText;
+  final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmitted;
+  final TextInputAction? textInputAction;
+  final List<TextInputFormatter>? inputFormatters;
+  final bool autofocus;
+  final bool enabled;
+  final TextStyle? style;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      onChanged: onChanged,
+      onSubmitted: onSubmitted,
+      textInputAction: textInputAction,
+      inputFormatters: inputFormatters,
+      autofocus: autofocus,
+      enabled: enabled,
+      style: style,
+      decoration: InputDecoration.collapsed(hintText: hintText),
     );
   }
 }

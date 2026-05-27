@@ -11,6 +11,7 @@ import 'package:yaabsa/api/admin/custom_metadata_providers_response.dart';
 import 'package:yaabsa/api/admin/genres_response.dart';
 import 'package:yaabsa/api/admin/logger_data.dart';
 import 'package:yaabsa/api/admin/metadata_term_update_response.dart';
+import 'package:yaabsa/api/admin/sorting_prefixes_update_response.dart';
 import 'package:yaabsa/api/admin/tags_response.dart';
 import 'package:yaabsa/api/me/server_settings.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
@@ -487,6 +488,23 @@ class AdminApi {
       },
       bodyData: Map<String, dynamic>.from(settingsUpdate.toJson())
         ..removeWhere((key, value) => value == null || key == 'id'),
+      dio: _dio,
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+    );
+  }
+
+  Future<Response<SortingPrefixesUpdateResponse>> updateSortingPrefixes({
+    required List<String> sortingPrefixes,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiPatchRequest(
+      route: '/api/sorting-prefixes',
+      fromJson: (data) => SortingPrefixesUpdateResponse.fromJson(data as Map<String, dynamic>),
+      bodyData: <String, dynamic>{'sortingPrefixes': sortingPrefixes},
       dio: _dio,
       cancelToken: cancelToken,
       headers: headers,

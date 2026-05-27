@@ -14,7 +14,7 @@ import 'package:yaabsa/api/search/search_provider_option.dart';
 import 'package:yaabsa/components/app/upload/library_upload_item_card.dart';
 import 'package:yaabsa/components/app/upload/library_upload_models.dart';
 import 'package:yaabsa/components/app/upload/settings_toggle_row.dart';
-import 'package:yaabsa/components/common/styled_form_fields.dart';
+import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
 import 'package:yaabsa/provider/common/upload_providers.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
@@ -1540,7 +1540,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
                                                       crossAxisAlignment: CrossAxisAlignment.center,
                                                       children: [
                                                         Expanded(
-                                                          child: YaabsaTextField(
+                                                          child: StyledTextField(
                                                             label: 'Author for all items',
                                                             controller: _bulkAuthorController,
                                                             enabled: !_isUploading,
@@ -1565,7 +1565,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
                                                       crossAxisAlignment: CrossAxisAlignment.center,
                                                       children: [
                                                         Expanded(
-                                                          child: YaabsaTextField(
+                                                          child: StyledTextField(
                                                             label: 'Series for all items',
                                                             controller: _bulkSeriesController,
                                                             enabled: !_isUploading,
@@ -1596,7 +1596,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
                                                     crossAxisAlignment: CrossAxisAlignment.center,
                                                     children: [
                                                       Expanded(
-                                                        child: YaabsaTextField(
+                                                        child: StyledTextField(
                                                           label: 'Author for all items',
                                                           controller: _bulkAuthorController,
                                                           enabled: !_isUploading,
@@ -1622,7 +1622,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
                                                     crossAxisAlignment: CrossAxisAlignment.center,
                                                     children: [
                                                       Expanded(
-                                                        child: YaabsaTextField(
+                                                        child: StyledTextField(
                                                           label: 'Series for all items',
                                                           controller: _bulkSeriesController,
                                                           enabled: !_isUploading,
