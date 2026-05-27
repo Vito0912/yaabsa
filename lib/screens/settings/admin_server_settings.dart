@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/screens/settings/admin_server_api_keys_settings.dart';
 import 'package:yaabsa/screens/settings/admin_item_metadata_utils_settings.dart';
 import 'package:yaabsa/screens/layout_home.dart';
 import 'package:yaabsa/screens/settings/admin_server_configuration_settings.dart';
@@ -89,6 +90,14 @@ class AdminServerSettings extends ConsumerWidget {
                       enabled: isAdminUser,
                       disabledReason: isAdminUser ? null : 'Requires an admin account.',
                       onTap: isAdminUser ? () => context.push(AdminServerUsersSettings.routeName) : null,
+                    ),
+                    SettingsNavigationItem(
+                      icon: Icons.key_outlined,
+                      title: 'API Keys',
+                      subtitle: 'Create, edit, and delete API keys for integrations and automation.',
+                      enabled: isAdminUser,
+                      disabledReason: isAdminUser ? null : 'Requires an admin account.',
+                      onTap: isAdminUser ? () => context.push(AdminServerApiKeysSettings.routeName) : null,
                     ),
                     SettingsNavigationItem(
                       icon: Icons.query_stats_rounded,

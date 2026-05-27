@@ -33,12 +33,12 @@ class ChipListInlineInput extends StatelessWidget {
           constraints: BoxConstraints(minWidth: minWidth, maxWidth: maxWidth),
           child: Align(
             alignment: Alignment.centerLeft,
-            child: TextField(
+            child: InlineTextField(
               controller: controller,
               style: style,
               textAlignVertical: TextAlignVertical.center,
               textInputAction: TextInputAction.done,
-              decoration: InputDecoration.collapsed(hintText: hintText),
+              hintText: hintText,
               onChanged: onChanged,
               onSubmitted: onSubmitted,
             ),

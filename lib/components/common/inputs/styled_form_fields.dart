@@ -36,6 +36,8 @@ class StyledTextField extends StatelessWidget {
     required this.label,
     this.controller,
     this.hintText,
+    this.helperText,
+    this.errorText,
     this.maxLines = 1,
     this.keyboardType,
     this.onChanged,
@@ -46,11 +48,17 @@ class StyledTextField extends StatelessWidget {
     this.readOnly = false,
     this.style,
     this.enabled = true,
+    this.obscureText = false,
+    this.prefixIcon,
+    this.suffixIcon,
+    this.contentPadding = const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
   });
 
   final String label;
   final TextEditingController? controller;
   final String? hintText;
+  final String? helperText;
+  final String? errorText;
   final int maxLines;
   final TextInputType? keyboardType;
   final ValueChanged<String>? onChanged;
@@ -61,9 +69,20 @@ class StyledTextField extends StatelessWidget {
   final bool readOnly;
   final TextStyle? style;
   final bool enabled;
+  final bool obscureText;
+  final Widget? prefixIcon;
+  final Widget? suffixIcon;
+  final EdgeInsetsGeometry contentPadding;
 
   @override
   Widget build(BuildContext context) {
+    final decoration = yaabsaFieldDecoration(
+      context,
+      label: label,
+      hintText: hintText,
+      contentPadding: contentPadding,
+    ).copyWith(helperText: helperText, errorText: errorText, prefixIcon: prefixIcon, suffixIcon: suffixIcon);
+
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
@@ -76,7 +95,8 @@ class StyledTextField extends StatelessWidget {
       readOnly: readOnly,
       style: style,
       enabled: enabled,
-      decoration: yaabsaFieldDecoration(context, label: label, hintText: hintText),
+      obscureText: obscureText,
+      decoration: decoration,
     );
   }
 }
@@ -93,6 +113,7 @@ class InlineTextField extends StatelessWidget {
     this.autofocus = false,
     this.enabled = true,
     this.style,
+    this.textAlignVertical,
   });
 
   final TextEditingController? controller;
@@ -104,6 +125,7 @@ class InlineTextField extends StatelessWidget {
   final bool autofocus;
   final bool enabled;
   final TextStyle? style;
+  final TextAlignVertical? textAlignVertical;
 
   @override
   Widget build(BuildContext context) {
@@ -116,6 +138,7 @@ class InlineTextField extends StatelessWidget {
       autofocus: autofocus,
       enabled: enabled,
       style: style,
+      textAlignVertical: textAlignVertical,
       decoration: InputDecoration.collapsed(hintText: hintText),
     );
   }

@@ -25,6 +25,7 @@ import 'package:yaabsa/screens/settings/admin_item_metadata_utils_settings.dart'
 import 'package:yaabsa/screens/settings/admin_server_configuration_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_library_stats_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_logs_settings.dart';
+import 'package:yaabsa/screens/settings/admin_server_api_keys_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_sessions_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_users_settings.dart';
@@ -227,6 +228,10 @@ final globalRouter = GoRouter(
                     GoRoute(
                       path: AdminServerLibraryStatsSettings.routeName,
                       builder: (context, state) => const AdminServerLibraryStatsSettings(),
+                    ),
+                    GoRoute(
+                      path: AdminServerApiKeysSettings.routeName,
+                      builder: (context, state) => const AdminServerApiKeysSettings(),
                     ),
                     GoRoute(
                       path: AdminServerSessionsSettings.routeName,

@@ -1,10 +1,13 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:yaabsa/api/admin/admin_api_key_response.dart';
+import 'package:yaabsa/api/admin/admin_api_keys_response.dart';
 import 'package:yaabsa/api/admin/admin_user.dart';
 import 'package:yaabsa/api/admin/admin_user_list_response.dart';
 import 'package:yaabsa/api/admin/admin_user_upsert_request.dart';
 import 'package:yaabsa/api/admin/admin_users_response.dart';
+import 'package:yaabsa/api/admin/create_admin_api_key_request.dart';
 import 'package:yaabsa/api/admin/create_custom_metadata_provider_request.dart';
 import 'package:yaabsa/api/admin/create_custom_metadata_provider_response.dart';
 import 'package:yaabsa/api/admin/custom_metadata_providers_response.dart';
@@ -13,6 +16,7 @@ import 'package:yaabsa/api/admin/logger_data.dart';
 import 'package:yaabsa/api/admin/metadata_term_update_response.dart';
 import 'package:yaabsa/api/admin/sorting_prefixes_update_response.dart';
 import 'package:yaabsa/api/admin/tags_response.dart';
+import 'package:yaabsa/api/admin/update_admin_api_key_request.dart';
 import 'package:yaabsa/api/me/server_settings.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/api/tasks/abs_task_list_response.dart';
@@ -220,6 +224,72 @@ class AdminApi {
       route: '/api/users',
       fromJson: (data) => AdminUsersResponse.fromDynamic(data),
       queryParams: {},
+      dio: _dio,
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+    );
+  }
+
+  Future<Response<AdminApiKeysResponse>> getApiKeys({
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiGetRequest(
+      route: '/api/api-keys',
+      fromJson: (data) => AdminApiKeysResponse.fromJson(data as Map<String, dynamic>),
+      queryParams: const <String, dynamic>{},
+      dio: _dio,
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+    );
+  }
+
+  Future<Response<AdminApiKeyResponse>> createApiKey({
+    required CreateAdminApiKeyRequest payload,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiPostRequest(
+      route: '/api/api-keys',
+      fromJson: (data) => AdminApiKeyResponse.fromJson(data as Map<String, dynamic>),
+      bodyData: Map<String, dynamic>.from(payload.toJson())..removeWhere((key, value) => value == null),
+      dio: _dio,
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+    );
+  }
+
+  Future<Response<AdminApiKeyResponse>> updateApiKey({
+    required String apiKeyId,
+    required UpdateAdminApiKeyRequest payload,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiPatchRequest(
+      route: '/api/api-keys/$apiKeyId',
+      fromJson: (data) => AdminApiKeyResponse.fromJson(data as Map<String, dynamic>),
+      bodyData: Map<String, dynamic>.from(payload.toJson())..removeWhere((key, value) => value == null),
+      dio: _dio,
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+    );
+  }
+
+  Future<bool> deleteApiKey(
+    String apiKeyId, {
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiDeleteRequest(
+      route: '/api/api-keys/$apiKeyId',
       dio: _dio,
       cancelToken: cancelToken,
       headers: headers,
