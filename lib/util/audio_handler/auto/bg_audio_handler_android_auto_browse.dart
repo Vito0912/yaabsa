@@ -3,14 +3,24 @@ part of '../bg_audio_handler.dart';
 extension _BGAudioHandlerAndroidAutoBrowse on BGAudioHandler {
   Future<List<MediaItem>> _androidAutoRootItems() async {
     final isAutomotiveSystem = await _androidAutoIsAutomotiveSystem();
+    final continueItems = await _androidAutoContinueAcrossLibraries(
+      const _AndroidAutoPagingOptions(page: 0, pageSize: 1, hasExplicitPaging: true),
+    );
 
-    return <MediaItem>[
-      _androidAutoBrowsableItem(
-        id: _androidAutoContinueNodeId,
-        title: 'Continue',
-        artUri: _androidAutoDrawableIconUri('continue_ic'),
-        categoryStyle: true,
-      ),
+    final items = <MediaItem>[];
+
+    if (continueItems.isNotEmpty) {
+      items.add(
+        _androidAutoBrowsableItem(
+          id: _androidAutoContinueNodeId,
+          title: 'Continue',
+          artUri: _androidAutoDrawableIconUri('continue_ic'),
+          categoryStyle: true,
+        ),
+      );
+    }
+
+    items.addAll([
       _androidAutoBrowsableItem(
         id: _androidAutoRecentNodeId,
         title: 'Recent',
@@ -25,7 +35,9 @@ extension _BGAudioHandlerAndroidAutoBrowse on BGAudioHandler {
       ),
       if (!isAutomotiveSystem)
         _androidAutoBrowsableItem(id: _androidAutoDownloadsNodeId, title: 'Downloads', categoryStyle: true),
-    ];
+    ]);
+
+    return items;
   }
 
   Future<List<MediaItem>> _androidAutoContinueAcrossLibraries(_AndroidAutoPagingOptions paging) async {

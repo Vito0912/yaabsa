@@ -61,17 +61,6 @@ class AaosService {
       return;
     }
 
-    final isAutomotiveDevice = await _detectAutomotiveDevice();
-    _emit(
-      _state.copyWith(
-        isAndroid: true,
-        isAutomotiveDevice: isAutomotiveDevice,
-        statusMessage: isAutomotiveDevice
-            ? 'Android Automotive OS detected.'
-            : 'Android Automotive OS not detected on this device.',
-      ),
-    );
-
     _channel.setMethodCallHandler((call) async {
       if (call.method == 'openSettings') {
         final currentUri = globalRouter.routeInformationProvider.value.uri;
@@ -88,6 +77,17 @@ class AaosService {
         globalRouter.go('/?tab=settings&intent=aaos-$intent');
       }
     });
+
+    final isAutomotiveDevice = await _detectAutomotiveDevice();
+    _emit(
+      _state.copyWith(
+        isAndroid: true,
+        isAutomotiveDevice: isAutomotiveDevice,
+        statusMessage: isAutomotiveDevice
+            ? 'Android Automotive OS detected.'
+            : 'Android Automotive OS not detected on this device.',
+      ),
+    );
   }
 
   Future<bool> _detectAutomotiveDevice() async {

@@ -1,1 +1,3 @@
-
+[submodule "packages/audio_service"]
+	path = packages/audio_service
+	url = git@github.com:Vito0912/audio_service.git
