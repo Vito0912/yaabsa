@@ -1,4 +1,4 @@
-part of 'bg_audio_handler.dart';
+part of '../bg_audio_handler.dart';
 
 const String _androidAutoContinueNodeId = 'aa/continue';
 const String _androidAutoRecentNodeId = 'aa/recent';

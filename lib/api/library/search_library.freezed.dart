@@ -911,7 +911,7 @@ as int?,
 /// @nodoc
 mixin _$SearchResultNarrator {
 
-@JsonKey(name: "name") String get name;@JsonKey(name: "numItems") int? get numItems;
+@JsonKey(name: "name") String get name;@JsonKey(name: "numBooks") int? get numBooks;
 /// Create a copy of SearchResultNarrator
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -924,16 +924,16 @@ $SearchResultNarratorCopyWith<SearchResultNarrator> get copyWith => _$SearchResu
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SearchResultNarrator&&(identical(other.name, name) || other.name == name)&&(identical(other.numItems, numItems) || other.numItems == numItems));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SearchResultNarrator&&(identical(other.name, name) || other.name == name)&&(identical(other.numBooks, numBooks) || other.numBooks == numBooks));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,numItems);
+int get hashCode => Object.hash(runtimeType,name,numBooks);
 
 @override
 String toString() {
-  return 'SearchResultNarrator(name: $name, numItems: $numItems)';
+  return 'SearchResultNarrator(name: $name, numBooks: $numBooks)';
 }
 
 
@@ -944,7 +944,7 @@ abstract mixin class $SearchResultNarratorCopyWith<$Res>  {
   factory $SearchResultNarratorCopyWith(SearchResultNarrator value, $Res Function(SearchResultNarrator) _then) = _$SearchResultNarratorCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: "name") String name,@JsonKey(name: "numItems") int? numItems
+@JsonKey(name: "name") String name,@JsonKey(name: "numBooks") int? numBooks
 });
 
 
@@ -961,10 +961,10 @@ class _$SearchResultNarratorCopyWithImpl<$Res>
 
 /// Create a copy of SearchResultNarrator
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? numItems = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? numBooks = freezed,}) {
   return _then(_self.copyWith(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,numItems: freezed == numItems ? _self.numItems : numItems // ignore: cast_nullable_to_non_nullable
+as String,numBooks: freezed == numBooks ? _self.numBooks : numBooks // ignore: cast_nullable_to_non_nullable
 as int?,
   ));
 }
@@ -1050,10 +1050,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "name")  String name, @JsonKey(name: "numItems")  int? numItems)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "name")  String name, @JsonKey(name: "numBooks")  int? numBooks)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SearchResultNarrator() when $default != null:
-return $default(_that.name,_that.numItems);case _:
+return $default(_that.name,_that.numBooks);case _:
   return orElse();
 
 }
@@ -1071,10 +1071,10 @@ return $default(_that.name,_that.numItems);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "name")  String name, @JsonKey(name: "numItems")  int? numItems)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "name")  String name, @JsonKey(name: "numBooks")  int? numBooks)  $default,) {final _that = this;
 switch (_that) {
 case _SearchResultNarrator():
-return $default(_that.name,_that.numItems);case _:
+return $default(_that.name,_that.numBooks);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1091,10 +1091,10 @@ return $default(_that.name,_that.numItems);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "name")  String name, @JsonKey(name: "numItems")  int? numItems)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "name")  String name, @JsonKey(name: "numBooks")  int? numBooks)?  $default,) {final _that = this;
 switch (_that) {
 case _SearchResultNarrator() when $default != null:
-return $default(_that.name,_that.numItems);case _:
+return $default(_that.name,_that.numBooks);case _:
   return null;
 
 }
@@ -1106,11 +1106,11 @@ return $default(_that.name,_that.numItems);case _:
 @JsonSerializable()
 
 class _SearchResultNarrator implements SearchResultNarrator {
-  const _SearchResultNarrator({@JsonKey(name: "name") required this.name, @JsonKey(name: "numItems") this.numItems});
+  const _SearchResultNarrator({@JsonKey(name: "name") required this.name, @JsonKey(name: "numBooks") this.numBooks});
   factory _SearchResultNarrator.fromJson(Map<String, dynamic> json) => _$SearchResultNarratorFromJson(json);
 
 @override@JsonKey(name: "name") final  String name;
-@override@JsonKey(name: "numItems") final  int? numItems;
+@override@JsonKey(name: "numBooks") final  int? numBooks;
 
 /// Create a copy of SearchResultNarrator
 /// with the given fields replaced by the non-null parameter values.
@@ -1125,16 +1125,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SearchResultNarrator&&(identical(other.name, name) || other.name == name)&&(identical(other.numItems, numItems) || other.numItems == numItems));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SearchResultNarrator&&(identical(other.name, name) || other.name == name)&&(identical(other.numBooks, numBooks) || other.numBooks == numBooks));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,numItems);
+int get hashCode => Object.hash(runtimeType,name,numBooks);
 
 @override
 String toString() {
-  return 'SearchResultNarrator(name: $name, numItems: $numItems)';
+  return 'SearchResultNarrator(name: $name, numBooks: $numBooks)';
 }
 
 
@@ -1145,7 +1145,7 @@ abstract mixin class _$SearchResultNarratorCopyWith<$Res> implements $SearchResu
   factory _$SearchResultNarratorCopyWith(_SearchResultNarrator value, $Res Function(_SearchResultNarrator) _then) = __$SearchResultNarratorCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: "name") String name,@JsonKey(name: "numItems") int? numItems
+@JsonKey(name: "name") String name,@JsonKey(name: "numBooks") int? numBooks
 });
 
 
@@ -1162,10 +1162,10 @@ class __$SearchResultNarratorCopyWithImpl<$Res>
 
 /// Create a copy of SearchResultNarrator
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? numItems = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? numBooks = freezed,}) {
   return _then(_SearchResultNarrator(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,numItems: freezed == numItems ? _self.numItems : numItems // ignore: cast_nullable_to_non_nullable
+as String,numBooks: freezed == numBooks ? _self.numBooks : numBooks // ignore: cast_nullable_to_non_nullable
 as int?,
   ));
 }

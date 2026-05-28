@@ -18,8 +18,8 @@ Future<void> quickMatchSingleItem({
   final options = await showQuickMatchOptionsDialog(
     context: context,
     mediaType: 'book',
+    previewItems: <LibraryItem>[item],
     title: 'Quick match this book',
-    description: 'Pick a provider and choose whether to overwrite cover/details.',
     confirmLabel: 'Run quick match',
     initialProvider: defaultProvider,
   );

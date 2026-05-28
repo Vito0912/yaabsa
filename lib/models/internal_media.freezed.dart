@@ -15,11 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$InternalMedia {
 
-@JsonKey(name: "libraryId") String get libraryId;@JsonKey(name: "libraryId") set libraryId(String value);@JsonKey(name: "itemId") String get itemId;@JsonKey(name: "itemId") set itemId(String value);@JsonKey(name: "episodeId") String? get episodeId;@JsonKey(name: "episodeId") set episodeId(String? value);@JsonKey(name: "sessionId") String get sessionId;@JsonKey(name: "sessionId") set sessionId(String value);@JsonKey(name: "title") String get title;@JsonKey(name: "title") set title(String value);@JsonKey(name: "subtitle") String? get subtitle;@JsonKey(name: "subtitle") set subtitle(String? value);@JsonKey(name: "author") String? get author;@JsonKey(name: "author") set author(String? value);@JsonKey(name: "narrator") String? get narrator;@JsonKey(name: "narrator") set narrator(String? value);@JsonKey(name: "series") String? get series;@JsonKey(name: "series") set series(String? value);@JsonKey(name: "seriesPosition") String? get seriesPosition;@JsonKey(name: "seriesPosition") set seriesPosition(String? value);@JsonKey(name: "cover") Uri? get cover;@JsonKey(name: "cover") set cover(Uri? value);@JsonKey(name: "tracks") List<InternalTrack> get tracks;@JsonKey(name: "tracks") set tracks(List<InternalTrack> value);@JsonKey(name: "chapters") List<InternalChapter>? get chapters;@JsonKey(name: "chapters") set chapters(List<InternalChapter>? value);// Removed incorrect defaultValue: false
-@JsonKey(name: "duration") double? get duration;// Removed incorrect defaultValue: false
-@JsonKey(name: "duration") set duration(double? value);@JsonKey(name: "local", defaultValue: false) bool get local;@JsonKey(name: "local", defaultValue: false) set local(bool value);// SAF is for Android only
-@JsonKey(name: "saf") bool get saf;// SAF is for Android only
-@JsonKey(name: "saf") set saf(bool value);
+@JsonKey(name: "libraryId") String get libraryId;@JsonKey(name: "libraryId") set libraryId(String value);@JsonKey(name: "itemId") String get itemId;@JsonKey(name: "itemId") set itemId(String value);@JsonKey(name: "episodeId") String? get episodeId;@JsonKey(name: "episodeId") set episodeId(String? value);@JsonKey(name: "sessionId") String get sessionId;@JsonKey(name: "sessionId") set sessionId(String value);@JsonKey(name: "title") String get title;@JsonKey(name: "title") set title(String value);@JsonKey(name: "subtitle") String? get subtitle;@JsonKey(name: "subtitle") set subtitle(String? value);@JsonKey(name: "author") String? get author;@JsonKey(name: "author") set author(String? value);@JsonKey(name: "narrator") String? get narrator;@JsonKey(name: "narrator") set narrator(String? value);@JsonKey(name: "series") String? get series;@JsonKey(name: "series") set series(String? value);@JsonKey(name: "seriesPosition") String? get seriesPosition;@JsonKey(name: "seriesPosition") set seriesPosition(String? value);@JsonKey(name: "cover") Uri? get cover;@JsonKey(name: "cover") set cover(Uri? value);@JsonKey(name: "tracks") List<InternalTrack> get tracks;@JsonKey(name: "tracks") set tracks(List<InternalTrack> value);@JsonKey(name: "chapters") List<InternalChapter>? get chapters;@JsonKey(name: "chapters") set chapters(List<InternalChapter>? value);@JsonKey(name: "duration") double? get duration;@JsonKey(name: "duration") set duration(double? value);@JsonKey(name: "local", defaultValue: false) bool get local;@JsonKey(name: "local", defaultValue: false) set local(bool value);@JsonKey(name: "saf") bool get saf;@JsonKey(name: "saf") set saf(bool value);
 /// Create a copy of InternalMedia
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -237,10 +233,8 @@ class _InternalMedia extends InternalMedia {
 @override@JsonKey(name: "cover")  Uri? cover;
 @override@JsonKey(name: "tracks")  List<InternalTrack> tracks;
 @override@JsonKey(name: "chapters")  List<InternalChapter>? chapters;
-// Removed incorrect defaultValue: false
 @override@JsonKey(name: "duration")  double? duration;
 @override@JsonKey(name: "local", defaultValue: false)  bool local;
-// SAF is for Android only
 @override@JsonKey(name: "saf")  bool saf;
 
 /// Create a copy of InternalMedia

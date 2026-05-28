@@ -8,6 +8,7 @@ import 'package:yaabsa/api/routes/library_api.dart';
 import 'package:yaabsa/api/routes/library_item_api.dart';
 import 'package:yaabsa/api/routes/list_api.dart';
 import 'package:yaabsa/api/routes/me_api.dart';
+import 'package:yaabsa/api/routes/podcast_api.dart';
 import 'package:yaabsa/api/routes/session_api.dart';
 import 'package:yaabsa/api/routes/upload_api.dart';
 import 'package:yaabsa/util/network/dio_factory.dart';
@@ -309,6 +310,10 @@ class ABSApi {
 
   UploadApi getUploadApi() {
     return UploadApi(dio);
+  }
+
+  PodcastApi getPodcastApi() {
+    return PodcastApi(dio);
   }
 
   AdminApi getAdminApi() {

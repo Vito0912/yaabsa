@@ -117,11 +117,18 @@ class ItemExpandableSection extends StatelessWidget {
     return Card(
       elevation: 0,
       clipBehavior: Clip.antiAlias,
-      child: ExpansionTile(
-        title: Text(title),
-        initiallyExpanded: initiallyExpanded,
-        childrenPadding: const EdgeInsets.only(bottom: 8),
-        children: children,
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          title: Text(title),
+          initiallyExpanded: initiallyExpanded,
+          shape: const Border(),
+          collapsedShape: const Border(),
+          backgroundColor: Colors.transparent,
+          collapsedBackgroundColor: Colors.transparent,
+          childrenPadding: const EdgeInsets.only(bottom: 8),
+          children: children,
+        ),
       ),
     );
   }

@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$YearInReviewNamedStat {
 
-@JsonKey(name: 'name') String? get name;@JsonKey(name: 'time', fromJson: _intFromDynamic) int? get time;
+@JsonKey(name: 'name') String? get name;@JsonKey(name: 'time', fromJson: jsonIntFromDynamic) int? get time;
 /// Create a copy of YearInReviewNamedStat
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $YearInReviewNamedStatCopyWith<$Res>  {
   factory $YearInReviewNamedStatCopyWith(YearInReviewNamedStat value, $Res Function(YearInReviewNamedStat) _then) = _$YearInReviewNamedStatCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'name') String? name,@JsonKey(name: 'time', fromJson: _intFromDynamic) int? time
+@JsonKey(name: 'name') String? name,@JsonKey(name: 'time', fromJson: jsonIntFromDynamic) int? time
 });
 
 
@@ -154,7 +154,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'name')  String? name, @JsonKey(name: 'time', fromJson: _intFromDynamic)  int? time)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'name')  String? name, @JsonKey(name: 'time', fromJson: jsonIntFromDynamic)  int? time)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _YearInReviewNamedStat() when $default != null:
 return $default(_that.name,_that.time);case _:
@@ -175,7 +175,7 @@ return $default(_that.name,_that.time);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'name')  String? name, @JsonKey(name: 'time', fromJson: _intFromDynamic)  int? time)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'name')  String? name, @JsonKey(name: 'time', fromJson: jsonIntFromDynamic)  int? time)  $default,) {final _that = this;
 switch (_that) {
 case _YearInReviewNamedStat():
 return $default(_that.name,_that.time);case _:
@@ -195,7 +195,7 @@ return $default(_that.name,_that.time);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'name')  String? name, @JsonKey(name: 'time', fromJson: _intFromDynamic)  int? time)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'name')  String? name, @JsonKey(name: 'time', fromJson: jsonIntFromDynamic)  int? time)?  $default,) {final _that = this;
 switch (_that) {
 case _YearInReviewNamedStat() when $default != null:
 return $default(_that.name,_that.time);case _:
@@ -210,11 +210,11 @@ return $default(_that.name,_that.time);case _:
 @JsonSerializable()
 
 class _YearInReviewNamedStat implements YearInReviewNamedStat {
-  const _YearInReviewNamedStat({@JsonKey(name: 'name') this.name, @JsonKey(name: 'time', fromJson: _intFromDynamic) this.time});
+  const _YearInReviewNamedStat({@JsonKey(name: 'name') this.name, @JsonKey(name: 'time', fromJson: jsonIntFromDynamic) this.time});
   factory _YearInReviewNamedStat.fromJson(Map<String, dynamic> json) => _$YearInReviewNamedStatFromJson(json);
 
 @override@JsonKey(name: 'name') final  String? name;
-@override@JsonKey(name: 'time', fromJson: _intFromDynamic) final  int? time;
+@override@JsonKey(name: 'time', fromJson: jsonIntFromDynamic) final  int? time;
 
 /// Create a copy of YearInReviewNamedStat
 /// with the given fields replaced by the non-null parameter values.
@@ -249,7 +249,7 @@ abstract mixin class _$YearInReviewNamedStatCopyWith<$Res> implements $YearInRev
   factory _$YearInReviewNamedStatCopyWith(_YearInReviewNamedStat value, $Res Function(_YearInReviewNamedStat) _then) = __$YearInReviewNamedStatCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'name') String? name,@JsonKey(name: 'time', fromJson: _intFromDynamic) int? time
+@JsonKey(name: 'name') String? name,@JsonKey(name: 'time', fromJson: jsonIntFromDynamic) int? time
 });
 
 
@@ -281,7 +281,7 @@ as int?,
 /// @nodoc
 mixin _$YearInReviewGenreStat {
 
-@JsonKey(name: 'genre') String? get genre;@JsonKey(name: 'time', fromJson: _intFromDynamic) int? get time;
+@JsonKey(name: 'genre') String? get genre;@JsonKey(name: 'time', fromJson: jsonIntFromDynamic) int? get time;
 /// Create a copy of YearInReviewGenreStat
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -314,7 +314,7 @@ abstract mixin class $YearInReviewGenreStatCopyWith<$Res>  {
   factory $YearInReviewGenreStatCopyWith(YearInReviewGenreStat value, $Res Function(YearInReviewGenreStat) _then) = _$YearInReviewGenreStatCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'genre') String? genre,@JsonKey(name: 'time', fromJson: _intFromDynamic) int? time
+@JsonKey(name: 'genre') String? genre,@JsonKey(name: 'time', fromJson: jsonIntFromDynamic) int? time
 });
 
 
@@ -420,7 +420,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'genre')  String? genre, @JsonKey(name: 'time', fromJson: _intFromDynamic)  int? time)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'genre')  String? genre, @JsonKey(name: 'time', fromJson: jsonIntFromDynamic)  int? time)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _YearInReviewGenreStat() when $default != null:
 return $default(_that.genre,_that.time);case _:
@@ -441,7 +441,7 @@ return $default(_that.genre,_that.time);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'genre')  String? genre, @JsonKey(name: 'time', fromJson: _intFromDynamic)  int? time)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'genre')  String? genre, @JsonKey(name: 'time', fromJson: jsonIntFromDynamic)  int? time)  $default,) {final _that = this;
 switch (_that) {
 case _YearInReviewGenreStat():
 return $default(_that.genre,_that.time);case _:
@@ -461,7 +461,7 @@ return $default(_that.genre,_that.time);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'genre')  String? genre, @JsonKey(name: 'time', fromJson: _intFromDynamic)  int? time)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'genre')  String? genre, @JsonKey(name: 'time', fromJson: jsonIntFromDynamic)  int? time)?  $default,) {final _that = this;
 switch (_that) {
 case _YearInReviewGenreStat() when $default != null:
 return $default(_that.genre,_that.time);case _:
@@ -476,11 +476,11 @@ return $default(_that.genre,_that.time);case _:
 @JsonSerializable()
 
 class _YearInReviewGenreStat implements YearInReviewGenreStat {
-  const _YearInReviewGenreStat({@JsonKey(name: 'genre') this.genre, @JsonKey(name: 'time', fromJson: _intFromDynamic) this.time});
+  const _YearInReviewGenreStat({@JsonKey(name: 'genre') this.genre, @JsonKey(name: 'time', fromJson: jsonIntFromDynamic) this.time});
   factory _YearInReviewGenreStat.fromJson(Map<String, dynamic> json) => _$YearInReviewGenreStatFromJson(json);
 
 @override@JsonKey(name: 'genre') final  String? genre;
-@override@JsonKey(name: 'time', fromJson: _intFromDynamic) final  int? time;
+@override@JsonKey(name: 'time', fromJson: jsonIntFromDynamic) final  int? time;
 
 /// Create a copy of YearInReviewGenreStat
 /// with the given fields replaced by the non-null parameter values.
@@ -515,7 +515,7 @@ abstract mixin class _$YearInReviewGenreStatCopyWith<$Res> implements $YearInRev
   factory _$YearInReviewGenreStatCopyWith(_YearInReviewGenreStat value, $Res Function(_YearInReviewGenreStat) _then) = __$YearInReviewGenreStatCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'genre') String? genre,@JsonKey(name: 'time', fromJson: _intFromDynamic) int? time
+@JsonKey(name: 'genre') String? genre,@JsonKey(name: 'time', fromJson: jsonIntFromDynamic) int? time
 });
 
 
@@ -547,7 +547,7 @@ as int?,
 /// @nodoc
 mixin _$YearInReviewMonthStat {
 
-@JsonKey(name: 'month', fromJson: _intFromDynamic) int? get month;@JsonKey(name: 'time', fromJson: _intFromDynamic) int? get time;
+@JsonKey(name: 'month', fromJson: jsonIntFromDynamic) int? get month;@JsonKey(name: 'time', fromJson: jsonIntFromDynamic) int? get time;
 /// Create a copy of YearInReviewMonthStat
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -580,7 +580,7 @@ abstract mixin class $YearInReviewMonthStatCopyWith<$Res>  {
   factory $YearInReviewMonthStatCopyWith(YearInReviewMonthStat value, $Res Function(YearInReviewMonthStat) _then) = _$YearInReviewMonthStatCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'month', fromJson: _intFromDynamic) int? month,@JsonKey(name: 'time', fromJson: _intFromDynamic) int? time
+@JsonKey(name: 'month', fromJson: jsonIntFromDynamic) int? month,@JsonKey(name: 'time', fromJson: jsonIntFromDynamic) int? time
 });
 
 
@@ -686,7 +686,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'month', fromJson: _intFromDynamic)  int? month, @JsonKey(name: 'time', fromJson: _intFromDynamic)  int? time)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'month', fromJson: jsonIntFromDynamic)  int? month, @JsonKey(name: 'time', fromJson: jsonIntFromDynamic)  int? time)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _YearInReviewMonthStat() when $default != null:
 return $default(_that.month,_that.time);case _:
@@ -707,7 +707,7 @@ return $default(_that.month,_that.time);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'month', fromJson: _intFromDynamic)  int? month, @JsonKey(name: 'time', fromJson: _intFromDynamic)  int? time)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'month', fromJson: jsonIntFromDynamic)  int? month, @JsonKey(name: 'time', fromJson: jsonIntFromDynamic)  int? time)  $default,) {final _that = this;
 switch (_that) {
 case _YearInReviewMonthStat():
 return $default(_that.month,_that.time);case _:
@@ -727,7 +727,7 @@ return $default(_that.month,_that.time);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'month', fromJson: _intFromDynamic)  int? month, @JsonKey(name: 'time', fromJson: _intFromDynamic)  int? time)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'month', fromJson: jsonIntFromDynamic)  int? month, @JsonKey(name: 'time', fromJson: jsonIntFromDynamic)  int? time)?  $default,) {final _that = this;
 switch (_that) {
 case _YearInReviewMonthStat() when $default != null:
 return $default(_that.month,_that.time);case _:
@@ -742,11 +742,11 @@ return $default(_that.month,_that.time);case _:
 @JsonSerializable()
 
 class _YearInReviewMonthStat implements YearInReviewMonthStat {
-  const _YearInReviewMonthStat({@JsonKey(name: 'month', fromJson: _intFromDynamic) this.month, @JsonKey(name: 'time', fromJson: _intFromDynamic) this.time});
+  const _YearInReviewMonthStat({@JsonKey(name: 'month', fromJson: jsonIntFromDynamic) this.month, @JsonKey(name: 'time', fromJson: jsonIntFromDynamic) this.time});
   factory _YearInReviewMonthStat.fromJson(Map<String, dynamic> json) => _$YearInReviewMonthStatFromJson(json);
 
-@override@JsonKey(name: 'month', fromJson: _intFromDynamic) final  int? month;
-@override@JsonKey(name: 'time', fromJson: _intFromDynamic) final  int? time;
+@override@JsonKey(name: 'month', fromJson: jsonIntFromDynamic) final  int? month;
+@override@JsonKey(name: 'time', fromJson: jsonIntFromDynamic) final  int? time;
 
 /// Create a copy of YearInReviewMonthStat
 /// with the given fields replaced by the non-null parameter values.
@@ -781,7 +781,7 @@ abstract mixin class _$YearInReviewMonthStatCopyWith<$Res> implements $YearInRev
   factory _$YearInReviewMonthStatCopyWith(_YearInReviewMonthStat value, $Res Function(_YearInReviewMonthStat) _then) = __$YearInReviewMonthStatCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'month', fromJson: _intFromDynamic) int? month,@JsonKey(name: 'time', fromJson: _intFromDynamic) int? time
+@JsonKey(name: 'month', fromJson: jsonIntFromDynamic) int? month,@JsonKey(name: 'time', fromJson: jsonIntFromDynamic) int? time
 });
 
 
@@ -813,7 +813,7 @@ as int?,
 /// @nodoc
 mixin _$YearInReviewBookStat {
 
-@JsonKey(name: 'id') String? get id;@JsonKey(name: 'title') String? get title;@JsonKey(name: 'duration', fromJson: _intFromDynamic) int? get duration;@JsonKey(name: 'finishedAt', fromJson: _intFromDynamic) int? get finishedAt;
+@JsonKey(name: 'id') String? get id;@JsonKey(name: 'title') String? get title;@JsonKey(name: 'duration', fromJson: jsonIntFromDynamic) int? get duration;@JsonKey(name: 'finishedAt', fromJson: jsonIntFromDynamic) int? get finishedAt;
 /// Create a copy of YearInReviewBookStat
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -846,7 +846,7 @@ abstract mixin class $YearInReviewBookStatCopyWith<$Res>  {
   factory $YearInReviewBookStatCopyWith(YearInReviewBookStat value, $Res Function(YearInReviewBookStat) _then) = _$YearInReviewBookStatCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'id') String? id,@JsonKey(name: 'title') String? title,@JsonKey(name: 'duration', fromJson: _intFromDynamic) int? duration,@JsonKey(name: 'finishedAt', fromJson: _intFromDynamic) int? finishedAt
+@JsonKey(name: 'id') String? id,@JsonKey(name: 'title') String? title,@JsonKey(name: 'duration', fromJson: jsonIntFromDynamic) int? duration,@JsonKey(name: 'finishedAt', fromJson: jsonIntFromDynamic) int? finishedAt
 });
 
 
@@ -954,7 +954,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'id')  String? id, @JsonKey(name: 'title')  String? title, @JsonKey(name: 'duration', fromJson: _intFromDynamic)  int? duration, @JsonKey(name: 'finishedAt', fromJson: _intFromDynamic)  int? finishedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'id')  String? id, @JsonKey(name: 'title')  String? title, @JsonKey(name: 'duration', fromJson: jsonIntFromDynamic)  int? duration, @JsonKey(name: 'finishedAt', fromJson: jsonIntFromDynamic)  int? finishedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _YearInReviewBookStat() when $default != null:
 return $default(_that.id,_that.title,_that.duration,_that.finishedAt);case _:
@@ -975,7 +975,7 @@ return $default(_that.id,_that.title,_that.duration,_that.finishedAt);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'id')  String? id, @JsonKey(name: 'title')  String? title, @JsonKey(name: 'duration', fromJson: _intFromDynamic)  int? duration, @JsonKey(name: 'finishedAt', fromJson: _intFromDynamic)  int? finishedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'id')  String? id, @JsonKey(name: 'title')  String? title, @JsonKey(name: 'duration', fromJson: jsonIntFromDynamic)  int? duration, @JsonKey(name: 'finishedAt', fromJson: jsonIntFromDynamic)  int? finishedAt)  $default,) {final _that = this;
 switch (_that) {
 case _YearInReviewBookStat():
 return $default(_that.id,_that.title,_that.duration,_that.finishedAt);case _:
@@ -995,7 +995,7 @@ return $default(_that.id,_that.title,_that.duration,_that.finishedAt);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'id')  String? id, @JsonKey(name: 'title')  String? title, @JsonKey(name: 'duration', fromJson: _intFromDynamic)  int? duration, @JsonKey(name: 'finishedAt', fromJson: _intFromDynamic)  int? finishedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'id')  String? id, @JsonKey(name: 'title')  String? title, @JsonKey(name: 'duration', fromJson: jsonIntFromDynamic)  int? duration, @JsonKey(name: 'finishedAt', fromJson: jsonIntFromDynamic)  int? finishedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _YearInReviewBookStat() when $default != null:
 return $default(_that.id,_that.title,_that.duration,_that.finishedAt);case _:
@@ -1010,13 +1010,13 @@ return $default(_that.id,_that.title,_that.duration,_that.finishedAt);case _:
 @JsonSerializable()
 
 class _YearInReviewBookStat implements YearInReviewBookStat {
-  const _YearInReviewBookStat({@JsonKey(name: 'id') this.id, @JsonKey(name: 'title') this.title, @JsonKey(name: 'duration', fromJson: _intFromDynamic) this.duration, @JsonKey(name: 'finishedAt', fromJson: _intFromDynamic) this.finishedAt});
+  const _YearInReviewBookStat({@JsonKey(name: 'id') this.id, @JsonKey(name: 'title') this.title, @JsonKey(name: 'duration', fromJson: jsonIntFromDynamic) this.duration, @JsonKey(name: 'finishedAt', fromJson: jsonIntFromDynamic) this.finishedAt});
   factory _YearInReviewBookStat.fromJson(Map<String, dynamic> json) => _$YearInReviewBookStatFromJson(json);
 
 @override@JsonKey(name: 'id') final  String? id;
 @override@JsonKey(name: 'title') final  String? title;
-@override@JsonKey(name: 'duration', fromJson: _intFromDynamic) final  int? duration;
-@override@JsonKey(name: 'finishedAt', fromJson: _intFromDynamic) final  int? finishedAt;
+@override@JsonKey(name: 'duration', fromJson: jsonIntFromDynamic) final  int? duration;
+@override@JsonKey(name: 'finishedAt', fromJson: jsonIntFromDynamic) final  int? finishedAt;
 
 /// Create a copy of YearInReviewBookStat
 /// with the given fields replaced by the non-null parameter values.
@@ -1051,7 +1051,7 @@ abstract mixin class _$YearInReviewBookStatCopyWith<$Res> implements $YearInRevi
   factory _$YearInReviewBookStatCopyWith(_YearInReviewBookStat value, $Res Function(_YearInReviewBookStat) _then) = __$YearInReviewBookStatCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'id') String? id,@JsonKey(name: 'title') String? title,@JsonKey(name: 'duration', fromJson: _intFromDynamic) int? duration,@JsonKey(name: 'finishedAt', fromJson: _intFromDynamic) int? finishedAt
+@JsonKey(name: 'id') String? id,@JsonKey(name: 'title') String? title,@JsonKey(name: 'duration', fromJson: jsonIntFromDynamic) int? duration,@JsonKey(name: 'finishedAt', fromJson: jsonIntFromDynamic) int? finishedAt
 });
 
 
@@ -1085,7 +1085,7 @@ as int?,
 /// @nodoc
 mixin _$YearInReviewStats {
 
-@JsonKey(name: 'totalListeningSessions', fromJson: _intFromDynamic) int? get totalListeningSessions;@JsonKey(name: 'totalListeningTime', fromJson: _intFromDynamic) int? get totalListeningTime;@JsonKey(name: 'totalBookListeningTime', fromJson: _intFromDynamic) int? get totalBookListeningTime;@JsonKey(name: 'totalPodcastListeningTime', fromJson: _intFromDynamic) int? get totalPodcastListeningTime;@JsonKey(name: 'topAuthors') List<YearInReviewNamedStat> get topAuthors;@JsonKey(name: 'topGenres') List<YearInReviewGenreStat> get topGenres;@JsonKey(name: 'mostListenedNarrator') YearInReviewNamedStat? get mostListenedNarrator;@JsonKey(name: 'mostListenedMonth') YearInReviewMonthStat? get mostListenedMonth;@JsonKey(name: 'numBooksFinished', fromJson: _intFromDynamic) int? get numBooksFinished;@JsonKey(name: 'numBooksListened', fromJson: _intFromDynamic) int? get numBooksListened;@JsonKey(name: 'longestAudiobookFinished') YearInReviewBookStat? get longestAudiobookFinished;@JsonKey(name: 'booksWithCovers') List<String> get booksWithCovers;@JsonKey(name: 'finishedBooksWithCovers') List<String> get finishedBooksWithCovers;@JsonKey(name: 'numListeningSessions', fromJson: _intFromDynamic) int? get numListeningSessions;@JsonKey(name: 'numBooksAdded', fromJson: _intFromDynamic) int? get numBooksAdded;@JsonKey(name: 'numAuthorsAdded', fromJson: _intFromDynamic) int? get numAuthorsAdded;@JsonKey(name: 'totalBooksAddedSize', fromJson: _intFromDynamic) int? get totalBooksAddedSize;@JsonKey(name: 'totalBooksAddedDuration', fromJson: _intFromDynamic) int? get totalBooksAddedDuration;@JsonKey(name: 'booksAddedWithCovers') List<String> get booksAddedWithCovers;@JsonKey(name: 'totalBooksSize', fromJson: _intFromDynamic) int? get totalBooksSize;@JsonKey(name: 'totalBooksDuration', fromJson: _intFromDynamic) int? get totalBooksDuration;@JsonKey(name: 'numBooks', fromJson: _intFromDynamic) int? get numBooks;@JsonKey(name: 'topNarrators') List<YearInReviewNamedStat> get topNarrators;
+@JsonKey(name: 'totalListeningSessions', fromJson: jsonIntFromDynamic) int? get totalListeningSessions;@JsonKey(name: 'totalListeningTime', fromJson: jsonIntFromDynamic) int? get totalListeningTime;@JsonKey(name: 'totalBookListeningTime', fromJson: jsonIntFromDynamic) int? get totalBookListeningTime;@JsonKey(name: 'totalPodcastListeningTime', fromJson: jsonIntFromDynamic) int? get totalPodcastListeningTime;@JsonKey(name: 'topAuthors') List<YearInReviewNamedStat> get topAuthors;@JsonKey(name: 'topGenres') List<YearInReviewGenreStat> get topGenres;@JsonKey(name: 'mostListenedNarrator') YearInReviewNamedStat? get mostListenedNarrator;@JsonKey(name: 'mostListenedMonth') YearInReviewMonthStat? get mostListenedMonth;@JsonKey(name: 'numBooksFinished', fromJson: jsonIntFromDynamic) int? get numBooksFinished;@JsonKey(name: 'numBooksListened', fromJson: jsonIntFromDynamic) int? get numBooksListened;@JsonKey(name: 'longestAudiobookFinished') YearInReviewBookStat? get longestAudiobookFinished;@JsonKey(name: 'booksWithCovers') List<String> get booksWithCovers;@JsonKey(name: 'finishedBooksWithCovers') List<String> get finishedBooksWithCovers;@JsonKey(name: 'numListeningSessions', fromJson: jsonIntFromDynamic) int? get numListeningSessions;@JsonKey(name: 'numBooksAdded', fromJson: jsonIntFromDynamic) int? get numBooksAdded;@JsonKey(name: 'numAuthorsAdded', fromJson: jsonIntFromDynamic) int? get numAuthorsAdded;@JsonKey(name: 'totalBooksAddedSize', fromJson: jsonIntFromDynamic) int? get totalBooksAddedSize;@JsonKey(name: 'totalBooksAddedDuration', fromJson: jsonIntFromDynamic) int? get totalBooksAddedDuration;@JsonKey(name: 'booksAddedWithCovers') List<String> get booksAddedWithCovers;@JsonKey(name: 'totalBooksSize', fromJson: jsonIntFromDynamic) int? get totalBooksSize;@JsonKey(name: 'totalBooksDuration', fromJson: jsonIntFromDynamic) int? get totalBooksDuration;@JsonKey(name: 'numBooks', fromJson: jsonIntFromDynamic) int? get numBooks;@JsonKey(name: 'topNarrators') List<YearInReviewNamedStat> get topNarrators;
 /// Create a copy of YearInReviewStats
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1118,7 +1118,7 @@ abstract mixin class $YearInReviewStatsCopyWith<$Res>  {
   factory $YearInReviewStatsCopyWith(YearInReviewStats value, $Res Function(YearInReviewStats) _then) = _$YearInReviewStatsCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'totalListeningSessions', fromJson: _intFromDynamic) int? totalListeningSessions,@JsonKey(name: 'totalListeningTime', fromJson: _intFromDynamic) int? totalListeningTime,@JsonKey(name: 'totalBookListeningTime', fromJson: _intFromDynamic) int? totalBookListeningTime,@JsonKey(name: 'totalPodcastListeningTime', fromJson: _intFromDynamic) int? totalPodcastListeningTime,@JsonKey(name: 'topAuthors') List<YearInReviewNamedStat> topAuthors,@JsonKey(name: 'topGenres') List<YearInReviewGenreStat> topGenres,@JsonKey(name: 'mostListenedNarrator') YearInReviewNamedStat? mostListenedNarrator,@JsonKey(name: 'mostListenedMonth') YearInReviewMonthStat? mostListenedMonth,@JsonKey(name: 'numBooksFinished', fromJson: _intFromDynamic) int? numBooksFinished,@JsonKey(name: 'numBooksListened', fromJson: _intFromDynamic) int? numBooksListened,@JsonKey(name: 'longestAudiobookFinished') YearInReviewBookStat? longestAudiobookFinished,@JsonKey(name: 'booksWithCovers') List<String> booksWithCovers,@JsonKey(name: 'finishedBooksWithCovers') List<String> finishedBooksWithCovers,@JsonKey(name: 'numListeningSessions', fromJson: _intFromDynamic) int? numListeningSessions,@JsonKey(name: 'numBooksAdded', fromJson: _intFromDynamic) int? numBooksAdded,@JsonKey(name: 'numAuthorsAdded', fromJson: _intFromDynamic) int? numAuthorsAdded,@JsonKey(name: 'totalBooksAddedSize', fromJson: _intFromDynamic) int? totalBooksAddedSize,@JsonKey(name: 'totalBooksAddedDuration', fromJson: _intFromDynamic) int? totalBooksAddedDuration,@JsonKey(name: 'booksAddedWithCovers') List<String> booksAddedWithCovers,@JsonKey(name: 'totalBooksSize', fromJson: _intFromDynamic) int? totalBooksSize,@JsonKey(name: 'totalBooksDuration', fromJson: _intFromDynamic) int? totalBooksDuration,@JsonKey(name: 'numBooks', fromJson: _intFromDynamic) int? numBooks,@JsonKey(name: 'topNarrators') List<YearInReviewNamedStat> topNarrators
+@JsonKey(name: 'totalListeningSessions', fromJson: jsonIntFromDynamic) int? totalListeningSessions,@JsonKey(name: 'totalListeningTime', fromJson: jsonIntFromDynamic) int? totalListeningTime,@JsonKey(name: 'totalBookListeningTime', fromJson: jsonIntFromDynamic) int? totalBookListeningTime,@JsonKey(name: 'totalPodcastListeningTime', fromJson: jsonIntFromDynamic) int? totalPodcastListeningTime,@JsonKey(name: 'topAuthors') List<YearInReviewNamedStat> topAuthors,@JsonKey(name: 'topGenres') List<YearInReviewGenreStat> topGenres,@JsonKey(name: 'mostListenedNarrator') YearInReviewNamedStat? mostListenedNarrator,@JsonKey(name: 'mostListenedMonth') YearInReviewMonthStat? mostListenedMonth,@JsonKey(name: 'numBooksFinished', fromJson: jsonIntFromDynamic) int? numBooksFinished,@JsonKey(name: 'numBooksListened', fromJson: jsonIntFromDynamic) int? numBooksListened,@JsonKey(name: 'longestAudiobookFinished') YearInReviewBookStat? longestAudiobookFinished,@JsonKey(name: 'booksWithCovers') List<String> booksWithCovers,@JsonKey(name: 'finishedBooksWithCovers') List<String> finishedBooksWithCovers,@JsonKey(name: 'numListeningSessions', fromJson: jsonIntFromDynamic) int? numListeningSessions,@JsonKey(name: 'numBooksAdded', fromJson: jsonIntFromDynamic) int? numBooksAdded,@JsonKey(name: 'numAuthorsAdded', fromJson: jsonIntFromDynamic) int? numAuthorsAdded,@JsonKey(name: 'totalBooksAddedSize', fromJson: jsonIntFromDynamic) int? totalBooksAddedSize,@JsonKey(name: 'totalBooksAddedDuration', fromJson: jsonIntFromDynamic) int? totalBooksAddedDuration,@JsonKey(name: 'booksAddedWithCovers') List<String> booksAddedWithCovers,@JsonKey(name: 'totalBooksSize', fromJson: jsonIntFromDynamic) int? totalBooksSize,@JsonKey(name: 'totalBooksDuration', fromJson: jsonIntFromDynamic) int? totalBooksDuration,@JsonKey(name: 'numBooks', fromJson: jsonIntFromDynamic) int? numBooks,@JsonKey(name: 'topNarrators') List<YearInReviewNamedStat> topNarrators
 });
 
 
@@ -1281,7 +1281,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'totalListeningSessions', fromJson: _intFromDynamic)  int? totalListeningSessions, @JsonKey(name: 'totalListeningTime', fromJson: _intFromDynamic)  int? totalListeningTime, @JsonKey(name: 'totalBookListeningTime', fromJson: _intFromDynamic)  int? totalBookListeningTime, @JsonKey(name: 'totalPodcastListeningTime', fromJson: _intFromDynamic)  int? totalPodcastListeningTime, @JsonKey(name: 'topAuthors')  List<YearInReviewNamedStat> topAuthors, @JsonKey(name: 'topGenres')  List<YearInReviewGenreStat> topGenres, @JsonKey(name: 'mostListenedNarrator')  YearInReviewNamedStat? mostListenedNarrator, @JsonKey(name: 'mostListenedMonth')  YearInReviewMonthStat? mostListenedMonth, @JsonKey(name: 'numBooksFinished', fromJson: _intFromDynamic)  int? numBooksFinished, @JsonKey(name: 'numBooksListened', fromJson: _intFromDynamic)  int? numBooksListened, @JsonKey(name: 'longestAudiobookFinished')  YearInReviewBookStat? longestAudiobookFinished, @JsonKey(name: 'booksWithCovers')  List<String> booksWithCovers, @JsonKey(name: 'finishedBooksWithCovers')  List<String> finishedBooksWithCovers, @JsonKey(name: 'numListeningSessions', fromJson: _intFromDynamic)  int? numListeningSessions, @JsonKey(name: 'numBooksAdded', fromJson: _intFromDynamic)  int? numBooksAdded, @JsonKey(name: 'numAuthorsAdded', fromJson: _intFromDynamic)  int? numAuthorsAdded, @JsonKey(name: 'totalBooksAddedSize', fromJson: _intFromDynamic)  int? totalBooksAddedSize, @JsonKey(name: 'totalBooksAddedDuration', fromJson: _intFromDynamic)  int? totalBooksAddedDuration, @JsonKey(name: 'booksAddedWithCovers')  List<String> booksAddedWithCovers, @JsonKey(name: 'totalBooksSize', fromJson: _intFromDynamic)  int? totalBooksSize, @JsonKey(name: 'totalBooksDuration', fromJson: _intFromDynamic)  int? totalBooksDuration, @JsonKey(name: 'numBooks', fromJson: _intFromDynamic)  int? numBooks, @JsonKey(name: 'topNarrators')  List<YearInReviewNamedStat> topNarrators)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'totalListeningSessions', fromJson: jsonIntFromDynamic)  int? totalListeningSessions, @JsonKey(name: 'totalListeningTime', fromJson: jsonIntFromDynamic)  int? totalListeningTime, @JsonKey(name: 'totalBookListeningTime', fromJson: jsonIntFromDynamic)  int? totalBookListeningTime, @JsonKey(name: 'totalPodcastListeningTime', fromJson: jsonIntFromDynamic)  int? totalPodcastListeningTime, @JsonKey(name: 'topAuthors')  List<YearInReviewNamedStat> topAuthors, @JsonKey(name: 'topGenres')  List<YearInReviewGenreStat> topGenres, @JsonKey(name: 'mostListenedNarrator')  YearInReviewNamedStat? mostListenedNarrator, @JsonKey(name: 'mostListenedMonth')  YearInReviewMonthStat? mostListenedMonth, @JsonKey(name: 'numBooksFinished', fromJson: jsonIntFromDynamic)  int? numBooksFinished, @JsonKey(name: 'numBooksListened', fromJson: jsonIntFromDynamic)  int? numBooksListened, @JsonKey(name: 'longestAudiobookFinished')  YearInReviewBookStat? longestAudiobookFinished, @JsonKey(name: 'booksWithCovers')  List<String> booksWithCovers, @JsonKey(name: 'finishedBooksWithCovers')  List<String> finishedBooksWithCovers, @JsonKey(name: 'numListeningSessions', fromJson: jsonIntFromDynamic)  int? numListeningSessions, @JsonKey(name: 'numBooksAdded', fromJson: jsonIntFromDynamic)  int? numBooksAdded, @JsonKey(name: 'numAuthorsAdded', fromJson: jsonIntFromDynamic)  int? numAuthorsAdded, @JsonKey(name: 'totalBooksAddedSize', fromJson: jsonIntFromDynamic)  int? totalBooksAddedSize, @JsonKey(name: 'totalBooksAddedDuration', fromJson: jsonIntFromDynamic)  int? totalBooksAddedDuration, @JsonKey(name: 'booksAddedWithCovers')  List<String> booksAddedWithCovers, @JsonKey(name: 'totalBooksSize', fromJson: jsonIntFromDynamic)  int? totalBooksSize, @JsonKey(name: 'totalBooksDuration', fromJson: jsonIntFromDynamic)  int? totalBooksDuration, @JsonKey(name: 'numBooks', fromJson: jsonIntFromDynamic)  int? numBooks, @JsonKey(name: 'topNarrators')  List<YearInReviewNamedStat> topNarrators)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _YearInReviewStats() when $default != null:
 return $default(_that.totalListeningSessions,_that.totalListeningTime,_that.totalBookListeningTime,_that.totalPodcastListeningTime,_that.topAuthors,_that.topGenres,_that.mostListenedNarrator,_that.mostListenedMonth,_that.numBooksFinished,_that.numBooksListened,_that.longestAudiobookFinished,_that.booksWithCovers,_that.finishedBooksWithCovers,_that.numListeningSessions,_that.numBooksAdded,_that.numAuthorsAdded,_that.totalBooksAddedSize,_that.totalBooksAddedDuration,_that.booksAddedWithCovers,_that.totalBooksSize,_that.totalBooksDuration,_that.numBooks,_that.topNarrators);case _:
@@ -1302,7 +1302,7 @@ return $default(_that.totalListeningSessions,_that.totalListeningTime,_that.tota
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'totalListeningSessions', fromJson: _intFromDynamic)  int? totalListeningSessions, @JsonKey(name: 'totalListeningTime', fromJson: _intFromDynamic)  int? totalListeningTime, @JsonKey(name: 'totalBookListeningTime', fromJson: _intFromDynamic)  int? totalBookListeningTime, @JsonKey(name: 'totalPodcastListeningTime', fromJson: _intFromDynamic)  int? totalPodcastListeningTime, @JsonKey(name: 'topAuthors')  List<YearInReviewNamedStat> topAuthors, @JsonKey(name: 'topGenres')  List<YearInReviewGenreStat> topGenres, @JsonKey(name: 'mostListenedNarrator')  YearInReviewNamedStat? mostListenedNarrator, @JsonKey(name: 'mostListenedMonth')  YearInReviewMonthStat? mostListenedMonth, @JsonKey(name: 'numBooksFinished', fromJson: _intFromDynamic)  int? numBooksFinished, @JsonKey(name: 'numBooksListened', fromJson: _intFromDynamic)  int? numBooksListened, @JsonKey(name: 'longestAudiobookFinished')  YearInReviewBookStat? longestAudiobookFinished, @JsonKey(name: 'booksWithCovers')  List<String> booksWithCovers, @JsonKey(name: 'finishedBooksWithCovers')  List<String> finishedBooksWithCovers, @JsonKey(name: 'numListeningSessions', fromJson: _intFromDynamic)  int? numListeningSessions, @JsonKey(name: 'numBooksAdded', fromJson: _intFromDynamic)  int? numBooksAdded, @JsonKey(name: 'numAuthorsAdded', fromJson: _intFromDynamic)  int? numAuthorsAdded, @JsonKey(name: 'totalBooksAddedSize', fromJson: _intFromDynamic)  int? totalBooksAddedSize, @JsonKey(name: 'totalBooksAddedDuration', fromJson: _intFromDynamic)  int? totalBooksAddedDuration, @JsonKey(name: 'booksAddedWithCovers')  List<String> booksAddedWithCovers, @JsonKey(name: 'totalBooksSize', fromJson: _intFromDynamic)  int? totalBooksSize, @JsonKey(name: 'totalBooksDuration', fromJson: _intFromDynamic)  int? totalBooksDuration, @JsonKey(name: 'numBooks', fromJson: _intFromDynamic)  int? numBooks, @JsonKey(name: 'topNarrators')  List<YearInReviewNamedStat> topNarrators)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'totalListeningSessions', fromJson: jsonIntFromDynamic)  int? totalListeningSessions, @JsonKey(name: 'totalListeningTime', fromJson: jsonIntFromDynamic)  int? totalListeningTime, @JsonKey(name: 'totalBookListeningTime', fromJson: jsonIntFromDynamic)  int? totalBookListeningTime, @JsonKey(name: 'totalPodcastListeningTime', fromJson: jsonIntFromDynamic)  int? totalPodcastListeningTime, @JsonKey(name: 'topAuthors')  List<YearInReviewNamedStat> topAuthors, @JsonKey(name: 'topGenres')  List<YearInReviewGenreStat> topGenres, @JsonKey(name: 'mostListenedNarrator')  YearInReviewNamedStat? mostListenedNarrator, @JsonKey(name: 'mostListenedMonth')  YearInReviewMonthStat? mostListenedMonth, @JsonKey(name: 'numBooksFinished', fromJson: jsonIntFromDynamic)  int? numBooksFinished, @JsonKey(name: 'numBooksListened', fromJson: jsonIntFromDynamic)  int? numBooksListened, @JsonKey(name: 'longestAudiobookFinished')  YearInReviewBookStat? longestAudiobookFinished, @JsonKey(name: 'booksWithCovers')  List<String> booksWithCovers, @JsonKey(name: 'finishedBooksWithCovers')  List<String> finishedBooksWithCovers, @JsonKey(name: 'numListeningSessions', fromJson: jsonIntFromDynamic)  int? numListeningSessions, @JsonKey(name: 'numBooksAdded', fromJson: jsonIntFromDynamic)  int? numBooksAdded, @JsonKey(name: 'numAuthorsAdded', fromJson: jsonIntFromDynamic)  int? numAuthorsAdded, @JsonKey(name: 'totalBooksAddedSize', fromJson: jsonIntFromDynamic)  int? totalBooksAddedSize, @JsonKey(name: 'totalBooksAddedDuration', fromJson: jsonIntFromDynamic)  int? totalBooksAddedDuration, @JsonKey(name: 'booksAddedWithCovers')  List<String> booksAddedWithCovers, @JsonKey(name: 'totalBooksSize', fromJson: jsonIntFromDynamic)  int? totalBooksSize, @JsonKey(name: 'totalBooksDuration', fromJson: jsonIntFromDynamic)  int? totalBooksDuration, @JsonKey(name: 'numBooks', fromJson: jsonIntFromDynamic)  int? numBooks, @JsonKey(name: 'topNarrators')  List<YearInReviewNamedStat> topNarrators)  $default,) {final _that = this;
 switch (_that) {
 case _YearInReviewStats():
 return $default(_that.totalListeningSessions,_that.totalListeningTime,_that.totalBookListeningTime,_that.totalPodcastListeningTime,_that.topAuthors,_that.topGenres,_that.mostListenedNarrator,_that.mostListenedMonth,_that.numBooksFinished,_that.numBooksListened,_that.longestAudiobookFinished,_that.booksWithCovers,_that.finishedBooksWithCovers,_that.numListeningSessions,_that.numBooksAdded,_that.numAuthorsAdded,_that.totalBooksAddedSize,_that.totalBooksAddedDuration,_that.booksAddedWithCovers,_that.totalBooksSize,_that.totalBooksDuration,_that.numBooks,_that.topNarrators);case _:
@@ -1322,7 +1322,7 @@ return $default(_that.totalListeningSessions,_that.totalListeningTime,_that.tota
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'totalListeningSessions', fromJson: _intFromDynamic)  int? totalListeningSessions, @JsonKey(name: 'totalListeningTime', fromJson: _intFromDynamic)  int? totalListeningTime, @JsonKey(name: 'totalBookListeningTime', fromJson: _intFromDynamic)  int? totalBookListeningTime, @JsonKey(name: 'totalPodcastListeningTime', fromJson: _intFromDynamic)  int? totalPodcastListeningTime, @JsonKey(name: 'topAuthors')  List<YearInReviewNamedStat> topAuthors, @JsonKey(name: 'topGenres')  List<YearInReviewGenreStat> topGenres, @JsonKey(name: 'mostListenedNarrator')  YearInReviewNamedStat? mostListenedNarrator, @JsonKey(name: 'mostListenedMonth')  YearInReviewMonthStat? mostListenedMonth, @JsonKey(name: 'numBooksFinished', fromJson: _intFromDynamic)  int? numBooksFinished, @JsonKey(name: 'numBooksListened', fromJson: _intFromDynamic)  int? numBooksListened, @JsonKey(name: 'longestAudiobookFinished')  YearInReviewBookStat? longestAudiobookFinished, @JsonKey(name: 'booksWithCovers')  List<String> booksWithCovers, @JsonKey(name: 'finishedBooksWithCovers')  List<String> finishedBooksWithCovers, @JsonKey(name: 'numListeningSessions', fromJson: _intFromDynamic)  int? numListeningSessions, @JsonKey(name: 'numBooksAdded', fromJson: _intFromDynamic)  int? numBooksAdded, @JsonKey(name: 'numAuthorsAdded', fromJson: _intFromDynamic)  int? numAuthorsAdded, @JsonKey(name: 'totalBooksAddedSize', fromJson: _intFromDynamic)  int? totalBooksAddedSize, @JsonKey(name: 'totalBooksAddedDuration', fromJson: _intFromDynamic)  int? totalBooksAddedDuration, @JsonKey(name: 'booksAddedWithCovers')  List<String> booksAddedWithCovers, @JsonKey(name: 'totalBooksSize', fromJson: _intFromDynamic)  int? totalBooksSize, @JsonKey(name: 'totalBooksDuration', fromJson: _intFromDynamic)  int? totalBooksDuration, @JsonKey(name: 'numBooks', fromJson: _intFromDynamic)  int? numBooks, @JsonKey(name: 'topNarrators')  List<YearInReviewNamedStat> topNarrators)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'totalListeningSessions', fromJson: jsonIntFromDynamic)  int? totalListeningSessions, @JsonKey(name: 'totalListeningTime', fromJson: jsonIntFromDynamic)  int? totalListeningTime, @JsonKey(name: 'totalBookListeningTime', fromJson: jsonIntFromDynamic)  int? totalBookListeningTime, @JsonKey(name: 'totalPodcastListeningTime', fromJson: jsonIntFromDynamic)  int? totalPodcastListeningTime, @JsonKey(name: 'topAuthors')  List<YearInReviewNamedStat> topAuthors, @JsonKey(name: 'topGenres')  List<YearInReviewGenreStat> topGenres, @JsonKey(name: 'mostListenedNarrator')  YearInReviewNamedStat? mostListenedNarrator, @JsonKey(name: 'mostListenedMonth')  YearInReviewMonthStat? mostListenedMonth, @JsonKey(name: 'numBooksFinished', fromJson: jsonIntFromDynamic)  int? numBooksFinished, @JsonKey(name: 'numBooksListened', fromJson: jsonIntFromDynamic)  int? numBooksListened, @JsonKey(name: 'longestAudiobookFinished')  YearInReviewBookStat? longestAudiobookFinished, @JsonKey(name: 'booksWithCovers')  List<String> booksWithCovers, @JsonKey(name: 'finishedBooksWithCovers')  List<String> finishedBooksWithCovers, @JsonKey(name: 'numListeningSessions', fromJson: jsonIntFromDynamic)  int? numListeningSessions, @JsonKey(name: 'numBooksAdded', fromJson: jsonIntFromDynamic)  int? numBooksAdded, @JsonKey(name: 'numAuthorsAdded', fromJson: jsonIntFromDynamic)  int? numAuthorsAdded, @JsonKey(name: 'totalBooksAddedSize', fromJson: jsonIntFromDynamic)  int? totalBooksAddedSize, @JsonKey(name: 'totalBooksAddedDuration', fromJson: jsonIntFromDynamic)  int? totalBooksAddedDuration, @JsonKey(name: 'booksAddedWithCovers')  List<String> booksAddedWithCovers, @JsonKey(name: 'totalBooksSize', fromJson: jsonIntFromDynamic)  int? totalBooksSize, @JsonKey(name: 'totalBooksDuration', fromJson: jsonIntFromDynamic)  int? totalBooksDuration, @JsonKey(name: 'numBooks', fromJson: jsonIntFromDynamic)  int? numBooks, @JsonKey(name: 'topNarrators')  List<YearInReviewNamedStat> topNarrators)?  $default,) {final _that = this;
 switch (_that) {
 case _YearInReviewStats() when $default != null:
 return $default(_that.totalListeningSessions,_that.totalListeningTime,_that.totalBookListeningTime,_that.totalPodcastListeningTime,_that.topAuthors,_that.topGenres,_that.mostListenedNarrator,_that.mostListenedMonth,_that.numBooksFinished,_that.numBooksListened,_that.longestAudiobookFinished,_that.booksWithCovers,_that.finishedBooksWithCovers,_that.numListeningSessions,_that.numBooksAdded,_that.numAuthorsAdded,_that.totalBooksAddedSize,_that.totalBooksAddedDuration,_that.booksAddedWithCovers,_that.totalBooksSize,_that.totalBooksDuration,_that.numBooks,_that.topNarrators);case _:
@@ -1337,13 +1337,13 @@ return $default(_that.totalListeningSessions,_that.totalListeningTime,_that.tota
 @JsonSerializable()
 
 class _YearInReviewStats implements YearInReviewStats {
-  const _YearInReviewStats({@JsonKey(name: 'totalListeningSessions', fromJson: _intFromDynamic) this.totalListeningSessions, @JsonKey(name: 'totalListeningTime', fromJson: _intFromDynamic) this.totalListeningTime, @JsonKey(name: 'totalBookListeningTime', fromJson: _intFromDynamic) this.totalBookListeningTime, @JsonKey(name: 'totalPodcastListeningTime', fromJson: _intFromDynamic) this.totalPodcastListeningTime, @JsonKey(name: 'topAuthors') final  List<YearInReviewNamedStat> topAuthors = const <YearInReviewNamedStat>[], @JsonKey(name: 'topGenres') final  List<YearInReviewGenreStat> topGenres = const <YearInReviewGenreStat>[], @JsonKey(name: 'mostListenedNarrator') this.mostListenedNarrator, @JsonKey(name: 'mostListenedMonth') this.mostListenedMonth, @JsonKey(name: 'numBooksFinished', fromJson: _intFromDynamic) this.numBooksFinished, @JsonKey(name: 'numBooksListened', fromJson: _intFromDynamic) this.numBooksListened, @JsonKey(name: 'longestAudiobookFinished') this.longestAudiobookFinished, @JsonKey(name: 'booksWithCovers') final  List<String> booksWithCovers = const <String>[], @JsonKey(name: 'finishedBooksWithCovers') final  List<String> finishedBooksWithCovers = const <String>[], @JsonKey(name: 'numListeningSessions', fromJson: _intFromDynamic) this.numListeningSessions, @JsonKey(name: 'numBooksAdded', fromJson: _intFromDynamic) this.numBooksAdded, @JsonKey(name: 'numAuthorsAdded', fromJson: _intFromDynamic) this.numAuthorsAdded, @JsonKey(name: 'totalBooksAddedSize', fromJson: _intFromDynamic) this.totalBooksAddedSize, @JsonKey(name: 'totalBooksAddedDuration', fromJson: _intFromDynamic) this.totalBooksAddedDuration, @JsonKey(name: 'booksAddedWithCovers') final  List<String> booksAddedWithCovers = const <String>[], @JsonKey(name: 'totalBooksSize', fromJson: _intFromDynamic) this.totalBooksSize, @JsonKey(name: 'totalBooksDuration', fromJson: _intFromDynamic) this.totalBooksDuration, @JsonKey(name: 'numBooks', fromJson: _intFromDynamic) this.numBooks, @JsonKey(name: 'topNarrators') final  List<YearInReviewNamedStat> topNarrators = const <YearInReviewNamedStat>[]}): _topAuthors = topAuthors,_topGenres = topGenres,_booksWithCovers = booksWithCovers,_finishedBooksWithCovers = finishedBooksWithCovers,_booksAddedWithCovers = booksAddedWithCovers,_topNarrators = topNarrators;
+  const _YearInReviewStats({@JsonKey(name: 'totalListeningSessions', fromJson: jsonIntFromDynamic) this.totalListeningSessions, @JsonKey(name: 'totalListeningTime', fromJson: jsonIntFromDynamic) this.totalListeningTime, @JsonKey(name: 'totalBookListeningTime', fromJson: jsonIntFromDynamic) this.totalBookListeningTime, @JsonKey(name: 'totalPodcastListeningTime', fromJson: jsonIntFromDynamic) this.totalPodcastListeningTime, @JsonKey(name: 'topAuthors') final  List<YearInReviewNamedStat> topAuthors = const <YearInReviewNamedStat>[], @JsonKey(name: 'topGenres') final  List<YearInReviewGenreStat> topGenres = const <YearInReviewGenreStat>[], @JsonKey(name: 'mostListenedNarrator') this.mostListenedNarrator, @JsonKey(name: 'mostListenedMonth') this.mostListenedMonth, @JsonKey(name: 'numBooksFinished', fromJson: jsonIntFromDynamic) this.numBooksFinished, @JsonKey(name: 'numBooksListened', fromJson: jsonIntFromDynamic) this.numBooksListened, @JsonKey(name: 'longestAudiobookFinished') this.longestAudiobookFinished, @JsonKey(name: 'booksWithCovers') final  List<String> booksWithCovers = const <String>[], @JsonKey(name: 'finishedBooksWithCovers') final  List<String> finishedBooksWithCovers = const <String>[], @JsonKey(name: 'numListeningSessions', fromJson: jsonIntFromDynamic) this.numListeningSessions, @JsonKey(name: 'numBooksAdded', fromJson: jsonIntFromDynamic) this.numBooksAdded, @JsonKey(name: 'numAuthorsAdded', fromJson: jsonIntFromDynamic) this.numAuthorsAdded, @JsonKey(name: 'totalBooksAddedSize', fromJson: jsonIntFromDynamic) this.totalBooksAddedSize, @JsonKey(name: 'totalBooksAddedDuration', fromJson: jsonIntFromDynamic) this.totalBooksAddedDuration, @JsonKey(name: 'booksAddedWithCovers') final  List<String> booksAddedWithCovers = const <String>[], @JsonKey(name: 'totalBooksSize', fromJson: jsonIntFromDynamic) this.totalBooksSize, @JsonKey(name: 'totalBooksDuration', fromJson: jsonIntFromDynamic) this.totalBooksDuration, @JsonKey(name: 'numBooks', fromJson: jsonIntFromDynamic) this.numBooks, @JsonKey(name: 'topNarrators') final  List<YearInReviewNamedStat> topNarrators = const <YearInReviewNamedStat>[]}): _topAuthors = topAuthors,_topGenres = topGenres,_booksWithCovers = booksWithCovers,_finishedBooksWithCovers = finishedBooksWithCovers,_booksAddedWithCovers = booksAddedWithCovers,_topNarrators = topNarrators;
   factory _YearInReviewStats.fromJson(Map<String, dynamic> json) => _$YearInReviewStatsFromJson(json);
 
-@override@JsonKey(name: 'totalListeningSessions', fromJson: _intFromDynamic) final  int? totalListeningSessions;
-@override@JsonKey(name: 'totalListeningTime', fromJson: _intFromDynamic) final  int? totalListeningTime;
-@override@JsonKey(name: 'totalBookListeningTime', fromJson: _intFromDynamic) final  int? totalBookListeningTime;
-@override@JsonKey(name: 'totalPodcastListeningTime', fromJson: _intFromDynamic) final  int? totalPodcastListeningTime;
+@override@JsonKey(name: 'totalListeningSessions', fromJson: jsonIntFromDynamic) final  int? totalListeningSessions;
+@override@JsonKey(name: 'totalListeningTime', fromJson: jsonIntFromDynamic) final  int? totalListeningTime;
+@override@JsonKey(name: 'totalBookListeningTime', fromJson: jsonIntFromDynamic) final  int? totalBookListeningTime;
+@override@JsonKey(name: 'totalPodcastListeningTime', fromJson: jsonIntFromDynamic) final  int? totalPodcastListeningTime;
  final  List<YearInReviewNamedStat> _topAuthors;
 @override@JsonKey(name: 'topAuthors') List<YearInReviewNamedStat> get topAuthors {
   if (_topAuthors is EqualUnmodifiableListView) return _topAuthors;
@@ -1360,8 +1360,8 @@ class _YearInReviewStats implements YearInReviewStats {
 
 @override@JsonKey(name: 'mostListenedNarrator') final  YearInReviewNamedStat? mostListenedNarrator;
 @override@JsonKey(name: 'mostListenedMonth') final  YearInReviewMonthStat? mostListenedMonth;
-@override@JsonKey(name: 'numBooksFinished', fromJson: _intFromDynamic) final  int? numBooksFinished;
-@override@JsonKey(name: 'numBooksListened', fromJson: _intFromDynamic) final  int? numBooksListened;
+@override@JsonKey(name: 'numBooksFinished', fromJson: jsonIntFromDynamic) final  int? numBooksFinished;
+@override@JsonKey(name: 'numBooksListened', fromJson: jsonIntFromDynamic) final  int? numBooksListened;
 @override@JsonKey(name: 'longestAudiobookFinished') final  YearInReviewBookStat? longestAudiobookFinished;
  final  List<String> _booksWithCovers;
 @override@JsonKey(name: 'booksWithCovers') List<String> get booksWithCovers {
@@ -1377,11 +1377,11 @@ class _YearInReviewStats implements YearInReviewStats {
   return EqualUnmodifiableListView(_finishedBooksWithCovers);
 }
 
-@override@JsonKey(name: 'numListeningSessions', fromJson: _intFromDynamic) final  int? numListeningSessions;
-@override@JsonKey(name: 'numBooksAdded', fromJson: _intFromDynamic) final  int? numBooksAdded;
-@override@JsonKey(name: 'numAuthorsAdded', fromJson: _intFromDynamic) final  int? numAuthorsAdded;
-@override@JsonKey(name: 'totalBooksAddedSize', fromJson: _intFromDynamic) final  int? totalBooksAddedSize;
-@override@JsonKey(name: 'totalBooksAddedDuration', fromJson: _intFromDynamic) final  int? totalBooksAddedDuration;
+@override@JsonKey(name: 'numListeningSessions', fromJson: jsonIntFromDynamic) final  int? numListeningSessions;
+@override@JsonKey(name: 'numBooksAdded', fromJson: jsonIntFromDynamic) final  int? numBooksAdded;
+@override@JsonKey(name: 'numAuthorsAdded', fromJson: jsonIntFromDynamic) final  int? numAuthorsAdded;
+@override@JsonKey(name: 'totalBooksAddedSize', fromJson: jsonIntFromDynamic) final  int? totalBooksAddedSize;
+@override@JsonKey(name: 'totalBooksAddedDuration', fromJson: jsonIntFromDynamic) final  int? totalBooksAddedDuration;
  final  List<String> _booksAddedWithCovers;
 @override@JsonKey(name: 'booksAddedWithCovers') List<String> get booksAddedWithCovers {
   if (_booksAddedWithCovers is EqualUnmodifiableListView) return _booksAddedWithCovers;
@@ -1389,9 +1389,9 @@ class _YearInReviewStats implements YearInReviewStats {
   return EqualUnmodifiableListView(_booksAddedWithCovers);
 }
 
-@override@JsonKey(name: 'totalBooksSize', fromJson: _intFromDynamic) final  int? totalBooksSize;
-@override@JsonKey(name: 'totalBooksDuration', fromJson: _intFromDynamic) final  int? totalBooksDuration;
-@override@JsonKey(name: 'numBooks', fromJson: _intFromDynamic) final  int? numBooks;
+@override@JsonKey(name: 'totalBooksSize', fromJson: jsonIntFromDynamic) final  int? totalBooksSize;
+@override@JsonKey(name: 'totalBooksDuration', fromJson: jsonIntFromDynamic) final  int? totalBooksDuration;
+@override@JsonKey(name: 'numBooks', fromJson: jsonIntFromDynamic) final  int? numBooks;
  final  List<YearInReviewNamedStat> _topNarrators;
 @override@JsonKey(name: 'topNarrators') List<YearInReviewNamedStat> get topNarrators {
   if (_topNarrators is EqualUnmodifiableListView) return _topNarrators;
@@ -1433,7 +1433,7 @@ abstract mixin class _$YearInReviewStatsCopyWith<$Res> implements $YearInReviewS
   factory _$YearInReviewStatsCopyWith(_YearInReviewStats value, $Res Function(_YearInReviewStats) _then) = __$YearInReviewStatsCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'totalListeningSessions', fromJson: _intFromDynamic) int? totalListeningSessions,@JsonKey(name: 'totalListeningTime', fromJson: _intFromDynamic) int? totalListeningTime,@JsonKey(name: 'totalBookListeningTime', fromJson: _intFromDynamic) int? totalBookListeningTime,@JsonKey(name: 'totalPodcastListeningTime', fromJson: _intFromDynamic) int? totalPodcastListeningTime,@JsonKey(name: 'topAuthors') List<YearInReviewNamedStat> topAuthors,@JsonKey(name: 'topGenres') List<YearInReviewGenreStat> topGenres,@JsonKey(name: 'mostListenedNarrator') YearInReviewNamedStat? mostListenedNarrator,@JsonKey(name: 'mostListenedMonth') YearInReviewMonthStat? mostListenedMonth,@JsonKey(name: 'numBooksFinished', fromJson: _intFromDynamic) int? numBooksFinished,@JsonKey(name: 'numBooksListened', fromJson: _intFromDynamic) int? numBooksListened,@JsonKey(name: 'longestAudiobookFinished') YearInReviewBookStat? longestAudiobookFinished,@JsonKey(name: 'booksWithCovers') List<String> booksWithCovers,@JsonKey(name: 'finishedBooksWithCovers') List<String> finishedBooksWithCovers,@JsonKey(name: 'numListeningSessions', fromJson: _intFromDynamic) int? numListeningSessions,@JsonKey(name: 'numBooksAdded', fromJson: _intFromDynamic) int? numBooksAdded,@JsonKey(name: 'numAuthorsAdded', fromJson: _intFromDynamic) int? numAuthorsAdded,@JsonKey(name: 'totalBooksAddedSize', fromJson: _intFromDynamic) int? totalBooksAddedSize,@JsonKey(name: 'totalBooksAddedDuration', fromJson: _intFromDynamic) int? totalBooksAddedDuration,@JsonKey(name: 'booksAddedWithCovers') List<String> booksAddedWithCovers,@JsonKey(name: 'totalBooksSize', fromJson: _intFromDynamic) int? totalBooksSize,@JsonKey(name: 'totalBooksDuration', fromJson: _intFromDynamic) int? totalBooksDuration,@JsonKey(name: 'numBooks', fromJson: _intFromDynamic) int? numBooks,@JsonKey(name: 'topNarrators') List<YearInReviewNamedStat> topNarrators
+@JsonKey(name: 'totalListeningSessions', fromJson: jsonIntFromDynamic) int? totalListeningSessions,@JsonKey(name: 'totalListeningTime', fromJson: jsonIntFromDynamic) int? totalListeningTime,@JsonKey(name: 'totalBookListeningTime', fromJson: jsonIntFromDynamic) int? totalBookListeningTime,@JsonKey(name: 'totalPodcastListeningTime', fromJson: jsonIntFromDynamic) int? totalPodcastListeningTime,@JsonKey(name: 'topAuthors') List<YearInReviewNamedStat> topAuthors,@JsonKey(name: 'topGenres') List<YearInReviewGenreStat> topGenres,@JsonKey(name: 'mostListenedNarrator') YearInReviewNamedStat? mostListenedNarrator,@JsonKey(name: 'mostListenedMonth') YearInReviewMonthStat? mostListenedMonth,@JsonKey(name: 'numBooksFinished', fromJson: jsonIntFromDynamic) int? numBooksFinished,@JsonKey(name: 'numBooksListened', fromJson: jsonIntFromDynamic) int? numBooksListened,@JsonKey(name: 'longestAudiobookFinished') YearInReviewBookStat? longestAudiobookFinished,@JsonKey(name: 'booksWithCovers') List<String> booksWithCovers,@JsonKey(name: 'finishedBooksWithCovers') List<String> finishedBooksWithCovers,@JsonKey(name: 'numListeningSessions', fromJson: jsonIntFromDynamic) int? numListeningSessions,@JsonKey(name: 'numBooksAdded', fromJson: jsonIntFromDynamic) int? numBooksAdded,@JsonKey(name: 'numAuthorsAdded', fromJson: jsonIntFromDynamic) int? numAuthorsAdded,@JsonKey(name: 'totalBooksAddedSize', fromJson: jsonIntFromDynamic) int? totalBooksAddedSize,@JsonKey(name: 'totalBooksAddedDuration', fromJson: jsonIntFromDynamic) int? totalBooksAddedDuration,@JsonKey(name: 'booksAddedWithCovers') List<String> booksAddedWithCovers,@JsonKey(name: 'totalBooksSize', fromJson: jsonIntFromDynamic) int? totalBooksSize,@JsonKey(name: 'totalBooksDuration', fromJson: jsonIntFromDynamic) int? totalBooksDuration,@JsonKey(name: 'numBooks', fromJson: jsonIntFromDynamic) int? numBooks,@JsonKey(name: 'topNarrators') List<YearInReviewNamedStat> topNarrators
 });
 
 

@@ -1,39 +1,37 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/api/library/author_details.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
+import 'package:yaabsa/components/app/library/library_grid_layout_builder.dart';
 import 'package:yaabsa/components/common/library_item_widget.dart';
-import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
 
-class AuthorDetailContent extends StatelessWidget {
+class AuthorDetailContent extends ConsumerWidget {
   const AuthorDetailContent({super.key, required this.author, required this.api});
 
   final AuthorDetails author;
   final ABSApi api;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final books = author.libraryItems;
     final seriesGroups = author.series.where((series) => series.items.isNotEmpty).toList(growable: false);
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final gridLayout = appCenteredGridLayout(constraints.maxWidth);
-
+    return LibraryGridLayoutBuilder(
+      builder: (context, gridLayout, _, _) {
         return ListView(
           padding: EdgeInsets.fromLTRB(gridLayout.horizontalPadding, 8, gridLayout.horizontalPadding, 16),
           children: [
-            _SectionHeader(
-              title: 'Series',
-              subtitle: '${seriesGroups.length} ${seriesGroups.length == 1 ? 'series' : 'series groups'}',
-            ),
-            const SizedBox(height: 8),
-            if (seriesGroups.isEmpty)
-              const _SectionEmptyState(message: 'No series found for this author.')
-            else
+            if (seriesGroups.isNotEmpty)
+              _SectionHeader(
+                title: 'Series',
+                subtitle: '${seriesGroups.length} ${seriesGroups.length == 1 ? 'series' : 'series groups'}',
+              ),
+            if (seriesGroups.isNotEmpty) const SizedBox(height: 8),
+            if (seriesGroups.isNotEmpty)
               ...seriesGroups.map(
                 (series) => Padding(
                   padding: const EdgeInsets.only(bottom: 20),
@@ -98,12 +96,8 @@ class _LibraryItemHorizontalList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final itemWidth = context.isDesktop
-        ? 220.0
-        : context.isTablet
-        ? 196.0
-        : 172.0;
-    final listHeight = itemWidth + 132;
+    final itemWidth = 172.0;
+    final listHeight = 172.0 + 48;
 
     return SizedBox(
       height: listHeight,

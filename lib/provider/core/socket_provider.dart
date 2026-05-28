@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/api/socket/abs_socket_client.dart';
+import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/common/library_item_sync.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/core/server_tasks_provider.dart';
@@ -12,8 +14,35 @@ import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/library/personalized_shelf_refresh.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/setting_key.dart';
 
 part 'socket_provider.g.dart';
+
+bool _isBackgroundLifecycleState(AppLifecycleState state) {
+  switch (state) {
+    case AppLifecycleState.resumed:
+      return false;
+    case AppLifecycleState.inactive:
+    case AppLifecycleState.hidden:
+    case AppLifecycleState.paused:
+    case AppLifecycleState.detached:
+      return true;
+  }
+}
+
+bool _isKeepSocketConnectedInBackground(String? settingValue) {
+  final defaultEnabled = defaultSettings[SettingKeys.keepWebsocketConnectionInBackground] as bool? ?? false;
+  return SettingsParser.decodeValue<bool>(settingValue, defaultEnabled);
+}
+
+String _socketConnectionFingerprint({required String serverUrl, required String token, Map<String, String>? headers}) {
+  final normalizedHeaders = headers == null
+      ? ''
+      : (headers.entries.toList()..sort((a, b) => a.key.compareTo(b.key)))
+            .map((entry) => '${entry.key}:${entry.value}')
+            .join('|');
+  return '$serverUrl|$token|$normalizedHeaders';
+}
 
 class SocketBatchQuickMatchComplete {
   const SocketBatchQuickMatchComplete({
@@ -76,6 +105,26 @@ ABSSocketClient absSocketClient(Ref ref) {
     onItemUpdated: (item) {
       unawaited(processLibraryItemUpdate(container: ref.container, item: item, source: 'socket.item_updated'));
     },
+    onItemAdded: (item) {
+      unawaited(processLibraryItemAdded(container: ref.container, item: item, source: 'socket.item_added'));
+    },
+    onItemRemoved: ({required itemId, libraryId, item}) {
+      unawaited(
+        processLibraryItemRemovedById(
+          container: ref.container,
+          itemId: itemId,
+          libraryId: libraryId,
+          item: item,
+          source: 'socket.item_removed',
+        ),
+      );
+    },
+    onItemsAdded: (items) {
+      unawaited(processLibraryItemsAdded(container: ref.container, items: items, source: 'socket.items_added'));
+    },
+    onItemsUpdated: (items) {
+      unawaited(processLibraryItemsUpdated(container: ref.container, items: items, source: 'socket.items_updated'));
+    },
     onBatchQuickMatchComplete: ({required success, required updates, required unmatched}) {
       ref
           .read(socketBatchQuickMatchCompleteProvider.notifier)
@@ -106,6 +155,16 @@ ABSSocketClient absSocketClient(Ref ref) {
       serverTasksNotifier.updateTaskProgress(libraryItemId: libraryItemId, progress: progress);
     },
   );
+
+  User? currentUser = ref.read(currentUserProvider).value;
+  bool canReachServer = ref.read(serverStatusProvider).value ?? false;
+  final initialKeepSocketSetting = ref
+      .read(globalSettingByKeyProvider(SettingKeys.keepWebsocketConnectionInBackground))
+      .value;
+  bool keepSocketConnectedInBackground = _isKeepSocketConnectedInBackground(initialKeepSocketSetting);
+  bool socketSuppressedForBackground = false;
+  String? activeSocketFingerprint;
+  AppLifecycleState appLifecycleState = WidgetsBinding.instance.lifecycleState ?? AppLifecycleState.resumed;
 
   Future<void> hydrateServerTasksForUser(User? user, {required bool serverReachable}) async {
     if (user == null) {
@@ -157,6 +216,7 @@ ABSSocketClient absSocketClient(Ref ref) {
 
     if (serverUrl == null || serverUrl.isEmpty || token == null || token.isEmpty) {
       socketClient.disconnect();
+      activeSocketFingerprint = null;
       return;
     }
 
@@ -167,6 +227,17 @@ ABSSocketClient absSocketClient(Ref ref) {
         level: InfoLevel.debug,
       );
       socketClient.disconnect();
+      activeSocketFingerprint = null;
+      return;
+    }
+
+    final nextSocketFingerprint = _socketConnectionFingerprint(
+      serverUrl: serverUrl,
+      token: token,
+      headers: serverHeaders,
+    );
+
+    if (socketClient.isConnected && activeSocketFingerprint == nextSocketFingerprint) {
       return;
     }
 
@@ -176,6 +247,29 @@ ABSSocketClient absSocketClient(Ref ref) {
       level: InfoLevel.debug,
     );
     socketClient.connect(serverUrl: serverUrl, apiToken: token, headers: serverHeaders);
+    activeSocketFingerprint = nextSocketFingerprint;
+  }
+
+  void syncSocketConnection() {
+    final shouldSuppressForBackground =
+        !keepSocketConnectedInBackground && _isBackgroundLifecycleState(appLifecycleState);
+
+    if (shouldSuppressForBackground) {
+      if (!socketSuppressedForBackground) {
+        socketClient.disconnect();
+        activeSocketFingerprint = null;
+        logger(
+          'Disconnecting socket due to app lifecycle state $appLifecycleState',
+          tag: 'SocketProvider',
+          level: InfoLevel.debug,
+        );
+        socketSuppressedForBackground = true;
+      }
+      return;
+    }
+
+    socketSuppressedForBackground = false;
+    updateSocketForUser(currentUser, serverReachable: canReachServer);
   }
 
   ref.listen<AsyncValue<User?>>(currentUserProvider, (previous, next) {
@@ -183,23 +277,36 @@ ABSSocketClient absSocketClient(Ref ref) {
       serverTasksNotifier.reset();
     }
 
-    final canReachServer = ref.read(serverStatusProvider).value ?? false;
-    updateSocketForUser(next.value, serverReachable: canReachServer);
-    unawaited(hydrateServerTasksForUser(next.value, serverReachable: canReachServer));
-  });
-
-  ref.listen<AsyncValue<bool>>(serverStatusProvider, (previous, next) {
-    final currentUser = ref.read(currentUserProvider).value;
-    final canReachServer = next.value ?? false;
-    updateSocketForUser(currentUser, serverReachable: canReachServer);
+    currentUser = next.value;
+    syncSocketConnection();
     unawaited(hydrateServerTasksForUser(currentUser, serverReachable: canReachServer));
   });
 
-  final initialUser = ref.read(currentUserProvider).value;
-  final initialServerReachable = ref.read(serverStatusProvider).value ?? false;
-  updateSocketForUser(initialUser, serverReachable: initialServerReachable);
-  unawaited(Future<void>(() => hydrateServerTasksForUser(initialUser, serverReachable: initialServerReachable)));
+  ref.listen<AsyncValue<bool>>(serverStatusProvider, (previous, next) {
+    canReachServer = next.value ?? false;
+    syncSocketConnection();
+    unawaited(hydrateServerTasksForUser(currentUser, serverReachable: canReachServer));
+  });
 
+  ref.listen<AsyncValue<String?>>(globalSettingByKeyProvider(SettingKeys.keepWebsocketConnectionInBackground), (
+    previous,
+    next,
+  ) {
+    keepSocketConnectedInBackground = _isKeepSocketConnectedInBackground(next.value);
+    syncSocketConnection();
+  });
+
+  final lifecycleListener = AppLifecycleListener(
+    onStateChange: (state) {
+      appLifecycleState = state;
+      syncSocketConnection();
+    },
+  );
+
+  syncSocketConnection();
+  unawaited(Future<void>(() => hydrateServerTasksForUser(currentUser, serverReachable: canReachServer)));
+
+  ref.onDispose(lifecycleListener.dispose);
   ref.onDispose(socketClient.dispose);
 
   return socketClient;

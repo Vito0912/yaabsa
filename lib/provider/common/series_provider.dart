@@ -8,6 +8,8 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 
 const int _seriesPerPage = 20;
 const int _seriesBooksPerPage = 20;
+const String _defaultSeriesBooksSort = 'sequence';
+const int _defaultSeriesBooksDesc = 0;
 
 final seriesByIdProvider = FutureProvider.family<Series, String>((ref, seriesId) async {
   final absApi = ref.watch(absApiProvider);
@@ -109,6 +111,8 @@ class SeriesBooksState {
     required this.libraryId,
     required this.seriesId,
     required this.totalItems,
+    required this.sort,
+    required this.desc,
     this.error,
     this.stackTrace,
     this.isLoadingNextPage = false,
@@ -120,6 +124,8 @@ class SeriesBooksState {
   final String libraryId;
   final String seriesId;
   final int totalItems;
+  final String sort;
+  final int desc;
   final Object? error;
   final StackTrace? stackTrace;
   final bool isLoadingNextPage;
@@ -131,6 +137,8 @@ class SeriesBooksState {
     String? libraryId,
     String? seriesId,
     int? totalItems,
+    String? sort,
+    int? desc,
     Object? error,
     StackTrace? stackTrace,
     bool? isLoadingNextPage,
@@ -142,6 +150,8 @@ class SeriesBooksState {
       libraryId: libraryId ?? this.libraryId,
       seriesId: seriesId ?? this.seriesId,
       totalItems: totalItems ?? this.totalItems,
+      sort: sort ?? this.sort,
+      desc: desc ?? this.desc,
       error: error ?? this.error,
       stackTrace: stackTrace ?? this.stackTrace,
       isLoadingNextPage: isLoadingNextPage ?? this.isLoadingNextPage,
@@ -159,7 +169,7 @@ class SeriesBooksNotifier extends AsyncNotifier<SeriesBooksState> {
   final SeriesBooksArgs args;
   bool _isEnsuringIndex = false;
 
-  Future<SeriesBooksState> _fetchPage(int page) async {
+  Future<SeriesBooksState> _fetchPage(int page, {String? sort, int? desc}) async {
     final absApi = ref.read(absApiProvider);
     if (absApi == null) {
       throw Exception('User not authenticated or API not available.');
@@ -169,6 +179,8 @@ class SeriesBooksNotifier extends AsyncNotifier<SeriesBooksState> {
     final request = LibraryItemsRequest(
       limit: _seriesBooksPerPage,
       page: page,
+      sort: sort ?? currentVal?.sort ?? _defaultSeriesBooksSort,
+      desc: desc ?? currentVal?.desc ?? _defaultSeriesBooksDesc,
       filter: LibraryFilter.grouped(LibraryFilterGroup.series, args.seriesId).queryValue,
       collapseseries: 0,
     );
@@ -193,13 +205,15 @@ class SeriesBooksNotifier extends AsyncNotifier<SeriesBooksState> {
       libraryId: args.libraryId,
       seriesId: args.seriesId,
       totalItems: totalResults,
+      sort: request.sort ?? _defaultSeriesBooksSort,
+      desc: request.desc ?? _defaultSeriesBooksDesc,
       isLoadingNextPage: false,
     );
   }
 
   @override
   Future<SeriesBooksState> build() async {
-    return _fetchPage(0);
+    return _fetchPage(0, sort: _defaultSeriesBooksSort, desc: _defaultSeriesBooksDesc);
   }
 
   Future<void> fetchNextPage() async {
@@ -211,7 +225,7 @@ class SeriesBooksNotifier extends AsyncNotifier<SeriesBooksState> {
     state = AsyncData(currentState.copyWith(isLoadingNextPage: true));
 
     try {
-      final nextPage = await _fetchPage(currentState.currentPage + 1);
+      final nextPage = await _fetchPage(currentState.currentPage + 1, sort: currentState.sort, desc: currentState.desc);
       state = AsyncData(nextPage);
     } catch (e, s) {
       state = AsyncData(currentState.copyWith(isLoadingNextPage: false, error: e, stackTrace: s));
@@ -227,10 +241,31 @@ class SeriesBooksNotifier extends AsyncNotifier<SeriesBooksState> {
     }
 
     try {
-      final refreshed = await _fetchPage(0);
+      final refreshed = await _fetchPage(0, sort: currentState.sort, desc: currentState.desc);
       state = AsyncData(refreshed);
     } catch (e, s) {
       state = AsyncError(e, s);
+    }
+  }
+
+  Future<void> setSort(String newSort, {int? newDesc}) async {
+    final currentState = state.value;
+    if (currentState == null) {
+      return;
+    }
+
+    final resolvedDesc = newDesc ?? currentState.desc;
+    if (currentState.sort == newSort && currentState.desc == resolvedDesc) {
+      return;
+    }
+
+    state = AsyncData(currentState.copyWith(isLoadingNextPage: true));
+
+    try {
+      final sorted = await _fetchPage(0, sort: newSort, desc: resolvedDesc);
+      state = AsyncData(sorted);
+    } catch (e, s) {
+      state = AsyncData(currentState.copyWith(isLoadingNextPage: false, error: e, stackTrace: s));
     }
   }
 

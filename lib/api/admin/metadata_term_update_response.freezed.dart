@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$MetadataTermUpdateResponse {
 
-@JsonKey(name: 'numItemsUpdated', fromJson: _intFromDynamic) int get numItemsUpdated;@JsonKey(name: 'tagMerged') bool? get tagMerged;@JsonKey(name: 'genreMerged') bool? get genreMerged;
+@JsonKey(name: 'numItemsUpdated', fromJson: jsonIntRequiredFromDynamic) int get numItemsUpdated;@JsonKey(name: 'tagMerged') bool? get tagMerged;@JsonKey(name: 'genreMerged') bool? get genreMerged;
 /// Create a copy of MetadataTermUpdateResponse
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $MetadataTermUpdateResponseCopyWith<$Res>  {
   factory $MetadataTermUpdateResponseCopyWith(MetadataTermUpdateResponse value, $Res Function(MetadataTermUpdateResponse) _then) = _$MetadataTermUpdateResponseCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'numItemsUpdated', fromJson: _intFromDynamic) int numItemsUpdated,@JsonKey(name: 'tagMerged') bool? tagMerged,@JsonKey(name: 'genreMerged') bool? genreMerged
+@JsonKey(name: 'numItemsUpdated', fromJson: jsonIntRequiredFromDynamic) int numItemsUpdated,@JsonKey(name: 'tagMerged') bool? tagMerged,@JsonKey(name: 'genreMerged') bool? genreMerged
 });
 
 
@@ -155,7 +155,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'numItemsUpdated', fromJson: _intFromDynamic)  int numItemsUpdated, @JsonKey(name: 'tagMerged')  bool? tagMerged, @JsonKey(name: 'genreMerged')  bool? genreMerged)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'numItemsUpdated', fromJson: jsonIntRequiredFromDynamic)  int numItemsUpdated, @JsonKey(name: 'tagMerged')  bool? tagMerged, @JsonKey(name: 'genreMerged')  bool? genreMerged)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _MetadataTermUpdateResponse() when $default != null:
 return $default(_that.numItemsUpdated,_that.tagMerged,_that.genreMerged);case _:
@@ -176,7 +176,7 @@ return $default(_that.numItemsUpdated,_that.tagMerged,_that.genreMerged);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'numItemsUpdated', fromJson: _intFromDynamic)  int numItemsUpdated, @JsonKey(name: 'tagMerged')  bool? tagMerged, @JsonKey(name: 'genreMerged')  bool? genreMerged)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'numItemsUpdated', fromJson: jsonIntRequiredFromDynamic)  int numItemsUpdated, @JsonKey(name: 'tagMerged')  bool? tagMerged, @JsonKey(name: 'genreMerged')  bool? genreMerged)  $default,) {final _that = this;
 switch (_that) {
 case _MetadataTermUpdateResponse():
 return $default(_that.numItemsUpdated,_that.tagMerged,_that.genreMerged);case _:
@@ -196,7 +196,7 @@ return $default(_that.numItemsUpdated,_that.tagMerged,_that.genreMerged);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'numItemsUpdated', fromJson: _intFromDynamic)  int numItemsUpdated, @JsonKey(name: 'tagMerged')  bool? tagMerged, @JsonKey(name: 'genreMerged')  bool? genreMerged)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'numItemsUpdated', fromJson: jsonIntRequiredFromDynamic)  int numItemsUpdated, @JsonKey(name: 'tagMerged')  bool? tagMerged, @JsonKey(name: 'genreMerged')  bool? genreMerged)?  $default,) {final _that = this;
 switch (_that) {
 case _MetadataTermUpdateResponse() when $default != null:
 return $default(_that.numItemsUpdated,_that.tagMerged,_that.genreMerged);case _:
@@ -211,10 +211,10 @@ return $default(_that.numItemsUpdated,_that.tagMerged,_that.genreMerged);case _:
 @JsonSerializable()
 
 class _MetadataTermUpdateResponse implements MetadataTermUpdateResponse {
-  const _MetadataTermUpdateResponse({@JsonKey(name: 'numItemsUpdated', fromJson: _intFromDynamic) this.numItemsUpdated = 0, @JsonKey(name: 'tagMerged') this.tagMerged, @JsonKey(name: 'genreMerged') this.genreMerged});
+  const _MetadataTermUpdateResponse({@JsonKey(name: 'numItemsUpdated', fromJson: jsonIntRequiredFromDynamic) this.numItemsUpdated = 0, @JsonKey(name: 'tagMerged') this.tagMerged, @JsonKey(name: 'genreMerged') this.genreMerged});
   factory _MetadataTermUpdateResponse.fromJson(Map<String, dynamic> json) => _$MetadataTermUpdateResponseFromJson(json);
 
-@override@JsonKey(name: 'numItemsUpdated', fromJson: _intFromDynamic) final  int numItemsUpdated;
+@override@JsonKey(name: 'numItemsUpdated', fromJson: jsonIntRequiredFromDynamic) final  int numItemsUpdated;
 @override@JsonKey(name: 'tagMerged') final  bool? tagMerged;
 @override@JsonKey(name: 'genreMerged') final  bool? genreMerged;
 
@@ -251,7 +251,7 @@ abstract mixin class _$MetadataTermUpdateResponseCopyWith<$Res> implements $Meta
   factory _$MetadataTermUpdateResponseCopyWith(_MetadataTermUpdateResponse value, $Res Function(_MetadataTermUpdateResponse) _then) = __$MetadataTermUpdateResponseCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'numItemsUpdated', fromJson: _intFromDynamic) int numItemsUpdated,@JsonKey(name: 'tagMerged') bool? tagMerged,@JsonKey(name: 'genreMerged') bool? genreMerged
+@JsonKey(name: 'numItemsUpdated', fromJson: jsonIntRequiredFromDynamic) int numItemsUpdated,@JsonKey(name: 'tagMerged') bool? tagMerged,@JsonKey(name: 'genreMerged') bool? genreMerged
 });
 
 

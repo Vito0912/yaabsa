@@ -19,6 +19,8 @@ import 'package:yaabsa/provider/common/library_item_sync.dart';
 import 'package:yaabsa/provider/core/server_tasks_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/interceptors/cache_interceptor.dart';
+import 'package:yaabsa/util/logger.dart';
 
 enum _LibraryItemEditorTab { details, embedding, encoder }
 
@@ -49,6 +51,7 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
   final Map<String, LibraryItem> _cachedItems = <String, LibraryItem>{};
   final Map<String, Map<String, dynamic>> _metadataObjectsByItemId = <String, Map<String, dynamic>>{};
   final Set<String> _metadataLoadingItemIds = <String>{};
+  final Set<String> _refreshingItemIds = <String>{};
   final Set<String> _encoderSeededItemIds = <String>{};
 
   var _isEmbedding = false;
@@ -75,6 +78,7 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
   void initState() {
     super.initState();
     _preloadAdjacentItems();
+    unawaited(_refreshItemFromServer(widget.currentItemId));
   }
 
   @override
@@ -87,6 +91,7 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
       _isEncoding = false;
       _isCancelingEncode = false;
       _preloadAdjacentItems();
+      unawaited(_refreshItemFromServer(widget.currentItemId));
     }
   }
 
@@ -206,7 +211,18 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
       setState(() {
         _metadataObjectsByItemId[itemId] = response.data ?? <String, dynamic>{};
       });
-    } catch (error) {
+    } catch (error, stackTrace) {
+      logger(
+        'Failed to load metadata object. itemId=$itemId, error=$error',
+        tag: 'LibraryItemEditOverlay',
+        level: InfoLevel.error,
+      );
+      logger(
+        'Stack trace for metadata object load failure. itemId=$itemId, stackTrace=$stackTrace',
+        tag: 'LibraryItemEditOverlay',
+        level: InfoLevel.debug,
+      );
+
       if (!mounted) {
         return;
       }
@@ -423,6 +439,45 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
     } catch (_) {}
   }
 
+  Future<void> _refreshItemFromServer(String itemId) async {
+    if (_refreshingItemIds.contains(itemId)) {
+      return;
+    }
+
+    final api = ref.read(absApiProvider);
+    if (api == null) {
+      return;
+    }
+
+    _refreshingItemIds.add(itemId);
+    try {
+      final response = await api.getLibraryItemApi().getLibraryItem(itemId: itemId);
+      final freshItem = response.data;
+      if (freshItem == null || !mounted) {
+        return;
+      }
+
+      setState(() {
+        _cachedItems[itemId] = freshItem;
+      });
+
+      await processLibraryItemUpdate(container: ref.container, item: freshItem, source: 'editor.open.refresh');
+    } catch (error, stackTrace) {
+      logger(
+        'Failed to refresh item from server on editor open. itemId=$itemId, error=$error',
+        tag: 'LibraryItemEditOverlay',
+        level: InfoLevel.warning,
+      );
+      logger(
+        'Stack trace for editor open refresh failure. itemId=$itemId, stackTrace=$stackTrace',
+        tag: 'LibraryItemEditOverlay',
+        level: InfoLevel.debug,
+      );
+    } finally {
+      _refreshingItemIds.remove(itemId);
+    }
+  }
+
   Future<void> _saveChanges(LibraryItemEditorDiff diff) async {
     if (_isSaving) {
       return;
@@ -447,7 +502,7 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
       );
       final payload = response.data;
 
-      if (payload == null || !payload.updated) {
+      if (payload == null || (!payload.updated && payload.libraryItem == null)) {
         throw Exception('Update request failed.');
       }
 
@@ -456,7 +511,7 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
         _cachedItems[widget.currentItemId] = updatedItem;
         await processLibraryItemUpdate(container: ref.container, item: updatedItem, source: 'editor.save');
       } else {
-        invalidateLibraryItemConsumers(container: ref.container, itemId: widget.currentItemId);
+        unawaited(invalidateCachedLibraryItemEntries(container: ref.container, itemId: widget.currentItemId));
       }
       await widget.onItemSaved(widget.currentItemId, updatedItem);
 
@@ -465,12 +520,25 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
       }
 
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Saved item details.')));
-    } catch (error) {
+    } catch (error, stackTrace) {
+      logger(
+        'Could not save item details. itemId=${widget.currentItemId}, error=$error',
+        tag: 'LibraryItemEditOverlay',
+        level: InfoLevel.error,
+      );
+      logger(
+        'Stack trace for save failure. itemId=${widget.currentItemId}, stackTrace=$stackTrace',
+        tag: 'LibraryItemEditOverlay',
+        level: InfoLevel.debug,
+      );
+
       if (!mounted) {
         return;
       }
 
-      final message = listManagementErrorMessage(error, fallback: 'Could not save item details.');
+      final rawError = error.toString().trim();
+      final fallback = rawError.isEmpty ? 'Could not save item details.' : 'Could not save item details: $rawError';
+      final message = listManagementErrorMessage(error, fallback: fallback);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     } finally {
       if (mounted) {

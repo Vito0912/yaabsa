@@ -42,9 +42,8 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
   late final TextEditingController _languageController;
   late final TextEditingController _releaseDateController;
   late final TextEditingController _feedUrlController;
-  late final TextEditingController _itunesPageUrlController;
   late final TextEditingController _itunesIdController;
-  late final TextEditingController _podcastTypeController;
+  late String _podcastTypeValue;
 
   late QuillController _descriptionController;
 
@@ -72,9 +71,8 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
     _languageController = TextEditingController();
     _releaseDateController = TextEditingController();
     _feedUrlController = TextEditingController();
-    _itunesPageUrlController = TextEditingController();
     _itunesIdController = TextEditingController();
-    _podcastTypeController = TextEditingController();
+    _podcastTypeValue = 'episodic';
 
     _descriptionController = QuillController.basic();
     _loadItem(widget.item);
@@ -100,9 +98,7 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
     _languageController.dispose();
     _releaseDateController.dispose();
     _feedUrlController.dispose();
-    _itunesPageUrlController.dispose();
     _itunesIdController.dispose();
-    _podcastTypeController.dispose();
     _descriptionController.dispose();
     super.dispose();
   }
@@ -130,9 +126,8 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
     _languageController.text = draft.language;
     _releaseDateController.text = draft.releaseDate;
     _feedUrlController.text = draft.feedUrl;
-    _itunesPageUrlController.text = draft.itunesPageUrl;
     _itunesIdController.text = draft.itunesId;
-    _podcastTypeController.text = draft.podcastType;
+    _podcastTypeValue = _normalizedPodcastTypeValue(draft.podcastType);
 
     _authors = List<LibraryItemEditorNamedEntity>.from(draft.authors);
     _narrators = List<String>.from(draft.narrators);
@@ -167,13 +162,36 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
       abridged: _abridged,
       releaseDate: _releaseDateController.text,
       feedUrl: _feedUrlController.text,
-      itunesPageUrl: _itunesPageUrlController.text,
       itunesId: _itunesIdController.text,
-      podcastType: _podcastTypeController.text,
+      podcastType: _podcastTypeValue,
     );
   }
 
-  Future<void> _submit() async {
+  Future<void> _submit({bool pop = false}) async {
+    if (_initialDraft.isPodcast) {
+      final releaseDate = _releaseDateController.text.trim();
+      if (releaseDate.isNotEmpty && !_isValidIsoDate(releaseDate)) {
+        if (!mounted) {
+          return;
+        }
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Release date must be a valid date in the format YYYY-MM-DD.')));
+        return;
+      }
+
+      final feedUrl = _feedUrlController.text.trim();
+      if (feedUrl.isNotEmpty && !_isValidHttpUrl(feedUrl)) {
+        if (!mounted) {
+          return;
+        }
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Feed URL must be a valid HTTP or HTTPS URL.')));
+        return;
+      }
+    }
+
     final currentDraft = _currentDraft();
     final currentDescriptionDeltaSignature = jsonEncode(_descriptionController.document.toDelta().toJson());
     final diff = buildLibraryItemEditorDiff(
@@ -191,6 +209,43 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
     }
 
     await widget.onSave(diff);
+    if (pop && mounted) {
+      widget.onClose?.call();
+    }
+  }
+
+  bool _isValidIsoDate(String value) {
+    final datePattern = RegExp(r'^\d{4}-\d{2}-\d{2}$');
+    if (!datePattern.hasMatch(value)) {
+      return false;
+    }
+
+    final parsed = DateTime.tryParse(value);
+    if (parsed == null) {
+      return false;
+    }
+
+    final normalized =
+        '${parsed.year.toString().padLeft(4, '0')}-${parsed.month.toString().padLeft(2, '0')}-${parsed.day.toString().padLeft(2, '0')}';
+    return normalized == value;
+  }
+
+  bool _isValidHttpUrl(String value) {
+    final uri = Uri.tryParse(value);
+    if (uri == null) {
+      return false;
+    }
+
+    final hasValidScheme = uri.scheme == 'http' || uri.scheme == 'https';
+    return hasValidScheme && uri.host.trim().isNotEmpty;
+  }
+
+  String _normalizedPodcastTypeValue(String value) {
+    final normalized = value.trim().toLowerCase();
+    if (normalized == 'serial') {
+      return 'serial';
+    }
+    return 'episodic';
   }
 
   @override
@@ -253,7 +308,15 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
                 icon: widget.isSaving
                     ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2.2))
                     : const Icon(Icons.save_rounded),
-                label: Text(widget.isSaving ? 'Saving...' : 'Save changes'),
+                label: Text(widget.isSaving ? 'Saving...' : 'Save'),
+              ),
+              const SizedBox(width: 8),
+              FilledButton.icon(
+                onPressed: widget.isSaving ? null : () => _submit(pop: true),
+                icon: widget.isSaving
+                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2.2))
+                    : const Icon(Icons.save_rounded),
+                label: Text(widget.isSaving ? 'Saving...' : 'Save & Close'),
               ),
             ],
           ),
@@ -317,12 +380,7 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
         LibraryItemEditorTextField(
           label: 'Feed URL',
           controller: _feedUrlController,
-          onChanged: (_) => setState(() {}),
-        ),
-      if (isPodcast)
-        LibraryItemEditorTextField(
-          label: 'iTunes page URL',
-          controller: _itunesPageUrlController,
+          hintText: 'https://example.com/feed.xml',
           onChanged: (_) => setState(() {}),
         ),
       if (isPodcast)
@@ -332,11 +390,13 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
           onChanged: (_) => setState(() {}),
         ),
       if (isPodcast)
-        LibraryItemEditorTextField(
-          label: 'Podcast type',
-          controller: _podcastTypeController,
-          hintText: 'episodic or serial',
-          onChanged: (_) => setState(() {}),
+        LibraryItemEditorPodcastTypeField(
+          value: _podcastTypeValue,
+          onChanged: (value) {
+            setState(() {
+              _podcastTypeValue = value;
+            });
+          },
         ),
       _MetadataFlagsField(
         explicit: _explicit,

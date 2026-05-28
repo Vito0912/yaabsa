@@ -67,6 +67,11 @@ class PlayerSettingsSleepTimer extends ConsumerWidget {
           settingKey: SettingKeys.sleepTimerAutoRewindMinutes,
         ),
         SettingSwitch(
+          label: 'Fade audio',
+          description: 'Gradually lower playback volume before the sleep timer ends.',
+          settingKey: SettingKeys.sleepTimerFadeOutEnabled,
+        ),
+        SettingSwitch(
           label: 'Auto-restart timer on playback start',
           description:
               'When playback starts and no timer is active, automatically start a new sleep timer using your last duration.',

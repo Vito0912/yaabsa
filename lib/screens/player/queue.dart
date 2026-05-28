@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:yaabsa/screens/player/player_empty_state_mode.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/util/globals.dart';
-import 'package:yaabsa/util/handler/bg_audio_handler.dart';
+import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 
 class PlayerQueueView extends StatelessWidget {
   const PlayerQueueView({super.key, this.showEmptyIcon = true, this.emptyMode = PlayerCollectionEmptyMode.full});
@@ -44,7 +44,7 @@ class PlayerQueueView extends StatelessWidget {
                 physics: const ClampingScrollPhysics(),
                 padding: const EdgeInsets.only(bottom: 8),
                 itemCount: entries.length,
-                onReorder: audioHandler.reorderQueue,
+                onReorderItem: audioHandler.reorderQueue,
                 buildDefaultDragHandles: false,
                 itemBuilder: (context, index) {
                   final entry = entries[index];

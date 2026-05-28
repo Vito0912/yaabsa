@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CustomMetadataProvider {
 
-@JsonKey(name: 'id') String get id;@JsonKey(name: 'name') String get name;@JsonKey(name: 'mediaType') String get mediaType;@JsonKey(name: 'url') String get url;@JsonKey(name: 'authHeaderValue') String? get authHeaderValue;@JsonKey(name: 'createdAt', fromJson: _intFromDynamic) int get createdAt;@JsonKey(name: 'updatedAt', fromJson: _intFromDynamic) int get updatedAt;
+@JsonKey(name: 'id') String get id;@JsonKey(name: 'name') String get name;@JsonKey(name: 'mediaType') String get mediaType;@JsonKey(name: 'url') String get url;@JsonKey(name: 'authHeaderValue') String? get authHeaderValue;@JsonKey(name: 'createdAt', fromJson: jsonIntRequiredFromDynamic) int get createdAt;@JsonKey(name: 'updatedAt', fromJson: jsonIntRequiredFromDynamic) int get updatedAt;
 /// Create a copy of CustomMetadataProvider
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $CustomMetadataProviderCopyWith<$Res>  {
   factory $CustomMetadataProviderCopyWith(CustomMetadataProvider value, $Res Function(CustomMetadataProvider) _then) = _$CustomMetadataProviderCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'id') String id,@JsonKey(name: 'name') String name,@JsonKey(name: 'mediaType') String mediaType,@JsonKey(name: 'url') String url,@JsonKey(name: 'authHeaderValue') String? authHeaderValue,@JsonKey(name: 'createdAt', fromJson: _intFromDynamic) int createdAt,@JsonKey(name: 'updatedAt', fromJson: _intFromDynamic) int updatedAt
+@JsonKey(name: 'id') String id,@JsonKey(name: 'name') String name,@JsonKey(name: 'mediaType') String mediaType,@JsonKey(name: 'url') String url,@JsonKey(name: 'authHeaderValue') String? authHeaderValue,@JsonKey(name: 'createdAt', fromJson: jsonIntRequiredFromDynamic) int createdAt,@JsonKey(name: 'updatedAt', fromJson: jsonIntRequiredFromDynamic) int updatedAt
 });
 
 
@@ -159,7 +159,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'id')  String id, @JsonKey(name: 'name')  String name, @JsonKey(name: 'mediaType')  String mediaType, @JsonKey(name: 'url')  String url, @JsonKey(name: 'authHeaderValue')  String? authHeaderValue, @JsonKey(name: 'createdAt', fromJson: _intFromDynamic)  int createdAt, @JsonKey(name: 'updatedAt', fromJson: _intFromDynamic)  int updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'id')  String id, @JsonKey(name: 'name')  String name, @JsonKey(name: 'mediaType')  String mediaType, @JsonKey(name: 'url')  String url, @JsonKey(name: 'authHeaderValue')  String? authHeaderValue, @JsonKey(name: 'createdAt', fromJson: jsonIntRequiredFromDynamic)  int createdAt, @JsonKey(name: 'updatedAt', fromJson: jsonIntRequiredFromDynamic)  int updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CustomMetadataProvider() when $default != null:
 return $default(_that.id,_that.name,_that.mediaType,_that.url,_that.authHeaderValue,_that.createdAt,_that.updatedAt);case _:
@@ -180,7 +180,7 @@ return $default(_that.id,_that.name,_that.mediaType,_that.url,_that.authHeaderVa
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'id')  String id, @JsonKey(name: 'name')  String name, @JsonKey(name: 'mediaType')  String mediaType, @JsonKey(name: 'url')  String url, @JsonKey(name: 'authHeaderValue')  String? authHeaderValue, @JsonKey(name: 'createdAt', fromJson: _intFromDynamic)  int createdAt, @JsonKey(name: 'updatedAt', fromJson: _intFromDynamic)  int updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'id')  String id, @JsonKey(name: 'name')  String name, @JsonKey(name: 'mediaType')  String mediaType, @JsonKey(name: 'url')  String url, @JsonKey(name: 'authHeaderValue')  String? authHeaderValue, @JsonKey(name: 'createdAt', fromJson: jsonIntRequiredFromDynamic)  int createdAt, @JsonKey(name: 'updatedAt', fromJson: jsonIntRequiredFromDynamic)  int updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _CustomMetadataProvider():
 return $default(_that.id,_that.name,_that.mediaType,_that.url,_that.authHeaderValue,_that.createdAt,_that.updatedAt);case _:
@@ -200,7 +200,7 @@ return $default(_that.id,_that.name,_that.mediaType,_that.url,_that.authHeaderVa
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'id')  String id, @JsonKey(name: 'name')  String name, @JsonKey(name: 'mediaType')  String mediaType, @JsonKey(name: 'url')  String url, @JsonKey(name: 'authHeaderValue')  String? authHeaderValue, @JsonKey(name: 'createdAt', fromJson: _intFromDynamic)  int createdAt, @JsonKey(name: 'updatedAt', fromJson: _intFromDynamic)  int updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'id')  String id, @JsonKey(name: 'name')  String name, @JsonKey(name: 'mediaType')  String mediaType, @JsonKey(name: 'url')  String url, @JsonKey(name: 'authHeaderValue')  String? authHeaderValue, @JsonKey(name: 'createdAt', fromJson: jsonIntRequiredFromDynamic)  int createdAt, @JsonKey(name: 'updatedAt', fromJson: jsonIntRequiredFromDynamic)  int updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _CustomMetadataProvider() when $default != null:
 return $default(_that.id,_that.name,_that.mediaType,_that.url,_that.authHeaderValue,_that.createdAt,_that.updatedAt);case _:
@@ -215,7 +215,7 @@ return $default(_that.id,_that.name,_that.mediaType,_that.url,_that.authHeaderVa
 @JsonSerializable()
 
 class _CustomMetadataProvider implements CustomMetadataProvider {
-  const _CustomMetadataProvider({@JsonKey(name: 'id') required this.id, @JsonKey(name: 'name') required this.name, @JsonKey(name: 'mediaType') required this.mediaType, @JsonKey(name: 'url') required this.url, @JsonKey(name: 'authHeaderValue') this.authHeaderValue, @JsonKey(name: 'createdAt', fromJson: _intFromDynamic) this.createdAt = 0, @JsonKey(name: 'updatedAt', fromJson: _intFromDynamic) this.updatedAt = 0});
+  const _CustomMetadataProvider({@JsonKey(name: 'id') required this.id, @JsonKey(name: 'name') required this.name, @JsonKey(name: 'mediaType') required this.mediaType, @JsonKey(name: 'url') required this.url, @JsonKey(name: 'authHeaderValue') this.authHeaderValue, @JsonKey(name: 'createdAt', fromJson: jsonIntRequiredFromDynamic) this.createdAt = 0, @JsonKey(name: 'updatedAt', fromJson: jsonIntRequiredFromDynamic) this.updatedAt = 0});
   factory _CustomMetadataProvider.fromJson(Map<String, dynamic> json) => _$CustomMetadataProviderFromJson(json);
 
 @override@JsonKey(name: 'id') final  String id;
@@ -223,8 +223,8 @@ class _CustomMetadataProvider implements CustomMetadataProvider {
 @override@JsonKey(name: 'mediaType') final  String mediaType;
 @override@JsonKey(name: 'url') final  String url;
 @override@JsonKey(name: 'authHeaderValue') final  String? authHeaderValue;
-@override@JsonKey(name: 'createdAt', fromJson: _intFromDynamic) final  int createdAt;
-@override@JsonKey(name: 'updatedAt', fromJson: _intFromDynamic) final  int updatedAt;
+@override@JsonKey(name: 'createdAt', fromJson: jsonIntRequiredFromDynamic) final  int createdAt;
+@override@JsonKey(name: 'updatedAt', fromJson: jsonIntRequiredFromDynamic) final  int updatedAt;
 
 /// Create a copy of CustomMetadataProvider
 /// with the given fields replaced by the non-null parameter values.
@@ -259,7 +259,7 @@ abstract mixin class _$CustomMetadataProviderCopyWith<$Res> implements $CustomMe
   factory _$CustomMetadataProviderCopyWith(_CustomMetadataProvider value, $Res Function(_CustomMetadataProvider) _then) = __$CustomMetadataProviderCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'id') String id,@JsonKey(name: 'name') String name,@JsonKey(name: 'mediaType') String mediaType,@JsonKey(name: 'url') String url,@JsonKey(name: 'authHeaderValue') String? authHeaderValue,@JsonKey(name: 'createdAt', fromJson: _intFromDynamic) int createdAt,@JsonKey(name: 'updatedAt', fromJson: _intFromDynamic) int updatedAt
+@JsonKey(name: 'id') String id,@JsonKey(name: 'name') String name,@JsonKey(name: 'mediaType') String mediaType,@JsonKey(name: 'url') String url,@JsonKey(name: 'authHeaderValue') String? authHeaderValue,@JsonKey(name: 'createdAt', fromJson: jsonIntRequiredFromDynamic) int createdAt,@JsonKey(name: 'updatedAt', fromJson: jsonIntRequiredFromDynamic) int updatedAt
 });
 
 

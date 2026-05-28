@@ -109,7 +109,7 @@ class LibraryApi {
   Future<Response<SearchLibrary>> getSearchLibrary(
     String libraryId,
     String search, {
-    int limit = 50,
+    int? limit = 50,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -121,7 +121,7 @@ class LibraryApi {
       headers: headers,
       extra: extra,
       dio: _dio,
-      queryParams: {'q': search, 'limit': limit},
+      queryParams: {'q': search, 'limit': limit ?? 50},
     );
   }
 

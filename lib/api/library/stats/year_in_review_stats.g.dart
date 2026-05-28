@@ -7,7 +7,7 @@ part of 'year_in_review_stats.dart';
 // **************************************************************************
 
 _YearInReviewNamedStat _$YearInReviewNamedStatFromJson(Map<String, dynamic> json) =>
-    _YearInReviewNamedStat(name: json['name'] as String?, time: _intFromDynamic(json['time']));
+    _YearInReviewNamedStat(name: json['name'] as String?, time: jsonIntFromDynamic(json['time']));
 
 Map<String, dynamic> _$YearInReviewNamedStatToJson(_YearInReviewNamedStat instance) => <String, dynamic>{
   'name': instance.name,
@@ -15,7 +15,7 @@ Map<String, dynamic> _$YearInReviewNamedStatToJson(_YearInReviewNamedStat instan
 };
 
 _YearInReviewGenreStat _$YearInReviewGenreStatFromJson(Map<String, dynamic> json) =>
-    _YearInReviewGenreStat(genre: json['genre'] as String?, time: _intFromDynamic(json['time']));
+    _YearInReviewGenreStat(genre: json['genre'] as String?, time: jsonIntFromDynamic(json['time']));
 
 Map<String, dynamic> _$YearInReviewGenreStatToJson(_YearInReviewGenreStat instance) => <String, dynamic>{
   'genre': instance.genre,
@@ -23,7 +23,7 @@ Map<String, dynamic> _$YearInReviewGenreStatToJson(_YearInReviewGenreStat instan
 };
 
 _YearInReviewMonthStat _$YearInReviewMonthStatFromJson(Map<String, dynamic> json) =>
-    _YearInReviewMonthStat(month: _intFromDynamic(json['month']), time: _intFromDynamic(json['time']));
+    _YearInReviewMonthStat(month: jsonIntFromDynamic(json['month']), time: jsonIntFromDynamic(json['time']));
 
 Map<String, dynamic> _$YearInReviewMonthStatToJson(_YearInReviewMonthStat instance) => <String, dynamic>{
   'month': instance.month,
@@ -33,8 +33,8 @@ Map<String, dynamic> _$YearInReviewMonthStatToJson(_YearInReviewMonthStat instan
 _YearInReviewBookStat _$YearInReviewBookStatFromJson(Map<String, dynamic> json) => _YearInReviewBookStat(
   id: json['id'] as String?,
   title: json['title'] as String?,
-  duration: _intFromDynamic(json['duration']),
-  finishedAt: _intFromDynamic(json['finishedAt']),
+  duration: jsonIntFromDynamic(json['duration']),
+  finishedAt: jsonIntFromDynamic(json['finishedAt']),
 );
 
 Map<String, dynamic> _$YearInReviewBookStatToJson(_YearInReviewBookStat instance) => <String, dynamic>{
@@ -45,10 +45,10 @@ Map<String, dynamic> _$YearInReviewBookStatToJson(_YearInReviewBookStat instance
 };
 
 _YearInReviewStats _$YearInReviewStatsFromJson(Map<String, dynamic> json) => _YearInReviewStats(
-  totalListeningSessions: _intFromDynamic(json['totalListeningSessions']),
-  totalListeningTime: _intFromDynamic(json['totalListeningTime']),
-  totalBookListeningTime: _intFromDynamic(json['totalBookListeningTime']),
-  totalPodcastListeningTime: _intFromDynamic(json['totalPodcastListeningTime']),
+  totalListeningSessions: jsonIntFromDynamic(json['totalListeningSessions']),
+  totalListeningTime: jsonIntFromDynamic(json['totalListeningTime']),
+  totalBookListeningTime: jsonIntFromDynamic(json['totalBookListeningTime']),
+  totalPodcastListeningTime: jsonIntFromDynamic(json['totalPodcastListeningTime']),
   topAuthors:
       (json['topAuthors'] as List<dynamic>?)
           ?.map((e) => YearInReviewNamedStat.fromJson(e as Map<String, dynamic>))
@@ -65,24 +65,24 @@ _YearInReviewStats _$YearInReviewStatsFromJson(Map<String, dynamic> json) => _Ye
   mostListenedMonth: json['mostListenedMonth'] == null
       ? null
       : YearInReviewMonthStat.fromJson(json['mostListenedMonth'] as Map<String, dynamic>),
-  numBooksFinished: _intFromDynamic(json['numBooksFinished']),
-  numBooksListened: _intFromDynamic(json['numBooksListened']),
+  numBooksFinished: jsonIntFromDynamic(json['numBooksFinished']),
+  numBooksListened: jsonIntFromDynamic(json['numBooksListened']),
   longestAudiobookFinished: json['longestAudiobookFinished'] == null
       ? null
       : YearInReviewBookStat.fromJson(json['longestAudiobookFinished'] as Map<String, dynamic>),
   booksWithCovers: (json['booksWithCovers'] as List<dynamic>?)?.map((e) => e as String).toList() ?? const <String>[],
   finishedBooksWithCovers:
       (json['finishedBooksWithCovers'] as List<dynamic>?)?.map((e) => e as String).toList() ?? const <String>[],
-  numListeningSessions: _intFromDynamic(json['numListeningSessions']),
-  numBooksAdded: _intFromDynamic(json['numBooksAdded']),
-  numAuthorsAdded: _intFromDynamic(json['numAuthorsAdded']),
-  totalBooksAddedSize: _intFromDynamic(json['totalBooksAddedSize']),
-  totalBooksAddedDuration: _intFromDynamic(json['totalBooksAddedDuration']),
+  numListeningSessions: jsonIntFromDynamic(json['numListeningSessions']),
+  numBooksAdded: jsonIntFromDynamic(json['numBooksAdded']),
+  numAuthorsAdded: jsonIntFromDynamic(json['numAuthorsAdded']),
+  totalBooksAddedSize: jsonIntFromDynamic(json['totalBooksAddedSize']),
+  totalBooksAddedDuration: jsonIntFromDynamic(json['totalBooksAddedDuration']),
   booksAddedWithCovers:
       (json['booksAddedWithCovers'] as List<dynamic>?)?.map((e) => e as String).toList() ?? const <String>[],
-  totalBooksSize: _intFromDynamic(json['totalBooksSize']),
-  totalBooksDuration: _intFromDynamic(json['totalBooksDuration']),
-  numBooks: _intFromDynamic(json['numBooks']),
+  totalBooksSize: jsonIntFromDynamic(json['totalBooksSize']),
+  totalBooksDuration: jsonIntFromDynamic(json['totalBooksDuration']),
+  numBooks: jsonIntFromDynamic(json['numBooks']),
   topNarrators:
       (json['topNarrators'] as List<dynamic>?)
           ?.map((e) => YearInReviewNamedStat.fromJson(e as Map<String, dynamic>))

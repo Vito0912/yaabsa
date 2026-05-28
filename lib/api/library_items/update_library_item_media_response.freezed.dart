@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$UpdateLibraryItemMediaResponse {
 
-@JsonKey(name: 'updated') bool get updated;@JsonKey(name: 'libraryItem') LibraryItem? get libraryItem;
+@JsonKey(name: 'updated', fromJson: jsonBoolRequiredFromDynamic) bool get updated;@JsonKey(name: 'libraryItem') LibraryItem? get libraryItem;
 /// Create a copy of UpdateLibraryItemMediaResponse
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $UpdateLibraryItemMediaResponseCopyWith<$Res>  {
   factory $UpdateLibraryItemMediaResponseCopyWith(UpdateLibraryItemMediaResponse value, $Res Function(UpdateLibraryItemMediaResponse) _then) = _$UpdateLibraryItemMediaResponseCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'updated') bool updated,@JsonKey(name: 'libraryItem') LibraryItem? libraryItem
+@JsonKey(name: 'updated', fromJson: jsonBoolRequiredFromDynamic) bool updated,@JsonKey(name: 'libraryItem') LibraryItem? libraryItem
 });
 
 
@@ -166,7 +166,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'updated')  bool updated, @JsonKey(name: 'libraryItem')  LibraryItem? libraryItem)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'updated', fromJson: jsonBoolRequiredFromDynamic)  bool updated, @JsonKey(name: 'libraryItem')  LibraryItem? libraryItem)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UpdateLibraryItemMediaResponse() when $default != null:
 return $default(_that.updated,_that.libraryItem);case _:
@@ -187,7 +187,7 @@ return $default(_that.updated,_that.libraryItem);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'updated')  bool updated, @JsonKey(name: 'libraryItem')  LibraryItem? libraryItem)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'updated', fromJson: jsonBoolRequiredFromDynamic)  bool updated, @JsonKey(name: 'libraryItem')  LibraryItem? libraryItem)  $default,) {final _that = this;
 switch (_that) {
 case _UpdateLibraryItemMediaResponse():
 return $default(_that.updated,_that.libraryItem);case _:
@@ -207,7 +207,7 @@ return $default(_that.updated,_that.libraryItem);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'updated')  bool updated, @JsonKey(name: 'libraryItem')  LibraryItem? libraryItem)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'updated', fromJson: jsonBoolRequiredFromDynamic)  bool updated, @JsonKey(name: 'libraryItem')  LibraryItem? libraryItem)?  $default,) {final _that = this;
 switch (_that) {
 case _UpdateLibraryItemMediaResponse() when $default != null:
 return $default(_that.updated,_that.libraryItem);case _:
@@ -222,10 +222,10 @@ return $default(_that.updated,_that.libraryItem);case _:
 @JsonSerializable()
 
 class _UpdateLibraryItemMediaResponse implements UpdateLibraryItemMediaResponse {
-  const _UpdateLibraryItemMediaResponse({@JsonKey(name: 'updated') this.updated = false, @JsonKey(name: 'libraryItem') this.libraryItem});
+  const _UpdateLibraryItemMediaResponse({@JsonKey(name: 'updated', fromJson: jsonBoolRequiredFromDynamic) this.updated = false, @JsonKey(name: 'libraryItem') this.libraryItem});
   factory _UpdateLibraryItemMediaResponse.fromJson(Map<String, dynamic> json) => _$UpdateLibraryItemMediaResponseFromJson(json);
 
-@override@JsonKey(name: 'updated') final  bool updated;
+@override@JsonKey(name: 'updated', fromJson: jsonBoolRequiredFromDynamic) final  bool updated;
 @override@JsonKey(name: 'libraryItem') final  LibraryItem? libraryItem;
 
 /// Create a copy of UpdateLibraryItemMediaResponse
@@ -261,7 +261,7 @@ abstract mixin class _$UpdateLibraryItemMediaResponseCopyWith<$Res> implements $
   factory _$UpdateLibraryItemMediaResponseCopyWith(_UpdateLibraryItemMediaResponse value, $Res Function(_UpdateLibraryItemMediaResponse) _then) = __$UpdateLibraryItemMediaResponseCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'updated') bool updated,@JsonKey(name: 'libraryItem') LibraryItem? libraryItem
+@JsonKey(name: 'updated', fromJson: jsonBoolRequiredFromDynamic) bool updated,@JsonKey(name: 'libraryItem') LibraryItem? libraryItem
 });
 
 

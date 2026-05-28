@@ -12,8 +12,8 @@ _CustomMetadataProvider _$CustomMetadataProviderFromJson(Map<String, dynamic> js
   mediaType: json['mediaType'] as String,
   url: json['url'] as String,
   authHeaderValue: json['authHeaderValue'] as String?,
-  createdAt: json['createdAt'] == null ? 0 : _intFromDynamic(json['createdAt']),
-  updatedAt: json['updatedAt'] == null ? 0 : _intFromDynamic(json['updatedAt']),
+  createdAt: json['createdAt'] == null ? 0 : jsonIntRequiredFromDynamic(json['createdAt']),
+  updatedAt: json['updatedAt'] == null ? 0 : jsonIntRequiredFromDynamic(json['updatedAt']),
 );
 
 Map<String, dynamic> _$CustomMetadataProviderToJson(_CustomMetadataProvider instance) => <String, dynamic>{

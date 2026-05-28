@@ -2,17 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:yaabsa/api/library/request/library_filter.dart';
 import 'package:yaabsa/api/library/search_library.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
+import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
 import 'package:yaabsa/components/common/scroll_to_top_button.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/common/library_search_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/util/item_view_navigation.dart';
 
 class SearchView extends HookConsumerWidget {
-  const SearchView({required this.query, super.key});
+  const SearchView({required this.query, this.limit = 5, super.key});
 
   final String query;
+  final int? limit;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -22,7 +26,7 @@ class SearchView extends HookConsumerWidget {
       return const Center(child: Text('No library selected. Please select a library via the switcher.'));
     }
 
-    final searchAsync = ref.watch(librarySearchProvider(query));
+    final searchAsync = ref.watch(librarySearchProvider((query: query, limit: limit)));
 
     return searchAsync.when(
       skipLoadingOnRefresh: true,
@@ -60,7 +64,15 @@ class SearchView extends HookConsumerWidget {
                     _TokenSection(
                       title: 'Series',
                       tokens: searchResult.series!
-                          .map((series) => '${series.series.name} (${series.books.length})')
+                          .map(
+                            (series) => _SearchToken(
+                              label: '${series.series.name} (${series.books.length})',
+                              onTap: () => context.push(
+                                '/series/${series.series.id}',
+                                extra: MultiBookEntryData.fromSeries(series.series),
+                              ),
+                            ),
+                          )
                           .toList(),
                     ),
                   ],
@@ -68,7 +80,14 @@ class SearchView extends HookConsumerWidget {
                     const SizedBox(height: 20),
                     _TokenSection(
                       title: 'Authors',
-                      tokens: searchResult.authors!.map((author) => '${author.name} (${author.numBooks})').toList(),
+                      tokens: searchResult.authors!
+                          .map(
+                            (author) => _SearchToken(
+                              label: '${author.name} (${author.numBooks})',
+                              onTap: () => context.push('/author/${author.id}'),
+                            ),
+                          )
+                          .toList(),
                     ),
                   ],
                   if (searchResult.narrators?.isNotEmpty ?? false) ...[
@@ -76,7 +95,12 @@ class SearchView extends HookConsumerWidget {
                     _TokenSection(
                       title: 'Narrators',
                       tokens: searchResult.narrators!
-                          .map((narrator) => '${narrator.name} (${narrator.numItems ?? 0})')
+                          .map(
+                            (narrator) => _SearchToken(
+                              label: '${narrator.name} (${narrator.numBooks})',
+                              onTap: () => context.push('/narrator/${Uri.encodeComponent(narrator.name)}'),
+                            ),
+                          )
                           .toList(),
                     ),
                   ],
@@ -84,14 +108,40 @@ class SearchView extends HookConsumerWidget {
                     const SizedBox(height: 20),
                     _TokenSection(
                       title: 'Tags',
-                      tokens: searchResult.tags!.map((tag) => '${tag.name} (${tag.numItems ?? 0})').toList(),
+                      tokens: searchResult.tags!
+                          .map(
+                            (tag) => _SearchToken(
+                              label: '${tag.name} (${tag.numItems ?? 0})',
+                              onTap: () {
+                                openLibraryWithFilter(
+                                  context,
+                                  ref,
+                                  filter: LibraryFilter.grouped(LibraryFilterGroup.tags, tag.name).queryValue,
+                                );
+                              },
+                            ),
+                          )
+                          .toList(),
                     ),
                   ],
                   if (searchResult.genres?.isNotEmpty ?? false) ...[
                     const SizedBox(height: 20),
                     _TokenSection(
                       title: 'Genres',
-                      tokens: searchResult.genres!.map((genre) => '${genre.name} (${genre.numItems ?? 0})').toList(),
+                      tokens: searchResult.genres!
+                          .map(
+                            (genre) => _SearchToken(
+                              label: '${genre.name} (${genre.numItems ?? 0})',
+                              onTap: () {
+                                openLibraryWithFilter(
+                                  context,
+                                  ref,
+                                  filter: LibraryFilter.grouped(LibraryFilterGroup.genres, genre.name).queryValue,
+                                );
+                              },
+                            ),
+                          )
+                          .toList(),
                     ),
                   ],
                 ],
@@ -203,7 +253,7 @@ class _TokenSection extends StatelessWidget {
   const _TokenSection({required this.title, required this.tokens});
 
   final String title;
-  final List<String> tokens;
+  final List<_SearchToken> tokens;
 
   @override
   Widget build(BuildContext context) {
@@ -215,9 +265,26 @@ class _TokenSection extends StatelessWidget {
         Wrap(
           spacing: 8,
           runSpacing: 8,
-          children: tokens.map((token) => Chip(label: Text(token), visualDensity: VisualDensity.compact)).toList(),
+          children: tokens
+              .map(
+                (token) => token.onTap == null
+                    ? Chip(label: Text(token.label), visualDensity: VisualDensity.compact)
+                    : ActionChip(
+                        label: Text(token.label),
+                        visualDensity: VisualDensity.compact,
+                        onPressed: token.onTap,
+                      ),
+              )
+              .toList(),
         ),
       ],
     );
   }
+}
+
+class _SearchToken {
+  const _SearchToken({required this.label, this.onTap});
+
+  final String label;
+  final VoidCallback? onTap;
 }

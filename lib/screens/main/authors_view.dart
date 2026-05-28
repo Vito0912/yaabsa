@@ -2,12 +2,14 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/api/library/request/library_author_sort.dart';
+import 'package:yaabsa/components/app/library/library_grid_layout_builder.dart';
 import 'package:yaabsa/components/app/library/author_cleanup_tool.dart';
 import 'package:yaabsa/components/app/library/author_sort_sheet.dart';
-import 'package:yaabsa/components/common/author_card.dart';
+import 'package:yaabsa/components/common/author_grid_card.dart';
 import 'package:yaabsa/components/common/connection_issue_view.dart';
 import 'package:yaabsa/components/common/cover_loading_placeholder.dart';
 import 'package:yaabsa/components/common/scroll_to_top_button.dart';
@@ -15,7 +17,7 @@ import 'package:yaabsa/provider/common/library_author_provider.dart';
 import 'package:yaabsa/provider/common/library_filter_data_provider.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
-import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/layout_sizes.dart';
 
 const int _authorsPrefetchThreshold = 8;
 const int _authorsApproxScrollPastCount = 24;
@@ -62,12 +64,6 @@ class AuthorsView extends HookConsumerWidget {
           await ref.read(authorsProvider.notifier).setSort(result.sort, newDesc: result.desc);
         }
 
-        final horizontalPadding = context.isDesktop
-            ? 24.0
-            : context.isTablet
-            ? 16.0
-            : 10.0;
-        final crossAxisCount = context.isDesktop ? 3 : (context.isTablet ? 2 : 1);
         final estimatedItemCount = _estimatedItemCount(
           loadedCount: authors.length,
           totalItems: state.totalItems,
@@ -91,7 +87,7 @@ class AuthorsView extends HookConsumerWidget {
                             child: ListView(
                               controller: scrollController,
                               physics: const AlwaysScrollableScrollPhysics(),
-                              padding: EdgeInsets.fromLTRB(horizontalPadding, 12, horizontalPadding, 16),
+                              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
                               children: const [
                                 SizedBox(height: 80),
                                 Center(child: Text('No authors found in this library.')),
@@ -100,35 +96,41 @@ class AuthorsView extends HookConsumerWidget {
                           )
                         : RefreshIndicator(
                             onRefresh: () => ref.read(authorsProvider.notifier).refresh(withLoading: false),
-                            child: GridView.builder(
-                              controller: scrollController,
-                              physics: const AlwaysScrollableScrollPhysics(),
-                              padding: EdgeInsets.fromLTRB(horizontalPadding, 12, horizontalPadding, 16),
-                              itemCount: estimatedItemCount,
-                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: crossAxisCount,
-                                mainAxisSpacing: 10,
-                                crossAxisSpacing: 10,
-                                childAspectRatio: context.isMobile ? 3.4 : 3.7,
-                              ),
-                              itemBuilder: (context, index) {
-                                if (index >= authors.length - _authorsPrefetchThreshold) {
-                                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                                    ref.read(authorsProvider.notifier).ensureLoadedForIndex(index);
-                                  });
-                                }
+                            child: LibraryGridLayoutBuilder(
+                              builder: (context, gridLayout, _, _) {
+                                return AlignedGridView.count(
+                                  controller: scrollController,
+                                  physics: const AlwaysScrollableScrollPhysics(),
+                                  padding: EdgeInsets.fromLTRB(
+                                    gridLayout.horizontalPadding,
+                                    8,
+                                    gridLayout.horizontalPadding,
+                                    16,
+                                  ),
+                                  itemCount: estimatedItemCount,
+                                  crossAxisCount: gridLayout.crossAxisCount,
+                                  mainAxisSpacing: appGridSpacing,
+                                  crossAxisSpacing: appGridSpacing,
+                                  itemBuilder: (context, index) {
+                                    if (index >= authors.length - _authorsPrefetchThreshold) {
+                                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                                        ref.read(authorsProvider.notifier).ensureLoadedForIndex(index);
+                                      });
+                                    }
 
-                                if (index >= authors.length) {
-                                  return const _AuthorGridPlaceholderTile();
-                                }
+                                    if (index >= authors.length) {
+                                      return const _AuthorGridPlaceholderTile();
+                                    }
 
-                                final author = authors[index];
-                                return AuthorCard(
-                                  authorId: author.id,
-                                  name: author.name,
-                                  subtitle: _bookCountLabel(author.numBooks),
-                                  onTap: () {
-                                    context.push('/author/${author.id}');
+                                    final author = authors[index];
+                                    return AuthorGridCard(
+                                      authorId: author.id,
+                                      name: author.name,
+                                      subtitle: _bookCountLabel(author.numBooks),
+                                      onTap: () {
+                                        context.push('/author/${author.id}');
+                                      },
+                                    );
                                   },
                                 );
                               },
@@ -229,44 +231,33 @@ class _AuthorGridPlaceholderTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Card(
-      margin: EdgeInsets.zero,
-      clipBehavior: Clip.antiAlias,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        child: Row(
-          children: [
-            const SizedBox(width: 64, height: 64, child: CoverLoadingPlaceholder(borderRadius: 12)),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: double.infinity,
-                    height: 14,
-                    decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  FractionallySizedBox(
-                    widthFactor: 0.42,
-                    child: Container(
-                      height: 12,
-                      decoration: BoxDecoration(
-                        color: colorScheme.surfaceContainerHigh,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                    ),
-                  ),
-                ],
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const AspectRatio(aspectRatio: 1, child: CoverLoadingPlaceholder(borderRadius: 16)),
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            height: 14,
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(6),
+            ),
+          ),
+          const SizedBox(height: 6),
+          FractionallySizedBox(
+            widthFactor: 0.62,
+            child: Container(
+              height: 12,
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerHigh,
+                borderRadius: BorderRadius.circular(6),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

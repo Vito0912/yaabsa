@@ -34,6 +34,17 @@ class UserSettings extends Table {
   Set<Column> get primaryKey => {userId, key};
 }
 
+@DataClassName('BookPlaybackSpeedEntry')
+class BookPlaybackSpeeds extends Table {
+  TextColumn get userId => text()();
+  TextColumn get itemId => text()();
+  RealColumn get speed => real()();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {userId, itemId};
+}
+
 @DataClassName('StoredUserEntry')
 class StoredUsers extends Table {
   TextColumn get id => text()();
@@ -106,11 +117,29 @@ class PlayerHistory extends Table {
 
   DateTimeColumn get created => dateTime().withDefault(currentDateAndTime)();
 
-  // TODO: Indexes for performance
+  List<Index> get indexes => [
+    Index(
+      'player_history_item_user_created_idx',
+      'CREATE INDEX player_history_item_user_created_idx ON player_history (item_id, user_id, created DESC)',
+    ),
+    Index(
+      'player_history_item_user_episode_created_idx',
+      'CREATE INDEX player_history_item_user_episode_created_idx ON player_history (item_id, user_id, episode_id, created DESC)',
+    ),
+  ];
 }
 
 @DriftDatabase(
-  tables: [GlobalSettings, UserSettings, StoredUsers, StoredSyncs, StoredMediaProgress, StoredDownloads, PlayerHistory],
+  tables: [
+    GlobalSettings,
+    UserSettings,
+    BookPlaybackSpeeds,
+    StoredUsers,
+    StoredSyncs,
+    StoredMediaProgress,
+    StoredDownloads,
+    PlayerHistory,
+  ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase({AuthSecretStore? authSecretStore})
@@ -124,7 +153,7 @@ class AppDatabase extends _$AppDatabase {
   final AuthSecretStore _authSecretStore;
 
   @override
-  int get schemaVersion => 15;
+  int get schemaVersion => 17;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -156,6 +185,19 @@ class AppDatabase extends _$AppDatabase {
       if (from <= 14) {
         await m.createTable(storedMediaProgress);
       }
+      if (from <= 15) {
+        await m.createTable(bookPlaybackSpeeds);
+      }
+      if (from <= 16) {
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS player_history_item_user_created_idx '
+          'ON player_history (item_id, user_id, created DESC)',
+        );
+        await customStatement(
+          'CREATE INDEX IF NOT EXISTS player_history_item_user_episode_created_idx '
+          'ON player_history (item_id, user_id, episode_id, created DESC)',
+        );
+      }
     },
     beforeOpen: (details) async {},
   );
@@ -165,12 +207,22 @@ class AppDatabase extends _$AppDatabase {
     return into(playerHistory).insert(companion, mode: InsertMode.insertOrIgnore);
   }
 
-  Stream<List<PlayerHistoryEntry>> watchPlayerHistoryByItem(String itemId, String userId, {String? episodeId}) {
+  Stream<List<PlayerHistoryEntry>> watchPlayerHistoryByItem(
+    String itemId,
+    String userId, {
+    String? episodeId,
+    int limit = 1200,
+  }) {
     final query = select(playerHistory)..where((tbl) => tbl.itemId.equals(itemId) & tbl.userId.equals(userId));
     if (episodeId != null) {
       query.where((tbl) => tbl.episodeId.equals(episodeId));
+    } else {
+      query.where((tbl) => tbl.episodeId.isNull());
     }
     query.orderBy([(tbl) => OrderingTerm.desc(tbl.created)]);
+    if (limit > 0) {
+      query.limit(limit);
+    }
     return query.watch();
   }
 
@@ -628,6 +680,27 @@ class AppDatabase extends _$AppDatabase {
     return (select(userSettings)..where((tbl) => tbl.userId.equals(userId) & tbl.key.equals(key))).getSingleOrNull();
   }
 
+  Future<void> setBookPlaybackSpeed(String userId, String itemId, double speed) {
+    final companion = BookPlaybackSpeedsCompanion(
+      userId: Value(userId),
+      itemId: Value(itemId),
+      speed: Value(speed),
+      updatedAt: Value(DateTime.now()),
+    );
+    return into(bookPlaybackSpeeds).insert(companion, mode: InsertMode.replace);
+  }
+
+  Future<double?> getBookPlaybackSpeed(String userId, String itemId) async {
+    final entry = await (select(
+      bookPlaybackSpeeds,
+    )..where((tbl) => tbl.userId.equals(userId) & tbl.itemId.equals(itemId))).getSingleOrNull();
+    return entry?.speed;
+  }
+
+  Future<void> deleteBookPlaybackSpeedsByUser(String userId) {
+    return (delete(bookPlaybackSpeeds)..where((tbl) => tbl.userId.equals(userId))).go();
+  }
+
   Future<Map<String, String>> getAllGlobalSettings() async {
     final entries = await select(globalSettings).get();
     return Map.fromEntries(entries.map((e) => MapEntry(e.key, e.value)));
@@ -730,6 +803,7 @@ class AppDatabase extends _$AppDatabase {
 
   Future<void> deleteStoredUser(String userId) async {
     await deleteStoredMediaProgressByUser(userId);
+    await deleteBookPlaybackSpeedsByUser(userId);
     await (delete(storedUsers)..where((tbl) => tbl.id.equals(userId))).go();
     await _authSecretStore.deleteForUser(userId);
   }

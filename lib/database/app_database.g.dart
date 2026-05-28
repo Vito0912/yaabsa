@@ -390,6 +390,277 @@ class UserSettingsCompanion extends UpdateCompanion<UserSettingEntry> {
   }
 }
 
+class $BookPlaybackSpeedsTable extends BookPlaybackSpeeds
+    with TableInfo<$BookPlaybackSpeedsTable, BookPlaybackSpeedEntry> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $BookPlaybackSpeedsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _itemIdMeta = const VerificationMeta('itemId');
+  @override
+  late final GeneratedColumn<String> itemId = GeneratedColumn<String>(
+    'item_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _speedMeta = const VerificationMeta('speed');
+  @override
+  late final GeneratedColumn<double> speed = GeneratedColumn<double>(
+    'speed',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [userId, itemId, speed, updatedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'book_playback_speeds';
+  @override
+  VerificationContext validateIntegrity(Insertable<BookPlaybackSpeedEntry> instance, {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('user_id')) {
+      context.handle(_userIdMeta, userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('item_id')) {
+      context.handle(_itemIdMeta, itemId.isAcceptableOrUnknown(data['item_id']!, _itemIdMeta));
+    } else if (isInserting) {
+      context.missing(_itemIdMeta);
+    }
+    if (data.containsKey('speed')) {
+      context.handle(_speedMeta, speed.isAcceptableOrUnknown(data['speed']!, _speedMeta));
+    } else if (isInserting) {
+      context.missing(_speedMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta, updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {userId, itemId};
+  @override
+  BookPlaybackSpeedEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return BookPlaybackSpeedEntry(
+      userId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
+      itemId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}item_id'])!,
+      speed: attachedDatabase.typeMapping.read(DriftSqlType.double, data['${effectivePrefix}speed'])!,
+      updatedAt: attachedDatabase.typeMapping.read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
+    );
+  }
+
+  @override
+  $BookPlaybackSpeedsTable createAlias(String alias) {
+    return $BookPlaybackSpeedsTable(attachedDatabase, alias);
+  }
+}
+
+class BookPlaybackSpeedEntry extends DataClass implements Insertable<BookPlaybackSpeedEntry> {
+  final String userId;
+  final String itemId;
+  final double speed;
+  final DateTime updatedAt;
+  const BookPlaybackSpeedEntry({
+    required this.userId,
+    required this.itemId,
+    required this.speed,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['user_id'] = Variable<String>(userId);
+    map['item_id'] = Variable<String>(itemId);
+    map['speed'] = Variable<double>(speed);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  BookPlaybackSpeedsCompanion toCompanion(bool nullToAbsent) {
+    return BookPlaybackSpeedsCompanion(
+      userId: Value(userId),
+      itemId: Value(itemId),
+      speed: Value(speed),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory BookPlaybackSpeedEntry.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return BookPlaybackSpeedEntry(
+      userId: serializer.fromJson<String>(json['userId']),
+      itemId: serializer.fromJson<String>(json['itemId']),
+      speed: serializer.fromJson<double>(json['speed']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'userId': serializer.toJson<String>(userId),
+      'itemId': serializer.toJson<String>(itemId),
+      'speed': serializer.toJson<double>(speed),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  BookPlaybackSpeedEntry copyWith({String? userId, String? itemId, double? speed, DateTime? updatedAt}) =>
+      BookPlaybackSpeedEntry(
+        userId: userId ?? this.userId,
+        itemId: itemId ?? this.itemId,
+        speed: speed ?? this.speed,
+        updatedAt: updatedAt ?? this.updatedAt,
+      );
+  BookPlaybackSpeedEntry copyWithCompanion(BookPlaybackSpeedsCompanion data) {
+    return BookPlaybackSpeedEntry(
+      userId: data.userId.present ? data.userId.value : this.userId,
+      itemId: data.itemId.present ? data.itemId.value : this.itemId,
+      speed: data.speed.present ? data.speed.value : this.speed,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BookPlaybackSpeedEntry(')
+          ..write('userId: $userId, ')
+          ..write('itemId: $itemId, ')
+          ..write('speed: $speed, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(userId, itemId, speed, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is BookPlaybackSpeedEntry &&
+          other.userId == this.userId &&
+          other.itemId == this.itemId &&
+          other.speed == this.speed &&
+          other.updatedAt == this.updatedAt);
+}
+
+class BookPlaybackSpeedsCompanion extends UpdateCompanion<BookPlaybackSpeedEntry> {
+  final Value<String> userId;
+  final Value<String> itemId;
+  final Value<double> speed;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const BookPlaybackSpeedsCompanion({
+    this.userId = const Value.absent(),
+    this.itemId = const Value.absent(),
+    this.speed = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  BookPlaybackSpeedsCompanion.insert({
+    required String userId,
+    required String itemId,
+    required double speed,
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : userId = Value(userId),
+       itemId = Value(itemId),
+       speed = Value(speed);
+  static Insertable<BookPlaybackSpeedEntry> custom({
+    Expression<String>? userId,
+    Expression<String>? itemId,
+    Expression<double>? speed,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (userId != null) 'user_id': userId,
+      if (itemId != null) 'item_id': itemId,
+      if (speed != null) 'speed': speed,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  BookPlaybackSpeedsCompanion copyWith({
+    Value<String>? userId,
+    Value<String>? itemId,
+    Value<double>? speed,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return BookPlaybackSpeedsCompanion(
+      userId: userId ?? this.userId,
+      itemId: itemId ?? this.itemId,
+      speed: speed ?? this.speed,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (itemId.present) {
+      map['item_id'] = Variable<String>(itemId.value);
+    }
+    if (speed.present) {
+      map['speed'] = Variable<double>(speed.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BookPlaybackSpeedsCompanion(')
+          ..write('userId: $userId, ')
+          ..write('itemId: $itemId, ')
+          ..write('speed: $speed, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $StoredUsersTable extends StoredUsers with TableInfo<$StoredUsersTable, StoredUserEntry> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -2108,6 +2379,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $GlobalSettingsTable globalSettings = $GlobalSettingsTable(this);
   late final $UserSettingsTable userSettings = $UserSettingsTable(this);
+  late final $BookPlaybackSpeedsTable bookPlaybackSpeeds = $BookPlaybackSpeedsTable(this);
   late final $StoredUsersTable storedUsers = $StoredUsersTable(this);
   late final $StoredSyncsTable storedSyncs = $StoredSyncsTable(this);
   late final $StoredMediaProgressTable storedMediaProgress = $StoredMediaProgressTable(this);
@@ -2119,6 +2391,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     globalSettings,
     userSettings,
+    bookPlaybackSpeeds,
     storedUsers,
     storedSyncs,
     storedMediaProgress,
@@ -2341,6 +2614,153 @@ typedef $$UserSettingsTableProcessedTableManager =
       $$UserSettingsTableUpdateCompanionBuilder,
       (UserSettingEntry, BaseReferences<_$AppDatabase, $UserSettingsTable, UserSettingEntry>),
       UserSettingEntry,
+      PrefetchHooks Function()
+    >;
+typedef $$BookPlaybackSpeedsTableCreateCompanionBuilder =
+    BookPlaybackSpeedsCompanion Function({
+      required String userId,
+      required String itemId,
+      required double speed,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+typedef $$BookPlaybackSpeedsTableUpdateCompanionBuilder =
+    BookPlaybackSpeedsCompanion Function({
+      Value<String> userId,
+      Value<String> itemId,
+      Value<double> speed,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$BookPlaybackSpeedsTableFilterComposer extends Composer<_$AppDatabase, $BookPlaybackSpeedsTable> {
+  $$BookPlaybackSpeedsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get itemId =>
+      $composableBuilder(column: $table.itemId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get speed =>
+      $composableBuilder(column: $table.speed, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$BookPlaybackSpeedsTableOrderingComposer extends Composer<_$AppDatabase, $BookPlaybackSpeedsTable> {
+  $$BookPlaybackSpeedsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get itemId =>
+      $composableBuilder(column: $table.itemId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get speed =>
+      $composableBuilder(column: $table.speed, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$BookPlaybackSpeedsTableAnnotationComposer extends Composer<_$AppDatabase, $BookPlaybackSpeedsTable> {
+  $$BookPlaybackSpeedsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get userId => $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get itemId => $composableBuilder(column: $table.itemId, builder: (column) => column);
+
+  GeneratedColumn<double> get speed => $composableBuilder(column: $table.speed, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt => $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$BookPlaybackSpeedsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $BookPlaybackSpeedsTable,
+          BookPlaybackSpeedEntry,
+          $$BookPlaybackSpeedsTableFilterComposer,
+          $$BookPlaybackSpeedsTableOrderingComposer,
+          $$BookPlaybackSpeedsTableAnnotationComposer,
+          $$BookPlaybackSpeedsTableCreateCompanionBuilder,
+          $$BookPlaybackSpeedsTableUpdateCompanionBuilder,
+          (BookPlaybackSpeedEntry, BaseReferences<_$AppDatabase, $BookPlaybackSpeedsTable, BookPlaybackSpeedEntry>),
+          BookPlaybackSpeedEntry,
+          PrefetchHooks Function()
+        > {
+  $$BookPlaybackSpeedsTableTableManager(_$AppDatabase db, $BookPlaybackSpeedsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () => $$BookPlaybackSpeedsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () => $$BookPlaybackSpeedsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () => $$BookPlaybackSpeedsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> userId = const Value.absent(),
+                Value<String> itemId = const Value.absent(),
+                Value<double> speed = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => BookPlaybackSpeedsCompanion(
+                userId: userId,
+                itemId: itemId,
+                speed: speed,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String userId,
+                required String itemId,
+                required double speed,
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => BookPlaybackSpeedsCompanion.insert(
+                userId: userId,
+                itemId: itemId,
+                speed: speed,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0.map((e) => (e.readTable(table), BaseReferences(db, table, e))).toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$BookPlaybackSpeedsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $BookPlaybackSpeedsTable,
+      BookPlaybackSpeedEntry,
+      $$BookPlaybackSpeedsTableFilterComposer,
+      $$BookPlaybackSpeedsTableOrderingComposer,
+      $$BookPlaybackSpeedsTableAnnotationComposer,
+      $$BookPlaybackSpeedsTableCreateCompanionBuilder,
+      $$BookPlaybackSpeedsTableUpdateCompanionBuilder,
+      (BookPlaybackSpeedEntry, BaseReferences<_$AppDatabase, $BookPlaybackSpeedsTable, BookPlaybackSpeedEntry>),
+      BookPlaybackSpeedEntry,
       PrefetchHooks Function()
     >;
 typedef $$StoredUsersTableCreateCompanionBuilder =
@@ -3192,6 +3612,8 @@ class $AppDatabaseManager {
   $AppDatabaseManager(this._db);
   $$GlobalSettingsTableTableManager get globalSettings => $$GlobalSettingsTableTableManager(_db, _db.globalSettings);
   $$UserSettingsTableTableManager get userSettings => $$UserSettingsTableTableManager(_db, _db.userSettings);
+  $$BookPlaybackSpeedsTableTableManager get bookPlaybackSpeeds =>
+      $$BookPlaybackSpeedsTableTableManager(_db, _db.bookPlaybackSpeeds);
   $$StoredUsersTableTableManager get storedUsers => $$StoredUsersTableTableManager(_db, _db.storedUsers);
   $$StoredSyncsTableTableManager get storedSyncs => $$StoredSyncsTableTableManager(_db, _db.storedSyncs);
   $$StoredMediaProgressTableTableManager get storedMediaProgress =>

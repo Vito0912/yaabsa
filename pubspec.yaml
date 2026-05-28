@@ -3,7 +3,7 @@ description: "An improved cross-platform app for Audiobookshelf"
 publish_to: 'none'
 
 # Always use even numbers!
-version: 1.3.4+47
+version: 1.4.1+62
 
 environment:
   sdk: ^3.8.0
@@ -21,15 +21,15 @@ dependencies:
 
   # Generation
   freezed_annotation: ^3.1.0
-  json_annotation: ^4.11.0
-  riverpod_annotation: ^4.0.2
+  json_annotation: ^4.12.0
+  riverpod_annotation: ^4.0.3-dev.2
 
 
   # Misc
   uuid: ^4.5.3
   intl: ^0.20.2
 
-  sembast: ^3.8.6
+  sembast: ^3.8.7
 
   # Core
   just_audio: ^0.10.5 # Should be setup for Android, Windows, iOS, macOS, Linux | Testing needed for iOS, macOS, Linux | https://pub.dev/packages/just_audio
@@ -38,37 +38,37 @@ dependencies:
   dio: ^5.9.2
   native_dio_adapter: ^1.5.1
   crypto: ^3.0.7
-  drift: ^2.31.0
+  drift: ^2.33.0
   path: ^1.9.1
   path_provider: ^2.1.5
   sqlite3: ^3.3.1
   cached_network_image: ^3.4.1
-  go_router: ^17.2.2
+  go_router: ^17.2.3
 
-  hooks_riverpod: ^3.3.1
-  flutter_riverpod: ^3.3.1
+  hooks_riverpod: ^3.3.2-dev.2
+  flutter_riverpod: ^3.3.2-dev.2
   flutter_hooks: ^0.21.3+1
   connectivity_plus: ^7.1.1
   url_launcher: ^6.3.2
-  file_picker: ^11.0.2 # https://github.com/miguelpruivo/flutter_file_picker/pull/1981#issuecomment-4288987328
+  file_picker: ^12.0.0-beta.3 # https://github.com/miguelpruivo/flutter_file_picker/pull/1981#issuecomment-4288987328
   desktop_drop: ^0.7.1
-  flutter_secure_storage: ^10.0.0
+  flutter_secure_storage: ^10.2.0
   rxdart: ^0.28.0
-  background_downloader: ^9.5.4 # iOS needs background fetch | Testing needed for iOS, Android | https://pub.dev/packages/background_downloader
+  background_downloader: ^9.5.4
 
-  package_info_plus: ^9.0.0 # Need to wait on file_picker
-  device_info_plus: ^12.3.0 # Need to wait for package_info_plis
+  package_info_plus: ^10.1.0  # Need to wait on file_picker
+  device_info_plus: ^13.1.0 # Need to wait for package_info_plis
   sensors_plus: ^7.0.0 # Should be setup for Android, iOS, macOS, Windows | Testing needed for iOS, macOS, Windows | https://pub.dev/packages/sensors_plus
   vibration: ^3.1.8
-  wakelock_plus: ^1.5.2 # TODO: Update to 1.6.0, waiting for file_picker to update dep on package_info_plus
+  wakelock_plus: ^1.6.1 # TODO: Update to 1.6.0, waiting for file_picker to update dep on package_info_plus
   flutter_html: ^3.0.0
-  flutter_quill: 11.5.0
+  flutter_quill: ^11.5.1
   html: ^0.15.6
   dart_quill_delta: ^10.8.3
   socket_io_client: ^3.1.4
 
 
-  pdfrx: ^2.2.24
+  pdfrx: ^2.4.1
   # Note for contributors: Commit pinning is used. Please check for updates when updating the e-Reader. This is for security, as it runs in a WebView and the repository is very small.
   flutter_epub_reader:
     git:
@@ -107,9 +107,13 @@ dev_dependencies:
 
 
 dependency_overrides:
-  sqlite3: ^3.3.1
   audio_service_platform_interface:
     path: ./packages/audio_service/audio_service_platform_interface
+  quill_native_bridge_windows:
+    git:
+      url: https://github.com/Vito0912/quill-native-bridge.git
+      ref: 8c043047e2c34af3879471b19e44119f0ef6ded8
+      path: quill_native_bridge_windows
 
 flutter:
   uses-material-design: true

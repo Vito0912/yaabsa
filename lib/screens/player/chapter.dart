@@ -80,7 +80,7 @@ class _ChapterViewState extends State<ChapterView> {
               itemBuilder: (context, index) {
                 final chapter = chapters[index];
                 return ListTile(
-                  title: Text(chapter.title),
+                  title: Text(chapter.title, maxLines: 1, overflow: TextOverflow.ellipsis),
                   subtitle: Text(
                     '${chapter.start.toDuration.toHhMmString()} - ${chapter.end.toDuration.toHhMmString()}',
                   ),

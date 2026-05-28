@@ -4,9 +4,10 @@ import 'package:intl/intl.dart';
 import 'package:yaabsa/components/common/scroll_to_top_button.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/screens/player/components/play_history_event_group_tile.dart';
 import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/globals.dart';
-import 'package:yaabsa/util/handler/player_history_handler.dart';
+import 'package:yaabsa/util/audio_handler/player_history_handler.dart';
 
 class PlayHistoryLocalTab extends ConsumerStatefulWidget {
   const PlayHistoryLocalTab({super.key, required this.itemId, required this.episodeId});
@@ -19,6 +20,8 @@ class PlayHistoryLocalTab extends ConsumerStatefulWidget {
 }
 
 class _PlayHistoryLocalTabState extends ConsumerState<PlayHistoryLocalTab> {
+  static const int _historyQueryLimit = 1200;
+
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -37,7 +40,12 @@ class _PlayHistoryLocalTabState extends ConsumerState<PlayHistoryLocalTab> {
     }
 
     return StreamBuilder<List<PlayerHistoryEntry>>(
-      stream: db.watchPlayerHistoryByItem(widget.itemId, user.id, episodeId: widget.episodeId),
+      stream: db.watchPlayerHistoryByItem(
+        widget.itemId,
+        user.id,
+        episodeId: widget.episodeId,
+        limit: _historyQueryLimit,
+      ),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Center(
@@ -93,22 +101,66 @@ class _PlayHistoryLocalTabState extends ConsumerState<PlayHistoryLocalTab> {
   }
 
   List<_DateGroup> _groupHistoryByDate(List<PlayerHistoryEntry> history) {
-    final grouped = <String, List<PlayerHistoryEntry>>{};
-
-    for (final entry in history) {
-      final dateKey = DateFormat('yyyy-MM-dd').format(entry.created);
-      grouped.putIfAbsent(dateKey, () => <PlayerHistoryEntry>[]).add(entry);
+    if (history.isEmpty) {
+      return <_DateGroup>[];
     }
 
-    return grouped.entries
-        .map(
-          (entry) => _DateGroup(
-            date: DateTime.parse(entry.key),
-            entries: entry.value..sort((a, b) => b.created.compareTo(a.created)),
-          ),
-        )
-        .toList()
-      ..sort((a, b) => b.date.compareTo(a.date));
+    final grouped = <_DateGroup>[];
+
+    DateTime? activeDay;
+    String? activeType;
+    final activeEntries = <PlayerHistoryEntry>[];
+    final activeDayGroups = <LocalHistoryEventGroup>[];
+
+    void flushEventGroup() {
+      if (activeType == null || activeEntries.isEmpty) {
+        return;
+      }
+
+      activeDayGroups.add(
+        LocalHistoryEventGroup(type: activeType!, entries: List<PlayerHistoryEntry>.from(activeEntries)),
+      );
+      activeEntries.clear();
+    }
+
+    void flushDayGroup() {
+      flushEventGroup();
+
+      if (activeDay == null) {
+        return;
+      }
+
+      grouped.add(_DateGroup(date: activeDay!, eventGroups: List<LocalHistoryEventGroup>.from(activeDayGroups)));
+
+      activeDayGroups.clear();
+      activeDay = null;
+      activeType = null;
+    }
+
+    for (final entry in history) {
+      final localCreated = entry.created.toLocal();
+      final dayKey = DateTime(localCreated.year, localCreated.month, localCreated.day);
+
+      if (activeDay == null || !_isSameDay(activeDay!, dayKey)) {
+        flushDayGroup();
+        activeDay = dayKey;
+      }
+
+      if (activeType != entry.type) {
+        flushEventGroup();
+        activeType = entry.type;
+      }
+
+      activeEntries.add(entry);
+    }
+
+    flushDayGroup();
+
+    return grouped;
+  }
+
+  bool _isSameDay(DateTime left, DateTime right) {
+    return left.year == right.year && left.month == right.month && left.day == right.day;
   }
 
   Widget _buildDateGroup(BuildContext context, _DateGroup dateGroup) {
@@ -133,38 +185,26 @@ class _PlayHistoryLocalTabState extends ConsumerState<PlayHistoryLocalTab> {
         ),
         Card(
           margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          elevation: 2,
-          child: Column(children: dateGroup.entries.map((entry) => _buildHistoryItem(context, entry)).toList()),
+          elevation: 0,
+          color: Colors.transparent,
+          child: Column(
+            children: dateGroup.eventGroups
+                .map((eventGroup) {
+                  final type = _getPlayerHistoryType(eventGroup.type);
+
+                  return PlayHistoryEventGroupTile(
+                    group: eventGroup,
+                    icon: _getIconForType(type),
+                    color: _getColorForType(context, type),
+                    typeDisplayName: _getTypeDisplayName(type),
+                    canSeek: _canSeek(type),
+                    onSeek: (entry) => audioHandler.seek(entry.currentTime.toDuration),
+                  );
+                })
+                .toList(growable: false),
+          ),
         ),
       ],
-    );
-  }
-
-  Widget _buildHistoryItem(BuildContext context, PlayerHistoryEntry entry) {
-    final type = _getPlayerHistoryType(entry.type);
-    final icon = _getIconForType(type);
-    final color = _getColorForType(context, type);
-    final timeText = entry.currentTime.toDuration.toHhMmString();
-    final timestampText = DateFormat('HH:mm:ss').format(entry.created);
-
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: color.withValues(alpha: 0.2),
-        child: Icon(icon, color: color, size: 20),
-      ),
-      title: Row(
-        children: [
-          Text(
-            _getTypeDisplayName(type),
-            style: TextStyle(fontWeight: FontWeight.w500, color: color),
-          ),
-          const Spacer(),
-          Text(timestampText, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-        ],
-      ),
-      subtitle: Text('Position: $timeText', style: TextStyle(color: Colors.grey[700])),
-      onTap: _canSeek(type) ? () => audioHandler.seek(entry.currentTime.toDuration) : null,
-      trailing: _canSeek(type) ? Icon(Icons.play_arrow, color: color) : null,
     );
   }
 
@@ -245,8 +285,8 @@ class _PlayHistoryLocalTabState extends ConsumerState<PlayHistoryLocalTab> {
 }
 
 class _DateGroup {
-  _DateGroup({required this.date, required this.entries});
+  _DateGroup({required this.date, required this.eventGroups});
 
   final DateTime date;
-  final List<PlayerHistoryEntry> entries;
+  final List<LocalHistoryEventGroup> eventGroups;
 }

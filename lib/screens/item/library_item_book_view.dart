@@ -3,9 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:yaabsa/api/library/filter_data/library_filter_data.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
-import 'package:yaabsa/components/app/item/editor/library_item_edit_overlay.dart';
+import 'package:yaabsa/components/app/item/editor/open_library_item_editor_dialog.dart';
 import 'package:yaabsa/components/app/item/match/library_item_manual_match_dialog.dart';
 import 'package:yaabsa/components/app/item/match/library_item_quick_match_actions.dart';
 import 'package:yaabsa/components/app/item/item_delete_actions.dart';
@@ -23,7 +22,7 @@ import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/player/play_history_view.dart';
 import 'package:yaabsa/util/globals.dart';
-import 'package:yaabsa/util/handler/bg_audio_handler.dart';
+import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/item_view_navigation.dart';
 import 'package:yaabsa/util/server_management_preferences.dart';
 
@@ -258,9 +257,8 @@ class LibraryItemBookView extends ConsumerWidget {
                                       onMoreActionSelected: (action) async {
                                         switch (action) {
                                           case ItemMoreAction.editItem:
-                                            await _openSingleItemEditor(
-                                              context,
-                                              ref,
+                                            await openSingleLibraryItemEditorDialog(
+                                              context: context,
                                               item: item,
                                               filterData: filterData,
                                             );
@@ -344,41 +342,6 @@ class LibraryItemBookView extends ConsumerWidget {
               },
             );
           },
-        );
-      },
-    );
-  }
-
-  Future<void> _openSingleItemEditor(
-    BuildContext context,
-    WidgetRef ref, {
-    required LibraryItem item,
-    required LibraryFilterData? filterData,
-  }) async {
-    await showGeneralDialog<void>(
-      context: context,
-      barrierLabel: 'Edit item',
-      barrierDismissible: false,
-      barrierColor: Colors.transparent,
-      pageBuilder: (dialogContext, animation, secondaryAnimation) {
-        return Material(
-          type: MaterialType.transparency,
-          child: Stack(
-            children: [
-              LibraryItemEditOverlay(
-                orderedItemIds: [item.id],
-                currentItemId: item.id,
-                filterData: filterData,
-                onSelectItem: (_) {},
-                onClose: () {
-                  if (Navigator.of(dialogContext).canPop()) {
-                    Navigator.of(dialogContext).pop();
-                  }
-                },
-                onItemSaved: (_, _) async {},
-              ),
-            ],
-          ),
         );
       },
     );

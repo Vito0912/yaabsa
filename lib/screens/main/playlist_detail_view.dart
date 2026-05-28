@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/list/playlist.dart';
 import 'package:yaabsa/api/list/playlist_item.dart';
+import 'package:yaabsa/components/app/library/library_grid_layout_builder.dart';
 import 'package:yaabsa/components/common/connection_issue_view.dart';
 import 'package:yaabsa/components/common/list_entity_missing_view.dart';
 import 'package:yaabsa/components/common/managed_list_operations.dart';
@@ -17,7 +18,7 @@ import 'package:yaabsa/provider/common/playlist_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
-import 'package:yaabsa/util/handler/bg_audio_handler.dart';
+import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
 
 class PlaylistDetailView extends HookConsumerWidget {
@@ -78,9 +79,8 @@ class PlaylistDetailView extends HookConsumerWidget {
     final canManagePlaylist = _canManagePlaylist(playlist: resolvedPlaylist, currentUserId: currentUserId);
     final description = resolvedPlaylist.description?.trim();
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final gridLayout = appCenteredGridLayout(constraints.maxWidth);
+    return LibraryGridLayoutBuilder(
+      builder: (context, gridLayout, _, _) {
         final horizontalPadding = gridLayout.horizontalPadding;
 
         return Column(

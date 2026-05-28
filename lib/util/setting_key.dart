@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:yaabsa/util/logger.dart';
 
 class SettingKeys {
@@ -11,6 +12,7 @@ class SettingKeys {
   static const String appLogLevel = 'app_log_level';
   static const String bufferSize = 'buffer_size';
   static const String keepScreenOn = 'keep_screen_on';
+  static const String keepWebsocketConnectionInBackground = 'keep_websocket_connection_in_background';
   static const String lockMediaNotification = 'lock_media_notification';
   static const String showNotificationMoreButton = 'show_notification_more_button';
   static const String autoPlayLastPlayedOnLaunch = 'auto_play_last_played_on_launch';
@@ -20,6 +22,7 @@ class SettingKeys {
   static const String autoQueueIncludeSeriesOutsideContext = 'auto_queue_include_series_outside_context';
   static const String sleepTimerExpireAction = 'sleep_timer_expire_action';
   static const String sleepTimerAutoRewindMinutes = 'sleep_timer_auto_rewind_minutes';
+  static const String sleepTimerFadeOutEnabled = 'sleep_timer_fade_out_enabled';
   static const String sleepTimerAutoRestartEnabled = 'sleep_timer_auto_restart_enabled';
   static const String sleepTimerAutoRestartUseTimeRange = 'sleep_timer_auto_restart_use_time_range';
   static const String sleepTimerAutoRestartRangeStartMinutes = 'sleep_timer_auto_restart_range_start_minutes';
@@ -32,6 +35,7 @@ class SettingKeys {
   static const String smartRewindShortRewindSeconds = 'smart_rewind_short_rewind_seconds';
   static const String smartRewindMediumRewindSeconds = 'smart_rewind_medium_rewind_seconds';
   static const String smartRewindLongRewindSeconds = 'smart_rewind_long_rewind_seconds';
+  static const String libraryGridScale = 'library_grid_scale';
 
   // User-Specific Settings
   static const String syncInterval = 'sync_interval';
@@ -39,12 +43,16 @@ class SettingKeys {
   static const String sortSeriesAscending = 'sort_series_ascending';
   static const String collapseSeries = 'collapse_series';
   static const String downloadPath = 'download_path';
+  static const String homeBookViewPreferences = 'home_book_view_preferences';
+  static const String homePodcastViewPreferences = 'home_podcast_view_preferences';
   static const String androidAutoLibrarySortDescending = 'android_auto_library_sort_descending';
   static const String androidAutoLibrarySortField = 'android_auto_library_sort_field';
   static const String androidAutoPodcastSortDescending = 'android_auto_podcast_sort_descending';
   static const String androidAutoPodcastSortField = 'android_auto_podcast_sort_field';
   static const String androidAutoGroupByLetters = 'android_auto_group_by_letters';
   static const String personalizedShelfShowPlayVisibleButton = 'personalized_shelf_show_play_visible_button';
+  static const String personalizedShelfBookSectionsPreferences = 'personalized_shelf_book_sections_preferences';
+  static const String personalizedShelfPodcastSectionsPreferences = 'personalized_shelf_podcast_sections_preferences';
   static const String waitForSync = 'wait_for_sync';
   static const String progressPerChapter = 'progress_per_chapter';
   static const String serverManagementCollections = 'server_management_collections';
@@ -80,17 +88,34 @@ class SettingKeys {
   static const String cacheRouteMe = 'cache_route_me';
 
   static const String playbackSpeed = 'playback_speed';
+  static const String playbackSpeedPerBook = 'playback_speed_per_book';
   static const String volume = 'volume';
   static const String playerSeekBarMode = 'player_seek_bar_mode';
   static const String playerSeekBarMarkerMode = 'player_seek_bar_marker_mode';
   static const String playerSeekBarShowChapterMarkers = 'player_seek_bar_show_chapter_markers';
   static const String playerLayoutConfig = 'player_layout_config';
   static const String lastPlayedQueueItem = 'last_played_queue_item';
+  static const String podcastEpisodeProgressFilter = 'podcast_episode_progress_filter';
 
   static const String subtitlesEnabled = 'subtitles_enabled';
   static const String subtitleSpeakerHighlighting = 'subtitle_speaker_highlighting';
   static const String subtitleReadAlong = 'subtitle_read_along';
 }
+
+bool get _defaultEnableOnDesktop {
+  switch (defaultTargetPlatform) {
+    case TargetPlatform.android:
+    case TargetPlatform.iOS:
+      return false;
+    case TargetPlatform.fuchsia:
+    case TargetPlatform.linux:
+    case TargetPlatform.macOS:
+    case TargetPlatform.windows:
+      return true;
+  }
+}
+
+bool get _defaultEnableOnMobile => !_defaultEnableOnDesktop;
 
 final defaultSettings = {
   SettingKeys.appThemeMode: AppThemeMode.dark.toString(),
@@ -101,16 +126,18 @@ final defaultSettings = {
   SettingKeys.currentUserId: null,
   SettingKeys.appLogLevel: InfoLevel.warning.toString(),
   SettingKeys.bufferSize: 5 * 1024 * 1024,
+  SettingKeys.keepWebsocketConnectionInBackground: !_defaultEnableOnMobile,
   SettingKeys.lockMediaNotification: false,
   SettingKeys.showNotificationMoreButton: false,
   SettingKeys.autoPlayLastPlayedOnLaunch: false,
-  SettingKeys.keepScreenOn: false,
+  SettingKeys.keepScreenOn: _defaultEnableOnDesktop,
   SettingKeys.language: 'en-US',
   SettingKeys.sidebarCollapsed: false,
   SettingKeys.autoQueue: true,
   SettingKeys.autoQueueIncludeSeriesOutsideContext: false,
-  SettingKeys.sleepTimerExpireAction: SleepTimerExpireAction.stop.name,
+  SettingKeys.sleepTimerExpireAction: SleepTimerExpireAction.pause.name,
   SettingKeys.sleepTimerAutoRewindMinutes: 0,
+  SettingKeys.sleepTimerFadeOutEnabled: true,
   SettingKeys.sleepTimerAutoRestartEnabled: false,
   SettingKeys.sleepTimerAutoRestartUseTimeRange: false,
   SettingKeys.sleepTimerAutoRestartRangeStartMinutes: 21 * 60,
@@ -123,18 +150,27 @@ final defaultSettings = {
   SettingKeys.smartRewindShortRewindSeconds: 5,
   SettingKeys.smartRewindMediumRewindSeconds: 30,
   SettingKeys.smartRewindLongRewindSeconds: 60,
+  SettingKeys.libraryGridScale: 1.0,
 
   SettingKeys.syncInterval: 10,
   SettingKeys.syncOnlyOnWifi: false,
   SettingKeys.sortSeriesAscending: false,
   SettingKeys.collapseSeries: false,
   SettingKeys.downloadPath: null,
+  SettingKeys.homeBookViewPreferences:
+      '{"default":"shelf","order":["shelf","library","collections","playlists","series","authors","narrators"],"hidden":[]}',
+  SettingKeys.homePodcastViewPreferences:
+      '{"default":"shelf","order":["shelf","library","collections","playlists"],"hidden":[]}',
   SettingKeys.androidAutoLibrarySortDescending: false,
   SettingKeys.androidAutoLibrarySortField: 'title',
   SettingKeys.androidAutoPodcastSortDescending: true,
   SettingKeys.androidAutoPodcastSortField: 'added',
   SettingKeys.androidAutoGroupByLetters: true,
   SettingKeys.personalizedShelfShowPlayVisibleButton: false,
+  SettingKeys.personalizedShelfBookSectionsPreferences:
+      '{"order":["continue-listening","continue-series","recently-added","discover","listen-again","recent-series","newest-authors"],"hidden":["newest-episodes"]}',
+  SettingKeys.personalizedShelfPodcastSectionsPreferences:
+      '{"order":["continue-listening","newest-episodes","listen-again","recently-added","discover"],"hidden":[]}',
   SettingKeys.waitForSync: true,
   SettingKeys.progressPerChapter: false,
   SettingKeys.serverManagementCollections: true,
@@ -149,7 +185,7 @@ final defaultSettings = {
   SettingKeys.toolsSplitGenresTags: false,
   SettingKeys.manualMatchLastConfiguration: '',
   SettingKeys.shakeToResetSleepTimer: false,
-  SettingKeys.shakeToRewind: false,
+  SettingKeys.shakeToRewind: true,
   SettingKeys.shakeSensitivity: 2.0,
   SettingKeys.shakeVibrate: true,
   SettingKeys.fastForwardInterval: 10,
@@ -169,11 +205,13 @@ final defaultSettings = {
   SettingKeys.cacheRouteMe: false,
 
   SettingKeys.playbackSpeed: 1.0,
+  SettingKeys.playbackSpeedPerBook: false,
   SettingKeys.volume: 1.0,
   SettingKeys.playerSeekBarMode: PlayerSeekBarMode.full.name,
   SettingKeys.playerSeekBarMarkerMode: SeekBarMarkerMode.both.name,
   SettingKeys.playerSeekBarShowChapterMarkers: true,
   SettingKeys.playerLayoutConfig: '',
+  SettingKeys.podcastEpisodeProgressFilter: 'all',
   SettingKeys.subtitlesEnabled: true,
   SettingKeys.subtitleSpeakerHighlighting: true,
   SettingKeys.subtitleReadAlong: true,

@@ -8,7 +8,7 @@ part of 'update_library_item_media_response.dart';
 
 _UpdateLibraryItemMediaResponse _$UpdateLibraryItemMediaResponseFromJson(Map<String, dynamic> json) =>
     _UpdateLibraryItemMediaResponse(
-      updated: json['updated'] as bool? ?? false,
+      updated: json['updated'] == null ? false : jsonBoolRequiredFromDynamic(json['updated']),
       libraryItem: json['libraryItem'] == null
           ? null
           : LibraryItem.fromJson(json['libraryItem'] as Map<String, dynamic>),

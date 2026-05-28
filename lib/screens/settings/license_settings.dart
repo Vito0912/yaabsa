@@ -17,10 +17,12 @@ class LicenseSettings {
     navigator.push(
       MaterialPageRoute<void>(
         builder: (BuildContext context) => themes.wrap(
-          LicensePage(
-            applicationName: packageInfo.appName,
-            applicationVersion: packageInfo.version,
-            applicationLegalese: _buildLegalese(deviceInfo),
+          SelectionArea(
+            child: LicensePage(
+              applicationName: packageInfo.appName,
+              applicationVersion: packageInfo.version,
+              applicationLegalese: _buildLegalese(deviceInfo),
+            ),
           ),
         ),
       ),
@@ -35,58 +37,58 @@ class LicenseSettings {
         final AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
         return '''
 Device Information:
-• Device: ${androidInfo.manufacturer} ${androidInfo.model}
-• Android Version: ${androidInfo.version.release} (API ${androidInfo.version.sdkInt})
-• Brand: ${androidInfo.brand}
-• Hardware: ${androidInfo.hardware}
-• Device ID: ${androidInfo.id}
+Device: ${androidInfo.manufacturer} ${androidInfo.model}
+Android Version: ${androidInfo.version.release} (API ${androidInfo.version.sdkInt})
+Brand: ${androidInfo.brand}
+Hardware: ${androidInfo.hardware}
+Device ID: ${androidInfo.id}
 ''';
       } else if (Platform.isIOS) {
         final IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
         return '''
 Device Information:
-• Device: ${iosInfo.name}
-• Model: ${iosInfo.model}
-• iOS Version: ${iosInfo.systemVersion}
-• System Name: ${iosInfo.systemName}
-• Device ID: ${iosInfo.identifierForVendor}
+Device: ${iosInfo.name}
+Model: ${iosInfo.model}
+iOS Version: ${iosInfo.systemVersion}
+System Name: ${iosInfo.systemName}
+Device ID: ${iosInfo.identifierForVendor}
 ''';
       } else if (Platform.isLinux) {
         final LinuxDeviceInfo linuxInfo = await deviceInfo.linuxInfo;
         return '''
 Device Information:
-• Platform: Linux
-• Distribution: ${linuxInfo.name}
-• Version: ${linuxInfo.version}
-• ID: ${linuxInfo.id}
-• Build ID: ${linuxInfo.buildId}
-• Machine Type: ${linuxInfo.machineId}
+Platform: Linux
+Distribution: ${linuxInfo.name}
+Version: ${linuxInfo.version}
+ID: ${linuxInfo.id}
+Build ID: ${linuxInfo.buildId}
+Machine Type: ${linuxInfo.machineId}
 ''';
       } else if (Platform.isWindows) {
         final WindowsDeviceInfo windowsInfo = await deviceInfo.windowsInfo;
         return '''
 Device Information:
-• Platform: Windows
-• Computer Name: ${windowsInfo.computerName}
-• Product Name: ${windowsInfo.productName}
-• Display Version: ${windowsInfo.displayVersion}
-• Major Version: ${windowsInfo.majorVersion}
-• Minor Version: ${windowsInfo.minorVersion}
-• Build Number: ${windowsInfo.buildNumber}
+Platform: Windows
+Computer Name: ${windowsInfo.computerName}
+Product Name: ${windowsInfo.productName}
+Display Version: ${windowsInfo.displayVersion}
+Major Version: ${windowsInfo.majorVersion}
+Minor Version: ${windowsInfo.minorVersion}
+Build Number: ${windowsInfo.buildNumber}
 ''';
       } else if (Platform.isMacOS) {
         final MacOsDeviceInfo macInfo = await deviceInfo.macOsInfo;
         return '''
 Device Information:
-• Platform: macOS
-• Computer Name: ${macInfo.computerName}
-• Host Name: ${macInfo.hostName}
-• Model: ${macInfo.model}
-• Kernel Version: ${macInfo.kernelVersion}
-• OS Release: ${macInfo.osRelease}
-• Major Version: ${macInfo.majorVersion}
-• Minor Version: ${macInfo.minorVersion}
-• Patch Version: ${macInfo.patchVersion}
+Platform: macOS
+Computer Name: ${macInfo.computerName}
+Host Name: ${macInfo.hostName}
+Model: ${macInfo.model}
+Kernel Version: ${macInfo.kernelVersion}
+OS Release: ${macInfo.osRelease}
+Major Version: ${macInfo.majorVersion}
+Minor Version: ${macInfo.minorVersion}
+Patch Version: ${macInfo.patchVersion}
 ''';
       } else {
         return 'Device Information: Platform not supported for device info';

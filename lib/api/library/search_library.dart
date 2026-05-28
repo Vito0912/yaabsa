@@ -46,7 +46,7 @@ abstract class SearchResultItem with _$SearchResultItem {
 abstract class SearchResultNarrator with _$SearchResultNarrator {
   const factory SearchResultNarrator({
     @JsonKey(name: "name") required String name,
-    @JsonKey(name: "numItems") int? numItems,
+    @JsonKey(name: "numBooks") int? numBooks,
   }) = _SearchResultNarrator;
 
   factory SearchResultNarrator.fromJson(Map<String, dynamic> json) => _$SearchResultNarratorFromJson(json);

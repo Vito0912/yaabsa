@@ -34,8 +34,8 @@ Map<String, dynamic> _$AbsQueuedTaskDataToJson(_AbsQueuedTaskData instance) => <
 
 _AbsQueuedEmbedMetadataTaskData _$AbsQueuedEmbedMetadataTaskDataFromJson(Map<String, dynamic> json) =>
     _AbsQueuedEmbedMetadataTaskData(
-      libraryItemId: _stringFromDynamic(json['libraryItemId']),
-      libraryId: _stringFromDynamic(json['libraryId']),
+      libraryItemId: jsonStringFromDynamic(json['libraryItemId']),
+      libraryId: jsonStringFromDynamic(json['libraryId']),
     );
 
 Map<String, dynamic> _$AbsQueuedEmbedMetadataTaskDataToJson(_AbsQueuedEmbedMetadataTaskData instance) =>

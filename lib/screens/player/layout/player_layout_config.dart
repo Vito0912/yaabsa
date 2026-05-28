@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:yaabsa/api/json/value_parsers.dart';
 import 'package:yaabsa/screens/player/player_empty_state_mode.dart';
 import 'package:yaabsa/util/globals.dart';
 
@@ -317,47 +318,6 @@ int playerGridRowsForSize(PlayerLayoutScreenSize screenSize) {
   return _playerGridRows;
 }
 
-int _intFromDynamic(dynamic value, int fallback) {
-  if (value is int) {
-    return value;
-  }
-  if (value is num) {
-    return value.toInt();
-  }
-  if (value is String) {
-    return int.tryParse(value) ?? fallback;
-  }
-  return fallback;
-}
-
-bool _boolFromDynamic(dynamic value, bool fallback) {
-  if (value is bool) {
-    return value;
-  }
-  if (value is String) {
-    if (value.toLowerCase() == 'true') {
-      return true;
-    }
-    if (value.toLowerCase() == 'false') {
-      return false;
-    }
-  }
-  return fallback;
-}
-
-double _doubleFromDynamic(dynamic value, double fallback) {
-  if (value is double) {
-    return value;
-  }
-  if (value is num) {
-    return value.toDouble();
-  }
-  if (value is String) {
-    return double.tryParse(value) ?? fallback;
-  }
-  return fallback;
-}
-
 List<PlayerUtilityType> _utilityListFromDynamic(dynamic value) {
   if (value is! List<dynamic>) {
     return <PlayerUtilityType>[];
@@ -441,23 +401,23 @@ class PlayerComponentPlacement {
 
     return PlayerComponentPlacement(
       type: type,
-      x: _intFromDynamic(map['x'], 0),
-      y: _intFromDynamic(map['y'], 0),
-      width: _intFromDynamic(map['width'], 2),
-      height: _intFromDynamic(map['height'], 2),
-      visible: _boolFromDynamic(map['visible'], false),
+      x: jsonIntRequiredFromDynamic(map['x'], 0),
+      y: jsonIntRequiredFromDynamic(map['y'], 0),
+      width: jsonIntRequiredFromDynamic(map['width'], 2),
+      height: jsonIntRequiredFromDynamic(map['height'], 2),
+      visible: jsonBoolRequiredFromDynamic(map['visible'], false),
       emptyMode: PlayerCollectionEmptyModeX.fromSettingValue(map['emptyMode']?.toString()),
-      showAuthor: _boolFromDynamic(map['showAuthor'], true),
-      showNarrator: _boolFromDynamic(map['showNarrator'], false),
-      showSeries: _boolFromDynamic(map['showSeries'], true),
+      showAuthor: jsonBoolRequiredFromDynamic(map['showAuthor'], true),
+      showNarrator: jsonBoolRequiredFromDynamic(map['showNarrator'], false),
+      showSeries: jsonBoolRequiredFromDynamic(map['showSeries'], true),
       textAlign: PlayerMetadataTextAlign.fromSettingValue(map['textAlign']?.toString()),
       scale: (map['scale'] is num) ? (map['scale'] as num).toDouble() : 1.0,
-      mediaInfoFontScale: _doubleFromDynamic(map['mediaInfoFontScale'], 1.0),
+      mediaInfoFontScale: jsonDoubleRequiredFromDynamic(map['mediaInfoFontScale'], 1.0),
       coverFitMode: PlayerCoverFitMode.fromSettingValue(map['coverFitMode']?.toString()),
       seekTimePlacement: PlayerSeekTimePlacement.fromSettingValue(map['seekTimePlacement']?.toString()),
-      seekTrackHeight: _doubleFromDynamic(map['seekTrackHeight'], 8.0),
-      seekTimeLabelFontSize: _doubleFromDynamic(map['seekTimeLabelFontSize'], 12.0),
-      cardStyle: _boolFromDynamic(map['cardStyle'], false),
+      seekTrackHeight: jsonDoubleRequiredFromDynamic(map['seekTrackHeight'], 8.0),
+      seekTimeLabelFontSize: jsonDoubleRequiredFromDynamic(map['seekTimeLabelFontSize'], 12.0),
+      cardStyle: jsonBoolRequiredFromDynamic(map['cardStyle'], false),
     );
   }
 

@@ -1,10 +1,9 @@
 import 'package:go_router/go_router.dart';
-import 'package:yaabsa/components/settings/settings_category.dart';
 import 'package:yaabsa/components/settings/settings_dropdown.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';
+import 'package:yaabsa/screens/settings/library_views_settings.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/screens/settings/theme_settings.dart';
-import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:flutter/material.dart';
 
@@ -30,20 +29,24 @@ class AppearanceSettings extends StatelessWidget {
               subtitle: 'Theme mode, preset palette, and custom accent color.',
               onTap: () => context.push(ThemeSettings.routeName),
             ),
+            SettingsNavigationItem(
+              icon: Icons.tune_rounded,
+              title: 'Navigation',
+              subtitle: 'Configure displayed tabs, their order and the default view.',
+              onTap: () => context.push(LibraryViewsSettings.routeName),
+            ),
           ],
         ),
-        const SettingsCategory(title: 'General', description: 'Language and diagnostics.', icon: Icons.tune_rounded),
-        SettingDropdown(
-          label: 'Language',
-          values: ['en-US', 'de-DE'],
-          valueLabels: ['English', 'Deutsch'],
-          settingKey: SettingKeys.language,
-        ),
-        SettingDropdown(
-          label: 'Log Level',
-          values: InfoLevel.values.map((e) => e.toString()).toList(),
-          valueLabels: InfoLevel.values.map((e) => e.name).toList(),
-          settingKey: SettingKeys.appLogLevel,
+        SettingsNavigationSection(
+          title: 'Other',
+          settings: [
+            SettingDropdown(
+              label: 'Language',
+              values: ['en-US', 'de-DE'],
+              valueLabels: ['English', 'Deutsch'],
+              settingKey: SettingKeys.language,
+            ),
+          ],
         ),
       ],
     );

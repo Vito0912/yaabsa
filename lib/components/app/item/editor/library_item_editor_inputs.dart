@@ -72,6 +72,35 @@ class LibraryItemEditorTextField extends StatelessWidget {
   }
 }
 
+class LibraryItemEditorPodcastTypeField extends StatelessWidget {
+  const LibraryItemEditorPodcastTypeField({super.key, required this.value, required this.onChanged});
+
+  final String value;
+  final ValueChanged<String> onChanged;
+
+  static const _allowedValues = <String>{'episodic', 'serial'};
+
+  @override
+  Widget build(BuildContext context) {
+    final selectedValue = _allowedValues.contains(value.trim().toLowerCase()) ? value.trim().toLowerCase() : 'episodic';
+
+    return YaabsaDropdownField<String>(
+      label: 'Podcast type',
+      value: selectedValue,
+      items: const [
+        DropdownMenuItem<String>(value: 'episodic', child: Text('Episodic')),
+        DropdownMenuItem<String>(value: 'serial', child: Text('Serial')),
+      ],
+      onChanged: (nextValue) {
+        if (nextValue == null) {
+          return;
+        }
+        onChanged(nextValue);
+      },
+    );
+  }
+}
+
 class LibraryItemEditorStringChips extends StatefulWidget {
   const LibraryItemEditorStringChips({
     super.key,
@@ -80,6 +109,7 @@ class LibraryItemEditorStringChips extends StatefulWidget {
     required this.onChanged,
     this.suggestions = const <String>[],
     this.hintText,
+    this.labelInsideBorder = false,
   });
 
   final String label;
@@ -87,6 +117,7 @@ class LibraryItemEditorStringChips extends StatefulWidget {
   final List<String> suggestions;
   final ValueChanged<List<String>> onChanged;
   final String? hintText;
+  final bool labelInsideBorder;
 
   @override
   State<LibraryItemEditorStringChips> createState() => _LibraryItemEditorStringChipsState();
@@ -131,11 +162,59 @@ class _LibraryItemEditorStringChipsState extends State<LibraryItemEditorStringCh
         .take(8)
         .toList(growable: false);
 
+    final chipsBody = Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      children: [
+        for (final value in widget.values)
+          InputChip(
+            visualDensity: VisualDensity.compact,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            side: BorderSide.none,
+            label: Text(value, style: Theme.of(context).textTheme.bodySmall),
+            onDeleted: () {
+              widget.onChanged(widget.values.where((entry) => entry != value).toList(growable: false));
+            },
+          ),
+        SizedBox(
+          width: 150,
+          child: TextField(
+            controller: _controller,
+            style: Theme.of(context).textTheme.bodySmall,
+            decoration: InputDecoration.collapsed(hintText: widget.hintText ?? 'Add value'),
+            onChanged: (value) {
+              setState(() {
+                _query = value;
+              });
+            },
+            onSubmitted: _addValue,
+          ),
+        ),
+      ],
+    );
+
+    final chipsField = widget.labelInsideBorder
+        ? InputDecorator(
+            isEmpty: widget.values.isEmpty && _query.trim().isEmpty,
+            decoration: yaabsaFieldDecoration(
+              context,
+              label: widget.label,
+              contentPadding: const EdgeInsets.fromLTRB(12, 14, 12, 10),
+            ).copyWith(floatingLabelBehavior: FloatingLabelBehavior.always),
+            child: chipsBody,
+          )
+        : LibraryItemEditorFieldContainer(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            child: chipsBody,
+          );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(widget.label, style: Theme.of(context).textTheme.labelMedium),
-        const SizedBox(height: 4),
+        if (!widget.labelInsideBorder) ...[
+          Text(widget.label, style: Theme.of(context).textTheme.labelMedium),
+          const SizedBox(height: 4),
+        ],
         if (showSuggestions && filteredSuggestions.isNotEmpty)
           LibraryItemEditorAutocompleteSheet(
             suggestions: [
@@ -150,39 +229,7 @@ class _LibraryItemEditorStringChipsState extends State<LibraryItemEditorStringCh
                 ),
             ],
           ),
-        LibraryItemEditorFieldContainer(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-          child: Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              for (final value in widget.values)
-                InputChip(
-                  visualDensity: VisualDensity.compact,
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  side: BorderSide.none,
-                  label: Text(value, style: Theme.of(context).textTheme.bodySmall),
-                  onDeleted: () {
-                    widget.onChanged(widget.values.where((entry) => entry != value).toList(growable: false));
-                  },
-                ),
-              SizedBox(
-                width: 150,
-                child: TextField(
-                  controller: _controller,
-                  style: Theme.of(context).textTheme.bodySmall,
-                  decoration: InputDecoration.collapsed(hintText: widget.hintText ?? 'Add value'),
-                  onChanged: (value) {
-                    setState(() {
-                      _query = value;
-                    });
-                  },
-                  onSubmitted: _addValue,
-                ),
-              ),
-            ],
-          ),
-        ),
+        chipsField,
       ],
     );
   }
@@ -351,31 +398,46 @@ class _LibraryItemEditorSeriesListState extends State<LibraryItemEditorSeriesLis
       final value = await showDialog<String>(
         context: context,
         builder: (dialogContext) {
+          var completed = false;
+
+          void complete(String value) {
+            if (completed) {
+              return;
+            }
+            completed = true;
+
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!dialogContext.mounted) {
+                return;
+              }
+              Navigator.of(dialogContext).pop(_sanitizeSequence(value));
+            });
+          }
+
           return AlertDialog(
             title: const Text('Series number'),
             content: TextField(
               controller: controller,
               autofocus: true,
+              textInputAction: TextInputAction.done,
               inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[\x21-\x7E]'))],
               decoration: const InputDecoration(
                 labelText: 'Sequence',
                 hintText: 'e.g. 1,2.5,03 (no spaces)',
                 border: OutlineInputBorder(),
               ),
-              onSubmitted: (value) {
-                Navigator.of(dialogContext).pop(_sanitizeSequence(value));
-              },
+              onSubmitted: complete,
             ),
             actions: [
               TextButton(
                 onPressed: () {
-                  Navigator.of(dialogContext).pop(_sanitizeSequence(initialValue));
+                  complete(initialValue);
                 },
                 child: const Text('Skip'),
               ),
               FilledButton(
                 onPressed: () {
-                  Navigator.of(dialogContext).pop(_sanitizeSequence(controller.text));
+                  complete(controller.text);
                 },
                 child: const Text('Save'),
               ),
@@ -397,12 +459,15 @@ class _LibraryItemEditorSeriesListState extends State<LibraryItemEditorSeriesLis
     }
   }
 
-  Future<void> _queueAddSeries(String value, {String? preferredId}) async {
-    await Future<void>.delayed(Duration.zero);
-    if (!mounted) {
-      return;
-    }
-    await _addSeriesByName(value, preferredId: preferredId);
+  Future<void> _queueAddSeries(String value, {String? preferredId}) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      _addSeriesByName(value, preferredId: preferredId);
+    });
+
+    return Future<void>.value();
   }
 
   Future<void> _addSeriesByName(String rawName, {String? preferredId}) async {

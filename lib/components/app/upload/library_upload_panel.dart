@@ -19,6 +19,7 @@ import 'package:yaabsa/provider/common/upload_providers.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/player_utils.dart';
 
 class LibraryUploadPanel extends ConsumerStatefulWidget {
   const LibraryUploadPanel({super.key, required this.selectedLibrary, required this.onClose, this.onUploadingChanged});
@@ -154,6 +155,9 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
   @override
   void dispose() {
     _cancelAllUploads('Upload canceled because uploader was closed.');
+    if (_isUploading) {
+      PlayerUtils.disableUploadWakelock();
+    }
     _bulkAuthorController.dispose();
     _bulkSeriesController.dispose();
     widget.onUploadingChanged?.call(false);
@@ -332,6 +336,12 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
   void _setUploading(bool value) {
     if (_isUploading == value) {
       return;
+    }
+
+    if (value) {
+      PlayerUtils.enableUploadWakelock();
+    } else {
+      PlayerUtils.disableUploadWakelock();
     }
 
     setState(() {
@@ -1413,13 +1423,13 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
                           ],
                         );
 
-                        final advancedBulkSection = Container(
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: colorScheme.surfaceContainerLowest,
+                        final advancedBulkSection = Material(
+                          color: colorScheme.surfaceContainerLowest,
+                          shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
+                            side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
                           ),
+                          clipBehavior: Clip.antiAlias,
                           child: Theme(
                             data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
                             child: ExpansionTile(

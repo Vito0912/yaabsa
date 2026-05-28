@@ -12,13 +12,15 @@ _AbsTask _$AbsTaskFromJson(Map<String, dynamic> json) => _AbsTask(
   data: json['data'] == null ? null : AbsTaskData.fromJson(json['data'] as Map<String, dynamic>),
   title: json['title'] as String?,
   titleKey: json['titleKey'] as String?,
-  titleSubs: json['titleSubs'] == null ? const <String>[] : _stringListFromDynamic(json['titleSubs']),
+  titleSubs: json['titleSubs'] == null ? const <String>[] : jsonStringListFromDynamic(json['titleSubs']),
   description: json['description'] as String?,
   descriptionKey: json['descriptionKey'] as String?,
-  descriptionSubs: json['descriptionSubs'] == null ? const <String>[] : _stringListFromDynamic(json['descriptionSubs']),
+  descriptionSubs: json['descriptionSubs'] == null
+      ? const <String>[]
+      : jsonStringListFromDynamic(json['descriptionSubs']),
   error: json['error'] as String?,
   errorKey: json['errorKey'] as String?,
-  errorSubs: json['errorSubs'] == null ? const <String>[] : _stringListFromDynamic(json['errorSubs']),
+  errorSubs: json['errorSubs'] == null ? const <String>[] : jsonStringListFromDynamic(json['errorSubs']),
   showSuccess: json['showSuccess'] as bool? ?? false,
   isFailed: json['isFailed'] as bool? ?? false,
   isFinished: json['isFinished'] as bool? ?? false,
@@ -47,9 +49,9 @@ Map<String, dynamic> _$AbsTaskToJson(_AbsTask instance) => <String, dynamic>{
 };
 
 _AbsTaskData _$AbsTaskDataFromJson(Map<String, dynamic> json) => _AbsTaskData(
-  libraryItemId: _stringFromDynamic(json['libraryItemId']),
-  libraryId: _stringFromDynamic(json['libraryId']),
-  ino: _stringFromDynamic(json['ino']),
+  libraryItemId: jsonStringFromDynamic(json['libraryItemId']),
+  libraryId: jsonStringFromDynamic(json['libraryId']),
+  ino: jsonStringFromDynamic(json['ino']),
   encodeOptions: json['encodeOptions'] == null
       ? null
       : AbsTaskEncodeOptions.fromJson(json['encodeOptions'] as Map<String, dynamic>),
@@ -67,8 +69,8 @@ Map<String, dynamic> _$AbsTaskDataToJson(_AbsTaskData instance) => <String, dyna
 };
 
 _AbsTaskEncodeOptions _$AbsTaskEncodeOptionsFromJson(Map<String, dynamic> json) => _AbsTaskEncodeOptions(
-  codec: _stringFromDynamic(json['codec']),
-  bitrate: _stringFromDynamic(json['bitrate']),
+  codec: jsonStringFromDynamic(json['codec']),
+  bitrate: jsonStringFromDynamic(json['bitrate']),
   channels: jsonIntFromDynamic(json['channels']),
 );
 

@@ -1,4 +1,4 @@
-part of 'bg_audio_handler.dart';
+part of '../bg_audio_handler.dart';
 
 extension _BGAudioHandlerAndroidAutoMedia on BGAudioHandler {
   List<MediaItem> _androidAutoMediaItemsFromLibraryItems(List<LibraryItem> items, {required String subtitlePrefix}) {
@@ -187,7 +187,7 @@ extension _BGAudioHandlerAndroidAutoMedia on BGAudioHandler {
         AndroidContentStyle.browsableHintKey: categoryStyle
             ? AndroidContentStyle.categoryListItemHintValue
             : AndroidContentStyle.listItemHintValue,
-        if (extras != null) ...extras,
+        ...?extras,
       },
     );
   }
@@ -210,10 +210,7 @@ extension _BGAudioHandlerAndroidAutoMedia on BGAudioHandler {
       artUri: artUri,
       duration: duration,
       playable: true,
-      extras: <String, dynamic>{
-        AndroidContentStyle.playableHintKey: AndroidContentStyle.listItemHintValue,
-        if (extras != null) ...extras,
-      },
+      extras: <String, dynamic>{AndroidContentStyle.playableHintKey: AndroidContentStyle.listItemHintValue, ...?extras},
     );
   }
 
