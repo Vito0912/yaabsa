@@ -3,7 +3,9 @@ part of '../bg_audio_handler.dart';
 extension _BGAudioHandlerAndroidAutoBrowse on BGAudioHandler {
   Future<List<MediaItem>> _androidAutoRootItems() async {
     final isAutomotiveSystem = await _androidAutoIsAutomotiveSystem();
-    final continueItems = await _androidAutoContinueAcrossLibraries(const _AndroidAutoPagingOptions(page: 0, pageSize: 1, hasExplicitPaging: true));
+    final continueItems = await _androidAutoContinueAcrossLibraries(
+      const _AndroidAutoPagingOptions(page: 0, pageSize: 1, hasExplicitPaging: true),
+    );
 
     final items = <MediaItem>[];
 

@@ -169,10 +169,7 @@ extension _BGAudioHandlerAndroidAutoEntry on BGAudioHandler {
           errorMessage: 'Authentication required',
         ),
       );
-      throw PlatformException(
-        code: 'authentication_expired',
-        message: 'Authentication required',
-      );
+      throw PlatformException(code: 'authentication_expired', message: 'Authentication required');
     } else if (playbackState.value.errorCode == 3) {
       await _updatePlaybackState();
     }
