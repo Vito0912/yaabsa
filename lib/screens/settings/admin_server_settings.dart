@@ -7,6 +7,7 @@ import 'package:yaabsa/screens/settings/admin_server_api_keys_settings.dart';
 import 'package:yaabsa/screens/settings/admin_item_metadata_utils_settings.dart';
 import 'package:yaabsa/screens/layout_home.dart';
 import 'package:yaabsa/screens/settings/admin_server_backups_settings.dart';
+import 'package:yaabsa/screens/settings/admin_server_authentication_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_configuration_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_email_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_library_stats_settings.dart';
@@ -133,6 +134,14 @@ class AdminServerSettings extends ConsumerWidget {
                       enabled: isAdminUser,
                       disabledReason: isAdminUser ? null : 'Requires an admin account.',
                       onTap: isAdminUser ? () => context.push(AdminServerEmailSettings.routeName) : null,
+                    ),
+                    SettingsNavigationItem(
+                      icon: Icons.verified_user_outlined,
+                      title: 'Authentication',
+                      subtitle: 'Configure local and OpenID authentication methods',
+                      enabled: isAdminUser,
+                      disabledReason: isAdminUser ? null : 'Requires an admin account.',
+                      onTap: isAdminUser ? () => context.push(AdminServerAuthenticationSettings.routeName) : null,
                     ),
                     SettingsNavigationItem(
                       icon: Icons.upload_file_outlined,

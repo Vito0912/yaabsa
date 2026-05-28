@@ -10,6 +10,7 @@ import 'package:yaabsa/components/app/item/editor/library_item_edit_models.dart'
 import 'package:yaabsa/components/app/item/editor/library_item_editor_field_container.dart';
 import 'package:yaabsa/components/app/item/editor/library_item_editor_inputs.dart';
 import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
+import 'package:yaabsa/components/common/inputs/rich_text_quill_field.dart';
 import 'package:yaabsa/util/globals.dart';
 
 class LibraryItemEditorForm extends StatefulWidget {
@@ -489,124 +490,11 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
   }
 
   Widget _buildDescriptionSection(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Description', style: Theme.of(context).textTheme.titleSmall?.copyWith(fontSize: 15)),
-        const SizedBox(height: 4),
-        LibraryItemEditorFieldContainer(
-          padding: EdgeInsets.zero,
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                child: Row(
-                  children: [
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: QuillSimpleToolbar(
-                        controller: _descriptionController,
-                        config: const QuillSimpleToolbarConfig(
-                          showDividers: false,
-                          showFontFamily: false,
-                          showFontSize: false,
-                          showBoldButton: false,
-                          showItalicButton: false,
-                          showSmallButton: false,
-                          showUnderLineButton: false,
-                          showStrikeThrough: false,
-                          showInlineCode: false,
-                          showColorButton: false,
-                          showBackgroundColorButton: false,
-                          showClearFormat: false,
-                          showAlignmentButtons: false,
-                          showLeftAlignment: false,
-                          showCenterAlignment: false,
-                          showRightAlignment: false,
-                          showJustifyAlignment: false,
-                          showHeaderStyle: false,
-                          showListNumbers: false,
-                          showListBullets: false,
-                          showListCheck: false,
-                          showCodeBlock: false,
-                          showQuote: false,
-                          showIndent: false,
-                          showLink: false,
-                          showUndo: true,
-                          showRedo: true,
-                          showDirection: false,
-                          showSearchButton: false,
-                          showSubscript: false,
-                          showSuperscript: false,
-                          showLineHeightButton: false,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: QuillSimpleToolbar(
-                            controller: _descriptionController,
-                            config: const QuillSimpleToolbarConfig(
-                              showDividers: false,
-                              showFontFamily: false,
-                              showFontSize: false,
-                              showBoldButton: true,
-                              showItalicButton: true,
-                              showSmallButton: false,
-                              showUnderLineButton: false,
-                              showStrikeThrough: false,
-                              showInlineCode: false,
-                              showColorButton: false,
-                              showBackgroundColorButton: false,
-                              showClearFormat: false,
-                              showAlignmentButtons: false,
-                              showLeftAlignment: false,
-                              showCenterAlignment: false,
-                              showRightAlignment: false,
-                              showJustifyAlignment: false,
-                              showHeaderStyle: false,
-                              showListNumbers: true,
-                              showListBullets: true,
-                              showListCheck: false,
-                              showCodeBlock: false,
-                              showQuote: false,
-                              showIndent: false,
-                              showLink: true,
-                              showUndo: false,
-                              showRedo: false,
-                              showDirection: false,
-                              showSearchButton: false,
-                              showSubscript: false,
-                              showSuperscript: false,
-                              showLineHeightButton: false,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Divider(height: 1, color: colorScheme.outlineVariant),
-              SizedBox(
-                height: context.isDesktop ? 250 : 200,
-                child: QuillEditor.basic(
-                  controller: _descriptionController,
-                  config: const QuillEditorConfig(
-                    placeholder: 'Write a formatted description...',
-                    padding: EdgeInsets.fromLTRB(8, 6, 8, 8),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+    return RichTextQuillField(
+      label: 'Description',
+      controller: _descriptionController,
+      editorHeight: context.isDesktop ? 250 : 200,
+      placeholder: 'Write a formatted description...',
     );
   }
 }

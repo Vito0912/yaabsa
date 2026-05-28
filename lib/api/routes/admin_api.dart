@@ -3,10 +3,12 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:yaabsa/api/admin/admin_api_key_response.dart';
 import 'package:yaabsa/api/admin/admin_api_keys_response.dart';
+import 'package:yaabsa/api/admin/admin_authentication_settings.dart';
 import 'package:yaabsa/api/admin/admin_backup_list_response.dart';
 import 'package:yaabsa/api/admin/admin_backups_response.dart';
 import 'package:yaabsa/api/admin/admin_email_ereader_devices_response.dart';
 import 'package:yaabsa/api/admin/admin_email_settings_response.dart';
+import 'package:yaabsa/api/admin/admin_openid_issuer_config.dart';
 import 'package:yaabsa/api/admin/admin_rss_feed.dart';
 import 'package:yaabsa/api/admin/admin_user.dart';
 import 'package:yaabsa/api/admin/admin_user_list_response.dart';
@@ -21,6 +23,8 @@ import 'package:yaabsa/api/admin/logger_data.dart';
 import 'package:yaabsa/api/admin/metadata_term_update_response.dart';
 import 'package:yaabsa/api/admin/sorting_prefixes_update_response.dart';
 import 'package:yaabsa/api/admin/tags_response.dart';
+import 'package:yaabsa/api/admin/update_admin_authentication_settings_request.dart';
+import 'package:yaabsa/api/admin/update_admin_authentication_settings_response.dart';
 import 'package:yaabsa/api/admin/update_admin_email_ereader_devices_request.dart';
 import 'package:yaabsa/api/admin/update_admin_email_settings_request.dart';
 import 'package:yaabsa/api/admin/update_admin_api_key_request.dart';
@@ -280,6 +284,56 @@ class AdminApi {
       route: '/api/feeds',
       fromJson: (data) => AdminRssFeedsResponse.fromJson(data as Map<String, dynamic>),
       queryParams: const <String, dynamic>{},
+      dio: _dio,
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+    );
+  }
+
+  Future<Response<AdminAuthenticationSettings>> getAuthenticationSettings({
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiGetRequest(
+      route: '/api/auth-settings',
+      fromJson: (data) => AdminAuthenticationSettings.fromJson(data as Map<String, dynamic>),
+      queryParams: const <String, dynamic>{},
+      dio: _dio,
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+    );
+  }
+
+  Future<Response<UpdateAdminAuthenticationSettingsResponse>> updateAuthenticationSettings({
+    required UpdateAdminAuthenticationSettingsRequest payload,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiPatchRequest(
+      route: '/api/auth-settings',
+      fromJson: (data) => UpdateAdminAuthenticationSettingsResponse.fromJson(data as Map<String, dynamic>),
+      bodyData: Map<String, dynamic>.from(payload.toJson())..removeWhere((key, value) => value == null),
+      dio: _dio,
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+    );
+  }
+
+  Future<Response<AdminOpenIdIssuerConfig>> getOpenIdIssuerConfiguration({
+    required String issuer,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiGetRequest(
+      route: '/auth/openid/config',
+      fromJson: (data) => AdminOpenIdIssuerConfig.fromJson(data as Map<String, dynamic>),
+      queryParams: <String, dynamic>{'issuer': issuer},
       dio: _dio,
       cancelToken: cancelToken,
       headers: headers,

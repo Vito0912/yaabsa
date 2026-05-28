@@ -23,6 +23,7 @@ import 'package:yaabsa/screens/settings/android_auto/android_auto_podcast_librar
 import 'package:yaabsa/screens/settings/android_auto_settings.dart';
 import 'package:yaabsa/screens/settings/admin_item_metadata_utils_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_backups_settings.dart';
+import 'package:yaabsa/screens/settings/admin_server_authentication_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_configuration_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_email_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_library_stats_settings.dart';
@@ -251,6 +252,10 @@ final globalRouter = GoRouter(
                     GoRoute(
                       path: AdminServerEmailSettings.routeName,
                       builder: (context, state) => const AdminServerEmailSettings(),
+                    ),
+                    GoRoute(
+                      path: AdminServerAuthenticationSettings.routeName,
+                      builder: (context, state) => const AdminServerAuthenticationSettings(),
                     ),
                     GoRoute(
                       path: AdminServerUsersSettings.routeName,
