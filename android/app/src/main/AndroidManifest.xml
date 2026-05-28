@@ -113,6 +113,12 @@
             android:exported="true"
             android:label="@string/widget_shelf_name"
             android:theme="@style/Theme.AppCompat.DayNight.NoActionBar" />
+
+        <activity-alias
+            android:name="de.vito0912.yaabsa.SignInActivity"
+            android:targetActivity="de.vito0912.yaabsa.MainActivity"
+            android:exported="true"
+            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and
