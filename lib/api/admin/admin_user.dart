@@ -25,6 +25,25 @@ abstract class AdminUser with _$AdminUser {
 
   factory AdminUser.fromJson(Map<String, dynamic> json) => _$AdminUserFromJson(json);
 
+  static AdminUser? fromApiResponse(Object? payload) {
+    if (payload is Map<String, dynamic>) {
+      final rawUser = payload['user'] ?? payload['data'] ?? payload;
+      if (rawUser is Map<String, dynamic>) {
+        return AdminUser.fromJson(rawUser);
+      }
+      if (rawUser is Map) {
+        return AdminUser.fromJson(Map<String, dynamic>.from(rawUser));
+      }
+      return null;
+    }
+
+    if (payload is Map) {
+      return AdminUser.fromApiResponse(Map<String, dynamic>.from(payload));
+    }
+
+    return null;
+  }
+
   bool get isRoot => type.trim().toLowerCase() == 'root';
 
   bool get isAdminOrUp {

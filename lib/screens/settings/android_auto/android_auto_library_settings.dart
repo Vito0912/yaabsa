@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:yaabsa/components/common/inputs/expressive_dropdown.dart';
 import 'package:yaabsa/components/settings/settings_switch.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/database/settings_manager.dart';
@@ -102,13 +103,13 @@ class _AndroidAutoLibrarySettingsState extends ConsumerState<AndroidAutoLibraryS
 
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      child: DropdownButtonFormField<String>(
-                        initialValue: safeSortField,
+                      child: YaabsaExpressiveDropdownField<String>(
+                        value: safeSortField,
                         decoration: const InputDecoration(labelText: 'Sort By'),
-                        items: const [
-                          DropdownMenuItem<String>(value: _sortFieldTitle, child: Text('Title')),
-                          DropdownMenuItem<String>(value: _sortFieldAuthor, child: Text('Author')),
-                          DropdownMenuItem<String>(value: _sortFieldAdded, child: Text('Date Added')),
+                        options: const [
+                          YaabsaDropdownOption<String>(value: _sortFieldTitle, label: 'Title'),
+                          YaabsaDropdownOption<String>(value: _sortFieldAuthor, label: 'Author'),
+                          YaabsaDropdownOption<String>(value: _sortFieldAdded, label: 'Date Added'),
                         ],
                         onChanged: _isUpdatingSortField
                             ? null

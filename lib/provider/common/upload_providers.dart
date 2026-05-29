@@ -12,7 +12,7 @@ Future<List<SearchProviderOption>> uploadMetadataProviders(Ref ref, String media
   }
 
   final response = await api.getUploadApi().getSearchProviders();
-  final providerLists = response?.providers;
+  final providerLists = response.data?.providers;
   if (providerLists == null) {
     return <SearchProviderOption>[];
   }

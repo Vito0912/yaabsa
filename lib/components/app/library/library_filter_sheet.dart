@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:yaabsa/api/library/filter_data/library_filter_data.dart';
 import 'package:yaabsa/api/library/filter_data/library_filter_named_entity.dart';
 import 'package:yaabsa/api/library/request/library_filter.dart';
+import 'package:yaabsa/components/common/expressive_expandable_card.dart';
+import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
 
 class LibraryFilterSheet extends StatelessWidget {
   const LibraryFilterSheet({
@@ -252,105 +254,92 @@ class _FilterSectionState extends State<_FilterSection> {
 
     final showSearchField = options.length > 12;
     final denseListHeight = math.min(filteredOptions.length * 44.0, 240.0);
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final cardColor = _isExpanded
+        ? colorScheme.secondaryContainer.withValues(alpha: 0.62)
+        : colorScheme.surfaceContainerHigh;
+    final borderColor = _isExpanded
+        ? colorScheme.primary.withValues(alpha: 0.62)
+        : colorScheme.outlineVariant.withValues(alpha: 0.48);
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 180),
+    return ExpressiveExpandableCard(
+      title: widget.section.title,
+      subtitle: selectedLabel != null ? 'Selected: $selectedLabel' : '${widget.section.options.length} options',
+      icon: selectedLabel != null ? Icons.check_circle_rounded : null,
       margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: _isExpanded ? colorScheme.secondaryContainer.withValues(alpha: 0.45) : colorScheme.surfaceContainerLow,
+      childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+      initiallyExpanded: _isExpanded,
+      onExpansionChanged: (expanded) {
+        setState(() {
+          _isExpanded = expanded;
+        });
+      },
+      cardColor: cardColor,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: _isExpanded ? colorScheme.primary : colorScheme.outlineVariant,
-          width: _isExpanded ? 1.4 : 1,
-        ),
+        side: BorderSide(color: borderColor, width: _isExpanded ? 1.25 : 1),
       ),
-      child: Theme(
-        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
-          title: Text(widget.section.title),
-          subtitle: Text(
-            selectedLabel != null ? 'Selected: $selectedLabel' : '${widget.section.options.length} options',
+      children: [
+        if (showSearchField)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: StyledTextField(
+              label: 'Search options',
+              hintText: 'Type to filter',
+              prefixIcon: const Icon(Icons.search_rounded),
+              onChanged: (value) {
+                setState(() {
+                  _search = value.trim();
+                });
+              },
+            ),
           ),
-          tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-          childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-          initiallyExpanded: _isExpanded,
-          onExpansionChanged: (expanded) {
-            setState(() {
-              _isExpanded = expanded;
-            });
-          },
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (selectedLabel != null) Icon(Icons.check_circle_rounded, color: colorScheme.primary, size: 18),
-              const SizedBox(width: 6),
-              Icon(_isExpanded ? Icons.expand_less_rounded : Icons.expand_more_rounded),
-            ],
-          ),
-          children: [
-            if (showSearchField)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: TextField(
-                  decoration: const InputDecoration(
-                    hintText: 'Search options',
-                    isDense: true,
-                    prefixIcon: Icon(Icons.search_rounded),
-                  ),
-                  onChanged: (value) {
-                    setState(() {
-                      _search = value.trim();
-                    });
-                  },
-                ),
-              ),
-            if (filteredOptions.isEmpty)
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Padding(padding: EdgeInsets.symmetric(vertical: 8), child: Text('No matching options')),
-              )
-            else if (filteredOptions.length <= 8)
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: filteredOptions
-                      .map(
-                        (option) => ChoiceChip(
-                          label: Text(option.label),
-                          selected: option.queryValue == widget.activeFilter,
-                          onSelected: (_) => widget.onSelect(option.queryValue),
-                        ),
-                      )
-                      .toList(growable: false),
-                ),
-              )
-            else
-              SizedBox(
-                height: denseListHeight,
-                child: ListView.separated(
-                  itemCount: filteredOptions.length,
-                  separatorBuilder: (_, _) => const Divider(height: 1),
-                  itemBuilder: (context, index) {
-                    final option = filteredOptions[index];
-                    final isSelected = option.queryValue == widget.activeFilter;
+        if (filteredOptions.isEmpty)
+          const Align(
+            alignment: Alignment.centerLeft,
+            child: Padding(padding: EdgeInsets.symmetric(vertical: 8), child: Text('No matching options')),
+          )
+        else if (filteredOptions.length <= 8)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: filteredOptions
+                  .map(
+                    (option) => ChoiceChip(
+                      label: Text(option.label),
+                      selected: option.queryValue == widget.activeFilter,
+                      onSelected: (_) => widget.onSelect(option.queryValue),
+                    ),
+                  )
+                  .toList(growable: false),
+            ),
+          )
+        else
+          SizedBox(
+            height: denseListHeight,
+            child: ListView.separated(
+              itemCount: filteredOptions.length,
+              separatorBuilder: (_, _) => const Divider(height: 1),
+              itemBuilder: (context, index) {
+                final option = filteredOptions[index];
+                final isSelected = option.queryValue == widget.activeFilter;
 
-                    return ListTile(
-                      dense: true,
-                      visualDensity: VisualDensity.compact,
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(option.label),
-                      trailing: isSelected ? const Icon(Icons.check_rounded) : null,
-                      onTap: () => widget.onSelect(option.queryValue),
-                    );
-                  },
-                ),
-              ),
-          ],
-        ),
-      ),
+                return ListTile(
+                  dense: true,
+                  visualDensity: VisualDensity.compact,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(option.label),
+                  trailing: isSelected ? const Icon(Icons.check_rounded) : null,
+                  onTap: () => widget.onSelect(option.queryValue),
+                );
+              },
+            ),
+          ),
+      ],
     );
   }
 }

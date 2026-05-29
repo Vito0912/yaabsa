@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:yaabsa/api/library_items/audio_file.dart';
+import 'package:yaabsa/components/common/inputs/expressive_dropdown.dart';
 import 'package:yaabsa/util/item_formatters.dart';
 
 final double textfieldWidth = 130;
@@ -442,10 +443,10 @@ class _DropdownCard<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DropdownButtonFormField<T>(
-      initialValue: value,
+    return YaabsaExpressiveDropdownField<T>(
+      value: value,
       decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()),
-      items: [for (final value in values) DropdownMenuItem<T>(value: value, child: Text(display(value)))],
+      options: [for (final entry in values) YaabsaDropdownOption<T>(value: entry, label: display(entry))],
       onChanged: onChanged,
     );
   }

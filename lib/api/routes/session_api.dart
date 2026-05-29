@@ -1,27 +1,14 @@
-import 'dart:convert';
-
 import 'package:yaabsa/api/admin/admin_listening_sessions_page.dart';
 import 'package:yaabsa/api/admin/open_sessions_response.dart';
 import 'package:yaabsa/api/library_items/playback_session.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/api/session/request/sync_session_request.dart';
-import 'package:yaabsa/util/logger.dart';
 import 'package:dio/dio.dart';
 
 class SessionApi {
   final Dio _dio;
 
   SessionApi(this._dio);
-
-  Map<String, dynamic> _asJsonMap(dynamic data) {
-    if (data is Map<String, dynamic>) {
-      return data;
-    }
-    if (data is Map) {
-      return Map<String, dynamic>.from(data);
-    }
-    throw FormatException('Expected JSON object but received ${data.runtimeType}');
-  }
 
   Future<Response<AdminListeningSessionsPage>> getSessions({
     int page = 0,
@@ -37,26 +24,13 @@ class SessionApi {
       'page': page,
       'itemsPerPage': itemsPerPage,
       'desc': desc ? 1 : 0,
-      if (sortBy != null && sortBy.trim().isNotEmpty) 'sortBy': sortBy,
+      if (sortBy != null && sortBy.trim().isNotEmpty) 'sort': sortBy,
       if (userId != null && userId.trim().isNotEmpty) 'user': userId,
     };
 
     return ABSApi.makeApiGetRequest(
       route: '/api/sessions',
-      fromJson: (data) {
-        try {
-          final json = _asJsonMap(data);
-          return AdminListeningSessionsPage.fromJson(json);
-        } catch (error, stackTrace) {
-          logger(
-            'Failed to parse /api/sessions response for page=$page itemsPerPage=$itemsPerPage userId=$userId: '
-            '$error\nPayload: ${jsonEncode(data)}\n$stackTrace',
-            tag: 'SessionApi',
-            level: InfoLevel.error,
-          );
-          rethrow;
-        }
-      },
+      fromJson: (data) => AdminListeningSessionsPage.fromJson(data as Map<String, dynamic>),
       cancelToken: cancelToken,
       headers: headers,
       extra: extra,
@@ -72,20 +46,7 @@ class SessionApi {
   }) async {
     return ABSApi.makeApiGetRequest(
       route: '/api/sessions/open',
-      fromJson: (data) {
-        try {
-          final json = _asJsonMap(data);
-          return OpenSessionsResponse.fromJson(json);
-        } catch (error, stackTrace) {
-          logger(
-            'Failed to parse /api/sessions/open response: '
-            '$error\nPayload: ${jsonEncode(data)}\n$stackTrace',
-            tag: 'SessionApi',
-            level: InfoLevel.error,
-          );
-          rethrow;
-        }
-      },
+      fromJson: (data) => OpenSessionsResponse.fromJson(data as Map<String, dynamic>),
       cancelToken: cancelToken,
       headers: headers,
       extra: extra,
@@ -117,26 +78,7 @@ class SessionApi {
   }) async {
     return ABSApi.makeApiGetRequest(
       route: '/api/session/$id',
-      fromJson: (data) {
-        final dynamic wrappedSession = data['session'];
-        if (wrappedSession is Map<String, dynamic>) {
-          return PlaybackSession.fromJson(wrappedSession);
-        }
-
-        final dynamic wrappedData = data['data'];
-        if (wrappedData is Map<String, dynamic>) {
-          final dynamic nestedSession = wrappedData['session'];
-          if (nestedSession is Map<String, dynamic>) {
-            return PlaybackSession.fromJson(nestedSession);
-          }
-
-          if (wrappedData['id'] != null) {
-            return PlaybackSession.fromJson(wrappedData);
-          }
-        }
-
-        return PlaybackSession.fromJson(data);
-      },
+      fromJson: (data) => PlaybackSession.fromJson(data as Map<String, dynamic>),
       cancelToken: cancelToken,
       headers: headers,
       extra: extra,
@@ -151,7 +93,7 @@ class SessionApi {
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
   }) async {
-    ABSApi.makeApiPostRequest(
+    final response = await ABSApi.makeApiPostRequest<bool>(
       route: '/api/session/$id/close',
       fromJson: null,
       cancelToken: cancelToken,
@@ -159,10 +101,11 @@ class SessionApi {
       extra: extra,
       dio: _dio,
       returnData: true,
-      bodyData: null,
+      bodyData: const <String, dynamic>{},
     );
 
-    return true;
+    final statusCode = response.statusCode;
+    return statusCode != null && statusCode >= 200 && statusCode < 300;
   }
 
   Future<bool> syncOpenSession(

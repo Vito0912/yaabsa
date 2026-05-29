@@ -12,6 +12,7 @@ class AdminServerUsersSettings extends StatelessWidget {
   Widget build(BuildContext context) {
     return SettingsPageScaffold(
       title: 'Manage Users',
+      maxWidth: 1100,
       embedded: true,
       showEmbeddedBackButton: true,
       embeddedBackFallbackRoute: AdminServerSettings.routeName,

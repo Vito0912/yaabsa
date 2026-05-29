@@ -104,7 +104,7 @@ class ABSApi {
   static Future<Response<T>> makeApiPostRequest<T>({
     required String route,
     required Function(dynamic)? fromJson,
-    required Map<String, dynamic>? bodyData,
+    required Object? bodyData,
     required Dio dio,
     T? returnData,
     CancelToken? cancelToken,
@@ -240,6 +240,48 @@ class ABSApi {
       if (error is DioException && error.response != null) {}
       return false;
     }
+  }
+
+  static Future<Response<T>> makeApiDeleteRequestWithResponse<T>({
+    required String route,
+    required Function(dynamic)? fromJson,
+    required Dio dio,
+    T? returnData,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    Object? data,
+  }) async {
+    final options = Options(
+      method: 'DELETE',
+      headers: <String, dynamic>{...?headers},
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[
+          {'type': 'http', 'scheme': 'bearer', 'name': 'BearerAuth'},
+        ],
+        ...?extra,
+      },
+      contentType: 'application/json',
+    );
+
+    final response = await dio.request<Object>(route, options: options, cancelToken: cancelToken, data: data);
+    T? responseData;
+
+    if (fromJson != null) {
+      final rawResponse = _normalizeResponsePayload(response.data);
+      responseData = rawResponse == null ? null : fromJson(rawResponse);
+    }
+
+    return Response<T>(
+      data: fromJson != null ? responseData : returnData,
+      headers: response.headers,
+      isRedirect: response.isRedirect,
+      requestOptions: response.requestOptions,
+      redirects: response.redirects,
+      statusCode: response.statusCode,
+      statusMessage: response.statusMessage,
+      extra: response.extra,
+    );
   }
 
   static Future<Response<T>> makeApiPatchRequest<T>({

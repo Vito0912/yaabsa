@@ -14,7 +14,7 @@ import 'package:yaabsa/api/search/search_provider_option.dart';
 import 'package:yaabsa/components/app/upload/library_upload_item_card.dart';
 import 'package:yaabsa/components/app/upload/library_upload_models.dart';
 import 'package:yaabsa/components/app/upload/settings_toggle_row.dart';
-import 'package:yaabsa/components/common/styled_form_fields.dart';
+import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
 import 'package:yaabsa/provider/common/upload_providers.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
@@ -232,7 +232,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
     try {
       final uploadApi = api.getUploadApi();
       final authorResponse = await uploadApi.getFilesystemPaths(path: folderPath, level: 0);
-      final authorDirectories = authorResponse?.directories ?? const [];
+      final authorDirectories = authorResponse.data?.directories ?? const [];
       final authorSuggestions = _sortedUniqueNames(authorDirectories.map((entry) => entry.dirname));
       final authorPaths = <String, String>{};
       for (final directory in authorDirectories) {
@@ -312,7 +312,9 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
 
     try {
       final response = await api.getUploadApi().getFilesystemPaths(path: authorPath, level: 1);
-      final seriesSuggestions = _sortedUniqueNames((response?.directories ?? const []).map((entry) => entry.dirname));
+      final seriesSuggestions = _sortedUniqueNames(
+        (response.data?.directories ?? const []).map((entry) => entry.dirname),
+      );
 
       if (!mounted) {
         return;
@@ -1193,8 +1195,8 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
       try {
         final itemPath = _buildRemoteItemPath(item);
         final response = await api.getUploadApi().checkPathExists(directory: itemPath, folderPath: folder.fullPath);
-        if (response?.exists == true) {
-          final existingTitle = response?.libraryItemTitle;
+        if (response.data?.exists == true) {
+          final existingTitle = response.data?.libraryItemTitle;
           conflicts.add(
             existingTitle == null
                 ? '$identityLabel (destination path exists)'
@@ -1540,7 +1542,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
                                                       crossAxisAlignment: CrossAxisAlignment.center,
                                                       children: [
                                                         Expanded(
-                                                          child: YaabsaTextField(
+                                                          child: StyledTextField(
                                                             label: 'Author for all items',
                                                             controller: _bulkAuthorController,
                                                             enabled: !_isUploading,
@@ -1565,7 +1567,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
                                                       crossAxisAlignment: CrossAxisAlignment.center,
                                                       children: [
                                                         Expanded(
-                                                          child: YaabsaTextField(
+                                                          child: StyledTextField(
                                                             label: 'Series for all items',
                                                             controller: _bulkSeriesController,
                                                             enabled: !_isUploading,
@@ -1596,7 +1598,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
                                                     crossAxisAlignment: CrossAxisAlignment.center,
                                                     children: [
                                                       Expanded(
-                                                        child: YaabsaTextField(
+                                                        child: StyledTextField(
                                                           label: 'Author for all items',
                                                           controller: _bulkAuthorController,
                                                           enabled: !_isUploading,
@@ -1622,7 +1624,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
                                                     crossAxisAlignment: CrossAxisAlignment.center,
                                                     children: [
                                                       Expanded(
-                                                        child: YaabsaTextField(
+                                                        child: StyledTextField(
                                                           label: 'Series for all items',
                                                           controller: _bulkSeriesController,
                                                           enabled: !_isUploading,

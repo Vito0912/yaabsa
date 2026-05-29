@@ -4,17 +4,36 @@ import 'package:yaabsa/api/podcast/podcast_feed.dart';
 import 'package:yaabsa/api/podcast/podcast_search_result.dart';
 import 'package:yaabsa/api/podcast/request/create_podcast_request.dart';
 import 'package:yaabsa/api/podcast/request/get_podcast_feed_request.dart';
+import 'package:yaabsa/api/routes/abs_api.dart';
 
 class PodcastApi {
   PodcastApi(Dio dio) : _dio = dio;
 
   final Dio _dio;
 
-  static const _secureExtra = [
-    {'type': 'http', 'scheme': 'bearer', 'name': 'BearerAuth'},
-  ];
+  Future<bool> _postStatusOnly({
+    required String route,
+    required Object? bodyData,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    CancelToken? cancelToken,
+  }) async {
+    final response = await ABSApi.makeApiPostRequest<bool>(
+      route: route,
+      fromJson: null,
+      bodyData: bodyData,
+      returnData: true,
+      dio: _dio,
+      headers: headers,
+      extra: extra,
+      cancelToken: cancelToken,
+    );
 
-  Future<PodcastFeed?> getPodcastFeed({
+    final statusCode = response.statusCode;
+    return statusCode != null && statusCode >= 200 && statusCode < 300;
+  }
+
+  Future<Response<PodcastFeedResponse>> getPodcastFeed({
     required String rssFeed,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -22,19 +41,15 @@ class PodcastApi {
   }) async {
     final request = GetPodcastFeedRequest(rssFeed: rssFeed);
 
-    final response = await _dio.post<Map<String, dynamic>>(
-      '/api/podcasts/feed',
-      data: request.toJson(),
+    return ABSApi.makeApiPostRequest(
+      route: '/api/podcasts/feed',
+      fromJson: (data) => PodcastFeedResponse.fromJson(data as Map<String, dynamic>),
+      bodyData: request.toJson(),
+      dio: _dio,
+      headers: headers,
+      extra: extra,
       cancelToken: cancelToken,
-      options: Options(headers: headers, extra: {'secure': _secureExtra, ...?extra}),
     );
-
-    final data = response.data;
-    if (data == null) {
-      return null;
-    }
-
-    return PodcastFeedResponse.fromJson(data).podcast;
   }
 
   Future<List<PodcastSearchResult>> searchPodcasts({
@@ -54,18 +69,23 @@ class PodcastApi {
       if (country != null && country.trim().isNotEmpty) 'country': country.trim(),
     };
 
-    final response = await _dio.get<List<dynamic>>(
-      '/api/search/podcast',
-      queryParameters: query,
+    final response = await ABSApi.makeApiGetRequest<List<PodcastSearchResult>>(
+      route: '/api/search/podcast',
+      fromJson: (data) {
+        final list = data is List ? data : const <dynamic>[];
+        return list
+            .whereType<Map>()
+            .map((entry) => PodcastSearchResult.fromJson(Map<String, dynamic>.from(entry)))
+            .toList(growable: false);
+      },
+      queryParams: query,
+      dio: _dio,
       cancelToken: cancelToken,
-      options: Options(headers: headers, extra: {'secure': _secureExtra, ...?extra}),
+      headers: headers,
+      extra: extra,
     );
 
-    final data = response.data ?? const <dynamic>[];
-    return data
-        .whereType<Map>()
-        .map((entry) => PodcastSearchResult.fromJson(Map<String, dynamic>.from(entry)))
-        .toList(growable: false);
+    return response.data ?? const <PodcastSearchResult>[];
   }
 
   Future<List<LibraryPodcastTitle>> getLibraryPodcastTitles({
@@ -74,17 +94,22 @@ class PodcastApi {
     Map<String, dynamic>? extra,
     CancelToken? cancelToken,
   }) async {
-    final response = await _dio.get<List<dynamic>>(
-      '/api/libraries/$libraryId/podcast-titles',
+    final response = await ABSApi.makeApiGetRequest<List<LibraryPodcastTitle>>(
+      route: '/api/libraries/$libraryId/podcast-titles',
+      fromJson: (data) {
+        final list = data is List ? data : const <dynamic>[];
+        return list
+            .whereType<Map>()
+            .map((entry) => LibraryPodcastTitle.fromJson(Map<String, dynamic>.from(entry)))
+            .toList(growable: false);
+      },
+      queryParams: <String, dynamic>{},
+      dio: _dio,
       cancelToken: cancelToken,
-      options: Options(headers: headers, extra: {'secure': _secureExtra, ...?extra}),
+      headers: headers,
+      extra: extra,
     );
-
-    final data = response.data ?? const <dynamic>[];
-    return data
-        .whereType<Map>()
-        .map((entry) => LibraryPodcastTitle.fromJson(Map<String, dynamic>.from(entry)))
-        .toList(growable: false);
+    return response.data ?? const <LibraryPodcastTitle>[];
   }
 
   Future<void> createPodcast({
@@ -93,11 +118,14 @@ class PodcastApi {
     Map<String, dynamic>? extra,
     CancelToken? cancelToken,
   }) async {
-    await _dio.post<Object>(
-      '/api/podcasts',
-      data: request.toJson(),
+    await ABSApi.makeApiPostRequest<void>(
+      route: '/api/podcasts',
+      fromJson: null,
+      bodyData: request.toJson(),
+      dio: _dio,
+      headers: headers,
+      extra: extra,
       cancelToken: cancelToken,
-      options: Options(headers: headers, extra: {'secure': _secureExtra, ...?extra}),
     );
   }
 
@@ -113,14 +141,12 @@ class PodcastApi {
     }
 
     final payload = episodes.map((episode) => episode.toJson()).toList(growable: false);
-    final response = await _dio.post<Object>(
-      '/api/podcasts/$libraryItemId/download-episodes',
-      data: payload,
+    return _postStatusOnly(
+      route: '/api/podcasts/$libraryItemId/download-episodes',
+      bodyData: payload,
+      headers: headers,
+      extra: extra,
       cancelToken: cancelToken,
-      options: Options(headers: headers, extra: {'secure': _secureExtra, ...?extra}),
     );
-
-    final statusCode = response.statusCode;
-    return statusCode != null && statusCode >= 200 && statusCode < 300;
   }
 }

@@ -155,7 +155,7 @@ Future<void> quickMatchSelectedBooks({
   }
 
   try {
-    final response = await api.getLibraryItemApi().batchQuickMatchLibraryItems(
+    final started = await api.getLibraryItemApi().batchQuickMatchLibraryItems(
       request: BatchQuickMatchLibraryItemsRequest(libraryItemIds: selectedBookIds, options: options),
     );
 
@@ -163,18 +163,15 @@ Future<void> quickMatchSelectedBooks({
       return;
     }
 
-    final updates = response.updates;
-    final responseError = response.error?.trim();
-
-    final message = responseError != null && responseError.isNotEmpty
-        ? responseError
-        : updates > 0
-        ? 'Metadata change request sent for ${selectedBookIds.length == 1 ? '1 book' : '${selectedBookIds.length} books'}.'
-        : 'Metadata change request sent.';
-
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
-
-    onSuccess();
+    if (started) {
+      final label = selectedBookIds.length == 1 ? '1 book' : '${selectedBookIds.length} books';
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Metadata change request sent for $label.')));
+      onSuccess();
+    } else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Could not start metadata change request.')));
+    }
   } catch (error) {
     if (!context.mounted) {
       return;

@@ -22,8 +22,15 @@ import 'package:yaabsa/screens/settings/android_auto/android_auto_library_settin
 import 'package:yaabsa/screens/settings/android_auto/android_auto_podcast_library_settings.dart';
 import 'package:yaabsa/screens/settings/android_auto_settings.dart';
 import 'package:yaabsa/screens/settings/admin_item_metadata_utils_settings.dart';
+import 'package:yaabsa/screens/settings/admin_server_backups_settings.dart';
+import 'package:yaabsa/screens/settings/admin_server_authentication_settings.dart';
+import 'package:yaabsa/screens/settings/admin_server_configuration_settings.dart';
+import 'package:yaabsa/screens/settings/admin_server_email_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_library_stats_settings.dart';
+import 'package:yaabsa/screens/settings/admin_server_libraries_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_logs_settings.dart';
+import 'package:yaabsa/screens/settings/admin_server_api_keys_settings.dart';
+import 'package:yaabsa/screens/settings/admin_server_rss_feeds_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_sessions_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_users_settings.dart';
@@ -226,16 +233,44 @@ final globalRouter = GoRouter(
                       builder: (context, state) => const AdminServerSettings(),
                     ),
                     GoRoute(
+                      path: AdminServerConfigurationSettings.routeName,
+                      builder: (context, state) => const AdminServerConfigurationSettings(),
+                    ),
+                    GoRoute(
                       path: AdminServerLogsSettings.routeName,
                       builder: (context, state) => const AdminServerLogsSettings(),
+                    ),
+                    GoRoute(
+                      path: AdminServerBackupsSettings.routeName,
+                      builder: (context, state) => const AdminServerBackupsSettings(),
+                    ),
+                    GoRoute(
+                      path: AdminServerLibrariesSettings.routeName,
+                      builder: (context, state) => const AdminServerLibrariesSettings(),
                     ),
                     GoRoute(
                       path: AdminServerLibraryStatsSettings.routeName,
                       builder: (context, state) => const AdminServerLibraryStatsSettings(),
                     ),
                     GoRoute(
+                      path: AdminServerApiKeysSettings.routeName,
+                      builder: (context, state) => const AdminServerApiKeysSettings(),
+                    ),
+                    GoRoute(
                       path: AdminServerSessionsSettings.routeName,
                       builder: (context, state) => const AdminServerSessionsSettings(),
+                    ),
+                    GoRoute(
+                      path: AdminServerRssFeedsSettings.routeName,
+                      builder: (context, state) => const AdminServerRssFeedsSettings(),
+                    ),
+                    GoRoute(
+                      path: AdminServerEmailSettings.routeName,
+                      builder: (context, state) => const AdminServerEmailSettings(),
+                    ),
+                    GoRoute(
+                      path: AdminServerAuthenticationSettings.routeName,
+                      builder: (context, state) => const AdminServerAuthenticationSettings(),
                     ),
                     GoRoute(
                       path: AdminServerUsersSettings.routeName,

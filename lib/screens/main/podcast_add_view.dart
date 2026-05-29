@@ -209,7 +209,8 @@ class _PodcastAddViewState extends ConsumerState<PodcastAddView> {
     });
 
     try {
-      final feed = await api.getPodcastApi().getPodcastFeed(rssFeed: rssFeed);
+      final feedResponse = await api.getPodcastApi().getPodcastFeed(rssFeed: rssFeed);
+      final feed = feedResponse.data?.podcast;
       if (feed == null) {
         if (!mounted) {
           return;

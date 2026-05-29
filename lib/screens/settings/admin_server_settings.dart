@@ -3,10 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/screens/settings/admin_server_api_keys_settings.dart';
 import 'package:yaabsa/screens/settings/admin_item_metadata_utils_settings.dart';
-import 'package:yaabsa/screens/layout_home.dart';
+import 'package:yaabsa/screens/settings/admin_server_backups_settings.dart';
+import 'package:yaabsa/screens/settings/admin_server_authentication_settings.dart';
+import 'package:yaabsa/screens/settings/admin_server_configuration_settings.dart';
+import 'package:yaabsa/screens/settings/admin_server_email_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_library_stats_settings.dart';
+import 'package:yaabsa/screens/settings/admin_server_libraries_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_logs_settings.dart';
+import 'package:yaabsa/screens/settings/admin_server_rss_feeds_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_sessions_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_users_settings.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
@@ -46,64 +52,93 @@ class AdminServerSettings extends ConsumerWidget {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 2, 20, 10),
-                  child: Text(
-                    'You currently are managing the server $managedServer',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
                 SettingsNavigationSection(
-                  title: 'Admin Subsettings',
+                  title: 'Settings for $managedServer',
                   topPadding: 0,
                   items: [
                     SettingsNavigationItem(
-                      icon: Icons.insert_chart_outlined_rounded,
-                      title: 'Library Stats',
-                      subtitle: 'View top genres, authors, and size/runtime rankings per library.',
+                      icon: Icons.settings_outlined,
+                      title: 'Server Configuration',
                       enabled: isAdminUser,
                       disabledReason: isAdminUser ? null : 'Requires an admin account.',
-                      onTap: isAdminUser ? () => context.push(AdminServerLibraryStatsSettings.routeName) : null,
+                      onTap: isAdminUser ? () => context.push(AdminServerConfigurationSettings.routeName) : null,
+                    ),
+                    SettingsNavigationItem(
+                      icon: Icons.library_add_outlined,
+                      title: 'Libraries',
+                      enabled: isAdminUser,
+                      disabledReason: isAdminUser ? null : 'Requires an admin account.',
+                      onTap: isAdminUser ? () => context.push(AdminServerLibrariesSettings.routeName) : null,
                     ),
                     SettingsNavigationItem(
                       icon: Icons.receipt_long_outlined,
                       title: 'Logs',
-                      subtitle: 'Open the admin logs page.',
                       enabled: isAdminUser,
                       disabledReason: isAdminUser ? null : 'Requires an admin account.',
                       onTap: isAdminUser ? () => context.push(AdminServerLogsSettings.routeName) : null,
                     ),
                     SettingsNavigationItem(
+                      icon: Icons.backup_table_outlined,
+                      title: 'Backups',
+                      enabled: isAdminUser,
+                      disabledReason: isAdminUser ? null : 'Requires an admin account.',
+                      onTap: isAdminUser ? () => context.push(AdminServerBackupsSettings.routeName) : null,
+                    ),
+                    SettingsNavigationItem(
                       icon: Icons.group_outlined,
                       title: 'Users',
-                      subtitle: 'Create, edit, disable, unlink OpenID, and delete users.',
                       enabled: isAdminUser,
                       disabledReason: isAdminUser ? null : 'Requires an admin account.',
                       onTap: isAdminUser ? () => context.push(AdminServerUsersSettings.routeName) : null,
                     ),
                     SettingsNavigationItem(
+                      icon: Icons.key_outlined,
+                      title: 'API Keys',
+                      enabled: isAdminUser,
+                      disabledReason: isAdminUser ? null : 'Requires an admin account.',
+                      onTap: isAdminUser ? () => context.push(AdminServerApiKeysSettings.routeName) : null,
+                    ),
+                    SettingsNavigationItem(
                       icon: Icons.query_stats_rounded,
                       title: 'Sessions',
-                      subtitle: 'Browse and manage listening sessions.',
                       enabled: isAdminUser,
                       disabledReason: isAdminUser ? null : 'Requires an admin account.',
                       onTap: isAdminUser ? () => context.push(AdminServerSessionsSettings.routeName) : null,
                     ),
                     SettingsNavigationItem(
-                      icon: Icons.upload_file_outlined,
-                      title: 'Upload',
-                      subtitle: 'Open upload.',
+                      icon: Icons.rss_feed_rounded,
+                      title: 'RSS Feeds',
                       enabled: isAdminUser,
                       disabledReason: isAdminUser ? null : 'Requires an admin account.',
-                      onTap: isAdminUser ? () => context.go(LayoutHome.uploadModeLocation(tab: 'settings')) : null,
+                      onTap: isAdminUser ? () => context.push(AdminServerRssFeedsSettings.routeName) : null,
+                    ),
+                    SettingsNavigationItem(
+                      icon: Icons.alternate_email_rounded,
+                      title: 'E-Mail / E-Reader',
+                      enabled: isAdminUser,
+                      disabledReason: isAdminUser ? null : 'Requires an admin account.',
+                      onTap: isAdminUser ? () => context.push(AdminServerEmailSettings.routeName) : null,
+                    ),
+                    SettingsNavigationItem(
+                      icon: Icons.verified_user_outlined,
+                      title: 'Authentication',
+                      enabled: isAdminUser,
+                      disabledReason: isAdminUser ? null : 'Requires an admin account.',
+                      onTap: isAdminUser ? () => context.push(AdminServerAuthenticationSettings.routeName) : null,
                     ),
                     SettingsNavigationItem(
                       icon: Icons.category_outlined,
                       title: 'Item Metadata Utils',
-                      subtitle: 'Manage tags, genres and custom metadata providers.',
                       enabled: isAdminUser,
                       disabledReason: isAdminUser ? null : 'Requires an admin account.',
                       onTap: isAdminUser ? () => context.push(AdminItemMetadataUtilsSettings.routeName) : null,
+                    ),
+                    SettingsNavigationItem(
+                      icon: Icons.insert_chart_outlined_rounded,
+                      title: 'Library Stats',
+                      enabled: isAdminUser,
+                      disabledReason: isAdminUser ? null : 'Requires an admin account.',
+                      onTap: isAdminUser ? () => context.push(AdminServerLibraryStatsSettings.routeName) : null,
                     ),
                   ],
                 ),

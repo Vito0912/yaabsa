@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:yaabsa/api/filesystem/filesystem_paths_response.dart';
 import 'package:yaabsa/api/filesystem/path_exists_response.dart';
+import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/api/search/search_providers_response.dart';
 
 class UploadApi {
@@ -12,25 +13,23 @@ class UploadApi {
     {'type': 'http', 'scheme': 'bearer', 'name': 'BearerAuth'},
   ];
 
-  Future<SearchProvidersResponse?> getSearchProviders({
+  Future<Response<SearchProvidersResponse>> getSearchProviders({
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
     CancelToken? cancelToken,
   }) async {
-    final response = await _dio.get<Object>(
-      '/api/search/providers',
+    return ABSApi.makeApiGetRequest(
+      route: '/api/search/providers',
+      fromJson: (data) => SearchProvidersResponse.fromJson(data as Map<String, dynamic>),
+      queryParams: const <String, dynamic>{},
+      dio: _dio,
       cancelToken: cancelToken,
-      options: Options(headers: headers, extra: {'secure': _secureExtra, ...?extra}),
+      headers: headers,
+      extra: extra,
     );
-
-    final data = response.data;
-    if (data is! Map<String, dynamic>) {
-      return null;
-    }
-    return SearchProvidersResponse.fromJson(data);
   }
 
-  Future<FilesystemPathsResponse?> getFilesystemPaths({
+  Future<Response<FilesystemPathsResponse>> getFilesystemPaths({
     String? path,
     int level = 0,
     Map<String, dynamic>? headers,
@@ -39,39 +38,33 @@ class UploadApi {
   }) async {
     final query = <String, dynamic>{if (path != null && path.trim().isNotEmpty) 'path': path, 'level': level};
 
-    final response = await _dio.get<Object>(
-      '/api/filesystem',
-      queryParameters: query,
+    return ABSApi.makeApiGetRequest(
+      route: '/api/filesystem',
+      fromJson: (data) => FilesystemPathsResponse.fromJson(data as Map<String, dynamic>),
+      queryParams: query,
+      dio: _dio,
       cancelToken: cancelToken,
-      options: Options(headers: headers, extra: {'secure': _secureExtra, ...?extra}),
+      headers: headers,
+      extra: extra,
     );
-
-    final data = response.data;
-    if (data is! Map<String, dynamic>) {
-      return null;
-    }
-    return FilesystemPathsResponse.fromJson(data);
   }
 
-  Future<PathExistsResponse?> checkPathExists({
+  Future<Response<PathExistsResponse>> checkPathExists({
     required String directory,
     required String folderPath,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
     CancelToken? cancelToken,
   }) async {
-    final response = await _dio.post<Object>(
-      '/api/filesystem/pathexists',
-      data: {'directory': directory, 'folderPath': folderPath},
+    return ABSApi.makeApiPostRequest(
+      route: '/api/filesystem/pathexists',
+      fromJson: (data) => PathExistsResponse.fromJson(data as Map<String, dynamic>),
+      bodyData: {'directory': directory, 'folderPath': folderPath},
+      dio: _dio,
       cancelToken: cancelToken,
-      options: Options(headers: headers, extra: {'secure': _secureExtra, ...?extra}),
+      headers: headers,
+      extra: extra,
     );
-
-    final data = response.data;
-    if (data is! Map<String, dynamic>) {
-      return null;
-    }
-    return PathExistsResponse.fromJson(data);
   }
 
   Future<Response<Object>> searchMetadata({
@@ -94,11 +87,14 @@ class UploadApi {
       if (libraryItemId != null && libraryItemId.trim().isNotEmpty) 'id': libraryItemId.trim(),
     };
 
-    return _dio.get<Object>(
-      endpoint,
-      queryParameters: query,
+    return ABSApi.makeApiGetRequest(
+      route: endpoint,
+      fromJson: (data) => data,
+      queryParams: query,
+      dio: _dio,
       cancelToken: cancelToken,
-      options: Options(headers: headers, extra: {'secure': _secureExtra, ...?extra}),
+      headers: headers,
+      extra: extra,
     );
   }
 

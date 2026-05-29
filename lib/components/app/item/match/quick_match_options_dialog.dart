@@ -4,6 +4,7 @@ import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/library_items/request/quick_match_library_item_options.dart';
 import 'package:yaabsa/api/search/search_provider_option.dart';
 import 'package:yaabsa/components/app/item/match/quick_match_preview_dialog.dart';
+import 'package:yaabsa/components/common/inputs/expressive_dropdown.dart';
 import 'package:yaabsa/provider/common/upload_providers.dart';
 
 Future<QuickMatchLibraryItemOptions?> showQuickMatchOptionsDialog({
@@ -166,12 +167,12 @@ class _QuickMatchOptionsDialogState extends ConsumerState<QuickMatchOptionsDialo
                   return const Text('No metadata providers are available for this media type.');
                 }
 
-                return DropdownButtonFormField<String>(
+                return YaabsaExpressiveDropdownField<String>(
                   key: ValueKey<String?>(_provider),
-                  initialValue: _provider,
+                  value: _provider,
                   decoration: const InputDecoration(labelText: 'Provider'),
-                  items: loadedProviders
-                      .map((provider) => DropdownMenuItem<String>(value: provider.value, child: Text(provider.text)))
+                  options: loadedProviders
+                      .map((provider) => YaabsaDropdownOption<String>(value: provider.value, label: provider.text))
                       .toList(growable: false),
                   onChanged: (value) {
                     setState(() {

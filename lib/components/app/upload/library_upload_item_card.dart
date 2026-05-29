@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:yaabsa/components/app/upload/library_upload_models.dart';
-import 'package:yaabsa/components/common/styled_form_fields.dart';
+import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
 import 'package:yaabsa/util/byte_format.dart';
 
 class LibraryUploadItemCard extends StatefulWidget {
@@ -108,7 +108,7 @@ class _LibraryUploadItemCardState extends State<LibraryUploadItemCard> {
                     Row(
                       children: [
                         Expanded(
-                          child: YaabsaTextField(
+                          child: StyledTextField(
                             label: 'Title',
                             controller: _titleController,
                             enabled: widget.enabled,
@@ -134,7 +134,7 @@ class _LibraryUploadItemCardState extends State<LibraryUploadItemCard> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Expanded(
-                    child: YaabsaTextField(
+                    child: StyledTextField(
                       label: 'Title',
                       controller: _titleController,
                       enabled: widget.enabled,

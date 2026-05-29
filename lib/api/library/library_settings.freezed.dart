@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$LibrarySettings {
 
-@JsonKey(name: "coverAspectRatio") double? get coverAspectRatio;@JsonKey(name: "disableWatcher") bool? get disableWatcher;@JsonKey(name: "skipMatchingMediaWithAsin") bool? get skipMatchingMediaWithIsbn;@JsonKey(name: "skipMatchingMediaWithIsbn") bool? get skipMatchingMediaWithAsin;@JsonKey(name: "autoScanCronExpression") String? get autoScanCronExpression;@JsonKey(name: "audiobooksOnly") bool? get audiobooksOnly;@JsonKey(name: "epubsAllowScriptedContent") bool? get epubScriptedContent;@JsonKey(name: "hideSingleBookSeries") bool? get hideSingleBookSeries;@JsonKey(name: "onlyShowLaterBooksInContinueSeries") bool? get showLaterBooks;@JsonKey(name: "podcastSearchRegion") String? get podcastSearchRegion;@JsonKey(name: "metadataPrecedence") List<String>? get metadataPrecedence;
+@JsonKey(name: "coverAspectRatio") double? get coverAspectRatio;@JsonKey(name: "disableWatcher") bool? get disableWatcher;@JsonKey(name: "skipMatchingMediaWithAsin") bool? get skipMatchingMediaWithAsin;@JsonKey(name: "skipMatchingMediaWithIsbn") bool? get skipMatchingMediaWithIsbn;@JsonKey(name: "autoScanCronExpression") String? get autoScanCronExpression;@JsonKey(name: "audiobooksOnly") bool? get audiobooksOnly;@JsonKey(name: "epubsAllowScriptedContent") bool? get epubScriptedContent;@JsonKey(name: "hideSingleBookSeries") bool? get hideSingleBookSeries;@JsonKey(name: "onlyShowLaterBooksInContinueSeries") bool? get showLaterBooks;@JsonKey(name: "podcastSearchRegion") String? get podcastSearchRegion;@JsonKey(name: "markAsFinishedTimeRemaining", fromJson: jsonIntFromDynamic) int? get markAsFinishedTimeRemaining;@JsonKey(name: "markAsFinishedPercentComplete", fromJson: jsonDoubleFromDynamic) double? get markAsFinishedPercentComplete;@JsonKey(name: "metadataPrecedence") List<String>? get metadataPrecedence;
 /// Create a copy of LibrarySettings
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $LibrarySettingsCopyWith<LibrarySettings> get copyWith => _$LibrarySettingsCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LibrarySettings&&(identical(other.coverAspectRatio, coverAspectRatio) || other.coverAspectRatio == coverAspectRatio)&&(identical(other.disableWatcher, disableWatcher) || other.disableWatcher == disableWatcher)&&(identical(other.skipMatchingMediaWithIsbn, skipMatchingMediaWithIsbn) || other.skipMatchingMediaWithIsbn == skipMatchingMediaWithIsbn)&&(identical(other.skipMatchingMediaWithAsin, skipMatchingMediaWithAsin) || other.skipMatchingMediaWithAsin == skipMatchingMediaWithAsin)&&(identical(other.autoScanCronExpression, autoScanCronExpression) || other.autoScanCronExpression == autoScanCronExpression)&&(identical(other.audiobooksOnly, audiobooksOnly) || other.audiobooksOnly == audiobooksOnly)&&(identical(other.epubScriptedContent, epubScriptedContent) || other.epubScriptedContent == epubScriptedContent)&&(identical(other.hideSingleBookSeries, hideSingleBookSeries) || other.hideSingleBookSeries == hideSingleBookSeries)&&(identical(other.showLaterBooks, showLaterBooks) || other.showLaterBooks == showLaterBooks)&&(identical(other.podcastSearchRegion, podcastSearchRegion) || other.podcastSearchRegion == podcastSearchRegion)&&const DeepCollectionEquality().equals(other.metadataPrecedence, metadataPrecedence));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LibrarySettings&&(identical(other.coverAspectRatio, coverAspectRatio) || other.coverAspectRatio == coverAspectRatio)&&(identical(other.disableWatcher, disableWatcher) || other.disableWatcher == disableWatcher)&&(identical(other.skipMatchingMediaWithAsin, skipMatchingMediaWithAsin) || other.skipMatchingMediaWithAsin == skipMatchingMediaWithAsin)&&(identical(other.skipMatchingMediaWithIsbn, skipMatchingMediaWithIsbn) || other.skipMatchingMediaWithIsbn == skipMatchingMediaWithIsbn)&&(identical(other.autoScanCronExpression, autoScanCronExpression) || other.autoScanCronExpression == autoScanCronExpression)&&(identical(other.audiobooksOnly, audiobooksOnly) || other.audiobooksOnly == audiobooksOnly)&&(identical(other.epubScriptedContent, epubScriptedContent) || other.epubScriptedContent == epubScriptedContent)&&(identical(other.hideSingleBookSeries, hideSingleBookSeries) || other.hideSingleBookSeries == hideSingleBookSeries)&&(identical(other.showLaterBooks, showLaterBooks) || other.showLaterBooks == showLaterBooks)&&(identical(other.podcastSearchRegion, podcastSearchRegion) || other.podcastSearchRegion == podcastSearchRegion)&&(identical(other.markAsFinishedTimeRemaining, markAsFinishedTimeRemaining) || other.markAsFinishedTimeRemaining == markAsFinishedTimeRemaining)&&(identical(other.markAsFinishedPercentComplete, markAsFinishedPercentComplete) || other.markAsFinishedPercentComplete == markAsFinishedPercentComplete)&&const DeepCollectionEquality().equals(other.metadataPrecedence, metadataPrecedence));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,coverAspectRatio,disableWatcher,skipMatchingMediaWithIsbn,skipMatchingMediaWithAsin,autoScanCronExpression,audiobooksOnly,epubScriptedContent,hideSingleBookSeries,showLaterBooks,podcastSearchRegion,const DeepCollectionEquality().hash(metadataPrecedence));
+int get hashCode => Object.hash(runtimeType,coverAspectRatio,disableWatcher,skipMatchingMediaWithAsin,skipMatchingMediaWithIsbn,autoScanCronExpression,audiobooksOnly,epubScriptedContent,hideSingleBookSeries,showLaterBooks,podcastSearchRegion,markAsFinishedTimeRemaining,markAsFinishedPercentComplete,const DeepCollectionEquality().hash(metadataPrecedence));
 
 @override
 String toString() {
-  return 'LibrarySettings(coverAspectRatio: $coverAspectRatio, disableWatcher: $disableWatcher, skipMatchingMediaWithIsbn: $skipMatchingMediaWithIsbn, skipMatchingMediaWithAsin: $skipMatchingMediaWithAsin, autoScanCronExpression: $autoScanCronExpression, audiobooksOnly: $audiobooksOnly, epubScriptedContent: $epubScriptedContent, hideSingleBookSeries: $hideSingleBookSeries, showLaterBooks: $showLaterBooks, podcastSearchRegion: $podcastSearchRegion, metadataPrecedence: $metadataPrecedence)';
+  return 'LibrarySettings(coverAspectRatio: $coverAspectRatio, disableWatcher: $disableWatcher, skipMatchingMediaWithAsin: $skipMatchingMediaWithAsin, skipMatchingMediaWithIsbn: $skipMatchingMediaWithIsbn, autoScanCronExpression: $autoScanCronExpression, audiobooksOnly: $audiobooksOnly, epubScriptedContent: $epubScriptedContent, hideSingleBookSeries: $hideSingleBookSeries, showLaterBooks: $showLaterBooks, podcastSearchRegion: $podcastSearchRegion, markAsFinishedTimeRemaining: $markAsFinishedTimeRemaining, markAsFinishedPercentComplete: $markAsFinishedPercentComplete, metadataPrecedence: $metadataPrecedence)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $LibrarySettingsCopyWith<$Res>  {
   factory $LibrarySettingsCopyWith(LibrarySettings value, $Res Function(LibrarySettings) _then) = _$LibrarySettingsCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: "coverAspectRatio") double? coverAspectRatio,@JsonKey(name: "disableWatcher") bool? disableWatcher,@JsonKey(name: "skipMatchingMediaWithAsin") bool? skipMatchingMediaWithIsbn,@JsonKey(name: "skipMatchingMediaWithIsbn") bool? skipMatchingMediaWithAsin,@JsonKey(name: "autoScanCronExpression") String? autoScanCronExpression,@JsonKey(name: "audiobooksOnly") bool? audiobooksOnly,@JsonKey(name: "epubsAllowScriptedContent") bool? epubScriptedContent,@JsonKey(name: "hideSingleBookSeries") bool? hideSingleBookSeries,@JsonKey(name: "onlyShowLaterBooksInContinueSeries") bool? showLaterBooks,@JsonKey(name: "podcastSearchRegion") String? podcastSearchRegion,@JsonKey(name: "metadataPrecedence") List<String>? metadataPrecedence
+@JsonKey(name: "coverAspectRatio") double? coverAspectRatio,@JsonKey(name: "disableWatcher") bool? disableWatcher,@JsonKey(name: "skipMatchingMediaWithAsin") bool? skipMatchingMediaWithAsin,@JsonKey(name: "skipMatchingMediaWithIsbn") bool? skipMatchingMediaWithIsbn,@JsonKey(name: "autoScanCronExpression") String? autoScanCronExpression,@JsonKey(name: "audiobooksOnly") bool? audiobooksOnly,@JsonKey(name: "epubsAllowScriptedContent") bool? epubScriptedContent,@JsonKey(name: "hideSingleBookSeries") bool? hideSingleBookSeries,@JsonKey(name: "onlyShowLaterBooksInContinueSeries") bool? showLaterBooks,@JsonKey(name: "podcastSearchRegion") String? podcastSearchRegion,@JsonKey(name: "markAsFinishedTimeRemaining", fromJson: jsonIntFromDynamic) int? markAsFinishedTimeRemaining,@JsonKey(name: "markAsFinishedPercentComplete", fromJson: jsonDoubleFromDynamic) double? markAsFinishedPercentComplete,@JsonKey(name: "metadataPrecedence") List<String>? metadataPrecedence
 });
 
 
@@ -65,19 +65,21 @@ class _$LibrarySettingsCopyWithImpl<$Res>
 
 /// Create a copy of LibrarySettings
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? coverAspectRatio = freezed,Object? disableWatcher = freezed,Object? skipMatchingMediaWithIsbn = freezed,Object? skipMatchingMediaWithAsin = freezed,Object? autoScanCronExpression = freezed,Object? audiobooksOnly = freezed,Object? epubScriptedContent = freezed,Object? hideSingleBookSeries = freezed,Object? showLaterBooks = freezed,Object? podcastSearchRegion = freezed,Object? metadataPrecedence = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? coverAspectRatio = freezed,Object? disableWatcher = freezed,Object? skipMatchingMediaWithAsin = freezed,Object? skipMatchingMediaWithIsbn = freezed,Object? autoScanCronExpression = freezed,Object? audiobooksOnly = freezed,Object? epubScriptedContent = freezed,Object? hideSingleBookSeries = freezed,Object? showLaterBooks = freezed,Object? podcastSearchRegion = freezed,Object? markAsFinishedTimeRemaining = freezed,Object? markAsFinishedPercentComplete = freezed,Object? metadataPrecedence = freezed,}) {
   return _then(_self.copyWith(
 coverAspectRatio: freezed == coverAspectRatio ? _self.coverAspectRatio : coverAspectRatio // ignore: cast_nullable_to_non_nullable
 as double?,disableWatcher: freezed == disableWatcher ? _self.disableWatcher : disableWatcher // ignore: cast_nullable_to_non_nullable
-as bool?,skipMatchingMediaWithIsbn: freezed == skipMatchingMediaWithIsbn ? _self.skipMatchingMediaWithIsbn : skipMatchingMediaWithIsbn // ignore: cast_nullable_to_non_nullable
 as bool?,skipMatchingMediaWithAsin: freezed == skipMatchingMediaWithAsin ? _self.skipMatchingMediaWithAsin : skipMatchingMediaWithAsin // ignore: cast_nullable_to_non_nullable
+as bool?,skipMatchingMediaWithIsbn: freezed == skipMatchingMediaWithIsbn ? _self.skipMatchingMediaWithIsbn : skipMatchingMediaWithIsbn // ignore: cast_nullable_to_non_nullable
 as bool?,autoScanCronExpression: freezed == autoScanCronExpression ? _self.autoScanCronExpression : autoScanCronExpression // ignore: cast_nullable_to_non_nullable
 as String?,audiobooksOnly: freezed == audiobooksOnly ? _self.audiobooksOnly : audiobooksOnly // ignore: cast_nullable_to_non_nullable
 as bool?,epubScriptedContent: freezed == epubScriptedContent ? _self.epubScriptedContent : epubScriptedContent // ignore: cast_nullable_to_non_nullable
 as bool?,hideSingleBookSeries: freezed == hideSingleBookSeries ? _self.hideSingleBookSeries : hideSingleBookSeries // ignore: cast_nullable_to_non_nullable
 as bool?,showLaterBooks: freezed == showLaterBooks ? _self.showLaterBooks : showLaterBooks // ignore: cast_nullable_to_non_nullable
 as bool?,podcastSearchRegion: freezed == podcastSearchRegion ? _self.podcastSearchRegion : podcastSearchRegion // ignore: cast_nullable_to_non_nullable
-as String?,metadataPrecedence: freezed == metadataPrecedence ? _self.metadataPrecedence : metadataPrecedence // ignore: cast_nullable_to_non_nullable
+as String?,markAsFinishedTimeRemaining: freezed == markAsFinishedTimeRemaining ? _self.markAsFinishedTimeRemaining : markAsFinishedTimeRemaining // ignore: cast_nullable_to_non_nullable
+as int?,markAsFinishedPercentComplete: freezed == markAsFinishedPercentComplete ? _self.markAsFinishedPercentComplete : markAsFinishedPercentComplete // ignore: cast_nullable_to_non_nullable
+as double?,metadataPrecedence: freezed == metadataPrecedence ? _self.metadataPrecedence : metadataPrecedence // ignore: cast_nullable_to_non_nullable
 as List<String>?,
   ));
 }
@@ -163,10 +165,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "coverAspectRatio")  double? coverAspectRatio, @JsonKey(name: "disableWatcher")  bool? disableWatcher, @JsonKey(name: "skipMatchingMediaWithAsin")  bool? skipMatchingMediaWithIsbn, @JsonKey(name: "skipMatchingMediaWithIsbn")  bool? skipMatchingMediaWithAsin, @JsonKey(name: "autoScanCronExpression")  String? autoScanCronExpression, @JsonKey(name: "audiobooksOnly")  bool? audiobooksOnly, @JsonKey(name: "epubsAllowScriptedContent")  bool? epubScriptedContent, @JsonKey(name: "hideSingleBookSeries")  bool? hideSingleBookSeries, @JsonKey(name: "onlyShowLaterBooksInContinueSeries")  bool? showLaterBooks, @JsonKey(name: "podcastSearchRegion")  String? podcastSearchRegion, @JsonKey(name: "metadataPrecedence")  List<String>? metadataPrecedence)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "coverAspectRatio")  double? coverAspectRatio, @JsonKey(name: "disableWatcher")  bool? disableWatcher, @JsonKey(name: "skipMatchingMediaWithAsin")  bool? skipMatchingMediaWithAsin, @JsonKey(name: "skipMatchingMediaWithIsbn")  bool? skipMatchingMediaWithIsbn, @JsonKey(name: "autoScanCronExpression")  String? autoScanCronExpression, @JsonKey(name: "audiobooksOnly")  bool? audiobooksOnly, @JsonKey(name: "epubsAllowScriptedContent")  bool? epubScriptedContent, @JsonKey(name: "hideSingleBookSeries")  bool? hideSingleBookSeries, @JsonKey(name: "onlyShowLaterBooksInContinueSeries")  bool? showLaterBooks, @JsonKey(name: "podcastSearchRegion")  String? podcastSearchRegion, @JsonKey(name: "markAsFinishedTimeRemaining", fromJson: jsonIntFromDynamic)  int? markAsFinishedTimeRemaining, @JsonKey(name: "markAsFinishedPercentComplete", fromJson: jsonDoubleFromDynamic)  double? markAsFinishedPercentComplete, @JsonKey(name: "metadataPrecedence")  List<String>? metadataPrecedence)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _LibrarySettings() when $default != null:
-return $default(_that.coverAspectRatio,_that.disableWatcher,_that.skipMatchingMediaWithIsbn,_that.skipMatchingMediaWithAsin,_that.autoScanCronExpression,_that.audiobooksOnly,_that.epubScriptedContent,_that.hideSingleBookSeries,_that.showLaterBooks,_that.podcastSearchRegion,_that.metadataPrecedence);case _:
+return $default(_that.coverAspectRatio,_that.disableWatcher,_that.skipMatchingMediaWithAsin,_that.skipMatchingMediaWithIsbn,_that.autoScanCronExpression,_that.audiobooksOnly,_that.epubScriptedContent,_that.hideSingleBookSeries,_that.showLaterBooks,_that.podcastSearchRegion,_that.markAsFinishedTimeRemaining,_that.markAsFinishedPercentComplete,_that.metadataPrecedence);case _:
   return orElse();
 
 }
@@ -184,10 +186,10 @@ return $default(_that.coverAspectRatio,_that.disableWatcher,_that.skipMatchingMe
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "coverAspectRatio")  double? coverAspectRatio, @JsonKey(name: "disableWatcher")  bool? disableWatcher, @JsonKey(name: "skipMatchingMediaWithAsin")  bool? skipMatchingMediaWithIsbn, @JsonKey(name: "skipMatchingMediaWithIsbn")  bool? skipMatchingMediaWithAsin, @JsonKey(name: "autoScanCronExpression")  String? autoScanCronExpression, @JsonKey(name: "audiobooksOnly")  bool? audiobooksOnly, @JsonKey(name: "epubsAllowScriptedContent")  bool? epubScriptedContent, @JsonKey(name: "hideSingleBookSeries")  bool? hideSingleBookSeries, @JsonKey(name: "onlyShowLaterBooksInContinueSeries")  bool? showLaterBooks, @JsonKey(name: "podcastSearchRegion")  String? podcastSearchRegion, @JsonKey(name: "metadataPrecedence")  List<String>? metadataPrecedence)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "coverAspectRatio")  double? coverAspectRatio, @JsonKey(name: "disableWatcher")  bool? disableWatcher, @JsonKey(name: "skipMatchingMediaWithAsin")  bool? skipMatchingMediaWithAsin, @JsonKey(name: "skipMatchingMediaWithIsbn")  bool? skipMatchingMediaWithIsbn, @JsonKey(name: "autoScanCronExpression")  String? autoScanCronExpression, @JsonKey(name: "audiobooksOnly")  bool? audiobooksOnly, @JsonKey(name: "epubsAllowScriptedContent")  bool? epubScriptedContent, @JsonKey(name: "hideSingleBookSeries")  bool? hideSingleBookSeries, @JsonKey(name: "onlyShowLaterBooksInContinueSeries")  bool? showLaterBooks, @JsonKey(name: "podcastSearchRegion")  String? podcastSearchRegion, @JsonKey(name: "markAsFinishedTimeRemaining", fromJson: jsonIntFromDynamic)  int? markAsFinishedTimeRemaining, @JsonKey(name: "markAsFinishedPercentComplete", fromJson: jsonDoubleFromDynamic)  double? markAsFinishedPercentComplete, @JsonKey(name: "metadataPrecedence")  List<String>? metadataPrecedence)  $default,) {final _that = this;
 switch (_that) {
 case _LibrarySettings():
-return $default(_that.coverAspectRatio,_that.disableWatcher,_that.skipMatchingMediaWithIsbn,_that.skipMatchingMediaWithAsin,_that.autoScanCronExpression,_that.audiobooksOnly,_that.epubScriptedContent,_that.hideSingleBookSeries,_that.showLaterBooks,_that.podcastSearchRegion,_that.metadataPrecedence);case _:
+return $default(_that.coverAspectRatio,_that.disableWatcher,_that.skipMatchingMediaWithAsin,_that.skipMatchingMediaWithIsbn,_that.autoScanCronExpression,_that.audiobooksOnly,_that.epubScriptedContent,_that.hideSingleBookSeries,_that.showLaterBooks,_that.podcastSearchRegion,_that.markAsFinishedTimeRemaining,_that.markAsFinishedPercentComplete,_that.metadataPrecedence);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -204,10 +206,10 @@ return $default(_that.coverAspectRatio,_that.disableWatcher,_that.skipMatchingMe
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "coverAspectRatio")  double? coverAspectRatio, @JsonKey(name: "disableWatcher")  bool? disableWatcher, @JsonKey(name: "skipMatchingMediaWithAsin")  bool? skipMatchingMediaWithIsbn, @JsonKey(name: "skipMatchingMediaWithIsbn")  bool? skipMatchingMediaWithAsin, @JsonKey(name: "autoScanCronExpression")  String? autoScanCronExpression, @JsonKey(name: "audiobooksOnly")  bool? audiobooksOnly, @JsonKey(name: "epubsAllowScriptedContent")  bool? epubScriptedContent, @JsonKey(name: "hideSingleBookSeries")  bool? hideSingleBookSeries, @JsonKey(name: "onlyShowLaterBooksInContinueSeries")  bool? showLaterBooks, @JsonKey(name: "podcastSearchRegion")  String? podcastSearchRegion, @JsonKey(name: "metadataPrecedence")  List<String>? metadataPrecedence)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "coverAspectRatio")  double? coverAspectRatio, @JsonKey(name: "disableWatcher")  bool? disableWatcher, @JsonKey(name: "skipMatchingMediaWithAsin")  bool? skipMatchingMediaWithAsin, @JsonKey(name: "skipMatchingMediaWithIsbn")  bool? skipMatchingMediaWithIsbn, @JsonKey(name: "autoScanCronExpression")  String? autoScanCronExpression, @JsonKey(name: "audiobooksOnly")  bool? audiobooksOnly, @JsonKey(name: "epubsAllowScriptedContent")  bool? epubScriptedContent, @JsonKey(name: "hideSingleBookSeries")  bool? hideSingleBookSeries, @JsonKey(name: "onlyShowLaterBooksInContinueSeries")  bool? showLaterBooks, @JsonKey(name: "podcastSearchRegion")  String? podcastSearchRegion, @JsonKey(name: "markAsFinishedTimeRemaining", fromJson: jsonIntFromDynamic)  int? markAsFinishedTimeRemaining, @JsonKey(name: "markAsFinishedPercentComplete", fromJson: jsonDoubleFromDynamic)  double? markAsFinishedPercentComplete, @JsonKey(name: "metadataPrecedence")  List<String>? metadataPrecedence)?  $default,) {final _that = this;
 switch (_that) {
 case _LibrarySettings() when $default != null:
-return $default(_that.coverAspectRatio,_that.disableWatcher,_that.skipMatchingMediaWithIsbn,_that.skipMatchingMediaWithAsin,_that.autoScanCronExpression,_that.audiobooksOnly,_that.epubScriptedContent,_that.hideSingleBookSeries,_that.showLaterBooks,_that.podcastSearchRegion,_that.metadataPrecedence);case _:
+return $default(_that.coverAspectRatio,_that.disableWatcher,_that.skipMatchingMediaWithAsin,_that.skipMatchingMediaWithIsbn,_that.autoScanCronExpression,_that.audiobooksOnly,_that.epubScriptedContent,_that.hideSingleBookSeries,_that.showLaterBooks,_that.podcastSearchRegion,_that.markAsFinishedTimeRemaining,_that.markAsFinishedPercentComplete,_that.metadataPrecedence);case _:
   return null;
 
 }
@@ -219,19 +221,21 @@ return $default(_that.coverAspectRatio,_that.disableWatcher,_that.skipMatchingMe
 @JsonSerializable()
 
 class _LibrarySettings implements LibrarySettings {
-  const _LibrarySettings({@JsonKey(name: "coverAspectRatio") this.coverAspectRatio, @JsonKey(name: "disableWatcher") this.disableWatcher, @JsonKey(name: "skipMatchingMediaWithAsin") this.skipMatchingMediaWithIsbn, @JsonKey(name: "skipMatchingMediaWithIsbn") this.skipMatchingMediaWithAsin, @JsonKey(name: "autoScanCronExpression") this.autoScanCronExpression, @JsonKey(name: "audiobooksOnly") this.audiobooksOnly, @JsonKey(name: "epubsAllowScriptedContent") this.epubScriptedContent, @JsonKey(name: "hideSingleBookSeries") this.hideSingleBookSeries, @JsonKey(name: "onlyShowLaterBooksInContinueSeries") this.showLaterBooks, @JsonKey(name: "podcastSearchRegion") this.podcastSearchRegion, @JsonKey(name: "metadataPrecedence") final  List<String>? metadataPrecedence}): _metadataPrecedence = metadataPrecedence;
+  const _LibrarySettings({@JsonKey(name: "coverAspectRatio") this.coverAspectRatio, @JsonKey(name: "disableWatcher") this.disableWatcher, @JsonKey(name: "skipMatchingMediaWithAsin") this.skipMatchingMediaWithAsin, @JsonKey(name: "skipMatchingMediaWithIsbn") this.skipMatchingMediaWithIsbn, @JsonKey(name: "autoScanCronExpression") this.autoScanCronExpression, @JsonKey(name: "audiobooksOnly") this.audiobooksOnly, @JsonKey(name: "epubsAllowScriptedContent") this.epubScriptedContent, @JsonKey(name: "hideSingleBookSeries") this.hideSingleBookSeries, @JsonKey(name: "onlyShowLaterBooksInContinueSeries") this.showLaterBooks, @JsonKey(name: "podcastSearchRegion") this.podcastSearchRegion, @JsonKey(name: "markAsFinishedTimeRemaining", fromJson: jsonIntFromDynamic) this.markAsFinishedTimeRemaining, @JsonKey(name: "markAsFinishedPercentComplete", fromJson: jsonDoubleFromDynamic) this.markAsFinishedPercentComplete, @JsonKey(name: "metadataPrecedence") final  List<String>? metadataPrecedence}): _metadataPrecedence = metadataPrecedence;
   factory _LibrarySettings.fromJson(Map<String, dynamic> json) => _$LibrarySettingsFromJson(json);
 
 @override@JsonKey(name: "coverAspectRatio") final  double? coverAspectRatio;
 @override@JsonKey(name: "disableWatcher") final  bool? disableWatcher;
-@override@JsonKey(name: "skipMatchingMediaWithAsin") final  bool? skipMatchingMediaWithIsbn;
-@override@JsonKey(name: "skipMatchingMediaWithIsbn") final  bool? skipMatchingMediaWithAsin;
+@override@JsonKey(name: "skipMatchingMediaWithAsin") final  bool? skipMatchingMediaWithAsin;
+@override@JsonKey(name: "skipMatchingMediaWithIsbn") final  bool? skipMatchingMediaWithIsbn;
 @override@JsonKey(name: "autoScanCronExpression") final  String? autoScanCronExpression;
 @override@JsonKey(name: "audiobooksOnly") final  bool? audiobooksOnly;
 @override@JsonKey(name: "epubsAllowScriptedContent") final  bool? epubScriptedContent;
 @override@JsonKey(name: "hideSingleBookSeries") final  bool? hideSingleBookSeries;
 @override@JsonKey(name: "onlyShowLaterBooksInContinueSeries") final  bool? showLaterBooks;
 @override@JsonKey(name: "podcastSearchRegion") final  String? podcastSearchRegion;
+@override@JsonKey(name: "markAsFinishedTimeRemaining", fromJson: jsonIntFromDynamic) final  int? markAsFinishedTimeRemaining;
+@override@JsonKey(name: "markAsFinishedPercentComplete", fromJson: jsonDoubleFromDynamic) final  double? markAsFinishedPercentComplete;
  final  List<String>? _metadataPrecedence;
 @override@JsonKey(name: "metadataPrecedence") List<String>? get metadataPrecedence {
   final value = _metadataPrecedence;
@@ -255,16 +259,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LibrarySettings&&(identical(other.coverAspectRatio, coverAspectRatio) || other.coverAspectRatio == coverAspectRatio)&&(identical(other.disableWatcher, disableWatcher) || other.disableWatcher == disableWatcher)&&(identical(other.skipMatchingMediaWithIsbn, skipMatchingMediaWithIsbn) || other.skipMatchingMediaWithIsbn == skipMatchingMediaWithIsbn)&&(identical(other.skipMatchingMediaWithAsin, skipMatchingMediaWithAsin) || other.skipMatchingMediaWithAsin == skipMatchingMediaWithAsin)&&(identical(other.autoScanCronExpression, autoScanCronExpression) || other.autoScanCronExpression == autoScanCronExpression)&&(identical(other.audiobooksOnly, audiobooksOnly) || other.audiobooksOnly == audiobooksOnly)&&(identical(other.epubScriptedContent, epubScriptedContent) || other.epubScriptedContent == epubScriptedContent)&&(identical(other.hideSingleBookSeries, hideSingleBookSeries) || other.hideSingleBookSeries == hideSingleBookSeries)&&(identical(other.showLaterBooks, showLaterBooks) || other.showLaterBooks == showLaterBooks)&&(identical(other.podcastSearchRegion, podcastSearchRegion) || other.podcastSearchRegion == podcastSearchRegion)&&const DeepCollectionEquality().equals(other._metadataPrecedence, _metadataPrecedence));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LibrarySettings&&(identical(other.coverAspectRatio, coverAspectRatio) || other.coverAspectRatio == coverAspectRatio)&&(identical(other.disableWatcher, disableWatcher) || other.disableWatcher == disableWatcher)&&(identical(other.skipMatchingMediaWithAsin, skipMatchingMediaWithAsin) || other.skipMatchingMediaWithAsin == skipMatchingMediaWithAsin)&&(identical(other.skipMatchingMediaWithIsbn, skipMatchingMediaWithIsbn) || other.skipMatchingMediaWithIsbn == skipMatchingMediaWithIsbn)&&(identical(other.autoScanCronExpression, autoScanCronExpression) || other.autoScanCronExpression == autoScanCronExpression)&&(identical(other.audiobooksOnly, audiobooksOnly) || other.audiobooksOnly == audiobooksOnly)&&(identical(other.epubScriptedContent, epubScriptedContent) || other.epubScriptedContent == epubScriptedContent)&&(identical(other.hideSingleBookSeries, hideSingleBookSeries) || other.hideSingleBookSeries == hideSingleBookSeries)&&(identical(other.showLaterBooks, showLaterBooks) || other.showLaterBooks == showLaterBooks)&&(identical(other.podcastSearchRegion, podcastSearchRegion) || other.podcastSearchRegion == podcastSearchRegion)&&(identical(other.markAsFinishedTimeRemaining, markAsFinishedTimeRemaining) || other.markAsFinishedTimeRemaining == markAsFinishedTimeRemaining)&&(identical(other.markAsFinishedPercentComplete, markAsFinishedPercentComplete) || other.markAsFinishedPercentComplete == markAsFinishedPercentComplete)&&const DeepCollectionEquality().equals(other._metadataPrecedence, _metadataPrecedence));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,coverAspectRatio,disableWatcher,skipMatchingMediaWithIsbn,skipMatchingMediaWithAsin,autoScanCronExpression,audiobooksOnly,epubScriptedContent,hideSingleBookSeries,showLaterBooks,podcastSearchRegion,const DeepCollectionEquality().hash(_metadataPrecedence));
+int get hashCode => Object.hash(runtimeType,coverAspectRatio,disableWatcher,skipMatchingMediaWithAsin,skipMatchingMediaWithIsbn,autoScanCronExpression,audiobooksOnly,epubScriptedContent,hideSingleBookSeries,showLaterBooks,podcastSearchRegion,markAsFinishedTimeRemaining,markAsFinishedPercentComplete,const DeepCollectionEquality().hash(_metadataPrecedence));
 
 @override
 String toString() {
-  return 'LibrarySettings(coverAspectRatio: $coverAspectRatio, disableWatcher: $disableWatcher, skipMatchingMediaWithIsbn: $skipMatchingMediaWithIsbn, skipMatchingMediaWithAsin: $skipMatchingMediaWithAsin, autoScanCronExpression: $autoScanCronExpression, audiobooksOnly: $audiobooksOnly, epubScriptedContent: $epubScriptedContent, hideSingleBookSeries: $hideSingleBookSeries, showLaterBooks: $showLaterBooks, podcastSearchRegion: $podcastSearchRegion, metadataPrecedence: $metadataPrecedence)';
+  return 'LibrarySettings(coverAspectRatio: $coverAspectRatio, disableWatcher: $disableWatcher, skipMatchingMediaWithAsin: $skipMatchingMediaWithAsin, skipMatchingMediaWithIsbn: $skipMatchingMediaWithIsbn, autoScanCronExpression: $autoScanCronExpression, audiobooksOnly: $audiobooksOnly, epubScriptedContent: $epubScriptedContent, hideSingleBookSeries: $hideSingleBookSeries, showLaterBooks: $showLaterBooks, podcastSearchRegion: $podcastSearchRegion, markAsFinishedTimeRemaining: $markAsFinishedTimeRemaining, markAsFinishedPercentComplete: $markAsFinishedPercentComplete, metadataPrecedence: $metadataPrecedence)';
 }
 
 
@@ -275,7 +279,7 @@ abstract mixin class _$LibrarySettingsCopyWith<$Res> implements $LibrarySettings
   factory _$LibrarySettingsCopyWith(_LibrarySettings value, $Res Function(_LibrarySettings) _then) = __$LibrarySettingsCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: "coverAspectRatio") double? coverAspectRatio,@JsonKey(name: "disableWatcher") bool? disableWatcher,@JsonKey(name: "skipMatchingMediaWithAsin") bool? skipMatchingMediaWithIsbn,@JsonKey(name: "skipMatchingMediaWithIsbn") bool? skipMatchingMediaWithAsin,@JsonKey(name: "autoScanCronExpression") String? autoScanCronExpression,@JsonKey(name: "audiobooksOnly") bool? audiobooksOnly,@JsonKey(name: "epubsAllowScriptedContent") bool? epubScriptedContent,@JsonKey(name: "hideSingleBookSeries") bool? hideSingleBookSeries,@JsonKey(name: "onlyShowLaterBooksInContinueSeries") bool? showLaterBooks,@JsonKey(name: "podcastSearchRegion") String? podcastSearchRegion,@JsonKey(name: "metadataPrecedence") List<String>? metadataPrecedence
+@JsonKey(name: "coverAspectRatio") double? coverAspectRatio,@JsonKey(name: "disableWatcher") bool? disableWatcher,@JsonKey(name: "skipMatchingMediaWithAsin") bool? skipMatchingMediaWithAsin,@JsonKey(name: "skipMatchingMediaWithIsbn") bool? skipMatchingMediaWithIsbn,@JsonKey(name: "autoScanCronExpression") String? autoScanCronExpression,@JsonKey(name: "audiobooksOnly") bool? audiobooksOnly,@JsonKey(name: "epubsAllowScriptedContent") bool? epubScriptedContent,@JsonKey(name: "hideSingleBookSeries") bool? hideSingleBookSeries,@JsonKey(name: "onlyShowLaterBooksInContinueSeries") bool? showLaterBooks,@JsonKey(name: "podcastSearchRegion") String? podcastSearchRegion,@JsonKey(name: "markAsFinishedTimeRemaining", fromJson: jsonIntFromDynamic) int? markAsFinishedTimeRemaining,@JsonKey(name: "markAsFinishedPercentComplete", fromJson: jsonDoubleFromDynamic) double? markAsFinishedPercentComplete,@JsonKey(name: "metadataPrecedence") List<String>? metadataPrecedence
 });
 
 
@@ -292,19 +296,21 @@ class __$LibrarySettingsCopyWithImpl<$Res>
 
 /// Create a copy of LibrarySettings
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? coverAspectRatio = freezed,Object? disableWatcher = freezed,Object? skipMatchingMediaWithIsbn = freezed,Object? skipMatchingMediaWithAsin = freezed,Object? autoScanCronExpression = freezed,Object? audiobooksOnly = freezed,Object? epubScriptedContent = freezed,Object? hideSingleBookSeries = freezed,Object? showLaterBooks = freezed,Object? podcastSearchRegion = freezed,Object? metadataPrecedence = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? coverAspectRatio = freezed,Object? disableWatcher = freezed,Object? skipMatchingMediaWithAsin = freezed,Object? skipMatchingMediaWithIsbn = freezed,Object? autoScanCronExpression = freezed,Object? audiobooksOnly = freezed,Object? epubScriptedContent = freezed,Object? hideSingleBookSeries = freezed,Object? showLaterBooks = freezed,Object? podcastSearchRegion = freezed,Object? markAsFinishedTimeRemaining = freezed,Object? markAsFinishedPercentComplete = freezed,Object? metadataPrecedence = freezed,}) {
   return _then(_LibrarySettings(
 coverAspectRatio: freezed == coverAspectRatio ? _self.coverAspectRatio : coverAspectRatio // ignore: cast_nullable_to_non_nullable
 as double?,disableWatcher: freezed == disableWatcher ? _self.disableWatcher : disableWatcher // ignore: cast_nullable_to_non_nullable
-as bool?,skipMatchingMediaWithIsbn: freezed == skipMatchingMediaWithIsbn ? _self.skipMatchingMediaWithIsbn : skipMatchingMediaWithIsbn // ignore: cast_nullable_to_non_nullable
 as bool?,skipMatchingMediaWithAsin: freezed == skipMatchingMediaWithAsin ? _self.skipMatchingMediaWithAsin : skipMatchingMediaWithAsin // ignore: cast_nullable_to_non_nullable
+as bool?,skipMatchingMediaWithIsbn: freezed == skipMatchingMediaWithIsbn ? _self.skipMatchingMediaWithIsbn : skipMatchingMediaWithIsbn // ignore: cast_nullable_to_non_nullable
 as bool?,autoScanCronExpression: freezed == autoScanCronExpression ? _self.autoScanCronExpression : autoScanCronExpression // ignore: cast_nullable_to_non_nullable
 as String?,audiobooksOnly: freezed == audiobooksOnly ? _self.audiobooksOnly : audiobooksOnly // ignore: cast_nullable_to_non_nullable
 as bool?,epubScriptedContent: freezed == epubScriptedContent ? _self.epubScriptedContent : epubScriptedContent // ignore: cast_nullable_to_non_nullable
 as bool?,hideSingleBookSeries: freezed == hideSingleBookSeries ? _self.hideSingleBookSeries : hideSingleBookSeries // ignore: cast_nullable_to_non_nullable
 as bool?,showLaterBooks: freezed == showLaterBooks ? _self.showLaterBooks : showLaterBooks // ignore: cast_nullable_to_non_nullable
 as bool?,podcastSearchRegion: freezed == podcastSearchRegion ? _self.podcastSearchRegion : podcastSearchRegion // ignore: cast_nullable_to_non_nullable
-as String?,metadataPrecedence: freezed == metadataPrecedence ? _self._metadataPrecedence : metadataPrecedence // ignore: cast_nullable_to_non_nullable
+as String?,markAsFinishedTimeRemaining: freezed == markAsFinishedTimeRemaining ? _self.markAsFinishedTimeRemaining : markAsFinishedTimeRemaining // ignore: cast_nullable_to_non_nullable
+as int?,markAsFinishedPercentComplete: freezed == markAsFinishedPercentComplete ? _self.markAsFinishedPercentComplete : markAsFinishedPercentComplete // ignore: cast_nullable_to_non_nullable
+as double?,metadataPrecedence: freezed == metadataPrecedence ? _self._metadataPrecedence : metadataPrecedence // ignore: cast_nullable_to_non_nullable
 as List<String>?,
   ));
 }

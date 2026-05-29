@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:yaabsa/components/common/inputs/expressive_dropdown.dart';
 import 'package:yaabsa/screens/player/layout/player_layout_config.dart';
 import 'package:yaabsa/screens/player/player_empty_state_mode.dart';
 
@@ -130,11 +131,11 @@ class _PlayerComponentSettingsSheetState extends State<PlayerComponentSettingsSh
                   title: const Text('Show series'),
                 ),
                 const SizedBox(height: 8),
-                DropdownButtonFormField<PlayerMetadataTextAlign>(
-                  initialValue: placement.textAlign,
+                YaabsaExpressiveDropdownField<PlayerMetadataTextAlign>(
+                  value: placement.textAlign,
                   decoration: const InputDecoration(labelText: 'Text alignment'),
-                  items: PlayerMetadataTextAlign.values
-                      .map((mode) => DropdownMenuItem<PlayerMetadataTextAlign>(value: mode, child: Text(mode.label)))
+                  options: PlayerMetadataTextAlign.values
+                      .map((mode) => YaabsaDropdownOption<PlayerMetadataTextAlign>(value: mode, label: mode.label))
                       .toList(growable: false),
                   onChanged: (PlayerMetadataTextAlign? mode) {
                     if (mode == null) {
@@ -158,11 +159,11 @@ class _PlayerComponentSettingsSheetState extends State<PlayerComponentSettingsSh
               ],
               if (widget.componentType == PlayerComponentType.cover) ...<Widget>[
                 const SizedBox(height: 10),
-                DropdownButtonFormField<PlayerCoverFitMode>(
-                  initialValue: placement.coverFitMode,
+                YaabsaExpressiveDropdownField<PlayerCoverFitMode>(
+                  value: placement.coverFitMode,
                   decoration: const InputDecoration(labelText: 'Cover fit mode'),
-                  items: PlayerCoverFitMode.values
-                      .map((mode) => DropdownMenuItem<PlayerCoverFitMode>(value: mode, child: Text(mode.label)))
+                  options: PlayerCoverFitMode.values
+                      .map((mode) => YaabsaDropdownOption<PlayerCoverFitMode>(value: mode, label: mode.label))
                       .toList(growable: false),
                   onChanged: (PlayerCoverFitMode? mode) {
                     if (mode == null) {
@@ -174,11 +175,11 @@ class _PlayerComponentSettingsSheetState extends State<PlayerComponentSettingsSh
               ],
               if (widget.componentType == PlayerComponentType.seekBar) ...<Widget>[
                 const SizedBox(height: 10),
-                DropdownButtonFormField<PlayerSeekTimePlacement>(
-                  initialValue: placement.seekTimePlacement,
+                YaabsaExpressiveDropdownField<PlayerSeekTimePlacement>(
+                  value: placement.seekTimePlacement,
                   decoration: const InputDecoration(labelText: 'Time labels position'),
-                  items: PlayerSeekTimePlacement.values
-                      .map((mode) => DropdownMenuItem<PlayerSeekTimePlacement>(value: mode, child: Text(mode.label)))
+                  options: PlayerSeekTimePlacement.values
+                      .map((mode) => YaabsaDropdownOption<PlayerSeekTimePlacement>(value: mode, label: mode.label))
                       .toList(growable: false),
                   onChanged: (PlayerSeekTimePlacement? mode) {
                     if (mode == null) {
@@ -214,11 +215,11 @@ class _PlayerComponentSettingsSheetState extends State<PlayerComponentSettingsSh
               if (widget.componentType == PlayerComponentType.chapters ||
                   widget.componentType == PlayerComponentType.queue) ...<Widget>[
                 const SizedBox(height: 10),
-                DropdownButtonFormField<PlayerCollectionEmptyMode>(
-                  initialValue: placement.emptyMode,
+                YaabsaExpressiveDropdownField<PlayerCollectionEmptyMode>(
+                  value: placement.emptyMode,
                   decoration: const InputDecoration(labelText: 'When this component has no data'),
-                  items: PlayerCollectionEmptyMode.values
-                      .map((mode) => DropdownMenuItem<PlayerCollectionEmptyMode>(value: mode, child: Text(mode.label)))
+                  options: PlayerCollectionEmptyMode.values
+                      .map((mode) => YaabsaDropdownOption<PlayerCollectionEmptyMode>(value: mode, label: mode.label))
                       .toList(growable: false),
                   onChanged: (PlayerCollectionEmptyMode? mode) {
                     if (mode == null) {
