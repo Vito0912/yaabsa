@@ -7,7 +7,6 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart' show appName, audioHandler, containerRef;
 import 'package:yaabsa/util/aaos_service.dart';
 import 'package:yaabsa/util/app_theme.dart';
-import 'package:yaabsa/util/chrome_cast_service.dart';
 import 'package:yaabsa/util/handler/tray_handler.dart' show TrayManager;
 import 'package:yaabsa/util/init.dart' show Init;
 import 'package:yaabsa/util/logger.dart';
@@ -51,7 +50,6 @@ void main() {
       Init.initLogger();
       audioHandler = await Init.initAudioHandler();
       unawaited(AaosService.instance.initialize());
-      unawaited(ChromeCastService.ensureInitialized());
       TrayManager.update();
 
       Init.late();
