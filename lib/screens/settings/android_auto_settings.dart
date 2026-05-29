@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -54,7 +55,7 @@ class _AndroidAutoSettingsState extends ConsumerState<AndroidAutoSettings> {
     );
   }
 
-  Widget _buildAndroidAutoSettings(String userId) {
+  Widget _buildAndroidAutoSettings(String userId, String integrationLabel) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -62,7 +63,7 @@ class _AndroidAutoSettingsState extends ConsumerState<AndroidAutoSettings> {
           userId: userId,
           label: 'Group Large Lists By First Letter',
           description:
-              'For long Android Auto lists, group entries alphabetically so browsing with rotary controls is faster.',
+              'For long $integrationLabel lists, group entries alphabetically so browsing with rotary controls is faster.',
           settingKey: SettingKeys.androidAutoGroupByLetters,
           defaultValue: true,
         ),
@@ -73,13 +74,13 @@ class _AndroidAutoSettingsState extends ConsumerState<AndroidAutoSettings> {
             SettingsNavigationItem(
               icon: Icons.library_books_outlined,
               title: 'Library',
-              subtitle: 'Configure sorting for audiobook library browsing in Android Auto.',
+              subtitle: 'Configure sorting for audiobook library browsing in $integrationLabel.',
               onTap: () => context.push(AndroidAutoLibrarySettings.routeName),
             ),
             SettingsNavigationItem(
               icon: Icons.podcasts_outlined,
               title: 'Podcast Library',
-              subtitle: 'Configure sorting for podcast library browsing in Android Auto.',
+              subtitle: 'Configure sorting for podcast library browsing in $integrationLabel.',
               onTap: () => context.push(AndroidAutoPodcastLibrarySettings.routeName),
             ),
           ],
@@ -91,6 +92,8 @@ class _AndroidAutoSettingsState extends ConsumerState<AndroidAutoSettings> {
   @override
   Widget build(BuildContext context) {
     final currentUser = ref.watch(currentUserProvider);
+    final isIOS = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+    final integrationLabel = isIOS ? 'CarPlay' : 'Android Auto';
 
     return StreamBuilder<AaosTelemetryState>(
       stream: AaosService.instance.stream,
@@ -100,7 +103,7 @@ class _AndroidAutoSettingsState extends ConsumerState<AndroidAutoSettings> {
         final isAaos = aaosState.isAutomotiveDevice;
 
         return SettingsPageScaffold(
-          title: isAaos ? 'AAOS Settings' : 'Android Auto Settings',
+          title: isAaos ? 'AAOS Settings' : '$integrationLabel Settings',
           embedded: true,
           showEmbeddedBackButton: true,
           children: [
@@ -111,11 +114,11 @@ class _AndroidAutoSettingsState extends ConsumerState<AndroidAutoSettings> {
                   if (user == null) {
                     return const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                      child: Text('No active user. Sign in to configure Android Auto browse settings.'),
+                      child: Text('No active user. Sign in to configure car browse settings.'),
                     );
                   }
 
-                  return _buildAndroidAutoSettings(user.id);
+                  return _buildAndroidAutoSettings(user.id, integrationLabel);
                 },
                 loading: () => const Padding(
                   padding: EdgeInsets.all(16),
