@@ -6,8 +6,10 @@ import 'package:yaabsa/api/admin/admin_user.dart';
 import 'package:yaabsa/api/admin/admin_user_permissions.dart';
 import 'package:yaabsa/api/admin/admin_user_upsert_request.dart';
 import 'package:yaabsa/api/library/library.dart';
+import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
+import 'package:yaabsa/components/common/tables/expressive_action_table.dart';
 import 'package:yaabsa/components/settings/admin_users/admin_user_form_dialog.dart';
-import 'package:yaabsa/components/settings/admin_users/admin_user_list_tile.dart';
+import 'package:yaabsa/components/settings/admin_users/admin_user_badge.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 
@@ -48,6 +50,20 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
       default:
         return 4;
     }
+  }
+
+  String _formatEpoch(int? value) {
+    if (value == null || value <= 0) {
+      return 'Unknown';
+    }
+
+    final dt = DateTime.fromMillisecondsSinceEpoch(value);
+    final year = dt.year.toString().padLeft(4, '0');
+    final month = dt.month.toString().padLeft(2, '0');
+    final day = dt.day.toString().padLeft(2, '0');
+    final hour = dt.hour.toString().padLeft(2, '0');
+    final minute = dt.minute.toString().padLeft(2, '0');
+    return '$year-$month-$day $hour:$minute';
   }
 
   List<AdminUser> _sortedUsers(List<AdminUser> users) {
@@ -446,18 +462,16 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          TextField(
+          StyledTextField(
+            label: 'Search users',
+            hintText: 'Filter by username, role, or email',
+            prefixIcon: const Icon(Icons.search_rounded),
             enabled: !_isLoading,
             onChanged: (value) {
               setState(() {
                 _searchQuery = value;
               });
             },
-            decoration: const InputDecoration(
-              labelText: 'Search users',
-              border: OutlineInputBorder(),
-              prefixIcon: Icon(Icons.search),
-            ),
           ),
           const SizedBox(height: 8),
           Row(
@@ -486,18 +500,16 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
     return Row(
       children: [
         Expanded(
-          child: TextField(
+          child: StyledTextField(
+            label: 'Search users',
+            hintText: 'Filter by username, role, or email',
+            prefixIcon: const Icon(Icons.search_rounded),
             enabled: !_isLoading,
             onChanged: (value) {
               setState(() {
                 _searchQuery = value;
               });
             },
-            decoration: const InputDecoration(
-              labelText: 'Search users',
-              border: OutlineInputBorder(),
-              prefixIcon: Icon(Icons.search),
-            ),
           ),
         ),
         const SizedBox(width: 10),
@@ -518,46 +530,176 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
     );
   }
 
-  Widget _buildUsersSection({required String? activeUserId, required bool compact}) {
+  Widget _buildUsersSection({required String? activeUserId}) {
     final filteredUsers = _filteredUsers();
 
-    if (_isLoading && _users.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 30),
-        child: Center(child: CircularProgressIndicator()),
-      );
-    }
+    return ExpressiveActionTable<AdminUser>(
+      rows: filteredUsers,
+      rowId: (user) => user.id,
+      loading: _isLoading,
+      busyRowIds: _busyUserIds,
+      columns: [
+        ExpressiveTableColumn<AdminUser>(
+          id: 'user',
+          label: 'User',
+          width: 240,
+          cellBuilder: (context, user) {
+            final statusColor = user.isActive
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).colorScheme.outline;
 
-    if (filteredUsers.isEmpty) {
-      return Card(
-        margin: EdgeInsets.zero,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
-          child: Text(_users.isEmpty ? 'No users found on this server.' : 'No users match your current search.'),
+            return Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                Text(
+                  user.username,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                ),
+                AdminUserBadge(
+                  label: user.isActive ? 'ACTIVE' : 'DISABLED',
+                  color: statusColor,
+                  icon: user.isActive ? Icons.check_circle_rounded : Icons.do_not_disturb_on_rounded,
+                ),
+                if (user.hasLinkedOpenId)
+                  AdminUserBadge(
+                    label: 'OPENID',
+                    color: Theme.of(context).colorScheme.secondary,
+                    icon: Icons.link_rounded,
+                  ),
+              ],
+            );
+          },
+          mobileCellBuilder: (context, user) {
+            final statusColor = user.isActive
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).colorScheme.outline;
+            final email = user.email?.trim();
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    Text(
+                      user.username,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                    AdminUserBadge(
+                      label: user.isActive ? 'ACTIVE' : 'DISABLED',
+                      color: statusColor,
+                      icon: user.isActive ? Icons.check_circle_rounded : Icons.do_not_disturb_on_rounded,
+                    ),
+                    if (user.hasLinkedOpenId)
+                      AdminUserBadge(
+                        label: 'OPENID',
+                        color: Theme.of(context).colorScheme.secondary,
+                        icon: Icons.link_rounded,
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  (email?.isNotEmpty ?? false) ? (email ?? 'No email') : 'No email',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            );
+          },
+          tooltipBuilder: (user) => user.username,
         ),
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        for (var index = 0; index < filteredUsers.length; index++) ...[
-          AdminUserListTile(
-            user: filteredUsers[index],
-            isBusy: _busyUserIds.contains(filteredUsers[index].id),
-            compactActions: compact,
-            onEdit: () => unawaited(_editUser(filteredUsers[index])),
-            onToggleActive: () => unawaited(_toggleUserActive(filteredUsers[index])),
-            onDelete: () => unawaited(_deleteUser(filteredUsers[index], activeUserId: activeUserId)),
-            onUnlinkOpenId: filteredUsers[index].hasLinkedOpenId
-                ? () {
-                    unawaited(_unlinkOpenId(filteredUsers[index]));
-                  }
-                : null,
-          ),
-          if (index != filteredUsers.length - 1) const SizedBox(height: 10),
-        ],
+        ExpressiveTableColumn<AdminUser>(
+          id: 'type',
+          label: 'Type',
+          width: 100,
+          alignment: ExpressiveTableCellAlignment.center,
+          cellBuilder: (context, user) =>
+              Text(user.type.toLowerCase(), textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis),
+        ),
+        ExpressiveTableColumn<AdminUser>(
+          id: 'email',
+          label: 'Email',
+          width: 220,
+          showOnMobile: false,
+          cellBuilder: (context, user) {
+            final email = user.email?.trim();
+            return Text(
+              (email?.isNotEmpty ?? false) ? (email ?? 'No email') : 'No email',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            );
+          },
+        ),
+        ExpressiveTableColumn<AdminUser>(
+          id: 'created',
+          label: 'Created',
+          width: 148,
+          showOnMobile: false,
+          cellBuilder: (context, user) =>
+              Text(_formatEpoch(user.createdAt), maxLines: 1, overflow: TextOverflow.ellipsis),
+        ),
+        ExpressiveTableColumn<AdminUser>(
+          id: 'last-seen',
+          label: 'Last seen',
+          width: 148,
+          headerTooltip:
+              'Last seen updates when the user connects via websocket. It may not reflect offline-listening syncs or third-party clients that do not use websockets.',
+          cellBuilder: (context, user) =>
+              Text(_formatEpoch(user.lastSeen), maxLines: 1, overflow: TextOverflow.ellipsis),
+        ),
       ],
+      actions: [
+        ExpressiveTableAction<AdminUser>(
+          icon: Icons.edit_outlined,
+          tooltip: 'Edit user',
+          tone: ExpressiveTableActionTone.primary,
+          onPressed: _editUser,
+        ),
+        ExpressiveTableAction<AdminUser>(
+          icon: Icons.power_settings_new_rounded,
+          tooltip: 'Enable or disable user',
+          isVisible: (user) => !user.isRoot,
+          iconBuilder: (user) => user.isActive ? Icons.block_rounded : Icons.check_circle_outline_rounded,
+          tooltipBuilder: (user) => user.isActive ? 'Disable user' : 'Enable user',
+          onPressed: _toggleUserActive,
+        ),
+        ExpressiveTableAction<AdminUser>(
+          icon: Icons.link_off_rounded,
+          tooltip: 'Unlink OpenID',
+          isVisible: (user) => user.hasLinkedOpenId,
+          onPressed: (user) async {
+            await _unlinkOpenId(user);
+          },
+        ),
+        ExpressiveTableAction<AdminUser>(
+          icon: Icons.delete_outline_rounded,
+          tooltip: 'Delete user',
+          tone: ExpressiveTableActionTone.danger,
+          isEnabled: (user) => activeUserId != user.id,
+          onPressed: (user) async {
+            await _deleteUser(user, activeUserId: activeUserId);
+          },
+        ),
+      ],
+      emptyTitle: _searchQuery.trim().isEmpty
+          ? 'No users found on this server.'
+          : 'No users match your current search.',
+      emptySubtitle: _searchQuery.trim().isEmpty
+          ? 'Create users to manage access and permissions.'
+          : 'Try a different username, role, or email filter.',
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      padding: EdgeInsets.zero,
     );
   }
 
@@ -606,7 +748,7 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
               const SizedBox(height: 10),
               _buildErrorCard(),
               if (_errorMessage?.isNotEmpty == true) const SizedBox(height: 10),
-              _buildUsersSection(activeUserId: currentUser.id, compact: compact),
+              _buildUsersSection(activeUserId: currentUser.id),
             ],
           ),
         );

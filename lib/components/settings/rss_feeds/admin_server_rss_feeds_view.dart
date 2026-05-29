@@ -619,7 +619,7 @@ class _AdminServerRssFeedsViewState extends ConsumerState<AdminServerRssFeedsVie
                     ],
                     emptyTitle: _searchQuery.trim().isEmpty ? 'No RSS feeds found' : 'No matches for your search',
                     emptySubtitle: _searchQuery.trim().isEmpty
-                        ? 'Feeds created in Audiobookshelf will appear here.'
+                        ? 'Feeds will appear here.'
                         : 'Try a different title, URL, or author filter.',
                     physics: const AlwaysScrollableScrollPhysics(),
                     padding: EdgeInsets.zero,

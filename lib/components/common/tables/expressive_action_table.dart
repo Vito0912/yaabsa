@@ -12,6 +12,7 @@ class ExpressiveTableColumn<T> {
     required this.cellBuilder,
     this.mobileCellBuilder,
     this.tooltipBuilder,
+    this.headerTooltip,
     this.width = 180,
     this.alignment = ExpressiveTableCellAlignment.start,
     this.showOnMobile = true,
@@ -25,6 +26,7 @@ class ExpressiveTableColumn<T> {
   final Widget Function(BuildContext context, T row) cellBuilder;
   final Widget Function(BuildContext context, T row)? mobileCellBuilder;
   final String? Function(T row)? tooltipBuilder;
+  final String? headerTooltip;
 
   int get flex {
     final raw = (width / 72).round();
@@ -39,12 +41,20 @@ class ExpressiveTableAction<T> {
     required this.tooltip,
     required this.onPressed,
     this.tone = ExpressiveTableActionTone.neutral,
+    this.isVisible,
+    this.isEnabled,
+    this.iconBuilder,
+    this.tooltipBuilder,
   });
 
   final IconData icon;
   final String tooltip;
   final Future<void> Function(T row) onPressed;
   final ExpressiveTableActionTone tone;
+  final bool Function(T row)? isVisible;
+  final bool Function(T row)? isEnabled;
+  final IconData Function(T row)? iconBuilder;
+  final String Function(T row)? tooltipBuilder;
 }
 
 class ExpressiveActionTable<T> extends StatelessWidget {
@@ -195,21 +205,33 @@ class ExpressiveActionTable<T> extends StatelessWidget {
       return const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2));
     }
 
-    if (actions.isEmpty) {
+    final visibleActions = actions.where((action) => action.isVisible?.call(row) ?? true).toList(growable: false);
+    if (visibleActions.isEmpty) {
       return const SizedBox.shrink();
     }
+
+    final disabledColor = Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.42);
 
     return Wrap(
       spacing: compact ? 2 : 4,
       runSpacing: compact ? 2 : 4,
       alignment: WrapAlignment.end,
       children: [
-        for (final action in actions)
-          IconButton(
-            tooltip: action.tooltip,
-            visualDensity: compact ? VisualDensity.compact : VisualDensity.standard,
-            onPressed: () => _handleActionTap(action, row),
-            icon: Icon(action.icon, size: compact ? 19 : 20, color: _actionColor(context, action.tone)),
+        for (final action in visibleActions)
+          Builder(
+            builder: (context) {
+              final enabled = action.isEnabled?.call(row) ?? true;
+              final color = enabled ? _actionColor(context, action.tone) : disabledColor;
+              final icon = action.iconBuilder?.call(row) ?? action.icon;
+              final tooltip = action.tooltipBuilder?.call(row) ?? action.tooltip;
+
+              return IconButton(
+                tooltip: tooltip,
+                visualDensity: compact ? VisualDensity.compact : VisualDensity.standard,
+                onPressed: enabled ? () => _handleActionTap(action, row) : null,
+                icon: Icon(icon, size: compact ? 19 : 20, color: color),
+              );
+            },
           ),
       ],
     );
@@ -227,14 +249,25 @@ class ExpressiveActionTable<T> extends StatelessWidget {
           for (final column in columns)
             Expanded(
               flex: column.flex,
-              child: Text(
-                column.label,
-                textAlign: _headerTextAlign(column.alignment),
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                  letterSpacing: 0.4,
-                  fontWeight: FontWeight.w600,
-                ),
+              child: Builder(
+                builder: (context) {
+                  final headerText = Text(
+                    column.label,
+                    textAlign: _headerTextAlign(column.alignment),
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      letterSpacing: 0.4,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  );
+
+                  final headerTooltip = column.headerTooltip?.trim();
+                  if (headerTooltip == null || headerTooltip.isEmpty) {
+                    return headerText;
+                  }
+
+                  return Tooltip(message: headerTooltip, child: headerText);
+                },
               ),
             ),
           if (actions.isNotEmpty)
@@ -369,15 +402,26 @@ class ExpressiveActionTable<T> extends StatelessWidget {
                 children: [
                   SizedBox(
                     width: 110,
-                    child: Text(
-                      mobileColumns[index].label,
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                    child: Builder(
+                      builder: (context) {
+                        final labelText = Text(
+                          mobileColumns[index].label,
+                          style: Theme.of(context).textTheme.labelMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                        );
+
+                        final headerTooltip = mobileColumns[index].headerTooltip?.trim();
+                        if (headerTooltip == null || headerTooltip.isEmpty) {
+                          return labelText;
+                        }
+
+                        return Tooltip(message: headerTooltip, child: labelText);
+                      },
                     ),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Align(
-                      alignment: _cellAlignment(mobileColumns[index].alignment),
+                      alignment: AlignmentDirectional.centerStart,
                       child: _buildCellWithTooltip(context, mobileColumns[index], row, mobile: true),
                     ),
                   ),

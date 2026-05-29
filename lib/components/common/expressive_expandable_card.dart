@@ -11,6 +11,9 @@ class ExpressiveExpandableCard extends StatelessWidget {
     this.margin = EdgeInsets.zero,
     this.childrenPadding = const EdgeInsets.fromLTRB(12, 0, 12, 10),
     this.onExpansionChanged,
+    this.cardColor,
+    this.shape,
+    this.elevation,
   });
 
   final String title;
@@ -21,6 +24,9 @@ class ExpressiveExpandableCard extends StatelessWidget {
   final EdgeInsetsGeometry margin;
   final EdgeInsetsGeometry childrenPadding;
   final ValueChanged<bool>? onExpansionChanged;
+  final Color? cardColor;
+  final ShapeBorder? shape;
+  final double? elevation;
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +36,9 @@ class ExpressiveExpandableCard extends StatelessWidget {
     return Card(
       margin: margin,
       clipBehavior: Clip.antiAlias,
+      color: cardColor,
+      shape: shape,
+      elevation: elevation,
       child: Theme(
         data: theme.copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
