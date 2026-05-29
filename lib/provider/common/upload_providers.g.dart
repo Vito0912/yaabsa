@@ -61,7 +61,7 @@ final class UploadMetadataProvidersProvider
   }
 }
 
-String _$uploadMetadataProvidersHash() => r'7403c6b61a4d97fd3023156f933b69e697a559c7';
+String _$uploadMetadataProvidersHash() => r'6824ab6bf35da33e419595d0719d808e53625596';
 
 final class UploadMetadataProvidersFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<SearchProviderOption>>, String> {
