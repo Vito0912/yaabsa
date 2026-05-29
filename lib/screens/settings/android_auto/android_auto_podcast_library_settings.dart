@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/components/common/inputs/expressive_dropdown.dart';
@@ -56,9 +57,11 @@ class _AndroidAutoPodcastLibrarySettingsState extends ConsumerState<AndroidAutoP
   Widget build(BuildContext context) {
     final appDatabase = ref.watch(appDatabaseProvider);
     final currentUser = ref.watch(currentUserProvider);
+    final isIOS = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+    final integrationLabel = isIOS ? 'CarPlay' : 'Android Auto';
 
     return SettingsPageScaffold(
-      title: 'Android Auto - Podcast Library',
+      title: '$integrationLabel - Podcast Library',
       embedded: true,
       showEmbeddedBackButton: true,
       embeddedBackFallbackRoute: '/settings/android-auto',
@@ -68,7 +71,7 @@ class _AndroidAutoPodcastLibrarySettingsState extends ConsumerState<AndroidAutoP
             if (user == null) {
               return const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                child: Text('No active user. Sign in to configure Android Auto podcast settings.'),
+                child: Text('No active user. Sign in to configure car podcast settings.'),
               );
             }
 
@@ -78,7 +81,7 @@ class _AndroidAutoPodcastLibrarySettingsState extends ConsumerState<AndroidAutoP
                 SettingSwitch(
                   userId: user.id,
                   label: 'Sort Descending',
-                  description: 'When enabled, Android Auto podcast lists are sorted in descending order.',
+                  description: 'When enabled, $integrationLabel podcast lists are sorted in descending order.',
                   settingKey: SettingKeys.androidAutoPodcastSortDescending,
                   defaultValue: true,
                 ),

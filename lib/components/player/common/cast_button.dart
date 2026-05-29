@@ -401,12 +401,6 @@ class _CastButtonState extends ConsumerState<CastButton> {
 
   bool get _isSupportedPlatform => Platform.isAndroid || Platform.isIOS;
 
-  @override
-  void initState() {
-    super.initState();
-    unawaited(_ensureInitialized());
-  }
-
   Future<bool> _ensureInitialized() async {
     if (!_isSupportedPlatform) {
       return false;

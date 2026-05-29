@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/api/me/server_settings.dart';
 import 'package:yaabsa/components/common/inputs/string_chip_list_input.dart';
-import 'package:yaabsa/components/settings/settings_category.dart';
 import 'package:yaabsa/components/settings/settings_dropdown.dart';
+import 'package:yaabsa/components/settings/settings_section_title.dart';
 import 'package:yaabsa/components/settings/settings_switch_tile.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 
@@ -446,7 +446,7 @@ class _AdminServerConfigurationViewState extends ConsumerState<AdminServerConfig
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (_isLoading) const LinearProgressIndicator(minHeight: 2),
-            const SettingsCategory(title: 'General', icon: Icons.tune_rounded, topPadding: 12),
+            const SettingsSectionTitle(title: 'General', topPadding: 12),
             SettingSwitchTile.remote(
               label: 'Store covers with item',
               subtitle:
@@ -520,7 +520,7 @@ class _AdminServerConfigurationViewState extends ConsumerState<AdminServerConfig
                   },
                 ),
               ),
-            const SettingsCategory(title: 'Regional', icon: Icons.language_rounded),
+            const SettingsSectionTitle(title: 'Regional'),
             SettingDropdown<String>.remote(
               label: 'Date Format',
               values: _dateFormatValues,
@@ -569,7 +569,7 @@ class _AdminServerConfigurationViewState extends ConsumerState<AdminServerConfig
                 );
               },
             ),
-            const SettingsCategory(title: 'Scanner', icon: Icons.travel_explore_rounded),
+            const SettingsSectionTitle(title: 'Scanner'),
             SettingSwitchTile.remote(
               label: 'Parse subtitles',
               subtitle: 'Extract subtitles from audiobook folder names. Subtitle text must be separated by " - ".',
@@ -636,7 +636,7 @@ class _AdminServerConfigurationViewState extends ConsumerState<AdminServerConfig
                       );
                     },
             ),
-            const SettingsCategory(title: 'Security', icon: Icons.security_rounded),
+            const SettingsSectionTitle(title: 'Security'),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 2, 16, 8),
               child: StringChipListInput(

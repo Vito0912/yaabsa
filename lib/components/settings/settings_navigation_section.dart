@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:yaabsa/components/settings/settings_section_title.dart';
 
 class SettingsNavigationItem {
   const SettingsNavigationItem({
@@ -24,59 +25,52 @@ class SettingsNavigationSection extends StatelessWidget {
   const SettingsNavigationSection({
     super.key,
     required this.title,
-    required this.items,
+    this.items = const [],
+    this.settings = const [],
     this.topPadding = 28,
-    this.horizontalPadding = 16,
+    this.horizontalPadding = 8,
     this.showSectionTitle = true,
-  });
+  }) : assert(items.length > 0 || settings.length > 0, 'Provide at least one navigation item or setting widget.');
 
   final String title;
   final List<SettingsNavigationItem> items;
+  final List<Widget> settings;
   final double topPadding;
   final double horizontalPadding;
   final bool showSectionTitle;
 
   @override
   Widget build(BuildContext context) {
-    if (items.isEmpty) {
-      return const SizedBox.shrink();
-    }
+    final hasItems = items.isNotEmpty;
+    final hasSettings = settings.isNotEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (showSectionTitle)
+        if (showSectionTitle) SettingsSectionTitle(title: title, topPadding: topPadding),
+        if (hasItems)
           Padding(
-            padding: EdgeInsets.fromLTRB(20, topPadding, 20, 12),
-            child: Text(
-              title.toUpperCase(),
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: Theme.of(context).colorScheme.primary,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.8,
+            padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Column(
+                children: [
+                  for (var index = 0; index < items.length; index++) ...[
+                    _SettingsNavigationTile(item: items[index], isFirst: index == 0, isLast: index == items.length - 1),
+                    if (index != items.length - 1)
+                      Divider(
+                        height: 1,
+                        thickness: 1,
+                        color: Theme.of(context).dividerColor.withValues(alpha: 0.12),
+                        indent: 58,
+                      ),
+                  ],
+                ],
               ),
             ),
           ),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: Column(
-              children: [
-                for (var index = 0; index < items.length; index++) ...[
-                  _SettingsNavigationTile(item: items[index], isFirst: index == 0, isLast: index == items.length - 1),
-                  if (index != items.length - 1)
-                    Divider(
-                      height: 1,
-                      thickness: 1,
-                      color: Theme.of(context).dividerColor.withValues(alpha: 0.12),
-                      indent: 58,
-                    ),
-                ],
-              ],
-            ),
-          ),
-        ),
+        if (hasItems && hasSettings) const SizedBox(height: 8),
+        if (hasSettings) Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: settings),
       ],
     );
   }

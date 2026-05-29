@@ -438,7 +438,9 @@ class MainSettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final showAndroidAutoSettings = !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+    final isAndroid = !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+    final isIOS = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+    final showCarIntegrationSettings = isAndroid || isIOS;
 
     return ListView(
       padding: const EdgeInsets.only(bottom: 24),
@@ -478,6 +480,11 @@ class MainSettingsScreen extends ConsumerWidget {
                           title: 'Application Settings',
                           items: [
                             SettingsNavigationItem(
+                              icon: Icons.library_books_outlined,
+                              title: 'General',
+                              onTap: () => context.push(LibrarySettings.routeName),
+                            ),
+                            SettingsNavigationItem(
                               icon: Icons.palette_outlined,
                               title: 'Appearance',
                               onTap: () => context.push(AppearanceSettings.routeName),
@@ -487,15 +494,10 @@ class MainSettingsScreen extends ConsumerWidget {
                               title: 'Global Player',
                               onTap: () => context.push(GlobalPlayerSettings.routeName),
                             ),
-                            SettingsNavigationItem(
-                              icon: Icons.library_books_outlined,
-                              title: 'Library Behaviour',
-                              onTap: () => context.push(LibrarySettings.routeName),
-                            ),
-                            if (showAndroidAutoSettings)
+                            if (showCarIntegrationSettings)
                               SettingsNavigationItem(
                                 icon: Icons.directions_car_filled_outlined,
-                                title: aaosState.isAutomotiveDevice ? 'AAOS' : 'Android Auto',
+                                title: aaosState.isAutomotiveDevice ? 'AAOS' : (isIOS ? 'CarPlay' : 'Android Auto'),
                                 onTap: () => context.push(AndroidAutoSettings.routeName),
                               ),
                             SettingsNavigationItem(

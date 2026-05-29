@@ -547,18 +547,23 @@ class DownloadHandler {
 
     final allFileUris = <Uri>{...trackUris, ...auxiliaryUris};
 
+    logger(
+      'Deleting local download files for item $itemId (episode: ${episodeId ?? 'none'}) with ${allFileUris.length} file target(s).',
+      tag: 'DownloadHandler',
+      level: InfoLevel.warning,
+    );
+
     var deletedFiles = 0;
     var failedFiles = 0;
 
     for (final trackUri in allFileUris) {
       try {
-        final activeUri = await _downloader.uri.activate(trackUri) ?? trackUri;
-        final deleted = await _downloader.uri.deleteFile(activeUri);
+        final deleted = await _deleteTrackedFileUri(trackUri);
         if (deleted) {
           deletedFiles++;
         } else {
           failedFiles++;
-          logger('Could not delete downloaded track: $activeUri', tag: 'DownloadHandler', level: InfoLevel.warning);
+          logger('Could not delete downloaded track: $trackUri', tag: 'DownloadHandler', level: InfoLevel.warning);
         }
       } catch (e, s) {
         failedFiles++;
@@ -575,6 +580,35 @@ class DownloadHandler {
       deletedFiles: deletedFiles,
       failedFiles: failedFiles,
     );
+  }
+
+  Future<bool> _deleteTrackedFileUri(Uri originalUri) async {
+    Uri targetUri = originalUri;
+
+    if (originalUri.scheme == 'content') {
+      targetUri =
+          await _downloader.uri.activate(originalUri).timeout(const Duration(seconds: 8), onTimeout: () => null) ??
+          originalUri;
+    }
+
+    if (targetUri.scheme == 'file') {
+      try {
+        final file = File.fromUri(targetUri);
+        if (!await file.exists()) {
+          logger('File already deleted: $targetUri', tag: 'DownloadHandler', level: InfoLevel.warning);
+          return true;
+        }
+        await file.delete();
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
+
+    final deleted = await _downloader.uri
+        .deleteFile(targetUri)
+        .timeout(const Duration(seconds: 8), onTimeout: () => false);
+    return deleted;
   }
 
   Future<User?> _resolveUserForDownload(String userId) async {
