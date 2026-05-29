@@ -12,6 +12,9 @@ class ConnectionIssueView extends StatelessWidget {
     this.secondaryActionLabel,
     this.onSecondaryAction,
     this.showDownloadsShortcut = true,
+    this.showBackAction = false,
+    this.backActionLabel = 'Back',
+    this.onBackAction,
     this.retryLabel = 'Retry',
   });
 
@@ -44,7 +47,12 @@ class ConnectionIssueView extends StatelessWidget {
     String? secondaryActionLabel,
     Future<void> Function()? onSecondaryAction,
     bool showDownloadsShortcut = true,
+    bool? showBackAction,
+    String backActionLabel = 'Back',
+    Future<void> Function()? onBackAction,
   }) {
+    final resolvedShowBackAction = showBackAction ?? _looksLikeNotFoundError(error);
+
     return ConnectionIssueView(
       key: key,
       icon: Icons.error_outline_rounded,
@@ -55,7 +63,15 @@ class ConnectionIssueView extends StatelessWidget {
       secondaryActionLabel: secondaryActionLabel,
       onSecondaryAction: onSecondaryAction,
       showDownloadsShortcut: showDownloadsShortcut,
+      showBackAction: resolvedShowBackAction,
+      backActionLabel: backActionLabel,
+      onBackAction: onBackAction,
     );
+  }
+
+  static bool _looksLikeNotFoundError(Object error) {
+    final message = error.toString().toLowerCase();
+    return message.contains('404') || message.contains('not found');
   }
 
   final IconData icon;
@@ -66,11 +82,25 @@ class ConnectionIssueView extends StatelessWidget {
   final String? secondaryActionLabel;
   final Future<void> Function()? onSecondaryAction;
   final bool showDownloadsShortcut;
+  final bool showBackAction;
+  final String backActionLabel;
+  final Future<void> Function()? onBackAction;
   final String retryLabel;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final effectiveBackAction = showBackAction
+        ? (onBackAction ??
+              () async {
+                final navigator = Navigator.of(context);
+                final router = GoRouter.of(context);
+                final didPop = await navigator.maybePop();
+                if (!didPop) {
+                  router.go('/');
+                }
+              })
+        : null;
     final effectiveSecondaryAction =
         onSecondaryAction ??
         (showDownloadsShortcut
@@ -114,6 +144,14 @@ class ConnectionIssueView extends StatelessWidget {
                   runSpacing: 8,
                   alignment: WrapAlignment.center,
                   children: [
+                    if (effectiveBackAction != null)
+                      OutlinedButton.icon(
+                        onPressed: () async {
+                          await effectiveBackAction();
+                        },
+                        icon: const Icon(Icons.arrow_back_rounded),
+                        label: Text(backActionLabel),
+                      ),
                     if (onRetry != null)
                       FilledButton.icon(
                         onPressed: () async {

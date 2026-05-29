@@ -23,9 +23,14 @@ class LibraryItemView extends ConsumerWidget {
             : LibraryItemBookView(item: item, canDownload: canDownload);
       },
       error: (error, stackTrace) {
+        final isNotFound = _isNotFoundError(error);
         return ConnectionIssueView.requestFailed(
           error: error,
-          title: 'Unable to load item',
+          title: isNotFound ? 'Item not found' : 'Unable to load item',
+          message: isNotFound
+              ? 'This item may have been moved or deleted.'
+              : 'Please try again. If the issue persists, check your server connection.',
+          showDownloadsShortcut: !isNotFound,
           onRetry: () async {
             ref.invalidate(libraryItemProvider(itemId));
             await ref.read(libraryItemProvider(itemId).future);
@@ -37,4 +42,9 @@ class LibraryItemView extends ConsumerWidget {
       },
     );
   }
+}
+
+bool _isNotFoundError(Object error) {
+  final message = error.toString().toLowerCase();
+  return message.contains('404') || message.contains('not found');
 }
