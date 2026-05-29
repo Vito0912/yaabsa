@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:yaabsa/api/library_items/batch_quick_match_library_items_response.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/library_items/playback_session.dart';
 import 'package:yaabsa/api/library_items/quick_match_library_item_response.dart';
@@ -22,6 +21,28 @@ class LibraryItemApi {
   final Dio _dio;
 
   LibraryItemApi(this._dio);
+
+  Future<bool> _postStatusOnly({
+    required String route,
+    required Object? bodyData,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    final response = await ABSApi.makeApiPostRequest<bool>(
+      route: route,
+      fromJson: null,
+      bodyData: bodyData,
+      returnData: true,
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
+    );
+
+    final statusCode = response.statusCode;
+    return statusCode != null && statusCode >= 200 && statusCode < 300;
+  }
 
   Future<Response<LibraryItem>> getLibraryItem({
     required String itemId,
@@ -93,19 +114,13 @@ class LibraryItemApi {
       return true;
     }
 
-    final response = await ABSApi.makeApiPostRequest<bool>(
+    return _postStatusOnly(
       route: '/api/items/batch/delete?hard=${hardDelete ? 1 : 0}',
-      fromJson: null,
       bodyData: <String, dynamic>{'libraryItemIds': libraryItemIds},
-      returnData: true,
       cancelToken: cancelToken,
       headers: headers,
       extra: extra,
-      dio: _dio,
     );
-
-    final statusCode = response.statusCode;
-    return statusCode != null && statusCode >= 200 && statusCode < 300;
   }
 
   Future<BatchUpdateLibraryItemsResponse> batchUpdateLibraryItems(
@@ -120,99 +135,36 @@ class LibraryItemApi {
 
     final requestBody = updatePayloads.map((payload) => payload.toJson()).toList(growable: false);
 
-    final options = Options(
-      method: 'POST',
-      headers: <String, dynamic>{...?headers},
-      extra: <String, dynamic>{
-        'secure': <Map<String, String>>[
-          {'type': 'http', 'scheme': 'bearer', 'name': 'BearerAuth'},
-        ],
-        ...?extra,
-      },
-      contentType: 'application/json',
-    );
-
-    final response = await _dio.request<Object>(
-      '/api/items/batch/update',
-      data: requestBody,
-      options: options,
+    final response = await ABSApi.makeApiPostRequest<BatchUpdateLibraryItemsResponse>(
+      route: '/api/items/batch/update',
+      fromJson: (data) => BatchUpdateLibraryItemsResponse.fromJson(data as Map<String, dynamic>),
+      bodyData: requestBody,
       cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
     );
 
-    final rawData = response.data;
-    final parsedData = rawData is Map<String, dynamic>
-        ? rawData
-        : rawData is Map
-        ? Map<String, dynamic>.from(rawData)
-        : <String, dynamic>{
-            'success': response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300,
-            'updates': 0,
-          };
-
-    return BatchUpdateLibraryItemsResponse.fromJson(parsedData);
+    return response.data ?? const BatchUpdateLibraryItemsResponse(success: false, updates: 0);
   }
 
-  Future<BatchQuickMatchLibraryItemsResponse> batchQuickMatchLibraryItems({
+  Future<bool> batchQuickMatchLibraryItems({
     required BatchQuickMatchLibraryItemsRequest request,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
   }) async {
     if (request.libraryItemIds.isEmpty) {
-      return const BatchQuickMatchLibraryItemsResponse(success: true, updates: 0, unmatched: 0);
+      return true;
     }
 
-    final dioOptions = Options(
-      method: 'POST',
-      headers: <String, dynamic>{...?headers},
-      extra: <String, dynamic>{
-        'secure': <Map<String, String>>[
-          {'type': 'http', 'scheme': 'bearer', 'name': 'BearerAuth'},
-        ],
-        ...?extra,
-      },
-      contentType: 'application/json',
-    );
-
-    final response = await _dio.request<Object>(
-      '/api/items/batch/quickmatch',
-      data: request.toJson(),
-      options: dioOptions,
+    return _postStatusOnly(
+      route: '/api/items/batch/quickmatch',
+      bodyData: request.toJson(),
       cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
     );
-
-    final rawData = response.data;
-    final parsedData = rawData is Map<String, dynamic>
-        ? rawData
-        : rawData is Map
-        ? Map<String, dynamic>.from(rawData)
-        : <String, dynamic>{
-            'success': response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300,
-            'updates': 0,
-            'unmatched': request.libraryItemIds.length,
-          };
-
-    final normalizedData = Map<String, dynamic>.from(parsedData);
-    normalizedData.putIfAbsent(
-      'success',
-      () => response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300,
-    );
-    normalizedData.putIfAbsent('updates', () {
-      return parsedData['updated'] ??
-          parsedData['matched'] ??
-          parsedData['numUpdated'] ??
-          parsedData['numMatched'] ??
-          0;
-    });
-    normalizedData.putIfAbsent('unmatched', () {
-      return parsedData['notMatched'] ??
-          parsedData['numUnmatched'] ??
-          parsedData['unmatchedCount'] ??
-          parsedData['numNotMatched'] ??
-          0;
-    });
-
-    return BatchQuickMatchLibraryItemsResponse.fromJson(normalizedData);
   }
 
   Future<QuickMatchLibraryItemResponse> quickMatchLibraryItem(
@@ -222,35 +174,17 @@ class LibraryItemApi {
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
   }) async {
-    final dioOptions = Options(
-      method: 'POST',
-      headers: <String, dynamic>{...?headers},
-      extra: <String, dynamic>{
-        'secure': <Map<String, String>>[
-          {'type': 'http', 'scheme': 'bearer', 'name': 'BearerAuth'},
-        ],
-        ...?extra,
-      },
-      contentType: 'application/json',
-    );
-
-    final response = await _dio.request<Object>(
-      '/api/items/$itemId/match',
-      data: request.toJson(),
-      options: dioOptions,
+    final response = await ABSApi.makeApiPostRequest<QuickMatchLibraryItemResponse>(
+      route: '/api/items/$itemId/match',
+      fromJson: (data) => QuickMatchLibraryItemResponse.fromJson(data as Map<String, dynamic>),
+      bodyData: request.toJson(),
       cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
     );
 
-    final rawData = response.data;
-    final parsedData = rawData is Map<String, dynamic>
-        ? rawData
-        : rawData is Map
-        ? Map<String, dynamic>.from(rawData)
-        : <String, dynamic>{
-            'updated': response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300,
-          };
-
-    return QuickMatchLibraryItemResponse.fromJson(parsedData);
+    return response.data ?? const QuickMatchLibraryItemResponse();
   }
 
   Future<Response<UpdateLibraryItemMediaResponse>> updateLibraryItemMedia(
@@ -279,15 +213,7 @@ class LibraryItemApi {
   }) async {
     return ABSApi.makeApiGetRequest(
       route: '/api/items/$itemId/metadata-object',
-      fromJson: (data) {
-        if (data is Map<String, dynamic>) {
-          return data;
-        }
-        if (data is Map) {
-          return Map<String, dynamic>.from(data);
-        }
-        return <String, dynamic>{};
-      },
+      fromJson: (data) => data as Map<String, dynamic>,
       cancelToken: cancelToken,
       headers: headers,
       extra: extra,
@@ -312,24 +238,13 @@ class LibraryItemApi {
       },
     ).toString();
 
-    final response = await _dio.request<Object>(
-      route,
-      options: Options(
-        method: 'POST',
-        headers: <String, dynamic>{...?headers},
-        extra: <String, dynamic>{
-          'secure': <Map<String, String>>[
-            {'type': 'http', 'scheme': 'bearer', 'name': 'BearerAuth'},
-          ],
-          ...?extra,
-        },
-        contentType: 'application/json',
-      ),
+    return _postStatusOnly(
+      route: route,
+      bodyData: const <String, dynamic>{},
       cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
     );
-
-    final statusCode = response.statusCode;
-    return statusCode != null && statusCode >= 200 && statusCode < 300;
   }
 
   Future<bool> startEncodeM4b(
@@ -350,24 +265,13 @@ class LibraryItemApi {
       },
     ).toString();
 
-    final response = await _dio.request<Object>(
-      route,
-      options: Options(
-        method: 'POST',
-        headers: <String, dynamic>{...?headers},
-        extra: <String, dynamic>{
-          'secure': <Map<String, String>>[
-            {'type': 'http', 'scheme': 'bearer', 'name': 'BearerAuth'},
-          ],
-          ...?extra,
-        },
-        contentType: 'application/json',
-      ),
+    return _postStatusOnly(
+      route: route,
+      bodyData: const <String, dynamic>{},
       cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
     );
-
-    final statusCode = response.statusCode;
-    return statusCode != null && statusCode >= 200 && statusCode < 300;
   }
 
   Future<bool> cancelEncodeM4b(

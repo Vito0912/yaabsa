@@ -79,7 +79,7 @@ class _FilesystemDirectoryPickerDialogState extends ConsumerState<_FilesystemDir
 
     try {
       final response = await api.getUploadApi().getFilesystemPaths(path: path, level: 0);
-      final directories = List<FilesystemDirectory>.from(response?.directories ?? const <FilesystemDirectory>[])
+      final directories = List<FilesystemDirectory>.from(response.data?.directories ?? const <FilesystemDirectory>[])
         ..sort((left, right) => left.dirname.toLowerCase().compareTo(right.dirname.toLowerCase()));
 
       if (!mounted) {

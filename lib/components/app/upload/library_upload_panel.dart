@@ -232,7 +232,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
     try {
       final uploadApi = api.getUploadApi();
       final authorResponse = await uploadApi.getFilesystemPaths(path: folderPath, level: 0);
-      final authorDirectories = authorResponse?.directories ?? const [];
+      final authorDirectories = authorResponse.data?.directories ?? const [];
       final authorSuggestions = _sortedUniqueNames(authorDirectories.map((entry) => entry.dirname));
       final authorPaths = <String, String>{};
       for (final directory in authorDirectories) {
@@ -312,7 +312,9 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
 
     try {
       final response = await api.getUploadApi().getFilesystemPaths(path: authorPath, level: 1);
-      final seriesSuggestions = _sortedUniqueNames((response?.directories ?? const []).map((entry) => entry.dirname));
+      final seriesSuggestions = _sortedUniqueNames(
+        (response.data?.directories ?? const []).map((entry) => entry.dirname),
+      );
 
       if (!mounted) {
         return;
@@ -1193,8 +1195,8 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
       try {
         final itemPath = _buildRemoteItemPath(item);
         final response = await api.getUploadApi().checkPathExists(directory: itemPath, folderPath: folder.fullPath);
-        if (response?.exists == true) {
-          final existingTitle = response?.libraryItemTitle;
+        if (response.data?.exists == true) {
+          final existingTitle = response.data?.libraryItemTitle;
           conflicts.add(
             existingTitle == null
                 ? '$identityLabel (destination path exists)'

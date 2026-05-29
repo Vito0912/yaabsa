@@ -457,7 +457,8 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
         throw Exception('API not available');
       }
 
-      feed = await api.getPodcastApi().getPodcastFeed(rssFeed: feedUrl);
+      final response = await api.getPodcastApi().getPodcastFeed(rssFeed: feedUrl);
+      feed = response.data?.podcast;
     } catch (e) {
       if (!mounted) {
         return;

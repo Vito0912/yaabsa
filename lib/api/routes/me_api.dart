@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:yaabsa/api/library/stats/listening_sessions_page.dart';
 import 'package:yaabsa/api/library/stats/user_listening_stats.dart';
 import 'package:yaabsa/api/library/stats/year_in_review_stats.dart';
@@ -11,38 +9,12 @@ import 'package:yaabsa/api/me/request/login_request.dart';
 import 'package:yaabsa/api/me/status.dart';
 import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
-import 'package:yaabsa/util/logger.dart';
 import 'package:dio/dio.dart';
 
 class MeApi {
   final Dio _dio;
 
   MeApi(this._dio);
-
-  ListeningSessionsPage _parseListeningSessionsPage(
-    dynamic data, {
-    required String route,
-    required int page,
-    required int itemsPerPage,
-  }) {
-    try {
-      if (data is Map<String, dynamic>) {
-        return ListeningSessionsPage.fromJson(data);
-      }
-      if (data is Map) {
-        return ListeningSessionsPage.fromJson(Map<String, dynamic>.from(data));
-      }
-      throw FormatException('Expected JSON object but received ${data.runtimeType}');
-    } catch (error, stackTrace) {
-      logger(
-        'Failed to parse $route response for page=$page itemsPerPage=$itemsPerPage: '
-        '$error\nPayload: ${jsonEncode(data)}\n$stackTrace',
-        tag: 'MeApi',
-        level: InfoLevel.error,
-      );
-      rethrow;
-    }
-  }
 
   Future<Response<Login>> login({
     required LoginRequest loginRequest,
@@ -222,12 +194,7 @@ class MeApi {
   }) async {
     return ABSApi.makeApiGetRequest(
       route: '/api/me/listening-sessions',
-      fromJson: (data) => _parseListeningSessionsPage(
-        data,
-        route: '/api/me/listening-sessions',
-        page: page,
-        itemsPerPage: itemsPerPage,
-      ),
+      fromJson: (data) => ListeningSessionsPage.fromJson(data as Map<String, dynamic>),
       cancelToken: cancelToken,
       headers: headers,
       extra: extra,
@@ -246,12 +213,7 @@ class MeApi {
   }) async {
     return ABSApi.makeApiGetRequest(
       route: '/api/users/$userId/listening-sessions',
-      fromJson: (data) => _parseListeningSessionsPage(
-        data,
-        route: '/api/users/$userId/listening-sessions',
-        page: page,
-        itemsPerPage: itemsPerPage,
-      ),
+      fromJson: (data) => ListeningSessionsPage.fromJson(data as Map<String, dynamic>),
       cancelToken: cancelToken,
       headers: headers,
       extra: extra,
@@ -276,7 +238,7 @@ class MeApi {
 
     return ABSApi.makeApiGetRequest(
       route: route,
-      fromJson: (data) => _parseListeningSessionsPage(data, route: route, page: page, itemsPerPage: itemsPerPage),
+      fromJson: (data) => ListeningSessionsPage.fromJson(data as Map<String, dynamic>),
       cancelToken: cancelToken,
       headers: headers,
       extra: extra,
