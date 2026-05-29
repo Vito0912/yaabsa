@@ -27,6 +27,7 @@ import 'package:yaabsa/screens/settings/admin_server_authentication_settings.dar
 import 'package:yaabsa/screens/settings/admin_server_configuration_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_email_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_library_stats_settings.dart';
+import 'package:yaabsa/screens/settings/admin_server_libraries_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_logs_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_api_keys_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_rss_feeds_settings.dart';
@@ -232,6 +233,10 @@ final globalRouter = GoRouter(
                     GoRoute(
                       path: AdminServerBackupsSettings.routeName,
                       builder: (context, state) => const AdminServerBackupsSettings(),
+                    ),
+                    GoRoute(
+                      path: AdminServerLibrariesSettings.routeName,
+                      builder: (context, state) => const AdminServerLibrariesSettings(),
                     ),
                     GoRoute(
                       path: AdminServerLibraryStatsSettings.routeName,

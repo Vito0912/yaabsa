@@ -11,6 +11,7 @@ import 'package:yaabsa/screens/settings/admin_server_authentication_settings.dar
 import 'package:yaabsa/screens/settings/admin_server_configuration_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_email_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_library_stats_settings.dart';
+import 'package:yaabsa/screens/settings/admin_server_libraries_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_logs_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_rss_feeds_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_sessions_settings.dart';
@@ -70,6 +71,14 @@ class AdminServerSettings extends ConsumerWidget {
                       enabled: isAdminUser,
                       disabledReason: isAdminUser ? null : 'Requires an admin account.',
                       onTap: isAdminUser ? () => context.push(AdminServerConfigurationSettings.routeName) : null,
+                    ),
+                    SettingsNavigationItem(
+                      icon: Icons.library_add_outlined,
+                      title: 'Libraries',
+                      subtitle: 'Add, edit, scan, reorder, and delete server libraries.',
+                      enabled: isAdminUser,
+                      disabledReason: isAdminUser ? null : 'Requires an admin account.',
+                      onTap: isAdminUser ? () => context.push(AdminServerLibrariesSettings.routeName) : null,
                     ),
                     SettingsNavigationItem(
                       icon: Icons.insert_chart_outlined_rounded,
