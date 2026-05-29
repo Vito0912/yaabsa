@@ -438,7 +438,9 @@ class MainSettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final showAndroidAutoSettings = !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+    final isAndroid = !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+    final isIOS = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+    final showCarIntegrationSettings = isAndroid || isIOS;
 
     return ListView(
       padding: const EdgeInsets.only(bottom: 24),
@@ -492,10 +494,10 @@ class MainSettingsScreen extends ConsumerWidget {
                               title: 'Global Player',
                               onTap: () => context.push(GlobalPlayerSettings.routeName),
                             ),
-                            if (showAndroidAutoSettings)
+                            if (showCarIntegrationSettings)
                               SettingsNavigationItem(
                                 icon: Icons.directions_car_filled_outlined,
-                                title: aaosState.isAutomotiveDevice ? 'AAOS' : 'Android Auto',
+                                title: aaosState.isAutomotiveDevice ? 'AAOS' : (isIOS ? 'CarPlay' : 'Android Auto'),
                                 onTap: () => context.push(AndroidAutoSettings.routeName),
                               ),
                             SettingsNavigationItem(
