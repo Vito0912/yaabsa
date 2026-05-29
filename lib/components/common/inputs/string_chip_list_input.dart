@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
 
@@ -62,6 +64,9 @@ class StringChipListInput extends StatefulWidget {
     this.suggestions = const <String>[],
     this.validator,
     this.normalizer,
+    this.onTryAdd,
+    this.chipLabelBuilder,
+    this.onChipTap,
   });
 
   final String label;
@@ -74,6 +79,9 @@ class StringChipListInput extends StatefulWidget {
   final List<String> suggestions;
   final StringChipListInputValidator? validator;
   final StringChipListInputNormalizer? normalizer;
+  final FutureOr<String?> Function(String value, List<String> currentValues)? onTryAdd;
+  final String Function(String value)? chipLabelBuilder;
+  final ValueChanged<String>? onChipTap;
 
   @override
   State<StringChipListInput> createState() => _StringChipListInputState();
@@ -125,13 +133,13 @@ class _StringChipListInputState extends State<StringChipListInput> {
     return false;
   }
 
-  void _addValue(String rawValue) {
+  void _addValue(String rawValue) async {
     if (!widget.enabled) {
       return;
     }
 
-    final normalizedValue = _normalizeValue(rawValue);
-    if (normalizedValue.isEmpty) {
+    var valueToAdd = _normalizeValue(rawValue);
+    if (valueToAdd.isEmpty) {
       setState(() {
         _validationError = null;
       });
@@ -140,7 +148,7 @@ class _StringChipListInputState extends State<StringChipListInput> {
 
     final validator = widget.validator;
     if (validator != null) {
-      final validationMessage = validator(normalizedValue);
+      final validationMessage = validator(valueToAdd);
       if (validationMessage != null && validationMessage.trim().isNotEmpty) {
         setState(() {
           _validationError = validationMessage.trim();
@@ -149,7 +157,30 @@ class _StringChipListInputState extends State<StringChipListInput> {
       }
     }
 
-    if (_containsIgnoreCase(normalizedValue)) {
+    final onTryAdd = widget.onTryAdd;
+    if (onTryAdd != null) {
+      final customValue = await onTryAdd(valueToAdd, widget.values);
+      if (!mounted || customValue == null) {
+        return;
+      }
+
+      valueToAdd = _normalizeValue(customValue);
+      if (valueToAdd.isEmpty) {
+        return;
+      }
+
+      if (validator != null) {
+        final validationMessage = validator(valueToAdd);
+        if (validationMessage != null && validationMessage.trim().isNotEmpty) {
+          setState(() {
+            _validationError = validationMessage.trim();
+          });
+          return;
+        }
+      }
+    }
+
+    if (_containsIgnoreCase(valueToAdd)) {
       _controller.clear();
       setState(() {
         _query = '';
@@ -158,7 +189,7 @@ class _StringChipListInputState extends State<StringChipListInput> {
       return;
     }
 
-    widget.onChanged(<String>[...widget.values, normalizedValue]);
+    widget.onChanged(<String>[...widget.values, valueToAdd]);
     _controller.clear();
     setState(() {
       _query = '';
@@ -245,7 +276,8 @@ class _StringChipListInputState extends State<StringChipListInput> {
                   visualDensity: VisualDensity.compact,
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   side: BorderSide.none,
-                  label: Text(value, style: theme.textTheme.bodySmall),
+                  label: Text(widget.chipLabelBuilder?.call(value) ?? value, style: theme.textTheme.bodySmall),
+                  onPressed: widget.onChipTap == null ? null : () => widget.onChipTap!(value),
                   onDeleted: widget.enabled ? () => _removeValue(value) : null,
                 ),
               if (widget.enabled) _buildInlineInput(context),

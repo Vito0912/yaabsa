@@ -7,6 +7,7 @@ import 'package:yaabsa/api/podcast/podcast_search_result.dart';
 import 'package:yaabsa/api/podcast/request/create_podcast_request.dart';
 import 'package:yaabsa/components/app/item/editor/library_item_editor_field_container.dart';
 import 'package:yaabsa/components/app/item/editor/library_item_editor_inputs.dart';
+import 'package:yaabsa/components/common/inputs/string_chip_list_input.dart';
 import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
 
 Future<CreatePodcastRequest?> showPodcastCreateDialog({
@@ -176,9 +177,8 @@ class _PodcastCreateDialogState extends State<_PodcastCreateDialog> {
                             });
                           },
                         ),
-                        LibraryItemEditorStringChips(
+                        StringChipListInput(
                           label: 'Genres',
-                          labelInsideBorder: true,
                           values: _genres,
                           suggestions: _genresSuggestions,
                           hintText: 'Add genre',

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:yaabsa/components/app/item/editor/library_item_editor_inputs.dart';
 import 'package:yaabsa/components/app/item/match/manual_match/manual_match_description_field.dart';
 import 'package:yaabsa/components/app/item/match/manual_match/manual_match_models.dart';
 import 'package:yaabsa/components/common/inputs/expressive_dropdown.dart';
+import 'package:yaabsa/components/common/inputs/string_chip_list_input.dart';
 
 class ManualMatchFieldEditor extends StatelessWidget {
   const ManualMatchFieldEditor({
@@ -138,7 +138,7 @@ class ManualMatchFieldEditor extends StatelessWidget {
 
   Widget _buildChipsEditor() {
     final values = extractStringList(textController?.text);
-    return LibraryItemEditorStringChips(
+    return StringChipListInput(
       label: field.label,
       values: values,
       onChanged: (nextValues) {

@@ -9,6 +9,7 @@ import 'package:yaabsa/components/app/item/editor/library_item_description_codec
 import 'package:yaabsa/components/app/item/editor/library_item_edit_models.dart';
 import 'package:yaabsa/components/app/item/editor/library_item_editor_field_container.dart';
 import 'package:yaabsa/components/app/item/editor/library_item_editor_inputs.dart';
+import 'package:yaabsa/components/common/inputs/string_chip_list_input.dart';
 import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
 import 'package:yaabsa/components/common/inputs/rich_text_quill_field.dart';
 import 'package:yaabsa/util/globals.dart';
@@ -57,6 +58,7 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
   List<LibraryItemEditorSeriesEntry> _series = const <LibraryItemEditorSeriesEntry>[];
   List<String> _genres = const <String>[];
   List<String> _tags = const <String>[];
+  final Map<String, String> _pendingSeriesSequences = <String, String>{};
   bool _explicit = false;
   bool _abridged = false;
 
@@ -250,6 +252,192 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
     return 'episodic';
   }
 
+  String _sanitizeSeriesSequence(String value) => value.replaceAll(RegExp(r'\s+'), '');
+
+  Future<String?> _promptSeriesSequence({String initialValue = ''}) async {
+    if (!mounted) {
+      return null;
+    }
+
+    final controller = TextEditingController(text: initialValue);
+    try {
+      final value = await showDialog<String>(
+        context: context,
+        builder: (dialogContext) {
+          var completed = false;
+
+          void complete(String value) {
+            if (completed) {
+              return;
+            }
+            completed = true;
+
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!dialogContext.mounted) {
+                return;
+              }
+              Navigator.of(dialogContext).pop(_sanitizeSeriesSequence(value));
+            });
+          }
+
+          return AlertDialog(
+            title: const Text('Series number'),
+            content: TextField(
+              controller: controller,
+              autofocus: true,
+              textInputAction: TextInputAction.done,
+              decoration: const InputDecoration(
+                labelText: 'Sequence',
+                hintText: 'e.g. 1,2.5,03 (no spaces)',
+                border: OutlineInputBorder(),
+              ),
+              onSubmitted: complete,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  complete(initialValue);
+                },
+                child: const Text('Skip'),
+              ),
+              FilledButton(
+                onPressed: () {
+                  complete(controller.text);
+                },
+                child: const Text('Save'),
+              ),
+            ],
+          );
+        },
+      );
+
+      return value;
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Could not open the series sequence prompt. Please try again.')));
+      }
+      return null;
+    } finally {
+      controller.dispose();
+    }
+  }
+
+  Future<String?> _prepareSeriesValue(String value, List<String> currentValues) async {
+    final normalizedName = value.trim();
+    if (normalizedName.isEmpty) {
+      return null;
+    }
+
+    final sequence = await _promptSeriesSequence();
+    if (!mounted || sequence == null) {
+      return null;
+    }
+
+    _pendingSeriesSequences[normalizedName.toLowerCase()] = sequence;
+    return normalizedName;
+  }
+
+  String _seriesChipLabel(String seriesName) {
+    final normalizedName = seriesName.trim().toLowerCase();
+    for (final entry in _series) {
+      if (entry.name.toLowerCase() != normalizedName) {
+        continue;
+      }
+
+      final sequence = entry.sequence.trim();
+      return sequence.isEmpty ? entry.name : '${entry.name} #$sequence';
+    }
+
+    return seriesName;
+  }
+
+  void _updateAuthorsFromNames(List<String> nextNames, List<LibraryFilterNamedEntity> suggestions) {
+    final existingByLower = <String, LibraryItemEditorNamedEntity>{
+      for (final entry in _authors) entry.name.toLowerCase(): entry,
+    };
+    final suggestionByLower = <String, LibraryFilterNamedEntity>{
+      for (final entry in suggestions) entry.name.toLowerCase(): entry,
+    };
+
+    final nextAuthors = nextNames
+        .map((rawName) => rawName.trim())
+        .where((name) => name.isNotEmpty)
+        .map((name) {
+          final lowerName = name.toLowerCase();
+          final existing = existingByLower[lowerName];
+          if (existing != null) {
+            return existing;
+          }
+
+          final matchedSuggestion = suggestionByLower[lowerName];
+          if (matchedSuggestion != null) {
+            return LibraryItemEditorNamedEntity(id: matchedSuggestion.id, name: matchedSuggestion.name);
+          }
+
+          return LibraryItemEditorNamedEntity(id: name, name: name);
+        })
+        .toList(growable: false);
+
+    setState(() {
+      _authors = nextAuthors;
+    });
+  }
+
+  void _updateSeriesFromNames(List<String> nextNames, List<LibraryFilterNamedEntity> suggestions) {
+    final existingByLower = <String, LibraryItemEditorSeriesEntry>{
+      for (final entry in _series) entry.name.toLowerCase(): entry,
+    };
+    final suggestionByLower = <String, LibraryFilterNamedEntity>{
+      for (final entry in suggestions) entry.name.toLowerCase(): entry,
+    };
+
+    final nextSeries = nextNames
+        .map((rawName) => rawName.trim())
+        .where((name) => name.isNotEmpty)
+        .map((name) {
+          final lowerName = name.toLowerCase();
+          final existing = existingByLower[lowerName];
+          if (existing != null) {
+            return existing;
+          }
+
+          final matchedSuggestion = suggestionByLower[lowerName];
+          final pendingSequence = _pendingSeriesSequences.remove(lowerName) ?? '';
+          return LibraryItemEditorSeriesEntry(
+            id: matchedSuggestion != null && matchedSuggestion.id.trim().isNotEmpty ? matchedSuggestion.id : name,
+            name: name,
+            sequence: pendingSequence,
+          );
+        })
+        .toList(growable: false);
+
+    setState(() {
+      _series = nextSeries;
+    });
+  }
+
+  Future<void> _editSeriesSequenceByName(String seriesName) async {
+    final normalizedName = seriesName.trim().toLowerCase();
+    final index = _series.indexWhere((entry) => entry.name.toLowerCase() == normalizedName);
+    if (index < 0) {
+      return;
+    }
+
+    final current = _series[index];
+    final updated = await _promptSeriesSequence(initialValue: current.sequence);
+    if (!mounted || updated == null) {
+      return;
+    }
+
+    setState(() {
+      final next = List<LibraryItemEditorSeriesEntry>.from(_series);
+      next[index] = current.copyWith(sequence: updated);
+      _series = next;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final filterData = widget.filterData;
@@ -428,17 +616,13 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
         if (!isPodcast)
           _ResponsiveEditorFields(
             children: [
-              LibraryItemEditorNamedEntityChips(
+              StringChipListInput(
                 label: 'Authors',
-                values: _authors,
-                suggestions: authorsSuggestions,
-                onChanged: (next) {
-                  setState(() {
-                    _authors = next;
-                  });
-                },
+                values: _authors.map((entry) => entry.name).toList(growable: false),
+                suggestions: authorsSuggestions.map((entry) => entry.name).toList(growable: false),
+                onChanged: (next) => _updateAuthorsFromNames(next, authorsSuggestions),
               ),
-              LibraryItemEditorStringChips(
+              StringChipListInput(
                 label: 'Narrators',
                 values: _narrators,
                 suggestions: narratorsSuggestions,
@@ -454,16 +638,17 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
         _ResponsiveEditorFields(
           children: [
             if (!isPodcast)
-              LibraryItemEditorSeriesList(
-                values: _series,
-                suggestions: seriesSuggestions,
-                onChanged: (next) {
-                  setState(() {
-                    _series = next;
-                  });
-                },
+              StringChipListInput(
+                label: 'Series',
+                values: _series.map((entry) => entry.name).toList(growable: false),
+                suggestions: seriesSuggestions.map((entry) => entry.name).toList(growable: false),
+                hintText: 'Add series',
+                chipLabelBuilder: _seriesChipLabel,
+                onChipTap: _editSeriesSequenceByName,
+                onTryAdd: _prepareSeriesValue,
+                onChanged: (next) => _updateSeriesFromNames(next, seriesSuggestions),
               ),
-            LibraryItemEditorStringChips(
+            StringChipListInput(
               label: 'Genres',
               values: _genres,
               suggestions: genresSuggestions,
@@ -473,7 +658,7 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
                 });
               },
             ),
-            LibraryItemEditorStringChips(
+            StringChipListInput(
               label: 'Tags',
               values: _tags,
               suggestions: tagsSuggestions,
