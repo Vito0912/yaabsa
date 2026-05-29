@@ -580,8 +580,11 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       _emitQueueState();
     }
     try {
-      await _syncService.flush(positionOverride: stopPosition);
-      await _ref.read(sessionRepositoryProvider).closeSession();
+      unawaited(
+        _syncService
+            .flush(positionOverride: stopPosition)
+            .then((_) => _ref.read(sessionRepositoryProvider).closeSession()),
+      );
     } catch (e) {
       logger('Error closing session: $e', tag: 'AudioHandler', level: InfoLevel.error);
     }
