@@ -16,13 +16,9 @@ class AndroidEdgeToEdgeInsetGuard extends StatelessWidget {
 
     final mediaQuery = MediaQuery.of(context);
     final mergedPadding = mediaQuery.padding.copyWith(
-      left: math.max(mediaQuery.padding.left, mediaQuery.systemGestureInsets.left),
-      right: math.max(mediaQuery.padding.right, mediaQuery.systemGestureInsets.right),
       bottom: math.max(mediaQuery.padding.bottom, mediaQuery.systemGestureInsets.bottom),
     );
     final mergedViewPadding = mediaQuery.viewPadding.copyWith(
-      left: math.max(mediaQuery.viewPadding.left, mediaQuery.systemGestureInsets.left),
-      right: math.max(mediaQuery.viewPadding.right, mediaQuery.systemGestureInsets.right),
       bottom: math.max(mediaQuery.viewPadding.bottom, mediaQuery.systemGestureInsets.bottom),
     );
 

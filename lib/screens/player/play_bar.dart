@@ -159,6 +159,8 @@ class _PlayBarState extends State<PlayBar> {
 
             return SafeArea(
               top: false,
+              left: !widget.attachedToBottom,
+              right: !widget.attachedToBottom,
               bottom: widget.includeBottomSafeArea,
               child: Padding(
                 padding: outerPadding,

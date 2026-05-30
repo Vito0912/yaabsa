@@ -5,6 +5,7 @@ import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/provider/core/server_reachability_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/provider/player/user_bookmarks_provider.dart';
 import 'package:yaabsa/provider/player/session_provider.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/network/dio_factory.dart';
@@ -166,27 +167,36 @@ Future<void> _onServerReachable(Ref ref, {required bool reconnected}) async {
     final offlineSync = await db.getAllSyncs();
     if (offlineSync.isEmpty) {
       logger('No offline syncs found', tag: 'ServerStatusProvider', level: InfoLevel.debug);
-      return;
+    } else {
+      final sortedSyncs = [...offlineSync]..sort((left, right) => left.lastUpdated.compareTo(right.lastUpdated));
+
+      for (final sync in sortedSyncs) {
+        if (!userIds.contains(sync.userId)) {
+          logger(
+            'Deleting sync ${sync.sessionId} because user ${sync.userId} no longer exists.',
+            tag: 'ServerStatusProvider',
+            level: InfoLevel.debug,
+          );
+          await db.deleteSync(sync.sessionId);
+          continue;
+        }
+
+        final synced = await sessionRepository.replayStoredSync(sync);
+        if (synced) {
+          await db.deleteSync(sync.sessionId);
+          logger('Sync completed successfully for session ID: ${sync.sessionId}', tag: 'ServerStatusProvider');
+        }
+      }
     }
 
-    final sortedSyncs = [...offlineSync]..sort((left, right) => left.lastUpdated.compareTo(right.lastUpdated));
-
-    for (final sync in sortedSyncs) {
-      if (!userIds.contains(sync.userId)) {
-        logger(
-          'Deleting sync ${sync.sessionId} because user ${sync.userId} no longer exists.',
-          tag: 'ServerStatusProvider',
-          level: InfoLevel.debug,
-        );
-        await db.deleteSync(sync.sessionId);
-        continue;
-      }
-
-      final synced = await sessionRepository.replayStoredSync(sync);
-      if (synced) {
-        await db.deleteSync(sync.sessionId);
-        logger('Sync completed successfully for session ID: ${sync.sessionId}', tag: 'ServerStatusProvider');
-      }
+    final bookmarkSyncCount = await ref.read(userBookmarksProvider.notifier).syncPendingMutations();
+    if (bookmarkSyncCount > 0) {
+      logger(
+        'Synced $bookmarkSyncCount queued bookmark mutations.',
+        tag: 'ServerStatusProvider',
+        level: InfoLevel.debug,
+      );
+      await ref.read(userBookmarksProvider.notifier).refresh();
     }
   } finally {
     _isSyncReplayInProgress = false;

@@ -88,6 +88,20 @@ class StoredMediaProgress extends Table {
   Set<Column> get primaryKey => {progressId};
 }
 
+@DataClassName('StoredBookmarkSyncEntry')
+class StoredBookmarkSyncs extends Table {
+  TextColumn get userId => text()();
+  TextColumn get itemId => text()();
+  IntColumn get time => integer()();
+
+  TextColumn get title => text().nullable()();
+  BoolColumn get deleted => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get updatedAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {userId, itemId, time};
+}
+
 @DataClassName('StoredDownloadsEntry')
 class StoredDownloads extends Table {
   TextColumn get itemId => text()();
@@ -137,6 +151,7 @@ class PlayerHistory extends Table {
     StoredUsers,
     StoredSyncs,
     StoredMediaProgress,
+    StoredBookmarkSyncs,
     StoredDownloads,
     PlayerHistory,
   ],
@@ -153,7 +168,7 @@ class AppDatabase extends _$AppDatabase {
   final AuthSecretStore _authSecretStore;
 
   @override
-  int get schemaVersion => 17;
+  int get schemaVersion => 18;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -197,6 +212,9 @@ class AppDatabase extends _$AppDatabase {
           'CREATE INDEX IF NOT EXISTS player_history_item_user_episode_created_idx '
           'ON player_history (item_id, user_id, episode_id, created DESC)',
         );
+      }
+      if (from <= 17) {
+        await m.createTable(storedBookmarkSyncs);
       }
     },
     beforeOpen: (details) async {},
@@ -614,6 +632,55 @@ class AppDatabase extends _$AppDatabase {
     return await (select(storedMediaProgress)..where((tbl) => tbl.userId.equals(userId))).get();
   }
 
+  Expression<bool> _storedBookmarkSyncWhereExpression({
+    required String userId,
+    required String itemId,
+    required int time,
+  }) {
+    return storedBookmarkSyncs.userId.equals(userId) &
+        storedBookmarkSyncs.itemId.equals(itemId) &
+        storedBookmarkSyncs.time.equals(time);
+  }
+
+  Future<void> upsertStoredBookmarkSync({
+    required String userId,
+    required String itemId,
+    required int time,
+    required String? title,
+    required bool deleted,
+    required DateTime updatedAt,
+  }) {
+    final companion = StoredBookmarkSyncsCompanion(
+      userId: Value(userId),
+      itemId: Value(itemId),
+      time: Value(time),
+      title: Value(title),
+      deleted: Value(deleted),
+      updatedAt: Value(updatedAt),
+    );
+
+    return into(storedBookmarkSyncs).insert(companion, mode: InsertMode.insertOrReplace);
+  }
+
+  Future<void> deleteStoredBookmarkSync(String userId, String itemId, int time) {
+    final query = delete(storedBookmarkSyncs)
+      ..where((tbl) => _storedBookmarkSyncWhereExpression(userId: userId, itemId: itemId, time: time));
+    return query.go();
+  }
+
+  Future<void> deleteStoredBookmarkSyncByUser(String userId) {
+    final query = delete(storedBookmarkSyncs)..where((tbl) => tbl.userId.equals(userId));
+    return query.go();
+  }
+
+  Future<List<StoredBookmarkSyncEntry>> getStoredBookmarkSyncByUser(String userId) async {
+    return await (select(storedBookmarkSyncs)..where((tbl) => tbl.userId.equals(userId))).get();
+  }
+
+  Future<List<StoredBookmarkSyncEntry>> getAllStoredBookmarkSyncs() async {
+    return await select(storedBookmarkSyncs).get();
+  }
+
   // Sync management
   Future<void> addOrUpdateSync(StoredSyncsCompanion companion) {
     return into(storedSyncs).insert(
@@ -803,6 +870,7 @@ class AppDatabase extends _$AppDatabase {
 
   Future<void> deleteStoredUser(String userId) async {
     await deleteStoredMediaProgressByUser(userId);
+    await deleteStoredBookmarkSyncByUser(userId);
     await deleteBookPlaybackSpeedsByUser(userId);
     await (delete(storedUsers)..where((tbl) => tbl.id.equals(userId))).go();
     await _authSecretStore.deleteForUser(userId);
