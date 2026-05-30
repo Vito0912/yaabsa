@@ -669,6 +669,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
       logger('No next chapter found, skipping to next item', tag: 'AudioHandler', level: InfoLevel.debug);
       if (queueList.isNotEmpty) {
+        _forceQueueSwitchOnNextPlay = true;
         await play();
       } else {
         logger(

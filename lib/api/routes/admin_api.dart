@@ -408,11 +408,13 @@ class AdminApi {
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
   }) async {
+    Dio tmpDio = _dio;
+    tmpDio.options.receiveTimeout = const Duration(minutes: 10);
     return ABSApi.makeApiPostRequest(
       route: '/api/backups',
       fromJson: (data) => AdminBackupListResponse.fromJson(data as Map<String, dynamic>),
       bodyData: const <String, dynamic>{},
-      dio: _dio,
+      dio: tmpDio,
       cancelToken: cancelToken,
       headers: headers,
       extra: extra,

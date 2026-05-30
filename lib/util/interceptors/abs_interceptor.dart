@@ -50,6 +50,7 @@ class ABSInterceptor extends Interceptor {
         err.type == DioExceptionType.sendTimeout ||
         err.type == DioExceptionType.receiveTimeout ||
         err.type == DioExceptionType.connectionError) {
+      logger('${err.requestOptions.uri} failed with ${err.type}', tag: 'ABSInterceptor', level: InfoLevel.info);
       return true;
     }
 
