@@ -84,6 +84,7 @@ class _VolumeSliderState extends State<VolumeSlider> {
 
     showModalBottomSheet<void>(
       context: context,
+      useSafeArea: true,
       isScrollControlled: true,
       showDragHandle: true,
       builder: (sheetContext) {

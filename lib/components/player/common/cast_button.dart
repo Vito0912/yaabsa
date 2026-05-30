@@ -189,6 +189,7 @@ Future<void> showCastDevicePicker(BuildContext context, {bool ensureInitialized 
 
     final selectedDevice = await showModalBottomSheet<GoogleCastDevice>(
       context: context,
+      useSafeArea: true,
       showDragHandle: true,
       builder: (context) => _CastDeviceSheet(onDisconnect: () => _disconnectSession(context)),
     );

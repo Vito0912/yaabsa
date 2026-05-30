@@ -333,6 +333,7 @@ class MainSettingsScreen extends ConsumerWidget {
   void _showManageAccountsBottomSheet(BuildContext context, WidgetRef ref, User? currentUser, List<User> otherUsers) {
     showModalBottomSheet(
       context: context,
+      useSafeArea: true,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (BuildContext bottomSheetContext) {
