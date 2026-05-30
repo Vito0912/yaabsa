@@ -1,0 +1,67 @@
+name: Feature Request
+description: If you have an idea for a new feature
+title: '[Feature request]: '
+labels: ['enhancement']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # Feature Request
+        Please fill out this form to help us understand and implement your idea.
+
+        You can also join the [Discord server](https://discord.gg/VFRmFZTx7U) to discuss your idea with us and the community before you fill out this form.
+
+  - type: input
+    id: version
+    attributes:
+      label: "App Version"
+      description: "You can find this in the settings under 'Information & Attribution' in the 'About & Support' section."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: "Platform(s)"
+      description: "Which platform(s) should this feature be implemented for?"
+      multiple: true
+      options:
+        - 'Android'
+        - 'iOS'
+        - 'Windows'
+        - 'macOS'
+        - 'Linux'
+    validations:
+      required: true
+
+  - type: input
+    id: platform-details
+    attributes:
+      label: "Platform details"
+      description: "Please provide additional details about the platform(s) you want this feature to be implemented for. e.g. Android Automotive OS, Android Auto, CarPlay..."
+    validations:
+      required: false
+    
+  - type: textarea
+    id: description
+    attributes:
+      label: "Description"
+      description: "Please describe your idea in as much detail as possible. The more information you provide, the better we can understand and implement your idea."
+    validations:
+      required: true
+
+  - type: textarea
+    id: benefits
+    attributes:
+      label: "Benefits"
+      description: "What are the benefits of this feature? Why do you think this feature should be implemented? Please provide as much detail as possible."
+    validations:
+      required: false
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: "Screenshots"
+      description: "If applicable, please provide screenshots to help us understand your idea better."
+    validations:
+      required: false

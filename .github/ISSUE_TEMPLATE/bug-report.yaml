@@ -1,0 +1,116 @@
+name: Bug Report
+description: If you have found a bug in the app
+title: '[Bug]: '
+labels: ['bug']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # Bug Report
+        Please fill out this form to help us understand and fix the problem as quickly as possible. Thank you for your help!
+
+        If you are not sure if the problem you found is a bug, please ask in the [Discord server](https://discord.gg/VFRmFZTx7U) before you fill out this form.
+
+  - type: dropdown
+    id: confirm-check
+    attributes:
+      label: "I use the latest version of the app"
+      description: "You can find the latest version in the settings under 'Information & Attribution' in the 'About & Support' section."
+      multiple: false
+      options:
+        - 'Yes'
+        - 'No'
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: "App Version"
+      description: "You can find this in the settings under 'Information & Attribution' in the 'About & Support' section."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: "Platform(s)"
+      multiple: true
+      options:
+        - 'Android'
+        - 'iOS'
+        - 'Windows'
+        - 'macOS'
+        - 'Linux'
+    validations:
+      required: true
+
+  - type: dropdown
+    id: installation-method
+    attributes:
+      label: "Installation method"
+      multiple: true
+      options:
+        - 'Google Play Store'
+        - 'Apple App Store'
+        - 'Apple TestFlight'
+        - 'Flatpak'
+        - 'AUR'
+        - 'Releases page'
+        - 'Other (Please specify in the platform details field)'
+
+  - type: input
+    id: platform-details
+    attributes:
+      label: "Platform details"
+      description: "Please provide details about your platform such as if the issue is related to Android Auto, CarPlay, Flatpak, etc."
+    validations:
+      required: false
+
+  - type: input
+    id: device
+    attributes:
+      label: "Device"
+      description: "Please provide details about your device such as the model, Android version, etc."
+    validations:
+      required: false
+    
+  - type: textarea
+    id: actual
+    attributes:
+      label: "Current behavior"
+      description: "What is happening right now?"
+      value: "The app is..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: "Expected behavior"
+      description: "What did you expect to happen?"
+      value: "The app should..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: "Reproduction steps"
+      description: "How do you trigger this bug? Please walk us through it step by step."
+      value: |
+        1.
+        2.
+        3.
+        ...
+      render: bash
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: "Logs"
+      description: "Please provide logs if you have any. Open the settings and go to 'Logs' in the 'About & Support' section. Set the log level to debug, restart the app, and repeat the issue. Then, copy the logs using the 'Copy GitHub' button and paste them here."
+    validations:
+      required: false

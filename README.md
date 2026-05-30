@@ -12,7 +12,7 @@ An improved unofficial cross-platform app for Audiobookshelf
 If you don't want to do that, which is very understandable, you can also download the APK from the releases page, but you won't get automatic updates that way. These are exactly the same files that are uploaded to the Play Store.
 * Download the latest APK from the releases page. Note that `AAOS` are only compatible with Android Automotive.
 
-![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black) [![Flatpak](https://img.shields.io/badge/Flatpak-4A90E2?style=for-the-badge&logo=flatpak&logoColor=white)](https://Vito0912.github.io/yaabsa/de.vito0912.yaabsa.flatpakrepo)
+![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black) [![Flatpak](https://img.shields.io/badge/Flatpak-4A90E2?style=for-the-badge&logo=flatpak&logoColor=white)](https://Vito0912.github.io/yaabsa/de.vito0912.yaabsa.flatpakrepo) [![AUR (Community maintained)](https://img.shields.io/badge/AUR_(Community_maintained)-333333?style=for-the-badge&logo=arch-linux&logoColor=1793D1)](https://aur.archlinux.org/packages/yaabsa-bin/)
 
 * _Use the Flatpak (recommended)_:
 
@@ -21,6 +21,7 @@ If you don't want to do that, which is very understandable, you can also downloa
   flatpak install yaabsa de.vito0912.yaabsa --user
   ```
 
+* The [AUR package](https://aur.archlinux.org/packages/yaabsa-bin/) is maintained by [@caitlynrw](https://github.com/caitlynrw). Thanks!
 * For all other installation methods, please refer to the [Platform hints](#platform-hints) section below and download them from the releases page.
 
 ![macOS](https://img.shields.io/badge/macOS-000000?style=for-the-badge&logo=apple&logoColor=white) [![TestFlight](https://img.shields.io/badge/TestFlight-00C7B7?style=for-the-badge&logo=testflight&logoColor=white)](https://testflight.apple.com/join/fSyXDKFf)
@@ -117,6 +118,21 @@ Below is a list of all features, but I want to _highlight_ a few, as this client
 
 \* You can only load in annotations, but not create new ones for ePUBs
 
+### Other Features
+
+| Feature             | Android | iOS  | Windows | MacOS | Linux |
+| ------------------- | ------- | ---- | ------- | ----- | ----- |
+| Sync                | ✅      | ✅   | ✅      | ✅    | ✅    |
+| Caching             | ✅      | ✅   | ✅      | ✅    | ✅    |
+| Downloads           | ✅      | ✅   | ❓      | ✅\*  | ✅    |
+| Headers             | ✅      | ✅   | ✅      | ✅    | ✅    |
+| Tray/Statusbar Icon | ❌      | ❌   | ❓      | ✅    | ✅    |
+| Car                 | ✅      | ✅   | ❌      | ❌    | ❌    |
+| Android Automotive  | ✅      | ❌   | ❌      | ❌    | ❌    |
+| Widgets             | ✅      | 🅿️   | ❌      | ❌    | 🅿️    |
+
+\* Only supports the default download location, due to sandboxing limitations. Will be addressed in the future.\
+
 ### Server Management
 
 | Feature               | Android | iOS  | Windows | MacOS | Linux |
@@ -128,28 +144,25 @@ Below is a list of all features, but I want to _highlight_ a few, as this client
 | Upload items          | ✅      | ✅   | ✅      | ✅    | ✅    |
 | Match items           | ✅      | ✅   | ✅      | ✅    | ✅    |
 | Bulk editing          | 🅿️      | 🅿️   | 🅿️      | 🅿️    | 🅿️    |
-| User management       | ✅      | ✅   | ✅      | ✅    | ✅    |
 | Embedding/Encoding    | ✅      | ✅   | ✅      | ✅    | ✅    |
+| Open RSS feeds        | 🅿️      | 🅿️   | 🅿️      | 🅿️    | 🅿️    |
+| Send to E-Reader      | 🅿️      | 🅿️   | 🅿️      | 🅿️    | 🅿️    |
+
+| Feature               | Android | iOS  | Windows | MacOS | Linux |
+| --------------------- | ------- | ---- | ------- | ----- | ----- |
+| User management       | ✅      | ✅   | ✅      | ✅    | ✅    |
 | Metadata utils        | ✅      | ✅   | ✅      | ✅    | ✅    |
 | Listening Sessions\*  | ✅      | ✅   | ✅      | ✅    | ✅    |
+| Server Settings       | ✅      | ✅   | ✅      | ✅    | ✅    |
+| Library Management    | ✅      | ✅   | ✅      | ✅    | ✅    |
+| API Key Management    | ✅      | ✅   | ✅      | ✅    | ✅    |
+| Manage Backups        | ✅      | ✅   | ✅      | ✅    | ✅    |
+| Server Logs           | ✅      | ✅   | ✅      | ✅    | ✅    |
+| Email/E-Reader        | ✅      | ✅   | ✅      | ✅    | ✅    |
+| RSS Feeds             | ✅      | ✅   | ✅      | ✅    | ✅    |
+| Authentication        | ✅      | ✅   | ✅      | ✅    | ✅    |
 
 \* Also allows editing sessions
-
-### Other Features
-
-| Feature             | Android | iOS  | Windows | MacOS | Linux |
-| ------------------- | ------- | ---- | ------- | ----- | ----- |
-| Sync                | ✅      | ✅   | ✅      | ✅    | ✅    |
-| Caching             | ✅      | ✅   | ✅      | ✅    | ✅    |
-| Downloads           | ✅      | ❓   | ❓      | ✅\*  | ✅    |
-| Headers             | ✅      | ✅   | ✅      | ✅    | ✅    |
-| Tray/Statusbar Icon | ❌      | ❌   | ❓      | ❓    | ✅    |
-| Car                 | ✅      | 🅿️   | ❌      | ❌    | ❌    |
-| Android Automotive  | ✅\**   | ❌   | ❌      | ❌    | ❌    |
-| Widgets             | ✅      | 🅿️   | ❌      | ❌    | 🅿️    |
-
-\* Only supports the default download location, due to sandboxing limitations. Will be addressed in the future.\
-\** On most cars, only the park experience works currently. More support is planned.
 
 ## Platform hints
 
