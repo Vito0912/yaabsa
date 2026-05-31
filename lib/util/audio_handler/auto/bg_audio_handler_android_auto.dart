@@ -18,6 +18,10 @@ const int _androidAutoDefaultPageSize = 100;
 const int _androidAutoMaxPageSize = 200;
 const int _androidAutoSearchResultsPerLibrary = 4;
 const int _androidAutoLetterGroupingThreshold = 30;
+const int _androidAutoAuthenticationRequiredErrorCode = 3;
+const String _androidAutoAuthenticationRequiredMessage = 'Authentication required';
+const String _androidAutoUnauthenticatedContentUnavailableMessage = 'No content is avaiable if not signed in.';
+const String _androidAutoUnauthenticatedSignInHintMessage = 'You can sign in via the settings';
 
 const String _androidAutoSortFieldTitle = 'title';
 const String _androidAutoSortFieldAuthor = 'author';
@@ -158,20 +162,58 @@ Future<bool> _androidAutoIsAutomotiveSystem() async {
   }
 }
 
+void _androidAutoSetAuthenticationRequiredStateIfNeeded(BGAudioHandler handler) {
+  final currentState = handler.playbackState.value;
+  handler.playbackState.add(
+    currentState.copyWith(
+      controls: const <MediaControl>[],
+      systemActions: const <MediaAction>{},
+      androidCompactActionIndices: const <int>[],
+      processingState: AudioProcessingState.error,
+      playing: false,
+      errorCode: _androidAutoAuthenticationRequiredErrorCode,
+      errorMessage: _androidAutoAuthenticationRequiredMessage,
+    ),
+  );
+}
+
+Future<void> _androidAutoClearAuthenticationRequiredState(
+  BGAudioHandler handler, {
+  bool refreshBrowseRoots = false,
+}) async {
+  if (handler.playbackState.value.errorCode != _androidAutoAuthenticationRequiredErrorCode) {
+    return;
+  }
+
+  await handler._updatePlaybackState();
+
+  if (refreshBrowseRoots) {
+    await AudioServiceBackground.notifyChildrenChanged(AudioService.browsableRootId);
+    await AudioServiceBackground.notifyChildrenChanged(AudioService.recentRootId);
+  }
+}
+
 extension _BGAudioHandlerAndroidAutoEntry on BGAudioHandler {
-  Future<List<MediaItem>> _androidAutoGetChildren(String parentMediaId, {Map<String, dynamic>? options}) async {
-    final activeUserId = (await _ref.read(appDatabaseProvider).getGlobalSetting('activeUserId'))?.value;
+  Future<bool> _androidAutoEnsureAuthenticatedUser() async {
+    final activeUserId = (await _ref.read(appDatabaseProvider).getGlobalSetting('activeUserId'))?.value.trim();
     if (activeUserId == null || activeUserId.isEmpty) {
-      playbackState.add(
-        playbackState.value.copyWith(
-          processingState: AudioProcessingState.error,
-          errorCode: 3,
-          errorMessage: 'Authentication required',
+      _androidAutoSetAuthenticationRequiredStateIfNeeded(this);
+      return false;
+    }
+
+    await _androidAutoClearAuthenticationRequiredState(this);
+    return true;
+  }
+
+  Future<List<MediaItem>> _androidAutoGetChildren(String parentMediaId, {Map<String, dynamic>? options}) async {
+    if (!await _androidAutoEnsureAuthenticatedUser()) {
+      return <MediaItem>[
+        _androidAutoBrowsableItem(
+          id: 'aa/auth-required/$parentMediaId',
+          title: _androidAutoUnauthenticatedContentUnavailableMessage,
+          subtitle: _androidAutoUnauthenticatedSignInHintMessage,
         ),
-      );
-      throw PlatformException(code: 'authentication_expired', message: 'Authentication required');
-    } else if (playbackState.value.errorCode == 3) {
-      await _updatePlaybackState();
+      ];
     }
 
     final paging = _androidAutoPagingFromOptions(options);
@@ -269,6 +311,10 @@ extension _BGAudioHandlerAndroidAutoEntry on BGAudioHandler {
   }
 
   Future<MediaItem?> _androidAutoGetMediaItem(String mediaId) async {
+    if (!await _androidAutoEnsureAuthenticatedUser()) {
+      return null;
+    }
+
     final target = _androidAutoPlaybackTargetFromMediaId(mediaId);
     if (target == null) {
       return null;
@@ -315,6 +361,10 @@ extension _BGAudioHandlerAndroidAutoEntry on BGAudioHandler {
   }
 
   Future<List<MediaItem>> _androidAutoSearch(String query, {Map<String, dynamic>? extras}) async {
+    if (!await _androidAutoEnsureAuthenticatedUser()) {
+      return const <MediaItem>[];
+    }
+
     final trimmedQuery = query.trim();
     if (trimmedQuery.isEmpty) {
       return const <MediaItem>[];
@@ -386,6 +436,10 @@ extension _BGAudioHandlerAndroidAutoEntry on BGAudioHandler {
   }
 
   Future<void> _androidAutoPlayFromMediaId(String mediaId, {Map<String, dynamic>? extras}) async {
+    if (!await _androidAutoEnsureAuthenticatedUser()) {
+      return;
+    }
+
     final target = _androidAutoPlaybackTargetFromMediaId(mediaId);
     if (target == null) {
       return;
@@ -438,6 +492,10 @@ extension _BGAudioHandlerAndroidAutoEntry on BGAudioHandler {
   }
 
   Future<void> _androidAutoPlayFromSearch(String query, {Map<String, dynamic>? extras}) async {
+    if (!await _androidAutoEnsureAuthenticatedUser()) {
+      return;
+    }
+
     final results = await _androidAutoSearch(query, extras: extras);
     if (results.isEmpty) {
       return;

@@ -39,6 +39,10 @@ Future<void> _configureAndroidEdgeToEdge() async {
     return;
   }
 
+  if (AaosService.instance.currentState.isAutomotiveDevice) {
+    return;
+  }
+
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 }
 
@@ -60,7 +64,7 @@ void main() {
       containerRef.read(absSocketClientProvider);
       Init.initLogger();
       audioHandler = await Init.initAudioHandler();
-      unawaited(AaosService.instance.initialize());
+      await AaosService.instance.initialize();
       TrayManager.update();
 
       Init.late();

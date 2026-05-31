@@ -64,7 +64,7 @@ class AaosService {
     _channel.setMethodCallHandler((call) async {
       if (call.method == 'openSettings') {
         final currentUri = globalRouter.routeInformationProvider.value.uri;
-        if (currentUri.path.startsWith('/add-user')) {
+        if (currentUri.path == '/boot' || currentUri.path.startsWith('/add-user')) {
           return;
         }
 
@@ -75,6 +75,16 @@ class AaosService {
 
         final intent = DateTime.now().microsecondsSinceEpoch;
         globalRouter.go('/?tab=settings&intent=aaos-$intent');
+      } else if (call.method == 'openSignIn') {
+        final currentUri = globalRouter.routeInformationProvider.value.uri;
+        final alreadyForcedSignIn =
+            currentUri.path.startsWith('/add-user') && currentUri.queryParameters['authRequired'] == '1';
+        if (alreadyForcedSignIn) {
+          return;
+        }
+
+        final intent = DateTime.now().microsecondsSinceEpoch;
+        globalRouter.go('/add-user?authRequired=1&intent=aaos-signin-$intent');
       }
     });
 
