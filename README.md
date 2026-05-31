@@ -6,6 +6,8 @@ An improved unofficial cross-platform app for Audiobookshelf
 
 ## Installation
 
+[![Sponsor Vito0912](https://img.shields.io/badge/Sponsor-Vito0912-152082?style=for-the-badge&logo=github-sponsors&logoColor=white)](https://github.com/sponsors/Vito0912)
+
 ![Android](https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white) [![Play Store](https://img.shields.io/badge/Google_Play-414141?style=for-the-badge&logo=google-play&logoColor=white)](https://play.google.com/store/apps/details?id=de.vito0912.yaabsa) [![Play Store Beta](https://img.shields.io/badge/Closed_Testing-ff8400?style=for-the-badge&logo=google-play&logoColor=white)](https://play.google.com/apps/testing/de.vito0912.yaabsa)
 
 * Currently, access is invite‑only due to Google's restrictions for new apps. To join the closed testing, email me at fito0912(@)duck.com (or the mail at my GitHub profile) with the email address you use for the Play Store. After I add you to the closed testing, you can use the links above to access the app. Please also mention if you just want to access the normal, AAOS or both versions of the app.\
