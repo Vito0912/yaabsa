@@ -6,6 +6,7 @@
     android:targetCellHeight="3"
     android:updatePeriodMillis="0"
     android:initialLayout="@layout/widget_shelf_card"
+    android:previewLayout="@layout/widget_shelf_card"
     android:configure="de.vito0912.yaabsa.WidgetConfigActivity"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen"

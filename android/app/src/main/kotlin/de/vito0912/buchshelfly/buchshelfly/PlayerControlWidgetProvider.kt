@@ -39,7 +39,7 @@ class PlayerControlWidgetProvider : AppWidgetProvider() {
     }
 
     companion object {
-        private const val HIDE_SEEK_CONTROLS_BELOW_WIDTH_DP = 300
+        private const val HIDE_SKIP_CONTROLS_BELOW_WIDTH_DP = 300
 
         fun updateWidgets(context: Context, manager: AppWidgetManager, appWidgetIds: IntArray) {
             if (appWidgetIds.isEmpty()) {
@@ -47,8 +47,8 @@ class PlayerControlWidgetProvider : AppWidgetProvider() {
             }
 
             for (appWidgetId in appWidgetIds) {
-                val hideSeekControls = isNarrowWidget(manager, appWidgetId)
-                val initialViews = baseViews(context, appWidgetId, hideSeekControls)
+                val hideSkipControls = isNarrowWidget(manager, appWidgetId)
+                val initialViews = baseViews(context, appWidgetId, hideSkipControls)
                 initialViews.setTextViewText(R.id.widget_player_title, "Loading player...")
                 initialViews.setTextViewText(R.id.widget_player_subtitle, "")
                 initialViews.setImageViewResource(R.id.widget_player_artwork, R.drawable.ic_launcher_foreground)
@@ -64,8 +64,8 @@ class PlayerControlWidgetProvider : AppWidgetProvider() {
                 }
 
                 for (appWidgetId in appWidgetIds) {
-                    val hideSeekControls = isNarrowWidget(manager, appWidgetId)
-                    val views = baseViews(context, appWidgetId, hideSeekControls)
+                    val hideSkipControls = isNarrowWidget(manager, appWidgetId)
+                    val views = baseViews(context, appWidgetId, hideSkipControls)
 
                     if (state == null) {
                         views.setTextViewText(R.id.widget_player_title, "Open app to start playback")
@@ -100,12 +100,12 @@ class PlayerControlWidgetProvider : AppWidgetProvider() {
             updateWidgets(context, manager, ids)
         }
 
-        private fun baseViews(context: Context, appWidgetId: Int, hideSeekControls: Boolean): RemoteViews {
+        private fun baseViews(context: Context, appWidgetId: Int, hideSkipControls: Boolean): RemoteViews {
             val views = RemoteViews(context.packageName, R.layout.widget_player_control)
 
-            val seekControlsVisibility = if (hideSeekControls) View.GONE else View.VISIBLE
-            views.setViewVisibility(R.id.widget_player_rewind, seekControlsVisibility)
-            views.setViewVisibility(R.id.widget_player_fast_forward, seekControlsVisibility)
+            val skipControlsVisibility = if (hideSkipControls) View.GONE else View.VISIBLE
+            views.setViewVisibility(R.id.widget_player_previous, skipControlsVisibility)
+            views.setViewVisibility(R.id.widget_player_next, skipControlsVisibility)
 
             views.setOnClickPendingIntent(
                 R.id.widget_player_toggle,
@@ -127,10 +127,6 @@ class PlayerControlWidgetProvider : AppWidgetProvider() {
                 R.id.widget_player_fast_forward,
                 actionPendingIntent(context, appWidgetId, WidgetMediaBridge.ACTION_PLAYER_FAST_FORWARD)
             )
-            views.setOnClickPendingIntent(
-                R.id.widget_player_stop,
-                actionPendingIntent(context, appWidgetId, WidgetMediaBridge.ACTION_PLAYER_STOP)
-            )
             views.setOnClickPendingIntent(R.id.widget_player_root, appLaunchPendingIntent(context, appWidgetId))
             return views
         }
@@ -138,7 +134,7 @@ class PlayerControlWidgetProvider : AppWidgetProvider() {
         private fun isNarrowWidget(manager: AppWidgetManager, appWidgetId: Int): Boolean {
             val options = manager.getAppWidgetOptions(appWidgetId)
             val minWidthDp = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0)
-            return minWidthDp in 1 until HIDE_SEEK_CONTROLS_BELOW_WIDTH_DP
+            return minWidthDp in 1 until HIDE_SKIP_CONTROLS_BELOW_WIDTH_DP
         }
 
         private fun actionPendingIntent(context: Context, appWidgetId: Int, action: String): PendingIntent {

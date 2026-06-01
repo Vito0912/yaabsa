@@ -28,7 +28,8 @@ object WidgetThemeStyler {
 
     fun applyPlayer(context: Context, views: RemoteViews) {
         val palette = palette(context)
-        views.setInt(R.id.widget_player_root, "setBackgroundColor", palette.surface)
+        val isDark = WidgetStorage.isDarkModeEnabled(context)
+        views.setInt(R.id.widget_player_root, "setBackgroundResource", if (isDark) R.drawable.widget_background_dark else R.drawable.widget_background_light)
         views.setTextColor(R.id.widget_player_title, palette.primaryText)
         views.setTextColor(R.id.widget_player_subtitle, palette.secondaryText)
 
@@ -37,8 +38,7 @@ object WidgetThemeStyler {
             R.id.widget_player_rewind,
             R.id.widget_player_toggle,
             R.id.widget_player_fast_forward,
-            R.id.widget_player_next,
-            R.id.widget_player_stop
+            R.id.widget_player_next
         )
 
         for (id in iconButtons) {

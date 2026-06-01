@@ -6,7 +6,7 @@
     android:orientation="horizontal"
     android:gravity="center_vertical"
     android:padding="10dp"
-    android:background="@android:color/background_light">
+    android:background="#FF1F2329">
 
     <ImageView
         android:id="@+id/widget_quick_play_cover"
@@ -28,7 +28,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/widget_quick_play_title"
-            android:textColor="@android:color/black"
+            android:textColor="#FFF2F3F5"
             android:textSize="13sp"
             android:textStyle="bold" />
 
@@ -38,7 +38,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
             android:text="@string/widget_quick_play_subtitle_default"
-            android:textColor="@android:color/darker_gray"
+            android:textColor="#FFB9C0CA"
             android:textSize="11sp" />
     </LinearLayout>
 
