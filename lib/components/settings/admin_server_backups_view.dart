@@ -488,19 +488,16 @@ class _AdminServerBackupsViewState extends ConsumerState<AdminServerBackupsView>
       return;
     }
 
-    final selected = await FilePicker.pickFiles(
-      allowMultiple: false,
-      withData: false,
+    final pickedFile = await FilePicker.pickFile(
       type: FileType.custom,
       allowedExtensions: const ['audiobookshelf'],
       dialogTitle: 'Select backup archive',
     );
 
-    if (selected == null || selected.files.isEmpty) {
+    if (pickedFile == null) {
       return;
     }
 
-    final pickedFile = selected.files.first;
     final filePath = pickedFile.path;
     if (filePath == null || filePath.trim().isEmpty) {
       _showMessage('Selected backup file is not available on disk.');

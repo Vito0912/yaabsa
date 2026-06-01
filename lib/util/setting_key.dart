@@ -16,6 +16,7 @@ class SettingKeys {
   static const String lockMediaNotification = 'lock_media_notification';
   static const String showNotificationMoreButton = 'show_notification_more_button';
   static const String autoPlayLastPlayedOnLaunch = 'auto_play_last_played_on_launch';
+  static const String showLastPlayedMiniPlayerAlways = 'show_last_played_mini_player_always';
   static const String language = 'language';
   static const String sidebarCollapsed = 'sidebar_collapsed';
   static const String autoQueue = 'auto_queue';
@@ -95,6 +96,7 @@ class SettingKeys {
   static const String playerSeekBarShowChapterMarkers = 'player_seek_bar_show_chapter_markers';
   static const String playerLayoutConfig = 'player_layout_config';
   static const String lastPlayedQueueItem = 'last_played_queue_item';
+  static const String lastPlayedMiniPlayerSnapshot = 'last_played_mini_player_snapshot';
   static const String podcastEpisodeProgressFilter = 'podcast_episode_progress_filter';
 
   static const String subtitlesEnabled = 'subtitles_enabled';
@@ -130,6 +132,7 @@ final defaultSettings = {
   SettingKeys.lockMediaNotification: false,
   SettingKeys.showNotificationMoreButton: false,
   SettingKeys.autoPlayLastPlayedOnLaunch: false,
+  SettingKeys.showLastPlayedMiniPlayerAlways: false,
   SettingKeys.keepScreenOn: _defaultEnableOnDesktop,
   SettingKeys.language: 'en-US',
   SettingKeys.sidebarCollapsed: false,

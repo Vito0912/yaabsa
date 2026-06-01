@@ -631,7 +631,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
       return;
     }
 
-    final result = await FilePicker.pickFiles(allowMultiple: true, withData: false);
+    final result = await FilePicker.pickFiles();
     if (result == null) {
       return;
     }

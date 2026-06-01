@@ -12,6 +12,98 @@ class QueueDisplayInfo {
   static const empty = QueueDisplayInfo();
 }
 
+class LastPlayedMiniPlayerSnapshot {
+  const LastPlayedMiniPlayerSnapshot({
+    required this.itemId,
+    required this.episodeId,
+    required this.title,
+    this.subtitle,
+    this.author,
+    this.cover,
+  });
+
+  final String itemId;
+  final String? episodeId;
+  final String title;
+  final String? subtitle;
+  final String? author;
+  final Uri? cover;
+
+  factory LastPlayedMiniPlayerSnapshot.fromMedia(InternalMedia media) {
+    return LastPlayedMiniPlayerSnapshot(
+      itemId: media.itemId,
+      episodeId: media.episodeId,
+      title: media.title,
+      subtitle: media.subtitle,
+      author: media.author,
+      cover: media.cover,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'itemId': itemId,
+      'episodeId': episodeId,
+      'title': title,
+      'subtitle': subtitle,
+      'author': author,
+      'cover': cover?.toString(),
+    };
+  }
+
+  String toRawJson() {
+    return jsonEncode(toJson());
+  }
+
+  static LastPlayedMiniPlayerSnapshot? fromRawJson(String? rawValue) {
+    if (rawValue == null || rawValue.trim().isEmpty) {
+      return null;
+    }
+
+    try {
+      final decoded = jsonDecode(rawValue);
+      if (decoded is! Map) {
+        return null;
+      }
+
+      final itemIdValue = decoded['itemId'];
+      final titleValue = decoded['title'];
+
+      if (itemIdValue is! String || itemIdValue.trim().isEmpty) {
+        return null;
+      }
+      if (titleValue is! String || titleValue.trim().isEmpty) {
+        return null;
+      }
+
+      final episodeIdValue = decoded['episodeId'];
+      final subtitleValue = decoded['subtitle'];
+      final authorValue = decoded['author'];
+      final coverValue = decoded['cover'];
+
+      final episodeId = episodeIdValue is String && episodeIdValue.trim().isNotEmpty ? episodeIdValue.trim() : null;
+      final subtitle = subtitleValue is String && subtitleValue.trim().isNotEmpty ? subtitleValue.trim() : null;
+      final author = authorValue is String && authorValue.trim().isNotEmpty ? authorValue.trim() : null;
+      final cover = coverValue is String && coverValue.trim().isNotEmpty ? Uri.tryParse(coverValue.trim()) : null;
+
+      return LastPlayedMiniPlayerSnapshot(
+        itemId: itemIdValue.trim(),
+        episodeId: episodeId,
+        title: titleValue.trim(),
+        subtitle: subtitle,
+        author: author,
+        cover: cover,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  bool matchesQueueItem(QueueItem item) {
+    return itemId == item.itemId && episodeId == item.episodeId;
+  }
+}
+
 class PlayerQueueEntry {
   const PlayerQueueEntry({
     required this.id,

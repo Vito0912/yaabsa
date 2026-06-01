@@ -91,6 +91,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   StreamSubscription<GoogleCastSession?>? _castSessionSubscription;
   StreamSubscription<GoggleCastMediaStatus?>? _castMediaStatusSubscription;
   late final StreamSubscription<String?> _activeUserIdSubscription;
+  late final StreamSubscription<String?> _showLastPlayedMiniPlayerSettingSubscription;
   bool _isDisposing = false;
   List<PlayerQueueEntry> queueList = [];
   QueueItem? _lastQueueItem;
@@ -118,6 +119,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   );
   final BehaviorSubject<bool> _queueTransitionLoadingSubject = BehaviorSubject<bool>.seeded(false);
   final BehaviorSubject<bool> _showPlayerSubject = BehaviorSubject<bool>.seeded(false);
+  final BehaviorSubject<LastPlayedMiniPlayerSnapshot?> _lastPlayedMiniPlayerSnapshotSubject =
+      BehaviorSubject<LastPlayedMiniPlayerSnapshot?>.seeded(null);
   final Map<String, Future<LibraryItem?>> _queueItemDetailsCache = <String, Future<LibraryItem?>>{};
   bool _queueTransitionLoading = false;
   String? _queueTransitionItemId;
@@ -136,6 +139,9 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   PlayerQueueSnapshot get queueSnapshot => _buildQueueSnapshot();
   Stream<bool> get queueTransitionLoadingStream => _queueTransitionLoadingSubject.stream;
   bool get queueTransitionLoading => _queueTransitionLoading;
+  Stream<LastPlayedMiniPlayerSnapshot?> get lastPlayedMiniPlayerSnapshotStream =>
+      _lastPlayedMiniPlayerSnapshotSubject.stream;
+  LastPlayedMiniPlayerSnapshot? get lastPlayedMiniPlayerSnapshot => _lastPlayedMiniPlayerSnapshotSubject.value;
   bool isQueueTransitionForItem(String itemId, {String? episodeId}) {
     final transitionItemId = _queueTransitionItemId;
     if (!_queueTransitionLoading || transitionItemId == null || transitionItemId.isEmpty) {
@@ -179,6 +185,10 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   Future<bool> playLastPlayedIfEnabledOnStartup() {
     return _playLastPlayedIfEnabledOnStartupInternal();
+  }
+
+  Future<void> restoreLastPlayedMiniPlayerIfEnabled() {
+    return _restoreLastPlayedMiniPlayerIfEnabledInternal();
   }
 
   Future<void> clearAndroidAutoAuthenticationError() {
@@ -313,6 +323,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     _resetStreamRecoveryState(clearWindow: true);
     if (mediaItem != null) {
       unawaited(_persistLastPlayedQueueItem(itemId: mediaItem.itemId, episodeId: mediaItem.episodeId));
+      unawaited(_persistLastPlayedMiniPlayerSnapshot(mediaItem));
+      _setLastPlayedMiniPlayerSnapshot(LastPlayedMiniPlayerSnapshot.fromMedia(mediaItem));
     }
     mediaItemStream.add(mediaItem);
     _refreshPlayerControlState();
@@ -779,6 +791,21 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
           // Clear Android Auto auth error as soon as login becomes active.
           unawaited(_androidAutoClearAuthenticationRequiredState(this, refreshBrowseRoots: true));
+          unawaited(_restoreLastPlayedMiniPlayerIfEnabledInternal());
+        });
+
+    _showLastPlayedMiniPlayerSettingSubscription = _ref
+        .read(appDatabaseProvider)
+        .watchGlobalSetting(SettingKeys.showLastPlayedMiniPlayerAlways)
+        .map((setting) => setting?.value.trim())
+        .distinct()
+        .listen((_) {
+          if (_isDisposing) {
+            return;
+          }
+
+          _emitShouldShowPlayer();
+          unawaited(_updatePlaybackState());
         });
 
     final settingManager = _ref.read(settingsManagerProvider.notifier);
@@ -992,6 +1019,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   Future<void> dispose() async {
     _isDisposing = true;
     await _activeUserIdSubscription.cancel();
+    await _showLastPlayedMiniPlayerSettingSubscription.cancel();
     _resetStreamRecoveryState(clearWindow: true);
     _androidAutoMoreMenuTimer?.cancel();
     _androidAutoMoreMenuTimer = null;
@@ -1015,5 +1043,6 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     await _queueSnapshotSubject.close();
     await _queueTransitionLoadingSubject.close();
     await _showPlayerSubject.close();
+    await _lastPlayedMiniPlayerSnapshotSubject.close();
   }
 }

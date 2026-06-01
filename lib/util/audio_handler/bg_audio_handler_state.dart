@@ -87,7 +87,21 @@ extension _BGAudioHandlerState on BGAudioHandler {
   }
 
   bool _shouldShowPlayerNowInternal() {
-    return _currentMediaItem != null || _queueTransitionLoading;
+    if (_currentMediaItem != null || _queueTransitionLoading) {
+      return true;
+    }
+
+    if (!_isAlwaysShowLastPlayedMiniPlayerEnabled()) {
+      return false;
+    }
+
+    return lastPlayedMiniPlayerSnapshot != null;
+  }
+
+  bool _isAlwaysShowLastPlayedMiniPlayerEnabled() {
+    return _ref
+        .read(settingsManagerProvider.notifier)
+        .getGlobalSetting<bool>(SettingKeys.showLastPlayedMiniPlayerAlways);
   }
 
   bool _computeCastControlActive() {

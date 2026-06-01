@@ -38,6 +38,11 @@ class GlobalPlayerSettings extends StatelessWidget {
           settingKey: SettingKeys.autoPlayLastPlayedOnLaunch,
         ),
         SettingSwitch(
+          label: 'Always show mini player',
+          description: 'Keeps the mini player visible for your most recently played item',
+          settingKey: SettingKeys.showLastPlayedMiniPlayerAlways,
+        ),
+        SettingSwitch(
           label: 'Keep websocket active in background',
           description:
               'If enabled, the websocket stays connected while the app is in background so updates and tasks can sync when you return. This may increase battery usage. It does not affect playback progress updates when starting playback.',

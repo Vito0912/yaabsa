@@ -8,6 +8,8 @@ import 'package:yaabsa/components/player/common/control_button.dart';
 import 'package:yaabsa/components/player/common/jump_button.dart';
 import 'package:yaabsa/components/player/common/seek_bar.dart';
 import 'package:yaabsa/components/player/common/stop_button.dart';
+import 'package:yaabsa/screens/player/play_bar_idle_content.dart';
+import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/globals.dart';
 
 class PlayBar extends StatefulWidget {
@@ -126,6 +128,49 @@ class _PlayBarState extends State<PlayBar> {
     );
   }
 
+  Widget _buildIdleContent(BuildContext context, LastPlayedMiniPlayerSnapshot snapshot) {
+    return PlayBarIdleContent(
+      snapshot: snapshot,
+      isMobile: context.isMobile,
+      requestHeaders: audioHandler.currentRequestHeaders,
+      attachedToBottom: widget.attachedToBottom,
+      mobileCoverSize: _mobileCoverSize,
+      mobileCoverRadius: _mobileCoverRadius,
+      desktopCoverWidth: _desktopCoverWidth,
+      desktopCoverRadius: _desktopCoverRadius,
+    );
+  }
+
+  Widget _buildTransitionLoadingContent(BuildContext context) {
+    final isMobile = context.isMobile;
+    final coverSize = isMobile ? _mobileCoverSize : _desktopCoverWidth;
+    final coverRadius = isMobile ? _mobileCoverRadius : (widget.attachedToBottom ? 0.0 : _desktopCoverRadius);
+
+    return SizedBox(
+      height: coverSize,
+      child: Row(
+        children: [
+          SizedBox(
+            width: coverSize,
+            height: coverSize,
+            child: CoverPlaceholder(borderRadius: coverRadius),
+          ),
+          const SizedBox(width: 10),
+          const Expanded(
+            child: Text(
+              'Loading next item...',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+            ),
+          ),
+          const SizedBox(width: 10),
+          const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.2)),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<bool>(
@@ -157,46 +202,65 @@ class _PlayBarState extends State<PlayBar> {
                 ? Border(top: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.6)))
                 : Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.6));
 
-            return SafeArea(
-              top: false,
-              left: !widget.attachedToBottom,
-              right: !widget.attachedToBottom,
-              bottom: widget.includeBottomSafeArea,
-              child: Padding(
-                padding: outerPadding,
-                child: Material(
-                  color: Colors.transparent,
-                  borderRadius: borderRadius,
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onVerticalDragStart: _handleVerticalDragStart,
-                    onVerticalDragUpdate: _handleVerticalDragUpdate,
-                    onVerticalDragEnd: _handleVerticalDragEnd,
-                    child: InkWell(
-                      onTap: _openFullPlayer,
+            return StreamBuilder<LastPlayedMiniPlayerSnapshot?>(
+              stream: audioHandler.lastPlayedMiniPlayerSnapshotStream,
+              initialData: audioHandler.lastPlayedMiniPlayerSnapshot,
+              builder: (context, lastPlayedSnapshot) {
+                final currentMedia = audioHandler.currentMediaItem;
+                final snapshot = lastPlayedSnapshot.data;
+                final isIdleMiniPlayer = !isTransitionLoading && currentMedia == null && snapshot != null;
+                final content = isTransitionLoading
+                    ? _buildTransitionLoadingContent(context)
+                    : currentMedia != null
+                    ? _buildReadyContent(context)
+                    : snapshot != null
+                    ? _buildIdleContent(context, snapshot)
+                    : const SizedBox.shrink();
+
+                return SafeArea(
+                  top: false,
+                  left: !widget.attachedToBottom,
+                  right: !widget.attachedToBottom,
+                  bottom: widget.includeBottomSafeArea,
+                  child: Padding(
+                    padding: outerPadding,
+                    child: Material(
+                      color: Colors.transparent,
                       borderRadius: borderRadius,
-                      mouseCursor: SystemMouseCursors.click,
-                      onHover: (hovering) {
-                        if (_isHovered == hovering) return;
-                        setState(() => _isHovered = hovering);
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 160),
-                        curve: Curves.easeOut,
-                        padding: innerPadding,
-                        decoration: BoxDecoration(
-                          color: (_isHovered && !_isSeekBarHovered) ? hoveredColor : baseColor,
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onVerticalDragStart: _handleVerticalDragStart,
+                        onVerticalDragUpdate: _handleVerticalDragUpdate,
+                        onVerticalDragEnd: _handleVerticalDragEnd,
+                        child: InkWell(
+                          onTap: isIdleMiniPlayer
+                              ? () {
+                                  audioHandler.play();
+                                }
+                              : _openFullPlayer,
                           borderRadius: borderRadius,
-                          border: border,
+                          mouseCursor: SystemMouseCursors.click,
+                          onHover: (hovering) {
+                            if (_isHovered == hovering) return;
+                            setState(() => _isHovered = hovering);
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 160),
+                            curve: Curves.easeOut,
+                            padding: innerPadding,
+                            decoration: BoxDecoration(
+                              color: (_isHovered && !_isSeekBarHovered) ? hoveredColor : baseColor,
+                              borderRadius: borderRadius,
+                              border: border,
+                            ),
+                            child: content,
+                          ),
                         ),
-                        child: isTransitionLoading
-                            ? const _PlayBarTransitionLoadingContent()
-                            : _buildReadyContent(context),
                       ),
                     ),
                   ),
-                ),
-              ),
+                );
+              },
             );
           },
         );
@@ -240,21 +304,6 @@ class _PlayBarCover extends StatelessWidget {
         filterQuality: FilterQuality.low,
         errorBuilder: (context, error, stackTrace) => CoverPlaceholder(borderRadius: borderRadius),
       ),
-    );
-  }
-}
-
-class _PlayBarTransitionLoadingContent extends StatelessWidget {
-  const _PlayBarTransitionLoadingContent();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Row(
-      children: [
-        SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.2)),
-        SizedBox(width: 10),
-        Expanded(child: Text('Loading next item...', maxLines: 1, overflow: TextOverflow.ellipsis)),
-      ],
     );
   }
 }

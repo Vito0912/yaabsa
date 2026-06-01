@@ -188,7 +188,9 @@ Future<void> _androidAutoClearAuthenticationRequiredState(
   await handler._updatePlaybackState();
 
   if (refreshBrowseRoots) {
+    // ignore: deprecated_member_use
     await AudioServiceBackground.notifyChildrenChanged(AudioService.browsableRootId);
+    // ignore: deprecated_member_use
     await AudioServiceBackground.notifyChildrenChanged(AudioService.recentRootId);
   }
 }
