@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/screens/player/layout/player_layout_config.dart';
 
@@ -43,30 +44,54 @@ class PlayerMediaInfoComponent extends StatelessWidget {
 
     final narratorText = media.narrator?.trim();
 
-    return Column(
-      crossAxisAlignment: crossAxis,
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: <Widget>[
-        Text(media.title, textAlign: textAlign, maxLines: 3, overflow: TextOverflow.ellipsis, style: titleStyle),
-        if (showAuthor && media.author?.trim().isNotEmpty == true) ...<Widget>[
-          const SizedBox(height: 4),
-          Text(
-            media.author!.trim(),
-            textAlign: textAlign,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: detailStyle,
-          ),
-        ],
-        if (showNarrator && narratorText?.isNotEmpty == true) ...<Widget>[
-          const SizedBox(height: 3),
-          Text(narratorText!, textAlign: textAlign, maxLines: 2, overflow: TextOverflow.ellipsis, style: detailStyle),
-        ],
-        if (showSeries && seriesText != null) ...<Widget>[
-          const SizedBox(height: 3),
-          Text(seriesText, textAlign: textAlign, maxLines: 2, overflow: TextOverflow.ellipsis, style: detailStyle),
-        ],
-      ],
+    return GestureDetector(
+      onTap: () {
+        final navigator = Navigator.of(context);
+        final router = GoRouter.of(context);
+        final matchedLocation = GoRouterState.of(context).matchedLocation;
+        if (matchedLocation == '/player') {
+          if (navigator.canPop()) {
+            navigator.pop();
+          } else {
+            router.go('/');
+          }
+        }
+        router.push('/item/${media.itemId}');
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(4.0),
+        child: Column(
+          crossAxisAlignment: crossAxis,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: <Widget>[
+            Text(media.title, textAlign: textAlign, maxLines: 3, overflow: TextOverflow.ellipsis, style: titleStyle),
+            if (showAuthor && media.author?.trim().isNotEmpty == true) ...<Widget>[
+              const SizedBox(height: 4),
+              Text(
+                media.author!.trim(),
+                textAlign: textAlign,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: detailStyle,
+              ),
+            ],
+            if (showNarrator && narratorText?.isNotEmpty == true) ...<Widget>[
+              const SizedBox(height: 3),
+              Text(
+                narratorText!,
+                textAlign: textAlign,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: detailStyle,
+              ),
+            ],
+            if (showSeries && seriesText != null) ...<Widget>[
+              const SizedBox(height: 3),
+              Text(seriesText, textAlign: textAlign, maxLines: 2, overflow: TextOverflow.ellipsis, style: detailStyle),
+            ],
+          ],
+        ),
+      ),
     );
   }
 }
