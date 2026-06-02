@@ -229,7 +229,7 @@ class _PlayerBookmarksSheetState extends ConsumerState<PlayerBookmarksSheet> {
                             onTap: deleting
                                 ? null
                                 : () {
-                                    audioHandler.seek(Duration(seconds: bookmark.time));
+                                    audioHandler.seekAbsolute(Duration(seconds: bookmark.time));
                                   },
                             trailing: deleting
                                 ? const SizedBox(

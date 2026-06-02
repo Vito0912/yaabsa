@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:yaabsa/components/settings/settings_dropdown.dart';
 import 'package:yaabsa/components/settings/settings_slider.dart';
 import 'package:yaabsa/components/settings/settings_switch.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
@@ -26,6 +27,12 @@ class GlobalPlayerSettings extends StatelessWidget {
           settingKey: SettingKeys.bufferSize,
         ),
         SettingSwitch(label: 'Lock Media Notification', settingKey: SettingKeys.lockMediaNotification),
+        SettingDropdown<String>(
+          label: 'Media notification type',
+          values: MediaNotificationType.values.map((m) => m.name).toList(),
+          valueLabels: MediaNotificationType.values.map((m) => m.label).toList(),
+          settingKey: SettingKeys.mediaNotificationType,
+        ),
         SettingSwitch(
           label: 'Show notification More button',
           description: 'When enabled, a More button will be shown, giving more quick actions',

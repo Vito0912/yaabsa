@@ -14,6 +14,7 @@ class SettingKeys {
   static const String keepScreenOn = 'keep_screen_on';
   static const String keepWebsocketConnectionInBackground = 'keep_websocket_connection_in_background';
   static const String lockMediaNotification = 'lock_media_notification';
+  static const String mediaNotificationType = 'media_notification_type';
   static const String showNotificationMoreButton = 'show_notification_more_button';
   static const String autoPlayLastPlayedOnLaunch = 'auto_play_last_played_on_launch';
   static const String showLastPlayedMiniPlayerAlways = 'show_last_played_mini_player_always';
@@ -130,6 +131,7 @@ final defaultSettings = {
   SettingKeys.bufferSize: 5 * 1024 * 1024,
   SettingKeys.keepWebsocketConnectionInBackground: !_defaultEnableOnMobile,
   SettingKeys.lockMediaNotification: false,
+  SettingKeys.mediaNotificationType: MediaNotificationType.full.name,
   SettingKeys.showNotificationMoreButton: false,
   SettingKeys.autoPlayLastPlayedOnLaunch: false,
   SettingKeys.showLastPlayedMiniPlayerAlways: false,
@@ -474,6 +476,56 @@ enum SeekBarMarkerMode {
         return 'Only bookmarks';
       case SeekBarMarkerMode.both:
         return 'Bookmarks and chapters';
+    }
+  }
+}
+
+enum MediaNotificationType {
+  full,
+  chapter;
+
+  static MediaNotificationType fromSettingValue(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return MediaNotificationType.full;
+    }
+
+    final normalized = value.trim().toLowerCase();
+
+    for (final mode in MediaNotificationType.values) {
+      if (mode.name == normalized) {
+        return mode;
+      }
+    }
+
+    if (normalized.startsWith('medianotificationtype.')) {
+      final suffix = normalized.split('.').last;
+      for (final mode in MediaNotificationType.values) {
+        if (mode.name == suffix) {
+          return mode;
+        }
+      }
+    }
+
+    for (final mode in MediaNotificationType.values) {
+      if (mode.label.toLowerCase() == normalized) {
+        return mode;
+      }
+    }
+
+    for (final mode in MediaNotificationType.values) {
+      if (mode.name == value) {
+        return mode;
+      }
+    }
+    return MediaNotificationType.full;
+  }
+
+  String get label {
+    switch (this) {
+      case MediaNotificationType.full:
+        return 'Full';
+      case MediaNotificationType.chapter:
+        return 'Chapter';
     }
   }
 }

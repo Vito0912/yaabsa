@@ -55,11 +55,7 @@ class PlayBarIdleContent extends StatelessWidget {
         SizedBox(
           width: desktopCoverWidth,
           height: desktopCoverWidth,
-          child: _PlayBarIdleCover(
-            coverUri: snapshot.cover,
-            borderRadius: coverRadius,
-            requestHeaders: requestHeaders,
-          ),
+          child: _PlayBarIdleCover(coverUri: snapshot.cover, borderRadius: coverRadius, requestHeaders: requestHeaders),
         ),
         const SizedBox(width: 10),
         Expanded(child: _PlayBarIdleInfo(snapshot: snapshot)),
@@ -94,12 +90,7 @@ class _PlayBarIdleInfo extends StatelessWidget {
           style: const TextStyle(fontSize: 15.0, fontWeight: FontWeight.w600),
         ),
         if (subtitle.isNotEmpty)
-          Text(
-            subtitle,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
+          Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.bodySmall),
       ],
     );
   }

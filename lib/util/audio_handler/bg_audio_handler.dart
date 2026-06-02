@@ -92,6 +92,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   StreamSubscription<GoggleCastMediaStatus?>? _castMediaStatusSubscription;
   late final StreamSubscription<String?> _activeUserIdSubscription;
   late final StreamSubscription<String?> _showLastPlayedMiniPlayerSettingSubscription;
+  late final StreamSubscription<String?> _mediaNotificationTypeSubscription;
+  StreamSubscription<InternalChapter?>? _chapterSubscription;
   bool _isDisposing = false;
   List<PlayerQueueEntry> queueList = [];
   QueueItem? _lastQueueItem;
@@ -110,6 +112,10 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   int _streamRecoveryAttempts = 0;
   bool _streamRecoveryInFlight = false;
   int _internalSeekGuardDepth = 0;
+  bool _chapterNotificationEnabled = false;
+  Duration _chapterNotificationOffset = Duration.zero;
+  Duration _chapterNotificationDuration = Duration.zero;
+  bool _isInternalSeek = false;
   bool _historyWasPlayingReady = false;
   bool _historyWasBufferingOrLoading = false;
   bool _historyWasCompleted = false;
@@ -651,7 +657,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     if (_currentMediaItem == null) return Future.value();
     final skipTime = _skipDurationForKey(SettingKeys.fastForwardInterval);
     final newPosition = position + skipTime;
-    seek(newPosition);
+    _seekInternal(newPosition);
     return Future.value();
   }
 
@@ -662,9 +668,9 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     final newPosition = position - skipTime;
     if (newPosition < Duration.zero) {
       logger('Rewind position is negative, resetting to zero', tag: 'AudioHandler', level: InfoLevel.debug);
-      return seek(Duration.zero);
+      return _seekInternal(Duration.zero);
     }
-    seek(newPosition);
+    _seekInternal(newPosition);
     return Future.value();
   }
 
@@ -680,7 +686,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           tag: 'AudioHandler',
           level: InfoLevel.debug,
         );
-        await seek(newPosition);
+        await _seekInternal(newPosition);
         return;
       }
 
@@ -710,7 +716,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           tag: 'AudioHandler',
           level: InfoLevel.debug,
         );
-        await seek(newPosition);
+        await _seekInternal(newPosition);
       }
     });
   }
@@ -726,10 +732,15 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   Future<void> seek(Duration position) async {
     if (_currentMediaItem == null) return Future.value();
 
+    Duration resolvedPosition = position;
+    if (_chapterNotificationEnabled && !_isInternalSeek) {
+      resolvedPosition = _chapterNotificationOffset + position;
+    }
+
     final maxPosition = _currentMediaItem!.totalDuration;
-    final boundedPosition = position < Duration.zero
+    final boundedPosition = resolvedPosition < Duration.zero
         ? Duration.zero
-        : (position > maxPosition ? maxPosition : position);
+        : (resolvedPosition > maxPosition ? maxPosition : resolvedPosition);
 
     final shouldRecordPausedManualSeek =
         _internalSeekGuardDepth == 0 &&
@@ -743,6 +754,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       final relativePosition = _absoluteToCastRelativePosition(boundedPosition);
       await GoogleCastRemoteMediaClient.instance.seek(GoogleCastMediaSeekOption(position: relativePosition));
       _refreshPlayerControlState();
+      _refreshChapterNotificationState(customPosition: boundedPosition);
+      _updateMediaItemForChapterNotification(customPosition: boundedPosition);
       await _updatePlaybackState();
       return Future.value();
     }
@@ -775,7 +788,82 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     } else {
       await _player.seek(relativeTrackPosition, index: _currentTrackIndex);
     }
+
+    _refreshChapterNotificationState(customPosition: boundedPosition);
+    _updateMediaItemForChapterNotification(customPosition: boundedPosition);
+    unawaited(_updatePlaybackState());
     return Future.value();
+  }
+
+  void _refreshChapterNotificationState({Duration? customPosition}) {
+    final settingValue = _ref
+        .read(settingsManagerProvider.notifier)
+        .getGlobalSetting<String>(SettingKeys.mediaNotificationType);
+    final mode = MediaNotificationType.fromSettingValue(settingValue);
+
+    if (mode != MediaNotificationType.chapter) {
+      _chapterNotificationEnabled = false;
+      _chapterNotificationOffset = Duration.zero;
+      _chapterNotificationDuration = Duration.zero;
+      return;
+    }
+
+    final searchPos = customPosition ?? position;
+    final chapter = _currentMediaItem?.getChapterForDuration(searchPos);
+    if (chapter == null) {
+      _chapterNotificationEnabled = false;
+      _chapterNotificationOffset = Duration.zero;
+      _chapterNotificationDuration = Duration.zero;
+      return;
+    }
+
+    _chapterNotificationEnabled = true;
+    _chapterNotificationOffset = Duration(microseconds: (chapter.start * Duration.microsecondsPerSecond).round());
+    _chapterNotificationDuration = Duration(
+      microseconds: ((chapter.end - chapter.start) * Duration.microsecondsPerSecond).round(),
+    );
+  }
+
+  void _updateMediaItemForChapterNotification({Duration? customPosition}) {
+    final currentItem = _currentMediaItem;
+    if (currentItem == null) return;
+
+    if (_chapterNotificationEnabled) {
+      final searchPos = customPosition ?? position;
+      final chapter = currentItem.getChapterForDuration(searchPos);
+      mediaItem.add(
+        MediaItem(
+          id: currentItem.id,
+          album: currentItem.toMediaItem().album,
+          title: chapter?.title ?? currentItem.title,
+          displayTitle: chapter?.title ?? currentItem.title,
+          artist: currentItem.author,
+          displaySubtitle: currentItem.subtitle,
+          duration: _chapterNotificationDuration,
+          isLive: false,
+          artUri: currentItem.cover,
+        ),
+      );
+    } else {
+      mediaItem.add(currentItem.toMediaItem());
+    }
+  }
+
+  Future<void> _seekInternal(Duration position) async {
+    _isInternalSeek = true;
+    try {
+      await seek(position);
+    } finally {
+      _isInternalSeek = false;
+    }
+  }
+
+  Future<void> seekAbsolute(Duration position) => _seekInternal(position);
+
+  Duration _clampDuration(Duration value, Duration min, Duration max) {
+    if (value < min) return min;
+    if (value > max) return max;
+    return value;
   }
 
   BGAudioHandler(this._ref) {
@@ -805,6 +893,18 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           }
 
           _emitShouldShowPlayer();
+          unawaited(_updatePlaybackState());
+        });
+
+    _mediaNotificationTypeSubscription = _ref
+        .read(appDatabaseProvider)
+        .watchGlobalSetting(SettingKeys.mediaNotificationType)
+        .map((setting) => setting?.value.trim())
+        .distinct()
+        .listen((_) {
+          if (_isDisposing) return;
+          _refreshChapterNotificationState();
+          _updateMediaItemForChapterNotification();
           unawaited(_updatePlaybackState());
         });
 
@@ -909,6 +1009,16 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     _emitQueueState();
     _emitShouldShowPlayer();
     unawaited(_restorePlaybackPreferencesOnStartup());
+
+    _chapterSubscription = chapterStream.listen((chapter) {
+      if (_isDisposing) return;
+      final wasEnabled = _chapterNotificationEnabled;
+      _refreshChapterNotificationState();
+      if (_chapterNotificationEnabled || wasEnabled) {
+        _updateMediaItemForChapterNotification();
+        unawaited(_updatePlaybackState());
+      }
+    });
   }
 
   Map<String, String> get currentRequestHeaders => _currentRequestHeadersInternal;
@@ -927,6 +1037,12 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       _androidAutoMoreMenuTimer = null;
     }
 
+    logger(
+      'Updating playback state. Current media item: ${_currentMediaItem?.itemId}, queue length: ${queueList.length}, isTransitionLoading: $_queueTransitionLoading',
+      tag: 'AudioHandler',
+      level: InfoLevel.debug,
+    );
+
     final isTransitionLoading =
         _queueTransitionLoading || (_player.processingState == ProcessingState.completed && queueList.isNotEmpty);
     final hasPlaybackContext = _currentMediaItem != null || queueList.isNotEmpty || _queueTransitionLoading;
@@ -934,11 +1050,16 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     final castActive = isCastControlActive;
     final controlState = castActive ? playerControlState : _player.playerState;
     final playPauseControl = controlState.playing ? MediaControl.pause : MediaControl.play;
-    final updatePosition = position;
+    final rawPosition = position;
+    final updatePosition = _chapterNotificationEnabled
+        ? _clampDuration(rawPosition - _chapterNotificationOffset, Duration.zero, _chapterNotificationDuration)
+        : rawPosition;
     final effectiveSpeed = castActive
         ? (GoogleCastRemoteMediaClient.instance.mediaStatus?.playbackRate.toDouble() ?? _player.speed)
         : _player.speed;
     final bufferedPosition = castActive
+        ? updatePosition
+        : _chapterNotificationEnabled
         ? updatePosition
         : (_currentMediaItem?.offsetForTrack(_currentTrackIndex) ?? Duration.zero) + _player.bufferedPosition;
     final controls = !hasPlaybackContext
@@ -1020,6 +1141,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     _isDisposing = true;
     await _activeUserIdSubscription.cancel();
     await _showLastPlayedMiniPlayerSettingSubscription.cancel();
+    await _mediaNotificationTypeSubscription.cancel();
+    await _chapterSubscription?.cancel();
     _resetStreamRecoveryState(clearWindow: true);
     _androidAutoMoreMenuTimer?.cancel();
     _androidAutoMoreMenuTimer = null;

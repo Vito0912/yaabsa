@@ -21,7 +21,7 @@ extension _BGAudioHandlerResume on BGAudioHandler {
       return;
     }
 
-    await seek(targetPosition);
+    await _seekInternal(targetPosition);
 
     final currentPositionSeconds = targetPosition.inMicroseconds / Duration.microsecondsPerSecond;
     final canReachServer = _ref.read(serverReachabilityProvider);
@@ -325,7 +325,7 @@ extension _BGAudioHandlerResume on BGAudioHandler {
     final targetPosition = _rewindPosition(currentPosition, rewindBy);
 
     if (targetPosition < currentPosition) {
-      await _seekWithoutPausedManualMarker(() => seek(targetPosition));
+      await _seekWithoutPausedManualMarker(() => _seekInternal(targetPosition));
       logger(
         'Applied smart rewind (${rewindBy.inSeconds}s) after pause (${pausedFor.inSeconds}s).',
         tag: 'AudioHandler',

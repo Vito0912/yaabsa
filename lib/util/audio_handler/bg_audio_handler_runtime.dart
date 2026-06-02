@@ -16,10 +16,7 @@ extension _BGAudioHandlerRuntime on BGAudioHandler {
     }
   }
 
-  bool _isSameLastPlayedMiniPlayerSnapshot(
-    LastPlayedMiniPlayerSnapshot? left,
-    LastPlayedMiniPlayerSnapshot? right,
-  ) {
+  bool _isSameLastPlayedMiniPlayerSnapshot(LastPlayedMiniPlayerSnapshot? left, LastPlayedMiniPlayerSnapshot? right) {
     if (left == null && right == null) {
       return true;
     }

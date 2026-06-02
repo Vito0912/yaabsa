@@ -67,7 +67,7 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
     }
 
     _clearSmartRewindPauseMarker();
-    await seek(position);
+    await _seekInternal(position);
     if (isCastControlActive) {
       await play();
     } else {
@@ -170,7 +170,11 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
   }
 
   Future<void> _syncedPlay({bool restoreProgress = false, bool skipResumeProgressReconcile = false}) async {
-    mediaItem.add(_currentMediaItem?.toMediaItem());
+    if (_chapterNotificationEnabled) {
+      _updateMediaItemForChapterNotification();
+    } else {
+      mediaItem.add(_currentMediaItem?.toMediaItem());
+    }
 
     if (_currentMediaItem == null) return Future.value();
     final resumeItem = _currentMediaItem!;
@@ -255,7 +259,7 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
         level: InfoLevel.info,
       );
 
-      await _seekWithoutPausedManualMarker(() => seek(remotePosition));
+      await _seekWithoutPausedManualMarker(() => _seekInternal(remotePosition));
     } catch (e) {
       logger('Background resume reconcile failed: $e', tag: 'AudioHandler', level: InfoLevel.warning);
     }

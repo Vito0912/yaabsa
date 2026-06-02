@@ -110,10 +110,10 @@ class _TrayManagerState extends ConsumerState<TrayManager> with TrayListener {
         audioHandler.playerControlState.playing ? audioHandler.pause() : audioHandler.play();
         break;
       case TrayManager.fastForwardKey:
-        audioHandler.seek(audioHandler.position + const Duration(seconds: 10));
+        audioHandler.seekAbsolute(audioHandler.position + const Duration(seconds: 10));
         break;
       case TrayManager.rewindKey:
-        audioHandler.seek(audioHandler.position - const Duration(seconds: 10));
+        audioHandler.seekAbsolute(audioHandler.position - const Duration(seconds: 10));
         break;
       case TrayManager.nextKey:
         audioHandler.skipToNext();

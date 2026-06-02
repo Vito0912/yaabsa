@@ -87,7 +87,7 @@ class _ChapterViewState extends State<ChapterView> {
                   selected: chapter == currentChapter,
                   selectedTileColor: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.2),
                   onTap: () {
-                    audioHandler.seek(chapter.start.toDuration);
+                    audioHandler.seekAbsolute(chapter.start.toDuration);
                   },
                 );
               },
