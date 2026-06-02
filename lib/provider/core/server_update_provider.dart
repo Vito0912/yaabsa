@@ -48,6 +48,10 @@ class ServerUpdateState extends _$ServerUpdateState {
 
     if (currentUser == null) return null;
 
+    final type = currentUser.type.trim().toLowerCase();
+    final isAdminOrRoot = type == 'admin' || type == 'root';
+    if (!isAdminOrRoot) return null;
+
     final settingsManager = ref.read(settingsManagerProvider.notifier);
     final checkForUpdates = settingsManager.getGlobalSetting<bool>(
       SettingKeys.checkForServerUpdates,
