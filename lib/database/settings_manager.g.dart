@@ -48,7 +48,7 @@ String _$settingsCacheHash() => r'05175d029a69a1e15af750304907dd17f8c82874';
 @ProviderFor(SettingsManager)
 final settingsManagerProvider = SettingsManagerProvider._();
 
-final class SettingsManagerProvider extends $StreamNotifierProvider<SettingsManager, bool> {
+final class SettingsManagerProvider extends $StreamNotifierProvider<SettingsManager, int> {
   SettingsManagerProvider._()
     : super(
         from: null,
@@ -68,16 +68,16 @@ final class SettingsManagerProvider extends $StreamNotifierProvider<SettingsMana
   SettingsManager create() => SettingsManager();
 }
 
-String _$settingsManagerHash() => r'2ffe5fd6281b6e669e5445fde038c878cf3f64c0';
+String _$settingsManagerHash() => r'360c09053a47d123f6f26b0d4fa638091efa70c9';
 
-abstract class _$SettingsManager extends $StreamNotifier<bool> {
-  Stream<bool> build();
+abstract class _$SettingsManager extends $StreamNotifier<int> {
+  Stream<int> build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<AsyncValue<bool>, bool>;
+    final ref = this.ref as $Ref<AsyncValue<int>, int>;
     final element =
-        ref.element as $ClassProviderElement<AnyNotifier<AsyncValue<bool>, bool>, AsyncValue<bool>, Object?, Object?>;
+        ref.element as $ClassProviderElement<AnyNotifier<AsyncValue<int>, int>, AsyncValue<int>, Object?, Object?>;
     element.handleCreate(ref, build);
   }
 }
@@ -85,7 +85,7 @@ abstract class _$SettingsManager extends $StreamNotifier<bool> {
 @ProviderFor(UserSettingsWatcher)
 final userSettingsWatcherProvider = UserSettingsWatcherProvider._();
 
-final class UserSettingsWatcherProvider extends $StreamNotifierProvider<UserSettingsWatcher, bool> {
+final class UserSettingsWatcherProvider extends $StreamNotifierProvider<UserSettingsWatcher, int> {
   UserSettingsWatcherProvider._()
     : super(
         from: null,
@@ -105,16 +105,16 @@ final class UserSettingsWatcherProvider extends $StreamNotifierProvider<UserSett
   UserSettingsWatcher create() => UserSettingsWatcher();
 }
 
-String _$userSettingsWatcherHash() => r'e60d8bb7e7c33e35fca51da72e763866fdab04d5';
+String _$userSettingsWatcherHash() => r'339a71d0d3869d710735451378d186a5ef040948';
 
-abstract class _$UserSettingsWatcher extends $StreamNotifier<bool> {
-  Stream<bool> build();
+abstract class _$UserSettingsWatcher extends $StreamNotifier<int> {
+  Stream<int> build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<AsyncValue<bool>, bool>;
+    final ref = this.ref as $Ref<AsyncValue<int>, int>;
     final element =
-        ref.element as $ClassProviderElement<AnyNotifier<AsyncValue<bool>, bool>, AsyncValue<bool>, Object?, Object?>;
+        ref.element as $ClassProviderElement<AnyNotifier<AsyncValue<int>, int>, AsyncValue<int>, Object?, Object?>;
     element.handleCreate(ref, build);
   }
 }

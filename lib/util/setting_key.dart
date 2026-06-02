@@ -103,6 +103,8 @@ class SettingKeys {
   static const String subtitlesEnabled = 'subtitles_enabled';
   static const String subtitleSpeakerHighlighting = 'subtitle_speaker_highlighting';
   static const String subtitleReadAlong = 'subtitle_read_along';
+  static const String checkForServerUpdates = 'check_for_server_updates';
+  static const String dismissedUpdateServerVersion = 'dismissed_update_server_version';
 }
 
 bool get _defaultEnableOnDesktop {
@@ -220,6 +222,8 @@ final defaultSettings = {
   SettingKeys.subtitlesEnabled: true,
   SettingKeys.subtitleSpeakerHighlighting: true,
   SettingKeys.subtitleReadAlong: true,
+  SettingKeys.checkForServerUpdates: false,
+  SettingKeys.dismissedUpdateServerVersion: '',
 };
 
 enum AppThemeMode {

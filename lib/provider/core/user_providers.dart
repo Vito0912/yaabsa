@@ -116,7 +116,10 @@ Future<User?> _refreshCurrentUserFromServer({required AppDatabase db, required U
     }
 
     logger('Fetched user from server: ${serverUser.username}. Updating local database.', tag: 'currentUserProvider');
-    final mergedUser = serverUser.copyWith(server: user.server, setting: serverUser.setting ?? user.setting);
+    final mergedUser = serverUser.copyWith(
+      server: user.server,
+      setting: result.data?.serverSettings ?? serverUser.setting ?? user.setting,
+    );
     await db.addOrUpdateStoredUser(mergedUser);
     return mergedUser;
   } catch (e, s) {
@@ -136,7 +139,7 @@ Future<User?> _refreshCurrentUserFromServer({required AppDatabase db, required U
             final refreshedUser = refreshedLogin.user.copyWith(
               server: user.server,
               isActive: true,
-              setting: refreshedLogin.user.setting ?? refreshedLogin.serverSettings,
+              setting: refreshedLogin.serverSettings,
             );
             await db.addOrUpdateStoredUser(refreshedUser);
             return refreshedUser;

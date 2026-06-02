@@ -112,20 +112,22 @@ class SettingsManager extends _$SettingsManager {
   }
 
   @override
-  Stream<bool> build() async* {
+  Stream<int> build() async* {
     final db = ref.watch(appDatabaseProvider);
     final cache = ref.watch(settingsCacheProvider);
 
     await ensureInitialized();
 
-    yield true;
+    int counter = 0;
+    yield counter;
 
     await for (final _ in db.select(db.globalSettings).watch()) {
       final globalSettings = await db.getAllGlobalSettings();
       final userSettings = await db.getAllUserSettings();
       cache.setAllGlobal(globalSettings);
       cache.setAllUsers(userSettings);
-      yield true;
+      counter++;
+      yield counter;
     }
   }
 
@@ -203,15 +205,19 @@ class SettingsManager extends _$SettingsManager {
 @Riverpod(keepAlive: true)
 class UserSettingsWatcher extends _$UserSettingsWatcher {
   @override
-  Stream<bool> build() async* {
+  Stream<int> build() async* {
     final db = ref.watch(appDatabaseProvider);
     final cache = ref.watch(settingsCacheProvider);
+
+    int counter = 0;
+    yield counter;
 
     await for (final _ in db.select(db.userSettings).watch()) {
       if (cache.isInitialized) {
         final userSettings = await db.getAllUserSettings();
         cache.setAllUsers(userSettings);
-        yield true;
+        counter++;
+        yield counter;
       }
     }
   }
