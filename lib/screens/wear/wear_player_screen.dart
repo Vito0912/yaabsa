@@ -27,7 +27,7 @@ class WearPlayerScreen extends ConsumerStatefulWidget {
 }
 
 class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
-  String? _title, _author, _coverUrl, _error, _itemId, _episodeId;
+  String? _title, _author, _coverUrl, _error, _itemId;
   bool _isPlaying = false, _isLoading = true, _isDownloaded = false, _isDownloading = false;
   double _volume = 0.7, _downloadProgress = 0.0;
   DateTime _now = DateTime.now();
@@ -87,7 +87,7 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
       }
 
       mp.sort((a, b) => (b.lastUpdate ?? 0).compareTo(a.lastUpdate ?? 0));
-      final lp = mp.firstWhere((p) => !(p.isFinished ?? false), orElse: () => mp.first);
+      final lp = mp.firstWhere((p) => !(p.isFinished), orElse: () => mp.first);
       LibraryItem? li;
       try {
         li = (await api.getLibraryItemApi().getLibraryItem(itemId: lp.libraryItemId)).data;
@@ -125,7 +125,7 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
             id: '${lp.libraryItemId}:${lp.episodeId ?? 'item'}:$i',
             title: tracks.length > 1 ? '$title (${i + 1}/${tracks.length})' : title,
             artist: author.isNotEmpty ? author : null,
-            duration: Duration(milliseconds: ((t.duration ?? 0) * 1000).round()),
+            duration: Duration(milliseconds: ((t.duration) * 1000).round()),
             artUri: cover != null ? Uri.parse(cover) : null,
           ),
         );
@@ -134,7 +134,7 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
       await _h.loadMedia(
         mediaItems: items,
         audioSources: sources,
-        initialPosition: Duration(microseconds: ((lp.currentTime ?? 0) * Duration.microsecondsPerSecond).round()),
+        initialPosition: Duration(microseconds: ((lp.currentTime) * Duration.microsecondsPerSecond).round()),
       );
       _checkExistingDownloads();
       setState(() {
@@ -142,7 +142,6 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
         _author = author;
         _coverUrl = cover;
         _itemId = lp.libraryItemId;
-        _episodeId = lp.episodeId;
         _isPlaying = false;
         _isLoading = false;
       });

@@ -78,7 +78,7 @@ class WearAudioHandler extends BaseAudioHandler {
   }) async {
     if (mediaItems.isEmpty || audioSources.isEmpty) return;
     queue.add(mediaItems);
-    await _player.setAudioSource(ConcatenatingAudioSource(children: audioSources), initialPosition: initialPosition);
+    await _player.setAudioSources(audioSources, initialPosition: initialPosition);
     mediaItem.add(mediaItems.first);
   }
 
@@ -89,7 +89,7 @@ class WearAudioHandler extends BaseAudioHandler {
   @override
   Future<void> stop() => _player.stop();
   @override
-  Future<void> seek(Duration p) => _player.seek(p);
+  Future<void> seek(Duration position) => _player.seek(position);
   @override
   Future<void> skipToNext() async {
     if (_player.hasNext) await _player.seekToNext();
