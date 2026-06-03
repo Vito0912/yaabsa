@@ -64,17 +64,22 @@ final wearDataLayerProvider = Provider<WearDataLayer>((ref) => WearDataLayer());
 
 // ── API builder (shared by player screen) ───────────────────────
 
-
 final wearApiProvider = FutureProvider<ABSApi?>((ref) async {
   final creds = await ref.read(wearCredentialsStoreProvider).getCredentials();
   if (creds == null) return null;
   final api = ABSApi(
-    dio: createNativeDio(options: BaseOptions(baseUrl: creds['serverUrl']!, connectTimeout: const Duration(seconds: 5), receiveTimeout: const Duration(seconds: 20))),
-    basePathOverride: creds['serverUrl']!, interceptors: [BearerAuthInterceptor()],
+    dio: createNativeDio(
+      options: BaseOptions(
+        baseUrl: creds['serverUrl']!,
+        connectTimeout: const Duration(seconds: 5),
+        receiveTimeout: const Duration(seconds: 20),
+      ),
+    ),
+    basePathOverride: creds['serverUrl']!,
+    interceptors: [BearerAuthInterceptor()],
   )..setBearerAuth('BearerAuth', creds['token']!);
   return api;
 });
-
 
 // ── Phone-side method channel handler ──────────────────────────
 

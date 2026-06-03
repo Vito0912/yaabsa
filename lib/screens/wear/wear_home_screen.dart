@@ -23,10 +23,8 @@ class WearHomeScreen extends ConsumerWidget {
                 }
                 return const WearPairingScreen();
               },
-              loading: () => const Scaffold(
-                body: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-              ),
-              error: (_, __) => const WearPairingScreen(),
+              loading: () => const Scaffold(body: Center(child: CircularProgressIndicator(strokeWidth: 2))),
+              error: (_, _) => const WearPairingScreen(),
             );
           },
         );
@@ -59,10 +57,7 @@ class _WearPairingScreenState extends ConsumerState<WearPairingScreen> {
 
       if (creds != null && mounted) {
         final store = ref.read(wearCredentialsStoreProvider);
-        await store.saveCredentials(
-          serverUrl: creds['serverUrl']!,
-          token: creds['token']!,
-        );
+        await store.saveCredentials(serverUrl: creds['serverUrl']!, token: creds['token']!);
         ref.invalidate(wearHasCredentialsProvider);
       } else if (mounted) {
         setState(() {
