@@ -81,8 +81,6 @@ class MainActivity : AudioServiceActivity() {
 			return false
 		}
 
-		// AudioService can synthesize ACTION_MAIN intents while resuming; only treat
-		// true launcher entries as media-center handoff candidates.
 		if (!intent.hasCategory(Intent.CATEGORY_LAUNCHER)) {
 			return false
 		}

@@ -455,8 +455,6 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
       return;
     }
 
-    // No confirmation dialog for closing sessions as requested
-
     try {
       final success = await api.getSessionApi().closeOpenSession(session.id);
       if (success && mounted) {

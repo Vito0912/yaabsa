@@ -203,7 +203,6 @@ class LibraryAuthorsNotifier extends _$LibraryAuthorsNotifier {
           _refetchSpecificPage(page);
         }
       } else if (next.type == LibraryItemMutationType.added || next.type == LibraryItemMutationType.updated) {
-        // New author or first time association
         _refetchSpecificPage(0);
       }
     });
@@ -248,9 +247,7 @@ class LibraryAuthorsNotifier extends _$LibraryAuthorsNotifier {
       }
 
       state = AsyncData(currentState.copyWith(items: newItems, totalItems: data.total));
-    } catch (_) {
-      // Silently fail on targeted background refetch, keeping existing state
-    }
+    } catch (_) {}
   }
 
   Future<void> fetchNextPage() async {
