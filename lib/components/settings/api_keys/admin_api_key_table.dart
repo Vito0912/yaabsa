@@ -12,6 +12,9 @@ class AdminApiKeyTable extends StatelessWidget {
     required this.onDelete,
     this.loading = false,
     this.topActions,
+    this.showSelection = false,
+    this.selectedApiKeyIds = const <String>{},
+    this.onSelectionChanged,
   });
 
   final List<AdminApiKey> apiKeys;
@@ -20,6 +23,9 @@ class AdminApiKeyTable extends StatelessWidget {
   final Future<void> Function(AdminApiKey apiKey) onDelete;
   final bool loading;
   final Widget? topActions;
+  final bool showSelection;
+  final Set<String> selectedApiKeyIds;
+  final void Function(AdminApiKey apiKey, bool selected)? onSelectionChanged;
 
   String _ownerLabel(AdminApiKey apiKey) {
     final user = apiKey.user;
@@ -104,6 +110,9 @@ class AdminApiKeyTable extends StatelessWidget {
       topActions: topActions,
       rowId: (apiKey) => apiKey.id,
       busyRowIds: busyApiKeyIds,
+      showSelection: showSelection,
+      selectedRowIds: selectedApiKeyIds,
+      onSelectionChanged: onSelectionChanged,
       actions: [
         ExpressiveTableAction<AdminApiKey>(
           icon: Icons.edit_outlined,

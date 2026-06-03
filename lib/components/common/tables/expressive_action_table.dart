@@ -65,6 +65,9 @@ class ExpressiveActionTable<T> extends StatelessWidget {
     required this.rowId,
     this.actions = const [],
     this.busyRowIds = const <String>{},
+    this.showSelection = false,
+    this.selectedRowIds = const <String>{},
+    this.onSelectionChanged,
     this.onRowTap,
     this.emptyTitle = 'No data',
     this.emptySubtitle,
@@ -75,12 +78,16 @@ class ExpressiveActionTable<T> extends StatelessWidget {
     this.topActions,
     this.topActionsPadding = EdgeInsets.zero,
     this.topActionsSpacing = 10,
+    this.actionsColumnWidth = 118,
   });
 
   final List<T> rows;
   final List<ExpressiveTableColumn<T>> columns;
   final String Function(T row) rowId;
   final Set<String> busyRowIds;
+  final bool showSelection;
+  final Set<String> selectedRowIds;
+  final void Function(T row, bool selected)? onSelectionChanged;
   final List<ExpressiveTableAction<T>> actions;
   final Future<void> Function(T row)? onRowTap;
   final String emptyTitle;
@@ -92,6 +99,7 @@ class ExpressiveActionTable<T> extends StatelessWidget {
   final Widget? topActions;
   final EdgeInsetsGeometry topActionsPadding;
   final double topActionsSpacing;
+  final double actionsColumnWidth;
 
   Color _actionColor(BuildContext context, ExpressiveTableActionTone tone) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -242,26 +250,28 @@ class ExpressiveActionTable<T> extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: EdgeInsets.fromLTRB(showSelection ? 2 : 12, 8, 12, 8),
       decoration: BoxDecoration(color: colorScheme.surfaceContainerHigh),
       child: Row(
         children: [
-          for (final column in columns)
+          if (showSelection) const SizedBox(width: 40),
+          for (var i = 0; i < columns.length; i++) ...[
             Expanded(
-              flex: column.flex,
+              flex: columns[i].flex,
               child: Builder(
                 builder: (context) {
                   final headerText = Text(
-                    column.label,
-                    textAlign: _headerTextAlign(column.alignment),
+                    columns[i].label,
+                    textAlign: _headerTextAlign(columns[i].alignment),
                     style: theme.textTheme.labelMedium?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                       letterSpacing: 0.4,
                       fontWeight: FontWeight.w600,
                     ),
+                    maxLines: 1,
                   );
 
-                  final headerTooltip = column.headerTooltip?.trim();
+                  final headerTooltip = columns[i].headerTooltip?.trim();
                   if (headerTooltip == null || headerTooltip.isEmpty) {
                     return headerText;
                   }
@@ -270,18 +280,22 @@ class ExpressiveActionTable<T> extends StatelessWidget {
                 },
               ),
             ),
+            if (i < columns.length - 1) const SizedBox(width: 8),
+          ],
           if (actions.isNotEmpty)
             SizedBox(
-              width: 118,
-              child: Text(
-                'Actions',
-                textAlign: TextAlign.end,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                  letterSpacing: 0.4,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              width: actionsColumnWidth,
+              child: actionsColumnWidth >= 80
+                  ? Text(
+                      'Actions',
+                      textAlign: TextAlign.end,
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                        letterSpacing: 0.4,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    )
+                  : const SizedBox.shrink(),
             ),
         ],
       ),
@@ -290,7 +304,10 @@ class ExpressiveActionTable<T> extends StatelessWidget {
 
   Widget _buildDesktopRow(BuildContext context, T row, int index) {
     final colorScheme = Theme.of(context).colorScheme;
-    final backgroundColor = index.isEven
+    final isSelected = showSelection && selectedRowIds.contains(rowId(row));
+    final backgroundColor = isSelected
+        ? colorScheme.primaryContainer.withValues(alpha: 0.15)
+        : index.isEven
         ? colorScheme.surfaceContainerLowest.withValues(alpha: 0.55)
         : colorScheme.surfaceContainerLow.withValues(alpha: 0.48);
 
@@ -299,21 +316,31 @@ class ExpressiveActionTable<T> extends StatelessWidget {
       child: InkWell(
         onTap: onRowTap == null ? null : () => _handleRowTap(row),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: EdgeInsets.fromLTRB(showSelection ? 2 : 12, 8, 12, 8),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              for (final column in columns)
-                Expanded(
-                  flex: column.flex,
-                  child: Align(
-                    alignment: _cellAlignment(column.alignment),
-                    child: _buildCellWithTooltip(context, column, row, mobile: false),
+              if (showSelection)
+                SizedBox(
+                  width: 40,
+                  child: Checkbox(
+                    value: isSelected,
+                    onChanged: onSelectionChanged == null ? null : (value) => onSelectionChanged!(row, value ?? false),
                   ),
                 ),
+              for (var i = 0; i < columns.length; i++) ...[
+                Expanded(
+                  flex: columns[i].flex,
+                  child: Align(
+                    alignment: _cellAlignment(columns[i].alignment),
+                    child: _buildCellWithTooltip(context, columns[i], row, mobile: false),
+                  ),
+                ),
+                if (i < columns.length - 1) const SizedBox(width: 8),
+              ],
               if (actions.isNotEmpty)
                 SizedBox(
-                  width: 118,
+                  width: actionsColumnWidth,
                   child: Align(
                     alignment: Alignment.centerRight,
                     child: _buildActionButtons(context, row, compact: false),
@@ -382,60 +409,79 @@ class ExpressiveActionTable<T> extends StatelessWidget {
   Widget _buildMobileRowCard(BuildContext context, T row) {
     final colorScheme = Theme.of(context).colorScheme;
     final mobileColumns = columns.where((column) => column.showOnMobile).toList(growable: false);
+    final isSelected = showSelection && selectedRowIds.contains(rowId(row));
 
     return Card(
       elevation: 0,
       margin: EdgeInsets.zero,
-      color: colorScheme.surfaceContainerLow,
+      color: isSelected ? colorScheme.primaryContainer.withValues(alpha: 0.15) : colorScheme.surfaceContainerLow,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.28)),
+        side: BorderSide(
+          color: isSelected ? colorScheme.primary : colorScheme.outlineVariant.withValues(alpha: 0.28),
+          width: isSelected ? 2 : 1,
+        ),
       ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            for (var index = 0; index < mobileColumns.length; index++) ...[
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    width: 110,
-                    child: Builder(
-                      builder: (context) {
-                        final labelText = Text(
-                          mobileColumns[index].label,
-                          style: Theme.of(context).textTheme.labelMedium?.copyWith(color: colorScheme.onSurfaceVariant),
-                        );
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: (onRowTap == null && (!showSelection || onSelectionChanged == null))
+            ? null
+            : () {
+                if (showSelection && selectedRowIds.isNotEmpty && onSelectionChanged != null) {
+                  onSelectionChanged!(row, !isSelected);
+                } else if (onRowTap != null) {
+                  _handleRowTap(row);
+                }
+              },
+        onLongPress: showSelection && onSelectionChanged != null ? () => onSelectionChanged!(row, !isSelected) : null,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (var index = 0; index < mobileColumns.length; index++) ...[
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: 110,
+                      child: Builder(
+                        builder: (context) {
+                          final labelText = Text(
+                            mobileColumns[index].label,
+                            style: Theme.of(
+                              context,
+                            ).textTheme.labelMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                          );
 
-                        final headerTooltip = mobileColumns[index].headerTooltip?.trim();
-                        if (headerTooltip == null || headerTooltip.isEmpty) {
-                          return labelText;
-                        }
+                          final headerTooltip = mobileColumns[index].headerTooltip?.trim();
+                          if (headerTooltip == null || headerTooltip.isEmpty) {
+                            return labelText;
+                          }
 
-                        return Tooltip(message: headerTooltip, child: labelText);
-                      },
+                          return Tooltip(message: headerTooltip, child: labelText);
+                        },
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Align(
-                      alignment: AlignmentDirectional.centerStart,
-                      child: _buildCellWithTooltip(context, mobileColumns[index], row, mobile: true),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: _buildCellWithTooltip(context, mobileColumns[index], row, mobile: true),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              if (index != mobileColumns.length - 1) const SizedBox(height: 8),
+                  ],
+                ),
+                if (index != mobileColumns.length - 1) const SizedBox(height: 8),
+              ],
+              if (actions.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Divider(color: colorScheme.outlineVariant.withValues(alpha: 0.25), height: 1),
+                const SizedBox(height: 4),
+                Align(alignment: Alignment.centerRight, child: _buildActionButtons(context, row, compact: true)),
+              ],
             ],
-            if (actions.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Divider(color: colorScheme.outlineVariant.withValues(alpha: 0.25), height: 1),
-              const SizedBox(height: 4),
-              Align(alignment: Alignment.centerRight, child: _buildActionButtons(context, row, compact: true)),
-            ],
-          ],
+          ),
         ),
       ),
     );

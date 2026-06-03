@@ -26,6 +26,8 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
   String _searchQuery = '';
   String? _errorMessage;
 
+  bool _isBulkDeleting = false;
+  final Set<String> _selectedApiKeyIds = <String>{};
   final Set<String> _busyApiKeyIds = <String>{};
 
   List<AdminApiKey> _apiKeys = const <AdminApiKey>[];
@@ -166,6 +168,7 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
         _apiKeys = _sortedApiKeys(apiKeysResponse.data?.apiKeys ?? const <AdminApiKey>[]);
         _users = _sortedUsers(usersResponse.data?.users ?? const <SessionUserSummary>[]);
         _errorMessage = null;
+        _selectedApiKeyIds.removeWhere((id) => !_apiKeys.any((key) => key.id == id));
       });
     } catch (error) {
       if (!mounted) {
@@ -370,6 +373,92 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
     }
   }
 
+  void _onSelectionChanged(AdminApiKey apiKey, bool selected) {
+    setState(() {
+      if (selected) {
+        _selectedApiKeyIds.add(apiKey.id);
+      } else {
+        _selectedApiKeyIds.remove(apiKey.id);
+      }
+    });
+  }
+
+  Future<void> _bulkDeleteSelectedApiKeys() async {
+    final api = ref.read(absApiProvider);
+    if (api == null || _isBulkDeleting || _selectedApiKeyIds.isEmpty) {
+      return;
+    }
+
+    final selectedKeys = _apiKeys.where((key) => _selectedApiKeyIds.contains(key.id)).toList(growable: false);
+    if (selectedKeys.isEmpty) {
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Delete Selected API Keys'),
+          content: Text('Delete ${selectedKeys.length} selected API key(s)? This action cannot be undone.'),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
+            FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Delete')),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true) {
+      return;
+    }
+
+    setState(() {
+      _isBulkDeleting = true;
+      _errorMessage = null;
+    });
+
+    var deletedCount = 0;
+    final failedIds = <String>[];
+
+    for (final key in selectedKeys) {
+      try {
+        final deleted = await api.getAdminApi().deleteApiKey(key.id);
+        if (deleted) {
+          deletedCount += 1;
+        } else {
+          failedIds.add(key.id);
+        }
+      } catch (error) {
+        failedIds.add(key.id);
+      }
+    }
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() {
+      _selectedApiKeyIds.clear();
+      _isBulkDeleting = false;
+    });
+
+    await _loadApiKeysData(showLoading: false);
+
+    if (!mounted) {
+      return;
+    }
+
+    final messenger = ScaffoldMessenger.of(context);
+    if (deletedCount > 0) {
+      messenger.showSnackBar(SnackBar(content: Text('Deleted $deletedCount API key(s).')));
+    }
+    if (failedIds.isNotEmpty) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('Failed to delete ${failedIds.length} API key(s). Check logs for details.')),
+      );
+    }
+  }
+
   Widget _buildToolbar({
     required bool compact,
     required String currentUserId,
@@ -536,12 +625,36 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
                     ),
                   ),
                 ),
+              if (_selectedApiKeyIds.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Row(
+                    children: [
+                      Text('${_selectedApiKeyIds.length} selected'),
+                      const Spacer(),
+                      FilledButton.icon(
+                        onPressed: _isBulkDeleting
+                            ? null
+                            : () {
+                                unawaited(_bulkDeleteSelectedApiKeys());
+                              },
+                        icon: _isBulkDeleting
+                            ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                            : const Icon(Icons.delete_outline_rounded),
+                        label: const Text('Delete Selected'),
+                      ),
+                    ],
+                  ),
+                ),
               Expanded(
                 child: RefreshIndicator(
                   onRefresh: () => _loadApiKeysData(showLoading: false),
                   child: AdminApiKeyTable(
                     apiKeys: filteredApiKeys,
                     busyApiKeyIds: _busyApiKeyIds,
+                    showSelection: true,
+                    selectedApiKeyIds: _selectedApiKeyIds,
+                    onSelectionChanged: _onSelectionChanged,
                     onEdit: (apiKey) => _editApiKey(apiKey, isRootUser: isRootUser),
                     onDelete: _deleteApiKey,
                     loading: _isLoading,

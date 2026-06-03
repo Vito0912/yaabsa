@@ -67,6 +67,7 @@ dependencies:
   dart_quill_delta: ^10.8.3
   socket_io_client: ^3.1.4
 
+  timeago: ^3.7.1
 
   pdfrx: ^2.4.1
   # Note for contributors: Commit pinning is used. Please check for updates when updating the e-Reader. This is for security, as it runs in a WebView and the repository is very small.

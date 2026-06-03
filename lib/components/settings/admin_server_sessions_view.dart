@@ -8,6 +8,7 @@ import 'package:yaabsa/api/admin/session_user_summary.dart';
 import 'package:yaabsa/api/library_items/playback_session.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/components/common/inputs/expressive_dropdown.dart';
+import 'package:yaabsa/components/common/tables/expressive_action_table.dart';
 import 'package:yaabsa/components/sessions/listening_session_editor_dialog.dart';
 import 'package:yaabsa/components/sessions/listening_session_list.dart';
 import 'package:yaabsa/components/sessions/listening_sessions_pagination_controls.dart';
@@ -448,6 +449,36 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
     }
   }
 
+  Future<void> _closeOpenSession(PlaybackSession session) async {
+    final api = _api();
+    if (api == null) {
+      return;
+    }
+
+    // No confirmation dialog for closing sessions as requested
+
+    try {
+      final success = await api.getSessionApi().closeOpenSession(session.id);
+      if (success && mounted) {
+        await _loadOpenSessions();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Session closed successfully')));
+        }
+      } else if (!success && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to close session')));
+      }
+    } catch (error, stackTrace) {
+      logger(
+        'Failed to close open session ${session.id}: $error\n$stackTrace',
+        tag: 'AdminServerSessionsView',
+        level: InfoLevel.error,
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to close session: $error')));
+      }
+    }
+  }
+
   String? _usernameForLibrarySession(PlaybackSession session) {
     final username = _librarySessionUsers[session.id];
     if (username == null || username.trim().isEmpty) {
@@ -547,27 +578,21 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
             ),
           ),
         const SizedBox(height: 8),
-        Card(
-          margin: EdgeInsets.zero,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            child: ListeningSessionList(
-              sessions: _librarySessions.map((entry) => entry.session).toList(growable: false),
-              usernameForSession: _usernameForLibrarySession,
-              showSelection: true,
-              selectedSessionIds: _selectedLibrarySessionIds,
-              onSelectionChanged: _onLibrarySessionSelectionChanged,
-              onSessionTap: (session) async {
-                final canEditSession = canEdit && session.userId == _activeUserId;
-                await _openPlaybackSessionDialog(
-                  session: session,
-                  username: _usernameForLibrarySession(session),
-                  canEdit: canEditSession,
-                  canDelete: canDelete,
-                );
-              },
-            ),
-          ),
+        ListeningSessionTable(
+          sessions: _librarySessions.map((entry) => entry.session).toList(growable: false),
+          usernameForSession: _usernameForLibrarySession,
+          showSelection: true,
+          selectedSessionIds: _selectedLibrarySessionIds,
+          onSelectionChanged: _onLibrarySessionSelectionChanged,
+          onSessionTap: (session) async {
+            final canEditSession = canEdit && session.userId == _activeUserId;
+            await _openPlaybackSessionDialog(
+              session: session,
+              username: _usernameForLibrarySession(session),
+              canEdit: canEditSession,
+              canDelete: canDelete,
+            );
+          },
         ),
       ],
     );
@@ -581,25 +606,28 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
         const SizedBox(height: 8),
         if (_isLoadingOpenSessions)
           const Padding(padding: EdgeInsets.only(bottom: 8), child: LinearProgressIndicator(minHeight: 2)),
-        Card(
-          margin: EdgeInsets.zero,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            child: ListeningSessionList(
-              sessions: _openSessions.map((entry) => entry.session).toList(growable: false),
-              emptyMessage: 'No open sessions found.',
-              usernameForSession: _usernameForOpenSession,
-              onSessionTap: (session) async {
-                final canEditSession = canEdit && session.userId == _activeUserId;
-                await _openPlaybackSessionDialog(
-                  session: session,
-                  username: _usernameForOpenSession(session),
-                  canEdit: canEditSession,
-                  canDelete: canDelete,
-                );
-              },
+        ListeningSessionTable(
+          sessions: _openSessions.map((entry) => entry.session).toList(growable: false),
+          emptyMessage: 'No open sessions found.',
+          usernameForSession: _usernameForOpenSession,
+          actionsColumnWidth: 52,
+          actions: [
+            ExpressiveTableAction<PlaybackSession>(
+              icon: Icons.close_rounded,
+              tooltip: 'Close session',
+              tone: ExpressiveTableActionTone.danger,
+              onPressed: (session) => _closeOpenSession(session),
             ),
-          ),
+          ],
+          onSessionTap: (session) async {
+            final canEditSession = canEdit && session.userId == _activeUserId;
+            await _openPlaybackSessionDialog(
+              session: session,
+              username: _usernameForOpenSession(session),
+              canEdit: canEditSession,
+              canDelete: canDelete,
+            );
+          },
         ),
       ],
     );
@@ -689,7 +717,7 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
         Widget centeredContent(Widget child) {
           return Align(
             alignment: Alignment.topCenter,
-            child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 960), child: child),
+            child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1100), child: child),
           );
         }
 
@@ -717,7 +745,7 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
           onRefresh: _loadAllData,
           child: ListView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.only(bottom: 18),
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 18),
             children: [
               centeredContent(_buildErrorCard()),
               if (_errorMessage != null && _errorMessage!.isNotEmpty) centeredContent(const SizedBox(height: 10)),
