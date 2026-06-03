@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
@@ -228,6 +229,7 @@ class _SeekBarSliderState extends State<SeekBarSlider> {
                 behavior: HitTestBehavior.translucent,
                 onPointerDown: widget.hasSeekRange
                     ? (event) {
+                        if (event.kind == PointerDeviceKind.touch) return;
                         _updatePreview(
                           dx: event.localPosition.dx,
                           sliderWidth: sliderWidth,
@@ -237,6 +239,7 @@ class _SeekBarSliderState extends State<SeekBarSlider> {
                     : null,
                 onPointerMove: widget.hasSeekRange
                     ? (event) {
+                        if (event.kind == PointerDeviceKind.touch) return;
                         _updatePreview(
                           dx: event.localPosition.dx,
                           sliderWidth: sliderWidth,
@@ -246,6 +249,10 @@ class _SeekBarSliderState extends State<SeekBarSlider> {
                     : null,
                 onPointerUp: widget.hasSeekRange
                     ? (event) {
+                        if (event.kind == PointerDeviceKind.touch) {
+                          _clearPreview();
+                          return;
+                        }
                         _updatePreview(
                           dx: event.localPosition.dx,
                           sliderWidth: sliderWidth,

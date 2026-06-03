@@ -8,6 +8,7 @@ extension _ReaderAnnotationActions on _ReaderState {
   void _showAnnotationsList() {
     showModalBottomSheet(
       context: context,
+      useSafeArea: true,
       backgroundColor: _readerSheetColor(context),
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
       builder: (context) => ReaderEpubAnnotationsListView(epubController: epubController),
@@ -17,6 +18,7 @@ extension _ReaderAnnotationActions on _ReaderState {
   void _showPdfAnnotationsList() {
     showModalBottomSheet(
       context: context,
+      useSafeArea: true,
       backgroundColor: _readerSheetColor(context),
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
       builder: (context) => ReaderPdfAnnotationsListView(
@@ -52,6 +54,7 @@ extension _ReaderAnnotationActions on _ReaderState {
 
     showModalBottomSheet(
       context: context,
+      useSafeArea: true,
       backgroundColor: _readerSheetColor(context),
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
       builder: (context) => ReaderColorPickerSheet(
@@ -87,6 +90,7 @@ extension _ReaderAnnotationActions on _ReaderState {
   void _showThicknessPicker({required Color color, required bool isEpubMode}) {
     showModalBottomSheet(
       context: context,
+      useSafeArea: true,
       backgroundColor: _readerSheetColor(context),
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
       builder: (context) => ReaderThicknessPickerSheet(

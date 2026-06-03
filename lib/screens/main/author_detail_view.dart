@@ -22,7 +22,7 @@ class AuthorDetailView extends ConsumerWidget {
       return ConnectionIssueView.offline();
     }
 
-    final authorDetailsAsync = ref.watch(libraryAuthorProvider(authorId));
+    final authorDetailsAsync = ref.watch(libraryAuthorDetailsProvider(authorId));
     return authorDetailsAsync.when(
       skipLoadingOnRefresh: true,
       skipLoadingOnReload: true,
@@ -43,8 +43,8 @@ class AuthorDetailView extends ConsumerWidget {
         error: error,
         title: 'Error loading author details',
         onRetry: () async {
-          ref.invalidate(libraryAuthorProvider(authorId));
-          await ref.read(libraryAuthorProvider(authorId).future);
+          ref.invalidate(libraryAuthorDetailsProvider(authorId));
+          await ref.read(libraryAuthorDetailsProvider(authorId).future);
         },
       ),
     );

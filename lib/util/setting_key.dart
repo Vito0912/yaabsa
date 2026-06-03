@@ -14,8 +14,10 @@ class SettingKeys {
   static const String keepScreenOn = 'keep_screen_on';
   static const String keepWebsocketConnectionInBackground = 'keep_websocket_connection_in_background';
   static const String lockMediaNotification = 'lock_media_notification';
+  static const String mediaNotificationType = 'media_notification_type';
   static const String showNotificationMoreButton = 'show_notification_more_button';
   static const String autoPlayLastPlayedOnLaunch = 'auto_play_last_played_on_launch';
+  static const String showLastPlayedMiniPlayerAlways = 'show_last_played_mini_player_always';
   static const String language = 'language';
   static const String sidebarCollapsed = 'sidebar_collapsed';
   static const String autoQueue = 'auto_queue';
@@ -95,11 +97,14 @@ class SettingKeys {
   static const String playerSeekBarShowChapterMarkers = 'player_seek_bar_show_chapter_markers';
   static const String playerLayoutConfig = 'player_layout_config';
   static const String lastPlayedQueueItem = 'last_played_queue_item';
+  static const String lastPlayedMiniPlayerSnapshot = 'last_played_mini_player_snapshot';
   static const String podcastEpisodeProgressFilter = 'podcast_episode_progress_filter';
 
   static const String subtitlesEnabled = 'subtitles_enabled';
   static const String subtitleSpeakerHighlighting = 'subtitle_speaker_highlighting';
   static const String subtitleReadAlong = 'subtitle_read_along';
+  static const String checkForServerUpdates = 'check_for_server_updates';
+  static const String dismissedUpdateServerVersion = 'dismissed_update_server_version';
 }
 
 bool get _defaultEnableOnDesktop {
@@ -128,8 +133,10 @@ final defaultSettings = {
   SettingKeys.bufferSize: 5 * 1024 * 1024,
   SettingKeys.keepWebsocketConnectionInBackground: !_defaultEnableOnMobile,
   SettingKeys.lockMediaNotification: false,
+  SettingKeys.mediaNotificationType: MediaNotificationType.full.name,
   SettingKeys.showNotificationMoreButton: false,
   SettingKeys.autoPlayLastPlayedOnLaunch: false,
+  SettingKeys.showLastPlayedMiniPlayerAlways: false,
   SettingKeys.keepScreenOn: _defaultEnableOnDesktop,
   SettingKeys.language: 'en-US',
   SettingKeys.sidebarCollapsed: false,
@@ -184,8 +191,8 @@ final defaultSettings = {
   SettingKeys.toolsMatchAudiobookChapters: false,
   SettingKeys.toolsSplitGenresTags: false,
   SettingKeys.manualMatchLastConfiguration: '',
-  SettingKeys.shakeToResetSleepTimer: false,
-  SettingKeys.shakeToRewind: true,
+  SettingKeys.shakeToResetSleepTimer: true,
+  SettingKeys.shakeToRewind: false,
   SettingKeys.shakeSensitivity: 2.0,
   SettingKeys.shakeVibrate: true,
   SettingKeys.fastForwardInterval: 10,
@@ -215,6 +222,8 @@ final defaultSettings = {
   SettingKeys.subtitlesEnabled: true,
   SettingKeys.subtitleSpeakerHighlighting: true,
   SettingKeys.subtitleReadAlong: true,
+  SettingKeys.checkForServerUpdates: false,
+  SettingKeys.dismissedUpdateServerVersion: '',
 };
 
 enum AppThemeMode {
@@ -471,6 +480,56 @@ enum SeekBarMarkerMode {
         return 'Only bookmarks';
       case SeekBarMarkerMode.both:
         return 'Bookmarks and chapters';
+    }
+  }
+}
+
+enum MediaNotificationType {
+  full,
+  chapter;
+
+  static MediaNotificationType fromSettingValue(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return MediaNotificationType.full;
+    }
+
+    final normalized = value.trim().toLowerCase();
+
+    for (final mode in MediaNotificationType.values) {
+      if (mode.name == normalized) {
+        return mode;
+      }
+    }
+
+    if (normalized.startsWith('medianotificationtype.')) {
+      final suffix = normalized.split('.').last;
+      for (final mode in MediaNotificationType.values) {
+        if (mode.name == suffix) {
+          return mode;
+        }
+      }
+    }
+
+    for (final mode in MediaNotificationType.values) {
+      if (mode.label.toLowerCase() == normalized) {
+        return mode;
+      }
+    }
+
+    for (final mode in MediaNotificationType.values) {
+      if (mode.name == value) {
+        return mode;
+      }
+    }
+    return MediaNotificationType.full;
+  }
+
+  String get label {
+    switch (this) {
+      case MediaNotificationType.full:
+        return 'Full';
+      case MediaNotificationType.chapter:
+        return 'Chapter';
     }
   }
 }

@@ -198,7 +198,7 @@ class _PlayHistoryLocalTabState extends ConsumerState<PlayHistoryLocalTab> {
                     color: _getColorForType(context, type),
                     typeDisplayName: _getTypeDisplayName(type),
                     canSeek: _canSeek(type),
-                    onSeek: (entry) => audioHandler.seek(entry.currentTime.toDuration),
+                    onSeek: (entry) => audioHandler.seekAbsolute(entry.currentTime.toDuration),
                   );
                 })
                 .toList(growable: false),

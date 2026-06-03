@@ -20,8 +20,10 @@ import 'package:yaabsa/screens/main/series_view.dart';
 import 'package:yaabsa/screens/main/stats_view.dart';
 import 'package:yaabsa/screens/player/play_bar.dart';
 import 'package:yaabsa/screens/settings/settings_screen.dart';
+import 'package:yaabsa/components/common/server_update_warning.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/core/multi_select_app_bar_provider.dart';
+import 'package:yaabsa/provider/core/server_update_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/home_navigation_preferences.dart';
@@ -523,6 +525,8 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
     }
 
     final currentUser = ref.watch(currentUserProvider).value;
+    final updateInfo = ref.watch(serverUpdateStateProvider).value;
+    final showUpdate = updateInfo != null && updateInfo.isUpdateAvailable && !updateInfo.isDismissed;
 
     if (AaosService.instance.currentState.isAutomotiveDevice) {
       final aaosQuery = GoRouterState.of(context).uri.queryParameters;
@@ -719,6 +723,11 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
                 ),
 
               Expanded(child: currentContent),
+              if (showUpdate)
+                ServerUpdateWarning(
+                  variant: ServerUpdateWarningVariant.mobile,
+                  latestVersion: updateInfo.latestVersion,
+                ),
               StreamBuilder<bool>(
                 stream: audioHandler.shouldShowPlayer,
                 initialData: audioHandler.shouldShowPlayerNow,

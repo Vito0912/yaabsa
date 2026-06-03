@@ -1,6 +1,8 @@
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:yaabsa/api/json/value_parsers.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
+import 'package:yaabsa/api/list/collection.dart';
+import 'package:yaabsa/api/list/playlist.dart';
 import 'package:yaabsa/api/socket/events/user_item_progress_updated_event.dart';
 import 'package:yaabsa/api/tasks/abs_task.dart';
 import 'package:yaabsa/util/logger.dart';
@@ -13,6 +15,8 @@ typedef ItemsEventHandler = void Function(List<LibraryItem> items);
 typedef BatchQuickMatchCompleteHandler =
     void Function({required bool success, required int updates, required int unmatched});
 typedef TaskEventHandler = void Function(AbsTask task);
+typedef CollectionEventHandler = void Function(Collection collection);
+typedef PlaylistEventHandler = void Function(Playlist playlist);
 typedef MetadataEmbedQueueUpdateHandler = void Function({required String libraryItemId, required bool queued});
 typedef TrackStateHandler = void Function({required String libraryItemId, required String ino});
 typedef TrackProgressHandler =
@@ -45,6 +49,12 @@ class ABSSocketClient {
     required TrackProgressHandler onTrackProgress,
     required TrackStateHandler onTrackFinished,
     required TaskProgressHandler onTaskProgress,
+    CollectionEventHandler? onCollectionAdded,
+    CollectionEventHandler? onCollectionUpdated,
+    CollectionEventHandler? onCollectionRemoved,
+    PlaylistEventHandler? onPlaylistAdded,
+    PlaylistEventHandler? onPlaylistUpdated,
+    PlaylistEventHandler? onPlaylistRemoved,
   }) : _onUserItemProgressUpdated = onUserItemProgressUpdated,
        _onItemAdded = onItemAdded,
        _onItemUpdated = onItemUpdated,
@@ -59,7 +69,13 @@ class ABSSocketClient {
        _onTrackStarted = onTrackStarted,
        _onTrackProgress = onTrackProgress,
        _onTrackFinished = onTrackFinished,
-       _onTaskProgress = onTaskProgress;
+       _onTaskProgress = onTaskProgress,
+       _onCollectionAdded = onCollectionAdded,
+       _onCollectionUpdated = onCollectionUpdated,
+       _onCollectionRemoved = onCollectionRemoved,
+       _onPlaylistAdded = onPlaylistAdded,
+       _onPlaylistUpdated = onPlaylistUpdated,
+       _onPlaylistRemoved = onPlaylistRemoved;
 
   final UserItemProgressUpdatedHandler _onUserItemProgressUpdated;
   final ItemEventHandler _onItemAdded;
@@ -76,6 +92,12 @@ class ABSSocketClient {
   final TrackProgressHandler _onTrackProgress;
   final TrackStateHandler _onTrackFinished;
   final TaskProgressHandler _onTaskProgress;
+  final CollectionEventHandler? _onCollectionAdded;
+  final CollectionEventHandler? _onCollectionUpdated;
+  final CollectionEventHandler? _onCollectionRemoved;
+  final PlaylistEventHandler? _onPlaylistAdded;
+  final PlaylistEventHandler? _onPlaylistUpdated;
+  final PlaylistEventHandler? _onPlaylistRemoved;
   final Map<String, ServerLogHandler> _serverLogHandlers = <String, ServerLogHandler>{};
 
   int _nextServerLogHandlerId = 0;
@@ -431,6 +453,74 @@ class ABSSocketClient {
       _onTaskProgress(libraryItemId: libraryItemId, progress: progress);
     });
 
+    socket.on("collection_added", (dynamic payload) {
+      final collection = _collectionFromPayload(payload, eventName: 'collection_added');
+      if (collection != null) {
+        _onCollectionAdded?.call(collection);
+        logger(
+          'Processed collection_added event for id ${collection.id}',
+          tag: 'ABSSocketClient',
+          level: InfoLevel.debug,
+        );
+      }
+    });
+
+    socket.on("collection_updated", (dynamic payload) {
+      final collection = _collectionFromPayload(payload, eventName: 'collection_updated');
+      if (collection != null) {
+        _onCollectionUpdated?.call(collection);
+        logger(
+          'Processed collection_updated event for id ${collection.id}',
+          tag: 'ABSSocketClient',
+          level: InfoLevel.debug,
+        );
+      }
+    });
+
+    socket.on("collection_removed", (dynamic payload) {
+      final collection = _collectionFromPayload(payload, eventName: 'collection_removed');
+      if (collection != null) {
+        _onCollectionRemoved?.call(collection);
+        logger(
+          'Processed collection_removed event for id ${collection.id}',
+          tag: 'ABSSocketClient',
+          level: InfoLevel.debug,
+        );
+      }
+    });
+
+    socket.on("playlist_added", (dynamic payload) {
+      final playlist = _playlistFromPayload(payload, eventName: 'playlist_added');
+      if (playlist != null) {
+        _onPlaylistAdded?.call(playlist);
+        logger('Processed playlist_added event for id ${playlist.id}', tag: 'ABSSocketClient', level: InfoLevel.debug);
+      }
+    });
+
+    socket.on("playlist_updated", (dynamic payload) {
+      final playlist = _playlistFromPayload(payload, eventName: 'playlist_updated');
+      if (playlist != null) {
+        _onPlaylistUpdated?.call(playlist);
+        logger(
+          'Processed playlist_updated event for id ${playlist.id}',
+          tag: 'ABSSocketClient',
+          level: InfoLevel.debug,
+        );
+      }
+    });
+
+    socket.on("playlist_removed", (dynamic payload) {
+      final playlist = _playlistFromPayload(payload, eventName: 'playlist_removed');
+      if (playlist != null) {
+        _onPlaylistRemoved?.call(playlist);
+        logger(
+          'Processed playlist_removed event for id ${playlist.id}',
+          tag: 'ABSSocketClient',
+          level: InfoLevel.debug,
+        );
+      }
+    });
+
     socket.on("log", (dynamic payload) {
       final payloadJson = _payloadToJson(payload);
       if (payloadJson == null) {
@@ -605,6 +695,44 @@ class ABSSocketClient {
 
     try {
       return AbsTask.fromJson(payloadJson);
+    } catch (e, s) {
+      logger('Failed to parse $eventName payload: $e\n$s', tag: 'ABSSocketClient', level: InfoLevel.error);
+      return null;
+    }
+  }
+
+  Collection? _collectionFromPayload(dynamic payload, {required String eventName}) {
+    final payloadJson = _payloadToJson(payload);
+    if (payloadJson == null) {
+      logger(
+        'Received malformed $eventName payload: ${_stringifyPayload(payload)}',
+        tag: 'ABSSocketClient',
+        level: InfoLevel.warning,
+      );
+      return null;
+    }
+
+    try {
+      return Collection.fromJson(payloadJson);
+    } catch (e, s) {
+      logger('Failed to parse $eventName payload: $e\n$s', tag: 'ABSSocketClient', level: InfoLevel.error);
+      return null;
+    }
+  }
+
+  Playlist? _playlistFromPayload(dynamic payload, {required String eventName}) {
+    final payloadJson = _payloadToJson(payload);
+    if (payloadJson == null) {
+      logger(
+        'Received malformed $eventName payload: ${_stringifyPayload(payload)}',
+        tag: 'ABSSocketClient',
+        level: InfoLevel.warning,
+      );
+      return null;
+    }
+
+    try {
+      return Playlist.fromJson(payloadJson);
     } catch (e, s) {
       logger('Failed to parse $eventName payload: $e\n$s', tag: 'ABSSocketClient', level: InfoLevel.error);
       return null;

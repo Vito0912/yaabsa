@@ -307,7 +307,7 @@ class _CurrentUserListeningSessionsTabState extends ConsumerState<CurrentUserLis
         Widget centeredContent(Widget child) {
           return Align(
             alignment: Alignment.topCenter,
-            child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 960), child: child),
+            child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1100), child: child),
           );
         }
 
@@ -390,20 +390,14 @@ class _CurrentUserListeningSessionsTabState extends ConsumerState<CurrentUserLis
                   ),
                 ),
               centeredContent(
-                Card(
-                  margin: EdgeInsets.zero,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    child: ListeningSessionList(
-                      sessions: _sessions,
-                      showSelection: true,
-                      selectedSessionIds: _selectedSessionIds,
-                      onSelectionChanged: _onSessionSelectionChanged,
-                      onSessionTap: (session) async {
-                        await _openSessionDialog(session, currentUser);
-                      },
-                    ),
-                  ),
+                ListeningSessionTable(
+                  sessions: _sessions,
+                  showSelection: true,
+                  selectedSessionIds: _selectedSessionIds,
+                  onSelectionChanged: _onSessionSelectionChanged,
+                  onSessionTap: (session) async {
+                    await _openSessionDialog(session, currentUser);
+                  },
                 ),
               ),
             ],

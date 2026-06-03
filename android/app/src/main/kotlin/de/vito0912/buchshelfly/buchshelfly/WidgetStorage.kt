@@ -179,10 +179,10 @@ object WidgetStorage {
     fun isDarkModeEnabled(context: Context): Boolean {
         val preferences = prefs(context)
         if (preferences.contains(KEY_WIDGET_THEME_DARK)) {
-            return preferences.getBoolean(KEY_WIDGET_THEME_DARK, false)
+            return preferences.getBoolean(KEY_WIDGET_THEME_DARK, true)
         }
 
-        return isSystemInDarkMode(context)
+        return true
     }
 
     fun readWidgetConfig(context: Context, appWidgetId: Int): ShelfConfig? {

@@ -276,6 +276,11 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
                       settingKey: SettingKeys.personalizedShelfShowPlayVisibleButton,
                       subtitle: 'Adds a play-all button on Continue Listening and Newest Episodes shelves',
                     ),
+                    const SettingSwitchTile(
+                      label: 'Check Server Updates',
+                      settingKey: SettingKeys.checkForServerUpdates,
+                      subtitle: 'Checks for ABS updates via GitHub',
+                    ),
                   ],
                 ),
 

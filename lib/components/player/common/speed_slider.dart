@@ -42,6 +42,7 @@ class SpeedSlider extends StatelessWidget {
   Future<void> _openSpeedSheet(BuildContext context, double currentSpeed) {
     return showModalBottomSheet<void>(
       context: context,
+      useSafeArea: true,
       isScrollControlled: true,
       showDragHandle: true,
       builder: (sheetContext) {

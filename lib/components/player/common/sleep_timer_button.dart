@@ -44,6 +44,7 @@ class SleepTimerButton extends ConsumerWidget {
   void _showSleepTimerModal(BuildContext context, WidgetRef ref) {
     showModalBottomSheet(
       context: context,
+      useSafeArea: true,
       isScrollControlled: true,
       showDragHandle: true,
       builder: (context) => SleepTimerModal(ref: ref),

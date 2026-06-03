@@ -6,6 +6,7 @@
     android:targetCellHeight="1"
     android:updatePeriodMillis="0"
     android:initialLayout="@layout/widget_quick_play"
+    android:previewLayout="@layout/widget_quick_play"
     android:resizeMode="horizontal"
     android:widgetCategory="home_screen"
     android:description="@string/widget_quick_play_description" />

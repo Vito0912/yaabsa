@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:yaabsa/components/common/server_update_warning.dart';
+import 'package:yaabsa/provider/core/server_update_provider.dart';
 import 'package:yaabsa/screens/layout_home/navigation_item_config.dart';
 
 enum SidebarVariant { collapsed, tabletExpanded, desktopExpanded }
 
-class LayoutHomeSidebar extends StatelessWidget {
+class LayoutHomeSidebar extends ConsumerWidget {
   static const double collapsedWidth = 72;
   static const double tabletExpandedWidth = 112;
   static const double desktopExpandedWidth = 224;
@@ -24,7 +27,10 @@ class LayoutHomeSidebar extends StatelessWidget {
   final ValueChanged<int> onItemTap;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final updateInfo = ref.watch(serverUpdateStateProvider).value;
+    final showUpdate = updateInfo != null && updateInfo.isUpdateAvailable && !updateInfo.isDismissed;
+
     return Material(
       elevation: 2.0,
       color: Theme.of(context).colorScheme.surfaceContainer,
@@ -49,6 +55,10 @@ class LayoutHomeSidebar extends StatelessWidget {
                 }).toList(),
               ),
             ),
+            if (showUpdate) ...[
+              ServerUpdateWarning(variant: _getWarningVariant(), latestVersion: updateInfo.latestVersion),
+              const Divider(height: 1, thickness: 1),
+            ],
             const Divider(height: 1, thickness: 1),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -69,6 +79,17 @@ class LayoutHomeSidebar extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  ServerUpdateWarningVariant _getWarningVariant() {
+    switch (variant) {
+      case SidebarVariant.collapsed:
+        return ServerUpdateWarningVariant.sidebarCollapsed;
+      case SidebarVariant.tabletExpanded:
+        return ServerUpdateWarningVariant.sidebarTablet;
+      case SidebarVariant.desktopExpanded:
+        return ServerUpdateWarningVariant.sidebarDesktop;
+    }
   }
 
   double _widthForVariant(SidebarVariant variant) {

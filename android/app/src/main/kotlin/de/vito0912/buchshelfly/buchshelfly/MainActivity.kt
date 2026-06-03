@@ -32,11 +32,13 @@ class MainActivity : AudioServiceActivity() {
 
 	private var aaosChannel: MethodChannel? = null
 	private var pendingAaosOpenSettings = false
+	private var pendingAaosOpenSignIn = false
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 		handleWidgetLaunchIntent(intent)
 		handleAaosIntent(intent)
+		handleSignInIntent(intent)
 		if (maybeLaunchMediaCenterFromMainIntent(intent)) {
 			return
 		}
@@ -47,13 +49,27 @@ class MainActivity : AudioServiceActivity() {
 		setIntent(intent)
 		handleWidgetLaunchIntent(intent)
 		handleAaosIntent(intent)
+		handleSignInIntent(intent)
 		if (maybeLaunchMediaCenterFromMainIntent(intent)) {
 			return
 		}
 	}
 
+	private fun handleSignInIntent(intent: Intent) {
+		if (!isSignInAliasLaunch(intent)) {
+			return
+		}
+
+		pendingAaosOpenSignIn = true
+		notifyAaosOpenSignInIfPending()
+	}
+
 	private fun maybeLaunchMediaCenterFromMainIntent(intent: Intent): Boolean {
 		if (!packageManager.hasSystemFeature(PackageManager.FEATURE_AUTOMOTIVE)) {
+			return false
+		}
+
+		if (isSignInAliasLaunch(intent)) {
 			return false
 		}
 
@@ -65,7 +81,16 @@ class MainActivity : AudioServiceActivity() {
 			return false
 		}
 
+		if (!intent.hasCategory(Intent.CATEGORY_LAUNCHER)) {
+			return false
+		}
+
 		return launchMediaCenterInternal(finishActivity = true)
+	}
+
+	private fun isSignInAliasLaunch(intent: Intent): Boolean {
+		val className = intent.component?.className ?: return false
+		return className == "de.vito0912.yaabsa.SignInActivity" || className == "$packageName.SignInActivity"
 	}
 
 	private fun handleAaosIntent(intent: Intent) {
@@ -90,6 +115,19 @@ class MainActivity : AudioServiceActivity() {
 		Handler(Looper.getMainLooper()).postDelayed({
 			channel.invokeMethod("openSettings", null)
 		}, 300)
+	}
+
+	private fun notifyAaosOpenSignInIfPending() {
+		if (!pendingAaosOpenSignIn) {
+			return
+		}
+
+		val channel = aaosChannel ?: return
+		pendingAaosOpenSignIn = false
+
+		Handler(Looper.getMainLooper()).postDelayed({
+			channel.invokeMethod("openSignIn", null)
+		}, 120)
 	}
 
 	override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -123,6 +161,7 @@ class MainActivity : AudioServiceActivity() {
 			}
 		}
 		notifyAaosOpenSettingsIfPending()
+		notifyAaosOpenSignInIfPending()
 	}
 
 	private fun handleLaunchMediaCenter(call: MethodCall, result: MethodChannel.Result) {

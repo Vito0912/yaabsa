@@ -27,6 +27,7 @@ class BookmarksButton extends StatelessWidget {
 
           showModalBottomSheet<void>(
             context: context,
+            useSafeArea: true,
             showDragHandle: true,
             isScrollControlled: true,
             builder: (BuildContext context) => PlayerBookmarksSheet(itemId: media.itemId, itemTitle: media.title),

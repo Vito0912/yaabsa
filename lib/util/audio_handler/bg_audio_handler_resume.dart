@@ -21,7 +21,7 @@ extension _BGAudioHandlerResume on BGAudioHandler {
       return;
     }
 
-    await seek(targetPosition);
+    await _seekInternal(targetPosition);
 
     final currentPositionSeconds = targetPosition.inMicroseconds / Duration.microsecondsPerSecond;
     final canReachServer = _ref.read(serverReachabilityProvider);
@@ -66,14 +66,7 @@ extension _BGAudioHandlerResume on BGAudioHandler {
       return false;
     }
 
-    final userId = _ref.read(currentUserProvider).value?.id;
-    if (userId == null || userId.isEmpty) {
-      return false;
-    }
-
-    final db = _ref.read(appDatabaseProvider);
-    final rawLastPlayed = (await db.getUserSetting(userId, SettingKeys.lastPlayedQueueItem))?.value;
-    final lastPlayedItem = _decodeLastPlayedQueueItem(rawLastPlayed);
+    final lastPlayedItem = await _readLastPlayedQueueItemForActiveUser();
     if (lastPlayedItem == null) {
       return false;
     }
@@ -106,6 +99,71 @@ extension _BGAudioHandlerResume on BGAudioHandler {
 
   Future<bool> _playLastPlayedIfEnabledOnStartupInternal() {
     return _playLastPlayedInternal(requireStartupSettingEnabled: true, resumeCurrentIfPaused: false);
+  }
+
+  Future<void> _restoreLastPlayedMiniPlayerIfEnabledInternal() async {
+    if (_currentMediaItem != null || _queueTransitionLoading) {
+      return;
+    }
+
+    _setLastPlayedMiniPlayerSnapshot(null);
+
+    final isEnabled = _ref
+        .read(settingsManagerProvider.notifier)
+        .getGlobalSetting<bool>(SettingKeys.showLastPlayedMiniPlayerAlways);
+    if (!isEnabled) {
+      return;
+    }
+
+    final lastPlayedItem = await _readLastPlayedQueueItemForActiveUser();
+    if (lastPlayedItem == null) {
+      return;
+    }
+
+    _lastQueueItem = lastPlayedItem;
+
+    final rawSnapshot = await _readLastPlayedMiniPlayerSnapshotRawForActiveUser();
+    final snapshot = LastPlayedMiniPlayerSnapshot.fromRawJson(rawSnapshot);
+    if (snapshot == null) {
+      return;
+    }
+
+    if (snapshot.matchesQueueItem(lastPlayedItem)) {
+      _setLastPlayedMiniPlayerSnapshot(snapshot);
+      return;
+    }
+
+    _setLastPlayedMiniPlayerSnapshot(
+      LastPlayedMiniPlayerSnapshot(
+        itemId: lastPlayedItem.itemId,
+        episodeId: lastPlayedItem.episodeId,
+        title: snapshot.title,
+        subtitle: snapshot.subtitle,
+        author: snapshot.author,
+        cover: snapshot.cover,
+      ),
+    );
+  }
+
+  Future<QueueItem?> _readLastPlayedQueueItemForActiveUser() async {
+    final userId = _activeUserId;
+    if (userId == null || userId.isEmpty) {
+      return null;
+    }
+
+    final db = _ref.read(appDatabaseProvider);
+    final rawLastPlayed = (await db.getUserSetting(userId, SettingKeys.lastPlayedQueueItem))?.value;
+    return _decodeLastPlayedQueueItem(rawLastPlayed);
+  }
+
+  Future<String?> _readLastPlayedMiniPlayerSnapshotRawForActiveUser() async {
+    final userId = _activeUserId;
+    if (userId == null || userId.isEmpty) {
+      return null;
+    }
+
+    final db = _ref.read(appDatabaseProvider);
+    return (await db.getUserSetting(userId, SettingKeys.lastPlayedMiniPlayerSnapshot))?.value;
   }
 
   void _clearSmartRewindPauseMarker() {
@@ -267,7 +325,7 @@ extension _BGAudioHandlerResume on BGAudioHandler {
     final targetPosition = _rewindPosition(currentPosition, rewindBy);
 
     if (targetPosition < currentPosition) {
-      await _seekWithoutPausedManualMarker(() => seek(targetPosition));
+      await _seekWithoutPausedManualMarker(() => _seekInternal(targetPosition));
       logger(
         'Applied smart rewind (${rewindBy.inSeconds}s) after pause (${pausedFor.inSeconds}s).',
         tag: 'AudioHandler',
@@ -292,6 +350,26 @@ extension _BGAudioHandlerResume on BGAudioHandler {
     } catch (e, s) {
       logger(
         'Failed to persist last played item for user $userId: $e\\n$s',
+        tag: 'AudioHandler',
+        level: InfoLevel.warning,
+      );
+    }
+  }
+
+  Future<void> _persistLastPlayedMiniPlayerSnapshot(InternalMedia mediaItem) async {
+    final userId = _activeUserId;
+    if (userId == null || userId.isEmpty) {
+      return;
+    }
+
+    final db = _ref.read(appDatabaseProvider);
+    final snapshot = LastPlayedMiniPlayerSnapshot.fromMedia(mediaItem);
+
+    try {
+      await db.setUserSetting(userId, SettingKeys.lastPlayedMiniPlayerSnapshot, snapshot.toRawJson());
+    } catch (e, s) {
+      logger(
+        'Failed to persist mini player snapshot for user $userId: $e\n$s',
         tag: 'AudioHandler',
         level: InfoLevel.warning,
       );

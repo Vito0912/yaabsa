@@ -7,7 +7,7 @@ import 'package:yaabsa/api/library/library.dart';
 import 'package:yaabsa/api/podcast/library_podcast_title.dart';
 import 'package:yaabsa/api/podcast/podcast_search_result.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
-import 'package:yaabsa/components/app/podcast_add/podcast_add_result_tile.dart';
+import 'package:yaabsa/components/app/podcast_add/podcast_add_results_expressive_table.dart';
 import 'package:yaabsa/components/app/podcast_add/podcast_create_dialog.dart';
 import 'package:yaabsa/components/common/loading_snackbar.dart';
 import 'package:yaabsa/components/common/textbox_button.dart';
@@ -129,6 +129,25 @@ class _PodcastAddViewState extends ConsumerState<PodcastAddView> {
     }
 
     return null;
+  }
+
+  String _resultRowId(PodcastSearchResult result, int index) {
+    final id = result.id?.trim();
+    if (id != null && id.isNotEmpty) {
+      return '$id::$index';
+    }
+
+    final feedUrl = result.feedUrl?.trim();
+    if (feedUrl != null && feedUrl.isNotEmpty) {
+      return '$feedUrl::$index';
+    }
+
+    final title = result.title?.trim();
+    if (title != null && title.isNotEmpty) {
+      return '$title::$index';
+    }
+
+    return 'podcast_result::$index';
   }
 
   Future<void> _handleSearch({required ABSApi api, required Library library}) async {
@@ -327,6 +346,16 @@ class _PodcastAddViewState extends ConsumerState<PodcastAddView> {
     final useCompactSearchLayout = context.isMobile;
     final keyboardVisible = MediaQuery.viewInsetsOf(context).bottom > 0;
     final showCompactTitle = !(useCompactSearchLayout && keyboardVisible);
+    final resultEntries = _searchResults
+        .asMap()
+        .entries
+        .map((entry) {
+          final result = entry.value;
+          final existing = _matchingPodcastForResult(result);
+
+          return PodcastAddResultEntry(id: _resultRowId(result, entry.key), result: result, existing: existing);
+        })
+        .toList(growable: false);
 
     return Align(
       alignment: Alignment.topCenter,
@@ -470,27 +499,15 @@ class _PodcastAddViewState extends ConsumerState<PodcastAddView> {
               Expanded(
                 child: _searchResults.isEmpty
                     ? _EmptyPodcastAddState(isBusy: isBusy)
-                    : ListView.builder(
-                        padding: EdgeInsets.zero,
-                        itemCount: _searchResults.length,
-                        itemBuilder: (context, index) {
-                          final result = _searchResults[index];
-                          final existing = _matchingPodcastForResult(result);
-                          return PodcastAddResultTile(
-                            result: result,
-                            isAlreadyInLibrary: existing != null,
-                            onTap: (!hasFolders || isBusy || existing != null)
-                                ? null
-                                : () {
-                                    unawaited(
-                                      _onResultTap(
-                                        api: api,
-                                        library: selectedLibrary,
-                                        result: result,
-                                        existing: existing,
-                                      ),
-                                    );
-                                  },
+                    : PodcastAddResultsExpressiveTable(
+                        entries: resultEntries,
+                        enabled: hasFolders && !isBusy,
+                        onSelect: (entry) {
+                          return _onResultTap(
+                            api: api,
+                            library: selectedLibrary,
+                            result: entry.result,
+                            existing: entry.existing,
                           );
                         },
                       ),

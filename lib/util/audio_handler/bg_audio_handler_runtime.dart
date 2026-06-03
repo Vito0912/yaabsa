@@ -12,8 +12,39 @@ extension _BGAudioHandlerRuntime on BGAudioHandler {
 
   void _emitShouldShowPlayer() {
     if (!_showPlayerSubject.isClosed) {
-      _showPlayerSubject.add(_currentMediaItem != null || _queueTransitionLoading);
+      _showPlayerSubject.add(_shouldShowPlayerNowInternal());
     }
+  }
+
+  bool _isSameLastPlayedMiniPlayerSnapshot(LastPlayedMiniPlayerSnapshot? left, LastPlayedMiniPlayerSnapshot? right) {
+    if (left == null && right == null) {
+      return true;
+    }
+
+    if (left == null || right == null) {
+      return false;
+    }
+
+    return left.itemId == right.itemId &&
+        left.episodeId == right.episodeId &&
+        left.title == right.title &&
+        left.subtitle == right.subtitle &&
+        left.author == right.author &&
+        left.cover == right.cover;
+  }
+
+  void _setLastPlayedMiniPlayerSnapshot(LastPlayedMiniPlayerSnapshot? snapshot) {
+    if (_lastPlayedMiniPlayerSnapshotSubject.isClosed) {
+      return;
+    }
+
+    final current = _lastPlayedMiniPlayerSnapshotSubject.value;
+    if (_isSameLastPlayedMiniPlayerSnapshot(current, snapshot)) {
+      return;
+    }
+
+    _lastPlayedMiniPlayerSnapshotSubject.add(snapshot);
+    _emitShouldShowPlayer();
   }
 
   void _setAndroidAutoMoreMenuVisible(bool visible, {Duration? autoCloseAfter}) {

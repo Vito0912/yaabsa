@@ -1725,6 +1725,357 @@ class StoredMediaProgressCompanion extends UpdateCompanion<StoredMediaProgressEn
   }
 }
 
+class $StoredBookmarkSyncsTable extends StoredBookmarkSyncs
+    with TableInfo<$StoredBookmarkSyncsTable, StoredBookmarkSyncEntry> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $StoredBookmarkSyncsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _itemIdMeta = const VerificationMeta('itemId');
+  @override
+  late final GeneratedColumn<String> itemId = GeneratedColumn<String>(
+    'item_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _timeMeta = const VerificationMeta('time');
+  @override
+  late final GeneratedColumn<int> time = GeneratedColumn<int>(
+    'time',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _deletedMeta = const VerificationMeta('deleted');
+  @override
+  late final GeneratedColumn<bool> deleted = GeneratedColumn<bool>(
+    'deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('CHECK ("deleted" IN (0, 1))'),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [userId, itemId, time, title, deleted, updatedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'stored_bookmark_syncs';
+  @override
+  VerificationContext validateIntegrity(Insertable<StoredBookmarkSyncEntry> instance, {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('user_id')) {
+      context.handle(_userIdMeta, userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('item_id')) {
+      context.handle(_itemIdMeta, itemId.isAcceptableOrUnknown(data['item_id']!, _itemIdMeta));
+    } else if (isInserting) {
+      context.missing(_itemIdMeta);
+    }
+    if (data.containsKey('time')) {
+      context.handle(_timeMeta, time.isAcceptableOrUnknown(data['time']!, _timeMeta));
+    } else if (isInserting) {
+      context.missing(_timeMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(_titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
+    }
+    if (data.containsKey('deleted')) {
+      context.handle(_deletedMeta, deleted.isAcceptableOrUnknown(data['deleted']!, _deletedMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta, updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {userId, itemId, time};
+  @override
+  StoredBookmarkSyncEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return StoredBookmarkSyncEntry(
+      userId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
+      itemId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}item_id'])!,
+      time: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}time'])!,
+      title: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}title']),
+      deleted: attachedDatabase.typeMapping.read(DriftSqlType.bool, data['${effectivePrefix}deleted'])!,
+      updatedAt: attachedDatabase.typeMapping.read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
+    );
+  }
+
+  @override
+  $StoredBookmarkSyncsTable createAlias(String alias) {
+    return $StoredBookmarkSyncsTable(attachedDatabase, alias);
+  }
+}
+
+class StoredBookmarkSyncEntry extends DataClass implements Insertable<StoredBookmarkSyncEntry> {
+  final String userId;
+  final String itemId;
+  final int time;
+  final String? title;
+  final bool deleted;
+  final DateTime updatedAt;
+  const StoredBookmarkSyncEntry({
+    required this.userId,
+    required this.itemId,
+    required this.time,
+    this.title,
+    required this.deleted,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['user_id'] = Variable<String>(userId);
+    map['item_id'] = Variable<String>(itemId);
+    map['time'] = Variable<int>(time);
+    if (!nullToAbsent || title != null) {
+      map['title'] = Variable<String>(title);
+    }
+    map['deleted'] = Variable<bool>(deleted);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  StoredBookmarkSyncsCompanion toCompanion(bool nullToAbsent) {
+    return StoredBookmarkSyncsCompanion(
+      userId: Value(userId),
+      itemId: Value(itemId),
+      time: Value(time),
+      title: title == null && nullToAbsent ? const Value.absent() : Value(title),
+      deleted: Value(deleted),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory StoredBookmarkSyncEntry.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return StoredBookmarkSyncEntry(
+      userId: serializer.fromJson<String>(json['userId']),
+      itemId: serializer.fromJson<String>(json['itemId']),
+      time: serializer.fromJson<int>(json['time']),
+      title: serializer.fromJson<String?>(json['title']),
+      deleted: serializer.fromJson<bool>(json['deleted']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'userId': serializer.toJson<String>(userId),
+      'itemId': serializer.toJson<String>(itemId),
+      'time': serializer.toJson<int>(time),
+      'title': serializer.toJson<String?>(title),
+      'deleted': serializer.toJson<bool>(deleted),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  StoredBookmarkSyncEntry copyWith({
+    String? userId,
+    String? itemId,
+    int? time,
+    Value<String?> title = const Value.absent(),
+    bool? deleted,
+    DateTime? updatedAt,
+  }) => StoredBookmarkSyncEntry(
+    userId: userId ?? this.userId,
+    itemId: itemId ?? this.itemId,
+    time: time ?? this.time,
+    title: title.present ? title.value : this.title,
+    deleted: deleted ?? this.deleted,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  StoredBookmarkSyncEntry copyWithCompanion(StoredBookmarkSyncsCompanion data) {
+    return StoredBookmarkSyncEntry(
+      userId: data.userId.present ? data.userId.value : this.userId,
+      itemId: data.itemId.present ? data.itemId.value : this.itemId,
+      time: data.time.present ? data.time.value : this.time,
+      title: data.title.present ? data.title.value : this.title,
+      deleted: data.deleted.present ? data.deleted.value : this.deleted,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StoredBookmarkSyncEntry(')
+          ..write('userId: $userId, ')
+          ..write('itemId: $itemId, ')
+          ..write('time: $time, ')
+          ..write('title: $title, ')
+          ..write('deleted: $deleted, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(userId, itemId, time, title, deleted, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is StoredBookmarkSyncEntry &&
+          other.userId == this.userId &&
+          other.itemId == this.itemId &&
+          other.time == this.time &&
+          other.title == this.title &&
+          other.deleted == this.deleted &&
+          other.updatedAt == this.updatedAt);
+}
+
+class StoredBookmarkSyncsCompanion extends UpdateCompanion<StoredBookmarkSyncEntry> {
+  final Value<String> userId;
+  final Value<String> itemId;
+  final Value<int> time;
+  final Value<String?> title;
+  final Value<bool> deleted;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const StoredBookmarkSyncsCompanion({
+    this.userId = const Value.absent(),
+    this.itemId = const Value.absent(),
+    this.time = const Value.absent(),
+    this.title = const Value.absent(),
+    this.deleted = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  StoredBookmarkSyncsCompanion.insert({
+    required String userId,
+    required String itemId,
+    required int time,
+    this.title = const Value.absent(),
+    this.deleted = const Value.absent(),
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : userId = Value(userId),
+       itemId = Value(itemId),
+       time = Value(time),
+       updatedAt = Value(updatedAt);
+  static Insertable<StoredBookmarkSyncEntry> custom({
+    Expression<String>? userId,
+    Expression<String>? itemId,
+    Expression<int>? time,
+    Expression<String>? title,
+    Expression<bool>? deleted,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (userId != null) 'user_id': userId,
+      if (itemId != null) 'item_id': itemId,
+      if (time != null) 'time': time,
+      if (title != null) 'title': title,
+      if (deleted != null) 'deleted': deleted,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  StoredBookmarkSyncsCompanion copyWith({
+    Value<String>? userId,
+    Value<String>? itemId,
+    Value<int>? time,
+    Value<String?>? title,
+    Value<bool>? deleted,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return StoredBookmarkSyncsCompanion(
+      userId: userId ?? this.userId,
+      itemId: itemId ?? this.itemId,
+      time: time ?? this.time,
+      title: title ?? this.title,
+      deleted: deleted ?? this.deleted,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (itemId.present) {
+      map['item_id'] = Variable<String>(itemId.value);
+    }
+    if (time.present) {
+      map['time'] = Variable<int>(time.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (deleted.present) {
+      map['deleted'] = Variable<bool>(deleted.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StoredBookmarkSyncsCompanion(')
+          ..write('userId: $userId, ')
+          ..write('itemId: $itemId, ')
+          ..write('time: $time, ')
+          ..write('title: $title, ')
+          ..write('deleted: $deleted, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $StoredDownloadsTable extends StoredDownloads with TableInfo<$StoredDownloadsTable, StoredDownloadsEntry> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -2383,6 +2734,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $StoredUsersTable storedUsers = $StoredUsersTable(this);
   late final $StoredSyncsTable storedSyncs = $StoredSyncsTable(this);
   late final $StoredMediaProgressTable storedMediaProgress = $StoredMediaProgressTable(this);
+  late final $StoredBookmarkSyncsTable storedBookmarkSyncs = $StoredBookmarkSyncsTable(this);
   late final $StoredDownloadsTable storedDownloads = $StoredDownloadsTable(this);
   late final $PlayerHistoryTable playerHistory = $PlayerHistoryTable(this);
   @override
@@ -2395,6 +2747,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     storedUsers,
     storedSyncs,
     storedMediaProgress,
+    storedBookmarkSyncs,
     storedDownloads,
     playerHistory,
   ];
@@ -3278,6 +3631,180 @@ typedef $$StoredMediaProgressTableProcessedTableManager =
       StoredMediaProgressEntry,
       PrefetchHooks Function()
     >;
+typedef $$StoredBookmarkSyncsTableCreateCompanionBuilder =
+    StoredBookmarkSyncsCompanion Function({
+      required String userId,
+      required String itemId,
+      required int time,
+      Value<String?> title,
+      Value<bool> deleted,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$StoredBookmarkSyncsTableUpdateCompanionBuilder =
+    StoredBookmarkSyncsCompanion Function({
+      Value<String> userId,
+      Value<String> itemId,
+      Value<int> time,
+      Value<String?> title,
+      Value<bool> deleted,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$StoredBookmarkSyncsTableFilterComposer extends Composer<_$AppDatabase, $StoredBookmarkSyncsTable> {
+  $$StoredBookmarkSyncsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get itemId =>
+      $composableBuilder(column: $table.itemId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get time => $composableBuilder(column: $table.time, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get deleted =>
+      $composableBuilder(column: $table.deleted, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$StoredBookmarkSyncsTableOrderingComposer extends Composer<_$AppDatabase, $StoredBookmarkSyncsTable> {
+  $$StoredBookmarkSyncsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get itemId =>
+      $composableBuilder(column: $table.itemId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get time =>
+      $composableBuilder(column: $table.time, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get deleted =>
+      $composableBuilder(column: $table.deleted, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$StoredBookmarkSyncsTableAnnotationComposer extends Composer<_$AppDatabase, $StoredBookmarkSyncsTable> {
+  $$StoredBookmarkSyncsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get userId => $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get itemId => $composableBuilder(column: $table.itemId, builder: (column) => column);
+
+  GeneratedColumn<int> get time => $composableBuilder(column: $table.time, builder: (column) => column);
+
+  GeneratedColumn<String> get title => $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<bool> get deleted => $composableBuilder(column: $table.deleted, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt => $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$StoredBookmarkSyncsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $StoredBookmarkSyncsTable,
+          StoredBookmarkSyncEntry,
+          $$StoredBookmarkSyncsTableFilterComposer,
+          $$StoredBookmarkSyncsTableOrderingComposer,
+          $$StoredBookmarkSyncsTableAnnotationComposer,
+          $$StoredBookmarkSyncsTableCreateCompanionBuilder,
+          $$StoredBookmarkSyncsTableUpdateCompanionBuilder,
+          (StoredBookmarkSyncEntry, BaseReferences<_$AppDatabase, $StoredBookmarkSyncsTable, StoredBookmarkSyncEntry>),
+          StoredBookmarkSyncEntry,
+          PrefetchHooks Function()
+        > {
+  $$StoredBookmarkSyncsTableTableManager(_$AppDatabase db, $StoredBookmarkSyncsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () => $$StoredBookmarkSyncsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () => $$StoredBookmarkSyncsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () => $$StoredBookmarkSyncsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> userId = const Value.absent(),
+                Value<String> itemId = const Value.absent(),
+                Value<int> time = const Value.absent(),
+                Value<String?> title = const Value.absent(),
+                Value<bool> deleted = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => StoredBookmarkSyncsCompanion(
+                userId: userId,
+                itemId: itemId,
+                time: time,
+                title: title,
+                deleted: deleted,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String userId,
+                required String itemId,
+                required int time,
+                Value<String?> title = const Value.absent(),
+                Value<bool> deleted = const Value.absent(),
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => StoredBookmarkSyncsCompanion.insert(
+                userId: userId,
+                itemId: itemId,
+                time: time,
+                title: title,
+                deleted: deleted,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0.map((e) => (e.readTable(table), BaseReferences(db, table, e))).toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$StoredBookmarkSyncsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $StoredBookmarkSyncsTable,
+      StoredBookmarkSyncEntry,
+      $$StoredBookmarkSyncsTableFilterComposer,
+      $$StoredBookmarkSyncsTableOrderingComposer,
+      $$StoredBookmarkSyncsTableAnnotationComposer,
+      $$StoredBookmarkSyncsTableCreateCompanionBuilder,
+      $$StoredBookmarkSyncsTableUpdateCompanionBuilder,
+      (StoredBookmarkSyncEntry, BaseReferences<_$AppDatabase, $StoredBookmarkSyncsTable, StoredBookmarkSyncEntry>),
+      StoredBookmarkSyncEntry,
+      PrefetchHooks Function()
+    >;
 typedef $$StoredDownloadsTableCreateCompanionBuilder =
     StoredDownloadsCompanion Function({
       required String itemId,
@@ -3618,6 +4145,8 @@ class $AppDatabaseManager {
   $$StoredSyncsTableTableManager get storedSyncs => $$StoredSyncsTableTableManager(_db, _db.storedSyncs);
   $$StoredMediaProgressTableTableManager get storedMediaProgress =>
       $$StoredMediaProgressTableTableManager(_db, _db.storedMediaProgress);
+  $$StoredBookmarkSyncsTableTableManager get storedBookmarkSyncs =>
+      $$StoredBookmarkSyncsTableTableManager(_db, _db.storedBookmarkSyncs);
   $$StoredDownloadsTableTableManager get storedDownloads =>
       $$StoredDownloadsTableTableManager(_db, _db.storedDownloads);
   $$PlayerHistoryTableTableManager get playerHistory => $$PlayerHistoryTableTableManager(_db, _db.playerHistory);

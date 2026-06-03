@@ -38,6 +38,10 @@ const defaultLibraryItemsRequest = LibraryItemsRequest(limit: _itemsPerPage, pag
 final Map<String, LibraryItem> _liveLibraryItemSnapshotById = <String, LibraryItem>{};
 final Set<String> _removedLibraryItemIds = <String>{};
 
+LibraryItem? getLiveLibraryItemSnapshot(String itemId) {
+  return _liveLibraryItemSnapshotById[itemId];
+}
+
 @Riverpod(keepAlive: true)
 class LibraryItemsNotifier extends _$LibraryItemsNotifier {
   bool _isEnsuringIndex = false;

@@ -631,7 +631,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
       return;
     }
 
-    final result = await FilePicker.pickFiles(allowMultiple: true, withData: false);
+    final result = await FilePicker.pickFiles();
     if (result == null) {
       return;
     }
@@ -1338,203 +1338,269 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
 
     return Material(
       color: colorScheme.surface,
-      child: Align(
-        alignment: Alignment.topCenter,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1100),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-            child: Builder(
-              builder: (context) {
-                final content = Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        IconButton(
-                          tooltip: 'Back',
-                          onPressed: widget.onClose,
-                          icon: const Icon(Icons.arrow_back_rounded),
-                        ),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            'Upload to ${widget.selectedLibrary.name}',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+      child: SingleChildScrollView(
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1100),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+              child: Builder(
+                builder: (context) {
+                  final content = Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          IconButton(
+                            tooltip: 'Back',
+                            onPressed: widget.onClose,
+                            icon: const Icon(Icons.arrow_back_rounded),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        final canApplyBulk = !_isUploading && hasQueuedItems;
-
-                        final dropdownRow = Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: YaabsaDropdownField<String>(
-                                label: 'Library folder',
-                                value: _selectedFolder?.id,
-                                onChanged: _isUploading
-                                    ? null
-                                    : (value) {
-                                        setState(() {
-                                          _selectedFolderId = value;
-                                          _loadedAutocompleteFolderPath = null;
-                                        });
-                                        unawaited(_refreshFolderAutocompleteSuggestions(force: true));
-                                      },
-                                items: _folders
-                                    .map(
-                                      (folder) => DropdownMenuItem<String>(
-                                        value: folder.id,
-                                        child: Text(folder.fullPath, overflow: TextOverflow.ellipsis),
-                                      ),
-                                    )
-                                    .toList(growable: false),
-                              ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              'Upload to ${widget.selectedLibrary.name}',
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
                             ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: YaabsaDropdownField<String>(
-                                label: 'Metadata provider',
-                                value: _selectedProvider,
-                                onChanged: _isUploading
-                                    ? null
-                                    : (value) {
-                                        setState(() {
-                                          _selectedProvider = value;
-                                        });
-                                      },
-                                items: [
-                                  if (_selectedProvider != null &&
-                                      _selectedProvider!.isNotEmpty &&
-                                      !metadataProviders.any((option) => option.value == _selectedProvider))
-                                    DropdownMenuItem<String>(value: _selectedProvider, child: Text(_selectedProvider!)),
-                                  ...metadataProviders.map(
-                                    (option) => DropdownMenuItem<String>(
-                                      value: option.value,
-                                      child: Text(option.text, overflow: TextOverflow.ellipsis),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final canApplyBulk = !_isUploading && hasQueuedItems;
+
+                          final dropdownRow = Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: YaabsaDropdownField<String>(
+                                  label: 'Library folder',
+                                  value: _selectedFolder?.id,
+                                  onChanged: _isUploading
+                                      ? null
+                                      : (value) {
+                                          setState(() {
+                                            _selectedFolderId = value;
+                                            _loadedAutocompleteFolderPath = null;
+                                          });
+                                          unawaited(_refreshFolderAutocompleteSuggestions(force: true));
+                                        },
+                                  items: _folders
+                                      .map(
+                                        (folder) => DropdownMenuItem<String>(
+                                          value: folder.id,
+                                          child: Text(folder.fullPath, overflow: TextOverflow.ellipsis),
+                                        ),
+                                      )
+                                      .toList(growable: false),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: YaabsaDropdownField<String>(
+                                  label: 'Metadata provider',
+                                  value: _selectedProvider,
+                                  onChanged: _isUploading
+                                      ? null
+                                      : (value) {
+                                          setState(() {
+                                            _selectedProvider = value;
+                                          });
+                                        },
+                                  items: [
+                                    if (_selectedProvider != null &&
+                                        _selectedProvider!.isNotEmpty &&
+                                        !metadataProviders.any((option) => option.value == _selectedProvider))
+                                      DropdownMenuItem<String>(
+                                        value: _selectedProvider,
+                                        child: Text(_selectedProvider!),
+                                      ),
+                                    ...metadataProviders.map(
+                                      (option) => DropdownMenuItem<String>(
+                                        value: option.value,
+                                        child: Text(option.text, overflow: TextOverflow.ellipsis),
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
+                            ],
+                          );
+
+                          final advancedBulkSection = Material(
+                            color: colorScheme.surfaceContainerLowest,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
                             ),
-                          ],
-                        );
+                            clipBehavior: Clip.antiAlias,
+                            child: Theme(
+                              data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                              child: ExpansionTile(
+                                tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                                childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+                                title: const Text('Advanced options'),
+                                children: [
+                                  LayoutBuilder(
+                                    builder: (context, advancedConstraints) {
+                                      final canShowSideBySide = advancedConstraints.maxWidth > 840;
 
-                        final advancedBulkSection = Material(
-                          color: colorScheme.surfaceContainerLowest,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
-                          ),
-                          clipBehavior: Clip.antiAlias,
-                          child: Theme(
-                            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-                            child: ExpansionTile(
-                              tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-                              childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
-                              title: const Text('Advanced options'),
-                              children: [
-                                LayoutBuilder(
-                                  builder: (context, advancedConstraints) {
-                                    final canShowSideBySide = advancedConstraints.maxWidth > 840;
-
-                                    final settingsCard = Container(
-                                      decoration: BoxDecoration(
-                                        color: colorScheme.surfaceContainer,
-                                        borderRadius: BorderRadius.circular(10),
-                                        border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.34)),
-                                      ),
-                                      padding: const EdgeInsets.all(10),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'Settings',
-                                            style: Theme.of(
-                                              context,
-                                            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          SettingsToggleRow(
-                                            label: 'Auto-fetch metadata',
-                                            value: _autoFetchMetadata,
-                                            enabled: !_isUploading,
-                                            onChanged: (selected) {
-                                              setState(() {
-                                                _autoFetchMetadata = selected;
-                                              });
-                                            },
-                                          ),
-                                          Divider(color: colorScheme.outlineVariant.withValues(alpha: 0.35), height: 1),
-                                          const SizedBox(height: 4),
-                                          SettingsToggleRow(
-                                            label: 'Auto-accept metadata',
-                                            value: _autoAcceptMetadata,
-                                            enabled: !_isUploading,
-                                            onChanged: (selected) {
-                                              setState(() {
-                                                _autoAcceptMetadata = selected;
-                                              });
-                                            },
-                                          ),
-                                          Divider(color: colorScheme.outlineVariant.withValues(alpha: 0.35), height: 1),
-                                          const SizedBox(height: 4),
-                                          SettingsToggleRow(
-                                            label: 'Autocomplete series and authors',
-                                            value: canUseAutocomplete,
-                                            enabled: isAdminUser && !_isUploading,
-                                            onChanged: (selected) {
-                                              setState(() {
-                                                _autocompleteSeriesAndAuthors = selected;
-                                                _loadedAutocompleteFolderPath = null;
-                                              });
-                                              unawaited(_refreshFolderAutocompleteSuggestions(force: true));
-                                            },
-                                          ),
-                                          if (!isAdminUser) ...[
-                                            const SizedBox(height: 6),
+                                      final settingsCard = Container(
+                                        decoration: BoxDecoration(
+                                          color: colorScheme.surfaceContainer,
+                                          borderRadius: BorderRadius.circular(10),
+                                          border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.34)),
+                                        ),
+                                        padding: const EdgeInsets.all(10),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
                                             Text(
-                                              'Requires admin role.',
+                                              'Settings',
                                               style: Theme.of(
                                                 context,
-                                              ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                                              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
                                             ),
+                                            const SizedBox(height: 4),
+                                            SettingsToggleRow(
+                                              label: 'Auto-fetch metadata',
+                                              value: _autoFetchMetadata,
+                                              enabled: !_isUploading,
+                                              onChanged: (selected) {
+                                                setState(() {
+                                                  _autoFetchMetadata = selected;
+                                                });
+                                              },
+                                            ),
+                                            Divider(
+                                              color: colorScheme.outlineVariant.withValues(alpha: 0.35),
+                                              height: 1,
+                                            ),
+                                            const SizedBox(height: 4),
+                                            SettingsToggleRow(
+                                              label: 'Auto-accept metadata',
+                                              value: _autoAcceptMetadata,
+                                              enabled: !_isUploading,
+                                              onChanged: (selected) {
+                                                setState(() {
+                                                  _autoAcceptMetadata = selected;
+                                                });
+                                              },
+                                            ),
+                                            Divider(
+                                              color: colorScheme.outlineVariant.withValues(alpha: 0.35),
+                                              height: 1,
+                                            ),
+                                            const SizedBox(height: 4),
+                                            SettingsToggleRow(
+                                              label: 'Autocomplete series and authors',
+                                              value: canUseAutocomplete,
+                                              enabled: isAdminUser && !_isUploading,
+                                              onChanged: (selected) {
+                                                setState(() {
+                                                  _autocompleteSeriesAndAuthors = selected;
+                                                  _loadedAutocompleteFolderPath = null;
+                                                });
+                                                unawaited(_refreshFolderAutocompleteSuggestions(force: true));
+                                              },
+                                            ),
+                                            if (!isAdminUser) ...[
+                                              const SizedBox(height: 6),
+                                              Text(
+                                                'Requires admin role.',
+                                                style: Theme.of(
+                                                  context,
+                                                ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                                              ),
+                                            ],
+                                            if (canUseAutocomplete && _isLoadingAutocompleteSuggestions) ...[
+                                              const SizedBox(height: 8),
+                                              const LinearProgressIndicator(minHeight: 2),
+                                            ],
                                           ],
-                                          if (canUseAutocomplete && _isLoadingAutocompleteSuggestions) ...[
+                                        ),
+                                      );
+
+                                      final bulkCard = Container(
+                                        decoration: BoxDecoration(
+                                          color: colorScheme.surfaceContainer,
+                                          borderRadius: BorderRadius.circular(10),
+                                          border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.34)),
+                                        ),
+                                        padding: const EdgeInsets.all(10),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Bulk update queue metadata',
+                                              style: Theme.of(
+                                                context,
+                                              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                                            ),
                                             const SizedBox(height: 8),
-                                            const LinearProgressIndicator(minHeight: 2),
-                                          ],
-                                        ],
-                                      ),
-                                    );
+                                            LayoutBuilder(
+                                              builder: (context, bulkConstraints) {
+                                                final compactBulk = bulkConstraints.maxWidth < 700;
 
-                                    final bulkCard = Container(
-                                      decoration: BoxDecoration(
-                                        color: colorScheme.surfaceContainer,
-                                        borderRadius: BorderRadius.circular(10),
-                                        border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.34)),
-                                      ),
-                                      padding: const EdgeInsets.all(10),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'Bulk update queue metadata',
-                                            style: Theme.of(
-                                              context,
-                                            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          LayoutBuilder(
-                                            builder: (context, bulkConstraints) {
-                                              final compactBulk = bulkConstraints.maxWidth < 700;
+                                                if (compactBulk) {
+                                                  return Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Row(
+                                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                                        children: [
+                                                          Expanded(
+                                                            child: StyledTextField(
+                                                              label: 'Author for all items',
+                                                              controller: _bulkAuthorController,
+                                                              enabled: !_isUploading,
+                                                            ),
+                                                          ),
+                                                          const SizedBox(width: 8),
+                                                          SizedBox(
+                                                            height: 32,
+                                                            child: FilledButton.tonal(
+                                                              style: FilledButton.styleFrom(
+                                                                visualDensity: VisualDensity.compact,
+                                                                padding: const EdgeInsets.symmetric(horizontal: 10),
+                                                              ),
+                                                              onPressed: canApplyBulk ? _applyBulkAuthor : null,
+                                                              child: const Text('Apply author'),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      const SizedBox(height: 10),
+                                                      Row(
+                                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                                        children: [
+                                                          Expanded(
+                                                            child: StyledTextField(
+                                                              label: 'Series for all items',
+                                                              controller: _bulkSeriesController,
+                                                              enabled: !_isUploading,
+                                                            ),
+                                                          ),
+                                                          const SizedBox(width: 8),
+                                                          SizedBox(
+                                                            height: 32,
+                                                            child: FilledButton.tonal(
+                                                              style: FilledButton.styleFrom(
+                                                                visualDensity: VisualDensity.compact,
+                                                                padding: const EdgeInsets.symmetric(horizontal: 10),
+                                                              ),
+                                                              onPressed: canApplyBulk ? _applyBulkSeries : null,
+                                                              child: const Text('Apply series'),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ],
+                                                  );
+                                                }
 
-                                              if (compactBulk) {
                                                 return Column(
                                                   crossAxisAlignment: CrossAxisAlignment.start,
                                                   children: [
@@ -1550,11 +1616,12 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
                                                         ),
                                                         const SizedBox(width: 8),
                                                         SizedBox(
+                                                          width: 115,
                                                           height: 32,
                                                           child: FilledButton.tonal(
                                                             style: FilledButton.styleFrom(
                                                               visualDensity: VisualDensity.compact,
-                                                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                                                              padding: const EdgeInsets.symmetric(horizontal: 8),
                                                             ),
                                                             onPressed: canApplyBulk ? _applyBulkAuthor : null,
                                                             child: const Text('Apply author'),
@@ -1575,11 +1642,12 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
                                                         ),
                                                         const SizedBox(width: 8),
                                                         SizedBox(
+                                                          width: 115,
                                                           height: 32,
                                                           child: FilledButton.tonal(
                                                             style: FilledButton.styleFrom(
                                                               visualDensity: VisualDensity.compact,
-                                                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                                                              padding: const EdgeInsets.symmetric(horizontal: 8),
                                                             ),
                                                             onPressed: canApplyBulk ? _applyBulkSeries : null,
                                                             child: const Text('Apply series'),
@@ -1589,234 +1657,181 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
                                                     ),
                                                   ],
                                                 );
-                                              }
-
-                                              return Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Row(
-                                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                                    children: [
-                                                      Expanded(
-                                                        child: StyledTextField(
-                                                          label: 'Author for all items',
-                                                          controller: _bulkAuthorController,
-                                                          enabled: !_isUploading,
-                                                        ),
-                                                      ),
-                                                      const SizedBox(width: 8),
-                                                      SizedBox(
-                                                        width: 115,
-                                                        height: 32,
-                                                        child: FilledButton.tonal(
-                                                          style: FilledButton.styleFrom(
-                                                            visualDensity: VisualDensity.compact,
-                                                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                                                          ),
-                                                          onPressed: canApplyBulk ? _applyBulkAuthor : null,
-                                                          child: const Text('Apply author'),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  const SizedBox(height: 10),
-                                                  Row(
-                                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                                    children: [
-                                                      Expanded(
-                                                        child: StyledTextField(
-                                                          label: 'Series for all items',
-                                                          controller: _bulkSeriesController,
-                                                          enabled: !_isUploading,
-                                                        ),
-                                                      ),
-                                                      const SizedBox(width: 8),
-                                                      SizedBox(
-                                                        width: 115,
-                                                        height: 32,
-                                                        child: FilledButton.tonal(
-                                                          style: FilledButton.styleFrom(
-                                                            visualDensity: VisualDensity.compact,
-                                                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                                                          ),
-                                                          onPressed: canApplyBulk ? _applyBulkSeries : null,
-                                                          child: const Text('Apply series'),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ],
-                                              );
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                    );
-
-                                    if (!canShowSideBySide) {
-                                      return Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [settingsCard, const SizedBox(height: 10), bulkCard],
+                                              },
+                                            ),
+                                          ],
+                                        ),
                                       );
-                                    }
 
-                                    return Row(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        SizedBox(width: 300, child: settingsCard),
-                                        const SizedBox(width: 10),
-                                        Expanded(child: bulkCard),
-                                      ],
-                                    );
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
+                                      if (!canShowSideBySide) {
+                                        return Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [settingsCard, const SizedBox(height: 10), bulkCard],
+                                        );
+                                      }
 
-                        return Column(children: [dropdownRow, const SizedBox(height: 8), advancedBulkSection]);
-                      },
-                    ),
-                    const SizedBox(height: 10),
-                    _buildDropArea(context),
-                    const SizedBox(height: 10),
-                    if (isMobile)
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        alignment: WrapAlignment.spaceBetween,
-                        children: [
-                          OutlinedButton.icon(
-                            onPressed: _isUploading
-                                ? null
-                                : () {
-                                    setState(() {
-                                      _items = const [];
-                                      _panelMessage = 'Upload queue cleared.';
-                                    });
-                                  },
-                            icon: const Icon(Icons.delete_sweep_outlined),
-                            label: const Text('Clear queue'),
-                          ),
-                          if (_isUploading)
-                            FilledButton.tonalIcon(
-                              onPressed: () {
-                                _cancelAllUploads('Upload canceled by user.');
-                                _setUploading(false);
-                                setState(() {
-                                  _panelMessage = 'Upload cancellation requested.';
-                                });
-                              },
-                              icon: const Icon(Icons.stop_circle_outlined),
-                              label: const Text('Cancel uploads'),
+                                      return Row(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          SizedBox(width: 300, child: settingsCard),
+                                          const SizedBox(width: 10),
+                                          Expanded(child: bulkCard),
+                                        ],
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
                             ),
-                          FilledButton.icon(
-                            onPressed: (!_isUploading && hasQueuedItems) ? _startUpload : null,
-                            icon: const Icon(Icons.cloud_upload_rounded),
-                            label: const Text('Start upload'),
-                          ),
-                        ],
-                      )
-                    else
-                      Row(
-                        children: [
-                          OutlinedButton.icon(
-                            onPressed: _isUploading
-                                ? null
-                                : () {
-                                    setState(() {
-                                      _items = const [];
-                                      _panelMessage = 'Upload queue cleared.';
-                                    });
-                                  },
-                            icon: const Icon(Icons.delete_sweep_outlined),
-                            label: const Text('Clear queue'),
-                          ),
-                          if (_isUploading) ...[
-                            const SizedBox(width: 8),
-                            FilledButton.tonalIcon(
-                              onPressed: () {
-                                _cancelAllUploads('Upload canceled by user.');
-                                _setUploading(false);
-                                setState(() {
-                                  _panelMessage = 'Upload cancellation requested.';
-                                });
-                              },
-                              icon: const Icon(Icons.stop_circle_outlined),
-                              label: const Text('Cancel uploads'),
-                            ),
-                          ],
-                          const Spacer(),
-                          FilledButton.icon(
-                            onPressed: (!_isUploading && hasQueuedItems) ? _startUpload : null,
-                            icon: const Icon(Icons.cloud_upload_rounded),
-                            label: const Text('Start upload'),
-                          ),
-                        ],
-                      ),
-                    if (_panelMessage != null) ...[
-                      const SizedBox(height: 8),
-                      Text(_panelMessage!, style: Theme.of(context).textTheme.bodySmall),
-                    ],
-                    const SizedBox(height: 10),
-                    if (_items.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 18),
-                        child: Center(
-                          child: Text(
-                            'Upload queue is empty. Add files or folders using the drop area above.',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      )
-                    else
-                      ListView.separated(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: _items.length,
-                        separatorBuilder: (_, _) => const SizedBox(height: 8),
-                        itemBuilder: (context, index) {
-                          final item = _items[index];
-                          final normalizedAuthor = item.author.trim().toLowerCase();
-                          if (canUseAutocomplete &&
-                              normalizedAuthor.isNotEmpty &&
-                              _authorDirectoryPathsByName.containsKey(normalizedAuthor) &&
-                              !_seriesAutocompleteByAuthor.containsKey(normalizedAuthor)) {
-                            unawaited(_loadSeriesSuggestionsForAuthor(item.author));
-                          }
-
-                          return LibraryUploadItemCard(
-                            item: item,
-                            enabled: !_isUploading,
-                            canFetchMetadata: !_isUploading,
-                            authorSuggestions: canUseAutocomplete ? _authorAutocompleteOptions : const <String>[],
-                            seriesSuggestions: canUseAutocomplete
-                                ? _seriesSuggestionsForAuthor(item.author)
-                                : const <String>[],
-                            onChanged: (updatedItem) {
-                              _updateItem(item.id, (_) => updatedItem);
-                              if (canUseAutocomplete && item.author.trim() != updatedItem.author.trim()) {
-                                unawaited(_loadSeriesSuggestionsForAuthor(updatedItem.author));
-                              }
-                            },
-                            onRemove: () {
-                              setState(() {
-                                _items = _items.where((entry) => entry.id != item.id).toList(growable: false);
-                              });
-                            },
-                            onFetchMetadata: () => _fetchMetadataForItem(item.id),
-                            onAcceptPendingMetadata: () => _acceptPendingMetadata(item.id),
-                            onRejectPendingMetadata: () => _rejectPendingMetadata(item.id),
                           );
+
+                          return Column(children: [dropdownRow, const SizedBox(height: 8), advancedBulkSection]);
                         },
                       ),
-                  ],
-                );
+                      const SizedBox(height: 10),
+                      _buildDropArea(context),
+                      const SizedBox(height: 10),
+                      if (isMobile)
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          alignment: WrapAlignment.spaceBetween,
+                          children: [
+                            OutlinedButton.icon(
+                              onPressed: _isUploading
+                                  ? null
+                                  : () {
+                                      setState(() {
+                                        _items = const [];
+                                        _panelMessage = 'Upload queue cleared.';
+                                      });
+                                    },
+                              icon: const Icon(Icons.delete_sweep_outlined),
+                              label: const Text('Clear queue'),
+                            ),
+                            if (_isUploading)
+                              FilledButton.tonalIcon(
+                                onPressed: () {
+                                  _cancelAllUploads('Upload canceled by user.');
+                                  _setUploading(false);
+                                  setState(() {
+                                    _panelMessage = 'Upload cancellation requested.';
+                                  });
+                                },
+                                icon: const Icon(Icons.stop_circle_outlined),
+                                label: const Text('Cancel uploads'),
+                              ),
+                            FilledButton.icon(
+                              onPressed: (!_isUploading && hasQueuedItems) ? _startUpload : null,
+                              icon: const Icon(Icons.cloud_upload_rounded),
+                              label: const Text('Start upload'),
+                            ),
+                          ],
+                        )
+                      else
+                        Row(
+                          children: [
+                            OutlinedButton.icon(
+                              onPressed: _isUploading
+                                  ? null
+                                  : () {
+                                      setState(() {
+                                        _items = const [];
+                                        _panelMessage = 'Upload queue cleared.';
+                                      });
+                                    },
+                              icon: const Icon(Icons.delete_sweep_outlined),
+                              label: const Text('Clear queue'),
+                            ),
+                            if (_isUploading) ...[
+                              const SizedBox(width: 8),
+                              FilledButton.tonalIcon(
+                                onPressed: () {
+                                  _cancelAllUploads('Upload canceled by user.');
+                                  _setUploading(false);
+                                  setState(() {
+                                    _panelMessage = 'Upload cancellation requested.';
+                                  });
+                                },
+                                icon: const Icon(Icons.stop_circle_outlined),
+                                label: const Text('Cancel uploads'),
+                              ),
+                            ],
+                            const Spacer(),
+                            FilledButton.icon(
+                              onPressed: (!_isUploading && hasQueuedItems) ? _startUpload : null,
+                              icon: const Icon(Icons.cloud_upload_rounded),
+                              label: const Text('Start upload'),
+                            ),
+                          ],
+                        ),
+                      if (_panelMessage != null) ...[
+                        const SizedBox(height: 8),
+                        Text(_panelMessage!, style: Theme.of(context).textTheme.bodySmall),
+                      ],
+                      const SizedBox(height: 10),
+                      if (_items.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 18),
+                          child: Center(
+                            child: Text(
+                              'Upload queue is empty. Add files or folders using the drop area above.',
+                              style: Theme.of(context).textTheme.bodyMedium,
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        )
+                      else
+                        ScrollConfiguration(
+                          behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
+                          child: ListView.separated(
+                            shrinkWrap: true,
+                            primary: false,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: _items.length,
+                            separatorBuilder: (_, _) => const SizedBox(height: 8),
+                            itemBuilder: (context, index) {
+                              final item = _items[index];
+                              final normalizedAuthor = item.author.trim().toLowerCase();
+                              if (canUseAutocomplete &&
+                                  normalizedAuthor.isNotEmpty &&
+                                  _authorDirectoryPathsByName.containsKey(normalizedAuthor) &&
+                                  !_seriesAutocompleteByAuthor.containsKey(normalizedAuthor)) {
+                                unawaited(_loadSeriesSuggestionsForAuthor(item.author));
+                              }
 
-                return SingleChildScrollView(child: content);
-              },
+                              return LibraryUploadItemCard(
+                                item: item,
+                                enabled: !_isUploading,
+                                canFetchMetadata: !_isUploading,
+                                authorSuggestions: canUseAutocomplete ? _authorAutocompleteOptions : const <String>[],
+                                seriesSuggestions: canUseAutocomplete
+                                    ? _seriesSuggestionsForAuthor(item.author)
+                                    : const <String>[],
+                                onChanged: (updatedItem) {
+                                  _updateItem(item.id, (_) => updatedItem);
+                                  if (canUseAutocomplete && item.author.trim() != updatedItem.author.trim()) {
+                                    unawaited(_loadSeriesSuggestionsForAuthor(updatedItem.author));
+                                  }
+                                },
+                                onRemove: () {
+                                  setState(() {
+                                    _items = _items.where((entry) => entry.id != item.id).toList(growable: false);
+                                  });
+                                },
+                                onFetchMetadata: () => _fetchMetadataForItem(item.id),
+                                onAcceptPendingMetadata: () => _acceptPendingMetadata(item.id),
+                                onRejectPendingMetadata: () => _rejectPendingMetadata(item.id),
+                              );
+                            },
+                          ),
+                        ),
+                    ],
+                  );
+
+                  return content;
+                },
+              ),
             ),
           ),
         ),

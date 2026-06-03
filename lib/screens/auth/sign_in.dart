@@ -24,6 +24,8 @@ import 'package:yaabsa/screens/auth/widgets/sign_in_auth_section.dart';
 import 'package:yaabsa/screens/auth/widgets/sign_in_error_panel.dart';
 import 'package:yaabsa/screens/auth/widgets/sign_in_header_editor_dialog.dart';
 import 'package:yaabsa/screens/auth/widgets/sign_in_server_status.dart';
+import 'package:yaabsa/util/globals.dart' show audioHandler;
+import 'package:yaabsa/util/aaos_service.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/network/dio_factory.dart';
 import 'package:yaabsa/util/network/request_headers.dart';
@@ -326,6 +328,7 @@ class SignIn extends HookConsumerWidget {
         );
 
         await db.setActiveUserId(loggedInUser.id);
+        await audioHandler.clearAndroidAutoAuthenticationError();
 
         ref.invalidate(allStoredUsersProvider);
         ref.invalidate(currentUserProvider);
@@ -445,6 +448,8 @@ class SignIn extends HookConsumerWidget {
     }, [serverAddressController]);
 
     final activeStatus = status.value;
+    final signInQuery = GoRouterState.of(context).uri.queryParameters;
+    final isForcedAaosAuth = signInQuery['authRequired'] == '1' && AaosService.instance.currentState.isAutomotiveDevice;
     final allowsLocal = activeStatus == null || activeStatus.authMethods.contains('local');
     final allowsOpenId = activeStatus?.authMethods.contains('openid') ?? false;
     const allowsApiKey = true;
@@ -454,137 +459,143 @@ class SignIn extends HookConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return Scaffold(
-      backgroundColor: colorScheme.surface,
-      body: Stack(
-        children: [
-          Positioned(
-            top: -100,
-            right: -70,
-            child: GlowOrb(size: 250, color: colorScheme.primary.withValues(alpha: 0.16)),
-          ),
-          Positioned(
-            bottom: -90,
-            left: -55,
-            child: GlowOrb(size: 220, color: colorScheme.tertiary.withValues(alpha: 0.14)),
-          ),
-          SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 560),
-                  child: Card(
-                    elevation: 1,
-                    shadowColor: colorScheme.shadow.withValues(alpha: 0.08),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-                    color: colorScheme.surfaceContainerLowest.withValues(alpha: 0.96),
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          if (hasStoredUsers) ...[
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: IconButton(
-                                onPressed: isLoading.value
-                                    ? null
-                                    : () {
-                                        if (context.canPop()) {
-                                          context.pop();
-                                        } else {
-                                          context.go('/');
-                                        }
-                                      },
-                                tooltip: 'Back',
-                                icon: const Icon(Icons.arrow_back_rounded),
+    return PopScope(
+      canPop: !isForcedAaosAuth,
+      child: Scaffold(
+        backgroundColor: colorScheme.surface,
+        body: Stack(
+          children: [
+            Positioned(
+              top: -100,
+              right: -70,
+              child: GlowOrb(size: 250, color: colorScheme.primary.withValues(alpha: 0.16)),
+            ),
+            Positioned(
+              bottom: -90,
+              left: -55,
+              child: GlowOrb(size: 220, color: colorScheme.tertiary.withValues(alpha: 0.14)),
+            ),
+            SafeArea(
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 560),
+                    child: Card(
+                      elevation: 1,
+                      shadowColor: colorScheme.shadow.withValues(alpha: 0.08),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+                      color: colorScheme.surfaceContainerLowest.withValues(alpha: 0.96),
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            if (hasStoredUsers && !isForcedAaosAuth) ...[
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: IconButton(
+                                  onPressed: isLoading.value
+                                      ? null
+                                      : () {
+                                          if (context.canPop()) {
+                                            context.pop();
+                                          } else {
+                                            context.go('/');
+                                          }
+                                        },
+                                  tooltip: 'Back',
+                                  icon: const Icon(Icons.arrow_back_rounded),
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                            ],
+                            Text(
+                              'Yaabsa',
+                              textAlign: TextAlign.center,
+                              style: textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'Sign in to your Audiobookshelf server',
+                              textAlign: TextAlign.center,
+                              style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                            ),
+                            const SizedBox(height: 22),
+                            TextField(
+                              controller: serverAddressController,
+                              keyboardType: TextInputType.url,
+                              decoration: InputDecoration(
+                                labelText: 'Server Address',
+                                hintText: 'https://your-audiobookshelf.example',
+                                prefixIcon: const Icon(Icons.dns_outlined),
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                               ),
                             ),
-                            const SizedBox(height: 4),
-                          ],
-                          Text(
-                            'Yaabsa',
-                            textAlign: TextAlign.center,
-                            style: textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            'Sign in to your Audiobookshelf server',
-                            textAlign: TextAlign.center,
-                            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
-                          ),
-                          const SizedBox(height: 22),
-                          TextField(
-                            controller: serverAddressController,
-                            keyboardType: TextInputType.url,
-                            decoration: InputDecoration(
-                              labelText: 'Server Address',
-                              hintText: 'https://your-audiobookshelf.example',
-                              prefixIcon: const Icon(Icons.dns_outlined),
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                            const SizedBox(height: 8),
+                            SignInServerStatus(
+                              isLoading: isStatusLoading.value,
+                              status: activeStatus,
+                              error: statusError.value,
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          SignInServerStatus(
-                            isLoading: isStatusLoading.value,
-                            status: activeStatus,
-                            error: statusError.value,
-                          ),
-                          if (customMessage != null && customMessage.trim().isNotEmpty) ...[
-                            const SizedBox(height: 12),
-                            Html(
-                              data: customMessage,
-                              onLinkTap: (url, _, _) {
-                                if (url != null) {
-                                  launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                            if (customMessage != null && customMessage.trim().isNotEmpty) ...[
+                              const SizedBox(height: 12),
+                              Html(
+                                data: customMessage,
+                                onLinkTap: (url, _, _) {
+                                  if (url != null) {
+                                    launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                                  }
+                                },
+                              ),
+                            ],
+                            SignInAuthSection(
+                              useApiKey: useApiKey.value,
+                              isLoading: isLoading.value,
+                              allowsLocal: allowsLocal,
+                              allowsOpenId: allowsOpenId,
+                              openIdButtonText: openIdButtonText,
+                              usernameController: usernameController,
+                              passwordController: passwordController,
+                              apiKeyController: apiKeyController,
+                              onValidateAndSignIn: validateAndSignIn,
+                              onStartOpenIdConnect: startOpenIdConnect,
+                            ),
+                            if (errorMessage.value != null) ...[
+                              const SizedBox(height: 12),
+                              SignInErrorPanel(
+                                message: errorMessage.value!,
+                                stackTraceDetails: loginErrorDetails.value,
+                              ),
+                            ],
+                            SignInAdvancedOptions(
+                              isExpanded: advancedOptionsExpanded.value,
+                              onExpandedChanged: (value) => advancedOptionsExpanded.value = value,
+                              isLoading: isLoading.value,
+                              allowsApiKey: allowsApiKey,
+                              useApiKey: useApiKey.value,
+                              onUseApiKeyChanged: (value) {
+                                useApiKey.value = value;
+                                setErrorMessage(null);
+                                if (value) {
+                                  advancedOptionsExpanded.value = true;
                                 }
                               },
+                              customHeaders: customHeaders.value,
+                              onAddHeader: () => showHeaderEditor(),
+                              onEditHeader: (headerName) => showHeaderEditor(originalHeaderName: headerName),
+                              onRemoveHeader: removeHeader,
                             ),
                           ],
-                          SignInAuthSection(
-                            useApiKey: useApiKey.value,
-                            isLoading: isLoading.value,
-                            allowsLocal: allowsLocal,
-                            allowsOpenId: allowsOpenId,
-                            openIdButtonText: openIdButtonText,
-                            usernameController: usernameController,
-                            passwordController: passwordController,
-                            apiKeyController: apiKeyController,
-                            onValidateAndSignIn: validateAndSignIn,
-                            onStartOpenIdConnect: startOpenIdConnect,
-                          ),
-                          if (errorMessage.value != null) ...[
-                            const SizedBox(height: 12),
-                            SignInErrorPanel(message: errorMessage.value!, stackTraceDetails: loginErrorDetails.value),
-                          ],
-                          SignInAdvancedOptions(
-                            isExpanded: advancedOptionsExpanded.value,
-                            onExpandedChanged: (value) => advancedOptionsExpanded.value = value,
-                            isLoading: isLoading.value,
-                            allowsApiKey: allowsApiKey,
-                            useApiKey: useApiKey.value,
-                            onUseApiKeyChanged: (value) {
-                              useApiKey.value = value;
-                              setErrorMessage(null);
-                              if (value) {
-                                advancedOptionsExpanded.value = true;
-                              }
-                            },
-                            customHeaders: customHeaders.value,
-                            onAddHeader: () => showHeaderEditor(),
-                            onEditHeader: (headerName) => showHeaderEditor(originalHeaderName: headerName),
-                            onRemoveHeader: removeHeader,
-                          ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

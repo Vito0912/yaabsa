@@ -25,11 +25,32 @@ import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatf
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MainSettingsScreen extends ConsumerWidget {
   const MainSettingsScreen({super.key});
 
   static const String routeName = '/settings';
+  static final Uri _githubRepoUri = Uri.parse('https://github.com/Vito0912/yaabsa/');
+  static final Uri _githubIssueUri = Uri.parse('https://github.com/Vito0912/yaabsa/issues');
+  static final Uri _githubSponsorUri = Uri.parse('https://github.com/sponsors/Vito0912');
+
+  Future<void> _openSupportLink(BuildContext context, Uri uri, String label) async {
+    try {
+      final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (opened || !context.mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not open $label')));
+    } catch (_) {
+      if (!context.mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not open $label')));
+    }
+  }
 
   Future<void> _deleteUser(BuildContext context, WidgetRef ref, User user) async {
     final db = ref.read(appDatabaseProvider);
@@ -333,6 +354,7 @@ class MainSettingsScreen extends ConsumerWidget {
   void _showManageAccountsBottomSheet(BuildContext context, WidgetRef ref, User? currentUser, List<User> otherUsers) {
     showModalBottomSheet(
       context: context,
+      useSafeArea: true,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (BuildContext bottomSheetContext) {
@@ -530,16 +552,18 @@ class MainSettingsScreen extends ConsumerWidget {
                     SettingsNavigationItem(
                       icon: Icons.code_rounded,
                       title: 'View on GitHub',
-                      onTap: () => ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(const SnackBar(content: Text('Navigate to View on GitHub'))),
+                      onTap: () => _openSupportLink(context, _githubRepoUri, 'GitHub repository'),
                     ),
                     SettingsNavigationItem(
                       icon: Icons.bug_report_outlined,
-                      title: 'Report an Issue',
-                      onTap: () => ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(const SnackBar(content: Text('Navigate to Report an Issue'))),
+                      title: 'Report bug or enhancement',
+                      onTap: () => _openSupportLink(context, _githubIssueUri, 'issue tracker'),
+                    ),
+                    SettingsNavigationItem(
+                      icon: Icons.favorite_outline,
+                      title: 'Sponsor',
+                      subtitle: 'Help covering active costs and support development',
+                      onTap: () => _openSupportLink(context, _githubSponsorUri, 'GitHub Sponsors page'),
                     ),
                     SettingsNavigationItem(
                       icon: Icons.article_outlined,

@@ -7,8 +7,10 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/api/socket/abs_socket_client.dart';
 import 'package:yaabsa/database/settings_manager.dart';
+import 'package:yaabsa/provider/common/collection_provider.dart';
 import 'package:yaabsa/provider/common/library_item_sync.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
+import 'package:yaabsa/provider/common/playlist_provider.dart';
 import 'package:yaabsa/provider/core/server_tasks_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
@@ -153,6 +155,36 @@ ABSSocketClient absSocketClient(Ref ref) {
     },
     onTaskProgress: ({required libraryItemId, required progress}) {
       serverTasksNotifier.updateTaskProgress(libraryItemId: libraryItemId, progress: progress);
+    },
+    onCollectionAdded: (collection) {
+      unawaited(
+        ref.read(collectionsProvider(collection.libraryId).notifier).refresh(withLoading: false, forceServer: true),
+      );
+    },
+    onCollectionUpdated: (collection) {
+      unawaited(
+        ref.read(collectionsProvider(collection.libraryId).notifier).refresh(withLoading: false, forceServer: true),
+      );
+    },
+    onCollectionRemoved: (collection) {
+      unawaited(
+        ref.read(collectionsProvider(collection.libraryId).notifier).refresh(withLoading: false, forceServer: true),
+      );
+    },
+    onPlaylistAdded: (playlist) {
+      unawaited(
+        ref.read(playlistsProvider(playlist.libraryId).notifier).refresh(withLoading: false, forceServer: true),
+      );
+    },
+    onPlaylistUpdated: (playlist) {
+      unawaited(
+        ref.read(playlistsProvider(playlist.libraryId).notifier).refresh(withLoading: false, forceServer: true),
+      );
+    },
+    onPlaylistRemoved: (playlist) {
+      unawaited(
+        ref.read(playlistsProvider(playlist.libraryId).notifier).refresh(withLoading: false, forceServer: true),
+      );
     },
   );
 

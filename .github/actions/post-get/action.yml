@@ -11,4 +11,4 @@ runs:
     - name: Post-get steps
       shell: bash
       run: |
-        dart run pdfrx:remove_wasm_modules
+        echo "In a Galaxy far, far away..."

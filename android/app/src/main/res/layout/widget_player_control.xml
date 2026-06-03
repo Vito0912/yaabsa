@@ -2,121 +2,119 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_player_root"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:gravity="center_vertical"
-    android:padding="10dp"
-    android:background="@android:color/background_light">
+    android:clipToOutline="true"
+    android:background="@drawable/widget_background_dark">
 
     <ImageView
         android:id="@+id/widget_player_artwork"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        android:layout_marginEnd="12dp"
+        android:layout_width="88dp"
+        android:layout_height="88dp"
         android:contentDescription="@string/widget_player_artwork_desc"
         android:scaleType="centerCrop"
         android:src="@drawable/ic_launcher_foreground" />
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_weight="1"
-        android:orientation="vertical">
-
-        <TextView
-            android:id="@+id/widget_player_title"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:text="@string/widget_player_title_default"
-            android:textColor="@android:color/black"
-            android:textSize="13sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/widget_player_subtitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:textColor="@android:color/darker_gray"
-            android:textSize="11sp" />
+        android:paddingStart="12dp"
+        android:paddingEnd="4dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="4dp">
 
         <LinearLayout
+            android:id="@+id/widget_player_buttons_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:gravity="center_vertical"
+            android:layout_alignParentBottom="true"
+            android:gravity="center"
             android:orientation="horizontal">
 
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <ImageButton
-                    android:id="@+id/widget_player_previous"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:background="@android:color/transparent"
-                    android:contentDescription="@string/widget_player_previous"
-                    android:padding="4dp"
-                    android:src="@drawable/widget_skip_previous" />
-
-                <ImageButton
-                    android:id="@+id/widget_player_rewind"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_marginStart="8dp"
-                    android:background="@android:color/transparent"
-                    android:contentDescription="@string/widget_player_rewind"
-                    android:padding="4dp"
-                    android:src="@drawable/replay" />
-
-                <ImageButton
-                    android:id="@+id/widget_player_toggle"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_marginStart="4dp"
-                    android:background="@android:color/transparent"
-                    android:contentDescription="@string/widget_player_play_pause"
-                    android:padding="4dp"
-                    android:src="@drawable/widget_play_arrow" />
-
-                <ImageButton
-                    android:id="@+id/widget_player_fast_forward"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_marginStart="4dp"
-                    android:background="@android:color/transparent"
-                    android:contentDescription="@string/widget_player_fast_forward"
-                    android:padding="4dp"
-                    android:src="@drawable/forward_media" />
-
-                <ImageButton
-                    android:id="@+id/widget_player_next"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_marginStart="4dp"
-                    android:background="@android:color/transparent"
-                    android:contentDescription="@string/widget_player_next"
-                    android:padding="4dp"
-                    android:src="@drawable/widget_skip_next" />
-            </LinearLayout>
+            <ImageButton
+                android:id="@+id/widget_player_previous"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/widget_player_previous"
+                android:padding="6dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/widget_skip_previous" />
 
             <ImageButton
-                android:id="@+id/widget_player_stop"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:id="@+id/widget_player_rewind"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
                 android:layout_marginStart="8dp"
                 android:background="@android:color/transparent"
-                android:contentDescription="@string/widget_player_stop"
-                android:padding="4dp"
-                android:src="@drawable/stop" />
+                android:contentDescription="@string/widget_player_rewind"
+                android:padding="6dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/replay" />
+
+            <ImageButton
+                android:id="@+id/widget_player_toggle"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_marginStart="8dp"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/widget_player_play_pause"
+                android:padding="6dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/widget_play_arrow" />
+
+            <ImageButton
+                android:id="@+id/widget_player_fast_forward"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginStart="8dp"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/widget_player_fast_forward"
+                android:padding="6dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/forward_media" />
+
+            <ImageButton
+                android:id="@+id/widget_player_next"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginStart="8dp"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/widget_player_next"
+                android:padding="6dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/widget_skip_next" />
         </LinearLayout>
-    </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/widget_player_text_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/widget_player_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="@string/widget_player_title_default"
+                android:textColor="#FFF2F3F5"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/widget_player_subtitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="#FFB9C0CA"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+    </RelativeLayout>
 </LinearLayout>
