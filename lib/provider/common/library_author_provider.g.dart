@@ -49,7 +49,7 @@ final class LibraryAuthorsNotifierProvider extends $AsyncNotifierProvider<Librar
   }
 }
 
-String _$libraryAuthorsNotifierHash() => r'1602a832163ce414154deabd25d503e6b018f957';
+String _$libraryAuthorsNotifierHash() => r'96db0e92a0ba5a51c29344d4030fd38b20a1c89a';
 
 final class LibraryAuthorsNotifierFamily extends $Family
     with
@@ -120,44 +120,36 @@ abstract class _$LibraryAuthorsNotifier extends $AsyncNotifier<LibraryAuthorsSta
   }
 }
 
-@ProviderFor(libraryAuthor)
-final libraryAuthorProvider = LibraryAuthorFamily._();
+@ProviderFor(LibraryAuthorDetails)
+final libraryAuthorDetailsProvider = LibraryAuthorDetailsFamily._();
 
-final class LibraryAuthorProvider
-    extends $FunctionalProvider<AsyncValue<AuthorDetails>, AuthorDetails, FutureOr<AuthorDetails>>
-    with $FutureModifier<AuthorDetails>, $FutureProvider<AuthorDetails> {
-  LibraryAuthorProvider._({required LibraryAuthorFamily super.from, required String super.argument})
+final class LibraryAuthorDetailsProvider extends $AsyncNotifierProvider<LibraryAuthorDetails, AuthorDetails> {
+  LibraryAuthorDetailsProvider._({required LibraryAuthorDetailsFamily super.from, required String super.argument})
     : super(
         retry: null,
-        name: r'libraryAuthorProvider',
+        name: r'libraryAuthorDetailsProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$libraryAuthorHash();
+  String debugGetCreateSourceHash() => _$libraryAuthorDetailsHash();
 
   @override
   String toString() {
-    return r'libraryAuthorProvider'
+    return r'libraryAuthorDetailsProvider'
         ''
         '($argument)';
   }
 
   @$internal
   @override
-  $FutureProviderElement<AuthorDetails> $createElement($ProviderPointer pointer) => $FutureProviderElement(pointer);
-
-  @override
-  FutureOr<AuthorDetails> create(Ref ref) {
-    final argument = this.argument as String;
-    return libraryAuthor(ref, argument);
-  }
+  LibraryAuthorDetails create() => LibraryAuthorDetails();
 
   @override
   bool operator ==(Object other) {
-    return other is LibraryAuthorProvider && other.argument == argument;
+    return other is LibraryAuthorDetailsProvider && other.argument == argument;
   }
 
   @override
@@ -166,20 +158,49 @@ final class LibraryAuthorProvider
   }
 }
 
-String _$libraryAuthorHash() => r'7aad07d66e663c93ab354d057f93d18a3efcf7d0';
+String _$libraryAuthorDetailsHash() => r'bf99aafcbdee2505091750df3311a24d8d2319a1';
 
-final class LibraryAuthorFamily extends $Family with $FunctionalFamilyOverride<FutureOr<AuthorDetails>, String> {
-  LibraryAuthorFamily._()
+final class LibraryAuthorDetailsFamily extends $Family
+    with
+        $ClassFamilyOverride<
+          LibraryAuthorDetails,
+          AsyncValue<AuthorDetails>,
+          AuthorDetails,
+          FutureOr<AuthorDetails>,
+          String
+        > {
+  LibraryAuthorDetailsFamily._()
     : super(
         retry: null,
-        name: r'libraryAuthorProvider',
+        name: r'libraryAuthorDetailsProvider',
         dependencies: null,
         $allTransitiveDependencies: null,
         isAutoDispose: true,
       );
 
-  LibraryAuthorProvider call(String authorId) => LibraryAuthorProvider._(argument: authorId, from: this);
+  LibraryAuthorDetailsProvider call(String authorId) => LibraryAuthorDetailsProvider._(argument: authorId, from: this);
 
   @override
-  String toString() => r'libraryAuthorProvider';
+  String toString() => r'libraryAuthorDetailsProvider';
+}
+
+abstract class _$LibraryAuthorDetails extends $AsyncNotifier<AuthorDetails> {
+  late final _$args = ref.$arg as String;
+  String get authorId => _$args;
+
+  FutureOr<AuthorDetails> build(String authorId);
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<AsyncValue<AuthorDetails>, AuthorDetails>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<AuthorDetails>, AuthorDetails>,
+              AsyncValue<AuthorDetails>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, () => build(_$args));
+  }
 }

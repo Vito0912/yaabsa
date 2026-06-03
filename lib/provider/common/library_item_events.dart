@@ -9,6 +9,7 @@ class LibraryItemMutation {
     required this.type,
     required this.itemId,
     this.item,
+    this.previousItem,
     this.libraryId,
     this.source = 'unknown',
   });
@@ -17,6 +18,7 @@ class LibraryItemMutation {
   final LibraryItemMutationType type;
   final String itemId;
   final LibraryItem? item;
+  final LibraryItem? previousItem;
   final String? libraryId;
   final String source;
 }
@@ -42,12 +44,13 @@ class LibraryItemMutationNotifier extends Notifier<LibraryItemMutation?> {
     );
   }
 
-  void emitUpdated(LibraryItem item, {String source = 'unknown'}) {
+  void emitUpdated(LibraryItem item, {LibraryItem? previousItem, String source = 'unknown'}) {
     state = LibraryItemMutation(
       sequence: _sequence++,
       type: LibraryItemMutationType.updated,
       itemId: item.id,
       item: item,
+      previousItem: previousItem,
       libraryId: item.libraryId,
       source: source,
     );

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/provider/common/library_item_events.dart';
+import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/interceptors/cache_interceptor.dart';
 import 'package:yaabsa/util/logger.dart';
@@ -39,7 +40,8 @@ Future<void> processLibraryItemUpdate({
     return;
   }
 
-  container.read(libraryItemMutationProvider.notifier).emitUpdated(item, source: source);
+  final previousItem = getLiveLibraryItemSnapshot(item.id);
+  container.read(libraryItemMutationProvider.notifier).emitUpdated(item, previousItem: previousItem, source: source);
 
   try {
     await _updateStoredDownloadSnapshot(container: container, item: item);

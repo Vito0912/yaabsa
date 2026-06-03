@@ -5,6 +5,8 @@ import 'package:yaabsa/api/library/request/library_items_request.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/library_items/series.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/provider/common/library_item_events.dart';
+import 'package:yaabsa/util/library_item_mutation_helpers.dart';
 
 const int _seriesPerPage = 20;
 const int _seriesBooksPerPage = 20;
@@ -13,6 +15,13 @@ const int _defaultSeriesBooksDesc = 0;
 
 final seriesByIdProvider = FutureProvider.family<Series, String>((ref, seriesId) async {
   final absApi = ref.watch(absApiProvider);
+
+  ref.listen<LibraryItemMutation?>(libraryItemMutationProvider, (previous, next) {
+    if (next != null && mutationAffectsSeries(next, seriesId)) {
+      ref.invalidateSelf();
+    }
+  });
+
   if (absApi == null) {
     throw Exception('User not authenticated or API not available.');
   }
@@ -169,7 +178,7 @@ class SeriesBooksNotifier extends AsyncNotifier<SeriesBooksState> {
   final SeriesBooksArgs args;
   bool _isEnsuringIndex = false;
 
-  Future<SeriesBooksState> _fetchPage(int page, {String? sort, int? desc}) async {
+  Future<SeriesBooksState> _fetchPage(int page, {String? sort, int? desc, bool forceServer = false}) async {
     final absApi = ref.read(absApiProvider);
     if (absApi == null) {
       throw Exception('User not authenticated or API not available.');
@@ -185,7 +194,11 @@ class SeriesBooksNotifier extends AsyncNotifier<SeriesBooksState> {
       collapseseries: 0,
     );
 
-    final response = await absApi.getLibraryApi().getLibraryItems(args.libraryId, request);
+    final response = await absApi.getLibraryApi().getLibraryItems(
+      args.libraryId,
+      request,
+      extra: forceServer ? {'noCache': true} : null,
+    );
     final data = response.data;
     if (data == null) {
       throw Exception('No series books data received from API.');
@@ -213,7 +226,69 @@ class SeriesBooksNotifier extends AsyncNotifier<SeriesBooksState> {
 
   @override
   Future<SeriesBooksState> build() async {
+    ref.listen<LibraryItemMutation?>(libraryItemMutationProvider, (previous, next) {
+      if (next == null) {
+        return;
+      }
+
+      if (next.libraryId != null && next.libraryId != args.libraryId) {
+        return;
+      }
+
+      final currentState = state.asData?.value;
+      if (currentState == null) return;
+
+      final affectsThis = mutationAffectsSeries(next, args.seriesId);
+      if (!affectsThis) return;
+
+      final index = currentState.items.indexWhere((i) => i.id == next.itemId);
+
+      if (index != -1) {
+        final page = index ~/ _seriesBooksPerPage;
+        _refetchSpecificPage(page);
+      } else if (next.type == LibraryItemMutationType.added || next.type == LibraryItemMutationType.updated) {
+        _refetchSpecificPage(0);
+      }
+    });
+
     return _fetchPage(0, sort: _defaultSeriesBooksSort, desc: _defaultSeriesBooksDesc);
+  }
+
+  Future<void> _refetchSpecificPage(int page) async {
+    final currentState = state.asData?.value;
+    if (currentState == null) return;
+
+    final absApi = ref.read(absApiProvider);
+    if (absApi == null) return;
+
+    try {
+      final request = LibraryItemsRequest(
+        limit: _seriesBooksPerPage,
+        page: page,
+        sort: currentState.sort,
+        desc: currentState.desc,
+        filter: LibraryFilter.grouped(LibraryFilterGroup.series, args.seriesId).queryValue,
+        collapseseries: 0,
+      );
+
+      final response = await absApi.getLibraryApi().getLibraryItems(args.libraryId, request, extra: {'noCache': true});
+
+      final data = response.data;
+      if (data == null) return;
+
+      final fetchedItems = data.results;
+      final newItems = List<LibraryItem>.from(currentState.items);
+      final startIndex = page * _seriesBooksPerPage;
+
+      if (startIndex < newItems.length) {
+        final endIndex = (startIndex + _seriesBooksPerPage).clamp(0, newItems.length);
+        newItems.replaceRange(startIndex, endIndex, fetchedItems);
+      } else if (startIndex == newItems.length) {
+        newItems.addAll(fetchedItems);
+      }
+
+      state = AsyncData(currentState.copyWith(items: newItems, totalItems: data.total ?? currentState.totalItems));
+    } catch (_) {}
   }
 
   Future<void> fetchNextPage() async {
@@ -232,7 +307,7 @@ class SeriesBooksNotifier extends AsyncNotifier<SeriesBooksState> {
     }
   }
 
-  Future<void> refresh({bool withLoading = true}) async {
+  Future<void> refresh({bool withLoading = true, bool forceServer = false}) async {
     final currentState = state.value;
     if (currentState == null) return;
 
@@ -241,7 +316,7 @@ class SeriesBooksNotifier extends AsyncNotifier<SeriesBooksState> {
     }
 
     try {
-      final refreshed = await _fetchPage(0, sort: currentState.sort, desc: currentState.desc);
+      final refreshed = await _fetchPage(0, sort: currentState.sort, desc: currentState.desc, forceServer: forceServer);
       state = AsyncData(refreshed);
     } catch (e, s) {
       state = AsyncError(e, s);
@@ -301,7 +376,14 @@ class SeriesNotifier extends AsyncNotifier<SeriesState> {
   final String libraryId;
   bool _isEnsuringIndex = false;
 
-  Future<SeriesState> _fetchSeries(int page, {String? sort, int? desc, String? filter, String? include}) async {
+  Future<SeriesState> _fetchSeries(
+    int page, {
+    String? sort,
+    int? desc,
+    String? filter,
+    String? include,
+    bool forceServer = false,
+  }) async {
     final absApi = ref.read(absApiProvider);
     if (absApi == null) {
       throw Exception('User not authenticated or API not available.');
@@ -317,7 +399,11 @@ class SeriesNotifier extends AsyncNotifier<SeriesState> {
       include: include ?? currentVal?.include,
     );
 
-    final response = await absApi.getLibraryApi().getLibrarySeries(libraryId, request);
+    final response = await absApi.getLibraryApi().getLibrarySeries(
+      libraryId,
+      request,
+      extra: forceServer ? {'noCache': true} : null,
+    );
     final data = response.data;
     if (data == null) {
       throw Exception('No series data received from API.');
@@ -346,7 +432,77 @@ class SeriesNotifier extends AsyncNotifier<SeriesState> {
 
   @override
   Future<SeriesState> build() async {
+    ref.listen<LibraryItemMutation?>(libraryItemMutationProvider, (previous, next) {
+      if (next == null) {
+        return;
+      }
+
+      if (next.libraryId != null && next.libraryId != libraryId) {
+        return;
+      }
+
+      final currentState = state.asData?.value;
+      if (currentState == null) return;
+
+      bool affectsList = mutationAffectsSeriesList(next);
+      if (!affectsList) return;
+
+      final pagesToRefresh = <int>{};
+
+      for (int i = 0; i < currentState.items.length; i++) {
+        final series = currentState.items[i];
+        if (mutationAffectsSeries(next, series.id)) {
+          pagesToRefresh.add(i ~/ _seriesPerPage);
+        }
+      }
+
+      if (pagesToRefresh.isNotEmpty) {
+        for (final page in pagesToRefresh) {
+          _refetchSpecificPage(page);
+        }
+      } else if (next.type == LibraryItemMutationType.added || next.type == LibraryItemMutationType.updated) {
+        _refetchSpecificPage(0);
+      }
+    });
+
     return _fetchSeries(0, sort: 'name', desc: 0);
+  }
+
+  Future<void> _refetchSpecificPage(int page) async {
+    final currentState = state.asData?.value;
+    if (currentState == null) return;
+
+    final absApi = ref.read(absApiProvider);
+    if (absApi == null) return;
+
+    try {
+      final request = LibraryItemsRequest(
+        limit: _seriesPerPage,
+        page: page,
+        sort: currentState.sort,
+        desc: currentState.desc,
+        filter: normalizeLibraryFilterQuery(currentState.filter),
+        include: currentState.include,
+      );
+
+      final response = await absApi.getLibraryApi().getLibrarySeries(libraryId, request, extra: {'noCache': true});
+
+      final data = response.data;
+      if (data == null) return;
+
+      final fetchedItems = data.results;
+      final newItems = List<Series>.from(currentState.items);
+      final startIndex = page * _seriesPerPage;
+
+      if (startIndex < newItems.length) {
+        final endIndex = (startIndex + _seriesPerPage).clamp(0, newItems.length);
+        newItems.replaceRange(startIndex, endIndex, fetchedItems);
+      } else if (startIndex == newItems.length) {
+        newItems.addAll(fetchedItems);
+      }
+
+      state = AsyncData(currentState.copyWith(items: newItems, totalItems: data.total));
+    } catch (_) {}
   }
 
   Future<void> fetchNextPage() async {
@@ -371,7 +527,7 @@ class SeriesNotifier extends AsyncNotifier<SeriesState> {
     }
   }
 
-  Future<void> refresh({bool withLoading = true}) async {
+  Future<void> refresh({bool withLoading = true, bool forceServer = false}) async {
     final currentState = state.value;
     if (currentState == null) return;
 
@@ -386,6 +542,7 @@ class SeriesNotifier extends AsyncNotifier<SeriesState> {
         desc: currentState.desc,
         filter: currentState.filter,
         include: currentState.include,
+        forceServer: forceServer,
       );
       state = AsyncData(refreshed);
     } catch (e, s) {

@@ -5,6 +5,8 @@ import 'package:yaabsa/api/library/library_author.dart';
 import 'package:yaabsa/api/library/request/library_author_sort.dart';
 import 'package:yaabsa/api/library/request/library_items_request.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/provider/common/library_item_events.dart';
+import 'package:yaabsa/util/library_item_mutation_helpers.dart';
 
 part 'library_author_provider.g.dart';
 
@@ -73,7 +75,13 @@ class LibraryAuthorsState {
 class LibraryAuthorsNotifier extends _$LibraryAuthorsNotifier {
   bool _isEnsuringIndex = false;
 
-  Future<LibraryAuthorsState> _fetchAuthors(int page, {String? sort, int? desc, String? include}) async {
+  Future<LibraryAuthorsState> _fetchAuthors(
+    int page, {
+    String? sort,
+    int? desc,
+    String? include,
+    bool forceServer = false,
+  }) async {
     final absApi = ref.read(absApiProvider);
     if (absApi == null) {
       throw Exception('User not authenticated or API not available.');
@@ -88,7 +96,11 @@ class LibraryAuthorsNotifier extends _$LibraryAuthorsNotifier {
       include: include ?? currentVal?.include,
     );
 
-    final response = await absApi.getLibraryApi().getLibraryAuthors(libraryId, request);
+    final response = await absApi.getLibraryApi().getLibraryAuthors(
+      libraryId,
+      request,
+      extra: forceServer ? {'noCache': true} : null,
+    );
     final data = response.data;
     if (data == null) {
       throw Exception('No author data received from API.');
@@ -115,7 +127,13 @@ class LibraryAuthorsNotifier extends _$LibraryAuthorsNotifier {
     );
   }
 
-  Future<void> _refetch({String? sort, int? desc, String? include, bool withLoading = false}) async {
+  Future<void> _refetch({
+    String? sort,
+    int? desc,
+    String? include,
+    bool withLoading = false,
+    bool forceServer = false,
+  }) async {
     final currentState = state.value;
     if (currentState == null) {
       return;
@@ -131,6 +149,7 @@ class LibraryAuthorsNotifier extends _$LibraryAuthorsNotifier {
         sort: sort ?? currentState.sort,
         desc: desc ?? currentState.desc,
         include: include ?? currentState.include,
+        forceServer: forceServer,
       );
       state = AsyncData(refreshed);
     } catch (e, s) {
@@ -145,7 +164,93 @@ class LibraryAuthorsNotifier extends _$LibraryAuthorsNotifier {
     int initialDesc = defaultAuthorSortDesc,
     String? initialInclude = defaultLibraryAuthorInclude,
   }) async {
+    ref.listen<LibraryItemMutation?>(libraryItemMutationProvider, (previous, next) {
+      if (next == null) {
+        return;
+      }
+
+      if (next.libraryId != null && next.libraryId != libraryId) {
+        return;
+      }
+
+      final currentState = state.asData?.value;
+      if (currentState == null) return;
+
+      bool affectsList = mutationAffectsAuthorsList(next);
+      if (!affectsList) return;
+
+      final pagesToRefresh = <int>{};
+      final prevAuthors = next.previousItem?.media?.bookMedia?.metadata.authors ?? [];
+      final newAuthors = next.item?.media?.bookMedia?.metadata.authors ?? [];
+      final prevPodAuthor = next.previousItem?.media?.podcastMedia?.metadata.author;
+      final newPodAuthor = next.item?.media?.podcastMedia?.metadata.author;
+
+      for (int i = 0; i < currentState.items.length; i++) {
+        final author = currentState.items[i];
+
+        final wasInAuthor =
+            prevAuthors.any((a) => a.id == author.id) || (prevPodAuthor != null && prevPodAuthor == author.name);
+        final isInAuthor =
+            newAuthors.any((a) => a.id == author.id) || (newPodAuthor != null && newPodAuthor == author.name);
+
+        if (wasInAuthor || isInAuthor) {
+          pagesToRefresh.add(i ~/ _authorsPerPage);
+        }
+      }
+
+      if (pagesToRefresh.isNotEmpty) {
+        for (final page in pagesToRefresh) {
+          _refetchSpecificPage(page);
+        }
+      } else if (next.type == LibraryItemMutationType.added || next.type == LibraryItemMutationType.updated) {
+        // New author or first time association
+        _refetchSpecificPage(0);
+      }
+    });
+
     return _fetchAuthors(0, sort: initialSort, desc: initialDesc, include: initialInclude);
+  }
+
+  Future<void> _refetchSpecificPage(int page) async {
+    final currentState = state.asData?.value;
+    if (currentState == null) return;
+
+    final absApi = ref.read(absApiProvider);
+    if (absApi == null) return;
+
+    try {
+      final request = LibraryItemsRequest(
+        limit: _authorsPerPage,
+        page: page,
+        sort: currentState.sort ?? defaultAuthorSortWireValue,
+        desc: currentState.desc ?? defaultAuthorSortDesc,
+        include: currentState.include ?? defaultLibraryAuthorInclude,
+      );
+
+      final response = await absApi.getLibraryApi().getLibraryAuthors(
+        currentState.libraryId,
+        request,
+        extra: {'noCache': true},
+      );
+
+      final data = response.data;
+      if (data == null) return;
+
+      final fetchedItems = data.results;
+      final newItems = List<LibraryAuthor>.from(currentState.items);
+      final startIndex = page * _authorsPerPage;
+
+      if (startIndex < newItems.length) {
+        final endIndex = (startIndex + _authorsPerPage).clamp(0, newItems.length);
+        newItems.replaceRange(startIndex, endIndex, fetchedItems);
+      } else if (startIndex == newItems.length) {
+        newItems.addAll(fetchedItems);
+      }
+
+      state = AsyncData(currentState.copyWith(items: newItems, totalItems: data.total));
+    } catch (_) {
+      // Silently fail on targeted background refetch, keeping existing state
+    }
   }
 
   Future<void> fetchNextPage() async {
@@ -169,8 +274,8 @@ class LibraryAuthorsNotifier extends _$LibraryAuthorsNotifier {
     }
   }
 
-  Future<void> refresh({bool withLoading = true}) async {
-    await _refetch(withLoading: withLoading);
+  Future<void> refresh({bool withLoading = true, bool forceServer = false}) async {
+    await _refetch(withLoading: withLoading, forceServer: forceServer);
   }
 
   Future<void> setSort(String newSort, {int? newDesc}) async {
@@ -202,17 +307,27 @@ class LibraryAuthorsNotifier extends _$LibraryAuthorsNotifier {
 }
 
 @riverpod
-Future<AuthorDetails> libraryAuthor(Ref ref, String authorId) async {
-  final absApi = ref.watch(absApiProvider);
-  if (absApi == null) {
-    throw Exception('User not authenticated or API not available.');
-  }
+class LibraryAuthorDetails extends _$LibraryAuthorDetails {
+  @override
+  Future<AuthorDetails> build(String authorId) async {
+    final absApi = ref.watch(absApiProvider);
 
-  final response = await absApi.getLibraryApi().getAuthorById(authorId, include: defaultAuthorDetailsInclude);
-  final data = response.data;
-  if (data == null) {
-    throw Exception('No author details received from API for author $authorId.');
-  }
+    ref.listen<LibraryItemMutation?>(libraryItemMutationProvider, (previous, next) {
+      if (next != null && mutationAffectsAuthor(next, authorId)) {
+        ref.invalidateSelf();
+      }
+    });
 
-  return data;
+    if (absApi == null) {
+      throw Exception('User not authenticated or API not available.');
+    }
+
+    final response = await absApi.getLibraryApi().getAuthorById(authorId, include: defaultAuthorDetailsInclude);
+    final data = response.data;
+    if (data == null) {
+      throw Exception('No author details received from API for author $authorId.');
+    }
+
+    return data;
+  }
 }
