@@ -49,7 +49,7 @@ final class LibraryAuthorsNotifierProvider extends $AsyncNotifierProvider<Librar
   }
 }
 
-String _$libraryAuthorsNotifierHash() => r'96db0e92a0ba5a51c29344d4030fd38b20a1c89a';
+String _$libraryAuthorsNotifierHash() => r'068319995b737dc1afc400b009a834e8f6af8756';
 
 final class LibraryAuthorsNotifierFamily extends $Family
     with
@@ -158,7 +158,7 @@ final class LibraryAuthorDetailsProvider extends $AsyncNotifierProvider<LibraryA
   }
 }
 
-String _$libraryAuthorDetailsHash() => r'bf99aafcbdee2505091750df3311a24d8d2319a1';
+String _$libraryAuthorDetailsHash() => r'5fc64254e9792d183e2f68a6e3605a6a79767e9d';
 
 final class LibraryAuthorDetailsFamily extends $Family
     with

@@ -39,9 +39,7 @@ class AdminServerSessionsSettings extends StatelessWidget {
             ],
           ),
         ),
-        const Expanded(
-          child: AdminServerSessionsView(),
-        ),
+        const Expanded(child: AdminServerSessionsView()),
       ],
     );
   }
