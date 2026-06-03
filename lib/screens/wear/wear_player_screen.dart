@@ -64,24 +64,27 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
     });
     try {
       final api = await ref.read(wearApiProvider.future);
-      if (api == null)
+      if (api == null) {
         return setState(() {
           _error = 'Not connected to server';
           _isLoading = false;
         });
+      }
 
       final user = (await api.getMeApi().getUser()).data;
-      if (user == null)
+      if (user == null) {
         return setState(() {
           _error = 'Failed to load user data';
           _isLoading = false;
         });
+      }
       final mp = user.mediaProgress;
-      if (mp == null || mp.isEmpty)
+      if (mp == null || mp.isEmpty) {
         return setState(() {
           _error = 'No listening history';
           _isLoading = false;
         });
+      }
 
       mp.sort((a, b) => (b.lastUpdate ?? 0).compareTo(a.lastUpdate ?? 0));
       final lp = mp.firstWhere((p) => !(p.isFinished ?? false), orElse: () => mp.first);
@@ -103,11 +106,12 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
         playRequest: pr,
       )).data;
       final tracks = session?.audioTracks ?? <AudioTrack>[];
-      if (tracks.isEmpty)
+      if (tracks.isEmpty) {
         return setState(() {
           _error = 'No audio tracks';
           _isLoading = false;
         });
+      }
 
       final title = session?.displayTitle ?? li?.title ?? 'Unknown';
       final author = session?.displayAuthor ?? li?.authorString ?? '';
@@ -192,12 +196,13 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
         final pending = mine.where((r) => r.status.isNotFinalState);
         if (pending.isEmpty) {
           t.cancel();
-          if (mounted)
+          if (mounted) {
             setState(() {
               _isDownloaded = true;
               _isDownloading = false;
               _downloadProgress = 0.0;
             });
+          }
         } else if (mounted) {
           final total = pending.fold<double>(0.0, (s, r) => s + r.progress);
           setState(() => _downloadProgress = pending.isEmpty ? 0.0 : total / pending.length);
