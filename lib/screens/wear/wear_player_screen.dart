@@ -32,6 +32,7 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
   DateTime _now = DateTime.now();
   StreamSubscription<PlaybackState>? _ps;
   Timer? _clock;
+  Timer? _downloadPollTimer;
 
   WearAudioHandler get _h => wearAudioHandler;
 
@@ -41,7 +42,7 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
     _clock = Timer.periodic(const Duration(seconds: 30), (_) { if (mounted) setState(() => _now = DateTime.now()); });
     _load();
   }
-  @override void dispose() { _ps?.cancel(); _clock?.cancel(); super.dispose(); }
+  @override void dispose() { _ps?.cancel(); _clock?.cancel(); _downloadPollTimer?.cancel(); super.dispose(); }
 
   Future<void> _load() async {
     setState(() { _isLoading = true; _error = null; });
@@ -89,7 +90,8 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
   }
 
   void _pollDownloadCompletion() {
-    Timer.periodic(const Duration(seconds: 2), (t) async {
+    _downloadPollTimer?.cancel();
+    _downloadPollTimer = Timer.periodic(const Duration(seconds: 2), (t) async {
       try {
         final records = await FileDownloader().database.allRecords();
         final mine = records.where((r) => r.taskId.startsWith('wear_${_itemId}_'));

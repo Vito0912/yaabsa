@@ -40,6 +40,7 @@ class MainActivity : AudioServiceActivity() {
 	private var messageClient: com.google.android.gms.wearable.MessageClient? = null
 	private var pendingRequestNodeId: String? = null
 	private var pendingRequestId: String? = null
+	private var wearMessageListener: com.google.android.gms.wearable.MessageClient.OnMessageReceivedListener? = null
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -47,13 +48,14 @@ class MainActivity : AudioServiceActivity() {
 		handleAaosIntent(intent)
 		handleSignInIntent(intent)
 		messageClient = Wearable.getMessageClient(this)
-		messageClient?.addListener { event: com.google.android.gms.wearable.MessageEvent ->
+		wearMessageListener = com.google.android.gms.wearable.MessageClient.OnMessageReceivedListener { event: com.google.android.gms.wearable.MessageEvent ->
 			if (event.path == "/yaabsa/credential_request") {
 				pendingRequestNodeId = event.sourceNodeId
 				pendingRequestId = String(event.data)
 				runOnUiThread { showCredentialRequestDialog() }
 			}
 		}
+		messageClient?.addListener(wearMessageListener!!)
 		if (maybeLaunchMediaCenterFromMainIntent(intent)) {
 			return
 		}
@@ -519,6 +521,7 @@ class MainActivity : AudioServiceActivity() {
 	}
 
 	override fun onDestroy() {
+		wearMessageListener?.let { messageClient?.removeListener(it) }
 		super.onDestroy()
 	}
 }

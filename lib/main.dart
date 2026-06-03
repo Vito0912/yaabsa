@@ -6,7 +6,6 @@ import 'package:yaabsa/provider/core/socket_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/wear/wear_providers.dart';
-import 'package:yaabsa/provider/wear/wear_providers.dart';
 import 'package:yaabsa/util/globals.dart' show appName, audioHandler, containerRef;
 import 'package:yaabsa/util/aaos_service.dart';
 import 'package:yaabsa/util/app_theme.dart';
@@ -71,7 +70,6 @@ void main() {
       TrayManager.update();
 
       Init.late();
-      initPhoneWearHandler();
       initPhoneWearHandler();
       await _configureAndroidEdgeToEdge();
       runApp(UncontrolledProviderScope(container: containerRef, child: MyApp()));

@@ -11,6 +11,7 @@ import com.google.android.gms.wearable.Wearable
 import com.ryanheise.audioservice.AudioServiceActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 class WearMainActivity : AudioServiceActivity() {
@@ -25,8 +26,6 @@ class WearMainActivity : AudioServiceActivity() {
 
     private var channel: MethodChannel? = null
     private var messageClient: MessageClient? = null
-    private var receivedUrl: String? = null
-    private var receivedToken: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,31 +45,50 @@ class WearMainActivity : AudioServiceActivity() {
 
     private fun requestCredentials(result: MethodChannel.Result) {
         val handler = Handler(Looper.getMainLooper())
+        val latch = CountDownLatch(1)
+        var receivedUrl: String? = null
+        var receivedToken: String? = null
+
+        val listener = MessageClient.OnMessageReceivedListener { event: MessageEvent ->
+            if (event.path == RESP_PATH) {
+                val parts = String(event.data).split("|", limit = 3)
+                if (parts.size >= 2) {
+                    receivedUrl = parts[0]
+                    receivedToken = parts[1]
+                    latch.countDown()
+                }
+            }
+        }
+
         Thread {
             try {
                 val nodes = Tasks.await(Wearable.getNodeClient(this).connectedNodes, TIMEOUT, TimeUnit.SECONDS)
-                if (nodes.isEmpty()) { handler.post { result.error("NO_PHONE", "No connected phone found", null) }; return@Thread }
+                if (nodes.isEmpty()) {
+                    handler.post { result.error("NO_PHONE", "No connected phone found", null) }
+                    return@Thread
+                }
                 val nodeId = nodes[0].id
                 val requestId = java.util.UUID.randomUUID().toString()
-                Tasks.await(messageClient!!.sendMessage(nodeId, REQ_PATH, requestId.toByteArray()), TIMEOUT, TimeUnit.SECONDS)
-                Log.d(TAG, "Credential request sent: $requestId")
 
-                // Listen for response
-                messageClient!!.addListener { event: MessageEvent ->
-                    if (event.path == RESP_PATH) {
-                        val parts = String(event.data).split("|", limit = 3)
-                        if (parts.size >= 2) { receivedUrl = parts[0]; receivedToken = parts[1] }
+                // Register listener BEFORE sending the request to avoid race condition
+                messageClient!!.addListener(listener)
+
+                try {
+                    Tasks.await(messageClient!!.sendMessage(nodeId, REQ_PATH, requestId.toByteArray()), TIMEOUT, TimeUnit.SECONDS)
+                    Log.d(TAG, "Credential request sent: $requestId")
+
+                    val success = latch.await(TIMEOUT, TimeUnit.SECONDS)
+                    if (success && receivedUrl != null && receivedToken != null) {
+                        handler.post { result.success(mapOf("serverUrl" to receivedUrl, "token" to receivedToken)) }
+                    } else {
+                        handler.post { result.error("TIMEOUT", "Timed out waiting for phone response", null) }
                     }
+                } finally {
+                    messageClient!!.removeListener(listener)
                 }
-
-                val start = System.currentTimeMillis()
-                while (receivedUrl == null && receivedToken == null) {
-                    if (System.currentTimeMillis() - start > TIMEOUT * 1000) { handler.post { result.error("TIMEOUT", "Timed out", null) }; return@Thread }
-                    Thread.sleep(500)
-                }
-                handler.post { result.success(mapOf("serverUrl" to receivedUrl, "token" to receivedToken)) }
             } catch (e: Exception) {
                 Log.e(TAG, "Failed: ${e.message}")
+                messageClient?.removeListener(listener)
                 handler.post { result.error("FAILED", e.message, null) }
             }
         }.start()
