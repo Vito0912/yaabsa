@@ -101,7 +101,7 @@ extension _BGAudioHandlerResume on BGAudioHandler {
     return _playLastPlayedInternal(requireStartupSettingEnabled: true, resumeCurrentIfPaused: false);
   }
 
-  Future<void> _restoreLastPlayedMiniPlayerIfEnabledInternal() async {
+  Future<void> _restoreLastPlayedMiniPlayerIfEnabledInternal({String? explicitUserId}) async {
     if (_currentMediaItem != null || _queueTransitionLoading) {
       return;
     }
@@ -115,14 +115,14 @@ extension _BGAudioHandlerResume on BGAudioHandler {
       return;
     }
 
-    final lastPlayedItem = await _readLastPlayedQueueItemForActiveUser();
+    final lastPlayedItem = await _readLastPlayedQueueItemForActiveUser(explicitUserId: explicitUserId);
     if (lastPlayedItem == null) {
       return;
     }
 
     _lastQueueItem = lastPlayedItem;
 
-    final rawSnapshot = await _readLastPlayedMiniPlayerSnapshotRawForActiveUser();
+    final rawSnapshot = await _readLastPlayedMiniPlayerSnapshotRawForActiveUser(explicitUserId: explicitUserId);
     final snapshot = LastPlayedMiniPlayerSnapshot.fromRawJson(rawSnapshot);
     if (snapshot == null) {
       return;
@@ -145,8 +145,8 @@ extension _BGAudioHandlerResume on BGAudioHandler {
     );
   }
 
-  Future<QueueItem?> _readLastPlayedQueueItemForActiveUser() async {
-    final userId = _activeUserId;
+  Future<QueueItem?> _readLastPlayedQueueItemForActiveUser({String? explicitUserId}) async {
+    final userId = explicitUserId ?? _activeUserId;
     if (userId == null || userId.isEmpty) {
       return null;
     }
@@ -156,8 +156,8 @@ extension _BGAudioHandlerResume on BGAudioHandler {
     return _decodeLastPlayedQueueItem(rawLastPlayed);
   }
 
-  Future<String?> _readLastPlayedMiniPlayerSnapshotRawForActiveUser() async {
-    final userId = _activeUserId;
+  Future<String?> _readLastPlayedMiniPlayerSnapshotRawForActiveUser({String? explicitUserId}) async {
+    final userId = explicitUserId ?? _activeUserId;
     if (userId == null || userId.isEmpty) {
       return null;
     }

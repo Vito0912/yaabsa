@@ -10,6 +10,7 @@ import 'package:yaabsa/components/player/common/seek_bar.dart';
 import 'package:yaabsa/components/player/common/stop_button.dart';
 import 'package:yaabsa/screens/player/play_bar_idle_content.dart';
 import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
+import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/util/globals.dart';
 
 class PlayBar extends StatefulWidget {
@@ -206,16 +207,20 @@ class _PlayBarState extends State<PlayBar> {
               stream: audioHandler.lastPlayedMiniPlayerSnapshotStream,
               initialData: audioHandler.lastPlayedMiniPlayerSnapshot,
               builder: (context, lastPlayedSnapshot) {
-                final currentMedia = audioHandler.currentMediaItem;
-                final snapshot = lastPlayedSnapshot.data;
-                final isIdleMiniPlayer = !isTransitionLoading && currentMedia == null && snapshot != null;
-                final content = isTransitionLoading
-                    ? _buildTransitionLoadingContent(context)
-                    : currentMedia != null
-                    ? _buildReadyContent(context)
-                    : snapshot != null
-                    ? _buildIdleContent(context, snapshot)
-                    : const SizedBox.shrink();
+                return StreamBuilder<InternalMedia?>(
+                  stream: audioHandler.mediaItemStream,
+                  initialData: audioHandler.currentMediaItem,
+                  builder: (context, mediaSnapshot) {
+                    final currentMedia = mediaSnapshot.data;
+                    final snapshot = lastPlayedSnapshot.data;
+                    final isIdleMiniPlayer = !isTransitionLoading && currentMedia == null && snapshot != null;
+                    final content = isTransitionLoading
+                        ? _buildTransitionLoadingContent(context)
+                        : currentMedia != null
+                        ? _buildReadyContent(context)
+                        : snapshot != null
+                        ? _buildIdleContent(context, snapshot)
+                        : const SizedBox.shrink();
 
                 return SafeArea(
                   top: false,
@@ -259,6 +264,8 @@ class _PlayBarState extends State<PlayBar> {
                       ),
                     ),
                   ),
+                );
+                  },
                 );
               },
             );
