@@ -62,7 +62,8 @@ class ToolsSettings extends ConsumerWidget {
                 ),
                 SettingSwitchTile(
                   label: 'Force metadata refresh',
-                  subtitle: 'This will add a button to force recreation of metadata files in Admin Server Settings under metadata utils.',
+                  subtitle:
+                      'This will add a button to force recreation of metadata files in Admin Server Settings under metadata utils.',
                   settingKey: SettingKeys.toolsForceMetadataRefresh,
                   userId: currentUser.id,
                   defaultValue: false,
@@ -76,7 +77,8 @@ class ToolsSettings extends ConsumerWidget {
                 ),
                 SettingSwitchTile(
                   label: 'Split genres/tags',
-                  subtitle: 'This will add a button to split genres/tags in Admin Server Settings under metadata utils.',
+                  subtitle:
+                      'This will add a button to split genres/tags in Admin Server Settings under metadata utils.',
                   settingKey: SettingKeys.toolsSplitGenresTags,
                   userId: currentUser.id,
                   defaultValue: false,

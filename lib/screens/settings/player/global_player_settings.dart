@@ -40,7 +40,8 @@ class GlobalPlayerSettings extends StatelessWidget {
         ),
         SettingSwitchTile(
           label: 'Auto-play last played on app start',
-          subtitle: 'When enabled and nothing is currently playing, app launch will resume the last played item if it is not finished.',
+          subtitle:
+              'When enabled and nothing is currently playing, app launch will resume the last played item if it is not finished.',
           settingKey: SettingKeys.autoPlayLastPlayedOnLaunch,
         ),
         SettingSwitchTile(
@@ -50,7 +51,8 @@ class GlobalPlayerSettings extends StatelessWidget {
         ),
         SettingSwitchTile(
           label: 'Keep websocket active in background',
-          subtitle: 'If enabled, the websocket stays connected while the app is in background so updates and tasks can sync when you return. This may increase battery usage. It does not affect playback progress updates when starting playback.',
+          subtitle:
+              'If enabled, the websocket stays connected while the app is in background so updates and tasks can sync when you return. This may increase battery usage. It does not affect playback progress updates when starting playback.',
           settingKey: SettingKeys.keepWebsocketConnectionInBackground,
         ),
         SettingSwitchTile(label: 'Keep Screen On', settingKey: SettingKeys.keepScreenOn),

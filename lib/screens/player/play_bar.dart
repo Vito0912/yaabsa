@@ -222,49 +222,49 @@ class _PlayBarState extends State<PlayBar> {
                         ? _buildIdleContent(context, snapshot)
                         : const SizedBox.shrink();
 
-                return SafeArea(
-                  top: false,
-                  left: !widget.attachedToBottom,
-                  right: !widget.attachedToBottom,
-                  bottom: widget.includeBottomSafeArea,
-                  child: Padding(
-                    padding: outerPadding,
-                    child: Material(
-                      color: Colors.transparent,
-                      borderRadius: borderRadius,
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onVerticalDragStart: _handleVerticalDragStart,
-                        onVerticalDragUpdate: _handleVerticalDragUpdate,
-                        onVerticalDragEnd: _handleVerticalDragEnd,
-                        child: InkWell(
-                          onTap: isIdleMiniPlayer
-                              ? () {
-                                  audioHandler.play();
-                                }
-                              : _openFullPlayer,
+                    return SafeArea(
+                      top: false,
+                      left: !widget.attachedToBottom,
+                      right: !widget.attachedToBottom,
+                      bottom: widget.includeBottomSafeArea,
+                      child: Padding(
+                        padding: outerPadding,
+                        child: Material(
+                          color: Colors.transparent,
                           borderRadius: borderRadius,
-                          mouseCursor: SystemMouseCursors.click,
-                          onHover: (hovering) {
-                            if (_isHovered == hovering) return;
-                            setState(() => _isHovered = hovering);
-                          },
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 160),
-                            curve: Curves.easeOut,
-                            padding: innerPadding,
-                            decoration: BoxDecoration(
-                              color: (_isHovered && !_isSeekBarHovered) ? hoveredColor : baseColor,
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onVerticalDragStart: _handleVerticalDragStart,
+                            onVerticalDragUpdate: _handleVerticalDragUpdate,
+                            onVerticalDragEnd: _handleVerticalDragEnd,
+                            child: InkWell(
+                              onTap: isIdleMiniPlayer
+                                  ? () {
+                                      audioHandler.play();
+                                    }
+                                  : _openFullPlayer,
                               borderRadius: borderRadius,
-                              border: border,
+                              mouseCursor: SystemMouseCursors.click,
+                              onHover: (hovering) {
+                                if (_isHovered == hovering) return;
+                                setState(() => _isHovered = hovering);
+                              },
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 160),
+                                curve: Curves.easeOut,
+                                padding: innerPadding,
+                                decoration: BoxDecoration(
+                                  color: (_isHovered && !_isSeekBarHovered) ? hoveredColor : baseColor,
+                                  borderRadius: borderRadius,
+                                  border: border,
+                                ),
+                                child: content,
+                              ),
                             ),
-                            child: content,
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                );
+                    );
                   },
                 );
               },

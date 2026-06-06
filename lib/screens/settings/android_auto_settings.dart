@@ -62,7 +62,8 @@ class _AndroidAutoSettingsState extends ConsumerState<AndroidAutoSettings> {
         SettingSwitchTile(
           userId: userId,
           label: 'Group Large Lists By First Letter',
-          subtitle: 'For long $integrationLabel lists, group entries alphabetically so browsing with rotary controls is faster.',
+          subtitle:
+              'For long $integrationLabel lists, group entries alphabetically so browsing with rotary controls is faster.',
           settingKey: SettingKeys.androidAutoGroupByLetters,
           defaultValue: true,
         ),

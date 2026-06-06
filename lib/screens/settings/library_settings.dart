@@ -159,7 +159,6 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     final appDatabase = ref.watch(appDatabaseProvider);

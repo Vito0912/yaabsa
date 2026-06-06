@@ -73,7 +73,8 @@ class PlayerSettingsSleepTimer extends ConsumerWidget {
         ),
         SettingSwitchTile(
           label: 'Auto-restart timer on playback start',
-          subtitle: 'When playback starts and no timer is active, automatically start a new sleep timer using your last duration.',
+          subtitle:
+              'When playback starts and no timer is active, automatically start a new sleep timer using your last duration.',
           settingKey: SettingKeys.sleepTimerAutoRestartEnabled,
         ),
         SettingSwitchTile(

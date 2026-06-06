@@ -524,7 +524,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     _setQueueTransitionLoading(true);
     _clearSmartRewindPauseMarker();
     _lastQueueItem = nextItem;
-    
+
     try {
       _currentMediaItem = await _ref
           .read(sessionRepositoryProvider)

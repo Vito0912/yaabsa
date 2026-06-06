@@ -26,7 +26,8 @@ class PlayerSettingsSmartRewind extends ConsumerWidget {
       children: [
         SettingSwitchTile(
           label: 'Smart rewind',
-          subtitle: 'When playback is resumed after a pause, rewind by an amount based on how long playback was paused.',
+          subtitle:
+              'When playback is resumed after a pause, rewind by an amount based on how long playback was paused.',
           settingKey: SettingKeys.smartRewindEnabled,
         ),
         SettingSlider<int>(

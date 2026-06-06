@@ -42,7 +42,7 @@ class LibraryItemBookView extends ConsumerWidget {
     final libraryItemApi = api.getLibraryItemApi();
     final coverHeaders = normalizeImageRequestHeaders(api.dio.options.headers);
     Widget coverWidget = libraryItemApi.getLibraryItemCover(item.id, item: item);
-    
+
     final progressByKey = ref.watch(mediaProgressProvider).asData?.value;
     final itemProgress = progressByKey?[item.id];
     final progressValue = (itemProgress?.progress ?? 0).clamp(0.0, 1.0).toDouble();
@@ -55,11 +55,7 @@ class LibraryItemBookView extends ConsumerWidget {
             left: 0,
             right: 0,
             bottom: 0,
-            child: LinearProgressIndicator(
-              value: progressValue,
-              minHeight: 6,
-              backgroundColor: Colors.black45,
-            ),
+            child: LinearProgressIndicator(value: progressValue, minHeight: 6, backgroundColor: Colors.black45),
           ),
         ],
       );
