@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';
-import 'package:yaabsa/components/settings/settings_switch.dart';
+import 'package:yaabsa/components/settings/settings_switch_tile.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/settings/android_auto/android_auto_library_settings.dart';
 import 'package:yaabsa/screens/settings/android_auto/android_auto_podcast_library_settings.dart';
@@ -59,11 +59,10 @@ class _AndroidAutoSettingsState extends ConsumerState<AndroidAutoSettings> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SettingSwitch(
+        SettingSwitchTile(
           userId: userId,
           label: 'Group Large Lists By First Letter',
-          description:
-              'For long $integrationLabel lists, group entries alphabetically so browsing with rotary controls is faster.',
+          subtitle: 'For long $integrationLabel lists, group entries alphabetically so browsing with rotary controls is faster.',
           settingKey: SettingKeys.androidAutoGroupByLetters,
           defaultValue: true,
         ),

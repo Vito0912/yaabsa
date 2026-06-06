@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:yaabsa/components/settings/settings_switch.dart';
+import 'package:yaabsa/components/settings/settings_switch_tile.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
@@ -38,49 +38,49 @@ class ServerManagementSettings extends ConsumerWidget {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                SettingSwitch(
+                SettingSwitchTile(
                   label: 'Collections',
                   settingKey: SettingKeys.serverManagementCollections,
                   userId: canUpdateItems ? currentUser.id : null,
                   defaultValue: true,
                   enabled: canUpdateItems,
-                  description: 'Allows you to edit and create collections like playlists',
+                  subtitle: 'Allows you to edit and create collections like playlists',
                   disabledReason: canUpdateItems ? null : 'Requires edit-item permission.',
                 ),
-                SettingSwitch(
+                SettingSwitchTile(
                   label: 'Edit items',
                   settingKey: SettingKeys.serverManagementEditItems,
                   userId: canUpdateItems ? currentUser.id : null,
                   defaultValue: false,
                   enabled: canUpdateItems,
-                  description: 'Allows access to item editing features like bulk edit',
+                  subtitle: 'Allows access to item editing features like bulk edit',
                   disabledReason: canUpdateItems ? null : 'Requires edit-item permission',
                 ),
-                SettingSwitch(
+                SettingSwitchTile(
                   label: 'Delete items',
                   settingKey: SettingKeys.serverManagementDeleteItems,
                   userId: canDeleteItems ? currentUser.id : null,
                   defaultValue: false,
                   enabled: canDeleteItems,
-                  description: 'Allows deleting items',
+                  subtitle: 'Allows deleting items',
                   disabledReason: canDeleteItems ? null : 'Requires delete-item permission',
                 ),
-                SettingSwitch(
+                SettingSwitchTile(
                   label: 'Edit chapters',
                   settingKey: SettingKeys.serverManagementEditChapters,
                   userId: canUpdateItems ? currentUser.id : null,
                   defaultValue: true,
                   enabled: canUpdateItems,
-                  description: 'Allows using and editing the chapter editor',
+                  subtitle: 'Allows using and editing the chapter editor',
                   disabledReason: canUpdateItems ? null : 'Requires edit-item permission',
                 ),
-                SettingSwitch(
+                SettingSwitchTile(
                   label: 'Upload',
                   settingKey: SettingKeys.serverManagementUploadItems,
                   userId: canUploadItems ? currentUser.id : null,
                   defaultValue: false,
                   enabled: canUploadItems,
-                  description: 'Allows uploading new items',
+                  subtitle: 'Allows uploading new items',
                   disabledReason: canUploadItems ? null : 'Requires upload permission',
                 ),
                 StreamBuilder<UserSettingEntry?>(
@@ -92,13 +92,13 @@ class ServerManagementSettings extends ConsumerWidget {
                     );
                     final canEnableMatches = canUpdateItems && editItemsEnabled;
 
-                    return SettingSwitch(
+                    return SettingSwitchTile(
                       label: 'Allow matches and quick matches',
                       settingKey: SettingKeys.serverManagementAllowMatchesQuickMatches,
                       userId: canUpdateItems ? currentUser.id : null,
                       defaultValue: false,
                       enabled: canEnableMatches,
-                      description: 'Allows using the match, quick match and preview match features',
+                      subtitle: 'Allows using the match, quick match and preview match features',
                       disabledReason: canUpdateItems ? 'Enable "Edit items" first' : 'Requires edit-item permission',
                     );
                   },

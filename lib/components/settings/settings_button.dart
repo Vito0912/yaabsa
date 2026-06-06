@@ -47,6 +47,15 @@ class SettingButton extends ConsumerWidget {
                     Flexible(
                       child: Text(label, style: textTheme.titleMedium, overflow: TextOverflow.ellipsis, maxLines: 1),
                     ),
+                    if (description != null && description!.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 6.0),
+                        child: Tooltip(
+                          message: description!,
+                          triggerMode: TooltipTriggerMode.tap,
+                          child: Icon(Icons.info_outline, size: 20, color: theme.colorScheme.onSurfaceVariant),
+                        ),
+                      ),
                     if (icon != null && tooltip != null)
                       Padding(
                         padding: const EdgeInsets.only(left: 6.0),
@@ -97,14 +106,6 @@ class SettingButton extends ConsumerWidget {
               ),
             ],
           ),
-          if (description != null && description!.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 4.0),
-              child: Text(
-                description!,
-                style: textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-              ),
-            ),
         ],
       ),
     );

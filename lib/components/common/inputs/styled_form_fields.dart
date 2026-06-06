@@ -101,6 +101,80 @@ class StyledTextField extends StatelessWidget {
   }
 }
 
+class StyledTextFormField extends StatelessWidget {
+  const StyledTextFormField({
+    super.key,
+    required this.label,
+    this.controller,
+    this.hintText,
+    this.helperText,
+    this.errorText,
+    this.maxLines = 1,
+    this.keyboardType,
+    this.onChanged,
+    this.onFieldSubmitted,
+    this.textInputAction,
+    this.inputFormatters,
+    this.autofocus = false,
+    this.readOnly = false,
+    this.style,
+    this.enabled = true,
+    this.obscureText = false,
+    this.prefixIcon,
+    this.suffixIcon,
+    this.validator,
+    this.contentPadding = const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+  });
+
+  final String label;
+  final TextEditingController? controller;
+  final String? hintText;
+  final String? helperText;
+  final String? errorText;
+  final int maxLines;
+  final TextInputType? keyboardType;
+  final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onFieldSubmitted;
+  final TextInputAction? textInputAction;
+  final List<TextInputFormatter>? inputFormatters;
+  final bool autofocus;
+  final bool readOnly;
+  final TextStyle? style;
+  final bool enabled;
+  final bool obscureText;
+  final Widget? prefixIcon;
+  final Widget? suffixIcon;
+  final FormFieldValidator<String>? validator;
+  final EdgeInsetsGeometry contentPadding;
+
+  @override
+  Widget build(BuildContext context) {
+    final decoration = yaabsaFieldDecoration(
+      context,
+      label: label,
+      hintText: hintText,
+      contentPadding: contentPadding,
+    ).copyWith(helperText: helperText, errorText: errorText, prefixIcon: prefixIcon, suffixIcon: suffixIcon);
+
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      maxLines: maxLines,
+      onChanged: onChanged,
+      onFieldSubmitted: onFieldSubmitted,
+      textInputAction: textInputAction,
+      inputFormatters: inputFormatters,
+      autofocus: autofocus,
+      readOnly: readOnly,
+      style: style,
+      enabled: enabled,
+      obscureText: obscureText,
+      decoration: decoration,
+      validator: validator,
+    );
+  }
+}
+
 class InlineTextField extends StatelessWidget {
   const InlineTextField({
     super.key,

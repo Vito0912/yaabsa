@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatf
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/components/common/inputs/expressive_dropdown.dart';
-import 'package:yaabsa/components/settings/settings_switch.dart';
+import 'package:yaabsa/components/settings/settings_switch_tile.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
@@ -78,10 +78,10 @@ class _AndroidAutoLibrarySettingsState extends ConsumerState<AndroidAutoLibraryS
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                SettingSwitch(
+                SettingSwitchTile(
                   userId: user.id,
                   label: 'Sort Descending',
-                  description: 'When enabled, $integrationLabel library lists are sorted in descending order.',
+                  subtitle: 'When enabled, $integrationLabel library lists are sorted in descending order.',
                   settingKey: SettingKeys.androidAutoLibrarySortDescending,
                   defaultValue: false,
                 ),

@@ -23,13 +23,6 @@ class CachingRouteSettings extends ConsumerWidget {
       showEmbeddedBackButton: true,
       embeddedBackFallbackRoute: '/settings/caching',
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-          child: Text(
-            'Configure per-endpoint cache behavior. Route settings remain accessible even when global caching is off.',
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-        ),
         ...cacheRouteDefinitions.map((route) {
           final subtitle = route.aggressiveCache
               ? '${route.pathPattern}\nWarning: Enabling this could lead to odd behavior with multiple devices.'

@@ -10,6 +10,7 @@ import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/network/dio_factory.dart';
+import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
 
 // TODO. Change view
 class ServerConnectionSettings extends ConsumerStatefulWidget {
@@ -238,30 +239,26 @@ class _ServerConnectionSettingsState extends ConsumerState<ServerConnectionSetti
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
                         ),
                         const SizedBox(height: 12),
-                        TextFormField(
+                        StyledTextFormField(
                           controller: _externalServerController,
                           keyboardType: TextInputType.url,
                           enabled: !_isSaving,
-                          decoration: const InputDecoration(
-                            labelText: 'External Server URL',
-                            hintText: 'https://your-audiobookshelf.example',
-                            prefixIcon: Icon(Icons.public_rounded),
-                          ),
+                          label: 'External Server URL',
+                          hintText: 'https://your-audiobookshelf.example',
+                          prefixIcon: const Icon(Icons.public_rounded),
                           validator: (value) {
                             final normalized = _normalizeServerAddress((value ?? '').trim());
                             return normalized == null ? 'Enter a valid external URL.' : null;
                           },
                         ),
                         const SizedBox(height: 12),
-                        TextFormField(
+                        StyledTextFormField(
                           controller: _localServerController,
                           keyboardType: TextInputType.url,
                           enabled: !_isSaving,
-                          decoration: const InputDecoration(
-                            labelText: 'Local Server URL (Optional)',
-                            hintText: 'http://192.168.1.25:13378',
-                            prefixIcon: Icon(Icons.lan_rounded),
-                          ),
+                          label: 'Local Server URL (Optional)',
+                          hintText: 'http://192.168.1.25:13378',
+                          prefixIcon: const Icon(Icons.lan_rounded),
                           validator: (value) {
                             final trimmed = (value ?? '').trim();
                             if (trimmed.isEmpty) {
@@ -282,13 +279,11 @@ class _ServerConnectionSettingsState extends ConsumerState<ServerConnectionSetti
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
                         ),
                         const SizedBox(height: 12),
-                        TextFormField(
+                        StyledTextFormField(
                           controller: _usernameController,
                           enabled: !_isSaving,
-                          decoration: const InputDecoration(
-                            labelText: 'Username',
-                            prefixIcon: Icon(Icons.person_outline_rounded),
-                          ),
+                          label: 'Username',
+                          prefixIcon: const Icon(Icons.person_outline_rounded),
                           validator: (value) {
                             if ((value ?? '').trim().isEmpty) {
                               return 'Username cannot be empty.';
@@ -297,25 +292,23 @@ class _ServerConnectionSettingsState extends ConsumerState<ServerConnectionSetti
                           },
                         ),
                         const SizedBox(height: 12),
-                        TextFormField(
+                        StyledTextFormField(
                           controller: _passwordController,
                           enabled: !_isSaving,
                           obscureText: _obscurePassword,
-                          decoration: InputDecoration(
-                            labelText: 'Password',
-                            hintText: 'Required only when changing credentials',
-                            prefixIcon: const Icon(Icons.password_rounded),
-                            suffixIcon: IconButton(
-                              tooltip: _obscurePassword ? 'Show password' : 'Hide password',
-                              onPressed: _isSaving
-                                  ? null
-                                  : () {
-                                      setState(() {
-                                        _obscurePassword = !_obscurePassword;
-                                      });
-                                    },
-                              icon: Icon(_obscurePassword ? Icons.visibility_off_rounded : Icons.visibility_rounded),
-                            ),
+                          label: 'Password',
+                          hintText: 'Required only when changing credentials',
+                          prefixIcon: const Icon(Icons.password_rounded),
+                          suffixIcon: IconButton(
+                            tooltip: _obscurePassword ? 'Show password' : 'Hide password',
+                            onPressed: _isSaving
+                                ? null
+                                : () {
+                                    setState(() {
+                                      _obscurePassword = !_obscurePassword;
+                                    });
+                                  },
+                            icon: Icon(_obscurePassword ? Icons.visibility_off_rounded : Icons.visibility_rounded),
                           ),
                         ),
                         const SizedBox(height: 8),

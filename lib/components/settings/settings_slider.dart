@@ -141,6 +141,19 @@ class SettingSlider<T> extends ConsumerWidget {
                         maxLines: 1,
                       ),
                     ),
+                    if (details.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 6.0),
+                        child: Tooltip(
+                          message: details.join('\n'),
+                          triggerMode: TooltipTriggerMode.tap,
+                          child: Icon(
+                            Icons.info_outline,
+                            size: 20,
+                            color: enabled ? theme.colorScheme.onSurfaceVariant : theme.disabledColor,
+                          ),
+                        ),
+                      ),
                     if (icon != null && tooltip != null)
                       Padding(
                         padding: const EdgeInsets.only(left: 6.0),
@@ -170,16 +183,6 @@ class SettingSlider<T> extends ConsumerWidget {
               ),
             ],
           ),
-          if (details.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 4.0, bottom: 4.0),
-              child: Text(
-                details.join('\n'),
-                style: textTheme.bodySmall?.copyWith(
-                  color: enabled ? theme.colorScheme.onSurfaceVariant : theme.disabledColor,
-                ),
-              ),
-            ),
           if (values.length > 1) ...[
             SliderTheme(
               data: SliderTheme.of(context).copyWith(

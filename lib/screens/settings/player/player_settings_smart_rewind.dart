@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/components/settings/settings_slider.dart';
-import 'package:yaabsa/components/settings/settings_switch.dart';
+import 'package:yaabsa/components/settings/settings_switch_tile.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/screens/settings/player/player_settings.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
@@ -24,10 +24,9 @@ class PlayerSettingsSmartRewind extends ConsumerWidget {
       showEmbeddedBackButton: true,
       embeddedBackFallbackRoute: PlayerSettings.routeName,
       children: [
-        SettingSwitch(
+        SettingSwitchTile(
           label: 'Smart rewind',
-          description:
-              'When playback is resumed after a pause, rewind by an amount based on how long playback was paused.',
+          subtitle: 'When playback is resumed after a pause, rewind by an amount based on how long playback was paused.',
           settingKey: SettingKeys.smartRewindEnabled,
         ),
         SettingSlider<int>(
