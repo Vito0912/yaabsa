@@ -87,6 +87,7 @@ class MultiBookEntryWidget extends StatelessWidget {
     this.squareCover = true,
     this.showSubtitle = false,
     this.coverHeight,
+    this.progress,
   });
 
   final ABSApi api;
@@ -98,6 +99,7 @@ class MultiBookEntryWidget extends StatelessWidget {
   final bool squareCover;
   final bool showSubtitle;
   final double? coverHeight;
+  final double? progress;
 
   @override
   Widget build(BuildContext context) {
@@ -115,6 +117,7 @@ class MultiBookEntryWidget extends StatelessWidget {
           compact: compact,
           squareCover: squareCover,
           coverHeight: coverHeight,
+          progress: progress,
         ),
         SizedBox(height: compact ? 6 : 8),
         Text(
@@ -158,6 +161,7 @@ class _StackedCovers extends StatelessWidget {
     required this.compact,
     required this.squareCover,
     required this.coverHeight,
+    this.progress,
   });
 
   final ABSApi api;
@@ -166,6 +170,7 @@ class _StackedCovers extends StatelessWidget {
   final bool compact;
   final bool squareCover;
   final double? coverHeight;
+  final double? progress;
 
   @override
   Widget build(BuildContext context) {
@@ -187,12 +192,24 @@ class _StackedCovers extends StatelessWidget {
     if (visibleIds.isEmpty) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(16),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Icon(Icons.menu_book_outlined, color: colorScheme.onSurfaceVariant, size: compact ? 34 : 42),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            DecoratedBox(
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(Icons.menu_book_outlined, color: colorScheme.onSurfaceVariant, size: compact ? 34 : 42),
+            ),
+            if (progress != null && progress! > 0)
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: LinearProgressIndicator(value: progress, minHeight: 6, backgroundColor: Colors.black45),
+              ),
+          ],
         ),
       );
     }
@@ -202,7 +219,22 @@ class _StackedCovers extends StatelessWidget {
         clipBehavior: Clip.none,
         children: [
           Positioned.fill(
-            child: _SingleCoverWithBlur(api: api, itemId: visibleIds.first, compact: compact),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  _SingleCoverWithBlur(api: api, itemId: visibleIds.first, compact: compact),
+                  if (progress != null && progress! > 0)
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: LinearProgressIndicator(value: progress, minHeight: 6, backgroundColor: Colors.black45),
+                    ),
+                ],
+              ),
+            ),
           ),
           if (hiddenBookCount > 0)
             Positioned(top: -2, right: -4, child: _ExtraCountBadge(hiddenBookCount: hiddenBookCount)),
@@ -232,7 +264,7 @@ class _StackedCovers extends StatelessWidget {
                 child: Stack(
                   clipBehavior: Clip.hardEdge,
                   children: [
-                    for (var i = 0; i < count; i++)
+                    for (var i = count - 1; i >= 0; i--)
                       Positioned(
                         left: startLeft + i * step,
                         top: top,
@@ -245,6 +277,13 @@ class _StackedCovers extends StatelessWidget {
                             height: coverSize,
                           ),
                         ),
+                      ),
+                    if (progress != null && progress! > 0)
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        child: LinearProgressIndicator(value: progress, minHeight: 6, backgroundColor: Colors.black45),
                       ),
                   ],
                 ),
