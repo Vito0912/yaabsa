@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/components/settings/settings_dropdown.dart';
 import 'package:yaabsa/components/settings/settings_slider.dart';
-import 'package:yaabsa/components/settings/settings_switch.dart';
+import 'package:yaabsa/components/settings/settings_switch_tile.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/screens/settings/player/player_settings.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
@@ -66,20 +66,20 @@ class PlayerSettingsSleepTimer extends ConsumerWidget {
           valueLabels: const ['Off', '5 min', '10 min', '15 min', '30 min'],
           settingKey: SettingKeys.sleepTimerAutoRewindMinutes,
         ),
-        SettingSwitch(
+        SettingSwitchTile(
           label: 'Fade audio',
-          description: 'Gradually lower playback volume before the sleep timer ends.',
+          subtitle: 'Gradually lower playback volume before the sleep timer ends.',
           settingKey: SettingKeys.sleepTimerFadeOutEnabled,
         ),
-        SettingSwitch(
+        SettingSwitchTile(
           label: 'Auto-restart timer on playback start',
-          description:
+          subtitle:
               'When playback starts and no timer is active, automatically start a new sleep timer using your last duration.',
           settingKey: SettingKeys.sleepTimerAutoRestartEnabled,
         ),
-        SettingSwitch(
+        SettingSwitchTile(
           label: 'Only auto-restart during a time range',
-          description: 'Limit automatic sleep timer restart to specific hours.',
+          subtitle: 'Limit automatic sleep timer restart to specific hours.',
           disabledReason: 'Enable auto-restart to configure this option.',
           settingKey: SettingKeys.sleepTimerAutoRestartUseTimeRange,
           enabled: autoRestartEnabled,

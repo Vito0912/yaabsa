@@ -16,11 +16,11 @@ class UserSwitcher extends ConsumerWidget {
   const UserSwitcher({super.key});
 
   void _onMenuItemSelected(String value, WidgetRef ref, User? currentUser, BuildContext context) async {
-    final bool showPlayer = await audioHandler.shouldShowPlayer.first;
+    final bool hasActiveSession = audioHandler.currentMediaItem != null || audioHandler.queueTransitionLoading;
     if (!context.mounted) {
       return;
     }
-    if (showPlayer) {
+    if (hasActiveSession) {
       final shouldSwitch = await showDialog<bool>(
         context: context,
         builder: (context) {

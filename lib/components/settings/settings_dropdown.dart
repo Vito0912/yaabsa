@@ -212,27 +212,27 @@ class SettingDropdown<T> extends ConsumerWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            label,
-                            style: textTheme.titleMedium?.copyWith(color: enabled ? null : theme.disabledColor),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
-                          ),
-                          if (description != null && description!.isNotEmpty)
-                            Text(
-                              description!,
-                              style: textTheme.bodySmall?.copyWith(
-                                color: enabled ? theme.colorScheme.onSurfaceVariant : theme.disabledColor,
-                              ),
-                            ),
-                        ],
+                    Flexible(
+                      child: Text(
+                        label,
+                        style: textTheme.titleMedium?.copyWith(color: enabled ? null : theme.disabledColor),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       ),
                     ),
+                    if (description != null && description!.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 6.0),
+                        child: Tooltip(
+                          message: description!,
+                          triggerMode: TooltipTriggerMode.tap,
+                          child: Icon(
+                            Icons.info_outline,
+                            size: 20,
+                            color: enabled ? theme.colorScheme.onSurfaceVariant : theme.disabledColor,
+                          ),
+                        ),
+                      ),
                     if (hasTooltipIcon)
                       Padding(
                         padding: const EdgeInsets.only(left: 6.0),

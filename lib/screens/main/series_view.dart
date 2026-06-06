@@ -11,6 +11,7 @@ import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/common/series_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
 
 const int _seriesPrefetchThreshold = 8;
@@ -24,6 +25,7 @@ class SeriesView extends HookConsumerWidget {
     final scrollController = useScrollController();
     final selectedLibrary = ref.watch(selectedLibraryProvider);
     final serverReachable = ref.watch(serverStatusProvider).value ?? false;
+    final progressMap = ref.watch(mediaProgressProvider).asData?.value ?? {};
 
     if (selectedLibrary == null) {
       return const Center(child: Text('No library selected. Please select a library via the switcher.'));
@@ -100,6 +102,21 @@ class SeriesView extends HookConsumerWidget {
                           totalBooks: baseEntry.totalBooks,
                         );
 
+                        double totalProgress = 0.0;
+                        int booksWithProgress = 0;
+                        for (final bookId in baseEntry.bookItemIds) {
+                          final p = progressMap[bookId];
+                          if (p != null) {
+                            totalProgress += p.isFinished ? 1.0 : p.progress;
+                            booksWithProgress++;
+                          }
+                        }
+
+                        double? seriesProgress;
+                        if (booksWithProgress > 0 && baseEntry.totalBookCount > 0) {
+                          seriesProgress = (totalProgress / baseEntry.totalBookCount).clamp(0.0, 1.0);
+                        }
+
                         return MultiBookEntryWidget(
                           api: api,
                           entry: seriesEntry,
@@ -107,6 +124,7 @@ class SeriesView extends HookConsumerWidget {
                           squareCover: true,
                           coverHeight: appGridTileWidth,
                           showSubtitle: true,
+                          progress: seriesProgress,
                           maxBooksToShow: defaultMultiBookPreviewLimit,
                           onTap: () {
                             context.push('/series/${series.id}', extra: seriesEntry);

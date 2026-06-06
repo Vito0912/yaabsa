@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:yaabsa/components/settings/settings_dropdown.dart';
 import 'package:yaabsa/components/settings/settings_slider.dart';
-import 'package:yaabsa/components/settings/settings_switch.dart';
+import 'package:yaabsa/components/settings/settings_switch_tile.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
@@ -26,36 +26,36 @@ class GlobalPlayerSettings extends StatelessWidget {
           valueLabels: const ['512 KB', '1 MB', '2 MB', '5 MB', '10 MB'],
           settingKey: SettingKeys.bufferSize,
         ),
-        SettingSwitch(label: 'Lock Media Notification', settingKey: SettingKeys.lockMediaNotification),
+        SettingSwitchTile(label: 'Lock Media Notification', settingKey: SettingKeys.lockMediaNotification),
         SettingDropdown<String>(
           label: 'Media notification type',
           values: MediaNotificationType.values.map((m) => m.name).toList(),
           valueLabels: MediaNotificationType.values.map((m) => m.label).toList(),
           settingKey: SettingKeys.mediaNotificationType,
         ),
-        SettingSwitch(
+        SettingSwitchTile(
           label: 'Show notification More button',
-          description: 'When enabled, a More button will be shown, giving more quick actions',
+          subtitle: 'When enabled, a More button will be shown, giving more quick actions',
           settingKey: SettingKeys.showNotificationMoreButton,
         ),
-        SettingSwitch(
+        SettingSwitchTile(
           label: 'Auto-play last played on app start',
-          description:
+          subtitle:
               'When enabled and nothing is currently playing, app launch will resume the last played item if it is not finished.',
           settingKey: SettingKeys.autoPlayLastPlayedOnLaunch,
         ),
-        SettingSwitch(
+        SettingSwitchTile(
           label: 'Always show mini player',
-          description: 'Keeps the mini player visible for your most recently played item',
+          subtitle: 'Keeps the mini player visible for your most recently played item',
           settingKey: SettingKeys.showLastPlayedMiniPlayerAlways,
         ),
-        SettingSwitch(
+        SettingSwitchTile(
           label: 'Keep websocket active in background',
-          description:
+          subtitle:
               'If enabled, the websocket stays connected while the app is in background so updates and tasks can sync when you return. This may increase battery usage. It does not affect playback progress updates when starting playback.',
           settingKey: SettingKeys.keepWebsocketConnectionInBackground,
         ),
-        SettingSwitch(label: 'Keep Screen On', settingKey: SettingKeys.keepScreenOn),
+        SettingSwitchTile(label: 'Keep Screen On', settingKey: SettingKeys.keepScreenOn),
       ],
     );
   }

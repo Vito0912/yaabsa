@@ -42,8 +42,8 @@ class AppearanceSettings extends StatelessWidget {
           settings: [
             SettingDropdown(
               label: 'Language',
-              values: ['en-US', 'de-DE'],
-              valueLabels: ['English', 'Deutsch'],
+              values: ['en-US'],
+              valueLabels: ['English'],
               settingKey: SettingKeys.language,
             ),
           ],

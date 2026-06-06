@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/components/settings/settings_dropdown.dart';
 import 'package:yaabsa/components/settings/settings_slider.dart';
-import 'package:yaabsa/components/settings/settings_switch.dart';
+import 'package:yaabsa/components/settings/settings_switch_tile.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/screens/settings/player/player_settings.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
@@ -53,22 +53,22 @@ class PlayerSettingsGeneral extends ConsumerWidget {
           valueLabels: const ['5 s', '10 s', '15 s', '20 s', '30 s', '45 s', '60 s'],
           settingKey: SettingKeys.rewindInterval,
         ),
-        SettingSwitch(
+        SettingSwitchTile(
           label: 'Remember playback speed per book',
-          description:
+          subtitle:
               'When enabled, each book remembers its own playback speed. First-time books start with your last used speed.',
           settingKey: SettingKeys.playbackSpeedPerBook,
         ),
-        SettingSwitch(
+        SettingSwitchTile(
           label: 'Auto queue',
-          description:
+          subtitle:
               'Automatically queue upcoming books when playback starts from library, series, playlist, or collection views.',
           settingKey: SettingKeys.autoQueue,
         ),
-        SettingSwitch(
-          label: 'Auto queue first series outside source views',
-          description:
-              'When Auto queue is enabled, also auto queue books from the first linked series even when playback starts outside a series view.',
+        SettingSwitchTile(
+          label: 'Auto queue everywhere',
+          subtitle:
+              'When this is enabled, also auto queue books from the first linked series even when playback starts outside a series view. This also expands to starting playback via Android Auto, Bluetooth, or voice commands.',
           disabledReason: 'Enable Auto queue to use this option.',
           settingKey: SettingKeys.autoQueueIncludeSeriesOutsideContext,
           enabled: autoQueueEnabled,

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';
-import 'package:yaabsa/components/settings/settings_switch.dart';
+import 'package:yaabsa/components/settings/settings_switch_tile.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/settings/path_tag_genre_update_settings.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
@@ -53,33 +53,31 @@ class ToolsSettings extends ConsumerWidget {
                   ],
                 ),
                 const Divider(height: 26),
-                SettingSwitch(
+                SettingSwitchTile(
                   label: 'Remove authors without books',
-                  description:
-                      'This will add a button in the author section to allow deletion of authors without books.',
+                  subtitle: 'This will add a button in the author section to allow deletion of authors without books.',
                   settingKey: SettingKeys.toolsRemoveAuthorsWithoutBooks,
                   userId: currentUser.id,
                   defaultValue: false,
                 ),
-                SettingSwitch(
+                SettingSwitchTile(
                   label: 'Force metadata refresh',
-                  description:
+                  subtitle:
                       'This will add a button to force recreation of metadata files in Admin Server Settings under metadata utils.',
                   settingKey: SettingKeys.toolsForceMetadataRefresh,
                   userId: currentUser.id,
                   defaultValue: false,
                 ),
-                SettingSwitch(
+                SettingSwitchTile(
                   label: 'Match audiobook chapters',
-                  description:
-                      'This will add a quick match option to allow quick chapter matching, including bulk mode.',
+                  subtitle: 'This will add a quick match option to allow quick chapter matching, including bulk mode.',
                   settingKey: SettingKeys.toolsMatchAudiobookChapters,
                   userId: currentUser.id,
                   defaultValue: false,
                 ),
-                SettingSwitch(
+                SettingSwitchTile(
                   label: 'Split genres/tags',
-                  description:
+                  subtitle:
                       'This will add a button to split genres/tags in Admin Server Settings under metadata utils.',
                   settingKey: SettingKeys.toolsSplitGenresTags,
                   userId: currentUser.id,

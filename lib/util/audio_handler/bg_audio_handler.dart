@@ -193,8 +193,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     return _playLastPlayedIfEnabledOnStartupInternal();
   }
 
-  Future<void> restoreLastPlayedMiniPlayerIfEnabled() {
-    return _restoreLastPlayedMiniPlayerIfEnabledInternal();
+  Future<void> restoreLastPlayedMiniPlayerIfEnabled({String? explicitUserId}) {
+    return _restoreLastPlayedMiniPlayerIfEnabledInternal(explicitUserId: explicitUserId);
   }
 
   Future<void> clearAndroidAutoAuthenticationError() {
@@ -524,15 +524,28 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     _setQueueTransitionLoading(true);
     _clearSmartRewindPauseMarker();
     _lastQueueItem = nextItem;
-    _currentMediaItem = await _ref
-        .read(sessionRepositoryProvider)
-        .openSession(nextItem.itemId, episodeId: nextItem.episodeId);
+
+    try {
+      _currentMediaItem = await _ref
+          .read(sessionRepositoryProvider)
+          .openSession(nextItem.itemId, episodeId: nextItem.episodeId);
+    } catch (e, s) {
+      logger(
+        'Exception opening session for ID: ${nextItem.itemId} (${nextItem.episodeId ?? 'item'}): $e\n$s',
+        tag: 'AudioHandler',
+        level: InfoLevel.error,
+      );
+      _currentMediaItem = null;
+    }
+
     if (_currentMediaItem == null) {
       logger(
         'No media item found for ID: ${nextItem.itemId} (${nextItem.episodeId ?? 'item'})',
         tag: 'AudioHandler',
         level: InfoLevel.error,
       );
+      _lastQueueItem = null;
+      _setLastPlayedMiniPlayerSnapshot(null);
       PlayerUtils.disableWakelock(_ref);
       TrayManager.update();
       _setQueueTransitionLoading(false, emitMediaWhenEmpty: true);
@@ -877,9 +890,16 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
             return;
           }
 
+          if (_currentMediaItem != null || queueList.isNotEmpty || _queueTransitionLoading) {
+            unawaited(stop(clearQueue: true));
+          }
+
+          _lastQueueItem = null;
+          _setLastPlayedMiniPlayerSnapshot(null);
+
           // Clear Android Auto auth error as soon as login becomes active.
           unawaited(_androidAutoClearAuthenticationRequiredState(this, refreshBrowseRoots: true));
-          unawaited(_restoreLastPlayedMiniPlayerIfEnabledInternal());
+          unawaited(_restoreLastPlayedMiniPlayerIfEnabledInternal(explicitUserId: activeUserId));
         });
 
     _showLastPlayedMiniPlayerSettingSubscription = _ref

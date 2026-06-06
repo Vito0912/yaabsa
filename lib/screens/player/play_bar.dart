@@ -10,6 +10,7 @@ import 'package:yaabsa/components/player/common/seek_bar.dart';
 import 'package:yaabsa/components/player/common/stop_button.dart';
 import 'package:yaabsa/screens/player/play_bar_idle_content.dart';
 import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
+import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/util/globals.dart';
 
 class PlayBar extends StatefulWidget {
@@ -206,59 +207,65 @@ class _PlayBarState extends State<PlayBar> {
               stream: audioHandler.lastPlayedMiniPlayerSnapshotStream,
               initialData: audioHandler.lastPlayedMiniPlayerSnapshot,
               builder: (context, lastPlayedSnapshot) {
-                final currentMedia = audioHandler.currentMediaItem;
-                final snapshot = lastPlayedSnapshot.data;
-                final isIdleMiniPlayer = !isTransitionLoading && currentMedia == null && snapshot != null;
-                final content = isTransitionLoading
-                    ? _buildTransitionLoadingContent(context)
-                    : currentMedia != null
-                    ? _buildReadyContent(context)
-                    : snapshot != null
-                    ? _buildIdleContent(context, snapshot)
-                    : const SizedBox.shrink();
+                return StreamBuilder<InternalMedia?>(
+                  stream: audioHandler.mediaItemStream,
+                  initialData: audioHandler.currentMediaItem,
+                  builder: (context, mediaSnapshot) {
+                    final currentMedia = mediaSnapshot.data;
+                    final snapshot = lastPlayedSnapshot.data;
+                    final isIdleMiniPlayer = !isTransitionLoading && currentMedia == null && snapshot != null;
+                    final content = isTransitionLoading
+                        ? _buildTransitionLoadingContent(context)
+                        : currentMedia != null
+                        ? _buildReadyContent(context)
+                        : snapshot != null
+                        ? _buildIdleContent(context, snapshot)
+                        : const SizedBox.shrink();
 
-                return SafeArea(
-                  top: false,
-                  left: !widget.attachedToBottom,
-                  right: !widget.attachedToBottom,
-                  bottom: widget.includeBottomSafeArea,
-                  child: Padding(
-                    padding: outerPadding,
-                    child: Material(
-                      color: Colors.transparent,
-                      borderRadius: borderRadius,
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onVerticalDragStart: _handleVerticalDragStart,
-                        onVerticalDragUpdate: _handleVerticalDragUpdate,
-                        onVerticalDragEnd: _handleVerticalDragEnd,
-                        child: InkWell(
-                          onTap: isIdleMiniPlayer
-                              ? () {
-                                  audioHandler.play();
-                                }
-                              : _openFullPlayer,
+                    return SafeArea(
+                      top: false,
+                      left: !widget.attachedToBottom,
+                      right: !widget.attachedToBottom,
+                      bottom: widget.includeBottomSafeArea,
+                      child: Padding(
+                        padding: outerPadding,
+                        child: Material(
+                          color: Colors.transparent,
                           borderRadius: borderRadius,
-                          mouseCursor: SystemMouseCursors.click,
-                          onHover: (hovering) {
-                            if (_isHovered == hovering) return;
-                            setState(() => _isHovered = hovering);
-                          },
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 160),
-                            curve: Curves.easeOut,
-                            padding: innerPadding,
-                            decoration: BoxDecoration(
-                              color: (_isHovered && !_isSeekBarHovered) ? hoveredColor : baseColor,
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onVerticalDragStart: _handleVerticalDragStart,
+                            onVerticalDragUpdate: _handleVerticalDragUpdate,
+                            onVerticalDragEnd: _handleVerticalDragEnd,
+                            child: InkWell(
+                              onTap: isIdleMiniPlayer
+                                  ? () {
+                                      audioHandler.play();
+                                    }
+                                  : _openFullPlayer,
                               borderRadius: borderRadius,
-                              border: border,
+                              mouseCursor: SystemMouseCursors.click,
+                              onHover: (hovering) {
+                                if (_isHovered == hovering) return;
+                                setState(() => _isHovered = hovering);
+                              },
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 160),
+                                curve: Curves.easeOut,
+                                padding: innerPadding,
+                                decoration: BoxDecoration(
+                                  color: (_isHovered && !_isSeekBarHovered) ? hoveredColor : baseColor,
+                                  borderRadius: borderRadius,
+                                  border: border,
+                                ),
+                                child: content,
+                              ),
                             ),
-                            child: content,
                           ),
                         ),
                       ),
-                    ),
-                  ),
+                    );
+                  },
                 );
               },
             );

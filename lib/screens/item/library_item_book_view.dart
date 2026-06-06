@@ -41,7 +41,26 @@ class LibraryItemBookView extends ConsumerWidget {
 
     final libraryItemApi = api.getLibraryItemApi();
     final coverHeaders = normalizeImageRequestHeaders(api.dio.options.headers);
-    final coverWidget = libraryItemApi.getLibraryItemCover(item.id, item: item);
+    Widget coverWidget = libraryItemApi.getLibraryItemCover(item.id, item: item);
+
+    final progressByKey = ref.watch(mediaProgressProvider).asData?.value;
+    final itemProgress = progressByKey?[item.id];
+    final progressValue = (itemProgress?.progress ?? 0).clamp(0.0, 1.0).toDouble();
+    if (progressValue > 0) {
+      coverWidget = Stack(
+        fit: StackFit.expand,
+        children: [
+          coverWidget,
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: LinearProgressIndicator(value: progressValue, minHeight: 6, backgroundColor: Colors.black45),
+          ),
+        ],
+      );
+    }
+
     final topCover = item.hasCover
         ? MouseRegion(
             cursor: SystemMouseCursors.click,
@@ -91,7 +110,6 @@ class LibraryItemBookView extends ConsumerWidget {
       sizeBytes: sizeBytes,
       onFilterTap: (filter) => openLibraryWithFilter(context, ref, filter: filter),
     );
-    final progressByKey = ref.watch(mediaProgressProvider).asData?.value;
     final isItemFinished = progressByKey != null && isLibraryItemFinished(item, progressByKey);
 
     final currentUser = ref.watch(currentUserProvider).value;

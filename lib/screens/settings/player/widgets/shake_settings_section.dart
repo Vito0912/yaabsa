@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:yaabsa/components/settings/settings_slider.dart';
-import 'package:yaabsa/components/settings/settings_switch.dart';
+import 'package:yaabsa/components/settings/settings_switch_tile.dart';
 import 'package:yaabsa/util/device_capabilities.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
@@ -49,16 +49,16 @@ class _ShakeSettingsSectionState extends State<ShakeSettingsSection> {
               child: Text('Shake Controls', style: Theme.of(context).textTheme.titleLarge),
             ),
             const Padding(padding: EdgeInsets.symmetric(horizontal: 16.0), child: Divider(height: 16)),
-            SettingSwitch(
+            SettingSwitchTile(
               label: 'Shake to reset sleep timer',
-              description: 'Shake to reset an active sleep timer back to its full duration.',
+              subtitle: 'Shake to reset an active sleep timer back to its full duration.',
               settingKey: SettingKeys.shakeToResetSleepTimer,
               enabled: supportsShakeActions,
               disabledReason: shakeUnsupportedReason,
             ),
-            SettingSwitch(
+            SettingSwitchTile(
               label: 'Shake to rewind',
-              description: 'Shake while playing to rewind by the configured rewind interval.',
+              subtitle: 'Shake while playing to rewind by the configured rewind interval.',
               settingKey: SettingKeys.shakeToRewind,
               enabled: supportsShakeActions,
               disabledReason: shakeUnsupportedReason,
@@ -72,9 +72,9 @@ class _ShakeSettingsSectionState extends State<ShakeSettingsSection> {
               enabled: supportsShakeActions,
               disabledReason: shakeUnsupportedReason,
             ),
-            SettingSwitch(
+            SettingSwitchTile(
               label: 'Shake vibration feedback',
-              description: 'Vibrate when a shake action is triggered.',
+              subtitle: 'Vibrate when a shake action is triggered.',
               settingKey: SettingKeys.shakeVibrate,
               enabled: vibrationEnabled,
               disabledReason: vibrationDisabledReason,

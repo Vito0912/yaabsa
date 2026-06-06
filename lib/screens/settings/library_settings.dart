@@ -29,7 +29,6 @@ class LibrarySettings extends ConsumerStatefulWidget {
 
 class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
   bool _isPicking = false;
-  bool _isUpdatingCollapseSeries = false;
   late final Future<String> _defaultLocationFuture;
 
   @override
@@ -160,32 +159,6 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
     }
   }
 
-  Future<void> _setCollapseSeriesEnabled(String userId, bool enabled) async {
-    if (_isUpdatingCollapseSeries) {
-      return;
-    }
-
-    setState(() => _isUpdatingCollapseSeries = true);
-
-    try {
-      await ref
-          .read(settingsManagerProvider.notifier)
-          .setUserSetting<bool>(userId, SettingKeys.collapseSeries, enabled);
-    } catch (e) {
-      if (!mounted) {
-        return;
-      }
-
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to update collapse series setting: $e')));
-    } finally {
-      if (mounted) {
-        setState(() => _isUpdatingCollapseSeries = false);
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final appDatabase = ref.watch(appDatabaseProvider);
@@ -227,48 +200,10 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
                       valueLabels: appLibraryGridScaleLabels,
                       settingKey: SettingKeys.libraryGridScale,
                     ),
-                    StreamBuilder<UserSettingEntry?>(
-                      stream: appDatabase.watchUserSetting(user.id, SettingKeys.collapseSeries),
-                      builder: (context, snapshot) {
-                        final fallbackValue = ref
-                            .read(settingsManagerProvider.notifier)
-                            .getUserSetting<bool>(user.id, SettingKeys.collapseSeries, defaultValue: false);
-
-                        final isEnabled = SettingsParser.decodeValue<bool>(snapshot.data?.value, fallbackValue);
-                        final theme = Theme.of(context);
-
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Flexible(
-                                    child: Text(
-                                      'Collapse Series',
-                                      style: theme.textTheme.titleMedium?.copyWith(
-                                        color: _isUpdatingCollapseSeries ? theme.disabledColor : null,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 1,
-                                    ),
-                                  ),
-                                  Switch(
-                                    value: isEnabled,
-                                    onChanged: _isUpdatingCollapseSeries
-                                        ? null
-                                        : (value) => _setCollapseSeriesEnabled(user.id, value),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        );
-                      },
+                    SettingSwitchTile(
+                      label: 'Collapse Series',
+                      settingKey: SettingKeys.collapseSeries,
+                      userId: user.id,
                     ),
 
                     const SettingSwitchTile(
