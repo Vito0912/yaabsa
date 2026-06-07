@@ -119,6 +119,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   bool _historyWasPlayingReady = false;
   bool _historyWasBufferingOrLoading = false;
   bool _historyWasCompleted = false;
+  bool _hasFiredCompleted = false;
   final BehaviorSubject<int> _queueLengthSubject = BehaviorSubject<int>.seeded(0);
   final BehaviorSubject<PlayerQueueSnapshot> _queueSnapshotSubject = BehaviorSubject<PlayerQueueSnapshot>.seeded(
     const PlayerQueueSnapshot(),
@@ -758,7 +759,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     final shouldRecordPausedManualSeek =
         _internalSeekGuardDepth == 0 &&
         !playerControlState.playing &&
-        playerControlState.processingState == ProcessingState.ready;
+        (playerControlState.processingState == ProcessingState.ready ||
+            playerControlState.processingState == ProcessingState.completed);
     if (shouldRecordPausedManualSeek) {
       _markPausedManualSeek(boundedPosition);
     }
@@ -975,11 +977,17 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         _resetStreamRecoveryState(clearWindow: true);
       }
 
+      if (state.processingState != ProcessingState.completed) {
+        _hasFiredCompleted = false;
+      }
+
       if (state.processingState == ProcessingState.completed || state.processingState == ProcessingState.idle) {
         _resetStreamRecoveryState(clearWindow: true);
       }
 
       if (state.processingState == ProcessingState.completed) {
+        if (_hasFiredCompleted) return;
+        _hasFiredCompleted = true;
         final finishedMedia = _currentMediaItem;
         if (finishedMedia == null) return;
         logger(
@@ -988,7 +996,6 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           level: InfoLevel.debug,
         );
         await _syncService.flush();
-        await _ref.read(sessionRepositoryProvider).closeSession();
         unawaited(
           refreshPersonalizedShelfForCompletedItem(
             container: _ref,
@@ -1002,7 +1009,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         if (queueList.isNotEmpty) {
           await play();
         } else {
-          await _safePlayerStop();
+          await pause();
         }
       }
       _refreshPlayerControlState();

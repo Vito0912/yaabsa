@@ -15,6 +15,8 @@ class SeekBarRow extends StatelessWidget {
     required this.currentPosition,
     required this.leftTime,
     required this.rightTime,
+    required this.showRemaining,
+    required this.onToggleRemaining,
     required this.onSeek,
     required this.markers,
     required this.markerMode,
@@ -32,6 +34,8 @@ class SeekBarRow extends StatelessWidget {
   final Duration currentPosition;
   final Duration leftTime;
   final Duration rightTime;
+  final bool showRemaining;
+  final VoidCallback onToggleRemaining;
   final void Function(Duration) onSeek;
   final List<SeekTimelineMarker> markers;
   final SeekBarMarkerMode markerMode;
@@ -48,15 +52,28 @@ class SeekBarRow extends StatelessWidget {
     return value;
   }
 
-  Widget _buildTimeLabel(BuildContext context, Duration time) {
+  Widget _buildTimeLabel(BuildContext context, Duration time, {bool isRightLabel = false}) {
     final colorScheme = Theme.of(context).colorScheme;
+    final formatted = formatDuration(time);
+    final timeText = (isRightLabel && showRemaining) ? '-$formatted' : formatted;
     return Text(
-      formatDuration(time),
+      timeText,
       style: TextStyle(
         fontSize: timeLabelFontSize,
         fontFamily: !timeLabelsBelow ? 'monospace' : null,
         fontFeatures: const [FontFeature.tabularFigures()],
         color: colorScheme.onSurface.withValues(alpha: 0.9),
+      ),
+    );
+  }
+
+  Widget _buildRightTimeLabel(BuildContext context, Duration time) {
+    return GestureDetector(
+      onTap: onToggleRemaining,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+        child: _buildTimeLabel(context, time, isRightLabel: true),
       ),
     );
   }
@@ -68,6 +85,8 @@ class SeekBarRow extends StatelessWidget {
     final maxSliderValue = rangeDuration.inMilliseconds / 1000.0;
     final sliderValue = (clampedCurrent - rangeStart).inMilliseconds / 1000.0;
     final hasSeekRange = maxSliderValue > 0;
+
+    final displayRightTime = showRemaining ? rangeEnd - clampedCurrent : rightTime;
 
     void executeSeek(double seconds) {
       final seekPosition = rangeStart + Duration(milliseconds: (seconds * 1000).round());
@@ -103,7 +122,7 @@ class SeekBarRow extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(2, 2, 2, 0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [_buildTimeLabel(context, leftTime), _buildTimeLabel(context, rightTime)],
+              children: [_buildTimeLabel(context, leftTime), _buildRightTimeLabel(context, displayRightTime)],
             ),
           ),
         ],
@@ -114,7 +133,7 @@ class SeekBarRow extends StatelessWidget {
       children: [
         _buildTimeLabel(context, leftTime),
         Expanded(child: slider),
-        _buildTimeLabel(context, rightTime),
+        _buildRightTimeLabel(context, displayRightTime),
       ],
     );
   }

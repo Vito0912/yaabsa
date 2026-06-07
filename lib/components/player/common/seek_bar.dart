@@ -132,9 +132,17 @@ class SeekBar extends ConsumerWidget {
     final seekBarModeSetting = ref.watch(globalSettingByKeyProvider(SettingKeys.playerSeekBarMode));
     final markerModeSetting = ref.watch(globalSettingByKeyProvider(SettingKeys.playerSeekBarMarkerMode));
     final bookmarks = ref.watch(userBookmarksProvider).value ?? const <Bookmark>[];
+    final showRemainingSetting = ref.watch(globalSettingByKeyProvider(SettingKeys.playerShowRemainingTime));
 
     final configuredMode = PlayerSeekBarMode.fromSettingValue(seekBarModeSetting.asData?.value);
     final markerMode = SeekBarMarkerMode.fromSettingValue(markerModeSetting.asData?.value);
+    final showRemaining = showRemainingSetting.asData?.value == 'true';
+
+    void toggleRemaining() {
+      ref
+          .read(settingsManagerProvider.notifier)
+          .setGlobalSetting<bool>(SettingKeys.playerShowRemainingTime, !showRemaining);
+    }
 
     final positionStream = audioHandler.positionStream.sampleTime(_seekBarUiUpdateInterval);
     final totalDurationStream = audioHandler.durationStream;
@@ -202,6 +210,8 @@ class SeekBar extends ConsumerWidget {
                       currentPosition: currentPosition,
                       leftTime: chapterElapsed,
                       rightTime: chapterDuration,
+                      showRemaining: showRemaining,
+                      onToggleRemaining: toggleRemaining,
                       onSeek: (seekPosition) => audioHandler.seekAbsolute(seekPosition),
                       markers: const <SeekTimelineMarker>[],
                       markerMode: SeekBarMarkerMode.none,
@@ -228,6 +238,8 @@ class SeekBar extends ConsumerWidget {
                       currentPosition: currentPosition,
                       leftTime: currentPosition,
                       rightTime: totalDuration,
+                      showRemaining: showRemaining,
+                      onToggleRemaining: toggleRemaining,
                       onSeek: (seekPosition) => audioHandler.seekAbsolute(seekPosition),
                       markers: fullTimelineMarkers,
                       markerMode: markerMode,
