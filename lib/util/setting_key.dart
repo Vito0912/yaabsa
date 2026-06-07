@@ -105,6 +105,7 @@ class SettingKeys {
   static const String subtitleReadAlong = 'subtitle_read_along';
   static const String checkForServerUpdates = 'check_for_server_updates';
   static const String dismissedUpdateServerVersion = 'dismissed_update_server_version';
+  static const String playerShowRemainingTime = 'player_show_remaining_time';
 }
 
 bool get _defaultEnableOnDesktop {
@@ -224,6 +225,7 @@ final defaultSettings = {
   SettingKeys.subtitleReadAlong: true,
   SettingKeys.checkForServerUpdates: false,
   SettingKeys.dismissedUpdateServerVersion: '',
+  SettingKeys.playerShowRemainingTime: false,
 };
 
 enum AppThemeMode {

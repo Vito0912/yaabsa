@@ -4,11 +4,13 @@ import 'package:yaabsa/api/library/request/library_filter.dart';
 import 'package:yaabsa/api/library_items/audio_file.dart';
 import 'package:yaabsa/api/library_items/chapter.dart';
 import 'package:yaabsa/api/library_items/ebook_file.dart';
+import 'package:yaabsa/api/library_items/library_file_metadata.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/library_items/media_metadata.dart';
 import 'package:yaabsa/components/app/item/item_description.dart';
 import 'package:yaabsa/components/app/item/item_detail_components.dart';
 import 'package:yaabsa/components/app/item/item_more_actions_button.dart';
+import 'package:yaabsa/components/common/expressive_expandable_card.dart';
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
 import 'package:yaabsa/util/item_formatters.dart';
 
@@ -410,7 +412,7 @@ class LibraryItemTopContent extends StatelessWidget {
   }
 }
 
-class LibraryItemMediaSections extends StatelessWidget {
+class LibraryItemMediaSections extends StatefulWidget {
   const LibraryItemMediaSections({
     super.key,
     required this.itemId,
@@ -427,37 +429,78 @@ class LibraryItemMediaSections extends StatelessWidget {
   final void Function(Chapter chapter) onChapterTap;
 
   @override
+  State<LibraryItemMediaSections> createState() => _LibraryItemMediaSectionsState();
+}
+
+class _LibraryItemMediaSectionsState extends State<LibraryItemMediaSections> {
+  bool _showAbsolutePaths = false;
+
+  Widget _buildPathTitle(BuildContext context, LibraryFileMetadata metadata) {
+    if (!_showAbsolutePaths) {
+      return Text(metadata.filename);
+    }
+
+    final absPath = metadata.path;
+    final relPath = metadata.relPath;
+
+    if (absPath.endsWith(relPath) && relPath.isNotEmpty) {
+      final rootPath = absPath.substring(0, absPath.length - relPath.length);
+      return Text.rich(
+        TextSpan(
+          children: [
+            TextSpan(
+              text: rootPath,
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
+            ),
+            TextSpan(text: relPath),
+          ],
+        ),
+      );
+    }
+
+    return Text(absPath);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (chapters.isNotEmpty) ...[
+        if (widget.chapters.isNotEmpty) ...[
           const SizedBox(height: 8),
           ItemExpandableSection(
-            title: 'Chapters (${chapters.length})',
+            title: 'Chapters (${widget.chapters.length})',
             children: [
               const _ChapterTableHeader(),
-              ...chapters.map(
+              ...widget.chapters.map(
                 (chapter) => ItemChapterRow(
                   title: chapter.title,
                   start: Duration(seconds: chapter.start.round()),
                   duration: chapterDuration(chapter.start, chapter.end),
-                  onTap: () => onChapterTap(chapter),
+                  onTap: () => widget.onChapterTap(chapter),
                 ),
               ),
             ],
           ),
         ],
-        if (audioFiles.isNotEmpty) ...[
+        if (widget.audioFiles.isNotEmpty) ...[
           const SizedBox(height: 8),
-          ItemExpandableSection(
-            title: 'Audio files (${audioFiles.length})',
-            children: audioFiles
+          ExpressiveExpandableCard(
+            title: 'Audio files (${widget.audioFiles.length})',
+            initiallyExpanded: false,
+            actions: [
+              TextButton.icon(
+                onPressed: () => setState(() => _showAbsolutePaths = !_showAbsolutePaths),
+                icon: Icon(_showAbsolutePaths ? Icons.folder_open_rounded : Icons.insert_drive_file_rounded, size: 16),
+                label: Text(_showAbsolutePaths ? 'Absolute' : 'Filenames'),
+              ),
+            ],
+            children: widget.audioFiles
                 .map(
                   (audioFile) => ListTile(
                     dense: true,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                    title: Text(audioFile.metadata.filename),
+                    title: _buildPathTitle(context, audioFile.metadata),
                     subtitle: audioFile.duration == null
                         ? null
                         : Text(formatDurationShort(Duration(seconds: audioFile.duration!.round()))),
@@ -466,16 +509,24 @@ class LibraryItemMediaSections extends StatelessWidget {
                 .toList(),
           ),
         ],
-        if (ebookFile != null) ...[
+        if (widget.ebookFile != null) ...[
           const SizedBox(height: 8),
-          ItemExpandableSection(
+          ExpressiveExpandableCard(
             title: 'Ebook files',
+            initiallyExpanded: false,
+            actions: [
+              TextButton.icon(
+                onPressed: () => setState(() => _showAbsolutePaths = !_showAbsolutePaths),
+                icon: Icon(_showAbsolutePaths ? Icons.folder_open_rounded : Icons.insert_drive_file_rounded, size: 16),
+                label: Text(_showAbsolutePaths ? 'Absolute paths' : 'Filenames'),
+              ),
+            ],
             children: [
               ListTile(
                 dense: true,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                title: Text(ebookFile!.metadata.filename),
-                subtitle: Text(ebookFile!.ebookFormat.toUpperCase()),
+                title: _buildPathTitle(context, widget.ebookFile!.metadata),
+                subtitle: Text(widget.ebookFile!.ebookFormat.toUpperCase()),
               ),
             ],
           ),

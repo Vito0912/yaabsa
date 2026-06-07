@@ -14,6 +14,7 @@ class ExpressiveExpandableCard extends StatelessWidget {
     this.cardColor,
     this.shape,
     this.elevation,
+    this.actions,
   });
 
   final String title;
@@ -27,6 +28,7 @@ class ExpressiveExpandableCard extends StatelessWidget {
   final Color? cardColor;
   final ShapeBorder? shape;
   final double? elevation;
+  final List<Widget>? actions;
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +50,14 @@ class ExpressiveExpandableCard extends StatelessWidget {
           leading: icon == null ? null : Icon(icon, color: colorScheme.primary),
           iconColor: colorScheme.primary,
           collapsedIconColor: colorScheme.onSurfaceVariant,
-          title: Text(title),
+          title: actions == null || actions!.isEmpty
+              ? Text(title)
+              : Row(
+                  children: [
+                    Expanded(child: Text(title)),
+                    ...actions!,
+                  ],
+                ),
           subtitle: subtitle == null
               ? null
               : Text(subtitle!, style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant)),

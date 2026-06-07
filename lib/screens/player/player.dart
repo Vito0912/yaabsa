@@ -808,7 +808,7 @@ class _PlayerTransitionLoadingView extends StatelessWidget {
   }
 }
 
-class _AppBarSeekTimesStrip extends StatelessWidget {
+class _AppBarSeekTimesStrip extends ConsumerWidget {
   const _AppBarSeekTimesStrip();
 
   String _formatDuration(Duration? duration) {
@@ -829,8 +829,10 @@ class _AppBarSeekTimesStrip extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final showRemainingSetting = ref.watch(globalSettingByKeyProvider(SettingKeys.playerShowRemainingTime));
+    final showRemaining = showRemainingSetting.asData?.value == 'true';
 
     return SizedBox(
       height: 26,
@@ -853,7 +855,21 @@ class _AppBarSeekTimesStrip extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
                     Text(_formatDuration(clampedPosition), style: theme.textTheme.labelSmall),
-                    Text(_formatDuration(total), style: theme.textTheme.labelSmall),
+                    GestureDetector(
+                      onTap: () {
+                        ref
+                            .read(settingsManagerProvider.notifier)
+                            .setGlobalSetting<bool>(SettingKeys.playerShowRemainingTime, !showRemaining);
+                      },
+                      behavior: HitTestBehavior.opaque,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(8, 4, 4, 4),
+                        child: Text(
+                          showRemaining ? '-${_formatDuration(total - clampedPosition)}' : _formatDuration(total),
+                          style: theme.textTheme.labelSmall,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               );
