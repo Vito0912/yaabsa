@@ -321,11 +321,11 @@ class LibraryItemApi {
     );
   }
 
-  Uri getCoverUri(String id, {LibraryItem? item, double? width, double? height}) {
-    return _buildCoverUri(id, item: item, width: width, height: height);
+  Uri getCoverUri(String id, {LibraryItem? item, double? width, double? height, bool raw = false}) {
+    return _buildCoverUri(id, item: item, width: width, height: height, raw: raw);
   }
 
-  Uri _buildCoverUri(String id, {LibraryItem? item, double? width, double? height}) {
+  Uri _buildCoverUri(String id, {LibraryItem? item, double? width, double? height, bool raw = false}) {
     final localCoverUri = _resolveLocalCoverUri(item);
     if (localCoverUri != null) {
       return localCoverUri;
@@ -341,6 +341,11 @@ class LibraryItemApi {
     final heightPx = height?.round();
     if (heightPx != null && heightPx > 0) {
       queryParams['height'] = heightPx.toString();
+    }
+
+    if (raw == true) {
+      assert(width == null && height == null, 'Raw cover request should not include width or height');
+      queryParams['raw'] = '1';
     }
 
     final updatedAt = item?.updatedAt;

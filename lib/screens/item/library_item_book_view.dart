@@ -68,7 +68,7 @@ class LibraryItemBookView extends ConsumerWidget {
               onTap: () {
                 openCoverZoomView(
                   context,
-                  coverUri: libraryItemApi.getCoverUri(item.id, item: item),
+                  coverUri: libraryItemApi.getCoverUri(item.id, item: item, raw: true),
                   requestHeaders: coverHeaders,
                   semanticsLabel: item.title,
                 );
