@@ -1512,10 +1512,10 @@ packages:
     dependency: "direct main"
     description:
       name: sembast
-      sha256: "03cafeaf71ed2d0e297272af969c2d7c0c618dcd00e809d4b3217850162fd2d5"
+      sha256: "9189258e31373c3e86e3f99889439e577c704f1acb9cedac4abf6f7a522040ba"
       url: "https://pub.dev"
     source: hosted
-    version: "3.8.8"
+    version: "3.8.8+1"
   sensors_plus:
     dependency: "direct main"
     description:
@@ -1581,10 +1581,10 @@ packages:
     dependency: "direct main"
     description:
       name: socket_io_client
-      sha256: ef6c989e5eee8d04baf18482ec3d7699b91bc41e279794a99d8e3bef897b074a
+      sha256: "740d3895e220e976570da7dbb2f084cd60dd0c46d174c4a830f9849faec23ef9"
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.4"
+    version: "3.1.5"
   socket_io_common:
     dependency: transitive
     description:

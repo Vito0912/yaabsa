@@ -142,7 +142,7 @@ class ABSSocketClient {
 
       final options = io.OptionBuilder().setTransports(["websocket"]).disableAutoConnect().disableReconnection();
       if (normalizedHeaders.isNotEmpty) {
-        options.setExtraHeaders(Map<String, dynamic>.from(normalizedHeaders));
+        options.setExtraHeaders(normalizedHeaders);
       }
 
       _socket = io.io(normalizedServerUrl, options.build());

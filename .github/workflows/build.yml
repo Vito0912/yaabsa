@@ -908,7 +908,7 @@ jobs:
       - changes
       - check-requirements
     if: ${{ (github.event_name == 'workflow_dispatch' || needs.changes.outputs.version_bumped == 'true' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.ios == 'true') && needs.changes.outputs.build_skip != 'true' }}
-    timeout-minutes: 15
+    timeout-minutes: 25
     environment: prod
     steps:
       - name: Checkout
@@ -990,7 +990,7 @@ jobs:
       - changes
       - check-requirements
     if: ${{ (github.event_name == 'workflow_dispatch' || needs.changes.outputs.version_bumped == 'true' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.macos == 'true') && needs.changes.outputs.build_skip != 'true' }}
-    timeout-minutes: 20
+    timeout-minutes: 25
     environment: prod
     steps:
       - name: Checkout
