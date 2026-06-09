@@ -2,7 +2,7 @@
 
 [![Build test for all platforms](https://github.com/Vito0912/yaabsa/actions/workflows/build.yml/badge.svg)](https://github.com/Vito0912/yaabsa/actions/workflows/build.yml)
 
-An improved unofficial cross-platform app for Audiobookshelf
+An unofficial cross-platform app for Audiobookshelf
 
 ## Installation
 
