@@ -32,4 +32,3 @@ class WearHomeScreen extends ConsumerWidget {
     );
   }
 }
-

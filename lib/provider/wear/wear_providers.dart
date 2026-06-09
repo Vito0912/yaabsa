@@ -41,7 +41,6 @@ final wearHasCredentialsProvider = FutureProvider<bool>((ref) async {
   return ref.watch(wearCredentialsStoreProvider).hasCredentials;
 });
 
-
 class WearDataLayer {
   WearDataLayer() : _channel = const MethodChannel('de.vito0912.yaabsa/wear_data');
   final MethodChannel _channel;
@@ -58,7 +57,6 @@ class WearDataLayer {
 }
 
 final wearDataLayerProvider = Provider<WearDataLayer>((ref) => WearDataLayer());
-
 
 final wearApiProvider = FutureProvider<ABSApi?>((ref) async {
   final creds = await ref.read(wearCredentialsStoreProvider).getCredentials();

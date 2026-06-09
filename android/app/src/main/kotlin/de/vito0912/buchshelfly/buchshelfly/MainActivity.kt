@@ -1,6 +1,6 @@
 package de.vito0912.yaabsa
 
-import android.app.AlertDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -480,7 +480,7 @@ class MainActivity : AudioServiceActivity() {
 	}
 
 	private fun showCredentialRequestDialog() {
-		val builder = AlertDialog.Builder(this)
+		val builder = MaterialAlertDialogBuilder(this)
 		builder.setTitle("Wear OS Pairing Request")
 		builder.setMessage("A Wear OS device is requesting your server credentials. Allow?")
 		builder.setPositiveButton("Allow") { _, _ -> approveCredentialRequest() }
