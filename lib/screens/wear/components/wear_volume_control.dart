@@ -2,7 +2,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-/// Circular volume control for WearOS — uses rotary scroll and +/- buttons.
 class WearVolumeControl extends StatefulWidget {
   const WearVolumeControl({required this.volume, required this.onChanged, super.key});
   final double volume;

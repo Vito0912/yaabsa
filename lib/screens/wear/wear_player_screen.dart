@@ -16,10 +16,6 @@ import 'package:yaabsa/util/audio_handler/wear_audio_handler.dart';
 import 'package:yaabsa/util/player_utils.dart';
 import 'package:yaabsa/util/globals.dart' show appName;
 
-// ═══════════════════════════════════════════════════════════════
-// Player screen
-// ═══════════════════════════════════════════════════════════════
-
 class WearPlayerScreen extends ConsumerStatefulWidget {
   const WearPlayerScreen({super.key});
   @override
@@ -246,7 +242,6 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
             ),
           );
         }
-        // Download runs async via WorkManager — poll for completion
         _pollDownloadCompletion();
       } catch (_) {
         setState(() => _isDownloading = false);

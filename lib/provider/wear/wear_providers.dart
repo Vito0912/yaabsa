@@ -10,8 +10,6 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart' show containerRef;
 import 'package:yaabsa/util/network/dio_factory.dart';
 
-// ── Credential storage (WearOS) ────────────────────────────────
-
 class WearCredentialsStore {
   WearCredentialsStore() : _storage = const FlutterSecureStorage();
   final FlutterSecureStorage _storage;
@@ -43,7 +41,6 @@ final wearHasCredentialsProvider = FutureProvider<bool>((ref) async {
   return ref.watch(wearCredentialsStoreProvider).hasCredentials;
 });
 
-// ── Data Layer communication (WearOS → Phone) ──────────────────
 
 class WearDataLayer {
   WearDataLayer() : _channel = const MethodChannel('de.vito0912.yaabsa/wear_data');
@@ -62,7 +59,6 @@ class WearDataLayer {
 
 final wearDataLayerProvider = Provider<WearDataLayer>((ref) => WearDataLayer());
 
-// ── API builder (shared by player screen) ───────────────────────
 
 final wearApiProvider = FutureProvider<ABSApi?>((ref) async {
   final creds = await ref.read(wearCredentialsStoreProvider).getCredentials();
@@ -80,8 +76,6 @@ final wearApiProvider = FutureProvider<ABSApi?>((ref) async {
   )..setBearerAuth('BearerAuth', creds['token']!);
   return api;
 });
-
-// ── Phone-side method channel handler ──────────────────────────
 
 void initPhoneWearHandler() {
   const channel = MethodChannel('de.vito0912.yaabsa/wear_data');

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/provider/wear/wear_providers.dart';
 
-/// Pairing screen shown when the WearOS device has no stored credentials.
 class WearPairingScreen extends ConsumerStatefulWidget {
   const WearPairingScreen({super.key});
 

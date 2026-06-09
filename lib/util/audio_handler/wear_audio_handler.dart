@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
 
-/// Lightweight audio handler for WearOS wrapping just_audio with audio_service.
 class WearAudioHandler extends BaseAudioHandler {
   final AudioPlayer _player = AudioPlayer();
   StreamSubscription<PlayerState>? _ps;

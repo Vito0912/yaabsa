@@ -5,7 +5,6 @@ import 'package:yaabsa/provider/wear/wear_providers.dart';
 import 'package:yaabsa/screens/wear/wear_pairing_screen.dart';
 import 'package:yaabsa/screens/wear/wear_player_screen.dart';
 
-/// Main WearOS screen that routes between pairing and player.
 class WearHomeScreen extends ConsumerWidget {
   const WearHomeScreen({super.key});
 
