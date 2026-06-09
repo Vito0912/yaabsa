@@ -1,7 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:math' as math;
-
 import 'package:audio_service/audio_service.dart';
 import 'package:background_downloader/background_downloader.dart';
 import 'package:flutter/material.dart';
@@ -11,8 +9,10 @@ import 'package:path_provider/path_provider.dart';
 import 'package:yaabsa/api/library_items/audio_track.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/library_items/request/play_library_item_request.dart';
-import 'package:yaabsa/main_wear.dart' show wearAudioHandler, WearAudioHandler;
+import 'package:yaabsa/main_wear.dart' show wearAudioHandler;
 import 'package:yaabsa/provider/wear/wear_providers.dart';
+import 'package:yaabsa/screens/wear/components/wear_volume_control.dart';
+import 'package:yaabsa/util/audio_handler/wear_audio_handler.dart';
 import 'package:yaabsa/util/player_utils.dart';
 import 'package:yaabsa/util/globals.dart' show appName;
 
@@ -170,7 +170,7 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
   void _vol() => Navigator.of(context).push(
     MaterialPageRoute(
       fullscreenDialog: true,
-      builder: (_) => _WearVolumeControl(
+      builder: (_) => WearVolumeControl(
         volume: _volume,
         onChanged: (v) {
           _h.player.setVolume(v);
@@ -400,127 +400,4 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
     constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
   );
   Widget _placeholder() => Container(color: Colors.grey[900]);
-}
-
-// ═══════════════════════════════════════════════════════════════
-// Volume control
-// ═══════════════════════════════════════════════════════════════
-
-class _WearVolumeControl extends StatefulWidget {
-  const _WearVolumeControl({required this.volume, required this.onChanged});
-  final double volume;
-  final ValueChanged<double> onChanged;
-  @override
-  State<_WearVolumeControl> createState() => _WearVolumeControlState();
-}
-
-class _WearVolumeControlState extends State<_WearVolumeControl> {
-  late double _v = widget.volume;
-  @override
-  void didUpdateWidget(_WearVolumeControl old) {
-    super.didUpdateWidget(old);
-    if (old.volume != widget.volume) _v = widget.volume;
-  }
-
-  @override
-  Widget build(BuildContext c) => Listener(
-    onPointerSignal: (e) {
-      try {
-        final d = (e as dynamic).scrollDelta?.y as double?;
-        if (d != null) {
-          setState(() => _v = (_v + d * 0.05).clamp(0.0, 1.0));
-          widget.onChanged(_v);
-        }
-      } catch (_) {}
-    },
-    child: Scaffold(
-      backgroundColor: Colors.black,
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.volume_up, color: Colors.white38, size: 18),
-            const SizedBox(height: 4),
-            SizedBox(
-              width: 110,
-              height: 110,
-              child: CustomPaint(
-                painter: _CircularVolumePainter(volume: _v, color: Colors.white, bg: Colors.white24),
-                child: Center(
-                  child: Text(
-                    '${(_v * 100).round()}%',
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w300, color: Colors.white),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _vBtn(Icons.remove_circle_outline, () {
-                  setState(() => _v = (_v - 0.1).clamp(0.0, 1.0));
-                  widget.onChanged(_v);
-                }),
-                const SizedBox(width: 20),
-                GestureDetector(
-                  onTap: () => Navigator.of(c).pop(),
-                  child: Container(
-                    width: 36,
-                    height: 36,
-                    decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.blueAccent),
-                    child: const Icon(Icons.check, color: Colors.white, size: 22),
-                  ),
-                ),
-                const SizedBox(width: 20),
-                _vBtn(Icons.add_circle_outline, () {
-                  setState(() => _v = (_v + 0.1).clamp(0.0, 1.0));
-                  widget.onChanged(_v);
-                }),
-              ],
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
-  Widget _vBtn(IconData i, VoidCallback f) => IconButton(
-    icon: Icon(i, color: Colors.white70, size: 26),
-    onPressed: f,
-    padding: EdgeInsets.zero,
-    constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-  );
-}
-
-class _CircularVolumePainter extends CustomPainter {
-  _CircularVolumePainter({required this.volume, required this.color, required this.bg});
-  final double volume;
-  final Color color, bg;
-  @override
-  void paint(Canvas c, Size s) {
-    final o = Offset(s.width / 2, s.height / 2), r = s.width / 2 - 8;
-    c.drawCircle(
-      o,
-      r,
-      Paint()
-        ..color = bg
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 8
-        ..strokeCap = StrokeCap.round,
-    );
-    c.drawArc(
-      Rect.fromCircle(center: o, radius: r),
-      -math.pi / 2,
-      volume * 2 * math.pi,
-      false,
-      Paint()
-        ..color = color
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 8
-        ..strokeCap = StrokeCap.round,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _CircularVolumePainter o) => o.volume != volume;
 }
