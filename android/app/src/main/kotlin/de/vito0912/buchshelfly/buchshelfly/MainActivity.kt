@@ -1,6 +1,5 @@
 package de.vito0912.yaabsa
 
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -8,8 +7,9 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import androidx.documentfile.provider.DocumentFile
-import com.google.android.gms.wearable.MessageEvent
+import com.google.android.gms.wearable.MessageClient
 import com.google.android.gms.wearable.Wearable
+import org.json.JSONObject
 import com.ryanheise.audioservice.AudioServiceActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
@@ -37,10 +37,12 @@ class MainActivity : AudioServiceActivity() {
 	private var aaosChannel: MethodChannel? = null
 	private var pendingAaosOpenSettings = false
 	private var pendingAaosOpenSignIn = false
-	private var messageClient: com.google.android.gms.wearable.MessageClient? = null
+	private var wearChannel: MethodChannel? = null
+	private var messageClient: MessageClient? = null
 	private var pendingRequestNodeId: String? = null
 	private var pendingRequestId: String? = null
-	private var wearMessageListener: com.google.android.gms.wearable.MessageClient.OnMessageReceivedListener? = null
+	private var pendingWearSignInNotification = false
+	private var wearMessageListener: MessageClient.OnMessageReceivedListener? = null
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -48,11 +50,12 @@ class MainActivity : AudioServiceActivity() {
 		handleAaosIntent(intent)
 		handleSignInIntent(intent)
 		messageClient = Wearable.getMessageClient(this)
-		wearMessageListener = com.google.android.gms.wearable.MessageClient.OnMessageReceivedListener { event: com.google.android.gms.wearable.MessageEvent ->
+		wearMessageListener = MessageClient.OnMessageReceivedListener { event ->
 			if (event.path == "/yaabsa/credential_request") {
 				pendingRequestNodeId = event.sourceNodeId
 				pendingRequestId = String(event.data)
-				runOnUiThread { showCredentialRequestDialog() }
+				pendingWearSignInNotification = true
+				runOnUiThread { notifyWearSignInIfPending() }
 			}
 		}
 		messageClient?.addListener(wearMessageListener!!)
@@ -178,17 +181,18 @@ class MainActivity : AudioServiceActivity() {
 			}
 		}
 
-		MethodChannel(flutterEngine.dartExecutor.binaryMessenger, WEAR_DATA_CHANNEL)
-			.setMethodCallHandler { call, result ->
-				when (call.method) {
-					"getStoredCredentials" -> handleGetStoredCredentials(result)
-					"hasPendingCredentialRequest" -> handleHasPendingCredentialRequest(result)
-					else -> result.notImplemented()
-				}
+		wearChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, WEAR_DATA_CHANNEL)
+		wearChannel?.setMethodCallHandler { call, result ->
+			when (call.method) {
+				"sendWearCredentials" -> handleSendWearCredentials(call, result)
+				"hasPendingCredentialRequest" -> handleHasPendingCredentialRequest(result)
+				else -> result.notImplemented()
 			}
+		}
 
 		notifyAaosOpenSettingsIfPending()
 		notifyAaosOpenSignInIfPending()
+		notifyWearSignInIfPending()
 	}
 
 	private fun handleLaunchMediaCenter(call: MethodCall, result: MethodChannel.Result) {
@@ -479,41 +483,56 @@ class MainActivity : AudioServiceActivity() {
 		}
 	}
 
-	private fun showCredentialRequestDialog() {
-		val builder = MaterialAlertDialogBuilder(this)
-		builder.setTitle("Wear OS Pairing Request")
-		builder.setMessage("A Wear OS device is requesting your server credentials. Allow?")
-		builder.setPositiveButton("Allow") { _, _ -> approveCredentialRequest() }
-		builder.setNegativeButton("Deny") { _, _ -> pendingRequestId = null }
-		builder.setCancelable(false)
-		builder.show()
+	private fun notifyWearSignInIfPending() {
+		if (!pendingWearSignInNotification) {
+			return
+		}
+
+		val channel = wearChannel ?: return
+		pendingWearSignInNotification = false
+
+		Handler(Looper.getMainLooper()).postDelayed({
+			channel.invokeMethod("wearSignInRequested", null)
+		}, 300)
 	}
 
-	private fun approveCredentialRequest() {
-		val nodeId = pendingRequestNodeId ?: return
-		val requestId = pendingRequestId ?: return
-		val channel = MethodChannel(flutterEngine?.dartExecutor?.binaryMessenger ?: return, WEAR_DATA_CHANNEL)
-		channel.invokeMethod("getStoredCredentials", null, object : MethodChannel.Result {
-			override fun success(result: Any?) {
-				val map = result as? Map<*, *> ?: return
-				val serverUrl = map["serverUrl"] as? String ?: return
-				val token = map["token"] as? String ?: return
-				val payload = "$serverUrl|$token|$requestId"
-				messageClient?.sendMessage(nodeId, "/yaabsa/credential_response", payload.toByteArray())
+	private fun handleSendWearCredentials(call: MethodCall, result: MethodChannel.Result) {
+		val nodeId = pendingRequestNodeId
+		val requestId = pendingRequestId
+		if (nodeId == null || requestId == null) {
+			result.success(false)
+			return
+		}
+
+		val serverUrl = call.argument<String>("serverUrl")
+		val accessToken = call.argument<String>("accessToken")
+		if (serverUrl.isNullOrEmpty() || accessToken.isNullOrEmpty()) {
+			result.error("invalid_args", "sendWearCredentials expects non-empty serverUrl and accessToken.", null)
+			return
+		}
+
+		val payload = JSONObject().apply {
+			put("requestId", requestId)
+			put("serverUrl", serverUrl)
+			put("accessToken", accessToken)
+			call.argument<String>("refreshToken")?.takeIf { it.isNotEmpty() }?.let { put("refreshToken", it) }
+		}
+
+		val client = messageClient
+		if (client == null) {
+			result.success(false)
+			return
+		}
+
+		client.sendMessage(nodeId, "/yaabsa/credential_response", payload.toString().toByteArray())
+			.addOnSuccessListener {
+				pendingRequestNodeId = null
 				pendingRequestId = null
+				result.success(true)
 			}
-			override fun error(errorCode: String, errorMessage: String?, errorDetails: Any?) { pendingRequestId = null }
-			override fun notImplemented() { pendingRequestId = null }
-		})
-	}
-
-	private fun handleGetStoredCredentials(result: MethodChannel.Result) {
-		val channel = MethodChannel(flutterEngine?.dartExecutor?.binaryMessenger ?: return, WEAR_DATA_CHANNEL)
-		channel.invokeMethod("getStoredCredentials", null, object : MethodChannel.Result {
-			override fun success(r: Any?) { result.success(r) }
-			override fun error(code: String, msg: String?, details: Any?) { result.error(code, msg, details) }
-			override fun notImplemented() { result.notImplemented() }
-		})
+			.addOnFailureListener { e ->
+				result.error("send_failed", "Failed to send credentials to watch: ${e.message}", null)
+			}
 	}
 
 	private fun handleHasPendingCredentialRequest(result: MethodChannel.Result) {

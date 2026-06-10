@@ -3,37 +3,18 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/api/routes/interceptors/bearer_auth_interceptor.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/provider/wear/wear_credentials_store.dart';
 import 'package:yaabsa/util/globals.dart' show containerRef;
+import 'package:yaabsa/util/interceptors/wear_auth_refresh_interceptor.dart';
 import 'package:yaabsa/util/network/dio_factory.dart';
+import 'package:yaabsa/util/router.dart' show globalRouter;
 
-class WearCredentialsStore {
-  WearCredentialsStore() : _storage = const FlutterSecureStorage();
-  final FlutterSecureStorage _storage;
-  static const _serverUrlKey = 'wear_server_url';
-  static const _tokenKey = 'wear_token';
+export 'package:yaabsa/provider/wear/wear_credentials_store.dart';
 
-  Future<bool> get hasCredentials async {
-    final url = await _storage.read(key: _serverUrlKey);
-    final token = await _storage.read(key: _tokenKey);
-    return url != null && url.isNotEmpty && token != null && token.isNotEmpty;
-  }
-
-  Future<Map<String, String>?> getCredentials() async {
-    final url = await _storage.read(key: _serverUrlKey);
-    final token = await _storage.read(key: _tokenKey);
-    if (url == null || url.isEmpty || token == null || token.isEmpty) return null;
-    return {'serverUrl': url, 'token': token};
-  }
-
-  Future<void> saveCredentials({required String serverUrl, required String token}) async {
-    await _storage.write(key: _serverUrlKey, value: serverUrl);
-    await _storage.write(key: _tokenKey, value: token);
-  }
-}
+const _wearDataChannelName = 'de.vito0912.yaabsa/wear_data';
 
 final wearCredentialsStoreProvider = Provider<WearCredentialsStore>((ref) => WearCredentialsStore());
 
@@ -42,14 +23,21 @@ final wearHasCredentialsProvider = FutureProvider<bool>((ref) async {
 });
 
 class WearDataLayer {
-  WearDataLayer() : _channel = const MethodChannel('de.vito0912.yaabsa/wear_data');
+  WearDataLayer() : _channel = const MethodChannel(_wearDataChannelName);
   final MethodChannel _channel;
 
-  Future<Map<String, String>?> requestCredentials() async {
+  Future<WearCredentials?> requestCredentials() async {
     try {
       final result = await _channel.invokeMethod<Map<dynamic, dynamic>>('requestCredentials');
       if (result == null) return null;
-      return {'serverUrl': result['serverUrl'] as String, 'token': result['token'] as String};
+      final serverUrl = result['serverUrl'] as String?;
+      final accessToken = result['accessToken'] as String?;
+      if (serverUrl == null || serverUrl.isEmpty || accessToken == null || accessToken.isEmpty) return null;
+      return WearCredentials(
+        serverUrl: serverUrl,
+        accessToken: accessToken,
+        refreshToken: result['refreshToken'] as String?,
+      );
     } on PlatformException catch (_) {
       return null;
     }
@@ -59,32 +47,44 @@ class WearDataLayer {
 final wearDataLayerProvider = Provider<WearDataLayer>((ref) => WearDataLayer());
 
 final wearApiProvider = FutureProvider<ABSApi?>((ref) async {
-  final creds = await ref.read(wearCredentialsStoreProvider).getCredentials();
+  final store = ref.read(wearCredentialsStoreProvider);
+  final creds = await store.getCredentials();
   if (creds == null) return null;
+  final bearerAuth = BearerAuthInterceptor();
   final api = ABSApi(
     dio: createNativeDio(
       options: BaseOptions(
-        baseUrl: creds['serverUrl']!,
+        baseUrl: creds.serverUrl,
         connectTimeout: const Duration(seconds: 5),
         receiveTimeout: const Duration(seconds: 20),
       ),
     ),
-    basePathOverride: creds['serverUrl']!,
-    interceptors: [BearerAuthInterceptor()],
-  )..setBearerAuth('BearerAuth', creds['token']!);
+    basePathOverride: creds.serverUrl,
+    interceptors: [bearerAuth, WearAuthRefreshInterceptor(store: store, bearerAuth: bearerAuth)],
+  )..setBearerAuth('BearerAuth', creds.accessToken);
   return api;
 });
 
+/// Phone side: reacts to a watch pairing request by opening the sign-in
+/// screen in wear pairing mode, pre-filled with the active user's server and
+/// username.
 void initPhoneWearHandler() {
-  const channel = MethodChannel('de.vito0912.yaabsa/wear_data');
+  const channel = MethodChannel(_wearDataChannelName);
   channel.setMethodCallHandler((call) async {
-    if (call.method == 'getStoredCredentials') {
+    if (call.method == 'wearSignInRequested') {
       final user = containerRef.read(currentUserProvider).value;
-      if (user == null) return null;
-      final url = user.server?.url;
-      final token = user.preferredAuthToken;
-      if (url == null || url.isEmpty || token == null || token.isEmpty) return null;
-      return {'serverUrl': url, 'token': token};
+      final serverUrl = user?.server?.url;
+      final username = user?.username;
+      final uri = Uri(
+        path: '/add-user',
+        queryParameters: {
+          'wear': '1',
+          if (serverUrl != null && serverUrl.isNotEmpty) 'serverUrl': serverUrl,
+          if (username != null && username.isNotEmpty) 'username': username,
+        },
+      );
+      globalRouter.go(uri.toString());
+      return null;
     }
     throw MissingPluginException();
   });

@@ -25,7 +25,11 @@ class _WearPairingScreenState extends ConsumerState<WearPairingScreen> {
 
       if (creds != null && mounted) {
         final store = ref.read(wearCredentialsStoreProvider);
-        await store.saveCredentials(serverUrl: creds['serverUrl']!, token: creds['token']!);
+        await store.saveCredentials(
+          serverUrl: creds.serverUrl,
+          accessToken: creds.accessToken,
+          refreshToken: creds.refreshToken,
+        );
         ref.invalidate(wearHasCredentialsProvider);
       } else if (mounted) {
         setState(() {
@@ -71,7 +75,11 @@ class _WearPairingScreenState extends ConsumerState<WearPairingScreen> {
               if (_isRequesting) ...[
                 const CircularProgressIndicator(strokeWidth: 2, color: Colors.white70),
                 const SizedBox(height: 8),
-                const Text('Waiting for phone...', style: TextStyle(fontSize: 12, color: Colors.white54)),
+                const Text(
+                  'Sign in on your phone\nto continue...',
+                  style: TextStyle(fontSize: 12, color: Colors.white54),
+                  textAlign: TextAlign.center,
+                ),
               ] else ...[
                 ElevatedButton(
                   onPressed: _requestCredentials,

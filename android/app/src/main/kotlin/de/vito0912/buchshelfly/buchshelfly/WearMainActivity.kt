@@ -11,6 +11,8 @@ import com.google.android.gms.wearable.Wearable
 import com.ryanheise.audioservice.AudioServiceActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import org.json.JSONObject
+import java.util.UUID
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
@@ -21,7 +23,10 @@ class WearMainActivity : AudioServiceActivity() {
         private const val TAG = "WearDataLayer"
         private const val REQ_PATH = "/yaabsa/credential_request"
         private const val RESP_PATH = "/yaabsa/credential_response"
-        private const val TIMEOUT = 30L
+        private const val CONNECT_TIMEOUT = 30L
+        // The user has to log in on the phone, so the response can take much
+        // longer than a network round-trip.
+        private const val LOGIN_TIMEOUT = 300L
     }
 
     private var channel: MethodChannel? = null
@@ -46,40 +51,52 @@ class WearMainActivity : AudioServiceActivity() {
     private fun requestCredentials(result: MethodChannel.Result) {
         val handler = Handler(Looper.getMainLooper())
         val latch = CountDownLatch(1)
-        var receivedUrl: String? = null
-        var receivedToken: String? = null
+        val requestId = UUID.randomUUID().toString()
+        var received: Map<String, String?>? = null
 
         val listener = MessageClient.OnMessageReceivedListener { event: MessageEvent ->
             if (event.path == RESP_PATH) {
-                val parts = String(event.data).split("|", limit = 3)
-                if (parts.size >= 2) {
-                    receivedUrl = parts[0]
-                    receivedToken = parts[1]
-                    latch.countDown()
+                try {
+                    val json = JSONObject(String(event.data))
+                    if (json.optString("requestId") != requestId) {
+                        return@OnMessageReceivedListener
+                    }
+                    val serverUrl = json.optString("serverUrl")
+                    val accessToken = json.optString("accessToken")
+                    if (serverUrl.isNotEmpty() && accessToken.isNotEmpty()) {
+                        received = mapOf(
+                            "serverUrl" to serverUrl,
+                            "accessToken" to accessToken,
+                            "refreshToken" to json.optString("refreshToken").ifEmpty { null },
+                        )
+                        latch.countDown()
+                    }
+                } catch (e: Exception) {
+                    Log.w(TAG, "Ignoring malformed credential response: ${e.message}")
                 }
             }
         }
 
         Thread {
             try {
-                val nodes = Tasks.await(Wearable.getNodeClient(this).connectedNodes, TIMEOUT, TimeUnit.SECONDS)
+                val nodes = Tasks.await(Wearable.getNodeClient(this).connectedNodes, CONNECT_TIMEOUT, TimeUnit.SECONDS)
                 if (nodes.isEmpty()) {
                     handler.post { result.error("NO_PHONE", "No connected phone found", null) }
                     return@Thread
                 }
                 val nodeId = nodes[0].id
-                val requestId = java.util.UUID.randomUUID().toString()
 
                 // Register listener BEFORE sending the request to avoid race condition
                 messageClient!!.addListener(listener)
 
                 try {
-                    Tasks.await(messageClient!!.sendMessage(nodeId, REQ_PATH, requestId.toByteArray()), TIMEOUT, TimeUnit.SECONDS)
+                    Tasks.await(messageClient!!.sendMessage(nodeId, REQ_PATH, requestId.toByteArray()), CONNECT_TIMEOUT, TimeUnit.SECONDS)
                     Log.d(TAG, "Credential request sent: $requestId")
 
-                    val success = latch.await(TIMEOUT, TimeUnit.SECONDS)
-                    if (success && receivedUrl != null && receivedToken != null) {
-                        handler.post { result.success(mapOf("serverUrl" to receivedUrl, "token" to receivedToken)) }
+                    val success = latch.await(LOGIN_TIMEOUT, TimeUnit.SECONDS)
+                    val credentials = received
+                    if (success && credentials != null) {
+                        handler.post { result.success(credentials) }
                     } else {
                         handler.post { result.error("TIMEOUT", "Timed out waiting for phone response", null) }
                     }
