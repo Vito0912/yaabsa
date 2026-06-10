@@ -10,6 +10,7 @@ import 'package:yaabsa/main_wear.dart' show wearAudioHandler;
 import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/core/server_reachability_provider.dart';
+import 'package:yaabsa/provider/core/socket_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/player/session_provider.dart';
 import 'package:yaabsa/screens/wear/components/wear_volume_control.dart';
@@ -35,6 +36,7 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
   final Map<String, double> _taskProgress = {};
   Timer? _clock;
   Timer? _downloadFinishFallback;
+  AppLifecycleListener? _lifecycle;
 
   WearAudioHandler get _h => wearAudioHandler;
 
@@ -81,7 +83,46 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
       if (itemId == null || !_isDownloading) return;
       if (next.value?.contains(itemId) ?? false) _stopDownloadIndicator();
     });
+    ref.listenManual(remoteMediaProgressUpdateProvider, (previous, next) {
+      if (next != null) unawaited(_onRemoteProgress(next));
+    });
+    // The socket is disconnected while the app is backgrounded, so re-check
+    // for remote playback when the app comes back to the foreground.
+    _lifecycle = AppLifecycleListener(onResume: () => unawaited(_checkRemoteProgress()));
     _load();
+  }
+
+  /// Follows playback that happens on other clients while the watch is
+  /// paused: switches to a different item, or moves the paused position when
+  /// the same item progressed elsewhere.
+  Future<void> _onRemoteProgress(MediaProgress progress) async {
+    if (_isLoading || _isPlaying || progress.isFinished) return;
+
+    final itemId = _itemId;
+    final sameItem = itemId != null && progress.libraryItemId == itemId && progress.episodeId == _episodeId;
+    if (!sameItem) {
+      return _load();
+    }
+
+    final remote = Duration(microseconds: (progress.currentTime * Duration.microsecondsPerSecond).round());
+    if ((remote - _h.position).abs() < const Duration(seconds: 5)) return;
+    await _h.seek(remote);
+    if (mounted) setState(() => _position = remote);
+  }
+
+  Future<void> _checkRemoteProgress() async {
+    if (_isLoading || _isPlaying) return;
+    final api = ref.read(absApiProvider);
+    if (api == null) return;
+    try {
+      final mp = (await api.getMeApi().getUser()).data?.mediaProgress;
+      if (mp == null || mp.isEmpty) return;
+      final sorted = [...mp]..sort((a, b) => (b.lastUpdate ?? 0).compareTo(a.lastUpdate ?? 0));
+      final newest = sorted.firstWhere((p) => !p.isFinished, orElse: () => sorted.first);
+      await _onRemoteProgress(newest);
+    } catch (_) {
+      // Offline or transient failure; the next resume or socket event retries.
+    }
   }
 
   void _stopDownloadIndicator() {
@@ -101,6 +142,7 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
     _dlQueue?.cancel();
     _clock?.cancel();
     _downloadFinishFallback?.cancel();
+    _lifecycle?.dispose();
     super.dispose();
   }
 

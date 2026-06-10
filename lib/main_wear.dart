@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
+import 'package:yaabsa/provider/core/socket_provider.dart';
 import 'package:yaabsa/screens/wear/wear_home_screen.dart';
 import 'package:yaabsa/util/audio_handler/wear_audio_handler.dart';
 import 'package:yaabsa/util/globals.dart' show containerRef;
@@ -21,6 +22,8 @@ void main() {
       await containerRef.read(settingsManagerProvider.notifier).ensureInitialized();
       // Tracks reachability and replays offline progress syncs on reconnect.
       unawaited(containerRef.read(serverStatusProvider.future));
+      // Receives progress updates pushed when other clients play.
+      containerRef.read(absSocketClientProvider);
       Init.initLogger();
       wearAudioHandler = await AudioService.init(
         builder: () => WearAudioHandler(),
