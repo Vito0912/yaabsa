@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/components/settings/settings_switch_tile.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/setting_key.dart';
@@ -20,26 +21,27 @@ class SubtitleSettingsSection extends ConsumerWidget {
           );
         }
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
+        return SettingsNavigationSection(
+          title: 'Subtitles',
+          topPadding: 0,
+          settings: [
             SettingSwitchTile(
               userId: user.id,
               settingKey: SettingKeys.subtitlesEnabled,
               label: 'Enable subtitles',
-              subtitle: 'Show subtitle tracks (.srt and .vtt) during playback when available.',
+              subtitle: 'Show subtitle tracks (.srt and .vtt) during playback when available',
             ),
             SettingSwitchTile(
               userId: user.id,
               settingKey: SettingKeys.subtitleSpeakerHighlighting,
               label: 'Highlight speaker labels',
-              subtitle: 'Highlight speaker',
+              subtitle: 'Highlight speaker names',
             ),
             SettingSwitchTile(
               userId: user.id,
               settingKey: SettingKeys.subtitleReadAlong,
               label: 'Enable read along',
-              subtitle: 'Highlight currently spoken words. Needs a WebVTT subtitle with cue timestamp payload',
+              subtitle: 'Highlight currently spoken words (requires WebVTT subtitle with cue timestamp)',
             ),
           ],
         );

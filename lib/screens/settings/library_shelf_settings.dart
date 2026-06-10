@@ -24,7 +24,7 @@ class LibraryShelfSettings extends ConsumerWidget {
             if (user == null) {
               return const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                child: Text('No active user. Sign in to configure shelf sections.'),
+                child: Text('Sign in to configure shelf sections'),
               );
             }
 

@@ -57,37 +57,58 @@ class SettingSwitchTile extends ConsumerWidget {
     ValueChanged<bool>? onChangedHandler,
     String? subtitleText,
   ) {
-    return SwitchListTile.adaptive(
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isEnabled = onChangedHandler != null && enabled;
+
+    return SwitchListTile(
       value: currentValue,
-      dense: true,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+      onChanged: onChangedHandler,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       title: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Flexible(child: Text(label, style: Theme.of(context).textTheme.titleSmall)),
-          if (subtitleText != null && subtitleText.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(left: 6.0),
-              child: Tooltip(
-                message: subtitleText,
-                triggerMode: TooltipTriggerMode.tap,
-                child: Icon(Icons.info_outline, size: 20, color: Theme.of(context).colorScheme.onSurfaceVariant),
+          Expanded(
+            child: Text(
+              label,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w500,
+                color: isEnabled ? colorScheme.onSurface : colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
               ),
             ),
+          ),
           if (icon != null && tooltip != null)
             Padding(
               padding: const EdgeInsets.only(left: 6.0),
               child: Tooltip(
                 message: tooltip!,
-                child: Icon(icon, size: 20, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                child: Icon(icon, size: 20, color: colorScheme.onSurfaceVariant),
               ),
             ),
         ],
       ),
+      subtitle: subtitleText != null && subtitleText.isNotEmpty
+          ? Padding(
+              padding: const EdgeInsets.only(top: 4.0),
+              child: Text(
+                subtitleText,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: isEnabled
+                      ? colorScheme.onSurfaceVariant
+                      : colorScheme.onSurfaceVariant.withValues(alpha: 0.38),
+                ),
+              ),
+            )
+          : null,
       secondary: isLoading
           ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2.2))
           : null,
-      onChanged: onChangedHandler,
+      thumbIcon: WidgetStateProperty.resolveWith<Icon?>((Set<WidgetState> states) {
+        if (states.contains(WidgetState.selected)) {
+          return const Icon(Icons.check, size: 16);
+        }
+        return const Icon(Icons.close, size: 16);
+      }),
     );
   }
 
@@ -102,7 +123,7 @@ class SettingSwitchTile extends ConsumerWidget {
     if (settingKey == null) {
       if (value == null) {
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
           child: Text(
             'Error: remote switch value for $label is null.',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.error),
@@ -117,7 +138,7 @@ class SettingSwitchTile extends ConsumerWidget {
     final defaultValueDynamic = defaultSettings[settingKeyValue];
     if (defaultValueDynamic is! bool && defaultValue == null) {
       return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
         child: Text(
           'Error: Default value for $settingKeyValue must be bool.',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.error),
@@ -147,11 +168,11 @@ class SettingSwitchTile extends ConsumerWidget {
           );
         },
         loading: () => const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+          padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
           child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.5)),
         ),
         error: (error, _) => Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
           child: Text(
             'Failed to load $label setting: $error',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.error),

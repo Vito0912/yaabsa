@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/components/settings/settings_dropdown.dart';
+import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/components/settings/settings_slider.dart';
 import 'package:yaabsa/components/settings/settings_switch_tile.dart';
 import 'package:yaabsa/database/settings_manager.dart';
@@ -52,55 +53,67 @@ class PlayerSettingsSleepTimer extends ConsumerWidget {
       showEmbeddedBackButton: true,
       embeddedBackFallbackRoute: PlayerSettings.routeName,
       children: [
-        SettingDropdown<String>(
-          label: 'Sleep timer end action',
-          description: 'Choose whether playback is stopped or paused when the sleep timer expires.',
-          values: SleepTimerExpireAction.values.map((action) => action.name).toList(),
-          valueLabels: SleepTimerExpireAction.values.map((action) => action.label).toList(),
-          settingKey: SettingKeys.sleepTimerExpireAction,
+        SettingsNavigationSection(
+          title: 'Expiry Behavior',
+          topPadding: 0,
+          settings: [
+            SettingDropdown<String>(
+              label: 'Sleep timer end action',
+              description: 'Choose whether playback is stopped or paused when the sleep timer expires',
+              values: SleepTimerExpireAction.values.map((action) => action.name).toList(),
+              valueLabels: SleepTimerExpireAction.values.map((action) => action.label).toList(),
+              valueDescriptions: const ['Stop playback completely', 'Pause playback only'],
+              settingKey: SettingKeys.sleepTimerExpireAction,
+            ),
+            const SettingSlider<int>(
+              label: 'Sleep timer end rewind',
+              description: 'After sleep timer stops playback, rewind this much when the same item is played again',
+              values: [0, 5, 10, 15, 30],
+              valueLabels: ['Off', '5 min', '10 min', '15 min', '30 min'],
+              settingKey: SettingKeys.sleepTimerAutoRewindMinutes,
+            ),
+            const SettingSwitchTile(
+              label: 'Fade audio',
+              subtitle: 'Gradually lower playback volume before the sleep timer ends',
+              settingKey: SettingKeys.sleepTimerFadeOutEnabled,
+            ),
+          ],
         ),
-        SettingSlider<int>(
-          label: 'Sleep timer end rewind',
-          description: 'After sleep timer stops playback, rewind this much when the same item is played again.',
-          values: const [0, 5, 10, 15, 30],
-          valueLabels: const ['Off', '5 min', '10 min', '15 min', '30 min'],
-          settingKey: SettingKeys.sleepTimerAutoRewindMinutes,
-        ),
-        SettingSwitchTile(
-          label: 'Fade audio',
-          subtitle: 'Gradually lower playback volume before the sleep timer ends.',
-          settingKey: SettingKeys.sleepTimerFadeOutEnabled,
-        ),
-        SettingSwitchTile(
-          label: 'Auto-restart timer on playback start',
-          subtitle:
-              'When playback starts and no timer is active, automatically start a new sleep timer using your last duration.',
-          settingKey: SettingKeys.sleepTimerAutoRestartEnabled,
-        ),
-        SettingSwitchTile(
-          label: 'Only auto-restart during a time range',
-          subtitle: 'Limit automatic sleep timer restart to specific hours.',
-          disabledReason: 'Enable auto-restart to configure this option.',
-          settingKey: SettingKeys.sleepTimerAutoRestartUseTimeRange,
-          enabled: autoRestartEnabled,
-        ),
-        SettingSlider<int>(
-          label: 'Auto-restart range start',
-          description: 'Sleep timer auto-restart becomes active at this time.',
-          disabledReason: 'Enable auto-restart and time range to configure this option.',
-          values: _timeRangeValues,
-          valueLabels: _timeRangeLabels,
-          settingKey: SettingKeys.sleepTimerAutoRestartRangeStartMinutes,
-          enabled: timeRangeEnabled,
-        ),
-        SettingSlider<int>(
-          label: 'Auto-restart range end',
-          description: 'Sleep timer auto-restart remains active until this time.',
-          disabledReason: 'Enable auto-restart and time range to configure this option.',
-          values: _timeRangeValues,
-          valueLabels: _timeRangeLabels,
-          settingKey: SettingKeys.sleepTimerAutoRestartRangeEndMinutes,
-          enabled: timeRangeEnabled,
+        SettingsNavigationSection(
+          title: 'Auto Restart Options',
+          settings: [
+            const SettingSwitchTile(
+              label: 'Auto-restart timer on playback start',
+              subtitle:
+                  'When playback starts and no timer is active, automatically start a new sleep timer using your last duration',
+              settingKey: SettingKeys.sleepTimerAutoRestartEnabled,
+            ),
+            SettingSwitchTile(
+              label: 'Only auto-restart during a time range',
+              subtitle: 'Limit automatic sleep timer restart to specific hours',
+              disabledReason: 'Enable auto-restart to configure this option',
+              settingKey: SettingKeys.sleepTimerAutoRestartUseTimeRange,
+              enabled: autoRestartEnabled,
+            ),
+            SettingSlider<int>(
+              label: 'Auto-restart range start',
+              description: 'Sleep timer auto-restart becomes active at this time',
+              disabledReason: 'Enable auto-restart and time range to configure this option',
+              values: _timeRangeValues,
+              valueLabels: _timeRangeLabels,
+              settingKey: SettingKeys.sleepTimerAutoRestartRangeStartMinutes,
+              enabled: timeRangeEnabled,
+            ),
+            SettingSlider<int>(
+              label: 'Auto-restart range end',
+              description: 'Sleep timer auto-restart remains active until this time',
+              disabledReason: 'Enable auto-restart and time range to configure this option',
+              values: _timeRangeValues,
+              valueLabels: _timeRangeLabels,
+              settingKey: SettingKeys.sleepTimerAutoRestartRangeEndMinutes,
+              enabled: timeRangeEnabled,
+            ),
+          ],
         ),
       ],
     );

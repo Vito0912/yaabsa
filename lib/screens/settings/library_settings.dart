@@ -76,7 +76,7 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Download location updated.')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Download location updated')));
     } catch (e) {
       if (!mounted) {
         return;
@@ -103,7 +103,7 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Using default download location.')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Using default download location')));
     } catch (e) {
       if (!mounted) {
         return;
@@ -174,7 +174,7 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
             if (user == null) {
               return const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                child: Text('No active user. Sign in to configure download settings.'),
+                child: Text('Sign in to configure download settings'),
               );
             }
 

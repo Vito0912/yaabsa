@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/components/settings/settings_switch_tile.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
@@ -22,14 +23,19 @@ class CachingGeneralSettings extends ConsumerWidget {
       showEmbeddedBackButton: true,
       embeddedBackFallbackRoute: '/settings/caching',
       children: [
-        const SettingSwitchTile(label: 'Enable caching', settingKey: SettingKeys.caching),
-        SettingSwitchTile(
-          label: 'Speedup mode',
-          subtitle:
-              'Combines caching with refreshing the cache after each request. This can briefly show stale data until a refresh finishes.',
-          disabledReason: 'Enable response caching to use speedup mode.',
-          settingKey: SettingKeys.boostLoading,
-          enabled: isCachingEnabled,
+        SettingsNavigationSection(
+          title: 'Caching Options',
+          topPadding: 0,
+          settings: [
+            const SettingSwitchTile(label: 'Enable caching', settingKey: SettingKeys.caching),
+            SettingSwitchTile(
+              label: 'Speedup mode',
+              subtitle: 'Combine caching with background refreshes to load faster',
+              disabledReason: 'Enable response caching to use speedup mode',
+              settingKey: SettingKeys.boostLoading,
+              enabled: isCachingEnabled,
+            ),
+          ],
         ),
       ],
     );

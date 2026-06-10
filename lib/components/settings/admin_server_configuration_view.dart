@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/api/me/server_settings.dart';
 import 'package:yaabsa/components/common/inputs/string_chip_list_input.dart';
 import 'package:yaabsa/components/settings/settings_dropdown.dart';
-import 'package:yaabsa/components/settings/settings_section_title.dart';
+import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/components/settings/settings_switch_tile.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 
@@ -446,215 +446,233 @@ class _AdminServerConfigurationViewState extends ConsumerState<AdminServerConfig
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (_isLoading) const LinearProgressIndicator(minHeight: 2),
-            const SettingsSectionTitle(title: 'General', topPadding: 12),
-            SettingSwitchTile.remote(
-              label: 'Store covers with item',
-              subtitle:
-                  'By default covers are stored in /metadata/items. Enabling this stores covers in the library item folder. Only one file named cover will be kept.',
-              value: settings.storeCoverWithItem ?? false,
-              isLoading: _isSaving(_operationStoreCoverWithItem),
-              onValueChanged: _isSaving(_operationStoreCoverWithItem)
-                  ? null
-                  : (nextValue) {
-                      unawaited(
-                        _updateServerSettings(
-                          operationKey: _operationStoreCoverWithItem,
-                          settingsUpdate: ServerSettings(id: _settingsId, storeCoverWithItem: nextValue),
-                        ),
-                      );
-                    },
-            ),
-            SettingSwitchTile.remote(
-              label: 'Store metadata with item',
-              subtitle:
-                  'By default metadata files are stored in /metadata/items. Enabling this stores metadata files in library item folders.',
-              value: settings.storeMetadataWithItem ?? false,
-              isLoading: _isSaving(_operationStoreMetadataWithItem),
-              onValueChanged: _isSaving(_operationStoreMetadataWithItem)
-                  ? null
-                  : (nextValue) {
-                      unawaited(
-                        _updateServerSettings(
-                          operationKey: _operationStoreMetadataWithItem,
-                          settingsUpdate: ServerSettings(id: _settingsId, storeMetadataWithItem: nextValue),
-                        ),
-                      );
-                    },
-            ),
-            SettingSwitchTile.remote(
-              label: 'Ignore prefixes when sorting',
-              subtitle: 'For prefix values like "the", a title like "The Book Title" is sorted as "Book Title, The".',
-              value: sortingIgnorePrefix,
-              isLoading: _isSaving(_operationSortingIgnorePrefix),
-              onValueChanged: _isSaving(_operationSortingIgnorePrefix)
-                  ? null
-                  : (nextValue) {
-                      unawaited(
-                        _updateServerSettings(
-                          operationKey: _operationSortingIgnorePrefix,
-                          settingsUpdate: ServerSettings(id: _settingsId, sortingIgnorePrefix: nextValue),
-                        ),
-                      );
-                    },
-            ),
-            if (sortingIgnorePrefix)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 2, 16, 8),
-                child: StringChipListInput(
-                  label: 'Prefixes to Ignore (case insensitive)',
-                  values: sortingPrefixes,
-                  enabled: !_isSaving(_operationSortingPrefixes),
-                  normalizer: (value) => value.trim().toLowerCase(),
-                  onChanged: (nextValues) {
-                    final normalizedPrefixes = _normalizeSortingPrefixes(nextValues);
-                    if (normalizedPrefixes.isEmpty) {
-                      unawaited(_updateSortingPrefixes(normalizedPrefixes));
-                      return;
-                    }
+            SettingsNavigationSection(
+              title: 'General',
+              topPadding: 12,
+              settings: [
+                SettingSwitchTile.remote(
+                  label: 'Store covers with item',
+                  subtitle:
+                      'Store covers in the library item folder instead of /metadata/items (only one file named cover will be kept)',
+                  value: settings.storeCoverWithItem ?? false,
+                  isLoading: _isSaving(_operationStoreCoverWithItem),
+                  onValueChanged: _isSaving(_operationStoreCoverWithItem)
+                      ? null
+                      : (nextValue) {
+                          unawaited(
+                            _updateServerSettings(
+                              operationKey: _operationStoreCoverWithItem,
+                              settingsUpdate: ServerSettings(id: _settingsId, storeCoverWithItem: nextValue),
+                            ),
+                          );
+                        },
+                ),
+                SettingSwitchTile.remote(
+                  label: 'Store metadata with item',
+                  subtitle: 'Store metadata files in library item folders instead of /metadata/items',
+                  value: settings.storeMetadataWithItem ?? false,
+                  isLoading: _isSaving(_operationStoreMetadataWithItem),
+                  onValueChanged: _isSaving(_operationStoreMetadataWithItem)
+                      ? null
+                      : (nextValue) {
+                          unawaited(
+                            _updateServerSettings(
+                              operationKey: _operationStoreMetadataWithItem,
+                              settingsUpdate: ServerSettings(id: _settingsId, storeMetadataWithItem: nextValue),
+                            ),
+                          );
+                        },
+                ),
+                SettingSwitchTile.remote(
+                  label: 'Ignore prefixes when sorting',
+                  subtitle:
+                      'Ignore prefix values like "the" when sorting titles (e.g. "The Book Title" is sorted as "Book Title, The")',
+                  value: sortingIgnorePrefix,
+                  isLoading: _isSaving(_operationSortingIgnorePrefix),
+                  onValueChanged: _isSaving(_operationSortingIgnorePrefix)
+                      ? null
+                      : (nextValue) {
+                          unawaited(
+                            _updateServerSettings(
+                              operationKey: _operationSortingIgnorePrefix,
+                              settingsUpdate: ServerSettings(id: _settingsId, sortingIgnorePrefix: nextValue),
+                            ),
+                          );
+                        },
+                ),
+                if (sortingIgnorePrefix)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    child: StringChipListInput(
+                      label: 'Prefixes to Ignore (case insensitive)',
+                      values: sortingPrefixes,
+                      enabled: !_isSaving(_operationSortingPrefixes),
+                      normalizer: (value) => value.trim().toLowerCase(),
+                      onChanged: (nextValues) {
+                        final normalizedPrefixes = _normalizeSortingPrefixes(nextValues);
+                        if (normalizedPrefixes.isEmpty) {
+                          unawaited(_updateSortingPrefixes(normalizedPrefixes));
+                          return;
+                        }
 
-                    final fallbackPrefixes = sortingPrefixes;
-                    setState(() {
-                      _settings = _settings?.copyWith(sortingPrefixes: normalizedPrefixes);
-                    });
-                    unawaited(_updateSortingPrefixes(normalizedPrefixes, fallbackSortingPrefixes: fallbackPrefixes));
+                        final fallbackPrefixes = sortingPrefixes;
+                        setState(() {
+                          _settings = _settings?.copyWith(sortingPrefixes: normalizedPrefixes);
+                        });
+                        unawaited(
+                          _updateSortingPrefixes(normalizedPrefixes, fallbackSortingPrefixes: fallbackPrefixes),
+                        );
+                      },
+                    ),
+                  ),
+              ],
+            ),
+            SettingsNavigationSection(
+              title: 'Regional',
+              settings: [
+                SettingDropdown<String>.remote(
+                  label: 'Date Format',
+                  values: _dateFormatValues,
+                  valueLabels: _dateFormatLabels,
+                  value: selectedDateFormat,
+                  enabled: !_isSaving(_operationDateFormat),
+                  isLoading: _isSaving(_operationDateFormat),
+                  onValueChanged: (nextValue) {
+                    unawaited(
+                      _updateServerSettings(
+                        operationKey: _operationDateFormat,
+                        settingsUpdate: ServerSettings(id: _settingsId, dateFormat: nextValue),
+                      ),
+                    );
                   },
                 ),
-              ),
-            const SettingsSectionTitle(title: 'Regional'),
-            SettingDropdown<String>.remote(
-              label: 'Date Format',
-              values: _dateFormatValues,
-              valueLabels: _dateFormatLabels,
-              value: selectedDateFormat,
-              enabled: !_isSaving(_operationDateFormat),
-              isLoading: _isSaving(_operationDateFormat),
-              onValueChanged: (nextValue) {
-                unawaited(
-                  _updateServerSettings(
-                    operationKey: _operationDateFormat,
-                    settingsUpdate: ServerSettings(id: _settingsId, dateFormat: nextValue),
+                SettingDropdown<String>.remote(
+                  label: 'Time Format',
+                  values: _timeFormatValues,
+                  valueLabels: _timeFormatLabels,
+                  value: selectedTimeFormat,
+                  enabled: !_isSaving(_operationTimeFormat),
+                  isLoading: _isSaving(_operationTimeFormat),
+                  onValueChanged: (nextValue) {
+                    unawaited(
+                      _updateServerSettings(
+                        operationKey: _operationTimeFormat,
+                        settingsUpdate: ServerSettings(id: _settingsId, timeFormat: nextValue),
+                      ),
+                    );
+                  },
+                ),
+                SettingDropdown<String>.remote(
+                  label: 'Language',
+                  values: _languageValues,
+                  valueLabels: _languageLabels,
+                  value: selectedLanguage,
+                  enabled: !_isSaving(_operationLanguage),
+                  isLoading: _isSaving(_operationLanguage),
+                  onValueChanged: (nextValue) {
+                    unawaited(
+                      _updateServerSettings(
+                        operationKey: _operationLanguage,
+                        settingsUpdate: ServerSettings(id: _settingsId, language: nextValue),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+            SettingsNavigationSection(
+              title: 'Scanner',
+              settings: [
+                SettingSwitchTile.remote(
+                  label: 'Parse subtitles',
+                  subtitle: 'Extract subtitles from audiobook folder names. Subtitle text must be separated by " - "',
+                  value: settings.scannerParseSubtitle ?? false,
+                  isLoading: _isSaving(_operationScannerParseSubtitle),
+                  onValueChanged: _isSaving(_operationScannerParseSubtitle)
+                      ? null
+                      : (nextValue) {
+                          unawaited(
+                            _updateServerSettings(
+                              operationKey: _operationScannerParseSubtitle,
+                              settingsUpdate: ServerSettings(id: _settingsId, scannerParseSubtitle: nextValue),
+                            ),
+                          );
+                        },
+                ),
+                SettingSwitchTile.remote(
+                  label: 'Find covers',
+                  subtitle: 'Attempt to find covers online if missing (extends scan time)',
+                  value: settings.scannerFindCovers ?? false,
+                  isLoading: _isSaving(_operationScannerFindCovers),
+                  onValueChanged: _isSaving(_operationScannerFindCovers)
+                      ? null
+                      : (nextValue) {
+                          unawaited(
+                            _updateServerSettings(
+                              operationKey: _operationScannerFindCovers,
+                              settingsUpdate: ServerSettings(id: _settingsId, scannerFindCovers: nextValue),
+                            ),
+                          );
+                        },
+                ),
+                SettingSwitchTile.remote(
+                  label: 'Prefer matched metadata',
+                  subtitle: 'Overwrite existing details with matched metadata during Quick Match',
+                  value: settings.scannerPreferMatchedMetadata ?? false,
+                  isLoading: _isSaving(_operationScannerPreferMatchedMetadata),
+                  onValueChanged: _isSaving(_operationScannerPreferMatchedMetadata)
+                      ? null
+                      : (nextValue) {
+                          unawaited(
+                            _updateServerSettings(
+                              operationKey: _operationScannerPreferMatchedMetadata,
+                              settingsUpdate: ServerSettings(id: _settingsId, scannerPreferMatchedMetadata: nextValue),
+                            ),
+                          );
+                        },
+                ),
+                SettingSwitchTile.remote(
+                  label: 'Automatically scan libraries for changes',
+                  subtitle:
+                      'Automatically add or update items when file changes are detected (requires server restart)',
+                  value: !scannerWatcherDisabled,
+                  isLoading: _isSaving(_operationScannerDisableWatcher),
+                  onValueChanged: _isSaving(_operationScannerDisableWatcher)
+                      ? null
+                      : (nextValue) {
+                          unawaited(
+                            _updateServerSettings(
+                              operationKey: _operationScannerDisableWatcher,
+                              settingsUpdate: ServerSettings(id: _settingsId, scannerDisableWatcher: !nextValue),
+                            ),
+                          );
+                        },
+                ),
+              ],
+            ),
+            SettingsNavigationSection(
+              title: 'Security',
+              settings: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  child: StringChipListInput(
+                    label: 'Allowed CORS Origins',
+                    values: allowedOrigins,
+                    enabled: !_isSaving(_operationAllowedOrigins),
+                    validator: _validateCorsOrigin,
+                    normalizer: _normalizeCorsOrigin,
+                    onChanged: (nextValues) {
+                      final normalizedOrigins = _normalizeCorsOrigins(nextValues);
+                      unawaited(
+                        _updateServerSettings(
+                          operationKey: _operationAllowedOrigins,
+                          settingsUpdate: ServerSettings(id: _settingsId, allowedOrigins: normalizedOrigins),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
-            SettingDropdown<String>.remote(
-              label: 'Time Format',
-              values: _timeFormatValues,
-              valueLabels: _timeFormatLabels,
-              value: selectedTimeFormat,
-              enabled: !_isSaving(_operationTimeFormat),
-              isLoading: _isSaving(_operationTimeFormat),
-              onValueChanged: (nextValue) {
-                unawaited(
-                  _updateServerSettings(
-                    operationKey: _operationTimeFormat,
-                    settingsUpdate: ServerSettings(id: _settingsId, timeFormat: nextValue),
-                  ),
-                );
-              },
-            ),
-            SettingDropdown<String>.remote(
-              label: 'Language',
-              values: _languageValues,
-              valueLabels: _languageLabels,
-              value: selectedLanguage,
-              enabled: !_isSaving(_operationLanguage),
-              isLoading: _isSaving(_operationLanguage),
-              onValueChanged: (nextValue) {
-                unawaited(
-                  _updateServerSettings(
-                    operationKey: _operationLanguage,
-                    settingsUpdate: ServerSettings(id: _settingsId, language: nextValue),
-                  ),
-                );
-              },
-            ),
-            const SettingsSectionTitle(title: 'Scanner'),
-            SettingSwitchTile.remote(
-              label: 'Parse subtitles',
-              subtitle: 'Extract subtitles from audiobook folder names. Subtitle text must be separated by " - ".',
-              value: settings.scannerParseSubtitle ?? false,
-              isLoading: _isSaving(_operationScannerParseSubtitle),
-              onValueChanged: _isSaving(_operationScannerParseSubtitle)
-                  ? null
-                  : (nextValue) {
-                      unawaited(
-                        _updateServerSettings(
-                          operationKey: _operationScannerParseSubtitle,
-                          settingsUpdate: ServerSettings(id: _settingsId, scannerParseSubtitle: nextValue),
-                        ),
-                      );
-                    },
-            ),
-            SettingSwitchTile.remote(
-              label: 'Find covers',
-              subtitle:
-                  'If an audiobook does not have an embedded cover or a cover image in the folder, the scanner will attempt to find a cover. This extends scan time.',
-              value: settings.scannerFindCovers ?? false,
-              isLoading: _isSaving(_operationScannerFindCovers),
-              onValueChanged: _isSaving(_operationScannerFindCovers)
-                  ? null
-                  : (nextValue) {
-                      unawaited(
-                        _updateServerSettings(
-                          operationKey: _operationScannerFindCovers,
-                          settingsUpdate: ServerSettings(id: _settingsId, scannerFindCovers: nextValue),
-                        ),
-                      );
-                    },
-            ),
-            SettingSwitchTile.remote(
-              label: 'Prefer matched metadata',
-              subtitle:
-                  'Matched data overrides existing item details during Quick Match. By default Quick Match only fills missing details.',
-              value: settings.scannerPreferMatchedMetadata ?? false,
-              isLoading: _isSaving(_operationScannerPreferMatchedMetadata),
-              onValueChanged: _isSaving(_operationScannerPreferMatchedMetadata)
-                  ? null
-                  : (nextValue) {
-                      unawaited(
-                        _updateServerSettings(
-                          operationKey: _operationScannerPreferMatchedMetadata,
-                          settingsUpdate: ServerSettings(id: _settingsId, scannerPreferMatchedMetadata: nextValue),
-                        ),
-                      );
-                    },
-            ),
-            SettingSwitchTile.remote(
-              label: 'Automatically scan libraries for changes',
-              subtitle: 'Automatically add or update items when file changes are detected. Requires server restart.',
-              value: !scannerWatcherDisabled,
-              isLoading: _isSaving(_operationScannerDisableWatcher),
-              onValueChanged: _isSaving(_operationScannerDisableWatcher)
-                  ? null
-                  : (nextValue) {
-                      unawaited(
-                        _updateServerSettings(
-                          operationKey: _operationScannerDisableWatcher,
-                          settingsUpdate: ServerSettings(id: _settingsId, scannerDisableWatcher: !nextValue),
-                        ),
-                      );
-                    },
-            ),
-            const SettingsSectionTitle(title: 'Security'),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 2, 16, 8),
-              child: StringChipListInput(
-                label: 'Allowed CORS Origins',
-                values: allowedOrigins,
-                enabled: !_isSaving(_operationAllowedOrigins),
-                validator: _validateCorsOrigin,
-                normalizer: _normalizeCorsOrigin,
-                onChanged: (nextValues) {
-                  final normalizedOrigins = _normalizeCorsOrigins(nextValues);
-                  unawaited(
-                    _updateServerSettings(
-                      operationKey: _operationAllowedOrigins,
-                      settingsUpdate: ServerSettings(id: _settingsId, allowedOrigins: normalizedOrigins),
-                    ),
-                  );
-                },
-              ),
+                ),
+              ],
             ),
           ],
         );

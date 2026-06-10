@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:yaabsa/components/settings/settings_dropdown.dart';
+import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/components/settings/settings_slider.dart';
 import 'package:yaabsa/components/settings/settings_switch_tile.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
@@ -17,45 +18,70 @@ class GlobalPlayerSettings extends StatelessWidget {
       embedded: true,
       showEmbeddedBackButton: true,
       children: [
-        SettingSlider<int>(
-          label: 'Max buffer size',
-          tooltip:
-              'Maximum size of the buffer in bytes. This is just a hint for the player and may not be respected by the OS. No more than 5 minutes should be cac.',
-          icon: Icons.info_outline,
-          values: const [512 * 1024, 1024 * 1024, 2 * 1024 * 1024, 5 * 1024 * 1024, 10 * 1024 * 1024],
-          valueLabels: const ['512 KB', '1 MB', '2 MB', '5 MB', '10 MB'],
-          settingKey: SettingKeys.bufferSize,
+        SettingsNavigationSection(
+          title: 'Buffer & Screen',
+          topPadding: 0,
+          settings: [
+            const SettingSlider<int>(
+              label: 'Max buffer size',
+              description: 'Maximum size of the audio buffer in bytes (hint for the OS)',
+              values: [512 * 1024, 1024 * 1024, 2 * 1024 * 1024, 5 * 1024 * 1024, 10 * 1024 * 1024],
+              valueLabels: ['512 KB', '1 MB', '2 MB', '5 MB', '10 MB'],
+              settingKey: SettingKeys.bufferSize,
+            ),
+            const SettingSwitchTile(
+              label: 'Keep Screen On',
+              subtitle: 'Prevent screen from turning off during playback',
+              settingKey: SettingKeys.keepScreenOn,
+            ),
+          ],
         ),
-        SettingSwitchTile(label: 'Lock Media Notification', settingKey: SettingKeys.lockMediaNotification),
-        SettingDropdown<String>(
-          label: 'Media notification type',
-          values: MediaNotificationType.values.map((m) => m.name).toList(),
-          valueLabels: MediaNotificationType.values.map((m) => m.label).toList(),
-          settingKey: SettingKeys.mediaNotificationType,
+        SettingsNavigationSection(
+          title: 'Media Notification',
+          settings: [
+            const SettingSwitchTile(
+              label: 'Lock Media Notification',
+              subtitle: 'Keep media controls visible in system notification panel',
+              settingKey: SettingKeys.lockMediaNotification,
+            ),
+            SettingDropdown<String>(
+              label: 'Media notification type',
+              description: 'Choose whether notification progress tracks the full book or current chapter',
+              values: MediaNotificationType.values.map((m) => m.name).toList(),
+              valueLabels: MediaNotificationType.values.map((m) => m.label).toList(),
+              valueDescriptions: const [
+                'Show full audiobook progress and details',
+                'Show currently playing chapter progress and details',
+              ],
+              settingKey: SettingKeys.mediaNotificationType,
+            ),
+            const SettingSwitchTile(
+              label: 'Show notification More button',
+              subtitle: 'Show a More button with additional quick actions',
+              settingKey: SettingKeys.showNotificationMoreButton,
+            ),
+          ],
         ),
-        SettingSwitchTile(
-          label: 'Show notification More button',
-          subtitle: 'When enabled, a More button will be shown, giving more quick actions',
-          settingKey: SettingKeys.showNotificationMoreButton,
+        SettingsNavigationSection(
+          title: 'Startup & Background',
+          settings: [
+            const SettingSwitchTile(
+              label: 'Auto-play last played on app start',
+              subtitle: 'Resume the last played item on app launch if it is not finished',
+              settingKey: SettingKeys.autoPlayLastPlayedOnLaunch,
+            ),
+            const SettingSwitchTile(
+              label: 'Always show mini player',
+              subtitle: 'Keep the mini player visible for your most recently played item',
+              settingKey: SettingKeys.showLastPlayedMiniPlayerAlways,
+            ),
+            const SettingSwitchTile(
+              label: 'Keep websocket active in background',
+              subtitle: 'Keep websocket connected in the background to sync updates (may increase battery usage)',
+              settingKey: SettingKeys.keepWebsocketConnectionInBackground,
+            ),
+          ],
         ),
-        SettingSwitchTile(
-          label: 'Auto-play last played on app start',
-          subtitle:
-              'When enabled and nothing is currently playing, app launch will resume the last played item if it is not finished.',
-          settingKey: SettingKeys.autoPlayLastPlayedOnLaunch,
-        ),
-        SettingSwitchTile(
-          label: 'Always show mini player',
-          subtitle: 'Keeps the mini player visible for your most recently played item',
-          settingKey: SettingKeys.showLastPlayedMiniPlayerAlways,
-        ),
-        SettingSwitchTile(
-          label: 'Keep websocket active in background',
-          subtitle:
-              'If enabled, the websocket stays connected while the app is in background so updates and tasks can sync when you return. This may increase battery usage. It does not affect playback progress updates when starting playback.',
-          settingKey: SettingKeys.keepWebsocketConnectionInBackground,
-        ),
-        SettingSwitchTile(label: 'Keep Screen On', settingKey: SettingKeys.keepScreenOn),
       ],
     );
   }

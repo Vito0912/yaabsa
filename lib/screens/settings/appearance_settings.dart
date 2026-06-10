@@ -26,13 +26,13 @@ class AppearanceSettings extends StatelessWidget {
             SettingsNavigationItem(
               icon: Icons.palette_outlined,
               title: 'Theme',
-              subtitle: 'Theme mode, preset palette, and custom accent color.',
+              subtitle: 'Theme mode, preset palette, and custom accent color',
               onTap: () => context.push(ThemeSettings.routeName),
             ),
             SettingsNavigationItem(
               icon: Icons.tune_rounded,
               title: 'Navigation',
-              subtitle: 'Configure displayed tabs, their order and the default view.',
+              subtitle: 'Configure displayed tabs, their order, and the default view',
               onTap: () => context.push(LibraryViewsSettings.routeName),
             ),
           ],

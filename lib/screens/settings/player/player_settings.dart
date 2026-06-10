@@ -30,19 +30,19 @@ class PlayerSettings extends StatelessWidget {
             SettingsNavigationItem(
               icon: Icons.tune_rounded,
               title: 'General',
-              subtitle: 'Timeline mode, seek intervals, and auto queue behavior.',
+              subtitle: 'Timeline mode, seek intervals, and auto queue behavior',
               onTap: () => context.push(PlayerSettingsGeneral.routeName),
             ),
             SettingsNavigationItem(
               icon: Icons.replay_rounded,
               title: 'Smart rewind',
-              subtitle: 'Control how much playback rewinds after pauses.',
+              subtitle: 'Control how much playback rewinds after pauses',
               onTap: () => context.push(PlayerSettingsSmartRewind.routeName),
             ),
             SettingsNavigationItem(
               icon: Icons.bedtime_outlined,
               title: 'Sleep timer',
-              subtitle: 'Choose timer end behavior and optional automatic restart.',
+              subtitle: 'Choose timer end behavior and optional automatic restart',
               onTap: () => context.push(PlayerSettingsSleepTimer.routeName),
             ),
           ],
@@ -53,16 +53,16 @@ class PlayerSettings extends StatelessWidget {
             SettingsNavigationItem(
               icon: Icons.subtitles_outlined,
               title: 'Subtitles',
-              subtitle: 'Enable subtitles and reading support behavior.',
+              subtitle: 'Enable subtitles and reading support behavior',
               onTap: () => context.push(PlayerSettingsSubtitles.routeName),
             ),
             SettingsNavigationItem(
               icon: Icons.vibration_rounded,
               title: 'Shake controls',
               subtitle: supportsShakeActions
-                  ? 'Configure shake gestures and sensitivity.'
-                  : 'Available on devices with motion sensors.',
-              disabledReason: supportsShakeActions ? null : 'This device does not support shake controls.',
+                  ? 'Configure shake gestures and sensitivity'
+                  : 'Available on devices with motion sensors',
+              disabledReason: supportsShakeActions ? null : 'This device does not support shake controls',
               enabled: supportsShakeActions,
               onTap: supportsShakeActions ? () => context.push(PlayerSettingsShakeControls.routeName) : null,
             ),

@@ -1,3 +1,10 @@
+import 'dart:async';
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb;
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/components/settings/management_settings_section.dart';
@@ -19,21 +26,390 @@ import 'package:yaabsa/screens/settings/server_management_settings.dart';
 import 'package:yaabsa/util/aaos_service.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/network/dio_factory.dart';
-import 'package:dio/dio.dart';
-import 'dart:async';
-import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb;
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
 
-class MainSettingsScreen extends ConsumerWidget {
+class SettingsSearchItem {
+  final String title;
+  final String description;
+  final String categoryPath;
+  final String route;
+
+  const SettingsSearchItem({
+    required this.title,
+    required this.description,
+    required this.categoryPath,
+    required this.route,
+  });
+}
+
+final List<SettingsSearchItem> searchableSettings = [
+  const SettingsSearchItem(
+    title: 'Server Connection',
+    description: 'Configure server URL, authentication, and connection details',
+    categoryPath: 'Settings > Active Account',
+    route: '/settings/server-connection',
+  ),
+  const SettingsSearchItem(
+    title: 'Server Management',
+    description: 'Configure visibility for collections, editing, deletion, and uploading',
+    categoryPath: 'Settings > Active Account',
+    route: '/settings/server-management',
+  ),
+  const SettingsSearchItem(
+    title: 'Timeline mode',
+    description: 'Choose whether the seek bar tracks a chapter, the full audiobook, or both',
+    categoryPath: 'Settings > Player > General',
+    route: '/settings/player/general',
+  ),
+  const SettingsSearchItem(
+    title: 'Timeline markers',
+    description: 'Choose whether the full timeline displays chapter markers, bookmark markers, both, or none',
+    categoryPath: 'Settings > Player > General',
+    route: '/settings/player/general',
+  ),
+  const SettingsSearchItem(
+    title: 'Fast forward interval',
+    description: 'How many seconds to skip when jumping forward',
+    categoryPath: 'Settings > Player > General',
+    route: '/settings/player/general',
+  ),
+  const SettingsSearchItem(
+    title: 'Rewind interval',
+    description: 'How many seconds to skip when rewinding',
+    categoryPath: 'Settings > Player > General',
+    route: '/settings/player/general',
+  ),
+  const SettingsSearchItem(
+    title: 'Remember playback speed per book',
+    description: 'Each book remembers its own speed and new books start with your last used speed',
+    categoryPath: 'Settings > Player > General',
+    route: '/settings/player/general',
+  ),
+  const SettingsSearchItem(
+    title: 'Auto queue',
+    description: 'Automatically queue upcoming books when playback starts',
+    categoryPath: 'Settings > Player > General',
+    route: '/settings/player/general',
+  ),
+  const SettingsSearchItem(
+    title: 'Auto queue everywhere',
+    description: 'Auto queue books from the first linked series even when starting playback outside a series view',
+    categoryPath: 'Settings > Player > General',
+    route: '/settings/player/general',
+  ),
+  const SettingsSearchItem(
+    title: 'Smart rewind',
+    description: 'When resuming after a pause, rewind by an amount based on pause duration',
+    categoryPath: 'Settings > Player > Smart rewind',
+    route: '/settings/player/smart-rewind',
+  ),
+  const SettingsSearchItem(
+    title: 'Short-pause threshold',
+    description: 'If paused up to this amount, the short smart rewind value is used',
+    categoryPath: 'Settings > Player > Smart rewind',
+    route: '/settings/player/smart-rewind',
+  ),
+  const SettingsSearchItem(
+    title: 'Long-pause threshold',
+    description:
+        'If paused longer than the short threshold and up to this amount, the medium smart rewind value is used',
+    categoryPath: 'Settings > Player > Smart rewind',
+    route: '/settings/player/smart-rewind',
+  ),
+  const SettingsSearchItem(
+    title: 'Short rewind amount',
+    description: 'Rewind amount used for short pauses',
+    categoryPath: 'Settings > Player > Smart rewind',
+    route: '/settings/player/smart-rewind',
+  ),
+  const SettingsSearchItem(
+    title: 'Medium rewind amount',
+    description: 'Rewind amount used for medium pauses',
+    categoryPath: 'Settings > Player > Smart rewind',
+    route: '/settings/player/smart-rewind',
+  ),
+  const SettingsSearchItem(
+    title: 'Long rewind amount',
+    description: 'Rewind amount used for long pauses',
+    categoryPath: 'Settings > Player > Smart rewind',
+    route: '/settings/player/smart-rewind',
+  ),
+  const SettingsSearchItem(
+    title: 'Sleep timer end action',
+    description: 'Choose whether playback is stopped or paused when the sleep timer expires',
+    categoryPath: 'Settings > Player > Sleep timer',
+    route: '/settings/player/sleep-timer',
+  ),
+  const SettingsSearchItem(
+    title: 'Sleep timer end rewind',
+    description: 'After sleep timer stops playback, rewind this much when the same item is played again',
+    categoryPath: 'Settings > Player > Sleep timer',
+    route: '/settings/player/sleep-timer',
+  ),
+  const SettingsSearchItem(
+    title: 'Fade audio',
+    description: 'Gradually lower playback volume before the sleep timer ends',
+    categoryPath: 'Settings > Player > Sleep timer',
+    route: '/settings/player/sleep-timer',
+  ),
+  const SettingsSearchItem(
+    title: 'Auto-restart timer on playback start',
+    description: 'Automatically start a new sleep timer using your last duration on playback start',
+    categoryPath: 'Settings > Player > Sleep timer',
+    route: '/settings/player/sleep-timer',
+  ),
+  const SettingsSearchItem(
+    title: 'Only auto-restart during a time range',
+    description: 'Limit automatic sleep timer restart to specific hours',
+    categoryPath: 'Settings > Player > Sleep timer',
+    route: '/settings/player/sleep-timer',
+  ),
+  const SettingsSearchItem(
+    title: 'Auto-restart range start',
+    description: 'Sleep timer auto-restart becomes active at this time',
+    categoryPath: 'Settings > Player > Sleep timer',
+    route: '/settings/player/sleep-timer',
+  ),
+  const SettingsSearchItem(
+    title: 'Auto-restart range end',
+    description: 'Sleep timer auto-restart remains active until this time',
+    categoryPath: 'Settings > Player > Sleep timer',
+    route: '/settings/player/sleep-timer',
+  ),
+  const SettingsSearchItem(
+    title: 'Enable subtitles',
+    description: 'Show subtitle tracks (.srt and .vtt) during playback when available',
+    categoryPath: 'Settings > Player > Subtitles',
+    route: '/settings/player/subtitles',
+  ),
+  const SettingsSearchItem(
+    title: 'Highlight speaker labels',
+    description: 'Highlight speaker names in subtitles',
+    categoryPath: 'Settings > Player > Subtitles',
+    route: '/settings/player/subtitles',
+  ),
+  const SettingsSearchItem(
+    title: 'Enable read along',
+    description: 'Highlight currently spoken words in subtitles',
+    categoryPath: 'Settings > Player > Subtitles',
+    route: '/settings/player/subtitles',
+  ),
+  const SettingsSearchItem(
+    title: 'Shake to reset sleep timer',
+    description: 'Shake to reset an active sleep timer back to its full duration',
+    categoryPath: 'Settings > Player > Shake controls',
+    route: '/settings/player/shake-controls',
+  ),
+  const SettingsSearchItem(
+    title: 'Shake to rewind',
+    description: 'Shake while playing to rewind by the configured rewind interval',
+    categoryPath: 'Settings > Player > Shake controls',
+    route: '/settings/player/shake-controls',
+  ),
+  const SettingsSearchItem(
+    title: 'Shake sensitivity',
+    description: 'Lower values trigger more easily, higher values require a stronger shake',
+    categoryPath: 'Settings > Player > Shake controls',
+    route: '/settings/player/shake-controls',
+  ),
+  const SettingsSearchItem(
+    title: 'Shake vibration feedback',
+    description: 'Vibrate when a shake action is triggered',
+    categoryPath: 'Settings > Player > Shake controls',
+    route: '/settings/player/shake-controls',
+  ),
+  const SettingsSearchItem(
+    title: 'Shelf Sections',
+    description: 'Choose which shelf sections are visible and their order',
+    categoryPath: 'Settings > General',
+    route: '/settings/library',
+  ),
+  const SettingsSearchItem(
+    title: 'Library Grid Scale',
+    description: 'Scales library item cards in all grid views',
+    categoryPath: 'Settings > General',
+    route: '/settings/library',
+  ),
+  const SettingsSearchItem(
+    title: 'Collapse Series',
+    description: 'Collapse books in series into a single entry',
+    categoryPath: 'Settings > General',
+    route: '/settings/library',
+  ),
+  const SettingsSearchItem(
+    title: 'Show Shelf Play Button',
+    description: 'Adds a play-all button on Continue Listening and Newest shelves',
+    categoryPath: 'Settings > General',
+    route: '/settings/library',
+  ),
+  const SettingsSearchItem(
+    title: 'Check Server Updates',
+    description: 'Checks for ABS updates via GitHub',
+    categoryPath: 'Settings > General',
+    route: '/settings/library',
+  ),
+  const SettingsSearchItem(
+    title: 'Download Location',
+    description: 'Configure directory to save downloaded audiobooks',
+    categoryPath: 'Settings > General',
+    route: '/settings/library',
+  ),
+  const SettingsSearchItem(
+    title: 'Theme Settings',
+    description: 'Configure Theme mode (light, dark, amoled, system), preset palette, and custom accent color',
+    categoryPath: 'Settings > Appearance',
+    route: '/settings/appearance/theme',
+  ),
+  const SettingsSearchItem(
+    title: 'Navigation Settings',
+    description: 'Configure displayed tabs, their order, and the default view',
+    categoryPath: 'Settings > Appearance',
+    route: '/settings/appearance/navigation',
+  ),
+  const SettingsSearchItem(
+    title: 'Language',
+    description: 'Configure app display language',
+    categoryPath: 'Settings > Appearance',
+    route: '/settings/appearance',
+  ),
+  const SettingsSearchItem(
+    title: 'Max buffer size',
+    description: 'Maximum size of the audio buffer in bytes (hint for the OS)',
+    categoryPath: 'Settings > Global Player',
+    route: '/settings/global-player',
+  ),
+  const SettingsSearchItem(
+    title: 'Keep Screen On',
+    description: 'Prevent screen from turning off during playback',
+    categoryPath: 'Settings > Global Player',
+    route: '/settings/global-player',
+  ),
+  const SettingsSearchItem(
+    title: 'Lock Media Notification',
+    description: 'Keep media controls visible in system notification panel',
+    categoryPath: 'Settings > Global Player',
+    route: '/settings/global-player',
+  ),
+  const SettingsSearchItem(
+    title: 'Media notification type',
+    description: 'Choose whether notification progress tracks the full book or current chapter',
+    categoryPath: 'Settings > Global Player',
+    route: '/settings/global-player',
+  ),
+  const SettingsSearchItem(
+    title: 'Show notification More button',
+    description: 'Show a More button with additional quick actions',
+    categoryPath: 'Settings > Global Player',
+    route: '/settings/global-player',
+  ),
+  const SettingsSearchItem(
+    title: 'Auto-play last played on app start',
+    description: 'Resume the last played item on app launch if it is not finished',
+    categoryPath: 'Settings > Global Player',
+    route: '/settings/global-player',
+  ),
+  const SettingsSearchItem(
+    title: 'Always show mini player',
+    description: 'Keep the mini player visible for your most recently played item',
+    categoryPath: 'Settings > Global Player',
+    route: '/settings/global-player',
+  ),
+  const SettingsSearchItem(
+    title: 'Keep websocket active in background',
+    description: 'Keep websocket connected in the background to sync updates (may increase battery usage)',
+    categoryPath: 'Settings > Global Player',
+    route: '/settings/global-player',
+  ),
+  const SettingsSearchItem(
+    title: 'Enable caching',
+    description: 'Enable response caching for API requests',
+    categoryPath: 'Settings > Caching',
+    route: '/settings/caching/general',
+  ),
+  const SettingsSearchItem(
+    title: 'Speedup mode',
+    description: 'Combine caching with background refreshes to load faster',
+    categoryPath: 'Settings > Caching',
+    route: '/settings/caching/general',
+  ),
+  const SettingsSearchItem(
+    title: 'Remove authors without books',
+    description: 'Add a button in the author section to delete authors without books',
+    categoryPath: 'Settings > Tools',
+    route: '/settings/tools',
+  ),
+  const SettingsSearchItem(
+    title: 'Force metadata refresh',
+    description: 'Add a button to force recreation of metadata files in Admin Server Settings',
+    categoryPath: 'Settings > Tools',
+    route: '/settings/tools',
+  ),
+  const SettingsSearchItem(
+    title: 'Match audiobook chapters',
+    description: 'Add a quick match option for fast chapter matching, including bulk mode',
+    categoryPath: 'Settings > Tools',
+    route: '/settings/tools',
+  ),
+  const SettingsSearchItem(
+    title: 'Split genres/tags',
+    description: 'Add a button to split genres and tags in Admin Server Settings',
+    categoryPath: 'Settings > Tools',
+    route: '/settings/tools',
+  ),
+  const SettingsSearchItem(
+    title: 'Log Level',
+    description: 'Choose the minimum severity level of logs to capture',
+    categoryPath: 'Settings > Logs',
+    route: '/settings/logs',
+  ),
+];
+
+class MainSettingsScreen extends ConsumerStatefulWidget {
   const MainSettingsScreen({super.key});
 
   static const String routeName = '/settings';
+
+  @override
+  ConsumerState<MainSettingsScreen> createState() => _MainSettingsScreenState();
+}
+
+class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
   static final Uri _githubRepoUri = Uri.parse('https://github.com/Vito0912/yaabsa/');
   static final Uri _githubIssueUri = Uri.parse('https://github.com/Vito0912/yaabsa/issues');
   static final Uri _githubSponsorUri = Uri.parse('https://github.com/sponsors/Vito0912');
+
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  IconData _getIconForRoute(String route) {
+    if (route.contains('/player')) {
+      return Icons.play_circle_outline_rounded;
+    }
+    if (route.contains('/library')) {
+      return Icons.library_books_outlined;
+    }
+    if (route.contains('/appearance')) {
+      return Icons.palette_outlined;
+    }
+    if (route.contains('/android-auto') || route.contains('/aaos')) {
+      return Icons.directions_car_filled_outlined;
+    }
+    if (route.contains('/caching')) {
+      return Icons.cached_outlined;
+    }
+    if (route.contains('/tools')) {
+      return Icons.construction_rounded;
+    }
+    if (route.contains('/logs')) {
+      return Icons.article_outlined;
+    }
+    return Icons.settings_outlined;
+  }
 
   Future<void> _openSupportLink(BuildContext context, Uri uri, String label) async {
     try {
@@ -200,7 +576,7 @@ class MainSettingsScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 28, 20, 12),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
               child: Text(
                 'ACTIVE ACCOUNT',
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
@@ -214,7 +590,7 @@ class MainSettingsScreen extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Card(
                 elevation: 0.5,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24.0)),
                 color: Theme.of(context).colorScheme.primaryContainer,
                 child: Padding(
                   padding: const EdgeInsets.all(20.0),
@@ -459,127 +835,224 @@ class MainSettingsScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final isAndroid = !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
     final isIOS = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
     final showCarIntegrationSettings = isAndroid || isIOS;
 
-    return ListView(
-      padding: const EdgeInsets.only(bottom: 24),
-      children: <Widget>[
-        Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 700),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _buildUserManagementSection(context, ref),
-                StreamBuilder<AaosTelemetryState>(
-                  stream: AaosService.instance.stream,
-                  initialData: AaosService.instance.currentState,
-                  builder: (context, snapshot) {
-                    final aaosState = snapshot.data ?? AaosService.instance.currentState;
-                    final isAaos = aaosState.isAutomotiveDevice;
+    final filteredSettings = searchableSettings.where((item) {
+      final query = _searchQuery.trim().toLowerCase();
+      if (query.isEmpty) return false;
+      return item.title.toLowerCase().contains(query) || item.description.toLowerCase().contains(query);
+    }).toList();
 
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        if (isAaos)
-                          SettingsNavigationSection(
-                            title: 'Car Integration',
-                            items: [
-                              SettingsNavigationItem(
-                                icon: Icons.play_circle_outline,
-                                title: 'Open Car Library',
-                                subtitle: 'Switch to the system Media Center',
-                                onTap: () async {
-                                  await AaosService.instance.launchMediaCenter(finishActivity: true);
-                                },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+          child: SearchBar(
+            leading: const Icon(Icons.search),
+            hintText: 'Search settings...',
+            onChanged: (value) {
+              setState(() {
+                _searchQuery = value;
+              });
+            },
+            trailing: _searchQuery.isNotEmpty
+                ? [
+                    IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        _searchController.clear();
+                        setState(() {
+                          _searchQuery = '';
+                        });
+                      },
+                    ),
+                  ]
+                : null,
+            controller: _searchController,
+            elevation: const WidgetStatePropertyAll<double>(1.0),
+            shape: WidgetStatePropertyAll<OutlinedBorder>(
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+            ),
+          ),
+        ),
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.only(bottom: 24),
+            children: <Widget>[
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 700),
+                  child: _searchQuery.trim().isNotEmpty
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            if (filteredSettings.isEmpty)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+                                child: Center(
+                                  child: Column(
+                                    children: [
+                                      Icon(
+                                        Icons.search_off_rounded,
+                                        size: 48,
+                                        color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Text(
+                                        "No settings found for '$_searchQuery'",
+                                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
+                            else
+                              SettingsNavigationSection(
+                                title: 'Search Results',
+                                topPadding: 12,
+                                items: filteredSettings.map((item) {
+                                  return SettingsNavigationItem(
+                                    icon: _getIconForRoute(item.route),
+                                    title: item.title,
+                                    subtitle: '${item.categoryPath}\n${item.description}',
+                                    onTap: () {
+                                      if (item.route == '/settings/logs') {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(builder: (context) => const LogView()),
+                                        );
+                                      } else {
+                                        context.push(item.route);
+                                      }
+                                    },
+                                  );
+                                }).toList(),
                               ),
-                            ],
-                          ),
-                        SettingsNavigationSection(
-                          title: 'Application Settings',
-                          items: [
-                            SettingsNavigationItem(
-                              icon: Icons.library_books_outlined,
-                              title: 'General',
-                              onTap: () => context.push(LibrarySettings.routeName),
+                          ],
+                        )
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _buildUserManagementSection(context, ref),
+                            StreamBuilder<AaosTelemetryState>(
+                              stream: AaosService.instance.stream,
+                              initialData: AaosService.instance.currentState,
+                              builder: (context, snapshot) {
+                                final aaosState = snapshot.data ?? AaosService.instance.currentState;
+                                final isAaos = aaosState.isAutomotiveDevice;
+
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    if (isAaos)
+                                      SettingsNavigationSection(
+                                        title: 'Car Integration',
+                                        items: [
+                                          SettingsNavigationItem(
+                                            icon: Icons.play_circle_outline,
+                                            title: 'Open Car Library',
+                                            subtitle: 'Switch to the system Media Center',
+                                            onTap: () async {
+                                              await AaosService.instance.launchMediaCenter(finishActivity: true);
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    SettingsNavigationSection(
+                                      title: 'Application Settings',
+                                      items: [
+                                        SettingsNavigationItem(
+                                          icon: Icons.library_books_outlined,
+                                          title: 'General',
+                                          onTap: () => context.push(LibrarySettings.routeName),
+                                        ),
+                                        SettingsNavigationItem(
+                                          icon: Icons.palette_outlined,
+                                          title: 'Appearance',
+                                          onTap: () => context.push(AppearanceSettings.routeName),
+                                        ),
+                                        SettingsNavigationItem(
+                                          icon: Icons.play_circle_outline_outlined,
+                                          title: 'Global Player',
+                                          onTap: () => context.push(GlobalPlayerSettings.routeName),
+                                        ),
+                                        if (showCarIntegrationSettings)
+                                          SettingsNavigationItem(
+                                            icon: Icons.directions_car_filled_outlined,
+                                            title: aaosState.isAutomotiveDevice
+                                                ? 'AAOS'
+                                                : (isIOS ? 'CarPlay' : 'Android Auto'),
+                                            onTap: () => context.push(AndroidAutoSettings.routeName),
+                                          ),
+                                        SettingsNavigationItem(
+                                          icon: Icons.cached_outlined,
+                                          title: 'Caching',
+                                          onTap: () => context.push(CachingSettings.routeName),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                );
+                              },
                             ),
-                            SettingsNavigationItem(
-                              icon: Icons.palette_outlined,
-                              title: 'Appearance',
-                              onTap: () => context.push(AppearanceSettings.routeName),
-                            ),
-                            SettingsNavigationItem(
-                              icon: Icons.play_circle_outline_outlined,
-                              title: 'Global Player',
-                              onTap: () => context.push(GlobalPlayerSettings.routeName),
-                            ),
-                            if (showCarIntegrationSettings)
-                              SettingsNavigationItem(
-                                icon: Icons.directions_car_filled_outlined,
-                                title: aaosState.isAutomotiveDevice ? 'AAOS' : (isIOS ? 'CarPlay' : 'Android Auto'),
-                                onTap: () => context.push(AndroidAutoSettings.routeName),
-                              ),
-                            SettingsNavigationItem(
-                              icon: Icons.cached_outlined,
-                              title: 'Caching',
-                              onTap: () => context.push(CachingSettings.routeName),
+                            ref
+                                .watch(currentUserProvider)
+                                .when(
+                                  data: (currentUser) {
+                                    if (currentUser == null || AaosService.instance.currentState.isAutomotiveDevice) {
+                                      return const SizedBox.shrink();
+                                    }
+
+                                    return ManagementSettingsSection(currentUser: currentUser);
+                                  },
+                                  loading: () => const SizedBox.shrink(),
+                                  error: (error, stackTrace) => const SizedBox.shrink(),
+                                ),
+                            SettingsNavigationSection(
+                              title: 'About & Support',
+                              items: [
+                                SettingsNavigationItem(
+                                  icon: Icons.code_rounded,
+                                  title: 'View on GitHub',
+                                  onTap: () => _openSupportLink(context, _githubRepoUri, 'GitHub repository'),
+                                ),
+                                SettingsNavigationItem(
+                                  icon: Icons.bug_report_outlined,
+                                  title: 'Report bug or enhancement',
+                                  onTap: () => _openSupportLink(context, _githubIssueUri, 'issue tracker'),
+                                ),
+                                SettingsNavigationItem(
+                                  icon: Icons.favorite_outline,
+                                  title: 'Sponsor',
+                                  subtitle: 'Help covering active costs and support development',
+                                  onTap: () => _openSupportLink(context, _githubSponsorUri, 'GitHub Sponsors page'),
+                                ),
+                                SettingsNavigationItem(
+                                  icon: Icons.article_outlined,
+                                  title: 'Logs',
+                                  onTap: () =>
+                                      Navigator.push(context, MaterialPageRoute(builder: (context) => const LogView())),
+                                ),
+                                SettingsNavigationItem(
+                                  icon: Icons.info_outline_rounded,
+                                  title: 'Information & Attribution',
+                                  subtitle: 'Licenses, app version, licenses, and more',
+                                  onTap: () => LicenseSettings.showLicensePage(context: context),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
-                    );
-                  },
                 ),
-                ref
-                    .watch(currentUserProvider)
-                    .when(
-                      data: (currentUser) {
-                        if (currentUser == null || AaosService.instance.currentState.isAutomotiveDevice) {
-                          return const SizedBox.shrink();
-                        }
-
-                        return ManagementSettingsSection(currentUser: currentUser);
-                      },
-                      loading: () => const SizedBox.shrink(),
-                      error: (error, stackTrace) => const SizedBox.shrink(),
-                    ),
-                SettingsNavigationSection(
-                  title: 'About & Support',
-                  items: [
-                    SettingsNavigationItem(
-                      icon: Icons.code_rounded,
-                      title: 'View on GitHub',
-                      onTap: () => _openSupportLink(context, _githubRepoUri, 'GitHub repository'),
-                    ),
-                    SettingsNavigationItem(
-                      icon: Icons.bug_report_outlined,
-                      title: 'Report bug or enhancement',
-                      onTap: () => _openSupportLink(context, _githubIssueUri, 'issue tracker'),
-                    ),
-                    SettingsNavigationItem(
-                      icon: Icons.favorite_outline,
-                      title: 'Sponsor',
-                      subtitle: 'Help covering active costs and support development',
-                      onTap: () => _openSupportLink(context, _githubSponsorUri, 'GitHub Sponsors page'),
-                    ),
-                    SettingsNavigationItem(
-                      icon: Icons.article_outlined,
-                      title: 'Logs',
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const LogView())),
-                    ),
-                    SettingsNavigationItem(
-                      icon: Icons.info_outline_rounded,
-                      title: 'Information & Attribution',
-                      subtitle: 'Licenses, App version, licenses, etc.',
-                      onTap: () => LicenseSettings.showLicensePage(context: context),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ],

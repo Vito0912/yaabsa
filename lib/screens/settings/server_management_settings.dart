@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/components/settings/settings_switch_tile.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/database/settings_manager.dart';
@@ -26,7 +27,7 @@ class ServerManagementSettings extends ConsumerWidget {
             if (currentUser == null) {
               return const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                child: Text('No active user. Sign in to manage server management visibility settings.'),
+                child: Text('Sign in to manage server management settings'),
               );
             }
 
@@ -35,17 +36,18 @@ class ServerManagementSettings extends ConsumerWidget {
             final canUploadItems = currentUser.permissions.upload;
             final appDatabase = ref.watch(appDatabaseProvider);
 
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
+            return SettingsNavigationSection(
+              title: 'Permission Visibility',
+              topPadding: 0,
+              settings: [
                 SettingSwitchTile(
                   label: 'Collections',
                   settingKey: SettingKeys.serverManagementCollections,
                   userId: canUpdateItems ? currentUser.id : null,
                   defaultValue: true,
                   enabled: canUpdateItems,
-                  subtitle: 'Allows you to edit and create collections like playlists',
-                  disabledReason: canUpdateItems ? null : 'Requires edit-item permission.',
+                  subtitle: 'Allows editing and creating collections like playlists',
+                  disabledReason: canUpdateItems ? null : 'Requires edit-item permission',
                 ),
                 SettingSwitchTile(
                   label: 'Edit items',
@@ -98,7 +100,7 @@ class ServerManagementSettings extends ConsumerWidget {
                       userId: canUpdateItems ? currentUser.id : null,
                       defaultValue: false,
                       enabled: canEnableMatches,
-                      subtitle: 'Allows using the match, quick match and preview match features',
+                      subtitle: 'Allows using match, quick match, and preview match features',
                       disabledReason: canUpdateItems ? 'Enable "Edit items" first' : 'Requires edit-item permission',
                     );
                   },

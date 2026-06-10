@@ -81,6 +81,29 @@ class _PersonalizedShelfSectionsEditorState extends ConsumerState<PersonalizedSh
     await _persistPreferences(defaults, successMessage: 'Reset $_title to defaults.');
   }
 
+  BorderRadius _getBorderRadius(int index, int total) {
+    if (total == 1) {
+      return BorderRadius.circular(24);
+    }
+    if (index == 0) {
+      return const BorderRadius.only(
+        topLeft: Radius.circular(24),
+        topRight: Radius.circular(24),
+        bottomLeft: Radius.circular(4),
+        bottomRight: Radius.circular(4),
+      );
+    }
+    if (index == total - 1) {
+      return const BorderRadius.only(
+        topLeft: Radius.circular(4),
+        topRight: Radius.circular(4),
+        bottomLeft: Radius.circular(24),
+        bottomRight: Radius.circular(24),
+      );
+    }
+    return BorderRadius.circular(4);
+  }
+
   @override
   Widget build(BuildContext context) {
     final appDatabase = ref.watch(appDatabaseProvider);
@@ -101,39 +124,43 @@ class _PersonalizedShelfSectionsEditorState extends ConsumerState<PersonalizedSh
           builder: (context, snapshot) {
             final rawValue = snapshot.data?.value ?? fallbackRawValue;
             final preferences = PersonalizedShelfPreferencesCodec.decode(rawValue, widget.mediaType);
+            final total = preferences.orderedSectionIds.length;
 
             return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: ReorderableListView.builder(
-                  shrinkWrap: true,
-                  buildDefaultDragHandles: false,
-                  physics: const NeverScrollableScrollPhysics(),
-                  onReorderItem: _isSaving
-                      ? (_, _) {}
-                      : (oldIndex, newIndex) => _handleReorder(preferences, oldIndex, newIndex),
-                  itemCount: preferences.orderedSectionIds.length,
-                  itemBuilder: (context, index) {
-                    final sectionId = preferences.orderedSectionIds[index];
-                    final section = PersonalizedShelfSection.fromId(sectionId);
-                    final isVisible = !preferences.hiddenSectionIds.contains(sectionId);
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: ReorderableListView.builder(
+                shrinkWrap: true,
+                buildDefaultDragHandles: false,
+                physics: const NeverScrollableScrollPhysics(),
+                onReorderItem: _isSaving
+                    ? (_, _) {}
+                    : (oldIndex, newIndex) => _handleReorder(preferences, oldIndex, newIndex),
+                itemCount: total,
+                itemBuilder: (context, index) {
+                  final sectionId = preferences.orderedSectionIds[index];
+                  final section = PersonalizedShelfSection.fromId(sectionId);
+                  final isVisible = !preferences.hiddenSectionIds.contains(sectionId);
 
-                    return _PersonalizedShelfSectionRow(
-                      key: ValueKey('${widget.mediaType.name}:$sectionId'),
-                      sectionLabel: section?.label ?? sectionId,
-                      sectionIcon: section?.icon ?? Icons.view_carousel_outlined,
-                      isVisible: isVisible,
-                      isSaving: _isSaving,
-                      showDivider: index < preferences.orderedSectionIds.length - 1,
-                      onVisibilityChanged: (nextValue) => _handleVisibilityToggle(preferences, sectionId, nextValue),
-                      reorderIndex: index,
-                    );
-                  },
-                ),
+                  return Padding(
+                    key: ValueKey('${widget.mediaType.name}:$sectionId'),
+                    padding: EdgeInsets.only(bottom: index == total - 1 ? 0 : 2),
+                    child: ClipRRect(
+                      borderRadius: _getBorderRadius(index, total),
+                      child: Container(
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                        child: _PersonalizedShelfSectionRow(
+                          sectionLabel: section?.label ?? sectionId,
+                          sectionIcon: section?.icon ?? Icons.view_carousel_outlined,
+                          isVisible: isVisible,
+                          isSaving: _isSaving,
+                          onVisibilityChanged: (nextValue) =>
+                              _handleVisibilityToggle(preferences, sectionId, nextValue),
+                          reorderIndex: index,
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
             );
           },
@@ -145,12 +172,10 @@ class _PersonalizedShelfSectionsEditorState extends ConsumerState<PersonalizedSh
 
 class _PersonalizedShelfSectionRow extends StatelessWidget {
   const _PersonalizedShelfSectionRow({
-    super.key,
     required this.sectionLabel,
     required this.sectionIcon,
     required this.isVisible,
     required this.isSaving,
-    required this.showDivider,
     required this.onVisibilityChanged,
     required this.reorderIndex,
   });
@@ -159,7 +184,6 @@ class _PersonalizedShelfSectionRow extends StatelessWidget {
   final IconData sectionIcon;
   final bool isVisible;
   final bool isSaving;
-  final bool showDivider;
   final ValueChanged<bool> onVisibilityChanged;
   final int reorderIndex;
 
@@ -167,26 +191,27 @@ class _PersonalizedShelfSectionRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        border: showDivider
-            ? Border(bottom: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.2), width: 1))
-            : null,
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        child: Row(
-          children: [
-            Icon(sectionIcon, size: 20, color: colorScheme.onSurfaceVariant),
-            const SizedBox(width: 12),
-            Expanded(child: Text(sectionLabel, style: Theme.of(context).textTheme.titleSmall)),
-            Switch.adaptive(value: isVisible, onChanged: isSaving ? null : onVisibilityChanged),
-            ReorderableDragStartListener(
-              index: reorderIndex,
-              child: Icon(Icons.drag_handle_rounded, color: colorScheme.onSurfaceVariant),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      child: Row(
+        children: [
+          Icon(sectionIcon, size: 22, color: colorScheme.primary),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              sectionLabel,
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500, color: colorScheme.onSurface),
             ),
-          ],
-        ),
+          ),
+          Switch.adaptive(value: isVisible, onChanged: isSaving ? null : onVisibilityChanged),
+          const SizedBox(width: 16),
+          ReorderableDragStartListener(
+            index: reorderIndex,
+            child: Icon(Icons.drag_handle_rounded, color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6)),
+          ),
+        ],
       ),
     );
   }

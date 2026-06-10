@@ -32,8 +32,9 @@ class _AndroidAutoSettingsState extends ConsumerState<AndroidAutoSettings> {
   Widget _buildAaosSettings(BuildContext context) {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: Padding(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -45,10 +46,7 @@ class _AndroidAutoSettingsState extends ConsumerState<AndroidAutoSettings> {
               ],
             ),
             const SizedBox(height: 8),
-            Text(
-              'For now there are no additional AAOS-specific settings.',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
+            Text('No additional AAOS-specific settings at this time', style: Theme.of(context).textTheme.bodyMedium),
           ],
         ),
       ),
@@ -59,13 +57,18 @@ class _AndroidAutoSettingsState extends ConsumerState<AndroidAutoSettings> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SettingSwitchTile(
-          userId: userId,
-          label: 'Group Large Lists By First Letter',
-          subtitle:
-              'For long $integrationLabel lists, group entries alphabetically so browsing with rotary controls is faster.',
-          settingKey: SettingKeys.androidAutoGroupByLetters,
-          defaultValue: true,
+        SettingsNavigationSection(
+          title: 'General',
+          topPadding: 0,
+          settings: [
+            SettingSwitchTile(
+              userId: userId,
+              label: 'Group Large Lists By First Letter',
+              subtitle: 'Group entries alphabetically for faster rotary browsing in long $integrationLabel lists',
+              settingKey: SettingKeys.androidAutoGroupByLetters,
+              defaultValue: true,
+            ),
+          ],
         ),
         SettingsNavigationSection(
           title: 'Library Browse Settings',
@@ -74,13 +77,13 @@ class _AndroidAutoSettingsState extends ConsumerState<AndroidAutoSettings> {
             SettingsNavigationItem(
               icon: Icons.library_books_outlined,
               title: 'Library',
-              subtitle: 'Configure sorting for audiobook library browsing in $integrationLabel.',
+              subtitle: 'Configure sorting for audiobook library browsing in $integrationLabel',
               onTap: () => context.push(AndroidAutoLibrarySettings.routeName),
             ),
             SettingsNavigationItem(
               icon: Icons.podcasts_outlined,
               title: 'Podcast Library',
-              subtitle: 'Configure sorting for podcast library browsing in $integrationLabel.',
+              subtitle: 'Configure sorting for podcast library browsing in $integrationLabel',
               onTap: () => context.push(AndroidAutoPodcastLibrarySettings.routeName),
             ),
           ],
@@ -114,7 +117,7 @@ class _AndroidAutoSettingsState extends ConsumerState<AndroidAutoSettings> {
                   if (user == null) {
                     return const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                      child: Text('No active user. Sign in to configure car browse settings.'),
+                      child: Text('Sign in to configure car browse settings'),
                     );
                   }
 

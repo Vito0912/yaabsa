@@ -96,6 +96,29 @@ class _HomeNavigationPreferencesEditorState extends ConsumerState<HomeNavigation
     await _persistPreferences(defaults, successMessage: 'Reset $_title to defaults.');
   }
 
+  BorderRadius _getBorderRadius(int index, int total) {
+    if (total == 1) {
+      return BorderRadius.circular(24);
+    }
+    if (index == 0) {
+      return const BorderRadius.only(
+        topLeft: Radius.circular(24),
+        topRight: Radius.circular(24),
+        bottomLeft: Radius.circular(4),
+        bottomRight: Radius.circular(4),
+      );
+    }
+    if (index == total - 1) {
+      return const BorderRadius.only(
+        topLeft: Radius.circular(4),
+        topRight: Radius.circular(4),
+        bottomLeft: Radius.circular(24),
+        bottomRight: Radius.circular(24),
+      );
+    }
+    return BorderRadius.circular(4);
+  }
+
   @override
   Widget build(BuildContext context) {
     final appDatabase = ref.watch(appDatabaseProvider);
@@ -116,40 +139,43 @@ class _HomeNavigationPreferencesEditorState extends ConsumerState<HomeNavigation
           builder: (context, snapshot) {
             final rawValue = snapshot.data?.value ?? fallbackRawValue;
             final preferences = HomeNavigationPreferencesCodec.decode(rawValue, widget.mediaType);
+            final total = preferences.orderedViews.length;
 
             return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: ReorderableListView.builder(
-                  shrinkWrap: true,
-                  buildDefaultDragHandles: false,
-                  physics: const NeverScrollableScrollPhysics(),
-                  onReorderItem: _isSaving
-                      ? (_, _) {}
-                      : (oldIndex, newIndex) => _handleReorder(preferences, oldIndex, newIndex),
-                  itemCount: preferences.orderedViews.length,
-                  itemBuilder: (context, index) {
-                    final view = preferences.orderedViews[index];
-                    final isVisible = !preferences.hiddenViews.contains(view);
-                    final isDefault = preferences.defaultView == view;
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: ReorderableListView.builder(
+                shrinkWrap: true,
+                buildDefaultDragHandles: false,
+                physics: const NeverScrollableScrollPhysics(),
+                onReorderItem: _isSaving
+                    ? (_, _) {}
+                    : (oldIndex, newIndex) => _handleReorder(preferences, oldIndex, newIndex),
+                itemCount: total,
+                itemBuilder: (context, index) {
+                  final view = preferences.orderedViews[index];
+                  final isVisible = !preferences.hiddenViews.contains(view);
+                  final isDefault = preferences.defaultView == view;
 
-                    return _HomeNavigationPreferenceRow(
-                      key: ValueKey(view.storageKey),
-                      view: view,
-                      isVisible: isVisible,
-                      isDefault: isDefault,
-                      isSaving: _isSaving,
-                      showDivider: index < preferences.orderedViews.length - 1,
-                      onVisibilityChanged: (nextValue) => _handleVisibilityToggle(preferences, view, nextValue),
-                      onSetDefault: () => _handleDefaultViewChange(preferences, view),
-                      reorderIndex: index,
-                    );
-                  },
-                ),
+                  return Padding(
+                    key: ValueKey(view.storageKey),
+                    padding: EdgeInsets.only(bottom: index == total - 1 ? 0 : 2),
+                    child: ClipRRect(
+                      borderRadius: _getBorderRadius(index, total),
+                      child: Container(
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                        child: _HomeNavigationPreferenceRow(
+                          view: view,
+                          isVisible: isVisible,
+                          isDefault: isDefault,
+                          isSaving: _isSaving,
+                          onVisibilityChanged: (nextValue) => _handleVisibilityToggle(preferences, view, nextValue),
+                          onSetDefault: () => _handleDefaultViewChange(preferences, view),
+                          reorderIndex: index,
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
             );
           },
@@ -161,12 +187,10 @@ class _HomeNavigationPreferencesEditorState extends ConsumerState<HomeNavigation
 
 class _HomeNavigationPreferenceRow extends StatelessWidget {
   const _HomeNavigationPreferenceRow({
-    super.key,
     required this.view,
     required this.isVisible,
     required this.isDefault,
     required this.isSaving,
-    required this.showDivider,
     required this.onVisibilityChanged,
     required this.onSetDefault,
     required this.reorderIndex,
@@ -176,7 +200,6 @@ class _HomeNavigationPreferenceRow extends StatelessWidget {
   final bool isVisible;
   final bool isDefault;
   final bool isSaving;
-  final bool showDivider;
   final ValueChanged<bool> onVisibilityChanged;
   final VoidCallback onSetDefault;
   final int reorderIndex;
@@ -185,36 +208,37 @@ class _HomeNavigationPreferenceRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        border: showDivider
-            ? Border(bottom: BorderSide(color: Theme.of(context).dividerColor.withValues(alpha: 0.2), width: 1))
-            : null,
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        child: Row(
-          children: [
-            Icon(view.icon, size: 20, color: colorScheme.onSurfaceVariant),
-            const SizedBox(width: 12),
-            Expanded(child: Text(view.label, style: Theme.of(context).textTheme.titleSmall)),
-            IconButton(
-              tooltip: isVisible
-                  ? (isDefault ? 'Default view' : 'Set as default view')
-                  : 'Enable this view to set it as default',
-              onPressed: !isSaving && isVisible && !isDefault ? onSetDefault : null,
-              icon: Icon(
-                isDefault ? Icons.radio_button_checked_rounded : Icons.radio_button_unchecked_rounded,
-                color: isDefault ? colorScheme.primary : colorScheme.onSurfaceVariant,
-              ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      child: Row(
+        children: [
+          Icon(view.icon, size: 22, color: colorScheme.primary),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              view.label,
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500, color: colorScheme.onSurface),
             ),
-            Switch.adaptive(value: isVisible, onChanged: isSaving ? null : onVisibilityChanged),
-            ReorderableDragStartListener(
-              index: reorderIndex,
-              child: Icon(Icons.drag_handle_rounded, color: colorScheme.onSurfaceVariant),
+          ),
+          IconButton(
+            tooltip: isVisible
+                ? (isDefault ? 'Default view' : 'Set as default view')
+                : 'Enable this view to set it as default',
+            onPressed: !isSaving && isVisible && !isDefault ? onSetDefault : null,
+            icon: Icon(
+              isDefault ? Icons.radio_button_checked_rounded : Icons.radio_button_unchecked_rounded,
+              color: isDefault ? colorScheme.primary : colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
             ),
-          ],
-        ),
+          ),
+          Switch.adaptive(value: isVisible, onChanged: isSaving ? null : onVisibilityChanged),
+          const SizedBox(width: 16),
+          ReorderableDragStartListener(
+            index: reorderIndex,
+            child: Icon(Icons.drag_handle_rounded, color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6)),
+          ),
+        ],
       ),
     );
   }

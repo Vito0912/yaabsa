@@ -1,7 +1,8 @@
 import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:yaabsa/components/common/inputs/expressive_dropdown.dart';
+import 'package:yaabsa/components/settings/settings_dropdown.dart';
+import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/components/settings/settings_switch_tile.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/database/settings_manager.dart';
@@ -71,17 +72,18 @@ class _AndroidAutoPodcastLibrarySettingsState extends ConsumerState<AndroidAutoP
             if (user == null) {
               return const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                child: Text('No active user. Sign in to configure car podcast settings.'),
+                child: Text('No active user. Sign in to configure car podcast settings'),
               );
             }
 
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
+            return SettingsNavigationSection(
+              title: 'Podcast Browse Settings',
+              topPadding: 0,
+              settings: [
                 SettingSwitchTile(
                   userId: user.id,
                   label: 'Sort Descending',
-                  subtitle: 'When enabled, $integrationLabel podcast lists are sorted in descending order.',
+                  subtitle: 'Sort podcast lists in descending order',
                   settingKey: SettingKeys.androidAutoPodcastSortDescending,
                   defaultValue: true,
                 ),
@@ -101,24 +103,15 @@ class _AndroidAutoPodcastLibrarySettingsState extends ConsumerState<AndroidAutoP
                         ? sortField
                         : _sortFieldAdded;
 
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      child: YaabsaExpressiveDropdownField<String>(
-                        value: safeSortField,
-                        decoration: const InputDecoration(labelText: 'Sort By'),
-                        options: const [
-                          YaabsaDropdownOption<String>(value: _sortFieldTitle, label: 'Title'),
-                          YaabsaDropdownOption<String>(value: _sortFieldAuthor, label: 'Author'),
-                          YaabsaDropdownOption<String>(value: _sortFieldAdded, label: 'Date Added'),
-                        ],
-                        onChanged: _isUpdatingSortField
-                            ? null
-                            : (value) {
-                                if (value != null) {
-                                  _setSortField(userId: user.id, sortField: value);
-                                }
-                              },
-                      ),
+                    return SettingDropdown<String>.remote(
+                      label: 'Sort By',
+                      values: const [_sortFieldTitle, _sortFieldAuthor, _sortFieldAdded],
+                      valueLabels: const ['Title', 'Author', 'Date Added'],
+                      value: safeSortField,
+                      enabled: !_isUpdatingSortField,
+                      onValueChanged: (value) {
+                        _setSortField(userId: user.id, sortField: value);
+                      },
                     );
                   },
                 ),

@@ -44,7 +44,7 @@ class SettingSlider<T> extends ConsumerWidget {
             return _buildSliderContent(context, ref, currentValue, theme, textTheme);
           }
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
             child: Text(
               'Error: Default value for $settingKey (type: ${defaultValueDynamic?.runtimeType}) is not of type $T or values list is empty.',
               style: textTheme.bodyMedium?.copyWith(color: theme.colorScheme.error),
@@ -56,7 +56,7 @@ class SettingSlider<T> extends ConsumerWidget {
         return _buildSliderContent(context, ref, currentValue, theme, textTheme);
       },
       loading: () => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -74,7 +74,7 @@ class SettingSlider<T> extends ConsumerWidget {
         ),
       ),
       error: (error, stackTrace) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -103,7 +103,7 @@ class SettingSlider<T> extends ConsumerWidget {
   ) {
     if (values.isEmpty || valueLabels.isEmpty || values.length != valueLabels.length) {
       return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
         child: Text(
           'Configuration error for slider: $label',
           style: textTheme.bodyMedium?.copyWith(color: theme.colorScheme.error),
@@ -111,90 +111,88 @@ class SettingSlider<T> extends ConsumerWidget {
       );
     }
 
+    final colorScheme = theme.colorScheme;
     final int currentIndex = values.indexOf(currentValue);
     final int safeIndex = currentIndex >= 0 && currentIndex < values.length ? currentIndex : 0;
     final String currentDisplayValue = valueLabels[safeIndex];
+    final isEnabled = enabled;
+
     final details = <String>[
       if (description != null && description!.isNotEmpty) description!,
       if (!enabled && disabledReason != null && disabledReason!.isNotEmpty) disabledReason!,
     ];
+    final subtitleText = details.isEmpty ? null : details.join('\n');
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 14.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Flexible(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Flexible(
-                      child: Text(
-                        label,
-                        style: textTheme.titleMedium?.copyWith(color: enabled ? null : theme.disabledColor),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
+                    Text(
+                      label,
+                      style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w500,
+                        color: isEnabled ? colorScheme.onSurface : colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
                       ),
                     ),
-                    if (details.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(left: 6.0),
-                        child: Tooltip(
-                          message: details.join('\n'),
-                          triggerMode: TooltipTriggerMode.tap,
-                          child: Icon(
-                            Icons.info_outline,
-                            size: 20,
-                            color: enabled ? theme.colorScheme.onSurfaceVariant : theme.disabledColor,
-                          ),
+                    if (subtitleText != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitleText,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: isEnabled
+                              ? colorScheme.onSurfaceVariant
+                              : colorScheme.onSurfaceVariant.withValues(alpha: 0.38),
                         ),
                       ),
-                    if (icon != null && tooltip != null)
-                      Padding(
-                        padding: const EdgeInsets.only(left: 6.0),
-                        child: Tooltip(
-                          message: tooltip!,
-                          child: Icon(
-                            icon,
-                            size: 20,
-                            color: enabled ? theme.colorScheme.onSurfaceVariant : theme.disabledColor,
-                          ),
-                        ),
-                      ),
+                    ],
                   ],
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.only(left: 16.0),
-                child: Text(
-                  currentDisplayValue,
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: enabled ? theme.colorScheme.primary : theme.disabledColor,
-                    fontWeight: FontWeight.w500,
+              const SizedBox(width: 16),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (icon != null && tooltip != null)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: Tooltip(
+                        message: tooltip!,
+                        child: Icon(icon, size: 20, color: colorScheme.onSurfaceVariant),
+                      ),
+                    ),
+                  Text(
+                    currentDisplayValue,
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: isEnabled ? colorScheme.primary : theme.disabledColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ),
+                ],
               ),
             ],
           ),
+          const SizedBox(height: 8),
           if (values.length > 1) ...[
             SliderTheme(
               data: SliderTheme.of(context).copyWith(
-                trackHeight: 4.0,
-                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10.0),
-                overlayShape: const RoundSliderOverlayShape(overlayRadius: 20.0),
-                activeTrackColor: theme.colorScheme.primary,
-                inactiveTrackColor: theme.colorScheme.primaryContainer,
-                thumbColor: theme.colorScheme.primary,
-                overlayColor: theme.colorScheme.primary.withValues(alpha: 0.12),
-                valueIndicatorTextStyle: textTheme.labelSmall?.copyWith(color: theme.colorScheme.onPrimary),
-                valueIndicatorColor: theme.colorScheme.primary,
+                activeTrackColor: colorScheme.primary,
+                inactiveTrackColor: colorScheme.primaryContainer,
+                thumbColor: colorScheme.primary,
+                overlayColor: colorScheme.primary.withValues(alpha: 0.12),
+                valueIndicatorTextStyle: textTheme.labelSmall?.copyWith(color: colorScheme.onPrimary),
+                valueIndicatorColor: colorScheme.primary,
               ),
               child: Slider(
                 min: 0,
@@ -202,7 +200,7 @@ class SettingSlider<T> extends ConsumerWidget {
                 divisions: values.length - 1,
                 value: safeIndex.toDouble(),
                 label: valueLabels[safeIndex],
-                onChanged: enabled
+                onChanged: isEnabled
                     ? (double newIndex) {
                         final T newValue = values[newIndex.round()];
                         ref.read(settingsManagerProvider.notifier).setGlobalSetting<T>(settingKey, newValue);
@@ -218,17 +216,29 @@ class SettingSlider<T> extends ConsumerWidget {
                 children: [
                   Text(
                     valueLabels.first,
-                    style: textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    style: textTheme.labelSmall?.copyWith(
+                      color: isEnabled
+                          ? colorScheme.onSurfaceVariant
+                          : colorScheme.onSurfaceVariant.withValues(alpha: 0.38),
+                    ),
                   ),
                   if (valueLabels.length > 2 && valueLabels.length.isOdd)
                     Text(
                       valueLabels[(valueLabels.length ~/ 2)],
-                      style: textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                      style: textTheme.labelSmall?.copyWith(
+                        color: isEnabled
+                            ? colorScheme.onSurfaceVariant
+                            : colorScheme.onSurfaceVariant.withValues(alpha: 0.38),
+                      ),
                     ),
                   if (valueLabels.length > 1)
                     Text(
                       valueLabels.last,
-                      style: textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                      style: textTheme.labelSmall?.copyWith(
+                        color: isEnabled
+                            ? colorScheme.onSurfaceVariant
+                            : colorScheme.onSurfaceVariant.withValues(alpha: 0.38),
+                      ),
                     ),
                 ],
               ),
@@ -238,7 +248,7 @@ class SettingSlider<T> extends ConsumerWidget {
               padding: const EdgeInsets.only(top: 8.0),
               child: Text(
                 valueLabels.first,
-                style: textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
               ),
             ),
           ],

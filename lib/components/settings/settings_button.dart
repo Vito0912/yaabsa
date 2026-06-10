@@ -28,84 +28,83 @@ class SettingButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final TextTheme textTheme = theme.textTheme;
+    final isEnabled = onPressed != null;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Flexible(
-                child: Row(
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Flexible(
-                      child: Text(label, style: textTheme.titleMedium, overflow: TextOverflow.ellipsis, maxLines: 1),
-                    ),
-                    if (description != null && description!.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(left: 6.0),
-                        child: Tooltip(
-                          message: description!,
-                          triggerMode: TooltipTriggerMode.tap,
-                          child: Icon(Icons.info_outline, size: 20, color: theme.colorScheme.onSurfaceVariant),
+                      child: Text(
+                        label,
+                        style: textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w500,
+                          color: isEnabled
+                              ? colorScheme.onSurface
+                              : colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
                         ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       ),
+                    ),
                     if (icon != null && tooltip != null)
                       Padding(
                         padding: const EdgeInsets.only(left: 6.0),
                         child: Tooltip(
                           message: tooltip!,
-                          child: Icon(icon, size: 20, color: theme.colorScheme.onSurfaceVariant),
+                          child: Icon(icon, size: 20, color: colorScheme.onSurfaceVariant),
                         ),
                       ),
                   ],
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 16.0),
-                child: isLoading
-                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.5))
-                    : ElevatedButton.icon(
-                        onPressed: onPressed,
-                        icon: buttonIcon != null
-                            ? Icon(
-                                buttonIcon,
-                                size: 18,
-                                color: isDestructive ? theme.colorScheme.onError : theme.colorScheme.onPrimary,
-                              )
-                            : const SizedBox.shrink(),
-                        label: Text(
-                          buttonText,
-                          style: textTheme.labelMedium?.copyWith(
-                            color: isDestructive ? theme.colorScheme.onError : theme.colorScheme.onPrimary,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        style:
-                            ElevatedButton.styleFrom(
-                              backgroundColor: isDestructive ? theme.colorScheme.error : theme.colorScheme.primary,
-                              foregroundColor: isDestructive ? theme.colorScheme.onError : theme.colorScheme.onPrimary,
-                              elevation: 2,
-                              shadowColor: theme.colorScheme.shadow.withValues(alpha: 0.2),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            ).copyWith(
-                              overlayColor: WidgetStateProperty.all(
-                                (isDestructive ? theme.colorScheme.onError : theme.colorScheme.onPrimary).withValues(
-                                  alpha: 0.1,
-                                ),
-                              ),
-                            ),
-                      ),
-              ),
-            ],
+                if (description != null && description!.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    description!,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: isEnabled
+                          ? colorScheme.onSurfaceVariant
+                          : colorScheme.onSurfaceVariant.withValues(alpha: 0.38),
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
+          const SizedBox(width: 16),
+          isLoading
+              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.5))
+              : FilledButton.icon(
+                  onPressed: onPressed,
+                  icon: buttonIcon != null
+                      ? Icon(buttonIcon, size: 16, color: isDestructive ? colorScheme.onError : colorScheme.onPrimary)
+                      : const SizedBox.shrink(),
+                  label: Text(
+                    buttonText,
+                    style: textTheme.labelMedium?.copyWith(
+                      color: isDestructive ? colorScheme.onError : colorScheme.onPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: isDestructive ? colorScheme.error : colorScheme.primary,
+                    foregroundColor: isDestructive ? colorScheme.onError : colorScheme.onPrimary,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
         ],
       ),
     );

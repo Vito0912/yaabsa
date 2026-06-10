@@ -46,7 +46,18 @@ ThemeData buildAppThemeData({
   final seedColor = appThemeSeedColor(preset: preset, customSeedColor: customSeedColor);
   final colorScheme = ColorScheme.fromSeed(seedColor: seedColor, brightness: brightness);
 
-  final baseTheme = ThemeData(useMaterial3: true, colorScheme: colorScheme);
+  final baseTheme = ThemeData(
+    useMaterial3: true,
+    colorScheme: colorScheme,
+    switchTheme: SwitchThemeData(
+      thumbIcon: WidgetStateProperty.resolveWith<Icon?>((Set<WidgetState> states) {
+        if (states.contains(WidgetState.selected)) {
+          return const Icon(Icons.check, size: 16);
+        }
+        return const Icon(Icons.close, size: 16);
+      }),
+    ),
+  );
 
   if (useAmoledDark && brightness == Brightness.dark) {
     return _buildAmoledDarkTheme(baseTheme, seedColor);

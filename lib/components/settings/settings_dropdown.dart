@@ -1,5 +1,3 @@
-import 'package:yaabsa/components/common/inputs/expressive_dropdown.dart';
-import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +10,7 @@ class SettingDropdown<T> extends ConsumerWidget {
   final IconData? icon;
   final List<T> values;
   final List<String> valueLabels;
+  final List<String>? valueDescriptions;
   final String? settingKey;
   final ValueChanged<T>? onChanged;
   final T? value;
@@ -27,6 +26,7 @@ class SettingDropdown<T> extends ConsumerWidget {
     this.icon,
     required this.values,
     required this.valueLabels,
+    this.valueDescriptions,
     required this.settingKey,
     this.onChanged,
     this.enabled = true,
@@ -42,6 +42,7 @@ class SettingDropdown<T> extends ConsumerWidget {
     this.icon,
     required this.values,
     required this.valueLabels,
+    this.valueDescriptions,
     required this.value,
     required this.onValueChanged,
     this.enabled = true,
@@ -51,13 +52,13 @@ class SettingDropdown<T> extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final ThemeData theme = Theme.of(context);
-    final TextTheme textTheme = theme.textTheme;
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
 
     if (settingKey == null) {
       if (values.isEmpty || valueLabels.isEmpty || values.length != valueLabels.length) {
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
           child: Text(
             'Configuration error for dropdown: $label',
             style: textTheme.bodyMedium?.copyWith(color: theme.colorScheme.error),
@@ -71,8 +72,6 @@ class SettingDropdown<T> extends ConsumerWidget {
       return _buildDropdownContent(
         context,
         resolvedValue,
-        theme,
-        textTheme,
         enabled: enabled && !isLoading,
         onValueSelected: (newValue) {
           onValueChanged?.call(newValue);
@@ -91,8 +90,6 @@ class SettingDropdown<T> extends ConsumerWidget {
             return _buildDropdownContent(
               context,
               currentValue,
-              theme,
-              textTheme,
               enabled: enabled && !isLoading,
               onValueSelected: (newValue) {
                 ref.read(settingsManagerProvider.notifier).setGlobalSetting<T>(settingKey!, newValue);
@@ -101,7 +98,7 @@ class SettingDropdown<T> extends ConsumerWidget {
             );
           }
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
             child: Text(
               'Error: Default value for $settingKey (type: ${defaultValueDynamic?.runtimeType}) is not of type $T or values list is empty.',
               style: textTheme.bodyMedium?.copyWith(color: theme.colorScheme.error),
@@ -113,8 +110,6 @@ class SettingDropdown<T> extends ConsumerWidget {
         return _buildDropdownContent(
           context,
           currentValue,
-          theme,
-          textTheme,
           enabled: enabled && !isLoading,
           onValueSelected: (newValue) {
             ref.read(settingsManagerProvider.notifier).setGlobalSetting<T>(settingKey!, newValue);
@@ -123,7 +118,7 @@ class SettingDropdown<T> extends ConsumerWidget {
         );
       },
       loading: () => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -141,7 +136,7 @@ class SettingDropdown<T> extends ConsumerWidget {
         ),
       ),
       error: (error, stackTrace) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -163,113 +158,220 @@ class SettingDropdown<T> extends ConsumerWidget {
 
   Widget _buildDropdownContent(
     BuildContext context,
-    T currentValue,
-    ThemeData theme,
-    TextTheme textTheme, {
+    T currentValue, {
     required bool enabled,
     required ValueChanged<T> onValueSelected,
   }) {
     if (values.isEmpty || valueLabels.isEmpty || values.length != valueLabels.length) {
       return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
         child: Text(
           'Configuration error for dropdown: $label',
-          style: textTheme.bodyMedium?.copyWith(color: theme.colorScheme.error),
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.error),
         ),
       );
     }
 
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final int currentIndex = values.indexOf(currentValue);
     final int safeIndex = currentIndex >= 0 && currentIndex < values.length ? currentIndex : 0;
-    final T selectedValue = values[safeIndex];
-    final bool hasTooltipIcon = icon != null && tooltip != null;
+    final String currentDisplayValue = valueLabels[safeIndex];
 
-    final InputDecoration decoration = yaabsaFieldDecoration(context, label: '').copyWith(
-      label: null,
-      labelText: null,
-      hintText: null,
-      helperText: null,
-      isDense: true,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-    );
+    final bool useFewOptionsInlineStyle = values.length <= 3;
 
-    final List<YaabsaDropdownOption<T>> options = List.generate(
-      values.length,
-      (index) => YaabsaDropdownOption<T>(value: values[index], label: valueLabels[index]),
-    );
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final double dropdownWidth = (constraints.maxWidth * 0.45).clamp(120.0, 240.0);
-
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Flexible(
-                      child: Text(
-                        label,
-                        style: textTheme.titleMedium?.copyWith(color: enabled ? null : theme.disabledColor),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
+    if (useFewOptionsInlineStyle) {
+      return RadioGroup<T>(
+        groupValue: currentValue,
+        onChanged: (T? val) {
+          if (enabled && val != null) {
+            onValueSelected(val);
+          }
+        },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: enabled ? colorScheme.primary : colorScheme.primary.withValues(alpha: 0.38),
+                    ),
+                  ),
+                  if (description != null && description!.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      description!,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: enabled
+                            ? colorScheme.onSurfaceVariant
+                            : colorScheme.onSurfaceVariant.withValues(alpha: 0.38),
                       ),
                     ),
-                    if (description != null && description!.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(left: 6.0),
-                        child: Tooltip(
-                          message: description!,
-                          triggerMode: TooltipTriggerMode.tap,
-                          child: Icon(
-                            Icons.info_outline,
-                            size: 20,
-                            color: enabled ? theme.colorScheme.onSurfaceVariant : theme.disabledColor,
-                          ),
-                        ),
-                      ),
-                    if (hasTooltipIcon)
-                      Padding(
-                        padding: const EdgeInsets.only(left: 6.0),
-                        child: Tooltip(
-                          message: tooltip!,
-                          child: Icon(
-                            icon,
-                            size: 20,
-                            color: enabled ? theme.colorScheme.onSurfaceVariant : theme.disabledColor,
-                          ),
-                        ),
-                      ),
                   ],
-                ),
+                ],
               ),
-              const SizedBox(width: 12),
-              SizedBox(
-                width: dropdownWidth,
-                child: YaabsaExpressiveDropdownField<T>(
-                  value: selectedValue,
-                  enabled: enabled,
-                  options: options,
-                  width: dropdownWidth,
-                  decoration: decoration,
-                  onChanged: enabled
-                      ? (newValue) {
-                          if (newValue != null) {
-                            onValueSelected(newValue);
-                          }
-                        }
-                      : null,
+            ),
+            for (int i = 0; i < values.length; i++) ...[
+              InkWell(
+                onTap: enabled ? () => onValueSelected(values[i]) : null,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 32, right: 20, top: 12, bottom: 12),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              valueLabels[i],
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                fontWeight: FontWeight.w500,
+                                color: enabled
+                                    ? (values[i] == currentValue ? colorScheme.primary : colorScheme.onSurface)
+                                    : colorScheme.onSurface.withValues(alpha: 0.38),
+                              ),
+                            ),
+                            if (valueDescriptions != null &&
+                                i < valueDescriptions!.length &&
+                                valueDescriptions![i].isNotEmpty) ...[
+                              const SizedBox(height: 2),
+                              Text(
+                                valueDescriptions![i],
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: enabled
+                                      ? colorScheme.onSurfaceVariant
+                                      : colorScheme.onSurfaceVariant.withValues(alpha: 0.38),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      Radio<T>(value: values[i], activeColor: colorScheme.primary),
+                    ],
+                  ),
                 ),
               ),
             ],
-          );
-        },
-      ),
-    );
+          ],
+        ),
+      );
+    } else {
+      return ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        title: Text(
+          label,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w500,
+            color: enabled ? colorScheme.onSurface : colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+          ),
+        ),
+        subtitle: Text(
+          currentDisplayValue,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: enabled ? colorScheme.onSurfaceVariant : colorScheme.onSurfaceVariant.withValues(alpha: 0.38),
+          ),
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null && tooltip != null)
+              Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: Tooltip(
+                  message: tooltip!,
+                  child: Icon(icon, size: 20, color: colorScheme.onSurfaceVariant),
+                ),
+              ),
+            Icon(
+              Icons.chevron_right_rounded,
+              size: 20,
+              color: colorScheme.onSurfaceVariant.withValues(alpha: enabled ? 0.6 : 0.38),
+            ),
+          ],
+        ),
+        onTap: enabled
+            ? () {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                      title: Text(label),
+                      content: SizedBox(
+                        width: double.maxFinite,
+                        child: SingleChildScrollView(
+                          child: RadioGroup<T>(
+                            groupValue: currentValue,
+                            onChanged: (T? val) {
+                              if (val != null) {
+                                onValueSelected(val);
+                                Navigator.of(context).pop();
+                              }
+                            },
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                if (description != null && description!.isNotEmpty) ...[
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 12.0, left: 4.0, right: 4.0),
+                                    child: Text(
+                                      description!,
+                                      style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                                    ),
+                                  ),
+                                  const Divider(height: 16),
+                                ],
+                                for (int i = 0; i < values.length; i++) ...[
+                                  ListTile(
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                    title: Text(
+                                      valueLabels[i],
+                                      style: theme.textTheme.bodyLarge?.copyWith(
+                                        fontWeight: FontWeight.w500,
+                                        color: values[i] == currentValue ? colorScheme.primary : colorScheme.onSurface,
+                                      ),
+                                    ),
+                                    subtitle:
+                                        valueDescriptions != null &&
+                                            i < valueDescriptions!.length &&
+                                            valueDescriptions![i].isNotEmpty
+                                        ? Text(
+                                            valueDescriptions![i],
+                                            style: theme.textTheme.bodySmall?.copyWith(
+                                              color: colorScheme.onSurfaceVariant,
+                                            ),
+                                          )
+                                        : null,
+                                    trailing: Radio<T>(value: values[i], activeColor: colorScheme.primary),
+                                    onTap: () {
+                                      onValueSelected(values[i]);
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                  if (i < values.length - 1) const Divider(height: 8, thickness: 0.5),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel'))],
+                    );
+                  },
+                );
+              }
+            : null,
+      );
+    }
   }
 }

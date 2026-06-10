@@ -27,61 +27,90 @@ class SettingsNavigationSection extends StatelessWidget {
     required this.title,
     this.items = const [],
     this.settings = const [],
+    this.children = const [],
     this.topPadding = 28,
     this.horizontalPadding = 8,
     this.showSectionTitle = true,
-  }) : assert(items.length > 0 || settings.length > 0, 'Provide at least one navigation item or setting widget.');
+  }) : assert(
+         items.length > 0 || settings.length > 0 || children.length > 0,
+         'Provide at least one navigation item, setting widget, or child.',
+       );
 
   final String title;
   final List<SettingsNavigationItem> items;
   final List<Widget> settings;
+  final List<Widget> children;
   final double topPadding;
   final double horizontalPadding;
   final bool showSectionTitle;
 
+  BorderRadius _getBorderRadius(int index, int total) {
+    if (total == 1) {
+      return BorderRadius.circular(24);
+    }
+    if (index == 0) {
+      return const BorderRadius.only(
+        topLeft: Radius.circular(24),
+        topRight: Radius.circular(24),
+        bottomLeft: Radius.circular(4),
+        bottomRight: Radius.circular(4),
+      );
+    }
+    if (index == total - 1) {
+      return const BorderRadius.only(
+        topLeft: Radius.circular(4),
+        topRight: Radius.circular(4),
+        bottomLeft: Radius.circular(24),
+        bottomRight: Radius.circular(24),
+      );
+    }
+    return BorderRadius.circular(4);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final hasItems = items.isNotEmpty;
-    final hasSettings = settings.isNotEmpty;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    final List<Widget> allItems = [
+      for (var index = 0; index < items.length; index++) _SettingsNavigationTile(item: items[index]),
+      ...settings,
+      ...children,
+    ];
+
+    if (allItems.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (showSectionTitle) SettingsSectionTitle(title: title, topPadding: topPadding),
-        if (hasItems)
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Column(
-                children: [
-                  for (var index = 0; index < items.length; index++) ...[
-                    _SettingsNavigationTile(item: items[index], isFirst: index == 0, isLast: index == items.length - 1),
-                    if (index != items.length - 1)
-                      Divider(
-                        height: 1,
-                        thickness: 1,
-                        color: Theme.of(context).dividerColor.withValues(alpha: 0.12),
-                        indent: 58,
-                      ),
-                  ],
-                ],
-              ),
-            ),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+          child: Column(
+            children: [
+              for (var index = 0; index < allItems.length; index++)
+                Padding(
+                  padding: EdgeInsets.only(bottom: index == allItems.length - 1 ? 0 : 2),
+                  child: ClipRRect(
+                    borderRadius: _getBorderRadius(index, allItems.length),
+                    child: Container(
+                      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                      child: allItems[index],
+                    ),
+                  ),
+                ),
+            ],
           ),
-        if (hasItems && hasSettings) const SizedBox(height: 8),
-        if (hasSettings) Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: settings),
+        ),
       ],
     );
   }
 }
 
 class _SettingsNavigationTile extends StatelessWidget {
-  const _SettingsNavigationTile({required this.item, required this.isFirst, required this.isLast});
+  const _SettingsNavigationTile({required this.item});
 
   final SettingsNavigationItem item;
-  final bool isFirst;
-  final bool isLast;
 
   @override
   Widget build(BuildContext context) {
@@ -93,24 +122,19 @@ class _SettingsNavigationTile extends StatelessWidget {
       if (!isEnabled && item.disabledReason != null && item.disabledReason!.isNotEmpty) item.disabledReason!,
     ];
 
-    final shape = RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(
-        top: isFirst ? const Radius.circular(16) : Radius.zero,
-        bottom: isLast ? const Radius.circular(16) : Radius.zero,
-      ),
-    );
-
     return Material(
-      color: colorScheme.surfaceContainerHighest.withValues(alpha: isEnabled ? 0.5 : 0.35),
-      shape: shape,
+      color: Colors.transparent,
       child: InkWell(
         onTap: isEnabled ? item.onTap : null,
-        customBorder: shape,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           child: Row(
             children: [
-              Icon(item.icon, color: isEnabled ? colorScheme.primary : colorScheme.onSurfaceVariant, size: 22),
+              Icon(
+                item.icon,
+                color: isEnabled ? colorScheme.primary : colorScheme.onSurfaceVariant.withValues(alpha: 0.38),
+                size: 22,
+              ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
@@ -120,11 +144,11 @@ class _SettingsNavigationTile extends StatelessWidget {
                       item.title,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w500,
-                        color: isEnabled ? colorScheme.onSurface : colorScheme.onSurfaceVariant,
+                        color: isEnabled ? colorScheme.onSurface : colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
                       ),
                     ),
                     if (subtitleParts.isNotEmpty) ...[
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 4),
                       Text(
                         subtitleParts.join('\n'),
                         style: Theme.of(
@@ -135,10 +159,11 @@ class _SettingsNavigationTile extends StatelessWidget {
                   ],
                 ),
               ),
+              const SizedBox(width: 8),
               item.trailing ??
                   Icon(
-                    Icons.arrow_forward_ios,
-                    size: 16,
+                    Icons.chevron_right_rounded,
+                    size: 20,
                     color: colorScheme.onSurfaceVariant.withValues(alpha: isEnabled ? 0.6 : 0.38),
                   ),
             ],

@@ -27,7 +27,7 @@ class ToolsSettings extends ConsumerWidget {
             if (currentUser == null) {
               return const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                child: Text('No active user. Sign in to configure tools.'),
+                child: Text('Sign in to configure tools'),
               );
             }
 
@@ -35,15 +35,15 @@ class ToolsSettings extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 2, 20, 6),
+                  padding: const EdgeInsets.fromLTRB(20, 2, 20, 16),
                   child: Text(
-                    'These tools add functionality beyond standard ABS behavior. They coordinate multiple API calls to accomplish a task, so edge cases can happen. All tools are disabled by default. Enabling a tool can add controls to the UI, while other tools live only in subpages below.',
+                    'Additional tools that extend standard ABS behavior by coordinating multiple API calls. All tools are disabled by default',
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ),
                 SettingsNavigationSection(
                   title: 'Tool Subpages',
-                  topPadding: 8,
+                  topPadding: 0,
                   items: [
                     SettingsNavigationItem(
                       icon: Icons.route_outlined,
@@ -52,36 +52,40 @@ class ToolsSettings extends ConsumerWidget {
                     ),
                   ],
                 ),
-                const Divider(height: 26),
-                SettingSwitchTile(
-                  label: 'Remove authors without books',
-                  subtitle: 'This will add a button in the author section to allow deletion of authors without books.',
-                  settingKey: SettingKeys.toolsRemoveAuthorsWithoutBooks,
-                  userId: currentUser.id,
-                  defaultValue: false,
-                ),
-                SettingSwitchTile(
-                  label: 'Force metadata refresh',
-                  subtitle:
-                      'This will add a button to force recreation of metadata files in Admin Server Settings under metadata utils.',
-                  settingKey: SettingKeys.toolsForceMetadataRefresh,
-                  userId: currentUser.id,
-                  defaultValue: false,
-                ),
-                SettingSwitchTile(
-                  label: 'Match audiobook chapters',
-                  subtitle: 'This will add a quick match option to allow quick chapter matching, including bulk mode.',
-                  settingKey: SettingKeys.toolsMatchAudiobookChapters,
-                  userId: currentUser.id,
-                  defaultValue: false,
-                ),
-                SettingSwitchTile(
-                  label: 'Split genres/tags',
-                  subtitle:
-                      'This will add a button to split genres/tags in Admin Server Settings under metadata utils.',
-                  settingKey: SettingKeys.toolsSplitGenresTags,
-                  userId: currentUser.id,
-                  defaultValue: false,
+                SettingsNavigationSection(
+                  title: 'Experimental Tools',
+                  topPadding: 20,
+                  settings: [
+                    SettingSwitchTile(
+                      label: 'Remove authors without books',
+                      subtitle: 'Add a button in the author section to delete authors without books',
+                      settingKey: SettingKeys.toolsRemoveAuthorsWithoutBooks,
+                      userId: currentUser.id,
+                      defaultValue: false,
+                    ),
+                    SettingSwitchTile(
+                      label: 'Force metadata refresh',
+                      subtitle:
+                          'Add a button to force recreation of metadata files in Admin Server Settings under metadata utils',
+                      settingKey: SettingKeys.toolsForceMetadataRefresh,
+                      userId: currentUser.id,
+                      defaultValue: false,
+                    ),
+                    SettingSwitchTile(
+                      label: 'Match audiobook chapters',
+                      subtitle: 'Add a quick match option for fast chapter matching, including bulk mode',
+                      settingKey: SettingKeys.toolsMatchAudiobookChapters,
+                      userId: currentUser.id,
+                      defaultValue: false,
+                    ),
+                    SettingSwitchTile(
+                      label: 'Split genres/tags',
+                      subtitle: 'Add a button to split genres and tags in Admin Server Settings under metadata utils',
+                      settingKey: SettingKeys.toolsSplitGenresTags,
+                      userId: currentUser.id,
+                      defaultValue: false,
+                    ),
+                  ],
                 ),
               ],
             );

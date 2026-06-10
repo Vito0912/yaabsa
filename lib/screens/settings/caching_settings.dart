@@ -30,15 +30,15 @@ class CachingSettings extends ConsumerWidget {
             SettingsNavigationItem(
               icon: Icons.tune_rounded,
               title: 'General',
-              subtitle: 'Enable/disable caching and configure speedup mode behavior.',
+              subtitle: 'Enable/disable caching and configure speedup mode behavior',
               onTap: () => context.push(CachingGeneralSettings.routeName),
             ),
             SettingsNavigationItem(
               icon: Icons.route_rounded,
               title: 'Route Rules',
               subtitle: isCachingEnabled
-                  ? 'Configure endpoint-level cache behavior.'
-                  : 'Open route rules (editing is disabled until caching is enabled).',
+                  ? 'Configure endpoint-level cache behavior'
+                  : 'Open route rules (editing is disabled until caching is enabled)',
               onTap: () => context.push(CachingRouteSettings.routeName),
             ),
           ],

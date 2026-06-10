@@ -24,7 +24,7 @@ class _ComingSoonSettingBody extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-      child: Text('Reader-specific settings will appear here.', style: Theme.of(context).textTheme.bodyLarge),
+      child: Text('Reader-specific settings will appear here', style: Theme.of(context).textTheme.bodyLarge),
     );
   }
 }

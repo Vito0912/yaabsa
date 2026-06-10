@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/components/settings/settings_switch_tile.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
@@ -23,19 +24,23 @@ class CachingRouteSettings extends ConsumerWidget {
       showEmbeddedBackButton: true,
       embeddedBackFallbackRoute: '/settings/caching',
       children: [
-        ...cacheRouteDefinitions.map((route) {
-          final subtitle = route.aggressiveCache
-              ? '${route.pathPattern}\nWarning: Enabling this could lead to odd behavior with multiple devices.'
-              : route.pathPattern;
+        SettingsNavigationSection(
+          title: 'Route Cache Rules',
+          topPadding: 0,
+          settings: cacheRouteDefinitions.map((route) {
+            final subtitle = route.aggressiveCache
+                ? '${route.pathPattern}\nWarning: Enabling this could lead to odd behavior with multiple devices'
+                : route.pathPattern;
 
-          return SettingSwitchTile(
-            label: route.label,
-            subtitle: subtitle,
-            disabledReason: 'Enable response caching to change route-level cache behavior.',
-            settingKey: route.settingKey,
-            enabled: isCachingEnabled,
-          );
-        }),
+            return SettingSwitchTile(
+              label: route.label,
+              subtitle: subtitle,
+              disabledReason: 'Enable response caching to change route-level cache behavior',
+              settingKey: route.settingKey,
+              enabled: isCachingEnabled,
+            );
+          }).toList(),
+        ),
       ],
     );
   }
