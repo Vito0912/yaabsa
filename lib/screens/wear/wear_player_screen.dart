@@ -4,17 +4,12 @@ import 'package:audio_service/audio_service.dart';
 import 'package:background_downloader/background_downloader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:just_audio/just_audio.dart' show AudioSource;
 import 'package:path_provider/path_provider.dart';
-import 'package:yaabsa/api/library_items/audio_track.dart';
-import 'package:yaabsa/api/library_items/library_item.dart';
-import 'package:yaabsa/api/library_items/request/play_library_item_request.dart';
 import 'package:yaabsa/main_wear.dart' show wearAudioHandler;
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/provider/player/session_provider.dart';
 import 'package:yaabsa/screens/wear/components/wear_volume_control.dart';
 import 'package:yaabsa/util/audio_handler/wear_audio_handler.dart';
-import 'package:yaabsa/util/player_utils.dart';
-import 'package:yaabsa/util/globals.dart' show appName;
 
 class WearPlayerScreen extends ConsumerStatefulWidget {
   const WearPlayerScreen({super.key});
@@ -84,60 +79,27 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
 
       mp.sort((a, b) => (b.lastUpdate ?? 0).compareTo(a.lastUpdate ?? 0));
       final lp = mp.firstWhere((p) => !(p.isFinished), orElse: () => mp.first);
-      LibraryItem? li;
-      try {
-        li = (await api.getLibraryItemApi().getLibraryItem(itemId: lp.libraryItemId)).data;
-      } catch (_) {}
 
-      final pr = PlayLibraryItemRequest(
-        deviceInfo: await PlayerUtils.getDeviceInfo(),
-        forceDirectPlay: false,
-        forceTranscode: false,
-        supportedMimeTypes: await PlayerUtils.getSupportedMimeTypes(),
-        mediaPlayer: '$appName just_audio',
-      );
-      final session = (await api.getLibraryItemApi().playLibraryItem(
-        lp.libraryItemId,
-        episodeId: lp.episodeId,
-        playRequest: pr,
-      )).data;
-      final tracks = session?.audioTracks ?? <AudioTrack>[];
-      if (tracks.isEmpty) {
+      final sessions = ref.read(sessionRepositoryProvider);
+      await sessions.closeSession();
+      final media = await sessions.openSession(lp.libraryItemId, episodeId: lp.episodeId);
+      if (media == null || media.tracks.isEmpty) {
         return setState(() {
           _error = 'No audio tracks';
           _isLoading = false;
         });
       }
 
-      final title = session?.displayTitle ?? li?.title ?? 'Unknown';
-      final author = session?.displayAuthor ?? li?.authorString ?? '';
-      String? cover = (li?.hasCover ?? false) ? api.getLibraryItemApi().getCoverUri(lp.libraryItemId).toString() : null;
-
-      final items = <MediaItem>[], sources = <AudioSource>[];
-      for (var i = 0; i < tracks.length; i++) {
-        final t = tracks[i], it = t.toInternalTrack(api.basePathOverride, session!.id);
-        items.add(
-          MediaItem(
-            id: '${lp.libraryItemId}:${lp.episodeId ?? 'item'}:$i',
-            title: tracks.length > 1 ? '$title (${i + 1}/${tracks.length})' : title,
-            artist: author.isNotEmpty ? author : null,
-            duration: Duration(milliseconds: ((t.duration) * 1000).round()),
-            artUri: cover != null ? Uri.parse(cover) : null,
-          ),
-        );
-        sources.add(AudioSource.uri(Uri.parse(it.url!)));
-      }
-      await _h.loadMedia(
-        mediaItems: items,
-        audioSources: sources,
+      await _h.loadInternalMedia(
+        media,
         initialPosition: Duration(microseconds: ((lp.currentTime) * Duration.microsecondsPerSecond).round()),
       );
       _checkExistingDownloads();
       setState(() {
-        _title = title;
-        _author = author;
-        _coverUrl = cover;
-        _itemId = lp.libraryItemId;
+        _title = media.title;
+        _author = media.author ?? '';
+        _coverUrl = media.cover?.toString();
+        _itemId = media.itemId;
         _isPlaying = false;
         _isLoading = false;
       });
@@ -157,11 +119,8 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
     }
   }
 
-  void _ff() => _h.player.seek(_h.player.position + const Duration(seconds: 30));
-  void _rew() {
-    final p = _h.player.position - const Duration(seconds: 15);
-    _h.player.seek(p < Duration.zero ? Duration.zero : p);
-  }
+  void _ff() => _h.seek(_h.position + const Duration(seconds: 30));
+  void _rew() => _h.seek(_h.position - const Duration(seconds: 15));
 
   void _vol() => Navigator.of(context).push(
     MaterialPageRoute(

@@ -4,6 +4,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/database/settings_manager.dart';
+import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/screens/wear/wear_home_screen.dart';
 import 'package:yaabsa/util/audio_handler/wear_audio_handler.dart';
 import 'package:yaabsa/util/globals.dart' show containerRef;
@@ -18,6 +19,8 @@ void main() {
       WidgetsFlutterBinding.ensureInitialized();
       await Init.globals();
       await containerRef.read(settingsManagerProvider.notifier).ensureInitialized();
+      // Tracks reachability and replays offline progress syncs on reconnect.
+      unawaited(containerRef.read(serverStatusProvider.future));
       Init.initLogger();
       wearAudioHandler = await AudioService.init(
         builder: () => WearAudioHandler(),

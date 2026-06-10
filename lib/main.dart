@@ -6,7 +6,7 @@ import 'package:yaabsa/provider/core/socket_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/wear/wear_providers.dart';
-import 'package:yaabsa/util/globals.dart' show appName, audioHandler, containerRef;
+import 'package:yaabsa/util/globals.dart' show appName, audioHandler, containerRef, isAudioHandlerInitialized;
 import 'package:yaabsa/util/aaos_service.dart';
 import 'package:yaabsa/util/app_theme.dart';
 import 'package:yaabsa/util/handler/tray_handler.dart' show TrayManager;
@@ -66,6 +66,7 @@ void main() {
       containerRef.read(absSocketClientProvider);
       Init.initLogger();
       audioHandler = await Init.initAudioHandler();
+      isAudioHandlerInitialized = true;
       await AaosService.instance.initialize();
       TrayManager.update();
 
