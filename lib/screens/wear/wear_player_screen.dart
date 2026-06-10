@@ -4,12 +4,17 @@ import 'package:audio_service/audio_service.dart';
 import 'package:background_downloader/background_downloader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:yaabsa/api/me/media_progress.dart';
+import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/main_wear.dart' show wearAudioHandler;
+import 'package:yaabsa/models/internal_media.dart';
+import 'package:yaabsa/provider/common/library_item_provider.dart';
+import 'package:yaabsa/provider/core/server_reachability_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/player/session_provider.dart';
 import 'package:yaabsa/screens/wear/components/wear_volume_control.dart';
 import 'package:yaabsa/util/audio_handler/wear_audio_handler.dart';
+import 'package:yaabsa/util/globals.dart' show downloadHandler;
 
 class WearPlayerScreen extends ConsumerStatefulWidget {
   const WearPlayerScreen({super.key});
@@ -18,13 +23,16 @@ class WearPlayerScreen extends ConsumerStatefulWidget {
 }
 
 class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
-  String? _title, _author, _coverUrl, _error, _itemId;
+  String? _title, _author, _coverUrl, _error, _itemId, _episodeId;
   bool _isPlaying = false, _isLoading = true, _isDownloaded = false, _isDownloading = false;
   double _volume = 0.7, _downloadProgress = 0.0;
   DateTime _now = DateTime.now();
   StreamSubscription<PlaybackState>? _ps;
+  StreamSubscription<TaskProgressUpdate>? _dlProgress;
+  StreamSubscription<List<TaskRecord>>? _dlQueue;
+  final Map<String, double> _taskProgress = {};
   Timer? _clock;
-  Timer? _downloadPollTimer;
+  Timer? _downloadFinishFallback;
 
   WearAudioHandler get _h => wearAudioHandler;
 
@@ -37,14 +45,54 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
     _clock = Timer.periodic(const Duration(seconds: 30), (_) {
       if (mounted) setState(() => _now = DateTime.now());
     });
+    _dlProgress = downloadHandler.progressUpdateStream.listen((update) {
+      final itemId = _itemId;
+      if (itemId == null || update.task.group != itemId || !mounted) return;
+      _downloadFinishFallback?.cancel();
+      _taskProgress[update.task.taskId] = update.progress < 0 ? 0.0 : update.progress.clamp(0.0, 1.0);
+      final values = _taskProgress.values;
+      setState(() {
+        _isDownloading = true;
+        _downloadProgress = values.isEmpty ? 0.0 : values.reduce((a, b) => a + b) / values.length;
+      });
+    });
+    _dlQueue = downloadHandler.taskQueueStream.listen((tasks) {
+      final itemId = _itemId;
+      if (itemId == null || !_isDownloading) return;
+      final active = tasks.any((t) => downloadHandler.taskBelongsToItem(t, itemId, episodeId: _episodeId));
+      if (active) return;
+      _taskProgress.clear();
+      // Persisting the finished download (file path + cover) lags the task
+      // queue, so keep the ring until the stored download lands (see the
+      // completedDownloadItemIds listener) or, for failed/cancelled
+      // downloads that never produce one, until the fallback fires.
+      _downloadFinishFallback?.cancel();
+      _downloadFinishFallback = Timer(const Duration(seconds: 10), _stopDownloadIndicator);
+    });
+    ref.listenManual(completedDownloadItemIdsProvider, (previous, next) {
+      final itemId = _itemId;
+      if (itemId == null || !_isDownloading) return;
+      if (next.value?.contains(itemId) ?? false) _stopDownloadIndicator();
+    });
     _load();
+  }
+
+  void _stopDownloadIndicator() {
+    _downloadFinishFallback?.cancel();
+    if (!mounted) return;
+    setState(() {
+      _isDownloading = false;
+      _downloadProgress = 0.0;
+    });
   }
 
   @override
   void dispose() {
     _ps?.cancel();
+    _dlProgress?.cancel();
+    _dlQueue?.cancel();
     _clock?.cancel();
-    _downloadPollTimer?.cancel();
+    _downloadFinishFallback?.cancel();
     super.dispose();
   }
 
@@ -54,22 +102,27 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
       _error = null;
     });
     try {
-      final api = ref.read(absApiProvider);
-      if (api == null) {
+      final user = ref.read(currentUserProvider).value;
+      if (user == null) {
         return setState(() {
-          _error = 'Not connected to server';
+          _error = 'Not signed in';
           _isLoading = false;
         });
       }
 
-      final user = (await api.getMeApi().getUser()).data;
-      if (user == null) {
-        return setState(() {
-          _error = 'Failed to load user data';
-          _isLoading = false;
-        });
+      final api = ref.read(absApiProvider);
+      List<MediaProgress>? mp;
+      var freshProgress = false;
+      if (api != null) {
+        try {
+          mp = (await api.getMeApi().getUser()).data?.mediaProgress;
+          freshProgress = mp != null;
+        } catch (_) {
+          // Server unreachable; fall back to the progress cached with the
+          // stored user below.
+        }
       }
-      final mp = user.mediaProgress;
+      mp ??= user.mediaProgress;
       if (mp == null || mp.isEmpty) {
         return setState(() {
           _error = 'No listening history';
@@ -77,29 +130,53 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
         });
       }
 
-      mp.sort((a, b) => (b.lastUpdate ?? 0).compareTo(a.lastUpdate ?? 0));
-      final lp = mp.firstWhere((p) => !(p.isFinished), orElse: () => mp.first);
+      final sorted = [...mp]..sort((a, b) => (b.lastUpdate ?? 0).compareTo(a.lastUpdate ?? 0));
+      final unfinished = sorted.where((p) => !p.isFinished).toList();
+      final candidates = (unfinished.isEmpty ? [sorted.first] : unfinished).take(5).toList();
 
+      final db = ref.read(appDatabaseProvider);
       final sessions = ref.read(sessionRepositoryProvider);
-      await sessions.closeSession();
-      final media = await sessions.openSession(lp.libraryItemId, episodeId: lp.episodeId);
-      if (media == null || media.tracks.isEmpty) {
+      final canReachServer = freshProgress || ref.read(serverReachabilityProvider);
+
+      // Most recent first; skip what cannot play right now (not downloaded
+      // while the server is unreachable) and fall through on open errors.
+      InternalMedia? media;
+      MediaProgress? lp;
+      for (final candidate in candidates) {
+        final downloaded =
+            await db.getStoredDownload(candidate.libraryItemId, user.id, episodeId: candidate.episodeId) != null;
+        if (!downloaded && !canReachServer) continue;
+        try {
+          await sessions.closeSession();
+          final opened = await sessions.openSession(candidate.libraryItemId, episodeId: candidate.episodeId);
+          if (opened != null && opened.tracks.isNotEmpty) {
+            media = opened;
+            lp = candidate;
+            break;
+          }
+        } catch (_) {
+          // Try the next candidate.
+        }
+      }
+
+      if (media == null || lp == null) {
         return setState(() {
-          _error = 'No audio tracks';
+          _error = 'Nothing playable found.\nDownload an item or check your connection.';
           _isLoading = false;
         });
       }
+      final loadedMedia = media;
 
       await _h.loadInternalMedia(
-        media,
+        loadedMedia,
         initialPosition: Duration(microseconds: ((lp.currentTime) * Duration.microsecondsPerSecond).round()),
       );
-      _checkExistingDownloads();
+      _itemId = loadedMedia.itemId;
+      _episodeId = loadedMedia.episodeId;
       setState(() {
-        _title = media.title;
-        _author = media.author ?? '';
-        _coverUrl = media.cover?.toString();
-        _itemId = media.itemId;
+        _title = loadedMedia.title;
+        _author = loadedMedia.author ?? '';
+        _coverUrl = loadedMedia.cover?.toString();
         _isPlaying = false;
         _isLoading = false;
       });
@@ -134,89 +211,48 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
       ),
     ),
   );
-  Future<void> _checkExistingDownloads() async {
-    try {
-      final d = Directory('${(await getApplicationDocumentsDirectory()).path}/yaabsa_wear');
-      if (await d.exists() && mounted) setState(() => _isDownloaded = true);
-    } catch (_) {}
-  }
-
-  void _pollDownloadCompletion() {
-    _downloadPollTimer?.cancel();
-    _downloadPollTimer = Timer.periodic(const Duration(seconds: 2), (t) async {
-      try {
-        final records = await FileDownloader().database.allRecords();
-        final mine = records.where((r) => r.taskId.startsWith('wear_${_itemId}_'));
-        final pending = mine.where((r) => r.status.isNotFinalState);
-        if (pending.isEmpty) {
-          t.cancel();
-          if (mounted) {
-            setState(() {
-              _isDownloaded = true;
-              _isDownloading = false;
-              _downloadProgress = 0.0;
-            });
-          }
-        } else if (mounted) {
-          final total = pending.fold<double>(0.0, (s, r) => s + r.progress);
-          setState(() => _downloadProgress = pending.isEmpty ? 0.0 : total / pending.length);
-        }
-      } catch (_) {
-        t.cancel();
-        if (mounted) setState(() => _isDownloading = false);
-      }
-    });
-  }
-
   Future<void> _toggleDownload() async {
-    if (_itemId == null) return;
+    final itemId = _itemId;
+    final user = ref.read(currentUserProvider).value;
+    if (itemId == null || user == null) return;
+
     if (_isDownloaded) {
+      // The completedDownloadItemIds stream flips the icon back once the
+      // stored download row is gone.
+      try {
+        final download = await ref
+            .read(appDatabaseProvider)
+            .getStoredDownload(itemId, user.id, episodeId: _episodeId);
+        if (download != null) {
+          await downloadHandler.deleteDownloadedItem(download, userId: user.id);
+        }
+      } catch (_) {}
+    } else {
       setState(() {
         _isDownloading = true;
-        _isDownloaded = false;
+        _downloadProgress = 0.0;
       });
       try {
-        await Directory('${(await getApplicationDocumentsDirectory()).path}/yaabsa_wear').delete(recursive: true);
-      } catch (_) {}
-      setState(() => _isDownloading = false);
-    } else {
-      setState(() => _isDownloading = true);
-      try {
-        final api = ref.read(absApiProvider);
-        if (api == null) return setState(() => _isDownloading = false);
-        final li = (await api.getLibraryItemApi().getLibraryItem(itemId: _itemId!)).data;
-        final files = li?.media?.bookMedia?.audioFiles ?? [];
-        final dl = FileDownloader();
-        for (final f in files) {
-          await dl.enqueue(
-            DownloadTask(
-              taskId: 'wear_${_itemId}_${f.ino}',
-              group: _itemId!,
-              url: '${api.basePathOverride}/api/items/$_itemId/file/${f.ino}/download',
-              filename: f.metadata.filename,
-              baseDirectory: BaseDirectory.applicationDocuments,
-              directory: 'yaabsa_wear',
-              headers: {'Authorization': 'Bearer ${api.token}'},
-              updates: Updates.statusAndProgress,
-            ),
-          );
-        }
-        _pollDownloadCompletion();
+        await downloadHandler.downloadFile(itemId, episodeId: _episodeId);
       } catch (_) {
-        setState(() => _isDownloading = false);
+        if (mounted) setState(() => _isDownloading = false);
       }
     }
   }
 
   @override
-  Widget build(BuildContext c) => Scaffold(
-    backgroundColor: Colors.black,
-    body: _isLoading
-        ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
-        : _error != null
-        ? _err()
-        : _player(),
-  );
+  Widget build(BuildContext c) {
+    final downloadedIds = ref.watch(completedDownloadItemIdsProvider).value;
+    _isDownloaded = _itemId != null && (downloadedIds?.contains(_itemId) ?? false);
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
+          : _error != null
+          ? _err()
+          : _player(),
+    );
+  }
 
   Widget _err() => Center(
     child: Padding(
@@ -250,7 +286,7 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
           Positioned.fill(
             child: ColorFiltered(
               colorFilter: const ColorFilter.mode(Colors.black87, BlendMode.darken),
-              child: Image.network(_coverUrl!, fit: BoxFit.cover, errorBuilder: (_, _, _) => _placeholder()),
+              child: _coverImage(_coverUrl!),
             ),
           )
         else
@@ -353,5 +389,14 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
     padding: EdgeInsets.zero,
     constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
   );
+
+  Widget _coverImage(String url) {
+    final uri = Uri.tryParse(url);
+    if (uri != null && uri.scheme == 'file') {
+      return Image.file(File(uri.toFilePath()), fit: BoxFit.cover, errorBuilder: (_, _, _) => _placeholder());
+    }
+    return Image.network(url, fit: BoxFit.cover, errorBuilder: (_, _, _) => _placeholder());
+  }
+
   Widget _placeholder() => Container(color: Colors.grey[900]);
 }
