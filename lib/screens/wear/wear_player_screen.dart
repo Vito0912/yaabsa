@@ -26,8 +26,10 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
   String? _title, _author, _coverUrl, _error, _itemId, _episodeId;
   bool _isPlaying = false, _isLoading = true, _isDownloaded = false, _isDownloading = false;
   double _volume = 0.7, _downloadProgress = 0.0;
+  Duration _position = Duration.zero;
   DateTime _now = DateTime.now();
   StreamSubscription<PlaybackState>? _ps;
+  StreamSubscription<Duration>? _pos;
   StreamSubscription<TaskProgressUpdate>? _dlProgress;
   StreamSubscription<List<TaskRecord>>? _dlQueue;
   final Map<String, double> _taskProgress = {};
@@ -42,6 +44,11 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
     _ps = _h.playbackState.listen((s) {
       if (mounted) setState(() => _isPlaying = s.playing);
     });
+    _pos = _h.player
+        .createPositionStream(minPeriod: const Duration(milliseconds: 500), maxPeriod: const Duration(seconds: 1))
+        .listen((_) {
+          if (mounted && !_isLoading) setState(() => _position = _h.position);
+        });
     _clock = Timer.periodic(const Duration(seconds: 30), (_) {
       if (mounted) setState(() => _now = DateTime.now());
     });
@@ -89,6 +96,7 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
   @override
   void dispose() {
     _ps?.cancel();
+    _pos?.cancel();
     _dlProgress?.cancel();
     _dlQueue?.cancel();
     _clock?.cancel();
@@ -167,16 +175,15 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
       }
       final loadedMedia = media;
 
-      await _h.loadInternalMedia(
-        loadedMedia,
-        initialPosition: Duration(microseconds: ((lp.currentTime) * Duration.microsecondsPerSecond).round()),
-      );
+      final initialPosition = Duration(microseconds: ((lp.currentTime) * Duration.microsecondsPerSecond).round());
+      await _h.loadInternalMedia(loadedMedia, initialPosition: initialPosition);
       _itemId = loadedMedia.itemId;
       _episodeId = loadedMedia.episodeId;
       setState(() {
         _title = loadedMedia.title;
         _author = loadedMedia.author ?? '';
         _coverUrl = loadedMedia.cover?.toString();
+        _position = initialPosition;
         _isPlaying = false;
         _isLoading = false;
       });
@@ -318,7 +325,9 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 8),
+                  _progress(),
+                  const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -389,6 +398,46 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
     padding: EdgeInsets.zero,
     constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
   );
+
+  Widget _progress() {
+    final total = _h.media?.totalDuration ?? Duration.zero;
+    final fraction = total.inMilliseconds > 0
+        ? (_position.inMilliseconds / total.inMilliseconds).clamp(0.0, 1.0)
+        : 0.0;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(2),
+            child: LinearProgressIndicator(
+              value: fraction,
+              minHeight: 3,
+              backgroundColor: Colors.white12,
+              color: Colors.blueAccent,
+            ),
+          ),
+          const SizedBox(height: 3),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(_fmt(_position), style: const TextStyle(fontSize: 9, color: Colors.white54)),
+              Text(_fmt(total), style: const TextStyle(fontSize: 9, color: Colors.white54)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _fmt(Duration d) {
+    final h = d.inHours;
+    final m = d.inMinutes.remainder(60);
+    final s = d.inSeconds.remainder(60);
+    final ss = s.toString().padLeft(2, '0');
+    return h > 0 ? '$h:${m.toString().padLeft(2, '0')}:$ss' : '$m:$ss';
+  }
 
   Widget _coverImage(String url) {
     final uri = Uri.tryParse(url);
