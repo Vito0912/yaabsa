@@ -2,68 +2,66 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:yaabsa/api/me/server.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
-import 'package:yaabsa/api/routes/interceptors/bearer_auth_interceptor.dart';
+import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
-import 'package:yaabsa/provider/wear/wear_credentials_store.dart';
 import 'package:yaabsa/util/globals.dart' show containerRef;
-import 'package:yaabsa/util/interceptors/wear_auth_refresh_interceptor.dart';
 import 'package:yaabsa/util/network/dio_factory.dart';
 import 'package:yaabsa/util/router.dart' show globalRouter;
 
-export 'package:yaabsa/provider/wear/wear_credentials_store.dart';
-
 const _wearDataChannelName = 'de.vito0912.yaabsa/wear_data';
 
-final wearCredentialsStoreProvider = Provider<WearCredentialsStore>((ref) => WearCredentialsStore());
-
-final wearHasCredentialsProvider = FutureProvider<bool>((ref) async {
-  return ref.watch(wearCredentialsStoreProvider).hasCredentials;
-});
-
-class WearDataLayer {
-  WearDataLayer() : _channel = const MethodChannel(_wearDataChannelName);
-  final MethodChannel _channel;
-
-  Future<WearCredentials?> requestCredentials() async {
-    try {
-      final result = await _channel.invokeMethod<Map<dynamic, dynamic>>('requestCredentials');
-      if (result == null) return null;
-      final serverUrl = result['serverUrl'] as String?;
-      final accessToken = result['accessToken'] as String?;
-      if (serverUrl == null || serverUrl.isEmpty || accessToken == null || accessToken.isEmpty) return null;
-      return WearCredentials(
-        serverUrl: serverUrl,
-        accessToken: accessToken,
-        refreshToken: result['refreshToken'] as String?,
-      );
-    } on PlatformException catch (_) {
-      return null;
-    }
+/// Watch side: asks the phone for credentials (which opens the sign-in
+/// screen there), then fetches the full user with the returned token pair
+/// and stores it exactly like a phone sign-in. From then on the watch uses
+/// the regular stored-user stack ([currentUserProvider], [absApiProvider],
+/// `AuthRefreshInterceptor`).
+///
+/// Returns false when the phone did not answer; throws on server errors.
+Future<bool> pairWithPhone() async {
+  const channel = MethodChannel(_wearDataChannelName);
+  final Map<dynamic, dynamic>? result;
+  try {
+    result = await channel.invokeMethod<Map<dynamic, dynamic>>('requestCredentials');
+  } on PlatformException catch (_) {
+    return false;
   }
-}
 
-final wearDataLayerProvider = Provider<WearDataLayer>((ref) => WearDataLayer());
+  final serverUrl = result?['serverUrl'] as String?;
+  final accessToken = result?['accessToken'] as String?;
+  if (serverUrl == null || serverUrl.isEmpty || accessToken == null || accessToken.isEmpty) {
+    return false;
+  }
 
-final wearApiProvider = FutureProvider<ABSApi?>((ref) async {
-  final store = ref.read(wearCredentialsStoreProvider);
-  final creds = await store.getCredentials();
-  if (creds == null) return null;
-  final bearerAuth = BearerAuthInterceptor();
   final api = ABSApi(
     dio: createNativeDio(
       options: BaseOptions(
-        baseUrl: creds.serverUrl,
+        baseUrl: serverUrl,
         connectTimeout: const Duration(seconds: 5),
         receiveTimeout: const Duration(seconds: 20),
       ),
     ),
-    basePathOverride: creds.serverUrl,
-    interceptors: [bearerAuth, WearAuthRefreshInterceptor(store: store, bearerAuth: bearerAuth)],
-  )..setBearerAuth('BearerAuth', creds.accessToken);
-  return api;
-});
+    basePathOverride: serverUrl,
+  )..setBearerAuth('BearerAuth', accessToken);
+
+  final login = (await api.getMeApi().checkLogin()).data;
+  if (login == null) {
+    return false;
+  }
+
+  final user = login.user.copyWith(
+    accessToken: accessToken,
+    refreshToken: result?['refreshToken'] as String?,
+    setting: login.user.setting ?? login.serverSettings,
+    server: Server.fromExternalAddress(externalAddress: serverUrl, activeConnection: ServerConnection.external),
+  );
+
+  final db = containerRef.read(appDatabaseProvider);
+  await db.addOrUpdateStoredUser(user);
+  await db.setActiveUserId(user.id);
+  return true;
+}
 
 /// Phone side: reacts to a watch pairing request by opening the sign-in
 /// screen in wear pairing mode, pre-filled with the active user's server and

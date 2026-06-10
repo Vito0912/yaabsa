@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/provider/wear/wear_providers.dart';
 
-class WearPairingScreen extends ConsumerStatefulWidget {
+class WearPairingScreen extends StatefulWidget {
   const WearPairingScreen({super.key});
 
   @override
-  ConsumerState<WearPairingScreen> createState() => _WearPairingScreenState();
+  State<WearPairingScreen> createState() => _WearPairingScreenState();
 }
 
-class _WearPairingScreenState extends ConsumerState<WearPairingScreen> {
+class _WearPairingScreenState extends State<WearPairingScreen> {
   bool _isRequesting = false;
   String? _errorMessage;
 
@@ -20,22 +19,14 @@ class _WearPairingScreenState extends ConsumerState<WearPairingScreen> {
     });
 
     try {
-      final dataLayer = ref.read(wearDataLayerProvider);
-      final creds = await dataLayer.requestCredentials();
-
-      if (creds != null && mounted) {
-        final store = ref.read(wearCredentialsStoreProvider);
-        await store.saveCredentials(
-          serverUrl: creds.serverUrl,
-          accessToken: creds.accessToken,
-          refreshToken: creds.refreshToken,
-        );
-        ref.invalidate(wearHasCredentialsProvider);
-      } else if (mounted) {
+      final paired = await pairWithPhone();
+      if (!paired && mounted) {
         setState(() {
           _errorMessage = 'No response from phone.\nMake sure the phone app is open.';
         });
       }
+      // On success the home screen switches to the player via the
+      // active-user providers; nothing to do here.
     } catch (e) {
       if (mounted) {
         setState(() {

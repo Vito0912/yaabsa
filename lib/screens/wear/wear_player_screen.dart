@@ -10,7 +10,7 @@ import 'package:yaabsa/api/library_items/audio_track.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/library_items/request/play_library_item_request.dart';
 import 'package:yaabsa/main_wear.dart' show wearAudioHandler;
-import 'package:yaabsa/provider/wear/wear_providers.dart';
+import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/wear/components/wear_volume_control.dart';
 import 'package:yaabsa/util/audio_handler/wear_audio_handler.dart';
 import 'package:yaabsa/util/player_utils.dart';
@@ -59,7 +59,7 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
       _error = null;
     });
     try {
-      final api = await ref.read(wearApiProvider.future);
+      final api = ref.read(absApiProvider);
       if (api == null) {
         return setState(() {
           _error = 'Not connected to server';
@@ -223,7 +223,7 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
     } else {
       setState(() => _isDownloading = true);
       try {
-        final api = await ref.read(wearApiProvider.future);
+        final api = ref.read(absApiProvider);
         if (api == null) return setState(() => _isDownloading = false);
         final li = (await api.getLibraryItemApi().getLibraryItem(itemId: _itemId!)).data;
         final files = li?.media?.bookMedia?.audioFiles ?? [];
