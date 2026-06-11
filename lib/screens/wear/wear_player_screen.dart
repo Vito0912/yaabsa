@@ -294,7 +294,6 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
     final downloadedIds = ref.watch(completedDownloadItemIdsProvider).value;
     _isDownloaded = _itemId != null && (downloadedIds?.contains(_itemId) ?? false);
     return Scaffold(
-      backgroundColor: Colors.black,
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
           : _error != null
@@ -303,17 +302,21 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
     );
   }
 
+  // Hierarchy on the watch is conveyed by dimming the theme's onSurface
+  // color, mirroring the white opacity steps used before the shared theme.
+  Color _onSurface(double alpha) => Theme.of(context).colorScheme.onSurface.withValues(alpha: alpha);
+
   Widget _err() => Center(
     child: Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.error_outline, size: 32, color: Colors.redAccent),
+          Icon(Icons.error_outline, size: 32, color: Theme.of(context).colorScheme.error),
           const SizedBox(height: 8),
           Text(
             _error!,
-            style: const TextStyle(fontSize: 11, color: Colors.white70),
+            style: TextStyle(fontSize: 11, color: _onSurface(0.70)),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 10),
@@ -327,6 +330,7 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
   );
 
   Widget _player() {
+    final colorScheme = Theme.of(context).colorScheme;
     final t = '${_now.hour.toString().padLeft(2, '0')}:${_now.minute.toString().padLeft(2, '0')}';
     return Stack(
       fit: StackFit.expand,
@@ -344,7 +348,7 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.only(top: 4),
-              child: Text(t, style: const TextStyle(fontSize: 11, color: Colors.white38)),
+              child: Text(t, style: TextStyle(fontSize: 11, color: _onSurface(0.38))),
             ),
             const Spacer(),
             Padding(
@@ -355,14 +359,14 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
                   if (_author != null && _author!.isNotEmpty)
                     Text(
                       _author!,
-                      style: const TextStyle(fontSize: 11, color: Colors.white60),
+                      style: TextStyle(fontSize: 11, color: _onSurface(0.60)),
                       textAlign: TextAlign.center,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                   Text(
                     _title ?? '',
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colorScheme.onSurface),
                     textAlign: TextAlign.center,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -376,8 +380,8 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
                       _btn(Icons.replay_30, _rew),
                       const SizedBox(width: 8),
                       Container(
-                        decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.blueAccent),
-                        child: _btn(_isPlaying ? Icons.pause : Icons.play_arrow, _toggle, s: 30),
+                        decoration: BoxDecoration(shape: BoxShape.circle, color: colorScheme.primary),
+                        child: _btn(_isPlaying ? Icons.pause : Icons.play_arrow, _toggle, s: 30, color: colorScheme.onPrimary),
                       ),
                       const SizedBox(width: 8),
                       _btn(Icons.forward_30, _ff),
@@ -393,7 +397,7 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.volume_up, color: Colors.white54, size: 22),
+                    icon: Icon(Icons.volume_up, color: _onSurface(0.54), size: 22),
                     onPressed: _vol,
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
@@ -405,10 +409,10 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
                       child: Stack(
                         alignment: Alignment.center,
                         children: [
-                          CircularProgressIndicator(value: _downloadProgress, strokeWidth: 2, color: Colors.white54),
+                          CircularProgressIndicator(value: _downloadProgress, strokeWidth: 2, color: _onSurface(0.54)),
                           Text(
                             '${(_downloadProgress * 100).round()}',
-                            style: const TextStyle(fontSize: 7, color: Colors.white54),
+                            style: TextStyle(fontSize: 7, color: _onSurface(0.54)),
                           ),
                         ],
                       ),
@@ -417,7 +421,7 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
                     IconButton(
                       icon: Icon(
                         _isDownloaded ? Icons.file_download_done : Icons.download,
-                        color: Colors.white54,
+                        color: _onSurface(0.54),
                         size: 22,
                       ),
                       onPressed: _toggleDownload,
@@ -427,15 +431,15 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
                 ],
               ),
             ),
-            const Icon(Icons.expand_less, color: Colors.white24, size: 18),
+            Icon(Icons.expand_less, color: _onSurface(0.24), size: 18),
           ],
         ),
       ],
     );
   }
 
-  Widget _btn(IconData i, VoidCallback f, {double s = 28}) => IconButton(
-    icon: Icon(i, color: Colors.white70, size: s),
+  Widget _btn(IconData i, VoidCallback f, {double s = 28, Color? color}) => IconButton(
+    icon: Icon(i, color: color ?? _onSurface(0.70), size: s),
     onPressed: f,
     padding: EdgeInsets.zero,
     constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
@@ -456,16 +460,16 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
             child: LinearProgressIndicator(
               value: fraction,
               minHeight: 3,
-              backgroundColor: Colors.white12,
-              color: Colors.blueAccent,
+              backgroundColor: _onSurface(0.12),
+              color: Theme.of(context).colorScheme.primary,
             ),
           ),
           const SizedBox(height: 3),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(_fmt(_position), style: const TextStyle(fontSize: 9, color: Colors.white54)),
-              Text(_fmt(total), style: const TextStyle(fontSize: 9, color: Colors.white54)),
+              Text(_fmt(_position), style: TextStyle(fontSize: 9, color: _onSurface(0.54))),
+              Text(_fmt(total), style: TextStyle(fontSize: 9, color: _onSurface(0.54))),
             ],
           ),
         ],
@@ -489,5 +493,5 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
     return Image.network(url, fit: BoxFit.cover, errorBuilder: (_, _, _) => _placeholder());
   }
 
-  Widget _placeholder() => Container(color: Colors.grey[900]);
+  Widget _placeholder() => Container(color: Theme.of(context).colorScheme.surfaceContainerHighest);
 }

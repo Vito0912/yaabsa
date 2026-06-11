@@ -7,6 +7,7 @@ import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/socket_provider.dart';
 import 'package:yaabsa/screens/wear/wear_home_screen.dart';
+import 'package:yaabsa/util/app_theme.dart';
 import 'package:yaabsa/util/audio_handler/wear_audio_handler.dart';
 import 'package:yaabsa/util/globals.dart' show containerRef;
 import 'package:yaabsa/util/init.dart' show Init;
@@ -35,15 +36,31 @@ void main() {
           androidStopForegroundOnPause: false,
         ),
       );
-      runApp(
-        UncontrolledProviderScope(
-          container: containerRef,
-          child: MaterialApp(debugShowCheckedModeBanner: false, theme: ThemeData.dark(), home: const WearHomeScreen()),
-        ),
-      );
+      runApp(UncontrolledProviderScope(container: containerRef, child: const WearApp()));
     },
     (error, stack) {
       logger('Uncaught Dart error: $error\n$stack', tag: 'WearZoneError', level: InfoLevel.error);
     },
   );
+}
+
+class WearApp extends ConsumerWidget {
+  const WearApp({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeSelection = watchAppThemeSelection(ref);
+    // The watch always uses the AMOLED dark variant of the shared app theme:
+    // same palette as the phone app on a pure-black background.
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: buildAppThemeData(
+        brightness: Brightness.dark,
+        preset: themeSelection.preset,
+        customSeedColor: themeSelection.customSeedColor,
+        useAmoledDark: true,
+      ),
+      home: const WearHomeScreen(),
+    );
+  }
 }

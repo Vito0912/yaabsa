@@ -44,39 +44,39 @@ class _WearPairingScreenState extends State<WearPairingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: Colors.black,
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
+              Text(
                 'Welcome',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Connect to your Audiobookshelf.',
-                style: TextStyle(fontSize: 13, color: Colors.white70),
+                style: TextStyle(fontSize: 13, color: colorScheme.onSurface.withValues(alpha: 0.70)),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
               if (_isRequesting) ...[
-                const CircularProgressIndicator(strokeWidth: 2, color: Colors.white70),
+                const CircularProgressIndicator(strokeWidth: 2),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   'Sign in on your phone\nto continue...',
-                  style: TextStyle(fontSize: 12, color: Colors.white54),
+                  style: TextStyle(fontSize: 12, color: colorScheme.onSurface.withValues(alpha: 0.54)),
                   textAlign: TextAlign.center,
                 ),
               ] else ...[
                 ElevatedButton(
                   onPressed: _requestCredentials,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blueAccent,
-                    foregroundColor: Colors.white,
+                    backgroundColor: colorScheme.primary,
+                    foregroundColor: colorScheme.onPrimary,
                     shape: const StadiumBorder(),
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
                   ),
@@ -87,7 +87,7 @@ class _WearPairingScreenState extends State<WearPairingScreen> {
                 const SizedBox(height: 12),
                 Text(
                   _errorMessage!,
-                  style: const TextStyle(fontSize: 11, color: Colors.redAccent),
+                  style: TextStyle(fontSize: 11, color: colorScheme.error),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),

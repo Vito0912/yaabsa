@@ -21,70 +21,76 @@ class _WearVolumeControlState extends State<WearVolumeControl> {
   }
 
   @override
-  Widget build(BuildContext context) => Listener(
-    onPointerSignal: (e) {
-      try {
-        final d = (e as dynamic).scrollDelta?.y as double?;
-        if (d != null) {
-          setState(() => _v = (_v + d * 0.05).clamp(0.0, 1.0));
-          widget.onChanged(_v);
-        }
-      } catch (_) {}
-    },
-    child: Scaffold(
-      backgroundColor: Colors.black,
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.volume_up, color: Colors.white38, size: 18),
-            const SizedBox(height: 4),
-            SizedBox(
-              width: 110,
-              height: 110,
-              child: CustomPaint(
-                painter: _CircularVolumePainter(volume: _v, color: Colors.white, bg: Colors.white24),
-                child: Center(
-                  child: Text(
-                    '${(_v * 100).round()}%',
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w300, color: Colors.white),
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Listener(
+      onPointerSignal: (e) {
+        try {
+          final d = (e as dynamic).scrollDelta?.y as double?;
+          if (d != null) {
+            setState(() => _v = (_v + d * 0.05).clamp(0.0, 1.0));
+            widget.onChanged(_v);
+          }
+        } catch (_) {}
+      },
+      child: Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.volume_up, color: colorScheme.onSurface.withValues(alpha: 0.38), size: 18),
+              const SizedBox(height: 4),
+              SizedBox(
+                width: 110,
+                height: 110,
+                child: CustomPaint(
+                  painter: _CircularVolumePainter(
+                    volume: _v,
+                    color: colorScheme.primary,
+                    bg: colorScheme.onSurface.withValues(alpha: 0.24),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '${(_v * 100).round()}%',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w300, color: colorScheme.onSurface),
+                    ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _vBtn(Icons.remove_circle_outline, () {
-                  setState(() => _v = (_v - 0.1).clamp(0.0, 1.0));
-                  widget.onChanged(_v);
-                }),
-                const SizedBox(width: 20),
-                GestureDetector(
-                  onTap: () => Navigator.of(context).pop(),
-                  child: Container(
-                    width: 36,
-                    height: 36,
-                    decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.blueAccent),
-                    child: const Icon(Icons.check, color: Colors.white, size: 22),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _vBtn(Icons.remove_circle_outline, () {
+                    setState(() => _v = (_v - 0.1).clamp(0.0, 1.0));
+                    widget.onChanged(_v);
+                  }),
+                  const SizedBox(width: 20),
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(shape: BoxShape.circle, color: colorScheme.primary),
+                      child: Icon(Icons.check, color: colorScheme.onPrimary, size: 22),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 20),
-                _vBtn(Icons.add_circle_outline, () {
-                  setState(() => _v = (_v + 0.1).clamp(0.0, 1.0));
-                  widget.onChanged(_v);
-                }),
-              ],
-            ),
-          ],
+                  const SizedBox(width: 20),
+                  _vBtn(Icons.add_circle_outline, () {
+                    setState(() => _v = (_v + 0.1).clamp(0.0, 1.0));
+                    widget.onChanged(_v);
+                  }),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
 
   Widget _vBtn(IconData i, VoidCallback f) => IconButton(
-    icon: Icon(i, color: Colors.white70, size: 26),
+    icon: Icon(i, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.70), size: 26),
     onPressed: f,
     padding: EdgeInsets.zero,
     constraints: const BoxConstraints(minWidth: 40, minHeight: 40),

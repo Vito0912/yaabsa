@@ -31,11 +31,6 @@ Future<void> _resumeLastPlayedOnStartup() async {
   }
 }
 
-int _parseColorChannelSetting(String? value, int fallback) {
-  final parsed = int.tryParse(value ?? '');
-  return (parsed ?? fallback).clamp(0, 255).toInt();
-}
-
 Future<void> _configureAndroidEdgeToEdge() async {
   if (defaultTargetPlatform != TargetPlatform.android) {
     return;
@@ -87,30 +82,11 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final appThemeModeSetting = ref.watch(globalSettingByKeyProvider(SettingKeys.appThemeMode)).asData?.value;
-    final appThemePresetSetting = ref.watch(globalSettingByKeyProvider(SettingKeys.appThemePreset)).asData?.value;
-    final customRedSetting = ref.watch(globalSettingByKeyProvider(SettingKeys.appThemeCustomRed)).asData?.value;
-    final customGreenSetting = ref.watch(globalSettingByKeyProvider(SettingKeys.appThemeCustomGreen)).asData?.value;
-    final customBlueSetting = ref.watch(globalSettingByKeyProvider(SettingKeys.appThemeCustomBlue)).asData?.value;
     final appLogLevelSetting = ref.watch(globalSettingByKeyProvider(SettingKeys.appLogLevel)).asData?.value;
 
     appLoggerService.setMinimumLevel(InfoLevel.fromSettingValue(appLogLevelSetting));
 
-    final appThemeMode = AppThemeMode.fromSettingValue(appThemeModeSetting);
-    final appThemePreset = AppThemePreset.fromSettingValue(appThemePresetSetting);
-    final useAmoledDark = appThemeMode == AppThemeMode.amoled;
-    final materialThemeMode = useAmoledDark ? ThemeMode.dark : toMaterialThemeMode(appThemeMode);
-
-    final defaultRed = defaultSettings[SettingKeys.appThemeCustomRed] as int? ?? 15;
-    final defaultGreen = defaultSettings[SettingKeys.appThemeCustomGreen] as int? ?? 118;
-    final defaultBlue = defaultSettings[SettingKeys.appThemeCustomBlue] as int? ?? 110;
-
-    final customSeedColor = Color.fromARGB(
-      0xFF,
-      _parseColorChannelSetting(customRedSetting, defaultRed),
-      _parseColorChannelSetting(customGreenSetting, defaultGreen),
-      _parseColorChannelSetting(customBlueSetting, defaultBlue),
-    );
+    final themeSelection = watchAppThemeSelection(ref);
 
     return MaterialApp.router(
       routerConfig: globalRouter,
@@ -129,19 +105,9 @@ class MyApp extends ConsumerWidget {
         GlobalCupertinoLocalizations.delegate,
         FlutterQuillLocalizations.delegate,
       ],
-      themeMode: materialThemeMode,
-      theme: buildAppThemeData(
-        brightness: Brightness.light,
-        preset: appThemePreset,
-        customSeedColor: customSeedColor,
-        useAmoledDark: useAmoledDark,
-      ),
-      darkTheme: buildAppThemeData(
-        brightness: Brightness.dark,
-        preset: appThemePreset,
-        customSeedColor: customSeedColor,
-        useAmoledDark: useAmoledDark,
-      ),
+      themeMode: themeSelection.materialThemeMode,
+      theme: themeSelection.themeData(Brightness.light),
+      darkTheme: themeSelection.themeData(Brightness.dark),
     );
   }
 }
