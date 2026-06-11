@@ -4,19 +4,6 @@ description: Run checks to determine if build should proceed
 runs:
   using: composite
   steps:
-    # For context for contributors:
-    # The flatpak run depends on the launchpad PPA, because Ubuntu 24.04 does not ship with the latest flatpak-builder
-    # Thus the PPA repo is needed. At the time of writing (05.05.2026) Canonical has massive issues with providing stable connection
-    # For now over 4 days. To not spend useless resources, this check needs to be passed before doing anything else.
-    # Once GitHub runners support Ubuntu 26 this is not required anymore. The addition of the ppa should then also be removed from that build step
-    - name: Check if launchpad is reachable
-      shell: bash
-      run: |
-        if ! curl -sSf https://ppa.launchpadcontent.net/flatpak/stable/ubuntu > /dev/null; then
-          echo "Launchpad API is not reachable"
-          exit 1
-        fi
-
     - name: Set up Flutter
       uses: subosito/flutter-action@v2
       with:

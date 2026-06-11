@@ -71,8 +71,15 @@ function applyStylesToDoc(doc, css) {
                     target.appendChild(styleEl);
                 }
             }
-            if (styleEl && styleEl.textContent !== css) {
-                styleEl.textContent = css;
+            const activeClass = (view.book && view.book.media && view.book.media.activeClass) || 'undefined';
+            const mediaOverlayOverride = `
+                .${activeClass}, .-epub-media-overlay-active {
+                    background-color: transparent !important;
+                }
+            `;
+            const fullCss = (css || '') + mediaOverlayOverride;
+            if (styleEl && styleEl.textContent !== fullCss) {
+                styleEl.textContent = fullCss;
             }
         } catch (e) {}
     };
