@@ -1,47 +1,77 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_epub_reader/flutter_epub_reader.dart';
+import 'package:foliate_reader/foliate_reader.dart';
 import 'package:yaabsa/screens/reader/widgets/reader_paged_surface.dart';
 
 class ReaderEpubView extends StatelessWidget {
   const ReaderEpubView({
     super.key,
-    required this.epubController,
-    required this.epubSource,
+    required this.controller,
+    required this.bookUrl,
+    this.bookExtension,
+    required this.headers,
     required this.initialCfi,
+    this.initialStyles,
+    required this.flow,
+    required this.maxColumnCount,
     required this.onRelocated,
-    required this.onTextSelected,
+    required this.onBookLoaded,
+    required this.onSelectionChanged,
+    required this.onSelectionCleared,
+    required this.onAnnotationClicked,
+    required this.onAnnotationAdded,
+    required this.onError,
+    required this.onCenterTap,
+    this.onTtsJumpToSentence,
   });
 
-  final EpubController epubController;
-  final EpubSource epubSource;
+  final FoliateViewerController controller;
+  final String bookUrl;
+  final String? bookExtension;
+  final Map<String, String>? headers;
   final String? initialCfi;
-  final ValueChanged<EpubLocation> onRelocated;
-  final ValueChanged<EpubTextSelection> onTextSelected;
+  final String? initialStyles;
+  final String flow;
+  final int maxColumnCount;
+  final ValueChanged<FoliateLocation> onRelocated;
+  final void Function(FoliateMetadata metadata, List<FoliateTOCItem> toc, List<FoliateTOCItem> pageList, String dir)
+  onBookLoaded;
+  final ValueChanged<FoliateSelection> onSelectionChanged;
+  final VoidCallback onSelectionCleared;
+  final ValueChanged<FoliateAnnotation> onAnnotationClicked;
+  final ValueChanged<FoliateAnnotation> onAnnotationAdded;
+  final ValueChanged<String> onError;
+  final VoidCallback onCenterTap;
+  final ValueChanged<int>? onTtsJumpToSentence;
 
   Future<void> _goToPreviousPage() async {
-    epubController.prev();
+    await controller.prev();
   }
 
   Future<void> _goToNextPage() async {
-    epubController.next();
+    await controller.next();
   }
 
   @override
   Widget build(BuildContext context) {
     return ReaderPagedSurface(
-      content: EpubViewer(
-        epubController: epubController,
-        epubSource: epubSource,
+      content: FoliateViewer(
+        controller: controller,
+        bookUrl: bookUrl,
+        bookExtension: bookExtension,
+        headers: headers,
         initialCfi: initialCfi,
-        displaySettings: EpubDisplaySettings(
-          flow: EpubFlow.paginated,
-          snap: true,
-          spread: EpubSpread.auto,
-          useSnapAnimationAndroid: true,
-          theme: EpubTheme(themeType: EpubThemeType.dark),
-        ),
-        onRelocated: onRelocated,
-        onTextSelected: onTextSelected,
+        initialStyles: initialStyles,
+        flow: flow,
+        maxColumnCount: maxColumnCount,
+        onRelocate: onRelocated,
+        onBookLoaded: onBookLoaded,
+        onSelectionChanged: onSelectionChanged,
+        onSelectionCleared: onSelectionCleared,
+        onAnnotationClicked: onAnnotationClicked,
+        onAnnotationAdded: onAnnotationAdded,
+        onError: onError,
+        onCenterTap: onCenterTap,
+        onTtsJumpToSentence: onTtsJumpToSentence,
       ),
       onPreviousPage: _goToPreviousPage,
       onNextPage: _goToNextPage,

@@ -89,7 +89,8 @@ class _LibraryItemWidgetState extends ConsumerState<LibraryItemWidget> {
     final collapsedSeriesId = widget.libraryItem.collapsedSeries?.id;
     final isCollapsedSeriesCard = widget.libraryItem.collapsedSeries != null;
 
-    final progressValue = (progress?.progress ?? 0).clamp(0.0, 1.0).toDouble();
+    final progressValue =
+        (progress != null ? (progress.progress != 0.0 ? progress.progress : progress.ebookProgress) : 0.0) ?? 0.0;
     final showProgressRing = widget.showProgress && progressValue > 0;
 
     return StreamBuilder<PlayerState>(
@@ -102,7 +103,8 @@ class _LibraryItemWidgetState extends ConsumerState<LibraryItemWidget> {
             (shelfEpisode == null || audioHandler.currentMediaItem?.episodeId == shelfEpisode.id);
         final isPlayingCurrentItem = isCurrentItem && (playerState?.playing ?? false);
         final colorScheme = Theme.of(context).colorScheme;
-        final isFinished = showProgressRing && (progress?.isFinished ?? false);
+        final isFinished =
+            showProgressRing && (progressValue >= 0.999 == true ? true : (progress?.isFinished ?? false));
         const activeBorderWidth = 4.0;
         const selectedBorderWidth = 2.5;
         final hasSelectionBorder = widget.selectionMode && widget.isSelected;
@@ -307,28 +309,18 @@ class _LibraryItemWidgetState extends ConsumerState<LibraryItemWidget> {
                               borderRadius: BorderRadius.circular(100),
                               color: isFinished ? colorScheme.primary : colorScheme.surface.withAlpha(230),
                             ),
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                if (widget.libraryItem.media?.hasAudio ?? false)
-                                  LibraryItemOverlayPlayButton(
-                                    libraryItem: widget.libraryItem,
-                                    shelfEpisode: shelfEpisode,
-                                    showProgressRing: showProgressRing,
-                                    progressValue: progressValue,
-                                    isFinished: isFinished,
-                                    isCurrentItem: isCurrentItem,
-                                    isPlayingCurrentItem: isPlayingCurrentItem,
-                                    onPlay: widget.onPlay,
-                                  ),
-                                if (!(widget.libraryItem.media?.hasAudio ?? false) &&
-                                    (widget.libraryItem.media?.hasBook ?? false))
-                                  IconButton(
-                                    icon: const Icon(Icons.my_library_books_outlined, size: 14),
-                                    iconSize: 10,
-                                    onPressed: () {},
-                                  ),
-                              ],
+                            child: LibraryItemOverlayPlayButton(
+                              libraryItem: widget.libraryItem,
+                              shelfEpisode: shelfEpisode,
+                              showProgressRing: showProgressRing,
+                              progressValue: progressValue,
+                              isFinished: isFinished,
+                              isCurrentItem: isCurrentItem,
+                              isPlayingCurrentItem: isPlayingCurrentItem,
+                              onPlay: widget.onPlay,
+                              isEbook:
+                                  !(widget.libraryItem.media?.hasAudio ?? false) &&
+                                  (widget.libraryItem.media?.hasBook ?? false),
                             ),
                           ),
                   ),

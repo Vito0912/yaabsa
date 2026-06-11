@@ -17,6 +17,8 @@ class ReaderPdfView extends StatefulWidget {
     required this.customizeContextMenuItems,
     required this.buildPageOverlays,
     required this.onGeneralTap,
+    required this.onDocumentReady,
+    this.onOutlineLoaded,
   });
 
   final PdfViewerController controller;
@@ -29,6 +31,8 @@ class ReaderPdfView extends StatefulWidget {
   final void Function(PdfViewerContextMenuBuilderParams, List<ContextMenuButtonItem>) customizeContextMenuItems;
   final PdfPageOverlaysBuilder buildPageOverlays;
   final PdfViewerGeneralTapHandler onGeneralTap;
+  final ValueChanged<PdfDocument> onDocumentReady;
+  final ValueChanged<List<PdfOutlineNode>?>? onOutlineLoaded;
 
   @override
   State<ReaderPdfView> createState() => _ReaderPdfViewState();
@@ -101,15 +105,21 @@ class _ReaderPdfViewState extends State<ReaderPdfView> {
             calculateInitialZoom: (document, controller, fitZoom, coverZoom) => fitZoom,
           ),
           scrollByMouseWheel: 0.0,
-          onViewerReady: (document, controller) {
+          onViewerReady: (document, controller) async {
             if (!mounted) {
               return;
             }
 
             setState(() {});
+            widget.onDocumentReady(document);
             final page = controller.pageNumber ?? widget.initialPage;
             widget.onPageFocused(page);
             unawaited(_snapToPage(page));
+
+            try {
+              final outline = await document.loadOutline();
+              widget.onOutlineLoaded?.call(outline);
+            } catch (_) {}
           },
           onPageChanged: (pageNumber) {
             if (pageNumber == null || !mounted) {
@@ -127,6 +137,27 @@ class _ReaderPdfViewState extends State<ReaderPdfView> {
           customizeContextMenuItems: widget.customizeContextMenuItems,
           pageOverlaysBuilder: widget.buildPageOverlays,
           onGeneralTap: widget.onGeneralTap,
+          loadingBannerBuilder: (context, bytesDownloaded, totalBytes) {
+            final double? value;
+            final String text;
+            if (totalBytes != null && totalBytes > 0) {
+              value = bytesDownloaded / totalBytes;
+              text = 'Loading PDF... ${(value * 100).toStringAsFixed(0)}%';
+            } else {
+              value = null;
+              text = 'Loading PDF...';
+            }
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(value: value, color: Theme.of(context).colorScheme.primary),
+                  const SizedBox(height: 16),
+                  Text(text, style: Theme.of(context).textTheme.titleMedium),
+                ],
+              ),
+            );
+          },
         ),
       ),
       onPreviousPage: _goToPreviousPage,

@@ -70,11 +70,8 @@ dependencies:
   timeago: ^3.7.1
 
   pdfrx: ^2.4.1
-  # Note for contributors: Commit pinning is used. Please check for updates when updating the e-Reader. This is for security, as it runs in a WebView and the repository is very small.
-  flutter_epub_reader:
-    git:
-      url: https://github.com/chandrabezzo/epub_viewer.git
-      ref: db2bab1bf511e4191a362014dbfc3067a16dd220
+  foliate_reader:
+    path: ./packages/foliate_reader
 
   ## Platform
   just_audio_media_kit: ^2.1.0
@@ -93,6 +90,7 @@ dependencies:
 
   ## Android
   flutter_chrome_cast: ^1.4.6
+  flutter_tts: ^4.2.5
 
 dev_dependencies:
   flutter_test:

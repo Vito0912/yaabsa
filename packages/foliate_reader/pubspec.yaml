@@ -1,0 +1,32 @@
+name: foliate_reader
+description: An internal package for foliate-js
+version: 1.0.0
+publish_to: none
+
+environment:
+  sdk: ^3.8.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_inappwebview: ^6.1.5
+  path: ^1.9.1
+
+flutter:
+  assets:
+    - assets/reader.html
+    - assets/reader-app.js
+    - foliate-js/view.js
+    - foliate-js/epub.js
+    - foliate-js/epubcfi.js
+    - foliate-js/mobi.js
+    - foliate-js/fb2.js
+    - foliate-js/comic-book.js
+    - foliate-js/fixed-layout.js
+    - foliate-js/overlayer.js
+    - foliate-js/paginator.js
+    - foliate-js/progress.js
+    - foliate-js/search.js
+    - foliate-js/text-walker.js
+    - foliate-js/vendor/fflate.js
+    - foliate-js/vendor/zip.js

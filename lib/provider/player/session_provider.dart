@@ -100,7 +100,7 @@ class SessionRepository {
     _currentSession = null;
   }
 
-  Future<InternalMedia?> openSession(String itemId, {String? episodeId}) async {
+  Future<InternalMedia?> openSession(String itemId, {String? episodeId, bool forceDirectPlay = false}) async {
     final ABSApi? api = ref.read(absApiProvider);
     final AppDatabase db = ref.read(appDatabaseProvider);
     final String? userId = _activeUserId;
@@ -122,7 +122,7 @@ class SessionRepository {
 
       PlayLibraryItemRequest playRequest = PlayLibraryItemRequest(
         deviceInfo: await PlayerUtils.getDeviceInfo(),
-        forceDirectPlay: false,
+        forceDirectPlay: forceDirectPlay,
         forceTranscode: false,
         supportedMimeTypes: await PlayerUtils.getSupportedMimeTypes(),
         mediaPlayer: '$appName just_audio',

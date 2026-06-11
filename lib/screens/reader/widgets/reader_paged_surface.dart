@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:yaabsa/screens/reader/widgets/reader_navigation_button.dart';
 
 class ReaderPagedSurface extends StatelessWidget {
   const ReaderPagedSurface({
@@ -72,9 +71,15 @@ class ReaderPagedSurface extends StatelessWidget {
             child: Stack(
               children: [
                 Positioned.fill(child: content),
-                _ReaderNavigationButtons(
-                  onPrevious: canGoPrevious ? () => unawaited(onPreviousPage()) : null,
-                  onNext: canGoNext ? () => unawaited(onNextPage()) : null,
+                _ReaderNavigationHoverArea(
+                  icon: Icons.arrow_back,
+                  onTap: canGoPrevious ? () => unawaited(onPreviousPage()) : null,
+                  alignment: Alignment.centerLeft,
+                ),
+                _ReaderNavigationHoverArea(
+                  icon: Icons.arrow_forward,
+                  onTap: canGoNext ? () => unawaited(onNextPage()) : null,
+                  alignment: Alignment.centerRight,
                 ),
                 if (centerOverlay != null) Positioned.fill(child: IgnorePointer(child: centerOverlay)),
               ],
@@ -94,25 +99,51 @@ class _ReaderNextPageIntent extends Intent {
   const _ReaderNextPageIntent();
 }
 
-class _ReaderNavigationButtons extends StatelessWidget {
-  const _ReaderNavigationButtons({required this.onPrevious, required this.onNext});
+class _ReaderNavigationHoverArea extends StatefulWidget {
+  const _ReaderNavigationHoverArea({required this.icon, required this.onTap, required this.alignment});
 
-  final VoidCallback? onPrevious;
-  final VoidCallback? onNext;
+  final IconData icon;
+  final VoidCallback? onTap;
+  final Alignment alignment;
+
+  @override
+  State<_ReaderNavigationHoverArea> createState() => _ReaderNavigationHoverAreaState();
+}
+
+class _ReaderNavigationHoverAreaState extends State<_ReaderNavigationHoverArea> {
+  bool _isHovered = false;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            ReaderNavigationButton(icon: Icons.arrow_back, onTap: onPrevious),
-            ReaderNavigationButton(icon: Icons.arrow_forward, onTap: onNext),
-          ],
+    if (widget.onTap == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Positioned(
+      top: 0,
+      bottom: 0,
+      left: widget.alignment == Alignment.centerLeft ? 0.0 : null,
+      right: widget.alignment == Alignment.centerRight ? 0.0 : null,
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _isHovered = true),
+        onExit: (_) => setState(() => _isHovered = false),
+        child: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: widget.onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: 80,
+            height: double.infinity,
+            alignment: widget.alignment,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 200),
+              opacity: _isHovered ? 1.0 : 0.0,
+              child: Icon(widget.icon, color: Colors.white70, size: 36),
+            ),
+          ),
         ),
-      ],
+      ),
     );
   }
 }

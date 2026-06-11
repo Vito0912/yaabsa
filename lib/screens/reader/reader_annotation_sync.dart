@@ -21,23 +21,18 @@ extension _ReaderAnnotationSync on _ReaderState {
 
       final List<InternalAnnotation> annotations;
       if (isEpubMode) {
-        annotations = [
-          ...(await epubController.getUnderlines()).map(
-            (u) => InternalAnnotation(
-              cfi: u.cfi,
-              color: u.color,
-              opacity: u.opacity,
-              thickness: u.thickness,
-              type: AnnotationType.underline,
-            ),
-          ),
-          ...(await epubController.getBookmarks()).map(
-            (u) => InternalAnnotation(cfi: u.cfi, text: u.title, type: AnnotationType.bookmark),
-          ),
-          ...(await epubController.getHighlights()).map(
-            (u) => InternalAnnotation(cfi: u.cfi, color: u.color, opacity: u.opacity, type: AnnotationType.highlight),
-          ),
-        ];
+        annotations = _epubAnnotations.map((a) {
+          return InternalAnnotation(
+            cfi: a.value,
+            color: a.color,
+            type: a.type == 'underline'
+                ? AnnotationType.underline
+                : a.type == 'bookmark'
+                ? AnnotationType.bookmark
+                : AnnotationType.highlight,
+            text: a.note,
+          );
+        }).toList();
       } else {
         annotations = _pdfAnnotations.map((annotation) => annotation.toInternalAnnotation()).toList(growable: false);
       }
@@ -171,48 +166,25 @@ extension _ReaderAnnotationSync on _ReaderState {
     try {
       _isApplyingRemoteAnnotations = true;
 
-      for (final highlight in await epubController.getHighlights()) {
-        await epubController.removeHighlight(highlight.cfi);
-      }
-      for (final underline in await epubController.getUnderlines()) {
-        await epubController.removeUnderline(underline.cfi);
-      }
-      for (final bookmark in await epubController.getBookmarks()) {
-        await epubController.removeBookmark(cfi: bookmark.cfi);
-      }
+      final parsedEpubAnnotations = epubAnnotations.map((a) {
+        return FoliateAnnotation(
+          value: a.cfi,
+          color: a.color ?? 'none',
+          type: a.type == AnnotationType.underline
+              ? 'underline'
+              : a.type == AnnotationType.bookmark
+              ? 'bookmark'
+              : 'highlight',
+          note: a.text,
+        );
+      }).toList();
 
-      final currentLocation = await epubController.getCurrentLocation();
-      final returnLocation = currentLocation.startCfi ?? currentLocation.endCfi;
+      _readerSetState(() {
+        _epubAnnotations = parsedEpubAnnotations;
+      });
 
-      for (final annotation in epubAnnotations) {
-        if (annotation.type == AnnotationType.highlight) {
-          await epubController.addHighlight(
-            EpubHighlight(
-              cfi: annotation.cfi,
-              text: annotation.text ?? '',
-              color: annotation.color ?? 'none',
-              opacity: annotation.opacity ?? 0.5,
-            ),
-          );
-        } else if (annotation.type == AnnotationType.underline) {
-          await epubController.addUnderline(
-            EpubUnderline(
-              cfi: annotation.cfi,
-              text: annotation.text ?? '',
-              color: annotation.color ?? 'none',
-              opacity: 1.0,
-              thickness: annotation.thickness ?? 1.0,
-            ),
-          );
-        } else if (annotation.type == AnnotationType.bookmark) {
-          // Workaround: Bookmark gets added at current position.
-          await epubController.goTo(cfi: annotation.cfi);
-          await epubController.addBookmark(customTitle: annotation.text);
-        }
-      }
-
-      if (returnLocation != null) {
-        await epubController.goTo(cfi: returnLocation);
+      for (final annotation in parsedEpubAnnotations) {
+        await epubController.addAnnotation(annotation);
       }
     } catch (e, s) {
       logger(

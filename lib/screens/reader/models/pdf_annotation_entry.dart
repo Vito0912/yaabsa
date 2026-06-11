@@ -291,12 +291,14 @@ class PdfAnnotationEntry {
       return null;
     }
 
-    final type =
+    var type =
         annotation.type ??
         _annotationTypeFromCode(payload['t'] as String?) ??
         _annotationTypeFromName(payload['kind'] as String?);
-    if (type == null ||
-        (type != AnnotationType.highlight && type != AnnotationType.underline && type != AnnotationType.bookmark)) {
+    if (type == AnnotationType.bookmark) {
+      type = AnnotationType.highlight;
+    }
+    if (type == null || (type != AnnotationType.highlight && type != AnnotationType.underline)) {
       return null;
     }
 
@@ -379,7 +381,7 @@ class PdfAnnotationEntry {
   InternalAnnotation toInternalAnnotation() {
     return InternalAnnotation(
       cfi: cfi,
-      text: type == AnnotationType.bookmark ? noteText : null,
+      text: noteText,
       color: color,
       opacity: opacity,
       thickness: type == AnnotationType.underline ? thickness : null,

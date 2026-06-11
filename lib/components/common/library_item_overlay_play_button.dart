@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/util/globals.dart';
@@ -13,6 +14,7 @@ class LibraryItemOverlayPlayButton extends StatelessWidget {
     required this.isFinished,
     required this.isCurrentItem,
     required this.isPlayingCurrentItem,
+    required this.isEbook,
     this.onPlay,
   });
 
@@ -24,6 +26,7 @@ class LibraryItemOverlayPlayButton extends StatelessWidget {
   final bool isCurrentItem;
   final bool isPlayingCurrentItem;
   final VoidCallback? onPlay;
+  final bool isEbook;
 
   @override
   Widget build(BuildContext context) {
@@ -56,62 +59,74 @@ class LibraryItemOverlayPlayButton extends StatelessWidget {
                   ),
                 ),
               IconButton(
-                tooltip: isLoadingCurrentItem
-                    ? 'Loading...'
-                    : (isPlayingCurrentItem ? 'Pause' : (isFinished ? 'Replay' : 'Play')),
-                icon: isLoadingCurrentItem
-                    ? SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(colorScheme.onSurfaceVariant),
-                        ),
-                      )
-                    : Icon(
-                        isPlayingCurrentItem ? Icons.pause : (isFinished ? Icons.replay : Icons.play_arrow),
+                tooltip: isEbook
+                    ? (isFinished ? 'Read Again' : 'Read')
+                    : (isLoadingCurrentItem
+                          ? 'Loading...'
+                          : (isPlayingCurrentItem ? 'Pause' : (isFinished ? 'Replay' : 'Play'))),
+                icon: isEbook
+                    ? Icon(
+                        isFinished ? Icons.replay : Icons.book,
                         size: isFinished ? 18 : 16,
                         color: isFinished ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
-                      ),
+                      )
+                    : (isLoadingCurrentItem
+                          ? SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(colorScheme.onSurfaceVariant),
+                              ),
+                            )
+                          : Icon(
+                              isPlayingCurrentItem ? Icons.pause : (isFinished ? Icons.replay : Icons.play_arrow),
+                              size: isFinished ? 18 : 16,
+                              color: isFinished ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
+                            )),
                 iconSize: isFinished ? 20 : 16,
-                onPressed: isLoadingCurrentItem
-                    ? null
-                    : () {
-                        if (isPlayingCurrentItem) {
-                          audioHandler.pause();
-                          return;
-                        }
+                onPressed: isEbook
+                    ? () {
+                        context.push('/ebook/${libraryItem.id}');
+                      }
+                    : (isLoadingCurrentItem
+                          ? null
+                          : () {
+                              if (isPlayingCurrentItem) {
+                                audioHandler.pause();
+                                return;
+                              }
 
-                        if (isCurrentItem) {
-                          audioHandler.play();
-                          return;
-                        }
+                              if (isCurrentItem) {
+                                audioHandler.play();
+                                return;
+                              }
 
-                        if (onPlay != null) {
-                          onPlay!();
-                          return;
-                        }
+                              if (onPlay != null) {
+                                onPlay!();
+                                return;
+                              }
 
-                        if (libraryItem.mediaType == 'podcast') {
-                          final podcastEpisodes = _playablePodcastEpisodes(libraryItem);
-                          final episodeToPlay = shelfEpisode ?? podcastEpisodes.firstOrNull;
+                              if (libraryItem.mediaType == 'podcast') {
+                                final podcastEpisodes = _playablePodcastEpisodes(libraryItem);
+                                final episodeToPlay = shelfEpisode ?? podcastEpisodes.firstOrNull;
 
-                          if (episodeToPlay != null) {
-                            final episodeIndex = podcastEpisodes.indexWhere(
-                              (episode) => episode.id == episodeToPlay.id,
-                            );
-                            audioHandler.playPodcastEpisode(
-                              libraryItem,
-                              episodeToPlay,
-                              episodeIndex: episodeIndex < 0 ? null : episodeIndex,
-                              orderedEpisodes: podcastEpisodes,
-                            );
-                            return;
-                          }
-                        }
+                                if (episodeToPlay != null) {
+                                  final episodeIndex = podcastEpisodes.indexWhere(
+                                    (episode) => episode.id == episodeToPlay.id,
+                                  );
+                                  audioHandler.playPodcastEpisode(
+                                    libraryItem,
+                                    episodeToPlay,
+                                    episodeIndex: episodeIndex < 0 ? null : episodeIndex,
+                                    orderedEpisodes: podcastEpisodes,
+                                  );
+                                  return;
+                                }
+                              }
 
-                        audioHandler.playLibraryItem(libraryItem);
-                      },
+                              audioHandler.playLibraryItem(libraryItem);
+                            }),
                 splashRadius: 8,
               ),
             ],

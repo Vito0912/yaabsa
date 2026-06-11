@@ -93,7 +93,7 @@ class SettingsNavigationSection extends StatelessWidget {
                   padding: EdgeInsets.only(bottom: index == allItems.length - 1 ? 0 : 2),
                   child: ClipRRect(
                     borderRadius: _getBorderRadius(index, allItems.length),
-                    child: Container(
+                    child: Material(
                       color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                       child: allItems[index],
                     ),
