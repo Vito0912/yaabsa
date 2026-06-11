@@ -89,6 +89,11 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
   bool _isJumpingTts = false;
   bool _hasMediaOverlays = false;
   String _mediaOverlayState = 'stopped';
+
+  bool get _isMediaOverlayActive => _mediaOverlayState != 'stopped';
+  bool get _isAudioPlaybackActive => _isTtsPlaying || _isMediaOverlayActive;
+  bool get _isAudioPlaying => (_isTtsPlaying && !_isTtsPaused) || _mediaOverlayState == 'playing';
+
   late final SessionRepository _sessionRepository;
   double _currentAudioTime = 0.0;
   bool _canReachServer = true;
@@ -162,7 +167,7 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
   }
 
   bool _handleVolumeKeys(KeyEvent event) {
-    if (_isTtsPlaying) {
+    if (_isAudioPlaybackActive) {
       return false;
     }
     if (event is KeyDownEvent) {
@@ -329,7 +334,9 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state != AppLifecycleState.resumed) {
-      unawaited(_pauseReadingSession());
+      if (!_isAudioPlaying) {
+        unawaited(_pauseReadingSession());
+      }
     } else {
       _resumeReadingSession();
     }
