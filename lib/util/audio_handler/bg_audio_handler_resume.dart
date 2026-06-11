@@ -108,13 +108,6 @@ extension _BGAudioHandlerResume on BGAudioHandler {
 
     _setLastPlayedMiniPlayerSnapshot(null);
 
-    final isEnabled = _ref
-        .read(settingsManagerProvider.notifier)
-        .getGlobalSetting<bool>(SettingKeys.showLastPlayedMiniPlayerAlways);
-    if (!isEnabled) {
-      return;
-    }
-
     final lastPlayedItem = await _readLastPlayedQueueItemForActiveUser(explicitUserId: explicitUserId);
     if (lastPlayedItem == null) {
       return;
@@ -128,21 +121,55 @@ extension _BGAudioHandlerResume on BGAudioHandler {
       return;
     }
 
+    LastPlayedMiniPlayerSnapshot finalSnapshot;
     if (snapshot.matchesQueueItem(lastPlayedItem)) {
-      _setLastPlayedMiniPlayerSnapshot(snapshot);
-      return;
-    }
-
-    _setLastPlayedMiniPlayerSnapshot(
-      LastPlayedMiniPlayerSnapshot(
+      finalSnapshot = snapshot;
+    } else {
+      finalSnapshot = LastPlayedMiniPlayerSnapshot(
         itemId: lastPlayedItem.itemId,
         episodeId: lastPlayedItem.episodeId,
         title: snapshot.title,
         subtitle: snapshot.subtitle,
         author: snapshot.author,
         cover: snapshot.cover,
-      ),
+      );
+    }
+
+    final isEnabled = _ref
+        .read(settingsManagerProvider.notifier)
+        .getGlobalSetting<bool>(SettingKeys.showLastPlayedMiniPlayerAlways);
+    if (isEnabled) {
+      _setLastPlayedMiniPlayerSnapshot(finalSnapshot);
+    }
+
+    final progress = await _ref
+        .read(mediaProgressProvider.notifier)
+        .fetchOrRefreshIndividualProgress(lastPlayedItem.itemId, episodeId: lastPlayedItem.episodeId);
+
+    final resumePosition = progress != null
+        ? Duration(microseconds: (progress.currentTime * Duration.microsecondsPerSecond).round())
+        : Duration.zero;
+    final totalDuration = progress != null
+        ? Duration(microseconds: (progress.duration * Duration.microsecondsPerSecond).round())
+        : Duration.zero;
+
+    _restoredPosition = resumePosition;
+    _restoredMediaItem = MediaItem(
+      id: finalSnapshot.episodeId ?? finalSnapshot.itemId,
+      album: finalSnapshot.subtitle ?? finalSnapshot.author ?? '',
+      title: finalSnapshot.title,
+      displayTitle: finalSnapshot.title,
+      artist: finalSnapshot.author,
+      displaySubtitle: finalSnapshot.subtitle,
+      duration: totalDuration > Duration.zero ? totalDuration : null,
+      isLive: false,
+      artUri: finalSnapshot.cover,
     );
+
+    if (_currentMediaItem == null) {
+      mediaItem.add(_restoredMediaItem);
+      unawaited(_updatePlaybackState());
+    }
   }
 
   Future<QueueItem?> _readLastPlayedQueueItemForActiveUser({String? explicitUserId}) async {

@@ -79,6 +79,9 @@ extension _BGAudioHandlerState on BGAudioHandler {
     if (isCastControlActive) {
       return _castAbsolutePosition(GoogleCastRemoteMediaClient.instance.playerPosition);
     }
+    if (_currentMediaItem == null && _restoredMediaItem != null) {
+      return _restoredPosition;
+    }
     return _localAbsolutePosition();
   }
 
