@@ -139,6 +139,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   final BehaviorSubject<bool> _castControlActiveSubject = BehaviorSubject<bool>.seeded(false);
   String? _castControlledContentId;
   int _castControlledTrackIndex = 0;
+  MediaItem? _restoredMediaItem;
+  Duration _restoredPosition = Duration.zero;
   BehaviorSubject<InternalMedia?> mediaItemStream = BehaviorSubject<InternalMedia?>();
   InternalMedia? get currentMediaItem => _currentMediaItem;
 
@@ -332,6 +334,11 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       unawaited(_persistLastPlayedQueueItem(itemId: mediaItem.itemId, episodeId: mediaItem.episodeId));
       unawaited(_persistLastPlayedMiniPlayerSnapshot(mediaItem));
       _setLastPlayedMiniPlayerSnapshot(LastPlayedMiniPlayerSnapshot.fromMedia(mediaItem));
+      _restoredMediaItem = null;
+      _restoredPosition = Duration.zero;
+    } else {
+      _restoredMediaItem = null;
+      _restoredPosition = Duration.zero;
     }
     mediaItemStream.add(mediaItem);
     _refreshPlayerControlState();
@@ -599,6 +606,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     _clearPausedManualSeekMarker();
     _resetStreamRecoveryState(clearWindow: true);
     _currentMediaItem = null;
+    _restoredMediaItem = null;
+    _restoredPosition = Duration.zero;
     mediaItem.add(null);
     _currentTrackIndex = 0;
     PlayerUtils.disableWakelock(_ref);
@@ -1072,7 +1081,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
     final isTransitionLoading =
         _queueTransitionLoading || (_player.processingState == ProcessingState.completed && queueList.isNotEmpty);
-    final hasPlaybackContext = _currentMediaItem != null || queueList.isNotEmpty || _queueTransitionLoading;
+    final hasPlaybackContext =
+        _currentMediaItem != null || queueList.isNotEmpty || _queueTransitionLoading || _restoredMediaItem != null;
     final isMoreMenuVisible = showNotificationMoreButton && _androidAutoMoreMenuVisible;
     final castActive = isCastControlActive;
     final controlState = castActive ? playerControlState : _player.playerState;
@@ -1088,6 +1098,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         ? updatePosition
         : _chapterNotificationEnabled
         ? updatePosition
+        : (_currentMediaItem == null && _restoredMediaItem != null)
+        ? _restoredPosition
         : (_currentMediaItem?.offsetForTrack(_currentTrackIndex) ?? Duration.zero) + _player.bufferedPosition;
     final controls = !hasPlaybackContext
         ? const <MediaControl>[]
@@ -1149,6 +1161,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
             ? AudioProcessingState.idle
             : isTransitionLoading
             ? AudioProcessingState.loading
+            : (_currentMediaItem == null && _restoredMediaItem != null)
+            ? AudioProcessingState.ready
             : _toAudioProcessingState(controlState.processingState),
         playing: hasPlaybackContext && (isTransitionLoading ? true : controlState.playing),
         // The current position as of this update. You should not broadcast
