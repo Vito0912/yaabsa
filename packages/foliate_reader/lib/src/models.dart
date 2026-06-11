@@ -5,30 +5,18 @@ class FoliateLocation {
   final FoliateTOCItem? tocItem;
   final FoliateTOCItem? pageItem;
 
-  FoliateLocation({
-    this.cfi,
-    required this.fraction,
-    this.location,
-    this.tocItem,
-    this.pageItem,
-  });
+  FoliateLocation({this.cfi, required this.fraction, this.location, this.tocItem, this.pageItem});
 
   factory FoliateLocation.fromJson(Map<String, dynamic> json) {
     return FoliateLocation(
       cfi: json['cfi'] as String?,
       fraction: (json['fraction'] as num?)?.toDouble() ?? 0.0,
-      location: json['location'] != null
-          ? Map<String, dynamic>.from(json['location'] as Map)
-          : null,
+      location: json['location'] != null ? Map<String, dynamic>.from(json['location'] as Map) : null,
       tocItem: json['tocItem'] != null
-          ? FoliateTOCItem.fromJson(
-              Map<String, dynamic>.from(json['tocItem'] as Map),
-            )
+          ? FoliateTOCItem.fromJson(Map<String, dynamic>.from(json['tocItem'] as Map))
           : null,
       pageItem: json['pageItem'] != null
-          ? FoliateTOCItem.fromJson(
-              Map<String, dynamic>.from(json['pageItem'] as Map),
-            )
+          ? FoliateTOCItem.fromJson(Map<String, dynamic>.from(json['pageItem'] as Map))
           : null,
     );
   }
@@ -60,9 +48,7 @@ class FoliateTOCItem {
           ? sub
                 .map((e) {
                   try {
-                    return FoliateTOCItem.fromJson(
-                      Map<String, dynamic>.from(e as Map),
-                    );
+                    return FoliateTOCItem.fromJson(Map<String, dynamic>.from(e as Map));
                   } catch (_) {
                     return null;
                   }
@@ -74,11 +60,7 @@ class FoliateTOCItem {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'label': label,
-      'href': href,
-      'subitems': subitems?.map((e) => e.toJson()).toList(),
-    };
+    return {'label': label, 'href': href, 'subitems': subitems?.map((e) => e.toJson()).toList()};
   }
 }
 
@@ -182,12 +164,7 @@ class FoliateAnnotation {
   final String? note;
   final String type;
 
-  FoliateAnnotation({
-    required this.value,
-    required this.color,
-    this.note,
-    this.type = 'highlight',
-  });
+  FoliateAnnotation({required this.value, required this.color, this.note, this.type = 'highlight'});
 
   factory FoliateAnnotation.fromJson(Map<String, dynamic> json) {
     return FoliateAnnotation(
@@ -208,18 +185,10 @@ class FoliateSelection {
   final String text;
   final int index;
 
-  FoliateSelection({
-    required this.cfi,
-    required this.text,
-    required this.index,
-  });
+  FoliateSelection({required this.cfi, required this.text, required this.index});
 
   factory FoliateSelection.fromJson(Map<String, dynamic> json) {
-    return FoliateSelection(
-      cfi: json['cfi'] as String,
-      text: json['text'] as String,
-      index: json['index'] as int,
-    );
+    return FoliateSelection(cfi: json['cfi'] as String, text: json['text'] as String, index: json['index'] as int);
   }
 
   Map<String, dynamic> toJson() {
@@ -234,10 +203,7 @@ class FoliateSearchResult {
   FoliateSearchResult({required this.cfi, required this.excerpt});
 
   factory FoliateSearchResult.fromJson(Map<String, dynamic> json) {
-    return FoliateSearchResult(
-      cfi: json['cfi'] as String? ?? '',
-      excerpt: json['excerpt'] as String? ?? '',
-    );
+    return FoliateSearchResult(cfi: json['cfi'] as String? ?? '', excerpt: json['excerpt'] as String? ?? '');
   }
 
   Map<String, dynamic> toJson() {

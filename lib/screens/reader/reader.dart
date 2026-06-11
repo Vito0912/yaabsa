@@ -87,6 +87,8 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
   int _currentTtsSentenceIndex = 0;
   bool _waitingForTtsPageLoad = false;
   bool _isJumpingTts = false;
+  bool _hasMediaOverlays = false;
+  String _mediaOverlayState = 'stopped';
   late final SessionRepository _sessionRepository;
   double _currentAudioTime = 0.0;
   bool _canReachServer = true;
@@ -393,6 +395,10 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
       return;
     }
 
+    if (_mediaOverlayState != 'stopped') {
+      unawaited(epubController.stopMediaOverlay());
+    }
+
     if (_flutterTts == null) {
       await _initTts();
     }
@@ -635,6 +641,7 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
                     child: IgnorePointer(child: _buildBottomProgressIndicator(isEpubMode: isEpubMode)),
                   ),
                   Positioned(left: 0, right: 0, bottom: 80, child: Center(child: _buildTtsControlPanel())),
+                  Positioned(left: 0, right: 0, bottom: 80, child: Center(child: _buildMediaOverlayControlPanel())),
                 ],
               ),
             ),

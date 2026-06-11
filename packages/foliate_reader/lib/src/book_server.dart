@@ -15,11 +15,7 @@ class BookServer {
       try {
         final path = request.uri.path;
         if (path == '/' || path == '/index.html' || path == '/reader.html') {
-          await _serveAsset(
-            request,
-            'packages/foliate_reader/assets/reader.html',
-            'text/html; charset=utf-8',
-          );
+          await _serveAsset(request, 'packages/foliate_reader/assets/reader.html', 'text/html; charset=utf-8');
         } else if (path == '/reader-app.js') {
           await _serveAsset(
             request,
@@ -29,11 +25,7 @@ class BookServer {
         } else if (path.startsWith('/foliate-js/')) {
           final relPath = path.substring(12);
           final assetPath = 'packages/foliate_reader/foliate-js/$relPath';
-          await _serveAsset(
-            request,
-            assetPath,
-            'application/javascript; charset=utf-8',
-          );
+          await _serveAsset(request, assetPath, 'application/javascript; charset=utf-8');
         } else if (path.startsWith('/book/')) {
           await _serveBook(request);
         } else {
@@ -54,17 +46,10 @@ class BookServer {
     _server = null;
   }
 
-  Future<void> _serveAsset(
-    HttpRequest request,
-    String assetPath,
-    String contentType,
-  ) async {
+  Future<void> _serveAsset(HttpRequest request, String assetPath, String contentType) async {
     try {
       final data = await rootBundle.load(assetPath);
-      final bytes = data.buffer.asUint8List(
-        data.offsetInBytes,
-        data.lengthInBytes,
-      );
+      final bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
       request.response.headers.add('Access-Control-Allow-Origin', '*');
       request.response.headers.contentType = ContentType.parse(contentType);
       request.response.add(bytes);

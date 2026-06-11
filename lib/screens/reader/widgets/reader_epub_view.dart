@@ -22,6 +22,10 @@ class ReaderEpubView extends StatelessWidget {
     required this.onError,
     required this.onCenterTap,
     this.onTtsJumpToSentence,
+    this.onMediaOverlayStateChanged,
+    this.onMediaOverlayHighlight,
+    this.onMediaOverlayUnhighlight,
+    this.onMediaOverlayError,
   });
 
   final FoliateViewerController controller;
@@ -33,7 +37,13 @@ class ReaderEpubView extends StatelessWidget {
   final String flow;
   final int maxColumnCount;
   final ValueChanged<FoliateLocation> onRelocated;
-  final void Function(FoliateMetadata metadata, List<FoliateTOCItem> toc, List<FoliateTOCItem> pageList, String dir)
+  final void Function(
+    FoliateMetadata metadata,
+    List<FoliateTOCItem> toc,
+    List<FoliateTOCItem> pageList,
+    String dir,
+    bool hasMediaOverlays,
+  )
   onBookLoaded;
   final ValueChanged<FoliateSelection> onSelectionChanged;
   final VoidCallback onSelectionCleared;
@@ -42,6 +52,10 @@ class ReaderEpubView extends StatelessWidget {
   final ValueChanged<String> onError;
   final VoidCallback onCenterTap;
   final ValueChanged<int>? onTtsJumpToSentence;
+  final void Function(String state)? onMediaOverlayStateChanged;
+  final void Function(Map<String, dynamic> detail)? onMediaOverlayHighlight;
+  final void Function(Map<String, dynamic> detail)? onMediaOverlayUnhighlight;
+  final void Function(String error)? onMediaOverlayError;
 
   Future<void> _goToPreviousPage() async {
     await controller.prev();
@@ -72,6 +86,10 @@ class ReaderEpubView extends StatelessWidget {
         onError: onError,
         onCenterTap: onCenterTap,
         onTtsJumpToSentence: onTtsJumpToSentence,
+        onMediaOverlayStateChanged: onMediaOverlayStateChanged,
+        onMediaOverlayHighlight: onMediaOverlayHighlight,
+        onMediaOverlayUnhighlight: onMediaOverlayUnhighlight,
+        onMediaOverlayError: onMediaOverlayError,
       ),
       onPreviousPage: _goToPreviousPage,
       onNextPage: _goToNextPage,

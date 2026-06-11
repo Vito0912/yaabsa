@@ -96,6 +96,22 @@ class FoliateViewerController {
   Future<void> clearTtsHighlight() async {
     await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.clearTtsHighlight();');
   }
+
+  Future<void> startMediaOverlay() async {
+    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.startMediaOverlay();');
+  }
+
+  Future<void> pauseMediaOverlay() async {
+    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.pauseMediaOverlay();');
+  }
+
+  Future<void> resumeMediaOverlay() async {
+    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.resumeMediaOverlay();');
+  }
+
+  Future<void> stopMediaOverlay() async {
+    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.stopMediaOverlay();');
+  }
 }
 
 class FoliateViewer extends StatefulWidget {
@@ -109,7 +125,13 @@ class FoliateViewer extends StatefulWidget {
   final int maxColumnCount;
   final FoliateViewerController? controller;
   final void Function(FoliateLocation)? onRelocate;
-  final void Function(FoliateMetadata metadata, List<FoliateTOCItem> toc, List<FoliateTOCItem> pageList, String dir)?
+  final void Function(
+    FoliateMetadata metadata,
+    List<FoliateTOCItem> toc,
+    List<FoliateTOCItem> pageList,
+    String dir,
+    bool hasMediaOverlays,
+  )?
   onBookLoaded;
   final void Function(FoliateSelection)? onSelectionChanged;
   final void Function()? onSelectionCleared;
@@ -120,6 +142,10 @@ class FoliateViewer extends StatefulWidget {
   final VoidCallback? onCenterTap;
   final void Function(int)? onProgressChanged;
   final void Function(int)? onTtsJumpToSentence;
+  final void Function(String state)? onMediaOverlayStateChanged;
+  final void Function(Map<String, dynamic> detail)? onMediaOverlayHighlight;
+  final void Function(Map<String, dynamic> detail)? onMediaOverlayUnhighlight;
+  final void Function(String error)? onMediaOverlayError;
 
   const FoliateViewer({
     super.key,
@@ -143,6 +169,10 @@ class FoliateViewer extends StatefulWidget {
     this.onCenterTap,
     this.onProgressChanged,
     this.onTtsJumpToSentence,
+    this.onMediaOverlayStateChanged,
+    this.onMediaOverlayHighlight,
+    this.onMediaOverlayUnhighlight,
+    this.onMediaOverlayError,
   });
 
   @override
@@ -334,10 +364,52 @@ class _FoliateViewerState extends State<FoliateViewer> {
                 .map((e) => FoliateTOCItem.fromJson(Map<String, dynamic>.from(e as Map)))
                 .toList();
             final dir = data['dir'] as String? ?? 'ltr';
-            widget.onBookLoaded!(metadata, toc, pageList, dir);
+            final hasMediaOverlays = data['hasMediaOverlays'] as bool? ?? false;
+            widget.onBookLoaded!(metadata, toc, pageList, dir, hasMediaOverlays);
           } catch (e) {
             widget.onError?.call('Failed to parse book loaded metadata: $e');
           }
+        }
+      },
+    );
+
+    controller.addJavaScriptHandler(
+      handlerName: 'onMediaOverlayStateChanged',
+      callback: (args) {
+        if (!mounted) return;
+        if (args.isNotEmpty && widget.onMediaOverlayStateChanged != null) {
+          final data = Map<String, dynamic>.from(args[0] as Map);
+          widget.onMediaOverlayStateChanged!(data['state'] as String? ?? 'stopped');
+        }
+      },
+    );
+
+    controller.addJavaScriptHandler(
+      handlerName: 'onMediaOverlayHighlight',
+      callback: (args) {
+        if (!mounted) return;
+        if (args.isNotEmpty && widget.onMediaOverlayHighlight != null) {
+          widget.onMediaOverlayHighlight!(Map<String, dynamic>.from(args[0] as Map));
+        }
+      },
+    );
+
+    controller.addJavaScriptHandler(
+      handlerName: 'onMediaOverlayUnhighlight',
+      callback: (args) {
+        if (!mounted) return;
+        if (args.isNotEmpty && widget.onMediaOverlayUnhighlight != null) {
+          widget.onMediaOverlayUnhighlight!(Map<String, dynamic>.from(args[0] as Map));
+        }
+      },
+    );
+
+    controller.addJavaScriptHandler(
+      handlerName: 'onMediaOverlayError',
+      callback: (args) {
+        if (!mounted) return;
+        if (args.isNotEmpty && widget.onMediaOverlayError != null) {
+          widget.onMediaOverlayError!(args[0].toString());
         }
       },
     );

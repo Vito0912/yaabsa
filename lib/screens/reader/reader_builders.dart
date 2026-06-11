@@ -36,6 +36,21 @@ extension _ReaderBuilders on _ReaderState {
                 },
                 tooltip: isTtsActive ? 'Stop TTS' : 'Read Aloud (TTS)',
               ),
+              if (_hasMediaOverlays)
+                IconButton(
+                  icon: Icon(_mediaOverlayState != 'stopped' ? Icons.hearing_disabled : Icons.hearing),
+                  onPressed: () {
+                    if (_mediaOverlayState != 'stopped') {
+                      unawaited(epubController.stopMediaOverlay());
+                    } else {
+                      if (_isTtsPlaying) {
+                        _stopTts();
+                      }
+                      unawaited(epubController.startMediaOverlay());
+                    }
+                  },
+                  tooltip: _mediaOverlayState != 'stopped' ? 'Stop Narration' : 'Play Narration (Media Overlay)',
+                ),
               Builder(
                 builder: (context) => IconButton(
                   icon: const Icon(Icons.menu_book),
@@ -391,11 +406,12 @@ extension _ReaderBuilders on _ReaderState {
       maxColumnCount: _epubMaxColumnCount,
       onRelocated: _onEpubRelocated,
       onTtsJumpToSentence: _jumpToTtsSentence,
-      onBookLoaded: (metadata, toc, pageList, dir) {
+      onBookLoaded: (metadata, toc, pageList, dir, hasMediaOverlays) {
         if (!mounted) return;
         _readerSetState(() {
           _epubToc = toc;
           _epubPageList = pageList;
+          _hasMediaOverlays = hasMediaOverlays;
         });
         _applyEpubStyles();
         Future.delayed(const Duration(milliseconds: 200), () {
@@ -405,6 +421,14 @@ extension _ReaderBuilders on _ReaderState {
         });
         _triggerAutoAnnotationLoadIfNeeded(isEpubMode: true);
         unawaited(_startReadingSession());
+      },
+      onMediaOverlayStateChanged: (state) {
+        _readerSetState(() {
+          _mediaOverlayState = state;
+        });
+      },
+      onMediaOverlayError: (error) {
+        _showSnackBar(error);
       },
       onSelectionChanged: (selection) {},
       onSelectionCleared: () {},
@@ -525,6 +549,41 @@ extension _ReaderBuilders on _ReaderState {
           _pdfToc = outline;
         });
       },
+    );
+  }
+
+  Widget _buildMediaOverlayControlPanel() {
+    if (_mediaOverlayState == 'stopped') return const SizedBox.shrink();
+    return Card(
+      margin: const EdgeInsets.all(16),
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.stop),
+              onPressed: () {
+                unawaited(epubController.stopMediaOverlay());
+              },
+              tooltip: 'Stop Narration',
+            ),
+            IconButton(
+              icon: Icon(_mediaOverlayState == 'paused' ? Icons.play_arrow : Icons.pause),
+              onPressed: () {
+                if (_mediaOverlayState == 'paused') {
+                  unawaited(epubController.resumeMediaOverlay());
+                } else {
+                  unawaited(epubController.pauseMediaOverlay());
+                }
+              },
+              tooltip: _mediaOverlayState == 'paused' ? 'Resume' : 'Pause',
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
