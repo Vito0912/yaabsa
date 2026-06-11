@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import androidx.core.app.NotificationManagerCompat
 import androidx.documentfile.provider.DocumentFile
 import com.google.android.gms.wearable.MessageClient
 import com.google.android.gms.wearable.Wearable
@@ -39,8 +40,6 @@ class MainActivity : AudioServiceActivity() {
 	private var pendingAaosOpenSignIn = false
 	private var wearChannel: MethodChannel? = null
 	private var messageClient: MessageClient? = null
-	private var pendingRequestNodeId: String? = null
-	private var pendingRequestId: String? = null
 	private var pendingWearSignInNotification = false
 	private var wearMessageListener: MessageClient.OnMessageReceivedListener? = null
 
@@ -49,11 +48,11 @@ class MainActivity : AudioServiceActivity() {
 		handleWidgetLaunchIntent(intent)
 		handleAaosIntent(intent)
 		handleSignInIntent(intent)
+		handleWearSignInIntent(intent)
 		messageClient = Wearable.getMessageClient(this)
 		wearMessageListener = MessageClient.OnMessageReceivedListener { event ->
 			if (event.path == "/yaabsa/credential_request") {
-				pendingRequestNodeId = event.sourceNodeId
-				pendingRequestId = String(event.data)
+				WearPairingStore.savePendingRequest(this, event.sourceNodeId, String(event.data))
 				pendingWearSignInNotification = true
 				runOnUiThread { notifyWearSignInIfPending() }
 			}
@@ -70,9 +69,23 @@ class MainActivity : AudioServiceActivity() {
 		handleWidgetLaunchIntent(intent)
 		handleAaosIntent(intent)
 		handleSignInIntent(intent)
+		handleWearSignInIntent(intent)
 		if (maybeLaunchMediaCenterFromMainIntent(intent)) {
 			return
 		}
+	}
+
+	/** Launched by [WearSignInListenerService], directly or via its notification. */
+	private fun handleWearSignInIntent(intent: Intent) {
+		if (!intent.getBooleanExtra(WearSignInListenerService.EXTRA_WEAR_SIGN_IN, false)) {
+			return
+		}
+		intent.removeExtra(WearSignInListenerService.EXTRA_WEAR_SIGN_IN)
+		// The sign-in screen is opening, so the fallback notification posted
+		// alongside the direct launch attempt is no longer needed.
+		NotificationManagerCompat.from(this).cancel(WearSignInListenerService.NOTIFICATION_ID)
+		pendingWearSignInNotification = true
+		notifyWearSignInIfPending()
 	}
 
 	private fun handleSignInIntent(intent: Intent) {
@@ -497,12 +510,12 @@ class MainActivity : AudioServiceActivity() {
 	}
 
 	private fun handleSendWearCredentials(call: MethodCall, result: MethodChannel.Result) {
-		val nodeId = pendingRequestNodeId
-		val requestId = pendingRequestId
-		if (nodeId == null || requestId == null) {
+		val pending = WearPairingStore.pendingRequest(this)
+		if (pending == null) {
 			result.success(false)
 			return
 		}
+		val (nodeId, requestId) = pending
 
 		val serverUrl = call.argument<String>("serverUrl")
 		val accessToken = call.argument<String>("accessToken")
@@ -526,8 +539,8 @@ class MainActivity : AudioServiceActivity() {
 
 		client.sendMessage(nodeId, "/yaabsa/credential_response", payload.toString().toByteArray())
 			.addOnSuccessListener {
-				pendingRequestNodeId = null
-				pendingRequestId = null
+				WearPairingStore.clear(this)
+				NotificationManagerCompat.from(this).cancel(WearSignInListenerService.NOTIFICATION_ID)
 				result.success(true)
 			}
 			.addOnFailureListener { e ->
@@ -536,7 +549,7 @@ class MainActivity : AudioServiceActivity() {
 	}
 
 	private fun handleHasPendingCredentialRequest(result: MethodChannel.Result) {
-		result.success(pendingRequestId != null)
+		result.success(WearPairingStore.pendingRequest(this) != null)
 	}
 
 	override fun onDestroy() {

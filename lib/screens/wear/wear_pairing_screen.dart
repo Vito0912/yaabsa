@@ -22,7 +22,7 @@ class _WearPairingScreenState extends State<WearPairingScreen> {
       final paired = await pairWithPhone();
       if (!paired && mounted) {
         setState(() {
-          _errorMessage = 'No response from phone.\nMake sure the phone app is open.';
+          _errorMessage = 'No response from phone.\nCheck your phone for a pairing notification.';
         });
       }
       // On success the home screen switches to the player via the

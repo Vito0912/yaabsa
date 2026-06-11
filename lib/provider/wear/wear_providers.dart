@@ -70,20 +70,40 @@ void initPhoneWearHandler() {
   const channel = MethodChannel(_wearDataChannelName);
   channel.setMethodCallHandler((call) async {
     if (call.method == 'wearSignInRequested') {
-      final user = containerRef.read(currentUserProvider).value;
-      final serverUrl = user?.server?.url;
-      final username = user?.username;
-      final uri = Uri(
-        path: '/add-user',
-        queryParameters: {
-          'wear': '1',
-          if (serverUrl != null && serverUrl.isNotEmpty) 'serverUrl': serverUrl,
-          if (username != null && username.isNotEmpty) 'username': username,
-        },
-      );
-      globalRouter.go(uri.toString());
+      _openWearSignIn();
       return null;
     }
     throw MissingPluginException();
   });
+  // The request may have arrived before this handler existed (app cold-started
+  // from the pairing notification), so also check for a stored pending one.
+  unawaited(_openWearSignInIfRequestPending(channel));
+}
+
+Future<void> _openWearSignInIfRequestPending(MethodChannel channel) async {
+  try {
+    final pending = await channel.invokeMethod<bool>('hasPendingCredentialRequest') ?? false;
+    if (pending) {
+      _openWearSignIn();
+    }
+  } on PlatformException {
+    // Channel unavailable; nothing pending.
+  } on MissingPluginException {
+    // Non-Android host; nothing pending.
+  }
+}
+
+void _openWearSignIn() {
+  final user = containerRef.read(currentUserProvider).value;
+  final serverUrl = user?.server?.url;
+  final username = user?.username;
+  final uri = Uri(
+    path: '/add-user',
+    queryParameters: {
+      'wear': '1',
+      if (serverUrl != null && serverUrl.isNotEmpty) 'serverUrl': serverUrl,
+      if (username != null && username.isNotEmpty) 'username': username,
+    },
+  );
+  globalRouter.go(uri.toString());
 }
