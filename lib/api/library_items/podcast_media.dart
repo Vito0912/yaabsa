@@ -9,11 +9,12 @@ part 'podcast_media.g.dart';
 abstract class PodcastMedia with _$PodcastMedia {
   const factory PodcastMedia({
     @JsonKey(name: "id") required String id,
-    @JsonKey(name: "libraryItemId") required String libraryItemId,
+    @JsonKey(name: "libraryItemId") String? libraryItemId,
     @JsonKey(name: "metadata") required PodcastMetadata metadata,
     @JsonKey(name: "coverPath") String? coverPath,
     @JsonKey(name: "tags") List<String>? tags,
     @JsonKey(name: "episodes") List<Episode>? episodes,
+    @JsonKey(name: "numEpisodes") int? numEpisodes,
     @JsonKey(name: "autoDownloadEpisodes") bool? autoDownloadEpisodes,
     @JsonKey(name: "autoDownloadSchedule") String? autoDownloadSchedule,
     @JsonKey(name: "lastEpisodeCheck") int? lastEpisodeCheck,

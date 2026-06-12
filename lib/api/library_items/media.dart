@@ -13,7 +13,7 @@ abstract class Media with _$Media {
   /// Custom fromJson method to handle different structures.
   factory Media.fromJson(Map<String, dynamic> json) {
     // Check if the JSON contains an "episodes" key, indicating a PodcastMedia.
-    if (json.containsKey('episodes')) {
+    if (json.containsKey('episodes') || json.containsKey('numEpisodes')) {
       return Media(podcastMedia: PodcastMedia.fromJson(json));
     }
     // Otherwise, default to BookMedia.

@@ -524,4 +524,9 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
     state = AsyncData({...currentMap, key: updatedProgress});
     unawaited(_persistProgress(updatedProgress));
   }
+
+  List<MediaProgress> getAllProgressForLibraryItem(String libraryItemId) {
+    final currentMap = state.asData?.value ?? <String, MediaProgress>{};
+    return currentMap.values.where((progress) => progress.libraryItemId == libraryItemId).toList(growable: false);
+  }
 }

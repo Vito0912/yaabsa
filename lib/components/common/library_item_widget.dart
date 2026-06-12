@@ -83,11 +83,21 @@ class _LibraryItemWidgetState extends ConsumerState<LibraryItemWidget> {
     final progress = widget.showProgress ? _resolveProgress(progressMap!) : null;
     final completedDownloadItemIds = ref.watch(completedDownloadItemIdsProvider).asData?.value ?? const <String>{};
     final isDownloaded = completedDownloadItemIds.contains(widget.libraryItem.id);
-    final sequenceBadgeLabel = widget.sequenceBadge?.trim();
-    final showSequenceBadge = sequenceBadgeLabel != null && sequenceBadgeLabel.isNotEmpty;
     final collapsedSeriesBookCount = widget.libraryItem.collapsedSeries?.numBooks ?? 0;
     final collapsedSeriesId = widget.libraryItem.collapsedSeries?.id;
     final isCollapsedSeriesCard = widget.libraryItem.collapsedSeries != null;
+    final isPodcast = !(widget.libraryItem.media?.hasAudio ?? widget.libraryItem.media?.hasBook ?? true);
+    final unplayedEpisodes = isPodcast
+        ? ((widget.libraryItem.media?.podcastMedia?.numEpisodes ?? 0) -
+              ref
+                  .read(mediaProgressProvider.notifier)
+                  .getAllProgressForLibraryItem(widget.libraryItem.id)
+                  .where((progress) => !progress.isFinished)
+                  .length)
+        : 0;
+
+    final sequenceBadgeLabel = unplayedEpisodes > 0 ? unplayedEpisodes.toString() : widget.sequenceBadge?.trim();
+    final showSequenceBadge = unplayedEpisodes > 0 || (sequenceBadgeLabel != null && sequenceBadgeLabel.isNotEmpty);
 
     final progressValue = (progress?.progress ?? 0).clamp(0.0, 1.0).toDouble();
     final showProgressRing = widget.showProgress && progressValue > 0;
@@ -259,7 +269,7 @@ class _LibraryItemWidgetState extends ConsumerState<LibraryItemWidget> {
                         ),
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         child: Text(
-                          sequenceBadgeLabel,
+                          sequenceBadgeLabel!,
                           style: Theme.of(
                             context,
                           ).textTheme.labelSmall?.copyWith(color: colorScheme.onPrimaryContainer),
