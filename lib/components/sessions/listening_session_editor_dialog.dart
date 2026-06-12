@@ -53,6 +53,9 @@ class _ListeningSessionEditorDialogState extends State<_ListeningSessionEditorDi
   late double _startSeconds;
   late double _endSeconds;
   late double _timeListeningSeconds;
+  DateTime? _sessionDate;
+  int? _startedAt;
+  int? _updatedAt;
 
   String? _actionError;
   bool _isSaving = false;
@@ -64,6 +67,9 @@ class _ListeningSessionEditorDialogState extends State<_ListeningSessionEditorDi
     _startSeconds = widget.session.startTime ?? 0;
     _endSeconds = widget.session.currentTime ?? 0;
     _timeListeningSeconds = widget.session.timeListening ?? 0;
+    _sessionDate = listeningSessionDateTime(widget.session);
+    _startedAt = widget.session.startedAt;
+    _updatedAt = widget.session.updatedAt;
   }
 
   Future<void> _save() async {
@@ -84,11 +90,47 @@ class _ListeningSessionEditorDialogState extends State<_ListeningSessionEditorDi
       _actionError = null;
     });
 
+    int? newStartedAt = _startedAt;
+    int? newUpdatedAt = _updatedAt != widget.session.updatedAt ? _updatedAt : DateTime.now().millisecondsSinceEpoch;
+    String? newDateString = widget.session.date;
+    String? newDayOfWeek = widget.session.dayOfWeek;
+
+    if (_sessionDate != null) {
+      newDateString =
+          '${_sessionDate!.year.toString().padLeft(4, '0')}-${_sessionDate!.month.toString().padLeft(2, '0')}-${_sessionDate!.day.toString().padLeft(2, '0')}';
+      switch (_sessionDate!.weekday) {
+        case 1:
+          newDayOfWeek = 'Monday';
+          break;
+        case 2:
+          newDayOfWeek = 'Tuesday';
+          break;
+        case 3:
+          newDayOfWeek = 'Wednesday';
+          break;
+        case 4:
+          newDayOfWeek = 'Thursday';
+          break;
+        case 5:
+          newDayOfWeek = 'Friday';
+          break;
+        case 6:
+          newDayOfWeek = 'Saturday';
+          break;
+        case 7:
+          newDayOfWeek = 'Sunday';
+          break;
+      }
+    }
+
     final updatedSession = widget.session.copyWith(
       startTime: _startSeconds,
       currentTime: _endSeconds,
       timeListening: _timeListeningSeconds,
-      updatedAt: DateTime.now().millisecondsSinceEpoch,
+      updatedAt: newUpdatedAt,
+      startedAt: newStartedAt,
+      date: newDateString,
+      dayOfWeek: newDayOfWeek,
     );
 
     try {
@@ -187,18 +229,63 @@ class _ListeningSessionEditorDialogState extends State<_ListeningSessionEditorDi
     }
   }
 
-  Widget _buildSummaryTile(String label, String value) {
+  Future<void> _editTimestamp(int? currentMs, ValueChanged<int?> onChanged) async {
+    final current = currentMs != null && currentMs > 0
+        ? DateTime.fromMillisecondsSinceEpoch(currentMs)
+        : DateTime.now();
+    final newDate = await showDatePicker(
+      context: context,
+      initialDate: current,
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    if (newDate == null || !mounted) return;
+
+    final newTime = await showTimePicker(context: context, initialTime: TimeOfDay.fromDateTime(current));
+    if (newTime == null || !mounted) return;
+
+    final updated = DateTime(newDate.year, newDate.month, newDate.day, newTime.hour, newTime.minute);
+    onChanged(updated.millisecondsSinceEpoch);
+  }
+
+  Future<void> _editDuration(String title, double currentSeconds, ValueChanged<double> onChanged) async {
+    final pickedSeconds = await showSessionDurationPickerDialog(
+      context,
+      title: title,
+      initialSeconds: currentSeconds.round(),
+    );
+    if (pickedSeconds != null && mounted) {
+      onChanged(pickedSeconds.toDouble());
+    }
+  }
+
+  Widget _buildSummaryTile(String label, String value, {VoidCallback? onEdit}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: onEdit != null ? CrossAxisAlignment.center : CrossAxisAlignment.start,
         children: [
           SizedBox(
             width: 114,
             child: Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
           ),
           const SizedBox(width: 8),
-          Expanded(child: Text(value)),
+          Expanded(
+            child: onEdit != null
+                ? Row(
+                    children: [
+                      Text(value),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: const Icon(Icons.edit, size: 16),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        onPressed: _isSaving || _isDeleting ? null : onEdit,
+                      ),
+                    ],
+                  )
+                : Text(value),
+          ),
         ],
       ),
     );
@@ -258,13 +345,57 @@ class _ListeningSessionEditorDialogState extends State<_ListeningSessionEditorDi
             children: [
               _buildSummaryTile('Author', author.isEmpty ? 'Unknown' : author),
               if (userLabel != null && userLabel.isNotEmpty) _buildSummaryTile('User', userLabel),
-              _buildSummaryTile('Date', formatDateTimeLabel(listeningSessionDateTime(widget.session))),
-              _buildSummaryTile('Started', _formatTimestamp(widget.session.startedAt)),
-              _buildSummaryTile('Updated', _formatTimestamp(widget.session.updatedAt)),
+              _buildSummaryTile(
+                'Date',
+                formatDateTimeLabel(_sessionDate),
+                onEdit: widget.canEdit
+                    ? () => _editTimestamp(_sessionDate?.millisecondsSinceEpoch, (val) {
+                        if (val != null) {
+                          setState(() => _sessionDate = DateTime.fromMillisecondsSinceEpoch(val));
+                        }
+                      })
+                    : null,
+              ),
+              _buildSummaryTile(
+                'Started',
+                _formatTimestamp(_startedAt),
+                onEdit: widget.canEdit
+                    ? () => _editTimestamp(_startedAt, (val) => setState(() => _startedAt = val))
+                    : null,
+              ),
+              _buildSummaryTile(
+                'Updated',
+                _formatTimestamp(_updatedAt),
+                onEdit: widget.canEdit
+                    ? () => _editTimestamp(_updatedAt, (val) => setState(() => _updatedAt = val))
+                    : null,
+              ),
               _buildSummaryTile('Duration', _formatDurationSeconds(widget.session.duration)),
-              _buildSummaryTile('Listened', _formatDurationSeconds(widget.session.timeListening)),
-              _buildSummaryTile('Current Position', _formatDurationSeconds(widget.session.currentTime)),
-              _buildSummaryTile('Start Position', _formatDurationSeconds(widget.session.startTime)),
+              _buildSummaryTile(
+                'Listened',
+                _formatDurationSeconds(_timeListeningSeconds),
+                onEdit: widget.canEdit
+                    ? () => _editDuration(
+                        'Time Listened',
+                        _timeListeningSeconds,
+                        (val) => setState(() => _timeListeningSeconds = val),
+                      )
+                    : null,
+              ),
+              _buildSummaryTile(
+                'Current Position',
+                _formatDurationSeconds(_endSeconds),
+                onEdit: widget.canEdit
+                    ? () => _editDuration('End', _endSeconds, (val) => setState(() => _endSeconds = val))
+                    : null,
+              ),
+              _buildSummaryTile(
+                'Start Position',
+                _formatDurationSeconds(_startSeconds),
+                onEdit: widget.canEdit
+                    ? () => _editDuration('Start', _startSeconds, (val) => setState(() => _startSeconds = val))
+                    : null,
+              ),
               _buildSummaryTile('Play Method', _playMethodLabel(widget.session.playMethod)),
               if (device.isNotEmpty) _buildSummaryTile('Device', device),
               if (mediaPlayer != null && mediaPlayer.isNotEmpty) _buildSummaryTile('Player', mediaPlayer),
@@ -274,53 +405,6 @@ class _ListeningSessionEditorDialogState extends State<_ListeningSessionEditorDi
               if (episodeId != null && episodeId.isNotEmpty) _buildSummaryTile('Episode ID', episodeId),
               _buildSummaryTile('Session ID', widget.session.id),
               const SizedBox(height: 10),
-              if (widget.canEdit)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    SessionDurationPickerField(
-                      label: 'Start',
-                      seconds: _startSeconds,
-                      enabled: !_isSaving && !_isDeleting,
-                      onChanged: (value) {
-                        setState(() {
-                          _startSeconds = value;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 10),
-                    SessionDurationPickerField(
-                      label: 'End',
-                      seconds: _endSeconds,
-                      enabled: !_isSaving && !_isDeleting,
-                      onChanged: (value) {
-                        setState(() {
-                          _endSeconds = value;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 10),
-                    SessionDurationPickerField(
-                      label: 'Time Listened',
-                      seconds: _timeListeningSeconds,
-                      enabled: !_isSaving && !_isDeleting,
-                      onChanged: (value) {
-                        setState(() {
-                          _timeListeningSeconds = value;
-                        });
-                      },
-                    ),
-                  ],
-                )
-              else
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildSummaryTile('Start', _formatDurationSeconds(widget.session.startTime)),
-                    _buildSummaryTile('End', _formatDurationSeconds(widget.session.currentTime)),
-                    _buildSummaryTile('Listened', _formatDurationSeconds(widget.session.timeListening)),
-                  ],
-                ),
               if (_actionError != null && _actionError!.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(top: 10),
