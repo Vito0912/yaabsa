@@ -10,6 +10,7 @@ class ExpressiveExpandableCard extends StatelessWidget {
     this.initiallyExpanded = true,
     this.margin = EdgeInsets.zero,
     this.childrenPadding = const EdgeInsets.fromLTRB(12, 0, 12, 10),
+    this.childrenCrossAxisAlignment,
     this.onExpansionChanged,
     this.cardColor,
     this.shape,
@@ -24,6 +25,7 @@ class ExpressiveExpandableCard extends StatelessWidget {
   final bool initiallyExpanded;
   final EdgeInsetsGeometry margin;
   final EdgeInsetsGeometry childrenPadding;
+  final CrossAxisAlignment? childrenCrossAxisAlignment;
   final ValueChanged<bool>? onExpansionChanged;
   final Color? cardColor;
   final ShapeBorder? shape;
@@ -50,6 +52,7 @@ class ExpressiveExpandableCard extends StatelessWidget {
           leading: icon == null ? null : Icon(icon, color: colorScheme.primary),
           iconColor: colorScheme.primary,
           collapsedIconColor: colorScheme.onSurfaceVariant,
+          expandedCrossAxisAlignment: childrenCrossAxisAlignment,
           title: actions == null || actions!.isEmpty
               ? Text(title)
               : Row(
