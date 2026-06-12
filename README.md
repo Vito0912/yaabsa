@@ -48,7 +48,7 @@ As I myself criticize the lack of disclosure about AI, which most ABS apps now u
 
 Below is a list of all features, but I want to _highlight_ a few, as this client has features that are only and or very rarely found in other clients:
 
-* **First** client that supports Android Automotive
+* **First** client that supports Android Automotive (AAOS) for Audiobookshelf (ABS)
 * WIP (so basic) eBook/PDF support **with** _syncable_ annotations
 * subtitle support **with** karaoke-style highlighting support (later planned to be extended like Whispersync)
 * Support for all platforms Linux, Android, Android Automotive, iOS, macOS, Windows with responsive design
