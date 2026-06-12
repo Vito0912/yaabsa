@@ -1,5 +1,18 @@
 import 'package:flutter/material.dart';
 
+Future<int?> showSessionDurationPickerDialog(
+  BuildContext context, {
+  required String title,
+  required int initialSeconds,
+}) {
+  return showDialog<int>(
+    context: context,
+    builder: (context) {
+      return _SessionDurationPickerDialog(title: title, initialSeconds: initialSeconds);
+    },
+  );
+}
+
 class SessionDurationPickerField extends StatelessWidget {
   const SessionDurationPickerField({
     required this.label,
