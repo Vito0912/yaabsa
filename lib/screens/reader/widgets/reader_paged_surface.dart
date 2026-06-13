@@ -127,6 +127,7 @@ class _ReaderNavigationHoverAreaState extends State<_ReaderNavigationHoverArea> 
       child: MouseRegion(
         onEnter: (_) => setState(() => _isHovered = true),
         onExit: (_) => setState(() => _isHovered = false),
+        cursor: SystemMouseCursors.click,
         child: GestureDetector(
           behavior: HitTestBehavior.translucent,
           onTap: widget.onTap,

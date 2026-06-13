@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
@@ -87,6 +89,28 @@ class LibraryItemOverlayPlayButton extends StatelessWidget {
                 iconSize: isFinished ? 20 : 16,
                 onPressed: isEbook
                     ? () {
+                        if (Platform.isLinux) {
+                          final bookMedia = libraryItem.media?.bookMedia;
+                          final candidates = <String?>[
+                            bookMedia?.ebookFile?.ebookFormat,
+                            bookMedia?.ebookFormat,
+                            bookMedia?.ebookFile?.metadata.ext,
+                          ];
+                          bool isPdf = false;
+                          for (final candidate in candidates) {
+                            final normalized = candidate?.trim().toLowerCase() ?? '';
+                            if (normalized == 'pdf') {
+                              isPdf = true;
+                              break;
+                            }
+                          }
+                          if (!isPdf) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Only PDF reading is currently supported on Linux')),
+                            );
+                            return;
+                          }
+                        }
                         context.push('/ebook/${libraryItem.id}');
                       }
                     : (isLoadingCurrentItem

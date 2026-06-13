@@ -200,13 +200,6 @@ extension _ReaderCoreHelpers on _ReaderState {
         );
 
     _throttleProgressSync(location: '$pageNumber', progress: progress);
-
-    if (_waitingForTtsPageLoad) {
-      _waitingForTtsPageLoad = false;
-      if (mounted && _isTtsPlaying) {
-        unawaited(_startTts(isEpubMode: false));
-      }
-    }
   }
 
   void _onEpubRelocated(FoliateLocation location) {
@@ -229,7 +222,7 @@ extension _ReaderCoreHelpers on _ReaderState {
       _waitingForTtsPageLoad = false;
       Future.delayed(const Duration(milliseconds: 300), () {
         if (mounted && _isTtsPlaying) {
-          unawaited(_startTts(isEpubMode: true));
+          unawaited(_startTts());
         }
       });
     }

@@ -172,7 +172,7 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
     }
     if (event is KeyDownEvent) {
       final isEpub = _pdfDocument == null;
-      if (event.logicalKey == LogicalKeyboardKey.audioVolumeUp) {
+      if (event.logicalKey == LogicalKeyboardKey.audioVolumeUp || event.logicalKey == LogicalKeyboardKey.arrowRight) {
         if (isEpub) {
           epubController.next();
         } else {
@@ -183,7 +183,8 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
           }
         }
         return true;
-      } else if (event.logicalKey == LogicalKeyboardKey.audioVolumeDown) {
+      } else if (event.logicalKey == LogicalKeyboardKey.audioVolumeDown ||
+          event.logicalKey == LogicalKeyboardKey.arrowLeft) {
         if (isEpub) {
           epubController.prev();
         } else {
@@ -396,12 +397,7 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
     }
   }
 
-  Future<void> _startTts({required bool isEpubMode}) async {
-    if (!isEpubMode) {
-      _showSnackBar('TTS is not supported for PDFs');
-      return;
-    }
-
+  Future<void> _startTts() async {
     if (_mediaOverlayState != 'stopped') {
       unawaited(epubController.stopMediaOverlay());
     }
@@ -477,18 +473,7 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
 
   void _turnPageForTts() {
     _waitingForTtsPageLoad = true;
-    final isEpub = _pdfDocument == null;
-    if (isEpub) {
-      epubController.next();
-    } else {
-      final currentPage = _pdfController.pageNumber;
-      final pageCount = _pdfController.pageCount;
-      if (currentPage != null && pageCount > 0 && currentPage < pageCount) {
-        _pdfController.goToPage(pageNumber: currentPage + 1);
-      } else {
-        _stopTts();
-      }
-    }
+    epubController.next();
   }
 
   @override

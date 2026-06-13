@@ -21,21 +21,23 @@ extension _ReaderBuilders on _ReaderState {
             border: Border(bottom: BorderSide(color: theme.colorScheme.outlineVariant.withAlpha(100))),
           ),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
               const SizedBox(width: 8),
-              Expanded(child: Text('Ebook Reader', style: theme.textTheme.titleMedium)),
-              IconButton(
-                icon: Icon(isTtsActive ? Icons.volume_off : Icons.volume_up),
-                onPressed: () {
-                  if (isTtsActive) {
-                    _stopTts();
-                  } else {
-                    unawaited(_startTts(isEpubMode: isEpubMode));
-                  }
-                },
-                tooltip: isTtsActive ? 'Stop TTS' : 'Read Aloud (TTS)',
-              ),
+              const Spacer(),
+              if (isEpubMode)
+                IconButton(
+                  icon: Icon(isTtsActive ? Icons.volume_off : Icons.volume_up),
+                  onPressed: () {
+                    if (isTtsActive) {
+                      _stopTts();
+                    } else {
+                      unawaited(_startTts());
+                    }
+                  },
+                  tooltip: isTtsActive ? 'Stop TTS' : 'Start TTS',
+                ),
               if (_hasMediaOverlays)
                 IconButton(
                   icon: Icon(_mediaOverlayState != 'stopped' ? Icons.hearing_disabled : Icons.hearing),
@@ -49,7 +51,7 @@ extension _ReaderBuilders on _ReaderState {
                       unawaited(epubController.startMediaOverlay());
                     }
                   },
-                  tooltip: _mediaOverlayState != 'stopped' ? 'Stop Narration' : 'Play Narration (Media Overlay)',
+                  tooltip: _mediaOverlayState != 'stopped' ? 'Stop Narration' : 'Start Narration',
                 ),
               Builder(
                 builder: (context) => IconButton(
