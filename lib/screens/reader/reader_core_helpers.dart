@@ -20,10 +20,8 @@ extension _ReaderCoreHelpers on _ReaderState {
 
   void _resetPdfState() {
     _lastSyncedPdfPageNumber = null;
-    _selectedPdfRanges = const <PdfPageTextRange>[];
     _pdfAnnotations = const <PdfAnnotationEntry>[];
     _hoveredPdfAnnotationCfi = null;
-    _activePdfAnnotationCfi = null;
   }
 
   String _ebookUrl(User user) {
@@ -79,12 +77,9 @@ extension _ReaderCoreHelpers on _ReaderState {
   }
 
   void _showSnackBar(String message) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), duration: _kSnackBarDuration));
   }
-
-  bool get _hasValidEpubSelection => _selectedCfi != null && _selectedText != null;
-
-  bool get _hasValidPdfSelection => _selectedPdfRanges.isNotEmpty;
 
   bool _isPdfAnnotation(InternalAnnotation annotation) {
     return isPdfAnnotationCfi(annotation.cfi);
@@ -166,8 +161,8 @@ extension _ReaderCoreHelpers on _ReaderState {
   }
 
   Future<void> _syncEpubProgress({required String location, required double progress}) async {
-    final ABSApi? api = ref.read(absApiProvider);
-    if (api == null || location.trim().isEmpty) {
+    if (!mounted) return;
+    if (location.trim().isEmpty) {
       return;
     }
 
@@ -175,14 +170,11 @@ extension _ReaderCoreHelpers on _ReaderState {
         .read(mediaProgressProvider.notifier)
         .applyLocalEbookProgressUpdate(libraryItemId: widget.itemId, ebookLocation: location, ebookProgress: progress);
 
-    try {
-      await api.getMeApi().updateBookProgress(widget.itemId, epubCfi: location, progress: progress);
-    } catch (e, s) {
-      logger('Failed to sync EPUB progress for ${widget.itemId}: $e\n$s', tag: 'EpubReader', level: InfoLevel.error);
-    }
+    _throttleProgressSync(location: location, progress: progress);
   }
 
   Future<void> _syncPdfProgress({required int pageNumber}) async {
+    if (!mounted) return;
     if (pageNumber < 1 || _lastSyncedPdfPageNumber == pageNumber) {
       return;
     }
@@ -195,6 +187,10 @@ extension _ReaderCoreHelpers on _ReaderState {
     final progress = pageCount <= 0 ? 0.0 : (pageNumber / pageCount).clamp(0.0, 1.0).toDouble();
     _lastSyncedPdfPageNumber = pageNumber;
 
+    _readerSetState(() {
+      _currentPdfPage = pageNumber;
+    });
+
     ref
         .read(mediaProgressProvider.notifier)
         .applyLocalEbookProgressUpdate(
@@ -203,32 +199,36 @@ extension _ReaderCoreHelpers on _ReaderState {
           ebookProgress: progress,
         );
 
-    final ABSApi? api = ref.read(absApiProvider);
-    if (api == null) {
-      return;
-    }
-
-    try {
-      await api.getMeApi().updateBookProgress(widget.itemId, epubCfi: '$pageNumber', progress: progress);
-      logger('PDF relocated to page $pageNumber', tag: 'PdfReader', level: InfoLevel.debug);
-    } catch (e, s) {
-      if (_lastSyncedPdfPageNumber == pageNumber) {
-        _lastSyncedPdfPageNumber = null;
-      }
-      logger('Failed to sync PDF progress for page $pageNumber: $e\n$s', tag: 'PdfReader', level: InfoLevel.error);
-    }
+    _throttleProgressSync(location: '$pageNumber', progress: progress);
   }
 
-  void _onEpubRelocated(EpubLocation location) {
-    final currentLocation = location.startCfi ?? location.endCfi;
-    if (currentLocation == null) {
+  void _onEpubRelocated(FoliateLocation location) {
+    if (!mounted) return;
+    final currentLocation = location.cfi;
+    if (currentLocation == null || _lastSyncedEpubCfi == currentLocation) {
       return;
     }
 
+    _lastSyncedEpubCfi = currentLocation;
+
+    _readerSetState(() {
+      _currentEpubLocation = location;
+    });
+
     _triggerAutoAnnotationLoadIfNeeded(isEpubMode: true);
-    unawaited(_syncEpubProgress(location: currentLocation, progress: location.progress));
+    unawaited(_syncEpubProgress(location: currentLocation, progress: location.fraction));
+
+    if (_waitingForTtsPageLoad) {
+      _waitingForTtsPageLoad = false;
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted && _isTtsPlaying) {
+          unawaited(_startTts());
+        }
+      });
+    }
+
     logger(
-      'Epub relocated: $currentLocation, progress: ${location.progress}',
+      'Epub relocated: $currentLocation, progress: ${location.fraction}',
       level: InfoLevel.debug,
       tag: 'EpubReader',
     );

@@ -361,6 +361,42 @@ final List<SettingsSearchItem> searchableSettings = [
     categoryPath: 'Settings > Logs',
     route: '/settings/logs',
   ),
+  const SettingsSearchItem(
+    title: 'Reader Theme',
+    description: 'Background and text color theme of the reader',
+    categoryPath: 'Settings > Ebook-Reader',
+    route: '/settings/reader',
+  ),
+  const SettingsSearchItem(
+    title: 'Reader Font Size',
+    description: 'Adjust the size of the reader text',
+    categoryPath: 'Settings > Ebook-Reader',
+    route: '/settings/reader',
+  ),
+  const SettingsSearchItem(
+    title: 'Reader Line Spacing',
+    description: 'Adjust the line spacing of the reader text',
+    categoryPath: 'Settings > Ebook-Reader',
+    route: '/settings/reader',
+  ),
+  const SettingsSearchItem(
+    title: 'Reader Layout Mode',
+    description: 'Choose between paginated columns or vertical infinite scroll',
+    categoryPath: 'Settings > Ebook-Reader',
+    route: '/settings/reader',
+  ),
+  const SettingsSearchItem(
+    title: 'Hide mini player when reading',
+    description: 'Hides the bottom audio mini player in the book reader',
+    categoryPath: 'Settings > Ebook-Reader',
+    route: '/settings/reader',
+  ),
+  const SettingsSearchItem(
+    title: 'Start session when reading',
+    description: 'Track reading time on the server with direct play',
+    categoryPath: 'Settings > Ebook-Reader',
+    route: '/settings/reader',
+  ),
 ];
 
 class MainSettingsScreen extends ConsumerStatefulWidget {
@@ -995,6 +1031,11 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
                                           icon: Icons.cached_outlined,
                                           title: 'Caching',
                                           onTap: () => context.push(CachingSettings.routeName),
+                                        ),
+                                        SettingsNavigationItem(
+                                          icon: Icons.menu_book_outlined,
+                                          title: 'Ebook Reader',
+                                          onTap: () => context.push(ReaderSettings.routeName),
                                         ),
                                       ],
                                     ),

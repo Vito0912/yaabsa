@@ -311,7 +311,7 @@ jobs:
           path: output/linux/yaabsa_*.rpm
 
   build-flatpak:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs:
       - changes
       - check-requirements
@@ -329,10 +329,6 @@ jobs:
         with:
           channel: stable
           cache: true
-
-      - name: Add flatpak repo
-        run: |
-          sudo add-apt-repository ppa:flatpak/stable -y
 
       - name: Update apt
         run: |
@@ -370,7 +366,7 @@ jobs:
       - name: Install Flatpak runtime and SDK
         run: |
           flatpak --user remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-          flatpak --user install -y flathub org.gnome.Platform//49 org.gnome.Sdk//49
+          flatpak --user install -y flathub org.gnome.Platform//50 org.gnome.Sdk//50
 
       - name: Validate Flatpak signing secrets
         if: github.ref == 'refs/heads/master'

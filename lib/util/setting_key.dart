@@ -106,6 +106,12 @@ class SettingKeys {
   static const String checkForServerUpdates = 'check_for_server_updates';
   static const String dismissedUpdateServerVersion = 'dismissed_update_server_version';
   static const String playerShowRemainingTime = 'player_show_remaining_time';
+  static const String readerTheme = 'reader_theme';
+  static const String readerFontSizeMultiplier = 'reader_font_size_multiplier';
+  static const String readerLineHeight = 'reader_line_height';
+  static const String readerLayout = 'reader_layout';
+  static const String readerHideMiniPlayer = 'reader_hide_mini_player';
+  static const String readerStartSession = 'reader_start_session';
 }
 
 bool get _defaultEnableOnDesktop {
@@ -223,9 +229,13 @@ final defaultSettings = {
   SettingKeys.subtitlesEnabled: true,
   SettingKeys.subtitleSpeakerHighlighting: true,
   SettingKeys.subtitleReadAlong: true,
-  SettingKeys.checkForServerUpdates: false,
-  SettingKeys.dismissedUpdateServerVersion: '',
   SettingKeys.playerShowRemainingTime: false,
+  SettingKeys.readerTheme: 'sepia',
+  SettingKeys.readerFontSizeMultiplier: 1.0,
+  SettingKeys.readerLineHeight: 1.5,
+  SettingKeys.readerLayout: 'paginated_2',
+  SettingKeys.readerHideMiniPlayer: false,
+  SettingKeys.readerStartSession: false,
 };
 
 enum AppThemeMode {

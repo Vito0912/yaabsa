@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:background_downloader/background_downloader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -205,6 +207,30 @@ class LibraryItemBookView extends ConsumerWidget {
                                         audioHandler.pause();
                                       },
                                       onRead: () {
+                                        if (Platform.isLinux) {
+                                          final bookMedia = item.media?.bookMedia;
+                                          final candidates = <String?>[
+                                            bookMedia?.ebookFile?.ebookFormat,
+                                            bookMedia?.ebookFormat,
+                                            bookMedia?.ebookFile?.metadata.ext,
+                                          ];
+                                          bool isPdf = false;
+                                          for (final candidate in candidates) {
+                                            final normalized = candidate?.trim().toLowerCase() ?? '';
+                                            if (normalized == 'pdf') {
+                                              isPdf = true;
+                                              break;
+                                            }
+                                          }
+                                          if (!isPdf) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(
+                                                content: Text('Only PDF reading is currently supported on Linux'),
+                                              ),
+                                            );
+                                            return;
+                                          }
+                                        }
                                         context.push('/ebook/${item.id}');
                                       },
                                       onDownload: () async {
