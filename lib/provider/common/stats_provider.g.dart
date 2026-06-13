@@ -183,7 +183,7 @@ abstract class _$AdvancedListeningAnalytics extends $Notifier<AdvancedListeningA
   AdvancedListeningAnalyticsState build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AdvancedListeningAnalyticsState, AdvancedListeningAnalyticsState>;
     final element =
         ref.element
@@ -193,6 +193,6 @@ abstract class _$AdvancedListeningAnalytics extends $Notifier<AdvancedListeningA
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

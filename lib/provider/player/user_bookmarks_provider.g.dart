@@ -38,7 +38,7 @@ abstract class _$UserBookmarksNotifier extends $AsyncNotifier<List<Bookmark>> {
   FutureOr<List<Bookmark>> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<List<Bookmark>>, List<Bookmark>>;
     final element =
         ref.element
@@ -48,6 +48,6 @@ abstract class _$UserBookmarksNotifier extends $AsyncNotifier<List<Bookmark>> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

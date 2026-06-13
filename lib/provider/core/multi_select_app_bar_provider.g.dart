@@ -43,7 +43,7 @@ abstract class _$MultiSelectAppBar extends $Notifier<MultiSelectAppBarState?> {
   MultiSelectAppBarState? build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<MultiSelectAppBarState?, MultiSelectAppBarState?>;
     final element =
         ref.element
@@ -53,6 +53,6 @@ abstract class _$MultiSelectAppBar extends $Notifier<MultiSelectAppBarState?> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

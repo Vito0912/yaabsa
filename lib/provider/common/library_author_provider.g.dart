@@ -98,7 +98,7 @@ abstract class _$LibraryAuthorsNotifier extends $AsyncNotifier<LibraryAuthorsSta
   });
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<LibraryAuthorsState>, LibraryAuthorsState>;
     final element =
         ref.element
@@ -108,7 +108,7 @@ abstract class _$LibraryAuthorsNotifier extends $AsyncNotifier<LibraryAuthorsSta
               Object?,
               Object?
             >;
-    element.handleCreate(
+    return element.handleCreate(
       ref,
       () => build(
         _$args.$1,
@@ -191,7 +191,7 @@ abstract class _$LibraryAuthorDetails extends $AsyncNotifier<AuthorDetails> {
   FutureOr<AuthorDetails> build(String authorId);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<AuthorDetails>, AuthorDetails>;
     final element =
         ref.element
@@ -201,6 +201,6 @@ abstract class _$LibraryAuthorDetails extends $AsyncNotifier<AuthorDetails> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args));
+    return element.handleCreate(ref, () => build(_$args));
   }
 }

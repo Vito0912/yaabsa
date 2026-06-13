@@ -209,12 +209,19 @@ class SessionRepository {
     }
 
     if (_isLocalSession) {
+      final double newTimeListening = (_currentSession!.timeListening ?? 0.0) + timeListened;
+      _currentSession = _currentSession!.copyWith(
+        currentTime: currentTime,
+        timeListening: newTimeListening,
+        updatedAt: DateTime.now().millisecondsSinceEpoch,
+      );
+
       final MediaProgress? updatedProgress = await ref
           .read(mediaProgressProvider.notifier)
           .updateMediaProgress(_currentSession!.libraryItemId, currentTime, _currentSession!);
 
       if (canReachServer) {
-        final syncedRemotely = await _syncLocalSessionProgressDirectly(currentTime, updatedProgress);
+        final syncedRemotely = await _syncLocalSessionProgressDirectly();
         if (syncedRemotely) {
           return true;
         }
@@ -272,7 +279,7 @@ class SessionRepository {
     }
   }
 
-  Future<bool> _syncLocalSessionProgressDirectly(double currentTime, MediaProgress? updatedProgress) async {
+  Future<bool> _syncLocalSessionProgressDirectly() async {
     final PlaybackSession? currentSession = _currentSession;
     final ABSApi? api = ref.read(absApiProvider);
 
@@ -280,23 +287,13 @@ class SessionRepository {
       return false;
     }
 
-    final String effectiveUserId = _activeUserId ?? currentSession.userId;
-    final double duration = currentSession.duration ?? 0;
-    final double normalizedProgress = duration > 0 ? (currentTime / duration).clamp(0.0, 1.0).toDouble() : 0.0;
-    final MediaProgress progressToSync =
-        updatedProgress ?? currentSession.toMediaProgress(null, effectiveUserId, normalizedProgress, currentTime);
-
     try {
-      await api.getMeApi().createUpdateMediaProgress(
-        currentSession.libraryItemId,
-        progressToSync,
-        episodeId: currentSession.episodeId,
-      );
+      await api.getSessionApi().syncLocalSession(currentSession);
 
       PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.localSync);
       return true;
     } catch (e) {
-      logger('Failed direct local progress sync: $e', tag: 'SessionRepository', level: InfoLevel.warning);
+      logger('Failed direct local session sync: $e', tag: 'SessionRepository', level: InfoLevel.warning);
       return false;
     }
   }

@@ -39,7 +39,7 @@ abstract class _$MediaProgressNotifier extends $AsyncNotifier<Map<String, MediaP
   FutureOr<Map<String, MediaProgress>> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<Map<String, MediaProgress>>, Map<String, MediaProgress>>;
     final element =
         ref.element
@@ -49,6 +49,6 @@ abstract class _$MediaProgressNotifier extends $AsyncNotifier<Map<String, MediaP
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

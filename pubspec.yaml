@@ -22,60 +22,61 @@ dependencies:
   # Generation
   freezed_annotation: ^3.1.0
   json_annotation: ^4.12.0
-  riverpod_annotation: ^4.0.3-dev.2
+  riverpod_annotation: ^4.0.3
 
 
   # Misc
   uuid: ^4.5.3
   intl: ^0.20.2
 
-  sembast: ^3.8.7
+  sembast: ^3.8.9
 
   # Core
   just_audio: ^0.10.5 # Should be setup for Android, Windows, iOS, macOS, Linux | Testing needed for iOS, macOS, Linux | https://pub.dev/packages/just_audio
   audio_service:
     path: ./packages/audio_service/audio_service
   dio: ^5.9.2
-  native_dio_adapter: ^1.5.1
+  native_dio_adapter: ^1.6.0
   crypto: ^3.0.7
-  drift: ^2.33.0
+  drift: ^2.34.0
   path: ^1.9.1
   path_provider: ^2.1.5
-  sqlite3: ^3.3.1
+  sqlite3: ^3.3.3
   cached_network_image: ^3.4.1
-  go_router: ^17.2.3
+  go_router: ^17.3.0
+  
 
-  hooks_riverpod: ^3.3.2-dev.2
-  flutter_riverpod: ^3.3.2-dev.2
+  hooks_riverpod: ^3.3.2
+  flutter_riverpod: ^3.3.2
   flutter_hooks: ^0.21.3+1
   connectivity_plus: ^7.1.1
   url_launcher: ^6.3.2
-  file_picker: ^12.0.0-beta.3 # https://github.com/miguelpruivo/flutter_file_picker/pull/1981#issuecomment-4288987328
+  file_picker: ^12.0.0-beta.5 # https://github.com/miguelpruivo/flutter_file_picker/pull/1981#issuecomment-4288987328
   desktop_drop: ^0.7.1
-  flutter_secure_storage: ^10.2.0
+  flutter_secure_storage: ^10.3.1
   rxdart: ^0.28.0
-  background_downloader: ^9.5.4
+  background_downloader: ^9.5.5
 
   package_info_plus: ^10.1.0  # Need to wait on file_picker
   device_info_plus: ^13.1.0 # Need to wait for package_info_plis
   sensors_plus: ^7.0.0 # Should be setup for Android, iOS, macOS, Windows | Testing needed for iOS, macOS, Windows | https://pub.dev/packages/sensors_plus
-  vibration: ^3.1.8
+  vibration: ^3.2.0
   wakelock_plus: ^1.6.1 # TODO: Update to 1.6.0, waiting for file_picker to update dep on package_info_plus
   flutter_html: ^3.0.0
   flutter_quill: ^11.5.1
   html: ^0.15.6
   dart_quill_delta: ^10.8.3
-  socket_io_client: ^3.1.4
+  socket_io_client: ^3.1.5
 
   timeago: ^3.7.1
 
-  pdfrx: ^2.4.1
+  pdfrx: ^2.4.4
   foliate_reader:
     path: ./packages/foliate_reader
 
   ## Platform
   just_audio_media_kit: ^2.1.0
-  tray_manager: ^0.5.2
+  tray_manager: ^0.5.3
 
   ## Windows
   media_kit_libs_windows_audio: any
@@ -97,11 +98,11 @@ dev_dependencies:
     sdk: flutter
 
   flutter_lints: ^6.0.0
-  build_runner: ^2.13.1
+  build_runner: ^2.15.0
   freezed: ^3.2.5
-  json_serializable: ^6.12.0
-  drift_dev: ^2.31.0
-  riverpod_generator: ^4.0.3
+  json_serializable: ^6.14.0
+  drift_dev: ^2.34.0
+  riverpod_generator: ^4.0.4
   flutter_launcher_icons: ^0.14.2
 
 

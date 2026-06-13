@@ -74,12 +74,12 @@ abstract class _$SelectedLibraryId extends $StreamNotifier<String?> {
   Stream<String?> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<String?>, String?>;
     final element =
         ref.element
             as $ClassProviderElement<AnyNotifier<AsyncValue<String?>, String?>, AsyncValue<String?>, Object?, Object?>;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 

@@ -135,7 +135,7 @@ abstract class _$LibraryItemsNotifier extends $AsyncNotifier<LibraryItemState> {
   });
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<LibraryItemState>, LibraryItemState>;
     final element =
         ref.element
@@ -145,7 +145,7 @@ abstract class _$LibraryItemsNotifier extends $AsyncNotifier<LibraryItemState> {
               Object?,
               Object?
             >;
-    element.handleCreate(
+    return element.handleCreate(
       ref,
       () => build(
         _$args.$1,

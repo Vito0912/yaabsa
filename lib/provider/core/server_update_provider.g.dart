@@ -38,7 +38,7 @@ abstract class _$ServerUpdateState extends $AsyncNotifier<ServerUpdateInfo?> {
   FutureOr<ServerUpdateInfo?> build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<ServerUpdateInfo?>, ServerUpdateInfo?>;
     final element =
         ref.element
@@ -48,6 +48,6 @@ abstract class _$ServerUpdateState extends $AsyncNotifier<ServerUpdateInfo?> {
               Object?,
               Object?
             >;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }

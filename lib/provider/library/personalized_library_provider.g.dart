@@ -84,7 +84,7 @@ abstract class _$PersonalizedLibraryNotifier extends $AsyncNotifier<Personalized
   FutureOr<PersonalizedLibrary?> build(String libraryId);
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<AsyncValue<PersonalizedLibrary?>, PersonalizedLibrary?>;
     final element =
         ref.element
@@ -94,6 +94,6 @@ abstract class _$PersonalizedLibraryNotifier extends $AsyncNotifier<Personalized
               Object?,
               Object?
             >;
-    element.handleCreate(ref, () => build(_$args));
+    return element.handleCreate(ref, () => build(_$args));
   }
 }

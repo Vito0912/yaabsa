@@ -43,12 +43,12 @@ abstract class _$SleepTimerHandler extends $Notifier<SleepTimerData> {
   SleepTimerData build();
   @$mustCallSuper
   @override
-  void runBuild() {
+  WhenComplete runBuild() {
     final ref = this.ref as $Ref<SleepTimerData, SleepTimerData>;
     final element =
         ref.element
             as $ClassProviderElement<AnyNotifier<SleepTimerData, SleepTimerData>, SleepTimerData, Object?, Object?>;
-    element.handleCreate(ref, build);
+    return element.handleCreate(ref, build);
   }
 }
 

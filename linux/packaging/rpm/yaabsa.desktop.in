@@ -8,3 +8,4 @@ Exec=yaabsa %U
 Categories=ABS;Audiobookshelf;
 Keywords=ABS;Audiobookshelf;
 StartupNotify=true
+StartupWMClass=de.vito0912.yaabsa
