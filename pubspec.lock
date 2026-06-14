@@ -1943,6 +1943,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.1"
+  wear_plus:
+    dependency: "direct main"
+    description:
+      name: wear_plus
+      sha256: e8e565ed4ba79ec36a615bc33998111c94b7e3c56240aab98b60f6ac9128fa27
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.4"
   web:
     dependency: transitive
     description:

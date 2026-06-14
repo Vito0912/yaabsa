@@ -81,6 +81,12 @@ android {
             versionCode = flutter.versionCode + 1
             versionName = flutter.versionName
         }
+        create("wear") {
+            dimension = "carPlatform"
+            minSdk = flutter.minSdkVersion
+            versionCode = flutter.versionCode + 2
+            versionName = flutter.versionName
+        }
     }
 }
 
@@ -97,4 +103,6 @@ flutter {
 dependencies {
     implementation("androidx.documentfile:documentfile:1.0.1")
     implementation("androidx.media:media:1.7.0")
+    implementation("com.google.android.gms:play-services-wearable:19.0.0")
+    implementation("com.google.android.material:material:1.12.0")
 }

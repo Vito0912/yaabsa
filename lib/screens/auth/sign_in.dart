@@ -18,6 +18,7 @@ import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/provider/core/user_scope_invalidation.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/provider/wear/wear_phone_channel.dart';
 import 'package:yaabsa/screens/auth/widgets/glow_orb.dart';
 import 'package:yaabsa/screens/auth/widgets/sign_in_advanced_options.dart';
 import 'package:yaabsa/screens/auth/widgets/sign_in_auth_section.dart';
@@ -55,6 +56,9 @@ class SignIn extends HookConsumerWidget {
     final hasStoredUsers = ref
         .watch(allStoredUsersProvider)
         .maybeWhen(data: (users) => users.isNotEmpty, orElse: () => false);
+
+    final signInQuery = GoRouterState.of(context).uri.queryParameters;
+    final isWearPairing = signInQuery['wear'] == '1';
 
     ABSApi buildServerApi(String baseUrl) {
       final headers = buildRequestHeaders(serverHeaders: customHeaders.value);
@@ -308,6 +312,38 @@ class SignIn extends HookConsumerWidget {
           }
         }
 
+        if (isWearPairing) {
+          final accessToken = useApiKey.value
+              ? loggedInUser.apiKey
+              : (loggedInUser.accessToken ?? loggedInUser.token);
+          if (accessToken == null || accessToken.isEmpty) {
+            setErrorMessage('Login succeeded, but the server did not return a token for the watch.');
+            return;
+          }
+
+          final sent = await sendWearCredentialsToWatch(
+            serverUrl: normalizedServer,
+            accessToken: accessToken,
+            refreshToken: useApiKey.value ? null : loggedInUser.refreshToken,
+          );
+
+          if (!context.mounted) return;
+          if (!sent) {
+            setErrorMessage('Could not send credentials to the watch. Make sure it is still waiting and try again.');
+            return;
+          }
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Watch connected successfully.'), behavior: SnackBarBehavior.floating),
+          );
+          if (context.canPop()) {
+            context.pop();
+          } else {
+            context.go('/');
+          }
+          return;
+        }
+
         final headers = buildRequestHeaders(serverHeaders: customHeaders.value);
         final db = ref.read(appDatabaseProvider);
         await db.addOrUpdateStoredUser(
@@ -447,11 +483,24 @@ class SignIn extends HookConsumerWidget {
       };
     }, [serverAddressController]);
 
+    useEffect(() {
+      if (isWearPairing) {
+        final prefillServer = signInQuery['serverUrl'];
+        final prefillUsername = signInQuery['username'];
+        if (prefillServer != null && prefillServer.isNotEmpty && serverAddressController.text.isEmpty) {
+          serverAddressController.text = prefillServer;
+        }
+        if (prefillUsername != null && prefillUsername.isNotEmpty && usernameController.text.isEmpty) {
+          usernameController.text = prefillUsername;
+        }
+      }
+      return null;
+    }, const []);
+
     final activeStatus = status.value;
-    final signInQuery = GoRouterState.of(context).uri.queryParameters;
     final isForcedAaosAuth = signInQuery['authRequired'] == '1' && AaosService.instance.currentState.isAutomotiveDevice;
     final allowsLocal = activeStatus == null || activeStatus.authMethods.contains('local');
-    final allowsOpenId = activeStatus?.authMethods.contains('openid') ?? false;
+    final allowsOpenId = (activeStatus?.authMethods.contains('openid') ?? false) && !isWearPairing;
     const allowsApiKey = true;
     final customMessage = activeStatus?.authFormData?.authLoginCustomMessage;
     final openIdButtonText = activeStatus?.authFormData?.authOpenIDButtonText ?? 'Continue with OpenID Connect';
@@ -517,7 +566,9 @@ class SignIn extends HookConsumerWidget {
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              'Sign in to your Audiobookshelf server',
+                              isWearPairing
+                                  ? 'Sign in to connect your Wear OS watch'
+                                  : 'Sign in to your Audiobookshelf server',
                               textAlign: TextAlign.center,
                               style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
                             ),

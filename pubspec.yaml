@@ -93,6 +93,9 @@ dependencies:
   flutter_chrome_cast: ^1.4.6
   flutter_tts: ^4.2.5
 
+  ## Wear OS
+  wear_plus: ^1.2.4
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

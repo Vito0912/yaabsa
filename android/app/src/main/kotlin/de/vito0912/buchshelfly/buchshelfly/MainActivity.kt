@@ -6,7 +6,11 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import androidx.core.app.NotificationManagerCompat
 import androidx.documentfile.provider.DocumentFile
+import com.google.android.gms.wearable.MessageClient
+import com.google.android.gms.wearable.Wearable
+import org.json.JSONObject
 import com.ryanheise.audioservice.AudioServiceActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
@@ -17,6 +21,7 @@ class MainActivity : AudioServiceActivity() {
 		private const val WIDGET_CHANNEL = "de.vito0912.yaabsa/widget"
 		private const val SAF_CHANNEL = "de.vito0912.yaabsa/saf"
 		private const val AAOS_CHANNEL = "de.vito0912.yaabsa/aaos"
+		private const val WEAR_DATA_CHANNEL = "de.vito0912.yaabsa/wear_data"
 		private const val AAOS_SETTINGS_ACTION = "android.intent.action.APPLICATION_PREFERENCES"
 		private const val AAOS_MEDIA_TEMPLATE_ACTION = "android.car.intent.action.MEDIA_TEMPLATE"
 		private const val AAOS_MEDIA_TEMPLATE_V2_ACTION = "androidx.car.app.mediaextensions.action.MEDIA_TEMPLATE_V2"
@@ -33,12 +38,26 @@ class MainActivity : AudioServiceActivity() {
 	private var aaosChannel: MethodChannel? = null
 	private var pendingAaosOpenSettings = false
 	private var pendingAaosOpenSignIn = false
+	private var wearChannel: MethodChannel? = null
+	private var messageClient: MessageClient? = null
+	private var pendingWearSignInNotification = false
+	private var wearMessageListener: MessageClient.OnMessageReceivedListener? = null
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 		handleWidgetLaunchIntent(intent)
 		handleAaosIntent(intent)
 		handleSignInIntent(intent)
+		handleWearSignInIntent(intent)
+		messageClient = Wearable.getMessageClient(this)
+		wearMessageListener = MessageClient.OnMessageReceivedListener { event ->
+			if (event.path == "/yaabsa/credential_request") {
+				WearPairingStore.savePendingRequest(this, event.sourceNodeId, String(event.data))
+				pendingWearSignInNotification = true
+				runOnUiThread { notifyWearSignInIfPending() }
+			}
+		}
+		messageClient?.addListener(wearMessageListener!!)
 		if (maybeLaunchMediaCenterFromMainIntent(intent)) {
 			return
 		}
@@ -50,9 +69,23 @@ class MainActivity : AudioServiceActivity() {
 		handleWidgetLaunchIntent(intent)
 		handleAaosIntent(intent)
 		handleSignInIntent(intent)
+		handleWearSignInIntent(intent)
 		if (maybeLaunchMediaCenterFromMainIntent(intent)) {
 			return
 		}
+	}
+
+	/** Launched by [WearSignInListenerService], directly or via its notification. */
+	private fun handleWearSignInIntent(intent: Intent) {
+		if (!intent.getBooleanExtra(WearSignInListenerService.EXTRA_WEAR_SIGN_IN, false)) {
+			return
+		}
+		intent.removeExtra(WearSignInListenerService.EXTRA_WEAR_SIGN_IN)
+		// The sign-in screen is opening, so the fallback notification posted
+		// alongside the direct launch attempt is no longer needed.
+		NotificationManagerCompat.from(this).cancel(WearSignInListenerService.NOTIFICATION_ID)
+		pendingWearSignInNotification = true
+		notifyWearSignInIfPending()
 	}
 
 	private fun handleSignInIntent(intent: Intent) {
@@ -160,8 +193,19 @@ class MainActivity : AudioServiceActivity() {
 				else -> result.notImplemented()
 			}
 		}
+
+		wearChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, WEAR_DATA_CHANNEL)
+		wearChannel?.setMethodCallHandler { call, result ->
+			when (call.method) {
+				"sendWearCredentials" -> handleSendWearCredentials(call, result)
+				"hasPendingCredentialRequest" -> handleHasPendingCredentialRequest(result)
+				else -> result.notImplemented()
+			}
+		}
+
 		notifyAaosOpenSettingsIfPending()
 		notifyAaosOpenSignInIfPending()
+		notifyWearSignInIfPending()
 	}
 
 	private fun handleLaunchMediaCenter(call: MethodCall, result: MethodChannel.Result) {
@@ -450,5 +494,66 @@ class MainActivity : AudioServiceActivity() {
 			is String -> raw.toIntOrNull()
 			else -> null
 		}
+	}
+
+	private fun notifyWearSignInIfPending() {
+		if (!pendingWearSignInNotification) {
+			return
+		}
+
+		val channel = wearChannel ?: return
+		pendingWearSignInNotification = false
+
+		Handler(Looper.getMainLooper()).postDelayed({
+			channel.invokeMethod("wearSignInRequested", null)
+		}, 300)
+	}
+
+	private fun handleSendWearCredentials(call: MethodCall, result: MethodChannel.Result) {
+		val pending = WearPairingStore.pendingRequest(this)
+		if (pending == null) {
+			result.success(false)
+			return
+		}
+		val (nodeId, requestId) = pending
+
+		val serverUrl = call.argument<String>("serverUrl")
+		val accessToken = call.argument<String>("accessToken")
+		if (serverUrl.isNullOrEmpty() || accessToken.isNullOrEmpty()) {
+			result.error("invalid_args", "sendWearCredentials expects non-empty serverUrl and accessToken.", null)
+			return
+		}
+
+		val payload = JSONObject().apply {
+			put("requestId", requestId)
+			put("serverUrl", serverUrl)
+			put("accessToken", accessToken)
+			call.argument<String>("refreshToken")?.takeIf { it.isNotEmpty() }?.let { put("refreshToken", it) }
+		}
+
+		val client = messageClient
+		if (client == null) {
+			result.success(false)
+			return
+		}
+
+		client.sendMessage(nodeId, "/yaabsa/credential_response", payload.toString().toByteArray())
+			.addOnSuccessListener {
+				WearPairingStore.clear(this)
+				NotificationManagerCompat.from(this).cancel(WearSignInListenerService.NOTIFICATION_ID)
+				result.success(true)
+			}
+			.addOnFailureListener { e ->
+				result.error("send_failed", "Failed to send credentials to watch: ${e.message}", null)
+			}
+	}
+
+	private fun handleHasPendingCredentialRequest(result: MethodChannel.Result) {
+		result.success(WearPairingStore.pendingRequest(this) != null)
+	}
+
+	override fun onDestroy() {
+		wearMessageListener?.let { messageClient?.removeListener(it) }
+		super.onDestroy()
 	}
 }
