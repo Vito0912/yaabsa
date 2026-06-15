@@ -137,7 +137,7 @@ Below is a list of all features, but I want to _highlight_ a few, as this client
 | Tray/Statusbar Icon | ❌      | ❌   | ❓      | ✅    | ✅    |
 | Car                 | ✅      | ✅   | ❌      | ❌    | ❌    |
 | Android Automotive  | ✅      | ❌   | ❌      | ❌    | ❌    |
-| Widgets             | ✅      | 🅿️   | ❌      | ❌    | 🅿️    |
+| Widgets             | ✅      | 🅿️   | ❌      | ❌    | ❌    |
 
 \* Only supports the default download location, due to sandboxing limitations. Will be addressed in the future.\
 
