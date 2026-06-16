@@ -740,11 +740,16 @@ jobs:
         with:
           flow: build-web
 
+      - name: Download Drift WASM files
+        run: |
+          curl -L https://github.com/simolus3/drift/releases/latest/download/drift_worker.js -o web/drift_worker.js
+          curl -L https://github.com/simolus3/sqlite3.dart/releases/latest/download/sqlite3.wasm -o web/sqlite3.wasm
+
       - name: Build Web
         env:
           FLUTTER_BASE_HREF: "/${{ github.event.repository.name }}/"
         run: |
-          flutter build web --release --base-href "$FLUTTER_BASE_HREF"
+          flutter build web --release --base-href "$FLUTTER_BASE_HREF" --wasm
 
       - name: Upload Web Pages artifact
         if: github.ref == 'refs/heads/master'

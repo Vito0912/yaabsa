@@ -21,6 +21,30 @@ Install Flutter on your Mac: <https://docs.flutter.dev/get-started/install/macos
 
 Then go into the ios directory and run `pod install`
 
+## Web
+
+To run and debug the web app locally, you need to first download the required SQLite3 WASM binary and the Drift Web Worker script.
+Run the following commands from the project root to download them:
+
+```bash
+curl -L https://github.com/simolus3/drift/releases/latest/download/drift_worker.js -o web/drift_worker.js
+curl -L https://github.com/simolus3/sqlite3.dart/releases/latest/download/sqlite3.wasm -o web/sqlite3.wasm
+```
+
+Afterward, you can run and debug the app via:
+
+```bash
+flutter run -d chrome --web-port 8080 --wasm
+```
+
+Or build the production-ready WebAssembly build:
+
+```bash
+flutter build web --wasm
+```
+
+Please note that you need to add `http://localhost:8080` to the list of allowed origins in ABS.
+
 ## Building
 
 Building and packaging for the different platforms is done through GitHub Actions. Sadly, using fastforge was no longer possible because it had known issues that were not fixed for well over a year and, in general, it lacked some features, such as being able to run commands after pubb get, which were needed. Sadly, this means there is no easy way to build it, other than running the scripts respectivley. Always check them before running!
