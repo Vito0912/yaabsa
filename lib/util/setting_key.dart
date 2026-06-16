@@ -229,6 +229,7 @@ final defaultSettings = {
   SettingKeys.subtitlesEnabled: true,
   SettingKeys.subtitleSpeakerHighlighting: true,
   SettingKeys.subtitleReadAlong: true,
+  SettingKeys.checkForServerUpdates: false,
   SettingKeys.playerShowRemainingTime: false,
   SettingKeys.readerTheme: 'sepia',
   SettingKeys.readerFontSizeMultiplier: 1.0,

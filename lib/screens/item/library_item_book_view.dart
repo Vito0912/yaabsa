@@ -12,7 +12,7 @@ import 'package:yaabsa/components/app/item/match/library_item_quick_match_action
 import 'package:yaabsa/components/app/item/item_delete_actions.dart';
 import 'package:yaabsa/components/app/item/item_more_actions_button.dart';
 import 'package:yaabsa/components/app/item/item_progress_actions.dart';
-import 'package:yaabsa/components/app/item/item_past_finishes_card.dart';
+import 'package:yaabsa/components/app/item/item_book_stats_card.dart';
 import 'package:yaabsa/components/app/item/library_item_view_components.dart';
 import 'package:yaabsa/components/common/connection_issue_view.dart';
 import 'package:yaabsa/components/common/cover_zoom_view.dart';
@@ -376,7 +376,7 @@ class LibraryItemBookView extends ConsumerWidget {
                                     },
                                   ),
                                   if (hasAudio)
-                                    ItemPastFinishesCard(
+                                    ItemBookStatsCard(
                                       item: item,
                                       isItemFinished: isItemFinished,
                                       progressValue: progressValue,

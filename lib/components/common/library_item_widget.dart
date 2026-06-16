@@ -92,7 +92,7 @@ class _LibraryItemWidgetState extends ConsumerState<LibraryItemWidget> {
               ref
                   .read(mediaProgressProvider.notifier)
                   .getAllProgressForLibraryItem(widget.libraryItem.id)
-                  .where((progress) => !progress.isFinished)
+                  .where((progress) => progress.isFinished)
                   .length)
         : 0;
 

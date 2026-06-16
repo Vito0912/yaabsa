@@ -69,7 +69,7 @@ class SettingsPageScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     final content = _buildContent(context);
     if (embedded) {
-      return content;
+      return Material(color: Theme.of(context).scaffoldBackgroundColor, child: content);
     }
 
     return Scaffold(
