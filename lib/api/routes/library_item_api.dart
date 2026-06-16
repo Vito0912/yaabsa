@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/library_items/playback_session.dart';
 import 'package:yaabsa/api/library_items/quick_match_library_item_response.dart';
@@ -296,7 +297,7 @@ class LibraryItemApi {
 
     final localCoverUri = _resolveLocalCoverUri(item);
     final localCoverPath = localCoverUri == null ? null : _toLocalFilePath(localCoverUri);
-    if (localCoverPath != null) {
+    if (!kIsWeb && localCoverPath != null) {
       return Image.file(
         File(localCoverPath),
         width: width,
@@ -358,12 +359,16 @@ class LibraryItemApi {
   }
 
   Uri? _resolveLocalCoverUri(LibraryItem? item) {
+    if (kIsWeb) {
+      return null;
+    }
+
     final rawCoverPath = item?.coverPath?.trim();
     if (rawCoverPath == null || rawCoverPath.isEmpty) {
       return null;
     }
 
-    if (Platform.isWindows && RegExp(r'^[a-zA-Z]:[\\/]').hasMatch(rawCoverPath)) {
+    if (!kIsWeb && Platform.isWindows && RegExp(r'^[a-zA-Z]:[\\/]').hasMatch(rawCoverPath)) {
       final file = File(rawCoverPath);
       if (file.existsSync()) {
         return file.uri;
@@ -392,9 +397,12 @@ class LibraryItemApi {
   }
 
   String? _toLocalFilePath(Uri uri) {
+    if (kIsWeb) {
+      return uri.toString();
+    }
     if (uri.scheme == 'file') {
       try {
-        return uri.toFilePath(windows: Platform.isWindows);
+        return uri.toFilePath(windows: !kIsWeb && Platform.isWindows);
       } catch (_) {
         return null;
       }

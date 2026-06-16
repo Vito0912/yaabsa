@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:yaabsa/util/globals.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
@@ -33,7 +34,15 @@ class LicenseSettings {
     final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
 
     try {
-      if (Platform.isAndroid) {
+      if (kIsWeb) {
+        final WebBrowserInfo webInfo = await deviceInfo.webBrowserInfo;
+        return '''
+Device Information:
+Browser: ${webInfo.browserName.name}
+Platform: ${webInfo.platform}
+User Agent: ${webInfo.userAgent}
+''';
+      } else if (Platform.isAndroid) {
         final AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
         return '''
 Device Information:

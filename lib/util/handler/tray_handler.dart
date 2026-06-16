@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io' show Platform;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,7 +22,7 @@ class TrayManager extends ConsumerStatefulWidget {
   static const String stopKey = 'stop';
 
   static Future<void> update() async {
-    if (!Platform.isLinux && !Platform.isWindows && !Platform.isMacOS) {
+    if (kIsWeb || (!Platform.isLinux && !Platform.isWindows && !Platform.isMacOS)) {
       return;
     }
 
@@ -64,13 +65,17 @@ class TrayManager extends ConsumerStatefulWidget {
 class _TrayManagerState extends ConsumerState<TrayManager> with TrayListener {
   @override
   void initState() {
-    trayManager.addListener(this);
+    if (!kIsWeb) {
+      trayManager.addListener(this);
+    }
     super.initState();
   }
 
   @override
   void dispose() {
-    trayManager.removeListener(this);
+    if (!kIsWeb) {
+      trayManager.removeListener(this);
+    }
     super.dispose();
   }
 

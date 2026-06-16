@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/services.dart';
@@ -56,7 +57,7 @@ class AaosService {
 
     _initialized = true;
 
-    if (!Platform.isAndroid) {
+    if (kIsWeb || !Platform.isAndroid) {
       _emit(_state.copyWith(statusMessage: 'AAOS integration is only available on Android.'));
       return;
     }
@@ -112,7 +113,7 @@ class AaosService {
 
   Future<bool> launchMediaCenter({bool finishActivity = false}) async {
     try {
-      if (!Platform.isAndroid || !currentState.isAutomotiveDevice) {
+      if (kIsWeb || !Platform.isAndroid || !currentState.isAutomotiveDevice) {
         return false;
       }
       final result = await _channel.invokeMethod<bool>('launchMediaCenter', {'finishActivity': finishActivity});

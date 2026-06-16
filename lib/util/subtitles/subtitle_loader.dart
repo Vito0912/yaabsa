@@ -1,6 +1,7 @@
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -219,6 +220,9 @@ Future<String?> _readSource({
 }
 
 Future<String?> _readLocalSource(String? localPathOrUri) async {
+  if (kIsWeb) {
+    return null;
+  }
   if (localPathOrUri == null) {
     return null;
   }

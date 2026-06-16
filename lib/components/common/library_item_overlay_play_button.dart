@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
@@ -89,7 +90,7 @@ class LibraryItemOverlayPlayButton extends StatelessWidget {
                 iconSize: isFinished ? 20 : 16,
                 onPressed: isEbook
                     ? () {
-                        if (Platform.isLinux) {
+                        if (!kIsWeb && Platform.isLinux) {
                           final bookMedia = libraryItem.media?.bookMedia;
                           final candidates = <String?>[
                             bookMedia?.ebookFile?.ebookFormat,

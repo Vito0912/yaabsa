@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
 
 class AndroidSafHelper {
@@ -13,7 +14,7 @@ class AndroidSafHelper {
     required String filename,
     String? mimeType,
   }) async {
-    if (!Platform.isAndroid || rootTreeUri.scheme != 'content') {
+    if (kIsWeb || !Platform.isAndroid || rootTreeUri.scheme != 'content') {
       return null;
     }
 

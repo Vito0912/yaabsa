@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/core/server_reachability_provider.dart';
@@ -56,7 +57,7 @@ class PlaybackSyncService {
         ? _minimumSyncIntervalSeconds
         : configuredInterval;
 
-    if (Platform.isIOS && normalizedInterval < _minimumIosSyncIntervalSeconds) {
+    if (!kIsWeb && Platform.isIOS && normalizedInterval < _minimumIosSyncIntervalSeconds) {
       return _minimumIosSyncIntervalSeconds;
     }
 

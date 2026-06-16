@@ -11,10 +11,10 @@ import 'package:flutter/material.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as p;
-import 'package:sembast/sembast_io.dart' show databaseFactoryIo;
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:yaabsa/database/connection/cache_db.dart' show openCacheDatabase;
 import 'package:audio_service_mpris/audio_service_mpris.dart';
 
-import 'app_paths.dart';
 import 'logger.dart';
 
 class Init {
@@ -30,17 +30,20 @@ class Init {
   static bool _sleepTimerKeepAliveAttached = false;
 
   static bool _isContainerRuntime() {
+    if (kIsWeb) return false;
     return Platform.environment.containsKey('CONTAINER') ||
         Platform.environment.containsKey('container') ||
         Platform.environment.containsKey('FLATPAK_ID');
   }
 
   static bool _isSnapRuntime() {
+    if (kIsWeb) return false;
     final snapRoot = Platform.environment['SNAP'];
     return snapRoot != null && snapRoot.isNotEmpty;
   }
 
   static String? _snapRoot() {
+    if (kIsWeb) return null;
     final snapRoot = Platform.environment['SNAP'];
     if (snapRoot == null || snapRoot.isEmpty) {
       return null;
@@ -85,7 +88,7 @@ class Init {
   }
 
   static String? _resolveLibmpvPath() {
-    if (!Platform.isLinux) {
+    if (kIsWeb || !Platform.isLinux) {
       return null;
     }
 
@@ -137,7 +140,7 @@ class Init {
   static Future<BGAudioHandler> initAudioHandler() async {
     if (_audioHandler != null) return _audioHandler!;
 
-    if (Platform.isLinux) {
+    if (!kIsWeb && Platform.isLinux) {
       AudioServiceMpris.registerWith();
     }
 
@@ -145,7 +148,9 @@ class Init {
     if (libmpvPath != null) {
       logger('Using libmpv at $libmpvPath', tag: 'Init', level: InfoLevel.info);
     }
-    JustAudioMediaKit.ensureInitialized(linux: true, windows: true, libmpv: libmpvPath);
+    if (!kIsWeb) {
+      JustAudioMediaKit.ensureInitialized(linux: true, windows: true, libmpv: libmpvPath);
+    }
 
     _audioHandler = await AudioService.init(
       builder: () => BGAudioHandler(containerRef),
@@ -166,7 +171,9 @@ class Init {
     );
 
     // TODO: Setting
-    JustAudioMediaKit.prefetchPlaylist = false;
+    if (!kIsWeb) {
+      JustAudioMediaKit.prefetchPlaylist = false;
+    }
     logger('AudioHandler initialized', tag: 'Init', level: InfoLevel.info);
     return _audioHandler!;
   }
@@ -174,11 +181,7 @@ class Init {
   static Future<void> globals() async {
     WidgetsFlutterBinding.ensureInitialized();
 
-    final cacheFolder = await resolveDefaultCacheDirectory();
-    final file = File(p.join(cacheFolder.path, 'cache.db'));
-    await file.parent.create(recursive: true);
-
-    cacheDb = await databaseFactoryIo.openDatabase(file.path);
+    cacheDb = await openCacheDatabase();
 
     packageInfo = await PackageInfo.fromPlatform();
     downloadHandler = DownloadHandler(containerRef);

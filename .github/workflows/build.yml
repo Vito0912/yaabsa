@@ -9,6 +9,7 @@ on:
       - "android/**"
       - "ios/**"
       - "macos/**"
+      - "web/**"
       - "pubspec.yaml"
     branches:
       - master
@@ -35,6 +36,7 @@ jobs:
       windows: ${{ steps.filter.outputs.windows }}
       ios: ${{ steps.filter.outputs.ios }}
       macos: ${{ steps.filter.outputs.macos }}
+      web: ${{ steps.filter.outputs.web }}
       pubspec: ${{ steps.filter.outputs.pubspec }}
       any: ${{ steps.filter.outputs.any }}
       build_skip: ${{ steps.build_skip.outputs.build_skip }}
@@ -68,6 +70,8 @@ jobs:
               - 'ios/**'
             macos:
               - 'macos/**'
+            web:
+              - 'web/**'
             pubspec:
               - 'pubspec.yaml'
             any:
@@ -77,6 +81,7 @@ jobs:
               - 'windows/**'
               - 'ios/**'
               - 'macos/**'
+              - 'web/**'
               - 'pubspec.yaml'
 
       - name: Detect build skip flag from commit message
@@ -315,7 +320,7 @@ jobs:
     needs:
       - changes
       - check-requirements
-    if: ${{ (github.event_name == 'workflow_dispatch' || needs.changes.outputs.version_bumped == 'true' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.linux == 'true') && needs.changes.outputs.build_skip != 'true' }}
+    if: ${{ (github.event_name == 'workflow_dispatch' || needs.changes.outputs.version_bumped == 'true' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.linux == 'true' || needs.changes.outputs.web == 'true') && needs.changes.outputs.build_skip != 'true' }}
     timeout-minutes: 35
     environment: prod
     steps:
@@ -458,8 +463,9 @@ jobs:
 
       - name: Upload Flatpak Pages artifact
         if: github.ref == 'refs/heads/master'
-        uses: actions/upload-pages-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
+          name: flatpak-pages
           path: flatpak-pages
 
       - name: Rename Flatpak artifact
@@ -483,11 +489,12 @@ jobs:
           name: linux-flatpak
           path: output/linux/yaabsa_*.flatpak
 
-  deploy-flatpak-pages:
+  deploy-pages:
     if: github.ref == 'refs/heads/master'
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     needs:
       - build-flatpak
+      - build-web
     permissions:
       pages: write
       id-token: write
@@ -495,7 +502,24 @@ jobs:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
-      - name: Deploy Flatpak Pages
+      - name: Download Flatpak Pages artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: flatpak-pages
+          path: combined-pages
+
+      - name: Download Web Pages artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: web-pages
+          path: combined-pages
+
+      - name: Upload combined Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: combined-pages
+
+      - name: Deploy Pages
         id: deploy
         uses: actions/deploy-pages@v5
 
@@ -689,6 +713,67 @@ jobs:
           sudo rm -rf build
           sudo rm -rf android/keystore.jks
 
+  build-web:
+    runs-on: ubuntu-latest
+    needs:
+      - changes
+      - check-requirements
+    if: ${{ (github.event_name == 'workflow_dispatch' || needs.changes.outputs.version_bumped == 'true' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.web == 'true' || needs.changes.outputs.linux == 'true') && needs.changes.outputs.build_skip != 'true' }}
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Post Get
+        uses: ./.github/actions/post-get
+        with:
+          flow: build-web
+
+      - name: Download Drift WASM files
+        run: |
+          curl -L https://github.com/simolus3/drift/releases/latest/download/drift_worker.js -o web/drift_worker.js
+          curl -L https://github.com/simolus3/sqlite3.dart/releases/latest/download/sqlite3.wasm -o web/sqlite3.wasm
+
+      - name: Build Web
+        env:
+          FLUTTER_BASE_HREF: "/${{ github.event.repository.name }}/"
+        run: |
+          flutter build web --release --base-href "$FLUTTER_BASE_HREF" --wasm
+
+      - name: Upload Web Pages artifact
+        if: github.ref == 'refs/heads/master'
+        uses: actions/upload-artifact@v7
+        with:
+          name: web-pages
+          path: build/web
+
+      - name: Package Web bundle artifact
+        shell: bash
+        env:
+          FILE_VERSION: ${{ needs.changes.outputs.file_version }}
+        run: |
+          set -euo pipefail
+          mkdir -p output/web
+          cd build/web
+          zip -r ../../output/web/yaabsa_web_${FILE_VERSION}.zip .
+
+      - name: Upload Web bundle artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: web-bundle
+          path: output/web/yaabsa_*.zip
+
   build-windows:
     runs-on: windows-latest
     needs:
@@ -794,6 +879,7 @@ jobs:
       - build-windows
       - build-ios
       - build-macos
+      - build-web
     if: ${{ needs.changes.outputs.version_bumped == 'true' && needs.changes.outputs.build_skip != 'true' }}
     permissions:
       contents: write
@@ -813,7 +899,7 @@ jobs:
             file_name="$(basename "$file")"
             artifact_key="$(basename "$(dirname "$file")")"
 
-            if [[ "$artifact_key" == "github-pages" ]]; then
+            if [[ "$artifact_key" == "github-pages" || "$artifact_key" == "web-pages" || "$artifact_key" == "flatpak-pages" ]]; then
               continue
             fi
 

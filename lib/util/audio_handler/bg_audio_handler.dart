@@ -6,7 +6,7 @@ import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter_chrome_cast/flutter_chrome_cast.dart';
 import 'package:yaabsa/api/library/filter_data/library_filter_data.dart';
 import 'package:yaabsa/api/library/library.dart';
@@ -172,10 +172,10 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   Stream<bool> get castControlActiveStream => _castControlActiveSubject.stream.distinct();
   bool get isCastControlActive => _castControlActiveSubject.value;
 
-  bool get _supportsCastPlatform => Platform.isAndroid || Platform.isIOS;
+  bool get _supportsCastPlatform => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 
   static double get maxVolume {
-    if (Platform.isAndroid) {
+    if (!kIsWeb && Platform.isAndroid) {
       return 2.0;
     }
     return 1.0;
@@ -638,7 +638,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   }
 
   Future<void> _safePlayerStop() async {
-    if (Platform.isLinux) {
+    if (!kIsWeb && Platform.isLinux) {
       await _player.pause();
       await _player.seek(Duration.zero);
       return;
@@ -803,7 +803,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     if (newTrackIndex != _currentTrackIndex) {
       _currentTrackIndex = newTrackIndex;
       await _player.seek(relativeTrackPosition, index: _currentTrackIndex);
-      if (Platform.isWindows || Platform.isLinux) {
+      if (!kIsWeb && (Platform.isWindows || Platform.isLinux)) {
         // Bugfix for Windows as it doesn't seek correctly if the index changed
         _player.playerStateStream.firstWhere((state) => state.processingState == ProcessingState.ready).then((_) async {
           await _player.seek(relativeTrackPosition, index: _currentTrackIndex);
@@ -965,7 +965,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       darwinLoadControl: iOSLoadControl,
     );
 
-    final disableHeaderProxy = Platform.isAndroid || Platform.isLinux;
+    final disableHeaderProxy = kIsWeb || Platform.isAndroid || Platform.isLinux;
     _player = AudioPlayer(audioLoadConfiguration: loadCfg, useProxyForRequestHeaders: !disableHeaderProxy);
     _playerControlStateSubject = BehaviorSubject<PlayerState>.seeded(_player.playerState);
 

@@ -137,7 +137,7 @@ extension _AndroidAutoLibraryTabX on _AndroidAutoLibraryTab {
 }
 
 Future<bool> _androidAutoIsAutomotiveSystem() async {
-  if (!Platform.isAndroid) {
+  if (kIsWeb || !Platform.isAndroid) {
     return false;
   }
 

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart'
     show getApplicationCacheDirectory, getApplicationDocumentsDirectory, getApplicationSupportDirectory;
@@ -7,6 +8,9 @@ import 'package:path_provider/path_provider.dart'
 import 'globals.dart';
 
 String? _resolveLinuxBasePath({required String envKey, required String dotFolderName}) {
+  if (kIsWeb) {
+    return null;
+  }
   final envPath = Platform.environment[envKey];
   if (envPath != null && envPath.isNotEmpty) {
     return envPath;
@@ -21,6 +25,9 @@ String? _resolveLinuxBasePath({required String envKey, required String dotFolder
 }
 
 Future<Directory> resolveDefaultCacheDirectory() async {
+  if (kIsWeb) {
+    throw UnsupportedError('resolveDefaultCacheDirectory is not supported on Web');
+  }
   if (Platform.isLinux) {
     final basePath = _resolveLinuxBasePath(envKey: 'XDG_CACHE_HOME', dotFolderName: '.cache');
     if (basePath != null) {
@@ -38,6 +45,9 @@ Future<Directory> resolveDefaultCacheDirectory() async {
 }
 
 Future<Directory> resolveDefaultConfigDirectory() async {
+  if (kIsWeb) {
+    throw UnsupportedError('resolveDefaultConfigDirectory is not supported on Web');
+  }
   if (Platform.isLinux) {
     final basePath = _resolveLinuxBasePath(envKey: 'XDG_CONFIG_HOME', dotFolderName: '.config');
     if (basePath != null) {

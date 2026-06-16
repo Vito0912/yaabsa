@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'package:audio_service/audio_service.dart';
 import 'package:yaabsa/util/extensions.dart';
@@ -104,7 +105,7 @@ abstract class InternalMedia with _$InternalMedia {
 
         if (isFileUri) {
           final fileUri = Uri.parse(url);
-          return AudioSource.file(fileUri.toFilePath(windows: Platform.isWindows));
+          return AudioSource.file(fileUri.toFilePath(windows: !kIsWeb && Platform.isWindows));
         }
 
         return AudioSource.file(url);

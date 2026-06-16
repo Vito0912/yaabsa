@@ -92,6 +92,7 @@ dependencies:
   ## Android
   flutter_chrome_cast: ^1.4.6
   flutter_tts: ^4.2.5
+  sembast_web: ^2.4.5
 
 dev_dependencies:
   flutter_test:
