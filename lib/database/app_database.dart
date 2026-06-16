@@ -7,10 +7,9 @@ import 'package:yaabsa/database/auth_secret_store.dart';
 import 'package:yaabsa/models/internal_download.dart';
 import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/util/logger.dart';
-import 'package:yaabsa/util/app_paths.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
-import 'package:path/path.dart' as p;
+import 'package:yaabsa/database/connection/connection.dart' as impl;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'app_database.g.dart';
@@ -159,7 +158,7 @@ class PlayerHistory extends Table {
 class AppDatabase extends _$AppDatabase {
   AppDatabase({AuthSecretStore? authSecretStore})
     : _authSecretStore = authSecretStore ?? AuthSecretStore(),
-      super(_openConnection());
+      super(impl.openConnection());
 
   AppDatabase.connect(DatabaseConnection connection, {AuthSecretStore? authSecretStore})
     : _authSecretStore = authSecretStore ?? AuthSecretStore(),
@@ -336,6 +335,9 @@ class AppDatabase extends _$AppDatabase {
   }
 
   bool _storedPathExists(String rawPath) {
+    if (kIsWeb) {
+      return false;
+    }
     final trimmed = rawPath.trim();
     if (trimmed.isEmpty) {
       return false;
@@ -1002,15 +1004,6 @@ class AppDatabase extends _$AppDatabase {
       server: user.server,
     );
   }
-}
-
-LazyDatabase _openConnection() {
-  return LazyDatabase(() async {
-    final configFolder = await resolveDefaultConfigDirectory();
-    final file = File(p.join(configFolder.path, 'app_db.sqlite'));
-    await file.parent.create(recursive: true);
-    return NativeDatabase.createInBackground(file);
-  });
 }
 
 @Riverpod(keepAlive: true)

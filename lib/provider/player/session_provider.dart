@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 import 'package:yaabsa/api/library_items/audio_track.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/library_items/playback_session.dart';
@@ -68,7 +70,7 @@ class SessionRepository {
       return null;
     }
 
-    return Uri.file(trimmed, windows: Platform.isWindows);
+    return Uri.file(trimmed, windows: !kIsWeb && Platform.isWindows);
   }
 
   Future<void> closeSession() async {

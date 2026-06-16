@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_chrome_cast/flutter_chrome_cast.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -157,7 +158,7 @@ Uri? _resolveCastCoverUri(InternalMedia media) {
 }
 
 Future<void> showCastDevicePicker(BuildContext context, {bool ensureInitialized = true}) async {
-  if (!(Platform.isAndroid || Platform.isIOS)) {
+  if (kIsWeb || !(Platform.isAndroid || Platform.isIOS)) {
     _showCastMessage(context, 'Chrome Cast is unavailable on this platform.');
     return;
   }
@@ -343,7 +344,7 @@ Future<_CastTarget?> _castCurrentTrack(BuildContext context) async {
       : (currentTrack.mimeType.isNotEmpty ? currentTrack.mimeType : 'audio/mpeg');
 
   final GoogleCastMediaInformation mediaInfo;
-  if (Platform.isAndroid) {
+  if (!kIsWeb && Platform.isAndroid) {
     mediaInfo = GoogleCastMediaInformationAndroid(
       contentId: media.id,
       streamType: CastMediaStreamType.buffered,
@@ -400,7 +401,7 @@ class _CastButtonState extends ConsumerState<CastButton> {
   bool _initializationAttempted = false;
   bool _isInitialized = false;
 
-  bool get _isSupportedPlatform => Platform.isAndroid || Platform.isIOS;
+  bool get _isSupportedPlatform => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 
   Future<bool> _ensureInitialized() async {
     if (!_isSupportedPlatform) {

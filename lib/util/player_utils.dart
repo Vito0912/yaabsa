@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:yaabsa/api/library_items/device_info.dart';
@@ -62,7 +63,12 @@ class PlayerUtils {
     String? manufacturer;
     String? model;
 
-    if (Platform.isAndroid) {
+    if (kIsWeb) {
+      final WebBrowserInfo webInfo = await _deviceInfoPlugin.webBrowserInfo;
+      deviceId = webInfo.userAgent;
+      manufacturer = webInfo.browserName.name;
+      model = webInfo.platform;
+    } else if (Platform.isAndroid) {
       final AndroidDeviceInfo androidInfo = await _deviceInfoPlugin.androidInfo;
       deviceId = androidInfo.id;
       manufacturer = androidInfo.manufacturer;

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'package:flutter/services.dart';
 import 'package:yaabsa/api/library/personalized_library.dart';
@@ -15,7 +16,7 @@ class WidgetBridge {
 
   static const MethodChannel _channel = MethodChannel(_widgetChannelName);
 
-  static bool get _isAndroid => Platform.isAndroid;
+  static bool get _isAndroid => !kIsWeb && Platform.isAndroid;
 
   static Future<bool> publishShelfSnapshot({
     String? userId,

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:background_downloader/background_downloader.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -207,7 +208,7 @@ class LibraryItemBookView extends ConsumerWidget {
                                         audioHandler.pause();
                                       },
                                       onRead: () {
-                                        if (Platform.isLinux) {
+                                        if (!kIsWeb && Platform.isLinux) {
                                           final bookMedia = item.media?.bookMedia;
                                           final candidates = <String?>[
                                             bookMedia?.ebookFile?.ebookFormat,

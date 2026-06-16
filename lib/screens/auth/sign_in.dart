@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_html/flutter_html.dart';
@@ -549,6 +550,12 @@ class SignIn extends HookConsumerWidget {
                                 },
                               ),
                             ],
+                            if (kIsWeb)
+                              Text(
+                                """Web support is not supported. It is possible, but any issues should not be reported as issues. You can report any issues in the discussion here: https://github.com/Vito0912/yaabsa/discussions/59
+                              """,
+                                style: textTheme.bodyMedium?.copyWith(color: colorScheme.error),
+                              ),
                             SignInAuthSection(
                               useApiKey: useApiKey.value,
                               isLoading: isLoading.value,

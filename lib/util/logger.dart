@@ -128,7 +128,8 @@ bool _isTruthyEnvValue(String? value) {
   }
 }
 
-final bool _isReleaseConsoleLoggingEnabled = _isTruthyEnvValue(Platform.environment[_releaseConsoleLoggingEnvKey]);
+final bool _isReleaseConsoleLoggingEnabled =
+    !kIsWeb && _isTruthyEnvValue(Platform.environment[_releaseConsoleLoggingEnvKey]);
 
 bool get _shouldPrintToConsole => kDebugMode || _isReleaseConsoleLoggingEnabled;
 

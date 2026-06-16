@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'package:background_downloader/background_downloader.dart';
 import 'package:crypto/crypto.dart';
@@ -28,17 +29,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class DownloadHandler {
   final ProviderContainer _ref;
-  late final FileDownloader _downloader;
+  late final FileDownloader? _downloader;
   final _progressUpdateController = StreamController<TaskProgressUpdate>.broadcast();
   final _taskQueueController = StreamController<List<TaskRecord>>.broadcast();
 
-  Stream<TaskRecord> get dbUpdates => _downloader.database.updates;
+  Stream<TaskRecord> get dbUpdates => _downloader?.database.updates ?? const Stream.empty();
 
   Stream<TaskProgressUpdate> get progressUpdateStream => _progressUpdateController.stream;
 
   Stream<List<TaskRecord>> get taskQueueStream => _taskQueueController.stream;
 
   DownloadHandler(this._ref) {
+    if (kIsWeb) {
+      _downloader = null;
+      return;
+    }
     _downloader = FileDownloader();
 
     _init();
@@ -59,7 +64,7 @@ class DownloadHandler {
       },
     );
 
-    _downloader.updates.listen(
+    _downloader!.updates.listen(
       (update) {
         if (update is TaskProgressUpdate) {
           _progressUpdateController.add(update);
@@ -73,6 +78,9 @@ class DownloadHandler {
   }
 
   Future<void> _init() async {
+    if (kIsWeb || _downloader == null) {
+      return;
+    }
     // TODO: Need to find examples for https://github.com/781flyingdutchman/background_downloader/blob/main/doc/CONFIG.md
     List<String> ids = [];
     await _downloader.database.allRecordsWithStatus(TaskStatus.failed).then((failedTasks) {
@@ -87,7 +95,7 @@ class DownloadHandler {
     });
     await _downloader.database.deleteRecordsWithIds(ids);
 
-    if (Platform.isAndroid) {
+    if (!kIsWeb && Platform.isAndroid) {
       await _downloader.configure(androidConfig: [(Config.runInForeground, Config.always)]);
     } else {
       await _downloader.configure();
@@ -101,6 +109,9 @@ class DownloadHandler {
   }
 
   Future<void> _updateTaskQueue() async {
+    if (kIsWeb || _downloader == null) {
+      return;
+    }
     final List<TaskRecord> tasks = (await _downloader.database.allRecords())
         .where((task) => task.status.isNotFinalState)
         .toList();
@@ -108,6 +119,9 @@ class DownloadHandler {
   }
 
   Future<bool> cancelTask(String taskId) async {
+    if (kIsWeb || _downloader == null) {
+      return false;
+    }
     final canceled = await _downloader.cancelTaskWithId(taskId);
     await _updateTaskQueue();
     return canceled;
@@ -127,7 +141,7 @@ class DownloadHandler {
   }
 
   Future<void> _ensureNotificationPermissionForDownloads() async {
-    if (!Platform.isAndroid && !Platform.isIOS) {
+    if (kIsWeb || _downloader == null || (!Platform.isAndroid && !Platform.isIOS)) {
       return;
     }
 
@@ -156,6 +170,9 @@ class DownloadHandler {
   }
 
   Future<void> downloadFile(String itemId, {String? episodeId, bool ebook = false}) async {
+    if (kIsWeb || _downloader == null) {
+      throw UnsupportedError('Downloads are not supported on the Web');
+    }
     LibraryItem? item = _ref.read(libraryItemProvider(itemId)).asData?.value;
     if (item == null) {
       try {
@@ -402,7 +419,7 @@ class DownloadHandler {
 
   bool _supportsAndroidSafPreparedFiles(DownloadTaskDestination destination) {
     final directoryUri = destination.directoryUri;
-    return Platform.isAndroid && destination.saf && directoryUri != null && directoryUri.scheme == 'content';
+    return !kIsWeb && Platform.isAndroid && destination.saf && directoryUri != null && directoryUri.scheme == 'content';
   }
 
   Future<void> _storeCompletedDownload(TaskRecord update) async {
@@ -583,6 +600,9 @@ class DownloadHandler {
   }
 
   Future<bool> _deleteTrackedFileUri(Uri originalUri) async {
+    if (kIsWeb || _downloader == null) {
+      return false;
+    }
     Uri targetUri = originalUri;
 
     if (originalUri.scheme == 'content') {
@@ -652,7 +672,7 @@ class DownloadHandler {
     }
 
     final safRootUri = _resolveAndroidSafRootUri(trackUri: trackUri, userId: metaData.userId);
-    if (Platform.isAndroid && metaData.saf && trackUri?.scheme == 'content' && safRootUri != null) {
+    if (!kIsWeb && Platform.isAndroid && metaData.saf && trackUri?.scheme == 'content' && safRootUri != null) {
       final coverBytes = await _downloadCoverBytes(user: user, itemId: item.id);
       if (coverBytes == null || coverBytes.isEmpty) {
         return null;
@@ -816,7 +836,7 @@ class DownloadHandler {
     );
 
     final safRootUri = _resolveAndroidSafRootUri(trackUri: fileUri, userId: metaData.userId);
-    if (Platform.isAndroid && metaData.saf && fileUri?.scheme == 'content' && safRootUri != null) {
+    if (!kIsWeb && Platform.isAndroid && metaData.saf && fileUri?.scheme == 'content' && safRootUri != null) {
       final sidecarFilename = '$downloadedFileName.yaabsa.json';
       final sidecarUri = await AndroidSafHelper.prepareDownloadFile(
         rootTreeUri: safRootUri,
@@ -862,7 +882,7 @@ class DownloadHandler {
   }
 
   Uri? _deriveAndroidSafRootFromTrackUri(Uri? trackUri) {
-    if (!Platform.isAndroid || trackUri == null || trackUri.scheme != 'content') {
+    if (kIsWeb || !Platform.isAndroid || trackUri == null || trackUri.scheme != 'content') {
       return null;
     }
 
@@ -889,7 +909,7 @@ class DownloadHandler {
   }
 
   Uri? _resolveAndroidSafRootUriForUser(String userId) {
-    if (!Platform.isAndroid) {
+    if (kIsWeb || !Platform.isAndroid) {
       return null;
     }
 
@@ -925,6 +945,9 @@ class DownloadHandler {
   }
 
   Future<bool> _writeBytesToUri(Uri destinationUri, Uint8List bytes) async {
+    if (kIsWeb || _downloader == null) {
+      return false;
+    }
     final tempFile = File(
       p.join(
         Directory.systemTemp.path,
@@ -959,7 +982,7 @@ class DownloadHandler {
       return null;
     }
 
-    if (Platform.isWindows && RegExp(r'^[a-zA-Z]:[\\/]').hasMatch(trimmed)) {
+    if (!kIsWeb && Platform.isWindows && RegExp(r'^[a-zA-Z]:[\\/]').hasMatch(trimmed)) {
       return Uri.file(trimmed, windows: true);
     }
 
@@ -969,7 +992,7 @@ class DownloadHandler {
     }
 
     if (parsed.scheme.isEmpty) {
-      return Uri.file(trimmed, windows: Platform.isWindows);
+      return Uri.file(trimmed, windows: !kIsWeb && Platform.isWindows);
     }
 
     return parsed;

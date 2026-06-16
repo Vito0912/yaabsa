@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:background_downloader/background_downloader.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -47,7 +48,7 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
     try {
       String? nextValue;
 
-      if (Platform.isAndroid) {
+      if (!kIsWeb && Platform.isAndroid) {
         final pickedUri = await FileDownloader().uri.pickDirectory(
           startLocation: SharedStorage.downloads,
           persistedUriPermission: true,
@@ -56,7 +57,7 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
           return;
         }
         nextValue = pickedUri.toString();
-      } else if (Platform.isLinux || Platform.isWindows) {
+      } else if (!kIsWeb && (Platform.isLinux || Platform.isWindows)) {
         final directoryPath = await FilePicker.getDirectoryPath(dialogTitle: 'Choose download folder');
         if (directoryPath == null || directoryPath.trim().isEmpty) {
           return;

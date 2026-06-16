@@ -897,6 +897,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.1.0"
+  idb_shim:
+    dependency: transitive
+    description:
+      name: idb_shim
+      sha256: "65d2fbda05f707f9c6e0b502bc4bf411d9f799d391f709c121aeb44d0dc0fd2a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.9.4"
   image:
     dependency: transitive
     description:
@@ -1205,10 +1213,10 @@ packages:
     dependency: "direct main"
     description:
       name: path_provider
-      sha256: "50c5dd5b6e1aaf6fb3a78b33f6aa3afca52bf903a8a5298f53101fdaee55bbcd"
+      sha256: a7f4874f987173da295a61c181b8ee71dab59b332a486b391babf26a1b884825
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.5"
+    version: "2.1.6"
   path_provider_android:
     dependency: transitive
     description:
@@ -1237,10 +1245,10 @@ packages:
     dependency: transitive
     description:
       name: path_provider_platform_interface
-      sha256: "88f5779f72ba699763fa3a3b06aa4bf6de76c8e5de842cf6f29e2e06476c2334"
+      sha256: "484838772624c3a4b94f1e44a3e19897fee738f2d5c4ce448443b0417f7c9dda"
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.2"
+    version: "2.1.3"
   path_provider_windows:
     dependency: transitive
     description:
@@ -1522,6 +1530,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.8.9"
+  sembast_web:
+    dependency: "direct main"
+    description:
+      name: sembast_web
+      sha256: b5aa2a2d9524c4f6efad86a6be18baa1d43f6abf83ccab534c29699af32980bd
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.4.5"
   sensors_plus:
     dependency: "direct main"
     description:
@@ -1587,10 +1603,10 @@ packages:
     dependency: "direct main"
     description:
       name: socket_io_client
-      sha256: "740d3895e220e976570da7dbb2f084cd60dd0c46d174c4a830f9849faec23ef9"
+      sha256: f5990ff303d385e7b2150f0e57cca097a8d20c6a2ae0a22cb2d496661ea8ed9b
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.5"
+    version: "3.1.6"
   socket_io_common:
     dependency: transitive
     description:

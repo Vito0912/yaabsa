@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io' show Platform;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
@@ -148,7 +149,7 @@ final globalRouter = GoRouter(
   routes: [
     ShellRoute(
       builder: (BuildContext context, GoRouterState state, Widget child) {
-        if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+        if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
           return TrayManager(child);
         }
         return child;

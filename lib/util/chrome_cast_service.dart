@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_chrome_cast/flutter_chrome_cast.dart';
 import 'package:yaabsa/util/logger.dart';
 
@@ -11,7 +12,7 @@ class ChromeCastService {
   static bool _initialized = false;
   static Future<bool>? _initializationFuture;
 
-  static bool get isSupportedPlatform => Platform.isAndroid || Platform.isIOS;
+  static bool get isSupportedPlatform => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 
   static bool get isInitialized => _initialized;
 
@@ -36,7 +37,7 @@ class ChromeCastService {
   static Future<bool> _initialize(String applicationId) async {
     try {
       final GoogleCastOptions options;
-      if (Platform.isAndroid) {
+      if (!kIsWeb && Platform.isAndroid) {
         options = GoogleCastOptionsAndroid(appId: applicationId, stopCastingOnAppTerminated: true);
       } else {
         options = IOSGoogleCastOptions(

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:yaabsa/models/internal_download.dart';
 
@@ -39,6 +40,9 @@ class DownloadCoverThumbnail extends StatelessWidget {
   }
 
   String? _resolveLocalCoverPath(String? rawPath) {
+    if (kIsWeb) {
+      return null;
+    }
     if (rawPath == null) {
       return null;
     }

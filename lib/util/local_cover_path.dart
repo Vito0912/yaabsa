@@ -1,10 +1,15 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'package:background_downloader/background_downloader.dart';
 import 'package:path/path.dart' as p;
 import 'package:yaabsa/util/logger.dart';
 
 Uri? parseCoverPathUri(String? rawPath) {
+  if (kIsWeb) {
+    if (rawPath == null) return null;
+    return Uri.tryParse(rawPath);
+  }
   if (rawPath == null) {
     return null;
   }
@@ -31,6 +36,9 @@ Uri? parseCoverPathUri(String? rawPath) {
 }
 
 Future<String?> resolveDisplayCoverPath(String? rawPath, {required String cacheKey}) async {
+  if (kIsWeb) {
+    return rawPath;
+  }
   final parsedUri = parseCoverPathUri(rawPath);
   if (parsedUri == null) {
     return null;

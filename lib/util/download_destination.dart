@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 import 'package:background_downloader/background_downloader.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -31,12 +33,12 @@ class DownloadTaskDestination {
   final String? directory;
 }
 
-bool get supportsCustomDownloadLocation => Platform.isAndroid || Platform.isLinux || Platform.isWindows;
+bool get supportsCustomDownloadLocation => !kIsWeb && (Platform.isAndroid || Platform.isLinux || Platform.isWindows);
 
-bool get disablesCustomDownloadLocation => Platform.isIOS || Platform.isMacOS;
+bool get disablesCustomDownloadLocation => !kIsWeb && (Platform.isIOS || Platform.isMacOS);
 
 bool get isFlatpakRuntime {
-  if (!Platform.isLinux) {
+  if (kIsWeb || !Platform.isLinux) {
     return false;
   }
   return Platform.environment.containsKey('FLATPAK_ID') ||
@@ -59,11 +61,11 @@ Uri? parseDownloadLocationSetting(String? rawValue) {
     return parsed;
   }
 
-  return Uri.file(trimmed, windows: Platform.isWindows);
+  return Uri.file(trimmed, windows: !kIsWeb && Platform.isWindows);
 }
 
 String encodeDesktopDownloadLocation(String directoryPath) {
-  return Uri.file(directoryPath, windows: Platform.isWindows).toString();
+  return Uri.file(directoryPath, windows: !kIsWeb && Platform.isWindows).toString();
 }
 
 String formatDownloadLocationForDisplay(String? rawValue) {
@@ -74,7 +76,7 @@ String formatDownloadLocationForDisplay(String? rawValue) {
 
   if (parsed.scheme == 'file') {
     try {
-      return parsed.toFilePath(windows: Platform.isWindows);
+      return parsed.toFilePath(windows: !kIsWeb && Platform.isWindows);
     } catch (_) {
       return parsed.toString();
     }
@@ -84,6 +86,10 @@ String formatDownloadLocationForDisplay(String? rawValue) {
 }
 
 Future<String> defaultDownloadLocationDescription() async {
+  if (kIsWeb) {
+    return 'Not supported on Web';
+  }
+
   if (Platform.isLinux || Platform.isWindows) {
     final downloadsDir = await getDownloadsDirectory();
     if (downloadsDir != null) {
@@ -108,6 +114,9 @@ Future<DownloadTaskDestination> resolveDownloadTaskDestination(
   String? rawLocation,
   String itemId,
 ) async {
+  if (kIsWeb) {
+    throw UnsupportedError('Downloads are not supported on Web');
+  }
   final customLocation = parseDownloadLocationSetting(rawLocation);
 
   if (customLocation != null) {
