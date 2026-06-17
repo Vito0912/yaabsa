@@ -341,17 +341,17 @@ extension _BGAudioHandlerAndroidAutoMedia on BGAudioHandler {
     final coverUri = api.getLibraryItemApi().getCoverUri(item.id, item: item);
     final scheme = coverUri.scheme.toLowerCase();
     if (scheme != 'http' && scheme != 'https') {
-      return coverUri;
+      return _wrapContentUri(coverUri);
     }
 
     final token = _ref.read(currentUserProvider).value?.preferredAuthToken?.trim();
     if (token == null || token.isEmpty) {
-      return coverUri;
+      return _wrapContentUri(coverUri);
     }
 
     final nextQuery = <String, String>{...coverUri.queryParameters};
     nextQuery.putIfAbsent('token', () => token);
-    return coverUri.replace(queryParameters: nextQuery);
+    return _wrapContentUri(coverUri.replace(queryParameters: nextQuery));
   }
 
   Uri? _androidAutoUriFromPathOrUri(String? pathOrUri) {
@@ -366,10 +366,28 @@ extension _BGAudioHandlerAndroidAutoMedia on BGAudioHandler {
 
     final parsed = Uri.tryParse(trimmed);
     if (parsed != null && parsed.scheme.isNotEmpty) {
-      return parsed;
+      return _wrapContentUri(parsed);
     }
 
-    return Uri.file(trimmed);
+    return _wrapContentUri(Uri.file(trimmed));
+  }
+
+  Uri? _wrapContentUri(Uri? originalUri) {
+    if (originalUri == null) {
+      return null;
+    }
+    final scheme = originalUri.scheme.toLowerCase();
+    if (scheme != 'http' && scheme != 'https' && scheme != 'file') {
+      return originalUri;
+    }
+
+    final packageName = packageInfo.packageName.trim();
+    final authority = packageName.isNotEmpty ? '$packageName.covers' : 'de.vito0912.yaabsa.covers';
+
+    final uriStr = originalUri.toString();
+    final bytes = utf8.encode(uriStr);
+    final base64Str = base64Url.encode(bytes).replaceAll('=', '');
+    return Uri.parse('content://$authority/$base64Str');
   }
 
   Duration? _androidAutoDurationFromSeconds(double? seconds) {
