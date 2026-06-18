@@ -46,13 +46,14 @@ class LibraryOrderSettings extends ConsumerWidget {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: libraries.length,
+                  buildDefaultDragHandles: false,
                   itemBuilder: (context, index) {
                     final library = libraries[index];
                     return Card(
                       key: ValueKey(library.id),
                       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                       child: ListTile(
-                        leading: const Icon(Icons.drag_handle),
+                        leading: ReorderableDragStartListener(index: index, child: const Icon(Icons.drag_handle)),
                         title: Text(library.name),
                         subtitle: StreamBuilder<UserSettingEntry?>(
                           stream: db.watchUserSetting(user.id, 'music_library_${library.id}'),
