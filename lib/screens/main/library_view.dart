@@ -125,7 +125,12 @@ class LibraryView extends HookConsumerWidget {
                                     hasNextPage: state.hasNextPage,
                                     api: api,
                                     onPlayItem: (item, _) {
-                                      audioHandler.playLibraryItem(item);
+                                      audioHandler.playLibraryItem(
+                                        item,
+                                        sort: state.sort,
+                                        desc: state.desc,
+                                        filter: state.filter,
+                                      );
                                     },
                                     onEnsureLoadedForIndex: (index) {
                                       ref.read(itemsProvider.notifier).ensureLoadedForIndex(index);

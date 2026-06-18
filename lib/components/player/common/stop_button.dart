@@ -16,7 +16,8 @@ class StopButton extends StatelessWidget {
             state != null &&
             (state.processingState == ProcessingState.ready ||
                 state.processingState == ProcessingState.loading ||
-                state.processingState == ProcessingState.buffering);
+                state.processingState == ProcessingState.buffering ||
+                state.processingState == ProcessingState.completed);
 
         if (!shouldShowStop) {
           return const SizedBox.shrink();

@@ -8,6 +8,70 @@ part of 'library_provider.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
+
+@ProviderFor(userLibrariesOrder)
+final userLibrariesOrderProvider = UserLibrariesOrderFamily._();
+
+final class UserLibrariesOrderProvider extends $FunctionalProvider<AsyncValue<String?>, String?, Stream<String?>>
+    with $FutureModifier<String?>, $StreamProvider<String?> {
+  UserLibrariesOrderProvider._({required UserLibrariesOrderFamily super.from, required String super.argument})
+    : super(
+        retry: null,
+        name: r'userLibrariesOrderProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$userLibrariesOrderHash();
+
+  @override
+  String toString() {
+    return r'userLibrariesOrderProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $StreamProviderElement<String?> $createElement($ProviderPointer pointer) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<String?> create(Ref ref) {
+    final argument = this.argument as String;
+    return userLibrariesOrder(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is UserLibrariesOrderProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$userLibrariesOrderHash() => r'ba6006cf2f08cb7368348291e1e78ad0d0316848';
+
+final class UserLibrariesOrderFamily extends $Family with $FunctionalFamilyOverride<Stream<String?>, String> {
+  UserLibrariesOrderFamily._()
+    : super(
+        retry: null,
+        name: r'userLibrariesOrderProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  UserLibrariesOrderProvider call(String userId) => UserLibrariesOrderProvider._(argument: userId, from: this);
+
+  @override
+  String toString() => r'userLibrariesOrderProvider';
+}
+
 /// Provider to fetch all libraries for the current user.
 
 @ProviderFor(userLibraries)
@@ -43,7 +107,7 @@ final class UserLibrariesProvider
   }
 }
 
-String _$userLibrariesHash() => r'92ded6bf124f25f7d81ea3f29ae53e8f6acf9962';
+String _$userLibrariesHash() => r'e5aa67333a7f2e71126fb40bd7308963ae3482a7';
 
 @ProviderFor(SelectedLibraryId)
 final selectedLibraryIdProvider = SelectedLibraryIdProvider._();

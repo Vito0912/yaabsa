@@ -14,6 +14,7 @@ import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/settings/library_shelf_settings.dart';
+import 'package:yaabsa/screens/settings/library_order_settings.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/download_destination.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
@@ -191,6 +192,11 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
                       title: 'Shelf Sections',
                       subtitle: 'Choose which shelf sections are visible and their order',
                       onTap: () => context.push(LibraryShelfSettings.routeName),
+                    ),
+                    SettingsNavigationItem(
+                      icon: Icons.sort_rounded,
+                      title: 'Reorder & Configure Libraries',
+                      onTap: () => context.push(LibraryOrderSettings.routeName),
                     ),
                   ],
                   settings: [

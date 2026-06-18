@@ -98,6 +98,17 @@ class PlayerSettingsGeneral extends ConsumerWidget {
               settingKey: SettingKeys.autoQueueIncludeSeriesOutsideContext,
               enabled: autoQueueEnabled,
             ),
+            SettingDropdown<String>(
+              label: 'Show Loop & Shuffle controls',
+              values: const ['off', 'music_only', 'on'],
+              valueLabels: const ['Off', 'Music Only', 'On'],
+              valueDescriptions: const [
+                'Never show loop and shuffle controls',
+                'Only show loop and shuffle for music libraries',
+                'Always show loop and shuffle controls',
+              ],
+              settingKey: SettingKeys.showPlayerLoopShuffle,
+            ),
           ],
         ),
       ],

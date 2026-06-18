@@ -15,12 +15,25 @@ final Set<String> _selectedLibrarySnapshotHydratedUserIds = <String>{};
 
 const String _selectedLibrarySnapshotSettingKey = 'selectedLibrarySnapshot';
 
+@riverpod
+Stream<String?> userLibrariesOrder(Ref ref, String userId) {
+  final db = ref.watch(appDatabaseProvider);
+  return db.watchUserSetting(userId, 'libraries_order').map((e) => e?.value);
+}
+
 /// Provider to fetch all libraries for the current user.
 @riverpod
 Future<List<Library>> userLibraries(Ref ref) async {
   final activeUserId = ref.watch(currentUserProvider).value?.id;
 
+  String? customOrderRaw;
+  if (activeUserId != null) {
+    customOrderRaw = ref.watch(userLibrariesOrderProvider(activeUserId)).value;
+  }
+
   final api = ref.watch(absApiProvider);
+  List<Library> fetchedLibraries = [];
+
   if (api == null) {
     if (activeUserId != null) {
       final cachedLibraries = _userLibrariesCacheByUserId[activeUserId];
@@ -30,43 +43,64 @@ Future<List<Library>> userLibraries(Ref ref) async {
           tag: 'UserLibrariesProvider',
           level: InfoLevel.warning,
         );
-        return cachedLibraries;
+        fetchedLibraries = cachedLibraries;
       }
     }
+  } else {
+    try {
+      final librariesResponse = await api.getLibraryApi().getLibraries();
+      if (librariesResponse.data != null) {
+        final libraries = List<Library>.unmodifiable(librariesResponse.data!.libraries);
+        if (activeUserId != null) {
+          _userLibrariesCacheByUserId[activeUserId] = libraries;
+        }
+        fetchedLibraries = libraries;
+      }
+    } catch (e, s) {
+      logger('Error fetching libraries: $e\\n$s', tag: 'UserLibrariesProvider');
 
-    logger(
-      'UserLibrariesProvider: ABSApi is null, returning empty list.',
-      tag: 'UserLibrariesProvider',
-      level: InfoLevel.warning,
-    );
+      if (activeUserId != null) {
+        final cachedLibraries = _userLibrariesCacheByUserId[activeUserId];
+        if (cachedLibraries != null) {
+          logger(
+            'UserLibrariesProvider: Using ${cachedLibraries.length} cached libraries after fetch error for user $activeUserId.',
+            tag: 'UserLibrariesProvider',
+            level: InfoLevel.warning,
+          );
+          fetchedLibraries = cachedLibraries;
+        }
+      }
+    }
+  }
+
+  if (fetchedLibraries.isEmpty) {
     return [];
   }
-  try {
-    final librariesResponse = await api.getLibraryApi().getLibraries();
-    if (librariesResponse.data != null) {
-      final libraries = List<Library>.unmodifiable(librariesResponse.data!.libraries);
-      if (activeUserId != null) {
-        _userLibrariesCacheByUserId[activeUserId] = libraries;
-      }
-      return libraries;
-    }
-  } catch (e, s) {
-    logger('Error fetching libraries: $e\\n$s', tag: 'UserLibrariesProvider');
 
-    if (activeUserId != null) {
-      final cachedLibraries = _userLibrariesCacheByUserId[activeUserId];
-      if (cachedLibraries != null) {
-        logger(
-          'UserLibrariesProvider: Using ${cachedLibraries.length} cached libraries after fetch error for user $activeUserId.',
-          tag: 'UserLibrariesProvider',
-          level: InfoLevel.warning,
-        );
-        return cachedLibraries;
+  if (customOrderRaw != null && customOrderRaw.trim().isNotEmpty) {
+    try {
+      final List<dynamic> orderedIds = jsonDecode(customOrderRaw);
+      final orderedIdList = orderedIds.map((e) => e.toString()).toList();
+
+      final sortedList = <Library>[];
+      for (final id in orderedIdList) {
+        final match = fetchedLibraries.where((lib) => lib.id == id).firstOrNull;
+        if (match != null) {
+          sortedList.add(match);
+        }
       }
+      for (final lib in fetchedLibraries) {
+        if (!orderedIdList.contains(lib.id)) {
+          sortedList.add(lib);
+        }
+      }
+      return List<Library>.unmodifiable(sortedList);
+    } catch (e, s) {
+      logger('Error applying custom library order: $e\\n$s', tag: 'UserLibrariesProvider', level: InfoLevel.warning);
     }
   }
 
-  return [];
+  return fetchedLibraries;
 }
 
 @riverpod
