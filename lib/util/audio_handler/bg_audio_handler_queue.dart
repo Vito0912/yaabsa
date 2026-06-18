@@ -25,12 +25,23 @@ extension _BGAudioHandlerQueue on BGAudioHandler {
                 ),
         )
         .toList();
-    if (nextQueue.length == queueList.length) {
-      return;
+    if (nextQueue.length != queueList.length) {
+      queueList = nextQueue;
+      _emitQueueState();
     }
 
-    queueList = nextQueue;
-    _emitQueueState();
+    _originalQueueList = _originalQueueList
+        .where(
+          (entry) => episodeId == null
+              ? entry.item.itemId != itemId
+              : !_queueItemsMatch(
+                  leftItemId: entry.item.itemId,
+                  leftEpisodeId: entry.item.episodeId,
+                  rightItemId: itemId,
+                  rightEpisodeId: episodeId,
+                ),
+        )
+        .toList();
   }
 
   void _reorderQueueInternal(int oldIndex, int newIndex) {
@@ -72,8 +83,10 @@ extension _BGAudioHandlerQueue on BGAudioHandler {
     QueueDisplayInfo displayInfo = QueueDisplayInfo.empty,
     bool autoQueued = false,
     int? autoQueuePage,
+    bool allowCurrent = false,
   }) {
-    if (_currentMediaItem != null &&
+    if (!allowCurrent &&
+        _currentMediaItem != null &&
         _queueItemsMatch(
           leftItemId: _currentMediaItem!.itemId,
           leftEpisodeId: _currentMediaItem!.episodeId,
@@ -87,16 +100,21 @@ extension _BGAudioHandlerQueue on BGAudioHandler {
       return false;
     }
 
-    queueList = [
-      ...queueList,
-      PlayerQueueEntry(
-        id: 'q_${_queueEntryCounter++}',
-        item: item,
-        displayInfo: displayInfo,
-        autoQueued: autoQueued,
-        autoQueuePage: autoQueuePage,
-      ),
-    ];
+    final entry = PlayerQueueEntry(
+      id: 'q_${_queueEntryCounter++}',
+      item: item,
+      displayInfo: displayInfo,
+      autoQueued: autoQueued,
+      autoQueuePage: autoQueuePage,
+    );
+
+    queueList = [...queueList, entry];
+
+    final manager = _ref.read(settingsManagerProvider.notifier);
+    final isMix = manager.getGlobalSetting<bool>(SettingKeys.mixQueue, defaultValue: false);
+    if (isMix) {
+      _originalQueueList.add(entry);
+    }
 
     return true;
   }

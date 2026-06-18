@@ -96,9 +96,13 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   StreamSubscription<InternalChapter?>? _chapterSubscription;
   bool _isDisposing = false;
   List<PlayerQueueEntry> queueList = [];
+  List<PlayerQueueEntry> _originalQueueList = [];
   QueueItem? _lastQueueItem;
   Future<void> _skipOperationQueue = Future.value();
   int _queueEntryCounter = 0;
+  String? _activeMusicLibraryId;
+  String? _activeMusicLibraryFilter;
+  bool _ignoreProgressOnNextPlay = false;
   int _autoQueueGeneration = 0;
   _AutoQueueState? _autoQueueState;
   DateTime? _pausedAt;
@@ -226,6 +230,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   void setQueue(QueueItem item, {QueueDisplayInfo displayInfo = QueueDisplayInfo.empty}) {
     _clearAutoQueueState();
     queueList = [];
+    _originalQueueList.clear();
     _enqueueItem(item, displayInfo: displayInfo);
     _forceQueueSwitchOnNextPlay = true;
     _emitQueueState();
@@ -242,8 +247,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     );
   }
 
-  void addToQueue(QueueItem item, {QueueDisplayInfo displayInfo = QueueDisplayInfo.empty}) {
-    _enqueueItem(item, displayInfo: displayInfo);
+  void addToQueue(QueueItem item, {QueueDisplayInfo displayInfo = QueueDisplayInfo.empty, bool allowCurrent = false}) {
+    _enqueueItem(item, displayInfo: displayInfo, allowCurrent: allowCurrent);
     _emitQueueState();
   }
 
@@ -273,6 +278,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     }
 
     queueList = nextQueue;
+    _originalQueueList.removeWhere((entry) => entry.id == queueEntryId);
     _emitQueueState();
   }
 
@@ -282,6 +288,68 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   Future<void> loadMoreAutoQueue() {
     return _loadMoreAutoQueue();
+  }
+
+  void toggleMix() {
+    final manager = _ref.read(settingsManagerProvider.notifier);
+    final currentMix = manager.getGlobalSetting<bool>(SettingKeys.mixQueue, defaultValue: false);
+    final nextMix = !currentMix;
+    manager.setGlobalSetting<bool>(SettingKeys.mixQueue, nextMix);
+
+    if (nextMix) {
+      _originalQueueList = List<PlayerQueueEntry>.from(queueList);
+      final shuffled = List<PlayerQueueEntry>.from(queueList)..shuffle();
+      queueList = shuffled;
+    } else {
+      final restored = _originalQueueList.where((orig) => queueList.any((q) => q.id == orig.id)).toList();
+      final newItems = queueList.where((q) => !_originalQueueList.any((orig) => orig.id == q.id)).toList();
+      queueList = [...restored, ...newItems];
+      _originalQueueList.clear();
+    }
+    _emitQueueState();
+  }
+
+  void cycleLoopMode() {
+    final manager = _ref.read(settingsManagerProvider.notifier);
+    final currentLoop = manager.getGlobalSetting<String>(SettingKeys.loopMode, defaultValue: 'off');
+    String nextLoop = currentLoop == 'off' ? 'on' : 'off';
+    manager.setGlobalSetting<String>(SettingKeys.loopMode, nextLoop);
+  }
+
+  Future<void> _refillMusicQueue(String libraryId, {String? filter}) async {
+    final api = _ref.read(absApiProvider);
+    if (api == null) return;
+
+    final currentQueueIds = queueList.map((e) => e.item.itemId).toSet();
+    if (_currentMediaItem != null) {
+      currentQueueIds.add(_currentMediaItem!.itemId);
+    }
+
+    int attempts = 0;
+    const maxAttempts = 10;
+    while (attempts < maxAttempts) {
+      attempts++;
+      try {
+        final request = LibraryItemsRequest(limit: 1, page: 0, sort: 'random', filter: filter);
+        final response = await api.getLibraryApi().getLibraryItems(libraryId, request, extra: const {'noCache': true});
+        final data = response.data;
+        if (data != null && data.results.isNotEmpty) {
+          final candidate = data.results.first;
+          if (!currentQueueIds.contains(candidate.id)) {
+            addToQueue(QueueItem(itemId: candidate.id), displayInfo: _displayInfoFromLibraryItem(candidate));
+            logger('Successfully refilled music queue with random item ${candidate.id}', tag: 'AudioHandler');
+            break;
+          } else {
+            logger('Fetched duplicate random item ${candidate.id}, retrying request...', tag: 'AudioHandler');
+          }
+        } else {
+          break;
+        }
+      } catch (e) {
+        logger('Failed to refill music queue: $e', tag: 'AudioHandler', level: InfoLevel.warning);
+        break;
+      }
+    }
   }
 
   @override
@@ -423,8 +491,20 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     return _shouldShowPlayerNowInternal();
   }
 
-  Future<void> playLibraryItem(LibraryItem item, {AutoQueueStart? autoQueueStart}) {
-    return _playLibraryItemWithContext(item, autoQueueStart: autoQueueStart ?? const AutoQueueStart.none());
+  Future<void> playLibraryItem(
+    LibraryItem item, {
+    AutoQueueStart? autoQueueStart,
+    String? sort,
+    int? desc,
+    String? filter,
+  }) {
+    return _playLibraryItemWithContext(
+      item,
+      autoQueueStart: autoQueueStart ?? const AutoQueueStart.none(),
+      sort: sort,
+      desc: desc,
+      filter: filter,
+    );
   }
 
   Future<void> playPodcastEpisode(
@@ -438,6 +518,10 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   @override
   Future<void> play() async {
+    final ignoreProgress = _ignoreProgressOnNextPlay || _activeMusicLibraryId != null;
+    final forceRestart = _ignoreProgressOnNextPlay;
+    _ignoreProgressOnNextPlay = false;
+
     if (isCastControlActive) {
       PlayerUtils.enableWakelock(_ref);
       await GoogleCastRemoteMediaClient.instance.play();
@@ -498,23 +582,36 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
             rightItemId: _currentMediaItem!.itemId,
             rightEpisodeId: _currentMediaItem!.episodeId,
           )) {
-        queueList.removeAt(0);
+        final removed = queueList.removeAt(0);
+        _originalQueueList.removeWhere((e) => e.id == removed.id);
         _emitQueueState();
         _maybePrefetchAutoQueue();
+      }
+
+      if (_player.playerState.processingState == ProcessingState.completed || forceRestart) {
+        await seek(Duration.zero);
       }
 
       final skipResumeProgressReconcile = _consumePausedManualSeekMarkerForCurrentItem();
       await _applySmartRewindOnResumeIfNeeded();
       _setQueueTransitionLoading(false);
-      await _syncedPlay(restoreProgress: true, skipResumeProgressReconcile: skipResumeProgressReconcile);
+      await _syncedPlay(restoreProgress: !ignoreProgress, skipResumeProgressReconcile: skipResumeProgressReconcile);
       return Future.value();
     }
 
     PlayerQueueEntry? nextEntry = queueList.isNotEmpty ? queueList.removeAt(0) : null;
     if (nextEntry != null) {
+      _originalQueueList.removeWhere((e) => e.id == nextEntry.id);
       _forceQueueSwitchOnNextPlay = false;
       _emitQueueState();
       _maybePrefetchAutoQueue();
+      final loopMode = _ref
+          .read(settingsManagerProvider.notifier)
+          .getGlobalSetting<String>(SettingKeys.loopMode, defaultValue: 'off');
+      final isLoopOn = loopMode == 'on';
+      if (_activeMusicLibraryId != null && !isLoopOn) {
+        unawaited(_refillMusicQueue(_activeMusicLibraryId!, filter: _activeMusicLibraryFilter));
+      }
     }
 
     QueueItem? nextItem = nextEntry?.item;
@@ -565,14 +662,14 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       level: InfoLevel.debug,
     );
     try {
-      await _setSource();
+      await _setSource(ignoreSavedProgress: ignoreProgress);
       logger(
         'Setting source for item: ${_currentMediaItem!.itemId} (${_currentMediaItem!.episodeId ?? 'item'})',
         tag: 'AudioHandler',
         level: InfoLevel.debug,
       );
       _setQueueTransitionLoading(false);
-      await _syncedPlay(restoreProgress: true);
+      await _syncedPlay(restoreProgress: !ignoreProgress);
     } catch (e) {
       logger('Failed to start playback source: $e', tag: 'AudioHandler', level: InfoLevel.error);
       PlayerUtils.disableWakelock(_ref);
@@ -621,7 +718,9 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     }
     if (clearQueue) {
       _clearAutoQueueState();
+      _activeMusicLibraryId = null;
       queueList.clear();
+      _originalQueueList.clear();
       _forceQueueSwitchOnNextPlay = false;
       _emitQueueState();
     }
@@ -714,8 +813,25 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       }
 
       logger('No next chapter found, skipping to next item', tag: 'AudioHandler', level: InfoLevel.debug);
+      final loopMode = _ref
+          .read(settingsManagerProvider.notifier)
+          .getGlobalSetting<String>(SettingKeys.loopMode, defaultValue: 'off');
+      final isLoopOn = loopMode == 'on';
+
+      if (isLoopOn && _currentMediaItem != null) {
+        final finishedMedia = _currentMediaItem!;
+        final finishedQueueItem = QueueItem(itemId: finishedMedia.itemId, episodeId: finishedMedia.episodeId);
+        final displayInfo = QueueDisplayInfo(
+          title: finishedMedia.title,
+          subtitle: finishedMedia.subtitle,
+          author: finishedMedia.author,
+        );
+        addToQueue(finishedQueueItem, displayInfo: displayInfo, allowCurrent: true);
+      }
+
       if (queueList.isNotEmpty) {
         _forceQueueSwitchOnNextPlay = true;
+        _ignoreProgressOnNextPlay = isLoopOn;
         await play();
       } else {
         logger(
@@ -1015,7 +1131,24 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           ),
         );
 
+        final loopMode = _ref
+            .read(settingsManagerProvider.notifier)
+            .getGlobalSetting<String>(SettingKeys.loopMode, defaultValue: 'off');
+        final isLoopOn = loopMode == 'on';
+
+        if (isLoopOn) {
+          final finishedQueueItem = QueueItem(itemId: finishedMedia.itemId, episodeId: finishedMedia.episodeId);
+          final displayInfo = QueueDisplayInfo(
+            title: finishedMedia.title,
+            subtitle: finishedMedia.subtitle,
+            author: finishedMedia.author,
+          );
+          addToQueue(finishedQueueItem, displayInfo: displayInfo, allowCurrent: true);
+        }
+
         if (queueList.isNotEmpty) {
+          _forceQueueSwitchOnNextPlay = true;
+          _ignoreProgressOnNextPlay = isLoopOn;
           await play();
         } else {
           await pause();

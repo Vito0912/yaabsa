@@ -7,6 +7,7 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
     int? episodeIndex,
     List<Episode>? orderedEpisodes,
   }) async {
+    _activeMusicLibraryId = null;
     final libraryId = item.libraryId;
     final autoQueueContext = libraryId != null && episodeIndex != null
         ? _AutoQueueRequestContext.podcast(
@@ -44,6 +45,7 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
     required String? episodeId,
     required Duration position,
   }) async {
+    _activeMusicLibraryId = null;
     PlayerUtils.enableWakelock(_ref);
     _resetStreamRecoveryState(clearWindow: true);
 
@@ -79,6 +81,9 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
   Future<void> _playLibraryItemWithContext(
     LibraryItem item, {
     AutoQueueStart autoQueueStart = const AutoQueueStart.none(),
+    String? sort,
+    int? desc,
+    String? filter,
   }) async {
     logger(
       'Starting library item playback with auto-queue start type=${autoQueueStart.type.name}, '
@@ -89,6 +94,25 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
 
     setQueueFromLibraryItem(item);
     await play();
+
+    final libraryId = item.libraryId ?? await _resolveLibraryId(item);
+    final activeUserId = _ref.read(currentUserProvider).value?.id;
+    final isMusic =
+        autoQueueStart.type == AutoQueueStartType.none &&
+        libraryId != null &&
+        _ref
+            .read(settingsManagerProvider.notifier)
+            .getUserSetting<bool>(activeUserId, 'music_library_$libraryId', defaultValue: false);
+
+    if (isMusic) {
+      _clearAutoQueueState();
+      _activeMusicLibraryId = libraryId;
+      _activeMusicLibraryFilter = filter;
+      unawaited(_queueMusicLibraryItems(libraryId, item.id, sort: sort, desc: desc, filter: filter));
+      return;
+    } else {
+      _activeMusicLibraryId = null;
+    }
 
     if (!_isAutoQueueEnabled) {
       logger('Auto queue disabled. Skipping auto-queue setup.', tag: 'AudioHandler', level: InfoLevel.debug);
@@ -203,6 +227,14 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
   }
 
   Future<void> _reconcileResumeProgressInBackground(InternalMedia resumeItem) async {
+    final activeUserId = _ref.read(currentUserProvider).value?.id;
+    final isMusic = _ref
+        .read(settingsManagerProvider.notifier)
+        .getUserSetting<bool>(activeUserId, 'music_library_${resumeItem.libraryId}', defaultValue: false);
+    if (isMusic) {
+      return;
+    }
+
     const driftThreshold = Duration(seconds: 10);
 
     try {
@@ -262,6 +294,36 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
       await _seekWithoutPausedManualMarker(() => _seekInternal(remotePosition));
     } catch (e) {
       logger('Background resume reconcile failed: $e', tag: 'AudioHandler', level: InfoLevel.warning);
+    }
+  }
+
+  Future<void> _queueMusicLibraryItems(
+    String libraryId,
+    String currentItemId, {
+    String? sort,
+    int? desc,
+    String? filter,
+  }) async {
+    final api = _ref.read(absApiProvider);
+    if (api == null) return;
+    try {
+      final request = LibraryItemsRequest(limit: 1000, page: 0, sort: sort, desc: desc, filter: filter);
+      final response = await api.getLibraryApi().getLibraryItems(libraryId, request, extra: const {'noCache': true});
+      final data = response.data;
+      if (data != null && data.results.isNotEmpty) {
+        final total = data.total ?? data.results.length;
+        final targetSize = (total / 2).round().clamp(1, 20);
+
+        final otherItems = data.results.where((item) => item.id != currentItemId).toList();
+        otherItems.shuffle(); // Randomize!
+
+        final itemsToQueue = otherItems.take(targetSize).toList();
+        for (final item in itemsToQueue) {
+          addToQueue(QueueItem(itemId: item.id), displayInfo: _displayInfoFromLibraryItem(item));
+        }
+      }
+    } catch (e) {
+      logger('Failed to queue music library items: $e', tag: 'AudioHandler', level: InfoLevel.warning);
     }
   }
 }

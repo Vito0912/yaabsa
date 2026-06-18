@@ -112,6 +112,9 @@ class SettingKeys {
   static const String readerLayout = 'reader_layout';
   static const String readerHideMiniPlayer = 'reader_hide_mini_player';
   static const String readerStartSession = 'reader_start_session';
+  static const String loopMode = 'loop_mode';
+  static const String mixQueue = 'mix_queue';
+  static const String showPlayerLoopShuffle = 'show_player_loop_shuffle';
 }
 
 bool get _defaultEnableOnDesktop {
@@ -237,6 +240,9 @@ final defaultSettings = {
   SettingKeys.readerLayout: 'paginated_2',
   SettingKeys.readerHideMiniPlayer: false,
   SettingKeys.readerStartSession: false,
+  SettingKeys.loopMode: 'off',
+  SettingKeys.mixQueue: false,
+  SettingKeys.showPlayerLoopShuffle: 'music_only',
 };
 
 enum AppThemeMode {

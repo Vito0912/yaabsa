@@ -40,6 +40,7 @@ import 'package:yaabsa/screens/settings/caching/caching_general_settings.dart';
 import 'package:yaabsa/screens/settings/caching/caching_route_settings.dart';
 import 'package:yaabsa/screens/settings/caching_settings.dart';
 import 'package:yaabsa/screens/settings/library_shelf_settings.dart';
+import 'package:yaabsa/screens/settings/library_order_settings.dart';
 import 'package:yaabsa/screens/settings/library_settings.dart';
 import 'package:yaabsa/screens/settings/library_views_settings.dart';
 import 'package:yaabsa/screens/settings/path_tag_genre_update_settings.dart';
@@ -206,6 +207,10 @@ final globalRouter = GoRouter(
                     GoRoute(
                       path: LibraryShelfSettings.routeName,
                       builder: (context, state) => const LibraryShelfSettings(),
+                    ),
+                    GoRoute(
+                      path: LibraryOrderSettings.routeName,
+                      builder: (context, state) => const LibraryOrderSettings(),
                     ),
                     GoRoute(path: AndroidAutoSettings.routeName, builder: (context, state) => AndroidAutoSettings()),
                     GoRoute(path: CachingSettings.routeName, builder: (context, state) => CachingSettings()),
