@@ -5,6 +5,7 @@ import 'package:yaabsa/api/library_items/playback_session.dart';
 import 'package:yaabsa/api/me/media_progress.dart';
 import 'package:yaabsa/components/common/expressive_expandable_card.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/item_formatters.dart';
 import 'package:yaabsa/util/logger.dart';
 
@@ -34,6 +35,7 @@ class _ItemBookStatsCardState extends ConsumerState<ItemBookStatsCard> {
   DateTime? _firstStarted;
   DateTime? _lastStarted;
   Duration _accumulatedListening = Duration.zero;
+  int? _totalSessions;
 
   Future<void> _loadStatsAndFinishes() async {
     final api = ref.read(absApiProvider);
@@ -64,6 +66,7 @@ class _ItemBookStatsCardState extends ConsumerState<ItemBookStatsCard> {
       int page = 0;
       int numPages = 1;
       const itemsPerPage = 100;
+      int? totalSessions;
 
       while (page < numPages && allSessions.length < 500) {
         final response = await api.getMeApi().getMeItemListeningSessions(
@@ -76,6 +79,8 @@ class _ItemBookStatsCardState extends ConsumerState<ItemBookStatsCard> {
         if (pageData == null) {
           break;
         }
+
+        totalSessions ??= pageData.total;
 
         allSessions.addAll(pageData.sessions);
         numPages = pageData.numPages ?? 1;
@@ -140,6 +145,7 @@ class _ItemBookStatsCardState extends ConsumerState<ItemBookStatsCard> {
           _firstStarted = firstStarted;
           _lastStarted = lastStarted;
           _accumulatedListening = Duration(seconds: totalSeconds.round());
+          _totalSessions = totalSessions;
           _hasLoaded = true;
           _isLoading = false;
         });
@@ -168,7 +174,7 @@ class _ItemBookStatsCardState extends ConsumerState<ItemBookStatsCard> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(color: colorScheme.surfaceContainerLow, borderRadius: BorderRadius.circular(12)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -249,9 +255,9 @@ class _ItemBookStatsCardState extends ConsumerState<ItemBookStatsCard> {
           LayoutBuilder(
             builder: (context, constraints) {
               final parentWidth = constraints.maxWidth;
-              final isWide = parentWidth > 600;
-              final columns = isWide ? 4 : 2;
-              const spacing = 12.0;
+              final isWide = context.isDesktop;
+              final columns = isWide ? 5 : (context.isTablet ? 3 : 2);
+              const spacing = 4.0;
               final cardWidth = (parentWidth - (spacing * (columns - 1))) / columns;
 
               return Wrap(
@@ -264,6 +270,14 @@ class _ItemBookStatsCardState extends ConsumerState<ItemBookStatsCard> {
                       context: context,
                       label: 'Total Listened',
                       value: formatDurationLong(_accumulatedListening),
+                    ),
+                  ),
+                  SizedBox(
+                    width: cardWidth,
+                    child: _buildStatCard(
+                      context: context,
+                      label: 'Times Started',
+                      value: _totalSessions?.toString() ?? 'N/A',
                     ),
                   ),
                   SizedBox(
