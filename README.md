@@ -87,6 +87,9 @@ Below is a list of all features, but I want to _highlight_ a few, as this client
 | Narrator           | ✅      | ✅  | ✅      | ✅    | ✅    |
 | Search             | ✅      | ✅  | ✅      | ✅    | ✅    |
 | Stats              | ✅      | ✅  | ✅      | ✅    | ✅    |
+| Music\*            | ✅      | ✅  | ✅      | ✅    | ✅    |
+
+\* This is no official library type and just changes behaviour in the app, making it more suitable for music libraries.
 
 ### Player
 
@@ -121,7 +124,7 @@ Below is a list of all features, but I want to _highlight_ a few, as this client
 | PDF support        | ✅      | 🅿️   | 🅿️      | ✅    | ✅    |
 | Annotations        | ✅      | ✅\* | 🅿️      | ✅    | ✅    |
 | Sync Annotations   | ✅      | ✅   | ❓      | ✅    | ✅    |
-| Media Overlays\*\* | 🅿️      | 🅿️   | 🅿️      | 🅿️    | 🅿️    |
+| Media Overlays\*\* | ✅      | ✅   | ✅      | ✅    | ❌    |
 
 \* You can only load in annotations, but not create new ones for ePUBs\
 \*\* Media Overlays allow a whispersync-like experience for eBooks. This allows you to read and listen to your book at the same time. Please note that the player support is way more limited than for normal audiobooks. Media Overlays need to be added manually before adding them to ABS. I do maintain a soft fork of ABS that will have the capabilities to embed the audiofile into the eBook.
