@@ -896,14 +896,16 @@ jobs:
 
           mkdir -p dist
           while IFS= read -r -d '' file; do
-            file_name="$(basename "$file")"
-            artifact_key="$(basename "$(dirname "$file")")"
+            rel="${file#release-assets/}"
+            artifact_key="${rel%%/*}"
+            rel_path="${rel#*/}"
 
             if [[ "$artifact_key" == "github-pages" || "$artifact_key" == "web-pages" || "$artifact_key" == "flatpak-pages" ]]; then
               continue
             fi
 
-            target_name="${artifact_key}-${file_name}"
+            flat_name="$(echo "$rel_path" | tr '/' '-')"
+            target_name="${artifact_key}-${flat_name}"
             target_file="dist/$target_name"
             if [[ -e "$target_file" ]]; then
               echo "Duplicate release asset name found: $target_name"
