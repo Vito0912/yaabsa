@@ -130,10 +130,16 @@ class SessionApi {
 
   Future<bool> syncLocalSession(
     PlaybackSession request, {
+    bool deleteFirst = false,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
   }) async {
+    if (deleteFirst) {
+      try {
+        await deleteSessionById(request.id, cancelToken: cancelToken, headers: headers, extra: extra);
+      } catch (_) {}
+    }
     await ABSApi.makeApiPostRequest(
       route: '/api/session/local',
       fromJson: null,

@@ -91,7 +91,7 @@ class _ListeningSessionEditorDialogState extends State<_ListeningSessionEditorDi
     });
 
     int? newStartedAt = _startedAt;
-    int? newUpdatedAt = _updatedAt != widget.session.updatedAt ? _updatedAt : DateTime.now().millisecondsSinceEpoch;
+    int? newUpdatedAt = _updatedAt;
     String? newDateString = widget.session.date;
     String? newDayOfWeek = widget.session.dayOfWeek;
 
@@ -120,6 +120,32 @@ class _ListeningSessionEditorDialogState extends State<_ListeningSessionEditorDi
         case 7:
           newDayOfWeek = 'Sunday';
           break;
+      }
+
+      if (newStartedAt != null) {
+        final originalStarted = DateTime.fromMillisecondsSinceEpoch(newStartedAt);
+        newStartedAt = DateTime(
+          _sessionDate!.year,
+          _sessionDate!.month,
+          _sessionDate!.day,
+          originalStarted.hour,
+          originalStarted.minute,
+          originalStarted.second,
+          originalStarted.millisecond,
+        ).millisecondsSinceEpoch;
+      }
+
+      if (newUpdatedAt != null) {
+        final originalUpdated = DateTime.fromMillisecondsSinceEpoch(newUpdatedAt);
+        newUpdatedAt = DateTime(
+          _sessionDate!.year,
+          _sessionDate!.month,
+          _sessionDate!.day,
+          originalUpdated.hour,
+          originalUpdated.minute,
+          originalUpdated.second,
+          originalUpdated.millisecond,
+        ).millisecondsSinceEpoch;
       }
     }
 

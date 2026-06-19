@@ -278,7 +278,7 @@ class _CurrentUserListeningSessionsTabState extends ConsumerState<CurrentUserLis
       canDelete: canDelete,
       onSave: canEdit
           ? (updatedSession) async {
-              await api.getSessionApi().syncLocalSession(updatedSession);
+              await api.getSessionApi().syncLocalSession(updatedSession, deleteFirst: true);
               return true;
             }
           : null,

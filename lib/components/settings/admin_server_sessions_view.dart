@@ -411,7 +411,7 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
       canDelete: canDelete,
       onSave: canEdit
           ? (updatedSession) async {
-              await api.getSessionApi().syncLocalSession(updatedSession);
+              await api.getSessionApi().syncLocalSession(updatedSession, deleteFirst: true);
               return true;
             }
           : null,

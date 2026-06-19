@@ -512,6 +512,8 @@ class SessionRepository {
         timeListening: storedSync.timeListened,
         episodeId: storedSync.episodeId,
         duration: storedSync.duration,
+        date: _formatDateString(storedSync.lastUpdated),
+        dayOfWeek: _getWeekdayString(storedSync.lastUpdated),
         updatedAt: storedSync.lastUpdated.millisecondsSinceEpoch,
       ),
     );
@@ -570,8 +572,8 @@ class SessionRepository {
       playMethod: 0,
       deviceInfo: await PlayerUtils.getDeviceInfo(),
       mediaPlayer: '$appName just_audio',
-      date: date.toIso8601String(),
-      dayOfWeek: date.weekday.toString(),
+      date: _formatDateString(date),
+      dayOfWeek: _getWeekdayString(date),
       timeListening: initialTimeListening,
       startTime: derivedStartTime,
       currentTime: currentPosition,
@@ -593,6 +595,15 @@ class SessionRepository {
 
     return api.getMeApi().createUpdateMediaProgress(itemId, progress, episodeId: episodeId);
   }
+}
+
+String _formatDateString(DateTime date) {
+  return "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+}
+
+String _getWeekdayString(DateTime date) {
+  const List<String> weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  return weekdays[date.weekday - 1];
 }
 
 @Riverpod(keepAlive: true)
