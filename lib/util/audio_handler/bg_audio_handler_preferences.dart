@@ -1,13 +1,19 @@
 part of 'bg_audio_handler.dart';
 
 extension _BGAudioHandlerPreferences on BGAudioHandler {
+  Future<void> _applyVolume(double volume) async {
+    final normalizedVolume = _clampVolume(volume);
+    _volumeSubject.add(normalizedVolume);
+    await _player.setVolume(normalizedVolume);
+  }
+
   Future<void> _setVolumeInternal(double volume) async {
     if (volume < 0 || volume > BGAudioHandler.maxVolume) {
       logger('Volume out of bounds: $volume', tag: 'AudioHandler', level: InfoLevel.error);
       return Future.value();
     }
     final normalizedVolume = _clampVolume(volume);
-    await _player.setVolume(normalizedVolume);
+    await _applyVolume(normalizedVolume);
     unawaited(_persistLastVolume(normalizedVolume));
     return Future.value();
   }
@@ -146,11 +152,7 @@ extension _BGAudioHandlerPreferences on BGAudioHandler {
 
   Future<void> _restoreSavedVolume() async {
     final targetVolume = _readLastVolumeSetting();
-    if ((_player.volume - targetVolume).abs() <= BGAudioHandler._playbackPreferenceEpsilon) {
-      return;
-    }
-
-    await _player.setVolume(targetVolume);
+    await _applyVolume(targetVolume);
   }
 
   Future<void> _applyPreferredPlaybackSpeed({bool seedPerBookSpeedWhenMissing = false}) async {

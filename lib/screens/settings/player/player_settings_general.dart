@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/components/settings/settings_dropdown.dart';
@@ -19,6 +20,7 @@ class PlayerSettingsGeneral extends ConsumerWidget {
     final autoQueueSetting = ref.watch(globalSettingByKeyProvider(SettingKeys.autoQueue)).asData?.value;
     final autoQueueDefault = defaultSettings[SettingKeys.autoQueue] as bool? ?? true;
     final autoQueueEnabled = SettingsParser.decodeValue<bool>(autoQueueSetting, autoQueueDefault);
+    final isAndroid = !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
 
     return SettingsPageScaffold(
       title: 'Player - General',
@@ -84,6 +86,12 @@ class PlayerSettingsGeneral extends ConsumerWidget {
               subtitle: 'Each book remembers its own speed and new books start with your last used speed',
               settingKey: SettingKeys.playbackSpeedPerBook,
             ),
+            if (isAndroid)
+              const SettingSwitchTile(
+                label: 'Skip silence',
+                subtitle: 'Automatically skip silent gaps during playback',
+                settingKey: SettingKeys.skipSilence,
+              ),
             const SettingSwitchTile(
               label: 'Auto queue',
               subtitle:

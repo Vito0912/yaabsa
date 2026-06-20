@@ -94,6 +94,10 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   late final StreamSubscription<String?> _showLastPlayedMiniPlayerSettingSubscription;
   late final StreamSubscription<String?> _mediaNotificationTypeSubscription;
   StreamSubscription<InternalChapter?>? _chapterSubscription;
+  StreamSubscription<String?>? _skipSilenceSubscription;
+  StreamSubscription<String?>? _volumeBoostEnabledSubscription;
+  AndroidLoudnessEnhancer? _loudnessEnhancer;
+  late final BehaviorSubject<double> _volumeSubject;
   bool _isDisposing = false;
   List<PlayerQueueEntry> queueList = [];
   List<PlayerQueueEntry> _originalQueueList = [];
@@ -178,12 +182,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   bool get _supportsCastPlatform => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 
-  static double get maxVolume {
-    if (!kIsWeb && Platform.isAndroid) {
-      return 2.0;
-    }
-    return 1.0;
-  }
+  static double get maxVolume => 1.0;
 
   Future<void> applySleepTimerAutoRewindNow() async {
     return _applySleepTimerAutoRewindNowInternal();
@@ -416,7 +415,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     );
   }
 
-  Stream<double> get volumeStream => _player.volumeStream;
+  Stream<double> get volumeStream => _volumeSubject.stream;
 
   static const double _minPlaybackSpeed = 0.25;
   static const double _maxPlaybackSpeed = 3.0;
@@ -1082,8 +1081,19 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     );
 
     final disableHeaderProxy = kIsWeb || Platform.isAndroid || Platform.isLinux;
-    _player = AudioPlayer(audioLoadConfiguration: loadCfg, useProxyForRequestHeaders: !disableHeaderProxy);
+    if (!kIsWeb && Platform.isAndroid) {
+      _loudnessEnhancer = AndroidLoudnessEnhancer();
+      final pipeline = AudioPipeline(androidAudioEffects: [_loudnessEnhancer!]);
+      _player = AudioPlayer(
+        audioPipeline: pipeline,
+        audioLoadConfiguration: loadCfg,
+        useProxyForRequestHeaders: !disableHeaderProxy,
+      );
+    } else {
+      _player = AudioPlayer(audioLoadConfiguration: loadCfg, useProxyForRequestHeaders: !disableHeaderProxy);
+    }
     _playerControlStateSubject = BehaviorSubject<PlayerState>.seeded(_player.playerState);
+    _volumeSubject = BehaviorSubject<double>.seeded(_readLastVolumeSetting());
 
     _errorSubscription = _player.errorStream.listen((error) {
       logger('AudioPlayer error: $error', tag: 'AudioHandler', level: InfoLevel.error);
@@ -1177,6 +1187,39 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
     _emitQueueState();
     _emitShouldShowPlayer();
+
+    if (!kIsWeb && Platform.isAndroid) {
+      _skipSilenceSubscription = _ref
+          .read(appDatabaseProvider)
+          .watchGlobalSetting(SettingKeys.skipSilence)
+          .map((setting) => setting?.value.trim())
+          .distinct()
+          .listen((value) {
+            if (_isDisposing) return;
+            final enabled = value == 'true';
+            unawaited(_player.setSkipSilenceEnabled(enabled));
+          });
+
+      _volumeBoostEnabledSubscription = _ref
+          .read(appDatabaseProvider)
+          .watchGlobalSetting(SettingKeys.volumeBoostEnabled)
+          .map((setting) => setting?.value.trim())
+          .distinct()
+          .listen((value) {
+            if (_isDisposing) return;
+            final enabled = value == 'true';
+            final loudnessEnhancer = _loudnessEnhancer;
+            if (loudnessEnhancer != null) {
+              if (enabled) {
+                unawaited(loudnessEnhancer.setEnabled(true));
+                unawaited(loudnessEnhancer.setTargetGain(10.0));
+              } else {
+                unawaited(loudnessEnhancer.setEnabled(false));
+              }
+            }
+          });
+    }
+
     unawaited(_restorePlaybackPreferencesOnStartup());
 
     _chapterSubscription = chapterStream.listen((chapter) {
@@ -1317,6 +1360,10 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     await _showLastPlayedMiniPlayerSettingSubscription.cancel();
     await _mediaNotificationTypeSubscription.cancel();
     await _chapterSubscription?.cancel();
+    await _skipSilenceSubscription?.cancel();
+    _skipSilenceSubscription = null;
+    await _volumeBoostEnabledSubscription?.cancel();
+    _volumeBoostEnabledSubscription = null;
     _resetStreamRecoveryState(clearWindow: true);
     _androidAutoMoreMenuTimer?.cancel();
     _androidAutoMoreMenuTimer = null;
@@ -1335,6 +1382,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     await _player.dispose();
     await mediaItemStream.close();
     await _playerControlStateSubject.close();
+    await _volumeSubject.close();
     await _castControlActiveSubject.close();
     await _queueLengthSubject.close();
     await _queueSnapshotSubject.close();
