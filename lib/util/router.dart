@@ -47,6 +47,7 @@ import 'package:yaabsa/screens/settings/path_tag_genre_update_settings.dart';
 import 'package:yaabsa/screens/settings/player/global_player_settings.dart';
 import 'package:yaabsa/screens/settings/player/player_settings.dart';
 import 'package:yaabsa/screens/settings/player/player_settings_general.dart';
+import 'package:yaabsa/screens/settings/player/player_settings_equalizer.dart';
 import 'package:yaabsa/screens/settings/player/player_settings_shake_controls.dart';
 import 'package:yaabsa/screens/settings/player/player_settings_sleep_timer.dart';
 import 'package:yaabsa/screens/settings/player/player_settings_smart_rewind.dart';
@@ -286,6 +287,10 @@ final globalRouter = GoRouter(
                     GoRoute(path: CachingRouteSettings.routeName, builder: (context, state) => CachingRouteSettings()),
                     GoRoute(path: PlayerSettings.routeName, builder: (context, state) => PlayerSettings()),
                     GoRoute(path: ReaderSettings.routeName, builder: (context, state) => ReaderSettings()),
+                    GoRoute(
+                      path: PlayerSettingsEqualizer.routeName,
+                      builder: (context, state) => const PlayerSettingsEqualizer(),
+                    ),
                     GoRoute(
                       path: PlayerSettingsGeneral.routeName,
                       builder: (context, state) => PlayerSettingsGeneral(),

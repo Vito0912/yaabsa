@@ -94,6 +94,9 @@ class SettingKeys {
   static const String volume = 'volume';
   static const String skipSilence = 'skip_silence';
   static const String volumeBoostEnabled = 'volume_boost_enabled';
+  static const String equalizerEnabled = 'equalizer_enabled';
+  static const String equalizerPreset = 'equalizer_preset';
+  static const String equalizerBandGains = 'equalizer_band_gains';
   static const String playerSeekBarMode = 'player_seek_bar_mode';
   static const String playerSeekBarMarkerMode = 'player_seek_bar_marker_mode';
   static const String playerSeekBarShowChapterMarkers = 'player_seek_bar_show_chapter_markers';
@@ -228,6 +231,9 @@ final defaultSettings = {
   SettingKeys.volume: 1.0,
   SettingKeys.skipSilence: false,
   SettingKeys.volumeBoostEnabled: false,
+  SettingKeys.equalizerEnabled: false,
+  SettingKeys.equalizerPreset: 'Flat',
+  SettingKeys.equalizerBandGains: '{}',
   SettingKeys.playerSeekBarMode: PlayerSeekBarMode.full.name,
   SettingKeys.playerSeekBarMarkerMode: SeekBarMarkerMode.both.name,
   SettingKeys.playerSeekBarShowChapterMarkers: true,

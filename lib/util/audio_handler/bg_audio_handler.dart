@@ -96,7 +96,14 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   StreamSubscription<InternalChapter?>? _chapterSubscription;
   StreamSubscription<String?>? _skipSilenceSubscription;
   StreamSubscription<String?>? _volumeBoostEnabledSubscription;
+  StreamSubscription<String?>? _equalizerEnabledSubscription;
+  StreamSubscription<String?>? _equalizerBandGainsSubscription;
+  StreamSubscription<int?>? _equalizerSessionSubscription;
   AndroidLoudnessEnhancer? _loudnessEnhancer;
+  AndroidEqualizer? _equalizer;
+  AndroidEqualizer? get equalizer => _equalizer;
+  Stream<int?> get androidAudioSessionIdStream => _player.androidAudioSessionIdStream;
+  int? get androidAudioSessionId => _player.androidAudioSessionId;
   late final BehaviorSubject<double> _volumeSubject;
   bool _isDisposing = false;
   List<PlayerQueueEntry> queueList = [];
@@ -1083,7 +1090,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     final disableHeaderProxy = kIsWeb || Platform.isAndroid || Platform.isLinux;
     if (!kIsWeb && Platform.isAndroid) {
       _loudnessEnhancer = AndroidLoudnessEnhancer();
-      final pipeline = AudioPipeline(androidAudioEffects: [_loudnessEnhancer!]);
+      _equalizer = AndroidEqualizer();
+      final pipeline = AudioPipeline(androidAudioEffects: [_loudnessEnhancer!, _equalizer!]);
       _player = AudioPlayer(
         audioPipeline: pipeline,
         audioLoadConfiguration: loadCfg,
@@ -1218,6 +1226,69 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
               }
             }
           });
+
+      _equalizerEnabledSubscription = _ref
+          .read(appDatabaseProvider)
+          .watchGlobalSetting(SettingKeys.equalizerEnabled)
+          .map((setting) => setting?.value.trim())
+          .distinct()
+          .listen((value) {
+            if (_isDisposing || _player.androidAudioSessionId == null) return;
+            final enabled = value == 'true';
+            final equalizer = _equalizer;
+            if (equalizer != null) {
+              unawaited(equalizer.setEnabled(enabled));
+            }
+          });
+
+      _equalizerBandGainsSubscription = _ref
+          .read(appDatabaseProvider)
+          .watchGlobalSetting(SettingKeys.equalizerBandGains)
+          .map((setting) => setting?.value.trim())
+          .distinct()
+          .listen((value) async {
+            if (_isDisposing || _player.androidAudioSessionId == null) return;
+            final equalizer = _equalizer;
+            if (equalizer == null) return;
+            try {
+              final params = await equalizer.parameters;
+              final savedGains = _parseEqualizerBandGains(value);
+              for (final band in params.bands) {
+                final targetGain = savedGains[band.index] ?? 0.0;
+                if (band.gain != targetGain) {
+                  unawaited(band.setGain(targetGain));
+                }
+              }
+            } catch (e) {
+              logger('Failed to apply equalizer gains: $e', tag: 'AudioHandler', level: InfoLevel.error);
+            }
+          });
+
+      _equalizerSessionSubscription = _player.androidAudioSessionIdStream.distinct().listen((sessionId) async {
+        if (_isDisposing || sessionId == null) return;
+        final equalizer = _equalizer;
+        if (equalizer == null) return;
+        try {
+          final enabledSetting = _ref
+              .read(settingsManagerProvider.notifier)
+              .getGlobalSetting<bool>(SettingKeys.equalizerEnabled);
+          unawaited(equalizer.setEnabled(enabledSetting));
+
+          final params = await equalizer.parameters;
+          final savedGainsStr = _ref
+              .read(settingsManagerProvider.notifier)
+              .getGlobalSetting<String>(SettingKeys.equalizerBandGains);
+          final savedGains = _parseEqualizerBandGains(savedGainsStr);
+          for (final band in params.bands) {
+            final targetGain = savedGains[band.index] ?? 0.0;
+            if (band.gain != targetGain) {
+              unawaited(band.setGain(targetGain));
+            }
+          }
+        } catch (e) {
+          logger('Failed to apply equalizer on session activation: $e', tag: 'AudioHandler', level: InfoLevel.error);
+        }
+      });
     }
 
     unawaited(_restorePlaybackPreferencesOnStartup());
@@ -1364,6 +1435,12 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     _skipSilenceSubscription = null;
     await _volumeBoostEnabledSubscription?.cancel();
     _volumeBoostEnabledSubscription = null;
+    await _equalizerEnabledSubscription?.cancel();
+    _equalizerEnabledSubscription = null;
+    await _equalizerBandGainsSubscription?.cancel();
+    _equalizerBandGainsSubscription = null;
+    await _equalizerSessionSubscription?.cancel();
+    _equalizerSessionSubscription = null;
     _resetStreamRecoveryState(clearWindow: true);
     _androidAutoMoreMenuTimer?.cancel();
     _androidAutoMoreMenuTimer = null;
@@ -1389,5 +1466,15 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     await _queueTransitionLoadingSubject.close();
     await _showPlayerSubject.close();
     await _lastPlayedMiniPlayerSnapshotSubject.close();
+  }
+
+  Map<int, double> _parseEqualizerBandGains(String? jsonString) {
+    if (jsonString == null || jsonString.isEmpty) return const {};
+    try {
+      final Map<String, dynamic> decoded = json.decode(jsonString);
+      return decoded.map((key, value) => MapEntry(int.parse(key), (value as num).toDouble()));
+    } catch (e) {
+      return const {};
+    }
   }
 }

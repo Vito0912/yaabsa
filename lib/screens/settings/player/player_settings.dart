@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';
+import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:yaabsa/screens/settings/player/player_settings_general.dart';
+import 'package:yaabsa/screens/settings/player/player_settings_equalizer.dart';
 import 'package:yaabsa/screens/settings/player/player_settings_shake_controls.dart';
 import 'package:yaabsa/screens/settings/player/player_settings_sleep_timer.dart';
 import 'package:yaabsa/screens/settings/player/player_settings_smart_rewind.dart';
@@ -45,6 +47,13 @@ class PlayerSettings extends StatelessWidget {
               subtitle: 'Choose timer end behavior and optional automatic restart',
               onTap: () => context.push(PlayerSettingsSleepTimer.routeName),
             ),
+            if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android)
+              SettingsNavigationItem(
+                icon: Icons.equalizer_rounded,
+                title: 'Equalizer',
+                subtitle: 'Adjust audio frequency bands',
+                onTap: () => context.push(PlayerSettingsEqualizer.routeName),
+              ),
           ],
         ),
         SettingsNavigationSection(

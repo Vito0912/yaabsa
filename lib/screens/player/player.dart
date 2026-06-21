@@ -1,6 +1,8 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform;
 import 'package:flutter/material.dart';
+import 'package:yaabsa/screens/settings/player/player_settings_equalizer.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -33,7 +35,7 @@ import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
-enum _PlayerAppBarMenuAction { queue, addBookmark, carMode, playHistory, cast }
+enum _PlayerAppBarMenuAction { queue, addBookmark, carMode, playHistory, cast, equalizer }
 
 class Player extends ConsumerStatefulWidget {
   const Player({super.key});
@@ -194,6 +196,8 @@ class _PlayerState extends ConsumerState<Player> {
         _openPlayHistory(context);
       case _PlayerAppBarMenuAction.cast:
         await showCastDevicePicker(context);
+      case _PlayerAppBarMenuAction.equalizer:
+        context.push(PlayerSettingsEqualizer.routeName);
     }
   }
 
@@ -235,6 +239,15 @@ class _PlayerState extends ConsumerState<Player> {
         const PopupMenuItem<_PlayerAppBarMenuAction>(
           value: _PlayerAppBarMenuAction.cast,
           child: _PlayerAppBarMenuItem(icon: Icons.cast, label: 'Cast'),
+        ),
+      );
+    }
+
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      items.add(
+        const PopupMenuItem<_PlayerAppBarMenuAction>(
+          value: _PlayerAppBarMenuAction.equalizer,
+          child: _PlayerAppBarMenuItem(icon: Icons.equalizer_rounded, label: 'Equalizer'),
         ),
       );
     }
