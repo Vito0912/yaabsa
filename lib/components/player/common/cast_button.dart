@@ -219,12 +219,17 @@ void _showCastMessage(BuildContext context, String message) {
 
 Future<void> _disconnectSession(BuildContext context) async {
   try {
+    final castPosition = audioHandler.position;
+
     await GoogleCastSessionManager.instance.endSessionAndStopCasting();
     if (!context.mounted) {
       return;
     }
 
-    audioHandler.deactivateCastControl();
+    await audioHandler.deactivateCastControl(fallbackPosition: castPosition);
+    if (!context.mounted) {
+      return;
+    }
     _showCastMessage(context, 'Disconnected from cast device.');
   } catch (e) {
     if (!context.mounted) {
