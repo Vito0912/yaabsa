@@ -29,7 +29,8 @@ class _PlayerSettingsNotificationState extends ConsumerState<PlayerSettingsNotif
     ),
     'fastForward': const _ActionTypeInfo(
       label: 'Fast Forward',
-      icon: Icons.fast_forward_rounded,
+      // TODO: There seems to be no forward_media that would be available as media
+      icon: Icons.forward_10_rounded,
       description: 'Go forward by your configured forward interval',
     ),
     'speed': const _ActionTypeInfo(
@@ -128,6 +129,15 @@ class _PlayerSettingsNotificationState extends ConsumerState<PlayerSettingsNotif
       if (_selectedPageIndex >= _pages.length) {
         _selectedPageIndex = _pages.length - 1;
       }
+      if (_pages.length == 1) {
+        final singlePage = List<String>.from(_pages[0]);
+        for (int i = 0; i < singlePage.length; i++) {
+          if (singlePage[i] == 'switchPage') {
+            singlePage[i] = '';
+          }
+        }
+        _pages[0] = singlePage;
+      }
       _saveSettings();
     });
   }
@@ -216,6 +226,37 @@ class _PlayerSettingsNotificationState extends ConsumerState<PlayerSettingsNotif
     );
   }
 
+  Widget _buildPreviewButton(List<String> actions, int index, ColorScheme colorScheme) {
+    final action = index < actions.length ? actions[index] : '';
+    final info = _actionInfos[action];
+
+    final Widget buttonChild;
+    if (action.isEmpty || info == null) {
+      buttonChild = Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          border: Border.all(color: colorScheme.outline.withValues(alpha: 0.3)),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(Icons.add_rounded, size: 14, color: colorScheme.outline),
+      );
+    } else {
+      buttonChild = Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainer,
+          shape: BoxShape.circle,
+          border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.3)),
+        ),
+        child: Icon(info.icon, color: colorScheme.onSurface, size: 18),
+      );
+    }
+
+    return InkWell(onTap: () => _showActionPicker(index), borderRadius: BorderRadius.circular(18), child: buttonChild);
+  }
+
   @override
   Widget build(BuildContext context) {
     _loadSettings();
@@ -235,12 +276,119 @@ class _PlayerSettingsNotificationState extends ConsumerState<PlayerSettingsNotif
       embeddedBackFallbackRoute: PlayerSettings.routeName,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Text(
-            'Customize up to 4 pages of buttons for your Android system notification controls. The first page is the default.',
-            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+          padding: const EdgeInsets.all(16),
+          child: Container(
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
+              boxShadow: [
+                BoxShadow(color: Colors.black.withValues(alpha: 0.10), blurRadius: 8, offset: const Offset(0, 2)),
+              ],
+            ),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Book Title',
+                            style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Author Name',
+                            style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Icon(Icons.pause_rounded, color: colorScheme.onPrimaryContainer, size: 24),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    _buildPreviewButton(currentPageActions, 0, colorScheme),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Stack(
+                          alignment: Alignment.centerLeft,
+                          children: [
+                            Container(
+                              height: 4,
+                              decoration: BoxDecoration(
+                                color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                            ),
+                            Container(
+                              width: 60,
+                              height: 4,
+                              decoration: BoxDecoration(
+                                color: colorScheme.primary,
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                            ),
+                            Positioned(
+                              left: 56,
+                              child: Container(
+                                width: 10,
+                                height: 10,
+                                decoration: BoxDecoration(color: colorScheme.primary, shape: BoxShape.circle),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    _buildPreviewButton(currentPageActions, 1, colorScheme),
+                    const SizedBox(width: 8),
+                    _buildPreviewButton(currentPageActions, 2, colorScheme),
+                    const SizedBox(width: 8),
+                    _buildPreviewButton(currentPageActions, 3, colorScheme),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
+
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          child: Row(
+            children: [
+              Icon(Icons.info_outline_rounded, size: 14, color: colorScheme.onSurfaceVariant),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  'This layout might look different on different versions of Android and devices.',
+                  style: textTheme.labelSmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                ),
+              ),
+            ],
+          ),
+        ),
+
         if (isPageMissingSwitch)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -281,12 +429,19 @@ class _PlayerSettingsNotificationState extends ConsumerState<PlayerSettingsNotif
               ),
             ),
           ),
+
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
           child: Row(
             children: [
               Text('Notification Pages', style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
               const Spacer(),
+              if (_pages.length > 1)
+                IconButton(
+                  tooltip: 'Delete Current Page',
+                  icon: Icon(Icons.delete_outline_rounded, color: colorScheme.error),
+                  onPressed: () => _deletePage(_selectedPageIndex),
+                ),
               if (_pages.length < 4)
                 TextButton.icon(
                   onPressed: _addPage,
@@ -296,6 +451,7 @@ class _PlayerSettingsNotificationState extends ConsumerState<PlayerSettingsNotif
             ],
           ),
         ),
+
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: Wrap(
@@ -303,23 +459,7 @@ class _PlayerSettingsNotificationState extends ConsumerState<PlayerSettingsNotif
             children: List.generate(_pages.length, (index) {
               final isSelected = index == _selectedPageIndex;
               return ChoiceChip(
-                label: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text('Page ${index + 1}'),
-                    if (index > 0) ...[
-                      const SizedBox(width: 6),
-                      InkWell(
-                        onTap: () => _deletePage(index),
-                        child: Icon(
-                          Icons.close_rounded,
-                          size: 14,
-                          color: isSelected ? colorScheme.onPrimaryContainer : colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
+                label: Text('Page ${index + 1}'),
                 selected: isSelected,
                 onSelected: (selected) {
                   if (selected) {
@@ -333,6 +473,7 @@ class _PlayerSettingsNotificationState extends ConsumerState<PlayerSettingsNotif
           ),
         ),
         const SizedBox(height: 12),
+
         SettingsNavigationSection(
           title: 'Arrange Buttons (Page ${_selectedPageIndex + 1})',
           settings: List.generate(4, (index) {
@@ -353,6 +494,27 @@ class _PlayerSettingsNotificationState extends ConsumerState<PlayerSettingsNotif
               onTap: () => _showActionPicker(index),
             );
           }),
+        ),
+
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: OutlinedButton.icon(
+            onPressed: () {
+              setState(() {
+                _pages = [
+                  ['rewind', 'fastForward', 'speed', 'stop'],
+                ];
+                _selectedPageIndex = 0;
+                _saveSettings();
+              });
+            },
+            icon: const Icon(Icons.refresh_rounded),
+            label: const Text('Reset to Default'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: colorScheme.error,
+              side: BorderSide(color: colorScheme.error.withValues(alpha: 0.5)),
+            ),
+          ),
         ),
       ],
     );

@@ -296,10 +296,10 @@ final List<SettingsSearchItem> searchableSettings = [
     route: '/settings/global-player',
   ),
   const SettingsSearchItem(
-    title: 'Show notification More button',
-    description: 'Show a More button with additional quick actions',
+    title: 'Media Notification Actions',
+    description: 'Customize the actions available in the media notification',
     categoryPath: 'Settings > Global Player',
-    route: '/settings/global-player',
+    route: '/settings/player/notification',
   ),
   const SettingsSearchItem(
     title: 'Auto-play last played on app start',
