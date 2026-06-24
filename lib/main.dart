@@ -5,6 +5,7 @@ import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/core/socket_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/provider/core/oidc_provider.dart';
 import 'package:yaabsa/util/globals.dart' show appName, audioHandler, containerRef;
 import 'package:yaabsa/util/aaos_service.dart';
 import 'package:yaabsa/util/app_theme.dart';
@@ -63,6 +64,7 @@ void main() {
       unawaited(containerRef.read(currentUserProvider.future));
       unawaited(containerRef.read(serverStatusProvider.future));
       containerRef.read(absSocketClientProvider);
+      containerRef.read(oidcStateProvider.notifier).initializeDeepLinkListener();
       Init.initLogger();
       audioHandler = await Init.initAudioHandler();
       await AaosService.instance.initialize();

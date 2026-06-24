@@ -8,3 +8,4 @@ StartupNotify=true
 StartupWMClass=de.vito0912.yaabsa
 Categories=Music
 Keywords=ABS;Audiobookshelf
+MimeType=x-scheme-handler/yaabsa;

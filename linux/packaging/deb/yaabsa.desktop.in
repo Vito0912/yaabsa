@@ -9,3 +9,4 @@ Categories=Music;Media;
 Keywords=ABS;Audiobookshelf;
 StartupNotify=true
 StartupWMClass=de.vito0912.yaabsa
+MimeType=x-scheme-handler/yaabsa;

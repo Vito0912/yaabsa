@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/provider/common/collection_provider.dart';
 import 'package:yaabsa/provider/common/library_author_provider.dart';
 import 'package:yaabsa/provider/common/library_filter_data_provider.dart';
@@ -9,7 +8,7 @@ import 'package:yaabsa/provider/common/series_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/library/personalized_library_provider.dart';
 
-void invalidateUserScopedProviders(WidgetRef ref) {
+void invalidateUserScopedProviders(dynamic ref) {
   ref.invalidate(absApiProvider);
   ref.invalidate(userLibrariesProvider);
   ref.invalidate(selectedLibraryIdProvider);

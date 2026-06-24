@@ -1,8 +1,5 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:math';
 
-import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -19,6 +16,7 @@ import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/provider/core/user_scope_invalidation.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/provider/core/oidc_provider.dart';
 import 'package:yaabsa/screens/auth/widgets/glow_orb.dart';
 import 'package:yaabsa/screens/auth/widgets/sign_in_advanced_options.dart';
 import 'package:yaabsa/screens/auth/widgets/sign_in_auth_section.dart';
@@ -56,6 +54,20 @@ class SignIn extends HookConsumerWidget {
     final hasStoredUsers = ref
         .watch(allStoredUsersProvider)
         .maybeWhen(data: (users) => users.isNotEmpty, orElse: () => false);
+
+    final oidcState = ref.watch(oidcStateProvider);
+    final oidcLoading = oidcState.isLoading;
+    final oidcError = oidcState.maybeWhen(error: (error, _) => error.toString(), orElse: () => null);
+
+    ref.listen<AsyncValue<String?>>(activeUserIdProvider, (previous, next) {
+      final userId = next.value;
+      if (userId != null) {
+        logger('SignIn: activeUserId became non-null ($userId). Redirecting to /', tag: 'SignIn');
+        if (context.mounted) {
+          context.go('/');
+        }
+      }
+    });
 
     ABSApi buildServerApi(String baseUrl) {
       final headers = buildRequestHeaders(serverHeaders: customHeaders.value);
@@ -365,6 +377,7 @@ class SignIn extends HookConsumerWidget {
 
     Future<void> startOpenIdConnect() async {
       setErrorMessage(null);
+      ref.read(oidcStateProvider.notifier).clearError();
 
       final normalizedServer = _normalizeServerAddress(serverAddressController.text.trim());
       if (normalizedServer == null) {
@@ -385,36 +398,20 @@ class SignIn extends HookConsumerWidget {
         return;
       }
 
-      final codeVerifier = _generateCodeVerifier();
-      final state = _randomBase64Url(24);
-      final codeChallenge = _toBase64UrlNoPadding(sha256.convert(utf8.encode(codeVerifier)).bytes);
-
-      final authUri = Uri.parse('$normalizedServer/auth/openid').replace(
-        queryParameters: {
-          'code_challenge': codeChallenge,
-          'code_challenge_method': 'S256',
-          'redirect_uri': 'yaabsa://oauth',
-          'client_id': 'Yaabsa',
-          'response_type': 'code',
-          'state': state,
-        },
-      );
-
-      logger('Launching OpenID endpoint: $authUri', tag: 'SignIn');
-      final launched = await launchUrl(authUri, mode: LaunchMode.externalApplication);
-
-      if (!launched && context.mounted) {
-        setErrorMessage('Could not open the OpenID login page.');
-        return;
+      try {
+        await ref
+            .read(oidcStateProvider.notifier)
+            .initiateOidc(serverUrl: normalizedServer, customHeaders: customHeaders.value);
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('OpenID flow opened in your browser. Finish sign-in there and return to the app.'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } catch (e) {
+        setErrorMessage('Failed to start OpenID Connect: $e');
       }
-
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('OpenID flow opened in your browser. Finish sign-in there and return to the app.'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
     }
 
     useEffect(() {
@@ -496,7 +493,7 @@ class SignIn extends HookConsumerWidget {
                               Align(
                                 alignment: Alignment.centerLeft,
                                 child: IconButton(
-                                  onPressed: isLoading.value
+                                  onPressed: (isLoading.value || oidcLoading)
                                       ? null
                                       : () {
                                           if (context.canPop()) {
@@ -558,7 +555,7 @@ class SignIn extends HookConsumerWidget {
                               ),
                             SignInAuthSection(
                               useApiKey: useApiKey.value,
-                              isLoading: isLoading.value,
+                              isLoading: isLoading.value || oidcLoading,
                               allowsLocal: allowsLocal,
                               allowsOpenId: allowsOpenId,
                               openIdButtonText: openIdButtonText,
@@ -568,17 +565,17 @@ class SignIn extends HookConsumerWidget {
                               onValidateAndSignIn: validateAndSignIn,
                               onStartOpenIdConnect: startOpenIdConnect,
                             ),
-                            if (errorMessage.value != null) ...[
+                            if (errorMessage.value != null || oidcError != null) ...[
                               const SizedBox(height: 12),
                               SignInErrorPanel(
-                                message: errorMessage.value!,
+                                message: errorMessage.value ?? oidcError!,
                                 stackTraceDetails: loginErrorDetails.value,
                               ),
                             ],
                             SignInAdvancedOptions(
                               isExpanded: advancedOptionsExpanded.value,
                               onExpandedChanged: (value) => advancedOptionsExpanded.value = value,
-                              isLoading: isLoading.value,
+                              isLoading: isLoading.value || oidcLoading,
                               allowsApiKey: allowsApiKey,
                               useApiKey: useApiKey.value,
                               onUseApiKeyChanged: (value) {
@@ -656,22 +653,6 @@ String _buildLoginErrorDetails({required Object error, required StackTrace stack
     ..writeln(stackTrace.toString());
 
   return buffer.toString();
-}
-
-String _generateCodeVerifier() {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
-  final random = Random.secure();
-  return List.generate(64, (_) => chars[random.nextInt(chars.length)]).join();
-}
-
-String _randomBase64Url(int bytes) {
-  final random = Random.secure();
-  final data = List<int>.generate(bytes, (_) => random.nextInt(256));
-  return _toBase64UrlNoPadding(data);
-}
-
-String _toBase64UrlNoPadding(List<int> data) {
-  return base64Url.encode(data).replaceAll('=', '');
 }
 
 void _setControllerTextKeepingCursor(TextEditingController controller, String text) {
