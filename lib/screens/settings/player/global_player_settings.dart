@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/components/settings/settings_dropdown.dart';
@@ -59,12 +60,13 @@ class GlobalPlayerSettings extends StatelessWidget {
             ),
           ],
           items: [
-            SettingsNavigationItem(
-              icon: Icons.dashboard_customize_rounded,
-              title: 'Media Notification Actions',
-              subtitle: 'Customize the actions available in the media notification',
-              onTap: () => context.push(PlayerSettingsNotification.routeName),
-            ),
+            if (defaultTargetPlatform == TargetPlatform.android)
+              SettingsNavigationItem(
+                icon: Icons.dashboard_customize_rounded,
+                title: 'Media Notification Actions',
+                subtitle: 'Customize the actions available in the media notification',
+                onTap: () => context.push(PlayerSettingsNotification.routeName),
+              ),
           ],
         ),
         SettingsNavigationSection(
