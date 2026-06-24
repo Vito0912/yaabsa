@@ -6,7 +6,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/api/library/request/library_filter.dart';
 import 'package:yaabsa/api/library/request/library_sort.dart';
 import 'package:yaabsa/api/library_items/series.dart';
+import 'package:yaabsa/components/app/item/editor/library_item_edit_overlay.dart';
 import 'package:yaabsa/components/app/library/library_grid_layout_builder.dart';
+import 'package:yaabsa/components/app/library/library_multi_select_host.dart';
 import 'package:yaabsa/components/app/library/library_sort_sheet.dart';
 import 'package:yaabsa/components/app/series/series_book_grid_item.dart';
 import 'package:yaabsa/components/app/series/series_detail_header.dart';
@@ -21,6 +23,7 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
+import 'package:yaabsa/util/server_management_preferences.dart';
 
 const int _seriesBooksPrefetchThreshold = 8;
 const int _seriesBooksApproxScrollPastCount = 24;
@@ -35,8 +38,11 @@ class SeriesDetailView extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final scrollController = useScrollController();
     final sortUpdateInFlight = useState(false);
+    final editingItemId = useState<String?>(null);
     final selectedLibrary = ref.watch(selectedLibraryProvider);
+    final currentUser = ref.watch(currentUserProvider).value;
     final serverReachable = ref.watch(serverStatusProvider).value ?? false;
+    final managementPreferences = readServerManagementPreferences(ref, currentUser?.id);
     if (selectedLibrary == null) {
       return const Center(child: Text('No library selected. Please select a library via the switcher.'));
     }
@@ -110,81 +116,144 @@ class SeriesDetailView extends HookConsumerWidget {
           }
         }
 
-        return LibraryGridLayoutBuilder(
-          builder: (context, gridLayout, _, _) {
-            final horizontalPadding = gridLayout.horizontalPadding;
-            final loadedCount = state.items.length;
-            final estimatedItemCount = _estimatedItemCount(
-              loadedCount: loadedCount,
-              totalItems: state.totalItems,
-              hasNextPage: state.hasNextPage,
-            );
+        final canManageBooks = selectedLibrary.mediaType == 'book';
+        final hasUpdatePermission = currentUser?.permissions.update ?? false;
+        final hasDeletePermission = currentUser?.permissions.delete ?? false;
+        final canEditItems = hasUpdatePermission && managementPreferences.editItemsEnabled;
+        final canQuickMatchItems =
+            canManageBooks && canEditItems && managementPreferences.allowMatchesQuickMatchesEnabled;
 
-            return Column(
-              children: [
-                SeriesDetailHeader(
-                  title: seriesTitle,
-                  subtitle: seriesSubtitle,
-                  sortLabel: sortLabel,
-                  isTitleLoading: seriesDetailsAsync.isLoading,
-                  hasTitleError: seriesDetailsAsync.hasError,
-                  isSortBusy: sortUpdateInFlight.value,
-                  onBack: () => context.pop(),
-                  onSortPressed: openSortSheet,
-                ),
-                if (state.items.isEmpty && !state.hasNextPage && !state.isLoadingNextPage)
-                  const Expanded(child: Center(child: Text('No books found in this series.')))
-                else
-                  Expanded(
-                    child: Stack(
-                      children: [
-                        Positioned.fill(
-                          child: RefreshIndicator(
-                            onRefresh: () =>
-                                ref.read(seriesBooksProvider(booksArgs).notifier).refresh(withLoading: false),
-                            child: AlignedGridView.count(
-                              controller: scrollController,
-                              physics: const AlwaysScrollableScrollPhysics(),
-                              padding: EdgeInsets.fromLTRB(horizontalPadding, 0, horizontalPadding, 16),
-                              crossAxisCount: gridLayout.crossAxisCount,
-                              mainAxisSpacing: appGridSpacing,
-                              crossAxisSpacing: appGridSpacing,
-                              itemCount: estimatedItemCount,
-                              itemBuilder: (context, index) {
-                                if (index >= loadedCount - _seriesBooksPrefetchThreshold) {
-                                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                                    ref.read(currentBooksProvider.notifier).ensureLoadedForIndex(index);
-                                  });
-                                }
+        final editableItemIds = state.items
+            .where((item) => item.collapsedSeries == null)
+            .map((item) => item.id)
+            .toList(growable: false);
 
-                                if (index >= loadedCount) return const _SeriesBooksPlaceholderTile();
+        if (editingItemId.value != null && !editableItemIds.contains(editingItemId.value)) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            editingItemId.value = null;
+          });
+        }
 
-                                final item = state.items[index];
+        return LibraryMultiSelectHost(
+          scopeKey: 'series:$seriesId',
+          libraryId: libraryId,
+          visibleItems: state.items,
+          enableShiftRange: true,
+          canAddToPlaylist: canManageBooks && currentUser != null,
+          canAddToCollection: canManageBooks && hasUpdatePermission && managementPreferences.collectionsEnabled,
+          canQuickMatchItems: canQuickMatchItems,
+          canDeleteItems: canManageBooks && hasDeletePermission && managementPreferences.deleteItemsEnabled,
+          currentUserId: currentUser?.id,
+          onAfterDelete: () => ref.read(seriesBooksProvider(booksArgs).notifier).refresh(),
+          builder: (context, selection) {
+            return LibraryGridLayoutBuilder(
+              builder: (context, gridLayout, _, _) {
+                final horizontalPadding = gridLayout.horizontalPadding;
+                final loadedCount = state.items.length;
+                final estimatedItemCount = _estimatedItemCount(
+                  loadedCount: loadedCount,
+                  totalItems: state.totalItems,
+                  hasNextPage: state.hasNextPage,
+                );
 
-                                return SeriesBookGridItem(
-                                  item: item,
-                                  api: api,
-                                  seriesId: seriesId,
-                                  onPlay: () {
-                                    audioHandler.playLibraryItem(
-                                      item,
-                                      autoQueueStart: AutoQueueStart(
-                                        type: AutoQueueStartType.series,
-                                        sourceId: seriesId,
-                                        globalIndex: index,
-                                      ),
-                                    );
-                                  },
-                                );
-                              },
-                            ),
+                return Stack(
+                  children: [
+                    Positioned.fill(
+                      child: Column(
+                        children: [
+                          SeriesDetailHeader(
+                            title: seriesTitle,
+                            subtitle: seriesSubtitle,
+                            sortLabel: sortLabel,
+                            isTitleLoading: seriesDetailsAsync.isLoading,
+                            hasTitleError: seriesDetailsAsync.hasError,
+                            isSortBusy: sortUpdateInFlight.value,
+                            onBack: () => context.pop(),
+                            onSortPressed: openSortSheet,
                           ),
-                        ),
-                        ScrollToTopButton(controller: scrollController),
-                      ],
+                          if (state.items.isEmpty && !state.hasNextPage && !state.isLoadingNextPage)
+                            const Expanded(child: Center(child: Text('No books found in this series.')))
+                          else
+                            Expanded(
+                              child: Stack(
+                                children: [
+                                  Positioned.fill(
+                                    child: RefreshIndicator(
+                                      onRefresh: () =>
+                                          ref.read(seriesBooksProvider(booksArgs).notifier).refresh(withLoading: false),
+                                      child: AlignedGridView.count(
+                                        controller: scrollController,
+                                        physics: const AlwaysScrollableScrollPhysics(),
+                                        padding: EdgeInsets.fromLTRB(horizontalPadding, 0, horizontalPadding, 16),
+                                        crossAxisCount: gridLayout.crossAxisCount,
+                                        mainAxisSpacing: appGridSpacing,
+                                        crossAxisSpacing: appGridSpacing,
+                                        itemCount: estimatedItemCount,
+                                        itemBuilder: (context, index) {
+                                          if (index >= loadedCount - _seriesBooksPrefetchThreshold) {
+                                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                                              ref.read(currentBooksProvider.notifier).ensureLoadedForIndex(index);
+                                            });
+                                          }
+
+                                          if (index >= loadedCount) return const _SeriesBooksPlaceholderTile();
+
+                                          final item = state.items[index];
+
+                                          return SeriesBookGridItem(
+                                            item: item,
+                                            api: api,
+                                            seriesId: seriesId,
+                                            onPlay: () {
+                                              audioHandler.playLibraryItem(
+                                                item,
+                                                autoQueueStart: AutoQueueStart(
+                                                  type: AutoQueueStartType.series,
+                                                  sourceId: seriesId,
+                                                  globalIndex: index,
+                                                ),
+                                              );
+                                            },
+                                            selectionMode: selection.selectionMode,
+                                            isSelected: selection.selectedItemIds.contains(item.id),
+                                            enableHoverSelection: true,
+                                            onToggleSelection: () => selection.toggleSelectionById(item.id),
+                                            onEnterSelectionMode: () => selection.enterSelectionById(item.id),
+                                            canEdit: canEditItems,
+                                            onEdit: () {
+                                              if (selection.selectionMode || item.collapsedSeries != null) {
+                                                return;
+                                              }
+                                              editingItemId.value = item.id;
+                                            },
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                  ScrollToTopButton(controller: scrollController),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
-                  ),
-              ],
+                    if (editingItemId.value != null && editableItemIds.contains(editingItemId.value))
+                      LibraryItemEditOverlay(
+                        orderedItemIds: editableItemIds,
+                        currentItemId: editingItemId.value!,
+                        filterData: null,
+                        onSelectItem: (itemId) {
+                          editingItemId.value = itemId;
+                        },
+                        onClose: () {
+                          editingItemId.value = null;
+                        },
+                        onItemSaved: (_, _) async {},
+                      ),
+                  ],
+                );
+              },
             );
           },
         );

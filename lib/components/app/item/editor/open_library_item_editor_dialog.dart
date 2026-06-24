@@ -7,6 +7,7 @@ Future<void> openSingleLibraryItemEditorDialog({
   required BuildContext context,
   required LibraryItem item,
   required LibraryFilterData? filterData,
+  LibraryItemEditorTab initialTab = LibraryItemEditorTab.details,
 }) async {
   await showGeneralDialog<void>(
     context: context,
@@ -22,6 +23,7 @@ Future<void> openSingleLibraryItemEditorDialog({
               orderedItemIds: [item.id],
               currentItemId: item.id,
               filterData: filterData,
+              initialTab: initialTab,
               onSelectItem: (_) {},
               onClose: () {
                 if (Navigator.of(dialogContext).canPop()) {

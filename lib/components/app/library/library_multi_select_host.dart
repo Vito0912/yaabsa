@@ -88,6 +88,15 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
     final selectionAnchorIndex = useState<int?>(null);
     final selectionBusy = useState(false);
 
+    final focusNode = useFocusNode(debugLabel: 'multi-select-esc');
+
+    useEffect(() {
+      if (selectionMode.value) {
+        focusNode.requestFocus();
+      }
+      return null;
+    }, [selectionMode.value]);
+
     void clearSelection() {
       selectionMode.value = false;
       selectionBusy.value = false;
@@ -381,6 +390,16 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
       toggleSelectionByIndex: toggleSelectionByIndex,
     );
 
-    return builder(context, bindings);
+    return Focus(
+      focusNode: focusNode,
+      onKeyEvent: (node, event) {
+        if (selectionMode.value && event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.escape) {
+          clearSelection();
+          return KeyEventResult.handled;
+        }
+        return KeyEventResult.ignored;
+      },
+      child: builder(context, bindings),
+    );
   }
 }
