@@ -1471,10 +1471,13 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
     playbackState.add(
       PlaybackState(
+        // Which buttons should appear in the notification now
         controls: controls,
+        // Which other actions should be enabled in the notification
         systemActions: (!hasPlaybackContext || lockMediaNotification)
             ? const <MediaAction>{}
             : const {MediaAction.seek},
+        // Which controls to show in Android's compact view.
         androidCompactActionIndices: compactActionIndices,
         processingState: !hasPlaybackContext
             ? AudioProcessingState.idle
@@ -1484,6 +1487,12 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
             ? AudioProcessingState.ready
             : _toAudioProcessingState(controlState.processingState),
         playing: hasPlaybackContext && (isTransitionLoading ? true : controlState.playing),
+        // The current position as of this update. You should not broadcast
+        // position changes continuously because listeners will be able to
+        // project the current position after any elapsed time based on the
+        // current speed and whether audio is playing and ready. Instead, only
+        // broadcast position updates when they are different from expected (e.g.
+        // buffering, or seeking).
         updatePosition: hasPlaybackContext ? updatePosition : Duration.zero,
         bufferedPosition: hasPlaybackContext ? bufferedPosition : Duration.zero,
         speed: hasPlaybackContext ? effectiveSpeed : 1.0,
