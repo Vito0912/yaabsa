@@ -74,7 +74,6 @@ const String _androidAutoIconReplay = 'drawable/replay';
 const String _androidAutoIconForwardMedia = 'drawable/forward_media';
 const String _androidAutoIconSpeed = 'drawable/speed';
 const String _androidAutoIconStop = 'drawable/stop';
-const String _androidAutoIconClose = 'drawable/close';
 const String _androidAutoIconMoreVert = 'drawable/more_vert';
 const int _streamRecoveryMaxAttempts = 6;
 const Duration _streamRecoveryResetWindow = Duration(seconds: 45);
@@ -93,6 +92,11 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   late final StreamSubscription<String?> _activeUserIdSubscription;
   late final StreamSubscription<String?> _showLastPlayedMiniPlayerSettingSubscription;
   late final StreamSubscription<String?> _mediaNotificationTypeSubscription;
+  late final StreamSubscription<String?> _mediaNotificationPagesSubscription;
+  int _currentNotificationPageIndex = 0;
+  List<List<String>> _notificationPages = const [
+    ['rewind', 'fastForward', 'speed', 'stop'],
+  ];
   StreamSubscription<InternalChapter?>? _chapterSubscription;
   StreamSubscription<String?>? _skipSilenceSubscription;
   StreamSubscription<String?>? _volumeBoostEnabledSubscription;
@@ -1072,6 +1076,18 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           unawaited(_updatePlaybackState());
         });
 
+    _loadNotificationPages();
+    _mediaNotificationPagesSubscription = _ref
+        .read(appDatabaseProvider)
+        .watchGlobalSetting(SettingKeys.mediaNotificationPages)
+        .map((setting) => setting?.value.trim())
+        .distinct()
+        .listen((_) {
+          if (_isDisposing) return;
+          _loadNotificationPages();
+          unawaited(_updatePlaybackState());
+        });
+
     final settingManager = _ref.read(settingsManagerProvider.notifier);
     final bufferSize = settingManager.getGlobalSetting<int>(SettingKeys.bufferSize);
 
@@ -1321,15 +1337,6 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     final lockMediaNotification = _ref
         .read(settingsManagerProvider.notifier)
         .getGlobalSetting<bool>(SettingKeys.lockMediaNotification);
-    final showNotificationMoreButton = _ref
-        .read(settingsManagerProvider.notifier)
-        .getGlobalSetting<bool>(SettingKeys.showNotificationMoreButton);
-
-    if (!showNotificationMoreButton && _androidAutoMoreMenuVisible) {
-      _androidAutoMoreMenuVisible = false;
-      _androidAutoMoreMenuTimer?.cancel();
-      _androidAutoMoreMenuTimer = null;
-    }
 
     logger(
       'Updating playback state. Current media item: ${_currentMediaItem?.itemId}, queue length: ${queueList.length}, isTransitionLoading: $_queueTransitionLoading',
@@ -1341,7 +1348,6 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         _queueTransitionLoading || (_player.processingState == ProcessingState.completed && queueList.isNotEmpty);
     final hasPlaybackContext =
         _currentMediaItem != null || queueList.isNotEmpty || _queueTransitionLoading || _restoredMediaItem != null;
-    final isMoreMenuVisible = showNotificationMoreButton && _androidAutoMoreMenuVisible;
     final castActive = isCastControlActive;
     final controlState = castActive ? playerControlState : _player.playerState;
     final playPauseControl = controlState.playing ? MediaControl.pause : MediaControl.play;
@@ -1359,50 +1365,109 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         : (_currentMediaItem == null && _restoredMediaItem != null)
         ? _restoredPosition
         : (_currentMediaItem?.offsetForTrack(_currentTrackIndex) ?? Duration.zero) + _player.bufferedPosition;
-    final controls = !hasPlaybackContext
-        ? const <MediaControl>[]
-        : isMoreMenuVisible
-        ? <MediaControl>[
-            MediaControl.custom(
-              androidIcon: _androidAutoIconClose,
-              label: 'Close',
-              name: _androidAutoCustomActionMoreClose,
-            ),
-            MediaControl.custom(androidIcon: _androidAutoIconStop, label: 'Stop', name: _androidAutoCustomActionStop),
-            playPauseControl,
-          ]
-        : <MediaControl>[
-            MediaControl.custom(
-              androidIcon: _androidAutoIconReplay,
-              label: 'Rewind',
-              name: _androidAutoCustomActionRewind,
-            ),
-            MediaControl.custom(
-              androidIcon: _androidAutoIconForwardMedia,
-              label: 'Fast forward',
-              name: _androidAutoCustomActionFastForward,
-            ),
-            MediaControl.custom(
-              androidIcon: _androidAutoIconSpeed,
-              label: 'Speed',
-              name: _androidAutoCustomActionSpeed,
-            ),
-            showNotificationMoreButton
-                ? MediaControl.custom(
-                    androidIcon: _androidAutoIconMoreVert,
-                    label: 'More',
-                    name: _androidAutoCustomActionMoreMenu,
-                  )
-                : MediaControl.custom(
-                    androidIcon: _androidAutoIconStop,
-                    label: 'Stop',
-                    name: _androidAutoCustomActionStop,
-                  ),
-            playPauseControl,
-          ];
-    final compactActionIndices = !hasPlaybackContext
-        ? const <int>[]
-        : (isMoreMenuVisible ? const <int>[0, 1, 2] : <int>[0, 2, controls.length - 1]);
+
+    final List<MediaControl> controls = [];
+    final List<int> compactActionIndices = [];
+
+    if (hasPlaybackContext) {
+      final currentPageActions = _currentNotificationPageIndex < _notificationPages.length
+          ? _notificationPages[_currentNotificationPageIndex]
+          : const <String>[];
+
+      for (final action in currentPageActions) {
+        if (controls.length >= 4) break;
+
+        switch (action) {
+          case 'rewind':
+            controls.add(
+              MediaControl.custom(
+                androidIcon: _androidAutoIconReplay,
+                label: 'Rewind',
+                name: _androidAutoCustomActionRewind,
+              ),
+            );
+            break;
+          case 'fastForward':
+            controls.add(
+              MediaControl.custom(
+                androidIcon: _androidAutoIconForwardMedia,
+                label: 'Fast forward',
+                name: _androidAutoCustomActionFastForward,
+              ),
+            );
+            break;
+          case 'speed':
+            controls.add(
+              MediaControl.custom(
+                androidIcon: _androidAutoIconSpeed,
+                label: 'Speed',
+                name: _androidAutoCustomActionSpeed,
+              ),
+            );
+            break;
+          case 'stop':
+            controls.add(
+              MediaControl.custom(androidIcon: _androidAutoIconStop, label: 'Stop', name: _androidAutoCustomActionStop),
+            );
+            break;
+          case 'skipToNext':
+            controls.add(
+              MediaControl.custom(
+                androidIcon: 'drawable/widget_skip_next',
+                label: 'Next chapter',
+                name: 'custom.skip_next',
+              ),
+            );
+            break;
+          case 'skipToPrevious':
+            controls.add(
+              MediaControl.custom(
+                androidIcon: 'drawable/widget_skip_previous',
+                label: 'Previous chapter',
+                name: 'custom.skip_previous',
+              ),
+            );
+            break;
+          case 'switchPage':
+            if (_notificationPages.length > 1) {
+              controls.add(
+                MediaControl.custom(
+                  androidIcon: _androidAutoIconMoreVert,
+                  label: 'Next page',
+                  name: 'custom.switch_page',
+                ),
+              );
+            }
+            break;
+        }
+      }
+
+      final hasSwitchPageAction = currentPageActions.contains('switchPage');
+      if (_notificationPages.length > 1 && !hasSwitchPageAction) {
+        final switchPageControl = MediaControl.custom(
+          androidIcon: _androidAutoIconMoreVert,
+          label: 'Next page',
+          name: 'custom.switch_page',
+        );
+        if (controls.length < 4) {
+          controls.add(switchPageControl);
+        } else {
+          controls[3] = switchPageControl;
+        }
+      }
+
+      controls.add(playPauseControl);
+
+      if (controls.isNotEmpty) {
+        final playPauseIndex = controls.length - 1;
+        compactActionIndices.add(playPauseIndex);
+        for (int i = 0; i < controls.length - 1; i++) {
+          if (compactActionIndices.length >= 3) break;
+          compactActionIndices.add(i);
+        }
+        compactActionIndices.sort();
+      }
+    }
 
     playbackState.add(
       PlaybackState(
@@ -1414,7 +1479,6 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
             : const {MediaAction.seek},
         // Which controls to show in Android's compact view.
         androidCompactActionIndices: compactActionIndices,
-        // Whether audio is ready, buffering, ...
         processingState: !hasPlaybackContext
             ? AudioProcessingState.idle
             : isTransitionLoading
@@ -1436,11 +1500,53 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     );
   }
 
+  void _loadNotificationPages() {
+    final settingVal = _ref
+        .read(settingsManagerProvider.notifier)
+        .getGlobalSetting<String>(SettingKeys.mediaNotificationPages);
+    try {
+      final List<dynamic> outer = json.decode(settingVal);
+      final List<List<String>> parsed = [];
+      for (final page in outer) {
+        if (page is List) {
+          final List<String> parsedPage = page.map((e) => e.toString()).toList();
+          while (parsedPage.length < 4) {
+            parsedPage.add('');
+          }
+          parsed.add(parsedPage.take(4).toList());
+        }
+      }
+      if (parsed.isNotEmpty) {
+        _notificationPages = parsed.take(4).toList();
+      } else {
+        _notificationPages = const [
+          ['rewind', 'fastForward', 'speed', 'stop'],
+        ];
+      }
+    } catch (e) {
+      logger('Failed to parse mediaNotificationPages setting: $e', tag: 'AudioHandler', level: InfoLevel.error);
+      _notificationPages = const [
+        ['rewind', 'fastForward', 'speed', 'stop'],
+      ];
+    }
+
+    if (_currentNotificationPageIndex >= _notificationPages.length) {
+      _currentNotificationPageIndex = 0;
+    }
+  }
+
+  void _cycleNotificationPage() {
+    if (_notificationPages.length <= 1) return;
+    _currentNotificationPageIndex = (_currentNotificationPageIndex + 1) % _notificationPages.length;
+    unawaited(_updatePlaybackState());
+  }
+
   Future<void> dispose() async {
     _isDisposing = true;
     await _activeUserIdSubscription.cancel();
     await _showLastPlayedMiniPlayerSettingSubscription.cancel();
     await _mediaNotificationTypeSubscription.cancel();
+    await _mediaNotificationPagesSubscription.cancel();
     await _chapterSubscription?.cancel();
     await _skipSilenceSubscription?.cancel();
     _skipSilenceSubscription = null;

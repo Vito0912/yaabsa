@@ -64,6 +64,24 @@ extension _BGAudioHandlerCustomActions on BGAudioHandler {
       return <String, dynamic>{'handled': true, 'action': 'stop'};
     }
 
+    if (name == 'custom.switch_page') {
+      _cycleNotificationPage();
+      logger('Media notification custom action: switch page', tag: 'AudioHandler', level: InfoLevel.info);
+      return <String, dynamic>{'handled': true, 'action': 'switchPage'};
+    }
+
+    if (name == 'custom.skip_next') {
+      await skipToNext();
+      logger('Media notification custom action: skip to next', tag: 'AudioHandler', level: InfoLevel.info);
+      return <String, dynamic>{'handled': true, 'action': 'skipToNext'};
+    }
+
+    if (name == 'custom.skip_previous') {
+      await skipToPrevious();
+      logger('Media notification custom action: skip to previous', tag: 'AudioHandler', level: InfoLevel.info);
+      return <String, dynamic>{'handled': true, 'action': 'skipToPrevious'};
+    }
+
     return null;
   }
 }

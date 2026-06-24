@@ -15,6 +15,7 @@ class SettingKeys {
   static const String keepWebsocketConnectionInBackground = 'keep_websocket_connection_in_background';
   static const String lockMediaNotification = 'lock_media_notification';
   static const String mediaNotificationType = 'media_notification_type';
+  static const String mediaNotificationPages = 'media_notification_pages';
   static const String showNotificationMoreButton = 'show_notification_more_button';
   static const String autoPlayLastPlayedOnLaunch = 'auto_play_last_played_on_launch';
   static const String showLastPlayedMiniPlayerAlways = 'show_last_played_mini_player_always';
@@ -149,6 +150,7 @@ final defaultSettings = {
   SettingKeys.keepWebsocketConnectionInBackground: !_defaultEnableOnMobile,
   SettingKeys.lockMediaNotification: false,
   SettingKeys.mediaNotificationType: MediaNotificationType.full.name,
+  SettingKeys.mediaNotificationPages: '[["rewind", "fastForward", "speed", "stop"]]',
   SettingKeys.showNotificationMoreButton: false,
   SettingKeys.autoPlayLastPlayedOnLaunch: false,
   SettingKeys.showLastPlayedMiniPlayerAlways: false,

@@ -45,6 +45,7 @@ import 'package:yaabsa/screens/settings/library_settings.dart';
 import 'package:yaabsa/screens/settings/library_views_settings.dart';
 import 'package:yaabsa/screens/settings/path_tag_genre_update_settings.dart';
 import 'package:yaabsa/screens/settings/player/global_player_settings.dart';
+import 'package:yaabsa/screens/settings/player/player_settings_notification.dart';
 import 'package:yaabsa/screens/settings/player/player_settings.dart';
 import 'package:yaabsa/screens/settings/player/player_settings_general.dart';
 import 'package:yaabsa/screens/settings/player/player_settings_equalizer.dart';
@@ -200,6 +201,10 @@ final globalRouter = GoRouter(
                     GoRoute(path: AppearanceSettings.routeName, builder: (context, state) => AppearanceSettings()),
                     GoRoute(path: ThemeSettings.routeName, builder: (context, state) => const ThemeSettings()),
                     GoRoute(path: GlobalPlayerSettings.routeName, builder: (context, state) => GlobalPlayerSettings()),
+                    GoRoute(
+                      path: PlayerSettingsNotification.routeName,
+                      builder: (context, state) => const PlayerSettingsNotification(),
+                    ),
                     GoRoute(path: LibrarySettings.routeName, builder: (context, state) => LibrarySettings()),
                     GoRoute(
                       path: LibraryViewsSettings.routeName,

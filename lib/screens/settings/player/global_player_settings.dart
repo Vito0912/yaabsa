@@ -1,8 +1,11 @@
+import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:yaabsa/components/settings/settings_dropdown.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/components/settings/settings_slider.dart';
 import 'package:yaabsa/components/settings/settings_switch_tile.dart';
+import 'package:yaabsa/screens/settings/player/player_settings_notification.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
@@ -55,11 +58,15 @@ class GlobalPlayerSettings extends StatelessWidget {
               ],
               settingKey: SettingKeys.mediaNotificationType,
             ),
-            const SettingSwitchTile(
-              label: 'Show notification More button',
-              subtitle: 'Show a More button with additional quick actions',
-              settingKey: SettingKeys.showNotificationMoreButton,
-            ),
+          ],
+          items: [
+            if (defaultTargetPlatform == TargetPlatform.android)
+              SettingsNavigationItem(
+                icon: Icons.dashboard_customize_rounded,
+                title: 'Media Notification Actions',
+                subtitle: 'Customize the actions available in the media notification',
+                onTap: () => context.push(PlayerSettingsNotification.routeName),
+              ),
           ],
         ),
         SettingsNavigationSection(

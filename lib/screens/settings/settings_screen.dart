@@ -295,12 +295,13 @@ final List<SettingsSearchItem> searchableSettings = [
     categoryPath: 'Settings > Global Player',
     route: '/settings/global-player',
   ),
-  const SettingsSearchItem(
-    title: 'Show notification More button',
-    description: 'Show a More button with additional quick actions',
-    categoryPath: 'Settings > Global Player',
-    route: '/settings/global-player',
-  ),
+  if (defaultTargetPlatform == TargetPlatform.android)
+    const SettingsSearchItem(
+      title: 'Media Notification Actions',
+      description: 'Customize the actions available in the media notification',
+      categoryPath: 'Settings > Global Player',
+      route: '/settings/player/notification',
+    ),
   const SettingsSearchItem(
     title: 'Auto-play last played on app start',
     description: 'Resume the last played item on app launch if it is not finished',
