@@ -3,24 +3,16 @@ part of '../bg_audio_handler.dart';
 extension _BGAudioHandlerAndroidAutoBrowse on BGAudioHandler {
   Future<List<MediaItem>> _androidAutoRootItems() async {
     final isAutomotiveSystem = await _androidAutoIsAutomotiveSystem();
-    final continueItems = await _androidAutoContinueAcrossLibraries(
-      const _AndroidAutoPagingOptions(page: 0, pageSize: 1, hasExplicitPaging: true),
-    );
 
     final items = <MediaItem>[];
 
-    if (continueItems.isNotEmpty) {
-      items.add(
-        _androidAutoBrowsableItem(
-          id: _androidAutoContinueNodeId,
-          title: 'Continue',
-          artUri: _androidAutoDrawableIconUri('continue_ic'),
-          categoryStyle: true,
-        ),
-      );
-    }
-
     items.addAll([
+      _androidAutoBrowsableItem(
+        id: _androidAutoContinueNodeId,
+        title: 'Continue',
+        artUri: _androidAutoDrawableIconUri('continue_ic'),
+        categoryStyle: true,
+      ),
       _androidAutoBrowsableItem(
         id: _androidAutoRecentNodeId,
         title: 'Recent',

@@ -29,30 +29,6 @@ class _AndroidAutoSettingsState extends ConsumerState<AndroidAutoSettings> {
     unawaited(AaosService.instance.initialize());
   }
 
-  Widget _buildAaosSettings(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.directions_car_filled, size: 20, color: Theme.of(context).colorScheme.primary),
-                const SizedBox(width: 10),
-                Expanded(child: Text('AAOS mode active', style: Theme.of(context).textTheme.titleSmall)),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text('No additional AAOS-specific settings at this time', style: Theme.of(context).textTheme.bodyMedium),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildAndroidAutoSettings(String userId, String integrationLabel) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -110,26 +86,24 @@ class _AndroidAutoSettingsState extends ConsumerState<AndroidAutoSettings> {
           embedded: true,
           showEmbeddedBackButton: true,
           children: [
-            if (isAaos) _buildAaosSettings(context),
-            if (!isAaos)
-              currentUser.when(
-                data: (user) {
-                  if (user == null) {
-                    return const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                      child: Text('Sign in to configure car browse settings'),
-                    );
-                  }
+            currentUser.when(
+              data: (user) {
+                if (user == null) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                    child: Text('Sign in to configure car browse settings'),
+                  );
+                }
 
-                  return _buildAndroidAutoSettings(user.id, integrationLabel);
-                },
-                loading: () => const Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-                error: (error, _) =>
-                    Padding(padding: const EdgeInsets.all(16), child: Text('Failed to load user settings: $error')),
+                return _buildAndroidAutoSettings(user.id, integrationLabel);
+              },
+              loading: () => const Padding(
+                padding: EdgeInsets.all(16),
+                child: Center(child: CircularProgressIndicator()),
               ),
+              error: (error, _) =>
+                  Padding(padding: const EdgeInsets.all(16), child: Text('Failed to load user settings: $error')),
+            ),
           ],
         );
       },
