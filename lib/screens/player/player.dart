@@ -197,7 +197,7 @@ class _PlayerState extends ConsumerState<Player> {
       case _PlayerAppBarMenuAction.cast:
         await showCastDevicePicker(context);
       case _PlayerAppBarMenuAction.equalizer:
-        context.push(PlayerSettingsEqualizer.routeName);
+        context.go(PlayerSettingsEqualizer.routeName);
     }
   }
 

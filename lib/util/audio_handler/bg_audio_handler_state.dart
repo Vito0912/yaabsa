@@ -77,7 +77,13 @@ extension _BGAudioHandlerState on BGAudioHandler {
 
   Duration _positionInternal() {
     if (isCastControlActive) {
-      return _castAbsolutePosition(GoogleCastRemoteMediaClient.instance.playerPosition);
+      final pos = _castAbsolutePosition(
+        Duration(seconds: GoogleCastRemoteMediaClient.instance.playerPosition.inSeconds),
+      );
+      if (GoogleCastSessionManager.instance.connectionState == GoogleCastConnectState.connected) {
+        _lastKnownCastPosition = pos;
+      }
+      return pos;
     }
     if (_currentMediaItem == null && _restoredMediaItem != null) {
       return _restoredPosition;
@@ -253,7 +259,11 @@ extension _BGAudioHandlerState on BGAudioHandler {
     _castSessionSubscription = GoogleCastSessionManager.instance.currentSessionStream.listen((session) {
       final wasCastControlActive = isCastControlActive;
       if (session?.connectionState != GoogleCastConnectState.connected) {
-        _clearCastControlTracking();
+        if (wasCastControlActive) {
+          unawaited(deactivateCastControl());
+        } else {
+          _clearCastControlTracking();
+        }
       }
       _refreshPlayerControlState();
       if (wasCastControlActive != isCastControlActive || isCastControlActive) {
@@ -265,8 +275,17 @@ extension _BGAudioHandlerState on BGAudioHandler {
       final wasCastControlActive = isCastControlActive;
 
       final status = GoogleCastRemoteMediaClient.instance.mediaStatus;
-      if (status == null || status.playerState == CastMediaPlayerState.idle) {
-        _clearCastControlTracking();
+      if (status != null && status.playerState == CastMediaPlayerState.idle) {
+        final reason = status.idleReason;
+        if (reason == GoogleCastMediaIdleReason.finished ||
+            reason == GoogleCastMediaIdleReason.cancelled ||
+            reason == GoogleCastMediaIdleReason.error) {
+          if (wasCastControlActive) {
+            unawaited(deactivateCastControl());
+          } else {
+            _clearCastControlTracking();
+          }
+        }
       }
 
       _refreshPlayerControlState();

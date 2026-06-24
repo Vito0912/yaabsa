@@ -444,9 +444,20 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     unawaited(_updatePlaybackState());
   }
 
-  void deactivateCastControl() {
+  Duration _lastKnownCastPosition = Duration.zero;
+
+  Future<void> deactivateCastControl({Duration? fallbackPosition}) async {
+    final castPosition = fallbackPosition ?? _lastKnownCastPosition;
+    await _syncService.flush(positionOverride: castPosition);
+
     _castControlledContentId = null;
     _castControlledTrackIndex = 0;
+    _lastKnownCastPosition = Duration.zero;
+
+    if (_currentMediaItem != null) {
+      await _seekInternal(castPosition);
+    }
+
     _refreshPlayerControlState();
     unawaited(_updatePlaybackState());
   }
@@ -720,7 +731,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       } catch (e) {
         logger('Error stopping cast playback: $e', tag: 'AudioHandler', level: InfoLevel.warning);
       }
-      deactivateCastControl();
+      await deactivateCastControl();
     }
     if (clearQueue) {
       _clearAutoQueueState();
