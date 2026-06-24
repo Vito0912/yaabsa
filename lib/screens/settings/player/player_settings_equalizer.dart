@@ -188,11 +188,7 @@ class _PlayerSettingsEqualizerState extends ConsumerState<PlayerSettingsEqualize
               showEmbeddedBackButton: true,
               embeddedBackFallbackRoute: PlayerSettings.routeName,
               children: [
-                const SettingSwitchTile(
-                  label: 'Enable Equalizer',
-                  subtitle: 'Toggle audio frequency corrections on Android',
-                  settingKey: SettingKeys.equalizerEnabled,
-                ),
+                const SettingSwitchTile(label: 'Enable Equalizer', settingKey: SettingKeys.equalizerEnabled),
                 const SizedBox(height: 12),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
