@@ -15,7 +15,7 @@ class AuthRefreshInterceptor extends Interceptor {
   static const String _skipRefreshExtraKey = 'skip_auth_refresh';
 
   final ProviderContainer container;
-  Completer<User?>? _refreshCompleter;
+  static Completer<User?>? _globalRefreshCompleter;
 
   @override
   Future<void> onError(DioException err, ErrorInterceptorHandler handler) async {
@@ -58,13 +58,13 @@ class AuthRefreshInterceptor extends Interceptor {
   }
 
   Future<User?> _refreshSession() async {
-    final inFlight = _refreshCompleter;
+    final inFlight = _globalRefreshCompleter;
     if (inFlight != null) {
       return inFlight.future;
     }
 
     final completer = Completer<User?>();
-    _refreshCompleter = completer;
+    _globalRefreshCompleter = completer;
 
     () async {
       try {
@@ -127,7 +127,7 @@ class AuthRefreshInterceptor extends Interceptor {
         logger('Refresh stack trace: $s', tag: 'AuthRefreshInterceptor', level: InfoLevel.debug);
         completer.complete(null);
       } finally {
-        _refreshCompleter = null;
+        _globalRefreshCompleter = null;
       }
     }();
 
