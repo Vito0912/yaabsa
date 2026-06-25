@@ -7,8 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
+import 'package:yaabsa/components/app/item/editor/library_item_edit_overlay.dart';
 import 'package:yaabsa/components/app/item/editor/open_library_item_editor_dialog.dart';
-import 'package:yaabsa/components/app/item/match/library_item_manual_match_dialog.dart';
 import 'package:yaabsa/components/app/item/match/library_item_quick_match_actions.dart';
 import 'package:yaabsa/components/app/item/item_delete_actions.dart';
 import 'package:yaabsa/components/app/item/item_more_actions_button.dart';
@@ -313,10 +313,11 @@ class LibraryItemBookView extends ConsumerWidget {
                                             await quickMatchSingleItem(context: context, ref: ref, item: item);
                                             return;
                                           case ItemMoreAction.manualMatch:
-                                            await showLibraryItemManualMatchDialog(
+                                            await openSingleLibraryItemEditorDialog(
                                               context: context,
                                               item: item,
                                               filterData: filterData,
+                                              initialTab: LibraryItemEditorTab.match,
                                             );
                                             return;
                                           case ItemMoreAction.markAsFinished:

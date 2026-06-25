@@ -1,3 +1,5 @@
+import 'package:yaabsa/util/item_formatters.dart';
+
 class ManualMatchSeriesEntry {
   const ManualMatchSeriesEntry({required this.name, this.sequence});
 
@@ -46,7 +48,7 @@ class ManualMatchResult {
       description: _asTrimmedString(map['description']),
       publisher: _asTrimmedString(map['publisher']),
       publishedYear: _asTrimmedString(map['publishedYear']) ?? _asTrimmedString(map['publishYear']),
-      runtimeLabel: _extractRuntimeLabel(map),
+      runtimeLabel: formatDurationLong(Duration(minutes: map['duration'] ?? 0)),
       seriesEntries: extractSeriesEntries(map['series']),
       genres: extractStringList(map['genres']),
       tags: extractStringList(map['tags']),
@@ -391,60 +393,4 @@ bool? _asNullableBool(Object? value) {
     }
   }
   return null;
-}
-
-String? _extractRuntimeLabel(Map<String, dynamic> map) {
-  final explicitRuntime = _asTrimmedString(map['runtime']) ?? _asTrimmedString(map['duration']);
-  if (explicitRuntime != null) {
-    if (explicitRuntime.contains(':')) {
-      return explicitRuntime;
-    }
-
-    if (int.tryParse(explicitRuntime) == null && double.tryParse(explicitRuntime) == null) {
-      return explicitRuntime;
-    }
-  }
-
-  final durationMs = _asDurationValue(map['durationMs']) ?? _asDurationValue(map['lengthMs']);
-  if (durationMs != null && durationMs > 0) {
-    return _formatDurationLabel(Duration(milliseconds: durationMs));
-  }
-
-  final durationSeconds =
-      _asDurationValue(map['duration']) ?? _asDurationValue(map['runtime']) ?? _asDurationValue(map['length']);
-  if (durationSeconds != null && durationSeconds > 0) {
-    return _formatDurationLabel(Duration(seconds: durationSeconds));
-  }
-
-  return null;
-}
-
-int? _asDurationValue(Object? value) {
-  if (value is int) {
-    return value;
-  }
-  if (value is num) {
-    return value.toInt();
-  }
-  if (value is String) {
-    final trimmedValue = value.trim();
-    return int.tryParse(trimmedValue) ?? double.tryParse(trimmedValue)?.round();
-  }
-  return null;
-}
-
-String _formatDurationLabel(Duration duration) {
-  if (duration.inHours > 0) {
-    final minutes = duration.inMinutes.remainder(60);
-    if (minutes == 0) {
-      return '${duration.inHours}h';
-    }
-    return '${duration.inHours}h ${minutes}m';
-  }
-
-  if (duration.inMinutes > 0) {
-    return '${duration.inMinutes}m';
-  }
-
-  return '${duration.inSeconds}s';
 }

@@ -101,6 +101,7 @@ Future<User?> _refreshCurrentUserFromServer({required AppDatabase db, required U
     dio: createNativeDio(
       options: BaseOptions(baseUrl: user.server!.url, headers: user.server!.headers),
     ),
+    interceptors: [OAuthInterceptor(), BearerAuthInterceptor(), AuthRefreshInterceptor(containerRef)],
     basePathOverride: user.server!.url,
   );
 
@@ -130,23 +131,19 @@ Future<User?> _refreshCurrentUserFromServer({required AppDatabase db, required U
     );
     // Check if 401 Unauthorized
     if (e is DioException && e.response?.statusCode == 401) {
-      if (user.refreshToken != null && user.refreshToken!.isNotEmpty) {
-        try {
-          final refreshResponse = await tmp.getMeApi().refreshAuth(refreshToken: user.refreshToken);
-          final refreshedLogin = refreshResponse.data;
+      final latestUser = await db.getStoredUser(user.id);
+      final authHeader = e.requestOptions.headers['Authorization']?.toString();
+      final failedToken = authHeader != null && authHeader.startsWith('Bearer ')
+          ? authHeader.substring(7).trim()
+          : authHeader?.trim();
 
-          if (refreshedLogin != null) {
-            final refreshedUser = refreshedLogin.user.copyWith(
-              server: user.server,
-              isActive: true,
-              setting: refreshedLogin.serverSettings,
-            );
-            await db.addOrUpdateStoredUser(refreshedUser);
-            return refreshedUser;
-          }
-        } catch (refreshError) {
-          logger('Refresh after 401 failed: $refreshError', tag: 'currentUserProvider', level: InfoLevel.warning);
-        }
+      if (latestUser != null && latestUser.preferredAuthToken != failedToken) {
+        logger(
+          '401 Unauthorized detected for stale token, but token has already been updated in database. Skipping user removal.',
+          tag: 'currentUserProvider',
+          level: InfoLevel.info,
+        );
+        return latestUser;
       }
 
       logger(

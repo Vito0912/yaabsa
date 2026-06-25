@@ -4,12 +4,32 @@ import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/components/common/library_item_widget.dart';
 
 class SeriesBookGridItem extends StatelessWidget {
-  const SeriesBookGridItem({required this.item, required this.api, required this.seriesId, super.key, this.onPlay});
+  const SeriesBookGridItem({
+    required this.item,
+    required this.api,
+    required this.seriesId,
+    super.key,
+    this.onPlay,
+    this.selectionMode = false,
+    this.isSelected = false,
+    this.enableHoverSelection = false,
+    this.onToggleSelection,
+    this.onEnterSelectionMode,
+    this.canEdit = false,
+    this.onEdit,
+  });
 
   final LibraryItem item;
   final ABSApi api;
   final String seriesId;
   final VoidCallback? onPlay;
+  final bool selectionMode;
+  final bool isSelected;
+  final bool enableHoverSelection;
+  final VoidCallback? onToggleSelection;
+  final VoidCallback? onEnterSelectionMode;
+  final bool canEdit;
+  final VoidCallback? onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -23,6 +43,13 @@ class SeriesBookGridItem extends StatelessWidget {
       squareCover: true,
       sequenceBadge: sequenceBadge,
       onPlay: onPlay,
+      selectionMode: selectionMode,
+      isSelected: isSelected,
+      enableHoverSelection: enableHoverSelection,
+      onToggleSelection: onToggleSelection,
+      onEnterSelectionMode: onEnterSelectionMode,
+      canEdit: canEdit,
+      onEdit: onEdit,
     );
   }
 
