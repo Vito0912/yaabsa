@@ -141,6 +141,7 @@ Below is a list of all features, but I want to _highlight_ a few, as this client
 | Car                 | ✅      | ✅   | ❌      | ❌    | ❌    |
 | Android Automotive  | ✅      | ❌   | ❌      | ❌    | ❌    |
 | Widgets             | ✅      | 🅿️   | ❌      | ❌    | ❌    |
+| OIDC Login          | ✅      | ❓   | ✅      | ❓    | ✅    |
 
 \* Only supports the default download location, due to sandboxing limitations. Will be addressed in the future.\
 

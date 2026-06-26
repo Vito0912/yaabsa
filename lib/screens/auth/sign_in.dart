@@ -381,20 +381,20 @@ class SignIn extends HookConsumerWidget {
 
       final normalizedServer = _normalizeServerAddress(serverAddressController.text.trim());
       if (normalizedServer == null) {
-        setErrorMessage('Please enter a valid server address first.');
+        setErrorMessage('Please enter a valid server address first');
         return;
       }
       _setControllerTextKeepingCursor(serverAddressController, normalizedServer);
 
       final currentStatus = await ensureStatusForServer(normalizedServer, showErrors: true);
       if (currentStatus == null) {
-        setErrorMessage(statusError.value ?? 'Unable to verify server status.');
+        setErrorMessage(statusError.value ?? 'Unable to verify server status');
         return;
       }
 
       final allowsOpenId = currentStatus.authMethods.contains('openid');
       if (!allowsOpenId) {
-        setErrorMessage('OpenID Connect is not enabled on this server.');
+        setErrorMessage('OpenID Connect is not enabled on this server');
         return;
       }
 
@@ -405,7 +405,7 @@ class SignIn extends HookConsumerWidget {
         if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('OpenID flow opened in your browser. Finish sign-in there and return to the app.'),
+            content: Text('You should be redirected to your browser to complete the OpenID Connect login'),
             behavior: SnackBarBehavior.floating,
           ),
         );
