@@ -10,6 +10,7 @@ import 'package:yaabsa/api/me/status.dart';
 import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:dio/dio.dart';
+import 'package:yaabsa/util/logger.dart' show logger, InfoLevel;
 
 class MeApi {
   final Dio _dio;
@@ -66,6 +67,8 @@ class MeApi {
     if (refreshToken != null && refreshToken.isNotEmpty) {
       requestHeaders['x-refresh-token'] = refreshToken;
     }
+
+    logger('Refreshing access token', tag: 'MeApi', level: InfoLevel.info);
 
     return ABSApi.makeApiPostRequest(
       route: '/auth/refresh',

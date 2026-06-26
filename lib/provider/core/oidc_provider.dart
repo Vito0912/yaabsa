@@ -49,7 +49,6 @@ class OidcState extends _$OidcState {
           logger('Failed to get initial app link: $err', tag: 'OidcProvider', level: InfoLevel.warning);
         });
 
-    // Subscribe to warm start URLs
     _linkSubscription = appLinks.uriLinkStream.listen(
       (uri) {
         _handleIncomingUri(uri);
@@ -225,7 +224,6 @@ class OidcState extends _$OidcState {
         ),
       );
 
-      // Save initial library settings
       final normalizedDefaultLibraryId = serverDefaultLibraryId.trim();
       if (normalizedDefaultLibraryId.isNotEmpty) {
         await db.setUserSetting(loggedInUser.id, 'selectedLibraryId', normalizedDefaultLibraryId);
