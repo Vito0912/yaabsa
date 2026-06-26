@@ -6,10 +6,12 @@ import 'package:yaabsa/api/library_items/request/update_library_item_media_reque
 import 'package:yaabsa/api/library_items/series.dart';
 import 'package:yaabsa/api/routes/library_item_api.dart';
 import 'package:yaabsa/api/routes/upload_api.dart';
+import 'package:yaabsa/api/search/search_provider_option.dart';
 import 'package:yaabsa/components/app/item/match/manual_match/manual_match_models.dart';
 import 'package:yaabsa/components/app/item/match/quick_match_preview/quick_match_preview_models.dart';
 import 'package:yaabsa/components/app/item/match/quick_match_preview/quick_match_preview_widgets.dart';
 import 'package:yaabsa/provider/common/library_item_provider.dart';
+import 'package:yaabsa/provider/common/upload_providers.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/logger.dart';
@@ -18,8 +20,7 @@ Future<bool> showQuickMatchPreviewDialog({
   required BuildContext context,
   required List<LibraryItem> items,
   required String mediaType,
-  required String providerValue,
-  required String providerLabel,
+  required List<String> providerValues,
   required bool overrideCover,
   required bool overrideDetails,
 }) async {
@@ -30,8 +31,7 @@ Future<bool> showQuickMatchPreviewDialog({
   final preview = QuickMatchPreviewDialog(
     items: items,
     mediaType: mediaType,
-    providerValue: providerValue,
-    providerLabel: providerLabel,
+    providerValues: providerValues,
     overrideCover: overrideCover,
     overrideDetails: overrideDetails,
   );
@@ -66,16 +66,14 @@ class QuickMatchPreviewDialog extends ConsumerStatefulWidget {
     super.key,
     required this.items,
     required this.mediaType,
-    required this.providerValue,
-    required this.providerLabel,
+    required this.providerValues,
     required this.overrideCover,
     required this.overrideDetails,
   });
 
   final List<LibraryItem> items;
   final String mediaType;
-  final String providerValue;
-  final String providerLabel;
+  final List<String> providerValues;
   final bool overrideCover;
   final bool overrideDetails;
 
@@ -84,138 +82,237 @@ class QuickMatchPreviewDialog extends ConsumerStatefulWidget {
 }
 
 class _QuickMatchPreviewDialogState extends ConsumerState<QuickMatchPreviewDialog> {
-  late final Future<List<QuickMatchPreviewEntry>> _previewFuture;
+  List<QuickMatchPreviewEntry>? _entries;
+  int _completedCount = 0;
+  bool _isLoading = true;
+  String? _loadingError;
+
   Set<String> _selectedItemIds = <String>{};
-  bool _selectionInitialized = false;
   bool _applying = false;
+
+  final List<Future<void> Function()> _taskQueue = [];
+  bool _queueRunning = false;
 
   @override
   void initState() {
     super.initState();
-    _previewFuture = _loadPreview();
+    _startLoadingPreview();
   }
 
-  Future<List<QuickMatchPreviewEntry>> _loadPreview() async {
+  void _enqueueTask(Future<void> Function() task) {
+    _taskQueue.add(task);
+    if (!_queueRunning) {
+      _runQueue();
+    }
+  }
+
+  Future<void> _runQueue() async {
+    _queueRunning = true;
+    while (_taskQueue.isNotEmpty && mounted) {
+      final task = _taskQueue.removeAt(0);
+      task(); // run asynchronously
+      await Future.delayed(const Duration(seconds: 1));
+    }
+    _queueRunning = false;
+  }
+
+  void _startLoadingPreview() {
     final api = ref.read(absApiProvider);
     if (api == null) {
-      throw StateError('No API session available.');
+      setState(() {
+        _isLoading = false;
+        _loadingError = 'No API session available.';
+      });
+      return;
     }
+
+    _entries = widget.items.map((item) => QuickMatchPreviewEntry(item: item, isLoading: true)).toList();
+    _completedCount = 0;
+    _isLoading = true;
+    _loadingError = null;
 
     final uploadApi = api.getUploadApi();
     final libraryItemApi = api.getLibraryItemApi();
     final normalizedMediaType = widget.mediaType == 'podcast' ? 'podcast' : 'book';
 
-    final futures = widget.items
-        .map(
-          (item) => _loadPreviewForItem(
-            uploadApi: uploadApi,
-            libraryItemApi: libraryItemApi,
-            item: item,
-            mediaType: normalizedMediaType,
-          ),
-        )
-        .toList(growable: false);
+    final providers =
+        ref.read(uploadMetadataProvidersProvider(widget.mediaType)).asData?.value ?? const <SearchProviderOption>[];
+    String getProviderLabel(String providerValue) {
+      for (final provider in providers) {
+        if (provider.value == providerValue) {
+          return provider.text;
+        }
+      }
+      return providerValue;
+    }
 
-    return Future.wait(futures);
+    for (var i = 0; i < widget.items.length; i++) {
+      final item = widget.items[i];
+      final index = i;
+      _enqueueTask(
+        () => _searchItemWithProviders(
+          uploadApi: uploadApi,
+          libraryItemApi: libraryItemApi,
+          item: item,
+          entryIndex: index,
+          mediaType: normalizedMediaType,
+          providerIndex: 0,
+          getProviderLabel: getProviderLabel,
+        ),
+      );
+    }
   }
 
-  Future<QuickMatchPreviewEntry> _loadPreviewForItem({
+  Future<void> _searchItemWithProviders({
     required UploadApi uploadApi,
     required LibraryItemApi libraryItemApi,
     required LibraryItem item,
+    required int entryIndex,
     required String mediaType,
+    required int providerIndex,
+    required String Function(String) getProviderLabel,
   }) async {
-    LibraryItem currentItem;
-    try {
-      final response = await libraryItemApi.getLibraryItem(itemId: item.id);
-      final data = response.data;
-      if (data == null) {
-        logger(
-          'Could not load current item metadata for quick match preview. itemId=${item.id}',
-          tag: 'QuickMatchPreviewDialog',
-          level: InfoLevel.warning,
-        );
-        return QuickMatchPreviewEntry(item: item, error: 'Could not load current item metadata.');
-      }
-      currentItem = data;
-    } catch (error, stackTrace) {
-      logger(
-        'Failed to load current item metadata for quick match preview. itemId=${item.id}, error=$error',
-        tag: 'QuickMatchPreviewDialog',
-        level: InfoLevel.error,
-      );
-      logger(
-        'Stack trace for item metadata load failure. itemId=${item.id}, stackTrace=$stackTrace',
-        tag: 'QuickMatchPreviewDialog',
-        level: InfoLevel.debug,
-      );
-      return QuickMatchPreviewEntry(item: item, error: 'Could not load current item metadata: $error');
+    if (!mounted) {
+      return;
     }
+
+    LibraryItem currentItem = item;
+    if (providerIndex == 0) {
+      try {
+        final response = await libraryItemApi.getLibraryItem(itemId: item.id);
+        final data = response.data;
+        if (data != null) {
+          currentItem = data;
+        } else {
+          _markEntryCompleted(
+            entryIndex,
+            QuickMatchPreviewEntry(item: item, error: 'Could not load current item metadata.'),
+          );
+          return;
+        }
+      } catch (error) {
+        _markEntryCompleted(
+          entryIndex,
+          QuickMatchPreviewEntry(item: item, error: 'Could not load current item metadata: $error'),
+        );
+        return;
+      }
+    } else {
+      currentItem = _entries![entryIndex].item;
+    }
+
+    final providerValue = widget.providerValues[providerIndex];
+    final providerLabel = getProviderLabel(providerValue);
 
     final metadata = currentItem.media?.bookMedia?.metadata;
-    final title = trimmedOrNull(metadata?.title) ?? trimmedOrNull(currentItem.title);
-    if (title == null) {
-      return QuickMatchPreviewEntry(item: currentItem, error: 'No title available for search.');
+    final rawTitle = trimmedOrNull(metadata?.title) ?? trimmedOrNull(currentItem.title);
+    if (rawTitle == null) {
+      _markEntryCompleted(
+        entryIndex,
+        QuickMatchPreviewEntry(item: currentItem, error: 'No title available for search.'),
+      );
+      return;
     }
+    final title = _cleanTitle(rawTitle);
 
-    final author =
-        trimmedOrNull(metadata?.authors?.map((entry) => entry.name).join(', ')) ??
-        trimmedOrNull(currentItem.authorString);
+    final rawAuthor = (metadata?.authors != null && metadata!.authors!.isNotEmpty)
+        ? metadata.authors!.first.name
+        : currentItem.authorString;
+    final author = _cleanAuthor(rawAuthor);
 
     try {
       final response = await uploadApi.searchMetadata(
         mediaType: mediaType,
         title: title,
         author: author,
-        provider: widget.providerValue,
+        provider: providerValue,
         fallbackTitleOnly: true,
         libraryItemId: currentItem.id,
       );
 
       final rawResults = extractManualMatchResultMaps(response.data);
+      ManualMatchResult? bestResult;
+
       for (final rawResult in rawResults) {
-        final result = ManualMatchResult.fromMap(
-          rawResult,
-          providerValue: widget.providerValue,
-          providerLabel: widget.providerLabel,
-        );
+        final result = ManualMatchResult.fromMap(rawResult, providerValue: providerValue, providerLabel: providerLabel);
         if (result.hasMeaningfulData) {
-          return QuickMatchPreviewEntry(item: currentItem, result: result);
+          bestResult = result;
+          break;
         }
       }
 
-      return QuickMatchPreviewEntry(item: currentItem);
-    } catch (error, stackTrace) {
-      logger(
-        'Metadata search failed in quick match preview. itemId=${currentItem.id}, error=$error',
-        tag: 'QuickMatchPreviewDialog',
-        level: InfoLevel.warning,
+      if (bestResult != null) {
+        _markEntryCompleted(entryIndex, QuickMatchPreviewEntry(item: currentItem, result: bestResult));
+      } else {
+        _handleNoMatchOrError(
+          uploadApi: uploadApi,
+          libraryItemApi: libraryItemApi,
+          item: currentItem,
+          entryIndex: entryIndex,
+          mediaType: mediaType,
+          providerIndex: providerIndex,
+          getProviderLabel: getProviderLabel,
+          errorMsg: 'No match found.',
+        );
+      }
+    } catch (error) {
+      _handleNoMatchOrError(
+        uploadApi: uploadApi,
+        libraryItemApi: libraryItemApi,
+        item: currentItem,
+        entryIndex: entryIndex,
+        mediaType: mediaType,
+        providerIndex: providerIndex,
+        getProviderLabel: getProviderLabel,
+        errorMsg: error.toString(),
       );
-      logger(
-        'Stack trace for metadata search failure. itemId=${currentItem.id}, stackTrace=$stackTrace',
-        tag: 'QuickMatchPreviewDialog',
-        level: InfoLevel.debug,
-      );
-      return QuickMatchPreviewEntry(item: currentItem, error: '$error');
     }
   }
 
-  void _initializeSelection(List<QuickMatchPreviewEntry> entries) {
-    if (_selectionInitialized) {
+  void _handleNoMatchOrError({
+    required UploadApi uploadApi,
+    required LibraryItemApi libraryItemApi,
+    required LibraryItem item,
+    required int entryIndex,
+    required String mediaType,
+    required int providerIndex,
+    required String Function(String) getProviderLabel,
+    required String errorMsg,
+  }) {
+    if (providerIndex + 1 < widget.providerValues.length) {
+      _enqueueTask(
+        () => _searchItemWithProviders(
+          uploadApi: uploadApi,
+          libraryItemApi: libraryItemApi,
+          item: item,
+          entryIndex: entryIndex,
+          mediaType: mediaType,
+          providerIndex: providerIndex + 1,
+          getProviderLabel: getProviderLabel,
+        ),
+      );
+    } else {
+      _markEntryCompleted(
+        entryIndex,
+        QuickMatchPreviewEntry(
+          item: item,
+          error: widget.providerValues.length > 1 ? 'No results found with any provider.' : errorMsg,
+        ),
+      );
+    }
+  }
+
+  void _markEntryCompleted(int index, QuickMatchPreviewEntry entry) {
+    if (!mounted) {
       return;
     }
-
-    final initialSelection = entries.where(_canSelectEntry).map((entry) => entry.item.id).toSet();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || _selectionInitialized) {
-        return;
+    setState(() {
+      _entries![index] = entry;
+      _completedCount++;
+      if (_completedCount == widget.items.length) {
+        _isLoading = false;
+        _selectedItemIds = _entries!.where(_canSelectEntry).map((e) => e.item.id).toSet();
       }
-
-      setState(() {
-        _selectedItemIds = initialSelection;
-        _selectionInitialized = true;
-      });
     });
   }
 
@@ -416,13 +513,12 @@ class _QuickMatchPreviewDialogState extends ConsumerState<QuickMatchPreviewDialo
         const QuickMatchPreviewHeader(),
         const Divider(height: 1),
         Expanded(
-          child: FutureBuilder<List<QuickMatchPreviewEntry>>(
-            future: _previewFuture,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState != ConnectionState.done) {
+          child: Builder(
+            builder: (context) {
+              if (_loadingError != null) {
                 return Column(
                   children: [
-                    const Expanded(child: QuickMatchPreviewLoading()),
+                    Expanded(child: QuickMatchPreviewFailure(error: _loadingError!)),
                     const Divider(height: 1),
                     QuickMatchPreviewActionRow(
                       applying: _applying,
@@ -434,10 +530,12 @@ class _QuickMatchPreviewDialogState extends ConsumerState<QuickMatchPreviewDialo
                 );
               }
 
-              if (snapshot.hasError) {
+              if (_isLoading) {
                 return Column(
                   children: [
-                    Expanded(child: QuickMatchPreviewFailure(error: '${snapshot.error}')),
+                    Expanded(
+                      child: QuickMatchPreviewLoading(completed: _completedCount, total: widget.items.length),
+                    ),
                     const Divider(height: 1),
                     QuickMatchPreviewActionRow(
                       applying: _applying,
@@ -449,9 +547,7 @@ class _QuickMatchPreviewDialogState extends ConsumerState<QuickMatchPreviewDialo
                 );
               }
 
-              final entries = snapshot.data ?? const <QuickMatchPreviewEntry>[];
-              _initializeSelection(entries);
-
+              final entries = _entries ?? const <QuickMatchPreviewEntry>[];
               final changedCount = entries.where(_entryWillChange).length;
               final selectedCount = _selectedApplicableCount(entries);
 
@@ -559,5 +655,38 @@ class _QuickMatchPreviewDialogState extends ConsumerState<QuickMatchPreviewDialo
 
   bool _willReplaceCover(ManualMatchResult result) {
     return widget.overrideCover && trimmedOrNull(result.coverUrl) != null;
+  }
+
+  String? _cleanAuthor(String? author) {
+    if (author == null) {
+      return null;
+    }
+    final trimmed = author.trim();
+    if (trimmed.isEmpty) {
+      return null;
+    }
+
+    final parts = trimmed.split(RegExp(r',\s*|&\s*|\band\b\s*', caseSensitive: false));
+    if (parts.isEmpty) {
+      return trimmed;
+    }
+    final primary = parts.first.trim();
+    return primary.isEmpty ? trimmed : primary;
+  }
+
+  String _cleanTitle(String title) {
+    final trimmed = title.trim();
+    if (trimmed.isEmpty) {
+      return title;
+    }
+    final cleaned = trimmed.replaceAll(
+      RegExp(
+        r'\s*[\(\[][^\]\)]*(Audiobook|Unabridged|Edition|Series|Book|Vol|Volume)[^\]\)]*[\)\]]',
+        caseSensitive: false,
+      ),
+      '',
+    );
+    final finalTitle = cleaned.trim();
+    return finalTitle.isEmpty ? trimmed : finalTitle;
   }
 }

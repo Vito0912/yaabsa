@@ -127,19 +127,34 @@ class QuickMatchPreviewActionRow extends StatelessWidget {
 }
 
 class QuickMatchPreviewLoading extends StatelessWidget {
-  const QuickMatchPreviewLoading({super.key});
+  const QuickMatchPreviewLoading({super.key, this.completed, this.total});
+
+  final int? completed;
+  final int? total;
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    final progressText = (completed != null && total != null)
+        ? 'Searching matches... ($completed/$total completed)'
+        : 'Searching matches...';
+    final progressPercent = (completed != null && total != null && total! > 0) ? (completed! / total!) : null;
+
+    return Center(
       child: Padding(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SizedBox(width: 26, height: 26, child: CircularProgressIndicator(strokeWidth: 2.4)),
-            SizedBox(height: 10),
-            Text('Searching best metadata matches...'),
+            if (progressPercent != null) ...[
+              SizedBox(
+                width: 200,
+                child: LinearProgressIndicator(value: progressPercent, borderRadius: BorderRadius.circular(4)),
+              ),
+            ] else ...[
+              const SizedBox(width: 26, height: 26, child: CircularProgressIndicator(strokeWidth: 2.4)),
+            ],
+            const SizedBox(height: 14),
+            Text(progressText),
           ],
         ),
       ),

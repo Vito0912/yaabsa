@@ -6,11 +6,12 @@ const quickMatchNotSetLabel = 'Not set';
 const quickMatchCoverPreviewSize = 92.0;
 
 class QuickMatchPreviewEntry {
-  const QuickMatchPreviewEntry({required this.item, this.result, this.error});
+  const QuickMatchPreviewEntry({required this.item, this.result, this.error, this.isLoading = false});
 
   final LibraryItem item;
   final ManualMatchResult? result;
   final String? error;
+  final bool isLoading;
 }
 
 class QuickMatchComparisonRow {

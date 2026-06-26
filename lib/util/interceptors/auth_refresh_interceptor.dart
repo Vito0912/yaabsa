@@ -22,7 +22,7 @@ class AuthRefreshInterceptor extends Interceptor {
   final OAuthInterceptor? oAuthInterceptor;
   final void Function(String userId)? onAuthFailed;
 
-  static Completer<User?>? _refreshCompleter;
+  static Completer<User?>? _globalRefreshCompleter;
 
   @override
   Future<void> onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
@@ -130,7 +130,7 @@ class AuthRefreshInterceptor extends Interceptor {
   }
 
   static Future<User?> refreshSession(ProviderContainer container, {void Function(String userId)? onAuthFailed}) async {
-    final inFlight = _refreshCompleter;
+    final inFlight = _globalRefreshCompleter;
     if (inFlight != null) {
       logger(
         'Auth token refresh already in progress. Waiting for it.',
@@ -147,7 +147,7 @@ class AuthRefreshInterceptor extends Interceptor {
     );
 
     final completer = Completer<User?>();
-    _refreshCompleter = completer;
+    _globalRefreshCompleter = completer;
 
     () async {
       String? activeUserId;
@@ -230,7 +230,7 @@ class AuthRefreshInterceptor extends Interceptor {
         }
         completer.complete(null);
       } finally {
-        _refreshCompleter = null;
+        _globalRefreshCompleter = null;
       }
     }();
 

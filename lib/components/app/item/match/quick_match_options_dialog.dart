@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/library_items/request/quick_match_library_item_options.dart';
 import 'package:yaabsa/api/search/search_provider_option.dart';
+import 'package:yaabsa/components/app/item/match/manual_match/manual_match_provider_dropdown.dart';
 import 'package:yaabsa/components/app/item/match/quick_match_preview_dialog.dart';
-import 'package:yaabsa/components/common/inputs/expressive_dropdown.dart';
 import 'package:yaabsa/provider/common/upload_providers.dart';
 
 Future<QuickMatchLibraryItemOptions?> showQuickMatchOptionsDialog({
@@ -62,46 +62,38 @@ class QuickMatchOptionsDialog extends ConsumerStatefulWidget {
 }
 
 class _QuickMatchOptionsDialogState extends ConsumerState<QuickMatchOptionsDialog> {
-  String? _provider;
+  final Set<String> _selectedProviders = <String>{};
   late bool _overrideCover;
   late bool _overrideDetails;
 
   @override
   void initState() {
     super.initState();
-    _provider = widget.initialProvider;
     _overrideCover = widget.initialOverrideCover;
     _overrideDetails = widget.initialOverrideDetails;
+    if (widget.initialProvider != null && widget.initialProvider!.trim().isNotEmpty) {
+      _selectedProviders.add(widget.initialProvider!);
+    }
   }
 
   void _syncProviderSelection(List<SearchProviderOption> providers) {
     if (providers.isEmpty) {
-      if (_provider != null) {
+      if (_selectedProviders.isNotEmpty) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) {
             return;
           }
           setState(() {
-            _provider = null;
+            _selectedProviders.clear();
           });
         });
       }
       return;
     }
 
-    final hasCurrentProvider = providers.any((provider) => provider.value == _provider);
-    if (hasCurrentProvider) {
-      return;
-    }
-
-    String? fallbackProvider;
-    final requestedInitial = widget.initialProvider?.trim();
-    if (requestedInitial != null && requestedInitial.isNotEmpty) {
-      fallbackProvider = _findMatchingProviderValue(providers, requestedInitial);
-    }
-    fallbackProvider ??= providers.first.value;
-
-    if (fallbackProvider == _provider) {
+    final validValues = providers.map((p) => p.value).toSet();
+    final effective = _selectedProviders.intersection(validValues);
+    if (effective.length == _selectedProviders.length && _selectedProviders.isNotEmpty) {
       return;
     }
 
@@ -110,7 +102,17 @@ class _QuickMatchOptionsDialogState extends ConsumerState<QuickMatchOptionsDialo
         return;
       }
       setState(() {
-        _provider = fallbackProvider;
+        _selectedProviders.clear();
+        _selectedProviders.addAll(effective);
+        if (_selectedProviders.isEmpty) {
+          final requestedInitial = widget.initialProvider?.trim();
+          String? fallback;
+          if (requestedInitial != null && requestedInitial.isNotEmpty) {
+            fallback = _findMatchingProviderValue(providers, requestedInitial);
+          }
+          fallback ??= providers.first.value;
+          _selectedProviders.add(fallback);
+        }
       });
     });
   }
@@ -132,8 +134,8 @@ class _QuickMatchOptionsDialogState extends ConsumerState<QuickMatchOptionsDialo
     final providers = providersAsync.asData?.value ?? const <SearchProviderOption>[];
     _syncProviderSelection(providers);
 
-    final canSubmit = providers.isNotEmpty && _provider != null;
-    final canPreview = canSubmit && widget.previewItems.isNotEmpty;
+    final canSubmit = _selectedProviders.length == 1;
+    final canPreview = _selectedProviders.isNotEmpty && widget.previewItems.isNotEmpty;
 
     return AlertDialog(
       title: Text(widget.title),
@@ -167,16 +169,13 @@ class _QuickMatchOptionsDialogState extends ConsumerState<QuickMatchOptionsDialo
                   return const Text('No metadata providers are available for this media type.');
                 }
 
-                return YaabsaExpressiveDropdownField<String>(
-                  key: ValueKey<String?>(_provider),
-                  value: _provider,
-                  decoration: const InputDecoration(labelText: 'Provider'),
-                  options: loadedProviders
-                      .map((provider) => YaabsaDropdownOption<String>(value: provider.value, label: provider.text))
-                      .toList(growable: false),
-                  onChanged: (value) {
+                return ManualMatchProviderDropdown(
+                  providers: loadedProviders,
+                  selectedProviderValues: _selectedProviders,
+                  onSelectionChanged: (values) {
                     setState(() {
-                      _provider = value;
+                      _selectedProviders.clear();
+                      _selectedProviders.addAll(values);
                     });
                   },
                 );
@@ -215,19 +214,11 @@ class _QuickMatchOptionsDialogState extends ConsumerState<QuickMatchOptionsDialo
                 OutlinedButton.icon(
                   onPressed: canPreview
                       ? () async {
-                          final providerValue = _provider;
-                          if (providerValue == null) {
-                            return;
-                          }
-
-                          final providerLabel = _providerLabel(providers, providerValue);
-
                           final applied = await showQuickMatchPreviewDialog(
                             context: context,
                             items: widget.previewItems,
                             mediaType: widget.mediaType,
-                            providerValue: providerValue,
-                            providerLabel: providerLabel,
+                            providerValues: _selectedProviders.toList(),
                             overrideCover: _overrideCover,
                             overrideDetails: _overrideDetails,
                           );
@@ -242,19 +233,24 @@ class _QuickMatchOptionsDialogState extends ConsumerState<QuickMatchOptionsDialo
                   icon: const Icon(Icons.preview_rounded),
                   label: const Text('Preview'),
                 ),
-                FilledButton(
-                  onPressed: canSubmit
-                      ? () {
-                          Navigator.of(context).pop(
-                            QuickMatchLibraryItemOptions(
-                              provider: _provider,
-                              overrideCover: _overrideCover,
-                              overrideDetails: _overrideDetails,
-                            ),
-                          );
-                        }
-                      : null,
-                  child: Text(widget.confirmLabel),
+                Tooltip(
+                  message: _selectedProviders.length > 1
+                      ? 'Quick match only supports a single provider. Use Preview to run multiple providers.'
+                      : '',
+                  child: FilledButton(
+                    onPressed: canSubmit
+                        ? () {
+                            Navigator.of(context).pop(
+                              QuickMatchLibraryItemOptions(
+                                provider: _selectedProviders.first,
+                                overrideCover: _overrideCover,
+                                overrideDetails: _overrideDetails,
+                              ),
+                            );
+                          }
+                        : null,
+                    child: Text(widget.confirmLabel),
+                  ),
                 ),
               ],
             ),
@@ -262,18 +258,5 @@ class _QuickMatchOptionsDialogState extends ConsumerState<QuickMatchOptionsDialo
         ),
       ),
     );
-  }
-
-  String _providerLabel(List<SearchProviderOption> providers, String providerValue) {
-    for (final provider in providers) {
-      if (provider.value != providerValue) {
-        continue;
-      }
-
-      final label = provider.text.trim();
-      return label.isEmpty ? providerValue : label;
-    }
-
-    return providerValue;
   }
 }

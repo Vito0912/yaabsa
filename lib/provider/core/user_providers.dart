@@ -120,6 +120,7 @@ Future<User?> _refreshCurrentUserFromServer({required AppDatabase db, required U
     dio: createNativeDio(
       options: BaseOptions(baseUrl: user.server!.url, headers: user.server!.headers),
     ),
+    interceptors: [OAuthInterceptor(), BearerAuthInterceptor(), AuthRefreshInterceptor(containerRef)],
     basePathOverride: user.server!.url,
   );
 
@@ -149,6 +150,21 @@ Future<User?> _refreshCurrentUserFromServer({required AppDatabase db, required U
     );
     // Check if 401 Unauthorized or 403 Forbidden
     if (e is DioException && (e.response?.statusCode == 401 || e.response?.statusCode == 403)) {
+      final latestUser = await db.getStoredUser(user.id);
+      final authHeader = e.requestOptions.headers['Authorization']?.toString();
+      final failedToken = authHeader != null && authHeader.startsWith('Bearer ')
+          ? authHeader.substring(7).trim()
+          : authHeader?.trim();
+
+      if (latestUser != null && latestUser.preferredAuthToken != failedToken) {
+        logger(
+          '${e.response?.statusCode} detected for stale token, but token has already been updated in database. Skipping refresh.',
+          tag: 'currentUserProvider',
+          level: InfoLevel.info,
+        );
+        return latestUser;
+      }
+
       logger(
         'checkLogin returned ${e.response?.statusCode}. Triggering shared refreshSession.',
         tag: 'currentUserProvider',

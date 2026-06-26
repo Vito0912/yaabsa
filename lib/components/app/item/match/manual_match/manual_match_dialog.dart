@@ -123,11 +123,15 @@ class LibraryItemManualMatchView extends ConsumerStatefulWidget {
     required this.item,
     required this.filterData,
     required this.isFullScreen,
+    this.onMatched,
+    this.onCancel,
   });
 
   final LibraryItem item;
   final LibraryFilterData? filterData;
   final bool isFullScreen;
+  final ValueChanged<bool>? onMatched;
+  final VoidCallback? onCancel;
 
   @override
   ConsumerState<LibraryItemManualMatchView> createState() => _LibraryItemManualMatchViewState();
@@ -409,7 +413,11 @@ class _LibraryItemManualMatchViewState extends ConsumerState<LibraryItemManualMa
 
       final message = updated ? 'Item metadata updated from manual match.' : 'No updates were necessary.';
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
-      Navigator.of(context).pop(updated);
+      if (widget.onMatched != null) {
+        widget.onMatched!(updated);
+      } else {
+        Navigator.of(context).pop(updated);
+      }
     } catch (error) {
       if (!mounted) {
         return;
@@ -1092,7 +1100,7 @@ class _LibraryItemManualMatchViewState extends ConsumerState<LibraryItemManualMa
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               TextButton(
-                onPressed: _saving ? null : () => Navigator.of(context).pop(false),
+                onPressed: _saving ? null : (widget.onCancel ?? () => Navigator.of(context).pop(false)),
                 child: const Text('Cancel'),
               ),
               const SizedBox(width: 8),
