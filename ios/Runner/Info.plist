@@ -95,5 +95,18 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>yaabsa</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>yaabsa</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

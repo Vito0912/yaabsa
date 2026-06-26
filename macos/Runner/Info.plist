@@ -45,5 +45,18 @@
 	<string>${PRODUCT_NAME} needs access to covers to add the possibility of uploading covers to the server.</string>
 	<key>ITSAppUsesNonExemptEncryption</key>  
 	<false/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>yaabsa</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>yaabsa</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

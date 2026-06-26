@@ -11,3 +11,4 @@ Categories=AudioVideo;Audio;Player;
 Keywords=ABS;Audiobookshelf;
 StartupNotify=true
 StartupWMClass=de.vito0912.yaabsa
+MimeType=x-scheme-handler/yaabsa;

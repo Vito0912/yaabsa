@@ -4,6 +4,7 @@ import 'package:yaabsa/api/routes/interceptors/bearer_auth_interceptor.dart';
 import 'package:yaabsa/api/routes/interceptors/o_auth_interceptor.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/database/settings_manager.dart';
+import 'package:yaabsa/provider/core/user_scope_invalidation.dart';
 import 'package:yaabsa/util/globals.dart' show containerRef;
 import 'package:yaabsa/util/interceptors/cache_interceptor.dart';
 import 'package:yaabsa/util/interceptors/auth_refresh_interceptor.dart';
@@ -97,6 +98,24 @@ bool _stringMapEquals(Map<String, dynamic>? a, Map<String, dynamic>? b) {
 }
 
 Future<User?> _refreshCurrentUserFromServer({required AppDatabase db, required User user}) async {
+  Future<void> onAuthFailed(String userId) async {
+    await db.deleteStoredUser(userId);
+    final remainingUsers = await db.getAllStoredUsers();
+    if (remainingUsers.isNotEmpty) {
+      await db.setActiveUserId(remainingUsers.first.id);
+    } else {
+      await db.clearActiveUserId();
+    }
+    containerRef.invalidate(allStoredUsersProvider);
+    containerRef.invalidate(currentUserProvider);
+    invalidateUserScopedProviders(containerRef);
+  }
+
+  if (user.preferredAuthToken != null && AuthRefreshInterceptor.isJwtExpired(user.preferredAuthToken!)) {
+    logger('Current user token is already expired. Refreshing session directly.', tag: 'currentUserProvider');
+    return AuthRefreshInterceptor.refreshSession(containerRef, onAuthFailed: onAuthFailed);
+  }
+
   ABSApi tmp = ABSApi(
     dio: createNativeDio(
       options: BaseOptions(baseUrl: user.server!.url, headers: user.server!.headers),
@@ -129,8 +148,8 @@ Future<User?> _refreshCurrentUserFromServer({required AppDatabase db, required U
       tag: 'currentUserProvider',
       level: InfoLevel.warning,
     );
-    // Check if 401 Unauthorized
-    if (e is DioException && e.response?.statusCode == 401) {
+    // Check if 401 Unauthorized or 403 Forbidden
+    if (e is DioException && (e.response?.statusCode == 401 || e.response?.statusCode == 403)) {
       final latestUser = await db.getStoredUser(user.id);
       final authHeader = e.requestOptions.headers['Authorization']?.toString();
       final failedToken = authHeader != null && authHeader.startsWith('Bearer ')
@@ -139,7 +158,7 @@ Future<User?> _refreshCurrentUserFromServer({required AppDatabase db, required U
 
       if (latestUser != null && latestUser.preferredAuthToken != failedToken) {
         logger(
-          '401 Unauthorized detected for stale token, but token has already been updated in database. Skipping user removal.',
+          '${e.response?.statusCode} detected for stale token, but token has already been updated in database. Skipping refresh.',
           tag: 'currentUserProvider',
           level: InfoLevel.info,
         );
@@ -147,18 +166,10 @@ Future<User?> _refreshCurrentUserFromServer({required AppDatabase db, required U
       }
 
       logger(
-        '401 Unauthorized and refresh unavailable/failed. Removing user ${user.username}.',
+        'checkLogin returned ${e.response?.statusCode}. Triggering shared refreshSession.',
         tag: 'currentUserProvider',
-        level: InfoLevel.warning,
       );
-
-      await db.deleteStoredUser(user.id);
-      final remainingUsers = await db.getAllStoredUsers();
-      if (remainingUsers.isNotEmpty) {
-        await db.setActiveUserId(remainingUsers.first.id);
-      } else {
-        await db.clearActiveUserId();
-      }
+      return AuthRefreshInterceptor.refreshSession(containerRef, onAuthFailed: onAuthFailed);
     }
 
     return null;
@@ -221,17 +232,37 @@ ABSApi? absApi(Ref ref) {
   }
   token = currentUser.preferredAuthToken;
 
+  final bearerInterceptor = BearerAuthInterceptor();
+  final oauthInterceptor = OAuthInterceptor();
+
   List<Interceptor> interceptors = [
-    BearerAuthInterceptor(),
-    OAuthInterceptor(),
-    AuthRefreshInterceptor(containerRef),
-    ABSInterceptor(containerRef),
+    bearerInterceptor,
+    oauthInterceptor,
     CacheInterceptor(
       containerRef,
       cachingEnabled: cacheSettings.cachingEnabled,
       boostLoading: cacheSettings.boostLoading,
       routeEnabledBySettingKey: cacheSettings.routeEnabledBySettingKey,
     ),
+    AuthRefreshInterceptor(
+      containerRef,
+      bearerAuthInterceptor: bearerInterceptor,
+      oAuthInterceptor: oauthInterceptor,
+      onAuthFailed: (userId) async {
+        final db = containerRef.read(appDatabaseProvider);
+        await db.deleteStoredUser(userId);
+        final remainingUsers = await db.getAllStoredUsers();
+        if (remainingUsers.isNotEmpty) {
+          await db.setActiveUserId(remainingUsers.first.id);
+        } else {
+          await db.clearActiveUserId();
+        }
+        containerRef.invalidate(allStoredUsersProvider);
+        containerRef.invalidate(currentUserProvider);
+        invalidateUserScopedProviders(containerRef);
+      },
+    ),
+    ABSInterceptor(containerRef),
   ];
 
   final api = ABSApi(

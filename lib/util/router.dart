@@ -62,12 +62,14 @@ import 'package:yaabsa/screens/settings/tools_settings.dart';
 import 'package:yaabsa/util/aaos_service.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/handler/tray_handler.dart';
+import 'package:yaabsa/util/logger.dart';
 
 const String _bootRoutePath = '/boot';
 
 class _ActiveUserIdNotifier extends ChangeNotifier {
   _ActiveUserIdNotifier() : _db = containerRef.read(appDatabaseProvider) {
     _subscription = _db.watchGlobalSetting('activeUserId').listen((setting) {
+      logger('[_ActiveUserIdNotifier] watchGlobalSetting emitted: ${setting?.value}', tag: 'Router');
       _updateState(setting?.value, initialized: true);
     });
     unawaited(_loadInitialValue());
@@ -96,10 +98,15 @@ class _ActiveUserIdNotifier extends ChangeNotifier {
 
   void _updateState(String? nextUserId, {required bool initialized}) {
     final changed = _activeUserId != nextUserId || _isInitialized != initialized;
+    logger(
+      '[_ActiveUserIdNotifier] _updateState: currentActiveUserId=$_activeUserId, nextActiveUserId=$nextUserId, currentInitialized=$_isInitialized, nextInitialized=$initialized, changed=$changed',
+      tag: 'Router',
+    );
     _activeUserId = nextUserId;
     _isInitialized = initialized;
 
     if (changed) {
+      logger('[_ActiveUserIdNotifier] calling notifyListeners()', tag: 'Router');
       notifyListeners();
     }
   }

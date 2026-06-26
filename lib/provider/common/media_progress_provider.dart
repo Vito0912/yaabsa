@@ -3,7 +3,6 @@ import 'dart:convert';
 
 import 'package:yaabsa/api/library_items/playback_session.dart';
 import 'package:yaabsa/api/me/media_progress.dart';
-import 'package:yaabsa/api/routes/me_api.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/logger.dart';
@@ -21,14 +20,6 @@ String mediaProgressKey(String libraryItemId, [String? episodeId]) {
 
 @Riverpod(keepAlive: true)
 class MediaProgressNotifier extends _$MediaProgressNotifier {
-  MeApi _getMeApiOrThrow() {
-    final absApi = ref.watch(absApiProvider);
-    if (absApi == null) {
-      throw Exception('User not authenticated or ABS API not available for MediaProgressNotifier.');
-    }
-    return absApi.getMeApi();
-  }
-
   String _progressKey(String libraryItemId, [String? episodeId]) {
     return mediaProgressKey(libraryItemId, episodeId);
   }
@@ -230,8 +221,18 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
     final localMap = await _loadLocalProgressMap(userId: userId);
     state = AsyncData(localMap);
 
+    final absApi = ref.watch(absApiProvider);
+    if (absApi == null) {
+      logger(
+        'ABSApi is not available yet. Skipping remote progress fetch.',
+        tag: 'MediaProgressProvider',
+        level: InfoLevel.debug,
+      );
+      return localMap;
+    }
+
     try {
-      final meApi = _getMeApiOrThrow();
+      final meApi = absApi.getMeApi();
       final userResponse = await meApi.getUser();
       final user = userResponse.data;
       if (user == null) {
@@ -264,8 +265,19 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
     final localMap = await _loadLocalProgressMap(userId: userId);
     final baseMap = _mergeProgressMaps(previousMap, localMap);
 
+    final absApi = ref.read(absApiProvider);
+    if (absApi == null) {
+      logger(
+        'ABSApi is not available yet. Skipping remote refresh.',
+        tag: 'MediaProgressProvider',
+        level: InfoLevel.debug,
+      );
+      state = AsyncData(baseMap);
+      return;
+    }
+
     try {
-      final meApi = _getMeApiOrThrow();
+      final meApi = absApi.getMeApi();
       final userResponse = await meApi.getUser();
       final user = userResponse.data;
       if (user == null) {
@@ -301,8 +313,18 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
       }
     }
 
+    final absApi = ref.read(absApiProvider);
+    if (absApi == null) {
+      logger(
+        'ABSApi is not available yet. Skipping remote individual progress fetch for $libraryItemId.',
+        tag: 'MediaProgressProvider',
+        level: InfoLevel.debug,
+      );
+      return localProgress;
+    }
+
     try {
-      final meApi = _getMeApiOrThrow();
+      final meApi = absApi.getMeApi();
       final response = await meApi.getProgress(libraryItemId, episodeId: episodeId);
       final remoteProgress = response.data;
 
