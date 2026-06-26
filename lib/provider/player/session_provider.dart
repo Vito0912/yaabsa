@@ -103,6 +103,8 @@ class SessionRepository {
   }
 
   Future<InternalMedia?> openSession(String itemId, {String? episodeId, bool forceDirectPlay = false}) async {
+    await ref.read(currentUserProvider.future);
+
     final ABSApi? api = ref.read(absApiProvider);
     final AppDatabase db = ref.read(appDatabaseProvider);
     final String? userId = _activeUserId;

@@ -21,11 +21,13 @@ object WidgetMediaSessionObserver {
         override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
             val context = appContext ?: return
             WidgetUpdateDispatcher.updatePlayerWidgets(context)
+            WidgetUpdateDispatcher.updateQuickPlayWidgets(context)
         }
 
         override fun onMetadataChanged(metadata: android.support.v4.media.MediaMetadataCompat?) {
             val context = appContext ?: return
             WidgetUpdateDispatcher.updatePlayerWidgets(context)
+            WidgetUpdateDispatcher.updateQuickPlayWidgets(context)
         }
 
         override fun onSessionDestroyed() {

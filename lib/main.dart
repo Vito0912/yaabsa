@@ -25,9 +25,8 @@ Future<void> _resumeLastPlayedOnStartup() async {
   try {
     await containerRef.read(currentUserProvider.future);
     await audioHandler.playLastPlayedIfEnabledOnStartup();
-    await audioHandler.restoreLastPlayedMiniPlayerIfEnabled();
   } catch (e, s) {
-    logger('Startup last-played resume failed: $e\\n$s', tag: 'Main', level: InfoLevel.warning);
+    logger('Startup last-played resume failed: $e\n$s', tag: 'Main', level: InfoLevel.warning);
   }
 }
 
@@ -67,6 +66,7 @@ void main() {
       containerRef.read(oidcStateProvider.notifier).initializeDeepLinkListener();
       Init.initLogger();
       audioHandler = await Init.initAudioHandler();
+      unawaited(audioHandler.restoreLastPlayedMiniPlayerIfEnabled());
       await AaosService.instance.initialize();
       TrayManager.update();
 

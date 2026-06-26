@@ -78,6 +78,7 @@ class PersonalizedView extends HookConsumerWidget {
               libraryId: selectedLibrary.id,
               libraryName: selectedLibrary.name,
               personalizedLibrary: personalizedLibrary,
+              api: ref.read(absApiProvider),
               isDarkMode: isDarkMode,
             );
 

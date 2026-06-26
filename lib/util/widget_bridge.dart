@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
 import 'package:yaabsa/api/library/personalized_library.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
+import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/util/logger.dart';
 
 const String _widgetChannelName = 'de.vito0912.yaabsa/widget';
@@ -119,6 +120,7 @@ class WidgetBridge {
     required String libraryId,
     String? libraryName,
     required PersonalizedLibrary personalizedLibrary,
+    required ABSApi? api,
     int maxItemsPerShelf = 12,
     bool? isDarkMode,
   }) async {
@@ -136,6 +138,7 @@ class WidgetBridge {
       libraryId: libraryId,
       libraryName: libraryName,
       personalizedLibrary: personalizedLibrary,
+      api: api,
       maxItemsPerShelf: maxItemsPerShelf,
     );
 
@@ -158,6 +161,7 @@ class WidgetBridge {
     required String libraryId,
     String? libraryName,
     required PersonalizedLibrary personalizedLibrary,
+    required ABSApi? api,
     int maxItemsPerShelf = 12,
   }) {
     final snapshots = <_WidgetShelfSnapshot>[];
@@ -169,12 +173,19 @@ class WidgetBridge {
 
       final items = <Map<String, dynamic>>[];
       for (final item in shelf.entities.take(maxItemsPerShelf)) {
+        final coverUrl = api?.getLibraryItemApi().getCoverUri(item.id, item: item).toString();
+        final coverAuthToken = api?.token;
+
         final itemData = <String, dynamic>{
           'id': item.id,
           'title': item.title,
           'subtitle': item.subtitle,
           'author': item.authorString,
           'mediaId': 'aa/play/item/${Uri.encodeComponent(item.id)}',
+          // ignore: use_null_aware_elements
+          if (coverUrl != null) 'coverUrl': coverUrl,
+          // ignore: use_null_aware_elements
+          if (coverAuthToken != null) 'coverAuthToken': coverAuthToken,
         };
 
         items.add(itemData);
