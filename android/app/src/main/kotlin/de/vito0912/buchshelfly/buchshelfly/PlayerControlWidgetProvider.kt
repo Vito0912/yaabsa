@@ -5,8 +5,10 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.view.View
 import android.widget.RemoteViews
+import java.io.File
 
 class PlayerControlWidgetProvider : AppWidgetProvider() {
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
@@ -33,8 +35,12 @@ class PlayerControlWidgetProvider : AppWidgetProvider() {
             action == WidgetMediaBridge.ACTION_PLAYER_FAST_FORWARD ||
             action == WidgetMediaBridge.ACTION_PLAYER_STOP
         ) {
+            if (action == WidgetMediaBridge.ACTION_PLAYER_TOGGLE) {
+                WidgetStorage.setPlaybackLoading(context, true)
+                WidgetUpdateDispatcher.updatePlayerWidgets(context)
+                WidgetUpdateDispatcher.updateQuickPlayWidgets(context)
+            }
             WidgetMediaBridge.performTransportAction(context, action)
-            WidgetUpdateDispatcher.updatePlayerWidgets(context)
         }
     }
 
@@ -46,35 +52,82 @@ class PlayerControlWidgetProvider : AppWidgetProvider() {
                 return
             }
 
+            val persistedQuickPlayState = WidgetStorage.readQuickPlayState(context)
+            val initialPlaybackLoading = WidgetStorage.isPlaybackLoading(context)
+
             for (appWidgetId in appWidgetIds) {
                 val hideSkipControls = isNarrowWidget(manager, appWidgetId)
                 val initialViews = baseViews(context, appWidgetId, hideSkipControls)
-                initialViews.setTextViewText(R.id.widget_player_title, "Loading player...")
-                initialViews.setTextViewText(R.id.widget_player_subtitle, "")
+
+                if (persistedQuickPlayState != null) {
+                    initialViews.setTextViewText(R.id.widget_player_title, persistedQuickPlayState.title)
+                    initialViews.setTextViewText(
+                        R.id.widget_player_subtitle,
+                        if (initialPlaybackLoading) "Loading playback..." else (persistedQuickPlayState.subtitle ?: "")
+                    )
+                } else {
+                    initialViews.setTextViewText(
+                        R.id.widget_player_title,
+                        if (initialPlaybackLoading) "Loading playback..." else "Open app to start playback"
+                    )
+                    initialViews.setTextViewText(R.id.widget_player_subtitle, "")
+                }
                 initialViews.setImageViewResource(R.id.widget_player_artwork, R.drawable.ic_launcher_foreground)
                 initialViews.setImageViewResource(R.id.widget_player_toggle, R.drawable.widget_play_arrow)
+                initialViews.setViewVisibility(R.id.widget_player_toggle, if (initialPlaybackLoading) View.GONE else View.VISIBLE)
+                initialViews.setViewVisibility(R.id.widget_player_progress, if (initialPlaybackLoading) View.VISIBLE else View.GONE)
+
                 WidgetThemeStyler.applyPlayer(context, initialViews)
                 manager.updateAppWidget(appWidgetId, initialViews)
+                loadPersistedCoverIfAvailable(context, manager, appWidgetId, persistedQuickPlayState)
             }
 
             WidgetMediaBridge.requestNowPlaying(context) { state ->
+                if (state != null && state.isPlaying) {
+                    WidgetStorage.setPlaybackLoading(context, false)
+                }
+
                 if (state != null) {
-                    WidgetStorage.saveQuickPlayState(context, state.title, state.subtitle)
+                    WidgetStorage.saveQuickPlayState(
+                        context = context,
+                        title = state.title,
+                        subtitle = state.subtitle,
+                        artwork = state.artwork
+                    )
                     WidgetUpdateDispatcher.updateQuickPlayWidgets(context)
                 }
+
+                val quickPlayState = WidgetStorage.readQuickPlayState(context)
+                val isPlaybackLoading = WidgetStorage.isPlaybackLoading(context)
 
                 for (appWidgetId in appWidgetIds) {
                     val hideSkipControls = isNarrowWidget(manager, appWidgetId)
                     val views = baseViews(context, appWidgetId, hideSkipControls)
 
                     if (state == null) {
-                        views.setTextViewText(R.id.widget_player_title, "Open app to start playback")
-                        views.setTextViewText(R.id.widget_player_subtitle, "")
-                        views.setImageViewResource(R.id.widget_player_artwork, R.drawable.ic_launcher_foreground)
-                        views.setImageViewResource(R.id.widget_player_toggle, R.drawable.widget_play_arrow)
+                        if (quickPlayState != null) {
+                            views.setTextViewText(R.id.widget_player_title, quickPlayState.title)
+                            views.setTextViewText(
+                                R.id.widget_player_subtitle,
+                                if (isPlaybackLoading) "Loading playback..." else (quickPlayState.subtitle ?: "")
+                            )
+                            views.setImageViewResource(R.id.widget_player_artwork, R.drawable.ic_launcher_foreground)
+                            views.setImageViewResource(R.id.widget_player_toggle, R.drawable.widget_play_arrow)
+                        } else {
+                            views.setTextViewText(
+                                R.id.widget_player_title,
+                                if (isPlaybackLoading) "Loading playback..." else "Open app to start playback"
+                            )
+                            views.setTextViewText(R.id.widget_player_subtitle, "")
+                            views.setImageViewResource(R.id.widget_player_artwork, R.drawable.ic_launcher_foreground)
+                            views.setImageViewResource(R.id.widget_player_toggle, R.drawable.widget_play_arrow)
+                        }
                     } else {
                         views.setTextViewText(R.id.widget_player_title, state.title)
-                        views.setTextViewText(R.id.widget_player_subtitle, state.subtitle ?: "")
+                        views.setTextViewText(
+                            R.id.widget_player_subtitle,
+                            if (isPlaybackLoading && !state.isPlaying) "Loading playback..." else (state.subtitle ?: "")
+                        )
                         if (state.artwork != null) {
                             views.setImageViewBitmap(R.id.widget_player_artwork, state.artwork)
                         } else {
@@ -86,9 +139,53 @@ class PlayerControlWidgetProvider : AppWidgetProvider() {
                         )
                     }
 
-                    WidgetThemeStyler.applyPlayer(context, views)
+                    val showLoading = isPlaybackLoading && (state == null || !state.isPlaying)
+                    views.setViewVisibility(R.id.widget_player_toggle, if (showLoading) View.GONE else View.VISIBLE)
+                    views.setViewVisibility(R.id.widget_player_progress, if (showLoading) View.VISIBLE else View.GONE)
 
+                    WidgetThemeStyler.applyPlayer(context, views)
                     manager.updateAppWidget(appWidgetId, views)
+
+                    if (state == null) {
+                        loadPersistedCoverIfAvailable(context, manager, appWidgetId, quickPlayState)
+                    }
+                }
+            }
+        }
+
+        private fun loadPersistedCoverIfAvailable(
+            context: Context,
+            manager: AppWidgetManager,
+            appWidgetId: Int,
+            quickPlayState: WidgetStorage.QuickPlayState?
+        ) {
+            val artworkPath = quickPlayState?.artworkPath
+            if (!artworkPath.isNullOrBlank()) {
+                val file = File(artworkPath)
+                if (file.exists()) {
+                    try {
+                        val bitmap = BitmapFactory.decodeFile(artworkPath)
+                        if (bitmap != null) {
+                            val partialUpdate = RemoteViews(context.packageName, R.layout.widget_player_control)
+                            partialUpdate.setImageViewBitmap(R.id.widget_player_artwork, bitmap)
+                            manager.partiallyUpdateAppWidget(appWidgetId, partialUpdate)
+                            return
+                        }
+                    } catch (_: Exception) {
+                    }
+                }
+            }
+
+            val coverUrl = quickPlayState?.coverUrl
+            if (coverUrl.isNullOrBlank()) {
+                return
+            }
+
+            WidgetCoverLoader.loadCover(coverUrl, quickPlayState.coverAuthToken) { bitmap ->
+                if (bitmap != null) {
+                    val partialUpdate = RemoteViews(context.packageName, R.layout.widget_player_control)
+                    partialUpdate.setImageViewBitmap(R.id.widget_player_artwork, bitmap)
+                    manager.partiallyUpdateAppWidget(appWidgetId, partialUpdate)
                 }
             }
         }

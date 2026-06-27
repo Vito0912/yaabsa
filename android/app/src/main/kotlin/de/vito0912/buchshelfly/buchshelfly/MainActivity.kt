@@ -8,6 +8,7 @@ import android.os.Handler
 import android.os.Looper
 import androidx.documentfile.provider.DocumentFile
 import com.ryanheise.audioservice.AudioServiceActivity
+import com.ryanheise.audioservice.AudioServicePlugin
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -21,13 +22,22 @@ class MainActivity : AudioServiceActivity() {
 		private const val AAOS_MEDIA_TEMPLATE_ACTION = "android.car.intent.action.MEDIA_TEMPLATE"
 		private const val AAOS_MEDIA_TEMPLATE_V2_ACTION = "androidx.car.app.mediaextensions.action.MEDIA_TEMPLATE_V2"
 		private const val AAOS_MEDIA_COMPONENT_EXTRA = "android.car.intent.extra.MEDIA_COMPONENT"
-		private const val WIDGET_COMMAND_DELAY_MS = 700L
+		private const val WIDGET_COMMAND_DELAY_MS = 100L
 	}
 
 	private val widgetCommandHandler = Handler(Looper.getMainLooper())
 
 	private fun isWidgetSupportEnabled(): Boolean {
 		return WidgetRuntimeSupport.isWidgetSupportEnabled(applicationContext)
+	}
+
+	override fun shouldDestroyEngineWithHost(): Boolean {
+		return false
+	}
+
+	override fun getCachedEngineId(): String? {
+		AudioServicePlugin.getFlutterEngine(applicationContext)
+		return AudioServicePlugin.getFlutterEngineId()
 	}
 
 	private var aaosChannel: MethodChannel? = null

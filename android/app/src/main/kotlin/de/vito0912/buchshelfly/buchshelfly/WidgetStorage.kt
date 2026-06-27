@@ -2,9 +2,12 @@ package de.vito0912.yaabsa
 
 import android.content.Context
 import android.content.res.Configuration
+import android.graphics.Bitmap
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
+import java.io.File
+import java.io.FileOutputStream
 
 object WidgetStorage {
     private const val PREFS_NAME = "widget_bridge_preferences"
@@ -54,7 +57,8 @@ object WidgetStorage {
         val title: String,
         val subtitle: String?,
         val coverUrl: String?,
-        val coverAuthToken: String?
+        val coverAuthToken: String?,
+        val artworkPath: String?
     )
 
     private fun prefs(context: Context) =
@@ -303,11 +307,13 @@ object WidgetStorage {
                 val subtitle = json.optString("subtitle").trim().takeIf { it.isNotEmpty() }
                 val coverUrl = json.optString("coverUrl").trim().takeIf { it.isNotEmpty() }
                 val coverAuthToken = json.optString("coverAuthToken").trim().takeIf { it.isNotEmpty() }
+                val artworkPath = json.optString("artworkPath").trim().takeIf { it.isNotEmpty() }
                 QuickPlayState(
                     title = title,
                     subtitle = subtitle,
                     coverUrl = coverUrl,
-                    coverAuthToken = coverAuthToken
+                    coverAuthToken = coverAuthToken,
+                    artworkPath = artworkPath
                 )
             }
         } catch (_: JSONException) {
@@ -320,10 +326,12 @@ object WidgetStorage {
         title: String,
         subtitle: String?,
         coverUrl: String? = null,
-        coverAuthToken: String? = null
+        coverAuthToken: String? = null,
+        artworkPath: String? = null,
+        artwork: Bitmap? = null
     ) {
         val normalizedTitle = title.trim()
-        if (normalizedTitle.isEmpty()) {
+        if (normalizedTitle.isEmpty() || normalizedTitle == "Nothing playing" || normalizedTitle == "Loading player..." || normalizedTitle == "Open app to start playback") {
             return
         }
 
@@ -337,16 +345,42 @@ object WidgetStorage {
             ?.trim()
             .takeUnless { it.isNullOrEmpty() }
 
+        val existing = readQuickPlayState(context)
+        val titleMatches = existing?.title == normalizedTitle
+
+        var finalArtworkPath = artworkPath?.trim()?.takeIf { it.isNotEmpty() }
+        if (artwork != null) {
+            val cacheDir = context.applicationContext.cacheDir
+            val artworkFile = File(cacheDir, "quick_play_artwork.png")
+            try {
+                FileOutputStream(artworkFile).use { out ->
+                    artwork.compress(Bitmap.CompressFormat.PNG, 100, out)
+                }
+                finalArtworkPath = artworkFile.absolutePath
+            } catch (_: Exception) {
+            }
+        }
+
+        val finalCoverUrl = normalizedCoverUrl
+            ?: if (titleMatches) existing?.coverUrl else null
+        val finalCoverAuthToken = normalizedCoverAuthToken
+            ?: if (titleMatches) existing?.coverAuthToken else null
+        val finalArtworkPathResolved = finalArtworkPath
+            ?: if (titleMatches) existing?.artworkPath else null
+
         val payload = JSONObject().apply {
             put("title", normalizedTitle)
             if (!normalizedSubtitle.isNullOrBlank()) {
                 put("subtitle", normalizedSubtitle)
             }
-            if (!normalizedCoverUrl.isNullOrBlank()) {
-                put("coverUrl", normalizedCoverUrl)
+            if (!finalCoverUrl.isNullOrBlank()) {
+                put("coverUrl", finalCoverUrl)
             }
-            if (!normalizedCoverAuthToken.isNullOrBlank()) {
-                put("coverAuthToken", normalizedCoverAuthToken)
+            if (!finalCoverAuthToken.isNullOrBlank()) {
+                put("coverAuthToken", finalCoverAuthToken)
+            }
+            if (!finalArtworkPathResolved.isNullOrBlank()) {
+                put("artworkPath", finalArtworkPathResolved)
             }
             put("updatedAt", System.currentTimeMillis())
         }
@@ -445,6 +479,28 @@ object WidgetStorage {
     private fun isSystemInDarkMode(context: Context): Boolean {
         val nightModeMask = context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
         return nightModeMask == Configuration.UI_MODE_NIGHT_YES
+    }
+
+    private const val KEY_PLAYBACK_LOADING_TIMESTAMP = "playback_loading_timestamp"
+
+    fun setPlaybackLoading(context: Context, loading: Boolean) {
+        prefs(context)
+            .edit()
+            .putLong(KEY_PLAYBACK_LOADING_TIMESTAMP, if (loading) System.currentTimeMillis() else 0L)
+            .apply()
+    }
+
+    fun isPlaybackLoading(context: Context): Boolean {
+        val timestamp = prefs(context).getLong(KEY_PLAYBACK_LOADING_TIMESTAMP, 0L)
+        if (timestamp == 0L) {
+            return false
+        }
+        val elapsed = System.currentTimeMillis() - timestamp
+        if (elapsed > 8000L) {
+            setPlaybackLoading(context, false)
+            return false
+        }
+        return true
     }
 
     private fun saveQuickPlayStateFromSnapshotItems(context: Context, items: JSONArray) {

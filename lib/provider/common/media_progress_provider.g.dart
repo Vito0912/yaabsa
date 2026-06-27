@@ -33,7 +33,7 @@ final class MediaProgressNotifierProvider
   MediaProgressNotifier create() => MediaProgressNotifier();
 }
 
-String _$mediaProgressNotifierHash() => r'300e7de1f71fd05a3d70267c3d5315ae902b7799';
+String _$mediaProgressNotifierHash() => r'9765a35ee5e971cd53723ac04bc1e3a551382e5f';
 
 abstract class _$MediaProgressNotifier extends $AsyncNotifier<Map<String, MediaProgress>> {
   FutureOr<Map<String, MediaProgress>> build();

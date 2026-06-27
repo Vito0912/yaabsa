@@ -221,7 +221,11 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
     final localMap = await _loadLocalProgressMap(userId: userId);
     state = AsyncData(localMap);
 
-    final absApi = ref.watch(absApiProvider);
+    ref.listen(absApiProvider, (previous, next) {
+      Future.microtask(() => ref.invalidateSelf());
+    });
+
+    final absApi = ref.read(absApiProvider);
     if (absApi == null) {
       logger(
         'ABSApi is not available yet. Skipping remote progress fetch.',

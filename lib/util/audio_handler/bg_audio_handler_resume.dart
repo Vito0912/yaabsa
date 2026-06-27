@@ -173,7 +173,12 @@ extension _BGAudioHandlerResume on BGAudioHandler {
   }
 
   Future<QueueItem?> _readLastPlayedQueueItemForActiveUser({String? explicitUserId}) async {
-    final userId = explicitUserId ?? _activeUserId;
+    var userId = explicitUserId ?? _activeUserId;
+    if (userId == null || userId.isEmpty) {
+      try {
+        userId = (await _ref.read(appDatabaseProvider).getGlobalSetting('activeUserId'))?.value.trim();
+      } catch (_) {}
+    }
     if (userId == null || userId.isEmpty) {
       return null;
     }
@@ -184,7 +189,12 @@ extension _BGAudioHandlerResume on BGAudioHandler {
   }
 
   Future<String?> _readLastPlayedMiniPlayerSnapshotRawForActiveUser({String? explicitUserId}) async {
-    final userId = explicitUserId ?? _activeUserId;
+    var userId = explicitUserId ?? _activeUserId;
+    if (userId == null || userId.isEmpty) {
+      try {
+        userId = (await _ref.read(appDatabaseProvider).getGlobalSetting('activeUserId'))?.value.trim();
+      } catch (_) {}
+    }
     if (userId == null || userId.isEmpty) {
       return null;
     }
@@ -364,7 +374,12 @@ extension _BGAudioHandlerResume on BGAudioHandler {
   }
 
   Future<void> _persistLastPlayedQueueItem({required String itemId, String? episodeId}) async {
-    final userId = _ref.read(currentUserProvider).value?.id;
+    var userId = _ref.read(currentUserProvider).value?.id;
+    if (userId == null || userId.isEmpty) {
+      try {
+        userId = (await _ref.read(appDatabaseProvider).getGlobalSetting('activeUserId'))?.value.trim();
+      } catch (_) {}
+    }
     if (userId == null || userId.isEmpty) {
       return;
     }
@@ -384,7 +399,12 @@ extension _BGAudioHandlerResume on BGAudioHandler {
   }
 
   Future<void> _persistLastPlayedMiniPlayerSnapshot(InternalMedia mediaItem) async {
-    final userId = _activeUserId;
+    var userId = _activeUserId;
+    if (userId == null || userId.isEmpty) {
+      try {
+        userId = (await _ref.read(appDatabaseProvider).getGlobalSetting('activeUserId'))?.value.trim();
+      } catch (_) {}
+    }
     if (userId == null || userId.isEmpty) {
       return;
     }

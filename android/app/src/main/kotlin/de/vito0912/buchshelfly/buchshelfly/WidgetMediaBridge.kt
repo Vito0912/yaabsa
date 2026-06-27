@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
@@ -53,14 +55,18 @@ object WidgetMediaBridge {
                     ?: metadata?.getBitmap(MediaMetadataCompat.METADATA_KEY_ART)
                     ?: metadata?.getBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART)
 
-                onResult(
-                    NowPlayingState(
-                        title = title,
-                        subtitle = subtitle,
-                        isPlaying = isPlaying,
-                        artwork = artwork
+                if (title == "Nothing playing" || title.isEmpty()) {
+                    onResult(null)
+                } else {
+                    onResult(
+                        NowPlayingState(
+                            title = title,
+                            subtitle = subtitle,
+                            isPlaying = isPlaying,
+                            artwork = artwork
+                        )
                     )
-                )
+                }
             },
             onUnavailable = {
                 onResult(null)
@@ -69,13 +75,33 @@ object WidgetMediaBridge {
     }
 
     fun performTransportAction(context: Context, action: String, allowLaunchFallback: Boolean = true) {
+        performTransportActionWithRetry(context, action, allowLaunchFallback, retryCount = 0)
+    }
+
+    private fun performTransportActionWithRetry(
+        context: Context,
+        action: String,
+        allowLaunchFallback: Boolean,
+        retryCount: Int
+    ) {
         withMediaController(
             context = context,
             onConnected = { controller ->
+                val state = controller.playbackState
+                if ((state == null || state.state == PlaybackStateCompat.STATE_NONE) && retryCount < 10) {
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        performTransportActionWithRetry(context, action, allowLaunchFallback = false, retryCount = retryCount + 1)
+                    }, 500L)
+                    return@withMediaController
+                }
+
                 val controls = controller.transportControls
                 when (action) {
                     ACTION_PLAYER_TOGGLE -> {
-                        if (controller.playbackState.isPlaying) {
+                        if (state != null && state.isPlaying) {
+                            WidgetStorage.setPlaybackLoading(context, false)
+                            WidgetUpdateDispatcher.updatePlayerWidgets(context)
+                            WidgetUpdateDispatcher.updateQuickPlayWidgets(context)
                             controls.pause()
                         } else {
                             controls.play()
@@ -91,9 +117,13 @@ object WidgetMediaBridge {
                 }
             },
             onUnavailable = {
-                if (action == ACTION_QUICK_PLAY) {
+                if (action == ACTION_QUICK_PLAY || action == ACTION_PLAYER_TOGGLE) {
                     if (allowLaunchFallback) {
                         launchAppForQuickPlay(context)
+                    } else if (retryCount < 10) {
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            performTransportActionWithRetry(context, action, allowLaunchFallback = false, retryCount = retryCount + 1)
+                        }, 500L)
                     }
                     return@withMediaController
                 }
@@ -104,16 +134,38 @@ object WidgetMediaBridge {
     }
 
     fun playFromMediaId(context: Context, mediaId: String, allowLaunchFallback: Boolean = true) {
+        playFromMediaIdWithRetry(context, mediaId, allowLaunchFallback, retryCount = 0)
+    }
+
+    private fun playFromMediaIdWithRetry(
+        context: Context,
+        mediaId: String,
+        allowLaunchFallback: Boolean,
+        retryCount: Int
+    ) {
         withMediaController(
             context = context,
             onConnected = { controller ->
+                val state = controller.playbackState
+                if ((state == null || state.state == PlaybackStateCompat.STATE_NONE) && retryCount < 10) {
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        playFromMediaIdWithRetry(context, mediaId, allowLaunchFallback = false, retryCount = retryCount + 1)
+                    }, 500L)
+                    return@withMediaController
+                }
+
                 controller.transportControls.playFromMediaId(mediaId, Bundle.EMPTY)
             },
             onUnavailable = {
                 if (allowLaunchFallback) {
                     launchAppForMediaId(context, mediaId)
+                } else if (retryCount < 10) {
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        playFromMediaIdWithRetry(context, mediaId, allowLaunchFallback = false, retryCount = retryCount + 1)
+                    }, 500L)
+                } else {
+                    fallbackAction(context, ACTION_PLAYER_TOGGLE)
                 }
-                fallbackAction(context, ACTION_PLAYER_TOGGLE)
             }
         )
     }
