@@ -231,6 +231,13 @@ jobs:
       - name: Build Android Auto debug APK
         run: flutter build apk --flavor auto --debug
 
+      - name: Upload Android Auto APK
+        uses: actions/upload-artifact@v7
+        with:
+          name: android-auto-debug-apk
+          path: build/app/outputs/flutter-apk/*.apk
+          retention-days: 1
+
   build-android-automotive:
     runs-on: ubuntu-latest
     needs: [detect-targets, check-requirements]
@@ -265,6 +272,13 @@ jobs:
 
       - name: Build Android Automotive debug APK
         run: flutter build apk --flavor automotive --debug
+        
+      - name: Upload Android Automotive APK
+        uses: actions/upload-artifact@v7
+        with:
+          name: android-automotive-debug-apk
+          path: build/app/outputs/flutter-apk/*.apk
+          retention-days: 1
 
   build-ios:
     runs-on: macos-26

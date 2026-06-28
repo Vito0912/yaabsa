@@ -1117,13 +1117,23 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     final disableHeaderProxy = kIsWeb || Platform.isAndroid || Platform.isLinux;
     if (!kIsWeb && Platform.isAndroid) {
       _loudnessEnhancer = AndroidLoudnessEnhancer();
-      _equalizer = AndroidEqualizer();
-      final pipeline = AudioPipeline(androidAudioEffects: [_loudnessEnhancer!, _equalizer!]);
-      _player = AudioPlayer(
-        audioPipeline: pipeline,
-        audioLoadConfiguration: loadCfg,
-        useProxyForRequestHeaders: !disableHeaderProxy,
-      );
+      final equalizerEnabled = settingManager.getGlobalSetting<bool>(SettingKeys.equalizerEnabled, defaultValue: false);
+      if (equalizerEnabled) {
+        _equalizer = AndroidEqualizer();
+        final pipeline = AudioPipeline(androidAudioEffects: [_loudnessEnhancer!, _equalizer!]);
+        _player = AudioPlayer(
+          audioPipeline: pipeline,
+          audioLoadConfiguration: loadCfg,
+          useProxyForRequestHeaders: !disableHeaderProxy,
+        );
+      } else {
+        final pipeline = AudioPipeline(androidAudioEffects: [_loudnessEnhancer!]);
+        _player = AudioPlayer(
+          audioPipeline: pipeline,
+          audioLoadConfiguration: loadCfg,
+          useProxyForRequestHeaders: !disableHeaderProxy,
+        );
+      }
     } else {
       _player = AudioPlayer(audioLoadConfiguration: loadCfg, useProxyForRequestHeaders: !disableHeaderProxy);
     }

@@ -36,9 +36,11 @@ class MainActivity : AudioServiceActivity() {
 	}
 
 	override fun getCachedEngineId(): String? {
-		AudioServicePlugin.getFlutterEngine(applicationContext)
-		return AudioServicePlugin.getFlutterEngineId()
+		val engineId = AudioServicePlugin.getFlutterEngineId()
+		val hasEngine = io.flutter.embedding.engine.FlutterEngineCache.getInstance().contains(engineId)
+		return if (hasEngine) engineId else null
 	}
+
 
 	private var aaosChannel: MethodChannel? = null
 	private var pendingAaosOpenSettings = false
@@ -461,4 +463,22 @@ class MainActivity : AudioServiceActivity() {
 			else -> null
 		}
 	}
+
+	override fun onDestroy() {
+		val isServiceRunning = try {
+			val serviceClass = Class.forName("com.ryanheise.audioservice.AudioService")
+			val instanceField = serviceClass.getDeclaredField("instance")
+			instanceField.isAccessible = true
+			instanceField.get(null) != null
+		} catch (e: Exception) {
+			false
+		}
+
+		if (!isServiceRunning) {
+			AudioServicePlugin.disposeFlutterEngine()
+		}
+
+		super.onDestroy()
+	}
 }
+
