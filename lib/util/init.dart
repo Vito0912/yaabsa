@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
@@ -15,9 +14,6 @@ import 'package:path/path.dart' as p;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:yaabsa/database/connection/cache_db.dart' show openCacheDatabase;
 import 'package:audio_service_mpris/audio_service_mpris.dart';
-import 'package:just_audio/just_audio.dart';
-import 'package:yaabsa/database/settings_manager.dart';
-import 'package:yaabsa/util/setting_key.dart';
 
 import 'logger.dart';
 
@@ -143,71 +139,6 @@ class Init {
 
   static Future<BGAudioHandler> initAudioHandler() async {
     if (_audioHandler != null) return _audioHandler!;
-
-    if (!kIsWeb && Platform.isAndroid) {
-      final cache = containerRef.read(settingsCacheProvider);
-      final equalizerSupportedSettingStr = cache.get<String>(SettingKeys.equalizerSupported);
-
-      if (equalizerSupportedSettingStr == null) {
-        final settingsManager = containerRef.read(settingsManagerProvider.notifier);
-        logger('Probing equalizer support...', tag: 'Init', level: InfoLevel.info);
-        bool isSupported = true;
-        AudioPlayer? probePlayer;
-        StreamSubscription? errorSub;
-        try {
-          final probeEqualizer = AndroidEqualizer();
-          final probePipeline = AudioPipeline(androidAudioEffects: [probeEqualizer]);
-          probePlayer = AudioPlayer(audioPipeline: probePipeline);
-
-          final errorCompleter = Completer<void>();
-          errorSub = probePlayer.playbackEventStream.listen(
-            (event) {},
-            onError: (err) {
-              if (err.toString().contains('Cannot initialize effect engine') || err.toString().contains('Equalizer')) {
-                isSupported = false;
-                if (!errorCompleter.isCompleted) errorCompleter.complete();
-              }
-            },
-          );
-
-          await probePlayer.setAudioSource(
-            AudioSource.uri(
-              Uri.parse('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA'),
-            ),
-            preload: true,
-          );
-          await probePlayer.play();
-
-          await Future.any([
-            probePlayer.androidAudioSessionIdStream.firstWhere((id) => id != null),
-            errorCompleter.future,
-            Future.delayed(const Duration(milliseconds: 500)),
-          ]).timeout(const Duration(seconds: 2));
-        } catch (e) {
-          logger(
-            'Equalizer probe failed: $e. Marking equalizer as unsupported.',
-            tag: 'Init',
-            level: InfoLevel.warning,
-          );
-          isSupported = false;
-        } finally {
-          await errorSub?.cancel();
-          if (probePlayer != null) {
-            try {
-              await probePlayer.dispose();
-            } catch (e) {
-              logger('Failed to dispose probe player: $e', tag: 'Init', level: InfoLevel.warning);
-            }
-          }
-        }
-
-        logger('Equalizer support probe result: $isSupported', tag: 'Init', level: InfoLevel.info);
-        await settingsManager.setGlobalSetting<bool>(SettingKeys.equalizerSupported, isSupported);
-        if (!isSupported) {
-          await settingsManager.setGlobalSetting<bool>(SettingKeys.equalizerEnabled, false);
-        }
-      }
-    }
 
     if (!kIsWeb && Platform.isLinux) {
       AudioServiceMpris.registerWith();
