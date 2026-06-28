@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
@@ -152,21 +153,36 @@ class Init {
         logger('Probing equalizer support...', tag: 'Init', level: InfoLevel.info);
         bool isSupported = true;
         AudioPlayer? probePlayer;
+        StreamSubscription? errorSub;
         try {
           final probeEqualizer = AndroidEqualizer();
           final probePipeline = AudioPipeline(androidAudioEffects: [probeEqualizer]);
           probePlayer = AudioPlayer(audioPipeline: probePipeline);
 
-          await probePlayer
-              .setAudioSource(
-                AudioSource.uri(
-                  Uri.parse('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA'),
-                ),
-                preload: true,
-              )
-              .timeout(const Duration(seconds: 2));
+          final errorCompleter = Completer<void>();
+          errorSub = probePlayer.playbackEventStream.listen(
+            (event) {},
+            onError: (err) {
+              if (err.toString().contains('Cannot initialize effect engine') || err.toString().contains('Equalizer')) {
+                isSupported = false;
+                if (!errorCompleter.isCompleted) errorCompleter.complete();
+              }
+            },
+          );
 
-          logger('Equalizer probe: success. Equalizer is supported.', tag: 'Init', level: InfoLevel.info);
+          await probePlayer.setAudioSource(
+            AudioSource.uri(
+              Uri.parse('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA'),
+            ),
+            preload: true,
+          );
+          await probePlayer.play();
+
+          await Future.any([
+            probePlayer.androidAudioSessionIdStream.firstWhere((id) => id != null),
+            errorCompleter.future,
+            Future.delayed(const Duration(milliseconds: 500)),
+          ]).timeout(const Duration(seconds: 2));
         } catch (e) {
           logger(
             'Equalizer probe failed: $e. Marking equalizer as unsupported.',
@@ -175,6 +191,7 @@ class Init {
           );
           isSupported = false;
         } finally {
+          await errorSub?.cancel();
           if (probePlayer != null) {
             try {
               await probePlayer.dispose();
@@ -184,7 +201,11 @@ class Init {
           }
         }
 
+        logger('Equalizer support probe result: $isSupported', tag: 'Init', level: InfoLevel.info);
         await settingsManager.setGlobalSetting<bool>(SettingKeys.equalizerSupported, isSupported);
+        if (!isSupported) {
+          await settingsManager.setGlobalSetting<bool>(SettingKeys.equalizerEnabled, false);
+        }
       }
     }
 

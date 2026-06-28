@@ -232,7 +232,7 @@ jobs:
         run: flutter build apk --flavor auto --debug
 
       - name: Upload Android Auto APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: android-auto-debug-apk
           path: build/app/outputs/flutter-apk/*.apk
