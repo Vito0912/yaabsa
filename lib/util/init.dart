@@ -14,6 +14,9 @@ import 'package:path/path.dart' as p;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:yaabsa/database/connection/cache_db.dart' show openCacheDatabase;
 import 'package:audio_service_mpris/audio_service_mpris.dart';
+import 'package:just_audio/just_audio.dart';
+import 'package:yaabsa/database/settings_manager.dart';
+import 'package:yaabsa/util/setting_key.dart';
 
 import 'logger.dart';
 
@@ -139,6 +142,51 @@ class Init {
 
   static Future<BGAudioHandler> initAudioHandler() async {
     if (_audioHandler != null) return _audioHandler!;
+
+    if (!kIsWeb && Platform.isAndroid) {
+      final cache = containerRef.read(settingsCacheProvider);
+      final equalizerSupportedSettingStr = cache.get<String>(SettingKeys.equalizerSupported);
+
+      if (equalizerSupportedSettingStr == null) {
+        final settingsManager = containerRef.read(settingsManagerProvider.notifier);
+        logger('Probing equalizer support...', tag: 'Init', level: InfoLevel.info);
+        bool isSupported = true;
+        AudioPlayer? probePlayer;
+        try {
+          final probeEqualizer = AndroidEqualizer();
+          final probePipeline = AudioPipeline(androidAudioEffects: [probeEqualizer]);
+          probePlayer = AudioPlayer(audioPipeline: probePipeline);
+
+          await probePlayer
+              .setAudioSource(
+                AudioSource.uri(
+                  Uri.parse('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA'),
+                ),
+                preload: true,
+              )
+              .timeout(const Duration(seconds: 2));
+
+          logger('Equalizer probe: success. Equalizer is supported.', tag: 'Init', level: InfoLevel.info);
+        } catch (e) {
+          logger(
+            'Equalizer probe failed: $e. Marking equalizer as unsupported.',
+            tag: 'Init',
+            level: InfoLevel.warning,
+          );
+          isSupported = false;
+        } finally {
+          if (probePlayer != null) {
+            try {
+              await probePlayer.dispose();
+            } catch (e) {
+              logger('Failed to dispose probe player: $e', tag: 'Init', level: InfoLevel.warning);
+            }
+          }
+        }
+
+        await settingsManager.setGlobalSetting<bool>(SettingKeys.equalizerSupported, isSupported);
+      }
+    }
 
     if (!kIsWeb && Platform.isLinux) {
       AudioServiceMpris.registerWith();

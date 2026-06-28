@@ -98,6 +98,7 @@ class SettingKeys {
   static const String equalizerEnabled = 'equalizer_enabled';
   static const String equalizerPreset = 'equalizer_preset';
   static const String equalizerBandGains = 'equalizer_band_gains';
+  static const String equalizerSupported = 'equalizer_supported';
   static const String playerSeekBarMode = 'player_seek_bar_mode';
   static const String playerSeekBarMarkerMode = 'player_seek_bar_marker_mode';
   static const String playerSeekBarShowChapterMarkers = 'player_seek_bar_show_chapter_markers';
