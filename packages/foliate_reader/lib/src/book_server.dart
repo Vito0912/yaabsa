@@ -2,9 +2,9 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 
 class BookServer {
-  final File? bookFile;
-  final String? bookUrl;
-  final Map<String, String>? headers;
+  File? bookFile;
+  String? bookUrl;
+  Map<String, String>? headers;
   HttpServer? _server;
 
   BookServer({this.bookFile, this.bookUrl, this.headers});

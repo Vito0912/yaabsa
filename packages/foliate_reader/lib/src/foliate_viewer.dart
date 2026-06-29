@@ -222,6 +222,11 @@ class _FoliateViewerState extends State<FoliateViewer> {
         _isBookLoaded = false;
         _webViewProgress = 0;
       });
+      _server?.bookUrl = widget.bookUrl;
+      _server?.bookFile = widget.bookFile;
+    }
+    if (oldWidget.headers != widget.headers) {
+      _server?.headers = widget.headers;
     }
     if (oldWidget.flow != widget.flow) {
       widget.controller?.setFlow(widget.flow);
