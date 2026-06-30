@@ -12,6 +12,7 @@
 - [ ] iOS
 - [ ] macOS
 - [ ] Android Automotive
+- [ ] Wear OS
 
 ## Additional Notes
 

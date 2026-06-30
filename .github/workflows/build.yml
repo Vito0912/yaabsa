@@ -634,6 +634,24 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
+      - name: Build Wear OS appbundle
+        run: |
+          flutter build appbundle --flavor wear --release -t lib/main_wear.dart
+        env:
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          STORE_FILE: ${{ secrets.STORE_FILE }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+
+      - name: Build Wear OS apk
+        run: |
+          flutter build apk --flavor wear --release --split-per-abi -t lib/main_wear.dart
+        env:
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          STORE_FILE: ${{ secrets.STORE_FILE }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+
       - name: Rename Android artifacts
         shell: bash
         env:
@@ -644,6 +662,7 @@ jobs:
 
           mkdir -p output/android/auto
           mkdir -p output/android/aaos
+          mkdir -p output/android/wear
 
           auto_bundle_candidates=(build/app/outputs/bundle/autoRelease/*.aab)
           if [[ ${#auto_bundle_candidates[@]} -eq 0 ]]; then
@@ -683,6 +702,25 @@ jobs:
             cp "$apk" "output/android/aaos/yaabsa_AAOS_${platform}_${FILE_VERSION}.apk"
           done
 
+          wear_bundle_candidates=(build/app/outputs/bundle/wearRelease/*.aab)
+          if [[ ${#wear_bundle_candidates[@]} -eq 0 ]]; then
+            echo "Wear OS app bundle not found."
+            exit 1
+          fi
+          cp "${wear_bundle_candidates[0]}" "output/android/wear/yaabsa_wearos_${FILE_VERSION}.aab"
+
+          wear_apk_candidates=(build/app/outputs/flutter-apk/*wear-release*.apk)
+          if [[ ${#wear_apk_candidates[@]} -eq 0 ]]; then
+            echo "Wear OS APK artifacts not found."
+            exit 1
+          fi
+          for apk in "${wear_apk_candidates[@]}"; do
+            base_name="$(basename "$apk")"
+            platform="${base_name#app-wear-}"
+            platform="${platform%-release.apk}"
+            cp "$apk" "output/android/wear/yaabsa_wearos_${platform}_${FILE_VERSION}.apk"
+          done
+
       - name: Upload Android appbundle artifact
         uses: actions/upload-artifact@v7
         with:
@@ -706,6 +744,18 @@ jobs:
         with:
           name: android-automotive-apk
           path: output/android/aaos/*.apk
+
+      - name: Upload Wear OS appbundle artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: android-wear-appbundle
+          path: output/android/wear/*.aab
+
+      - name: Upload Wear OS apk artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: android-wear-apk
+          path: output/android/wear/*.apk
 
       - name: Clean up
         if: always()

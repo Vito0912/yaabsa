@@ -1147,7 +1147,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       }
     });
 
-    _syncService = PlaybackSyncService(this, _ref);
+    _syncService = PlaybackSyncService(_ref, playerStateStream: playerControlStateStream, position: () => position);
     _playerStateSubscription = _player.playerStateStream.listen((PlayerState state) async {
       if (_isDisposing) return;
       logger(state.toString(), tag: 'AudioHandler', level: InfoLevel.debug);

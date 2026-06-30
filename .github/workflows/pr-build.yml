@@ -24,6 +24,7 @@ jobs:
       windows: ${{ steps.parse.outputs.windows }}
       android_auto: ${{ steps.parse.outputs.android_auto }}
       android_automotive: ${{ steps.parse.outputs.android_automotive }}
+      android_wear: ${{ steps.parse.outputs.android_wear }}
       ios: ${{ steps.parse.outputs.ios }}
       macos: ${{ steps.parse.outputs.macos }}
       any: ${{ steps.parse.outputs.any }}
@@ -52,6 +53,7 @@ jobs:
               'ios': 'iOS',
               'macos': 'macOS',
               'android_automotive': 'Android Automotive',
+              'android_wear': 'Wear OS',
           }
 
           label_to_key = {label.casefold(): key for key, label in expected_labels.items()}
@@ -279,6 +281,41 @@ jobs:
           name: android-automotive-debug-apk
           path: build/app/outputs/flutter-apk/*.apk
           retention-days: 1
+
+  build-android-wear:
+    runs-on: ubuntu-latest
+    needs: [detect-targets, check-requirements]
+    if: ${{ needs.detect-targets.outputs.android_wear == 'true' }}
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Post Get
+        uses: ./.github/actions/post-get
+        with:
+          flow: pr-build-android-wear
+
+      - name: Build Wear OS debug APK
+        run: flutter build apk --flavor wear --debug -t lib/main_wear.dart
 
   build-ios:
     runs-on: macos-26
