@@ -763,7 +763,7 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
           children: [
             SafeArea(
               top: true,
-              bottom: false,
+              bottom: true,
               left: true,
               right: false,
               child: LayoutHomeSidebar(
@@ -775,37 +775,43 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
               ),
             ),
             Expanded(
-              child: Column(
-                children: [
-                  if (multiSelectAppBarState != null)
-                    LayoutHomeMultiSelectAppBar(
-                      state: multiSelectAppBarState,
-                      showSidebarToggle: true,
-                      isSidebarCollapsed: isSidebarCollapsed,
-                      onSidebarToggle: () => _setSidebarCollapsed(!isSidebarCollapsed),
-                    )
-                  else
-                    LayoutHomeNonMobileAppBar(
-                      isTablet: isTablet,
-                      isSidebarCollapsed: isSidebarCollapsed,
-                      searchController: _searchController,
-                      searchQuery: _searchQuery,
-                      onSearchChanged: _onSearchChanged,
-                      onSearchSubmitted: _submitSearch,
-                      onClearSearch: _clearSearch,
-                      onSidebarToggle: () => _setSidebarCollapsed(!isSidebarCollapsed),
-                      showUploadButton: canUpload,
-                      onUploadPressed: canUpload ? _openOrCloseUploadPage : null,
+              child: SafeArea(
+                top: false,
+                bottom: true,
+                left: false,
+                right: true,
+                child: Column(
+                  children: [
+                    if (multiSelectAppBarState != null)
+                      LayoutHomeMultiSelectAppBar(
+                        state: multiSelectAppBarState,
+                        showSidebarToggle: true,
+                        isSidebarCollapsed: isSidebarCollapsed,
+                        onSidebarToggle: () => _setSidebarCollapsed(!isSidebarCollapsed),
+                      )
+                    else
+                      LayoutHomeNonMobileAppBar(
+                        isTablet: isTablet,
+                        isSidebarCollapsed: isSidebarCollapsed,
+                        searchController: _searchController,
+                        searchQuery: _searchQuery,
+                        onSearchChanged: _onSearchChanged,
+                        onSearchSubmitted: _submitSearch,
+                        onClearSearch: _clearSearch,
+                        onSidebarToggle: () => _setSidebarCollapsed(!isSidebarCollapsed),
+                        showUploadButton: canUpload,
+                        onUploadPressed: canUpload ? _openOrCloseUploadPage : null,
+                      ),
+                    Expanded(
+                      child: Column(
+                        children: [
+                          Expanded(child: currentContent),
+                          const PlayBar(),
+                        ],
+                      ),
                     ),
-                  Expanded(
-                    child: Column(
-                      children: [
-                        Expanded(child: currentContent),
-                        const PlayBar(),
-                      ],
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],
