@@ -7,15 +7,18 @@ import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/core/server_reachability_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/player/session_provider.dart';
-import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 
+/// Periodically syncs the open playback session while audio is playing and
+/// flushes a final sync when playback pauses or stops. Player-agnostic: it
+/// only needs a control-state stream and a way to read the current position
+/// on the item's global timeline.
 class PlaybackSyncService {
-  final BGAudioHandler _handler;
   final ProviderContainer _ref;
+  final Duration Function() _position;
   Timer? _syncTimer;
   StreamSubscription<PlayerState>? _playerStateSubscription;
   Future<void> _syncQueue = Future<void>.value();
@@ -26,12 +29,16 @@ class PlaybackSyncService {
 
   DateTime? _currentSegmentStartTime;
 
-  PlaybackSyncService(this._handler, this._ref) {
+  PlaybackSyncService(
+    this._ref, {
+    required Stream<PlayerState> playerStateStream,
+    required Duration Function() position,
+  }) : _position = position {
     _currentSegmentStartTime = null;
 
     logger('PlaybackSyncService initialized', tag: 'PlaybackSyncService', level: InfoLevel.debug);
 
-    _playerStateSubscription = _handler.playerControlStateStream.listen((playerState) {
+    _playerStateSubscription = playerStateStream.listen((playerState) {
       final bool isEffectivelyPlaying = playerState.playing && playerState.processingState == ProcessingState.ready;
 
       if (isEffectivelyPlaying) {
@@ -103,7 +110,7 @@ class PlaybackSyncService {
       return false;
     }
 
-    final Duration currentPositionDuration = positionOverride ?? _handler.position;
+    final Duration currentPositionDuration = positionOverride ?? _position();
     final double currentPositionSeconds = currentPositionDuration.inMicroseconds / Duration.microsecondsPerSecond;
     double listenedTime = 0;
 
