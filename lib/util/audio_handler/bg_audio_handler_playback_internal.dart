@@ -210,7 +210,7 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
     );
 
     if (restoreProgress && !skipResumeProgressReconcile && !isCastControlActive) {
-      unawaited(_reconcileResumeProgressInBackground(resumeItem));
+      unawaited(_reconcileResumeProgressInBackground(resumeItem, startPosition));
     } else if (restoreProgress && skipResumeProgressReconcile) {
       logger(
         'Resume progress reconcile skipped because playback position was manually changed while paused.',
@@ -226,12 +226,22 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
     );
   }
 
-  Future<void> _reconcileResumeProgressInBackground(InternalMedia resumeItem) async {
+  Future<void> _reconcileResumeProgressInBackground(InternalMedia resumeItem, Duration startPosition) async {
     final activeUserId = _ref.read(currentUserProvider).value?.id;
     final isMusic = _ref
         .read(settingsManagerProvider.notifier)
         .getUserSetting<bool>(activeUserId, 'music_library_${resumeItem.libraryId}', defaultValue: false);
     if (isMusic) {
+      return;
+    }
+
+    final canReachServer = _ref.read(serverReachabilityProvider);
+    if (!canReachServer) {
+      logger(
+        'Server is unreachable, skipping background resume progress reconcile.',
+        tag: 'AudioHandler',
+        level: InfoLevel.debug,
+      );
       return;
     }
 
@@ -270,12 +280,11 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
       final remotePosition = progress.isFinished
           ? Duration.zero
           : Duration(microseconds: (progress.currentTime * Duration.microsecondsPerSecond).round());
-      final currentAbsolutePosition = position;
-      final positionDrift = (remotePosition - currentAbsolutePosition).abs();
+      final positionDrift = (remotePosition - startPosition).abs();
 
       logger(
         'Background resume reconcile for item: ${resumeItem.itemId} (${resumeItem.episodeId ?? 'item'}), '
-        'current position: $currentAbsolutePosition, remote position: $remotePosition, drift: $positionDrift',
+        'start position: $startPosition, remote position: $remotePosition, drift: $positionDrift',
         tag: 'AudioHandler',
         level: InfoLevel.debug,
       );
@@ -286,7 +295,7 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
 
       logger(
         'Background resume reconcile detected position drift of $positionDrift. '
-        'Seeking from $currentAbsolutePosition to $remotePosition',
+        'Seeking from start position $startPosition to remote position $remotePosition',
         tag: 'AudioHandler',
         level: InfoLevel.info,
       );
