@@ -4,6 +4,7 @@ import 'package:yaabsa/components/app/upload/library_upload_panel.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/screens/automotive/aaos_settings_scaffold.dart';
 import 'package:yaabsa/screens/main/downloads.dart';
+import 'package:yaabsa/components/common/loading_view.dart';
 import 'package:yaabsa/screens/main/collection_view.dart';
 import 'package:yaabsa/screens/main/authors_view.dart';
 import 'package:yaabsa/screens/layout_home/layout_home_app_bars.dart';
@@ -826,10 +827,6 @@ class _LayoutHomeStartupScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Center(child: const SizedBox(width: 28, height: 28, child: CircularProgressIndicator(strokeWidth: 2.6))),
-      ),
-    );
+    return const Scaffold(body: SafeArea(child: LoadingView(alwaysShowDownloadsShortcut: true)));
   }
 }

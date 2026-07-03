@@ -86,6 +86,11 @@ class PlayerSettingsGeneral extends ConsumerWidget {
               subtitle: 'Each book remembers its own speed and new books start with your last used speed',
               settingKey: SettingKeys.playbackSpeedPerBook,
             ),
+            const SettingSwitchTile(
+              label: 'Show skip buttons instead of jump buttons',
+              subtitle: 'Show skip next/previous instead of fast forward/rewind',
+              settingKey: SettingKeys.showSkipInsteadOfFastForward,
+            ),
             if (isAndroid)
               const SettingSwitchTile(
                 label: 'Skip silence',

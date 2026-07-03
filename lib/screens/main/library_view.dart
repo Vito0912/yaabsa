@@ -7,6 +7,7 @@ import 'package:yaabsa/components/app/library/library_items_grid.dart';
 import 'package:yaabsa/components/app/library/library_multi_select_host.dart';
 import 'package:yaabsa/components/common/connection_issue_view.dart';
 import 'package:yaabsa/components/common/scroll_to_top_button.dart';
+import 'package:yaabsa/components/common/loading_view.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/common/library_filter_data_provider.dart';
@@ -170,7 +171,7 @@ class LibraryView extends HookConsumerWidget {
               },
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const LoadingView(),
           error: (err, stack) {
             if (!serverReachable) {
               return ConnectionIssueView.offline(

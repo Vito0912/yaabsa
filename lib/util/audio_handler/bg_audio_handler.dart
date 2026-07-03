@@ -93,6 +93,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   late final StreamSubscription<String?> _showLastPlayedMiniPlayerSettingSubscription;
   late final StreamSubscription<String?> _mediaNotificationTypeSubscription;
   late final StreamSubscription<String?> _mediaNotificationPagesSubscription;
+  late final StreamSubscription<String?> _showSkipInsteadOfFastForwardSubscription;
   int _currentNotificationPageIndex = 0;
   List<List<String>> _notificationPages = const [
     ['rewind', 'fastForward', 'speed', 'stop'],
@@ -1088,6 +1089,16 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           unawaited(_updatePlaybackState());
         });
 
+    _showSkipInsteadOfFastForwardSubscription = _ref
+        .read(appDatabaseProvider)
+        .watchGlobalSetting(SettingKeys.showSkipInsteadOfFastForward)
+        .map((setting) => setting?.value.trim())
+        .distinct()
+        .listen((_) {
+          if (_isDisposing) return;
+          unawaited(_updatePlaybackState());
+        });
+
     final settingManager = _ref.read(settingsManagerProvider.notifier);
     final bufferSize = settingManager.getGlobalSetting<int>(SettingKeys.bufferSize);
 
@@ -1384,10 +1395,28 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           ? _notificationPages[_currentNotificationPageIndex]
           : const <String>[];
 
+      final chaptersExist =
+          _currentMediaItem != null && _currentMediaItem!.chapters != null && _currentMediaItem!.chapters!.isNotEmpty;
+      final queueExists = queueList.isNotEmpty;
+      final hasChaptersOrQueue = chaptersExist || queueExists;
+
+      final showSkipInsteadOfFastForward = _ref
+          .read(settingsManagerProvider.notifier)
+          .getGlobalSetting<bool>(SettingKeys.showSkipInsteadOfFastForward, defaultValue: false);
+
       for (final action in currentPageActions) {
         if (controls.length >= 4) break;
 
-        switch (action) {
+        var resolvedAction = action;
+        if (showSkipInsteadOfFastForward && !hasChaptersOrQueue) {
+          if (action == 'skipToPrevious') {
+            resolvedAction = 'rewind';
+          } else if (action == 'skipToNext') {
+            resolvedAction = 'fastForward';
+          }
+        }
+
+        switch (resolvedAction) {
           case 'rewind':
             controls.add(
               MediaControl.custom(
@@ -1557,6 +1586,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     await _showLastPlayedMiniPlayerSettingSubscription.cancel();
     await _mediaNotificationTypeSubscription.cancel();
     await _mediaNotificationPagesSubscription.cancel();
+    await _showSkipInsteadOfFastForwardSubscription.cancel();
     await _chapterSubscription?.cancel();
     await _skipSilenceSubscription?.cancel();
     _skipSilenceSubscription = null;

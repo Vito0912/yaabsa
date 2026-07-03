@@ -13,6 +13,7 @@ import 'package:yaabsa/components/common/author_grid_card.dart';
 import 'package:yaabsa/components/common/connection_issue_view.dart';
 import 'package:yaabsa/components/common/cover_loading_placeholder.dart';
 import 'package:yaabsa/components/common/scroll_to_top_button.dart';
+import 'package:yaabsa/components/common/loading_view.dart';
 import 'package:yaabsa/provider/common/library_author_provider.dart';
 import 'package:yaabsa/provider/common/library_filter_data_provider.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
@@ -144,7 +145,7 @@ class AuthorsView extends HookConsumerWidget {
           ],
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const LoadingView(),
       error: (error, stackTrace) {
         if (!serverReachable) {
           return ConnectionIssueView.offline(

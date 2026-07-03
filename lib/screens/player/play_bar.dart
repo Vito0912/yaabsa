@@ -1,29 +1,33 @@
 import 'dart:io' show File;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/components/common/cover_placeholder.dart';
 import 'package:yaabsa/components/player/common/chapter_text.dart';
 import 'package:yaabsa/components/player/common/control_button.dart';
 import 'package:yaabsa/components/player/common/jump_button.dart';
 import 'package:yaabsa/components/player/common/seek_bar.dart';
+import 'package:yaabsa/components/player/common/skip_button.dart';
 import 'package:yaabsa/components/player/common/stop_button.dart';
 import 'package:yaabsa/screens/player/play_bar_idle_content.dart';
 import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
+import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/models/internal_media.dart';
+import 'package:yaabsa/util/setting_key.dart';
 import 'package:yaabsa/util/globals.dart';
 
-class PlayBar extends StatefulWidget {
+class PlayBar extends ConsumerStatefulWidget {
   const PlayBar({super.key, this.includeBottomSafeArea = true, this.attachedToBottom = false});
 
   final bool includeBottomSafeArea;
   final bool attachedToBottom;
 
   @override
-  State<PlayBar> createState() => _PlayBarState();
+  ConsumerState<PlayBar> createState() => _PlayBarState();
 }
 
-class _PlayBarState extends State<PlayBar> {
+class _PlayBarState extends ConsumerState<PlayBar> {
   static const double _mobileCoverSize = 44;
   static const double _mobileCoverRadius = 6;
   static const double _desktopCoverWidth = 62;
@@ -67,28 +71,55 @@ class _PlayBarState extends State<PlayBar> {
   }
 
   Widget _buildControlsAndSeekBar({Widget? leading}) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Row(
-          children: [
-            if (leading != null) ...[Padding(padding: const EdgeInsets.only(right: 8), child: leading)],
-            const JumpButton(rewind: true),
-            const ControlButton(),
-            const JumpButton(rewind: false),
-            const SizedBox(width: 6),
-            const Expanded(child: ChapterText()),
-            const StopButton(),
-          ],
-        ),
-        const SizedBox(height: 4),
-        MouseRegion(
-          onEnter: (_) => _setSeekBarHovered(true),
-          onExit: (_) => _setSeekBarHovered(false),
-          child: const SeekBar(),
-        ),
-      ],
+    final showSkipInsteadOfFastForwardAsync = ref.watch(
+      globalSettingByKeyProvider(SettingKeys.showSkipInsteadOfFastForward),
+    );
+    final showSkipInsteadOfFastForward = showSkipInsteadOfFastForwardAsync.value == 'true';
+
+    return StreamBuilder<InternalMedia?>(
+      stream: audioHandler.mediaItemStream,
+      initialData: audioHandler.currentMediaItem,
+      builder: (context, mediaSnapshot) {
+        final currentMedia = mediaSnapshot.data;
+        final chaptersExist =
+            currentMedia != null && currentMedia.chapters != null && currentMedia.chapters!.isNotEmpty;
+
+        return StreamBuilder<PlayerQueueSnapshot>(
+          stream: audioHandler.queueSnapshotStream,
+          initialData: audioHandler.queueSnapshot,
+          builder: (context, queueSnapshot) {
+            final queueExists = queueSnapshot.data?.entries.isNotEmpty == true;
+            final hasChaptersOrQueue = chaptersExist || queueExists;
+            final useSkip = showSkipInsteadOfFastForward && hasChaptersOrQueue;
+
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    if (leading != null) ...[Padding(padding: const EdgeInsets.only(right: 8), child: leading)],
+                    if (useSkip) ...const [
+                      SkipButton(previous: true),
+                      ControlButton(),
+                      SkipButton(previous: false),
+                    ] else ...const [JumpButton(rewind: true), ControlButton(), JumpButton(rewind: false)],
+                    const SizedBox(width: 6),
+                    const Expanded(child: ChapterText()),
+                    const StopButton(),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                MouseRegion(
+                  onEnter: (_) => _setSeekBarHovered(true),
+                  onExit: (_) => _setSeekBarHovered(false),
+                  child: const SeekBar(),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 

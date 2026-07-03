@@ -17,6 +17,7 @@ import 'package:yaabsa/components/common/author_card.dart';
 import 'package:yaabsa/components/common/library_item_widget.dart';
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
 import 'package:yaabsa/components/common/scroll_to_top_button.dart';
+import 'package:yaabsa/components/common/loading_view.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/common/library_filter_data_provider.dart';
@@ -264,7 +265,7 @@ class PersonalizedView extends HookConsumerWidget {
           },
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const LoadingView(),
       error: (error, stackTrace) {
         final title = serverReachable ? 'Could not load personalized shelf' : 'Server connection unavailable';
         final message = serverReachable
