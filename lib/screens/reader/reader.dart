@@ -109,6 +109,7 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
   double? _pendingSyncProgress;
   DateTime? _lastProgressSyncTime;
   Timer? _progressSyncTimer;
+  Timer? _systemUiTimer;
   Future<void>? _progressSyncChain;
   String? _lastSyncedEpubCfi;
 
@@ -172,9 +173,25 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
     setState(update);
   }
 
+  void _startSystemUiTimer() {
+    _systemUiTimer?.cancel();
+    _systemUiTimer = Timer(const Duration(seconds: 5), () {
+      if (mounted && _isSystemUiVisible) {
+        _readerSetState(() {
+          _isSystemUiVisible = false;
+        });
+      }
+    });
+  }
+
   void _toggleSystemUi() {
     _readerSetState(() {
       _isSystemUiVisible = !_isSystemUiVisible;
+      if (_isSystemUiVisible) {
+        _startSystemUiTimer();
+      } else {
+        _systemUiTimer?.cancel();
+      }
     });
   }
 
@@ -380,6 +397,15 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
 
   Future<void> _initTts() async {
     _flutterTts = FlutterTts();
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      await _flutterTts!.setSharedInstance(true);
+      await _flutterTts!.setIosAudioCategory(IosTextToSpeechAudioCategory.playback, [
+        IosTextToSpeechAudioCategoryOptions.allowBluetooth,
+        IosTextToSpeechAudioCategoryOptions.allowBluetoothA2DP,
+        IosTextToSpeechAudioCategoryOptions.mixWithOthers,
+        IosTextToSpeechAudioCategoryOptions.defaultToSpeaker,
+      ], IosTextToSpeechAudioMode.defaultMode);
+    }
     await _applyTtsSettings();
     await _flutterTts!.setVolume(1.0);
     await _flutterTts!.setPitch(1.0);
@@ -568,6 +594,7 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
     unawaited(epubController.close());
     _stopTts();
     _annotationsSyncDebounce?.cancel();
+    _systemUiTimer?.cancel();
     super.dispose();
   }
 
