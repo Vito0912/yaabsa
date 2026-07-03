@@ -390,9 +390,24 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
 
     if (isVoiceSupported && voice.isNotEmpty) {
       try {
-        await _flutterTts!.setVoice({"name": voice, "locale": lang});
+        final dynamic rawVoices = await _flutterTts!.getVoices;
+        bool voiceExists = false;
+        if (rawVoices is List) {
+          for (final v in rawVoices) {
+            if (v is Map && v['name'] == voice) {
+              voiceExists = true;
+              break;
+            }
+          }
+        }
+        if (voiceExists) {
+          await _flutterTts!.setVoice({"name": voice, "locale": lang});
+        }
       } catch (_) {}
     }
+
+    await _flutterTts!.setVolume(1.0);
+    await _flutterTts!.setPitch(1.0);
   }
 
   Future<void> _initTts() async {
