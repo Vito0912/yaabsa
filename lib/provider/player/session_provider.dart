@@ -275,7 +275,6 @@ class SessionRepository {
       return result;
     } catch (e) {
       logger('Failed to sync open session', tag: 'SessionRepository', level: InfoLevel.warning);
-      print('Error details: $e');
       final MediaProgress? updatedProgress = await ref
           .read(mediaProgressProvider.notifier)
           .updateMediaProgress(_currentSession!.libraryItemId, currentTime, _currentSession!);
