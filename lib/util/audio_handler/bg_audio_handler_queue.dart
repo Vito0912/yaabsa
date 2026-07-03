@@ -76,6 +76,7 @@ extension _BGAudioHandlerQueue on BGAudioHandler {
     if (!_queueSnapshotSubject.isClosed) {
       _queueSnapshotSubject.add(_buildQueueSnapshot());
     }
+    unawaited(_updatePlaybackState());
   }
 
   bool _enqueueItem(
