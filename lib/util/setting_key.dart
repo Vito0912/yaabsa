@@ -118,6 +118,9 @@ class SettingKeys {
   static const String readerLayout = 'reader_layout';
   static const String readerHideMiniPlayer = 'reader_hide_mini_player';
   static const String readerStartSession = 'reader_start_session';
+  static const String readerTtsRate = 'reader_tts_rate';
+  static const String readerTtsVoice = 'reader_tts_voice';
+  static const String readerTtsLanguage = 'reader_tts_language';
   static const String loopMode = 'loop_mode';
   static const String mixQueue = 'mix_queue';
   static const String showPlayerLoopShuffle = 'show_player_loop_shuffle';
@@ -252,6 +255,9 @@ final defaultSettings = {
   SettingKeys.readerLayout: 'paginated_2',
   SettingKeys.readerHideMiniPlayer: false,
   SettingKeys.readerStartSession: false,
+  SettingKeys.readerTtsRate: 1.0,
+  SettingKeys.readerTtsVoice: '',
+  SettingKeys.readerTtsLanguage: 'en-US',
   SettingKeys.loopMode: 'off',
   SettingKeys.mixQueue: false,
   SettingKeys.showPlayerLoopShuffle: 'music_only',

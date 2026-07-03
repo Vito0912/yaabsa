@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:yaabsa/api/library_items/playback_session.dart';
 import 'package:yaabsa/api/me/media_progress.dart';
+import 'package:yaabsa/api/me/media_item_type.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/logger.dart';
@@ -449,6 +450,22 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
       }
       final double duration = updatedProgress.duration <= 0 ? (session.duration ?? 0) : updatedProgress.duration;
       if (duration <= 0) {
+        if (updatedProgress.mediaItemType == MediaItemType.BOOK) {
+          var nextLastUpdate = DateTime.now().millisecondsSinceEpoch;
+          final previousLastUpdate = updatedProgress.lastUpdate;
+          if (previousLastUpdate != null && previousLastUpdate >= nextLastUpdate) {
+            nextLastUpdate = previousLastUpdate + 1;
+          }
+          updatedProgress = updatedProgress.copyWith(
+            userId: effectiveUserId,
+            currentTime: currentTime,
+            lastUpdate: nextLastUpdate,
+          );
+          state = AsyncData({...currentMap, key: updatedProgress});
+          unawaited(_persistProgress(updatedProgress));
+          return updatedProgress;
+        }
+
         logger(
           'Invalid duration ($duration) for libraryItemId: $libraryItemId. Skipping update.',
           tag: 'MediaProgressProvider',
