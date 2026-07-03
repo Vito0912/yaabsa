@@ -3,4 +3,4 @@
 	url = git@github.com:Vito0912/audio_service.git
 [submodule "packages/foliate_reader/foliate-js"]
 	path = packages/foliate_reader/foliate-js
-	url = git@github.com:johnfactotum/foliate-js.git
+	url = git@github.com:Vito0912/foliate-js.git

@@ -156,235 +156,34 @@ extension _ReaderBuilders on _ReaderState {
     showModalBottomSheet(
       context: context,
       useSafeArea: true,
+      isScrollControlled: true,
       backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
       builder: (bottomSheetContext) {
-        final theme = Theme.of(bottomSheetContext);
-        return StatefulBuilder(
-          builder: (bottomSheetContext, setSheetState) {
-            return SafeArea(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Reader Settings',
-                        style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 16),
-                      if (isEpubMode) ...[
-                        Text('Theme', style: theme.textTheme.bodyMedium),
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            _buildThemeButton('light', Colors.white, Colors.black, setSheetState),
-                            _buildThemeButton('sepia', const Color(0xFFF4ECD8), const Color(0xFF5B4636), setSheetState),
-                            _buildThemeButton('grey', const Color(0xFF2E2E2E), Colors.white, setSheetState),
-                            _buildThemeButton('dark', const Color(0xFF121212), const Color(0xFFE0E0E0), setSheetState),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Text('Font Size', style: theme.textTheme.bodyMedium),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.remove),
-                              onPressed: () async {
-                                final current = _fontSizeMultiplier;
-                                final newValue = (current - 0.1).clamp(0.6, 2.5);
-                                await ref
-                                    .read(settingsManagerProvider.notifier)
-                                    .setGlobalSetting<double>(SettingKeys.readerFontSizeMultiplier, newValue);
-                                setSheetState(() {});
-                                _applyEpubStyles();
-                              },
-                            ),
-                            Expanded(
-                              child: Center(
-                                child: Text(
-                                  '${(_fontSizeMultiplier * 100).toInt()}%',
-                                  style: theme.textTheme.bodyLarge,
-                                ),
-                              ),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.add),
-                              onPressed: () async {
-                                final current = _fontSizeMultiplier;
-                                final newValue = (current + 0.1).clamp(0.6, 2.5);
-                                await ref
-                                    .read(settingsManagerProvider.notifier)
-                                    .setGlobalSetting<double>(SettingKeys.readerFontSizeMultiplier, newValue);
-                                setSheetState(() {});
-                                _applyEpubStyles();
-                              },
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Text('Line Spacing', style: theme.textTheme.bodyMedium),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.remove),
-                              onPressed: () async {
-                                final current = _lineHeight;
-                                final newValue = (current - 0.1).clamp(1.0, 3.0);
-                                await ref
-                                    .read(settingsManagerProvider.notifier)
-                                    .setGlobalSetting<double>(SettingKeys.readerLineHeight, newValue);
-                                setSheetState(() {});
-                                _applyEpubStyles();
-                              },
-                            ),
-                            Expanded(
-                              child: Center(
-                                child: Text(_lineHeight.toStringAsFixed(1), style: theme.textTheme.bodyLarge),
-                              ),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.add),
-                              onPressed: () async {
-                                final current = _lineHeight;
-                                final newValue = (current + 0.1).clamp(1.0, 3.0);
-                                await ref
-                                    .read(settingsManagerProvider.notifier)
-                                    .setGlobalSetting<double>(SettingKeys.readerLineHeight, newValue);
-                                setSheetState(() {});
-                                _applyEpubStyles();
-                              },
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Text('Layout / Columns', style: theme.textTheme.bodyMedium),
-                        const SizedBox(height: 8),
-                      ],
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          _buildLayoutButton(
-                            'paginated_1',
-                            'Single Column',
-                            Icons.view_column_outlined,
-                            setSheetState,
-                            isEpubMode,
-                          ),
-                          _buildLayoutButton(
-                            'paginated_2',
-                            'Two Columns',
-                            Icons.view_column,
-                            setSheetState,
-                            isEpubMode,
-                          ),
-                          _buildLayoutButton(
-                            'scrolled',
-                            'Infinite Scroll',
-                            Icons.view_stream,
-                            setSheetState,
-                            isEpubMode,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
+        return ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.7,
+            child: Navigator(
+              initialRoute: '/',
+              onGenerateRoute: (RouteSettings settings) {
+                WidgetBuilder builder;
+                switch (settings.name) {
+                  case '/':
+                    builder = (BuildContext context) => const ReaderSettings();
+                    break;
+                  case ReaderTtsSettings.routeName:
+                    builder = (BuildContext context) => const ReaderTtsSettings();
+                    break;
+                  default:
+                    throw Exception('Invalid route: ${settings.name}');
+                }
+                return MaterialPageRoute<void>(builder: builder, settings: settings);
+              },
+            ),
+          ),
         );
       },
-    );
-  }
-
-  Widget _buildThemeButton(String themeName, Color bg, Color text, void Function(void Function()) setSheetState) {
-    final theme = Theme.of(context);
-    final isSelected = _readerTheme == themeName;
-    return GestureDetector(
-      onTap: () async {
-        await ref.read(settingsManagerProvider.notifier).setGlobalSetting<String>(SettingKeys.readerTheme, themeName);
-        setSheetState(() {});
-        _applyEpubStyles();
-      },
-      child: Container(
-        width: 60,
-        height: 40,
-        decoration: BoxDecoration(
-          color: bg,
-          border: Border.all(
-            color: isSelected ? theme.colorScheme.primary : theme.colorScheme.outlineVariant,
-            width: isSelected ? 3 : 1,
-          ),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Center(
-          child: Text(
-            'Aa',
-            style: TextStyle(color: text, fontWeight: FontWeight.bold),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLayoutButton(
-    String value,
-    String label,
-    IconData icon,
-    void Function(void Function()) setSheetState,
-    bool isEpubMode,
-  ) {
-    if (!isEpubMode && value == 'paginated_2') {
-      return const SizedBox.shrink();
-    }
-    final theme = Theme.of(context);
-    final bool isSelected = isEpubMode ? (value == _readerLayout) : (value == 'scrolled');
-
-    return GestureDetector(
-      onTap: () async {
-        if (isEpubMode) {
-          await ref.read(settingsManagerProvider.notifier).setGlobalSetting<String>(SettingKeys.readerLayout, value);
-        }
-        setSheetState(() {});
-      },
-      child: Container(
-        width: 90,
-        height: 55,
-        decoration: BoxDecoration(
-          color: isSelected ? theme.colorScheme.primaryContainer : theme.colorScheme.surface,
-          border: Border.all(
-            color: isSelected ? theme.colorScheme.primary : theme.colorScheme.outlineVariant,
-            width: isSelected ? 2 : 1,
-          ),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 20,
-              color: isSelected ? theme.colorScheme.onPrimaryContainer : theme.colorScheme.onSurface,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: theme.textTheme.bodySmall?.copyWith(
-                fontSize: 10,
-                color: isSelected ? theme.colorScheme.onPrimaryContainer : theme.colorScheme.onSurface,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -408,6 +207,31 @@ extension _ReaderBuilders on _ReaderState {
       maxColumnCount: _epubMaxColumnCount,
       onRelocated: _onEpubRelocated,
       onTtsJumpToSentence: _jumpToTtsSentence,
+      bookFetcher: (url, headers, request) async {
+        final api = ref.read(absApiProvider);
+        final dio = api?.dio ?? Dio();
+        final response = await dio.get<ResponseBody>(
+          url,
+          options: Options(
+            headers: headers,
+            responseType: ResponseType.stream,
+            extra: <String, dynamic>{'doNotCache': true},
+          ),
+        );
+        request.response.statusCode = response.statusCode ?? 200;
+        response.headers.forEach((key, values) {
+          for (final value in values) {
+            request.response.headers.add(key, value);
+          }
+        });
+        request.response.headers.set('Access-Control-Allow-Origin', '*');
+        final data = response.data;
+        if (data != null) {
+          await data.stream.cast<List<int>>().pipe(request.response);
+        } else {
+          await request.response.close();
+        }
+      },
       onBookLoaded: (metadata, toc, pageList, dir, hasMediaOverlays) {
         if (!mounted) return;
         _readerSetState(() {

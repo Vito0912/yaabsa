@@ -133,7 +133,7 @@ class _ReaderNavigationHoverAreaState extends State<_ReaderNavigationHoverArea> 
           onTap: widget.onTap,
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            width: 80,
+            width: 120,
             height: double.infinity,
             alignment: widget.alignment,
             padding: const EdgeInsets.symmetric(horizontal: 16),
