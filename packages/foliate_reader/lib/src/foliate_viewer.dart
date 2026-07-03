@@ -173,7 +173,10 @@ class FoliateViewer extends StatefulWidget {
     this.onMediaOverlayHighlight,
     this.onMediaOverlayUnhighlight,
     this.onMediaOverlayError,
+    this.bookFetcher,
   });
+
+  final Future<void> Function(String url, Map<String, String>? headers, HttpRequest request)? bookFetcher;
 
   @override
   State<FoliateViewer> createState() => _FoliateViewerState();
@@ -195,7 +198,12 @@ class _FoliateViewerState extends State<FoliateViewer> {
 
   Future<void> _startServer() async {
     try {
-      _server = BookServer(bookFile: widget.bookFile, bookUrl: widget.bookUrl, headers: widget.headers);
+      _server = BookServer(
+        bookFile: widget.bookFile,
+        bookUrl: widget.bookUrl,
+        headers: widget.headers,
+        bookFetcher: widget.bookFetcher,
+      );
       final port = await _server!.start();
       if (mounted) {
         setState(() {
@@ -307,8 +315,44 @@ class _FoliateViewerState extends State<FoliateViewer> {
             final initialCfi = widget.initialCfi;
             final initialStyles = widget.initialStyles;
             final jsCode =
-                'window.FoliateReaderAPI.openBook("$bookUrl", ${initialCfi != null ? '"$initialCfi"' : 'null'}, "${widget.flow}", ${widget.maxColumnCount}, ${initialStyles != null ? jsonEncode(initialStyles) : 'null'});';
+                '''
+              (function() {
+                const callOpen = () => {
+                  if (window.FoliateReaderAPI && window.FoliateReaderAPI.openBook) {
+                    window.FoliateReaderAPI.openBook(
+                      "$bookUrl", 
+                      ${initialCfi != null ? '"$initialCfi"' : 'null'}, 
+                      "${widget.flow}", 
+                      ${widget.maxColumnCount}, 
+                      ${initialStyles != null ? jsonEncode(initialStyles) : 'null'}
+                    );
+                    return true;
+                  }
+                  return false;
+                };
+                if (!callOpen()) {
+                  console.log("FoliateReaderAPI not ready yet, polling...");
+                  const interval = setInterval(() => {
+                    if (callOpen()) {
+                      console.log("FoliateReaderAPI loaded and openBook called.");
+                      clearInterval(interval);
+                    }
+                  }, 50);
+                  setTimeout(() => {
+                    clearInterval(interval);
+                    if (!window.FoliateReaderAPI || !window.FoliateReaderAPI.openBook) {
+                      console.error("FoliateReaderAPI failed to load within timeout.");
+                    }
+                  }, 15000);
+                } else {
+                  console.log("FoliateReaderAPI was ready immediately, openBook called.");
+                }
+              })();
+            ''';
             await controller.evaluateJavascript(source: jsCode);
+          },
+          onConsoleMessage: (controller, consoleMessage) {
+            debugPrint('[WebView Console] [${consoleMessage.messageLevel}] ${consoleMessage.message}');
           },
           onProgressChanged: (controller, progress) {
             if (!mounted) return;

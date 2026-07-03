@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:dio/dio.dart';
 import 'package:foliate_reader/foliate_reader.dart';
 import 'package:pdfrx/pdfrx.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';

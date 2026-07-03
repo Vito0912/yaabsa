@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:foliate_reader/foliate_reader.dart';
 import 'package:yaabsa/screens/reader/widgets/reader_paged_surface.dart';
@@ -26,7 +28,10 @@ class ReaderEpubView extends StatelessWidget {
     this.onMediaOverlayHighlight,
     this.onMediaOverlayUnhighlight,
     this.onMediaOverlayError,
+    this.bookFetcher,
   });
+
+  final Future<void> Function(String url, Map<String, String>? headers, HttpRequest request)? bookFetcher;
 
   final FoliateViewerController controller;
   final String bookUrl;
@@ -90,6 +95,7 @@ class ReaderEpubView extends StatelessWidget {
         onMediaOverlayHighlight: onMediaOverlayHighlight,
         onMediaOverlayUnhighlight: onMediaOverlayUnhighlight,
         onMediaOverlayError: onMediaOverlayError,
+        bookFetcher: bookFetcher,
       ),
       onPreviousPage: _goToPreviousPage,
       onNextPage: _goToNextPage,

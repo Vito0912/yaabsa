@@ -408,6 +408,31 @@ extension _ReaderBuilders on _ReaderState {
       maxColumnCount: _epubMaxColumnCount,
       onRelocated: _onEpubRelocated,
       onTtsJumpToSentence: _jumpToTtsSentence,
+      bookFetcher: (url, headers, request) async {
+        final api = ref.read(absApiProvider);
+        final dio = api?.dio ?? Dio();
+        final response = await dio.get<ResponseBody>(
+          url,
+          options: Options(
+            headers: headers,
+            responseType: ResponseType.stream,
+            extra: <String, dynamic>{'doNotCache': true},
+          ),
+        );
+        request.response.statusCode = response.statusCode ?? 200;
+        response.headers.forEach((key, values) {
+          for (final value in values) {
+            request.response.headers.add(key, value);
+          }
+        });
+        request.response.headers.set('Access-Control-Allow-Origin', '*');
+        final data = response.data;
+        if (data != null) {
+          await data.stream.cast<List<int>>().pipe(request.response);
+        } else {
+          await request.response.close();
+        }
+      },
       onBookLoaded: (metadata, toc, pageList, dir, hasMediaOverlays) {
         if (!mounted) return;
         _readerSetState(() {

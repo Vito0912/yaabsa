@@ -148,7 +148,11 @@ class CacheInterceptor extends Interceptor {
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
-    if (options.extra['noCache'] == true) return handler.next(options);
+    if (options.extra['noCache'] == true ||
+        options.extra['doNotCache'] == true ||
+        options.responseType == ResponseType.stream) {
+      return handler.next(options);
+    }
 
     final matchingRoute = _getMatchingRoute(options);
 
@@ -203,6 +207,10 @@ class CacheInterceptor extends Interceptor {
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) async {
+    if (response.requestOptions.extra['doNotCache'] == true ||
+        response.requestOptions.responseType == ResponseType.stream) {
+      return handler.next(response);
+    }
     final matchingRoute = _getMatchingRoute(response.requestOptions);
 
     if (matchingRoute != null &&
@@ -225,6 +233,9 @@ class CacheInterceptor extends Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
+    if (err.requestOptions.extra['doNotCache'] == true || err.requestOptions.responseType == ResponseType.stream) {
+      return handler.next(err);
+    }
     final matchingRoute = _getMatchingRoute(err.requestOptions);
 
     if (matchingRoute != null) {

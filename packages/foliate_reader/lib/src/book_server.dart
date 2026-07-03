@@ -6,8 +6,9 @@ class BookServer {
   String? bookUrl;
   Map<String, String>? headers;
   HttpServer? _server;
+  final Future<void> Function(String url, Map<String, String>? headers, HttpRequest request)? bookFetcher;
 
-  BookServer({this.bookFile, this.bookUrl, this.headers});
+  BookServer({this.bookFile, this.bookUrl, this.headers, this.bookFetcher});
 
   Future<int> start() async {
     _server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
@@ -84,27 +85,37 @@ class BookServer {
         await request.response.close();
       }
     } else if (bookUrl != null) {
-      try {
-        final client = HttpClient();
-        final clientReq = await client.getUrl(Uri.parse(bookUrl!));
-        if (headers != null) {
-          headers!.forEach((key, value) {
-            clientReq.headers.add(key, value);
-          });
+      if (bookFetcher != null) {
+        try {
+          await bookFetcher!(bookUrl!, headers, request);
+        } catch (e) {
+          request.response.statusCode = HttpStatus.internalServerError;
+          request.response.write(e.toString());
+          await request.response.close();
         }
-        final clientRes = await clientReq.close();
-        request.response.statusCode = clientRes.statusCode;
-        clientRes.headers.forEach((key, values) {
-          for (final value in values) {
-            request.response.headers.add(key, value);
+      } else {
+        try {
+          final client = HttpClient();
+          final clientReq = await client.getUrl(Uri.parse(bookUrl!));
+          if (headers != null) {
+            headers!.forEach((key, value) {
+              clientReq.headers.add(key, value);
+            });
           }
-        });
-        request.response.headers.set('Access-Control-Allow-Origin', '*');
-        await clientRes.pipe(request.response);
-      } catch (e) {
-        request.response.statusCode = HttpStatus.internalServerError;
-        request.response.write(e.toString());
-        await request.response.close();
+          final clientRes = await clientReq.close();
+          request.response.statusCode = clientRes.statusCode;
+          clientRes.headers.forEach((key, values) {
+            for (final value in values) {
+              request.response.headers.add(key, value);
+            }
+          });
+          request.response.headers.set('Access-Control-Allow-Origin', '*');
+          await clientRes.pipe(request.response);
+        } catch (e) {
+          request.response.statusCode = HttpStatus.internalServerError;
+          request.response.write(e.toString());
+          await request.response.close();
+        }
       }
     } else {
       request.response.statusCode = HttpStatus.notFound;
