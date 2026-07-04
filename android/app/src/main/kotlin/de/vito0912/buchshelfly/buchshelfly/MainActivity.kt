@@ -7,13 +7,13 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import androidx.documentfile.provider.DocumentFile
-import com.ryanheise.audioservice.AudioServiceActivity
+import com.ryanheise.audioservice.AudioServiceFragmentActivity
 import com.ryanheise.audioservice.AudioServicePlugin
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 
-class MainActivity : AudioServiceActivity() {
+class MainActivity : AudioServiceFragmentActivity() {
 	companion object {
 		private const val WIDGET_CHANNEL = "de.vito0912.yaabsa/widget"
 		private const val SAF_CHANNEL = "de.vito0912.yaabsa/saf"
@@ -29,16 +29,6 @@ class MainActivity : AudioServiceActivity() {
 
 	private fun isWidgetSupportEnabled(): Boolean {
 		return WidgetRuntimeSupport.isWidgetSupportEnabled(applicationContext)
-	}
-
-	override fun shouldDestroyEngineWithHost(): Boolean {
-		return false
-	}
-
-	override fun getCachedEngineId(): String? {
-		val engineId = AudioServicePlugin.getFlutterEngineId()
-		val hasEngine = io.flutter.embedding.engine.FlutterEngineCache.getInstance().contains(engineId)
-		return if (hasEngine) engineId else null
 	}
 
 

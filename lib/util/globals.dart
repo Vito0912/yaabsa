@@ -10,7 +10,10 @@ const String appName = 'Yaabsa';
 
 final ProviderContainer containerRef = ProviderContainer();
 late final PackageInfo packageInfo;
-late final BGAudioHandler audioHandler;
+BGAudioHandler? _audioHandler;
+BGAudioHandler get audioHandler => _audioHandler!;
+set audioHandler(BGAudioHandler handler) => _audioHandler = handler;
+bool get isAudioHandlerInitialized => _audioHandler != null;
 late final DownloadHandler downloadHandler;
 late final ShakeRewindHandler? rewindShakeHandler;
 late Database cacheDb;

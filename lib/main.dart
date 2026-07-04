@@ -6,7 +6,7 @@ import 'package:yaabsa/provider/core/socket_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/core/oidc_provider.dart';
-import 'package:yaabsa/util/globals.dart' show appName, audioHandler, containerRef;
+import 'package:yaabsa/util/globals.dart' show appName, audioHandler, containerRef, isAudioHandlerInitialized;
 import 'package:yaabsa/util/aaos_service.dart';
 import 'package:yaabsa/util/app_theme.dart';
 import 'package:yaabsa/util/handler/tray_handler.dart' show TrayManager;
@@ -24,7 +24,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 Future<void> _resumeLastPlayedOnStartup() async {
   try {
     await containerRef.read(currentUserProvider.future);
-    await audioHandler.playLastPlayedIfEnabledOnStartup();
+    if (isAudioHandlerInitialized) {
+      await audioHandler.playLastPlayedIfEnabledOnStartup();
+    }
   } catch (e, s) {
     logger('Startup last-played resume failed: $e\n$s', tag: 'Main', level: InfoLevel.warning);
   }
@@ -44,7 +46,11 @@ Future<void> _configureAndroidEdgeToEdge() async {
     return;
   }
 
-  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  try {
+    await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge).timeout(const Duration(seconds: 2));
+  } catch (e, s) {
+    logger('Failed to configure edge-to-edge UI: $e\n$s', tag: 'Main', level: InfoLevel.warning);
+  }
 }
 
 void main() {
@@ -65,9 +71,28 @@ void main() {
       containerRef.read(absSocketClientProvider);
       containerRef.read(oidcStateProvider.notifier).initializeDeepLinkListener();
       Init.initLogger();
-      audioHandler = await Init.initAudioHandler();
-      unawaited(audioHandler.restoreLastPlayedMiniPlayerIfEnabled());
-      await AaosService.instance.initialize();
+
+      try {
+        final handler = await Init.initAudioHandler().timeout(const Duration(seconds: 5));
+        audioHandler = handler;
+        unawaited(audioHandler.restoreLastPlayedMiniPlayerIfEnabled());
+      } catch (e, s) {
+        logger(
+          'AudioHandler initialization timed out or failed on startup: $e\n$s',
+          tag: 'Main',
+          level: InfoLevel.error,
+        );
+      }
+
+      try {
+        await AaosService.instance.initialize().timeout(const Duration(seconds: 2));
+      } catch (e, s) {
+        logger(
+          'AaosService initialization timed out or failed on startup: $e\n$s',
+          tag: 'Main',
+          level: InfoLevel.error,
+        );
+      }
       TrayManager.update();
 
       Init.late();
@@ -86,6 +111,21 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (!isAudioHandlerInitialized) {
+      Future.microtask(() async {
+        if (!isAudioHandlerInitialized) {
+          try {
+            final handler = await Init.initAudioHandler().timeout(const Duration(seconds: 5));
+            audioHandler = handler;
+            unawaited(audioHandler.restoreLastPlayedMiniPlayerIfEnabled());
+            unawaited(_resumeLastPlayedOnStartup());
+          } catch (e, s) {
+            logger('Retry AudioHandler initialization failed: $e\n$s', tag: 'Main', level: InfoLevel.error);
+          }
+        }
+      });
+    }
+
     final appThemeModeSetting = ref.watch(globalSettingByKeyProvider(SettingKeys.appThemeMode)).asData?.value;
     final appThemePresetSetting = ref.watch(globalSettingByKeyProvider(SettingKeys.appThemePreset)).asData?.value;
     final customRedSetting = ref.watch(globalSettingByKeyProvider(SettingKeys.appThemeCustomRed)).asData?.value;

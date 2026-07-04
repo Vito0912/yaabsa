@@ -15,26 +15,25 @@ class LoadingView extends ConsumerWidget {
     final canDownload = currentUserAsync.value?.permissions.download ?? false;
     final shouldShowButton = (canDownload && showDownloadsShortcut) || alwaysShowDownloadsShortcut;
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const CircularProgressIndicator(),
-            if (shouldShowButton) ...[
-              const SizedBox(height: 24),
-              OutlinedButton.icon(
+    return Stack(
+      children: [
+        const Center(child: CircularProgressIndicator()),
+
+        if (shouldShowButton)
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              child: OutlinedButton.icon(
                 onPressed: () {
                   context.go('/?tab=downloads&intent=downloads');
                 },
                 icon: const Icon(Icons.download_rounded),
                 label: const Text('Open Downloads'),
               ),
-            ],
-          ],
-        ),
-      ),
+            ),
+          ),
+      ],
     );
   }
 }

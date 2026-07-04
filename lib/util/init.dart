@@ -183,7 +183,17 @@ class Init {
 
     cacheDb = await openCacheDatabase();
 
-    packageInfo = await PackageInfo.fromPlatform();
+    try {
+      packageInfo = await PackageInfo.fromPlatform().timeout(const Duration(seconds: 2));
+    } catch (e, s) {
+      logger('Failed to retrieve package info on startup: $e\n$s', tag: 'Init', level: InfoLevel.warning);
+      packageInfo = PackageInfo(
+        appName: 'Yaabsa',
+        packageName: 'de.vito0912.yaabsa',
+        version: '9.9.9',
+        buildNumber: '99999',
+      );
+    }
     downloadHandler = DownloadHandler(containerRef);
   }
 

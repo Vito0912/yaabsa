@@ -1484,12 +1484,11 @@ packages:
   quill_native_bridge_windows:
     dependency: "direct overridden"
     description:
-      path: quill_native_bridge_windows
-      ref: "8c043047e2c34af3879471b19e44119f0ef6ded8"
-      resolved-ref: "8c043047e2c34af3879471b19e44119f0ef6ded8"
-      url: "https://github.com/Vito0912/quill-native-bridge.git"
-    source: git
-    version: "0.0.2"
+      name: quill_native_bridge_windows
+      sha256: "7045d4a48c85246a15563f33956d6f857dca1b75e5fe23b474c277f064ff6a71"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.0-beta.1"
   quiver:
     dependency: transitive
     description:

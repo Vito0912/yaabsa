@@ -212,12 +212,27 @@ object WidgetMediaBridge {
         val appContext = context.applicationContext
         val serviceComponent = ComponentName(appContext, "com.ryanheise.audioservice.AudioService")
 
+        val handler = Handler(Looper.getMainLooper())
         var browser: MediaBrowserCompat? = null
+        var completed = false
+
+        val timeoutRunnable = Runnable {
+            if (!completed) {
+                completed = true
+                onUnavailable()
+                runCatching { browser?.disconnect() }
+            }
+        }
+
         browser = MediaBrowserCompat(
             appContext,
             serviceComponent,
             object : MediaBrowserCompat.ConnectionCallback() {
                 override fun onConnected() {
+                    handler.removeCallbacks(timeoutRunnable)
+                    if (completed) return
+                    completed = true
+
                     val localBrowser = browser
                     if (localBrowser == null) {
                         onUnavailable()
@@ -236,11 +251,17 @@ object WidgetMediaBridge {
                 }
 
                 override fun onConnectionSuspended() {
+                    handler.removeCallbacks(timeoutRunnable)
+                    if (completed) return
+                    completed = true
                     onUnavailable()
                     runCatching { browser?.disconnect() }
                 }
 
                 override fun onConnectionFailed() {
+                    handler.removeCallbacks(timeoutRunnable)
+                    if (completed) return
+                    completed = true
                     onUnavailable()
                     runCatching { browser?.disconnect() }
                 }
@@ -248,11 +269,17 @@ object WidgetMediaBridge {
             null
         )
 
+        handler.postDelayed(timeoutRunnable, 5000L)
+
         try {
             browser.connect()
         } catch (_: Exception) {
-            onUnavailable()
-            runCatching { browser.disconnect() }
+            handler.removeCallbacks(timeoutRunnable)
+            if (!completed) {
+                completed = true
+                onUnavailable()
+                runCatching { browser.disconnect() }
+            }
         }
     }
 
