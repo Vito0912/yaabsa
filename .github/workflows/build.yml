@@ -46,6 +46,7 @@ jobs:
       previous_app_version: ${{ steps.version.outputs.previous_app_version }}
       file_version: ${{ steps.version.outputs.file_version }}
       release_tag: ${{ steps.version.outputs.release_tag }}
+      changelog: ${{ steps.changelog.outputs.changelog }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -151,7 +152,7 @@ jobs:
 
           version_without_build="${current_version%%+*}"
           file_version="v${version_without_build}"
-          release_tag="${file_version}-pre"
+          release_tag="${file_version}"
 
           echo "app_version=$current_version" >> "$GITHUB_OUTPUT"
           echo "previous_app_version=$previous_version" >> "$GITHUB_OUTPUT"
@@ -164,6 +165,36 @@ jobs:
           echo "File version label: $file_version"
           echo "Force version bump override: $force_version_bump"
           echo "Version bumped: $version_bumped"
+
+      - name: Extract changelog for current version
+        id: changelog
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          version="${{ steps.version.outputs.app_version }}"
+          version_without_build="${version%%+*}"
+
+          changelog=$(awk -v ver="$version_without_build" '
+            $0 == "## " ver { found=1; next }
+            found && /^## / { exit }
+            found { print }
+          ' CHANGELOG.md)
+
+          changelog=$(echo "$changelog" | sed -e '/./,$!d' -e :a -e '/^\n*$/{$d;N;ba}')
+
+          if [[ -z "$changelog" ]]; then
+            echo "No changelog found for version $version_without_build"
+            changelog="No changelog available for this version."
+          fi
+
+          {
+            echo "changelog<<CHANGELOG_EOF"
+            echo "$changelog"
+            echo "CHANGELOG_EOF"
+          } >> "$GITHUB_OUTPUT"
+          
+          echo "$changelog"
 
   check-requirements:
     runs-on: ubuntu-latest
@@ -364,6 +395,18 @@ jobs:
         uses: ./.github/actions/post-get
         with:
           flow: build-flatpak
+
+      - name: Update Flatpak metainfo
+        shell: bash
+        env:
+          APP_VERSION: ${{ needs.changes.outputs.app_version }}
+        run: |
+          set -euo pipefail
+          version="${APP_VERSION%%+*}"
+          today="$(date +%Y-%m-%d)"
+          sed -i "s|<release version=\"[^\"]*\" date=\"[^\"]*\" />|<release version=\"${version}\" date=\"${today}\" />|" linux/packaging/flatpak/de.vito0912.yaabsa.metainfo.xml
+          echo "Updated metainfo.xml: version=$version date=$today"
+          cat linux/packaging/flatpak/de.vito0912.yaabsa.metainfo.xml
 
       - name: Build Linux bundle
         run: flutter build linux --release
@@ -866,7 +909,7 @@ jobs:
           name: windows-bundle
           path: output/windows/yaabsa_*.zip
 
-  create-prerelease:
+  create-release:
     runs-on: ubuntu-slim
     needs:
       - changes
@@ -914,17 +957,21 @@ jobs:
 
           ls -lh dist
 
-      - name: Create prerelease
+      - name: Create release
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ needs.changes.outputs.release_tag }}
           name: ${{ needs.changes.outputs.release_tag }}
-          prerelease: true
+          prerelease: false
           overwrite_files: true
           generate_release_notes: true
           fail_on_unmatched_files: true
           body: |
-            This pre-release has been automatically generated from commit ${{ github.sha }}.
+            ${{ needs.changes.outputs.changelog }}
+
+            ---
+
+            This release has been automatically generated from commit ${{ github.sha }}.
 
             You can download the built artifacts from the "Assets" section below.
           files: |
@@ -933,7 +980,7 @@ jobs:
   publish-android:
     runs-on: ubuntu-slim
     needs: 
-      - create-prerelease
+      - create-release
       - changes
     if: ${{ needs.changes.outputs.version_bumped == 'true' && needs.changes.outputs.build_skip != 'true' }}
     environment: prod
@@ -957,6 +1004,20 @@ jobs:
         run: |
           mv android-release/*.aab android-release/yaabsa.aab
           mv android-automotive-release/*.aab android-automotive-release/yaabsa_aaos.aab
+
+      - name: Write changelog to whatsnew
+        shell: bash
+        env:
+          CHANGELOG: ${{ needs.changes.outputs.changelog }}
+        run: |
+          set -euo pipefail
+          mkdir -p android/whatsnew
+          changelog="$CHANGELOG"
+          if [[ ${#changelog} -gt 500 ]]; then
+            changelog="${changelog:0:497}..."
+          fi
+          printf '%s' "$changelog" > android/whatsnew/whatsnew-en-US
+          echo "Wrote whatsnew-en-US (${#changelog} chars)"
 
       - name: Publish Android appbundle to Play Store
         uses: r0adkll/upload-google-play@v1
@@ -1064,6 +1125,7 @@ jobs:
           issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
           api-key-id: ${{ secrets.APPSTORE_KEY_ID }}
           api-private-key: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+          release-notes: ${{ needs.changes.outputs.changelog }}
         continue-on-error: true
 
   build-macos:
@@ -1168,5 +1230,6 @@ jobs:
           issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
           api-key-id: ${{ secrets.APPSTORE_KEY_ID }}
           api-private-key: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+          release-notes: ${{ needs.changes.outputs.changelog }}
           backend: transporter
         continue-on-error: true
