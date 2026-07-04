@@ -746,10 +746,8 @@ jobs:
           curl -L https://github.com/simolus3/sqlite3.dart/releases/latest/download/sqlite3.wasm -o web/sqlite3.wasm
 
       - name: Build Web
-        env:
-          FLUTTER_BASE_HREF: "/${{ github.event.repository.name }}/"
         run: |
-          flutter build web --release --base-href "$FLUTTER_BASE_HREF" --wasm
+          flutter build web --release --wasm
 
       - name: Upload Web Pages artifact
         if: github.ref == 'refs/heads/master'
@@ -966,7 +964,7 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           packageName: de.vito0912.yaabsa
           releaseFiles: android-release/yaabsa.aab
-          tracks: alpha,Old
+          tracks: alpha,Old,beta
           releaseName: ${{ needs.changes.outputs.release_tag }}
           status: completed
           inAppUpdatePriority: 2
@@ -979,7 +977,7 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           packageName: de.vito0912.yaabsa
           releaseFiles: android-automotive-release/yaabsa_aaos.aab
-          tracks: automotive:AAOS
+          tracks: automotive:AAOS,automotive:beta
           releaseName: ${{ needs.changes.outputs.release_tag }} AAOS
           status: completed
           inAppUpdatePriority: 2
