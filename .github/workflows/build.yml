@@ -193,7 +193,7 @@ jobs:
             echo "$changelog"
             echo "CHANGELOG_EOF"
           } >> "$GITHUB_OUTPUT"
-          
+
           echo "$changelog"
 
   check-requirements:
@@ -1125,7 +1125,12 @@ jobs:
           issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
           api-key-id: ${{ secrets.APPSTORE_KEY_ID }}
           api-private-key: ${{ secrets.APPSTORE_PRIVATE_KEY }}
-          release-notes: ${{ needs.changes.outputs.changelog }}
+          release-notes: |
+            ${{ needs.changes.outputs.changelog }}
+
+            ---
+            Please report any issues or feature requests through GitHub or TestFlight. Please note that feature requests shared through TestFlight without an email attached cannot be taken into account as there is no way to contact you. The same applies to bugs that are not easily reproducible. If you do not want to share your email, please use GitHub instead. Thanks for testing iOS!
+          wait-for-processing: 'true'
         continue-on-error: true
 
   build-macos:
@@ -1230,6 +1235,11 @@ jobs:
           issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
           api-key-id: ${{ secrets.APPSTORE_KEY_ID }}
           api-private-key: ${{ secrets.APPSTORE_PRIVATE_KEY }}
-          release-notes: ${{ needs.changes.outputs.changelog }}
+          release-notes: |
+            ${{ needs.changes.outputs.changelog }}
+
+            ---
+            Please report any issues or feature requests through GitHub or TestFlight. Please note that feature requests shared through TestFlight without an email attached cannot be taken into account as there is no way to contact you. The same applies to bugs that are not easily reproducible. If you do not want to share your email, please use GitHub instead. Thanks for testing macOS!
+          wait-for-processing: 'true'
           backend: transporter
         continue-on-error: true
