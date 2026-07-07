@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.10
+
+### Fixed
+
+- When playback is paused, but the sleep timer is active, shaking does now not reset the sleep timer anymore.
+
 ## 1.4.9
 
 ### Added

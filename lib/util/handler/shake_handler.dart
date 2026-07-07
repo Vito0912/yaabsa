@@ -184,7 +184,9 @@ class ShakeRewindHandler {
   }
 
   bool get _canResetSleepTimer {
-    return _boolSetting(SettingKeys.shakeToResetSleepTimer) && containerRef.read(sleepTimerHandlerProvider).isActive;
+    return _boolSetting(SettingKeys.shakeToResetSleepTimer) &&
+        containerRef.read(sleepTimerHandlerProvider).isActive &&
+        audioHandler.player.playing;
   }
 
   bool get _canRewind {
