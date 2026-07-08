@@ -111,11 +111,6 @@ class StoredDownloads extends Table {
 
   @override
   Set<Column> get primaryKey => {itemId, userId, episodeId};
-
-  @override
-  List<Set<Column>> get uniqueKeys => [
-    {itemId, userId},
-  ];
 }
 
 @DataClassName('PlayerHistoryEntry')
@@ -167,7 +162,7 @@ class AppDatabase extends _$AppDatabase {
   final AuthSecretStore _authSecretStore;
 
   @override
-  int get schemaVersion => 18;
+  int get schemaVersion => 19;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -214,6 +209,15 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from <= 17) {
         await m.createTable(storedBookmarkSyncs);
+      }
+      if (from <= 18) {
+        await customStatement('ALTER TABLE stored_downloads RENAME TO _stored_downloads_old;');
+        await m.createTable(storedDownloads);
+        await customStatement(
+          'INSERT INTO stored_downloads (item_id, user_id, episode_id, download) '
+          'SELECT item_id, user_id, episode_id, download FROM _stored_downloads_old;',
+        );
+        await customStatement('DROP TABLE _stored_downloads_old;');
       }
     },
     beforeOpen: (details) async {},
@@ -394,7 +398,11 @@ class AppDatabase extends _$AppDatabase {
           for (final entry in entries) {
             final parsed = _decodeStoredDownloadOrNull(entry);
             if (parsed?.isComplete ?? false) {
-              itemIds.add(entry.itemId);
+              if (entry.episodeId == null) {
+                itemIds.add(entry.itemId);
+              } else {
+                itemIds.add(entry.episodeId!);
+              }
             }
           }
           return itemIds;
@@ -406,6 +414,9 @@ class AppDatabase extends _$AppDatabase {
     final query = select(storedDownloads)..where((tbl) => tbl.itemId.equals(itemId) & tbl.userId.equals(userId));
     if (episodeId != null) {
       query.where((tbl) => tbl.episodeId.equals(episodeId));
+    }
+    if (episodeId == null) {
+      query.limit(1);
     }
     final entry = await query.getSingleOrNull();
     if (entry != null) {
@@ -439,9 +450,12 @@ class AppDatabase extends _$AppDatabase {
 
       final existing =
           await (select(storedDownloads)..where((tbl) => requestedWhereClause)).getSingleOrNull() ??
-          await (select(storedDownloads)
-                ..where((tbl) => tbl.itemId.equals(companion.itemId.value) & tbl.userId.equals(companion.userId.value)))
-              .getSingleOrNull();
+          (requestedEpisodeId == null
+              ? await (select(storedDownloads)..where(
+                      (tbl) => tbl.itemId.equals(companion.itemId.value) & tbl.userId.equals(companion.userId.value),
+                    ))
+                    .getSingleOrNull()
+              : null);
 
       if (existing == null) {
         await into(storedDownloads).insert(companion, mode: InsertMode.replace);

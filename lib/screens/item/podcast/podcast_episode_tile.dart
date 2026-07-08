@@ -24,6 +24,9 @@ class PodcastEpisodeTile extends StatelessWidget {
     this.onDeletePressed,
     this.onMoreActionSelected,
     this.showMarkAsUnfinished = false,
+    this.selectionMode = false,
+    this.isSelected = false,
+    this.onSelectedChanged,
   });
 
   final Episode episode;
@@ -41,6 +44,9 @@ class PodcastEpisodeTile extends StatelessWidget {
   final VoidCallback? onDeletePressed;
   final Future<void> Function(ItemMoreAction action)? onMoreActionSelected;
   final bool showMarkAsUnfinished;
+  final bool selectionMode;
+  final bool isSelected;
+  final ValueChanged<bool?>? onSelectedChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +66,7 @@ class PodcastEpisodeTile extends StatelessWidget {
 
     final backgroundColor = isCurrentEpisode
         ? colorScheme.primaryContainer.withValues(alpha: 0.18)
-        : colorScheme.surfaceContainerLow;
+        : (isSelected ? colorScheme.primaryContainer.withValues(alpha: 0.25) : colorScheme.surfaceContainerLow);
     final showProgressRing = progressValue > 0 && !isFinished;
     final isPlayEnabled = onPlayPressed != null;
     final playIcon = isCurrentEpisode && isPlayingCurrentEpisode
@@ -87,7 +93,10 @@ class PodcastEpisodeTile extends StatelessWidget {
       color: backgroundColor,
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
-        onTap: onOpenDetails,
+        onTap: selectionMode ? () => onSelectedChanged?.call(!isSelected) : onOpenDetails,
+        onLongPress: () {
+          onSelectedChanged?.call(!isSelected);
+        },
         borderRadius: BorderRadius.circular(14),
         child: Container(
           padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
@@ -97,6 +106,17 @@ class PodcastEpisodeTile extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (selectionMode) ...[
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4.0, right: 8.0),
+                      child: SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: Checkbox(value: isSelected, onChanged: onSelectedChanged),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                  ],
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -134,75 +154,85 @@ class PodcastEpisodeTile extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: playButtonTouchSize,
-                    height: playButtonTouchSize,
-                    child: Center(
-                      child: Container(
-                        width: playButtonVisualSize,
-                        height: playButtonVisualSize,
-                        decoration: BoxDecoration(borderRadius: BorderRadius.circular(100), color: playBackgroundColor),
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            if (showProgressRing)
-                              SizedBox(
-                                width: playButtonVisualSize - 4,
-                                height: playButtonVisualSize - 4,
-                                child: CircularProgressIndicator(
-                                  value: progressValue,
-                                  strokeWidth: 3,
-                                  backgroundColor: Colors.white24,
-                                  valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
+                  if (!selectionMode) ...[
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      width: playButtonTouchSize,
+                      height: playButtonTouchSize,
+                      child: Center(
+                        child: Container(
+                          width: playButtonVisualSize,
+                          height: playButtonVisualSize,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(100),
+                            color: playBackgroundColor,
+                          ),
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              if (showProgressRing)
+                                SizedBox(
+                                  width: playButtonVisualSize - 4,
+                                  height: playButtonVisualSize - 4,
+                                  child: CircularProgressIndicator(
+                                    value: progressValue,
+                                    strokeWidth: 3,
+                                    backgroundColor: Colors.white24,
+                                    valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
+                                  ),
                                 ),
+                              IconButton(
+                                onPressed: onPlayPressed,
+                                tooltip: playTooltip,
+                                constraints: const BoxConstraints.tightFor(
+                                  width: playButtonVisualSize,
+                                  height: playButtonVisualSize,
+                                ),
+                                padding: EdgeInsets.zero,
+                                icon: Icon(playIcon, color: playIconColor, size: isFinished ? 20 : 18),
+                                splashRadius: 10,
                               ),
-                            IconButton(
-                              onPressed: onPlayPressed,
-                              tooltip: playTooltip,
-                              constraints: const BoxConstraints.tightFor(
-                                width: playButtonVisualSize,
-                                height: playButtonVisualSize,
-                              ),
-                              padding: EdgeInsets.zero,
-                              icon: Icon(playIcon, color: playIconColor, size: isFinished ? 20 : 18),
-                              splashRadius: 10,
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  secondaryActionButton(
-                    IconButton.filledTonal(
-                      onPressed: isCurrentEpisode ? null : onQueueToggle,
-                      icon: Icon(isQueued ? Icons.playlist_remove_rounded : Icons.queue_music_rounded),
-                      tooltip: isCurrentEpisode
-                          ? 'Currently playing'
-                          : (isQueued ? 'Remove from queue' : 'Add to queue'),
-                      visualDensity: VisualDensity.compact,
-                    ),
-                  ),
-                  if (canDownload && !context.isMobile) ...[
+                    const SizedBox(width: 8),
                     secondaryActionButton(
                       IconButton.filledTonal(
-                        onPressed: isDownloading ? null : (isDownloaded ? onDeletePressed : onDownloadPressed),
-                        icon: isDownloading
-                            ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.2))
-                            : Icon(isDownloaded ? Icons.delete_outline_rounded : Icons.download_rounded),
-                        tooltip: isDownloading ? 'Downloading' : (isDownloaded ? 'Delete download' : 'Download'),
+                        onPressed: isCurrentEpisode ? null : onQueueToggle,
+                        icon: Icon(isQueued ? Icons.playlist_remove_rounded : Icons.queue_music_rounded),
+                        tooltip: isCurrentEpisode
+                            ? 'Currently playing'
+                            : (isQueued ? 'Remove from queue' : 'Add to queue'),
                         visualDensity: VisualDensity.compact,
                       ),
                     ),
-                  ],
-                  if (onMoreActionSelected != null) ...[
-                    secondaryActionButton(
-                      ItemMoreActionsButton(
-                        onActionSelected: onMoreActionSelected!,
-                        showMarkAsUnfinished: showMarkAsUnfinished,
+                    if (canDownload && !context.isMobile) ...[
+                      secondaryActionButton(
+                        IconButton.filledTonal(
+                          onPressed: isDownloading ? null : (isDownloaded ? onDeletePressed : onDownloadPressed),
+                          icon: isDownloading
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(strokeWidth: 2.2),
+                                )
+                              : Icon(isDownloaded ? Icons.delete_outline_rounded : Icons.download_rounded),
+                          tooltip: isDownloading ? 'Downloading' : (isDownloaded ? 'Delete download' : 'Download'),
+                          visualDensity: VisualDensity.compact,
+                        ),
                       ),
-                    ),
+                    ],
+                    if (onMoreActionSelected != null) ...[
+                      secondaryActionButton(
+                        ItemMoreActionsButton(
+                          onActionSelected: onMoreActionSelected!,
+                          showMarkAsUnfinished: showMarkAsUnfinished,
+                          showSelect: true,
+                        ),
+                      ),
+                    ],
                   ],
                 ],
               ),

@@ -2,9 +2,16 @@
 
 ## 1.4.10
 
+### Added
+
+- Option to download all non started/non finished episodes of a podcast.
+- The shelf view no does not have a extra loading indicator.
+
 ### Fixed
 
 - When playback is paused, but the sleep timer is active, shaking does now not reset the sleep timer anymore.
+- Podcasts only allowed one episode to be downloaded at a time.
+- Downloaded Playback does now work for multiple episodes of the same podcast.
 
 ## 1.4.9
 

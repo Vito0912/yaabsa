@@ -358,6 +358,8 @@ class LibraryItemBookView extends ConsumerWidget {
                                               PlayHistoryView.location(itemId: item.id, itemTitle: item.title),
                                             );
                                             return;
+                                          case ItemMoreAction.select:
+                                            return;
                                         }
                                       },
                                     ),

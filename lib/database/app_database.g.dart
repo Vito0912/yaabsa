@@ -2152,10 +2152,6 @@ class $StoredDownloadsTable extends StoredDownloads with TableInfo<$StoredDownlo
   @override
   Set<GeneratedColumn> get $primaryKey => {itemId, userId, episodeId};
   @override
-  List<Set<GeneratedColumn>> get uniqueKeys => [
-    {itemId, userId},
-  ];
-  @override
   StoredDownloadsEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return StoredDownloadsEntry(

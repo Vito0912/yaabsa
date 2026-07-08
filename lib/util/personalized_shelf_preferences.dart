@@ -9,6 +9,7 @@ const String _newestEpisodesSectionId = 'newest-episodes';
 enum PersonalizedShelfSection {
   continueListening,
   newestEpisodes,
+  downloads,
   listenAgain,
   continueSeries,
   recentlyAdded,
@@ -22,6 +23,8 @@ enum PersonalizedShelfSection {
         return 'continue-listening';
       case PersonalizedShelfSection.newestEpisodes:
         return _newestEpisodesSectionId;
+      case PersonalizedShelfSection.downloads:
+        return 'downloads';
       case PersonalizedShelfSection.listenAgain:
         return 'listen-again';
       case PersonalizedShelfSection.continueSeries:
@@ -43,6 +46,8 @@ enum PersonalizedShelfSection {
         return 'Continue Listening';
       case PersonalizedShelfSection.newestEpisodes:
         return 'Newest Episodes';
+      case PersonalizedShelfSection.downloads:
+        return 'Downloads';
       case PersonalizedShelfSection.listenAgain:
         return 'Listen Again';
       case PersonalizedShelfSection.continueSeries:
@@ -64,6 +69,8 @@ enum PersonalizedShelfSection {
         return Icons.play_circle_outline_rounded;
       case PersonalizedShelfSection.newestEpisodes:
         return Icons.podcasts_outlined;
+      case PersonalizedShelfSection.downloads:
+        return Icons.download_rounded;
       case PersonalizedShelfSection.listenAgain:
         return Icons.replay_rounded;
       case PersonalizedShelfSection.continueSeries:
@@ -157,6 +164,7 @@ class PersonalizedShelfPreferencesCodec {
         return const [
           PersonalizedShelfSection.continueListening,
           PersonalizedShelfSection.continueSeries,
+          PersonalizedShelfSection.downloads,
           PersonalizedShelfSection.recentlyAdded,
           PersonalizedShelfSection.discover,
           PersonalizedShelfSection.listenAgain,
@@ -167,6 +175,7 @@ class PersonalizedShelfPreferencesCodec {
         return const [
           PersonalizedShelfSection.continueListening,
           PersonalizedShelfSection.newestEpisodes,
+          PersonalizedShelfSection.downloads,
           PersonalizedShelfSection.listenAgain,
           PersonalizedShelfSection.recentlyAdded,
           PersonalizedShelfSection.discover,

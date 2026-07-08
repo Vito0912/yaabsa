@@ -97,3 +97,70 @@ abstract class _$PersonalizedLibraryNotifier extends $AsyncNotifier<Personalized
     return element.handleCreate(ref, () => build(_$args));
   }
 }
+
+@ProviderFor(libraryDownloads)
+final libraryDownloadsProvider = LibraryDownloadsFamily._();
+
+final class LibraryDownloadsProvider
+    extends
+        $FunctionalProvider<AsyncValue<List<InternalDownload>>, List<InternalDownload>, Stream<List<InternalDownload>>>
+    with $FutureModifier<List<InternalDownload>>, $StreamProvider<List<InternalDownload>> {
+  LibraryDownloadsProvider._({required LibraryDownloadsFamily super.from, required String super.argument})
+    : super(
+        retry: null,
+        name: r'libraryDownloadsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$libraryDownloadsHash();
+
+  @override
+  String toString() {
+    return r'libraryDownloadsProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $StreamProviderElement<List<InternalDownload>> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<InternalDownload>> create(Ref ref) {
+    final argument = this.argument as String;
+    return libraryDownloads(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is LibraryDownloadsProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$libraryDownloadsHash() => r'7bb9d49ba377027c582d9803b85d659647a0f9bb';
+
+final class LibraryDownloadsFamily extends $Family
+    with $FunctionalFamilyOverride<Stream<List<InternalDownload>>, String> {
+  LibraryDownloadsFamily._()
+    : super(
+        retry: null,
+        name: r'libraryDownloadsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  LibraryDownloadsProvider call(String libraryId) => LibraryDownloadsProvider._(argument: libraryId, from: this);
+
+  @override
+  String toString() => r'libraryDownloadsProvider';
+}
