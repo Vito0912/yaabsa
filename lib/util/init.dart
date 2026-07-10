@@ -15,6 +15,8 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:yaabsa/database/connection/cache_db.dart' show openCacheDatabase;
 import 'package:audio_service_mpris/audio_service_mpris.dart';
 
+import 'package:yaabsa/database/settings_manager.dart';
+import 'package:yaabsa/util/setting_key.dart';
 import 'logger.dart';
 
 class Init {
@@ -152,6 +154,10 @@ class Init {
       JustAudioMediaKit.ensureInitialized(linux: true, windows: true, libmpv: libmpvPath);
     }
 
+    final settingsManager = containerRef.read(settingsManagerProvider.notifier);
+    final ffSeconds = settingsManager.getGlobalSetting<int>(SettingKeys.fastForwardInterval, defaultValue: 10);
+    final rwSeconds = settingsManager.getGlobalSetting<int>(SettingKeys.rewindInterval, defaultValue: 10);
+
     _audioHandler = await AudioService.init(
       builder: () => BGAudioHandler(containerRef),
       config: AudioServiceConfig(
@@ -161,6 +167,8 @@ class Init {
         androidNotificationOngoing: false,
         androidStopForegroundOnPause: false,
         preloadArtwork: true,
+        fastForwardInterval: Duration(seconds: ffSeconds),
+        rewindInterval: Duration(seconds: rwSeconds),
         androidBrowsableRootExtras: <String, dynamic>{
           AndroidContentStyle.supportedKey: true,
           AndroidContentStyle.playableHintKey: AndroidContentStyle.listItemHintValue,
