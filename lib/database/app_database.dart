@@ -437,10 +437,67 @@ class AppDatabase extends _$AppDatabase {
     return null;
   }
 
+  InternalDownload _mergeDownloads(InternalDownload? oldDownload, InternalDownload newDownload) {
+    if (oldDownload == null) {
+      return newDownload;
+    }
+
+    final mergedByIndex = <int, InternalTrack>{};
+    for (final track in oldDownload.tracks) {
+      mergedByIndex[track.index] = track;
+    }
+    for (final track in newDownload.tracks) {
+      final current = mergedByIndex[track.index];
+      if (current == null || track.url != null) {
+        mergedByIndex[track.index] = track;
+      }
+    }
+
+    final mergedTracks = mergedByIndex.values.toList()..sort((left, right) => left.index.compareTo(right.index));
+
+    final mergedAuxiliaryPaths = <String>{
+      ...oldDownload.auxiliaryFilePaths.where((path) => path.trim().isNotEmpty),
+      ...newDownload.auxiliaryFilePaths.where((path) => path.trim().isNotEmpty),
+    }.toList(growable: false)..sort();
+
+    final mergedSidecarPaths = <String>{
+      ...oldDownload.sidecarPaths.where((path) => path.trim().isNotEmpty),
+      ...newDownload.sidecarPaths.where((path) => path.trim().isNotEmpty),
+    }.toList(growable: false)..sort();
+
+    final expectedCountCandidates = <int>{
+      if (oldDownload.expectedFileCount != null && oldDownload.expectedFileCount! > 0) oldDownload.expectedFileCount!,
+      if (newDownload.expectedFileCount != null && newDownload.expectedFileCount! > 0) newDownload.expectedFileCount!,
+    };
+
+    final mergedExpectedFileCount = expectedCountCandidates.isEmpty
+        ? null
+        : expectedCountCandidates.reduce((left, right) => left > right ? left : right);
+
+    final String mergedDownloadType;
+    if (oldDownload.downloadType == 'both' || newDownload.downloadType == 'both') {
+      mergedDownloadType = 'both';
+    } else if (oldDownload.downloadType != newDownload.downloadType) {
+      mergedDownloadType = 'both';
+    } else {
+      mergedDownloadType = oldDownload.downloadType;
+    }
+
+    return oldDownload.copyWith(
+      item: newDownload.item ?? oldDownload.item,
+      episode: newDownload.episode ?? oldDownload.episode,
+      tracks: mergedTracks,
+      expectedFileCount: mergedExpectedFileCount,
+      auxiliaryFilePaths: mergedAuxiliaryPaths,
+      saf: oldDownload.saf || newDownload.saf,
+      coverPath: newDownload.coverPath ?? oldDownload.coverPath,
+      sidecarPaths: mergedSidecarPaths,
+      downloadType: mergedDownloadType,
+    );
+  }
+
   Future<void> addOrUpdateStoredDownload(StoredDownloadsCompanion companion) {
     return transaction(() async {
-      await into(storedDownloads).insert(companion, mode: InsertMode.insertOrIgnore);
-
       final requestedEpisodeId = companion.episodeId.present ? companion.episodeId.value : null;
       final requestedWhereClause = _storedDownloadWhereExpression(
         itemId: companion.itemId.value,
@@ -448,97 +505,85 @@ class AppDatabase extends _$AppDatabase {
         episodeId: requestedEpisodeId,
       );
 
-      final existing =
-          await (select(storedDownloads)..where((tbl) => requestedWhereClause)).getSingleOrNull() ??
-          (requestedEpisodeId == null
-              ? await (select(storedDownloads)..where(
-                      (tbl) => tbl.itemId.equals(companion.itemId.value) & tbl.userId.equals(companion.userId.value),
-                    ))
-                    .getSingleOrNull()
-              : null);
+      final existingRows = await (select(storedDownloads)..where((tbl) => requestedWhereClause)).get();
 
-      if (existing == null) {
-        await into(storedDownloads).insert(companion, mode: InsertMode.replace);
+      if (existingRows.isEmpty) {
+        StoredDownloadsEntry? legacyExisting;
+        if (requestedEpisodeId == null) {
+          final legacyRows =
+              await (select(storedDownloads)
+                    ..where(
+                      (tbl) => tbl.itemId.equals(companion.itemId.value) & tbl.userId.equals(companion.userId.value),
+                    )
+                    ..limit(1))
+                  .get();
+          if (legacyRows.isNotEmpty) {
+            legacyExisting = legacyRows.first;
+          }
+        }
+
+        if (legacyExisting == null) {
+          await into(storedDownloads).insert(companion);
+          return;
+        }
+
+        final newDownload = _decodeDownloadJsonOrNull(
+          companion.download.value,
+          itemId: companion.itemId.value,
+          userId: companion.userId.value,
+          episodeId: requestedEpisodeId,
+        );
+        if (newDownload == null) return;
+
+        final oldDownload = _decodeStoredDownloadOrNull(legacyExisting);
+        final updatedDownload = _mergeDownloads(oldDownload, newDownload);
+
+        final legacyWhereClause = _storedDownloadWhereExpression(
+          itemId: legacyExisting.itemId,
+          userId: legacyExisting.userId,
+          episodeId: legacyExisting.episodeId,
+        );
+        await (update(storedDownloads)..where((tbl) => legacyWhereClause)).write(
+          StoredDownloadsCompanion(download: Value(jsonEncode(updatedDownload.toJson()))),
+        );
         return;
       }
 
+      final existing = existingRows.first;
       final newDownload = _decodeDownloadJsonOrNull(
         companion.download.value,
         itemId: companion.itemId.value,
         userId: companion.userId.value,
         episodeId: requestedEpisodeId,
       );
+      if (newDownload == null) return;
 
-      if (newDownload == null) {
-        logger(
-          'Skipping stored download upsert because new payload could not be decoded.',
-          tag: 'AppDatabase',
-          level: InfoLevel.warning,
-        );
-        return;
-      }
+      var oldDownload = _decodeStoredDownloadOrNull(existing);
+      var mergedDownload = _mergeDownloads(oldDownload, newDownload);
 
-      final oldDownload = _decodeStoredDownloadOrNull(existing);
-
-      final InternalDownload updatedDownload;
-      if (oldDownload == null) {
-        updatedDownload = newDownload;
-      } else {
-        final mergedByIndex = <int, InternalTrack>{};
-        for (final track in oldDownload.tracks) {
-          mergedByIndex[track.index] = track;
-        }
-        for (final track in newDownload.tracks) {
-          final current = mergedByIndex[track.index];
-          if (current == null || track.url != null) {
-            mergedByIndex[track.index] = track;
+      if (existingRows.length > 1) {
+        for (var i = 1; i < existingRows.length; i++) {
+          final duplicate = existingRows[i];
+          final duplicateDownload = _decodeStoredDownloadOrNull(duplicate);
+          if (duplicateDownload != null) {
+            mergedDownload = _mergeDownloads(mergedDownload, duplicateDownload);
           }
         }
 
-        final mergedTracks = mergedByIndex.values.toList()..sort((left, right) => left.index.compareTo(right.index));
-
-        final mergedAuxiliaryPaths = <String>{
-          ...oldDownload.auxiliaryFilePaths.where((path) => path.trim().isNotEmpty),
-          ...newDownload.auxiliaryFilePaths.where((path) => path.trim().isNotEmpty),
-        }.toList(growable: false)..sort();
-
-        final mergedSidecarPaths = <String>{
-          ...oldDownload.sidecarPaths.where((path) => path.trim().isNotEmpty),
-          ...newDownload.sidecarPaths.where((path) => path.trim().isNotEmpty),
-        }.toList(growable: false)..sort();
-
-        final expectedCountCandidates = <int>{
-          if (oldDownload.expectedFileCount != null && oldDownload.expectedFileCount! > 0)
-            oldDownload.expectedFileCount!,
-          if (newDownload.expectedFileCount != null && newDownload.expectedFileCount! > 0)
-            newDownload.expectedFileCount!,
-        };
-
-        final mergedExpectedFileCount = expectedCountCandidates.isEmpty
-            ? null
-            : expectedCountCandidates.reduce((left, right) => left > right ? left : right);
-
-        updatedDownload = oldDownload.copyWith(
-          item: newDownload.item ?? oldDownload.item,
-          episode: newDownload.episode ?? oldDownload.episode,
-          tracks: mergedTracks,
-          expectedFileCount: mergedExpectedFileCount,
-          auxiliaryFilePaths: mergedAuxiliaryPaths,
-          saf: oldDownload.saf || newDownload.saf,
-          coverPath: newDownload.coverPath ?? oldDownload.coverPath,
-          sidecarPaths: mergedSidecarPaths,
+        await (delete(storedDownloads)..where((tbl) => requestedWhereClause)).go();
+        await into(storedDownloads).insert(
+          StoredDownloadsCompanion(
+            itemId: Value(companion.itemId.value),
+            userId: Value(companion.userId.value),
+            episodeId: Value(requestedEpisodeId),
+            download: Value(jsonEncode(mergedDownload.toJson())),
+          ),
+        );
+      } else {
+        await (update(storedDownloads)..where((tbl) => requestedWhereClause)).write(
+          StoredDownloadsCompanion(download: Value(jsonEncode(mergedDownload.toJson()))),
         );
       }
-
-      final existingWhereClause = _storedDownloadWhereExpression(
-        itemId: existing.itemId,
-        userId: existing.userId,
-        episodeId: existing.episodeId,
-      );
-
-      await (update(storedDownloads)..where((tbl) => existingWhereClause)).write(
-        StoredDownloadsCompanion(download: Value(jsonEncode(updatedDownload.toJson()))),
-      );
     });
   }
 

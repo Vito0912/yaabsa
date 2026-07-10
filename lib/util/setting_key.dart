@@ -127,6 +127,7 @@ class SettingKeys {
   static const String mixQueue = 'mix_queue';
   static const String showPlayerLoopShuffle = 'show_player_loop_shuffle';
   static const String showSkipInsteadOfFastForward = 'show_skip_instead_of_fast_forward';
+  static const String downloadTypePreference = 'download_type_preference';
 }
 
 bool get _defaultEnableOnDesktop {
@@ -267,6 +268,7 @@ final defaultSettings = {
   SettingKeys.mixQueue: false,
   SettingKeys.showPlayerLoopShuffle: 'music_only',
   SettingKeys.showSkipInsteadOfFastForward: false,
+  SettingKeys.downloadTypePreference: 'askEveryTime',
 };
 
 enum AppThemeMode {

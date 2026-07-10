@@ -1,7 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
+import 'package:background_downloader/background_downloader.dart';
+import 'package:yaabsa/database/app_database.dart';
+import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/file_formats.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,6 +24,7 @@ import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/models/internal_annotation.dart';
+import 'package:yaabsa/models/internal_download.dart';
 import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/core/server_reachability_provider.dart';
@@ -65,6 +74,10 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
   final double _lastUnderlineThickness = 2.0;
 
   String? _resolvedEbookLocation;
+  InternalDownload? _storedDownload;
+  File? _localEbookFile;
+  bool _loadingLocalFile = false;
+  File? _tempEbookFile;
   int _progressRefreshToken = 0;
   Timer? _annotationsSyncDebounce;
   bool _autoAnnotationLoadStarted = false;
@@ -575,6 +588,7 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     HardwareKeyboard.instance.addHandler(_handleVolumeKeys);
     unawaited(_refreshStoredProgress());
+    unawaited(_loadStoredDownload());
   }
 
   @override
@@ -610,6 +624,11 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
     _stopTts();
     _annotationsSyncDebounce?.cancel();
     _systemUiTimer?.cancel();
+    if (_tempEbookFile != null) {
+      try {
+        _tempEbookFile!.deleteSync();
+      } catch (_) {}
+    }
     super.dispose();
   }
 
@@ -698,6 +717,19 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
                               return const Center(child: Text('No authenticated user available.'));
                             }
 
+                            if (_loadingLocalFile) {
+                              return const Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    CircularProgressIndicator(),
+                                    SizedBox(height: 16),
+                                    Text('Loading local ebook files...'),
+                                  ],
+                                ),
+                              );
+                            }
+
                             final authToken = user.preferredAuthToken;
                             if (authToken == null || authToken.isEmpty) {
                               return const Center(child: Text('Missing authentication token for ebook loading.'));
@@ -709,6 +741,7 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
                                 user: user,
                                 authToken: authToken,
                                 initialLocation: effectiveInitialLocation,
+                                pdfFile: _localEbookFile,
                               );
                             }
 
@@ -724,6 +757,7 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
                               authToken: authToken,
                               initialCfi: effectiveInitialLocation,
                               bookExtension: bookExtension,
+                              bookFile: _localEbookFile,
                             );
                           },
                           error: (error, stackTrace) {
@@ -847,5 +881,73 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
         ),
       ),
     );
+  }
+
+  Future<void> _loadStoredDownload() async {
+    final user = ref.read(currentUserProvider).value;
+    if (user != null) {
+      final db = ref.read(appDatabaseProvider);
+      final download = await db.getStoredDownload(widget.itemId, user.id);
+      _readerSetState(() {
+        _storedDownload = download;
+      });
+      if (download != null) {
+        _readerSetState(() {
+          _loadingLocalFile = true;
+        });
+        final file = await _resolveEbookFile();
+        _readerSetState(() {
+          _localEbookFile = file;
+          _loadingLocalFile = false;
+        });
+      }
+    }
+  }
+
+  String? _getLocalEbookPathOrUri() {
+    final download = _storedDownload;
+    if (download == null) return null;
+    for (final path in download.auxiliaryFilePaths) {
+      if (FileFormats.isEbook(path)) {
+        return path;
+      }
+    }
+    return null;
+  }
+
+  Future<File?> _resolveEbookFile() async {
+    final localPathOrUri = _getLocalEbookPathOrUri();
+    if (localPathOrUri == null) {
+      return null;
+    }
+
+    final isSaf = _storedDownload?.saf ?? false;
+    if (isSaf) {
+      try {
+        final tempDir = await getTemporaryDirectory();
+        final ext = p.extension(localPathOrUri).isEmpty ? '.epub' : p.extension(localPathOrUri);
+        final tempFile = File('${tempDir.path}/${widget.itemId}_temp_ebook$ext');
+        if (await tempFile.exists()) {
+          await tempFile.delete();
+        }
+        await downloadHandler.cancelTask(widget.itemId);
+        await FileDownloader().uri.copyFile(Uri.parse(localPathOrUri), Uri.file(tempFile.path));
+        _tempEbookFile = tempFile;
+        return tempFile;
+      } catch (e, s) {
+        logger('Failed to copy SAF ebook to temp file: $e\n$s', tag: 'Reader', level: InfoLevel.error);
+        return null;
+      }
+    } else {
+      String cleanPath = localPathOrUri;
+      if (cleanPath.startsWith('file://')) {
+        cleanPath = Uri.parse(cleanPath).toFilePath(windows: Platform.isWindows);
+      }
+      final file = File(cleanPath);
+      if (await file.exists()) {
+        return file;
+      }
+    }
+    return null;
   }
 }

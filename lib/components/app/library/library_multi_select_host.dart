@@ -17,7 +17,7 @@ import 'package:yaabsa/provider/core/multi_select_app_bar_provider.dart';
 import 'package:yaabsa/provider/core/socket_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
-import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/components/app/downloads/download_helper.dart';
 
 class LibraryMultiSelectBindings {
   const LibraryMultiSelectBindings({
@@ -273,20 +273,9 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
           enabled: !selectionBusy.value && downloadableSelectedItems.isNotEmpty,
           onPressed: () {
             runAction(() async {
-              var count = 0;
-              for (final item in downloadableSelectedItems) {
-                try {
-                  await downloadHandler.downloadFile(item.id);
-                  count++;
-                } catch (e) {
-                  logger('Could not download ${item.title}: $e', tag: 'LibraryMultiSelectHost', level: InfoLevel.error);
-                }
-              }
-              if (context.mounted) {
-                final message = count == 1 ? '1 download added to queue.' : '$count downloads added to queue.';
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
-                clearSelection();
-              }
+              final ids = downloadableSelectedItems.map((e) => e.id).toList();
+              await triggerMultiBookDownload(context, ref, ids);
+              clearSelection();
             });
           },
         ),

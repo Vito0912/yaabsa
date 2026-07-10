@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:pdfrx/pdfrx.dart';
@@ -10,6 +11,7 @@ class ReaderPdfView extends StatefulWidget {
     required this.controller,
     required this.documentUrl,
     required this.requestHeaders,
+    this.pdfFile,
     required this.itemId,
     required this.initialPage,
     required this.onPageFocused,
@@ -20,6 +22,8 @@ class ReaderPdfView extends StatefulWidget {
     required this.onDocumentReady,
     this.onOutlineLoaded,
   });
+
+  final File? pdfFile;
 
   final PdfViewerController controller;
   final String documentUrl;
@@ -89,77 +93,87 @@ class _ReaderPdfViewState extends State<ReaderPdfView> {
     final currentPage = isViewerReady ? widget.controller.pageNumber : null;
     final pageCount = isViewerReady ? widget.controller.pageCount : 0;
 
-    return ReaderPagedSurface(
-      content: PdfViewer.uri(
-        Uri.parse(widget.documentUrl),
-        key: ValueKey<String>('pdf-${widget.itemId}'),
-        headers: widget.requestHeaders,
-        controller: widget.controller,
-        initialPageNumber: widget.initialPage,
-        params: PdfViewerParams(
-          backgroundColor: Colors.black,
-          pageAnchor: PdfPageAnchor.all,
-          pageAnchorEnd: PdfPageAnchor.all,
-          // TODO: Check the use of smart
-          sizeDelegateProvider: PdfViewerSizeDelegateProviderLegacy(
-            calculateInitialZoom: (document, controller, fitZoom, coverZoom) => fitZoom,
-          ),
-          scrollByMouseWheel: 0.0,
-          onViewerReady: (document, controller) async {
-            if (!mounted) {
-              return;
-            }
-
-            setState(() {});
-            widget.onDocumentReady(document);
-            final page = controller.pageNumber ?? widget.initialPage;
-            widget.onPageFocused(page);
-            unawaited(_snapToPage(page));
-
-            try {
-              final outline = await document.loadOutline();
-              widget.onOutlineLoaded?.call(outline);
-            } catch (_) {}
-          },
-          onPageChanged: (pageNumber) {
-            if (pageNumber == null || !mounted) {
-              return;
-            }
-
-            setState(() {});
-            widget.onPageFocused(pageNumber);
-            unawaited(_snapToPage(pageNumber));
-          },
-          textSelectionParams: PdfTextSelectionParams(
-            enabled: true,
-            onTextSelectionChange: widget.onTextSelectionChange,
-          ),
-          customizeContextMenuItems: widget.customizeContextMenuItems,
-          pageOverlaysBuilder: widget.buildPageOverlays,
-          onGeneralTap: widget.onGeneralTap,
-          loadingBannerBuilder: (context, bytesDownloaded, totalBytes) {
-            final double? value;
-            final String text;
-            if (totalBytes != null && totalBytes > 0) {
-              value = bytesDownloaded / totalBytes;
-              text = 'Loading PDF... ${(value * 100).toStringAsFixed(0)}%';
-            } else {
-              value = null;
-              text = 'Loading PDF...';
-            }
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(value: value, color: Theme.of(context).colorScheme.primary),
-                  const SizedBox(height: 16),
-                  Text(text, style: Theme.of(context).textTheme.titleMedium),
-                ],
-              ),
-            );
-          },
-        ),
+    final params = PdfViewerParams(
+      backgroundColor: Colors.black,
+      pageAnchor: PdfPageAnchor.all,
+      pageAnchorEnd: PdfPageAnchor.all,
+      // TODO: Check the use of smart
+      sizeDelegateProvider: PdfViewerSizeDelegateProviderLegacy(
+        calculateInitialZoom: (document, controller, fitZoom, coverZoom) => fitZoom,
       ),
+      scrollByMouseWheel: 0.0,
+      onViewerReady: (document, controller) async {
+        if (!mounted) {
+          return;
+        }
+
+        setState(() {});
+        widget.onDocumentReady(document);
+        final page = controller.pageNumber ?? widget.initialPage;
+        widget.onPageFocused(page);
+        unawaited(_snapToPage(page));
+
+        try {
+          final outline = await document.loadOutline();
+          widget.onOutlineLoaded?.call(outline);
+        } catch (_) {}
+      },
+      onPageChanged: (pageNumber) {
+        if (pageNumber == null || !mounted) {
+          return;
+        }
+
+        setState(() {});
+        widget.onPageFocused(pageNumber);
+        unawaited(_snapToPage(pageNumber));
+      },
+      textSelectionParams: PdfTextSelectionParams(enabled: true, onTextSelectionChange: widget.onTextSelectionChange),
+      customizeContextMenuItems: widget.customizeContextMenuItems,
+      pageOverlaysBuilder: widget.buildPageOverlays,
+      onGeneralTap: widget.onGeneralTap,
+      loadingBannerBuilder: (context, bytesDownloaded, totalBytes) {
+        final double? value;
+        final String text;
+        if (totalBytes != null && totalBytes > 0) {
+          value = bytesDownloaded / totalBytes;
+          text = 'Loading PDF... ${(value * 100).toStringAsFixed(0)}%';
+        } else {
+          value = null;
+          text = 'Loading PDF...';
+        }
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(value: value, color: Theme.of(context).colorScheme.primary),
+              const SizedBox(height: 16),
+              Text(text, style: Theme.of(context).textTheme.titleMedium),
+            ],
+          ),
+        );
+      },
+    );
+
+    final pdfFile = widget.pdfFile;
+    final pdfContent = pdfFile != null
+        ? PdfViewer.file(
+            pdfFile.path,
+            key: ValueKey<String>('pdf-file-${widget.itemId}'),
+            controller: widget.controller,
+            initialPageNumber: widget.initialPage,
+            params: params,
+          )
+        : PdfViewer.uri(
+            Uri.parse(widget.documentUrl),
+            key: ValueKey<String>('pdf-${widget.itemId}'),
+            headers: widget.requestHeaders,
+            controller: widget.controller,
+            initialPageNumber: widget.initialPage,
+            params: params,
+          );
+
+    return ReaderPagedSurface(
+      content: pdfContent,
       onPreviousPage: _goToPreviousPage,
       onNextPage: _goToNextPage,
       canGoPrevious: isViewerReady && (currentPage ?? 1) > 1,
