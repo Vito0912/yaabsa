@@ -208,27 +208,37 @@ extension _ReaderBuilders on _ReaderState {
       onRelocated: _onEpubRelocated,
       onTtsJumpToSentence: _jumpToTtsSentence,
       bookFetcher: (url, headers, request) async {
-        final api = ref.read(absApiProvider);
-        final dio = api?.dio ?? Dio();
-        final response = await dio.get<ResponseBody>(
-          url,
-          options: Options(
-            headers: headers,
-            responseType: ResponseType.stream,
-            extra: <String, dynamic>{'doNotCache': true},
-          ),
-        );
-        request.response.statusCode = response.statusCode ?? 200;
-        response.headers.forEach((key, values) {
-          for (final value in values) {
-            request.response.headers.add(key, value);
+        try {
+          final api = ref.read(absApiProvider);
+          final dio = api?.dio ?? Dio();
+          final response = await dio.get<ResponseBody>(
+            url,
+            options: Options(
+              headers: headers,
+              responseType: ResponseType.stream,
+              extra: <String, dynamic>{'doNotCache': true},
+            ),
+          );
+          request.response.statusCode = response.statusCode ?? 200;
+          final ignoreHeaders = {'content-length', 'content-encoding', 'transfer-encoding', 'connection', 'host'};
+          response.headers.forEach((key, values) {
+            if (ignoreHeaders.contains(key.toLowerCase())) return;
+            for (final value in values) {
+              request.response.headers.add(key, value);
+            }
+          });
+          request.response.headers.set('Access-Control-Allow-Origin', '*');
+          final data = response.data;
+          if (data != null) {
+            await data.stream.cast<List<int>>().pipe(request.response);
+          } else {
+            await request.response.close();
           }
-        });
-        request.response.headers.set('Access-Control-Allow-Origin', '*');
-        final data = response.data;
-        if (data != null) {
-          await data.stream.cast<List<int>>().pipe(request.response);
-        } else {
+        } catch (e) {
+          logger('bookFetcher error fetching $url: $e', tag: 'EpubReader', level: InfoLevel.error);
+          request.response.statusCode = 500;
+          request.response.headers.set('Access-Control-Allow-Origin', '*');
+          request.response.write('Internal Server Error: $e');
           await request.response.close();
         }
       },
