@@ -1508,14 +1508,47 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       }
     }
 
+    final Set<MediaAction> finalSystemActions;
+    if (!hasPlaybackContext || lockMediaNotification) {
+      finalSystemActions = const <MediaAction>{};
+    } else if (!kIsWeb && (Platform.isIOS || Platform.isMacOS)) {
+      final chaptersExist =
+          _currentMediaItem != null && _currentMediaItem!.chapters != null && _currentMediaItem!.chapters!.isNotEmpty;
+      final queueExists = queueList.isNotEmpty;
+      final hasChaptersOrQueue = chaptersExist || queueExists;
+
+      final showSkipInsteadOfFastForward = _ref
+          .read(settingsManagerProvider.notifier)
+          .getGlobalSetting<bool>(SettingKeys.showSkipInsteadOfFastForward, defaultValue: false);
+
+      final useSkip = showSkipInsteadOfFastForward && hasChaptersOrQueue;
+      if (useSkip) {
+        finalSystemActions = const {
+          MediaAction.seek,
+          MediaAction.play,
+          MediaAction.pause,
+          MediaAction.skipToNext,
+          MediaAction.skipToPrevious,
+        };
+      } else {
+        finalSystemActions = const {
+          MediaAction.seek,
+          MediaAction.play,
+          MediaAction.pause,
+          MediaAction.fastForward,
+          MediaAction.rewind,
+        };
+      }
+    } else {
+      finalSystemActions = const {MediaAction.seek};
+    }
+
     playbackState.add(
       PlaybackState(
         // Which buttons should appear in the notification now
         controls: controls,
         // Which other actions should be enabled in the notification
-        systemActions: (!hasPlaybackContext || lockMediaNotification)
-            ? const <MediaAction>{}
-            : const {MediaAction.seek},
+        systemActions: finalSystemActions,
         // Which controls to show in Android's compact view.
         androidCompactActionIndices: compactActionIndices,
         processingState: !hasPlaybackContext
