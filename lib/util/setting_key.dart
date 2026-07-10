@@ -111,6 +111,8 @@ class SettingKeys {
   static const String subtitleReadAlong = 'subtitle_read_along';
   static const String checkForServerUpdates = 'check_for_server_updates';
   static const String dismissedUpdateServerVersion = 'dismissed_update_server_version';
+  static const String latestServerVersion = 'latest_server_version';
+  static const String nextServerVersionCheckAllowed = 'next_server_version_check_allowed';
   static const String playerShowRemainingTime = 'player_show_remaining_time';
   static const String readerTheme = 'reader_theme';
   static const String readerFontSizeMultiplier = 'reader_font_size_multiplier';
@@ -125,6 +127,7 @@ class SettingKeys {
   static const String mixQueue = 'mix_queue';
   static const String showPlayerLoopShuffle = 'show_player_loop_shuffle';
   static const String showSkipInsteadOfFastForward = 'show_skip_instead_of_fast_forward';
+  static const String downloadTypePreference = 'download_type_preference';
 }
 
 bool get _defaultEnableOnDesktop {
@@ -249,6 +252,8 @@ final defaultSettings = {
   SettingKeys.subtitleSpeakerHighlighting: true,
   SettingKeys.subtitleReadAlong: true,
   SettingKeys.checkForServerUpdates: false,
+  SettingKeys.latestServerVersion: '',
+  SettingKeys.nextServerVersionCheckAllowed: 0,
   SettingKeys.playerShowRemainingTime: false,
   SettingKeys.readerTheme: 'sepia',
   SettingKeys.readerFontSizeMultiplier: 1.0,
@@ -263,6 +268,7 @@ final defaultSettings = {
   SettingKeys.mixQueue: false,
   SettingKeys.showPlayerLoopShuffle: 'music_only',
   SettingKeys.showSkipInsteadOfFastForward: false,
+  SettingKeys.downloadTypePreference: 'askEveryTime',
 };
 
 enum AppThemeMode {

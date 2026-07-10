@@ -22,6 +22,7 @@ class PodcastHeaderCard extends StatelessWidget {
     this.onPauseLatest,
     this.onFindEpisodes,
     this.onEditPodcast,
+    this.onDownloadPress,
   });
 
   final LibraryItem item;
@@ -39,6 +40,7 @@ class PodcastHeaderCard extends StatelessWidget {
   final VoidCallback? onPauseLatest;
   final VoidCallback? onFindEpisodes;
   final VoidCallback? onEditPodcast;
+  final VoidCallback? onDownloadPress;
   final VoidCallback onToggleDescription;
 
   @override
@@ -87,6 +89,7 @@ class PodcastHeaderCard extends StatelessWidget {
                     onPauseLatest: onPauseLatest,
                     onFindEpisodes: onFindEpisodes,
                     onEditPodcast: onEditPodcast,
+                    onDownloadPress: onDownloadPress,
                   ),
                 ],
               )
@@ -113,6 +116,7 @@ class PodcastHeaderCard extends StatelessWidget {
                       onPauseLatest: onPauseLatest,
                       onFindEpisodes: onFindEpisodes,
                       onEditPodcast: onEditPodcast,
+                      onDownloadPress: onDownloadPress,
                     ),
                   ),
                 ],
@@ -151,6 +155,7 @@ class _PodcastHeaderText extends StatelessWidget {
     this.onPauseLatest,
     this.onFindEpisodes,
     this.onEditPodcast,
+    this.onDownloadPress,
   });
 
   final LibraryItem item;
@@ -165,6 +170,7 @@ class _PodcastHeaderText extends StatelessWidget {
   final VoidCallback? onPauseLatest;
   final VoidCallback? onFindEpisodes;
   final VoidCallback? onEditPodcast;
+  final VoidCallback? onDownloadPress;
 
   @override
   Widget build(BuildContext context) {
@@ -211,6 +217,13 @@ class _PodcastHeaderText extends StatelessWidget {
           runSpacing: 8,
           children: [
             FilledButton.icon(onPressed: onPressed, icon: iconWidget, label: Text(playLabel)),
+            if (onDownloadPress != null)
+              IconButton.filledTonal(
+                onPressed: onDownloadPress,
+                tooltip: 'Download options',
+                icon: const Icon(Icons.download_rounded),
+                visualDensity: VisualDensity.compact,
+              ),
             if (onFindEpisodes != null)
               IconButton.filledTonal(
                 onPressed: isFindingEpisodes ? null : onFindEpisodes,

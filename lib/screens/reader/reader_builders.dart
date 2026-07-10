@@ -192,6 +192,7 @@ extension _ReaderBuilders on _ReaderState {
     required String authToken,
     required String? initialCfi,
     required String? bookExtension,
+    File? bookFile,
   }) {
     final requestHeaders = buildRequestHeaders(serverHeaders: user.server?.headers, bearerToken: authToken);
     final url = _ebookUrl(user);
@@ -199,6 +200,7 @@ extension _ReaderBuilders on _ReaderState {
     return ReaderEpubView(
       controller: epubController,
       bookUrl: url,
+      bookFile: bookFile,
       bookExtension: bookExtension,
       headers: requestHeaders,
       initialCfi: initialCfi,
@@ -358,7 +360,12 @@ extension _ReaderBuilders on _ReaderState {
     );
   }
 
-  Widget _buildPdfReaderBody({required User user, required String authToken, required String? initialLocation}) {
+  Widget _buildPdfReaderBody({
+    required User user,
+    required String authToken,
+    required String? initialLocation,
+    File? pdfFile,
+  }) {
     final int initialPage = _parseStoredPdfPage(initialLocation);
     final requestHeaders = buildRequestHeaders(serverHeaders: user.server?.headers, bearerToken: authToken);
     _triggerAutoAnnotationLoadIfNeeded(isEpubMode: false);
@@ -366,6 +373,7 @@ extension _ReaderBuilders on _ReaderState {
     return ReaderPdfView(
       controller: _pdfController,
       documentUrl: _ebookUrl(user),
+      pdfFile: pdfFile,
       requestHeaders: requestHeaders,
       itemId: widget.itemId,
       initialPage: initialPage,

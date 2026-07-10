@@ -17,7 +17,6 @@ import 'package:yaabsa/components/common/author_card.dart';
 import 'package:yaabsa/components/common/library_item_widget.dart';
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
 import 'package:yaabsa/components/common/scroll_to_top_button.dart';
-import 'package:yaabsa/components/common/loading_view.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/common/library_filter_data_provider.dart';
@@ -46,8 +45,27 @@ class PersonalizedView extends HookConsumerWidget {
       return const Center(child: Text('No library selected. Please select a library via the switcher.'));
     }
 
-    final serverReachable = ref.watch(serverStatusProvider).value ?? false;
+    final serverReachable = ref.watch(serverStatusProvider).value ?? true;
     final personalizedLibraryAsyncValue = ref.watch(personalizedLibraryProvider(selectedLibrary.id));
+    final downloadsAsyncValue = ref.watch(libraryDownloadsProvider(selectedLibrary.id));
+    final downloads = downloadsAsyncValue.value;
+    final downloadItems = downloads
+        ?.map((d) {
+          if (d.item == null) return null;
+          var item = d.item!;
+          if (d.episode != null) {
+            final media = item.media;
+            final podcastMedia = media?.podcastMedia;
+            if (media != null && podcastMedia != null) {
+              item = item.copyWith(
+                media: media.copyWith(podcastMedia: podcastMedia.copyWith(episodes: [d.episode!])),
+              );
+            }
+          }
+          return _withLocalCoverPath(item, d.coverPath);
+        })
+        .whereType<LibraryItem>()
+        .toList();
     final showShelfPlayButtonSettingValue = ref.watch(
       globalSettingByKeyProvider(SettingKeys.personalizedShelfShowPlayVisibleButton),
     );
@@ -56,7 +74,8 @@ class PersonalizedView extends HookConsumerWidget {
       defaultSettings[SettingKeys.personalizedShelfShowPlayVisibleButton] as bool,
     );
     final filterDataAsync = ref.watch(libraryFilterDataProvider(selectedLibrary.id));
-    final currentUser = ref.watch(currentUserProvider).value;
+    final currentUserAsync = ref.watch(currentUserProvider);
+    final currentUser = currentUserAsync.value;
     ref.watch(userSettingsWatcherProvider);
     final managementPreferences = readServerManagementPreferences(ref, currentUser?.id);
     final mediaProgressMap = ref.watch(mediaProgressProvider).asData?.value ?? const <String, MediaProgress>{};
@@ -112,172 +131,216 @@ class PersonalizedView extends HookConsumerWidget {
           .refresh(selectedLibrary.id, withLoading: withLoading);
     }
 
-    return personalizedLibraryAsyncValue.when(
-      skipLoadingOnRefresh: true,
-      skipLoadingOnReload: true,
-      data: (personalizedLibrary) {
-        final api = ref.watch(absApiProvider);
-        if (api == null) {
-          return _PersonalizedFeedbackView(
-            icon: Icons.cloud_off_rounded,
-            title: 'No server connection available',
-            message: 'Pull down to refresh once your connection is back.',
-            onRefresh: refreshPersonalizedLibrary,
+    final personalizedLibrary = personalizedLibraryAsyncValue.value;
+    final isLibraryLoading =
+        (personalizedLibraryAsyncValue.isLoading && personalizedLibrary == null) || currentUserAsync.isLoading;
+    final libraryError = personalizedLibraryAsyncValue.hasError && personalizedLibrary == null
+        ? personalizedLibraryAsyncValue.error
+        : null;
+
+    if (libraryError != null) {
+      final title = serverReachable ? 'Could not load personalized shelf' : 'Server connection unavailable';
+      final message = serverReachable
+          ? 'Pull down to retry loading personalized sections.'
+          : 'You appear to be offline. Pull down to retry after reconnecting.';
+
+      return _PersonalizedFeedbackView(
+        icon: serverReachable ? Icons.error_outline_rounded : Icons.cloud_off_rounded,
+        title: title,
+        message: message,
+        detail: libraryError.toString(),
+        onRefresh: () => refreshPersonalizedLibrary(withLoading: true),
+      );
+    }
+
+    final api = ref.watch(absApiProvider);
+    if (api == null && !isLibraryLoading) {
+      return _PersonalizedFeedbackView(
+        icon: Icons.cloud_off_rounded,
+        title: 'No server connection available',
+        message: 'Pull down to refresh once your connection is back.',
+        onRefresh: refreshPersonalizedLibrary,
+      );
+    }
+
+    if (personalizedLibrary == null && !isLibraryLoading) {
+      return _PersonalizedFeedbackView(
+        icon: serverReachable ? Icons.auto_awesome_outlined : Icons.cloud_off_rounded,
+        title: serverReachable ? 'No personalized items found' : 'Personalized shelf is offline',
+        message: serverReachable
+            ? 'No personalized sections are available for this library yet.'
+            : 'Unable to reach the server right now. Pull down to retry.',
+        onRefresh: refreshPersonalizedLibrary,
+      );
+    }
+
+    final shelfMediaType = HomeLibraryMediaType.fromLibraryMediaType(selectedLibrary.mediaType);
+    final shelfSettingKey = PersonalizedShelfPreferencesCodec.settingKeyFor(shelfMediaType);
+    final shelfDefaultValue = PersonalizedShelfPreferencesCodec.defaultEncodedFor(shelfMediaType);
+    final shelfSettingValue = currentUser == null
+        ? shelfDefaultValue
+        : ref
+              .read(settingsManagerProvider.notifier)
+              .getUserSetting<String>(currentUser.id, shelfSettingKey, defaultValue: shelfDefaultValue);
+    final shelfPreferences = PersonalizedShelfPreferencesCodec.decode(shelfSettingValue, shelfMediaType);
+
+    final List<_SectionData> sections;
+    if (isLibraryLoading) {
+      final visibleSectionIds = shelfPreferences.orderedSectionIds
+          .where((id) => !shelfPreferences.hiddenSectionIds.contains(id))
+          .toList();
+
+      sections = <_SectionData>[];
+      for (final sectionId in visibleSectionIds) {
+        if (sectionId == 'downloads') {
+          if (downloads != null && downloads.isEmpty) {
+            continue;
+          }
+        }
+        final section = PersonalizedShelfSection.fromId(sectionId);
+        final title = section?.label ?? sectionId;
+        final kind = _kindForSectionId(sectionId);
+
+        if (sectionId == 'downloads' && downloads != null && downloads.isNotEmpty && api != null) {
+          sections.add(
+            _SectionData(
+              id: 'downloads',
+              title: 'Downloads',
+              kind: _ShelfEntityKind.libraryItem,
+              entities: downloadItems ?? const [],
+              isShimmer: false,
+            ),
           );
+        } else {
+          sections.add(_SectionData(id: sectionId, title: title, kind: kind, entities: const [], isShimmer: true));
+        }
+      }
+    } else {
+      var rawSections = _buildSections(personalizedLibrary!, downloadItems);
+      sections = _applyShelfSectionPreferences(rawSections, shelfPreferences);
+    }
+
+    if (sections.isEmpty) {
+      return _PersonalizedFeedbackView(
+        icon: Icons.view_carousel_outlined,
+        title: 'No personalized sections available yet',
+        message: 'Pull down to refresh and try again.',
+        onRefresh: refreshPersonalizedLibrary,
+      );
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final horizontalPadding = width >= 1200
+            ? 24.0
+            : width >= 700
+            ? 18.0
+            : 10.0;
+        final verticalPadding = width >= 1200 ? 22.0 : 14.0;
+        final libraryTileWidth = appGridTileWidth;
+        final visibleLibraryItems = _collectVisibleShelfLibraryItems(sections);
+        final canManageBooks = selectedLibrary.mediaType == 'book';
+        final hasUpdatePermission = currentUser?.permissions.update ?? false;
+        final hasDeletePermission = currentUser?.permissions.delete ?? false;
+        final canEditItems = hasUpdatePermission && managementPreferences.editItemsEnabled;
+        final canQuickMatchItems =
+            canManageBooks && canEditItems && managementPreferences.allowMatchesQuickMatchesEnabled;
+        final editableItemIds = visibleLibraryItems
+            .where((item) => item.collapsedSeries == null)
+            .map((item) => item.id)
+            .toList(growable: false);
+
+        if (editingItemId.value != null && !editableItemIds.contains(editingItemId.value)) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            editingItemId.value = null;
+          });
         }
 
-        if (personalizedLibrary == null) {
-          return _PersonalizedFeedbackView(
-            icon: serverReachable ? Icons.auto_awesome_outlined : Icons.cloud_off_rounded,
-            title: serverReachable ? 'No personalized items found' : 'Personalized shelf is offline',
-            message: serverReachable
-                ? 'No personalized sections are available for this library yet.'
-                : 'Unable to reach the server right now. Pull down to retry.',
-            onRefresh: refreshPersonalizedLibrary,
-          );
-        }
-
-        var sections = _buildSections(personalizedLibrary);
-        final shelfMediaType = HomeLibraryMediaType.fromLibraryMediaType(selectedLibrary.mediaType);
-        final shelfSettingKey = PersonalizedShelfPreferencesCodec.settingKeyFor(shelfMediaType);
-        final shelfDefaultValue = PersonalizedShelfPreferencesCodec.defaultEncodedFor(shelfMediaType);
-        final shelfSettingValue = currentUser == null
-            ? shelfDefaultValue
-            : ref
-                  .read(settingsManagerProvider.notifier)
-                  .getUserSetting<String>(currentUser.id, shelfSettingKey, defaultValue: shelfDefaultValue);
-        final shelfPreferences = PersonalizedShelfPreferencesCodec.decode(shelfSettingValue, shelfMediaType);
-        sections = _applyShelfSectionPreferences(sections, shelfPreferences);
-        if (sections.isEmpty) {
-          return _PersonalizedFeedbackView(
-            icon: Icons.view_carousel_outlined,
-            title: 'No personalized sections available yet',
-            message: 'Pull down to refresh and try again.',
-            onRefresh: refreshPersonalizedLibrary,
-          );
-        }
-
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            final width = constraints.maxWidth;
-            final horizontalPadding = width >= 1200
-                ? 24.0
-                : width >= 700
-                ? 18.0
-                : 10.0;
-            final verticalPadding = width >= 1200 ? 22.0 : 14.0;
-            final libraryTileWidth = appGridTileWidth;
-            final visibleLibraryItems = _collectVisibleShelfLibraryItems(sections);
-            final canManageBooks = selectedLibrary.mediaType == 'book';
-            final hasUpdatePermission = currentUser?.permissions.update ?? false;
-            final hasDeletePermission = currentUser?.permissions.delete ?? false;
-            final canEditItems = hasUpdatePermission && managementPreferences.editItemsEnabled;
-            final canQuickMatchItems =
-                canManageBooks && canEditItems && managementPreferences.allowMatchesQuickMatchesEnabled;
-            final editableItemIds = visibleLibraryItems
-                .where((item) => item.collapsedSeries == null)
-                .map((item) => item.id)
-                .toList(growable: false);
-
-            if (editingItemId.value != null && !editableItemIds.contains(editingItemId.value)) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                editingItemId.value = null;
-              });
-            }
-
-            return LibraryMultiSelectHost(
-              scopeKey: 'shelf:${selectedLibrary.id}',
-              libraryId: selectedLibrary.id,
-              visibleItems: visibleLibraryItems,
-              canAddToPlaylist: canManageBooks && currentUser != null,
-              canAddToCollection: canManageBooks && hasUpdatePermission && managementPreferences.collectionsEnabled,
-              canQuickMatchItems: canQuickMatchItems,
-              canDeleteItems: canManageBooks && hasDeletePermission && managementPreferences.deleteItemsEnabled,
-              currentUserId: currentUser?.id,
-              onAfterDelete: () => refreshPersonalizedLibrary(withLoading: false),
-              builder: (context, selection) {
-                return Stack(
-                  children: [
-                    Positioned.fill(
-                      child: Column(
-                        children: [
-                          if (!serverReachable) const _PersonalizedConnectionBanner(),
-                          Expanded(
-                            child: RefreshIndicator(
-                              onRefresh: refreshPersonalizedLibrary,
-                              child: ListView.separated(
-                                controller: scrollController,
-                                physics: const AlwaysScrollableScrollPhysics(),
-                                padding: EdgeInsets.fromLTRB(
-                                  horizontalPadding,
-                                  verticalPadding,
-                                  horizontalPadding,
-                                  verticalPadding,
-                                ),
-                                itemCount: sections.length,
-                                separatorBuilder: (context, index) => const SizedBox(height: 12),
-                                itemBuilder: (context, index) {
-                                  final section = sections[index];
-                                  return _SectionRow(
-                                    section: section,
-                                    api: api,
-                                    libraryTileWidth: libraryTileWidth,
-                                    viewportWidth: width,
-                                    showPlayVisibleButton: showShelfPlayButton,
-                                    mediaProgressMap: mediaProgressMap,
-                                    selectionMode: selection.selectionMode,
-                                    selectedItemIds: selection.selectedItemIds,
-                                    onToggleSelection: selection.toggleSelectionById,
-                                    onEnterSelectionMode: selection.enterSelectionById,
-                                    canEditItems: canEditItems,
-                                    onEditItem: (item) {
-                                      if (selection.selectionMode || item.collapsedSeries != null) {
-                                        return;
-                                      }
-                                      editingItemId.value = item.id;
-                                    },
-                                  );
-                                },
-                              ),
+        return LibraryMultiSelectHost(
+          scopeKey: 'shelf:${selectedLibrary.id}',
+          libraryId: selectedLibrary.id,
+          visibleItems: visibleLibraryItems,
+          canAddToPlaylist: canManageBooks && currentUser != null,
+          canAddToCollection: canManageBooks && hasUpdatePermission && managementPreferences.collectionsEnabled,
+          canQuickMatchItems: canQuickMatchItems,
+          canDeleteItems: canManageBooks && hasDeletePermission && managementPreferences.deleteItemsEnabled,
+          currentUserId: currentUser?.id,
+          onAfterDelete: () => refreshPersonalizedLibrary(withLoading: false),
+          builder: (context, selection) {
+            return Stack(
+              children: [
+                Positioned.fill(
+                  child: Column(
+                    children: [
+                      if (!serverReachable && !isLibraryLoading) const _PersonalizedConnectionBanner(),
+                      Expanded(
+                        child: RefreshIndicator(
+                          onRefresh: refreshPersonalizedLibrary,
+                          child: ListView.separated(
+                            controller: scrollController,
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: EdgeInsets.fromLTRB(
+                              horizontalPadding,
+                              verticalPadding,
+                              horizontalPadding,
+                              verticalPadding,
                             ),
+                            itemCount: sections.length,
+                            separatorBuilder: (context, index) => const SizedBox(height: 12),
+                            itemBuilder: (context, index) {
+                              final section = sections[index];
+                              if (section.isShimmer) {
+                                return _ShimmerSectionRow(
+                                  title: section.title,
+                                  kind: section.kind,
+                                  libraryTileWidth: libraryTileWidth,
+                                  viewportWidth: width,
+                                );
+                              }
+                              return _SectionRow(
+                                section: section,
+                                api: api!,
+                                libraryTileWidth: libraryTileWidth,
+                                viewportWidth: width,
+                                showPlayVisibleButton: showShelfPlayButton,
+                                mediaProgressMap: mediaProgressMap,
+                                selectionMode: selection.selectionMode,
+                                selectedItemIds: selection.selectedItemIds,
+                                onToggleSelection: selection.toggleSelectionById,
+                                onEnterSelectionMode: selection.enterSelectionById,
+                                canEditItems: canEditItems,
+                                onEditItem: (item) {
+                                  if (selection.selectionMode || item.collapsedSeries != null) {
+                                    return;
+                                  }
+                                  editingItemId.value = item.id;
+                                },
+                              );
+                            },
                           ),
-                        ],
+                        ),
                       ),
-                    ),
-                    ScrollToTopButton(controller: scrollController),
-                    if (editingItemId.value != null && editableItemIds.contains(editingItemId.value))
-                      LibraryItemEditOverlay(
-                        orderedItemIds: editableItemIds,
-                        currentItemId: editingItemId.value!,
-                        filterData: filterDataAsync.asData?.value,
-                        onSelectItem: (itemId) {
-                          editingItemId.value = itemId;
-                        },
-                        onClose: () {
-                          editingItemId.value = null;
-                        },
-                        onItemSaved: (_, _) async {},
-                      ),
-                  ],
-                );
-              },
+                    ],
+                  ),
+                ),
+                ScrollToTopButton(controller: scrollController),
+                if (editingItemId.value != null && editableItemIds.contains(editingItemId.value))
+                  LibraryItemEditOverlay(
+                    orderedItemIds: editableItemIds,
+                    currentItemId: editingItemId.value!,
+                    filterData: filterDataAsync.asData?.value,
+                    onSelectItem: (itemId) {
+                      editingItemId.value = itemId;
+                    },
+                    onClose: () {
+                      editingItemId.value = null;
+                    },
+                    onItemSaved: (_, _) async {},
+                  ),
+              ],
             );
           },
-        );
-      },
-      loading: () => const LoadingView(),
-      error: (error, stackTrace) {
-        final title = serverReachable ? 'Could not load personalized shelf' : 'Server connection unavailable';
-        final message = serverReachable
-            ? 'Pull down to retry loading personalized sections.'
-            : 'You appear to be offline. Pull down to retry after reconnecting.';
-
-        return _PersonalizedFeedbackView(
-          icon: serverReachable ? Icons.error_outline_rounded : Icons.cloud_off_rounded,
-          title: title,
-          message: message,
-          detail: error.toString(),
-          onRefresh: () => refreshPersonalizedLibrary(withLoading: true),
         );
       },
     );
@@ -422,15 +485,22 @@ String _preferredShelfTitle(String sectionId, String fallbackTitle) {
 }
 
 class _SectionData {
-  _SectionData({required this.id, required this.title, required this.kind, required this.entities});
+  _SectionData({
+    required this.id,
+    required this.title,
+    required this.kind,
+    required this.entities,
+    this.isShimmer = false,
+  });
 
   final String id;
   final String title;
   final _ShelfEntityKind kind;
   final List<Object> entities;
+  final bool isShimmer;
 }
 
-List<_SectionData> _buildSections(PersonalizedLibrary library) {
+List<_SectionData> _buildSections(PersonalizedLibrary library, List<LibraryItem>? downloadedItems) {
   final sections = <_SectionData>[];
 
   void addSection<T>(ShelfEntry<T>? shelf, _ShelfEntityKind kind) {
@@ -465,6 +535,16 @@ List<_SectionData> _buildSections(PersonalizedLibrary library) {
 
   if (newestEpisodesAsLibraryItems == null) {
     addSection(library.newestEpisodes, _ShelfEntityKind.episode);
+  }
+
+  if (downloadedItems == null) {
+    sections.add(
+      _SectionData(id: 'downloads', title: 'Downloads', kind: _ShelfEntityKind.libraryItem, entities: const []),
+    );
+  } else if (downloadedItems.isNotEmpty) {
+    sections.add(
+      _SectionData(id: 'downloads', title: 'Downloads', kind: _ShelfEntityKind.libraryItem, entities: downloadedItems),
+    );
   }
 
   for (final shelf in library.extraLibraryShelves) {
@@ -924,6 +1004,212 @@ class _MetaCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+LibraryItem _withLocalCoverPath(LibraryItem item, String? coverPathOverride) {
+  final normalizedCoverPath = coverPathOverride?.trim();
+  if (normalizedCoverPath == null || normalizedCoverPath.isEmpty) {
+    return item;
+  }
+
+  final media = item.media;
+  if (media == null) {
+    return item;
+  }
+
+  final bookMedia = media.bookMedia;
+  if (bookMedia != null) {
+    if (bookMedia.coverPath == normalizedCoverPath) {
+      return item;
+    }
+
+    return item.copyWith(
+      media: media.copyWith(bookMedia: bookMedia.copyWith(coverPath: normalizedCoverPath)),
+    );
+  }
+
+  final podcastMedia = media.podcastMedia;
+  if (podcastMedia != null) {
+    if (podcastMedia.coverPath == normalizedCoverPath) {
+      return item;
+    }
+
+    return item.copyWith(
+      media: media.copyWith(podcastMedia: podcastMedia.copyWith(coverPath: normalizedCoverPath)),
+    );
+  }
+
+  return item;
+}
+
+_ShelfEntityKind _kindForSectionId(String sectionId) {
+  if (sectionId == 'recent-series') {
+    return _ShelfEntityKind.series;
+  } else if (sectionId == 'newest-authors') {
+    return _ShelfEntityKind.author;
+  } else if (sectionId == 'newest-episodes') {
+    return _ShelfEntityKind.episode;
+  } else {
+    return _ShelfEntityKind.libraryItem;
+  }
+}
+
+class _ShelfTargetShimmer extends StatefulWidget {
+  const _ShelfTargetShimmer({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_ShelfTargetShimmer> createState() => _ShelfTargetShimmerState();
+}
+
+class _ShelfTargetShimmerState extends State<_ShelfTargetShimmer> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1300),
+  )..repeat();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final base = colorScheme.surfaceContainerHighest;
+    final highlight = colorScheme.surface;
+
+    return AnimatedBuilder(
+      animation: _controller,
+      child: widget.child,
+      builder: (context, child) {
+        final position = (_controller.value * 2) - 1;
+
+        return ShaderMask(
+          blendMode: BlendMode.srcATop,
+          shaderCallback: (bounds) {
+            return LinearGradient(
+              begin: Alignment(position - 1, 0),
+              end: Alignment(position + 1, 0),
+              colors: <Color>[base, highlight, base],
+              stops: const <double>[0.35, 0.5, 0.65],
+            ).createShader(bounds);
+          },
+          child: child,
+        );
+      },
+    );
+  }
+}
+
+class _ShimmerSectionRow extends StatelessWidget {
+  const _ShimmerSectionRow({
+    required this.title,
+    required this.kind,
+    required this.libraryTileWidth,
+    required this.viewportWidth,
+  });
+
+  final String title;
+  final _ShelfEntityKind kind;
+  final double libraryTileWidth;
+  final double viewportWidth;
+
+  @override
+  Widget build(BuildContext context) {
+    final seriesTileWidth = libraryTileWidth * 1.5;
+    final cardWidth = switch (kind) {
+      _ShelfEntityKind.libraryItem => libraryTileWidth,
+      _ShelfEntityKind.series => seriesTileWidth,
+      _ShelfEntityKind.author => viewportWidth >= 1100 ? 260.0 : 220.0,
+      _ShelfEntityKind.episode => viewportWidth >= 1100 ? 320.0 : 270.0,
+    };
+
+    const itemCount = 5;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 4, right: 4, bottom: 8),
+              child: Text(title, style: Theme.of(context).textTheme.titleMedium),
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: IconButton(
+                    onPressed: null,
+                    icon: Icon(Icons.arrow_back_ios_new_rounded, size: 16),
+                    padding: EdgeInsets.zero,
+                  ),
+                ),
+                SizedBox(width: 4),
+                SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: IconButton(
+                    onPressed: null,
+                    icon: Icon(Icons.arrow_forward_ios_rounded, size: 16),
+                    padding: EdgeInsets.zero,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (var i = 0; i < itemCount; i++) ...[
+                _ShelfTargetShimmer(
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: cardWidth,
+                          height: kind == _ShelfEntityKind.libraryItem
+                              ? cardWidth
+                              : (kind == _ShelfEntityKind.series ? cardWidth : 120),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Container(
+                          width: cardWidth * 0.7,
+                          height: 12,
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                if (i < itemCount - 1) const SizedBox(width: 8),
+              ],
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

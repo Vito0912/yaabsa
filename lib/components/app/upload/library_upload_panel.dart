@@ -20,6 +20,7 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/player_utils.dart';
+import 'package:yaabsa/util/file_formats.dart';
 
 class LibraryUploadPanel extends ConsumerStatefulWidget {
   const LibraryUploadPanel({super.key, required this.selectedLibrary, required this.onClose, this.onUploadingChanged});
@@ -33,29 +34,9 @@ class LibraryUploadPanel extends ConsumerStatefulWidget {
 }
 
 class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
-  static const Set<String> _audioExtensions = {
-    'aac',
-    'aax',
-    'aif',
-    'aiff',
-    'alac',
-    'ape',
-    'flac',
-    'm4a',
-    'm4b',
-    'mka',
-    'mp3',
-    'mp4',
-    'mpc',
-    'mpeg',
-    'ogg',
-    'oga',
-    'opus',
-    'wav',
-    'wma',
-  };
+  static const Set<String> _audioExtensions = FileFormats.audioExtensions;
 
-  static const Set<String> _ebookExtensions = {'epub', 'pdf', 'mobi', 'azw', 'azw3', 'cbz', 'cbr'};
+  static const Set<String> _ebookExtensions = FileFormats.ebookExtensions;
 
   static const Set<String> _otherSupportedExtensions = {
     'jpg',

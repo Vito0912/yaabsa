@@ -24,6 +24,7 @@ import 'package:yaabsa/util/download_destination.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/network/request_headers.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/util/file_formats.dart';
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -169,7 +170,7 @@ class DownloadHandler {
     );
   }
 
-  Future<void> downloadFile(String itemId, {String? episodeId, bool ebook = false}) async {
+  Future<void> downloadFile(String itemId, {String? episodeId, String downloadType = 'both'}) async {
     if (kIsWeb || _downloader == null) {
       throw UnsupportedError('Downloads are not supported on the Web');
     }
@@ -193,7 +194,7 @@ class DownloadHandler {
 
     await _ensureNotificationPermissionForDownloads();
 
-    final sourceFiles = _collectDownloadSourceFiles(resolvedItem, episodeId: episodeId, ebook: ebook);
+    final sourceFiles = _collectDownloadSourceFiles(resolvedItem, episodeId: episodeId, downloadType: downloadType);
     if (sourceFiles.isEmpty) {
       throw Exception('No downloadable files found for item $itemId.');
     }
@@ -248,8 +249,10 @@ class DownloadHandler {
           serverPort: server.port,
           serverSsl: server.ssl,
           title: resolvedItem.title,
+          downloadType: downloadType,
         ).toJson(),
       );
+
       final downloadUrl = '${server.url}/api/items/${resolvedItem.id}/file/${source.ino}/download';
 
       if (destination.usesUriTask) {
@@ -511,6 +514,7 @@ class DownloadHandler {
               auxiliaryFilePaths: auxiliaryFilePaths,
               coverPath: coverPath,
               sidecarPaths: sidecarPath == null ? const <String>[] : <String>[sidecarPath],
+              downloadType: parsedMetaData.downloadType,
             ),
           ),
         ),
@@ -1082,12 +1086,19 @@ class DownloadHandler {
     return 'file_${fileIndex + 1}$extensionSuffix';
   }
 
-  List<_DownloadSourceFile> _collectDownloadSourceFiles(LibraryItem item, {String? episodeId, bool ebook = false}) {
+  List<_DownloadSourceFile> _collectDownloadSourceFiles(
+    LibraryItem item, {
+    String? episodeId,
+    String downloadType = 'both',
+  }) {
     final files = <_DownloadSourceFile>[];
     final seenInodes = <String>{};
     var fallbackIndex = 0;
 
     if (item.mediaType == 'podcast') {
+      if (downloadType == 'ebook') {
+        return files;
+      }
       Episode? episode;
       for (final candidate in item.media?.podcastMedia?.episodes ?? const <Episode>[]) {
         if (candidate.id == episodeId) {
@@ -1126,54 +1137,57 @@ class DownloadHandler {
       return files;
     }
 
-    final audioFiles = item.media?.bookMedia?.audioFiles ?? const <AudioFile>[];
-    for (final audioFile in audioFiles) {
-      if (_isIgnoredDownloadFile(filename: audioFile.metadata.filename, extension: audioFile.metadata.ext)) {
-        continue;
-      }
+    final hasAudio = downloadType == 'audiobook' || downloadType == 'both';
+    final hasEbook = downloadType == 'ebook' || downloadType == 'both';
 
-      final index = audioFile.index ?? fallbackIndex;
-      _addDownloadSourceFile(
-        files,
-        seenInodes,
-        _DownloadSourceFile(
-          ino: audioFile.ino,
-          filename: audioFile.metadata.filename,
-          extension: audioFile.metadata.ext,
-          fileKind: 'audio',
-          fileIndex: index,
-          mimeType: audioFile.mimeType ?? _mimeTypeForExtension(audioFile.metadata.ext),
-          track: InternalTrack(
-            index: index,
-            duration: audioFile.duration ?? 0,
-            url: null,
+    if (hasAudio) {
+      final audioFiles = item.media?.bookMedia?.audioFiles ?? const <AudioFile>[];
+      for (final audioFile in audioFiles) {
+        if (_isIgnoredDownloadFile(filename: audioFile.metadata.filename, extension: audioFile.metadata.ext)) {
+          continue;
+        }
+
+        final index = audioFile.index ?? fallbackIndex;
+        _addDownloadSourceFile(
+          files,
+          seenInodes,
+          _DownloadSourceFile(
+            ino: audioFile.ino,
+            filename: audioFile.metadata.filename,
+            extension: audioFile.metadata.ext,
+            fileKind: 'audio',
+            fileIndex: index,
             mimeType: audioFile.mimeType ?? _mimeTypeForExtension(audioFile.metadata.ext),
+            track: InternalTrack(
+              index: index,
+              duration: audioFile.duration ?? 0,
+              url: null,
+              mimeType: audioFile.mimeType ?? _mimeTypeForExtension(audioFile.metadata.ext),
+            ),
           ),
-        ),
-      );
-      fallbackIndex = index + 1;
+        );
+        fallbackIndex = index + 1;
+      }
     }
 
-    final ebookFile = item.media?.bookMedia?.ebookFile;
-    if (ebookFile != null &&
-        !_isIgnoredDownloadFile(filename: ebookFile.metadata.filename, extension: ebookFile.metadata.ext)) {
-      _addDownloadSourceFile(
-        files,
-        seenInodes,
-        _DownloadSourceFile(
-          ino: ebookFile.ino,
-          filename: ebookFile.metadata.filename,
-          extension: ebookFile.metadata.ext,
-          fileKind: 'ebook',
-          fileIndex: fallbackIndex,
-          mimeType: _mimeTypeForExtension(ebookFile.metadata.ext),
-        ),
-      );
-      fallbackIndex += 1;
-    }
-
-    if (ebook) {
-      return files;
+    if (hasEbook) {
+      final ebookFile = item.media?.bookMedia?.ebookFile;
+      if (ebookFile != null &&
+          !_isIgnoredDownloadFile(filename: ebookFile.metadata.filename, extension: ebookFile.metadata.ext)) {
+        _addDownloadSourceFile(
+          files,
+          seenInodes,
+          _DownloadSourceFile(
+            ino: ebookFile.ino,
+            filename: ebookFile.metadata.filename,
+            extension: ebookFile.metadata.ext,
+            fileKind: 'ebook',
+            fileIndex: fallbackIndex,
+            mimeType: _mimeTypeForExtension(ebookFile.metadata.ext),
+          ),
+        );
+        fallbackIndex += 1;
+      }
     }
 
     final libraryFiles = item.libraryFiles ?? const <LibraryFile>[];
@@ -1182,8 +1196,14 @@ class DownloadHandler {
         continue;
       }
 
-      final extension = _normalizeExtension(libraryFile.metadata.ext);
-      final isEbook = extension == 'epub' || extension == 'pdf' || extension == 'mobi' || extension == 'azw3';
+      final isEbook = FileFormats.isEbook(libraryFile.metadata.ext);
+
+      if (isEbook && !hasEbook) {
+        continue;
+      }
+      if (!isEbook && !hasAudio) {
+        continue;
+      }
 
       _addDownloadSourceFile(
         files,
@@ -1312,6 +1332,7 @@ class _CompletedTaskMetaData {
     this.serverPort,
     this.serverSsl,
     this.title,
+    this.downloadType = 'both',
   });
 
   factory _CompletedTaskMetaData.fromJson(Map<String, dynamic> json) {
@@ -1346,6 +1367,7 @@ class _CompletedTaskMetaData {
       serverPort: json['serverPort'] is num ? (json['serverPort'] as num).toInt() : null,
       serverSsl: json['serverSsl'] as bool?,
       title: json['title'] as String?,
+      downloadType: json['downloadType'] as String? ?? 'both',
     );
   }
 
@@ -1368,6 +1390,7 @@ class _CompletedTaskMetaData {
       'serverPort': serverPort,
       'serverSsl': serverSsl,
       'title': title,
+      'downloadType': downloadType,
     };
   }
 
@@ -1388,6 +1411,7 @@ class _CompletedTaskMetaData {
   final int? serverPort;
   final bool? serverSsl;
   final String? title;
+  final String downloadType;
 }
 
 class DeleteStoredDownloadResult {

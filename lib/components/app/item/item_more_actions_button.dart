@@ -10,6 +10,7 @@ enum ItemMoreAction {
   addToCollection,
   deleteItem,
   playHistory,
+  select,
 }
 
 class ItemMoreActionsButton extends StatelessWidget {
@@ -26,6 +27,7 @@ class ItemMoreActionsButton extends StatelessWidget {
     this.showDeleteItem = false,
     this.showQuickMatch = false,
     this.showManualMatch = false,
+    this.showSelect = false,
   });
 
   final Future<void> Function(ItemMoreAction action) onActionSelected;
@@ -39,6 +41,7 @@ class ItemMoreActionsButton extends StatelessWidget {
   final bool showDeleteItem;
   final bool showQuickMatch;
   final bool showManualMatch;
+  final bool showSelect;
 
   Future<void> _openActionDialog(BuildContext context) async {
     final selectedAction = await showDialog<ItemMoreAction>(
@@ -49,6 +52,12 @@ class ItemMoreActionsButton extends StatelessWidget {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              if (showSelect)
+                ListTile(
+                  leading: const Icon(Icons.check_box_outlined),
+                  title: const Text('Select'),
+                  onTap: () => Navigator.of(dialogContext).pop(ItemMoreAction.select),
+                ),
               if (showEditItem)
                 ListTile(
                   leading: const Icon(Icons.edit_rounded),

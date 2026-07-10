@@ -539,7 +539,7 @@ class SessionRepository {
     double? currentPosition,
     double? duration,
   }) async {
-    final LibraryItem libraryItem = await ref.read(libraryItemProvider(itemId).future);
+    final LibraryItem libraryItem = await ref.read(libraryItemProvider(itemId, episodeId: episodeId).future);
     final selectedEpisode = episodeId == null
         ? null
         : libraryItem.media?.podcastMedia?.episodes?.where((episode) => episode.id == episodeId).firstOrNull;
