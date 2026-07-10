@@ -220,13 +220,7 @@ extension _ReaderBuilders on _ReaderState {
             ),
           );
           request.response.statusCode = response.statusCode ?? 200;
-          final ignoreHeaders = {
-            'content-length',
-            'content-encoding',
-            'transfer-encoding',
-            'connection',
-            'host',
-          };
+          final ignoreHeaders = {'content-length', 'content-encoding', 'transfer-encoding', 'connection', 'host'};
           response.headers.forEach((key, values) {
             if (ignoreHeaders.contains(key.toLowerCase())) return;
             for (final value in values) {
