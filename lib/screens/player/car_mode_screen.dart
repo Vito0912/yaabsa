@@ -4,11 +4,14 @@ import 'package:just_audio/just_audio.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/components/common/cover_placeholder.dart';
 import 'package:yaabsa/components/common/cover_zoom_view.dart';
+import 'package:yaabsa/components/player/common/jump_button.dart';
 import 'package:yaabsa/components/player/common/seek_bar.dart';
 import 'package:yaabsa/components/player/common/stop_button.dart';
+import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/setting_key.dart';
 
 class CarModeScreen extends ConsumerWidget {
   const CarModeScreen({super.key});
@@ -33,6 +36,10 @@ class CarModeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final api = ref.watch(absApiProvider);
+    final fastForwardVal = ref.watch(globalSettingByKeyProvider(SettingKeys.fastForwardInterval)).asData?.value;
+    final rewindVal = ref.watch(globalSettingByKeyProvider(SettingKeys.rewindInterval)).asData?.value;
+    final fastForwardSeconds = SettingsParser.decodeValue<int>(fastForwardVal, 10);
+    final rewindSeconds = SettingsParser.decodeValue<int>(rewindVal, 10);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Car Mode'), actions: const [StopButton()]),
@@ -151,14 +158,18 @@ class CarModeScreen extends ConsumerWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
                             _CarControl(
-                              icon: Icons.replay_10,
+                              icon: JumpIcon(rewind: true, durationSeconds: rewindSeconds, size: sideControlIconSize),
                               onPressed: () => audioHandler.rewind(),
                               iconSize: sideControlIconSize,
                               minimumSize: sideControlSize,
                             ),
                             _CarPlayPauseControl(iconSize: playControlIconSize, minimumSize: playControlSize),
                             _CarControl(
-                              icon: Icons.forward_10,
+                              icon: JumpIcon(
+                                rewind: false,
+                                durationSeconds: fastForwardSeconds,
+                                size: sideControlIconSize,
+                              ),
                               onPressed: () => audioHandler.fastForward(),
                               iconSize: sideControlIconSize,
                               minimumSize: sideControlSize,
@@ -229,7 +240,7 @@ class _CarModeCoverArt extends StatelessWidget {
 class _CarControl extends StatelessWidget {
   const _CarControl({required this.icon, required this.onPressed, required this.iconSize, required this.minimumSize});
 
-  final IconData icon;
+  final Widget icon;
   final VoidCallback onPressed;
   final double iconSize;
   final double minimumSize;
@@ -238,7 +249,7 @@ class _CarControl extends StatelessWidget {
   Widget build(BuildContext context) {
     return IconButton.filledTonal(
       onPressed: onPressed,
-      icon: Icon(icon),
+      icon: icon,
       iconSize: iconSize,
       style: IconButton.styleFrom(minimumSize: Size.square(minimumSize)),
     );
