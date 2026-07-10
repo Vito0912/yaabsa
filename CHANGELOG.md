@@ -2,10 +2,15 @@
 
 ## 1.4.10
 
+### Added
+
+- (iOS) Now shops fast forward/rewind by default
+
 ### Fixed
 
 - When playback is paused, but the sleep timer is active, shaking does now not reset the sleep timer anymore.
 - Fixed an issue where the reader would not load when a file was sent using compression (Thanks to @Garrett3Nelson for helping)
+- Always showing 10 seconds as fast forward/rewind duration
 
 ## 1.4.9
 
