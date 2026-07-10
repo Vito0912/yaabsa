@@ -12,6 +12,7 @@
 - When playback is paused, but the sleep timer is active, shaking does now not reset the sleep timer anymore.
 - Podcasts only allowed one episode to be downloaded at a time.
 - Downloaded Playback does now work for multiple episodes of the same podcast.
+- Fixed an issue where the reader would not load when a file was sent using compression (Thanks to @Garrett3Nelson for helping)
 
 ## 1.4.9
 

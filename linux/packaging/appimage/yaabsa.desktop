@@ -6,6 +6,6 @@ Icon=yaabsa
 Type=Application
 StartupNotify=true
 StartupWMClass=de.vito0912.yaabsa
-Categories=Music
+Categories=AudioVideo;Audio;Player;
 Keywords=ABS;Audiobookshelf
 MimeType=x-scheme-handler/yaabsa;
