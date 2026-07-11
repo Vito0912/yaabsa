@@ -1030,6 +1030,7 @@ jobs:
           status: completed
           inAppUpdatePriority: 2
           whatsNewDirectory: android/whatsnew
+          changesNotSentForReview: true
         continue-on-error: true
 
       - name: Publish Android Automotive appbundle to Play Store
@@ -1043,6 +1044,7 @@ jobs:
           status: completed
           inAppUpdatePriority: 2
           whatsNewDirectory: android/whatsnew
+          changesNotSentForReview: false
         continue-on-error: true
 
   build-ios:
