@@ -7,6 +7,7 @@
 - Option to download all non started/non finished episodes of a podcast.
 - The shelf view now does not have a extra loading indicator.
 - (iOS) Now shops fast forward/rewind by default
+- (Android) option to auto resume playback when connecting a Bluetooth audio device.
 
 ### Fixed
 

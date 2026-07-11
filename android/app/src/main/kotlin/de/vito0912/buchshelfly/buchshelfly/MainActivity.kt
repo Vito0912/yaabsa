@@ -1,8 +1,11 @@
 package de.vito0912.yaabsa
 
+import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -162,6 +165,29 @@ class MainActivity : AudioServiceFragmentActivity() {
 				else -> result.notImplemented()
 			}
 		}
+
+		MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "de.vito0912.yaabsa/autoresume")
+			.setMethodCallHandler { call, result ->
+				when (call.method) {
+					"updateAutoResumeSettings" -> {
+						val bluetooth = call.argument<Boolean>("bluetooth") ?: false
+						val prefs = applicationContext.getSharedPreferences("yaabsa_settings", Context.MODE_PRIVATE)
+						prefs.edit()
+							.putBoolean("auto_resume_bluetooth", bluetooth)
+							.apply()
+
+						if (bluetooth && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+							if (checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+								requestPermissions(arrayOf(Manifest.permission.BLUETOOTH_CONNECT), 101)
+							}
+						}
+
+						result.success(null)
+					}
+					else -> result.notImplemented()
+				}
+			}
+
 		notifyAaosOpenSettingsIfPending()
 		notifyAaosOpenSignInIfPending()
 	}

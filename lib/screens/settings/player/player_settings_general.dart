@@ -124,6 +124,21 @@ class PlayerSettingsGeneral extends ConsumerWidget {
             ),
           ],
         ),
+        if (isAndroid)
+          SettingsNavigationSection(
+            title: 'Auto Resume',
+            settings: [
+              // To my knowledge, we currently cannot detect wired changes without having a foreground service, so currently just bluetooth.
+              // In a dev version I also had worked out a automatic resume for wired headphones, but this needed to have the app running.
+              // As such feature is likley used by users who had the app not open for some hours, it would not work in most cases, so I decided to not add the overhead and just go with bluethoot
+              // So if anyone comes across this, that is the reason for why only bluethoot currently, but happy to add wired too.
+              const SettingSwitchTile(
+                label: 'Auto-resume on Bluetooth',
+                subtitle: 'Automatically resume playback when connecting a Bluetooth audio device',
+                settingKey: SettingKeys.autoResumeOnBluetoothConnection,
+              ),
+            ],
+          ),
       ],
     );
   }

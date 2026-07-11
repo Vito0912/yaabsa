@@ -39,6 +39,7 @@ class SettingKeys {
   static const String smartRewindMediumRewindSeconds = 'smart_rewind_medium_rewind_seconds';
   static const String smartRewindLongRewindSeconds = 'smart_rewind_long_rewind_seconds';
   static const String libraryGridScale = 'library_grid_scale';
+  static const String autoResumeOnBluetoothConnection = 'auto_resume_on_bluetooth_connection';
 
   // User-Specific Settings
   static const String syncInterval = 'sync_interval';
@@ -182,6 +183,7 @@ final defaultSettings = {
   SettingKeys.smartRewindMediumRewindSeconds: 30,
   SettingKeys.smartRewindLongRewindSeconds: 60,
   SettingKeys.libraryGridScale: 1.0,
+  SettingKeys.autoResumeOnBluetoothConnection: false,
 
   SettingKeys.syncInterval: 10,
   SettingKeys.syncOnlyOnWifi: false,

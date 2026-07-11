@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
+import 'package:flutter/services.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter_chrome_cast/flutter_chrome_cast.dart';
@@ -104,6 +105,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   StreamSubscription<String?>? _equalizerEnabledSubscription;
   StreamSubscription<String?>? _equalizerBandGainsSubscription;
   StreamSubscription<int?>? _equalizerSessionSubscription;
+  StreamSubscription<String?>? _autoResumeOnBluetoothSubscription;
   AndroidLoudnessEnhancer? _loudnessEnhancer;
   AndroidEqualizer? _equalizer;
   AndroidEqualizer? get equalizer => _equalizer;
@@ -643,7 +645,10 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       nextItem = _lastQueueItem;
     }
     if (nextItem == null) {
-      _setQueueTransitionLoading(false);
+      final resumed = await _playLastPlayedInternal(requireStartupSettingEnabled: false, resumeCurrentIfPaused: false);
+      if (!resumed) {
+        _setQueueTransitionLoading(false);
+      }
       return Future.value();
     }
 
@@ -1379,6 +1384,28 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           logger('Failed to apply equalizer on session activation: $e', tag: 'AudioHandler', level: InfoLevel.error);
         }
       });
+
+      const autoResumeChannel = MethodChannel('de.vito0912.yaabsa/autoresume');
+      Future<void> sendAutoResumeSettingsToNative() async {
+        if (_isDisposing) return;
+        try {
+          final bluetooth = _ref
+              .read(settingsManagerProvider.notifier)
+              .getGlobalSetting<bool>(SettingKeys.autoResumeOnBluetoothConnection, defaultValue: false);
+          await autoResumeChannel.invokeMethod('updateAutoResumeSettings', {'bluetooth': bluetooth});
+        } catch (e) {
+          logger('Failed to send auto resume settings to native: $e', tag: 'AudioHandler', level: InfoLevel.warning);
+        }
+      }
+
+      _autoResumeOnBluetoothSubscription = _ref
+          .read(appDatabaseProvider)
+          .watchGlobalSetting(SettingKeys.autoResumeOnBluetoothConnection)
+          .map((setting) => setting?.value.trim())
+          .distinct()
+          .listen((_) {
+            sendAutoResumeSettingsToNative();
+          });
     }
 
     unawaited(_restorePlaybackPreferencesOnStartup());
@@ -1673,6 +1700,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     _equalizerBandGainsSubscription = null;
     await _equalizerSessionSubscription?.cancel();
     _equalizerSessionSubscription = null;
+    await _autoResumeOnBluetoothSubscription?.cancel();
+    _autoResumeOnBluetoothSubscription = null;
     _resetStreamRecoveryState(clearWindow: true);
     _androidAutoMoreMenuTimer?.cancel();
     _androidAutoMoreMenuTimer = null;
