@@ -58,24 +58,55 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
           rightEpisodeId: episodeId,
         );
     if (!isCurrentItem) {
-      await stop(clearQueue: true);
-      _lastQueueItem = QueueItem(itemId: itemId, episodeId: episodeId);
-      _currentMediaItem = await _ref.read(sessionRepositoryProvider).openSession(itemId, episodeId: episodeId);
-      if (_currentMediaItem == null) {
-        logger('No media item found for ID: $itemId', tag: 'AudioHandler', level: InfoLevel.error);
+      final hasPlaybackToReplace =
+          _currentMediaItem != null || queueList.isNotEmpty || _player.processingState != ProcessingState.idle;
+      if (hasPlaybackToReplace) {
+        await stop(clearQueue: true);
+      }
+
+      final targetItem = QueueItem(itemId: itemId, episodeId: episodeId);
+      _setQueueTransitionTargetItem(targetItem);
+      _setQueueTransitionLoading(true);
+      await _updatePlaybackState();
+      _lastQueueItem = targetItem;
+
+      try {
+        _currentMediaItem = await _ref.read(sessionRepositoryProvider).openSession(itemId, episodeId: episodeId);
+        if (_currentMediaItem == null) {
+          logger('No media item found for ID: $itemId', tag: 'AudioHandler', level: InfoLevel.error);
+          PlayerUtils.disableWakelock(_ref);
+          _setQueueTransitionLoading(false, emitMediaWhenEmpty: true);
+          return Future.value();
+        }
+        await _setSource(ignoreSavedProgress: true);
+      } catch (e, s) {
+        logger('Failed to prepare item $itemId for playback: $e\n$s', tag: 'AudioHandler', level: InfoLevel.error);
+        _currentMediaItem = null;
+        PlayerUtils.disableWakelock(_ref);
+        _setQueueTransitionLoading(false, emitMediaWhenEmpty: true);
         return Future.value();
       }
-      await _setSource(ignoreSavedProgress: true);
     }
 
-    _clearSmartRewindPauseMarker();
-    await _seekInternal(position);
-    if (isCastControlActive) {
-      await play();
-    } else {
-      await _syncedPlay();
+    try {
+      _clearSmartRewindPauseMarker();
+      await _seekInternal(position);
+      _setQueueTransitionLoading(false);
+      if (isCastControlActive) {
+        await play();
+      } else {
+        await _syncedPlay();
+      }
+      TrayManager.update();
+    } catch (e, s) {
+      logger(
+        'Failed to start item $itemId from the requested position: $e\n$s',
+        tag: 'AudioHandler',
+        level: InfoLevel.error,
+      );
+      PlayerUtils.disableWakelock(_ref);
+      _setQueueTransitionLoading(false, emitMediaWhenEmpty: true);
     }
-    TrayManager.update();
   }
 
   Future<void> _playLibraryItemWithContext(

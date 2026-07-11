@@ -21,7 +21,16 @@ class QuickPlayWidgetProvider : AppWidgetProvider() {
             WidgetStorage.setPlaybackLoading(context, true)
             WidgetUpdateDispatcher.updatePlayerWidgets(context)
             WidgetUpdateDispatcher.updateQuickPlayWidgets(context)
-            WidgetMediaBridge.performTransportAction(context, WidgetMediaBridge.ACTION_QUICK_PLAY)
+            val pendingResult = goAsync()
+            try {
+                WidgetMediaBridge.performTransportAction(
+                    context = context,
+                    action = WidgetMediaBridge.ACTION_QUICK_PLAY,
+                    onDispatched = { pendingResult.finish() },
+                )
+            } catch (_: Exception) {
+                pendingResult.finish()
+            }
         }
     }
 

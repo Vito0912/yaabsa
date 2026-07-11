@@ -40,7 +40,16 @@ class PlayerControlWidgetProvider : AppWidgetProvider() {
                 WidgetUpdateDispatcher.updatePlayerWidgets(context)
                 WidgetUpdateDispatcher.updateQuickPlayWidgets(context)
             }
-            WidgetMediaBridge.performTransportAction(context, action)
+            val pendingResult = goAsync()
+            try {
+                WidgetMediaBridge.performTransportAction(
+                    context = context,
+                    action = action,
+                    onDispatched = { pendingResult.finish() },
+                )
+            } catch (_: Exception) {
+                pendingResult.finish()
+            }
         }
     }
 

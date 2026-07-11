@@ -29,6 +29,7 @@ class Init {
   }
 
   static BGAudioHandler? _audioHandler;
+  static Future<BGAudioHandler>? _audioHandlerInitialization;
   static bool _sleepTimerKeepAliveAttached = false;
 
   static bool _isContainerRuntime() {
@@ -142,6 +143,25 @@ class Init {
   static Future<BGAudioHandler> initAudioHandler() async {
     if (_audioHandler != null) return _audioHandler!;
 
+    final activeInitialization = _audioHandlerInitialization;
+    if (activeInitialization != null) {
+      return activeInitialization;
+    }
+
+    final initialization = _initAudioHandler();
+    _audioHandlerInitialization = initialization;
+
+    try {
+      return await initialization;
+    } catch (_) {
+      if (identical(_audioHandlerInitialization, initialization)) {
+        _audioHandlerInitialization = null;
+      }
+      rethrow;
+    }
+  }
+
+  static Future<BGAudioHandler> _initAudioHandler() async {
     if (!kIsWeb && Platform.isLinux) {
       AudioServiceMpris.registerWith();
     }
