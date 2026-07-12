@@ -697,6 +697,9 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       );
       _setQueueTransitionLoading(false);
       await _syncedPlay(restoreProgress: !ignoreProgress);
+      if (nextEntry == null) {
+        unawaited(_setupAutoQueueOnResume(itemId: nextItem.itemId, episodeId: nextItem.episodeId));
+      }
     } catch (e) {
       logger('Failed to start playback source: $e', tag: 'AudioHandler', level: InfoLevel.error);
       PlayerUtils.disableWakelock(_ref);
