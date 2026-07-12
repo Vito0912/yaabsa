@@ -93,10 +93,6 @@ extension _BGAudioHandlerAndroidAutoIds on BGAudioHandler {
     return '${_androidAutoLibraryNodeId(libraryId)}/tab/${tab.key}';
   }
 
-  String _androidAutoAllPageNodeId(String libraryId, int page) {
-    return '${_androidAutoLibraryNodeId(libraryId)}/tab/all/page/$page';
-  }
-
   String _androidAutoAllLetterNodeId(String libraryId, String letter) {
     return '${_androidAutoLibraryNodeId(libraryId)}/tab/all/letter/${Uri.encodeComponent(letter)}';
   }
@@ -147,25 +143,6 @@ extension _BGAudioHandlerAndroidAutoIds on BGAudioHandler {
       return Uri.decodeComponent(segments[2]);
     }
     return null;
-  }
-
-  ({String libraryId, int page})? _androidAutoAllPageNodeFromId(String mediaId) {
-    final segments = _androidAutoSegments(mediaId);
-    if (segments.length != 7 ||
-        segments[0] != 'aa' ||
-        segments[1] != 'library' ||
-        segments[3] != 'tab' ||
-        segments[4] != 'all' ||
-        segments[5] != 'page') {
-      return null;
-    }
-
-    final page = int.tryParse(segments[6]);
-    if (page == null || page < 0) {
-      return null;
-    }
-
-    return (libraryId: Uri.decodeComponent(segments[2]), page: page);
   }
 
   ({String libraryId, String letter})? _androidAutoAllLetterNodeFromId(String mediaId) {
