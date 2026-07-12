@@ -25,7 +25,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 Future<void> _resumeLastPlayedOnStartup() async {
   try {
     await containerRef.read(currentUserProvider.future);
-    await audioHandler.playLastPlayedIfEnabledOnStartup();
+    if (isAudioHandlerInitialized) {
+      await audioHandler.playLastPlayedIfEnabledOnStartup();
+    }
   } catch (e, s) {
     logger('Startup last-played resume failed: $e\n$s', tag: 'Main', level: InfoLevel.warning);
   }
@@ -40,7 +42,11 @@ Future<void> _configureAndroidEdgeToEdge() async {
     return;
   }
 
-  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  try {
+    await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge).timeout(const Duration(seconds: 2));
+  } catch (e, s) {
+    logger('Failed to configure edge-to-edge UI: $e\n$s', tag: 'Main', level: InfoLevel.warning);
+  }
 }
 
 void main() {
@@ -61,10 +67,27 @@ void main() {
       containerRef.read(absSocketClientProvider);
       containerRef.read(oidcStateProvider.notifier).initializeDeepLinkListener();
       Init.initLogger();
-      audioHandler = await Init.initAudioHandler();
-      isAudioHandlerInitialized = true;
-      unawaited(audioHandler.restoreLastPlayedMiniPlayerIfEnabled());
-      await AaosService.instance.initialize();
+      try {
+        final handler = await Init.initAudioHandler().timeout(const Duration(seconds: 5));
+        audioHandler = handler;
+        unawaited(audioHandler.restoreLastPlayedMiniPlayerIfEnabled());
+      } catch (e, s) {
+        logger(
+          'AudioHandler initialization timed out or failed on startup: $e\n$s',
+          tag: 'Main',
+          level: InfoLevel.error,
+        );
+      }
+
+      try {
+        await AaosService.instance.initialize().timeout(const Duration(seconds: 2));
+      } catch (e, s) {
+        logger(
+          'AaosService initialization timed out or failed on startup: $e\n$s',
+          tag: 'Main',
+          level: InfoLevel.error,
+        );
+      }
       TrayManager.update();
 
       Init.late();
@@ -84,6 +107,21 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (!isAudioHandlerInitialized) {
+      Future.microtask(() async {
+        if (!isAudioHandlerInitialized) {
+          try {
+            final handler = await Init.initAudioHandler().timeout(const Duration(seconds: 5));
+            audioHandler = handler;
+            unawaited(audioHandler.restoreLastPlayedMiniPlayerIfEnabled());
+            unawaited(_resumeLastPlayedOnStartup());
+          } catch (e, s) {
+            logger('Retry AudioHandler initialization failed: $e\n$s', tag: 'Main', level: InfoLevel.error);
+          }
+        }
+      });
+    }
+
     final appLogLevelSetting = ref.watch(globalSettingByKeyProvider(SettingKeys.appLogLevel)).asData?.value;
 
     appLoggerService.setMinimumLevel(InfoLevel.fromSettingValue(appLogLevelSetting));

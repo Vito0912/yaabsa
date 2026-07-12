@@ -21,6 +21,7 @@ import 'package:yaabsa/components/common/loading_snackbar.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/models/internal_download.dart';
+import 'package:yaabsa/components/app/downloads/download_helper.dart';
 import 'package:yaabsa/provider/common/library_filter_data_provider.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
@@ -236,7 +237,7 @@ class LibraryItemBookView extends ConsumerWidget {
                                       },
                                       onDownload: () async {
                                         try {
-                                          await downloadHandler.downloadFile(item.id);
+                                          await triggerBookDownload(context, ref, item.id);
                                           if (!context.mounted) {
                                             return;
                                           }
@@ -357,6 +358,8 @@ class LibraryItemBookView extends ConsumerWidget {
                                             context.push(
                                               PlayHistoryView.location(itemId: item.id, itemTitle: item.title),
                                             );
+                                            return;
+                                          case ItemMoreAction.select:
                                             return;
                                         }
                                       },

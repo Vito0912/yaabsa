@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
+import 'package:flutter/services.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter_chrome_cast/flutter_chrome_cast.dart';
@@ -93,6 +94,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   late final StreamSubscription<String?> _showLastPlayedMiniPlayerSettingSubscription;
   late final StreamSubscription<String?> _mediaNotificationTypeSubscription;
   late final StreamSubscription<String?> _mediaNotificationPagesSubscription;
+  late final StreamSubscription<String?> _showSkipInsteadOfFastForwardSubscription;
   int _currentNotificationPageIndex = 0;
   List<List<String>> _notificationPages = const [
     ['rewind', 'fastForward', 'speed', 'stop'],
@@ -103,6 +105,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   StreamSubscription<String?>? _equalizerEnabledSubscription;
   StreamSubscription<String?>? _equalizerBandGainsSubscription;
   StreamSubscription<int?>? _equalizerSessionSubscription;
+  StreamSubscription<String?>? _autoResumeOnBluetoothSubscription;
   AndroidLoudnessEnhancer? _loudnessEnhancer;
   AndroidEqualizer? _equalizer;
   AndroidEqualizer? get equalizer => _equalizer;
@@ -642,7 +645,10 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       nextItem = _lastQueueItem;
     }
     if (nextItem == null) {
-      _setQueueTransitionLoading(false);
+      final resumed = await _playLastPlayedInternal(requireStartupSettingEnabled: false, resumeCurrentIfPaused: false);
+      if (!resumed) {
+        _setQueueTransitionLoading(false);
+      }
       return Future.value();
     }
 
@@ -798,6 +804,16 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   @override
   Future<void> fastForward() async {
     if (_currentMediaItem == null) return Future.value();
+    if (!kIsWeb && Platform.isIOS) {
+      final showSkipInsteadOfFastForward = _ref
+          .read(settingsManagerProvider.notifier)
+          .getGlobalSetting<bool>(SettingKeys.showSkipInsteadOfFastForward, defaultValue: false);
+      final chaptersExist = _currentMediaItem?.chapters?.isNotEmpty ?? false;
+      final queueExists = queueList.isNotEmpty;
+      if (showSkipInsteadOfFastForward && (chaptersExist || queueExists)) {
+        return skipToNext();
+      }
+    }
     final skipTime = _skipDurationForKey(SettingKeys.fastForwardInterval);
     final newPosition = position + skipTime;
     _seekInternal(newPosition);
@@ -807,6 +823,16 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   @override
   Future<void> rewind() async {
     if (_currentMediaItem == null) return Future.value();
+    if (!kIsWeb && Platform.isIOS) {
+      final showSkipInsteadOfFastForward = _ref
+          .read(settingsManagerProvider.notifier)
+          .getGlobalSetting<bool>(SettingKeys.showSkipInsteadOfFastForward, defaultValue: false);
+      final chaptersExist = _currentMediaItem?.chapters?.isNotEmpty ?? false;
+      final queueExists = queueList.isNotEmpty;
+      if (showSkipInsteadOfFastForward && (chaptersExist || queueExists)) {
+        return skipToPrevious();
+      }
+    }
     final skipTime = _skipDurationForKey(SettingKeys.rewindInterval);
     final newPosition = position - skipTime;
     if (newPosition < Duration.zero) {
@@ -819,6 +845,17 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   @override
   Future<void> skipToNext() async {
+    if (_currentMediaItem == null) return;
+    if (!kIsWeb && Platform.isIOS) {
+      final showSkipInsteadOfFastForward = _ref
+          .read(settingsManagerProvider.notifier)
+          .getGlobalSetting<bool>(SettingKeys.showSkipInsteadOfFastForward, defaultValue: false);
+      final chaptersExist = _currentMediaItem?.chapters?.isNotEmpty ?? false;
+      final queueExists = queueList.isNotEmpty;
+      if (!showSkipInsteadOfFastForward || !(chaptersExist || queueExists)) {
+        return fastForward();
+      }
+    }
     return _queueSkipOperation(() async {
       if (_currentMediaItem == null) return;
       InternalChapter? nextChapter = _currentMediaItem!.getNextChapterForDuration(position);
@@ -866,6 +903,17 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   @override
   Future<void> skipToPrevious() async {
+    if (_currentMediaItem == null) return;
+    if (!kIsWeb && Platform.isIOS) {
+      final showSkipInsteadOfFastForward = _ref
+          .read(settingsManagerProvider.notifier)
+          .getGlobalSetting<bool>(SettingKeys.showSkipInsteadOfFastForward, defaultValue: false);
+      final chaptersExist = _currentMediaItem?.chapters?.isNotEmpty ?? false;
+      final queueExists = queueList.isNotEmpty;
+      if (!showSkipInsteadOfFastForward || !(chaptersExist || queueExists)) {
+        return rewind();
+      }
+    }
     return _queueSkipOperation(() async {
       if (_currentMediaItem == null) return;
       InternalChapter? previousChapter = _currentMediaItem!.getPreviousChapterForDuration(position);
@@ -1085,6 +1133,16 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         .listen((_) {
           if (_isDisposing) return;
           _loadNotificationPages();
+          unawaited(_updatePlaybackState());
+        });
+
+    _showSkipInsteadOfFastForwardSubscription = _ref
+        .read(appDatabaseProvider)
+        .watchGlobalSetting(SettingKeys.showSkipInsteadOfFastForward)
+        .map((setting) => setting?.value.trim())
+        .distinct()
+        .listen((_) {
+          if (_isDisposing) return;
           unawaited(_updatePlaybackState());
         });
 
@@ -1326,6 +1384,28 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           logger('Failed to apply equalizer on session activation: $e', tag: 'AudioHandler', level: InfoLevel.error);
         }
       });
+
+      const autoResumeChannel = MethodChannel('de.vito0912.yaabsa/autoresume');
+      Future<void> sendAutoResumeSettingsToNative() async {
+        if (_isDisposing) return;
+        try {
+          final bluetooth = _ref
+              .read(settingsManagerProvider.notifier)
+              .getGlobalSetting<bool>(SettingKeys.autoResumeOnBluetoothConnection, defaultValue: false);
+          await autoResumeChannel.invokeMethod('updateAutoResumeSettings', {'bluetooth': bluetooth});
+        } catch (e) {
+          logger('Failed to send auto resume settings to native: $e', tag: 'AudioHandler', level: InfoLevel.warning);
+        }
+      }
+
+      _autoResumeOnBluetoothSubscription = _ref
+          .read(appDatabaseProvider)
+          .watchGlobalSetting(SettingKeys.autoResumeOnBluetoothConnection)
+          .map((setting) => setting?.value.trim())
+          .distinct()
+          .listen((_) {
+            sendAutoResumeSettingsToNative();
+          });
     }
 
     unawaited(_restorePlaybackPreferencesOnStartup());
@@ -1384,10 +1464,28 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           ? _notificationPages[_currentNotificationPageIndex]
           : const <String>[];
 
+      final chaptersExist =
+          _currentMediaItem != null && _currentMediaItem!.chapters != null && _currentMediaItem!.chapters!.isNotEmpty;
+      final queueExists = queueList.isNotEmpty;
+      final hasChaptersOrQueue = chaptersExist || queueExists;
+
+      final showSkipInsteadOfFastForward = _ref
+          .read(settingsManagerProvider.notifier)
+          .getGlobalSetting<bool>(SettingKeys.showSkipInsteadOfFastForward, defaultValue: false);
+
       for (final action in currentPageActions) {
         if (controls.length >= 4) break;
 
-        switch (action) {
+        var resolvedAction = action;
+        if (showSkipInsteadOfFastForward && !hasChaptersOrQueue) {
+          if (action == 'skipToPrevious') {
+            resolvedAction = 'rewind';
+          } else if (action == 'skipToNext') {
+            resolvedAction = 'fastForward';
+          }
+        }
+
+        switch (resolvedAction) {
           case 'rewind':
             controls.add(
               MediaControl.custom(
@@ -1479,14 +1577,47 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       }
     }
 
+    final Set<MediaAction> finalSystemActions;
+    if (!hasPlaybackContext || lockMediaNotification) {
+      finalSystemActions = const <MediaAction>{};
+    } else if (!kIsWeb && (Platform.isIOS || Platform.isMacOS)) {
+      final chaptersExist =
+          _currentMediaItem != null && _currentMediaItem!.chapters != null && _currentMediaItem!.chapters!.isNotEmpty;
+      final queueExists = queueList.isNotEmpty;
+      final hasChaptersOrQueue = chaptersExist || queueExists;
+
+      final showSkipInsteadOfFastForward = _ref
+          .read(settingsManagerProvider.notifier)
+          .getGlobalSetting<bool>(SettingKeys.showSkipInsteadOfFastForward, defaultValue: false);
+
+      final useSkip = showSkipInsteadOfFastForward && hasChaptersOrQueue;
+      if (useSkip) {
+        finalSystemActions = const {
+          MediaAction.seek,
+          MediaAction.play,
+          MediaAction.pause,
+          MediaAction.skipToNext,
+          MediaAction.skipToPrevious,
+        };
+      } else {
+        finalSystemActions = const {
+          MediaAction.seek,
+          MediaAction.play,
+          MediaAction.pause,
+          MediaAction.fastForward,
+          MediaAction.rewind,
+        };
+      }
+    } else {
+      finalSystemActions = const {MediaAction.seek};
+    }
+
     playbackState.add(
       PlaybackState(
         // Which buttons should appear in the notification now
         controls: controls,
         // Which other actions should be enabled in the notification
-        systemActions: (!hasPlaybackContext || lockMediaNotification)
-            ? const <MediaAction>{}
-            : const {MediaAction.seek},
+        systemActions: finalSystemActions,
         // Which controls to show in Android's compact view.
         androidCompactActionIndices: compactActionIndices,
         processingState: !hasPlaybackContext
@@ -1557,6 +1688,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     await _showLastPlayedMiniPlayerSettingSubscription.cancel();
     await _mediaNotificationTypeSubscription.cancel();
     await _mediaNotificationPagesSubscription.cancel();
+    await _showSkipInsteadOfFastForwardSubscription.cancel();
     await _chapterSubscription?.cancel();
     await _skipSilenceSubscription?.cancel();
     _skipSilenceSubscription = null;
@@ -1568,6 +1700,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     _equalizerBandGainsSubscription = null;
     await _equalizerSessionSubscription?.cancel();
     _equalizerSessionSubscription = null;
+    await _autoResumeOnBluetoothSubscription?.cancel();
+    _autoResumeOnBluetoothSubscription = null;
     _resetStreamRecoveryState(clearWindow: true);
     _androidAutoMoreMenuTimer?.cancel();
     _androidAutoMoreMenuTimer = null;

@@ -58,24 +58,55 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
           rightEpisodeId: episodeId,
         );
     if (!isCurrentItem) {
-      await stop(clearQueue: true);
-      _lastQueueItem = QueueItem(itemId: itemId, episodeId: episodeId);
-      _currentMediaItem = await _ref.read(sessionRepositoryProvider).openSession(itemId, episodeId: episodeId);
-      if (_currentMediaItem == null) {
-        logger('No media item found for ID: $itemId', tag: 'AudioHandler', level: InfoLevel.error);
+      final hasPlaybackToReplace =
+          _currentMediaItem != null || queueList.isNotEmpty || _player.processingState != ProcessingState.idle;
+      if (hasPlaybackToReplace) {
+        await stop(clearQueue: true);
+      }
+
+      final targetItem = QueueItem(itemId: itemId, episodeId: episodeId);
+      _setQueueTransitionTargetItem(targetItem);
+      _setQueueTransitionLoading(true);
+      await _updatePlaybackState();
+      _lastQueueItem = targetItem;
+
+      try {
+        _currentMediaItem = await _ref.read(sessionRepositoryProvider).openSession(itemId, episodeId: episodeId);
+        if (_currentMediaItem == null) {
+          logger('No media item found for ID: $itemId', tag: 'AudioHandler', level: InfoLevel.error);
+          PlayerUtils.disableWakelock(_ref);
+          _setQueueTransitionLoading(false, emitMediaWhenEmpty: true);
+          return Future.value();
+        }
+        await _setSource(ignoreSavedProgress: true);
+      } catch (e, s) {
+        logger('Failed to prepare item $itemId for playback: $e\n$s', tag: 'AudioHandler', level: InfoLevel.error);
+        _currentMediaItem = null;
+        PlayerUtils.disableWakelock(_ref);
+        _setQueueTransitionLoading(false, emitMediaWhenEmpty: true);
         return Future.value();
       }
-      await _setSource(ignoreSavedProgress: true);
     }
 
-    _clearSmartRewindPauseMarker();
-    await _seekInternal(position);
-    if (isCastControlActive) {
-      await play();
-    } else {
-      await _syncedPlay();
+    try {
+      _clearSmartRewindPauseMarker();
+      await _seekInternal(position);
+      _setQueueTransitionLoading(false);
+      if (isCastControlActive) {
+        await play();
+      } else {
+        await _syncedPlay();
+      }
+      TrayManager.update();
+    } catch (e, s) {
+      logger(
+        'Failed to start item $itemId from the requested position: $e\n$s',
+        tag: 'AudioHandler',
+        level: InfoLevel.error,
+      );
+      PlayerUtils.disableWakelock(_ref);
+      _setQueueTransitionLoading(false, emitMediaWhenEmpty: true);
     }
-    TrayManager.update();
   }
 
   Future<void> _playLibraryItemWithContext(
@@ -210,7 +241,7 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
     );
 
     if (restoreProgress && !skipResumeProgressReconcile && !isCastControlActive) {
-      unawaited(_reconcileResumeProgressInBackground(resumeItem));
+      unawaited(_reconcileResumeProgressInBackground(resumeItem, startPosition));
     } else if (restoreProgress && skipResumeProgressReconcile) {
       logger(
         'Resume progress reconcile skipped because playback position was manually changed while paused.',
@@ -226,12 +257,22 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
     );
   }
 
-  Future<void> _reconcileResumeProgressInBackground(InternalMedia resumeItem) async {
+  Future<void> _reconcileResumeProgressInBackground(InternalMedia resumeItem, Duration startPosition) async {
     final activeUserId = _ref.read(currentUserProvider).value?.id;
     final isMusic = _ref
         .read(settingsManagerProvider.notifier)
         .getUserSetting<bool>(activeUserId, 'music_library_${resumeItem.libraryId}', defaultValue: false);
     if (isMusic) {
+      return;
+    }
+
+    final canReachServer = _ref.read(serverReachabilityProvider);
+    if (!canReachServer) {
+      logger(
+        'Server is unreachable, skipping background resume progress reconcile.',
+        tag: 'AudioHandler',
+        level: InfoLevel.debug,
+      );
       return;
     }
 
@@ -270,12 +311,11 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
       final remotePosition = progress.isFinished
           ? Duration.zero
           : Duration(microseconds: (progress.currentTime * Duration.microsecondsPerSecond).round());
-      final currentAbsolutePosition = position;
-      final positionDrift = (remotePosition - currentAbsolutePosition).abs();
+      final positionDrift = (remotePosition - startPosition).abs();
 
       logger(
         'Background resume reconcile for item: ${resumeItem.itemId} (${resumeItem.episodeId ?? 'item'}), '
-        'current position: $currentAbsolutePosition, remote position: $remotePosition, drift: $positionDrift',
+        'start position: $startPosition, remote position: $remotePosition, drift: $positionDrift',
         tag: 'AudioHandler',
         level: InfoLevel.debug,
       );
@@ -286,7 +326,7 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
 
       logger(
         'Background resume reconcile detected position drift of $positionDrift. '
-        'Seeking from $currentAbsolutePosition to $remotePosition',
+        'Seeking from start position $startPosition to remote position $remotePosition',
         tag: 'AudioHandler',
         level: InfoLevel.info,
       );

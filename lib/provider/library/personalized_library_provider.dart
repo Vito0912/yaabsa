@@ -5,6 +5,8 @@ import 'package:yaabsa/provider/common/library_item_events.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:dio/dio.dart';
+import 'package:yaabsa/database/app_database.dart';
+import 'package:yaabsa/models/internal_download.dart';
 
 part 'personalized_library_provider.g.dart';
 
@@ -294,4 +296,16 @@ ShelfEntry<LibraryItem>? _removeLibraryItemFromShelf(ShelfEntry<LibraryItem>? sh
   final nextEntities = List<LibraryItem>.from(shelf.entities)..removeAt(existingIndex);
   final nextTotal = shelf.total > 0 ? shelf.total - 1 : nextEntities.length;
   return shelf.copyWith(entities: nextEntities, total: nextTotal);
+}
+
+@riverpod
+Stream<List<InternalDownload>> libraryDownloads(Ref ref, String libraryId) {
+  final user = ref.watch(currentUserProvider).value;
+  if (user == null) {
+    return Stream.value(const <InternalDownload>[]);
+  }
+  final db = ref.watch(appDatabaseProvider);
+  return db.watchStoredDownloadsByUser(user.id).map((downloads) {
+    return downloads.where((d) => d.item?.libraryId == libraryId).toList();
+  });
 }

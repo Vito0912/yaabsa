@@ -15,6 +15,8 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:yaabsa/database/connection/cache_db.dart' show openCacheDatabase;
 import 'package:audio_service_mpris/audio_service_mpris.dart';
 
+import 'package:yaabsa/database/settings_manager.dart';
+import 'package:yaabsa/util/setting_key.dart';
 import 'logger.dart';
 
 class Init {
@@ -27,6 +29,7 @@ class Init {
   }
 
   static BGAudioHandler? _audioHandler;
+  static Future<BGAudioHandler>? _audioHandlerInitialization;
   static bool _sleepTimerKeepAliveAttached = false;
 
   static bool _isContainerRuntime() {
@@ -140,6 +143,25 @@ class Init {
   static Future<BGAudioHandler> initAudioHandler() async {
     if (_audioHandler != null) return _audioHandler!;
 
+    final activeInitialization = _audioHandlerInitialization;
+    if (activeInitialization != null) {
+      return activeInitialization;
+    }
+
+    final initialization = _initAudioHandler();
+    _audioHandlerInitialization = initialization;
+
+    try {
+      return await initialization;
+    } catch (_) {
+      if (identical(_audioHandlerInitialization, initialization)) {
+        _audioHandlerInitialization = null;
+      }
+      rethrow;
+    }
+  }
+
+  static Future<BGAudioHandler> _initAudioHandler() async {
     if (!kIsWeb && Platform.isLinux) {
       AudioServiceMpris.registerWith();
     }
@@ -152,6 +174,10 @@ class Init {
       JustAudioMediaKit.ensureInitialized(linux: true, windows: true, libmpv: libmpvPath);
     }
 
+    final settingsManager = containerRef.read(settingsManagerProvider.notifier);
+    final ffSeconds = settingsManager.getGlobalSetting<int>(SettingKeys.fastForwardInterval, defaultValue: 10);
+    final rwSeconds = settingsManager.getGlobalSetting<int>(SettingKeys.rewindInterval, defaultValue: 10);
+
     _audioHandler = await AudioService.init(
       builder: () => BGAudioHandler(containerRef),
       config: AudioServiceConfig(
@@ -161,6 +187,8 @@ class Init {
         androidNotificationOngoing: false,
         androidStopForegroundOnPause: false,
         preloadArtwork: true,
+        fastForwardInterval: Duration(seconds: ffSeconds),
+        rewindInterval: Duration(seconds: rwSeconds),
         androidBrowsableRootExtras: <String, dynamic>{
           AndroidContentStyle.supportedKey: true,
           AndroidContentStyle.playableHintKey: AndroidContentStyle.listItemHintValue,
@@ -183,7 +211,17 @@ class Init {
 
     cacheDb = await openCacheDatabase();
 
-    packageInfo = await PackageInfo.fromPlatform();
+    try {
+      packageInfo = await PackageInfo.fromPlatform().timeout(const Duration(seconds: 2));
+    } catch (e, s) {
+      logger('Failed to retrieve package info on startup: $e\n$s', tag: 'Init', level: InfoLevel.warning);
+      packageInfo = PackageInfo(
+        appName: 'Yaabsa',
+        packageName: 'de.vito0912.yaabsa',
+        version: '9.9.9',
+        buildNumber: '99999',
+      );
+    }
     downloadHandler = DownloadHandler(containerRef);
   }
 

@@ -15,6 +15,11 @@ class PodcastEpisodesHeaderCard extends StatelessWidget {
     required this.onClearSearch,
     required this.onFilterChanged,
     required this.onSortChanged,
+    this.selectionMode = false,
+    this.selectedCount = 0,
+    this.onClearSelection,
+    this.onSelectAll,
+    this.onDownloadSelected,
   });
 
   final int totalEpisodeCount;
@@ -28,9 +33,48 @@ class PodcastEpisodesHeaderCard extends StatelessWidget {
   final VoidCallback onClearSearch;
   final ValueChanged<PodcastEpisodeProgressFilter> onFilterChanged;
   final ValueChanged<PodcastEpisodeSortMode> onSortChanged;
+  final bool selectionMode;
+  final int selectedCount;
+  final VoidCallback? onClearSelection;
+  final VoidCallback? onSelectAll;
+  final VoidCallback? onDownloadSelected;
 
   @override
   Widget build(BuildContext context) {
+    if (selectionMode) {
+      return Card(
+        elevation: 0,
+        clipBehavior: Clip.antiAlias,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Row(
+            children: [
+              IconButton(
+                onPressed: onClearSelection,
+                icon: const Icon(Icons.close_rounded),
+                tooltip: 'Clear selection',
+              ),
+              const SizedBox(width: 8),
+              Text('$selectedCount selected', style: Theme.of(context).textTheme.titleMedium),
+              const Spacer(),
+              if (onSelectAll != null)
+                IconButton(
+                  onPressed: onSelectAll,
+                  icon: const Icon(Icons.select_all_rounded),
+                  tooltip: 'Select all visible',
+                ),
+              if (onDownloadSelected != null)
+                IconButton(
+                  onPressed: onDownloadSelected,
+                  icon: const Icon(Icons.download_rounded),
+                  tooltip: 'Download selected episodes',
+                ),
+            ],
+          ),
+        ),
+      );
+    }
+
     final resultLabel = visibleEpisodeCount == totalEpisodeCount
         ? '$totalEpisodeCount episodes'
         : '$visibleEpisodeCount of $totalEpisodeCount episodes';

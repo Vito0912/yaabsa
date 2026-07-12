@@ -7,6 +7,7 @@ import 'package:yaabsa/components/common/connection_issue_view.dart';
 import 'package:yaabsa/components/common/cover_loading_placeholder.dart';
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
 import 'package:yaabsa/components/common/scroll_to_top_button.dart';
+import 'package:yaabsa/components/common/loading_view.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/common/series_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
@@ -140,7 +141,7 @@ class SeriesView extends HookConsumerWidget {
           },
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const LoadingView(),
       error: (error, stackTrace) {
         if (!serverReachable) {
           return ConnectionIssueView.offline(

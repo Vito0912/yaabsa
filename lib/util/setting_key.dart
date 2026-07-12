@@ -39,6 +39,7 @@ class SettingKeys {
   static const String smartRewindMediumRewindSeconds = 'smart_rewind_medium_rewind_seconds';
   static const String smartRewindLongRewindSeconds = 'smart_rewind_long_rewind_seconds';
   static const String libraryGridScale = 'library_grid_scale';
+  static const String autoResumeOnBluetoothConnection = 'auto_resume_on_bluetooth_connection';
 
   // User-Specific Settings
   static const String syncInterval = 'sync_interval';
@@ -111,6 +112,8 @@ class SettingKeys {
   static const String subtitleReadAlong = 'subtitle_read_along';
   static const String checkForServerUpdates = 'check_for_server_updates';
   static const String dismissedUpdateServerVersion = 'dismissed_update_server_version';
+  static const String latestServerVersion = 'latest_server_version';
+  static const String nextServerVersionCheckAllowed = 'next_server_version_check_allowed';
   static const String playerShowRemainingTime = 'player_show_remaining_time';
   static const String readerTheme = 'reader_theme';
   static const String readerFontSizeMultiplier = 'reader_font_size_multiplier';
@@ -118,9 +121,14 @@ class SettingKeys {
   static const String readerLayout = 'reader_layout';
   static const String readerHideMiniPlayer = 'reader_hide_mini_player';
   static const String readerStartSession = 'reader_start_session';
+  static const String readerTtsRate = 'reader_tts_rate';
+  static const String readerTtsVoice = 'reader_tts_voice';
+  static const String readerTtsLanguage = 'reader_tts_language';
   static const String loopMode = 'loop_mode';
   static const String mixQueue = 'mix_queue';
   static const String showPlayerLoopShuffle = 'show_player_loop_shuffle';
+  static const String showSkipInsteadOfFastForward = 'show_skip_instead_of_fast_forward';
+  static const String downloadTypePreference = 'download_type_preference';
 }
 
 bool get _defaultEnableOnDesktop {
@@ -175,6 +183,7 @@ final defaultSettings = {
   SettingKeys.smartRewindMediumRewindSeconds: 30,
   SettingKeys.smartRewindLongRewindSeconds: 60,
   SettingKeys.libraryGridScale: 1.0,
+  SettingKeys.autoResumeOnBluetoothConnection: false,
 
   SettingKeys.syncInterval: 10,
   SettingKeys.syncOnlyOnWifi: false,
@@ -245,6 +254,8 @@ final defaultSettings = {
   SettingKeys.subtitleSpeakerHighlighting: true,
   SettingKeys.subtitleReadAlong: true,
   SettingKeys.checkForServerUpdates: false,
+  SettingKeys.latestServerVersion: '',
+  SettingKeys.nextServerVersionCheckAllowed: 0,
   SettingKeys.playerShowRemainingTime: false,
   SettingKeys.readerTheme: 'sepia',
   SettingKeys.readerFontSizeMultiplier: 1.0,
@@ -252,9 +263,14 @@ final defaultSettings = {
   SettingKeys.readerLayout: 'paginated_2',
   SettingKeys.readerHideMiniPlayer: false,
   SettingKeys.readerStartSession: false,
+  SettingKeys.readerTtsRate: 1.0,
+  SettingKeys.readerTtsVoice: '',
+  SettingKeys.readerTtsLanguage: 'en-US',
   SettingKeys.loopMode: 'off',
   SettingKeys.mixQueue: false,
   SettingKeys.showPlayerLoopShuffle: 'music_only',
+  SettingKeys.showSkipInsteadOfFastForward: false,
+  SettingKeys.downloadTypePreference: 'askEveryTime',
 };
 
 enum AppThemeMode {

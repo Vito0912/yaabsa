@@ -32,7 +32,7 @@ final class ServerUpdateStateProvider extends $AsyncNotifierProvider<ServerUpdat
   ServerUpdateState create() => ServerUpdateState();
 }
 
-String _$serverUpdateStateHash() => r'37d924c1cfc7f633c3f7d59b7dd5d6be438c99c8';
+String _$serverUpdateStateHash() => r'337b6d8a4e89a62b08eccdee429210436ed4465b';
 
 abstract class _$ServerUpdateState extends $AsyncNotifier<ServerUpdateInfo?> {
   FutureOr<ServerUpdateInfo?> build();

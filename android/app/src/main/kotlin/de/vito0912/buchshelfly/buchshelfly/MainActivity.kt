@@ -1,8 +1,11 @@
 package de.vito0912.yaabsa
 
+import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -11,13 +14,13 @@ import androidx.documentfile.provider.DocumentFile
 import com.google.android.gms.wearable.MessageClient
 import com.google.android.gms.wearable.Wearable
 import org.json.JSONObject
-import com.ryanheise.audioservice.AudioServiceActivity
+import com.ryanheise.audioservice.AudioServiceFragmentActivity
 import com.ryanheise.audioservice.AudioServicePlugin
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 
-class MainActivity : AudioServiceActivity() {
+class MainActivity : AudioServiceFragmentActivity() {
 	companion object {
 		private const val WIDGET_CHANNEL = "de.vito0912.yaabsa/widget"
 		private const val SAF_CHANNEL = "de.vito0912.yaabsa/saf"
@@ -34,16 +37,6 @@ class MainActivity : AudioServiceActivity() {
 
 	private fun isWidgetSupportEnabled(): Boolean {
 		return WidgetRuntimeSupport.isWidgetSupportEnabled(applicationContext)
-	}
-
-	override fun shouldDestroyEngineWithHost(): Boolean {
-		return false
-	}
-
-	override fun getCachedEngineId(): String? {
-		val engineId = AudioServicePlugin.getFlutterEngineId()
-		val hasEngine = io.flutter.embedding.engine.FlutterEngineCache.getInstance().contains(engineId)
-		return if (hasEngine) engineId else null
 	}
 
 
@@ -214,6 +207,28 @@ class MainActivity : AudioServiceActivity() {
 				else -> result.notImplemented()
 			}
 		}
+
+		MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "de.vito0912.yaabsa/autoresume")
+			.setMethodCallHandler { call, result ->
+				when (call.method) {
+					"updateAutoResumeSettings" -> {
+						val bluetooth = call.argument<Boolean>("bluetooth") ?: false
+						val prefs = applicationContext.getSharedPreferences("yaabsa_settings", Context.MODE_PRIVATE)
+						prefs.edit()
+							.putBoolean("auto_resume_bluetooth", bluetooth)
+							.apply()
+
+						if (bluetooth && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+							if (checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+								requestPermissions(arrayOf(Manifest.permission.BLUETOOTH_CONNECT), 101)
+							}
+						}
+
+						result.success(null)
+					}
+					else -> result.notImplemented()
+				}
+			}
 
 		notifyAaosOpenSettingsIfPending()
 		notifyAaosOpenSignInIfPending()

@@ -103,7 +103,7 @@ class AaosService {
 
   Future<bool> _detectAutomotiveDevice() async {
     try {
-      final androidInfo = await _deviceInfoPlugin.androidInfo;
+      final androidInfo = await _deviceInfoPlugin.androidInfo.timeout(const Duration(seconds: 2));
       return androidInfo.systemFeatures.contains(_automotiveFeatureFlag);
     } catch (error) {
       logger('Failed to detect AAOS feature flag: $error', tag: 'AAOS', level: InfoLevel.warning);

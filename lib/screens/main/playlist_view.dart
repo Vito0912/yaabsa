@@ -10,6 +10,7 @@ import 'package:yaabsa/components/common/list_management_dialogs.dart';
 import 'package:yaabsa/components/common/managed_list_operations.dart';
 import 'package:yaabsa/components/common/managed_multi_book_view.dart';
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
+import 'package:yaabsa/components/common/loading_view.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/common/playlist_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
@@ -85,7 +86,7 @@ class PlaylistView extends HookConsumerWidget {
           onRefresh: () => ref.read(playlistsProvider(libraryId).notifier).refresh(withLoading: false),
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const LoadingView(),
       error: (error, stackTrace) {
         if (!serverReachable) {
           return ConnectionIssueView.offline(

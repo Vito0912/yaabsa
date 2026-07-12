@@ -33,6 +33,7 @@ import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/server_management_preferences.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/util/logger.dart';
 
 class LibraryItemPodcastView extends ConsumerStatefulWidget {
   const LibraryItemPodcastView({super.key, required this.item, required this.canDownload});
@@ -51,6 +52,8 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
   bool _isFetchingPodcastFeed = false;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  bool _selectionMode = false;
+  final Set<String> _selectedEpisodeIds = <String>{};
 
   @override
   void initState() {
@@ -156,6 +159,33 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                             isQueueTransitionLoading &&
                             audioHandler.isQueueTransitionForItem(widget.item.id, episodeId: latestEpisodeId);
 
+                        final notStartedEpisodes = <Episode>[];
+                        final unfinishedEpisodes = <Episode>[];
+
+                        for (final episode in visibleEpisodes) {
+                          final isDownloaded = storedDownloads.any((d) => d.episode?.id == episode.id && d.isComplete);
+                          final isDownloading = activeTasks.any(
+                            (task) => downloadHandler.taskBelongsToItem(task, widget.item.id, episodeId: episode.id),
+                          );
+
+                          if (!isDownloaded && !isDownloading) {
+                            final progress = progressMap[mediaProgressKey(widget.item.id, episode.id)];
+                            final isFinished = progress != null && progress.isFinished;
+
+                            if (!isFinished) {
+                              unfinishedEpisodes.add(episode);
+                              final isNotStarted = progress == null || progress.progress == 0;
+                              if (isNotStarted) {
+                                notStartedEpisodes.add(episode);
+                              }
+                            }
+                          }
+                        }
+
+                        final activePodcastTasks = activeTasks
+                            .where((task) => downloadHandler.taskBelongsToItem(task, widget.item.id))
+                            .toList();
+
                         return CustomScrollView(
                           slivers: [
                             SliverToBoxAdapter(
@@ -202,6 +232,13 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                                               context: context,
                                               item: widget.item,
                                               filterData: filterData,
+                                            )
+                                          : null,
+                                      onDownloadPress: widget.canDownload
+                                          ? () => _showDownloadOptionsDialog(
+                                              notStartedEpisodes: notStartedEpisodes,
+                                              unfinishedEpisodes: unfinishedEpisodes,
+                                              activePodcastTasks: activePodcastTasks,
                                             )
                                           : null,
                                       onToggleDescription: () {
@@ -270,6 +307,26 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                                                     _sortMode = sortMode;
                                                   });
                                                 },
+                                                selectionMode: _selectionMode,
+                                                selectedCount: _selectedEpisodeIds.length,
+                                                onClearSelection: () {
+                                                  setState(() {
+                                                    _selectionMode = false;
+                                                    _selectedEpisodeIds.clear();
+                                                  });
+                                                },
+                                                onSelectAll: () {
+                                                  setState(() {
+                                                    _selectedEpisodeIds.addAll(visibleEpisodes.map((e) => e.id));
+                                                  });
+                                                },
+                                                onDownloadSelected: () {
+                                                  _downloadSelectedEpisodes(
+                                                    visibleEpisodes,
+                                                    storedDownloads,
+                                                    activeTasks,
+                                                  );
+                                                },
                                               ),
                                               const Divider(height: 1),
                                               if (visibleEpisodes.isEmpty)
@@ -329,6 +386,21 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                                                       isQueued: isQueued,
                                                       isCurrentEpisode: isCurrentEpisode,
                                                       isPlayingCurrentEpisode: isPlayingCurrentEpisode,
+                                                      selectionMode: _selectionMode,
+                                                      isSelected: _selectedEpisodeIds.contains(episode.id),
+                                                      onSelectedChanged: (selected) {
+                                                        setState(() {
+                                                          if (selected == true) {
+                                                            _selectedEpisodeIds.add(episode.id);
+                                                            _selectionMode = true;
+                                                          } else {
+                                                            _selectedEpisodeIds.remove(episode.id);
+                                                            if (_selectedEpisodeIds.isEmpty) {
+                                                              _selectionMode = false;
+                                                            }
+                                                          }
+                                                        });
+                                                      },
                                                       onOpenDetails: () =>
                                                           _openEpisodeDetails(episode, visibleEpisodes),
                                                       onPlayPressed: episode.audioFile == null
@@ -404,6 +476,12 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                                                                 itemTitle: podcastEpisodeTitle(episode),
                                                               ),
                                                             );
+                                                            return;
+                                                          case ItemMoreAction.select:
+                                                            setState(() {
+                                                              _selectionMode = true;
+                                                              _selectedEpisodeIds.add(episode.id);
+                                                            });
                                                             return;
                                                         }
                                                       },
@@ -693,5 +771,123 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
 
   int _episodeTimestamp(Episode episode) {
     return episode.publishedAt ?? episode.addedAt ?? 0;
+  }
+
+  void _showDownloadOptionsDialog({
+    required List<Episode> notStartedEpisodes,
+    required List<Episode> unfinishedEpisodes,
+    required List<TaskRecord> activePodcastTasks,
+  }) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Download Episodes'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.play_circle_outline_rounded),
+                title: const Text('Download not started episodes'),
+                subtitle: Text('${notStartedEpisodes.length} episodes'),
+                enabled: notStartedEpisodes.isNotEmpty,
+                onTap: () {
+                  Navigator.pop(dialogContext);
+                  _downloadEpisodesList(notStartedEpisodes);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.hourglass_empty_rounded),
+                title: const Text('Download unfinished episodes'),
+                subtitle: Text('${unfinishedEpisodes.length} episodes'),
+                enabled: unfinishedEpisodes.isNotEmpty,
+                onTap: () {
+                  Navigator.pop(dialogContext);
+                  _downloadEpisodesList(unfinishedEpisodes);
+                },
+              ),
+              if (activePodcastTasks.isNotEmpty) ...[
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.cancel_outlined, color: Colors.red),
+                  title: const Text('Cancel active downloads', style: TextStyle(color: Colors.red)),
+                  subtitle: Text('${activePodcastTasks.length} downloads active'),
+                  onTap: () {
+                    Navigator.pop(dialogContext);
+                    _cancelActiveDownloads(activePodcastTasks);
+                  },
+                ),
+              ],
+            ],
+          ),
+          actions: [TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel'))],
+        );
+      },
+    );
+  }
+
+  Future<void> _downloadEpisodesList(List<Episode> episodes) async {
+    if (episodes.isEmpty) return;
+    var count = 0;
+    for (final episode in episodes) {
+      try {
+        await downloadHandler.downloadFile(widget.item.id, episodeId: episode.id);
+        count++;
+      } catch (e) {
+        logger('Could not download episode ${episode.title}: $e', tag: 'PodcastView', level: InfoLevel.error);
+      }
+    }
+    if (mounted) {
+      final message = count == 1 ? '1 download added to queue.' : '$count downloads added to queue.';
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    }
+  }
+
+  Future<void> _cancelActiveDownloads(List<TaskRecord> tasks) async {
+    var count = 0;
+    for (final task in tasks) {
+      final canceled = await downloadHandler.cancelTask(task.taskId);
+      if (canceled) {
+        count++;
+      }
+    }
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Cancelled $count ongoing download(s).')));
+    }
+  }
+
+  Future<void> _downloadSelectedEpisodes(
+    List<Episode> visibleEpisodes,
+    List<InternalDownload> storedDownloads,
+    List<TaskRecord> activeTasks,
+  ) async {
+    final episodesToDownload = visibleEpisodes.where((e) {
+      if (!_selectedEpisodeIds.contains(e.id)) return false;
+      final isDownloaded = storedDownloads.any((d) => d.episode?.id == e.id && d.isComplete);
+      final isDownloading = activeTasks.any(
+        (task) => downloadHandler.taskBelongsToItem(task, widget.item.id, episodeId: e.id),
+      );
+      return !isDownloaded && !isDownloading;
+    }).toList();
+
+    if (episodesToDownload.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('No new episodes to download in selection.')));
+      }
+      setState(() {
+        _selectionMode = false;
+        _selectedEpisodeIds.clear();
+      });
+      return;
+    }
+
+    setState(() {
+      _selectionMode = false;
+      _selectedEpisodeIds.clear();
+    });
+
+    await _downloadEpisodesList(episodesToDownload);
   }
 }

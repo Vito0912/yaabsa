@@ -110,6 +110,10 @@ ThemeData buildAppThemeData({
         return const Icon(Icons.close, size: 16);
       }),
     ),
+    snackBarTheme: SnackBarThemeData(
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    ),
   );
 
   if (useAmoledDark && brightness == Brightness.dark) {

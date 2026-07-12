@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/components/settings/settings_button.dart';
+import 'package:yaabsa/components/settings/settings_dropdown.dart';
 import 'package:yaabsa/components/settings/settings_slider.dart';
 import 'package:yaabsa/components/settings/settings_switch_tile.dart';
 import 'package:yaabsa/database/app_database.dart';
@@ -258,6 +259,24 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
                             );
                           },
                         );
+                      },
+                    ),
+                    SettingDropdown<String>.remote(
+                      label: 'Download Preference',
+                      description: 'What files to download by default',
+                      value: ref
+                          .watch(settingsManagerProvider.notifier)
+                          .getUserSetting<String>(
+                            user.id,
+                            SettingKeys.downloadTypePreference,
+                            defaultValue: 'askEveryTime',
+                          ),
+                      values: const ['askEveryTime', 'audiobook', 'ebook', 'both'],
+                      valueLabels: const ['Ask every time', 'Audiobook only', 'Ebook only', 'Both'],
+                      onValueChanged: (newValue) async {
+                        await ref
+                            .read(settingsManagerProvider.notifier)
+                            .setUserSetting<String>(user.id, SettingKeys.downloadTypePreference, newValue);
                       },
                     ),
                   ],

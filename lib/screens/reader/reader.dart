@@ -1,10 +1,20 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
+import 'package:background_downloader/background_downloader.dart';
+import 'package:yaabsa/database/app_database.dart';
+import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/file_formats.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:dio/dio.dart';
 import 'package:foliate_reader/foliate_reader.dart';
 import 'package:pdfrx/pdfrx.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
@@ -14,6 +24,7 @@ import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/models/internal_annotation.dart';
+import 'package:yaabsa/models/internal_download.dart';
 import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/core/server_reachability_provider.dart';
@@ -22,6 +33,8 @@ import 'package:yaabsa/provider/player/session_provider.dart';
 import 'package:yaabsa/screens/player/play_bar.dart';
 import 'package:yaabsa/screens/reader/models/pdf_annotation_entry.dart';
 import 'package:yaabsa/screens/reader/widgets/reader_epub_view.dart';
+import 'package:yaabsa/screens/settings/reader_settings.dart';
+import 'package:yaabsa/screens/settings/reader_tts_settings.dart';
 import 'package:yaabsa/screens/reader/widgets/reader_pdf_view.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/network/request_headers.dart';
@@ -61,6 +74,10 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
   final double _lastUnderlineThickness = 2.0;
 
   String? _resolvedEbookLocation;
+  InternalDownload? _storedDownload;
+  File? _localEbookFile;
+  bool _loadingLocalFile = false;
+  File? _tempEbookFile;
   int _progressRefreshToken = 0;
   Timer? _annotationsSyncDebounce;
   bool _autoAnnotationLoadStarted = false;
@@ -87,6 +104,7 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
   int _currentTtsSentenceIndex = 0;
   bool _waitingForTtsPageLoad = false;
   bool _isJumpingTts = false;
+  bool _isApplyingSettings = false;
   bool _hasMediaOverlays = false;
   String _mediaOverlayState = 'stopped';
 
@@ -104,8 +122,16 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
   double? _pendingSyncProgress;
   DateTime? _lastProgressSyncTime;
   Timer? _progressSyncTimer;
+  Timer? _systemUiTimer;
   Future<void>? _progressSyncChain;
   String? _lastSyncedEpubCfi;
+
+  double get _readerTtsRate =>
+      ref.read(settingsManagerProvider.notifier).getGlobalSetting<double>(SettingKeys.readerTtsRate);
+  String get _readerTtsVoice =>
+      ref.read(settingsManagerProvider.notifier).getGlobalSetting<String>(SettingKeys.readerTtsVoice);
+  String get _readerTtsLanguage =>
+      ref.read(settingsManagerProvider.notifier).getGlobalSetting<String>(SettingKeys.readerTtsLanguage);
 
   String get _readerTheme =>
       ref.read(settingsManagerProvider.notifier).getGlobalSetting<String>(SettingKeys.readerTheme);
@@ -160,9 +186,25 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
     setState(update);
   }
 
+  void _startSystemUiTimer() {
+    _systemUiTimer?.cancel();
+    _systemUiTimer = Timer(const Duration(seconds: 5), () {
+      if (mounted && _isSystemUiVisible) {
+        _readerSetState(() {
+          _isSystemUiVisible = false;
+        });
+      }
+    });
+  }
+
   void _toggleSystemUi() {
     _readerSetState(() {
       _isSystemUiVisible = !_isSystemUiVisible;
+      if (_isSystemUiVisible) {
+        _startSystemUiTimer();
+      } else {
+        _systemUiTimer?.cancel();
+      }
     });
   }
 
@@ -343,10 +385,56 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
     }
   }
 
+  Future<void> _applyTtsSettings() async {
+    if (_flutterTts == null) return;
+    final lang = _readerTtsLanguage;
+    final rate = _readerTtsRate;
+    final voice = _readerTtsVoice;
+
+    await _flutterTts!.setLanguage(lang);
+
+    final rawRate = (rate * 0.5).clamp(0.0, 1.0);
+    await _flutterTts!.setSpeechRate(rawRate);
+
+    final isVoiceSupported =
+        defaultTargetPlatform == TargetPlatform.android ||
+        defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.macOS;
+
+    if (isVoiceSupported && voice.isNotEmpty) {
+      try {
+        final dynamic rawVoices = await _flutterTts!.getVoices;
+        bool voiceExists = false;
+        if (rawVoices is List) {
+          for (final v in rawVoices) {
+            if (v is Map && v['name'] == voice) {
+              voiceExists = true;
+              break;
+            }
+          }
+        }
+        if (voiceExists) {
+          await _flutterTts!.setVoice({"name": voice, "locale": lang});
+        }
+      } catch (_) {}
+    }
+
+    await _flutterTts!.setVolume(1.0);
+    await _flutterTts!.setPitch(1.0);
+  }
+
   Future<void> _initTts() async {
     _flutterTts = FlutterTts();
-    await _flutterTts!.setLanguage("en-US");
-    await _flutterTts!.setSpeechRate(0.5);
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      await _flutterTts!.setSharedInstance(true);
+      await _flutterTts!.setIosAudioCategory(IosTextToSpeechAudioCategory.playback, [
+        IosTextToSpeechAudioCategoryOptions.allowBluetooth,
+        IosTextToSpeechAudioCategoryOptions.allowBluetoothA2DP,
+        IosTextToSpeechAudioCategoryOptions.mixWithOthers,
+        IosTextToSpeechAudioCategoryOptions.defaultToSpeaker,
+      ], IosTextToSpeechAudioMode.defaultMode);
+    }
+    await _applyTtsSettings();
     await _flutterTts!.setVolume(1.0);
     await _flutterTts!.setPitch(1.0);
 
@@ -382,15 +470,17 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
     });
   }
 
-  void _resumeTts() {
+  Future<void> _resumeTts() async {
     if (_flutterTts != null && _ttsSentences.isNotEmpty && _currentTtsSentenceIndex < _ttsSentences.length) {
+      await _applyTtsSettings();
       final sentence = _ttsSentences[_currentTtsSentenceIndex];
       final text = sentence['text'] ?? '';
       final cfi = sentence['cfi'] ?? '';
       if (cfi.isNotEmpty) {
         unawaited(epubController.highlightCFI(cfi));
+        unawaited(epubController.goTo(cfi));
       }
-      _flutterTts!.speak(text);
+      await _flutterTts!.speak(text);
       _readerSetState(() {
         _isTtsPaused = false;
       });
@@ -404,6 +494,8 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
 
     if (_flutterTts == null) {
       await _initTts();
+    } else {
+      await _applyTtsSettings();
     }
 
     final sentences = await epubController.getTtsSentences();
@@ -417,6 +509,7 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
       _currentTtsSentenceIndex = 0;
       _isTtsPlaying = true;
       _isTtsPaused = false;
+      _isSystemUiVisible = false;
     });
 
     final sentence = _ttsSentences[0];
@@ -424,50 +517,61 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
     final cfi = sentence['cfi'] ?? '';
     if (cfi.isNotEmpty) {
       unawaited(epubController.highlightCFI(cfi));
+      unawaited(epubController.goTo(cfi));
     }
     await _flutterTts!.speak(text);
   }
 
-  void _onTtsSentenceComplete() {
-    if (!mounted || !_isTtsPlaying || _isTtsPaused || _isJumpingTts) {
+  void _onTtsSentenceComplete() async {
+    if (!mounted || !_isTtsPlaying || _isTtsPaused || _isJumpingTts || _isApplyingSettings) {
       return;
     }
 
-    _readerSetState(() {
-      _currentTtsSentenceIndex++;
-    });
-
-    if (_currentTtsSentenceIndex < _ttsSentences.length) {
-      final sentence = _ttsSentences[_currentTtsSentenceIndex];
+    final nextIndex = _currentTtsSentenceIndex + 1;
+    if (nextIndex < _ttsSentences.length) {
+      final sentence = _ttsSentences[nextIndex];
       final text = sentence['text'] ?? '';
       final cfi = sentence['cfi'] ?? '';
+
+      _readerSetState(() {
+        _currentTtsSentenceIndex = nextIndex;
+      });
       if (cfi.isNotEmpty) {
         unawaited(epubController.highlightCFI(cfi));
+        unawaited(epubController.goTo(cfi));
       }
-      _flutterTts!.speak(text);
+
+      await _flutterTts!.speak(text);
     } else {
+      _readerSetState(() {
+        _currentTtsSentenceIndex = nextIndex;
+      });
       unawaited(epubController.clearTtsHighlight());
       _turnPageForTts();
     }
   }
 
-  void _jumpToTtsSentence(int index) {
+  void _jumpToTtsSentence(int index) async {
     if (!mounted || !_isTtsPlaying) return;
     if (index >= 0 && index < _ttsSentences.length) {
       _isJumpingTts = true;
-      _flutterTts?.stop();
+      await _flutterTts?.stop();
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+
       _readerSetState(() {
         _currentTtsSentenceIndex = index;
         _isTtsPaused = false;
       });
+      await _applyTtsSettings();
       final sentence = _ttsSentences[index];
       final text = sentence['text'] ?? '';
       final cfi = sentence['cfi'] ?? '';
       if (cfi.isNotEmpty) {
         unawaited(epubController.highlightCFI(cfi));
+        unawaited(epubController.goTo(cfi));
       }
       _isJumpingTts = false;
-      _flutterTts?.speak(text);
+      await _flutterTts?.speak(text);
     }
   }
 
@@ -484,6 +588,7 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     HardwareKeyboard.instance.addHandler(_handleVolumeKeys);
     unawaited(_refreshStoredProgress());
+    unawaited(_loadStoredDownload());
   }
 
   @override
@@ -518,6 +623,12 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
     unawaited(epubController.close());
     _stopTts();
     _annotationsSyncDebounce?.cancel();
+    _systemUiTimer?.cancel();
+    if (_tempEbookFile != null) {
+      try {
+        _tempEbookFile!.deleteSync();
+      } catch (_) {}
+    }
     super.dispose();
   }
 
@@ -528,6 +639,31 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
     ref.listen(settingsManagerProvider, (previous, next) {
       if (mounted) {
         _applyEpubStyles();
+
+        if (_flutterTts != null) {
+          if (_isTtsPlaying && !_isTtsPaused) {
+            _isApplyingSettings = true;
+            _flutterTts!.stop().then((_) {
+              _applyTtsSettings().then((_) {
+                if (mounted &&
+                    _isTtsPlaying &&
+                    !_isTtsPaused &&
+                    _ttsSentences.isNotEmpty &&
+                    _currentTtsSentenceIndex < _ttsSentences.length) {
+                  final sentence = _ttsSentences[_currentTtsSentenceIndex];
+                  final text = sentence['text'] ?? '';
+                  _flutterTts!.speak(text).then((_) {
+                    _isApplyingSettings = false;
+                  });
+                } else {
+                  _isApplyingSettings = false;
+                }
+              });
+            });
+          } else {
+            _applyTtsSettings();
+          }
+        }
       }
     });
 
@@ -581,6 +717,19 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
                               return const Center(child: Text('No authenticated user available.'));
                             }
 
+                            if (_loadingLocalFile) {
+                              return const Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    CircularProgressIndicator(),
+                                    SizedBox(height: 16),
+                                    Text('Loading local ebook files...'),
+                                  ],
+                                ),
+                              );
+                            }
+
                             final authToken = user.preferredAuthToken;
                             if (authToken == null || authToken.isEmpty) {
                               return const Center(child: Text('Missing authentication token for ebook loading.'));
@@ -592,6 +741,7 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
                                 user: user,
                                 authToken: authToken,
                                 initialLocation: effectiveInitialLocation,
+                                pdfFile: _localEbookFile,
                               );
                             }
 
@@ -607,6 +757,7 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
                               authToken: authToken,
                               initialCfi: effectiveInitialLocation,
                               bookExtension: bookExtension,
+                              bookFile: _localEbookFile,
                             );
                           },
                           error: (error, stackTrace) {
@@ -730,5 +881,73 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
         ),
       ),
     );
+  }
+
+  Future<void> _loadStoredDownload() async {
+    final user = ref.read(currentUserProvider).value;
+    if (user != null) {
+      final db = ref.read(appDatabaseProvider);
+      final download = await db.getStoredDownload(widget.itemId, user.id);
+      _readerSetState(() {
+        _storedDownload = download;
+      });
+      if (download != null) {
+        _readerSetState(() {
+          _loadingLocalFile = true;
+        });
+        final file = await _resolveEbookFile();
+        _readerSetState(() {
+          _localEbookFile = file;
+          _loadingLocalFile = false;
+        });
+      }
+    }
+  }
+
+  String? _getLocalEbookPathOrUri() {
+    final download = _storedDownload;
+    if (download == null) return null;
+    for (final path in download.auxiliaryFilePaths) {
+      if (FileFormats.isEbook(path)) {
+        return path;
+      }
+    }
+    return null;
+  }
+
+  Future<File?> _resolveEbookFile() async {
+    final localPathOrUri = _getLocalEbookPathOrUri();
+    if (localPathOrUri == null) {
+      return null;
+    }
+
+    final isSaf = _storedDownload?.saf ?? false;
+    if (isSaf) {
+      try {
+        final tempDir = await getTemporaryDirectory();
+        final ext = p.extension(localPathOrUri).isEmpty ? '.epub' : p.extension(localPathOrUri);
+        final tempFile = File('${tempDir.path}/${widget.itemId}_temp_ebook$ext');
+        if (await tempFile.exists()) {
+          await tempFile.delete();
+        }
+        await downloadHandler.cancelTask(widget.itemId);
+        await FileDownloader().uri.copyFile(Uri.parse(localPathOrUri), Uri.file(tempFile.path));
+        _tempEbookFile = tempFile;
+        return tempFile;
+      } catch (e, s) {
+        logger('Failed to copy SAF ebook to temp file: $e\n$s', tag: 'Reader', level: InfoLevel.error);
+        return null;
+      }
+    } else {
+      String cleanPath = localPathOrUri;
+      if (cleanPath.startsWith('file://')) {
+        cleanPath = Uri.parse(cleanPath).toFilePath(windows: Platform.isWindows);
+      }
+      final file = File(cleanPath);
+      if (await file.exists()) {
+        return file;
+      }
+    }
+    return null;
   }
 }

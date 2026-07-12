@@ -25,7 +25,9 @@ class DownloadListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final targetItemId = download.item?.id ?? download.episode?.libraryItemId;
-    final title = download.item?.title ?? download.episode?.title ?? 'Unknown Item';
+    final isPodcast = download.isPodcast;
+    final title = isPodcast ? (download.episode?.title ?? 'Unknown Episode') : (download.item?.title ?? 'Unknown Item');
+    final podcastTitle = isPodcast ? (download.item?.title ?? 'Unknown Podcast') : null;
     final totalFiles = download.numberOfFiles;
     final downloadedFiles = download.numberOfDownloadedFiles;
     final downloadRatio = totalFiles == 0 ? 0.0 : (downloadedFiles / totalFiles).clamp(0.0, 1.0);
@@ -41,6 +43,15 @@ class DownloadListTile extends StatelessWidget {
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (podcastTitle != null) ...[
+            Text(
+              podcastTitle,
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+            ),
+            const SizedBox(height: 2),
+          ],
           Text('Downloaded files: $downloadedFiles/$totalFiles'),
           const SizedBox(height: 4),
           ClipRRect(

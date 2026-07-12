@@ -8,6 +8,7 @@ import 'package:yaabsa/components/common/connection_issue_view.dart';
 import 'package:yaabsa/components/common/managed_list_operations.dart';
 import 'package:yaabsa/components/common/managed_multi_book_view.dart';
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
+import 'package:yaabsa/components/common/loading_view.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/common/collection_provider.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
@@ -85,7 +86,7 @@ class CollectionView extends HookConsumerWidget {
           onRefresh: () => ref.read(collectionsProvider(libraryId).notifier).refresh(withLoading: false),
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const LoadingView(),
       error: (error, stackTrace) {
         if (!serverReachable) {
           return ConnectionIssueView.offline(

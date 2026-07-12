@@ -66,35 +66,48 @@ extension _BGAudioHandlerResume on BGAudioHandler {
       return false;
     }
 
-    final lastPlayedItem = await _readLastPlayedQueueItemForActiveUser();
-    if (lastPlayedItem == null) {
-      return false;
-    }
+    _setQueueTransitionLoading(true);
+    await _updatePlaybackState();
 
-    final progress = await _ref
-        .read(mediaProgressProvider.notifier)
-        .fetchOrRefreshIndividualProgress(lastPlayedItem.itemId, episodeId: lastPlayedItem.episodeId);
+    try {
+      final lastPlayedItem = await _readLastPlayedQueueItemForActiveUser();
+      if (lastPlayedItem == null) {
+        _setQueueTransitionLoading(false);
+        return false;
+      }
+      _setQueueTransitionTargetItem(lastPlayedItem);
 
-    if (progress?.isFinished ?? false) {
-      logger(
-        'Last played item ${lastPlayedItem.itemId} is finished. Skipping resume.',
-        tag: 'AudioHandler',
-        level: InfoLevel.debug,
+      final progress = await _ref
+          .read(mediaProgressProvider.notifier)
+          .fetchOrRefreshIndividualProgress(lastPlayedItem.itemId, episodeId: lastPlayedItem.episodeId);
+
+      if (progress?.isFinished ?? false) {
+        logger(
+          'Last played item ${lastPlayedItem.itemId} is finished. Skipping resume.',
+          tag: 'AudioHandler',
+          level: InfoLevel.debug,
+        );
+        _setQueueTransitionLoading(false);
+        return false;
+      }
+
+      final resumePosition = Duration(
+        microseconds: ((progress?.currentTime ?? 0) * Duration.microsecondsPerSecond).round(),
       );
+
+      await playItemFromPosition(
+        itemId: lastPlayedItem.itemId,
+        episodeId: lastPlayedItem.episodeId,
+        position: resumePosition,
+      );
+
+      return _currentMediaItem != null;
+    } catch (e, s) {
+      logger('Failed to resume last played item: $e\n$s', tag: 'AudioHandler', level: InfoLevel.error);
+      _setQueueTransitionLoading(false, emitMediaWhenEmpty: true);
+      PlayerUtils.disableWakelock(_ref);
       return false;
     }
-
-    final resumePosition = Duration(
-      microseconds: ((progress?.currentTime ?? 0) * Duration.microsecondsPerSecond).round(),
-    );
-
-    await playItemFromPosition(
-      itemId: lastPlayedItem.itemId,
-      episodeId: lastPlayedItem.episodeId,
-      position: resumePosition,
-    );
-
-    return true;
   }
 
   Future<bool> _playLastPlayedIfEnabledOnStartupInternal() {

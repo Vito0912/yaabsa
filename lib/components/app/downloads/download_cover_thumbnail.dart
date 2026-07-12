@@ -23,7 +23,10 @@ class DownloadCoverThumbnail extends StatelessWidget {
         child: coverPath == null
             ? Container(
                 color: colorScheme.surfaceContainerHighest,
-                child: Icon(Icons.library_books_outlined, color: colorScheme.onSurfaceVariant),
+                child: Icon(
+                  download.isPodcast ? Icons.podcasts_rounded : Icons.library_books_outlined,
+                  color: colorScheme.onSurfaceVariant,
+                ),
               )
             : Image.file(
                 File(coverPath),
@@ -31,7 +34,10 @@ class DownloadCoverThumbnail extends StatelessWidget {
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
                     color: colorScheme.surfaceContainerHighest,
-                    child: Icon(Icons.library_books_outlined, color: colorScheme.onSurfaceVariant),
+                    child: Icon(
+                      download.isPodcast ? Icons.podcasts_rounded : Icons.library_books_outlined,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   );
                 },
               ),

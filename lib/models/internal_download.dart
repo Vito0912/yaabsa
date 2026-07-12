@@ -1,7 +1,9 @@
 import 'package:yaabsa/api/library_items/episode.dart';
+import 'package:yaabsa/api/library_items/library_file.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/models/internal_media.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:yaabsa/util/file_formats.dart';
 
 part 'internal_download.freezed.dart';
 part 'internal_download.g.dart';
@@ -19,6 +21,7 @@ abstract class InternalDownload with _$InternalDownload {
     @JsonKey(name: "saf", defaultValue: false) required bool saf,
     @JsonKey(name: "coverPath") String? coverPath,
     @JsonKey(name: "sidecarPaths") @Default(<String>[]) List<String> sidecarPaths,
+    @JsonKey(name: "downloadType") @Default('both') String downloadType,
   }) = _InternalDownload;
 
   bool get isPodcast {
@@ -40,11 +43,38 @@ abstract class InternalDownload with _$InternalDownload {
   }
 
   int get numberOfFiles {
-    final expected = expectedFileCount;
-    if (expected != null && expected > 0) {
-      return expected;
+    final resolvedItem = item;
+    if (resolvedItem == null) {
+      final expected = expectedFileCount;
+      if (expected != null && expected > 0) {
+        return expected;
+      }
+      return numberOfTracks;
     }
-    return numberOfTracks;
+
+    if (isPodcast) {
+      return 1;
+    }
+
+    final hasAudio = downloadType == 'audiobook' || downloadType == 'both';
+    final hasEbook = downloadType == 'ebook' || downloadType == 'both';
+
+    int count = 0;
+    if (hasAudio) {
+      count += resolvedItem.media?.bookMedia?.audioFiles?.length ?? 0;
+    }
+    if (hasEbook) {
+      if (resolvedItem.media?.bookMedia?.ebookFile != null) {
+        count += 1;
+      }
+      final libraryFiles = resolvedItem.libraryFiles ?? const <LibraryFile>[];
+      for (final libraryFile in libraryFiles) {
+        if (FileFormats.isEbook(libraryFile.metadata.ext)) {
+          count += 1;
+        }
+      }
+    }
+    return count > 0 ? count : numberOfTracks;
   }
 
   int get numberOfDownloadedFiles {
@@ -53,11 +83,31 @@ abstract class InternalDownload with _$InternalDownload {
   }
 
   bool get isComplete {
-    final target = numberOfFiles;
-    if (target <= 0) {
-      return numberOfDownloadedTracks == numberOfTracks;
+    if (downloadType == 'ebook') {
+      final hasEbook = auxiliaryFilePaths.any(FileFormats.isEbook);
+      return hasEbook;
     }
-    return numberOfDownloadedFiles >= target;
+
+    if (downloadType == 'audiobook') {
+      return numberOfDownloadedTracks == numberOfTracks && numberOfTracks > 0;
+    }
+
+    final hasEbook = auxiliaryFilePaths.any(FileFormats.isEbook);
+
+    final ebookAvailable = item?.media?.bookMedia?.ebookFile != null;
+    final audioAvailable = (item?.media?.bookMedia?.audioFiles?.isNotEmpty ?? false) || (episode != null);
+
+    bool audioComplete = true;
+    if (audioAvailable) {
+      audioComplete = numberOfDownloadedTracks == numberOfTracks && numberOfTracks > 0;
+    }
+
+    bool ebookComplete = true;
+    if (ebookAvailable) {
+      ebookComplete = hasEbook;
+    }
+
+    return audioComplete && ebookComplete;
   }
 
   factory InternalDownload.fromJson(Map<String, dynamic> json) => _$InternalDownloadFromJson(json);

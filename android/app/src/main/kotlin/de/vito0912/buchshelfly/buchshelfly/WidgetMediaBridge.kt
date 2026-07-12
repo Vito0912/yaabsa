@@ -74,27 +74,16 @@ object WidgetMediaBridge {
         )
     }
 
-    fun performTransportAction(context: Context, action: String, allowLaunchFallback: Boolean = true) {
-        performTransportActionWithRetry(context, action, allowLaunchFallback, retryCount = 0)
-    }
-
-    private fun performTransportActionWithRetry(
+    fun performTransportAction(
         context: Context,
         action: String,
-        allowLaunchFallback: Boolean,
-        retryCount: Int
+        allowLaunchFallback: Boolean = true,
+        onDispatched: () -> Unit = {},
     ) {
         withMediaController(
             context = context,
             onConnected = { controller ->
                 val state = controller.playbackState
-                if ((state == null || state.state == PlaybackStateCompat.STATE_NONE) && retryCount < 10) {
-                    Handler(Looper.getMainLooper()).postDelayed({
-                        performTransportActionWithRetry(context, action, allowLaunchFallback = false, retryCount = retryCount + 1)
-                    }, 500L)
-                    return@withMediaController
-                }
-
                 val controls = controller.transportControls
                 when (action) {
                     ACTION_PLAYER_TOGGLE -> {
@@ -120,53 +109,35 @@ object WidgetMediaBridge {
                 if (action == ACTION_QUICK_PLAY || action == ACTION_PLAYER_TOGGLE) {
                     if (allowLaunchFallback) {
                         launchAppForQuickPlay(context)
-                    } else if (retryCount < 10) {
-                        Handler(Looper.getMainLooper()).postDelayed({
-                            performTransportActionWithRetry(context, action, allowLaunchFallback = false, retryCount = retryCount + 1)
-                        }, 500L)
                     }
                     return@withMediaController
                 }
 
                 fallbackAction(context, action)
-            }
+            },
+            onFinished = onDispatched,
         )
     }
 
-    fun playFromMediaId(context: Context, mediaId: String, allowLaunchFallback: Boolean = true) {
-        playFromMediaIdWithRetry(context, mediaId, allowLaunchFallback, retryCount = 0)
-    }
-
-    private fun playFromMediaIdWithRetry(
+    fun playFromMediaId(
         context: Context,
         mediaId: String,
-        allowLaunchFallback: Boolean,
-        retryCount: Int
+        allowLaunchFallback: Boolean = true,
+        onDispatched: () -> Unit = {},
     ) {
         withMediaController(
             context = context,
             onConnected = { controller ->
-                val state = controller.playbackState
-                if ((state == null || state.state == PlaybackStateCompat.STATE_NONE) && retryCount < 10) {
-                    Handler(Looper.getMainLooper()).postDelayed({
-                        playFromMediaIdWithRetry(context, mediaId, allowLaunchFallback = false, retryCount = retryCount + 1)
-                    }, 500L)
-                    return@withMediaController
-                }
-
                 controller.transportControls.playFromMediaId(mediaId, Bundle.EMPTY)
             },
             onUnavailable = {
                 if (allowLaunchFallback) {
                     launchAppForMediaId(context, mediaId)
-                } else if (retryCount < 10) {
-                    Handler(Looper.getMainLooper()).postDelayed({
-                        playFromMediaIdWithRetry(context, mediaId, allowLaunchFallback = false, retryCount = retryCount + 1)
-                    }, 500L)
                 } else {
                     fallbackAction(context, ACTION_PLAYER_TOGGLE)
                 }
-            }
+            },
+            onFinished = onDispatched,
         )
     }
 
@@ -207,20 +178,44 @@ object WidgetMediaBridge {
     private fun withMediaController(
         context: Context,
         onConnected: (MediaControllerCompat) -> Unit,
-        onUnavailable: () -> Unit
+        onUnavailable: () -> Unit,
+        onFinished: () -> Unit = {},
     ) {
         val appContext = context.applicationContext
         val serviceComponent = ComponentName(appContext, "com.ryanheise.audioservice.AudioService")
 
+        val handler = Handler(Looper.getMainLooper())
         var browser: MediaBrowserCompat? = null
+        var completed = false
+
+        val timeoutRunnable = Runnable {
+            if (!completed) {
+                completed = true
+                try {
+                    onUnavailable()
+                } finally {
+                    runCatching { browser?.disconnect() }
+                    onFinished()
+                }
+            }
+        }
+
         browser = MediaBrowserCompat(
             appContext,
             serviceComponent,
             object : MediaBrowserCompat.ConnectionCallback() {
                 override fun onConnected() {
+                    handler.removeCallbacks(timeoutRunnable)
+                    if (completed) return
+                    completed = true
+
                     val localBrowser = browser
                     if (localBrowser == null) {
-                        onUnavailable()
+                        try {
+                            onUnavailable()
+                        } finally {
+                            onFinished()
+                        }
                         return
                     }
 
@@ -232,27 +227,52 @@ object WidgetMediaBridge {
                         onUnavailable()
                     } finally {
                         runCatching { localBrowser.disconnect() }
+                        onFinished()
                     }
                 }
 
                 override fun onConnectionSuspended() {
-                    onUnavailable()
-                    runCatching { browser?.disconnect() }
+                    handler.removeCallbacks(timeoutRunnable)
+                    if (completed) return
+                    completed = true
+                    try {
+                        onUnavailable()
+                    } finally {
+                        runCatching { browser?.disconnect() }
+                        onFinished()
+                    }
                 }
 
                 override fun onConnectionFailed() {
-                    onUnavailable()
-                    runCatching { browser?.disconnect() }
+                    handler.removeCallbacks(timeoutRunnable)
+                    if (completed) return
+                    completed = true
+                    try {
+                        onUnavailable()
+                    } finally {
+                        runCatching { browser?.disconnect() }
+                        onFinished()
+                    }
                 }
             },
             null
         )
 
+        handler.postDelayed(timeoutRunnable, 5000L)
+
         try {
             browser.connect()
         } catch (_: Exception) {
-            onUnavailable()
-            runCatching { browser.disconnect() }
+            handler.removeCallbacks(timeoutRunnable)
+            if (!completed) {
+                completed = true
+                try {
+                    onUnavailable()
+                } finally {
+                    runCatching { browser.disconnect() }
+                    onFinished()
+                }
+            }
         }
     }
 

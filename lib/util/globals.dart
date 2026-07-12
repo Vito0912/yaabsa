@@ -10,11 +10,10 @@ const String appName = 'Yaabsa';
 
 final ProviderContainer containerRef = ProviderContainer();
 late final PackageInfo packageInfo;
-late final BGAudioHandler audioHandler;
-
-/// Whether [audioHandler] has been assigned. False in entrypoints that use a
-/// different handler (e.g. the Wear OS app).
-bool isAudioHandlerInitialized = false;
+BGAudioHandler? _audioHandler;
+BGAudioHandler get audioHandler => _audioHandler!;
+set audioHandler(BGAudioHandler handler) => _audioHandler = handler;
+bool get isAudioHandlerInitialized => _audioHandler != null;
 late final DownloadHandler downloadHandler;
 late final ShakeRewindHandler? rewindShakeHandler;
 late Database cacheDb;

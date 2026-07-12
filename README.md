@@ -8,11 +8,9 @@ An unofficial cross-platform app for Audiobookshelf
 
 [![Sponsor Vito0912](https://img.shields.io/badge/Sponsor-Vito0912-152082?style=for-the-badge&logo=github-sponsors&logoColor=white)](https://github.com/sponsors/Vito0912)
 
-![Android](https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white) [![Play Store](https://img.shields.io/badge/Google_Play-414141?style=for-the-badge&logo=google-play&logoColor=white)](https://play.google.com/store/apps/details?id=de.vito0912.yaabsa) [![Play Store Beta](https://img.shields.io/badge/Closed_Testing-ff8400?style=for-the-badge&logo=google-play&logoColor=white)](https://play.google.com/apps/testing/de.vito0912.yaabsa)
+![Android](https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white) [![Play Store (Open Beta)](https://img.shields.io/badge/Google_Play-414141?style=for-the-badge&logo=google-play&logoColor=white)](https://play.google.com/store/apps/details?id=de.vito0912.yaabsa)
 
-* Currently, access is invite‑only due to Google's restrictions for new apps. To join the closed testing, email me at fito0912(@)duck.com (or the mail at my GitHub profile) with the email address you use for the Play Store. After I add you to the closed testing, you can use the links above to access the app. Please also mention if you just want to access the normal, AAOS or both versions of the app.\
-If you don't want to do that, which is very understandable, you can also download the APK from the releases page, but you won't get automatic updates that way. These are exactly the same files that are uploaded to the Play Store.
-* Download the latest APK from the releases page. Note that `AAOS` are only compatible with Android Automotive.
+* Download the latest APK from the releases page. Note that `AAOS` are only compatible with Android Automotive. `Auto` refers to Android Auto and is the default version for all other Android devices.
 
 ![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black) [![Flatpak](https://img.shields.io/badge/Flatpak-4A90E2?style=for-the-badge&logo=flatpak&logoColor=white)](https://Vito0912.github.io/yaabsa/de.vito0912.yaabsa.flatpakrepo) [![AUR (Community maintained)](https://img.shields.io/badge/AUR_(Community_maintained)-333333?style=for-the-badge&logo=arch-linux&logoColor=1793D1)](https://aur.archlinux.org/packages/yaabsa-bin/)
 
@@ -39,6 +37,11 @@ If you don't want to do that, which is very understandable, you can also downloa
 ![Windows](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white)
 
 * Download the latest installer from the releases page. _(Microsoft Store availability will follow)._
+
+[![Web](https://img.shields.io/badge/Web-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://yaabsa.de)
+
+* **IMPORTANT**: You need to add `https://yaabsa.de` (or the domain you host the web version on) to the list of allowed origins in ABS, before you can connect with the web version. Please see the [ABS docs](https://audiobookshelf.org/docs/documentation/server-management/cors) on how. If you use `http` for Audiobookshelf, please see the note about mixed content.
+* The web version is provided, but it is not officially supported. I do not test it, and it might not work correctly. Please do not report problems as issues. Instead, start a new thread in the [web discussion](https://github.com/Vito0912/yaabsa/discussions/59).
 
 ## Usage of AI
 
@@ -122,11 +125,10 @@ Below is a list of all features, but I want to _highlight_ a few, as this client
 | KF8 (AZW3) support | ✅      | ❓   | ❓      | ❓    | ❌    |
 | FB2 support        | ✅      | ❓   | ❓      | ❓    | ❌    |
 | PDF support        | ✅      | 🅿️   | 🅿️      | ✅    | ✅    |
-| Annotations        | ✅      | ✅\* | 🅿️      | ✅    | ✅    |
+| Annotations        | ✅      | ✅   | 🅿️      | ✅    | ✅    |
 | Sync Annotations   | ✅      | ✅   | ❓      | ✅    | ✅    |
 | Media Overlays\*\* | ✅      | ✅   | ✅      | ✅    | ❌    |
 
-\* You can only load in annotations, but not create new ones for ePUBs\
 \*\* Media Overlays allow a whispersync-like experience for eBooks. This allows you to read and listen to your book at the same time. Please note that the player support is way more limited than for normal audiobooks. Media Overlays need to be added manually before adding them to ABS. I do maintain a soft fork of ABS that will have the capabilities to embed the audiofile into the eBook.
 
 ### Other Features
@@ -143,7 +145,7 @@ Below is a list of all features, but I want to _highlight_ a few, as this client
 | Widgets             | ✅      | 🅿️   | ❌      | ❌    | ❌    |
 | OIDC Login          | ✅      | ❓   | ✅      | ❓    | ✅    |
 
-\* Only supports the default download location, due to sandboxing limitations. Will be addressed in the future.\
+\* Only supports the default download location, due to sandboxing limitations. Will be addressed in the future.y
 
 ### Server Management
 
