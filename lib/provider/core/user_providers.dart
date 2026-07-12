@@ -3,6 +3,7 @@ import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/api/routes/interceptors/bearer_auth_interceptor.dart';
 import 'package:yaabsa/api/routes/interceptors/o_auth_interceptor.dart';
 import 'package:yaabsa/database/app_database.dart';
+import 'package:yaabsa/database/auth_secret_store.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/core/user_scope_invalidation.dart';
 import 'package:yaabsa/util/globals.dart' show containerRef;
@@ -37,7 +38,18 @@ Stream<User?> currentUser(Ref ref) async* {
       continue;
     }
     logger('Active user ID changed to: $userId. Fetching local user.', tag: 'currentUserProvider');
-    final user = await db.getStoredUser(userId);
+    User? user;
+    try {
+      user = await db.getStoredUser(userId);
+    } on AuthSecretsUnavailableException catch (e, s) {
+      logger(
+        'Auth secrets are temporarily unavailable for active user $userId: $e\n$s',
+        tag: 'currentUserProvider',
+        level: InfoLevel.warning,
+      );
+      yield null;
+      continue;
+    }
 
     if (user == null || user.server == null) {
       logger('User or user server is null, cannot proceed with server sync.', tag: 'currentUserProvider');

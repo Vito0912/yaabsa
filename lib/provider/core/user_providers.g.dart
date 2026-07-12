@@ -69,7 +69,7 @@ final class CurrentUserProvider extends $FunctionalProvider<AsyncValue<User?>, U
   }
 }
 
-String _$currentUserHash() => r'567afff1fee26d8f35c9bf37f8951992a337fe44';
+String _$currentUserHash() => r'44ede569a6b21ba25a5cd89d9516c01d09141aa3';
 
 /// Provider for the list of all stored users.
 

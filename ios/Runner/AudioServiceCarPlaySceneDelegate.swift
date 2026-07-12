@@ -9,7 +9,9 @@ import UIKit
     private var handlerChannel: FlutterMethodChannel?
 
     private var templateForMediaId: [String: CPListTemplate] = [:]
-    private let maxTemplateDepth = 4
+    private let maxTemplateDepth = 5
+    private let maxContentLoadAttempts = 5
+    private let contentLoadRetryDelay: TimeInterval = 1
     private let nowPlayingPushDebounceSeconds: TimeInterval = 0.6
     private var lastNowPlayingPushAt: TimeInterval = 0
 
@@ -69,13 +71,14 @@ import UIKit
         return interfaceController.templates.count < maxTemplateDepth
     }
 
-    private func loadChildren(for parentMediaId: String, into template: CPListTemplate) {
+    private func loadChildren(for parentMediaId: String, into template: CPListTemplate, attempt: Int = 0) {
         guard let channel = handlerChannel else {
-            showError(in: template, message: "Not connected")
+            showError(in: template, parentMediaId: parentMediaId, message: "CarPlay is not connected")
             return
         }
 
         templateForMediaId[parentMediaId] = template
+        setLoading(true, in: template)
 
         channel.invokeMethod(
             "getChildren",
@@ -88,16 +91,26 @@ import UIKit
                     let resultDict = result as? [String: Any],
                     let childrenRaw = resultDict["children"] as? [[String: Any]]
                 else {
-                    self.showError(in: template, message: "Failed to load content")
+                    self.retryOrShowError(
+                        for: parentMediaId,
+                        in: template,
+                        attempt: attempt,
+                        message: "Couldn't load content",
+                    )
                     return
                 }
 
                 let items = childrenRaw.compactMap { self.makeListItem(from: $0) }
 
                 if items.isEmpty {
-                    template.emptyViewTitleVariants = ["No content available"]
-                    template.updateSections([])
+                    if attempt < self.maxContentLoadAttempts {
+                        self.retryLoad(for: parentMediaId, in: template, attempt: attempt)
+                        return
+                    }
+                    self.showEmptyState(in: template)
                 } else {
+                    self.setLoading(false, in: template)
+                    template.emptyViewTitleVariants = []
                     let limit = CPListTemplate.maximumItemCount
                     let capped = items.count > limit ? Array(items.prefix(limit)) : items
                     template.updateSections([CPListSection(items: capped)])
@@ -154,6 +167,7 @@ import UIKit
         guard let ic = interfaceController else { return }
 
         if let existing = templateForMediaId[mediaId] {
+            loadChildren(for: mediaId, into: existing)
             guard canPushTemplate(existing, on: ic) else { return }
             ic.pushTemplate(existing, animated: true, completion: nil)
             return
@@ -174,9 +188,47 @@ import UIKit
         loadChildren(for: parentMediaId, into: template)
     }
 
-    private func showError(in template: CPListTemplate, message: String) {
-        template.emptyViewTitleVariants = [message]
+    private func retryOrShowError(
+        for parentMediaId: String,
+        in template: CPListTemplate,
+        attempt: Int,
+        message: String,
+    ) {
+        if attempt < maxContentLoadAttempts {
+            retryLoad(for: parentMediaId, in: template, attempt: attempt)
+            return
+        }
+
+        showError(in: template, parentMediaId: parentMediaId, message: message)
+    }
+
+    private func retryLoad(for parentMediaId: String, in template: CPListTemplate, attempt: Int) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + contentLoadRetryDelay) { [weak self] in
+            self?.loadChildren(for: parentMediaId, into: template, attempt: attempt + 1)
+        }
+    }
+
+    private func setLoading(_ isLoading: Bool, in template: CPListTemplate) {
+        if #available(iOS 18.4, *) {
+            template.showsSpinnerWhileEmpty = isLoading
+        }
+    }
+
+    private func showEmptyState(in template: CPListTemplate) {
+        setLoading(false, in: template)
+        template.emptyViewTitleVariants = ["No content available"]
         template.updateSections([])
+    }
+
+    private func showError(in template: CPListTemplate, parentMediaId: String, message: String) {
+        setLoading(false, in: template)
+        let retryItem = CPListItem(text: message, detailText: "Select to retry")
+        retryItem.handler = { [weak self] _, completion in
+            self?.loadChildren(for: parentMediaId, into: template)
+            completion()
+        }
+        template.emptyViewTitleVariants = []
+        template.updateSections([CPListSection(items: [retryItem])])
     }
 
     private func fetchArtwork(from url: URL, completion: @escaping (UIImage?) -> Void) {

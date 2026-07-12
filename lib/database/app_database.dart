@@ -857,6 +857,13 @@ class AppDatabase extends _$AppDatabase {
         try {
           final decodedUser = User.fromJson(jsonDecode(row.userDataJson));
           userList.add(await _hydrateUserWithAuthSecrets(decodedUser));
+        } on AuthSecretsUnavailableException catch (e, s) {
+          logger(
+            'Auth secrets are temporarily unavailable for stored user ${row.id}: $e\n$s',
+            tag: 'AppDatabase',
+            level: InfoLevel.warning,
+          );
+          userList.add(User.fromJson(jsonDecode(row.userDataJson)));
         } catch (e, s) {
           logger(
             'ERROR decoding User from JSON. Row ID: ${row.id}, JSON: ${row.userDataJson}. Error: $e. Stack: $s',
@@ -877,6 +884,13 @@ class AppDatabase extends _$AppDatabase {
       try {
         final decodedUser = User.fromJson(jsonDecode(row.userDataJson));
         users.add(await _hydrateUserWithAuthSecrets(decodedUser));
+      } on AuthSecretsUnavailableException catch (e, s) {
+        logger(
+          'Auth secrets are temporarily unavailable for stored user ${row.id}: $e\n$s',
+          tag: 'AppDatabase',
+          level: InfoLevel.warning,
+        );
+        users.add(User.fromJson(jsonDecode(row.userDataJson)));
       } catch (e, s) {
         logger(
           'ERROR decoding User from JSON. Row ID: ${row.id}, JSON: ${row.userDataJson}. Error: $e. Stack: $s',
