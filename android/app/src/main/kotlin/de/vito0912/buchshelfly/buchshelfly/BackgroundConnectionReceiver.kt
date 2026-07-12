@@ -15,16 +15,22 @@ class BackgroundConnectionReceiver : BroadcastReceiver() {
         @Volatile
         private var lastTriggerTime = 0L
         private const val DEBOUNCE_MS = 5000L
+        private const val AUTO_RESUME_BLUETOOTH_PREFERENCE = "auto_resume_bluetooth"
+        private const val AUTO_RESUME_RESTRICTED_DEVICES_PREFERENCE = "auto_resume_bluetooth_selected_devices_only"
+        private const val AUTO_RESUME_DEVICE_ADDRESSES_PREFERENCE = "auto_resume_bluetooth_device_addresses"
     }
 
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != BluetoothDevice.ACTION_ACL_CONNECTED) return
 
         val prefs = context.getSharedPreferences("yaabsa_settings", Context.MODE_PRIVATE)
-        val autoResumeBluetooth = prefs.getBoolean("auto_resume_bluetooth", false)
+        val autoResumeBluetooth = prefs.getBoolean(AUTO_RESUME_BLUETOOTH_PREFERENCE, false)
         Log.d(TAG, "ACL_CONNECTED received. Setting enabled: $autoResumeBluetooth")
 
         if (!autoResumeBluetooth) return
+
+        val restrictToSelectedDevices = prefs.getBoolean(AUTO_RESUME_RESTRICTED_DEVICES_PREFERENCE, false)
+        val selectedDeviceAddresses = prefs.getStringSet(AUTO_RESUME_DEVICE_ADDRESSES_PREFERENCE, emptySet()).orEmpty()
 
         val device = @Suppress("DEPRECATION") (intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE) as? BluetoothDevice)
         val deviceClass = try {
@@ -36,17 +42,21 @@ class BackgroundConnectionReceiver : BroadcastReceiver() {
 
         val isAudio = deviceClass?.majorDeviceClass == BluetoothClass.Device.Major.AUDIO_VIDEO
 
-        val deviceName = try {
-            device?.name
-        } catch (e: SecurityException) {
-            "Unknown"
-        }
-
-        Log.d(TAG, "Device: $deviceName, Major Class: ${deviceClass?.majorDeviceClass}, isAudio: $isAudio")
-
         if (!isAudio) {
             Log.d(TAG, "Device is not an audio device. Skipping auto resume.")
             return
+        }
+
+        if (restrictToSelectedDevices) {
+            val deviceAddress = try {
+                device?.address?.trim()?.uppercase()
+            } catch (_: SecurityException) {
+                null
+            }
+            if (deviceAddress == null || deviceAddress !in selectedDeviceAddresses) {
+                Log.d(TAG, "Connected audio device is not selected. Skipping auto resume.")
+                return
+            }
         }
 
         val currentTime = System.currentTimeMillis()

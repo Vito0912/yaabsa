@@ -375,3 +375,149 @@ class SettingDropdown<T> extends ConsumerWidget {
     }
   }
 }
+
+class SettingMultiSelectDropdown<T> extends StatelessWidget {
+  const SettingMultiSelectDropdown({
+    super.key,
+    required this.label,
+    required this.values,
+    required this.valueLabels,
+    required this.selectedValues,
+    required this.onValueChanged,
+    this.description,
+    this.emptyValueLabel = 'None selected',
+    this.enabled = true,
+    this.isLoading = false,
+  });
+
+  final String label;
+  final String? description;
+  final List<T> values;
+  final List<String> valueLabels;
+  final Iterable<T> selectedValues;
+  final ValueChanged<List<T>> onValueChanged;
+  final String emptyValueLabel;
+  final bool enabled;
+  final bool isLoading;
+
+  @override
+  Widget build(BuildContext context) {
+    if (values.length != valueLabels.length) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        child: Text(
+          'Configuration error for dropdown: $label',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.error),
+        ),
+      );
+    }
+
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final selected = selectedValues.toSet();
+    final selectedLabels = <String>[
+      for (int index = 0; index < values.length; index++)
+        if (selected.contains(values[index])) valueLabels[index],
+    ];
+    final isEnabled = enabled && !isLoading && values.isNotEmpty;
+    final selectedLabel = switch (selectedLabels.length) {
+      0 => emptyValueLabel,
+      1 => selectedLabels.single,
+      _ => '${selectedLabels.length} selected',
+    };
+
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      title: Text(
+        label,
+        style: theme.textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w500,
+          color: isEnabled ? colorScheme.onSurface : colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+        ),
+      ),
+      subtitle: Text(
+        selectedLabel,
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: isEnabled ? colorScheme.onSurfaceVariant : colorScheme.onSurfaceVariant.withValues(alpha: 0.38),
+        ),
+      ),
+      trailing: isLoading
+          ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2.5))
+          : Icon(
+              Icons.chevron_right_rounded,
+              size: 20,
+              color: colorScheme.onSurfaceVariant.withValues(alpha: isEnabled ? 0.6 : 0.38),
+            ),
+      onTap: isEnabled ? () => _showSelectionDialog(context, initialSelection: selected) : null,
+    );
+  }
+
+  Future<void> _showSelectionDialog(BuildContext context, {required Set<T> initialSelection}) {
+    return showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        var pendingSelection = Set<T>.from(initialSelection);
+
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+              title: Text(label),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (description != null && description!.isNotEmpty) ...[
+                        Text(
+                          description!,
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                        ),
+                        const Divider(height: 24),
+                      ],
+                      for (int index = 0; index < values.length; index++) ...[
+                        CheckboxListTile(
+                          value: pendingSelection.contains(values[index]),
+                          onChanged: (isSelected) {
+                            setDialogState(() {
+                              if (isSelected ?? false) {
+                                pendingSelection.add(values[index]);
+                              } else {
+                                pendingSelection.remove(values[index]);
+                              }
+                            });
+                          },
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+                          controlAffinity: ListTileControlAffinity.trailing,
+                          title: Text(valueLabels[index]),
+                        ),
+                        if (index < values.length - 1) const Divider(height: 8, thickness: 0.5),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Cancel')),
+                FilledButton(
+                  onPressed: () {
+                    onValueChanged([
+                      for (final value in values)
+                        if (pendingSelection.contains(value)) value,
+                    ]);
+                    Navigator.of(dialogContext).pop();
+                  },
+                  child: const Text('Done'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+}
