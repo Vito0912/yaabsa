@@ -611,7 +611,7 @@ jobs:
       - changes
       - check-requirements
     if: ${{ (github.event_name == 'workflow_dispatch' || needs.changes.outputs.version_bumped == 'true' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.android == 'true') && needs.changes.outputs.build_skip != 'true' }}
-    timeout-minutes: 20
+    timeout-minutes: 30
     environment: prod
     steps:
       - name: Checkout
@@ -1050,10 +1050,17 @@ jobs:
           name: android-automotive-appbundle
           path: android-automotive-release
 
+      - name: Download Android Wear artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: android-wear-appbundle
+          path: android-wear-release
+
       - name: Move files
         run: |
           mv android-release/*.aab android-release/yaabsa.aab
           mv android-automotive-release/*.aab android-automotive-release/yaabsa_aaos.aab
+          mv android-wear-release/*.aab android-wear-release/yaabsa_wear.aab
 
       - name: Write changelog to whatsnew
         shell: bash
@@ -1080,7 +1087,7 @@ jobs:
           status: completed
           inAppUpdatePriority: 2
           whatsNewDirectory: android/whatsnew
-          changesNotSentForReview: true
+          changesNotSentForReview: false
         continue-on-error: true
 
       - name: Publish Android Automotive appbundle to Play Store
@@ -1091,6 +1098,20 @@ jobs:
           releaseFiles: android-automotive-release/yaabsa_aaos.aab
           tracks: automotive:AAOS,automotive:beta
           releaseName: ${{ needs.changes.outputs.release_tag }} AAOS
+          status: completed
+          inAppUpdatePriority: 2
+          whatsNewDirectory: android/whatsnew
+          changesNotSentForReview: false
+        continue-on-error: true
+
+      - name: Publish Wear OS appbundle to Play Store
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
+          packageName: de.vito0912.yaabsa
+          releaseFiles: android-wear-release/yaabsa_wear.aab
+          tracks: wear:beta
+          releaseName: ${{ needs.changes.outputs.release_tag }} Wear OS
           status: completed
           inAppUpdatePriority: 2
           whatsNewDirectory: android/whatsnew
