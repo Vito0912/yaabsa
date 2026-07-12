@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:yaabsa/api/me/media_progress.dart';
 import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/api/socket/abs_socket_client.dart';
 import 'package:yaabsa/database/settings_manager.dart';
@@ -79,6 +80,21 @@ class SocketBatchQuickMatchCompleteNotifier extends Notifier<SocketBatchQuickMat
   }
 }
 
+/// Latest media progress pushed by the server for this user (i.e. another
+/// client synced). Driven by the `user_item_progress_updated` socket event.
+final remoteMediaProgressUpdateProvider = NotifierProvider<RemoteMediaProgressUpdateNotifier, MediaProgress?>(
+  RemoteMediaProgressUpdateNotifier.new,
+);
+
+class RemoteMediaProgressUpdateNotifier extends Notifier<MediaProgress?> {
+  @override
+  MediaProgress? build() => null;
+
+  void setProgress(MediaProgress progress) {
+    state = progress;
+  }
+}
+
 @Riverpod(keepAlive: true)
 ABSSocketClient absSocketClient(Ref ref) {
   final serverTasksNotifier = ref.read(serverTasksProvider.notifier);
@@ -92,6 +108,7 @@ ABSSocketClient absSocketClient(Ref ref) {
       final becameFinished = progress.isFinished && existingProgress?.isFinished != true;
 
       ref.read(mediaProgressProvider.notifier).applyRemoteProgressUpdate(progress);
+      ref.read(remoteMediaProgressUpdateProvider.notifier).setProgress(progress);
 
       if (becameFinished) {
         unawaited(

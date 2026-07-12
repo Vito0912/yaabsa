@@ -10,7 +10,14 @@ An unofficial cross-platform app for Audiobookshelf
 
 ![Android](https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white) [![Play Store (Open Beta)](https://img.shields.io/badge/Google_Play-414141?style=for-the-badge&logo=google-play&logoColor=white)](https://play.google.com/store/apps/details?id=de.vito0912.yaabsa)
 
-* Download the latest APK from the releases page. Note that `AAOS` are only compatible with Android Automotive. `Auto` refers to Android Auto and is the default version for all other Android devices.
+* Download the newest app file from the releases page or use the Play Store link above to join the beta.
+* There are 3 versions:
+  * `Auto`: This is for Android Auto. Even if you do not use Android Auto, this is the version to use for all other Android devices.
+  * `AAOS`: This is for Android Automotive OS. This version only works with Android Automotive OS. It does not work with Android Auto or other Android devices.
+  * `Wear`: This is for Wear OS. This version only works with Wear OS. It does not work with Android Auto or other Android devices. `Wear` requires the app to be installed on your phone to sign in and, for now, to choose what you play. Playing and syncing does not depend on the phone.
+
+> [!WARNING]
+> `Wear` is in an alpha stage of development. If you use Wear OS regularly, please consider helping by creating issues or pull requests.
 
 ![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black) [![Flatpak](https://img.shields.io/badge/Flatpak-4A90E2?style=for-the-badge&logo=flatpak&logoColor=white)](https://Vito0912.github.io/yaabsa/de.vito0912.yaabsa.flatpakrepo) [![AUR (Community maintained)](https://img.shields.io/badge/AUR_(Community_maintained)-333333?style=for-the-badge&logo=arch-linux&logoColor=1793D1)](https://aur.archlinux.org/packages/yaabsa-bin/)
 

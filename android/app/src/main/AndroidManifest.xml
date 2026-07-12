@@ -133,6 +133,21 @@
             android:authorities="${applicationId}.covers"
             android:exported="true"
             android:grantUriPermissions="true" />
+        <!-- Started by Play Services for watch pairing requests, even when the
+             app is not running. exported is required for the system to bind it. -->
+        <service
+            android:name="de.vito0912.yaabsa.WearSignInListenerService"
+            android:exported="true"
+            tools:ignore="ExportedService">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
+                <data
+                    android:scheme="wear"
+                    android:host="*"
+                    android:pathPrefix="/yaabsa/credential_request" />
+            </intent-filter>
+        </service>
+
         <receiver
             android:name="de.vito0912.yaabsa.BackgroundConnectionReceiver"
             android:exported="true">
