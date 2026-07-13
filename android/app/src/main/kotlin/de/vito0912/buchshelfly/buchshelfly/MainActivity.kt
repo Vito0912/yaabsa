@@ -1,6 +1,9 @@
 package de.vito0912.yaabsa
 
 import android.Manifest
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothClass
+import android.bluetooth.BluetoothDevice
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -31,6 +34,11 @@ class MainActivity : AudioServiceFragmentActivity() {
 		private const val AAOS_MEDIA_TEMPLATE_V2_ACTION = "androidx.car.app.mediaextensions.action.MEDIA_TEMPLATE_V2"
 		private const val AAOS_MEDIA_COMPONENT_EXTRA = "android.car.intent.extra.MEDIA_COMPONENT"
 		private const val WIDGET_COMMAND_DELAY_MS = 100L
+		private const val AUTO_RESUME_CHANNEL = "de.vito0912.yaabsa/autoresume"
+		private const val BLUETOOTH_CONNECT_PERMISSION_REQUEST_CODE = 101
+		private const val AUTO_RESUME_BLUETOOTH_PREFERENCE = "auto_resume_bluetooth"
+		private const val AUTO_RESUME_RESTRICTED_DEVICES_PREFERENCE = "auto_resume_bluetooth_selected_devices_only"
+		private const val AUTO_RESUME_DEVICE_ADDRESSES_PREFERENCE = "auto_resume_bluetooth_device_addresses"
 	}
 
 	private val widgetCommandHandler = Handler(Looper.getMainLooper())
@@ -43,6 +51,8 @@ class MainActivity : AudioServiceFragmentActivity() {
 	private var aaosChannel: MethodChannel? = null
 	private var pendingAaosOpenSettings = false
 	private var pendingAaosOpenSignIn = false
+	private var pendingBluetoothAudioDevicesResult: MethodChannel.Result? = null
+	private var bluetoothPermissionRequestInProgress = false
 	private var wearChannel: MethodChannel? = null
 	private var messageClient: MessageClient? = null
 	private var pendingWearSignInNotification = false
@@ -77,6 +87,32 @@ class MainActivity : AudioServiceFragmentActivity() {
 		handleWearSignInIntent(intent)
 		if (maybeLaunchMediaCenterFromMainIntent(intent)) {
 			return
+		}
+	}
+
+	override fun onRequestPermissionsResult(
+		requestCode: Int,
+		permissions: Array<out String>,
+		grantResults: IntArray,
+	) {
+		super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+		if (requestCode != BLUETOOTH_CONNECT_PERMISSION_REQUEST_CODE) {
+			return
+		}
+
+		bluetoothPermissionRequestInProgress = false
+		val result = pendingBluetoothAudioDevicesResult ?: return
+		pendingBluetoothAudioDevicesResult = null
+
+		if (grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) {
+			result.success(getBondedAudioDevices())
+		} else {
+			result.error(
+				"BLUETOOTH_CONNECT_PERMISSION_DENIED",
+				"Bluetooth permission is required to list paired audio devices.",
+				null,
+			)
 		}
 	}
 
@@ -208,24 +244,11 @@ class MainActivity : AudioServiceFragmentActivity() {
 			}
 		}
 
-		MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "de.vito0912.yaabsa/autoresume")
+		MethodChannel(flutterEngine.dartExecutor.binaryMessenger, AUTO_RESUME_CHANNEL)
 			.setMethodCallHandler { call, result ->
 				when (call.method) {
-					"updateAutoResumeSettings" -> {
-						val bluetooth = call.argument<Boolean>("bluetooth") ?: false
-						val prefs = applicationContext.getSharedPreferences("yaabsa_settings", Context.MODE_PRIVATE)
-						prefs.edit()
-							.putBoolean("auto_resume_bluetooth", bluetooth)
-							.apply()
-
-						if (bluetooth && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-							if (checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-								requestPermissions(arrayOf(Manifest.permission.BLUETOOTH_CONNECT), 101)
-							}
-						}
-
-						result.success(null)
-					}
+					"updateAutoResumeSettings" -> updateAutoResumeSettings(call, result)
+					"getBondedAudioDevices" -> getBondedAudioDevices(result)
 					else -> result.notImplemented()
 				}
 			}
@@ -233,6 +256,105 @@ class MainActivity : AudioServiceFragmentActivity() {
 		notifyAaosOpenSettingsIfPending()
 		notifyAaosOpenSignInIfPending()
 		notifyWearSignInIfPending()
+	}
+
+	private fun updateAutoResumeSettings(call: MethodCall, result: MethodChannel.Result) {
+		val bluetooth = call.argument<Boolean>("bluetooth") ?: false
+		val restrictToSelectedDevices = call.argument<Boolean>("restrictToSelectedDevices") ?: false
+		val selectedDeviceAddresses = call.argument<List<String>>("selectedDeviceAddresses")
+			.orEmpty()
+			.map { it.trim().uppercase() }
+			.filter { it.isNotEmpty() }
+			.toSet()
+		val prefs = applicationContext.getSharedPreferences("yaabsa_settings", Context.MODE_PRIVATE)
+
+		prefs.edit()
+			.putBoolean(AUTO_RESUME_BLUETOOTH_PREFERENCE, bluetooth)
+			.putBoolean(AUTO_RESUME_RESTRICTED_DEVICES_PREFERENCE, restrictToSelectedDevices)
+			.putStringSet(AUTO_RESUME_DEVICE_ADDRESSES_PREFERENCE, selectedDeviceAddresses)
+			.apply()
+
+		if (bluetooth) {
+			requestBluetoothConnectPermissionIfNeeded()
+		}
+
+		result.success(null)
+	}
+
+	private fun getBondedAudioDevices(result: MethodChannel.Result) {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+			checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED
+		) {
+			pendingBluetoothAudioDevicesResult?.error(
+				"BLUETOOTH_CONNECT_PERMISSION_SUPERSEDED",
+				"A newer request to list Bluetooth audio devices replaced this request.",
+				null,
+			)
+			pendingBluetoothAudioDevicesResult = result
+			requestBluetoothConnectPermissionIfNeeded()
+			return
+		}
+
+		result.success(getBondedAudioDevices())
+	}
+
+	private fun requestBluetoothConnectPermissionIfNeeded() {
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
+			checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED ||
+			bluetoothPermissionRequestInProgress
+		) {
+			return
+		}
+
+		bluetoothPermissionRequestInProgress = true
+		requestPermissions(
+			arrayOf(Manifest.permission.BLUETOOTH_CONNECT),
+			BLUETOOTH_CONNECT_PERMISSION_REQUEST_CODE,
+		)
+	}
+
+	private fun getBondedAudioDevices(): List<Map<String, String>> {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+			checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED
+		) {
+			return emptyList()
+		}
+
+		@Suppress("DEPRECATION")
+		val adapter = BluetoothAdapter.getDefaultAdapter() ?: return emptyList()
+
+		return try {
+			adapter.bondedDevices.mapNotNull { device ->
+				val deviceClass = try {
+					device.bluetoothClass
+				} catch (_: SecurityException) {
+					null
+				}
+				if (deviceClass?.majorDeviceClass != BluetoothClass.Device.Major.AUDIO_VIDEO) {
+					return@mapNotNull null
+				}
+
+				val address = try {
+					device.address.trim().uppercase()
+				} catch (_: SecurityException) {
+					return@mapNotNull null
+				}
+				if (address.isEmpty()) {
+					return@mapNotNull null
+				}
+
+				val name = try {
+					device.name?.trim().orEmpty()
+				} catch (_: SecurityException) {
+					""
+				}.ifEmpty { "Unnamed audio device" }
+
+				mapOf("address" to address, "name" to name)
+			}
+		} catch (error: SecurityException) {
+			android.util.Log.w("MainActivity", "Unable to read paired Bluetooth audio devices.", error)
+			emptyList()
+		}
 	}
 
 	private fun handleLaunchMediaCenter(call: MethodCall, result: MethodChannel.Result) {
@@ -598,4 +720,3 @@ class MainActivity : AudioServiceFragmentActivity() {
 		super.onDestroy()
 	}
 }
-

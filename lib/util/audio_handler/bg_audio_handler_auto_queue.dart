@@ -733,4 +733,63 @@ extension _BGAudioHandlerAutoQueueExtension on BGAudioHandler {
 
     return items;
   }
+
+  Future<void> _setupAutoQueueOnResume({required String itemId, required String? episodeId}) async {
+    if (!_isAutoQueueEnabled) {
+      return;
+    }
+
+    final libraryItem = await resolveQueueLibraryItem(itemId);
+    if (libraryItem == null) {
+      return;
+    }
+
+    if (episodeId == null) {
+      final libraryId = libraryItem.libraryId ?? await _resolveLibraryId(libraryItem);
+      final activeUserId = _ref.read(currentUserProvider).value?.id;
+      final isMusic =
+          libraryId != null &&
+          _ref
+              .read(settingsManagerProvider.notifier)
+              .getUserSetting<bool>(activeUserId, 'music_library_$libraryId', defaultValue: false);
+
+      if (isMusic) {
+        _clearAutoQueueState();
+        _activeMusicLibraryId = libraryId;
+        _activeMusicLibraryFilter = null;
+        unawaited(_queueMusicLibraryItems(libraryId, itemId));
+        return;
+      } else {
+        _activeMusicLibraryId = null;
+      }
+
+      if (!_isSeriesFallbackAutoQueueEnabled) {
+        logger(
+          'Auto queue on resume skipped because outside-source fallback is disabled.',
+          tag: 'AudioHandler',
+          level: InfoLevel.debug,
+        );
+        return;
+      }
+
+      final fallbackContext = await _buildSeriesFallbackAutoQueueContext(libraryItem);
+      if (fallbackContext != null) {
+        unawaited(_startAutoQueue(fallbackContext, QueueItem(itemId: itemId)));
+      }
+    } else {
+      final episodes = await _androidAutoOrderedPlayablePodcastEpisodes(libraryItem);
+      final episodeIndex = episodes.indexWhere((ep) => ep.id == episodeId);
+      final libraryId = libraryItem.libraryId;
+      if (libraryId != null && episodeIndex >= 0) {
+        final autoQueueContext = _AutoQueueRequestContext.podcast(
+          libraryId: libraryId,
+          podcastItemId: libraryItem.id,
+          podcastItem: libraryItem,
+          initialPage: episodeIndex ~/ _autoQueuePageSize,
+          seededPodcastEpisodes: episodes,
+        );
+        unawaited(_startAutoQueue(autoQueueContext, QueueItem(itemId: itemId, episodeId: episodeId)));
+      }
+    }
+  }
 }

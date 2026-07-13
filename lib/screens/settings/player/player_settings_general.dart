@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,8 +8,10 @@ import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/components/settings/settings_slider.dart';
 import 'package:yaabsa/components/settings/settings_switch_tile.dart';
 import 'package:yaabsa/database/settings_manager.dart';
+import 'package:yaabsa/provider/player/bluetooth_audio_devices_provider.dart';
 import 'package:yaabsa/screens/settings/player/player_settings.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
+import 'package:yaabsa/util/bluetooth_auto_resume.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
 class PlayerSettingsGeneral extends ConsumerWidget {
@@ -21,6 +25,30 @@ class PlayerSettingsGeneral extends ConsumerWidget {
     final autoQueueDefault = defaultSettings[SettingKeys.autoQueue] as bool? ?? true;
     final autoQueueEnabled = SettingsParser.decodeValue<bool>(autoQueueSetting, autoQueueDefault);
     final isAndroid = !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+    final autoResumeSetting = ref
+        .watch(globalSettingByKeyProvider(SettingKeys.autoResumeOnBluetoothConnection))
+        .asData
+        ?.value;
+    final autoResumeEnabled = SettingsParser.decodeValue<bool>(
+      autoResumeSetting,
+      defaultSettings[SettingKeys.autoResumeOnBluetoothConnection] as bool,
+    );
+    final restrictAutoResumeSetting = ref
+        .watch(globalSettingByKeyProvider(SettingKeys.restrictAutoResumeToSelectedBluetoothDevices))
+        .asData
+        ?.value;
+    final restrictAutoResumeToSelectedDevices = SettingsParser.decodeValue<bool>(
+      restrictAutoResumeSetting,
+      defaultSettings[SettingKeys.restrictAutoResumeToSelectedBluetoothDevices] as bool,
+    );
+    final selectedBluetoothDeviceAddressesSetting = ref
+        .watch(globalSettingByKeyProvider(SettingKeys.autoResumeBluetoothDeviceAddresses))
+        .asData
+        ?.value;
+    final selectedBluetoothDeviceAddresses = decodeBluetoothDeviceAddresses(selectedBluetoothDeviceAddressesSetting);
+    final bluetoothAudioDevices = isAndroid && autoResumeEnabled && restrictAutoResumeToSelectedDevices
+        ? ref.watch(bluetoothAudioDevicesProvider)
+        : null;
 
     return SettingsPageScaffold(
       title: 'Player - General',
@@ -132,14 +160,66 @@ class PlayerSettingsGeneral extends ConsumerWidget {
               // In a dev version I also had worked out a automatic resume for wired headphones, but this needed to have the app running.
               // As such feature is likley used by users who had the app not open for some hours, it would not work in most cases, so I decided to not add the overhead and just go with bluethoot
               // So if anyone comes across this, that is the reason for why only bluethoot currently, but happy to add wired too.
-              const SettingSwitchTile(
+              SettingSwitchTile(
                 label: 'Auto-resume on Bluetooth',
                 subtitle: 'Automatically resume playback when connecting a Bluetooth audio device',
                 settingKey: SettingKeys.autoResumeOnBluetoothConnection,
               ),
+              SettingSwitchTile(
+                label: 'Only selected Bluetooth devices',
+                subtitle: 'Choose which paired Bluetooth audio devices can resume playback',
+                disabledReason: 'Enable Auto-resume on Bluetooth to choose devices',
+                settingKey: SettingKeys.restrictAutoResumeToSelectedBluetoothDevices,
+                enabled: autoResumeEnabled,
+                onChanged: (enabled) {
+                  if (enabled) {
+                    ref.invalidate(bluetoothAudioDevicesProvider);
+                  }
+                },
+              ),
+              if (autoResumeEnabled && restrictAutoResumeToSelectedDevices)
+                bluetoothAudioDevices!.when(
+                  data: (devices) => SettingMultiSelectDropdown<String>(
+                    label: 'Bluetooth audio devices',
+                    description: 'Only selected paired Bluetooth audio devices will resume playback when connected.',
+                    values: devices.map((device) => device.address).toList(growable: false),
+                    valueLabels: devices.map((device) => device.name).toList(growable: false),
+                    selectedValues: selectedBluetoothDeviceAddresses,
+                    emptyValueLabel: 'No paired Bluetooth audio devices found',
+                    onValueChanged: (addresses) {
+                      unawaited(
+                        ref
+                            .read(settingsManagerProvider.notifier)
+                            .setGlobalSetting<String>(
+                              SettingKeys.autoResumeBluetoothDeviceAddresses,
+                              encodeBluetoothDeviceAddresses(addresses),
+                            ),
+                      );
+                    },
+                  ),
+                  loading: () => const SettingMultiSelectDropdown<String>(
+                    label: 'Bluetooth audio devices',
+                    values: [],
+                    valueLabels: [],
+                    selectedValues: [],
+                    emptyValueLabel: 'Loading paired Bluetooth audio devices',
+                    isLoading: true,
+                    onValueChanged: _ignoreBluetoothAudioDeviceSelection,
+                  ),
+                  error: (error, stackTrace) => const SettingMultiSelectDropdown<String>(
+                    label: 'Bluetooth audio devices',
+                    values: [],
+                    valueLabels: [],
+                    selectedValues: [],
+                    emptyValueLabel: 'Bluetooth permission is required to list audio devices',
+                    onValueChanged: _ignoreBluetoothAudioDeviceSelection,
+                  ),
+                ),
             ],
           ),
       ],
     );
   }
 }
+
+void _ignoreBluetoothAudioDeviceSelection(List<String> _) {}

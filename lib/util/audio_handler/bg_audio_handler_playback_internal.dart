@@ -98,6 +98,9 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
         await _syncedPlay();
       }
       TrayManager.update();
+      if (!isCurrentItem) {
+        unawaited(_setupAutoQueueOnResume(itemId: itemId, episodeId: episodeId));
+      }
     } catch (e, s) {
       logger(
         'Failed to start item $itemId from the requested position: $e\n$s',

@@ -46,6 +46,7 @@ class UserBookmarksNotifier extends _$UserBookmarksNotifier {
       case DioExceptionType.badCertificate:
       case DioExceptionType.badResponse:
       case DioExceptionType.cancel:
+      case DioExceptionType.transformTimeout:
         return false;
     }
   }
