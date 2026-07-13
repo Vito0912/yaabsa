@@ -113,8 +113,9 @@ class MainActivity : AudioServiceFragmentActivity() {
 				"Bluetooth permission is required to list paired audio devices.",
 				null,
 			)
+		}
 	}
-    
+
 	/** Launched by [WearSignInListenerService], directly or via its notification. */
 	private fun handleWearSignInIntent(intent: Intent) {
 		if (!intent.getBooleanExtra(WearSignInListenerService.EXTRA_WEAR_SIGN_IN, false)) {
