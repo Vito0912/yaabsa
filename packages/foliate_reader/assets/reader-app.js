@@ -691,11 +691,10 @@ view.addEventListener('load', e => {
 view.addEventListener('create-overlay', e => {
     const { index } = e.detail;
     for (const annotation of annotationsMap.values()) {
-        view.resolveNavigation(annotation.value).then(resolved => {
-            if (resolved && resolved.index === index) {
-                view.addAnnotation(annotation);
-            }
-        });
+        const resolved = view.resolveNavigation(annotation.value);
+        if (resolved && resolved.index === index) {
+            view.addAnnotation(annotation);
+        }
     }
 });
 
