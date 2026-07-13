@@ -25,6 +25,10 @@
     <string name="widget_quick_play_cover_desc">Cover of last played item</string>
     <string name="widget_quick_play_button">Play last audiobook</string>
 
+    <string name="wear_pairing_channel_name">Watch pairing</string>
+    <string name="wear_sign_in_notification_title">Watch sign-in request</string>
+    <string name="wear_sign_in_notification_text">Tap to connect your watch to Audiobookshelf.</string>
+
     <string name="widget_config_title">Choose Shelf</string>
     <string name="widget_config_subtitle">Select the shelf this widget should display.</string>
     <string name="widget_config_populate_all">Populate all</string>
