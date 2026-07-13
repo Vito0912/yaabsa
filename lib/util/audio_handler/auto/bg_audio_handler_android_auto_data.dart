@@ -1,23 +1,6 @@
 part of '../bg_audio_handler.dart';
 
 extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
-  Future<void> _androidAutoEnsureProgressLoaded() async {
-    final progressState = _ref.read(mediaProgressProvider);
-    if (progressState.hasValue || progressState.isLoading) {
-      return;
-    }
-
-    try {
-      await _ref.read(mediaProgressProvider.future);
-    } catch (e) {
-      logger(
-        'Failed to pre-load media progress for Android Auto browse: $e',
-        tag: 'AudioHandler',
-        level: InfoLevel.warning,
-      );
-    }
-  }
-
   Future<List<Library>> _androidAutoFetchLibraries() async {
     final api = _ref.read(absApiProvider);
     if (api == null) {
@@ -25,7 +8,7 @@ extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
     }
 
     try {
-      final response = await api.getLibraryApi().getLibraries();
+      final response = await api.getLibraryApi().getLibraries(extra: const <String, dynamic>{'doNotCache': true});
       final libraries = [...?response.data?.libraries]
         ..sort((left, right) => left.displayOrder.compareTo(right.displayOrder));
       return libraries;
@@ -42,7 +25,10 @@ extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
     }
 
     try {
-      final response = await api.getLibraryApi().getPersonalized(libraryId);
+      final response = await api.getLibraryApi().getPersonalized(
+        libraryId,
+        extra: const <String, dynamic>{'doNotCache': true},
+      );
       return response.data;
     } catch (e) {
       logger(
@@ -61,7 +47,10 @@ extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
     }
 
     try {
-      final response = await api.getLibraryApi().getLibraryFilterData(libraryId);
+      final response = await api.getLibraryApi().getLibraryFilterData(
+        libraryId,
+        extra: const <String, dynamic>{'doNotCache': true},
+      );
       return response.data?.filterData;
     } catch (e) {
       logger(
@@ -73,21 +62,32 @@ extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
     }
   }
 
-  Future<List<Series>> _androidAutoFetchSeriesForLibrary(String libraryId, _AndroidAutoPagingOptions paging) async {
+  Future<_AndroidAutoSeriesPage> _androidAutoFetchSeriesPageForLibrary(
+    String libraryId,
+    _AndroidAutoPagingOptions paging,
+  ) async {
     final api = _ref.read(absApiProvider);
     if (api == null) {
-      return const <Series>[];
+      return _AndroidAutoSeriesPage(series: const <Series>[], total: 0, page: paging.page, pageSize: paging.pageSize);
     }
 
     try {
       final response = await api.getLibraryApi().getLibrarySeries(
         libraryId,
         LibraryItemsRequest(limit: paging.pageSize, page: paging.page, sort: 'name', desc: 0),
+        extra: const <String, dynamic>{'doNotCache': true},
       );
-      return response.data?.results ?? const <Series>[];
+      final data = response.data;
+      final series = data?.results ?? const <Series>[];
+      return _AndroidAutoSeriesPage(
+        series: series,
+        total: data?.total ?? series.length,
+        page: data?.page ?? paging.page,
+        pageSize: data?.limit ?? paging.pageSize,
+      );
     } catch (e) {
       logger('Failed to fetch Android Auto series for $libraryId: $e', tag: 'AudioHandler', level: InfoLevel.warning);
-      return const <Series>[];
+      return _AndroidAutoSeriesPage(series: const <Series>[], total: 0, page: paging.page, pageSize: paging.pageSize);
     }
   }
 
@@ -98,7 +98,7 @@ extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
     }
 
     try {
-      final response = await api.getListApi().getCollections();
+      final response = await api.getListApi().getCollections(extra: const <String, dynamic>{'doNotCache': true});
       final items =
           (response.data?.items ?? const <Collection>[])
               .where((collection) => collection.libraryId == libraryId)
@@ -122,7 +122,7 @@ extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
     }
 
     try {
-      final response = await api.getListApi().getUserPlaylist();
+      final response = await api.getListApi().getUserPlaylist(extra: const <String, dynamic>{'doNotCache': true});
       final items =
           (response.data?.items ?? const <Playlist>[])
               .where((playlist) => playlist.libraryId == libraryId)
@@ -169,7 +169,11 @@ extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
         include: include,
       );
 
-      final response = await api.getLibraryApi().getLibraryItems(libraryId, request);
+      final response = await api.getLibraryApi().getLibraryItems(
+        libraryId,
+        request,
+        extra: const <String, dynamic>{'doNotCache': true},
+      );
       final data = response.data;
       final items = data?.results ?? const <LibraryItem>[];
 
@@ -207,27 +211,6 @@ extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
         pageSize: paging.pageSize,
       );
     }
-  }
-
-  Future<List<LibraryItem>> _androidAutoFetchLibraryItems({
-    required String libraryId,
-    required _AndroidAutoPagingOptions paging,
-    String? sort,
-    int? desc,
-    String? filter,
-    int? collapseseries,
-    String? include,
-  }) async {
-    final page = await _androidAutoFetchLibraryItemsPage(
-      libraryId: libraryId,
-      paging: paging,
-      sort: sort,
-      desc: desc,
-      filter: filter,
-      collapseseries: collapseseries,
-      include: include,
-    );
-    return page.items;
   }
 
   Future<List<LibraryItem>> _androidAutoFetchAllLibraryItems({

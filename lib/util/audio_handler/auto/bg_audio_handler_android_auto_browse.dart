@@ -70,41 +70,6 @@ extension _BGAudioHandlerAndroidAutoBrowse on BGAudioHandler {
     return paging.hasExplicitPaging ? _androidAutoApplyPaging(results, paging) : results;
   }
 
-  Future<List<MediaItem>> _androidAutoRecentAcrossLibraries(_AndroidAutoPagingOptions paging) async {
-    final libraries = await _androidAutoFetchLibraries();
-    if (libraries.isEmpty) {
-      return const <MediaItem>[];
-    }
-
-    final entries = await Future.wait(
-      libraries.map((library) async {
-        return (library: library, personalized: await _androidAutoFetchPersonalizedLibrary(library.id));
-      }),
-    );
-
-    final results = <MediaItem>[];
-    final seen = <String>{};
-
-    for (final entry in entries) {
-      final recentItems = <LibraryItem>[...?entry.personalized?.recentlyAdded?.entities];
-
-      for (final item in recentItems) {
-        final mediaItem = _androidAutoMediaEntryFromLibraryItem(item);
-        if (mediaItem == null) {
-          continue;
-        }
-
-        if (!seen.add(mediaItem.id)) {
-          continue;
-        }
-
-        results.add(mediaItem);
-      }
-    }
-
-    return paging.hasExplicitPaging ? _androidAutoApplyPaging(results, paging) : results;
-  }
-
   Future<List<MediaItem>> _androidAutoRecentLibraryNodes(_AndroidAutoPagingOptions paging) async {
     final libraries = await _androidAutoFetchLibraries();
     if (libraries.isEmpty) {
@@ -209,11 +174,11 @@ extension _BGAudioHandlerAndroidAutoBrowse on BGAudioHandler {
 
     switch (tab) {
       case _AndroidAutoLibraryTab.all:
-        return _androidAutoAllItemsForLibrary(libraryId, paging, includeMoreNode: !paging.hasExplicitPaging);
+        return _androidAutoAllItemsForLibrary(libraryId, paging);
       case _AndroidAutoLibraryTab.authors:
         return _androidAutoAuthorNodes(libraryId, paging);
       case _AndroidAutoLibraryTab.series:
-        return _androidAutoSeriesNodes(libraryId, paging);
+        return _androidAutoSeriesNodes(libraryId);
       case _AndroidAutoLibraryTab.collections:
         return _androidAutoCollectionNodes(libraryId, paging);
       case _AndroidAutoLibraryTab.playlists:
@@ -227,11 +192,7 @@ extension _BGAudioHandlerAndroidAutoBrowse on BGAudioHandler {
     }
   }
 
-  Future<List<MediaItem>> _androidAutoAllItemsForLibrary(
-    String libraryId,
-    _AndroidAutoPagingOptions paging, {
-    bool includeMoreNode = false,
-  }) async {
+  Future<List<MediaItem>> _androidAutoAllItemsForLibrary(String libraryId, _AndroidAutoPagingOptions paging) async {
     final sortDescending = await _androidAutoSortDescendingForLibrary(libraryId);
     final sortApiField = await _androidAutoSortApiFieldForLibrary(libraryId);
     final desc = sortDescending ? 1 : 0;
@@ -269,20 +230,13 @@ extension _BGAudioHandlerAndroidAutoBrowse on BGAudioHandler {
       return _androidAutoMediaItemsFromLibraryItems(displayableItems, subtitlePrefix: '');
     }
 
-    final page = await _androidAutoFetchLibraryItemsPage(
+    final allItems = await _androidAutoFetchAllLibraryItems(
       libraryId: libraryId,
-      paging: paging,
       sort: sortApiField,
       desc: desc,
       collapseseries: 0,
     );
-
-    final mediaItems = _androidAutoMediaItemsFromLibraryItems(page.items, subtitlePrefix: '');
-    if (includeMoreNode && page.hasMore) {
-      mediaItems.add(_androidAutoBrowsableItem(id: _androidAutoAllPageNodeId(libraryId, page.page + 1), title: 'More'));
-    }
-
-    return mediaItems;
+    return _androidAutoMediaItemsFromLibraryItems(allItems, subtitlePrefix: '');
   }
 
   Future<List<MediaItem>> _androidAutoAllItemsForLetter(
@@ -327,15 +281,28 @@ extension _BGAudioHandlerAndroidAutoBrowse on BGAudioHandler {
         .toList(growable: false);
   }
 
-  Future<List<MediaItem>> _androidAutoSeriesNodes(String libraryId, _AndroidAutoPagingOptions paging) async {
-    final effectivePaging = paging.hasExplicitPaging
-        ? paging
-        : const _AndroidAutoPagingOptions(page: 0, pageSize: 10000, hasExplicitPaging: true);
+  Future<List<MediaItem>> _androidAutoSeriesNodes(String libraryId) async {
+    final series = <Series>[];
+    var nextPage = 0;
 
-    final series = await _androidAutoFetchSeriesForLibrary(libraryId, effectivePaging);
-    return series
+    while (true) {
+      final page = await _androidAutoFetchSeriesPageForLibrary(
+        libraryId,
+        _AndroidAutoPagingOptions(page: nextPage, pageSize: _androidAutoSeriesPageSize, hasExplicitPaging: false),
+      );
+      series.addAll(page.series);
+
+      if (!page.hasMore || page.series.isEmpty || page.page != nextPage) {
+        break;
+      }
+
+      nextPage = page.page + 1;
+    }
+
+    final nodes = series
         .map((entry) => _androidAutoBrowsableItem(id: _androidAutoSeriesNodeId(libraryId, entry.id), title: entry.name))
         .toList(growable: false);
+    return nodes;
   }
 
   Future<List<MediaItem>> _androidAutoCollectionNodes(String libraryId, _AndroidAutoPagingOptions paging) async {
@@ -450,65 +417,31 @@ extension _BGAudioHandlerAndroidAutoBrowse on BGAudioHandler {
     return paging.hasExplicitPaging ? _androidAutoApplyPaging(mediaItems, paging) : mediaItems;
   }
 
-  Future<List<MediaItem>> _androidAutoItemsForAuthor(
-    String libraryId,
-    String authorId,
-    _AndroidAutoPagingOptions paging,
-  ) async {
+  Future<List<MediaItem>> _androidAutoItemsForAuthor(String libraryId, String authorId) async {
     final sortDescending = await _androidAutoSortDescendingForLibrary(libraryId);
     final sortApiField = await _androidAutoSortApiFieldForLibrary(libraryId);
 
-    if (!paging.hasExplicitPaging) {
-      final allItems = await _androidAutoFetchAllLibraryItems(
-        libraryId: libraryId,
-        sort: sortApiField,
-        desc: sortDescending ? 1 : 0,
-        filter: LibraryFilter.grouped(LibraryFilterGroup.authors, authorId).queryValue,
-        collapseseries: 0,
-      );
-      return _androidAutoMediaItemsFromLibraryItems(allItems, subtitlePrefix: '');
-    }
-
-    final items = await _androidAutoFetchLibraryItems(
+    final allItems = await _androidAutoFetchAllLibraryItems(
       libraryId: libraryId,
-      paging: paging,
       sort: sortApiField,
       desc: sortDescending ? 1 : 0,
       filter: LibraryFilter.grouped(LibraryFilterGroup.authors, authorId).queryValue,
       collapseseries: 0,
     );
-
-    return _androidAutoMediaItemsFromLibraryItems(items, subtitlePrefix: '');
+    return _androidAutoMediaItemsFromLibraryItems(allItems, subtitlePrefix: '');
   }
 
-  Future<List<MediaItem>> _androidAutoItemsForSeries(
-    String libraryId,
-    String seriesId,
-    _AndroidAutoPagingOptions paging,
-  ) async {
+  Future<List<MediaItem>> _androidAutoItemsForSeries(String libraryId, String seriesId) async {
     final sortDescending = await _androidAutoSortDescendingForLibrary(libraryId);
 
-    if (!paging.hasExplicitPaging) {
-      final allItems = await _androidAutoFetchAllLibraryItems(
-        libraryId: libraryId,
-        sort: 'sequence',
-        desc: sortDescending ? 1 : 0,
-        filter: LibraryFilter.grouped(LibraryFilterGroup.series, seriesId).queryValue,
-        collapseseries: 0,
-      );
-      return _androidAutoMediaItemsFromLibraryItems(allItems, subtitlePrefix: '');
-    }
-
-    final items = await _androidAutoFetchLibraryItems(
+    final allItems = await _androidAutoFetchAllLibraryItems(
       libraryId: libraryId,
-      paging: paging,
       sort: 'sequence',
       desc: sortDescending ? 1 : 0,
       filter: LibraryFilter.grouped(LibraryFilterGroup.series, seriesId).queryValue,
       collapseseries: 0,
     );
-
-    return _androidAutoMediaItemsFromLibraryItems(items, subtitlePrefix: '');
+    return _androidAutoMediaItemsFromLibraryItems(allItems, subtitlePrefix: '');
   }
 
   Future<List<MediaItem>> _androidAutoItemsForCollection(
@@ -595,35 +528,18 @@ extension _BGAudioHandlerAndroidAutoBrowse on BGAudioHandler {
     return paging.hasExplicitPaging ? _androidAutoApplyPaging(mediaItems, paging) : mediaItems;
   }
 
-  Future<List<MediaItem>> _androidAutoItemsForNarrator(
-    String libraryId,
-    String narrator,
-    _AndroidAutoPagingOptions paging,
-  ) async {
+  Future<List<MediaItem>> _androidAutoItemsForNarrator(String libraryId, String narrator) async {
     final sortDescending = await _androidAutoSortDescendingForLibrary(libraryId);
     final sortApiField = await _androidAutoSortApiFieldForLibrary(libraryId);
 
-    if (!paging.hasExplicitPaging) {
-      final allItems = await _androidAutoFetchAllLibraryItems(
-        libraryId: libraryId,
-        sort: sortApiField,
-        desc: sortDescending ? 1 : 0,
-        filter: LibraryFilter.grouped(LibraryFilterGroup.narrators, narrator).queryValue,
-        collapseseries: 0,
-      );
-      return _androidAutoMediaItemsFromLibraryItems(allItems, subtitlePrefix: '');
-    }
-
-    final items = await _androidAutoFetchLibraryItems(
+    final allItems = await _androidAutoFetchAllLibraryItems(
       libraryId: libraryId,
-      paging: paging,
       sort: sortApiField,
       desc: sortDescending ? 1 : 0,
       filter: LibraryFilter.grouped(LibraryFilterGroup.narrators, narrator).queryValue,
       collapseseries: 0,
     );
-
-    return _androidAutoMediaItemsFromLibraryItems(items, subtitlePrefix: '');
+    return _androidAutoMediaItemsFromLibraryItems(allItems, subtitlePrefix: '');
   }
 
   Future<List<MediaItem>> _androidAutoDownloadItems(_AndroidAutoPagingOptions paging) async {

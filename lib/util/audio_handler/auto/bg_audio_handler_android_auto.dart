@@ -15,6 +15,7 @@ const int _androidAutoCompletionStatusPartiallyPlayed = 1;
 const int _androidAutoCompletionStatusFullyPlayed = 2;
 
 const int _androidAutoDefaultPageSize = 100;
+const int _androidAutoSeriesPageSize = 10;
 const int _androidAutoMaxPageSize = 200;
 const int _androidAutoSearchResultsPerLibrary = 4;
 const int _androidAutoLetterGroupingThreshold = 30;
@@ -65,6 +66,17 @@ class _AndroidAutoLibraryItemsPage {
   });
 
   final List<LibraryItem> items;
+  final int total;
+  final int page;
+  final int pageSize;
+
+  bool get hasMore => ((page + 1) * pageSize) < total;
+}
+
+class _AndroidAutoSeriesPage {
+  const _AndroidAutoSeriesPage({required this.series, required this.total, required this.page, required this.pageSize});
+
+  final List<Series> series;
   final int total;
   final int page;
   final int pageSize;
@@ -220,14 +232,12 @@ extension _BGAudioHandlerAndroidAutoEntry on BGAudioHandler {
 
     final paging = _androidAutoPagingFromOptions(options);
 
-    await _androidAutoEnsureProgressLoaded();
-
     if (parentMediaId == AudioService.browsableRootId) {
       return _androidAutoRootItems();
     }
 
     if (parentMediaId == AudioService.recentRootId) {
-      return _androidAutoRecentAcrossLibraries(paging);
+      return _androidAutoRecentLibraryNodes(paging);
     }
 
     if (parentMediaId == _androidAutoDownloadsNodeId) {
@@ -261,19 +271,6 @@ extension _BGAudioHandlerAndroidAutoEntry on BGAudioHandler {
       return _androidAutoAllItemsForLetter(allLetterInfo.libraryId, allLetterInfo.letter, paging);
     }
 
-    final allPageInfo = _androidAutoAllPageNodeFromId(parentMediaId);
-    if (allPageInfo != null) {
-      return _androidAutoAllItemsForLibrary(
-        allPageInfo.libraryId,
-        _AndroidAutoPagingOptions(
-          page: allPageInfo.page,
-          pageSize: _androidAutoDefaultPageSize,
-          hasExplicitPaging: false,
-        ),
-        includeMoreNode: true,
-      );
-    }
-
     final libraryTabInfo = _androidAutoLibraryTabFromNode(parentMediaId);
     if (libraryTabInfo != null) {
       return _androidAutoLibraryTabChildren(libraryTabInfo.libraryId, libraryTabInfo.tab, paging);
@@ -286,12 +283,12 @@ extension _BGAudioHandlerAndroidAutoEntry on BGAudioHandler {
 
     final authorInfo = _androidAutoAuthorNodeFromId(parentMediaId);
     if (authorInfo != null) {
-      return _androidAutoItemsForAuthor(authorInfo.libraryId, authorInfo.authorId, paging);
+      return _androidAutoItemsForAuthor(authorInfo.libraryId, authorInfo.authorId);
     }
 
     final seriesInfo = _androidAutoSeriesNodeFromId(parentMediaId);
     if (seriesInfo != null) {
-      return _androidAutoItemsForSeries(seriesInfo.libraryId, seriesInfo.seriesId, paging);
+      return _androidAutoItemsForSeries(seriesInfo.libraryId, seriesInfo.seriesId);
     }
 
     final collectionInfo = _androidAutoCollectionNodeFromId(parentMediaId);
@@ -306,7 +303,7 @@ extension _BGAudioHandlerAndroidAutoEntry on BGAudioHandler {
 
     final narratorInfo = _androidAutoNarratorNodeFromId(parentMediaId);
     if (narratorInfo != null) {
-      return _androidAutoItemsForNarrator(narratorInfo.libraryId, narratorInfo.narrator, paging);
+      return _androidAutoItemsForNarrator(narratorInfo.libraryId, narratorInfo.narrator);
     }
 
     return const <MediaItem>[];
