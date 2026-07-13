@@ -33,6 +33,7 @@ import 'package:yaabsa/provider/player/session_provider.dart';
 import 'package:yaabsa/screens/player/play_bar.dart';
 import 'package:yaabsa/screens/reader/models/pdf_annotation_entry.dart';
 import 'package:yaabsa/screens/reader/widgets/reader_epub_view.dart';
+import 'package:yaabsa/screens/reader/widgets/reader_epub_annotation_sheet.dart';
 import 'package:yaabsa/screens/settings/reader_settings.dart';
 import 'package:yaabsa/screens/settings/reader_tts_settings.dart';
 import 'package:yaabsa/screens/reader/widgets/reader_pdf_view.dart';
