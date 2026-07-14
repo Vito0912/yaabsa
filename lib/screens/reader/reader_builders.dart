@@ -270,81 +270,15 @@ extension _ReaderBuilders on _ReaderState {
       },
       onSelectionChanged: (selection) {},
       onSelectionCleared: () {},
-      onAnnotationClicked: (annotation) {
+      onAnnotationClicked: (annotation) async {
         if (!mounted) return;
-        final noteController = TextEditingController(text: annotation.note);
-        showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          builder: (bottomSheetContext) => Padding(
-            padding: EdgeInsets.only(bottom: MediaQuery.of(bottomSheetContext).viewInsets.bottom),
-            child: SafeArea(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: TextField(
-                      controller: noteController,
-                      maxLines: 3,
-                      minLines: 1,
-                      decoration: const InputDecoration(labelText: 'Note', hintText: 'Add an optional note'),
-                    ),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [Colors.yellow, Colors.green, Colors.blue, Colors.pink, Colors.purple].map((c) {
-                      final hex = _colorToHex(c);
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.pop(bottomSheetContext);
-                          unawaited(_editEpubAnnotation(annotation, noteText: noteController.text, color: hex));
-                        },
-                        child: Container(
-                          width: 36,
-                          height: 36,
-                          decoration: BoxDecoration(
-                            color: c,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(bottomSheetContext);
-                        },
-                        child: const Text('Cancel'),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.pop(bottomSheetContext);
-                          unawaited(_editEpubAnnotation(annotation, noteText: noteController.text));
-                        },
-                        child: const Text('Save'),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(bottomSheetContext);
-                          unawaited(_removeEpubAnnotation(annotation));
-                        },
-                        style: TextButton.styleFrom(foregroundColor: Colors.red),
-                        child: const Text('Delete'),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                ],
-              ),
-            ),
-          ),
-        );
+        final action = await showReaderEpubAnnotationSheet(context, annotation);
+        if (!mounted || action == null) return;
+        if (action.type == ReaderAnnotationSheetActionType.delete) {
+          await _removeEpubAnnotation(annotation);
+          return;
+        }
+        await _editEpubAnnotation(annotation, noteText: action.note, color: action.color);
       },
       onAnnotationAdded: (annotation) {
         if (!mounted) return;

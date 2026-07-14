@@ -105,6 +105,7 @@ class ReaderEpubView extends StatelessWidget {
       canGoPrevious: true,
       canGoNext: true,
       interceptPointerScrollForPaging: true,
+      showNavigationHoverAreas: false,
     );
   }
 }
