@@ -8,6 +8,9 @@ import 'package:path_provider/path_provider.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/logger.dart';
 
+const applicationDocumentsDownloadBase = 'application-documents';
+const systemDownloadsDownloadBase = 'system-downloads';
+
 class DownloadTaskDestination {
   const DownloadTaskDestination._({
     required this.usesUriTask,
@@ -15,6 +18,7 @@ class DownloadTaskDestination {
     this.directoryUri,
     this.baseDirectory,
     this.directory,
+    this.storageBasePath,
   }) : assert(
          (usesUriTask && directoryUri != null) || (!usesUriTask && baseDirectory != null && directory != null),
          'DownloadTaskDestination must define either directoryUri or baseDirectory+directory',
@@ -23,14 +27,84 @@ class DownloadTaskDestination {
   const DownloadTaskDestination.uri({required Uri directoryUri, bool saf = true})
     : this._(usesUriTask: true, saf: saf, directoryUri: directoryUri);
 
-  const DownloadTaskDestination.path({required BaseDirectory baseDirectory, required String directory})
-    : this._(usesUriTask: false, saf: false, baseDirectory: baseDirectory, directory: directory);
+  const DownloadTaskDestination.path({
+    required BaseDirectory baseDirectory,
+    required String directory,
+    String? storageBasePath,
+  }) : this._(
+         usesUriTask: false,
+         saf: false,
+         baseDirectory: baseDirectory,
+         directory: directory,
+         storageBasePath: storageBasePath,
+       );
 
   final bool usesUriTask;
   final bool saf;
   final Uri? directoryUri;
   final BaseDirectory? baseDirectory;
   final String? directory;
+  final String? storageBasePath;
+}
+
+Future<String?> resolveDownloadBasePath(String? basePath) async {
+  if (basePath == null || basePath.isEmpty || kIsWeb) {
+    return null;
+  }
+  if (basePath == applicationDocumentsDownloadBase) {
+    return (await getApplicationDocumentsDirectory()).path;
+  }
+  if (basePath == systemDownloadsDownloadBase) {
+    return (await getDownloadsDirectory())?.path;
+  }
+
+  final uri = Uri.tryParse(basePath);
+  if (uri?.scheme == 'file') {
+    return uri!.toFilePath(windows: Platform.isWindows);
+  }
+  return basePath;
+}
+
+Future<String?> resolveStoredDownloadPath(String? path, String? basePath) async {
+  if (path == null || path.trim().isEmpty || basePath == null || basePath.isEmpty) {
+    return path;
+  }
+
+  final parsed = Uri.tryParse(path);
+  if (parsed != null && parsed.scheme.isNotEmpty && parsed.scheme != 'file') {
+    return path;
+  }
+  if (p.isAbsolute(path)) {
+    return path;
+  }
+
+  final root = await resolveDownloadBasePath(basePath);
+  if (root == null || root.isEmpty) {
+    return path;
+  }
+  return p.join(root, path);
+}
+
+Future<String?> storeDownloadPath(String? path, String? basePath) async {
+  if (path == null || path.trim().isEmpty || basePath == null || basePath.isEmpty) {
+    return path;
+  }
+
+  final parsed = Uri.tryParse(path);
+  if (parsed != null && parsed.scheme.isNotEmpty && parsed.scheme != 'file') {
+    return path;
+  }
+
+  final root = await resolveDownloadBasePath(basePath);
+  if (root == null || root.isEmpty) {
+    return path;
+  }
+
+  final filePath = parsed?.scheme == 'file' ? parsed!.toFilePath(windows: Platform.isWindows) : path;
+  if (!p.isWithin(root, filePath) && p.normalize(root) != p.normalize(filePath)) {
+    return path;
+  }
+  return p.relative(filePath, from: root);
 }
 
 bool get supportsCustomDownloadLocation => !kIsWeb && (Platform.isAndroid || Platform.isLinux || Platform.isWindows);
@@ -135,7 +209,11 @@ Future<DownloadTaskDestination> resolveDownloadTaskDestination(
       }
 
       final rootPath = customLocation.toFilePath(windows: Platform.isWindows);
-      return DownloadTaskDestination.path(baseDirectory: BaseDirectory.root, directory: p.join(rootPath, itemId));
+      return DownloadTaskDestination.path(
+        baseDirectory: BaseDirectory.root,
+        directory: p.join(rootPath, itemId),
+        storageBasePath: customLocation.toString(),
+      );
     }
 
     logger(
@@ -151,9 +229,14 @@ Future<DownloadTaskDestination> resolveDownloadTaskDestination(
       return DownloadTaskDestination.path(
         baseDirectory: BaseDirectory.root,
         directory: p.join(downloadsDir.path, appName, itemId),
+        storageBasePath: systemDownloadsDownloadBase,
       );
     }
   }
 
-  return DownloadTaskDestination.path(baseDirectory: BaseDirectory.applicationDocuments, directory: '$appName/$itemId');
+  return DownloadTaskDestination.path(
+    baseDirectory: BaseDirectory.applicationDocuments,
+    directory: '$appName/$itemId',
+    storageBasePath: applicationDocumentsDownloadBase,
+  );
 }

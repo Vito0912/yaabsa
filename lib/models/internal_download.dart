@@ -4,6 +4,7 @@ import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/models/internal_media.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:yaabsa/util/file_formats.dart';
+import 'package:yaabsa/util/download_destination.dart';
 
 part 'internal_download.freezed.dart';
 part 'internal_download.g.dart';
@@ -22,6 +23,7 @@ abstract class InternalDownload with _$InternalDownload {
     @JsonKey(name: "coverPath") String? coverPath,
     @JsonKey(name: "sidecarPaths") @Default(<String>[]) List<String> sidecarPaths,
     @JsonKey(name: "downloadType") @Default('both') String downloadType,
+    @JsonKey(name: 'downloadBasePath') String? downloadBasePath,
   }) = _InternalDownload;
 
   bool get isPodcast {
@@ -108,6 +110,30 @@ abstract class InternalDownload with _$InternalDownload {
     }
 
     return audioComplete && ebookComplete;
+  }
+
+  Future<InternalDownload> resolvePaths() async {
+    final basePath = downloadBasePath;
+    if (basePath == null || basePath.isEmpty) {
+      return this;
+    }
+
+    final resolvedTracks = await Future.wait(
+      tracks.map((track) async => track.copyWith(url: await resolveStoredDownloadPath(track.url, basePath))),
+    );
+    final resolvedAuxiliaryPaths = await Future.wait(
+      auxiliaryFilePaths.map((path) => resolveStoredDownloadPath(path, basePath)),
+    );
+    final resolvedSidecarPaths = await Future.wait(
+      sidecarPaths.map((path) => resolveStoredDownloadPath(path, basePath)),
+    );
+
+    return copyWith(
+      tracks: resolvedTracks,
+      auxiliaryFilePaths: resolvedAuxiliaryPaths.whereType<String>().toList(growable: false),
+      sidecarPaths: resolvedSidecarPaths.whereType<String>().toList(growable: false),
+      coverPath: await resolveStoredDownloadPath(coverPath, basePath),
+    );
   }
 
   factory InternalDownload.fromJson(Map<String, dynamic> json) => _$InternalDownloadFromJson(json);

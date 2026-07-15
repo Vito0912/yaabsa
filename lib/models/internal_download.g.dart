@@ -17,6 +17,7 @@ _InternalDownload _$InternalDownloadFromJson(Map<String, dynamic> json) => _Inte
   coverPath: json['coverPath'] as String?,
   sidecarPaths: (json['sidecarPaths'] as List<dynamic>?)?.map((e) => e as String).toList() ?? const <String>[],
   downloadType: json['downloadType'] as String? ?? 'both',
+  downloadBasePath: json['downloadBasePath'] as String?,
 );
 
 Map<String, dynamic> _$InternalDownloadToJson(_InternalDownload instance) => <String, dynamic>{
@@ -29,4 +30,5 @@ Map<String, dynamic> _$InternalDownloadToJson(_InternalDownload instance) => <St
   'coverPath': instance.coverPath,
   'sidecarPaths': instance.sidecarPaths,
   'downloadType': instance.downloadType,
+  'downloadBasePath': instance.downloadBasePath,
 };

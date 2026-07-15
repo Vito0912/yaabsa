@@ -286,7 +286,7 @@ class AppDatabase extends _$AppDatabase {
     }
   }
 
-  InternalDownload? _decodeStoredDownloadOrNull(StoredDownloadsEntry entry) {
+  Future<InternalDownload?> _decodeStoredDownloadOrNull(StoredDownloadsEntry entry) async {
     final decoded = _decodeDownloadJsonOrNull(
       entry.download,
       itemId: entry.itemId,
@@ -297,8 +297,10 @@ class AppDatabase extends _$AppDatabase {
       return null;
     }
 
+    final resolvedDownload = await decoded.resolvePaths();
+
     final validTracks = <InternalTrack>[];
-    for (final track in decoded.tracks) {
+    for (final track in resolvedDownload.tracks) {
       final trackUrl = track.url;
       if (trackUrl == null || !_storedPathExists(trackUrl)) {
         continue;
@@ -306,16 +308,17 @@ class AppDatabase extends _$AppDatabase {
       validTracks.add(track);
     }
 
-    final validAuxiliaryPaths = decoded.auxiliaryFilePaths.where(_storedPathExists).toSet().toList(growable: false)
+    final validAuxiliaryPaths =
+        resolvedDownload.auxiliaryFilePaths.where(_storedPathExists).toSet().toList(growable: false)..sort();
+
+    final validSidecarPaths = resolvedDownload.sidecarPaths.where(_storedPathExists).toSet().toList(growable: false)
       ..sort();
 
-    final validSidecarPaths = decoded.sidecarPaths.where(_storedPathExists).toSet().toList(growable: false)..sort();
-
-    final validCoverPath = decoded.coverPath != null && _storedPathExists(decoded.coverPath!)
-        ? decoded.coverPath
+    final validCoverPath = resolvedDownload.coverPath != null && _storedPathExists(resolvedDownload.coverPath!)
+        ? resolvedDownload.coverPath
         : null;
 
-    return decoded.copyWith(
+    return resolvedDownload.copyWith(
       tracks: validTracks,
       auxiliaryFilePaths: validAuxiliaryPaths,
       sidecarPaths: validSidecarPaths,
@@ -323,10 +326,10 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
-  List<InternalDownload> _decodeStoredDownloads(Iterable<StoredDownloadsEntry> entries) {
+  Future<List<InternalDownload>> _decodeStoredDownloads(Iterable<StoredDownloadsEntry> entries) async {
     final downloads = <InternalDownload>[];
     for (final entry in entries) {
-      final parsed = _decodeStoredDownloadOrNull(entry);
+      final parsed = await _decodeStoredDownloadOrNull(entry);
       if (parsed != null) {
         downloads.add(parsed);
       }
@@ -381,22 +384,22 @@ class AppDatabase extends _$AppDatabase {
 
   Future<List<InternalDownload>> getAllStoredDownloadsByUserForLibrary(String userId, String libraryId) async {
     final entries = await (select(storedDownloads)..where((tbl) => tbl.userId.equals(userId))).get();
-    return _decodeStoredDownloads(entries).where((d) => d.item?.libraryId == libraryId).toList();
+    return (await _decodeStoredDownloads(entries)).where((d) => d.item?.libraryId == libraryId).toList();
   }
 
   Stream<List<InternalDownload>> watchStoredDownloadsByUser(String userId) {
     final query = select(storedDownloads)..where((tbl) => tbl.userId.equals(userId));
-    return query.watch().map((entries) => _decodeStoredDownloads(entries));
+    return query.watch().asyncMap(_decodeStoredDownloads);
   }
 
   Stream<Set<String>> watchCompletedDownloadItemIdsByUser(String userId) {
     final query = select(storedDownloads)..where((tbl) => tbl.userId.equals(userId));
     return query
         .watch()
-        .map((entries) {
+        .asyncMap((entries) async {
           final itemIds = <String>{};
           for (final entry in entries) {
-            final parsed = _decodeStoredDownloadOrNull(entry);
+            final parsed = await _decodeStoredDownloadOrNull(entry);
             if (parsed?.isComplete ?? false) {
               if (entry.episodeId == null) {
                 itemIds.add(entry.itemId);
@@ -420,7 +423,7 @@ class AppDatabase extends _$AppDatabase {
     }
     final entry = await query.getSingleOrNull();
     if (entry != null) {
-      final download = _decodeStoredDownloadOrNull(entry);
+      final download = await _decodeStoredDownloadOrNull(entry);
       if (download == null) {
         return null;
       }
@@ -490,6 +493,7 @@ class AppDatabase extends _$AppDatabase {
       expectedFileCount: mergedExpectedFileCount,
       auxiliaryFilePaths: mergedAuxiliaryPaths,
       saf: oldDownload.saf || newDownload.saf,
+      downloadBasePath: newDownload.downloadBasePath ?? oldDownload.downloadBasePath,
       coverPath: newDownload.coverPath ?? oldDownload.coverPath,
       sidecarPaths: mergedSidecarPaths,
       downloadType: mergedDownloadType,
@@ -535,7 +539,12 @@ class AppDatabase extends _$AppDatabase {
         );
         if (newDownload == null) return;
 
-        final oldDownload = _decodeStoredDownloadOrNull(legacyExisting);
+        final oldDownload = _decodeDownloadJsonOrNull(
+          legacyExisting.download,
+          itemId: legacyExisting.itemId,
+          userId: legacyExisting.userId,
+          episodeId: legacyExisting.episodeId,
+        );
         final updatedDownload = _mergeDownloads(oldDownload, newDownload);
 
         final legacyWhereClause = _storedDownloadWhereExpression(
@@ -558,13 +567,23 @@ class AppDatabase extends _$AppDatabase {
       );
       if (newDownload == null) return;
 
-      var oldDownload = _decodeStoredDownloadOrNull(existing);
+      var oldDownload = _decodeDownloadJsonOrNull(
+        existing.download,
+        itemId: existing.itemId,
+        userId: existing.userId,
+        episodeId: existing.episodeId,
+      );
       var mergedDownload = _mergeDownloads(oldDownload, newDownload);
 
       if (existingRows.length > 1) {
         for (var i = 1; i < existingRows.length; i++) {
           final duplicate = existingRows[i];
-          final duplicateDownload = _decodeStoredDownloadOrNull(duplicate);
+          final duplicateDownload = _decodeDownloadJsonOrNull(
+            duplicate.download,
+            itemId: duplicate.itemId,
+            userId: duplicate.userId,
+            episodeId: duplicate.episodeId,
+          );
           if (duplicateDownload != null) {
             mergedDownload = _mergeDownloads(mergedDownload, duplicateDownload);
           }
@@ -609,7 +628,12 @@ class AppDatabase extends _$AppDatabase {
     }
 
     for (final entry in entries) {
-      final parsedDownload = _decodeStoredDownloadOrNull(entry);
+      final parsedDownload = _decodeDownloadJsonOrNull(
+        entry.download,
+        itemId: entry.itemId,
+        userId: entry.userId,
+        episodeId: entry.episodeId,
+      );
       if (parsedDownload == null) {
         continue;
       }

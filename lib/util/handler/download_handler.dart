@@ -15,6 +15,7 @@ import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/models/download_sidecar.dart';
+import 'package:yaabsa/models/download_task_metadata.dart';
 import 'package:yaabsa/models/internal_download.dart';
 import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/provider/common/library_item_provider.dart';
@@ -231,7 +232,7 @@ class DownloadHandler {
         fallbackExtension: source.extension,
       );
       final metaData = jsonEncode(
-        _CompletedTaskMetaData(
+        DownloadTaskMetadata(
           itemId: resolvedItem.id,
           userId: user.id,
           episodeId: episodeId,
@@ -243,6 +244,7 @@ class DownloadHandler {
           fileName: filename,
           fileMimeType: source.mimeType,
           saf: destination.saf,
+          downloadBasePath: destination.storageBasePath,
           libraryId: resolvedItem.libraryId,
           serverUrl: server.url,
           serverHost: server.host,
@@ -496,8 +498,13 @@ class DownloadHandler {
         coverPath: coverPath,
       );
 
-      final downloadedTrack = parsedMetaData.track?.copyWith(url: storedTrackUrl);
-      final auxiliaryFilePaths = downloadedTrack == null ? <String>[storedTrackUrl] : const <String>[];
+      final storedTrackPath = await storeDownloadPath(storedTrackUrl, parsedMetaData.downloadBasePath);
+      final downloadedTrack = parsedMetaData.track?.copyWith(url: storedTrackPath);
+      final auxiliaryFilePaths = downloadedTrack == null
+          ? <String>[storedTrackPath ?? storedTrackUrl]
+          : const <String>[];
+      final storedCoverPath = await storeDownloadPath(coverPath, parsedMetaData.downloadBasePath);
+      final storedSidecarPath = await storeDownloadPath(sidecarPath, parsedMetaData.downloadBasePath);
 
       final downloadCompanion = StoredDownloadsCompanion(
         itemId: Value(parsedMetaData.itemId),
@@ -509,11 +516,12 @@ class DownloadHandler {
               item: item,
               episode: resolvedEpisode,
               saf: parsedMetaData.saf,
+              downloadBasePath: parsedMetaData.downloadBasePath,
               tracks: downloadedTrack == null ? const <InternalTrack>[] : <InternalTrack>[downloadedTrack],
               expectedFileCount: parsedMetaData.expectedFileCount,
               auxiliaryFilePaths: auxiliaryFilePaths,
-              coverPath: coverPath,
-              sidecarPaths: sidecarPath == null ? const <String>[] : <String>[sidecarPath],
+              coverPath: storedCoverPath,
+              sidecarPaths: storedSidecarPath == null ? const <String>[] : <String>[storedSidecarPath],
               downloadType: parsedMetaData.downloadType,
             ),
           ),
@@ -669,7 +677,7 @@ class DownloadHandler {
     required LibraryItem? item,
     required User? user,
     required Uri? trackUri,
-    required _CompletedTaskMetaData metaData,
+    required DownloadTaskMetadata metaData,
   }) async {
     if (item == null || !item.hasCover || user == null) {
       return null;
@@ -809,7 +817,7 @@ class DownloadHandler {
     required Uri? fileUri,
     required LibraryItem? item,
     required Episode? episode,
-    required _CompletedTaskMetaData metaData,
+    required DownloadTaskMetadata metaData,
     required String? coverPath,
   }) async {
     final downloadedFileName = _resolveDownloadedFileName(fileUri: fileUri, metaData: metaData);
@@ -927,7 +935,7 @@ class DownloadHandler {
     return parsed;
   }
 
-  String _resolveDownloadedFileName({required Uri? fileUri, required _CompletedTaskMetaData metaData}) {
+  String _resolveDownloadedFileName({required Uri? fileUri, required DownloadTaskMetadata metaData}) {
     if (fileUri?.scheme == 'file') {
       final fromUri = p.basename(fileUri?.path ?? '');
       if (fromUri.isNotEmpty && fromUri != '.') {
@@ -1002,11 +1010,11 @@ class DownloadHandler {
     return parsed;
   }
 
-  _CompletedTaskMetaData? _parseMetaData(String rawMetaData) {
+  DownloadTaskMetadata? _parseMetaData(String rawMetaData) {
     try {
       final decoded = jsonDecode(rawMetaData);
       if (decoded is Map) {
-        return _CompletedTaskMetaData.fromJson(Map<String, dynamic>.from(decoded));
+        return DownloadTaskMetadata.fromJson(Map<String, dynamic>.from(decoded));
       }
 
       if (decoded is! List<dynamic> || decoded.length < 4) {
@@ -1025,7 +1033,7 @@ class DownloadHandler {
 
       final track = trackJson is Map ? InternalTrack.fromJson(Map<String, dynamic>.from(trackJson)) : null;
 
-      return _CompletedTaskMetaData(
+      return DownloadTaskMetadata(
         itemId: itemId,
         userId: userId,
         episodeId: episodeId,
@@ -1311,107 +1319,6 @@ class _DownloadSourceFile {
   final InternalTrack? track;
   final String? mimeType;
   final String? extension;
-}
-
-class _CompletedTaskMetaData {
-  const _CompletedTaskMetaData({
-    required this.itemId,
-    required this.userId,
-    required this.episodeId,
-    required this.track,
-    required this.expectedFileCount,
-    required this.fileInode,
-    required this.fileIndex,
-    required this.fileKind,
-    this.fileName,
-    this.fileMimeType,
-    required this.saf,
-    this.libraryId,
-    this.serverUrl,
-    this.serverHost,
-    this.serverPort,
-    this.serverSsl,
-    this.title,
-    this.downloadType = 'both',
-  });
-
-  factory _CompletedTaskMetaData.fromJson(Map<String, dynamic> json) {
-    final trackJson = json['track'];
-
-    final itemId = json['itemId'] as String?;
-    final userId = json['userId'] as String?;
-    if (itemId == null || userId == null) {
-      throw const FormatException('Completed task metadata is missing itemId or userId');
-    }
-
-    InternalTrack? track;
-    if (trackJson is Map) {
-      track = InternalTrack.fromJson(Map<String, dynamic>.from(trackJson));
-    }
-
-    return _CompletedTaskMetaData(
-      itemId: itemId,
-      userId: userId,
-      episodeId: json['episodeId'] as String?,
-      track: track,
-      expectedFileCount: json['expectedFileCount'] is num ? (json['expectedFileCount'] as num).toInt() : 1,
-      fileInode: (json['fileInode'] as String?) ?? '',
-      fileIndex: json['fileIndex'] is num ? (json['fileIndex'] as num).toInt() : (track?.index ?? 0),
-      fileKind: (json['fileKind'] as String?) ?? (track == null ? 'file' : 'audio'),
-      fileName: json['fileName'] as String?,
-      fileMimeType: json['fileMimeType'] as String?,
-      saf: json['saf'] == true,
-      libraryId: json['libraryId'] as String?,
-      serverUrl: json['serverUrl'] as String?,
-      serverHost: json['serverHost'] as String?,
-      serverPort: json['serverPort'] is num ? (json['serverPort'] as num).toInt() : null,
-      serverSsl: json['serverSsl'] as bool?,
-      title: json['title'] as String?,
-      downloadType: json['downloadType'] as String? ?? 'both',
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return <String, dynamic>{
-      'itemId': itemId,
-      'userId': userId,
-      'episodeId': episodeId,
-      'track': track?.toJson(),
-      'expectedFileCount': expectedFileCount,
-      'fileInode': fileInode,
-      'fileIndex': fileIndex,
-      'fileKind': fileKind,
-      'fileName': fileName,
-      'fileMimeType': fileMimeType,
-      'saf': saf,
-      'libraryId': libraryId,
-      'serverUrl': serverUrl,
-      'serverHost': serverHost,
-      'serverPort': serverPort,
-      'serverSsl': serverSsl,
-      'title': title,
-      'downloadType': downloadType,
-    };
-  }
-
-  final String itemId;
-  final String userId;
-  final String? episodeId;
-  final InternalTrack? track;
-  final int expectedFileCount;
-  final String fileInode;
-  final int fileIndex;
-  final String fileKind;
-  final String? fileName;
-  final String? fileMimeType;
-  final bool saf;
-  final String? libraryId;
-  final String? serverUrl;
-  final String? serverHost;
-  final int? serverPort;
-  final bool? serverSsl;
-  final String? title;
-  final String downloadType;
 }
 
 class DeleteStoredDownloadResult {
