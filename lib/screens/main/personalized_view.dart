@@ -126,9 +126,7 @@ class PersonalizedView extends HookConsumerWidget {
     );
 
     Future<void> refreshPersonalizedLibrary({bool withLoading = false}) {
-      return ref
-          .read(personalizedLibraryProvider(selectedLibrary.id).notifier)
-          .refresh(selectedLibrary.id, withLoading: withLoading);
+      return _retryPersonalizedLibrary(ref: ref, libraryId: selectedLibrary.id, withLoading: withLoading);
     }
 
     final personalizedLibrary = personalizedLibraryAsyncValue.value;
@@ -345,6 +343,19 @@ class PersonalizedView extends HookConsumerWidget {
       },
     );
   }
+}
+
+Future<void> _retryPersonalizedLibrary({
+  required WidgetRef ref,
+  required String libraryId,
+  required bool withLoading,
+}) async {
+  ref.invalidate(currentUserProvider);
+  ref.invalidate(serverStatusProvider);
+
+  await ref.read(currentUserProvider.future);
+
+  await ref.read(personalizedLibraryProvider(libraryId).notifier).refresh(libraryId, withLoading: withLoading);
 }
 
 class _PersonalizedConnectionBanner extends StatelessWidget {

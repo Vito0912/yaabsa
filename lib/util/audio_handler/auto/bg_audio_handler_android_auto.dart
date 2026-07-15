@@ -209,8 +209,8 @@ Future<void> _androidAutoClearAuthenticationRequiredState(
 
 extension _BGAudioHandlerAndroidAutoEntry on BGAudioHandler {
   Future<bool> _androidAutoEnsureAuthenticatedUser() async {
-    final activeUserId = (await _ref.read(appDatabaseProvider).getGlobalSetting('activeUserId'))?.value.trim();
-    if (activeUserId == null || activeUserId.isEmpty) {
+    final currentUser = await _androidAutoCurrentUser();
+    if (currentUser == null) {
       _androidAutoSetAuthenticationRequiredStateIfNeeded(this);
       return false;
     }

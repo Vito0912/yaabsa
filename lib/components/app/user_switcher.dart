@@ -214,7 +214,22 @@ class UserSwitcher extends ConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stack) => Center(child: Text('Error loading current user: $error')),
+      error: (error, stack) => Tooltip(
+        message: 'Could not load the active user. Tap to retry.',
+        child: SizedBox(
+          width: 40,
+          height: 40,
+          child: IconButton(
+            tooltip: 'Retry loading active user',
+            onPressed: () {
+              ref.invalidate(currentUserProvider);
+              ref.invalidate(allStoredUsersProvider);
+              ref.invalidate(serverStatusProvider);
+            },
+            icon: const Icon(Icons.refresh_rounded),
+          ),
+        ),
+      ),
     );
   }
 }

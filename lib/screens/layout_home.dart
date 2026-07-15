@@ -130,10 +130,7 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
 
   _PageSource _pageSourceFor(Widget? child) => child == null ? _PageSource.internal : _PageSource.child;
 
-  List<NavigationItemConfig> _visibleAdvancedMenuItems({required bool canDownload}) {
-    if (!canDownload) {
-      return _advancedMenuItems;
-    }
+  List<NavigationItemConfig> _visibleAdvancedMenuItems() {
     return [_downloadsMenuItem, ..._advancedMenuItems];
   }
 
@@ -260,8 +257,7 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
       preferences: primaryPreferences,
       isAdminUser: _isAdminType(currentUser?.type),
     );
-    final canDownload = ref.read(currentUserProvider).value?.permissions.download ?? false;
-    final advancedItems = _visibleAdvancedMenuItems(canDownload: canDownload);
+    final advancedItems = _visibleAdvancedMenuItems();
     final combined = <NavigationItemConfig>[...primaryItems, ...advancedItems];
 
     if (index < 0 || index >= combined.length) {
@@ -592,8 +588,7 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
       preferences: primaryPreferences,
       isAdminUser: _isAdminType(currentUser?.type),
     );
-    final canDownload = currentUser?.permissions.download ?? false;
-    final advancedMenuItems = _visibleAdvancedMenuItems(canDownload: canDownload);
+    final advancedMenuItems = _visibleAdvancedMenuItems();
 
     final queryParameters = GoRouterState.of(context).uri.queryParameters;
     final tabIntent = queryParameters['tab'];
