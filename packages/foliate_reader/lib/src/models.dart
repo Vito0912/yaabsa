@@ -184,15 +184,32 @@ class FoliateSelection {
   final String cfi;
   final String text;
   final int index;
+  final double x;
+  final double y;
+  final double height;
 
-  FoliateSelection({required this.cfi, required this.text, required this.index});
+  FoliateSelection({
+    required this.cfi,
+    required this.text,
+    required this.index,
+    required this.x,
+    required this.y,
+    required this.height,
+  });
 
   factory FoliateSelection.fromJson(Map<String, dynamic> json) {
-    return FoliateSelection(cfi: json['cfi'] as String, text: json['text'] as String, index: json['index'] as int);
+    return FoliateSelection(
+      cfi: json['cfi'] as String,
+      text: json['text'] as String,
+      index: json['index'] as int,
+      x: (json['x'] as num?)?.toDouble() ?? 0.0,
+      y: (json['y'] as num?)?.toDouble() ?? 0.0,
+      height: (json['height'] as num?)?.toDouble() ?? 0.0,
+    );
   }
 
   Map<String, dynamic> toJson() {
-    return {'cfi': cfi, 'text': text, 'index': index};
+    return {'cfi': cfi, 'text': text, 'index': index, 'x': x, 'y': y, 'height': height};
   }
 }
 

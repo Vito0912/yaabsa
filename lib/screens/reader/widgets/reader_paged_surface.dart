@@ -13,6 +13,7 @@ class ReaderPagedSurface extends StatelessWidget {
     required this.canGoPrevious,
     required this.canGoNext,
     required this.interceptPointerScrollForPaging,
+    this.showNavigationHoverAreas = true,
     this.centerOverlay,
   });
 
@@ -22,6 +23,7 @@ class ReaderPagedSurface extends StatelessWidget {
   final bool canGoPrevious;
   final bool canGoNext;
   final bool interceptPointerScrollForPaging;
+  final bool showNavigationHoverAreas;
   final Widget? centerOverlay;
 
   @override
@@ -71,16 +73,18 @@ class ReaderPagedSurface extends StatelessWidget {
             child: Stack(
               children: [
                 Positioned.fill(child: content),
-                _ReaderNavigationHoverArea(
-                  icon: Icons.arrow_back,
-                  onTap: canGoPrevious ? () => unawaited(onPreviousPage()) : null,
-                  alignment: Alignment.centerLeft,
-                ),
-                _ReaderNavigationHoverArea(
-                  icon: Icons.arrow_forward,
-                  onTap: canGoNext ? () => unawaited(onNextPage()) : null,
-                  alignment: Alignment.centerRight,
-                ),
+                if (showNavigationHoverAreas) ...[
+                  _ReaderNavigationHoverArea(
+                    icon: Icons.arrow_back,
+                    onTap: canGoPrevious ? () => unawaited(onPreviousPage()) : null,
+                    alignment: Alignment.centerLeft,
+                  ),
+                  _ReaderNavigationHoverArea(
+                    icon: Icons.arrow_forward,
+                    onTap: canGoNext ? () => unawaited(onNextPage()) : null,
+                    alignment: Alignment.centerRight,
+                  ),
+                ],
                 if (centerOverlay != null) Positioned.fill(child: IgnorePointer(child: centerOverlay)),
               ],
             ),

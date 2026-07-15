@@ -44,7 +44,9 @@ class PlayerHistoryHandler {
   }
 
   static Future<void> addPlayerHistory(PlayerHistoryType type) async {
-    if (audioHandler.currentMediaItem == null) {
+    // Player history is tied to the phone audio handler; entrypoints without
+    // it (e.g. the Wear OS app) skip history collection.
+    if (!isAudioHandlerInitialized || audioHandler.currentMediaItem == null) {
       return;
     }
     final InternalMedia currentMedia = audioHandler.currentMediaItem!;

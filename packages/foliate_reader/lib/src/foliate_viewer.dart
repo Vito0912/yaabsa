@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:path/path.dart' as p;
 import 'models.dart';
@@ -183,12 +185,15 @@ class FoliateViewer extends StatefulWidget {
 }
 
 class _FoliateViewerState extends State<FoliateViewer> {
+  final GlobalKey _viewerKey = GlobalKey();
   BookServer? _server;
   int? _port;
   bool _isLoadingServer = true;
   String? _serverError;
   int _webViewProgress = 0;
   bool _isBookLoaded = false;
+  FoliateSelection? _activeSelection;
+  OverlayEntry? _selectionToolbarEntry;
 
   @override
   void initState() {
@@ -249,6 +254,7 @@ class _FoliateViewerState extends State<FoliateViewer> {
 
   @override
   void dispose() {
+    _hideSelectionToolbar();
     widget.controller?._unbind();
     _server?.stop();
     super.dispose();
@@ -263,6 +269,7 @@ class _FoliateViewerState extends State<FoliateViewer> {
       return Center(child: Text('Error: $_serverError'));
     }
     return Stack(
+      key: _viewerKey,
       children: [
         InAppWebView(
           initialUrlRequest: URLRequest(url: WebUri('http://127.0.0.1:$_port/reader.html')),
@@ -272,31 +279,7 @@ class _FoliateViewerState extends State<FoliateViewer> {
             allowFileAccessFromFileURLs: true,
             allowUniversalAccessFromFileURLs: true,
             transparentBackground: true,
-          ),
-          contextMenu: ContextMenu(
-            settings: ContextMenuSettings(hideDefaultSystemContextMenuItems: true),
-            menuItems: [
-              ContextMenuItem(
-                id: 1,
-                title: 'Highlight',
-                action: () async {
-                  final color = '#FFEB3B';
-                  await widget.controller?._webViewController?.evaluateJavascript(
-                    source: 'window.FoliateReaderAPI.addAnnotationFromSelection("highlight", "$color", "");',
-                  );
-                },
-              ),
-              ContextMenuItem(
-                id: 2,
-                title: 'Underline',
-                action: () async {
-                  final color = '#2196F3';
-                  await widget.controller?._webViewController?.evaluateJavascript(
-                    source: 'window.FoliateReaderAPI.addAnnotationFromSelection("underline", "$color", "");',
-                  );
-                },
-              ),
-            ],
+            disableContextMenu: true,
           ),
           onWebViewCreated: (controller) {
             widget.controller?._bind(controller);
@@ -383,6 +366,69 @@ class _FoliateViewerState extends State<FoliateViewer> {
             ),
           ),
       ],
+    );
+  }
+
+  void _showSelectionToolbar(FoliateSelection selection) {
+    _activeSelection = selection;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _activeSelection != selection) return;
+      final overlay = Overlay.of(context, rootOverlay: true);
+      _selectionToolbarEntry ??= OverlayEntry(builder: _buildSelectionToolbar);
+      if (!_selectionToolbarEntry!.mounted) {
+        overlay.insert(_selectionToolbarEntry!);
+      } else {
+        _selectionToolbarEntry!.markNeedsBuild();
+      }
+    });
+  }
+
+  Widget _buildSelectionToolbar(BuildContext context) {
+    final selection = _activeSelection;
+    final renderBox = _viewerKey.currentContext?.findRenderObject();
+    if (selection == null || renderBox is! RenderBox) {
+      return const SizedBox.shrink();
+    }
+
+    final origin = renderBox.localToGlobal(Offset.zero);
+    final anchorX = origin.dx + selection.x;
+    final primaryAnchor = Offset(anchorX, origin.dy + selection.y);
+    final secondaryAnchor = Offset(anchorX, origin.dy + selection.y + selection.height);
+    return AdaptiveTextSelectionToolbar.buttonItems(
+      anchors: TextSelectionToolbarAnchors(primaryAnchor: primaryAnchor, secondaryAnchor: secondaryAnchor),
+      buttonItems: [
+        ContextMenuButtonItem(type: ContextMenuButtonType.copy, onPressed: () => unawaited(_copySelection())),
+        ContextMenuButtonItem(
+          label: 'Highlight',
+          onPressed: () => unawaited(_addAnnotationFromSelection('highlight', '#FFEB3B')),
+        ),
+        ContextMenuButtonItem(
+          label: 'Underline',
+          onPressed: () => unawaited(_addAnnotationFromSelection('underline', '#2196F3')),
+        ),
+      ],
+    );
+  }
+
+  void _hideSelectionToolbar() {
+    _activeSelection = null;
+    _selectionToolbarEntry?.remove();
+    _selectionToolbarEntry?.dispose();
+    _selectionToolbarEntry = null;
+  }
+
+  Future<void> _copySelection() async {
+    final selection = _activeSelection;
+    if (selection == null) return;
+    _hideSelectionToolbar();
+    await Clipboard.setData(ClipboardData(text: selection.text));
+    await widget.controller?.deselect();
+  }
+
+  Future<void> _addAnnotationFromSelection(String type, String color) async {
+    _hideSelectionToolbar();
+    await widget.controller?._webViewController?.evaluateJavascript(
+      source: 'window.FoliateReaderAPI.addAnnotationFromSelection(${jsonEncode(type)}, ${jsonEncode(color)}, "");',
     );
   }
 
@@ -478,9 +524,11 @@ class _FoliateViewerState extends State<FoliateViewer> {
       handlerName: 'onSelectionChanged',
       callback: (args) {
         if (!mounted) return;
-        if (args.isNotEmpty && widget.onSelectionChanged != null) {
+        if (args.isNotEmpty) {
           final data = Map<String, dynamic>.from(args[0] as Map);
-          widget.onSelectionChanged!(FoliateSelection.fromJson(data));
+          final selection = FoliateSelection.fromJson(data);
+          _showSelectionToolbar(selection);
+          widget.onSelectionChanged?.call(selection);
         }
       },
     );
@@ -489,6 +537,7 @@ class _FoliateViewerState extends State<FoliateViewer> {
       handlerName: 'onSelectionCleared',
       callback: (args) {
         if (!mounted) return;
+        _hideSelectionToolbar();
         widget.onSelectionCleared?.call();
       },
     );

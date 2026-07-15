@@ -611,7 +611,7 @@ jobs:
       - changes
       - check-requirements
     if: ${{ (github.event_name == 'workflow_dispatch' || needs.changes.outputs.version_bumped == 'true' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.android == 'true') && needs.changes.outputs.build_skip != 'true' }}
-    timeout-minutes: 20
+    timeout-minutes: 30
     environment: prod
     steps:
       - name: Checkout
@@ -677,6 +677,24 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
+      - name: Build Wear OS appbundle
+        run: |
+          flutter build appbundle --flavor wear --release -t lib/main_wear.dart
+        env:
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          STORE_FILE: ${{ secrets.STORE_FILE }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+
+      - name: Build Wear OS apk
+        run: |
+          flutter build apk --flavor wear --release --split-per-abi -t lib/main_wear.dart
+        env:
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          STORE_FILE: ${{ secrets.STORE_FILE }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+
       - name: Rename Android artifacts
         shell: bash
         env:
@@ -687,6 +705,7 @@ jobs:
 
           mkdir -p output/android/auto
           mkdir -p output/android/aaos
+          mkdir -p output/android/wear
 
           auto_bundle_candidates=(build/app/outputs/bundle/autoRelease/*.aab)
           if [[ ${#auto_bundle_candidates[@]} -eq 0 ]]; then
@@ -726,6 +745,25 @@ jobs:
             cp "$apk" "output/android/aaos/yaabsa_AAOS_${platform}_${FILE_VERSION}.apk"
           done
 
+          wear_bundle_candidates=(build/app/outputs/bundle/wearRelease/*.aab)
+          if [[ ${#wear_bundle_candidates[@]} -eq 0 ]]; then
+            echo "Wear OS app bundle not found."
+            exit 1
+          fi
+          cp "${wear_bundle_candidates[0]}" "output/android/wear/yaabsa_wearos_${FILE_VERSION}.aab"
+
+          wear_apk_candidates=(build/app/outputs/flutter-apk/*wear-release*.apk)
+          if [[ ${#wear_apk_candidates[@]} -eq 0 ]]; then
+            echo "Wear OS APK artifacts not found."
+            exit 1
+          fi
+          for apk in "${wear_apk_candidates[@]}"; do
+            base_name="$(basename "$apk")"
+            platform="${base_name#app-wear-}"
+            platform="${platform%-release.apk}"
+            cp "$apk" "output/android/wear/yaabsa_wearos_${platform}_${FILE_VERSION}.apk"
+          done
+
       - name: Upload Android appbundle artifact
         uses: actions/upload-artifact@v7
         with:
@@ -749,6 +787,18 @@ jobs:
         with:
           name: android-automotive-apk
           path: output/android/aaos/*.apk
+
+      - name: Upload Wear OS appbundle artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: android-wear-appbundle
+          path: output/android/wear/*.aab
+
+      - name: Upload Wear OS apk artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: android-wear-apk
+          path: output/android/wear/*.apk
 
       - name: Clean up
         if: always()
@@ -1000,10 +1050,17 @@ jobs:
           name: android-automotive-appbundle
           path: android-automotive-release
 
+      - name: Download Android Wear artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: android-wear-appbundle
+          path: android-wear-release
+
       - name: Move files
         run: |
           mv android-release/*.aab android-release/yaabsa.aab
           mv android-automotive-release/*.aab android-automotive-release/yaabsa_aaos.aab
+          mv android-wear-release/*.aab android-wear-release/yaabsa_wear.aab
 
       - name: Write changelog to whatsnew
         shell: bash
@@ -1030,7 +1087,7 @@ jobs:
           status: completed
           inAppUpdatePriority: 2
           whatsNewDirectory: android/whatsnew
-          changesNotSentForReview: true
+          changesNotSentForReview: false
         continue-on-error: true
 
       - name: Publish Android Automotive appbundle to Play Store
@@ -1041,6 +1098,20 @@ jobs:
           releaseFiles: android-automotive-release/yaabsa_aaos.aab
           tracks: automotive:AAOS,automotive:beta
           releaseName: ${{ needs.changes.outputs.release_tag }} AAOS
+          status: completed
+          inAppUpdatePriority: 2
+          whatsNewDirectory: android/whatsnew
+          changesNotSentForReview: false
+        continue-on-error: true
+
+      - name: Publish Wear OS appbundle to Play Store
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
+          packageName: de.vito0912.yaabsa
+          releaseFiles: android-wear-release/yaabsa_wear.aab
+          tracks: wear:beta
+          releaseName: ${{ needs.changes.outputs.release_tag }} Wear OS
           status: completed
           inAppUpdatePriority: 2
           whatsNewDirectory: android/whatsnew

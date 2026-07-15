@@ -9,6 +9,100 @@ let clearMediaOverlayHighlight = null;
 let currentStyles = null;
 let currentTtsRanges = [];
 
+const interactiveSelector = [
+    'a',
+    'button',
+    'input',
+    'textarea',
+    'select',
+    'option',
+    'label',
+    'summary',
+    'video',
+    'audio',
+    '[contenteditable="true"]',
+    '[role="button"]'
+].join(',');
+
+const isInteractiveTarget = target => !!target?.closest?.(interactiveSelector);
+
+const hasActiveSelection = doc => {
+    const selection = doc?.defaultView?.getSelection();
+    return !!selection && !selection.isCollapsed;
+};
+
+const readerHasActiveSelection = () => {
+    const contents = view?.renderer?.getContents?.() || [];
+    return contents.some(item => hasActiveSelection(item.doc));
+};
+
+const isAnnotationAtPoint = (index, event) => {
+    const contents = view?.renderer?.getContents?.() || [];
+    const item = contents.find(content => content.index === index);
+    const [value] = item?.overlayer?.hitTest?.(event) || [];
+    return !!value && annotationsMap.has(value);
+};
+
+const getReaderClientX = (event, doc) => {
+    if (Number.isFinite(event.screenX)) return event.screenX - window.screenX;
+
+    try {
+        const frame = doc?.defaultView?.frameElement;
+        const rect = frame?.getBoundingClientRect?.();
+        if (rect && frame.offsetWidth > 0) {
+            return rect.left + event.clientX * rect.width / frame.offsetWidth;
+        }
+    } catch (error) {
+        console.error(error);
+    }
+    return event.screenX - window.screenX;
+};
+
+const getPageTurnDirection = (clientX, viewportWidth) => {
+    if (!Number.isFinite(clientX) || !Number.isFinite(viewportWidth) || viewportWidth <= 0) return false;
+
+    const edgeWidth = Math.min(120, viewportWidth / 3);
+    if (clientX <= edgeWidth) return -1;
+    if (clientX >= viewportWidth - edgeWidth) return 1;
+    return 0;
+};
+
+const turnPageAtEdge = (clientX, viewportWidth) => {
+    const direction = getPageTurnDirection(clientX, viewportWidth);
+    if (!direction) return false;
+
+    const navigation = direction < 0 ? view.prev() : view.next();
+    navigation.catch(error => console.error(error));
+    return true;
+};
+
+const getReaderRect = (rect, doc) => {
+    try {
+        const frame = doc?.defaultView?.frameElement;
+        const frameRect = frame?.getBoundingClientRect?.();
+        if (frameRect && frame.offsetWidth > 0 && frame.offsetHeight > 0) {
+            const scaleX = frameRect.width / frame.offsetWidth;
+            const scaleY = frameRect.height / frame.offsetHeight;
+            const left = frameRect.left + rect.left * scaleX;
+            const top = frameRect.top + rect.top * scaleY;
+            const width = rect.width * scaleX;
+            const height = rect.height * scaleY;
+            return { left, top, right: left + width, bottom: top + height, width, height };
+        }
+    } catch (error) {
+        console.error(error);
+    }
+    return rect;
+};
+
+const getVisibleSelectionRect = (range, doc) => {
+    const rects = Array.from(range.getClientRects(), rect => getReaderRect(rect, doc));
+    return rects.find(rect =>
+        rect.right > 0 && rect.left < window.innerWidth
+        && rect.bottom > 0 && rect.top < window.innerHeight)
+        || getReaderRect(range.getBoundingClientRect(), doc);
+};
+
 const resolveURL = (url, relativeTo) => {
     try {
         if (relativeTo.includes(':')) return new URL(url, relativeTo);
@@ -604,22 +698,65 @@ view.addEventListener('relocate', e => {
 });
 
 view.addEventListener('click', e => {
-    if (!e.target.closest('a') && !e.target.closest('button')) {
-        window.flutter_inappwebview.callHandler('onCenterTap');
+    if (isInteractiveTarget(e.target) || readerHasActiveSelection()) return;
+
+    if (turnPageAtEdge(e.clientX, window.innerWidth)) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
     }
+    window.flutter_inappwebview.callHandler('onCenterTap');
 });
 
 view.addEventListener('load', e => {
     const { doc, index } = e.detail;
+    let suppressPageClickUntil = 0;
+    let touchStart = null;
+
     applyStylesToDoc(doc, currentStyles || '');
     if (currentStyles && view.renderer && typeof view.renderer.setStyles === 'function') {
         try {
             view.renderer.setStyles(currentStyles);
         } catch (err) {}
     }
+    doc.addEventListener('touchstart', ev => {
+        if (ev.touches.length !== 1) {
+            touchStart = null;
+            return;
+        }
+        const touch = ev.touches[0];
+        touchStart = {
+            x: touch.screenX,
+            y: touch.screenY,
+            time: ev.timeStamp,
+            target: ev.target
+        };
+    }, { passive: true });
+    doc.addEventListener('touchend', ev => {
+        const touch = ev.changedTouches[0];
+        const start = touchStart;
+        touchStart = null;
+        if (!touch || !start) return;
+
+        const distance = Math.hypot(touch.screenX - start.x, touch.screenY - start.y);
+        if (distance > 18 || ev.timeStamp - start.time > 500) return;
+        if (hasActiveSelection(doc) || isInteractiveTarget(start.target)) return;
+        if (isAnnotationAtPoint(index, { x: touch.clientX, y: touch.clientY })) return;
+
+        const clientX = touch.screenX - window.screenX;
+        if (!getPageTurnDirection(clientX, window.innerWidth)) return;
+
+        suppressPageClickUntil = performance.now() + 750;
+        ev.preventDefault();
+        ev.stopPropagation();
+        requestAnimationFrame(() => turnPageAtEdge(clientX, window.innerWidth));
+    }, { passive: false });
     doc.addEventListener('click', async ev => {
+        if (performance.now() < suppressPageClickUntil) return;
+        if (isAnnotationAtPoint(index, ev)) return;
+
         const selection = doc.defaultView.getSelection();
-        if ((!selection || selection.isCollapsed) && !ev.target.closest('a') && !ev.target.closest('button')) {
+        if ((!selection || selection.isCollapsed) && !isInteractiveTarget(ev.target)) {
             if (view.mediaOverlay && (view.mediaOverlay.state === 'playing' || view.mediaOverlay.state === 'paused')) {
                 await ensureEntriesForSection(index);
                 if (view.mediaOverlay.entries) {
@@ -667,6 +804,11 @@ view.addEventListener('load', e => {
                     }
                 }
             }
+            if (turnPageAtEdge(getReaderClientX(ev, doc), window.innerWidth)) {
+                ev.preventDefault();
+                ev.stopPropagation();
+                return;
+            }
             window.flutter_inappwebview.callHandler('onCenterTap');
         }
     });
@@ -676,10 +818,14 @@ view.addEventListener('load', e => {
             const range = selection.getRangeAt(0);
             const cfi = view.getCFI(index, range);
             const text = selection.toString();
+            const rect = getVisibleSelectionRect(range, doc);
             window.flutter_inappwebview.callHandler('onSelectionChanged', {
                 cfi,
                 text,
-                index
+                index,
+                x: rect.left + rect.width / 2,
+                y: rect.top,
+                height: rect.height
             });
         } else {
             window.flutter_inappwebview.callHandler('onSelectionCleared');
@@ -691,11 +837,10 @@ view.addEventListener('load', e => {
 view.addEventListener('create-overlay', e => {
     const { index } = e.detail;
     for (const annotation of annotationsMap.values()) {
-        view.resolveNavigation(annotation.value).then(resolved => {
-            if (resolved && resolved.index === index) {
-                view.addAnnotation(annotation);
-            }
-        });
+        const resolved = view.resolveNavigation(annotation.value);
+        if (resolved && resolved.index === index) {
+            view.addAnnotation(annotation);
+        }
     }
 });
 
