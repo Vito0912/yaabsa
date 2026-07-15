@@ -809,16 +809,6 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   @override
   Future<void> fastForward() async {
     if (_currentMediaItem == null) return Future.value();
-    if (!kIsWeb && Platform.isIOS) {
-      final showSkipInsteadOfFastForward = _ref
-          .read(settingsManagerProvider.notifier)
-          .getGlobalSetting<bool>(SettingKeys.showSkipInsteadOfFastForward, defaultValue: false);
-      final chaptersExist = _currentMediaItem?.chapters?.isNotEmpty ?? false;
-      final queueExists = queueList.isNotEmpty;
-      if (showSkipInsteadOfFastForward && (chaptersExist || queueExists)) {
-        return skipToNext();
-      }
-    }
     final skipTime = _skipDurationForKey(SettingKeys.fastForwardInterval);
     final newPosition = position + skipTime;
     _seekInternal(newPosition);
@@ -828,16 +818,6 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   @override
   Future<void> rewind() async {
     if (_currentMediaItem == null) return Future.value();
-    if (!kIsWeb && Platform.isIOS) {
-      final showSkipInsteadOfFastForward = _ref
-          .read(settingsManagerProvider.notifier)
-          .getGlobalSetting<bool>(SettingKeys.showSkipInsteadOfFastForward, defaultValue: false);
-      final chaptersExist = _currentMediaItem?.chapters?.isNotEmpty ?? false;
-      final queueExists = queueList.isNotEmpty;
-      if (showSkipInsteadOfFastForward && (chaptersExist || queueExists)) {
-        return skipToPrevious();
-      }
-    }
     final skipTime = _skipDurationForKey(SettingKeys.rewindInterval);
     final newPosition = position - skipTime;
     if (newPosition < Duration.zero) {
@@ -851,16 +831,6 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   @override
   Future<void> skipToNext() async {
     if (_currentMediaItem == null) return;
-    if (!kIsWeb && Platform.isIOS) {
-      final showSkipInsteadOfFastForward = _ref
-          .read(settingsManagerProvider.notifier)
-          .getGlobalSetting<bool>(SettingKeys.showSkipInsteadOfFastForward, defaultValue: false);
-      final chaptersExist = _currentMediaItem?.chapters?.isNotEmpty ?? false;
-      final queueExists = queueList.isNotEmpty;
-      if (!showSkipInsteadOfFastForward || !(chaptersExist || queueExists)) {
-        return fastForward();
-      }
-    }
     return _queueSkipOperation(() async {
       if (_currentMediaItem == null) return;
       InternalChapter? nextChapter = _currentMediaItem!.getNextChapterForDuration(position);
@@ -909,16 +879,6 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   @override
   Future<void> skipToPrevious() async {
     if (_currentMediaItem == null) return;
-    if (!kIsWeb && Platform.isIOS) {
-      final showSkipInsteadOfFastForward = _ref
-          .read(settingsManagerProvider.notifier)
-          .getGlobalSetting<bool>(SettingKeys.showSkipInsteadOfFastForward, defaultValue: false);
-      final chaptersExist = _currentMediaItem?.chapters?.isNotEmpty ?? false;
-      final queueExists = queueList.isNotEmpty;
-      if (!showSkipInsteadOfFastForward || !(chaptersExist || queueExists)) {
-        return rewind();
-      }
-    }
     return _queueSkipOperation(() async {
       if (_currentMediaItem == null) return;
       InternalChapter? previousChapter = _currentMediaItem!.getPreviousChapterForDuration(position);
