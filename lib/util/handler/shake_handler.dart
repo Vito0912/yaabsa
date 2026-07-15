@@ -172,7 +172,7 @@ class ShakeRewindHandler {
 
   void _updateShakeThreshold() {
     final configuredThreshold = _doubleSetting(SettingKeys.shakeSensitivity);
-    _shakeThreshold = configuredThreshold < 1.0 ? 1.0 : configuredThreshold;
+    _shakeThreshold = configuredThreshold < .1 ? .1 : configuredThreshold;
   }
 
   bool _boolSetting(String key) {

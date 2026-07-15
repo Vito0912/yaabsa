@@ -63,8 +63,8 @@ class _ShakeSettingsSectionState extends State<ShakeSettingsSection> {
             SettingSlider<double>(
               label: 'Shake sensitivity',
               description: 'Lower values trigger more easily, higher values require a stronger shake',
-              values: const [1.5, 2.0, 2.5, 3.0, 3.5],
-              valueLabels: const ['1.5 g', '2.0 g', '2.5 g', '3.0 g', '3.5 g'],
+              values: List.generate(35, (index) => (index + 1) / 10),
+              valueLabels: List.generate(35, (index) => '${((index + 1) / 10).toStringAsFixed(1)} g'),
               settingKey: SettingKeys.shakeSensitivity,
               enabled: supportsShakeActions,
               disabledReason: shakeUnsupportedReason,
