@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.5.1
+
+### Added
+
+- (Android) You can now choose which Bluetooth devices trigger auto-resume
+- Reader improvements: tapping is better, and pages no longer turn when you press notes, select or annotate at the sides
+- Early, alpha-stage support for WearOS by @soster20
+
+### Fixed
+
+- (Android) Now uses existing progress when not using auto-resume/widget after some time
+- (iOS) Downloads should now work after an update
+- More options for shake sensitivity
+- (iOS) Skip buttons work again. This will also invert bluethooth behaviour. If you have any issues, please report them
+- (iOS) CarPlay should now work without needing to unlock your phone. Please test this and report any remaining issues
+- Annotations no longer disappear when you move to a new chapter in the reader
+- Better performance when not using Android Auto or CarPlay
+
 ## 1.5.0
 
 ### Added
