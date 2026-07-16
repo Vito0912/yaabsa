@@ -2,8 +2,8 @@ name: yaabsa
 description: "An improved cross-platform app for Audiobookshelf"
 publish_to: 'none'
 
-# Always use even numbers!
-version: 1.5.0+90
+# Always use build numbers divisible by 3!
+version: 1.5.1+93
 
 environment:
   sdk: ^3.8.0
