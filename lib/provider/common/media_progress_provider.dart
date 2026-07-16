@@ -304,13 +304,18 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
     }
   }
 
-  Future<MediaProgress?> fetchOrRefreshIndividualProgress(String libraryItemId, {String? episodeId}) async {
+  Future<MediaProgress?> fetchOrRefreshIndividualProgress(
+    String libraryItemId, {
+    String? episodeId,
+    String? userId,
+  }) async {
     final key = _progressKey(libraryItemId, episodeId);
     final existingMap = state.asData?.value ?? <String, MediaProgress>{};
     MediaProgress? localProgress = existingMap[key];
+    final effectiveUserId = userId ?? _activeUserId();
 
     if (localProgress == null) {
-      final localMap = await _loadLocalProgressMap(userId: _activeUserId());
+      final localMap = await _loadLocalProgressMap(userId: effectiveUserId);
       if (localMap.isNotEmpty) {
         final mergedMap = _mergeProgressMaps(existingMap, localMap);
         state = AsyncData(mergedMap);
@@ -349,9 +354,8 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
           state = AsyncData(updatedMap);
         }
 
-        final userId = _activeUserId();
-        if (userId != null && userId.isNotEmpty) {
-          await _deleteCachedProgress(userId: userId, libraryItemId: libraryItemId, episodeId: episodeId);
+        if (effectiveUserId != null && effectiveUserId.isNotEmpty) {
+          await _deleteCachedProgress(userId: effectiveUserId, libraryItemId: libraryItemId, episodeId: episodeId);
         }
 
         return null;
@@ -405,9 +409,8 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
           state = AsyncData(updatedMap);
         }
 
-        final userId = _activeUserId();
-        if (userId != null && userId.isNotEmpty) {
-          await _deleteCachedProgress(userId: userId, libraryItemId: libraryItemId, episodeId: episodeId);
+        if (effectiveUserId != null && effectiveUserId.isNotEmpty) {
+          await _deleteCachedProgress(userId: effectiveUserId, libraryItemId: libraryItemId, episodeId: episodeId);
         }
 
         return null;

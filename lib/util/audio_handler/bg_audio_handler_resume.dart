@@ -70,7 +70,8 @@ extension _BGAudioHandlerResume on BGAudioHandler {
     await _updatePlaybackState();
 
     try {
-      final lastPlayedItem = await _readLastPlayedQueueItemForActiveUser();
+      final activeUserId = await _readActiveUserId();
+      final lastPlayedItem = await _readLastPlayedQueueItemForActiveUser(explicitUserId: activeUserId);
       if (lastPlayedItem == null) {
         _setQueueTransitionLoading(false);
         return false;
@@ -79,7 +80,11 @@ extension _BGAudioHandlerResume on BGAudioHandler {
 
       final progress = await _ref
           .read(mediaProgressProvider.notifier)
-          .fetchOrRefreshIndividualProgress(lastPlayedItem.itemId, episodeId: lastPlayedItem.episodeId);
+          .fetchOrRefreshIndividualProgress(
+            lastPlayedItem.itemId,
+            episodeId: lastPlayedItem.episodeId,
+            userId: activeUserId,
+          );
 
       if (progress?.isFinished ?? false) {
         logger(
@@ -186,12 +191,7 @@ extension _BGAudioHandlerResume on BGAudioHandler {
   }
 
   Future<QueueItem?> _readLastPlayedQueueItemForActiveUser({String? explicitUserId}) async {
-    var userId = explicitUserId ?? _activeUserId;
-    if (userId == null || userId.isEmpty) {
-      try {
-        userId = (await _ref.read(appDatabaseProvider).getGlobalSetting('activeUserId'))?.value.trim();
-      } catch (_) {}
-    }
+    final userId = await _readActiveUserId(explicitUserId: explicitUserId);
     if (userId == null || userId.isEmpty) {
       return null;
     }
@@ -199,6 +199,19 @@ extension _BGAudioHandlerResume on BGAudioHandler {
     final db = _ref.read(appDatabaseProvider);
     final rawLastPlayed = (await db.getUserSetting(userId, SettingKeys.lastPlayedQueueItem))?.value;
     return _decodeLastPlayedQueueItem(rawLastPlayed);
+  }
+
+  Future<String?> _readActiveUserId({String? explicitUserId}) async {
+    final currentUserId = explicitUserId ?? _activeUserId;
+    if (currentUserId != null && currentUserId.isNotEmpty) {
+      return currentUserId;
+    }
+
+    try {
+      return (await _ref.read(appDatabaseProvider).getGlobalSetting('activeUserId'))?.value.trim();
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<String?> _readLastPlayedMiniPlayerSnapshotRawForActiveUser({String? explicitUserId}) async {
