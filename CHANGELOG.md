@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.5.2
+
+### Fixed
+
+- (Android) Fixes manifest values being wrong for auto and aaos builds and remove bluethooth requirement for auto-resume feature
+
 ## 1.5.1
 
 ### Added
