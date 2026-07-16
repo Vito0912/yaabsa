@@ -273,6 +273,7 @@ class _FoliateViewerState extends State<FoliateViewer> {
       children: [
         InAppWebView(
           initialUrlRequest: URLRequest(url: WebUri('http://127.0.0.1:$_port/reader.html')),
+          contextMenu: ContextMenu(settings: ContextMenuSettings(hideDefaultSystemContextMenuItems: true)),
           initialSettings: InAppWebViewSettings(
             javaScriptEnabled: true,
             mediaPlaybackRequiresUserGesture: false,
