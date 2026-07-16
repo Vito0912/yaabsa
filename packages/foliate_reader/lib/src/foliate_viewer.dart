@@ -280,6 +280,7 @@ class _FoliateViewerState extends State<FoliateViewer> {
             allowUniversalAccessFromFileURLs: true,
             transparentBackground: true,
             disableContextMenu: true,
+            disableLongPressContextMenuOnLinks: true,
           ),
           onWebViewCreated: (controller) {
             widget.controller?._bind(controller);
