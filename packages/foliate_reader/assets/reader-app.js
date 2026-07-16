@@ -724,7 +724,6 @@ view.addEventListener('load', e => {
     };
     doc.addEventListener('touchmove', stopPagingDuringSelection, { capture: true, passive: true });
     doc.addEventListener('touchend', stopPagingDuringSelection, { capture: true, passive: true });
-    doc.addEventListener('contextmenu', ev => ev.preventDefault());
     doc.addEventListener('touchstart', ev => {
         if (ev.touches.length !== 1) {
             touchStart = null;

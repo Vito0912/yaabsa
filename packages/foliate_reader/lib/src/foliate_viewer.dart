@@ -185,15 +185,12 @@ class FoliateViewer extends StatefulWidget {
 }
 
 class _FoliateViewerState extends State<FoliateViewer> {
-  final GlobalKey _viewerKey = GlobalKey();
   BookServer? _server;
   int? _port;
   bool _isLoadingServer = true;
   String? _serverError;
   int _webViewProgress = 0;
   bool _isBookLoaded = false;
-  FoliateSelection? _activeSelection;
-  OverlayEntry? _selectionToolbarEntry;
 
   @override
   void initState() {
@@ -254,7 +251,6 @@ class _FoliateViewerState extends State<FoliateViewer> {
 
   @override
   void dispose() {
-    _hideSelectionToolbar();
     widget.controller?._unbind();
     _server?.stop();
     super.dispose();
@@ -269,18 +265,16 @@ class _FoliateViewerState extends State<FoliateViewer> {
       return Center(child: Text('Error: $_serverError'));
     }
     return Stack(
-      key: _viewerKey,
       children: [
         InAppWebView(
           initialUrlRequest: URLRequest(url: WebUri('http://127.0.0.1:$_port/reader.html')),
+          contextMenu: _selectionContextMenu,
           initialSettings: InAppWebViewSettings(
             javaScriptEnabled: true,
             mediaPlaybackRequiresUserGesture: false,
             allowFileAccessFromFileURLs: true,
             allowUniversalAccessFromFileURLs: true,
             transparentBackground: true,
-            disableContextMenu: true,
-            disableLongPressContextMenuOnLinks: true,
           ),
           onWebViewCreated: (controller) {
             widget.controller?._bind(controller);
@@ -370,64 +364,39 @@ class _FoliateViewerState extends State<FoliateViewer> {
     );
   }
 
-  void _showSelectionToolbar(FoliateSelection selection) {
-    _activeSelection = selection;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || _activeSelection != selection) return;
-      final overlay = Overlay.of(context, rootOverlay: true);
-      _selectionToolbarEntry ??= OverlayEntry(builder: _buildSelectionToolbar);
-      if (!_selectionToolbarEntry!.mounted) {
-        overlay.insert(_selectionToolbarEntry!);
-      } else {
-        _selectionToolbarEntry!.markNeedsBuild();
-      }
-    });
-  }
-
-  Widget _buildSelectionToolbar(BuildContext context) {
-    final selection = _activeSelection;
-    final renderBox = _viewerKey.currentContext?.findRenderObject();
-    if (selection == null || renderBox is! RenderBox) {
-      return const SizedBox.shrink();
+  ContextMenu? get _selectionContextMenu {
+    if (!Platform.isAndroid && !Platform.isIOS) {
+      return null;
     }
 
-    final origin = renderBox.localToGlobal(Offset.zero);
-    final anchorX = origin.dx + selection.x;
-    final primaryAnchor = Offset(anchorX, origin.dy + selection.y);
-    final secondaryAnchor = Offset(anchorX, origin.dy + selection.y + selection.height);
-    return AdaptiveTextSelectionToolbar.buttonItems(
-      anchors: TextSelectionToolbarAnchors(primaryAnchor: primaryAnchor, secondaryAnchor: secondaryAnchor),
-      buttonItems: [
-        ContextMenuButtonItem(type: ContextMenuButtonType.copy, onPressed: () => unawaited(_copySelection())),
-        ContextMenuButtonItem(
-          label: 'Highlight',
-          onPressed: () => unawaited(_addAnnotationFromSelection('highlight', '#FFEB3B')),
+    return ContextMenu(
+      menuItems: [
+        ContextMenuItem(
+          id: 1,
+          title: 'Highlight',
+          action: () => unawaited(_addAnnotationFromSelection('highlight', '#FFEB3B')),
         ),
-        ContextMenuButtonItem(
-          label: 'Underline',
-          onPressed: () => unawaited(_addAnnotationFromSelection('underline', '#2196F3')),
+        ContextMenuItem(
+          id: 2,
+          title: 'Underline',
+          action: () => unawaited(_addAnnotationFromSelection('underline', '#2196F3')),
         ),
+        ContextMenuItem(id: 3, title: 'Copy', action: () => unawaited(_copyWebViewSelection())),
       ],
+      settings: ContextMenuSettings(hideDefaultSystemContextMenuItems: true),
     );
   }
 
-  void _hideSelectionToolbar() {
-    _activeSelection = null;
-    _selectionToolbarEntry?.remove();
-    _selectionToolbarEntry?.dispose();
-    _selectionToolbarEntry = null;
-  }
+  Future<void> _copyWebViewSelection() async {
+    final text = await widget.controller?._webViewController?.getSelectedText();
+    if (text == null || text.isEmpty) {
+      return;
+    }
 
-  Future<void> _copySelection() async {
-    final selection = _activeSelection;
-    if (selection == null) return;
-    _hideSelectionToolbar();
-    await Clipboard.setData(ClipboardData(text: selection.text));
-    await widget.controller?.deselect();
+    await Clipboard.setData(ClipboardData(text: text));
   }
 
   Future<void> _addAnnotationFromSelection(String type, String color) async {
-    _hideSelectionToolbar();
     await widget.controller?._webViewController?.evaluateJavascript(
       source: 'window.FoliateReaderAPI.addAnnotationFromSelection(${jsonEncode(type)}, ${jsonEncode(color)}, "");',
     );
@@ -528,7 +497,6 @@ class _FoliateViewerState extends State<FoliateViewer> {
         if (args.isNotEmpty) {
           final data = Map<String, dynamic>.from(args[0] as Map);
           final selection = FoliateSelection.fromJson(data);
-          _showSelectionToolbar(selection);
           widget.onSelectionChanged?.call(selection);
         }
       },
@@ -538,7 +506,6 @@ class _FoliateViewerState extends State<FoliateViewer> {
       handlerName: 'onSelectionCleared',
       callback: (args) {
         if (!mounted) return;
-        _hideSelectionToolbar();
         widget.onSelectionCleared?.call();
       },
     );
