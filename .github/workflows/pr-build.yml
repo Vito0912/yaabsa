@@ -198,6 +198,13 @@ jobs:
       - name: Build Windows debug bundle
         run: flutter build windows --debug
 
+      - name: Upload Windows debug bundle
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-debug-bundle
+          path: build/windows/x64/runner/Debug/
+          retention-days: 1
+
   build-android-auto:
     runs-on: ubuntu-latest
     needs: [detect-targets, check-requirements]

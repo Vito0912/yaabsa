@@ -4,6 +4,7 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   app_links
+  audio_service_win
   connectivity_plus
   desktop_drop
   file_selector_windows
