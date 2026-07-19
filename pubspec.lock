@@ -87,7 +87,7 @@ packages:
       path: "packages/audio_service/audio_service"
       relative: true
     source: path
-    version: "0.18.18"
+    version: "0.18.19"
   audio_service_mpris:
     dependency: "direct main"
     description:
@@ -110,6 +110,13 @@ packages:
       relative: true
     source: path
     version: "0.1.4"
+  audio_service_win:
+    dependency: "direct main"
+    description:
+      path: "packages/audio_service_win"
+      relative: true
+    source: path
+    version: "0.0.3"
   audio_session:
     dependency: transitive
     description:
