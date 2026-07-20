@@ -80,6 +80,8 @@ dependencies:
   tray_manager: ^0.5.3
 
   ## Windows
+  audio_service_win:
+    path: ./packages/audio_service_win
   media_kit_libs_windows_audio: any
 
   ## Linux

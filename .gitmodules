@@ -4,3 +4,6 @@
 [submodule "packages/foliate_reader/foliate-js"]
 	path = packages/foliate_reader/foliate-js
 	url = git@github.com:Vito0912/foliate-js.git
+[submodule "packages/audio_service_win"]
+	path = packages/audio_service_win
+	url = git@github.com:Vito0912/audio_service_win.git
