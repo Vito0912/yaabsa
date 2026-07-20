@@ -95,6 +95,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   late final StreamSubscription<String?> _mediaNotificationTypeSubscription;
   late final StreamSubscription<String?> _mediaNotificationPagesSubscription;
   late final StreamSubscription<String?> _showSkipInsteadOfFastForwardSubscription;
+  late final StreamSubscription<String?> _desktopSkipControlsSeekSubscription;
   int _currentNotificationPageIndex = 0;
   List<List<String>> _notificationPages = const [
     ['rewind', 'fastForward', 'speed', 'stop'],
@@ -806,6 +807,15 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     return Duration(seconds: safeSeconds);
   }
 
+  bool get _seekWithDesktopSkipControls {
+    if (kIsWeb || (!Platform.isLinux && !Platform.isMacOS && !Platform.isWindows)) {
+      return false;
+    }
+    return _ref
+        .read(settingsManagerProvider.notifier)
+        .getGlobalSetting<bool>(SettingKeys.desktopSkipControlsSeek, defaultValue: false);
+  }
+
   @override
   Future<void> fastForward() async {
     if (_currentMediaItem == null) return Future.value();
@@ -830,6 +840,14 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   @override
   Future<void> skipToNext() async {
+    if (_currentMediaItem == null) return;
+    if (_seekWithDesktopSkipControls) {
+      return fastForward();
+    }
+    return skipToNextInApp();
+  }
+
+  Future<void> skipToNextInApp() async {
     if (_currentMediaItem == null) return;
     return _queueSkipOperation(() async {
       if (_currentMediaItem == null) return;
@@ -878,6 +896,14 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   @override
   Future<void> skipToPrevious() async {
+    if (_currentMediaItem == null) return;
+    if (_seekWithDesktopSkipControls) {
+      return rewind();
+    }
+    return skipToPreviousInApp();
+  }
+
+  Future<void> skipToPreviousInApp() async {
     if (_currentMediaItem == null) return;
     return _queueSkipOperation(() async {
       if (_currentMediaItem == null) return;
@@ -1104,6 +1130,16 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     _showSkipInsteadOfFastForwardSubscription = _ref
         .read(appDatabaseProvider)
         .watchGlobalSetting(SettingKeys.showSkipInsteadOfFastForward)
+        .map((setting) => setting?.value.trim())
+        .distinct()
+        .listen((_) {
+          if (_isDisposing) return;
+          unawaited(_updatePlaybackState());
+        });
+
+    _desktopSkipControlsSeekSubscription = _ref
+        .read(appDatabaseProvider)
+        .watchGlobalSetting(SettingKeys.desktopSkipControlsSeek)
         .map((setting) => setting?.value.trim())
         .distinct()
         .listen((_) {
@@ -1584,7 +1620,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           .read(settingsManagerProvider.notifier)
           .getGlobalSetting<bool>(SettingKeys.showSkipInsteadOfFastForward, defaultValue: false);
 
-      final useSkip = showSkipInsteadOfFastForward && hasChaptersOrQueue;
+      final useSkip = _seekWithDesktopSkipControls || (showSkipInsteadOfFastForward && hasChaptersOrQueue);
       if (useSkip) {
         finalSystemActions = const {
           MediaAction.seek,
@@ -1683,6 +1719,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     await _mediaNotificationTypeSubscription.cancel();
     await _mediaNotificationPagesSubscription.cancel();
     await _showSkipInsteadOfFastForwardSubscription.cancel();
+    await _desktopSkipControlsSeekSubscription.cancel();
     await _chapterSubscription?.cancel();
     await _skipSilenceSubscription?.cancel();
     _skipSilenceSubscription = null;

@@ -131,6 +131,7 @@ class SettingKeys {
   static const String mixQueue = 'mix_queue';
   static const String showPlayerLoopShuffle = 'show_player_loop_shuffle';
   static const String showSkipInsteadOfFastForward = 'show_skip_instead_of_fast_forward';
+  static const String desktopSkipControlsSeek = 'desktop_skip_controls_seek';
   static const String downloadTypePreference = 'download_type_preference';
 }
 
@@ -275,6 +276,7 @@ final defaultSettings = {
   SettingKeys.mixQueue: false,
   SettingKeys.showPlayerLoopShuffle: 'music_only',
   SettingKeys.showSkipInsteadOfFastForward: false,
+  SettingKeys.desktopSkipControlsSeek: false,
   SettingKeys.downloadTypePreference: 'askEveryTime',
 };
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/database/app_database.dart';
@@ -17,6 +19,7 @@ class SettingSwitchTile extends ConsumerWidget {
     this.enabled = true,
     this.defaultValue,
     this.onChanged,
+    this.onBeforeChanged,
     this.isLoading = false,
   }) : value = null,
        onValueChanged = null;
@@ -35,7 +38,8 @@ class SettingSwitchTile extends ConsumerWidget {
   }) : settingKey = null,
        userId = null,
        defaultValue = null,
-       onChanged = null;
+       onChanged = null,
+       onBeforeChanged = null;
 
   final String label;
   final String? settingKey;
@@ -47,6 +51,7 @@ class SettingSwitchTile extends ConsumerWidget {
   final bool enabled;
   final bool? defaultValue;
   final ValueChanged<bool>? onChanged;
+  final FutureOr<bool> Function(BuildContext context, bool newValue)? onBeforeChanged;
   final bool? value;
   final ValueChanged<bool>? onValueChanged;
   final bool isLoading;
@@ -159,10 +164,19 @@ class SettingSwitchTile extends ConsumerWidget {
             context,
             currentValue,
             enabled && !isLoading
-                ? (newValue) {
-                    ref.read(settingsManagerProvider.notifier).setGlobalSetting<bool>(settingKeyValue, newValue);
-                    onChanged?.call(newValue);
-                  }
+                ? onBeforeChanged == null
+                      ? (newValue) {
+                          ref.read(settingsManagerProvider.notifier).setGlobalSetting<bool>(settingKeyValue, newValue);
+                          onChanged?.call(newValue);
+                        }
+                      : (newValue) async {
+                          final shouldChange = await onBeforeChanged!(context, newValue);
+                          if (!shouldChange) return;
+                          await ref
+                              .read(settingsManagerProvider.notifier)
+                              .setGlobalSetting<bool>(settingKeyValue, newValue);
+                          onChanged?.call(newValue);
+                        }
                 : null,
             subtitleText,
           );
@@ -195,12 +209,21 @@ class SettingSwitchTile extends ConsumerWidget {
           context,
           currentValue,
           enabled && !isLoading
-              ? (newValue) {
-                  ref
-                      .read(settingsManagerProvider.notifier)
-                      .setUserSetting<bool>(activeUserId, settingKeyValue, newValue);
-                  onChanged?.call(newValue);
-                }
+              ? onBeforeChanged == null
+                    ? (newValue) {
+                        ref
+                            .read(settingsManagerProvider.notifier)
+                            .setUserSetting<bool>(activeUserId, settingKeyValue, newValue);
+                        onChanged?.call(newValue);
+                      }
+                    : (newValue) async {
+                        final shouldChange = await onBeforeChanged!(context, newValue);
+                        if (!shouldChange) return;
+                        await ref
+                            .read(settingsManagerProvider.notifier)
+                            .setUserSetting<bool>(activeUserId, settingKeyValue, newValue);
+                        onChanged?.call(newValue);
+                      }
               : null,
           subtitleText,
         );

@@ -25,6 +25,11 @@ class PlayerSettingsGeneral extends ConsumerWidget {
     final autoQueueDefault = defaultSettings[SettingKeys.autoQueue] as bool? ?? true;
     final autoQueueEnabled = SettingsParser.decodeValue<bool>(autoQueueSetting, autoQueueDefault);
     final isAndroid = !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+    final isDesktop =
+        !kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.linux ||
+            defaultTargetPlatform == TargetPlatform.macOS ||
+            defaultTargetPlatform == TargetPlatform.windows);
     final autoResumeSetting = ref
         .watch(globalSettingByKeyProvider(SettingKeys.autoResumeOnBluetoothConnection))
         .asData
@@ -119,6 +124,32 @@ class PlayerSettingsGeneral extends ConsumerWidget {
               subtitle: 'Show skip next/previous instead of fast forward/rewind',
               settingKey: SettingKeys.showSkipInsteadOfFastForward,
             ),
+            if (isDesktop)
+              SettingSwitchTile(
+                label: 'Seek with media skip controls',
+                subtitle: 'Make external next/previous media controls seek by the configured skip intervals',
+                settingKey: SettingKeys.desktopSkipControlsSeek,
+                onBeforeChanged: (context, enabled) async {
+                  if (!enabled) return true;
+
+                  return await showDialog<bool>(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Seek with media skip controls?'),
+                          content: const Text(
+                            'This changes how Yaabsa handles external media controls, such as Bluetooth headset buttons and media keyboard hotkeys. '
+                            'Next and previous will seek by the configured intervals instead of skipping chapters or queue items.\n\n'
+                            'Buttons inside Yaabsa keep their normal skip behavior. This setting affects only Yaabsa.',
+                          ),
+                          actions: [
+                            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+                            FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Enable')),
+                          ],
+                        ),
+                      ) ??
+                      false;
+                },
+              ),
             if (isAndroid)
               const SettingSwitchTile(
                 label: 'Skip silence',

@@ -12,7 +12,7 @@ class SkipButton extends StatelessWidget {
       return IconButton(
         icon: const Icon(Icons.skip_previous_outlined),
         onPressed: () {
-          audioHandler.skipToPrevious();
+          audioHandler.skipToPreviousInApp();
         },
       );
     }
@@ -26,7 +26,7 @@ class SkipButton extends StatelessWidget {
           icon: const Icon(Icons.skip_next_outlined),
           onPressed: canSkip
               ? () {
-                  audioHandler.skipToNext();
+                  audioHandler.skipToNextInApp();
                 }
               : null,
         );
