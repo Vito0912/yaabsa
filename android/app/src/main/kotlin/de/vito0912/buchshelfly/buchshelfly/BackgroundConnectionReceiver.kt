@@ -72,7 +72,13 @@ class BackgroundConnectionReceiver : BroadcastReceiver() {
                 context,
                 PlaybackStateCompat.ACTION_PLAY
             )
-            pendingIntent?.send()
+            if (pendingIntent == null) {
+                Log.w(TAG, "Could not create ACTION_PLAY media button pending intent")
+                return
+            }
+
+            pendingIntent.send()
+            WidgetMediaSessionObserver.ensureConnected(context)
             Log.d(TAG, "Sent ACTION_PLAY media button pending intent")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to send media button intent: ${e.message}")

@@ -68,7 +68,7 @@ object WidgetMediaSessionObserver {
                         mediaController?.unregisterCallback(mediaControllerCallback)
                         mediaController = controller
                         controller.registerCallback(mediaControllerCallback)
-                        
+
                         WidgetUpdateDispatcher.updatePlayerWidgets(context)
                         WidgetUpdateDispatcher.updateQuickPlayWidgets(context)
                     } catch (_: Exception) {
