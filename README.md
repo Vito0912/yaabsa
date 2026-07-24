@@ -150,9 +150,10 @@ Below is a list of all features, but I want to _highlight_ a few, as this client
 | Car                 | ✅      | ✅   | ❌      | ❌    | ❌    |
 | Android Automotive  | ✅      | ❌   | ❌      | ❌    | ❌    |
 | Widgets             | ✅      | 🅿️   | ❌      | ❌    | ❌    |
-| OIDC Login          | ✅      | ❓   | ✅      | ❓    | ✅    |
+| OIDC Login\*\*      | ✅      | ❓   | ✅      | ❓    | ✅    |
 
-\* Only supports the default download location, due to sandboxing limitations. Will be addressed in the future.y
+\* Only supports the default download location, due to sandboxing limitations. Will be addressed in the future.\
+\*\* You need to add `yaabsa://oauth` to the list of "Allowed Mobile Redirect URIs" in the OIDC settings of ABS. Please see the [ABS docs](https://audiobookshelf.org/docs/documentation/server-management/oidc-authentication#manual-configuration) for more information.
 
 ### Server Management
 

@@ -58,7 +58,10 @@ class SignIn extends HookConsumerWidget {
 
     final oidcState = ref.watch(oidcStateProvider);
     final oidcLoading = oidcState.isLoading;
-    final oidcError = oidcState.maybeWhen(error: (error, _) => error.toString(), orElse: () => null);
+    final oidcError = oidcState.maybeWhen(
+      error: (error, _) => error is Exception ? error.toString().replaceFirst('Exception: ', '') : error.toString(),
+      orElse: () => null,
+    );
 
     ref.listen<AsyncValue<String?>>(activeUserIdProvider, (previous, next) {
       final userId = next.value;
@@ -444,7 +447,13 @@ class SignIn extends HookConsumerWidget {
           ),
         );
       } catch (e) {
-        setErrorMessage('Failed to start OpenID Connect: $e');
+        final formatted = formatOidcError(e);
+        if (formatted is Exception) {
+          final msg = formatted.toString().replaceFirst('Exception: ', '');
+          setErrorMessage(msg);
+        } else {
+          setErrorMessage('Failed to start OpenID Connect: $formatted');
+        }
       }
     }
 

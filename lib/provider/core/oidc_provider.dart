@@ -126,8 +126,10 @@ class OidcState extends _$OidcState {
 
       state = const AsyncValue.data(null);
     } catch (e, st) {
-      logger('Failed to initiate OIDC flow: $e\n$st', tag: 'OidcProvider', level: InfoLevel.error);
-      state = AsyncValue.error(e, st);
+      final errorToSet = formatOidcError(e);
+      logger('Failed to initiate OIDC flow: $errorToSet', tag: 'OidcProvider', level: InfoLevel.error);
+      state = AsyncValue.error(errorToSet, st);
+      throw errorToSet;
     }
   }
 
@@ -260,14 +262,27 @@ class OidcState extends _$OidcState {
 
       state = const AsyncValue.data(null);
     } catch (e, st) {
-      logger('OIDC Callback exchange failed: $e\n$st', tag: 'OidcProvider', level: InfoLevel.error);
-      state = AsyncValue.error(e, st);
+      final errorToSet = formatOidcError(e);
+      logger('OIDC Callback exchange failed: $errorToSet', tag: 'OidcProvider', level: InfoLevel.error);
+      state = AsyncValue.error(errorToSet, st);
     }
   }
 
   void clearError() {
     state = const AsyncValue.data(null);
   }
+}
+
+Object formatOidcError(Object e) {
+  if (e is DioException) {
+    final statusCode = e.response?.statusCode;
+    if (statusCode == 400) {
+      return Exception(
+        'HTTP 400 Bad Request: Invalid redirect_uri. Please make sure "yaabsa://oauth" is added under Allowed Mobile Redirect URIs in the Auth settings of ABS.',
+      );
+    }
+  }
+  return e;
 }
 
 String _generateCodeVerifier() {
