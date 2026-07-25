@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.6.0
+
+### Added
+
+- Show text for the OAuth process if yaabsa is not in the Allowed Mobile Redirect URIs list
+- (Windows) Add support for media controls
+- (Desktop) Add support for skip buttons to seek instead
+
+### Fixed
+
+- (Android) The widget did not sync when the app was in the background and started by auto-resume
+
 ## 1.5.2
 
 ### Fixed
