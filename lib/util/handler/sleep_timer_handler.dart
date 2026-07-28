@@ -135,7 +135,7 @@ class SleepTimerHandler extends _$SleepTimerHandler {
       return;
     }
 
-    _fadeBaseVolume ??= audioHandler.player.volume;
+    _fadeBaseVolume ??= audioHandler.volume;
     final fadeBaseVolume = _fadeBaseVolume;
     if (fadeBaseVolume == null || fadeBaseVolume <= 0) {
       return;

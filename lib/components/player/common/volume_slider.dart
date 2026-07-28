@@ -1,10 +1,10 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:yaabsa/components/player/common/volume_slider_panel.dart';
 import 'package:yaabsa/util/globals.dart';
-import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 
 class VolumeSlider extends StatefulWidget {
   const VolumeSlider({super.key});
@@ -37,7 +37,7 @@ class _VolumeSliderState extends State<VolumeSlider> {
       stream: audioHandler.volumeStream,
       initialData: 1.0,
       builder: (context, snapshot) {
-        final volume = (snapshot.data ?? 1.0).clamp(0.0, BGAudioHandler.maxVolume).toDouble();
+        final volume = (snapshot.data ?? 1.0).clamp(0.0, audioHandler.maxVolume).toDouble();
         if (volume > 0) {
           _lastNonZeroVolume = volume;
         }
@@ -80,6 +80,15 @@ class _VolumeSliderState extends State<VolumeSlider> {
       return;
     }
 
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.linux) {
+      if (_popupEntry == null) {
+        _showPopup(context);
+      } else {
+        _hidePopup();
+      }
+      return;
+    }
+
     _hidePopup();
 
     showModalBottomSheet<void>(
@@ -102,7 +111,7 @@ class _VolumeSliderState extends State<VolumeSlider> {
 
   void _toggleMute(double currentVolume) {
     if (currentVolume <= 0.01) {
-      final restoreVolume = _lastNonZeroVolume.clamp(0.0, BGAudioHandler.maxVolume).toDouble();
+      final restoreVolume = _lastNonZeroVolume.clamp(0.0, audioHandler.maxVolume).toDouble();
       audioHandler.setVolume(restoreVolume == 0 ? 1.0 : restoreVolume);
       return;
     }

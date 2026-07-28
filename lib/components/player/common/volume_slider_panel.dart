@@ -1,14 +1,9 @@
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/util/globals.dart';
-import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
-import 'package:yaabsa/util/setting_key.dart';
 
-class VolumeSliderPanel extends ConsumerWidget {
+class VolumeSliderPanel extends StatelessWidget {
   const VolumeSliderPanel({super.key, required this.axis});
 
   static const double _minDb = -30.0;
@@ -16,8 +11,7 @@ class VolumeSliderPanel extends ConsumerWidget {
 
   final Axis axis;
 
-  double _volumeToSliderValue(double volume) {
-    final maxVolume = BGAudioHandler.maxVolume;
+  double _volumeToSliderValue(double volume, double maxVolume) {
     if (maxVolume <= 0) {
       return 0.0;
     }
@@ -38,8 +32,7 @@ class VolumeSliderPanel extends ConsumerWidget {
     return math.pow(normalizedDb, 1 / _dbCurve).toDouble().clamp(0.0, 1.0);
   }
 
-  double _sliderValueToVolume(double sliderValue) {
-    final maxVolume = BGAudioHandler.maxVolume;
+  double _sliderValueToVolume(double sliderValue, double maxVolume) {
     if (maxVolume <= 0) {
       return 0.0;
     }
@@ -62,29 +55,39 @@ class VolumeSliderPanel extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final showBoostToggle = !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+  Widget build(BuildContext context) {
+    return StreamBuilder<bool>(
+      stream: audioHandler.volumeBoostAvailableStream,
+      initialData: audioHandler.volumeBoostAvailable,
+      builder: (context, _) {
+        return StreamBuilder<double>(
+          stream: audioHandler.volumeStream,
+          initialData: 1.0,
+          builder: (context, snapshot) {
+            final maxVolume = audioHandler.maxVolume;
+            final volume = (snapshot.data ?? 1.0).clamp(0.0, maxVolume).toDouble();
+            final sliderValue = _volumeToSliderValue(volume, maxVolume);
+            final unitySliderValue = _volumeToSliderValue(1.0, maxVolume);
 
-    return StreamBuilder<double>(
-      stream: audioHandler.volumeStream,
-      initialData: 1.0,
-      builder: (context, snapshot) {
-        final maxVolume = BGAudioHandler.maxVolume;
-        final volume = (snapshot.data ?? 1.0).clamp(0.0, maxVolume).toDouble();
-        final sliderValue = _volumeToSliderValue(volume);
+            if (axis == Axis.vertical) {
+              return _VerticalVolumePanel(
+                maxVolume: maxVolume,
+                sliderValue: sliderValue,
+                unitySliderValue: unitySliderValue,
+                sliderValueToVolume: (double value) => _sliderValueToVolume(value, maxVolume),
+                onChanged: (value) => audioHandler.setVolume(_sliderValueToVolume(value, maxVolume)),
+              );
+            }
 
-        if (axis == Axis.vertical) {
-          return _VerticalVolumePanel(
-            sliderValue: sliderValue,
-            onChanged: (value) => audioHandler.setVolume(_sliderValueToVolume(value)),
-          );
-        }
-
-        return _HorizontalVolumePanel(
-          volume: volume,
-          sliderValue: sliderValue,
-          onChanged: (value) => audioHandler.setVolume(_sliderValueToVolume(value)),
-          boostToggle: showBoostToggle ? const _VolumeBoostToggle() : null,
+            return _HorizontalVolumePanel(
+              volume: volume,
+              maxVolume: maxVolume,
+              sliderValue: sliderValue,
+              unitySliderValue: unitySliderValue,
+              sliderValueToVolume: (double value) => _sliderValueToVolume(value, maxVolume),
+              onChanged: (value) => audioHandler.setVolume(_sliderValueToVolume(value, maxVolume)),
+            );
+          },
         );
       },
     );
@@ -94,15 +97,19 @@ class VolumeSliderPanel extends ConsumerWidget {
 class _HorizontalVolumePanel extends StatelessWidget {
   const _HorizontalVolumePanel({
     required this.volume,
+    required this.maxVolume,
     required this.sliderValue,
+    required this.unitySliderValue,
+    required this.sliderValueToVolume,
     required this.onChanged,
-    this.boostToggle,
   });
 
   final double volume;
+  final double maxVolume;
   final double sliderValue;
+  final double unitySliderValue;
+  final double Function(double) sliderValueToVolume;
   final ValueChanged<double> onChanged;
-  final Widget? boostToggle;
 
   @override
   Widget build(BuildContext context) {
@@ -117,7 +124,13 @@ class _HorizontalVolumePanel extends StatelessWidget {
             Icon(Icons.volume_down_rounded, color: Theme.of(context).colorScheme.primary),
             const SizedBox(width: 8),
             Expanded(
-              child: _VolumeSlider(value: sliderValue, onChanged: onChanged),
+              child: _VolumeSlider(
+                value: sliderValue,
+                maxVolume: maxVolume,
+                unitySliderValue: unitySliderValue,
+                sliderValueToVolume: sliderValueToVolume,
+                onChanged: onChanged,
+              ),
             ),
             const SizedBox(width: 8),
             Icon(Icons.volume_up_rounded, color: Theme.of(context).colorScheme.primary),
@@ -125,16 +138,24 @@ class _HorizontalVolumePanel extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text('${(volume * 100).round()}%', style: Theme.of(context).textTheme.bodyMedium),
-        if (boostToggle != null) ...[const Divider(height: 24), boostToggle!],
       ],
     );
   }
 }
 
 class _VerticalVolumePanel extends StatelessWidget {
-  const _VerticalVolumePanel({required this.sliderValue, required this.onChanged});
+  const _VerticalVolumePanel({
+    required this.maxVolume,
+    required this.sliderValue,
+    required this.unitySliderValue,
+    required this.sliderValueToVolume,
+    required this.onChanged,
+  });
 
+  final double maxVolume;
   final double sliderValue;
+  final double unitySliderValue;
+  final double Function(double) sliderValueToVolume;
   final ValueChanged<double> onChanged;
 
   @override
@@ -144,39 +165,123 @@ class _VerticalVolumePanel extends StatelessWidget {
       height: 182,
       child: RotatedBox(
         quarterTurns: 3,
-        child: _VolumeSlider(value: sliderValue, onChanged: onChanged),
+        child: _VolumeSlider(
+          value: sliderValue,
+          maxVolume: maxVolume,
+          unitySliderValue: unitySliderValue,
+          sliderValueToVolume: sliderValueToVolume,
+          onChanged: onChanged,
+        ),
       ),
     );
   }
 }
 
-class _VolumeSlider extends StatelessWidget {
-  const _VolumeSlider({required this.value, required this.onChanged});
+class _VolumeSlider extends StatefulWidget {
+  const _VolumeSlider({
+    required this.value,
+    required this.maxVolume,
+    required this.unitySliderValue,
+    required this.sliderValueToVolume,
+    required this.onChanged,
+  });
 
   final double value;
+  final double maxVolume;
+  final double unitySliderValue;
+  final double Function(double) sliderValueToVolume;
   final ValueChanged<double> onChanged;
 
   @override
+  State<_VolumeSlider> createState() => _VolumeSliderState();
+}
+
+class _VolumeSliderState extends State<_VolumeSlider> {
+  static const double _detentCapture = 0.02;
+  static const double _detentRelease = 0.04;
+  bool _detentLatched = false;
+
+  void _handleChanged(double rawSliderValue) {
+    final rawVolume = widget.sliderValueToVolume(rawSliderValue);
+    if (_detentLatched && (rawVolume - 1.0).abs() > _detentRelease) {
+      _detentLatched = false;
+    }
+    if (!_detentLatched && (rawVolume - 1.0).abs() <= _detentCapture) {
+      _detentLatched = true;
+    }
+    widget.onChanged(_detentLatched ? widget.unitySliderValue : rawSliderValue);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Slider(value: value, min: 0.0, max: 1.0, onChanged: onChanged);
+    final showMarker = widget.maxVolume > 1.0;
+    return SliderTheme(
+      data: SliderTheme.of(context).copyWith(
+        trackShape: showMarker
+            ? _UnityMarkerTrackShape(
+                position: widget.unitySliderValue,
+                color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.45),
+              )
+            : null,
+      ),
+      child: Slider(
+        value: widget.value,
+        min: 0.0,
+        max: 1.0,
+        onChanged: _handleChanged,
+        onChangeStart: (_) => _detentLatched = false,
+        onChangeEnd: (_) => _detentLatched = false,
+      ),
+    );
   }
 }
 
-class _VolumeBoostToggle extends ConsumerWidget {
-  const _VolumeBoostToggle();
+class _UnityMarkerTrackShape extends RoundedRectSliderTrackShape {
+  const _UnityMarkerTrackShape({required this.position, required this.color});
+
+  final double position;
+  final Color color;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final setting = ref.watch(globalSettingByKeyProvider(SettingKeys.volumeBoostEnabled)).asData?.value;
-    final isEnabled = SettingsParser.decodeValue<bool>(setting, false);
+  void paint(
+    PaintingContext context,
+    Offset offset, {
+    required RenderBox parentBox,
+    required SliderThemeData sliderTheme,
+    required Animation<double> enableAnimation,
+    required TextDirection textDirection,
+    required Offset thumbCenter,
+    Offset? secondaryOffset,
+    bool isDiscrete = false,
+    bool isEnabled = false,
+    double additionalActiveTrackHeight = 2,
+  }) {
+    super.paint(
+      context,
+      offset,
+      parentBox: parentBox,
+      sliderTheme: sliderTheme,
+      enableAnimation: enableAnimation,
+      textDirection: textDirection,
+      thumbCenter: thumbCenter,
+      secondaryOffset: secondaryOffset,
+      isDiscrete: isDiscrete,
+      isEnabled: isEnabled,
+      additionalActiveTrackHeight: additionalActiveTrackHeight,
+    );
 
-    return SwitchListTile(
-      contentPadding: EdgeInsets.zero,
-      title: const Text('Volume Boost'),
-      value: isEnabled,
-      onChanged: (value) {
-        ref.read(settingsManagerProvider.notifier).setGlobalSetting<bool>(SettingKeys.volumeBoostEnabled, value);
-      },
+    final trackRect = getPreferredRect(
+      parentBox: parentBox,
+      offset: offset,
+      sliderTheme: sliderTheme,
+      isEnabled: isEnabled,
+      isDiscrete: isDiscrete,
+    );
+    final markerPaint = Paint()..color = color;
+    final markerX = trackRect.left + (trackRect.width * position);
+    context.canvas.drawRect(
+      Rect.fromCenter(center: Offset(markerX, trackRect.center.dy), width: 2, height: 8),
+      markerPaint,
     );
   }
 }

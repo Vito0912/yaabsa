@@ -4,11 +4,25 @@ extension _BGAudioHandlerPreferences on BGAudioHandler {
   Future<void> _applyVolume(double volume) async {
     final normalizedVolume = _clampVolume(volume);
     _volumeSubject.add(normalizedVolume);
+    final loudnessEnhancer = _loudnessEnhancer;
+    if (loudnessEnhancer != null && BGAudioHandler.supportsVolumeBoostPlatform && Platform.isAndroid) {
+      final baseVolume = normalizedVolume.clamp(0.0, 1.0).toDouble();
+      await _player.setVolume(baseVolume);
+      if (normalizedVolume > 1.0 && volumeBoostAvailable) {
+        final targetGain = 20 * math.log(normalizedVolume) / math.ln10;
+        await loudnessEnhancer.setTargetGain(targetGain);
+        await loudnessEnhancer.setEnabled(true);
+      } else {
+        await loudnessEnhancer.setEnabled(false);
+      }
+      return;
+    }
+
     await _player.setVolume(normalizedVolume);
   }
 
   Future<void> _setVolumeInternal(double volume) async {
-    if (volume < 0 || volume > BGAudioHandler.maxVolume) {
+    if (volume < 0 || volume > maxVolume) {
       logger('Volume out of bounds: $volume', tag: 'AudioHandler', level: InfoLevel.error);
       return Future.value();
     }
@@ -41,7 +55,7 @@ extension _BGAudioHandlerPreferences on BGAudioHandler {
   }
 
   double _clampVolume(double volume) {
-    return volume.clamp(0.0, BGAudioHandler.maxVolume).toDouble();
+    return volume.clamp(0.0, maxVolume).toDouble();
   }
 
   double _clampSpeed(double speed) {
