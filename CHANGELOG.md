@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.7.0
+
+### Added
+
+- (Linux) Support for Volume boost
+
+### Fixed
+
+- (Android) Fixed a playback crash when registering audio effects on some devices
+
 ## 1.6.0
 
 ### Added
