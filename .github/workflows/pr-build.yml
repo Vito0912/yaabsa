@@ -244,7 +244,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: android-auto-debug-apk
-          path: build/app/outputs/flutter-apk/*.apk
+          path: build/app/outputs/flutter-apk/app-auto-debug.apk
           retention-days: 1
 
   build-android-automotive:
