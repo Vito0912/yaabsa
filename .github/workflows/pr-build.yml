@@ -240,21 +240,11 @@ jobs:
       - name: Build Android Auto debug APK
         run: flutter build apk --flavor auto --debug
 
-      - name: Build Android Auto release APK
-        run: flutter build apk --flavor auto --release
-
       - name: Upload Android Auto APK
         uses: actions/upload-artifact@v7
         with:
           name: android-auto-debug-apk
           path: build/app/outputs/flutter-apk/app-auto-debug.apk
-          retention-days: 1
-
-      - name: Upload Android Auto release APK
-        uses: actions/upload-artifact@v7
-        with:
-          name: android-auto-release-apk
-          path: build/app/outputs/flutter-apk/app-auto-release.apk
           retention-days: 1
 
   build-android-automotive:
