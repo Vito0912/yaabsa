@@ -119,23 +119,79 @@ extension _BGAudioHandlerResume on BGAudioHandler {
     return _playLastPlayedInternal(requireStartupSettingEnabled: true, resumeCurrentIfPaused: false);
   }
 
-  Future<void> _restoreLastPlayedMiniPlayerIfEnabledInternal({String? explicitUserId}) async {
-    if (_currentMediaItem != null || _queueTransitionLoading) {
+  Future<void> _handleActiveUserIdEmission(String activeUserId, {required bool stopPlayback}) async {
+    if (stopPlayback) {
+      _lastPlayedMiniPlayerRestoreGeneration += 1;
+    }
+
+    if (stopPlayback && (_currentMediaItem != null || queueList.isNotEmpty || _queueTransitionLoading)) {
+      await stop(clearQueue: true);
+    }
+
+    if (_isDisposing || _observedActiveUserId != activeUserId) {
       return;
     }
 
-    _setLastPlayedMiniPlayerSnapshot(null);
+    if (stopPlayback) {
+      _lastQueueItem = null;
+      _restoredMediaItem = null;
+      _restoredPosition = Duration.zero;
+      _setLastPlayedMiniPlayerSnapshot(null);
+    }
 
-    final lastPlayedItem = await _readLastPlayedQueueItemForActiveUser(explicitUserId: explicitUserId);
+    // Clear Android Auto auth error as soon as login becomes active.
+    unawaited(_androidAutoClearAuthenticationRequiredState(this, refreshBrowseRoots: true));
+    await _restoreLastPlayedMiniPlayerIfEnabledInternal(explicitUserId: activeUserId);
+  }
+
+  Future<void> _restoreLastPlayedMiniPlayerIfEnabledInternal({String? explicitUserId}) async {
+    final userId = await _readActiveUserId(explicitUserId: explicitUserId);
+    if (userId == null || userId.isEmpty || _currentMediaItem != null || _queueTransitionLoading) {
+      return;
+    }
+
+    final activeRestore = _lastPlayedMiniPlayerRestoreFuture;
+    if (activeRestore != null &&
+        _lastPlayedMiniPlayerRestoreUserId == userId &&
+        _lastPlayedMiniPlayerRestoreActiveGeneration == _lastPlayedMiniPlayerRestoreGeneration) {
+      await activeRestore;
+      return;
+    }
+
+    final generation = ++_lastPlayedMiniPlayerRestoreGeneration;
+    final restore = _performLastPlayedMiniPlayerRestore(userId: userId, generation: generation);
+    _lastPlayedMiniPlayerRestoreUserId = userId;
+    _lastPlayedMiniPlayerRestoreActiveGeneration = generation;
+    _lastPlayedMiniPlayerRestoreFuture = restore;
+
+    try {
+      await restore;
+    } finally {
+      if (identical(_lastPlayedMiniPlayerRestoreFuture, restore)) {
+        _lastPlayedMiniPlayerRestoreFuture = null;
+        _lastPlayedMiniPlayerRestoreUserId = null;
+        _lastPlayedMiniPlayerRestoreActiveGeneration = null;
+      }
+    }
+  }
+
+  Future<void> _performLastPlayedMiniPlayerRestore({required String userId, required int generation}) async {
+    final lastPlayedItem = await _readLastPlayedQueueItemForActiveUser(explicitUserId: userId);
     if (lastPlayedItem == null) {
       return;
     }
 
-    _lastQueueItem = lastPlayedItem;
-
-    final rawSnapshot = await _readLastPlayedMiniPlayerSnapshotRawForActiveUser(explicitUserId: explicitUserId);
+    final rawSnapshot = await _readLastPlayedMiniPlayerSnapshotRawForActiveUser(explicitUserId: userId);
     final snapshot = LastPlayedMiniPlayerSnapshot.fromRawJson(rawSnapshot);
     if (snapshot == null) {
+      return;
+    }
+
+    final progress = await _ref
+        .read(mediaProgressProvider.notifier)
+        .fetchOrRefreshIndividualProgress(lastPlayedItem.itemId, episodeId: lastPlayedItem.episodeId, userId: userId);
+
+    if (!_canPublishLastPlayedMiniPlayerRestore(userId: userId, generation: generation)) {
       return;
     }
 
@@ -156,13 +212,6 @@ extension _BGAudioHandlerResume on BGAudioHandler {
     final isEnabled = _ref
         .read(settingsManagerProvider.notifier)
         .getGlobalSetting<bool>(SettingKeys.showLastPlayedMiniPlayerAlways);
-    if (isEnabled) {
-      _setLastPlayedMiniPlayerSnapshot(finalSnapshot);
-    }
-
-    final progress = await _ref
-        .read(mediaProgressProvider.notifier)
-        .fetchOrRefreshIndividualProgress(lastPlayedItem.itemId, episodeId: lastPlayedItem.episodeId);
 
     final resumePosition = progress != null
         ? Duration(microseconds: (progress.currentTime * Duration.microsecondsPerSecond).round())
@@ -171,6 +220,7 @@ extension _BGAudioHandlerResume on BGAudioHandler {
         ? Duration(microseconds: (progress.duration * Duration.microsecondsPerSecond).round())
         : Duration.zero;
 
+    _lastQueueItem = lastPlayedItem;
     _restoredPosition = resumePosition;
     _restoredMediaItem = MediaItem(
       id: finalSnapshot.episodeId ?? finalSnapshot.itemId,
@@ -183,11 +233,20 @@ extension _BGAudioHandlerResume on BGAudioHandler {
       isLive: false,
       artUri: finalSnapshot.cover,
     );
+    _setLastPlayedMiniPlayerSnapshot(isEnabled ? finalSnapshot : null);
 
-    if (_currentMediaItem == null) {
-      mediaItem.add(_restoredMediaItem);
-      unawaited(_updatePlaybackState());
-    }
+    mediaItem.add(_restoredMediaItem);
+    unawaited(_updatePlaybackState());
+  }
+
+  bool _canPublishLastPlayedMiniPlayerRestore({required String userId, required int generation}) {
+    final observedUserId = _observedActiveUserId;
+    return !_isDisposing &&
+        generation == _lastPlayedMiniPlayerRestoreGeneration &&
+        (observedUserId == null || observedUserId == userId) &&
+        _currentMediaItem == null &&
+        queueList.isEmpty &&
+        !_queueTransitionLoading;
   }
 
   Future<QueueItem?> _readLastPlayedQueueItemForActiveUser({String? explicitUserId}) async {

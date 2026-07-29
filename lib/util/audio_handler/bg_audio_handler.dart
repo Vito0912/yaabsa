@@ -164,6 +164,12 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   final BehaviorSubject<bool> _castControlActiveSubject = BehaviorSubject<bool>.seeded(false);
   String? _castControlledContentId;
   int _castControlledTrackIndex = 0;
+  bool _hasObservedActiveUserId = false;
+  String? _observedActiveUserId;
+  Future<void>? _lastPlayedMiniPlayerRestoreFuture;
+  String? _lastPlayedMiniPlayerRestoreUserId;
+  int _lastPlayedMiniPlayerRestoreGeneration = 0;
+  int? _lastPlayedMiniPlayerRestoreActiveGeneration;
   MediaItem? _restoredMediaItem;
   Duration _restoredPosition = Duration.zero;
   BehaviorSubject<InternalMedia?> mediaItemStream = BehaviorSubject<InternalMedia?>();
@@ -643,6 +649,14 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
     QueueItem? nextItem = nextEntry?.item;
 
+    if (nextEntry == null && _restoredMediaItem != null) {
+      final resumed = await _playLastPlayedInternal(requireStartupSettingEnabled: false, resumeCurrentIfPaused: false);
+      if (!resumed) {
+        _setQueueTransitionLoading(false);
+      }
+      return Future.value();
+    }
+
     if (nextItem == null && _lastQueueItem != null) {
       // e.g. Android still shows the notification and allows pressing play. This will re-use the last item.
       nextItem = _lastQueueItem;
@@ -1077,16 +1091,11 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
             return;
           }
 
-          if (_currentMediaItem != null || queueList.isNotEmpty || _queueTransitionLoading) {
-            unawaited(stop(clearQueue: true));
-          }
+          final isInitialUser = !_hasObservedActiveUserId;
+          _hasObservedActiveUserId = true;
+          _observedActiveUserId = activeUserId;
 
-          _lastQueueItem = null;
-          _setLastPlayedMiniPlayerSnapshot(null);
-
-          // Clear Android Auto auth error as soon as login becomes active.
-          unawaited(_androidAutoClearAuthenticationRequiredState(this, refreshBrowseRoots: true));
-          unawaited(_restoreLastPlayedMiniPlayerIfEnabledInternal(explicitUserId: activeUserId));
+          unawaited(_handleActiveUserIdEmission(activeUserId, stopPlayback: !isInitialUser));
         });
 
     _showLastPlayedMiniPlayerSettingSubscription = _ref
