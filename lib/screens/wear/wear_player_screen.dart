@@ -5,6 +5,7 @@ import 'package:background_downloader/background_downloader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/api/me/media_progress.dart';
+import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/main_wear.dart' show wearAudioHandler;
 import 'package:yaabsa/models/internal_media.dart';
@@ -16,6 +17,7 @@ import 'package:yaabsa/provider/player/session_provider.dart';
 import 'package:yaabsa/screens/wear/components/wear_volume_control.dart';
 import 'package:yaabsa/util/audio_handler/wear_audio_handler.dart';
 import 'package:yaabsa/util/globals.dart' show downloadHandler;
+import 'package:yaabsa/util/server_version.dart';
 
 class WearPlayerScreen extends ConsumerStatefulWidget {
   const WearPlayerScreen({super.key});
@@ -115,7 +117,7 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
     final api = ref.read(absApiProvider);
     if (api == null) return;
     try {
-      final mp = (await api.getMeApi().getUser()).data?.mediaProgress;
+      final mp = await _fetchAllProgress(api);
       if (mp == null || mp.isEmpty) return;
       final sorted = [...mp]..sort((a, b) => (b.lastUpdate ?? 0).compareTo(a.lastUpdate ?? 0));
       final newest = sorted.firstWhere((p) => !p.isFinished, orElse: () => sorted.first);
@@ -123,6 +125,14 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
     } catch (_) {
       // Offline or transient failure; the next resume or socket event retries.
     }
+  }
+
+  Future<List<MediaProgress>?> _fetchAllProgress(ABSApi api) async {
+    if (!serverSupportsMediaProgressAndBookmarkRoutes(ref.read(serverVersionProvider))) {
+      return (await api.getMeApi().getUser()).data?.mediaProgress;
+    }
+
+    return (await api.getMeApi().getAllMediaProgress()).data?.mediaProgress;
   }
 
   void _stopDownloadIndicator() {
@@ -165,7 +175,7 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
       var freshProgress = false;
       if (api != null) {
         try {
-          mp = (await api.getMeApi().getUser()).data?.mediaProgress;
+          mp = await _fetchAllProgress(api);
           freshProgress = mp != null;
         } catch (_) {
           // Server unreachable; fall back to the progress cached with the

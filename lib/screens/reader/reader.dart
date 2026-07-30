@@ -39,6 +39,7 @@ import 'package:yaabsa/screens/settings/reader_tts_settings.dart';
 import 'package:yaabsa/screens/reader/widgets/reader_pdf_view.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/network/request_headers.dart';
+import 'package:yaabsa/util/server_version.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
 part 'reader_annotation_actions.dart';
