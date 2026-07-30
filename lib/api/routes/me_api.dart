@@ -2,8 +2,10 @@ import 'package:yaabsa/api/library/stats/listening_sessions_page.dart';
 import 'package:yaabsa/api/library/stats/user_listening_stats.dart';
 import 'package:yaabsa/api/library/stats/year_in_review_stats.dart';
 import 'package:yaabsa/api/me/bookmark.dart';
+import 'package:yaabsa/api/me/bookmarks_response.dart';
 import 'package:yaabsa/api/me/login.dart';
 import 'package:yaabsa/api/me/media_progress.dart';
+import 'package:yaabsa/api/me/media_progress_response.dart';
 import 'package:yaabsa/api/me/request/create_bookmark_request.dart';
 import 'package:yaabsa/api/me/request/login_request.dart';
 import 'package:yaabsa/api/me/status.dart';
@@ -147,6 +149,55 @@ class MeApi {
     return ABSApi.makeApiGetRequest(
       route: '/api/me',
       fromJson: (data) => User.fromJson(data),
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
+      queryParams: {},
+    );
+  }
+
+  Future<Response<MediaProgressResponse>> getAllMediaProgress({
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiGetRequest(
+      route: '/api/me/progress',
+      fromJson: (data) => MediaProgressResponse.fromJson(data as Map<String, dynamic>),
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
+      queryParams: {},
+    );
+  }
+
+  Future<Response<BookmarksResponse>> getAllBookmarks({
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiGetRequest(
+      route: '/api/me/bookmarks',
+      fromJson: (data) => BookmarksResponse.fromJson(data as Map<String, dynamic>),
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
+      queryParams: {},
+    );
+  }
+
+  Future<Response<BookmarksResponse>> getBookmarksForLibraryItem(
+    String libraryItemId, {
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiGetRequest(
+      route: '/api/me/bookmarks/$libraryItemId',
+      fromJson: (data) => BookmarksResponse.fromJson(data as Map<String, dynamic>),
       cancelToken: cancelToken,
       headers: headers,
       extra: extra,

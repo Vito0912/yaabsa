@@ -5,6 +5,7 @@ import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/provider/core/server_reachability_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/server_version.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'user_bookmarks_provider.g.dart';
@@ -215,8 +216,10 @@ class UserBookmarksNotifier extends _$UserBookmarksNotifier {
       return merged;
     }
 
-    final response = await api.getMeApi().getUser();
-    final remoteBookmarks = response.data?.bookmarks ?? const <Bookmark>[];
+    final remoteBookmarks = serverSupportsMediaProgressAndBookmarkRoutes(ref.read(serverVersionProvider))
+        ? (await api.getMeApi().getAllBookmarks()).data?.bookmarks ?? const <Bookmark>[]
+        : (await api.getMeApi().getUser()).data?.bookmarks ?? const <Bookmark>[];
+
     final merged = _applyPendingMutations(remoteBookmarks, pendingEntries);
     state = AsyncData(merged);
     return merged;

@@ -141,3 +141,38 @@ final class AbsApiProvider extends $FunctionalProvider<ABSApi?, ABSApi?, ABSApi?
 }
 
 String _$absApiHash() => r'7563d39bd28618fe2fba1a2096df1d9bd5d8b88b';
+
+@ProviderFor(serverVersion)
+final serverVersionProvider = ServerVersionProvider._();
+
+final class ServerVersionProvider extends $FunctionalProvider<String?, String?, String?> with $Provider<String?> {
+  ServerVersionProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'serverVersionProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$serverVersionHash();
+
+  @$internal
+  @override
+  $ProviderElement<String?> $createElement($ProviderPointer pointer) => $ProviderElement(pointer);
+
+  @override
+  String? create(Ref ref) {
+    return serverVersion(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(String? value) {
+    return $ProviderOverride(origin: this, providerOverride: $SyncValueProvider<String?>(value));
+  }
+}
+
+String _$serverVersionHash() => r'0873e2a00df334387ca983ec63225485b2c41d51';

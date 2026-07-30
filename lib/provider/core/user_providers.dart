@@ -90,6 +90,10 @@ bool _shouldEmitRefreshedUser({required User previous, required User next}) {
     return true;
   }
 
+  if (previous.setting?.version != next.setting?.version) {
+    return true;
+  }
+
   return false;
 }
 
@@ -297,4 +301,9 @@ ABSApi? absApi(Ref ref) {
   }
 
   return api;
+}
+
+@Riverpod(keepAlive: true)
+String? serverVersion(Ref ref) {
+  return ref.watch(currentUserProvider).value?.setting?.version;
 }

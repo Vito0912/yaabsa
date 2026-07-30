@@ -4,9 +4,11 @@ import 'dart:convert';
 import 'package:yaabsa/api/library_items/playback_session.dart';
 import 'package:yaabsa/api/me/media_progress.dart';
 import 'package:yaabsa/api/me/media_item_type.dart';
+import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/server_version.dart';
 import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -216,6 +218,21 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
     }
   }
 
+  Future<List<MediaProgress>> _fetchAllRemoteProgress(ABSApi absApi) async {
+    final meApi = absApi.getMeApi();
+
+    if (!serverSupportsMediaProgressAndBookmarkRoutes(ref.read(serverVersionProvider))) {
+      return (await meApi.getUser()).data?.mediaProgress ?? const <MediaProgress>[];
+    }
+
+    final response = await meApi.getAllMediaProgress();
+    final progressResponse = response.data;
+    if (progressResponse == null) {
+      throw Exception('Media progress response is null.');
+    }
+    return progressResponse.mediaProgress;
+  }
+
   @override
   Future<Map<String, MediaProgress>> build() async {
     final userId = _activeUserId();
@@ -237,14 +254,8 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
     }
 
     try {
-      final meApi = absApi.getMeApi();
-      final userResponse = await meApi.getUser();
-      final user = userResponse.data;
-      if (user == null) {
-        throw Exception('User data is null, cannot fetch media progress.');
-      }
-
-      final remoteMap = _listToMap(user.mediaProgress);
+      final remoteProgress = await _fetchAllRemoteProgress(absApi);
+      final remoteMap = _listToMap(remoteProgress);
       final mergedMap = _mergeProgressMaps(localMap, remoteMap);
       state = AsyncData(mergedMap);
       await _persistProgressList(remoteMap.values);
@@ -282,14 +293,8 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
     }
 
     try {
-      final meApi = absApi.getMeApi();
-      final userResponse = await meApi.getUser();
-      final user = userResponse.data;
-      if (user == null) {
-        throw Exception('User data is null during refresh all progress.');
-      }
-
-      final remoteMap = _listToMap(user.mediaProgress);
+      final remoteProgress = await _fetchAllRemoteProgress(absApi);
+      final remoteMap = _listToMap(remoteProgress);
       final mergedMap = _mergeProgressMaps(baseMap, remoteMap);
       state = AsyncData(mergedMap);
       await _persistProgressList(remoteMap.values);

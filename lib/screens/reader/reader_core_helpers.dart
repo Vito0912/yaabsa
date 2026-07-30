@@ -127,8 +127,16 @@ extension _ReaderCoreHelpers on _ReaderState {
       throw Exception('API not available');
     }
 
-    final userResponse = await api.getMeApi().getUser();
-    return userResponse.data?.bookmarks ?? const <Bookmark>[];
+    if (!serverSupportsMediaProgressAndBookmarkRoutes(ref.read(serverVersionProvider))) {
+      final userResponse = await api.getMeApi().getUser();
+      return userResponse.data?.bookmarks
+              ?.where((bookmark) => bookmark.libraryItemId == widget.itemId)
+              .toList(growable: false) ??
+          const <Bookmark>[];
+    }
+
+    final bookmarksResponse = await api.getMeApi().getBookmarksForLibraryItem(widget.itemId);
+    return bookmarksResponse.data?.bookmarks ?? const <Bookmark>[];
   }
 
   void _scheduleAutoAnnotationSync({required bool isEpubMode}) {
