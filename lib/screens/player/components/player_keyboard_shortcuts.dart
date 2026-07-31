@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/globals.dart';
 
 class PlayerKeyboardShortcuts extends StatefulWidget {
@@ -93,8 +92,8 @@ class _PlayerKeyboardShortcutsState extends State<PlayerKeyboardShortcuts> {
   }
 
   void _adjustVolumeBy(double delta) {
-    final currentVolume = audioHandler.player.volume;
-    final nextVolume = (currentVolume + delta).clamp(0.0, BGAudioHandler.maxVolume).toDouble();
+    final currentVolume = audioHandler.volume;
+    final nextVolume = (currentVolume + delta).clamp(0.0, audioHandler.maxVolume).toDouble();
     if ((nextVolume - currentVolume).abs() <= _volumeEpsilon) {
       return;
     }

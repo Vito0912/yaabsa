@@ -32,7 +32,8 @@ dependencies:
   sembast: ^3.8.9
 
   # Core
-  just_audio: ^0.10.5 # Should be setup for Android, Windows, iOS, macOS, Linux | Testing needed for iOS, macOS, Linux | https://pub.dev/packages/just_audio
+  just_audio:
+    path: ./packages/just_audio/just_audio
   audio_service:
     path: ./packages/audio_service/audio_service
   dio: ^5.9.2
@@ -62,7 +63,7 @@ dependencies:
   device_info_plus: ^13.1.0 # Need to wait for package_info_plis
   sensors_plus: ^7.0.0 # Should be setup for Android, iOS, macOS, Windows | Testing needed for iOS, macOS, Windows | https://pub.dev/packages/sensors_plus
   vibration: ^3.2.0
-  wakelock_plus: ^1.6.1 # TODO: Update to 1.6.0, waiting for file_picker to update dep on package_info_plus
+  wakelock_plus: 1.6.1 # 1.7.0 currently broken on Android https://github.com/fluttercommunity/wakelock_plus/issues/141
   flutter_html: ^3.0.0
   flutter_quill: ^11.5.1
   html: ^0.15.6
@@ -116,7 +117,8 @@ dev_dependencies:
 dependency_overrides:
   audio_service_platform_interface:
     path: ./packages/audio_service/audio_service_platform_interface
-  quill_native_bridge_windows: 0.1.0-beta.1
+  just_audio_platform_interface:
+    path: ./packages/just_audio/just_audio_platform_interface
 
 flutter:
   uses-material-design: true

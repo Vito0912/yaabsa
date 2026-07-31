@@ -7,3 +7,6 @@
 [submodule "packages/audio_service_win"]
 	path = packages/audio_service_win
 	url = git@github.com:Vito0912/audio_service_win.git
+[submodule "packages/just_audio"]
+	path = packages/just_audio
+	url = git@github.com:Vito0912/just_audio.git

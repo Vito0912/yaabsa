@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:audio_service/audio_service.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -102,7 +103,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   ];
   StreamSubscription<InternalChapter?>? _chapterSubscription;
   StreamSubscription<String?>? _skipSilenceSubscription;
-  StreamSubscription<String?>? _volumeBoostEnabledSubscription;
+  StreamSubscription<AudioEffectStatus>? _volumeBoostAvailabilitySubscription;
   StreamSubscription<String?>? _equalizerEnabledSubscription;
   StreamSubscription<String?>? _equalizerBandGainsSubscription;
   StreamSubscription<int?>? _equalizerSessionSubscription;
@@ -112,8 +113,14 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   AndroidLoudnessEnhancer? _loudnessEnhancer;
   AndroidEqualizer? _equalizer;
   AndroidEqualizer? get equalizer => _equalizer;
+  static bool get supportsVolumeBoostPlatform => !kIsWeb && (Platform.isAndroid || Platform.isLinux);
   Stream<int?> get androidAudioSessionIdStream => _player.androidAudioSessionIdStream;
   int? get androidAudioSessionId => _player.androidAudioSessionId;
+  final BehaviorSubject<bool> _volumeBoostAvailableSubject = BehaviorSubject<bool>.seeded(supportsVolumeBoostPlatform);
+  Stream<bool> get volumeBoostAvailableStream => _volumeBoostAvailableSubject.stream;
+  bool get volumeBoostAvailable => _volumeBoostAvailableSubject.value;
+  double get maxVolume => supportsVolumeBoostPlatform && volumeBoostAvailable ? 2.0 : 1.0;
+  double get volume => _volumeSubject.value;
   late final BehaviorSubject<double> _volumeSubject;
   bool _isDisposing = false;
   List<PlayerQueueEntry> queueList = [];
@@ -204,8 +211,6 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   bool get isCastControlActive => _castControlActiveSubject.value;
 
   bool get _supportsCastPlatform => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
-
-  static double get maxVolume => 1.0;
 
   Future<void> applySleepTimerAutoRewindNow() async {
     return _applySleepTimerAutoRewindNowInternal();
@@ -1185,28 +1190,29 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     final disableHeaderProxy = kIsWeb || Platform.isAndroid || Platform.isLinux;
     if (!kIsWeb && Platform.isAndroid) {
       _loudnessEnhancer = AndroidLoudnessEnhancer();
-      final equalizerEnabled = settingManager.getGlobalSetting<bool>(SettingKeys.equalizerEnabled, defaultValue: false);
-      if (equalizerEnabled) {
-        _equalizer = AndroidEqualizer();
-        final pipeline = AudioPipeline(androidAudioEffects: [_loudnessEnhancer!, _equalizer!]);
-        _player = AudioPlayer(
-          audioPipeline: pipeline,
-          audioLoadConfiguration: loadCfg,
-          useProxyForRequestHeaders: !disableHeaderProxy,
-        );
-      } else {
-        final pipeline = AudioPipeline(androidAudioEffects: [_loudnessEnhancer!]);
-        _player = AudioPlayer(
-          audioPipeline: pipeline,
-          audioLoadConfiguration: loadCfg,
-          useProxyForRequestHeaders: !disableHeaderProxy,
-        );
-      }
+      _equalizer = AndroidEqualizer();
+      final pipeline = AudioPipeline(androidAudioEffects: [_loudnessEnhancer!, _equalizer!]);
+      _player = AudioPlayer(
+        audioPipeline: pipeline,
+        audioLoadConfiguration: loadCfg,
+        useProxyForRequestHeaders: !disableHeaderProxy,
+      );
     } else {
       _player = AudioPlayer(audioLoadConfiguration: loadCfg, useProxyForRequestHeaders: !disableHeaderProxy);
     }
     _playerControlStateSubject = BehaviorSubject<PlayerState>.seeded(_player.playerState);
     _volumeSubject = BehaviorSubject<double>.seeded(_readLastVolumeSetting());
+
+    if (!kIsWeb && Platform.isAndroid) {
+      _volumeBoostAvailabilitySubscription = _loudnessEnhancer!.statusStream.listen((status) {
+        if (_isDisposing) return;
+        final available = status.availability != AudioEffectAvailability.unavailable;
+        _volumeBoostAvailableSubject.add(available);
+        if (!available && _volumeSubject.value > 1.0) {
+          unawaited(_setVolumeInternal(1.0));
+        }
+      });
+    }
 
     _errorSubscription = _player.errorStream.listen((error) {
       logger('AudioPlayer error: $error', tag: 'AudioHandler', level: InfoLevel.error);
@@ -1313,32 +1319,13 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
             unawaited(_player.setSkipSilenceEnabled(enabled));
           });
 
-      _volumeBoostEnabledSubscription = _ref
-          .read(appDatabaseProvider)
-          .watchGlobalSetting(SettingKeys.volumeBoostEnabled)
-          .map((setting) => setting?.value.trim())
-          .distinct()
-          .listen((value) {
-            if (_isDisposing) return;
-            final enabled = value == 'true';
-            final loudnessEnhancer = _loudnessEnhancer;
-            if (loudnessEnhancer != null) {
-              if (enabled) {
-                unawaited(loudnessEnhancer.setEnabled(true));
-                unawaited(loudnessEnhancer.setTargetGain(10.0));
-              } else {
-                unawaited(loudnessEnhancer.setEnabled(false));
-              }
-            }
-          });
-
       _equalizerEnabledSubscription = _ref
           .read(appDatabaseProvider)
           .watchGlobalSetting(SettingKeys.equalizerEnabled)
           .map((setting) => setting?.value.trim())
           .distinct()
           .listen((value) {
-            if (_isDisposing || _player.androidAudioSessionId == null) return;
+            if (_isDisposing) return;
             final enabled = value == 'true';
             final equalizer = _equalizer;
             if (equalizer != null) {
@@ -1371,9 +1358,15 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
       _equalizerSessionSubscription = _player.androidAudioSessionIdStream.distinct().listen((sessionId) async {
         if (_isDisposing || sessionId == null) return;
-        final equalizer = _equalizer;
-        if (equalizer == null) return;
         try {
+          final loudnessEnhancer = _loudnessEnhancer;
+          if (loudnessEnhancer != null) {
+            await loudnessEnhancer.refreshStatus();
+          }
+          final equalizer = _equalizer;
+          if (equalizer == null) return;
+          final effectStatus = await equalizer.refreshStatus();
+          if (!effectStatus.isAvailable) return;
           final enabledSetting = _ref
               .read(settingsManagerProvider.notifier)
               .getGlobalSetting<bool>(SettingKeys.equalizerEnabled);
@@ -1732,8 +1725,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     await _chapterSubscription?.cancel();
     await _skipSilenceSubscription?.cancel();
     _skipSilenceSubscription = null;
-    await _volumeBoostEnabledSubscription?.cancel();
-    _volumeBoostEnabledSubscription = null;
+    await _volumeBoostAvailabilitySubscription?.cancel();
+    _volumeBoostAvailabilitySubscription = null;
     await _equalizerEnabledSubscription?.cancel();
     _equalizerEnabledSubscription = null;
     await _equalizerBandGainsSubscription?.cancel();
@@ -1765,6 +1758,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     await mediaItemStream.close();
     await _playerControlStateSubject.close();
     await _volumeSubject.close();
+    await _volumeBoostAvailableSubject.close();
     await _castControlActiveSubject.close();
     await _queueLengthSubject.close();
     await _queueSnapshotSubject.close();
