@@ -130,7 +130,9 @@ extension _BGAudioHandlerAndroidAutoBrowse on BGAudioHandler {
 
   Future<List<_AndroidAutoLibraryTab>> _androidAutoTabsForLibrary(String libraryId) async {
     if (!await _androidAutoLibraryIsPodcast(libraryId)) {
-      return _AndroidAutoLibraryTab.values.toList(growable: false);
+      return _AndroidAutoLibraryTab.values
+          .where((tab) => tab != _AndroidAutoLibraryTab.latestEpisodes)
+          .toList(growable: false);
     }
 
     return _AndroidAutoLibraryTab.values
@@ -165,6 +167,9 @@ extension _BGAudioHandlerAndroidAutoBrowse on BGAudioHandler {
     _AndroidAutoPagingOptions paging,
   ) async {
     final isPodcastLibrary = await _androidAutoLibraryIsPodcast(libraryId);
+    if (!isPodcastLibrary && tab == _AndroidAutoLibraryTab.latestEpisodes) {
+      return const <MediaItem>[];
+    }
     if (isPodcastLibrary &&
         (tab == _AndroidAutoLibraryTab.authors ||
             tab == _AndroidAutoLibraryTab.series ||
@@ -175,6 +180,8 @@ extension _BGAudioHandlerAndroidAutoBrowse on BGAudioHandler {
     switch (tab) {
       case _AndroidAutoLibraryTab.all:
         return _androidAutoAllItemsForLibrary(libraryId, paging);
+      case _AndroidAutoLibraryTab.latestEpisodes:
+        return _androidAutoLatestEpisodesForLibrary(libraryId, paging);
       case _AndroidAutoLibraryTab.authors:
         return _androidAutoAuthorNodes(libraryId, paging);
       case _AndroidAutoLibraryTab.series:
@@ -190,6 +197,28 @@ extension _BGAudioHandlerAndroidAutoBrowse on BGAudioHandler {
       case _AndroidAutoLibraryTab.narrators:
         return _androidAutoNarratorNodes(libraryId, paging);
     }
+  }
+
+  Future<List<MediaItem>> _androidAutoLatestEpisodesForLibrary(
+    String libraryId,
+    _AndroidAutoPagingOptions paging,
+  ) async {
+    final episodes = await _androidAutoFetchRecentEpisodesPage(libraryId, paging);
+    if (episodes.isEmpty) {
+      return const <MediaItem>[];
+    }
+
+    final mediaItems = <MediaItem>[];
+    final seen = <String>{};
+    for (final episode in episodes) {
+      final mediaItem = _androidAutoPlayableFromRecentEpisode(episode);
+      if (mediaItem == null || !seen.add(mediaItem.id)) {
+        continue;
+      }
+      mediaItems.add(mediaItem);
+    }
+
+    return mediaItems;
   }
 
   Future<List<MediaItem>> _androidAutoAllItemsForLibrary(String libraryId, _AndroidAutoPagingOptions paging) async {
@@ -605,6 +634,7 @@ extension _BGAudioHandlerAndroidAutoBrowse on BGAudioHandler {
   Uri _androidAutoLibraryTabIconUri(_AndroidAutoLibraryTab tab) {
     final drawableName = switch (tab) {
       _AndroidAutoLibraryTab.all => 'apps',
+      _AndroidAutoLibraryTab.latestEpisodes => 'recent',
       _AndroidAutoLibraryTab.authors => 'person',
       _AndroidAutoLibraryTab.narrators => 'record_voice_over',
       _AndroidAutoLibraryTab.series => 'column',

@@ -5,6 +5,7 @@
 ### Added
 
 - (Linux) Support for Volume boost
+- Added Latest Episodes
 
 ### Fixed
 

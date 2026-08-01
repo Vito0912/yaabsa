@@ -9,6 +9,7 @@ import 'package:yaabsa/api/library/request/reorder_library_entry_request.dart';
 import 'package:yaabsa/api/library/request/update_library_request.dart';
 import 'package:yaabsa/api/library/response/library_details_response.dart';
 import 'package:yaabsa/api/library/response/library_response.dart';
+import 'package:yaabsa/api/library/response/recent_episodes_response.dart';
 import 'package:yaabsa/api/library/response/remove_library_metadata_response.dart';
 import 'package:yaabsa/api/library/search_library.dart';
 import 'package:yaabsa/api/library/series_items.dart';
@@ -361,6 +362,25 @@ class LibraryApi {
       extra: extra,
       dio: _dio,
       queryParams: {'include': 'rssfeed,numEpisodesIncomplete,share'},
+    );
+  }
+
+  Future<Response<RecentEpisodesResponse>> getRecentEpisodes(
+    String libraryId, {
+    int limit = 0,
+    int page = 0,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiGetRequest(
+      route: '/api/libraries/$libraryId/recent-episodes',
+      fromJson: (data) => RecentEpisodesResponse.fromJson(data as Map<String, dynamic>),
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
+      queryParams: <String, dynamic>{'limit': limit, 'page': page},
     );
   }
 }

@@ -84,13 +84,25 @@ class _AndroidAutoSeriesPage {
   bool get hasMore => ((page + 1) * pageSize) < total;
 }
 
-enum _AndroidAutoLibraryTab { all, authors, series, collections, playlists, discovery, continueSeries, narrators }
+enum _AndroidAutoLibraryTab {
+  all,
+  latestEpisodes,
+  authors,
+  series,
+  collections,
+  playlists,
+  discovery,
+  continueSeries,
+  narrators,
+}
 
 extension _AndroidAutoLibraryTabX on _AndroidAutoLibraryTab {
   String get key {
     switch (this) {
       case _AndroidAutoLibraryTab.all:
         return 'all';
+      case _AndroidAutoLibraryTab.latestEpisodes:
+        return 'latest-episodes';
       case _AndroidAutoLibraryTab.authors:
         return 'authors';
       case _AndroidAutoLibraryTab.series:
@@ -112,6 +124,8 @@ extension _AndroidAutoLibraryTabX on _AndroidAutoLibraryTab {
     switch (this) {
       case _AndroidAutoLibraryTab.all:
         return 'All';
+      case _AndroidAutoLibraryTab.latestEpisodes:
+        return 'Latest Episodes';
       case _AndroidAutoLibraryTab.authors:
         return 'Authors';
       case _AndroidAutoLibraryTab.series:

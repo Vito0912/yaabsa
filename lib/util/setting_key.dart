@@ -198,7 +198,7 @@ final defaultSettings = {
   SettingKeys.homeBookViewPreferences:
       '{"default":"shelf","order":["shelf","library","collections","playlists","series","authors","narrators"],"hidden":[]}',
   SettingKeys.homePodcastViewPreferences:
-      '{"default":"shelf","order":["shelf","library","collections","playlists"],"hidden":[]}',
+      '{"default":"shelf","order":["shelf","latestEpisodes","library","collections","playlists"],"hidden":[]}',
   SettingKeys.androidAutoLibrarySortDescending: false,
   SettingKeys.androidAutoLibrarySortField: 'title',
   SettingKeys.androidAutoPodcastSortDescending: true,

@@ -23,6 +23,7 @@ enum HomeLibraryMediaType {
 
 enum HomePrimaryView {
   shelf,
+  latestEpisodes,
   library,
   podcastAdd,
   collections,
@@ -39,6 +40,8 @@ enum HomePrimaryView {
     switch (this) {
       case HomePrimaryView.shelf:
         return 'Shelf';
+      case HomePrimaryView.latestEpisodes:
+        return 'Latest Episodes';
       case HomePrimaryView.library:
         return 'Library';
       case HomePrimaryView.podcastAdd:
@@ -60,6 +63,8 @@ enum HomePrimaryView {
     switch (this) {
       case HomePrimaryView.shelf:
         return Icons.home;
+      case HomePrimaryView.latestEpisodes:
+        return Icons.rss_feed_rounded;
       case HomePrimaryView.library:
         return Icons.collections_bookmark_outlined;
       case HomePrimaryView.podcastAdd:
@@ -88,7 +93,7 @@ enum HomePrimaryView {
     }
 
     for (final view in HomePrimaryView.values) {
-      if (view.storageKey == normalized) {
+      if (view.storageKey.toLowerCase() == normalized) {
         return view;
       }
     }
@@ -214,6 +219,7 @@ class HomeNavigationPreferencesCodec {
       case HomeLibraryMediaType.podcast:
         return const [
           HomePrimaryView.shelf,
+          HomePrimaryView.latestEpisodes,
           HomePrimaryView.library,
           HomePrimaryView.podcastAdd,
           HomePrimaryView.collections,

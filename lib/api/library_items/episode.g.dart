@@ -20,9 +20,13 @@ _Episode _$EpisodeFromJson(Map<String, dynamic> json) => _Episode(
   enclosure: json['enclosure'] == null ? null : EpisodeEnclosure.fromJson(json['enclosure'] as Map<String, dynamic>),
   pubDate: json['pubDate'] as String?,
   audioFile: json['audioFile'] == null ? null : AudioFile.fromJson(json['audioFile'] as Map<String, dynamic>),
+  audioTrack: json['audioTrack'] == null ? null : AudioTrack.fromJson(json['audioTrack'] as Map<String, dynamic>),
   publishedAt: jsonIntFromDynamic(json['publishedAt']),
   addedAt: jsonIntFromDynamic(json['addedAt']),
   updatedAt: jsonIntFromDynamic(json['updatedAt']),
+  duration: jsonDoubleFromDynamic(json['duration']),
+  size: jsonIntFromDynamic(json['size']),
+  podcast: json['podcast'] == null ? null : PodcastMinified.fromJson(json['podcast'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$EpisodeToJson(_Episode instance) => <String, dynamic>{
@@ -39,7 +43,11 @@ Map<String, dynamic> _$EpisodeToJson(_Episode instance) => <String, dynamic>{
   'enclosure': instance.enclosure,
   'pubDate': instance.pubDate,
   'audioFile': instance.audioFile,
+  'audioTrack': instance.audioTrack,
   'publishedAt': instance.publishedAt,
   'addedAt': instance.addedAt,
   'updatedAt': instance.updatedAt,
+  'duration': instance.duration,
+  'size': instance.size,
+  'podcast': instance.podcast,
 };

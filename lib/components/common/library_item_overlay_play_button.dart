@@ -10,7 +10,8 @@ import 'package:yaabsa/util/globals.dart';
 class LibraryItemOverlayPlayButton extends StatelessWidget {
   const LibraryItemOverlayPlayButton({
     super.key,
-    required this.libraryItem,
+    this.libraryItem,
+    this.libraryItemId,
     required this.shelfEpisode,
     required this.showProgressRing,
     required this.progressValue,
@@ -18,10 +19,12 @@ class LibraryItemOverlayPlayButton extends StatelessWidget {
     required this.isCurrentItem,
     required this.isPlayingCurrentItem,
     required this.isEbook,
+    this.isLoading = false,
     this.onPlay,
-  });
+  }) : assert(libraryItem != null || libraryItemId != null);
 
-  final LibraryItem libraryItem;
+  final LibraryItem? libraryItem;
+  final String? libraryItemId;
   final Episode? shelfEpisode;
   final bool showProgressRing;
   final double progressValue;
@@ -30,10 +33,12 @@ class LibraryItemOverlayPlayButton extends StatelessWidget {
   final bool isPlayingCurrentItem;
   final VoidCallback? onPlay;
   final bool isEbook;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final resolvedLibraryItemId = libraryItem?.id ?? libraryItemId!;
 
     return StreamBuilder<bool>(
       stream: audioHandler.queueTransitionLoadingStream,
@@ -41,8 +46,9 @@ class LibraryItemOverlayPlayButton extends StatelessWidget {
       builder: (context, queueTransitionSnapshot) {
         final isQueueTransitionLoading = queueTransitionSnapshot.data ?? audioHandler.queueTransitionLoading;
         final isLoadingCurrentItem =
-            isQueueTransitionLoading &&
-            audioHandler.isQueueTransitionForItem(libraryItem.id, episodeId: shelfEpisode?.id);
+            isLoading ||
+            (isQueueTransitionLoading &&
+                audioHandler.isQueueTransitionForItem(resolvedLibraryItemId, episodeId: shelfEpisode?.id));
 
         return SizedBox(
           width: 36,
@@ -90,8 +96,12 @@ class LibraryItemOverlayPlayButton extends StatelessWidget {
                 iconSize: isFinished ? 20 : 16,
                 onPressed: isEbook
                     ? () {
+                        final item = libraryItem;
+                        if (item == null) {
+                          return;
+                        }
                         if (!kIsWeb && Platform.isLinux) {
-                          final bookMedia = libraryItem.media?.bookMedia;
+                          final bookMedia = item.media?.bookMedia;
                           final candidates = <String?>[
                             bookMedia?.ebookFile?.ebookFormat,
                             bookMedia?.ebookFormat,
@@ -112,7 +122,7 @@ class LibraryItemOverlayPlayButton extends StatelessWidget {
                             return;
                           }
                         }
-                        context.push('/ebook/${libraryItem.id}');
+                        context.push('/ebook/${item.id}');
                       }
                     : (isLoadingCurrentItem
                           ? null
@@ -132,8 +142,13 @@ class LibraryItemOverlayPlayButton extends StatelessWidget {
                                 return;
                               }
 
-                              if (libraryItem.mediaType == 'podcast') {
-                                final podcastEpisodes = _playablePodcastEpisodes(libraryItem);
+                              final item = libraryItem;
+                              if (item == null) {
+                                return;
+                              }
+
+                              if (item.mediaType == 'podcast') {
+                                final podcastEpisodes = _playablePodcastEpisodes(item);
                                 final episodeToPlay = shelfEpisode ?? podcastEpisodes.firstOrNull;
 
                                 if (episodeToPlay != null) {
@@ -141,7 +156,7 @@ class LibraryItemOverlayPlayButton extends StatelessWidget {
                                     (episode) => episode.id == episodeToPlay.id,
                                   );
                                   audioHandler.playPodcastEpisode(
-                                    libraryItem,
+                                    item,
                                     episodeToPlay,
                                     episodeIndex: episodeIndex < 0 ? null : episodeIndex,
                                     orderedEpisodes: podcastEpisodes,
@@ -150,7 +165,7 @@ class LibraryItemOverlayPlayButton extends StatelessWidget {
                                 }
                               }
 
-                              audioHandler.playLibraryItem(libraryItem);
+                              audioHandler.playLibraryItem(item);
                             }),
                 splashRadius: 8,
               ),

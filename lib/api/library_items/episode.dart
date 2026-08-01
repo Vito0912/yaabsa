@@ -1,5 +1,7 @@
 import 'package:yaabsa/api/library_items/audio_file.dart';
+import 'package:yaabsa/api/library_items/audio_track.dart';
 import 'package:yaabsa/api/library_items/episode_enclosure.dart';
+import 'package:yaabsa/api/library_items/podcast_minified.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:yaabsa/api/json/value_parsers.dart';
 
@@ -22,9 +24,13 @@ abstract class Episode with _$Episode {
     @JsonKey(name: "enclosure") EpisodeEnclosure? enclosure,
     @JsonKey(name: "pubDate") String? pubDate,
     @JsonKey(name: "audioFile") AudioFile? audioFile,
+    @JsonKey(name: "audioTrack") AudioTrack? audioTrack,
     @JsonKey(name: "publishedAt", fromJson: jsonIntFromDynamic) int? publishedAt,
     @JsonKey(name: "addedAt", fromJson: jsonIntFromDynamic) int? addedAt,
     @JsonKey(name: "updatedAt", fromJson: jsonIntFromDynamic) int? updatedAt,
+    @JsonKey(name: "duration", fromJson: jsonDoubleFromDynamic) double? duration,
+    @JsonKey(name: "size", fromJson: jsonIntFromDynamic) int? size,
+    @JsonKey(name: "podcast") PodcastMinified? podcast,
   }) = _Episode;
 
   factory Episode.fromJson(Map<String, dynamic> json) => _$EpisodeFromJson(json);

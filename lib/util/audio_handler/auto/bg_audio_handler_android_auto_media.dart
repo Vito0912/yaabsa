@@ -303,6 +303,46 @@ extension _BGAudioHandlerAndroidAutoMedia on BGAudioHandler {
     );
   }
 
+  MediaItem? _androidAutoPlayableFromRecentEpisode(Episode episode) {
+    if (episode.libraryItemId.trim().isEmpty ||
+        episode.id.trim().isEmpty ||
+        (episode.audioFile == null && episode.audioTrack == null)) {
+      return null;
+    }
+
+    final podcastMetadata = episode.podcast?.metadata;
+    final podcastTitle = podcastMetadata?.title?.trim();
+    final podcastAuthor = podcastMetadata?.author?.trim();
+    final episodeTitle = episode.title?.trim();
+    final coverPath = episode.podcast?.coverPath?.trim();
+    final imageUrl = podcastMetadata?.imageUrl?.trim();
+
+    final Uri? artUri;
+    if (coverPath != null && coverPath.isNotEmpty) {
+      artUri = _androidAutoCoverUriForItemId(episode.libraryItemId);
+    } else if (imageUrl != null && imageUrl.isNotEmpty) {
+      artUri = _androidAutoUriFromPathOrUri(imageUrl);
+    } else {
+      artUri = null;
+    }
+
+    return _androidAutoPlayableItem(
+      id: _androidAutoEpisodePlaybackId(episode.libraryItemId, episode.id),
+      title: episodeTitle == null || episodeTitle.isEmpty ? 'Untitled episode' : episodeTitle,
+      subtitle: podcastTitle == null || podcastTitle.isEmpty ? episode.subtitle?.trim() : podcastTitle,
+      artist: podcastAuthor == null || podcastAuthor.isEmpty ? null : podcastAuthor,
+      artUri: artUri,
+      duration: _androidAutoDurationFromSeconds(
+        episode.audioFile?.duration ?? episode.audioTrack?.duration ?? episode.duration,
+      ),
+      extras: <String, dynamic>{
+        ..._androidAutoCompletionExtras(itemId: episode.libraryItemId, episodeId: episode.id),
+        'itemId': episode.libraryItemId,
+        'episodeId': episode.id,
+      },
+    );
+  }
+
   Map<String, dynamic> _androidAutoCompletionExtras({required String itemId, String? episodeId}) {
     final progressMap = _ref.read(mediaProgressProvider).value ?? const <String, MediaProgress>{};
     final progress = progressMap[mediaProgressKey(itemId, episodeId)];
@@ -333,12 +373,20 @@ extension _BGAudioHandlerAndroidAutoMedia on BGAudioHandler {
       return null;
     }
 
+    return _androidAutoCoverUriForItemId(item.id, item: item);
+  }
+
+  Uri? _androidAutoCoverUriForItemId(String itemId, {LibraryItem? item}) {
+    if (itemId.trim().isEmpty) {
+      return null;
+    }
+
     final api = _ref.read(absApiProvider);
     if (api == null) {
       return null;
     }
 
-    final coverUri = api.getLibraryItemApi().getCoverUri(item.id, item: item);
+    final coverUri = api.getLibraryItemApi().getCoverUri(itemId, item: item);
     final scheme = coverUri.scheme.toLowerCase();
     if (scheme != 'http' && scheme != 'https') {
       return _wrapContentUri(coverUri);

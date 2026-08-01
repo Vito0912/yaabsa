@@ -12,6 +12,7 @@ import 'package:yaabsa/screens/layout_home/layout_home_mobile_nav_bar.dart';
 import 'package:yaabsa/screens/layout_home/layout_home_sidebar.dart';
 import 'package:yaabsa/screens/layout_home/navigation_item_config.dart';
 import 'package:yaabsa/screens/main/library_view.dart';
+import 'package:yaabsa/screens/main/latest_episodes_view.dart';
 import 'package:yaabsa/screens/main/narrators_view.dart';
 import 'package:yaabsa/screens/main/personalized_view.dart';
 import 'package:yaabsa/screens/main/playlist_view.dart';
@@ -172,6 +173,8 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
     switch (view) {
       case HomePrimaryView.shelf:
         return const PersonalizedView();
+      case HomePrimaryView.latestEpisodes:
+        return const LatestEpisodesView();
       case HomePrimaryView.library:
         return const LibraryView();
       case HomePrimaryView.podcastAdd:

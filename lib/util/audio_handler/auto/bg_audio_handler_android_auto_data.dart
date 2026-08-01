@@ -40,6 +40,30 @@ extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
     }
   }
 
+  Future<List<Episode>> _androidAutoFetchRecentEpisodesPage(String libraryId, _AndroidAutoPagingOptions paging) async {
+    final api = _ref.read(absApiProvider);
+    if (api == null) {
+      return const <Episode>[];
+    }
+
+    try {
+      final response = await api.getLibraryApi().getRecentEpisodes(
+        libraryId,
+        limit: paging.pageSize,
+        page: paging.page,
+        extra: const <String, dynamic>{'doNotCache': true},
+      );
+      return response.data?.episodes ?? const <Episode>[];
+    } catch (e) {
+      logger(
+        'Failed to fetch Android Auto latest episodes for $libraryId: $e',
+        tag: 'AudioHandler',
+        level: InfoLevel.warning,
+      );
+      return const <Episode>[];
+    }
+  }
+
   Future<LibraryFilterData?> _androidAutoFetchFilterData(String libraryId) async {
     final api = _ref.read(absApiProvider);
     if (api == null) {
