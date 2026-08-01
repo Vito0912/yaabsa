@@ -92,22 +92,15 @@ jobs:
           set -euo pipefail
 
           build_skip="false"
-          commit_messages=""
-          base_ref="${{ github.event.before }}"
+          commit_message=""
 
           if [[ "${{ github.event_name }}" == "push" ]]; then
-            if [[ -n "$base_ref" && "$base_ref" != "0000000000000000000000000000000000000000" ]]; then
-              commit_messages="$(git log --format=%B "$base_ref..${{ github.sha }}" || true)"
-            fi
-
-            if [[ -z "$commit_messages" ]]; then
-              commit_messages="$(git log -1 --format=%B || true)"
-            fi
+            commit_message="$(git log -1 --format=%B "${{ github.sha }}" || true)"
           fi
 
-          if [[ -n "$commit_messages" ]]; then
-            lower_messages="$(printf '%s' "$commit_messages" | tr '[:upper:]' '[:lower:]')"
-            if [[ "$lower_messages" == *"skip ci"* || "$lower_messages" == *"build skip"* ]]; then
+          if [[ -n "$commit_message" ]]; then
+            lower_message="$(printf '%s' "$commit_message" | tr '[:upper:]' '[:lower:]')"
+            if [[ "$lower_message" == *"skip ci"* || "$lower_message" == *"build skip"* ]]; then
               build_skip="true"
             fi
           fi
