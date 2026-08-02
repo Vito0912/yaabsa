@@ -10,6 +10,7 @@
 ### Fixed
 
 - (Android) Fixed a playback crash when registering audio effects on some devices
+- (Android) Bluetooth auto-resume now should always work
 
 ## 1.6.0
 

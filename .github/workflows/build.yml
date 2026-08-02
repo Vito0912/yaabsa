@@ -47,6 +47,13 @@ jobs:
       file_version: ${{ steps.version.outputs.file_version }}
       release_tag: ${{ steps.version.outputs.release_tag }}
       changelog: ${{ steps.changelog.outputs.changelog }}
+      platform_filter: ${{ steps.platforms.outputs.platform_filter }}
+      build_linux: ${{ steps.platforms.outputs.build_linux }}
+      build_android: ${{ steps.platforms.outputs.build_android }}
+      build_windows: ${{ steps.platforms.outputs.build_windows }}
+      build_ios: ${{ steps.platforms.outputs.build_ios }}
+      build_macos: ${{ steps.platforms.outputs.build_macos }}
+      build_web: ${{ steps.platforms.outputs.build_web }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -159,6 +166,77 @@ jobs:
           echo "Force version bump override: $force_version_bump"
           echo "Version bumped: $version_bumped"
 
+      - name: Select platforms from commit message
+        id: platforms
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          commit_messages=""
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            commit_messages="$(git log -1 --format=%B "${{ github.sha }}" || true)"
+          fi
+
+          lower_messages="$(printf '%s' "$commit_messages" | tr '[:upper:]' '[:lower:]')"
+          markers="$(
+            printf '%s\n' "$lower_messages" \
+              | grep -Eio '\[platforms?:[^]]+\]|\[(android|aaos|automotive|wearos|wear os|linux|windows|ios|macos|mac os|osx|web)\]|\((android|aaos|automotive|wearos|wear os|linux|windows|ios|macos|mac os|osx|web)\)' \
+              || true
+          )"
+
+          platform_filter="false"
+          selected_android="false"
+          selected_linux="false"
+          selected_windows="false"
+          selected_ios="false"
+          selected_macos="false"
+          selected_web="false"
+
+          if [[ -n "$markers" && "${{ steps.version.outputs.version_bumped }}" != "true" ]]; then
+            platform_filter="true"
+            [[ "$markers" =~ android|aaos|automotive|wearos|wear[[:space:]]os ]] && selected_android="true"
+            [[ "$markers" =~ linux ]] && selected_linux="true"
+            [[ "$markers" =~ windows ]] && selected_windows="true"
+            [[ "$markers" =~ (^|[^a-z])ios([^a-z]|$) ]] && selected_ios="true"
+            [[ "$markers" =~ macos|mac[[:space:]]os|osx ]] && selected_macos="true"
+            [[ "$markers" =~ web ]] && selected_web="true"
+          fi
+
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" || "${{ steps.version.outputs.version_bumped }}" == "true" ]]; then
+            build_linux="true"
+            build_android="true"
+            build_windows="true"
+            build_ios="true"
+            build_macos="true"
+            build_web="true"
+          elif [[ "$platform_filter" == "true" ]]; then
+            build_linux="$selected_linux"
+            build_android="$selected_android"
+            build_windows="$selected_windows"
+            build_ios="$selected_ios"
+            build_macos="$selected_macos"
+            build_web="$selected_web"
+          else
+            build_linux="${{ steps.filter.outputs.lib == 'true' || steps.filter.outputs.linux == 'true' }}"
+            build_android="${{ steps.filter.outputs.lib == 'true' || steps.filter.outputs.android == 'true' }}"
+            build_windows="${{ steps.filter.outputs.lib == 'true' || steps.filter.outputs.windows == 'true' }}"
+            build_ios="${{ steps.filter.outputs.lib == 'true' || steps.filter.outputs.ios == 'true' }}"
+            build_macos="${{ steps.filter.outputs.lib == 'true' || steps.filter.outputs.macos == 'true' }}"
+            build_web="${{ steps.filter.outputs.lib == 'true' || steps.filter.outputs.web == 'true' || steps.filter.outputs.linux == 'true' }}"
+          fi
+
+          echo "platform_filter=$platform_filter" >> "$GITHUB_OUTPUT"
+          echo "build_linux=$build_linux" >> "$GITHUB_OUTPUT"
+          echo "build_android=$build_android" >> "$GITHUB_OUTPUT"
+          echo "build_windows=$build_windows" >> "$GITHUB_OUTPUT"
+          echo "build_ios=$build_ios" >> "$GITHUB_OUTPUT"
+          echo "build_macos=$build_macos" >> "$GITHUB_OUTPUT"
+          echo "build_web=$build_web" >> "$GITHUB_OUTPUT"
+
+          echo "Commit platform markers: ${markers:-none}"
+          echo "Platform override active: $platform_filter"
+          echo "Selected builds: linux=$build_linux android=$build_android windows=$build_windows ios=$build_ios macos=$build_macos web=$build_web"
+
       - name: Extract changelog for current version
         id: changelog
         shell: bash
@@ -208,7 +286,7 @@ jobs:
     needs:
       - changes
       - check-requirements
-    if: ${{ (github.event_name == 'workflow_dispatch' || needs.changes.outputs.version_bumped == 'true' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.linux == 'true') && needs.changes.outputs.build_skip != 'true' }}
+    if: ${{ needs.changes.outputs.build_linux == 'true' && needs.changes.outputs.build_skip != 'true' }}
     timeout-minutes: 20
     steps:
       - name: Checkout
@@ -344,7 +422,7 @@ jobs:
     needs:
       - changes
       - check-requirements
-    if: ${{ (github.event_name == 'workflow_dispatch' || needs.changes.outputs.version_bumped == 'true' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.linux == 'true' || needs.changes.outputs.web == 'true') && needs.changes.outputs.build_skip != 'true' }}
+    if: ${{ needs.changes.outputs.build_linux == 'true' && needs.changes.outputs.build_skip != 'true' }}
     timeout-minutes: 35
     environment: prod
     steps:
@@ -559,51 +637,12 @@ jobs:
         id: deploy
         uses: actions/deploy-pages@v5
 
-  build-snap:
-    runs-on: ubuntu-latest
-    needs:
-      - changes
-      - check-requirements
-    if: ${{ (github.event_name == 'workflow_dispatch' || needs.changes.outputs.version_bumped == 'true' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.linux == 'true') && needs.changes.outputs.build_skip != 'true' }}
-    timeout-minutes: 20
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          submodules: recursive
-
-      - name: Build Snap
-        id: build
-        uses: snapcore/action-build@v1
-
-      - name: Rename Snap artifact
-        shell: bash
-        env:
-          FILE_VERSION: ${{ needs.changes.outputs.file_version }}
-        run: |
-          set -euo pipefail
-
-          snap_file="${{ steps.build.outputs.snap }}"
-          if [[ -z "$snap_file" || ! -f "$snap_file" ]]; then
-            echo "Snap artifact not found at '$snap_file'."
-            exit 1
-          fi
-
-          mkdir -p output/linux
-          cp "$snap_file" "output/linux/yaabsa_${FILE_VERSION}.snap"
-
-      - name: Upload Snap artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: linux-snap
-          path: output/linux/yaabsa_*.snap
-
   build-android:
     runs-on: ubuntu-latest
     needs:
       - changes
       - check-requirements
-    if: ${{ (github.event_name == 'workflow_dispatch' || needs.changes.outputs.version_bumped == 'true' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.android == 'true') && needs.changes.outputs.build_skip != 'true' }}
+    if: ${{ needs.changes.outputs.build_android == 'true' && needs.changes.outputs.build_skip != 'true' }}
     timeout-minutes: 30
     environment: prod
     steps:
@@ -804,7 +843,7 @@ jobs:
     needs:
       - changes
       - check-requirements
-    if: ${{ (github.event_name == 'workflow_dispatch' || needs.changes.outputs.version_bumped == 'true' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.web == 'true' || needs.changes.outputs.linux == 'true') && needs.changes.outputs.build_skip != 'true' }}
+    if: ${{ needs.changes.outputs.build_web == 'true' && needs.changes.outputs.build_skip != 'true' }}
     timeout-minutes: 15
     steps:
       - name: Checkout
@@ -863,7 +902,7 @@ jobs:
     needs:
       - changes
       - check-requirements
-    if: ${{ (github.event_name == 'workflow_dispatch' || needs.changes.outputs.version_bumped == 'true' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.windows == 'true') && needs.changes.outputs.build_skip != 'true' }}
+    if: ${{ needs.changes.outputs.build_windows == 'true' && needs.changes.outputs.build_skip != 'true' }}
     timeout-minutes: 20
     steps:
       - name: Checkout
@@ -958,7 +997,6 @@ jobs:
       - changes
       - build-linux
       - build-flatpak
-      - build-snap
       - build-android
       - build-windows
       - build-ios
@@ -1116,7 +1154,7 @@ jobs:
     needs:
       - changes
       - check-requirements
-    if: ${{ (github.event_name == 'workflow_dispatch' || needs.changes.outputs.version_bumped == 'true' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.ios == 'true') && needs.changes.outputs.build_skip != 'true' }}
+    if: ${{ needs.changes.outputs.build_ios == 'true' && needs.changes.outputs.build_skip != 'true' }}
     timeout-minutes: 25
     environment: prod
     steps:
@@ -1204,7 +1242,7 @@ jobs:
     needs:
       - changes
       - check-requirements
-    if: ${{ (github.event_name == 'workflow_dispatch' || needs.changes.outputs.version_bumped == 'true' || needs.changes.outputs.lib == 'true' || needs.changes.outputs.macos == 'true') && needs.changes.outputs.build_skip != 'true' }}
+    if: ${{ needs.changes.outputs.build_macos == 'true' && needs.changes.outputs.build_skip != 'true' }}
     timeout-minutes: 25
     environment: prod
     steps:

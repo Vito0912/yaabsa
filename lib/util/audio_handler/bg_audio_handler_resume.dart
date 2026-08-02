@@ -44,16 +44,33 @@ extension _BGAudioHandlerResume on BGAudioHandler {
   Future<bool> _playLastPlayedInternal({
     required bool requireStartupSettingEnabled,
     required bool resumeCurrentIfPaused,
-  }) async {
+  }) {
     if (requireStartupSettingEnabled) {
       final autoPlayEnabled = _ref
           .read(settingsManagerProvider.notifier)
           .getGlobalSetting<bool>(SettingKeys.autoPlayLastPlayedOnLaunch);
       if (!autoPlayEnabled) {
-        return false;
+        return Future<bool>.value(false);
       }
     }
 
+    final activePlayback = _lastPlayedPlaybackFuture;
+    if (activePlayback != null) {
+      logger('Joining active last played playback request.', tag: 'AudioHandler', level: InfoLevel.debug);
+      return activePlayback;
+    }
+
+    late final Future<bool> playback;
+    playback = _performPlayLastPlayed(resumeCurrentIfPaused: resumeCurrentIfPaused).whenComplete(() {
+      if (identical(_lastPlayedPlaybackFuture, playback)) {
+        _lastPlayedPlaybackFuture = null;
+      }
+    });
+    _lastPlayedPlaybackFuture = playback;
+    return playback;
+  }
+
+  Future<bool> _performPlayLastPlayed({required bool resumeCurrentIfPaused}) async {
     if (_currentMediaItem != null) {
       if (resumeCurrentIfPaused && !playerControlState.playing) {
         await play();

@@ -15,6 +15,7 @@ import android.support.v4.media.session.PlaybackStateCompat
 import androidx.media.session.MediaButtonReceiver
 
 object WidgetMediaBridge {
+    const val ACTION_PLAYER_PLAY = "de.vito0912.yaabsa.widget.action.PLAYER_PLAY"
     const val ACTION_PLAYER_TOGGLE = "de.vito0912.yaabsa.widget.action.PLAYER_TOGGLE"
     const val ACTION_PLAYER_NEXT = "de.vito0912.yaabsa.widget.action.PLAYER_NEXT"
     const val ACTION_PLAYER_PREVIOUS = "de.vito0912.yaabsa.widget.action.PLAYER_PREVIOUS"
@@ -86,6 +87,7 @@ object WidgetMediaBridge {
                 val state = controller.playbackState
                 val controls = controller.transportControls
                 when (action) {
+                    ACTION_PLAYER_PLAY -> controls.play()
                     ACTION_PLAYER_TOGGLE -> {
                         if (state != null && state.isPlaying) {
                             WidgetStorage.setPlaybackLoading(context, false)
@@ -143,6 +145,7 @@ object WidgetMediaBridge {
 
     private fun fallbackAction(context: Context, action: String) {
         val playbackAction = when (action) {
+            ACTION_PLAYER_PLAY -> PlaybackStateCompat.ACTION_PLAY
             ACTION_PLAYER_TOGGLE -> PlaybackStateCompat.ACTION_PLAY_PAUSE
             ACTION_PLAYER_NEXT -> PlaybackStateCompat.ACTION_SKIP_TO_NEXT
             ACTION_PLAYER_PREVIOUS -> PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS

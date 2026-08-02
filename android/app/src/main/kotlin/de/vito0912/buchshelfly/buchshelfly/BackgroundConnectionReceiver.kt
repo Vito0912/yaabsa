@@ -5,9 +5,7 @@ import android.bluetooth.BluetoothDevice
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
-import androidx.media.session.MediaButtonReceiver
 
 class BackgroundConnectionReceiver : BroadcastReceiver() {
     companion object {
@@ -66,22 +64,23 @@ class BackgroundConnectionReceiver : BroadcastReceiver() {
         }
         lastTriggerTime = currentTime
 
-        Log.d(TAG, "Triggering play via media button intent")
+        Log.d(TAG, "Connecting to media session before triggering play")
+        val pendingResult = goAsync()
         try {
-            val pendingIntent = MediaButtonReceiver.buildMediaButtonPendingIntent(
-                context,
-                PlaybackStateCompat.ACTION_PLAY
+            WidgetMediaBridge.performTransportAction(
+                context = context,
+                action = WidgetMediaBridge.ACTION_PLAYER_PLAY,
+                allowLaunchFallback = false,
+                onDispatched = {
+                    Log.d(TAG, "ACTION_PLAY dispatch finished")
+                    WidgetMediaSessionObserver.ensureConnected(context)
+                    pendingResult.finish()
+                },
             )
-            if (pendingIntent == null) {
-                Log.w(TAG, "Could not create ACTION_PLAY media button pending intent")
-                return
-            }
-
-            pendingIntent.send()
-            WidgetMediaSessionObserver.ensureConnected(context)
-            Log.d(TAG, "Sent ACTION_PLAY media button pending intent")
+            Log.d(TAG, "Waiting for media session connection to dispatch ACTION_PLAY")
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to send media button intent: ${e.message}")
+            pendingResult.finish()
+            Log.e(TAG, "Failed to dispatch ACTION_PLAY: ${e.message}")
         }
     }
 }

@@ -177,6 +177,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   String? _lastPlayedMiniPlayerRestoreUserId;
   int _lastPlayedMiniPlayerRestoreGeneration = 0;
   int? _lastPlayedMiniPlayerRestoreActiveGeneration;
+  Future<bool>? _lastPlayedPlaybackFuture;
   MediaItem? _restoredMediaItem;
   Duration _restoredPosition = Duration.zero;
   BehaviorSubject<InternalMedia?> mediaItemStream = BehaviorSubject<InternalMedia?>();
