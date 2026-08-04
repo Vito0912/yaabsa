@@ -237,14 +237,14 @@ jobs:
         with:
           flow: pr-build-android-auto
 
-      - name: Build Android Auto debug APK
-        run: flutter build apk --flavor auto --debug
+      - name: Build Android Auto release APKs
+        run: flutter build apk --split-per-abi --flavor auto --release
 
-      - name: Upload Android Auto APK
+      - name: Upload Android Auto release APKs
         uses: actions/upload-artifact@v7
         with:
-          name: android-auto-debug-apk
-          path: build/app/outputs/flutter-apk/app-auto-debug.apk
+          name: android-auto-release-apks
+          path: build/app/outputs/flutter-apk/app-*-auto-release.apk
           retention-days: 1
 
   build-android-automotive:

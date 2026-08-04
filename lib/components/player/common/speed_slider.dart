@@ -2,6 +2,18 @@ import 'package:yaabsa/util/globals.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+Future<void> showPlaybackSpeedSheet(BuildContext context, {double? currentSpeed}) {
+  return showModalBottomSheet<void>(
+    context: context,
+    useSafeArea: true,
+    isScrollControlled: true,
+    showDragHandle: true,
+    builder: (sheetContext) {
+      return _SpeedSheet(initialSpeed: currentSpeed ?? audioHandler.player.speed);
+    },
+  );
+}
+
 class SpeedSlider extends StatelessWidget {
   static const double minSpeed = 0.5;
   static const double maxSpeed = 3.0;
@@ -22,7 +34,7 @@ class SpeedSlider extends StatelessWidget {
           width: 48,
 
           child: IconButton(
-            onPressed: () => _openSpeedSheet(context, speed),
+            onPressed: () => showPlaybackSpeedSheet(context, currentSpeed: speed),
 
             icon: Text(
               '${speed.toStringAsFixed(1)}x',
@@ -35,18 +47,6 @@ class SpeedSlider extends StatelessWidget {
             ),
           ),
         );
-      },
-    );
-  }
-
-  Future<void> _openSpeedSheet(BuildContext context, double currentSpeed) {
-    return showModalBottomSheet<void>(
-      context: context,
-      useSafeArea: true,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (sheetContext) {
-        return _SpeedSheet(initialSpeed: currentSpeed);
       },
     );
   }

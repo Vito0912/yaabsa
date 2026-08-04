@@ -9,9 +9,17 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/screens/player/layout/player_presentation_config.dart';
 
 class PlayerTransportControlsComponent extends ConsumerWidget {
-  const PlayerTransportControlsComponent({super.key});
+  const PlayerTransportControlsComponent({
+    super.key,
+    this.transportMode = PlayerTransportMode.both,
+    this.prominent = true,
+  });
+
+  final PlayerTransportMode transportMode;
+  final bool prominent;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -57,34 +65,54 @@ class PlayerTransportControlsComponent extends ConsumerWidget {
               showControls = isMusic;
             }
 
+            final showJump = transportMode != PlayerTransportMode.skip;
+            final showSkip = transportMode != PlayerTransportMode.jump;
+
+            final controls = <Widget>[
+              if (showControls)
+                IconButton(
+                  icon: Icon(Icons.shuffle, color: mixQueue ? activeColor : inactiveColor),
+                  onPressed: () {
+                    audioHandler.toggleMix();
+                  },
+                  tooltip: 'Shuffle Queue',
+                ),
+              if (showSkip) const SkipButton(previous: true, iconSize: 30, buttonSize: 56),
+              if (showJump) const JumpButton(rewind: true, iconSize: 34, buttonSize: 62),
+              ControlButton(prominent: prominent),
+              if (showJump) const JumpButton(rewind: false, iconSize: 34, buttonSize: 62),
+              if (showSkip) const SkipButton(previous: false, iconSize: 30, buttonSize: 56),
+              if (showControls)
+                IconButton(
+                  icon: Icon(Icons.repeat, color: isLoopOn ? activeColor : inactiveColor),
+                  onPressed: () {
+                    audioHandler.cycleLoopMode();
+                  },
+                  tooltip: isLoopOn ? 'Loop On' : 'Loop Off',
+                ),
+            ];
+
+            if (context.isMobile) {
+              return FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    for (var index = 0; index < controls.length; index++) ...<Widget>[
+                      if (index > 0) const SizedBox(width: 4),
+                      controls[index],
+                    ],
+                  ],
+                ),
+              );
+            }
+
             return Wrap(
               alignment: WrapAlignment.center,
               crossAxisAlignment: WrapCrossAlignment.center,
-              spacing: 1,
-              runSpacing: 1,
-              children: <Widget>[
-                if (showControls)
-                  IconButton(
-                    icon: Icon(Icons.shuffle, color: mixQueue ? activeColor : inactiveColor),
-                    onPressed: () {
-                      audioHandler.toggleMix();
-                    },
-                    tooltip: 'Shuffle Queue',
-                  ),
-                const SkipButton(previous: true),
-                const JumpButton(rewind: true),
-                const ControlButton(),
-                const JumpButton(rewind: false),
-                const SkipButton(previous: false),
-                if (showControls)
-                  IconButton(
-                    icon: Icon(Icons.repeat, color: isLoopOn ? activeColor : inactiveColor),
-                    onPressed: () {
-                      audioHandler.cycleLoopMode();
-                    },
-                    tooltip: isLoopOn ? 'Loop On' : 'Loop Off',
-                  ),
-              ],
+              spacing: 8,
+              runSpacing: 8,
+              children: controls,
             );
           },
         );

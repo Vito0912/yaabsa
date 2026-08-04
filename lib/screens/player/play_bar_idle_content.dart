@@ -1,8 +1,8 @@
-import 'dart:io' show File;
-
 import 'package:flutter/material.dart';
 import 'package:yaabsa/components/common/cover_placeholder.dart';
+import 'package:yaabsa/components/common/cover_zoom_view.dart';
 import 'package:yaabsa/components/player/common/control_button.dart';
+import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 
 class PlayBarIdleContent extends StatelessWidget {
@@ -29,7 +29,8 @@ class PlayBarIdleContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final coverRadius = attachedToBottom ? 0.0 : desktopCoverRadius;
+    final coverRadius = desktopCoverRadius;
+    final coverUri = libraryItemCoverUri(snapshot.cover);
 
     if (isMobile) {
       return Row(
@@ -38,7 +39,7 @@ class PlayBarIdleContent extends StatelessWidget {
             width: mobileCoverSize,
             height: mobileCoverSize,
             child: _PlayBarIdleCover(
-              coverUri: snapshot.cover,
+              coverUri: coverUri,
               borderRadius: mobileCoverRadius,
               requestHeaders: requestHeaders,
             ),
@@ -55,7 +56,7 @@ class PlayBarIdleContent extends StatelessWidget {
         SizedBox(
           width: desktopCoverWidth,
           height: desktopCoverWidth,
-          child: _PlayBarIdleCover(coverUri: snapshot.cover, borderRadius: coverRadius, requestHeaders: requestHeaders),
+          child: _PlayBarIdleCover(coverUri: coverUri, borderRadius: coverRadius, requestHeaders: requestHeaders),
         ),
         const SizedBox(width: 10),
         Expanded(child: _PlayBarIdleInfo(snapshot: snapshot)),
@@ -104,16 +105,7 @@ class _PlayBarIdleCover extends StatelessWidget {
   final Map<String, String> requestHeaders;
 
   ImageProvider<Object>? _imageProvider() {
-    final uri = coverUri;
-    if (uri == null) {
-      return null;
-    }
-
-    if (uri.scheme == 'file') {
-      return FileImage(File(uri.toFilePath()));
-    }
-
-    return NetworkImage(uri.toString(), headers: requestHeaders.isEmpty ? null : requestHeaders);
+    return coverImageProviderFromUri(coverUri, requestHeaders: requestHeaders);
   }
 
   @override

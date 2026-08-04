@@ -248,7 +248,7 @@ extension _BGAudioHandlerResume on BGAudioHandler {
       displaySubtitle: finalSnapshot.subtitle,
       duration: totalDuration > Duration.zero ? totalDuration : null,
       isLive: false,
-      artUri: finalSnapshot.cover,
+      artUri: notificationArtworkUri(finalSnapshot.cover),
     );
     _setLastPlayedMiniPlayerSnapshot(isEnabled ? finalSnapshot : null);
 

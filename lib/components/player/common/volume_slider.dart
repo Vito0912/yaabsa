@@ -6,6 +6,25 @@ import 'package:flutter/material.dart';
 import 'package:yaabsa/components/player/common/volume_slider_panel.dart';
 import 'package:yaabsa/util/globals.dart';
 
+void showPlayerVolumeSheet(BuildContext context) {
+  showModalBottomSheet<void>(
+    context: context,
+    useSafeArea: true,
+    isScrollControlled: true,
+    showDragHandle: true,
+    builder: (sheetContext) {
+      final bottomInset = MediaQuery.of(sheetContext).viewInsets.bottom;
+      return SafeArea(
+        top: false,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(16, 8, 16, 16 + bottomInset),
+          child: const VolumeSliderPanel(axis: Axis.horizontal),
+        ),
+      );
+    },
+  );
+}
+
 class VolumeSlider extends StatefulWidget {
   const VolumeSlider({super.key});
 
@@ -91,22 +110,7 @@ class _VolumeSliderState extends State<VolumeSlider> {
 
     _hidePopup();
 
-    showModalBottomSheet<void>(
-      context: context,
-      useSafeArea: true,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (sheetContext) {
-        final bottomInset = MediaQuery.of(sheetContext).viewInsets.bottom;
-        return SafeArea(
-          top: false,
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(16, 8, 16, 16 + bottomInset),
-            child: const VolumeSliderPanel(axis: Axis.horizontal),
-          ),
-        );
-      },
-    );
+    showPlayerVolumeSheet(context);
   }
 
   void _toggleMute(double currentVolume) {

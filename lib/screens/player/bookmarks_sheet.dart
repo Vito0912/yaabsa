@@ -9,10 +9,11 @@ import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/globals.dart';
 
 class PlayerBookmarksSheet extends ConsumerStatefulWidget {
-  const PlayerBookmarksSheet({super.key, required this.itemId, required this.itemTitle});
+  const PlayerBookmarksSheet({super.key, required this.itemId, required this.itemTitle, this.embedded = false});
 
   final String itemId;
   final String itemTitle;
+  final bool embedded;
 
   @override
   ConsumerState<PlayerBookmarksSheet> createState() => _PlayerBookmarksSheetState();
@@ -155,100 +156,101 @@ class _PlayerBookmarksSheetState extends ConsumerState<PlayerBookmarksSheet> {
     final maxHeight = MediaQuery.of(context).size.height * 0.8;
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
-    return SafeArea(
-      child: SizedBox(
-        height: maxHeight,
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(16, 4, 16, 16 + bottomInset),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Bookmarks', style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 4),
-              Text(
-                widget.itemTitle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-              ),
-              const SizedBox(height: 12),
-              StreamBuilder<Duration>(
-                stream: audioHandler.positionStream,
-                initialData: audioHandler.position,
-                builder: (context, snapshot) {
-                  final position = snapshot.data ?? Duration.zero;
-                  final canCreate = !_isCreating && position.inSeconds > 0;
-
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Current position: ${position.inSeconds > 0 ? position.toHhMmString() : '--:--'}',
-                        style: Theme.of(
-                          context,
-                        ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                      ),
-                      const SizedBox(height: 8),
-                      FilledButton.icon(
-                        onPressed: canCreate ? _startCreateBookmarkFlow : null,
-                        icon: _isCreating
-                            ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                            : const Icon(Icons.bookmark_add_outlined),
-                        label: Text(_isCreating ? 'Adding bookmark...' : 'Create bookmark'),
-                      ),
-                    ],
-                  );
-                },
-              ),
-              const SizedBox(height: 12),
-              Expanded(
-                child: bookmarks.isEmpty
-                    ? Center(
-                        child: Text(
-                          'No bookmarks yet',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                        ),
-                      )
-                    : ListView.separated(
-                        itemCount: bookmarks.length,
-                        separatorBuilder: (context, index) => const Divider(height: 1),
-                        itemBuilder: (context, index) {
-                          final bookmark = bookmarks[index];
-                          final deleting = _deletingTimes.contains(bookmark.time);
-                          final title = bookmark.title.trim().isEmpty ? 'Untitled bookmark' : bookmark.title.trim();
-
-                          return ListTile(
-                            dense: true,
-                            leading: const Icon(Icons.bookmark_rounded),
-                            title: Text(title),
-                            subtitle: Text(Duration(seconds: bookmark.time).toHhMmString()),
-                            onTap: deleting
-                                ? null
-                                : () {
-                                    audioHandler.seekAbsolute(Duration(seconds: bookmark.time));
-                                  },
-                            trailing: deleting
-                                ? const SizedBox(
-                                    width: 18,
-                                    height: 18,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
-                                  )
-                                : IconButton(
-                                    icon: const Icon(Icons.delete_outline),
-                                    onPressed: () => _deleteBookmark(bookmark),
-                                  ),
-                          );
-                        },
-                      ),
-              ),
-            ],
+    final content = Padding(
+      padding: EdgeInsets.fromLTRB(16, 4, 16, 16 + bottomInset),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (!widget.embedded) ...<Widget>[
+            Text('Bookmarks', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 4),
+          ],
+          Text(
+            widget.itemTitle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
-        ),
+          const SizedBox(height: 12),
+          StreamBuilder<Duration>(
+            stream: audioHandler.positionStream,
+            initialData: audioHandler.position,
+            builder: (context, snapshot) {
+              final position = snapshot.data ?? Duration.zero;
+              final canCreate = !_isCreating && position.inSeconds > 0;
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Current position: ${position.inSeconds > 0 ? position.toHhMmString() : '--:--'}',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  ),
+                  const SizedBox(height: 8),
+                  FilledButton.icon(
+                    onPressed: canCreate ? _startCreateBookmarkFlow : null,
+                    icon: _isCreating
+                        ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                        : const Icon(Icons.bookmark_add_outlined),
+                    label: Text(_isCreating ? 'Adding bookmark...' : 'Create bookmark'),
+                  ),
+                ],
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+          Expanded(
+            child: bookmarks.isEmpty
+                ? Center(
+                    child: Text(
+                      'No bookmarks yet',
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    ),
+                  )
+                : ListView.separated(
+                    itemCount: bookmarks.length,
+                    separatorBuilder: (context, index) => const Divider(height: 1),
+                    itemBuilder: (context, index) {
+                      final bookmark = bookmarks[index];
+                      final deleting = _deletingTimes.contains(bookmark.time);
+                      final title = bookmark.title.trim().isEmpty ? 'Untitled bookmark' : bookmark.title.trim();
+
+                      return ListTile(
+                        dense: true,
+                        leading: const Icon(Icons.bookmark_rounded),
+                        title: Text(title),
+                        subtitle: Text(Duration(seconds: bookmark.time).toHhMmString()),
+                        onTap: deleting
+                            ? null
+                            : () {
+                                audioHandler.seekAbsolute(Duration(seconds: bookmark.time));
+                              },
+                        trailing: deleting
+                            ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                            : IconButton(
+                                icon: const Icon(Icons.delete_outline),
+                                onPressed: () => _deleteBookmark(bookmark),
+                              ),
+                      );
+                    },
+                  ),
+          ),
+        ],
       ),
+    );
+
+    if (widget.embedded) {
+      return content;
+    }
+
+    return SafeArea(
+      child: SizedBox(height: maxHeight, child: content),
     );
   }
 }

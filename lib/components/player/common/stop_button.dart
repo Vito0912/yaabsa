@@ -24,7 +24,8 @@ class StopButton extends StatelessWidget {
         }
 
         return IconButton(
-          icon: const Icon(Icons.stop),
+          tooltip: 'Stop playback',
+          icon: const Icon(Icons.stop_circle_outlined),
           onPressed: () {
             audioHandler.stop();
           },

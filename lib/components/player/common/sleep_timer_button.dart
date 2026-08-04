@@ -3,6 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+void showSleepTimerSheet(BuildContext context, WidgetRef ref) {
+  showModalBottomSheet<void>(
+    context: context,
+    useSafeArea: true,
+    isScrollControlled: true,
+    showDragHandle: true,
+    builder: (context) => SleepTimerModal(ref: ref),
+  );
+}
+
 class SleepTimerButton extends ConsumerWidget {
   const SleepTimerButton({super.key});
 
@@ -15,14 +25,14 @@ class SleepTimerButton extends ConsumerWidget {
       width: 48,
       height: 48,
       child: IconButton(
-        onPressed: () => _showSleepTimerModal(context, ref),
+        onPressed: () => showSleepTimerSheet(context, ref),
         color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
         icon: isActive
             ? Text(
                 _formatTime(sleepTimer.remainingTime),
                 style: TextStyle(color: Colors.lightGreenAccent.withValues(alpha: 0.8)),
               )
-            : Icon(isActive ? Icons.bedtime : Icons.bedtime_outlined),
+            : const Icon(Icons.bedtime_rounded),
       ),
     );
   }
@@ -39,16 +49,6 @@ class SleepTimerButton extends ConsumerWidget {
     } else {
       return '${seconds}s';
     }
-  }
-
-  void _showSleepTimerModal(BuildContext context, WidgetRef ref) {
-    showModalBottomSheet(
-      context: context,
-      useSafeArea: true,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (context) => SleepTimerModal(ref: ref),
-    );
   }
 }
 

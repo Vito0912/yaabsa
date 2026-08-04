@@ -8,11 +8,15 @@ class PlayerSeekBarComponent extends StatelessWidget {
     this.timePlacement = PlayerSeekTimePlacement.inline,
     this.trackHeight = 8.0,
     this.timeLabelFontSize = 12.0,
+    this.ensureFullTimeline = false,
+    this.ensureChapterMarkers = false,
   });
 
   final PlayerSeekTimePlacement timePlacement;
   final double trackHeight;
   final double timeLabelFontSize;
+  final bool ensureFullTimeline;
+  final bool ensureChapterMarkers;
 
   @override
   Widget build(BuildContext context) {
@@ -21,6 +25,8 @@ class PlayerSeekBarComponent extends StatelessWidget {
       timeLabelsBelow: timePlacement.timeLabelsBelow,
       showTimeLabels: timePlacement.showLabelsInComponent,
       timeLabelFontSize: timeLabelFontSize,
+      ensureFullTimeline: ensureFullTimeline,
+      ensureChapterMarkers: ensureChapterMarkers,
     );
   }
 }

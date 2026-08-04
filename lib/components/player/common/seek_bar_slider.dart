@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:yaabsa/util/setting_key.dart';
@@ -23,6 +25,23 @@ class _MarkerPaintProfile {
 
   final double width;
   final double alpha;
+}
+
+class _FullWidthRoundedSliderTrackShape extends RoundedRectSliderTrackShape {
+  const _FullWidthRoundedSliderTrackShape();
+
+  @override
+  Rect getPreferredRect({
+    required RenderBox parentBox,
+    Offset offset = Offset.zero,
+    required SliderThemeData sliderTheme,
+    bool isEnabled = false,
+    bool isDiscrete = false,
+  }) {
+    final trackHeight = sliderTheme.trackHeight ?? 0;
+    final trackTop = offset.dy + (parentBox.size.height - trackHeight) / 2;
+    return Rect.fromLTWH(offset.dx, trackTop, parentBox.size.width, trackHeight);
+  }
 }
 
 class SeekBarSlider extends StatefulWidget {
@@ -51,7 +70,7 @@ class SeekBarSlider extends StatefulWidget {
   final bool hasSeekRange;
   final List<SeekTimelineMarker> markers;
   final SeekBarMarkerMode markerMode;
-  final void Function(double seconds) executeSeek;
+  final Future<void> Function(double seconds) executeSeek;
   final String Function(Duration position) buildPreviewLabel;
   final double? previewLabelFontSize;
 
@@ -60,6 +79,13 @@ class SeekBarSlider extends StatefulWidget {
 }
 
 class _SeekBarSliderState extends State<SeekBarSlider> {
+  static const Duration _backendSeekInterval = Duration(milliseconds: 120);
+
+  double? _dragValue;
+  bool _isDragging = false;
+  double? _queuedSeekValue;
+  bool _seekLoopActive = false;
+  DateTime? _lastBackendSeekAt;
   double? _previewOffset;
   Duration? _previewPosition;
   String? _cachedPreviewKey;
@@ -69,6 +95,76 @@ class _SeekBarSliderState extends State<SeekBarSlider> {
   Duration? _cachedRangeEnd;
   double? _cachedSliderWidth;
   List<_SeekTimelineMarkerOffset> _cachedMarkerOffsets = const <_SeekTimelineMarkerOffset>[];
+
+  void _handleSliderChangeStart(double value) {
+    setState(() {
+      _isDragging = true;
+      _dragValue = value;
+    });
+  }
+
+  void _handleSliderChanged(double value) {
+    if (_dragValue != value) {
+      setState(() => _dragValue = value);
+    }
+    _queueBackendSeek(value);
+  }
+
+  void _handleSliderChangeEnd(double value) {
+    setState(() {
+      _isDragging = false;
+      _dragValue = value;
+    });
+    _queueBackendSeek(value);
+  }
+
+  void _queueBackendSeek(double value) {
+    _queuedSeekValue = value;
+    if (!_seekLoopActive) {
+      unawaited(_drainSeekQueue());
+    }
+  }
+
+  Future<void> _drainSeekQueue() async {
+    _seekLoopActive = true;
+    try {
+      while (mounted && _queuedSeekValue != null) {
+        final lastSeekAt = _lastBackendSeekAt;
+        if (lastSeekAt != null) {
+          final elapsed = DateTime.now().difference(lastSeekAt);
+          if (elapsed < _backendSeekInterval) {
+            await Future<void>.delayed(_backendSeekInterval - elapsed);
+          }
+        }
+        if (!mounted || _queuedSeekValue == null) {
+          break;
+        }
+        final value = _queuedSeekValue!;
+        _queuedSeekValue = null;
+        _lastBackendSeekAt = DateTime.now();
+        await widget.executeSeek(value);
+      }
+    } finally {
+      _seekLoopActive = false;
+      if (mounted && _queuedSeekValue != null) {
+        unawaited(_drainSeekQueue());
+      }
+    }
+  }
+
+  @override
+  void didUpdateWidget(SeekBarSlider oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!_isDragging && _dragValue != null && oldWidget.sliderValue != widget.sliderValue) {
+      _dragValue = null;
+    }
+  }
+
+  @override
+  void dispose() {
+    _queuedSeekValue = null;
+    super.dispose();
+  }
 
   List<_SeekTimelineMarkerOffset> _resolveMarkerOffsetsCached(double sliderWidth) {
     final shouldRefresh =
@@ -82,12 +178,19 @@ class _SeekBarSliderState extends State<SeekBarSlider> {
       return _cachedMarkerOffsets;
     }
 
-    _cachedMarkerOffsets = _resolveMarkerOffsets(
-      markers: widget.markers,
-      rangeStart: widget.rangeStart,
-      rangeEnd: widget.rangeEnd,
-      sliderWidth: sliderWidth,
-    );
+    const trackInset = 0.0;
+    final trackWidth = sliderWidth;
+    _cachedMarkerOffsets =
+        _resolveMarkerOffsets(
+              markers: widget.markers,
+              rangeStart: widget.rangeStart,
+              rangeEnd: widget.rangeEnd,
+              sliderWidth: trackWidth,
+            )
+            .map((marker) {
+              return _SeekTimelineMarkerOffset(offset: marker.offset + trackInset, type: marker.type);
+            })
+            .toList(growable: false);
     _cachedMarkers = widget.markers;
     _cachedRangeStart = widget.rangeStart;
     _cachedRangeEnd = widget.rangeEnd;
@@ -162,16 +265,18 @@ class _SeekBarSliderState extends State<SeekBarSlider> {
       padding: EdgeInsets.symmetric(horizontal: widget.timeLabelsBelow ? 0 : 4),
       child: SliderTheme(
         data: SliderTheme.of(context).copyWith(
+          padding: widget.timeLabelsBelow ? EdgeInsets.zero : null,
           trackHeight: widget.trackHeight,
-          trackShape: const RectangularSliderTrackShape(),
+          trackShape: const _FullWidthRoundedSliderTrackShape(),
           thumbShape: const RoundSliderThumbShape(
-            enabledThumbRadius: 0.0,
-            disabledThumbRadius: 0.0,
-            pressedElevation: 0.0,
+            enabledThumbRadius: 5,
+            disabledThumbRadius: 0,
+            elevation: 0,
+            pressedElevation: 1,
           ),
-          overlayShape: SliderComponentShape.noOverlay,
+          overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
           activeTrackColor: colorScheme.primary,
-          inactiveTrackColor: colorScheme.onSurface.withValues(alpha: 0.3),
+          inactiveTrackColor: colorScheme.onSurface.withValues(alpha: 0.22),
         ),
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -265,30 +370,40 @@ class _SeekBarSliderState extends State<SeekBarSlider> {
                   clipBehavior: Clip.none,
                   children: [
                     Slider(
-                      value: widget.sliderValue.clamp(0.0, widget.hasSeekRange ? widget.maxSliderValue : 0.0),
+                      value: (_dragValue ?? widget.sliderValue).clamp(
+                        0.0,
+                        widget.hasSeekRange ? widget.maxSliderValue : 0.0,
+                      ),
                       min: 0.0,
                       max: widget.hasSeekRange ? widget.maxSliderValue : 1.0,
                       activeColor: colorScheme.primary,
                       inactiveColor: colorScheme.onSurface.withValues(alpha: 0.3),
-                      onChanged: widget.hasSeekRange ? widget.executeSeek : null,
-                      onChangeEnd: widget.hasSeekRange ? widget.executeSeek : null,
+                      onChangeStart: widget.hasSeekRange ? _handleSliderChangeStart : null,
+                      onChanged: widget.hasSeekRange ? _handleSliderChanged : null,
+                      onChangeEnd: widget.hasSeekRange ? _handleSliderChangeEnd : null,
                     ),
                     for (final marker in markerOffsets)
                       Positioned(
                         left: (marker.offset - (markerProfile.width / 2))
                             .clamp(0.0, sliderWidth > markerProfile.width ? sliderWidth - markerProfile.width : 0.0)
                             .toDouble(),
-                        child: Container(
-                          width: markerProfile.width,
-                          height: widget.trackHeight,
-                          decoration: BoxDecoration(
-                            color:
-                                (marker.type == SeekTimelineMarkerType.bookmark &&
-                                            widget.markerMode == SeekBarMarkerMode.both
-                                        ? colorScheme.error
-                                        : colorScheme.tertiary)
-                                    .withValues(alpha: markerProfile.alpha),
-                            borderRadius: BorderRadius.circular(999),
+                        top: 0,
+                        bottom: 0,
+                        child: IgnorePointer(
+                          child: Center(
+                            child: Container(
+                              width: markerProfile.width,
+                              height: widget.trackHeight,
+                              decoration: BoxDecoration(
+                                color:
+                                    (marker.type == SeekTimelineMarkerType.bookmark &&
+                                                widget.markerMode == SeekBarMarkerMode.both
+                                            ? colorScheme.error
+                                            : colorScheme.tertiary)
+                                        .withValues(alpha: markerProfile.alpha),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                            ),
                           ),
                         ),
                       ),

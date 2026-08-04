@@ -105,6 +105,16 @@ class SettingKeys {
   static const String playerSeekBarMarkerMode = 'player_seek_bar_marker_mode';
   static const String playerSeekBarShowChapterMarkers = 'player_seek_bar_show_chapter_markers';
   static const String playerLayoutConfig = 'player_layout_config';
+  static const String playerLayoutMode = 'player_layout_mode';
+  static const String playerAdaptivePreset = 'player_adaptive_preset';
+  static const String playerCoverSize = 'player_cover_size';
+  static const String playerImmersiveColors = 'player_immersive_colors';
+  static const String fullPlayerTransportMode = 'full_player_transport_mode';
+  static const String miniPlayerTransportMode = 'mini_player_transport_mode';
+  static const String fullPlayerActions = 'full_player_actions';
+  static const String mobilePlayerLeftAction = 'mobile_player_left_action';
+  static const String mobilePlayerRightAction = 'mobile_player_right_action';
+  static const String miniPlayerActions = 'mini_player_actions';
   static const String lastPlayedQueueItem = 'last_played_queue_item';
   static const String lastPlayedMiniPlayerSnapshot = 'last_played_mini_player_snapshot';
   static const String podcastEpisodeProgressFilter = 'podcast_episode_progress_filter';
@@ -253,6 +263,16 @@ final defaultSettings = {
   SettingKeys.playerSeekBarMarkerMode: SeekBarMarkerMode.both.name,
   SettingKeys.playerSeekBarShowChapterMarkers: true,
   SettingKeys.playerLayoutConfig: '',
+  SettingKeys.playerLayoutMode: '',
+  SettingKeys.playerAdaptivePreset: 'full',
+  SettingKeys.playerCoverSize: 'automatic',
+  SettingKeys.playerImmersiveColors: true,
+  SettingKeys.fullPlayerTransportMode: 'both',
+  SettingKeys.miniPlayerTransportMode: 'both',
+  SettingKeys.fullPlayerActions: 'speed,bookmarks,chapter,volume,sleepTimer,queue',
+  SettingKeys.mobilePlayerLeftAction: 'speed',
+  SettingKeys.mobilePlayerRightAction: 'sleepTimer',
+  SettingKeys.miniPlayerActions: 'speed,sleepTimer',
   SettingKeys.podcastEpisodeProgressFilter: 'all',
   SettingKeys.subtitlesEnabled: true,
   SettingKeys.subtitleSpeakerHighlighting: true,

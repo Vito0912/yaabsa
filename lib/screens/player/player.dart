@@ -24,8 +24,10 @@ import 'package:yaabsa/screens/player/components/player_seek_bar_component.dart'
 import 'package:yaabsa/screens/player/components/player_subtitles_component.dart';
 import 'package:yaabsa/screens/player/components/player_utilities_component.dart';
 import 'package:yaabsa/screens/player/layout/player_component_settings_sheet.dart';
+import 'package:yaabsa/screens/player/layout/player_adaptive_view.dart';
 import 'package:yaabsa/screens/player/layout/player_grid_canvas.dart';
 import 'package:yaabsa/screens/player/layout/player_layout_config.dart';
+import 'package:yaabsa/screens/player/layout/player_presentation_config.dart';
 import 'package:yaabsa/screens/player/player_empty_state_mode.dart';
 import 'package:yaabsa/screens/player/play_history_view.dart';
 import 'package:yaabsa/screens/player/queue.dart';
@@ -35,7 +37,7 @@ import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
-enum _PlayerAppBarMenuAction { queue, addBookmark, carMode, playHistory, cast, equalizer }
+enum _PlayerAppBarMenuAction { queue, stop, addBookmark, carMode, playHistory, cast, equalizer }
 
 class Player extends ConsumerStatefulWidget {
   const Player({super.key});
@@ -52,6 +54,7 @@ class _PlayerState extends ConsumerState<Player> {
   bool _isEditMode = false;
   bool _allowOverlapUnlocked = false;
   double _verticalDragDelta = 0;
+  Color? _adaptiveNavigationBarColor;
   PlayerLayoutConfig? _layoutDraft;
   Future<void> _persistSequence = Future<void>.value();
   StreamSubscription<AaosTelemetryState>? _aaosAutoOpenSubscription;
@@ -83,6 +86,16 @@ class _PlayerState extends ConsumerState<Player> {
         return;
       }
       _openCarMode(context);
+    });
+  }
+
+  void _updateAdaptiveNavigationBarColor(Color color) {
+    if (!mounted || _adaptiveNavigationBarColor == color) {
+      return;
+    }
+
+    setState(() {
+      _adaptiveNavigationBarColor = color;
     });
   }
 
@@ -163,6 +176,7 @@ class _PlayerState extends ConsumerState<Player> {
       context: context,
       useSafeArea: true,
       showDragHandle: true,
+      isScrollControlled: true,
       builder: (BuildContext context) => const _PlayerQuickSettingsSheet(),
     );
   }
@@ -188,6 +202,8 @@ class _PlayerState extends ConsumerState<Player> {
     switch (action) {
       case _PlayerAppBarMenuAction.queue:
         _showQueueSheet(context);
+      case _PlayerAppBarMenuAction.stop:
+        await audioHandler.stop();
       case _PlayerAppBarMenuAction.addBookmark:
         _showBookmarksSheet(context);
       case _PlayerAppBarMenuAction.carMode:
@@ -207,14 +223,19 @@ class _PlayerState extends ConsumerState<Player> {
   }) {
     final items = <PopupMenuEntry<_PlayerAppBarMenuAction>>[];
 
-    if (isMobile) {
-      items.add(
-        const PopupMenuItem<_PlayerAppBarMenuAction>(
-          value: _PlayerAppBarMenuAction.queue,
-          child: _PlayerAppBarMenuItem(icon: Icons.queue_music_rounded, label: 'Queue'),
-        ),
-      );
-    }
+    items.add(
+      const PopupMenuItem<_PlayerAppBarMenuAction>(
+        value: _PlayerAppBarMenuAction.queue,
+        child: _PlayerAppBarMenuItem(icon: Icons.queue_music_rounded, label: 'Queue'),
+      ),
+    );
+
+    items.add(
+      const PopupMenuItem<_PlayerAppBarMenuAction>(
+        value: _PlayerAppBarMenuAction.stop,
+        child: _PlayerAppBarMenuItem(icon: Icons.stop_circle_outlined, label: 'Stop playback'),
+      ),
+    );
 
     items.add(
       const PopupMenuItem<_PlayerAppBarMenuAction>(
@@ -530,6 +551,7 @@ class _PlayerState extends ConsumerState<Player> {
     required ABSApi? api,
     required InternalMedia media,
     required bool hasChapters,
+    required PlayerTransportMode transportMode,
   }) {
     Widget content;
     switch (placement.type) {
@@ -551,7 +573,7 @@ class _PlayerState extends ConsumerState<Player> {
           timeLabelFontSize: placement.seekTimeLabelFontSize,
         );
       case PlayerComponentType.controls:
-        content = const PlayerTransportControlsComponent();
+        content = PlayerTransportControlsComponent(transportMode: transportMode);
       case PlayerComponentType.utilities:
         content = PlayerUtilitiesComponent(
           utilityOrder: profile.utilityOrder,
@@ -572,16 +594,57 @@ class _PlayerState extends ConsumerState<Player> {
   @override
   Widget build(BuildContext context) {
     ref.watch(globalSettingByKeyProvider(SettingKeys.playerLayoutConfig));
+    ref.watch(globalSettingByKeyProvider(SettingKeys.playerLayoutMode));
+    ref.watch(globalSettingByKeyProvider(SettingKeys.playerAdaptivePreset));
+    final rawCoverSize = ref.watch(globalSettingByKeyProvider(SettingKeys.playerCoverSize)).asData?.value;
+    final rawImmersiveColors = ref.watch(globalSettingByKeyProvider(SettingKeys.playerImmersiveColors)).asData?.value;
+    final rawFullTransportMode = ref
+        .watch(globalSettingByKeyProvider(SettingKeys.fullPlayerTransportMode))
+        .asData
+        ?.value;
+    ref.watch(globalSettingByKeyProvider(SettingKeys.fullPlayerActions));
+    ref.watch(globalSettingByKeyProvider(SettingKeys.mobilePlayerLeftAction));
+    ref.watch(globalSettingByKeyProvider(SettingKeys.mobilePlayerRightAction));
 
     _layoutDraft ??= _readLayoutConfigFromSettings();
 
+    final settingsManager = ref.read(settingsManagerProvider.notifier);
+    final rawLayoutConfig = settingsManager.getGlobalSetting<String>(SettingKeys.playerLayoutConfig, defaultValue: '');
+    final layoutMode = PlayerLayoutMode.fromSettingValue(
+      settingsManager.getGlobalSetting<String>(SettingKeys.playerLayoutMode, defaultValue: ''),
+      hasSavedCustomLayout: rawLayoutConfig.trim().isNotEmpty,
+    );
+    final adaptivePreset = PlayerAdaptivePreset.fromSettingValue(
+      settingsManager.getGlobalSetting<String>(SettingKeys.playerAdaptivePreset),
+    );
+    final coverSize = PlayerCoverSize.fromSettingValue(rawCoverSize);
+    final immersiveColors = SettingsParser.decodeValue<bool>(
+      rawImmersiveColors,
+      defaultSettings[SettingKeys.playerImmersiveColors] as bool,
+    );
+    final transportMode = PlayerTransportMode.fromSettingValue(rawFullTransportMode);
+    final adaptiveActions = decodePlayerActions(
+      settingsManager.getGlobalSetting<String>(SettingKeys.fullPlayerActions),
+      fallback: defaultFullPlayerActions,
+    );
+    final mobileLeftAction = decodeOptionalPlayerAction(
+      settingsManager.getGlobalSetting<String>(SettingKeys.mobilePlayerLeftAction),
+      fallback: defaultMobilePlayerLeftAction,
+    );
+    final mobileRightAction = decodeOptionalPlayerAction(
+      settingsManager.getGlobalSetting<String>(SettingKeys.mobilePlayerRightAction),
+      fallback: defaultMobilePlayerRightAction,
+    );
+    final isCustomMode = layoutMode == PlayerLayoutMode.custom;
+    final isEditMode = isCustomMode && _isEditMode;
     final castSupported = ChromeCastService.isSupportedPlatform;
     final isMobile = context.isMobile;
     final activeScreenSize = PlayerLayoutScreenSize.fromBreakpoint(context.breakpoint);
     final activeProfile = _activeProfileForScreen(activeScreenSize);
     final activeSeekBarPlacement = activeProfile.placementFor(PlayerComponentType.seekBar);
     final showTimesUnderAppBar =
-        !_isEditMode &&
+        isCustomMode &&
+        !isEditMode &&
         activeSeekBarPlacement.visible &&
         activeSeekBarPlacement.seekTimePlacement == PlayerSeekTimePlacement.underAppBar;
     final hiddenComponents = activeProfile.placements
@@ -589,7 +652,17 @@ class _PlayerState extends ConsumerState<Player> {
         .map((placement) => placement.type)
         .toList(growable: false);
 
-    final appBar = _isEditMode
+    final enableSwipeToMinimize = isMobile && !isEditMode;
+    final headerDragSurface = enableSwipeToMinimize
+        ? GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onVerticalDragStart: _handleVerticalDragStart,
+            onVerticalDragUpdate: _handleVerticalDragUpdate,
+            onVerticalDragEnd: _handleVerticalDragEnd,
+          )
+        : null;
+
+    final appBar = isEditMode
         ? AppBar(
             title: Text('Edit ${activeScreenSize.label} Layout'),
             leading: IconButton(
@@ -665,27 +738,39 @@ class _PlayerState extends ConsumerState<Player> {
             ],
           )
         : AppBar(
-            title: const Text('Player'),
+            title: Text(isCustomMode ? 'Custom player' : 'Now playing'),
+            leading: isMobile
+                ? IconButton(
+                    icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                    onPressed: _closePlayerIfOpen,
+                    tooltip: 'Minimize player',
+                  )
+                : null,
+            flexibleSpace: headerDragSurface,
+            backgroundColor: isCustomMode ? null : Colors.transparent,
+            surfaceTintColor: Colors.transparent,
+            scrolledUnderElevation: 0,
             bottom: showTimesUnderAppBar
                 ? const PreferredSize(preferredSize: Size.fromHeight(26), child: _AppBarSeekTimesStrip())
                 : null,
             actions: <Widget>[
-              IconButton(
-                icon: const Icon(Icons.edit_rounded),
-                onPressed: () {
-                  setState(() {
-                    _isEditMode = true;
-                  });
-                },
-                tooltip: 'Enter layout edit mode',
-              ),
+              if (isCustomMode)
+                IconButton(
+                  icon: const Icon(Icons.edit_rounded),
+                  onPressed: () {
+                    setState(() {
+                      _isEditMode = true;
+                    });
+                  },
+                  tooltip: 'Enter layout edit mode',
+                ),
               IconButton(
                 icon: const Icon(Icons.tune_rounded),
                 onPressed: () => _showQuickSettings(context),
                 tooltip: 'Quick Settings',
               ),
               if (!isMobile && castSupported) const CastButton(),
-              const StopButton(),
+              if (isCustomMode) const StopButton(),
               PopupMenuButton<_PlayerAppBarMenuAction>(
                 tooltip: 'More options',
                 icon: const Icon(Icons.more_vert),
@@ -700,58 +785,84 @@ class _PlayerState extends ConsumerState<Player> {
           );
 
     final ABSApi? api = ref.watch(absApiProvider);
-    final enableSwipeToMinimize = isMobile && !_isEditMode;
+    final systemNavigationColor = !isCustomMode && _adaptiveNavigationBarColor != null
+        ? _adaptiveNavigationBarColor!
+        : Theme.of(context).colorScheme.surfaceContainer;
+    final navigationBarBrightness = ThemeData.estimateBrightnessForColor(systemNavigationColor);
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: navigationBarBrightness == Brightness.dark ? Brightness.light : Brightness.dark,
+        systemNavigationBarColor: isCustomMode ? systemNavigationColor : Colors.transparent,
+        systemNavigationBarDividerColor: Colors.transparent,
+        systemNavigationBarIconBrightness: navigationBarBrightness == Brightness.dark
+            ? Brightness.light
+            : Brightness.dark,
+        systemNavigationBarContrastEnforced: false,
+      ),
+      child: Scaffold(
+        backgroundColor: systemNavigationColor,
+        extendBodyBehindAppBar: !isCustomMode,
+        appBar: appBar,
+        body: PlayerKeyboardShortcuts(
+          child: StreamBuilder<bool>(
+            stream: audioHandler.queueTransitionLoadingStream,
+            initialData: audioHandler.queueTransitionLoading,
+            builder: (BuildContext context, AsyncSnapshot<bool> transitionSnapshot) {
+              final isTransitionLoading = transitionSnapshot.data == true;
 
-    return Scaffold(
-      appBar: appBar,
-      body: SafeArea(
-        top: false,
-        child: PlayerKeyboardShortcuts(
-          child: GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            onVerticalDragStart: enableSwipeToMinimize ? _handleVerticalDragStart : null,
-            onVerticalDragUpdate: enableSwipeToMinimize ? _handleVerticalDragUpdate : null,
-            onVerticalDragEnd: enableSwipeToMinimize ? _handleVerticalDragEnd : null,
-            child: StreamBuilder<bool>(
-              stream: audioHandler.queueTransitionLoadingStream,
-              initialData: audioHandler.queueTransitionLoading,
-              builder: (BuildContext context, AsyncSnapshot<bool> transitionSnapshot) {
-                final isTransitionLoading = transitionSnapshot.data == true;
+              return StreamBuilder<InternalMedia?>(
+                stream: audioHandler.mediaItemStream.stream,
+                initialData: audioHandler.currentMediaItem,
+                builder: (BuildContext context, AsyncSnapshot<InternalMedia?> mediaSnapshot) {
+                  if (mediaSnapshot.connectionState == ConnectionState.waiting && mediaSnapshot.data == null) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-                return StreamBuilder<InternalMedia?>(
-                  stream: audioHandler.mediaItemStream.stream,
-                  initialData: audioHandler.currentMediaItem,
-                  builder: (BuildContext context, AsyncSnapshot<InternalMedia?> mediaSnapshot) {
-                    if (mediaSnapshot.connectionState == ConnectionState.waiting && mediaSnapshot.data == null) {
-                      return const Center(child: CircularProgressIndicator());
+                  final media = mediaSnapshot.data;
+                  if (media == null) {
+                    if (isTransitionLoading) {
+                      return const _PlayerTransitionLoadingView();
                     }
 
-                    final media = mediaSnapshot.data;
-                    if (media == null) {
-                      if (isTransitionLoading) {
-                        return const _PlayerTransitionLoadingView();
+                    _scheduleClosePlayerIfOpen();
+                    return const SizedBox.shrink();
+                  }
+
+                  return StreamBuilder<PlayerQueueSnapshot>(
+                    stream: audioHandler.queueSnapshotStream,
+                    initialData: audioHandler.queueSnapshot,
+                    builder: (BuildContext context, AsyncSnapshot<PlayerQueueSnapshot> queueSnapshot) {
+                      final queueState = queueSnapshot.data ?? const PlayerQueueSnapshot();
+                      final screenSize = PlayerLayoutScreenSize.fromBreakpoint(context.breakpoint);
+                      final profile = _activeProfileForScreen(screenSize);
+                      final hasChapters = media.chapters?.isNotEmpty == true;
+                      final hasQueue = queueState.entries.isNotEmpty;
+
+                      if (!isCustomMode) {
+                        return PlayerAdaptiveView(
+                          api: api,
+                          media: media,
+                          hasChapters: hasChapters,
+                          preset: adaptivePreset,
+                          transportMode: transportMode,
+                          actions: adaptiveActions,
+                          mobileLeftAction: mobileLeftAction,
+                          mobileRightAction: mobileRightAction,
+                          coverSize: coverSize,
+                          immersiveColors: immersiveColors,
+                          onNavigationBarColorChanged: _updateAdaptiveNavigationBarColor,
+                        );
                       }
 
-                      _scheduleClosePlayerIfOpen();
-                      return const SizedBox.shrink();
-                    }
-
-                    return StreamBuilder<PlayerQueueSnapshot>(
-                      stream: audioHandler.queueSnapshotStream,
-                      initialData: audioHandler.queueSnapshot,
-                      builder: (BuildContext context, AsyncSnapshot<PlayerQueueSnapshot> queueSnapshot) {
-                        final queueState = queueSnapshot.data ?? const PlayerQueueSnapshot();
-                        final screenSize = PlayerLayoutScreenSize.fromBreakpoint(context.breakpoint);
-                        final profile = _activeProfileForScreen(screenSize);
-                        final hasChapters = media.chapters?.isNotEmpty == true;
-                        final hasQueue = queueState.entries.isNotEmpty;
-
-                        return Padding(
+                      return SafeArea(
+                        top: false,
+                        child: Padding(
                           padding: EdgeInsets.all(context.isMobile ? 2 : 4),
                           child: PlayerGridCanvas(
                             screenSize: screenSize,
                             profile: profile,
-                            editMode: _isEditMode,
+                            editMode: isEditMode,
                             isPlacementVisible: (PlayerComponentPlacement placement) {
                               return _shouldRenderPlacement(
                                 placement: placement,
@@ -766,36 +877,37 @@ class _PlayerState extends ConsumerState<Player> {
                                 api: api,
                                 media: media,
                                 hasChapters: hasChapters,
+                                transportMode: transportMode,
                               );
                             },
-                            onMovePlacement: _isEditMode
+                            onMovePlacement: isEditMode
                                 ? (PlayerComponentType type, int deltaX, int deltaY) {
                                     _movePlacement(screenSize, type, deltaX, deltaY);
                                   }
                                 : null,
-                            onResizePlacement: _isEditMode
+                            onResizePlacement: isEditMode
                                 ? (PlayerComponentType type, int deltaWidth, int deltaHeight) {
                                     _resizePlacement(screenSize, type, deltaWidth, deltaHeight);
                                   }
                                 : null,
-                            onOpenSettings: _isEditMode
+                            onOpenSettings: isEditMode
                                 ? (PlayerComponentType type) {
                                     _showComponentSettings(context, screenSize, type);
                                   }
                                 : null,
-                            onHidePlacement: _isEditMode
+                            onHidePlacement: isEditMode
                                 ? (PlayerComponentType type) {
                                     _setComponentVisibility(context, screenSize, type, false);
                                   }
                                 : null,
                           ),
-                        );
-                      },
-                    );
-                  },
-                );
-              },
-            ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              );
+            },
           ),
         ),
       ),
@@ -812,7 +924,9 @@ class _PlayerTransitionLoadingView extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          const SizedBox(width: 28, height: 28, child: CircularProgressIndicator(strokeWidth: 2.6)),
+          const RepaintBoundary(
+            child: SizedBox(width: 28, height: 28, child: CircularProgressIndicator(strokeWidth: 2.6)),
+          ),
           const SizedBox(height: 10),
           Text('Loading next item...', style: Theme.of(context).textTheme.bodyMedium),
         ],
@@ -943,51 +1057,148 @@ class _PlayerQuickSettingsSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.watch(globalSettingByKeyProvider(SettingKeys.playerSeekBarMode));
-    final selectedMode = PlayerSeekBarMode.fromSettingValue(
-      ref
-          .read(settingsManagerProvider.notifier)
-          .getGlobalSetting<String>(SettingKeys.playerSeekBarMode, defaultValue: PlayerSeekBarMode.full.name),
+    final rawSeekBarMode = ref.watch(globalSettingByKeyProvider(SettingKeys.playerSeekBarMode)).asData?.value;
+    final rawLayoutMode = ref.watch(globalSettingByKeyProvider(SettingKeys.playerLayoutMode)).asData?.value;
+    final rawAdaptivePreset = ref.watch(globalSettingByKeyProvider(SettingKeys.playerAdaptivePreset)).asData?.value;
+    final rawCoverSize = ref.watch(globalSettingByKeyProvider(SettingKeys.playerCoverSize)).asData?.value;
+    final rawImmersiveColors = ref.watch(globalSettingByKeyProvider(SettingKeys.playerImmersiveColors)).asData?.value;
+    final rawLayoutConfig = ref.watch(globalSettingByKeyProvider(SettingKeys.playerLayoutConfig)).asData?.value;
+    final settingsManager = ref.read(settingsManagerProvider.notifier);
+    final selectedMode = PlayerSeekBarMode.fromSettingValue(rawSeekBarMode);
+    final layoutMode = PlayerLayoutMode.fromSettingValue(
+      rawLayoutMode,
+      hasSavedCustomLayout: rawLayoutConfig?.trim().isNotEmpty == true,
+    );
+    final preset = PlayerAdaptivePreset.fromSettingValue(rawAdaptivePreset);
+    final coverSize = PlayerCoverSize.fromSettingValue(rawCoverSize);
+    final immersiveColors = SettingsParser.decodeValue<bool>(
+      rawImmersiveColors,
+      defaultSettings[SettingKeys.playerImmersiveColors] as bool,
     );
 
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 2, 12, 12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text('Quick Player Settings', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 4),
-            Text(
-              'Timeline mode',
-              style: Theme.of(
-                context,
-              ).textTheme.titleSmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-            ),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: PlayerSeekBarMode.values
-                  .map((PlayerSeekBarMode mode) {
-                    final selected = mode == selectedMode;
-                    return ChoiceChip(
-                      label: Text(mode.label),
-                      selected: selected,
-                      onSelected: (bool value) {
-                        if (!value) {
-                          return;
-                        }
-                        ref
-                            .read(settingsManagerProvider.notifier)
-                            .setGlobalSetting<String>(SettingKeys.playerSeekBarMode, mode.name);
-                      },
-                    );
-                  })
-                  .toList(growable: false),
-            ),
-          ],
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.88),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(12, 2, 12, 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text('Quick Player Settings', style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 12),
+              Text('Layout', style: Theme.of(context).textTheme.titleSmall),
+              const SizedBox(height: 8),
+              SegmentedButton<PlayerLayoutMode>(
+                segments: const <ButtonSegment<PlayerLayoutMode>>[
+                  ButtonSegment<PlayerLayoutMode>(
+                    value: PlayerLayoutMode.adaptive,
+                    icon: Icon(Icons.auto_awesome_mosaic_rounded),
+                    label: Text('Adaptive'),
+                  ),
+                  ButtonSegment<PlayerLayoutMode>(
+                    value: PlayerLayoutMode.custom,
+                    icon: Icon(Icons.dashboard_customize_rounded),
+                    label: Text('Custom'),
+                  ),
+                ],
+                selected: <PlayerLayoutMode>{layoutMode},
+                onSelectionChanged: (selection) {
+                  settingsManager.setGlobalSetting<String>(SettingKeys.playerLayoutMode, selection.first.name);
+                },
+              ),
+              if (layoutMode == PlayerLayoutMode.adaptive) ...<Widget>[
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  children: PlayerAdaptivePreset.values
+                      .map((candidate) {
+                        return ChoiceChip(
+                          selected: candidate == preset,
+                          avatar: Icon(
+                            candidate == PlayerAdaptivePreset.full
+                                ? Icons.auto_awesome_rounded
+                                : Icons.view_compact_alt_rounded,
+                            size: 18,
+                          ),
+                          label: Text(candidate.label),
+                          onSelected: (selected) {
+                            if (selected) {
+                              settingsManager.setGlobalSetting<String>(
+                                SettingKeys.playerAdaptivePreset,
+                                candidate.name,
+                              );
+                            }
+                          },
+                        );
+                      })
+                      .toList(growable: false),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Cover size',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: PlayerCoverSize.values
+                      .map((candidate) {
+                        return ChoiceChip(
+                          selected: candidate == coverSize,
+                          label: Text(candidate.label),
+                          onSelected: (selected) {
+                            if (selected) {
+                              settingsManager.setGlobalSetting<String>(SettingKeys.playerCoverSize, candidate.name);
+                            }
+                          },
+                        );
+                      })
+                      .toList(growable: false),
+                ),
+              ],
+              const SizedBox(height: 8),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Immersive player colors'),
+                value: immersiveColors,
+                onChanged: (value) {
+                  settingsManager.setGlobalSetting<bool>(SettingKeys.playerImmersiveColors, value);
+                },
+              ),
+              Text(
+                'Timeline mode',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: PlayerSeekBarMode.values
+                    .map((PlayerSeekBarMode mode) {
+                      final selected = mode == selectedMode;
+                      return ChoiceChip(
+                        label: Text(mode.label),
+                        selected: selected,
+                        onSelected: (bool value) {
+                          if (!value) {
+                            return;
+                          }
+                          ref
+                              .read(settingsManagerProvider.notifier)
+                              .setGlobalSetting<String>(SettingKeys.playerSeekBarMode, mode.name);
+                        },
+                      );
+                    })
+                    .toList(growable: false),
+              ),
+            ],
+          ),
         ),
       ),
     );

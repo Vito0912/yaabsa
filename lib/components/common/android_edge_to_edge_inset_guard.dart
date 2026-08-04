@@ -15,6 +15,10 @@ class AndroidEdgeToEdgeInsetGuard extends StatelessWidget {
     }
 
     final mediaQuery = MediaQuery.of(context);
+    if (mediaQuery.orientation == Orientation.landscape) {
+      return child;
+    }
+
     final isKeyboardOpen = mediaQuery.viewInsets.bottom > 0;
     final bottomPadding = isKeyboardOpen
         ? mediaQuery.padding.bottom
