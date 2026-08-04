@@ -111,7 +111,7 @@ Below is a list of all features, but I want to _highlight_ a few, as this client
 | (Auto)-Queue                    | ✅      | ✅  | ❓      | ✅    | ✅    |
 | Gapless playback                | ✅      | ✅  | ❓      | ✅    | ✅    |
 | Buffering                       | ✅      | ✅  | ❓      | ✅    | ❓    |
-| Volume Boost                    | ✅      | ❌  | ❌      | ❌    | ❌    |
+| Volume Boost                    | ✅      | ❌  | ❌      | ❌    | ✅    |
 | Audio ducking                   | ✅      | ❓  | ❌      | ❌    | ❌    |
 | Sleep Timer                     | ✅      | ✅  | ❓      | ✅    | ✅    |
 | Chapters                        | ✅      | ✅  | ❓      | ✅    | ✅    |

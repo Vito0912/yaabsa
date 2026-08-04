@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.8.0
+
+### Changed
+
+- Added a completly new player design, which now is enabled by default. You can always switch back to the custom design via the settings.
+
 ## 1.7.0
 
 ### Added
