@@ -108,7 +108,7 @@ class SelectedLibraryId extends _$SelectedLibraryId {
   @override
   Stream<String?> build() {
     final db = ref.watch(appDatabaseProvider);
-    final userId = ref.watch(activeUserIdProvider).value;
+    final userId = ref.watch(currentUserProvider).value?.id;
     final librariesAsync = ref.watch(userLibrariesProvider);
 
     if (userId == null) {
@@ -124,7 +124,7 @@ class SelectedLibraryId extends _$SelectedLibraryId {
 
     final stream = db.watchUserSetting(userId, 'selectedLibraryId').map((e) => e?.value);
 
-    if (librariesAsync.hasValue) {
+    if (librariesAsync.hasValue && !librariesAsync.isLoading) {
       final libraries = librariesAsync.value ?? const <Library>[];
       unawaited(
         Future<void>(() async {
@@ -140,6 +140,10 @@ class SelectedLibraryId extends _$SelectedLibraryId {
   Future<void> _ensureSelectionForLibraries({required String userId, required List<Library> libraries}) async {
     final db = ref.read(appDatabaseProvider);
     final currentSelectedId = (await db.getUserSetting(userId, 'selectedLibraryId'))?.value;
+
+    if (ref.read(currentUserProvider).value?.id != userId) {
+      return;
+    }
 
     if (libraries.isEmpty) {
       return;
@@ -223,7 +227,7 @@ class SelectedLibraryId extends _$SelectedLibraryId {
 
   Future<void> set(String? libraryId) async {
     final db = ref.read(appDatabaseProvider);
-    final userId = ref.read(activeUserIdProvider).value;
+    final userId = ref.read(currentUserProvider).value?.id;
     if (userId == null || libraryId == null) return;
     logger(
       'SelectedLibraryIdNotifier: Setting selected library ID to $libraryId for user $userId.',
@@ -244,7 +248,7 @@ class SelectedLibraryId extends _$SelectedLibraryId {
 
 @Riverpod(keepAlive: true)
 Library? selectedLibrary(Ref ref) {
-  final activeUserId = ref.watch(activeUserIdProvider).value;
+  final activeUserId = ref.watch(currentUserProvider).value?.id;
   if (activeUserId == null) {
     _selectedLibraryCacheByUserId.clear();
     _selectedLibrarySnapshotHydratedUserIds.clear();
@@ -258,8 +262,8 @@ Library? selectedLibrary(Ref ref) {
   final libraries = librariesAsync.value;
   final selectedId = selectedIdAsync.value;
 
-  final isLibrariesPending = libraries == null && (librariesAsync.isLoading || !librariesAsync.hasValue);
-  final isSelectedIdPending = selectedId == null && (selectedIdAsync.isLoading || !selectedIdAsync.hasValue);
+  final isLibrariesPending = librariesAsync.isLoading || !librariesAsync.hasValue;
+  final isSelectedIdPending = selectedIdAsync.isLoading || !selectedIdAsync.hasValue;
   final hasTransientFailure = librariesAsync.hasError || selectedIdAsync.hasError;
 
   if (isLibrariesPending || isSelectedIdPending || hasTransientFailure) {

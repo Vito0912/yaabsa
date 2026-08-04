@@ -132,7 +132,7 @@ final class SelectedLibraryIdProvider extends $StreamNotifierProvider<SelectedLi
   SelectedLibraryId create() => SelectedLibraryId();
 }
 
-String _$selectedLibraryIdHash() => r'e31a05c13e49ac4370a1abe7a5426a9ece3caff0';
+String _$selectedLibraryIdHash() => r'0bdbdcc1360b62a965a0489186f0fef8133c10b3';
 
 abstract class _$SelectedLibraryId extends $StreamNotifier<String?> {
   Stream<String?> build();
@@ -180,4 +180,4 @@ final class SelectedLibraryProvider extends $FunctionalProvider<Library?, Librar
   }
 }
 
-String _$selectedLibraryHash() => r'ee13e6737c00aa1fbf010c3bdfec7f19eb00a116';
+String _$selectedLibraryHash() => r'cb1b15a90cb6aa4c61f4115940dc9a1d49afe5fa';

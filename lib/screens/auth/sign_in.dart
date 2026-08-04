@@ -67,9 +67,11 @@ class SignIn extends HookConsumerWidget {
       final userId = next.value;
       if (userId != null) {
         logger('SignIn: activeUserId became non-null ($userId). Redirecting to /', tag: 'SignIn');
-        if (context.mounted) {
-          context.go('/');
-        }
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) {
+            context.go('/');
+          }
+        });
       }
     });
 
@@ -397,9 +399,6 @@ class SignIn extends HookConsumerWidget {
             level: InfoLevel.debug,
           );
         }
-
-        if (!context.mounted) return;
-        context.go('/');
       } on DioException catch (e) {
         setErrorMessage(_parseDioErrorMessage(e, fallback: 'Login failed.'), details: null);
       } catch (e, s) {
