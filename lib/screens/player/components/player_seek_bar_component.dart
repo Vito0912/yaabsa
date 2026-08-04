@@ -10,6 +10,7 @@ class PlayerSeekBarComponent extends StatelessWidget {
     this.timeLabelFontSize = 12.0,
     this.ensureFullTimeline = false,
     this.ensureChapterMarkers = false,
+    this.showCurrentChapterBetweenTimeLabels = false,
   });
 
   final PlayerSeekTimePlacement timePlacement;
@@ -17,6 +18,7 @@ class PlayerSeekBarComponent extends StatelessWidget {
   final double timeLabelFontSize;
   final bool ensureFullTimeline;
   final bool ensureChapterMarkers;
+  final bool showCurrentChapterBetweenTimeLabels;
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +29,7 @@ class PlayerSeekBarComponent extends StatelessWidget {
       timeLabelFontSize: timeLabelFontSize,
       ensureFullTimeline: ensureFullTimeline,
       ensureChapterMarkers: ensureChapterMarkers,
+      showCurrentChapterBetweenTimeLabels: showCurrentChapterBetweenTimeLabels,
     );
   }
 }

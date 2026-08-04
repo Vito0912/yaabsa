@@ -26,7 +26,6 @@ class PlayerActionSettingsEditor extends ConsumerWidget {
         final selected = decodePlayerActions(rawValue, fallback: fallback);
         return ListTile(
           contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-          leading: const Icon(Icons.tune_rounded),
           title: Text(title),
           subtitle: Text('$description\n${selected.length} actions shown'),
           isThreeLine: true,

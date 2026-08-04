@@ -89,67 +89,8 @@ class PlayerSettingsGeneral extends ConsumerWidget {
       embeddedBackFallbackRoute: PlayerSettings.routeName,
       children: [
         SettingsNavigationSection(
-          title: 'Player appearance',
-          topPadding: 0,
-          settings: [
-            SettingDropdown<String>.remote(
-              label: 'Full player layout',
-              description: 'Selects how the full player arranges its components',
-              values: PlayerLayoutMode.values.map((mode) => mode.name).toList(growable: false),
-              valueLabels: const <String>['Adaptive', 'Custom'],
-              valueDescriptions: const <String>[
-                'Adapts the selected preset to the available screen space',
-                'Uses the saved component grid',
-              ],
-              value: layoutMode.name,
-              onValueChanged: (value) {
-                ref
-                    .read(settingsManagerProvider.notifier)
-                    .setGlobalSetting<String>(SettingKeys.playerLayoutMode, value);
-              },
-            ),
-            SettingDropdown<String>.remote(
-              label: 'Adaptive preset',
-              description: 'Selects the controls shown by the adaptive player',
-              values: PlayerAdaptivePreset.values.map((preset) => preset.name).toList(growable: false),
-              valueLabels: PlayerAdaptivePreset.values.map((preset) => preset.label).toList(growable: false),
-              valueDescriptions: const <String>[
-                'Shows configured actions in a bottom action bar on mobile',
-                'Shows two quick actions and an expandable action sheet on mobile',
-              ],
-              value: adaptivePreset.name,
-              onValueChanged: (value) {
-                ref
-                    .read(settingsManagerProvider.notifier)
-                    .setGlobalSetting<String>(SettingKeys.playerAdaptivePreset, value);
-              },
-              enabled: layoutMode == PlayerLayoutMode.adaptive,
-            ),
-            SettingDropdown<String>.remote(
-              label: 'Cover size',
-              description: 'Sets the artwork size in the adaptive player',
-              values: PlayerCoverSize.values.map((size) => size.name).toList(growable: false),
-              valueLabels: PlayerCoverSize.values.map((size) => size.label).toList(growable: false),
-              valueDescriptions: const <String>[
-                'Uses the size associated with the selected preset',
-                'Uses the smaller artwork size',
-                'Uses the larger artwork size',
-              ],
-              value: coverSize.name,
-              onValueChanged: (value) {
-                ref.read(settingsManagerProvider.notifier).setGlobalSetting<String>(SettingKeys.playerCoverSize, value);
-              },
-              enabled: layoutMode == PlayerLayoutMode.adaptive,
-            ),
-            const SettingSwitchTile(
-              label: 'Immersive player colors',
-              subtitle: 'Uses artwork colors for players',
-              settingKey: SettingKeys.playerImmersiveColors,
-            ),
-          ],
-        ),
-        SettingsNavigationSection(
           title: 'Timeline',
+          topPadding: 0,
           settings: [
             SettingDropdown<String>(
               label: 'Timeline mode',
@@ -200,7 +141,7 @@ class PlayerSettingsGeneral extends ConsumerWidget {
               fallback: defaultFullPlayerActions,
             ),
             SettingDropdown<String>.remote(
-              label: 'Mobile left quick action',
+              label: 'Left quick action',
               description: 'Action shown at the lower left of the Minimalistic player',
               values: <String>['none', ...PlayerActionType.values.map((action) => action.name)],
               valueLabels: <String>['None', ...PlayerActionType.values.map((action) => action.label)],
@@ -217,7 +158,7 @@ class PlayerSettingsGeneral extends ConsumerWidget {
               },
             ),
             SettingDropdown<String>.remote(
-              label: 'Mobile right quick action',
+              label: 'Right quick action',
               description: 'Action shown at the lower right of the Minimalistic player',
               values: <String>['none', ...PlayerActionType.values.map((action) => action.name)],
               valueLabels: <String>['None', ...PlayerActionType.values.map((action) => action.label)],
@@ -404,6 +345,65 @@ class PlayerSettingsGeneral extends ConsumerWidget {
                 ),
             ],
           ),
+        SettingsNavigationSection(
+          title: 'Player appearance',
+          settings: [
+            SettingDropdown<String>.remote(
+              label: 'Full player layout',
+              description: 'Selects how the full player arranges its components',
+              values: PlayerLayoutMode.values.map((mode) => mode.name).toList(growable: false),
+              valueLabels: const <String>['Adaptive', 'Custom'],
+              valueDescriptions: const <String>[
+                'Adapts the selected preset to the available screen space',
+                'Uses the saved component grid',
+              ],
+              value: layoutMode.name,
+              onValueChanged: (value) {
+                ref
+                    .read(settingsManagerProvider.notifier)
+                    .setGlobalSetting<String>(SettingKeys.playerLayoutMode, value);
+              },
+            ),
+            SettingDropdown<String>.remote(
+              label: 'Adaptive preset',
+              description: 'Selects the controls shown by the adaptive player',
+              values: PlayerAdaptivePreset.values.map((preset) => preset.name).toList(growable: false),
+              valueLabels: PlayerAdaptivePreset.values.map((preset) => preset.label).toList(growable: false),
+              valueDescriptions: const <String>[
+                'Shows configured actions in a bottom action bar on mobile',
+                'Shows two quick actions',
+              ],
+              value: adaptivePreset.name,
+              onValueChanged: (value) {
+                ref
+                    .read(settingsManagerProvider.notifier)
+                    .setGlobalSetting<String>(SettingKeys.playerAdaptivePreset, value);
+              },
+              enabled: layoutMode == PlayerLayoutMode.adaptive,
+            ),
+            SettingDropdown<String>.remote(
+              label: 'Cover size',
+              description: 'Sets the artwork size in the adaptive player',
+              values: PlayerCoverSize.values.map((size) => size.name).toList(growable: false),
+              valueLabels: PlayerCoverSize.values.map((size) => size.label).toList(growable: false),
+              valueDescriptions: const <String>[
+                'Uses the size associated with the selected preset',
+                'Uses the smaller artwork size',
+                'Uses the larger artwork size',
+              ],
+              value: coverSize.name,
+              onValueChanged: (value) {
+                ref.read(settingsManagerProvider.notifier).setGlobalSetting<String>(SettingKeys.playerCoverSize, value);
+              },
+              enabled: layoutMode == PlayerLayoutMode.adaptive,
+            ),
+            const SettingSwitchTile(
+              label: 'Immersive player colors',
+              subtitle: 'Uses artwork colors for players',
+              settingKey: SettingKeys.playerImmersiveColors,
+            ),
+          ],
+        ),
       ],
     );
   }

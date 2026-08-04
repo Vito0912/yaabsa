@@ -571,6 +571,7 @@ class _PlayerState extends ConsumerState<Player> {
           timePlacement: placement.seekTimePlacement,
           trackHeight: placement.seekTrackHeight,
           timeLabelFontSize: placement.seekTimeLabelFontSize,
+          showCurrentChapterBetweenTimeLabels: true,
         );
       case PlayerComponentType.controls:
         content = PlayerTransportControlsComponent(transportMode: transportMode);
@@ -1115,12 +1116,6 @@ class _PlayerQuickSettingsSheet extends ConsumerWidget {
                       .map((candidate) {
                         return ChoiceChip(
                           selected: candidate == preset,
-                          avatar: Icon(
-                            candidate == PlayerAdaptivePreset.full
-                                ? Icons.auto_awesome_rounded
-                                : Icons.view_compact_alt_rounded,
-                            size: 18,
-                          ),
                           label: Text(candidate.label),
                           onSelected: (selected) {
                             if (selected) {

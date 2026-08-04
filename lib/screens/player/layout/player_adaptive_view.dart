@@ -460,6 +460,7 @@ class _PlaybackPanel extends StatelessWidget {
           timePlacement: PlayerSeekTimePlacement.below,
           trackHeight: compact ? 6 : 7,
           timeLabelFontSize: compact ? 12 : 13,
+          showCurrentChapterBetweenTimeLabels: true,
         ),
         SizedBox(height: compact ? 14 : 22),
         PlayerTransportControlsComponent(transportMode: transportMode),
