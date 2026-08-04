@@ -50,6 +50,20 @@ An unofficial cross-platform app for Audiobookshelf
 * **IMPORTANT**: You need to add `https://yaabsa.de` (or the domain you host the web version on) to the list of allowed origins in ABS, before you can connect with the web version. Please see the [ABS docs](https://audiobookshelf.org/docs/documentation/server-management/cors) on how. If you use `http` for Audiobookshelf, please see the note about mixed content.
 * The web version is provided, but it is not officially supported. I do not test it, and it might not work correctly. Please do not report problems as issues. Instead, start a new thread in the [web discussion](https://github.com/Vito0912/yaabsa/discussions/59).
 
+## Impressions
+
+<details>
+<summary>Expand</summary>
+
+### Player
+
+| | |
+| --- | --- |
+| ![Desktop Player](./.github/images/desktop-player.webp) | ![Mobile Player Full](./.github/images/mobile-full.webp) |
+| ![Mobile Player Minimalistic](./.github/images/mobile-minimalistic.webp) | ![Mobile Player Minimalistic Menu](./.github/images/mobile-minimalistic-menu.webp) |
+
+</details>
+
 ## Usage of AI
 
 As I myself criticize the lack of disclosure about AI, which most ABS apps now use, I want to be clear that later in the making of the app, AI/LLMs were used in the development process. I still know the API endpoints used very well and have already helped a ton of people with API usage.
