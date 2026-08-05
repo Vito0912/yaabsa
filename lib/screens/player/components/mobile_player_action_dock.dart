@@ -225,7 +225,7 @@ class _MobilePlayerActionsSheet extends StatelessWidget {
                               Icon(action.icon, color: enabled ? null : Theme.of(context).disabledColor),
                               const SizedBox(height: 4),
                               Text(
-                                enabled ? action.label : '${action.label} · Unavailable',
+                                action.label,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 textAlign: TextAlign.center,

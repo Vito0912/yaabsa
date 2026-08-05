@@ -89,7 +89,7 @@ enum PlayerActionType {
   String get label => switch (this) {
     PlayerActionType.speed => 'Playback speed',
     PlayerActionType.bookmarks => 'Bookmarks',
-    PlayerActionType.chapter => 'Chapter picker',
+    PlayerActionType.chapter => 'Chapters',
     PlayerActionType.volume => 'Volume',
     PlayerActionType.sleepTimer => 'Sleep timer',
     PlayerActionType.queue => 'Queue',
