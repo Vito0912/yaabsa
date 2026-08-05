@@ -261,22 +261,30 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
                         );
                       },
                     ),
-                    SettingDropdown<String>.remote(
-                      label: 'Download Preference',
-                      description: 'What files to download by default',
-                      value: ref
-                          .watch(settingsManagerProvider.notifier)
-                          .getUserSetting<String>(
-                            user.id,
-                            SettingKeys.downloadTypePreference,
-                            defaultValue: 'askEveryTime',
-                          ),
-                      values: const ['askEveryTime', 'audiobook', 'ebook', 'both'],
-                      valueLabels: const ['Ask every time', 'Audiobook only', 'Ebook only', 'Both'],
-                      onValueChanged: (newValue) async {
-                        await ref
+                    StreamBuilder<UserSettingEntry?>(
+                      stream: appDatabase.watchUserSetting(user.id, SettingKeys.downloadTypePreference),
+                      builder: (context, snapshot) {
+                        final fallbackValue = ref
                             .read(settingsManagerProvider.notifier)
-                            .setUserSetting<String>(user.id, SettingKeys.downloadTypePreference, newValue);
+                            .getUserSetting<String>(
+                              user.id,
+                              SettingKeys.downloadTypePreference,
+                              defaultValue: 'askEveryTime',
+                            );
+                        final currentValue = SettingsParser.decodeValue<String>(snapshot.data?.value, fallbackValue);
+
+                        return SettingDropdown<String>.remote(
+                          label: 'Download Preference',
+                          description: 'What files to download by default',
+                          value: currentValue,
+                          values: const ['askEveryTime', 'audiobook', 'ebook', 'both'],
+                          valueLabels: const ['Ask every time', 'Audiobook only', 'Ebook only', 'Both'],
+                          onValueChanged: (newValue) async {
+                            await ref
+                                .read(settingsManagerProvider.notifier)
+                                .setUserSetting<String>(user.id, SettingKeys.downloadTypePreference, newValue);
+                          },
+                        );
                       },
                     ),
                   ],

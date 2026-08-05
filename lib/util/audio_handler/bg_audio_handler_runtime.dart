@@ -101,24 +101,21 @@ extension _BGAudioHandlerRuntime on BGAudioHandler {
 
   void _recordPlayerHistoryForState(PlayerState state) {
     final isPlayingReady = state.playing && state.processingState == ProcessingState.ready;
-    final isBufferingOrLoading =
-        state.processingState == ProcessingState.loading || state.processingState == ProcessingState.buffering;
     final isCompleted = state.processingState == ProcessingState.completed;
 
     if (isCompleted && !_historyWasCompleted) {
-      PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.stop);
-    }
-
-    if (isBufferingOrLoading && !_historyWasBufferingOrLoading) {
-      PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.pause);
+      unawaited(PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.completed));
     }
 
     if (isPlayingReady && !_historyWasPlayingReady) {
-      PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.play);
+      unawaited(PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.play));
+    }
+
+    if (!state.playing && state.processingState == ProcessingState.ready && _historyWasPlayingReady) {
+      unawaited(PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.pause));
     }
 
     _historyWasPlayingReady = isPlayingReady;
-    _historyWasBufferingOrLoading = isBufferingOrLoading;
     _historyWasCompleted = isCompleted;
   }
 

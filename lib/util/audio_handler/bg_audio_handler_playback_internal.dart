@@ -40,7 +40,7 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
     }
   }
 
-  Future<void> _playItemFromPositionInternal({
+  Future<bool> _playItemFromPositionInternal({
     required String itemId,
     required String? episodeId,
     required Duration position,
@@ -76,7 +76,7 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
           logger('No media item found for ID: $itemId', tag: 'AudioHandler', level: InfoLevel.error);
           PlayerUtils.disableWakelock(_ref);
           _setQueueTransitionLoading(false, emitMediaWhenEmpty: true);
-          return Future.value();
+          return false;
         }
         await _setSource(ignoreSavedProgress: true);
       } catch (e, s) {
@@ -84,7 +84,7 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
         _currentMediaItem = null;
         PlayerUtils.disableWakelock(_ref);
         _setQueueTransitionLoading(false, emitMediaWhenEmpty: true);
-        return Future.value();
+        return false;
       }
     }
 
@@ -101,6 +101,7 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
       if (!isCurrentItem) {
         unawaited(_setupAutoQueueOnResume(itemId: itemId, episodeId: episodeId));
       }
+      return true;
     } catch (e, s) {
       logger(
         'Failed to start item $itemId from the requested position: $e\n$s',
@@ -109,6 +110,7 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
       );
       PlayerUtils.disableWakelock(_ref);
       _setQueueTransitionLoading(false, emitMediaWhenEmpty: true);
+      return false;
     }
   }
 

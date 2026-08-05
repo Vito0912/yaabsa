@@ -39,10 +39,19 @@ extension _BGAudioHandlerPreferences on BGAudioHandler {
     }
 
     final normalizedSpeed = _clampSpeed(speed);
+    final previousSpeed = _player.speed;
     await _player.setSpeed(normalizedSpeed);
     await _persistLastPlaybackSpeed(normalizedSpeed);
     await _persistCurrentBookPlaybackSpeed(normalizedSpeed);
     await _updatePlaybackState();
+    if ((previousSpeed - normalizedSpeed).abs() > BGAudioHandler._playbackPreferenceEpsilon) {
+      unawaited(
+        PlayerHistoryHandler.addPlayerHistory(
+          PlayerHistoryType.speedChanged,
+          details: <String, Object?>{'previousSpeed': previousSpeed, 'speed': normalizedSpeed},
+        ),
+      );
+    }
     return Future.value();
   }
 

@@ -122,6 +122,7 @@ class PlayerHistory extends Table {
 
   TextColumn get type => text()();
   RealColumn get currentTime => real()();
+  TextColumn get detailsJson => text().nullable()();
 
   DateTimeColumn get created => dateTime().withDefault(currentDateAndTime)();
 
@@ -162,7 +163,7 @@ class AppDatabase extends _$AppDatabase {
   final AuthSecretStore _authSecretStore;
 
   @override
-  int get schemaVersion => 19;
+  int get schemaVersion => 20;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -218,6 +219,9 @@ class AppDatabase extends _$AppDatabase {
           'SELECT item_id, user_id, episode_id, download FROM _stored_downloads_old;',
         );
         await customStatement('DROP TABLE _stored_downloads_old;');
+      }
+      if (from >= 14 && from <= 19) {
+        await m.addColumn(playerHistory, playerHistory.detailsJson);
       }
     },
     beforeOpen: (details) async {},

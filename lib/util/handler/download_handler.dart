@@ -171,7 +171,7 @@ class DownloadHandler {
     );
   }
 
-  Future<void> downloadFile(String itemId, {String? episodeId, String downloadType = 'both'}) async {
+  Future<void> downloadFile(String itemId, {String? episodeId, String? downloadType}) async {
     if (kIsWeb || _downloader == null) {
       throw UnsupportedError('Downloads are not supported on the Web');
     }
@@ -193,18 +193,24 @@ class DownloadHandler {
       throw Exception('Episode ID must be provided for podcast items.');
     }
 
-    await _ensureNotificationPermissionForDownloads();
-
-    final sourceFiles = _collectDownloadSourceFiles(resolvedItem, episodeId: episodeId, downloadType: downloadType);
-    if (sourceFiles.isEmpty) {
-      throw Exception('No downloadable files found for item $itemId.');
-    }
-    final expectedFileCount = sourceFiles.length;
-
     final User? user = _ref.read(currentUserProvider).value;
     if (user == null) {
       throw Exception('No active user found for download request.');
     }
+
+    final effectiveDownloadType = downloadType ?? _defaultDownloadType(resolvedItem, user.id);
+
+    await _ensureNotificationPermissionForDownloads();
+
+    final sourceFiles = _collectDownloadSourceFiles(
+      resolvedItem,
+      episodeId: episodeId,
+      downloadType: effectiveDownloadType,
+    );
+    if (sourceFiles.isEmpty) {
+      throw Exception('No downloadable files found for item $itemId.');
+    }
+    final expectedFileCount = sourceFiles.length;
 
     final server = user.server;
     if (server == null || server.url.isEmpty) {
@@ -251,7 +257,7 @@ class DownloadHandler {
           serverPort: server.port,
           serverSsl: server.ssl,
           title: resolvedItem.title,
-          downloadType: downloadType,
+          downloadType: effectiveDownloadType,
         ).toJson(),
       );
 
@@ -1083,6 +1089,26 @@ class DownloadHandler {
     return raw.replaceAll(RegExp(r'[^A-Za-z0-9_.-]'), '_');
   }
 
+  String _defaultDownloadType(LibraryItem item, String userId) {
+    if (item.mediaType == 'podcast') {
+      return 'audiobook';
+    }
+
+    final preference = _ref
+        .read(settingsManagerProvider.notifier)
+        .getUserSetting<String>(userId, SettingKeys.downloadTypePreference, defaultValue: 'askEveryTime');
+
+    switch (preference) {
+      case 'audiobook':
+      case 'ebook':
+      case 'both':
+        return preference;
+      case 'askEveryTime':
+      default:
+        return 'both';
+    }
+  }
+
   String _sanitizeFilename(String originalFilename, {required int fileIndex, String? fallbackExtension}) {
     final cleaned = originalFilename.split(RegExp(r'[\\/]')).last.trim();
     if (cleaned.isNotEmpty) {
@@ -1198,13 +1224,14 @@ class DownloadHandler {
       }
     }
 
+    final ebookFileInode = item.media?.bookMedia?.ebookFile?.ino;
     final libraryFiles = item.libraryFiles ?? const <LibraryFile>[];
     for (final libraryFile in libraryFiles) {
       if (_isIgnoredDownloadFile(filename: libraryFile.metadata.filename, extension: libraryFile.metadata.ext)) {
         continue;
       }
 
-      final isEbook = FileFormats.isEbook(libraryFile.metadata.ext);
+      final isEbook = _isEbookLibraryFile(libraryFile, ebookFileInode: ebookFileInode);
 
       if (isEbook && !hasEbook) {
         continue;
@@ -1229,6 +1256,22 @@ class DownloadHandler {
     }
 
     return files;
+  }
+
+  bool _isEbookLibraryFile(LibraryFile file, {String? ebookFileInode}) {
+    if (file.ino == ebookFileInode) {
+      return true;
+    }
+
+    final fileType = file.fileType?.trim().toLowerCase();
+    if (fileType == 'ebook' || fileType == 'e-book') {
+      return true;
+    }
+
+    return FileFormats.isEbook(file.metadata.ext) ||
+        FileFormats.isEbook(file.metadata.filename) ||
+        FileFormats.isEbook(file.metadata.path) ||
+        FileFormats.isEbook(file.metadata.relPath);
   }
 
   void _addDownloadSourceFile(List<_DownloadSourceFile> files, Set<String> seenInodes, _DownloadSourceFile candidate) {

@@ -274,6 +274,11 @@ class _FoliateViewerState extends State<FoliateViewer> {
             mediaPlaybackRequiresUserGesture: false,
             allowFileAccessFromFileURLs: true,
             allowUniversalAccessFromFileURLs: true,
+            supportZoom: true,
+            builtInZoomControls: true,
+            displayZoomControls: false,
+            maximumZoomScale: 5,
+            minimumZoomScale: 1,
             transparentBackground: true,
           ),
           onWebViewCreated: (controller) {

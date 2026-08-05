@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:yaabsa/components/common/scroll_to_top_button.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/player/components/play_history_event_group_tile.dart';
+import 'package:yaabsa/util/audio_handler/player_history_handler.dart';
 import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/globals.dart';
-import 'package:yaabsa/util/audio_handler/player_history_handler.dart';
 
 class PlayHistoryLocalTab extends ConsumerStatefulWidget {
   const PlayHistoryLocalTab({super.key, required this.itemId, required this.episodeId});
@@ -23,6 +24,7 @@ class _PlayHistoryLocalTabState extends ConsumerState<PlayHistoryLocalTab> {
   static const int _historyQueryLimit = 1200;
 
   final ScrollController _scrollController = ScrollController();
+  int? _pendingEntryId;
 
   @override
   void dispose() {
@@ -32,15 +34,18 @@ class _PlayHistoryLocalTabState extends ConsumerState<PlayHistoryLocalTab> {
 
   @override
   Widget build(BuildContext context) {
-    final db = ref.watch(appDatabaseProvider);
     final user = ref.watch(currentUserProvider).value;
-
     if (user == null) {
-      return const Center(child: Text('No active user.'));
+      return const _HistoryMessage(
+        icon: Icons.person_off_outlined,
+        title: 'No active user',
+        message: 'Sign in to view playback activity.',
+      );
     }
 
+    final database = ref.watch(appDatabaseProvider);
     return StreamBuilder<List<PlayerHistoryEntry>>(
-      stream: db.watchPlayerHistoryByItem(
+      stream: database.watchPlayerHistoryByItem(
         widget.itemId,
         user.id,
         episodeId: widget.episodeId,
@@ -48,245 +53,246 @@ class _PlayHistoryLocalTabState extends ConsumerState<PlayHistoryLocalTab> {
       ),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.error_outline, size: 64, color: Colors.red),
-                const SizedBox(height: 16),
-                Text(
-                  'Error: ${snapshot.error}',
-                  style: const TextStyle(fontSize: 16, color: Colors.red),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
+          return _HistoryMessage(
+            icon: Icons.error_outline_rounded,
+            title: 'Could not load activity',
+            message: snapshot.error.toString(),
           );
         }
-
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.history_outlined, size: 64, color: Colors.grey),
-                SizedBox(height: 16),
-                Text('No play history available', style: TextStyle(fontSize: 16, color: Colors.grey)),
-              ],
-            ),
-          );
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
         }
-
-        final history = snapshot.data!;
-        final groupedHistory = _groupHistoryByDate(history);
-
-        return Stack(
-          children: [
-            Positioned.fill(
-              child: ListView.builder(
-                controller: _scrollController,
-                padding: const EdgeInsets.all(8.0),
-                itemCount: groupedHistory.length,
-                itemBuilder: (context, index) {
-                  final dateGroup = groupedHistory[index];
-                  return _buildDateGroup(context, dateGroup);
-                },
-              ),
-            ),
-            ScrollToTopButton(controller: _scrollController),
-          ],
-        );
+        return _buildHistory(context, snapshot.data!);
       },
     );
   }
 
-  List<_DateGroup> _groupHistoryByDate(List<PlayerHistoryEntry> history) {
+  Widget _buildHistory(BuildContext context, List<PlayerHistoryEntry> history) {
     if (history.isEmpty) {
-      return <_DateGroup>[];
-    }
-
-    final grouped = <_DateGroup>[];
-
-    DateTime? activeDay;
-    String? activeType;
-    final activeEntries = <PlayerHistoryEntry>[];
-    final activeDayGroups = <LocalHistoryEventGroup>[];
-
-    void flushEventGroup() {
-      if (activeType == null || activeEntries.isEmpty) {
-        return;
-      }
-
-      activeDayGroups.add(
-        LocalHistoryEventGroup(type: activeType!, entries: List<PlayerHistoryEntry>.from(activeEntries)),
+      return const _HistoryMessage(
+        icon: Icons.history_rounded,
+        title: 'No activity yet',
+        message: 'Playback controls, sleep timer changes, and sync activity will appear here.',
       );
-      activeEntries.clear();
     }
 
-    void flushDayGroup() {
-      flushEventGroup();
+    final groupedHistory = _groupHistoryByDate(history);
 
-      if (activeDay == null) {
-        return;
-      }
-
-      grouped.add(_DateGroup(date: activeDay!, eventGroups: List<LocalHistoryEventGroup>.from(activeDayGroups)));
-
-      activeDayGroups.clear();
-      activeDay = null;
-      activeType = null;
-    }
-
-    for (final entry in history) {
-      final localCreated = entry.created.toLocal();
-      final dayKey = DateTime(localCreated.year, localCreated.month, localCreated.day);
-
-      if (activeDay == null || !_isSameDay(activeDay!, dayKey)) {
-        flushDayGroup();
-        activeDay = dayKey;
-      }
-
-      if (activeType != entry.type) {
-        flushEventGroup();
-        activeType = entry.type;
-      }
-
-      activeEntries.add(entry);
-    }
-
-    flushDayGroup();
-
-    return grouped;
-  }
-
-  bool _isSameDay(DateTime left, DateTime right) {
-    return left.year == right.year && left.month == right.month && left.day == right.day;
-  }
-
-  Widget _buildDateGroup(BuildContext context, _DateGroup dateGroup) {
-    final isToday = _isToday(dateGroup.date);
-    final isYesterday = _isYesterday(dateGroup.date);
-
-    final dateLabel = isToday
-        ? 'Today'
-        : isYesterday
-        ? 'Yesterday'
-        : DateFormat('MMMM d, yyyy').format(dateGroup.date);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Stack(
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          child: Text(
-            dateLabel,
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
+        Positioned.fill(
+          child: CustomScrollView(
+            controller: _scrollController,
+            slivers: [
+              SliverToBoxAdapter(child: _buildHistoryHeader(context, history.length)),
+              SliverList.builder(
+                itemCount: groupedHistory.length,
+                itemBuilder: (context, index) => _DateSection(
+                  group: groupedHistory[index],
+                  pendingEntryId: _pendingEntryId,
+                  onPlayFromHere: _playFromHistory,
+                ),
+              ),
+              const SliverToBoxAdapter(child: SizedBox(height: 24)),
+            ],
           ),
         ),
-        Card(
-          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          elevation: 0,
-          color: Colors.transparent,
-          child: Column(
-            children: dateGroup.eventGroups
-                .map((eventGroup) {
-                  final type = _getPlayerHistoryType(eventGroup.type);
-
-                  return PlayHistoryEventGroupTile(
-                    group: eventGroup,
-                    icon: _getIconForType(type),
-                    color: _getColorForType(context, type),
-                    typeDisplayName: _getTypeDisplayName(type),
-                    canSeek: _canSeek(type),
-                    onSeek: (entry) => audioHandler.seekAbsolute(entry.currentTime.toDuration),
-                  );
-                })
-                .toList(growable: false),
-          ),
-        ),
+        ScrollToTopButton(controller: _scrollController),
       ],
     );
   }
 
-  PlayerHistoryType _getPlayerHistoryType(String type) {
-    return PlayerHistoryType.values.firstWhere((e) => e.name == type, orElse: () => PlayerHistoryType.sync);
+  Widget _buildHistoryHeader(BuildContext context, int eventCount) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 4, 0, 12),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              'On this device',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            ),
+          ),
+          Text(
+            '$eventCount ${eventCount == 1 ? 'event' : 'events'}',
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+          ),
+        ],
+      ),
+    );
   }
 
-  IconData _getIconForType(PlayerHistoryType type) {
-    switch (type) {
-      case PlayerHistoryType.play:
-        return Icons.play_arrow;
-      case PlayerHistoryType.pause:
-        return Icons.pause;
-      case PlayerHistoryType.stop:
-        return Icons.stop;
-      case PlayerHistoryType.seek:
-        return Icons.fast_forward;
-      case PlayerHistoryType.sync:
-        return Icons.sync;
-      case PlayerHistoryType.syncOffline:
-        return Icons.sync_disabled;
-      case PlayerHistoryType.localSync:
-        return Icons.sync_alt;
+  List<_DateGroup> _groupHistoryByDate(List<PlayerHistoryEntry> history) {
+    final groups = <_DateGroup>[];
+    DateTime? activeDay;
+    List<LocalHistoryEventGroup> activeEvents = <LocalHistoryEventGroup>[];
+
+    void flushDay() {
+      final dayToFlush = activeDay;
+      if (dayToFlush == null || activeEvents.isEmpty) {
+        return;
+      }
+      groups.add(_DateGroup(date: dayToFlush, eventGroups: activeEvents));
+      activeEvents = <LocalHistoryEventGroup>[];
     }
-  }
 
-  Color _getColorForType(BuildContext context, PlayerHistoryType type) {
-    switch (type) {
-      case PlayerHistoryType.play:
-        return Colors.green;
-      case PlayerHistoryType.pause:
-        return Colors.orange;
-      case PlayerHistoryType.stop:
-        return Colors.red;
-      case PlayerHistoryType.seek:
-        return Colors.blue;
-      case PlayerHistoryType.sync:
-        return Theme.of(context).colorScheme.primary;
-      case PlayerHistoryType.syncOffline:
-        return Colors.grey;
-      case PlayerHistoryType.localSync:
-        return Colors.purple;
+    for (final entry in history) {
+      final localCreated = entry.created.toLocal();
+      final day = DateTime(localCreated.year, localCreated.month, localCreated.day);
+      final currentDay = activeDay;
+      if (currentDay == null || !_isSameDay(currentDay, day)) {
+        flushDay();
+        activeDay = day;
+      }
+
+      final type = playerHistoryTypeFromName(entry.type);
+      final canJoinPrevious =
+          type.category == PlayerHistoryCategory.sync && activeEvents.isNotEmpty && activeEvents.last.type == type;
+      if (canJoinPrevious) {
+        activeEvents.last.entries.add(entry);
+      } else {
+        activeEvents.add(LocalHistoryEventGroup(type: type, entries: <PlayerHistoryEntry>[entry]));
+      }
     }
+
+    flushDay();
+    return groups;
   }
 
-  String _getTypeDisplayName(PlayerHistoryType type) {
-    switch (type) {
-      case PlayerHistoryType.play:
-        return 'Play';
-      case PlayerHistoryType.pause:
-        return 'Pause';
-      case PlayerHistoryType.stop:
-        return 'Stop';
-      case PlayerHistoryType.seek:
-        return 'Seek';
-      case PlayerHistoryType.sync:
-        return 'Sync';
-      case PlayerHistoryType.syncOffline:
-        return 'Sync Offline';
-      case PlayerHistoryType.localSync:
-        return 'Local Sync';
+  Future<void> _playFromHistory(PlayerHistoryEntry entry) async {
+    if (_pendingEntryId != null) {
+      return;
     }
+
+    setState(() => _pendingEntryId = entry.id);
+    final started = await audioHandler.playItemFromPosition(
+      itemId: widget.itemId,
+      episodeId: widget.episodeId,
+      position: entry.currentTime.toDuration,
+    );
+
+    if (!mounted) {
+      return;
+    }
+
+    setState(() => _pendingEntryId = null);
+    if (started) {
+      await PlayerHistoryHandler.addPlayerHistory(
+        PlayerHistoryType.seek,
+        position: entry.currentTime.toDuration,
+        details: <String, Object?>{'toPosition': entry.currentTime, 'source': 'history'},
+      );
+      if (!mounted) {
+        return;
+      }
+      context.go('/player');
+      return;
+    }
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Could not start playback from this position.')));
+  }
+}
+
+class _DateSection extends StatelessWidget {
+  const _DateSection({required this.group, required this.pendingEntryId, required this.onPlayFromHere});
+
+  final _DateGroup group;
+  final int? pendingEntryId;
+  final ValueChanged<PlayerHistoryEntry> onPlayFromHere;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(4, 0, 4, 7),
+            child: Text(_dateLabel(group.date), style: Theme.of(context).textTheme.titleSmall),
+          ),
+          Card(
+            margin: EdgeInsets.zero,
+            elevation: 0,
+            color: colorScheme.surfaceContainerLow,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              children: [
+                for (var index = 0; index < group.eventGroups.length; index++) ...[
+                  if (index > 0)
+                    Divider(height: 1, indent: 64, color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+                  PlayHistoryEventGroupTile(
+                    group: group.eventGroups[index],
+                    pendingEntryId: pendingEntryId,
+                    onPlayFromHere: onPlayFromHere,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
-  bool _canSeek(PlayerHistoryType type) {
-    return type == PlayerHistoryType.play || type == PlayerHistoryType.pause || type == PlayerHistoryType.stop;
-  }
-
-  bool _isToday(DateTime date) {
+  String _dateLabel(DateTime date) {
     final now = DateTime.now();
-    return date.year == now.year && date.month == now.month && date.day == now.day;
+    if (_isSameDay(now, date)) {
+      return 'Today';
+    }
+    if (_isSameDay(now.subtract(const Duration(days: 1)), date)) {
+      return 'Yesterday';
+    }
+    return DateFormat.yMMMMd().format(date);
   }
+}
 
-  bool _isYesterday(DateTime date) {
-    final yesterday = DateTime.now().subtract(const Duration(days: 1));
-    return date.year == yesterday.year && date.month == yesterday.month && date.day == yesterday.day;
+class _HistoryMessage extends StatelessWidget {
+  const _HistoryMessage({required this.icon, required this.title, required this.message});
+
+  final IconData icon;
+  final String title;
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 38, color: colorScheme.onSurfaceVariant),
+            const SizedBox(height: 12),
+            Text(title, textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 6),
+            Text(
+              message,
+              maxLines: 4,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
 class _DateGroup {
-  _DateGroup({required this.date, required this.eventGroups});
+  const _DateGroup({required this.date, required this.eventGroups});
 
   final DateTime date;
   final List<LocalHistoryEventGroup> eventGroups;
+}
+
+bool _isSameDay(DateTime left, DateTime right) {
+  return left.year == right.year && left.month == right.month && left.day == right.day;
 }

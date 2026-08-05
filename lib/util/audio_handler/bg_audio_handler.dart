@@ -149,7 +149,6 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   Duration _chapterNotificationDuration = Duration.zero;
   bool _isInternalSeek = false;
   bool _historyWasPlayingReady = false;
-  bool _historyWasBufferingOrLoading = false;
   bool _historyWasCompleted = false;
   bool _hasFiredCompleted = false;
   final BehaviorSubject<int> _queueLengthSubject = BehaviorSubject<int>.seeded(0);
@@ -731,7 +730,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     TrayManager.update();
   }
 
-  Future<void> playItemFromPosition({required String itemId, String? episodeId, required Duration position}) async {
+  Future<bool> playItemFromPosition({required String itemId, String? episodeId, required Duration position}) async {
     return _playItemFromPositionInternal(itemId: itemId, episodeId: episodeId, position: position);
   }
 
@@ -749,7 +748,14 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       );
     }
     final stopPosition = position;
+    final stoppedMedia = _currentMediaItem;
     final shouldStopCastPlayback = isCastControlActive;
+
+    if (stoppedMedia != null) {
+      unawaited(
+        PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.stop, media: stoppedMedia, position: stopPosition),
+      );
+    }
 
     _setQueueTransitionLoading(false);
     _clearSmartRewindPauseMarker();
@@ -840,22 +846,35 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   Future<void> fastForward() async {
     if (_currentMediaItem == null) return Future.value();
     final skipTime = _skipDurationForKey(SettingKeys.fastForwardInterval);
-    final newPosition = position + skipTime;
-    _seekInternal(newPosition);
-    return Future.value();
+    final fromPosition = position;
+    final newPosition = fromPosition + skipTime;
+    await _seekInternal(newPosition);
+    unawaited(
+      PlayerHistoryHandler.addPlayerHistory(
+        PlayerHistoryType.skipForward,
+        details: <String, Object?>{'fromPosition': fromPosition.inSeconds, 'toPosition': position.inSeconds},
+      ),
+    );
   }
 
   @override
   Future<void> rewind() async {
     if (_currentMediaItem == null) return Future.value();
     final skipTime = _skipDurationForKey(SettingKeys.rewindInterval);
-    final newPosition = position - skipTime;
+    final fromPosition = position;
+    final newPosition = fromPosition - skipTime;
     if (newPosition < Duration.zero) {
       logger('Rewind position is negative, resetting to zero', tag: 'AudioHandler', level: InfoLevel.debug);
-      return _seekInternal(Duration.zero);
+      await _seekInternal(Duration.zero);
+    } else {
+      await _seekInternal(newPosition);
     }
-    _seekInternal(newPosition);
-    return Future.value();
+    unawaited(
+      PlayerHistoryHandler.addPlayerHistory(
+        PlayerHistoryType.skipBackward,
+        details: <String, Object?>{'fromPosition': fromPosition.inSeconds, 'toPosition': position.inSeconds},
+      ),
+    );
   }
 
   @override
@@ -873,6 +892,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       if (_currentMediaItem == null) return;
       InternalChapter? nextChapter = _currentMediaItem!.getNextChapterForDuration(position);
       if (nextChapter != null) {
+        final fromPosition = position;
         final newPosition = Duration(microseconds: (nextChapter.start * Duration.microsecondsPerSecond).round());
         logger(
           'Skipping to next chapter: $nextChapter, new position: $newPosition',
@@ -880,6 +900,16 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           level: InfoLevel.debug,
         );
         await _seekInternal(newPosition);
+        unawaited(
+          PlayerHistoryHandler.addPlayerHistory(
+            PlayerHistoryType.skipForward,
+            details: <String, Object?>{
+              'fromPosition': fromPosition.inSeconds,
+              'toPosition': newPosition.inSeconds,
+              'chapterTitle': nextChapter.title,
+            },
+          ),
+        );
         return;
       }
 
@@ -929,6 +959,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       if (_currentMediaItem == null) return;
       InternalChapter? previousChapter = _currentMediaItem!.getPreviousChapterForDuration(position);
       if (previousChapter != null) {
+        final fromPosition = position;
         final newPosition = Duration(microseconds: (previousChapter.start * Duration.microsecondsPerSecond).round());
         logger(
           'Skipping to previous chapter: $previousChapter, new position: $newPosition',
@@ -936,6 +967,16 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           level: InfoLevel.debug,
         );
         await _seekInternal(newPosition);
+        unawaited(
+          PlayerHistoryHandler.addPlayerHistory(
+            PlayerHistoryType.skipBackward,
+            details: <String, Object?>{
+              'fromPosition': fromPosition.inSeconds,
+              'toPosition': newPosition.inSeconds,
+              'chapterTitle': previousChapter.title,
+            },
+          ),
+        );
       }
     });
   }
@@ -950,6 +991,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   @override
   Future<void> seek(Duration position) async {
     if (_currentMediaItem == null) return Future.value();
+
+    final fromPosition = this.position;
 
     Duration resolvedPosition = position;
     if (_chapterNotificationEnabled && !_isInternalSeek) {
@@ -977,6 +1020,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       _refreshChapterNotificationState(customPosition: boundedPosition);
       _updateMediaItemForChapterNotification(customPosition: boundedPosition);
       await _updatePlaybackState();
+      _recordManualSeekIfNeeded(fromPosition, boundedPosition);
       return Future.value();
     }
 
@@ -1012,7 +1056,22 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     _refreshChapterNotificationState(customPosition: boundedPosition);
     _updateMediaItemForChapterNotification(customPosition: boundedPosition);
     unawaited(_updatePlaybackState());
+    _recordManualSeekIfNeeded(fromPosition, boundedPosition);
     return Future.value();
+  }
+
+  void _recordManualSeekIfNeeded(Duration fromPosition, Duration toPosition) {
+    if (_isInternalSeek || (toPosition - fromPosition).abs() < const Duration(seconds: 1)) {
+      return;
+    }
+
+    unawaited(
+      PlayerHistoryHandler.addPlayerHistory(
+        PlayerHistoryType.seek,
+        position: toPosition,
+        details: <String, Object?>{'fromPosition': fromPosition.inSeconds, 'toPosition': toPosition.inSeconds},
+      ),
+    );
   }
 
   void _refreshChapterNotificationState({Duration? customPosition}) {
