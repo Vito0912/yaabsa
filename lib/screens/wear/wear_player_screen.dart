@@ -16,6 +16,7 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/player/session_provider.dart';
 import 'package:yaabsa/screens/wear/components/wear_volume_control.dart';
 import 'package:yaabsa/util/audio_handler/wear_audio_handler.dart';
+import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/globals.dart' show downloadHandler;
 import 'package:yaabsa/util/server_version.dart';
 
@@ -479,21 +480,13 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(_fmt(_position), style: TextStyle(fontSize: 9, color: _onSurface(0.54))),
-              Text(_fmt(total), style: TextStyle(fontSize: 9, color: _onSurface(0.54))),
+              Text(_position.toCompactClockString(), style: TextStyle(fontSize: 9, color: _onSurface(0.54))),
+              Text(total.toCompactClockString(), style: TextStyle(fontSize: 9, color: _onSurface(0.54))),
             ],
           ),
         ],
       ),
     );
-  }
-
-  String _fmt(Duration d) {
-    final h = d.inHours;
-    final m = d.inMinutes.remainder(60);
-    final s = d.inSeconds.remainder(60);
-    final ss = s.toString().padLeft(2, '0');
-    return h > 0 ? '$h:${m.toString().padLeft(2, '0')}:$ss' : '$m:$ss';
   }
 
   Widget _coverImage(String url) {

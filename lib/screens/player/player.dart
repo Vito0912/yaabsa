@@ -33,6 +33,7 @@ import 'package:yaabsa/screens/player/play_history_view.dart';
 import 'package:yaabsa/screens/player/queue.dart';
 import 'package:yaabsa/util/aaos_service.dart';
 import 'package:yaabsa/util/chrome_cast_service.dart';
+import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/setting_key.dart';
@@ -943,17 +944,7 @@ class _AppBarSeekTimesStrip extends ConsumerWidget {
     if (duration == null) {
       return '--:--';
     }
-
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    final hours = duration.inHours;
-    final minutes = duration.inMinutes.remainder(60);
-    final seconds = duration.inSeconds.remainder(60);
-
-    if (hours > 0) {
-      return '$hours:${twoDigits(minutes)}:${twoDigits(seconds)}';
-    }
-
-    return '${twoDigits(minutes)}:${twoDigits(seconds)}';
+    return duration.toPlaybackTimeString();
   }
 
   @override

@@ -311,7 +311,7 @@ class PlayerAdaptiveView extends StatelessWidget {
         child: Align(
           alignment: Alignment.center,
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1220),
+            constraints: const BoxConstraints(maxWidth: 1340),
             child: Padding(
               padding: EdgeInsets.fromLTRB(
                 40 + safePadding.left,
@@ -340,7 +340,7 @@ class PlayerAdaptiveView extends StatelessWidget {
                   ),
                   const SizedBox(width: 64),
                   Expanded(
-                    flex: 6,
+                    flex: 7,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: <Widget>[
@@ -452,14 +452,18 @@ class _PlaybackPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDesktop = context.isDesktop;
+    final seekTrackHeight = isDesktop ? (compact ? 8.0 : 9.0) : (compact ? 6.0 : 7.0);
+    final seekLabelFontSize = isDesktop ? (compact ? 14.0 : 15.0) : (compact ? 12.0 : 13.0);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
         PlayerSubtitlesComponent(compact: context.isMobile),
         PlayerSeekBarComponent(
           timePlacement: PlayerSeekTimePlacement.below,
-          trackHeight: compact ? 6 : 7,
-          timeLabelFontSize: compact ? 12 : 13,
+          trackHeight: seekTrackHeight,
+          timeLabelFontSize: seekLabelFontSize,
           showCurrentChapterBetweenTimeLabels: true,
         ),
         SizedBox(height: compact ? 14 : 22),

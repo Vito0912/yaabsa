@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/screens/player/bookmarks_sheet.dart';
 import 'package:yaabsa/screens/player/chapter.dart';
+import 'package:yaabsa/screens/player/components/bookmark_add_button.dart';
 import 'package:yaabsa/screens/player/queue.dart';
 
 enum DesktopPlayerPanelType { bookmarks, chapters, queue }
@@ -66,6 +67,7 @@ Future<void> showDesktopPlayerSidePanel(
                         Icon(type.icon),
                         const SizedBox(width: 12),
                         Expanded(child: Text(type.label, style: Theme.of(context).textTheme.titleLarge)),
+                        if (type == DesktopPlayerPanelType.bookmarks) BookmarkAddButton(itemId: media.itemId),
                         IconButton(
                           tooltip: 'Close',
                           onPressed: () => Navigator.of(context).pop(),

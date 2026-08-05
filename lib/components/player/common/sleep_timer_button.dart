@@ -2,6 +2,7 @@ import 'package:yaabsa/util/handler/sleep_timer_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:yaabsa/util/extensions.dart';
 
 void showSleepTimerSheet(BuildContext context, WidgetRef ref) {
   showModalBottomSheet<void>(
@@ -29,26 +30,12 @@ class SleepTimerButton extends ConsumerWidget {
         color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
         icon: isActive
             ? Text(
-                _formatTime(sleepTimer.remainingTime),
+                sleepTimer.remainingTime.toLargestUnitCompactString(),
                 style: TextStyle(color: Colors.lightGreenAccent.withValues(alpha: 0.8)),
               )
             : const Icon(Icons.bedtime_rounded),
       ),
     );
-  }
-
-  String _formatTime(Duration duration) {
-    final hours = duration.inHours;
-    final minutes = duration.inMinutes.remainder(60);
-    final seconds = duration.inSeconds.remainder(60);
-
-    if (hours > 0) {
-      return '${hours}h';
-    } else if (minutes > 0) {
-      return '${minutes}m';
-    } else {
-      return '${seconds}s';
-    }
   }
 }
 
@@ -93,7 +80,10 @@ class _SleepTimerModalState extends State<SleepTimerModal> {
           Text('Sleep timer', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 8),
           if (sleepTimer.isActive)
-            Text('Remaining ${_formatTime(sleepTimer.remainingTime)}', style: Theme.of(context).textTheme.bodyMedium),
+            Text(
+              'Remaining ${sleepTimer.remainingTime.toCompactRemainingString()}',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
@@ -189,20 +179,6 @@ class _SleepTimerModalState extends State<SleepTimerModal> {
 
     Navigator.of(context).pop();
     HapticFeedback.lightImpact();
-  }
-
-  String _formatTime(Duration duration) {
-    final hours = duration.inHours;
-    final minutes = duration.inMinutes.remainder(60);
-    final seconds = duration.inSeconds.remainder(60);
-
-    if (hours > 0) {
-      return '${hours}h ${minutes}m';
-    } else if (minutes > 0) {
-      return '${minutes}m ${seconds}s';
-    } else {
-      return '${seconds}s';
-    }
   }
 }
 
