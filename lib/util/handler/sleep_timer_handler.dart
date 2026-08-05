@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:yaabsa/database/settings_manager.dart';
+import 'package:yaabsa/util/audio_handler/player_history_handler.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/setting_key.dart';
@@ -231,16 +232,16 @@ class SleepTimerHandler extends _$SleepTimerHandler {
     final safeMinutes = rememberedMinutes < 1 ? 30 : rememberedMinutes;
 
     logger('Auto-restarting sleep timer for $safeMinutes minutes', tag: 'SleepTimer', level: InfoLevel.info);
-    start(Duration(minutes: safeMinutes));
+    start(Duration(minutes: safeMinutes), automatic: true);
   }
 
-  void start(Duration duration) {
+  void start(Duration duration, {bool automatic = false}) {
     if (duration <= Duration.zero) {
       return;
     }
 
     if (state.isActive) {
-      stop(suppressAutoRestart: false);
+      stop(suppressAutoRestart: false, recordHistory: false);
     }
 
     _pauseTriggeredByPlayback = false;
@@ -254,10 +255,18 @@ class SleepTimerHandler extends _$SleepTimerHandler {
 
     state = SleepTimerData(remainingTime: duration, state: SleepTimerState.running, totalDuration: duration);
 
+    unawaited(
+      PlayerHistoryHandler.addPlayerHistory(
+        automatic ? PlayerHistoryType.sleepTimerAutoStarted : PlayerHistoryType.sleepTimerStarted,
+        details: <String, Object?>{'durationSeconds': duration.inSeconds},
+      ),
+    );
+
     _startTimer(duration);
   }
 
-  void stop({bool suppressAutoRestart = true}) {
+  void stop({bool suppressAutoRestart = true, bool recordHistory = true}) {
+    final remainingTime = state.isRunning ? _remainingForCurrentRun() : state.remainingTime;
     _timer?.cancel();
     _timer = null;
     _countdownStartTime = null;
@@ -273,6 +282,15 @@ class SleepTimerHandler extends _$SleepTimerHandler {
     logger('Sleep timer stopped', tag: 'SleepTimer', level: InfoLevel.info);
 
     state = const SleepTimerData(remainingTime: Duration.zero, state: SleepTimerState.inactive);
+
+    if (recordHistory) {
+      unawaited(
+        PlayerHistoryHandler.addPlayerHistory(
+          PlayerHistoryType.sleepTimerStopped,
+          details: <String, Object?>{'remainingSeconds': remainingTime.inSeconds, 'source': 'manual'},
+        ),
+      );
+    }
   }
 
   void pause({bool triggeredByPlaybackPause = false}) {
@@ -291,6 +309,15 @@ class SleepTimerHandler extends _$SleepTimerHandler {
     logger('Sleep timer paused', tag: 'SleepTimer', level: InfoLevel.info);
 
     state = state.copyWith(remainingTime: remainingTime, state: SleepTimerState.paused);
+    unawaited(
+      PlayerHistoryHandler.addPlayerHistory(
+        PlayerHistoryType.sleepTimerStopped,
+        details: <String, Object?>{
+          'remainingSeconds': remainingTime.inSeconds,
+          'source': triggeredByPlaybackPause ? 'playback' : 'manual',
+        },
+      ),
+    );
   }
 
   void resume() {
@@ -305,6 +332,12 @@ class SleepTimerHandler extends _$SleepTimerHandler {
     logger('Sleep timer resumed', tag: 'SleepTimer', level: InfoLevel.info);
 
     state = state.copyWith(state: SleepTimerState.running);
+    unawaited(
+      PlayerHistoryHandler.addPlayerHistory(
+        PlayerHistoryType.sleepTimerStarted,
+        details: <String, Object?>{'durationSeconds': state.remainingTime.inSeconds, 'source': 'resume'},
+      ),
+    );
     _startTimer(state.remainingTime);
   }
 
@@ -319,6 +352,15 @@ class SleepTimerHandler extends _$SleepTimerHandler {
     logger('Sleep timer extended by ${additionalTime.inMinutes} minutes', tag: 'SleepTimer', level: InfoLevel.info);
 
     state = state.copyWith(remainingTime: newRemainingTime, totalDuration: newTotalDuration);
+    unawaited(
+      PlayerHistoryHandler.addPlayerHistory(
+        PlayerHistoryType.sleepTimerExtended,
+        details: <String, Object?>{
+          'additionalSeconds': additionalTime.inSeconds,
+          'remainingSeconds': newRemainingTime.inSeconds,
+        },
+      ),
+    );
 
     if (isRunning) {
       _startTimer(newRemainingTime);
@@ -335,6 +377,13 @@ class SleepTimerHandler extends _$SleepTimerHandler {
     if (totalDuration <= Duration.zero) return;
 
     logger('Sleep timer reset to ${totalDuration.inMinutes} minutes', tag: 'SleepTimer', level: InfoLevel.info);
+
+    unawaited(
+      PlayerHistoryHandler.addPlayerHistory(
+        PlayerHistoryType.sleepTimerStopped,
+        details: <String, Object?>{'remainingSeconds': totalDuration.inSeconds, 'source': 'reset'},
+      ),
+    );
 
     _pauseTriggeredByPlayback = false;
     unawaited(_restoreFadeVolumeIfNeeded());
@@ -389,6 +438,13 @@ class SleepTimerHandler extends _$SleepTimerHandler {
     _pauseTriggeredByPlayback = false;
 
     state = const SleepTimerData(remainingTime: Duration.zero, state: SleepTimerState.inactive);
+
+    unawaited(
+      PlayerHistoryHandler.addPlayerHistory(
+        PlayerHistoryType.sleepTimerExpired,
+        details: <String, Object?>{'action': action.name},
+      ),
+    );
 
     unawaited(_executeExpireAction(action));
   }

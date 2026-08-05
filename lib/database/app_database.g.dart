@@ -2407,6 +2407,15 @@ class $PlayerHistoryTable extends PlayerHistory with TableInfo<$PlayerHistoryTab
     type: DriftSqlType.double,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _detailsJsonMeta = const VerificationMeta('detailsJson');
+  @override
+  late final GeneratedColumn<String> detailsJson = GeneratedColumn<String>(
+    'details_json',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdMeta = const VerificationMeta('created');
   @override
   late final GeneratedColumn<DateTime> created = GeneratedColumn<DateTime>(
@@ -2418,7 +2427,7 @@ class $PlayerHistoryTable extends PlayerHistory with TableInfo<$PlayerHistoryTab
     defaultValue: currentDateAndTime,
   );
   @override
-  List<GeneratedColumn> get $columns => [id, itemId, userId, episodeId, type, currentTime, created];
+  List<GeneratedColumn> get $columns => [id, itemId, userId, episodeId, type, currentTime, detailsJson, created];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -2454,6 +2463,9 @@ class $PlayerHistoryTable extends PlayerHistory with TableInfo<$PlayerHistoryTab
     } else if (isInserting) {
       context.missing(_currentTimeMeta);
     }
+    if (data.containsKey('details_json')) {
+      context.handle(_detailsJsonMeta, detailsJson.isAcceptableOrUnknown(data['details_json']!, _detailsJsonMeta));
+    }
     if (data.containsKey('created')) {
       context.handle(_createdMeta, created.isAcceptableOrUnknown(data['created']!, _createdMeta));
     }
@@ -2472,6 +2484,7 @@ class $PlayerHistoryTable extends PlayerHistory with TableInfo<$PlayerHistoryTab
       episodeId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}episode_id']),
       type: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}type'])!,
       currentTime: attachedDatabase.typeMapping.read(DriftSqlType.double, data['${effectivePrefix}current_time'])!,
+      detailsJson: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}details_json']),
       created: attachedDatabase.typeMapping.read(DriftSqlType.dateTime, data['${effectivePrefix}created'])!,
     );
   }
@@ -2489,6 +2502,7 @@ class PlayerHistoryEntry extends DataClass implements Insertable<PlayerHistoryEn
   final String? episodeId;
   final String type;
   final double currentTime;
+  final String? detailsJson;
   final DateTime created;
   const PlayerHistoryEntry({
     required this.id,
@@ -2497,6 +2511,7 @@ class PlayerHistoryEntry extends DataClass implements Insertable<PlayerHistoryEn
     this.episodeId,
     required this.type,
     required this.currentTime,
+    this.detailsJson,
     required this.created,
   });
   @override
@@ -2510,6 +2525,9 @@ class PlayerHistoryEntry extends DataClass implements Insertable<PlayerHistoryEn
     }
     map['type'] = Variable<String>(type);
     map['current_time'] = Variable<double>(currentTime);
+    if (!nullToAbsent || detailsJson != null) {
+      map['details_json'] = Variable<String>(detailsJson);
+    }
     map['created'] = Variable<DateTime>(created);
     return map;
   }
@@ -2522,6 +2540,7 @@ class PlayerHistoryEntry extends DataClass implements Insertable<PlayerHistoryEn
       episodeId: episodeId == null && nullToAbsent ? const Value.absent() : Value(episodeId),
       type: Value(type),
       currentTime: Value(currentTime),
+      detailsJson: detailsJson == null && nullToAbsent ? const Value.absent() : Value(detailsJson),
       created: Value(created),
     );
   }
@@ -2535,6 +2554,7 @@ class PlayerHistoryEntry extends DataClass implements Insertable<PlayerHistoryEn
       episodeId: serializer.fromJson<String?>(json['episodeId']),
       type: serializer.fromJson<String>(json['type']),
       currentTime: serializer.fromJson<double>(json['currentTime']),
+      detailsJson: serializer.fromJson<String?>(json['detailsJson']),
       created: serializer.fromJson<DateTime>(json['created']),
     );
   }
@@ -2548,6 +2568,7 @@ class PlayerHistoryEntry extends DataClass implements Insertable<PlayerHistoryEn
       'episodeId': serializer.toJson<String?>(episodeId),
       'type': serializer.toJson<String>(type),
       'currentTime': serializer.toJson<double>(currentTime),
+      'detailsJson': serializer.toJson<String?>(detailsJson),
       'created': serializer.toJson<DateTime>(created),
     };
   }
@@ -2559,6 +2580,7 @@ class PlayerHistoryEntry extends DataClass implements Insertable<PlayerHistoryEn
     Value<String?> episodeId = const Value.absent(),
     String? type,
     double? currentTime,
+    Value<String?> detailsJson = const Value.absent(),
     DateTime? created,
   }) => PlayerHistoryEntry(
     id: id ?? this.id,
@@ -2567,6 +2589,7 @@ class PlayerHistoryEntry extends DataClass implements Insertable<PlayerHistoryEn
     episodeId: episodeId.present ? episodeId.value : this.episodeId,
     type: type ?? this.type,
     currentTime: currentTime ?? this.currentTime,
+    detailsJson: detailsJson.present ? detailsJson.value : this.detailsJson,
     created: created ?? this.created,
   );
   PlayerHistoryEntry copyWithCompanion(PlayerHistoryCompanion data) {
@@ -2577,6 +2600,7 @@ class PlayerHistoryEntry extends DataClass implements Insertable<PlayerHistoryEn
       episodeId: data.episodeId.present ? data.episodeId.value : this.episodeId,
       type: data.type.present ? data.type.value : this.type,
       currentTime: data.currentTime.present ? data.currentTime.value : this.currentTime,
+      detailsJson: data.detailsJson.present ? data.detailsJson.value : this.detailsJson,
       created: data.created.present ? data.created.value : this.created,
     );
   }
@@ -2590,13 +2614,14 @@ class PlayerHistoryEntry extends DataClass implements Insertable<PlayerHistoryEn
           ..write('episodeId: $episodeId, ')
           ..write('type: $type, ')
           ..write('currentTime: $currentTime, ')
+          ..write('detailsJson: $detailsJson, ')
           ..write('created: $created')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, itemId, userId, episodeId, type, currentTime, created);
+  int get hashCode => Object.hash(id, itemId, userId, episodeId, type, currentTime, detailsJson, created);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2607,6 +2632,7 @@ class PlayerHistoryEntry extends DataClass implements Insertable<PlayerHistoryEn
           other.episodeId == this.episodeId &&
           other.type == this.type &&
           other.currentTime == this.currentTime &&
+          other.detailsJson == this.detailsJson &&
           other.created == this.created);
 }
 
@@ -2617,6 +2643,7 @@ class PlayerHistoryCompanion extends UpdateCompanion<PlayerHistoryEntry> {
   final Value<String?> episodeId;
   final Value<String> type;
   final Value<double> currentTime;
+  final Value<String?> detailsJson;
   final Value<DateTime> created;
   const PlayerHistoryCompanion({
     this.id = const Value.absent(),
@@ -2625,6 +2652,7 @@ class PlayerHistoryCompanion extends UpdateCompanion<PlayerHistoryEntry> {
     this.episodeId = const Value.absent(),
     this.type = const Value.absent(),
     this.currentTime = const Value.absent(),
+    this.detailsJson = const Value.absent(),
     this.created = const Value.absent(),
   });
   PlayerHistoryCompanion.insert({
@@ -2634,6 +2662,7 @@ class PlayerHistoryCompanion extends UpdateCompanion<PlayerHistoryEntry> {
     this.episodeId = const Value.absent(),
     required String type,
     required double currentTime,
+    this.detailsJson = const Value.absent(),
     this.created = const Value.absent(),
   }) : itemId = Value(itemId),
        userId = Value(userId),
@@ -2646,6 +2675,7 @@ class PlayerHistoryCompanion extends UpdateCompanion<PlayerHistoryEntry> {
     Expression<String>? episodeId,
     Expression<String>? type,
     Expression<double>? currentTime,
+    Expression<String>? detailsJson,
     Expression<DateTime>? created,
   }) {
     return RawValuesInsertable({
@@ -2655,6 +2685,7 @@ class PlayerHistoryCompanion extends UpdateCompanion<PlayerHistoryEntry> {
       if (episodeId != null) 'episode_id': episodeId,
       if (type != null) 'type': type,
       if (currentTime != null) 'current_time': currentTime,
+      if (detailsJson != null) 'details_json': detailsJson,
       if (created != null) 'created': created,
     });
   }
@@ -2666,6 +2697,7 @@ class PlayerHistoryCompanion extends UpdateCompanion<PlayerHistoryEntry> {
     Value<String?>? episodeId,
     Value<String>? type,
     Value<double>? currentTime,
+    Value<String?>? detailsJson,
     Value<DateTime>? created,
   }) {
     return PlayerHistoryCompanion(
@@ -2675,6 +2707,7 @@ class PlayerHistoryCompanion extends UpdateCompanion<PlayerHistoryEntry> {
       episodeId: episodeId ?? this.episodeId,
       type: type ?? this.type,
       currentTime: currentTime ?? this.currentTime,
+      detailsJson: detailsJson ?? this.detailsJson,
       created: created ?? this.created,
     );
   }
@@ -2700,6 +2733,9 @@ class PlayerHistoryCompanion extends UpdateCompanion<PlayerHistoryEntry> {
     if (currentTime.present) {
       map['current_time'] = Variable<double>(currentTime.value);
     }
+    if (detailsJson.present) {
+      map['details_json'] = Variable<String>(detailsJson.value);
+    }
     if (created.present) {
       map['created'] = Variable<DateTime>(created.value);
     }
@@ -2715,6 +2751,7 @@ class PlayerHistoryCompanion extends UpdateCompanion<PlayerHistoryEntry> {
           ..write('episodeId: $episodeId, ')
           ..write('type: $type, ')
           ..write('currentTime: $currentTime, ')
+          ..write('detailsJson: $detailsJson, ')
           ..write('created: $created')
           ..write(')'))
         .toString();
@@ -3956,6 +3993,7 @@ typedef $$PlayerHistoryTableCreateCompanionBuilder =
       Value<String?> episodeId,
       required String type,
       required double currentTime,
+      Value<String?> detailsJson,
       Value<DateTime> created,
     });
 typedef $$PlayerHistoryTableUpdateCompanionBuilder =
@@ -3966,6 +4004,7 @@ typedef $$PlayerHistoryTableUpdateCompanionBuilder =
       Value<String?> episodeId,
       Value<String> type,
       Value<double> currentTime,
+      Value<String?> detailsJson,
       Value<DateTime> created,
     });
 
@@ -3992,6 +4031,9 @@ class $$PlayerHistoryTableFilterComposer extends Composer<_$AppDatabase, $Player
 
   ColumnFilters<double> get currentTime =>
       $composableBuilder(column: $table.currentTime, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get detailsJson =>
+      $composableBuilder(column: $table.detailsJson, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get created =>
       $composableBuilder(column: $table.created, builder: (column) => ColumnFilters(column));
@@ -4022,6 +4064,9 @@ class $$PlayerHistoryTableOrderingComposer extends Composer<_$AppDatabase, $Play
   ColumnOrderings<double> get currentTime =>
       $composableBuilder(column: $table.currentTime, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get detailsJson =>
+      $composableBuilder(column: $table.detailsJson, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<DateTime> get created =>
       $composableBuilder(column: $table.created, builder: (column) => ColumnOrderings(column));
 }
@@ -4046,6 +4091,9 @@ class $$PlayerHistoryTableAnnotationComposer extends Composer<_$AppDatabase, $Pl
 
   GeneratedColumn<double> get currentTime =>
       $composableBuilder(column: $table.currentTime, builder: (column) => column);
+
+  GeneratedColumn<String> get detailsJson =>
+      $composableBuilder(column: $table.detailsJson, builder: (column) => column);
 
   GeneratedColumn<DateTime> get created => $composableBuilder(column: $table.created, builder: (column) => column);
 }
@@ -4081,6 +4129,7 @@ class $$PlayerHistoryTableTableManager
                 Value<String?> episodeId = const Value.absent(),
                 Value<String> type = const Value.absent(),
                 Value<double> currentTime = const Value.absent(),
+                Value<String?> detailsJson = const Value.absent(),
                 Value<DateTime> created = const Value.absent(),
               }) => PlayerHistoryCompanion(
                 id: id,
@@ -4089,6 +4138,7 @@ class $$PlayerHistoryTableTableManager
                 episodeId: episodeId,
                 type: type,
                 currentTime: currentTime,
+                detailsJson: detailsJson,
                 created: created,
               ),
           createCompanionCallback:
@@ -4099,6 +4149,7 @@ class $$PlayerHistoryTableTableManager
                 Value<String?> episodeId = const Value.absent(),
                 required String type,
                 required double currentTime,
+                Value<String?> detailsJson = const Value.absent(),
                 Value<DateTime> created = const Value.absent(),
               }) => PlayerHistoryCompanion.insert(
                 id: id,
@@ -4107,6 +4158,7 @@ class $$PlayerHistoryTableTableManager
                 episodeId: episodeId,
                 type: type,
                 currentTime: currentTime,
+                detailsJson: detailsJson,
                 created: created,
               ),
           withReferenceMapper: (p0) => p0.map((e) => (e.readTable(table), BaseReferences(db, table, e))).toList(),
