@@ -11,6 +11,40 @@ import 'package:just_audio/just_audio.dart'
 part 'internal_media.freezed.dart';
 part 'internal_media.g.dart';
 
+const int playerCoverRequestDimension = 2000;
+const int notificationArtworkRequestDimension = 1024;
+const int notificationArtworkDecodeMaxDimension = 1024;
+
+bool _isRemoteAudiobookshelfCover(Uri coverUri) {
+  final scheme = coverUri.scheme.toLowerCase();
+  return (scheme == 'http' || scheme == 'https') && RegExp(r'/api/items/[^/]+/cover/?$').hasMatch(coverUri.path);
+}
+
+Uri? libraryItemCoverUri(Uri? coverUri) {
+  if (coverUri == null || !_isRemoteAudiobookshelfCover(coverUri)) {
+    return coverUri;
+  }
+
+  final queryParameters = <String, String>{...coverUri.queryParameters}
+    ..remove('width')
+    ..remove('height');
+  return coverUri.replace(queryParameters: queryParameters);
+}
+
+Uri? _sizedRemoteCoverUri(Uri? coverUri, int dimension) {
+  if (coverUri == null || !_isRemoteAudiobookshelfCover(coverUri)) {
+    return coverUri;
+  }
+
+  return coverUri.replace(
+    queryParameters: <String, String>{...coverUri.queryParameters, 'width': '$dimension', 'height': '$dimension'},
+  );
+}
+
+Uri? notificationArtworkUri(Uri? coverUri) {
+  return _sizedRemoteCoverUri(coverUri, notificationArtworkRequestDimension);
+}
+
 @unfreezed
 abstract class InternalMedia with _$InternalMedia {
   InternalMedia._();
@@ -51,7 +85,7 @@ abstract class InternalMedia with _$InternalMedia {
       displaySubtitle: subtitle,
       duration: totalDuration,
       isLive: false,
-      artUri: cover,
+      artUri: notificationArtworkUri(cover),
     );
   }
 

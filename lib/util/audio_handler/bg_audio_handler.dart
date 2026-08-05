@@ -1048,25 +1048,43 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     final currentItem = _currentMediaItem;
     if (currentItem == null) return;
 
+    late final MediaItem nextMediaItem;
     if (_chapterNotificationEnabled) {
       final searchPos = customPosition ?? position;
       final chapter = currentItem.getChapterForDuration(searchPos);
-      mediaItem.add(
-        MediaItem(
-          id: currentItem.id,
-          album: currentItem.toMediaItem().album,
-          title: chapter?.title ?? currentItem.title,
-          displayTitle: chapter?.title ?? currentItem.title,
-          artist: currentItem.author,
-          displaySubtitle: currentItem.subtitle,
-          duration: _chapterNotificationDuration,
-          isLive: false,
-          artUri: currentItem.cover,
-        ),
+      nextMediaItem = MediaItem(
+        id: currentItem.id,
+        album: currentItem.toMediaItem().album,
+        title: chapter?.title ?? currentItem.title,
+        displayTitle: chapter?.title ?? currentItem.title,
+        artist: currentItem.author,
+        displaySubtitle: currentItem.subtitle,
+        duration: _chapterNotificationDuration,
+        isLive: false,
+        artUri: notificationArtworkUri(currentItem.cover),
       );
     } else {
-      mediaItem.add(currentItem.toMediaItem());
+      nextMediaItem = currentItem.toMediaItem();
     }
+
+    final publishedMediaItem = mediaItem.valueOrNull;
+    if (_hasSameNotificationMetadata(publishedMediaItem, nextMediaItem)) {
+      return;
+    }
+    mediaItem.add(nextMediaItem);
+  }
+
+  bool _hasSameNotificationMetadata(MediaItem? current, MediaItem next) {
+    return current != null &&
+        current.id == next.id &&
+        current.album == next.album &&
+        current.title == next.title &&
+        current.displayTitle == next.displayTitle &&
+        current.artist == next.artist &&
+        current.displaySubtitle == next.displaySubtitle &&
+        current.duration == next.duration &&
+        current.isLive == next.isLive &&
+        current.artUri == next.artUri;
   }
 
   Future<void> _seekInternal(Duration position) async {

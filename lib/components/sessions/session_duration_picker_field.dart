@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:yaabsa/util/extensions.dart';
 
 Future<int?> showSessionDurationPickerDialog(
   BuildContext context, {
@@ -68,11 +69,7 @@ class SessionDurationPickerField extends StatelessWidget {
 
   String _formatDuration(double? value) {
     final totalSeconds = (value ?? 0).round();
-    final duration = Duration(seconds: totalSeconds);
-    final hours = duration.inHours;
-    final minutes = duration.inMinutes.remainder(60);
-    final secondsPart = duration.inSeconds.remainder(60);
-    return '$hours:${minutes.toString().padLeft(2, '0')}:${secondsPart.toString().padLeft(2, '0')}';
+    return Duration(seconds: totalSeconds).toHoursMinutesSecondsString();
   }
 }
 

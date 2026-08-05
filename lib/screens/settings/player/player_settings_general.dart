@@ -10,6 +10,8 @@ import 'package:yaabsa/components/settings/settings_switch_tile.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/player/bluetooth_audio_devices_provider.dart';
 import 'package:yaabsa/screens/settings/player/player_settings.dart';
+import 'package:yaabsa/screens/settings/player/player_action_settings_editor.dart';
+import 'package:yaabsa/screens/player/layout/player_presentation_config.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/bluetooth_auto_resume.dart';
 import 'package:yaabsa/util/setting_key.dart';
@@ -54,6 +56,31 @@ class PlayerSettingsGeneral extends ConsumerWidget {
     final bluetoothAudioDevices = isAndroid && autoResumeEnabled && restrictAutoResumeToSelectedDevices
         ? ref.watch(bluetoothAudioDevicesProvider)
         : null;
+    final rawLayoutMode = ref.watch(globalSettingByKeyProvider(SettingKeys.playerLayoutMode)).asData?.value;
+    final rawLayoutConfig = ref.watch(globalSettingByKeyProvider(SettingKeys.playerLayoutConfig)).asData?.value;
+    final layoutMode = PlayerLayoutMode.fromSettingValue(
+      rawLayoutMode,
+      hasSavedCustomLayout: rawLayoutConfig?.trim().isNotEmpty == true,
+    );
+    final rawAdaptivePreset = ref.watch(globalSettingByKeyProvider(SettingKeys.playerAdaptivePreset)).asData?.value;
+    final adaptivePreset = PlayerAdaptivePreset.fromSettingValue(rawAdaptivePreset);
+    final rawCoverSize = ref.watch(globalSettingByKeyProvider(SettingKeys.playerCoverSize)).asData?.value;
+    final coverSize = PlayerCoverSize.fromSettingValue(rawCoverSize);
+    final rawFullTransport = ref.watch(globalSettingByKeyProvider(SettingKeys.fullPlayerTransportMode)).asData?.value;
+    final rawMiniTransport = ref.watch(globalSettingByKeyProvider(SettingKeys.miniPlayerTransportMode)).asData?.value;
+    final rawMobileLeftAction = ref.watch(globalSettingByKeyProvider(SettingKeys.mobilePlayerLeftAction)).asData?.value;
+    final rawMobileRightAction = ref
+        .watch(globalSettingByKeyProvider(SettingKeys.mobilePlayerRightAction))
+        .asData
+        ?.value;
+    final mobileLeftAction = decodeOptionalPlayerAction(rawMobileLeftAction, fallback: defaultMobilePlayerLeftAction);
+    final mobileRightAction = decodeOptionalPlayerAction(
+      rawMobileRightAction,
+      fallback: defaultMobilePlayerRightAction,
+    );
+    PlayerTransportMode resolveTransport(String? rawValue) {
+      return PlayerTransportMode.fromSettingValue(rawValue);
+    }
 
     return SettingsPageScaffold(
       title: 'Player - General',
@@ -93,6 +120,81 @@ class PlayerSettingsGeneral extends ConsumerWidget {
           ],
         ),
         SettingsNavigationSection(
+          title: 'On-screen controls',
+          settings: [
+            SettingDropdown<String>.remote(
+              label: 'Full player transport buttons',
+              description: 'Choose whether the full player shows timed jumps, item/chapter skips, or both',
+              values: PlayerTransportMode.values.map((mode) => mode.name).toList(growable: false),
+              valueLabels: PlayerTransportMode.values.map((mode) => mode.label).toList(growable: false),
+              value: resolveTransport(rawFullTransport).name,
+              onValueChanged: (value) {
+                ref
+                    .read(settingsManagerProvider.notifier)
+                    .setGlobalSetting<String>(SettingKeys.fullPlayerTransportMode, value);
+              },
+            ),
+            const PlayerActionSettingsEditor(
+              title: 'Full player actions',
+              description: 'Actions available in the full player',
+              settingKey: SettingKeys.fullPlayerActions,
+              fallback: defaultFullPlayerActions,
+            ),
+            SettingDropdown<String>.remote(
+              label: 'Left quick action',
+              description: 'Action shown at the lower left of the Minimalistic player',
+              values: <String>['none', ...PlayerActionType.values.map((action) => action.name)],
+              valueLabels: <String>['None', ...PlayerActionType.values.map((action) => action.label)],
+              value: mobileLeftAction?.name ?? 'none',
+              onValueChanged: (value) async {
+                final settings = ref.read(settingsManagerProvider.notifier);
+                if (value != 'none' && value == mobileRightAction?.name) {
+                  await settings.setGlobalSetting<String>(
+                    SettingKeys.mobilePlayerRightAction,
+                    mobileLeftAction?.name ?? 'none',
+                  );
+                }
+                await settings.setGlobalSetting<String>(SettingKeys.mobilePlayerLeftAction, value);
+              },
+            ),
+            SettingDropdown<String>.remote(
+              label: 'Right quick action',
+              description: 'Action shown at the lower right of the Minimalistic player',
+              values: <String>['none', ...PlayerActionType.values.map((action) => action.name)],
+              valueLabels: <String>['None', ...PlayerActionType.values.map((action) => action.label)],
+              value: mobileRightAction?.name ?? 'none',
+              onValueChanged: (value) async {
+                final settings = ref.read(settingsManagerProvider.notifier);
+                if (value != 'none' && value == mobileLeftAction?.name) {
+                  await settings.setGlobalSetting<String>(
+                    SettingKeys.mobilePlayerLeftAction,
+                    mobileRightAction?.name ?? 'none',
+                  );
+                }
+                await settings.setGlobalSetting<String>(SettingKeys.mobilePlayerRightAction, value);
+              },
+            ),
+            SettingDropdown<String>.remote(
+              label: 'Mini player transport buttons',
+              description: 'Choose whether the mini player shows timed jumps, item/chapter skips, or both',
+              values: PlayerTransportMode.values.map((mode) => mode.name).toList(growable: false),
+              valueLabels: PlayerTransportMode.values.map((mode) => mode.label).toList(growable: false),
+              value: resolveTransport(rawMiniTransport).name,
+              onValueChanged: (value) {
+                ref
+                    .read(settingsManagerProvider.notifier)
+                    .setGlobalSetting<String>(SettingKeys.miniPlayerTransportMode, value);
+              },
+            ),
+            const PlayerActionSettingsEditor(
+              title: 'Mini player actions',
+              description: 'Actions available from the mini-player menu',
+              settingKey: SettingKeys.miniPlayerActions,
+              fallback: defaultMiniPlayerActions,
+            ),
+          ],
+        ),
+        SettingsNavigationSection(
           title: 'Skip Intervals',
           settings: [
             SettingSlider<int>(
@@ -118,11 +220,6 @@ class PlayerSettingsGeneral extends ConsumerWidget {
               label: 'Remember playback speed per book',
               subtitle: 'Each book remembers its own speed and new books start with your last used speed',
               settingKey: SettingKeys.playbackSpeedPerBook,
-            ),
-            const SettingSwitchTile(
-              label: 'Show skip buttons instead of jump buttons',
-              subtitle: 'Show skip next/previous instead of fast forward/rewind',
-              settingKey: SettingKeys.showSkipInsteadOfFastForward,
             ),
             if (isDesktop)
               SettingSwitchTile(
@@ -248,6 +345,65 @@ class PlayerSettingsGeneral extends ConsumerWidget {
                 ),
             ],
           ),
+        SettingsNavigationSection(
+          title: 'Player appearance',
+          settings: [
+            SettingDropdown<String>.remote(
+              label: 'Full player layout',
+              description: 'Selects how the full player arranges its components',
+              values: PlayerLayoutMode.values.map((mode) => mode.name).toList(growable: false),
+              valueLabels: const <String>['Adaptive', 'Custom'],
+              valueDescriptions: const <String>[
+                'Adapts the selected preset to the available screen space',
+                'Uses the saved component grid',
+              ],
+              value: layoutMode.name,
+              onValueChanged: (value) {
+                ref
+                    .read(settingsManagerProvider.notifier)
+                    .setGlobalSetting<String>(SettingKeys.playerLayoutMode, value);
+              },
+            ),
+            SettingDropdown<String>.remote(
+              label: 'Adaptive preset',
+              description: 'Selects the controls shown by the adaptive player',
+              values: PlayerAdaptivePreset.values.map((preset) => preset.name).toList(growable: false),
+              valueLabels: PlayerAdaptivePreset.values.map((preset) => preset.label).toList(growable: false),
+              valueDescriptions: const <String>[
+                'Shows configured actions in a bottom action bar on mobile',
+                'Shows two quick actions',
+              ],
+              value: adaptivePreset.name,
+              onValueChanged: (value) {
+                ref
+                    .read(settingsManagerProvider.notifier)
+                    .setGlobalSetting<String>(SettingKeys.playerAdaptivePreset, value);
+              },
+              enabled: layoutMode == PlayerLayoutMode.adaptive,
+            ),
+            SettingDropdown<String>.remote(
+              label: 'Cover size',
+              description: 'Sets the artwork size in the adaptive player',
+              values: PlayerCoverSize.values.map((size) => size.name).toList(growable: false),
+              valueLabels: PlayerCoverSize.values.map((size) => size.label).toList(growable: false),
+              valueDescriptions: const <String>[
+                'Uses the size associated with the selected preset',
+                'Uses the smaller artwork size',
+                'Uses the larger artwork size',
+              ],
+              value: coverSize.name,
+              onValueChanged: (value) {
+                ref.read(settingsManagerProvider.notifier).setGlobalSetting<String>(SettingKeys.playerCoverSize, value);
+              },
+              enabled: layoutMode == PlayerLayoutMode.adaptive,
+            ),
+            const SettingSwitchTile(
+              label: 'Immersive player colors',
+              subtitle: 'Uses artwork colors for players',
+              settingKey: SettingKeys.playerImmersiveColors,
+            ),
+          ],
+        ),
       ],
     );
   }

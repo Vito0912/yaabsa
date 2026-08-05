@@ -218,7 +218,7 @@ extension PlayerUtilityTypeX on PlayerUtilityType {
       case PlayerUtilityType.bookmarks:
         return 'Bookmarks';
       case PlayerUtilityType.chapter:
-        return 'Chapter Picker';
+        return 'Chapters';
       case PlayerUtilityType.volume:
         return 'Volume';
       case PlayerUtilityType.queue:

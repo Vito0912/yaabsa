@@ -2,6 +2,18 @@ import 'package:yaabsa/util/globals.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+Future<void> showPlaybackSpeedSheet(BuildContext context, {double? currentSpeed}) {
+  return showModalBottomSheet<void>(
+    context: context,
+    useSafeArea: true,
+    isScrollControlled: true,
+    showDragHandle: true,
+    builder: (sheetContext) {
+      return _SpeedSheet(initialSpeed: currentSpeed ?? audioHandler.player.speed);
+    },
+  );
+}
+
 class SpeedSlider extends StatelessWidget {
   static const double minSpeed = 0.5;
   static const double maxSpeed = 3.0;
@@ -22,7 +34,7 @@ class SpeedSlider extends StatelessWidget {
           width: 48,
 
           child: IconButton(
-            onPressed: () => _openSpeedSheet(context, speed),
+            onPressed: () => showPlaybackSpeedSheet(context, currentSpeed: speed),
 
             icon: Text(
               '${speed.toStringAsFixed(1)}x',
@@ -35,18 +47,6 @@ class SpeedSlider extends StatelessWidget {
             ),
           ),
         );
-      },
-    );
-  }
-
-  Future<void> _openSpeedSheet(BuildContext context, double currentSpeed) {
-    return showModalBottomSheet<void>(
-      context: context,
-      useSafeArea: true,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (sheetContext) {
-        return _SpeedSheet(initialSpeed: currentSpeed);
       },
     );
   }
@@ -68,7 +68,7 @@ class _SpeedSheetState extends State<_SpeedSheet> {
   @override
   void initState() {
     super.initState();
-    _value = _roundToStep(widget.initialSpeed);
+    _value = _clampSpeed(widget.initialSpeed);
   }
 
   @override
@@ -88,7 +88,7 @@ class _SpeedSheetState extends State<_SpeedSheet> {
         children: [
           Text('Playback speed', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 12),
-          Text('${_value.toStringAsFixed(1)}x', style: Theme.of(context).textTheme.titleMedium),
+          Text('${_formatSheetSpeed(_value)}x', style: Theme.of(context).textTheme.titleMedium),
           Slider(
             value: _value,
             min: SpeedSlider.minSpeed,
@@ -168,18 +168,29 @@ class _SpeedSheetState extends State<_SpeedSheet> {
     if (parsed == null) {
       return false;
     }
-    final clamped = parsed.clamp(SpeedSlider.minSpeed, SpeedSlider.maxSpeed);
-    final rounded = _roundToStep(clamped);
+    final clamped = _clampSpeed(parsed);
     setState(() {
-      _value = rounded;
+      _value = clamped;
     });
-    audioHandler.setSpeed(rounded);
+    audioHandler.setSpeed(clamped);
     return true;
+  }
+
+  double _clampSpeed(double value) {
+    return value.clamp(SpeedSlider.minSpeed, SpeedSlider.maxSpeed).toDouble();
   }
 
   double _roundToStep(double value) {
     final normalized = (value / SpeedSlider.step).round() * SpeedSlider.step;
-    return normalized.clamp(SpeedSlider.minSpeed, SpeedSlider.maxSpeed);
+    return _clampSpeed(normalized);
+  }
+
+  String _formatSheetSpeed(double value) {
+    final roundedToTenth = (value * 10).round() / 10;
+    if ((value - roundedToTenth).abs() < 0.000000001) {
+      return roundedToTenth.toStringAsFixed(1);
+    }
+    return value.toString();
   }
 }
 

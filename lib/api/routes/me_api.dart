@@ -125,6 +125,24 @@ class MeApi {
     );
   }
 
+  Future<Response<Bookmark>> updateBookmark(
+    String itemId, {
+    required CreateBookmarkRequest updateBookmarkRequest,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiPatchRequest(
+      route: '/api/me/item/$itemId/bookmark',
+      fromJson: (data) => Bookmark.fromJson(data),
+      bodyData: updateBookmarkRequest.toJson(),
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
+    );
+  }
+
   Future<bool> deleteBookmark(
     String itemId,
     int time, {

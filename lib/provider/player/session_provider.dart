@@ -169,7 +169,12 @@ class SessionRepository {
     );
     final localCoverUri = _localCoverUriFromPath(resolvedLocalCoverPath ?? downloaded?.coverPath);
     final remoteCoverUri = hasCoverPath && api != null
-        ? api.getLibraryItemApi().getCoverUri(_currentSession!.libraryItemId)
+        ? api.getLibraryItemApi().getCoverUri(
+            _currentSession!.libraryItemId,
+            item: _currentSession!.libraryItem,
+            width: playerCoverRequestDimension.toDouble(),
+            height: playerCoverRequestDimension.toDouble(),
+          )
         : null;
     final metadataNarrators = _currentSession!.mediaMetadata?.bookMetadata?.narrators
         ?.map((entry) => entry.trim())

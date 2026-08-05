@@ -1,6 +1,7 @@
 import 'dart:io' show File;
 import 'dart:math' as math;
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:yaabsa/components/common/cover_placeholder.dart';
 
@@ -33,7 +34,7 @@ ImageProvider<Object>? coverImageProviderFromUri(
   }
 
   final headers = requestHeaders.isEmpty ? null : requestHeaders;
-  return NetworkImage(coverUri.toString(), headers: headers);
+  return CachedNetworkImageProvider(coverUri.toString(), headers: headers);
 }
 
 Future<void> openCoverZoomView(

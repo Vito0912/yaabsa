@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:yaabsa/api/library_items/audio_file.dart';
 import 'package:yaabsa/api/library_items/chapter.dart';
+import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/item_formatters.dart';
 
 class LibraryItemEmbeddingView extends StatelessWidget {
@@ -401,15 +402,5 @@ String _formatMetadataValue(dynamic value) {
 
 String _formatClock(double seconds) {
   final totalSeconds = seconds.round();
-  final duration = Duration(seconds: totalSeconds);
-
-  final hours = duration.inHours;
-  final minutes = duration.inMinutes.remainder(60).toString().padLeft(2, '0');
-  final secs = duration.inSeconds.remainder(60).toString().padLeft(2, '0');
-
-  if (hours > 0) {
-    return '$hours:$minutes:$secs';
-  }
-
-  return '${duration.inMinutes}:$secs';
+  return Duration(seconds: totalSeconds).toCompactClockString();
 }

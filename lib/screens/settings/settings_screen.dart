@@ -61,6 +61,18 @@ final List<SettingsSearchItem> searchableSettings = [
     route: '/settings/player/general',
   ),
   const SettingsSearchItem(
+    title: 'Cover size',
+    description: 'Set the artwork size in the adaptive player',
+    categoryPath: 'Settings > Player > General',
+    route: '/settings/player/general',
+  ),
+  const SettingsSearchItem(
+    title: 'Immersive player colors',
+    description: 'Use artwork colors in player backgrounds',
+    categoryPath: 'Settings > Player > General',
+    route: '/settings/player/general',
+  ),
+  const SettingsSearchItem(
     title: 'Timeline markers',
     description: 'Choose whether the full timeline displays chapter markers, bookmark markers, both, or none',
     categoryPath: 'Settings > Player > General',

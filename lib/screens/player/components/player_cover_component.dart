@@ -30,29 +30,48 @@ class PlayerCoverComponent extends StatelessWidget {
       return const SizedBox.expand(child: fallback);
     }
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(10),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: media.cover == null
-              ? null
-              : () {
-                  openCoverZoomView(
-                    context,
-                    coverUri: media.cover!,
-                    requestHeaders: requestHeaders,
-                    semanticsLabel: media.title,
-                  );
-                },
-          child: Image(
-            image: imageProvider,
-            fit: fitMode.boxFit,
-            filterQuality: FilterQuality.low,
-            errorBuilder: (context, error, stackTrace) => fallback,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
+
+        int? targetPixels(double logicalExtent) {
+          if (!logicalExtent.isFinite || logicalExtent <= 0) {
+            return null;
+          }
+          return (logicalExtent * devicePixelRatio).ceil().clamp(1, playerCoverRequestDimension).toInt();
+        }
+
+        final cacheWidth = fitMode == PlayerCoverFitMode.height ? null : targetPixels(constraints.maxWidth);
+        final cacheHeight = fitMode == PlayerCoverFitMode.width ? null : targetPixels(constraints.maxHeight);
+        final displayProvider = ResizeImage.resizeIfNeeded(cacheWidth, cacheHeight, imageProvider);
+
+        return RepaintBoundary(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: media.cover == null
+                    ? null
+                    : () {
+                        openCoverZoomView(
+                          context,
+                          coverUri: media.cover!,
+                          requestHeaders: requestHeaders,
+                          semanticsLabel: media.title,
+                        );
+                      },
+                child: Image(
+                  image: displayProvider,
+                  fit: fitMode.boxFit,
+                  filterQuality: FilterQuality.medium,
+                  errorBuilder: (context, error, stackTrace) => fallback,
+                ),
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

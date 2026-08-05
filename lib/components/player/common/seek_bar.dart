@@ -21,6 +21,10 @@ class SeekBar extends ConsumerWidget {
     this.showTimeLabels = true,
     this.timeLabelFontSize = 12.0,
     this.previewLabelFontSize,
+    this.modeOverride,
+    this.ensureFullTimeline = false,
+    this.ensureChapterMarkers = false,
+    this.showCurrentChapterBetweenTimeLabels = false,
   });
 
   final double trackHeight;
@@ -28,22 +32,16 @@ class SeekBar extends ConsumerWidget {
   final bool showTimeLabels;
   final double timeLabelFontSize;
   final double? previewLabelFontSize;
+  final PlayerSeekBarMode? modeOverride;
+  final bool ensureFullTimeline;
+  final bool ensureChapterMarkers;
+  final bool showCurrentChapterBetweenTimeLabels;
 
   String _formatDuration(Duration? duration) {
     if (duration == null) {
       return '--:--';
     }
-
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    final hours = duration.inHours;
-    final minutes = duration.inMinutes.remainder(60);
-    final seconds = duration.inSeconds.remainder(60);
-
-    if (hours > 0) {
-      return '$hours:${twoDigits(minutes)}:${twoDigits(seconds)}';
-    }
-
-    return '${twoDigits(minutes)}:${twoDigits(seconds)}';
+    return duration.toPlaybackTimeString();
   }
 
   InternalChapter? _getCurrentChapter(List<InternalChapter> chapters, Duration currentPosition) {
@@ -134,8 +132,13 @@ class SeekBar extends ConsumerWidget {
     final bookmarks = ref.watch(userBookmarksProvider).value ?? const <Bookmark>[];
     final showRemainingSetting = ref.watch(globalSettingByKeyProvider(SettingKeys.playerShowRemainingTime));
 
-    final configuredMode = PlayerSeekBarMode.fromSettingValue(seekBarModeSetting.asData?.value);
-    final markerMode = SeekBarMarkerMode.fromSettingValue(markerModeSetting.asData?.value);
+    final configuredMode = modeOverride ?? PlayerSeekBarMode.fromSettingValue(seekBarModeSetting.asData?.value);
+    final configuredMarkerMode = SeekBarMarkerMode.fromSettingValue(markerModeSetting.asData?.value);
+    final markerMode = ensureChapterMarkers && !configuredMarkerMode.showChapterMarkers
+        ? configuredMarkerMode == SeekBarMarkerMode.bookmarks
+              ? SeekBarMarkerMode.both
+              : SeekBarMarkerMode.chapters
+        : configuredMarkerMode;
     final showRemaining = showRemainingSetting.asData?.value == 'true';
 
     void toggleRemaining() {
@@ -148,117 +151,124 @@ class SeekBar extends ConsumerWidget {
     final totalDurationStream = audioHandler.durationStream;
     final chaptersStream = audioHandler.chaptersStream;
 
-    return StreamBuilder<List<InternalChapter>>(
-      stream: chaptersStream,
-      initialData: audioHandler.currentMediaItem?.chapters ?? const <InternalChapter>[],
-      builder: (context, chaptersSnapshot) {
-        final chapters = chaptersSnapshot.data ?? const <InternalChapter>[];
-        final currentItemId = audioHandler.currentMediaItem?.itemId;
-        final bookmarkSeconds = _bookmarkSecondsForItem(bookmarks, currentItemId);
-        final fullTimelineMarkers = _buildTimelineMarkers(
-          markerMode: markerMode,
-          chapters: chapters,
-          bookmarkSeconds: bookmarkSeconds,
-          currentItemId: currentItemId,
-        );
+    return RepaintBoundary(
+      child: StreamBuilder<List<InternalChapter>>(
+        stream: chaptersStream,
+        initialData: audioHandler.currentMediaItem?.chapters ?? const <InternalChapter>[],
+        builder: (context, chaptersSnapshot) {
+          final chapters = chaptersSnapshot.data ?? const <InternalChapter>[];
+          final currentItemId = audioHandler.currentMediaItem?.itemId;
+          final bookmarkSeconds = _bookmarkSecondsForItem(bookmarks, currentItemId);
+          final fullTimelineMarkers = _buildTimelineMarkers(
+            markerMode: markerMode,
+            chapters: chapters,
+            bookmarkSeconds: bookmarkSeconds,
+            currentItemId: currentItemId,
+          );
 
-        return StreamBuilder<Duration>(
-          stream: totalDurationStream,
-          initialData: audioHandler.duration,
-          builder: (context, totalDurationSnapshot) {
-            final totalDuration = totalDurationSnapshot.data ?? Duration.zero;
+          return StreamBuilder<Duration>(
+            stream: totalDurationStream,
+            initialData: audioHandler.duration,
+            builder: (context, totalDurationSnapshot) {
+              final totalDuration = totalDurationSnapshot.data ?? Duration.zero;
 
-            return StreamBuilder<Duration>(
-              stream: positionStream,
-              initialData: audioHandler.position,
-              builder: (context, positionSnapshot) {
-                final currentPosition = positionSnapshot.data ?? Duration.zero;
-                final currentChapter = _getCurrentChapter(chapters, currentPosition);
+              return StreamBuilder<Duration>(
+                stream: positionStream,
+                initialData: audioHandler.position,
+                builder: (context, positionSnapshot) {
+                  final currentPosition = positionSnapshot.data ?? Duration.zero;
+                  final currentChapter = _getCurrentChapter(chapters, currentPosition);
 
-                final shouldShowChapter =
-                    (configuredMode == PlayerSeekBarMode.chapter || configuredMode == PlayerSeekBarMode.both) &&
-                    currentChapter != null;
-                final shouldShowFull =
-                    configuredMode == PlayerSeekBarMode.full ||
-                    configuredMode == PlayerSeekBarMode.both ||
-                    !shouldShowChapter;
+                  final shouldShowChapter =
+                      (configuredMode == PlayerSeekBarMode.chapter || configuredMode == PlayerSeekBarMode.both) &&
+                      currentChapter != null;
+                  final shouldShowFull =
+                      ensureFullTimeline ||
+                      configuredMode == PlayerSeekBarMode.full ||
+                      configuredMode == PlayerSeekBarMode.both ||
+                      !shouldShowChapter;
 
-                final seekRows = <Widget>[];
+                  final seekRows = <Widget>[];
 
-                if (shouldShowChapter) {
-                  final chapter = currentChapter;
-                  final chapterStart = chapter.start.toDuration;
-                  final chapterEnd = chapter.end.toDuration;
-                  final chapterDuration = chapterEnd - chapterStart;
-                  var chapterElapsed = currentPosition - chapterStart;
-                  if (chapterElapsed < Duration.zero) {
-                    chapterElapsed = Duration.zero;
+                  if (shouldShowChapter) {
+                    final chapter = currentChapter;
+                    final chapterStart = chapter.start.toDuration;
+                    final chapterEnd = chapter.end.toDuration;
+                    final chapterDuration = chapterEnd - chapterStart;
+                    var chapterElapsed = currentPosition - chapterStart;
+                    if (chapterElapsed < Duration.zero) {
+                      chapterElapsed = Duration.zero;
+                    }
+                    if (chapterElapsed > chapterDuration) {
+                      chapterElapsed = chapterDuration;
+                    }
+
+                    seekRows.add(
+                      SeekBarRow(
+                        trackHeight: trackHeight,
+                        timeLabelsBelow: timeLabelsBelow,
+                        showTimeLabels: showTimeLabels,
+                        timeLabelFontSize: timeLabelFontSize,
+                        previewLabelFontSize: previewLabelFontSize,
+                        rangeStart: chapterStart,
+                        rangeEnd: chapterEnd,
+                        currentPosition: currentPosition,
+                        leftTime: chapterElapsed,
+                        rightTime: chapterDuration,
+                        showRemaining: showRemaining,
+                        onToggleRemaining: toggleRemaining,
+                        onSeek: (seekPosition) => audioHandler.seekAbsolute(seekPosition),
+                        markers: const <SeekTimelineMarker>[],
+                        markerMode: SeekBarMarkerMode.none,
+                        buildPreviewLabel: (position) => _buildSeekPreviewTooltip(position, chapters),
+                        formatDuration: _formatDuration,
+                        centerLabel: showCurrentChapterBetweenTimeLabels && !shouldShowFull
+                            ? currentChapter.title.trim()
+                            : null,
+                      ),
+                    );
                   }
-                  if (chapterElapsed > chapterDuration) {
-                    chapterElapsed = chapterDuration;
+
+                  if (shouldShowChapter && shouldShowFull) {
+                    seekRows.add(const SizedBox(height: 4));
                   }
 
-                  seekRows.add(
-                    SeekBarRow(
-                      trackHeight: trackHeight,
-                      timeLabelsBelow: timeLabelsBelow,
-                      showTimeLabels: showTimeLabels,
-                      timeLabelFontSize: timeLabelFontSize,
-                      previewLabelFontSize: previewLabelFontSize,
-                      rangeStart: chapterStart,
-                      rangeEnd: chapterEnd,
-                      currentPosition: currentPosition,
-                      leftTime: chapterElapsed,
-                      rightTime: chapterDuration,
-                      showRemaining: showRemaining,
-                      onToggleRemaining: toggleRemaining,
-                      onSeek: (seekPosition) => audioHandler.seekAbsolute(seekPosition),
-                      markers: const <SeekTimelineMarker>[],
-                      markerMode: SeekBarMarkerMode.none,
-                      buildPreviewLabel: (position) => _buildSeekPreviewTooltip(position, chapters),
-                      formatDuration: _formatDuration,
-                    ),
+                  if (shouldShowFull) {
+                    seekRows.add(
+                      SeekBarRow(
+                        trackHeight: trackHeight,
+                        timeLabelsBelow: timeLabelsBelow,
+                        showTimeLabels: showTimeLabels,
+                        timeLabelFontSize: timeLabelFontSize,
+                        previewLabelFontSize: previewLabelFontSize,
+                        rangeStart: Duration.zero,
+                        rangeEnd: totalDuration,
+                        currentPosition: currentPosition,
+                        leftTime: currentPosition,
+                        rightTime: totalDuration,
+                        showRemaining: showRemaining,
+                        onToggleRemaining: toggleRemaining,
+                        onSeek: (seekPosition) => audioHandler.seekAbsolute(seekPosition),
+                        markers: fullTimelineMarkers,
+                        markerMode: markerMode,
+                        buildPreviewLabel: (position) => _buildSeekPreviewTooltip(position, chapters),
+                        formatDuration: _formatDuration,
+                        centerLabel: showCurrentChapterBetweenTimeLabels ? currentChapter?.title.trim() : null,
+                      ),
+                    );
+                  }
+
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: seekRows,
                   );
-                }
-
-                if (shouldShowChapter && shouldShowFull) {
-                  seekRows.add(const SizedBox(height: 4));
-                }
-
-                if (shouldShowFull) {
-                  seekRows.add(
-                    SeekBarRow(
-                      trackHeight: trackHeight,
-                      timeLabelsBelow: timeLabelsBelow,
-                      showTimeLabels: showTimeLabels,
-                      timeLabelFontSize: timeLabelFontSize,
-                      previewLabelFontSize: previewLabelFontSize,
-                      rangeStart: Duration.zero,
-                      rangeEnd: totalDuration,
-                      currentPosition: currentPosition,
-                      leftTime: currentPosition,
-                      rightTime: totalDuration,
-                      showRemaining: showRemaining,
-                      onToggleRemaining: toggleRemaining,
-                      onSeek: (seekPosition) => audioHandler.seekAbsolute(seekPosition),
-                      markers: fullTimelineMarkers,
-                      markerMode: markerMode,
-                      buildPreviewLabel: (position) => _buildSeekPreviewTooltip(position, chapters),
-                      formatDuration: _formatDuration,
-                    ),
-                  );
-                }
-
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: seekRows,
-                );
-              },
-            );
-          },
-        );
-      },
+                },
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }
