@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
+import 'package:yaabsa/models/internal_media.dart' show notificationArtworkDecodeMaxDimension;
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/device_capabilities.dart';
 import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
@@ -187,6 +188,8 @@ class Init {
         androidNotificationOngoing: false,
         androidStopForegroundOnPause: false,
         preloadArtwork: true,
+        artDownscaleWidth: notificationArtworkDecodeMaxDimension,
+        artDownscaleHeight: notificationArtworkDecodeMaxDimension,
         fastForwardInterval: Duration(seconds: ffSeconds),
         rewindInterval: Duration(seconds: rwSeconds),
         androidBrowsableRootExtras: <String, dynamic>{

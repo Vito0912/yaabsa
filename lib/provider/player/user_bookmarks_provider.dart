@@ -32,6 +32,10 @@ class UserBookmarksNotifier extends _$UserBookmarksNotifier {
     return error is DioException && error.response?.statusCode == 404;
   }
 
+  bool _isMissingBookmarkForUpdateError(Object error) {
+    return error is DioException && (error.response?.statusCode == 404 || error.response?.statusCode == 500);
+  }
+
   bool _isConnectivityError(Object error) {
     if (error is! DioException) {
       return false;
@@ -283,10 +287,16 @@ class UserBookmarksNotifier extends _$UserBookmarksNotifier {
             continue;
           }
 
-          final response = await api.getMeApi().createBookmark(
-            pending.itemId,
-            createBookmarkRequest: CreateBookmarkRequest(time: pending.time, title: title),
-          );
+          final request = CreateBookmarkRequest(time: pending.time, title: title);
+          Response<Bookmark> response;
+          try {
+            response = await api.getMeApi().updateBookmark(pending.itemId, updateBookmarkRequest: request);
+          } catch (error) {
+            if (!_isMissingBookmarkForUpdateError(error)) {
+              rethrow;
+            }
+            response = await api.getMeApi().createBookmark(pending.itemId, createBookmarkRequest: request);
+          }
 
           if (response.data == null) {
             continue;
@@ -369,6 +379,60 @@ class UserBookmarksNotifier extends _$UserBookmarksNotifier {
       }
 
       logger('Failed to create bookmark remotely, keeping queued mutation: $e\n$s', tag: 'UserBookmarksProvider');
+      return optimisticBookmark;
+    }
+  }
+
+  Future<Bookmark?> updateBookmark({required Bookmark bookmark, required String title}) async {
+    final trimmedTitle = title.trim();
+    if (bookmark.time <= 0 || trimmedTitle.isEmpty) {
+      return null;
+    }
+
+    final optimisticBookmark = bookmark.copyWith(title: trimmedTitle);
+    _upsertBookmarkInState(optimisticBookmark);
+
+    final userId = _activeUserId();
+    if (userId != null) {
+      await _queueBookmarkCreate(
+        userId: userId,
+        itemId: bookmark.libraryItemId,
+        time: bookmark.time,
+        title: trimmedTitle,
+      );
+    }
+
+    final api = ref.read(absApiProvider);
+    final canReachServer = ref.read(serverReachabilityProvider);
+    if (api == null || !canReachServer) {
+      return optimisticBookmark;
+    }
+
+    final request = CreateBookmarkRequest(time: bookmark.time, title: trimmedTitle);
+    try {
+      Response<Bookmark> response;
+      try {
+        response = await api.getMeApi().updateBookmark(bookmark.libraryItemId, updateBookmarkRequest: request);
+      } catch (error) {
+        if (!_isMissingBookmarkForUpdateError(error)) {
+          rethrow;
+        }
+        response = await api.getMeApi().createBookmark(bookmark.libraryItemId, createBookmarkRequest: request);
+      }
+
+      final updatedBookmark = response.data;
+      if (updatedBookmark == null) {
+        return optimisticBookmark;
+      }
+
+      if (userId != null) {
+        await ref.read(appDatabaseProvider).deleteStoredBookmarkSync(userId, bookmark.libraryItemId, bookmark.time);
+      }
+
+      _upsertBookmarkInState(updatedBookmark);
+      return updatedBookmark;
+    } catch (e, s) {
+      logger('Failed to update bookmark remotely, keeping queued mutation: $e\n$s', tag: 'UserBookmarksProvider');
       return optimisticBookmark;
     }
   }

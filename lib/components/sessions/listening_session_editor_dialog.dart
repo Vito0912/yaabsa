@@ -3,6 +3,7 @@ import 'package:yaabsa/api/library_items/playback_session.dart';
 import 'package:yaabsa/components/sessions/session_duration_picker_field.dart';
 import 'package:yaabsa/components/sessions/listening_session_utils.dart';
 import 'package:yaabsa/screens/main/stats/stats_formatters.dart';
+import 'package:yaabsa/util/extensions.dart';
 
 Future<bool?> showListeningSessionEditorDialog(
   BuildContext context, {
@@ -319,11 +320,7 @@ class _ListeningSessionEditorDialogState extends State<_ListeningSessionEditorDi
 
   String _formatDurationSeconds(double? value) {
     final totalSeconds = (value ?? 0).round();
-    final duration = Duration(seconds: totalSeconds);
-    final hours = duration.inHours;
-    final minutes = duration.inMinutes.remainder(60);
-    final secondsPart = duration.inSeconds.remainder(60);
-    return '$hours:${minutes.toString().padLeft(2, '0')}:${secondsPart.toString().padLeft(2, '0')}';
+    return Duration(seconds: totalSeconds).toHoursMinutesSecondsString();
   }
 
   String _formatTimestamp(int? value) {

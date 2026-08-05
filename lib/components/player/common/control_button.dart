@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 
 class ControlButton extends StatelessWidget {
-  const ControlButton({super.key});
+  const ControlButton({super.key, this.prominent = false, this.iconSize});
+
+  final bool prominent;
+  final double? iconSize;
 
   @override
   Widget build(BuildContext context) {
@@ -17,11 +20,25 @@ class ControlButton extends StatelessWidget {
         if (playerState == null ||
             playerState.processingState == ProcessingState.loading ||
             playerState.processingState == ProcessingState.buffering) {
-          return const CircularProgressIndicator();
+          return RepaintBoundary(
+            child: SizedBox.square(
+              dimension: prominent ? 68 : 48,
+              child: const Padding(padding: EdgeInsets.all(10), child: CircularProgressIndicator(strokeWidth: 2.5)),
+            ),
+          );
         }
 
-        return IconButton(
-          icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
+        return IconButton.filled(
+          style: prominent
+              ? IconButton.styleFrom(
+                  minimumSize: const Size.square(68),
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                )
+              : IconButton.styleFrom(minimumSize: const Size.square(48)),
+          iconSize: iconSize ?? (prominent ? 34 : 26),
+          tooltip: isPlaying ? 'Pause' : 'Play',
+          icon: Icon(isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded),
           onPressed: () {
             if (isPlaying) {
               audioHandler.pause();

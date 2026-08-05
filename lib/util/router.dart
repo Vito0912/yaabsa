@@ -168,7 +168,30 @@ final globalRouter = GoRouter(
       routes: [
         GoRoute(path: _bootRoutePath, builder: (context, state) => const _AppStartupScreen()),
         GoRoute(path: '/add-user', builder: (context, state) => SignIn()),
-        GoRoute(path: '/player', builder: (context, state) => Player()),
+        GoRoute(
+          path: '/player',
+          pageBuilder: (context, state) => CustomTransitionPage<void>(
+            key: state.pageKey,
+            transitionDuration: const Duration(milliseconds: 320),
+            reverseTransitionDuration: const Duration(milliseconds: 260),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              final curvedAnimation = CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutCubic,
+                reverseCurve: Curves.easeInCubic,
+              );
+
+              return SlideTransition(
+                position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero).animate(curvedAnimation),
+                child: FadeTransition(
+                  opacity: Tween<double>(begin: 0.96, end: 1).animate(curvedAnimation),
+                  child: child,
+                ),
+              );
+            },
+            child: const Player(),
+          ),
+        ),
         GoRoute(
           path: '/ebook/:id',
           builder: (context, state) => Reader(itemId: state.pathParameters['id']!),

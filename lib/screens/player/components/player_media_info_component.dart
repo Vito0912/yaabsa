@@ -12,6 +12,8 @@ class PlayerMediaInfoComponent extends StatelessWidget {
     required this.showSeries,
     required this.textAlignMode,
     required this.fontScale,
+    this.titleMaxLines = 3,
+    this.detailMaxLines = 2,
   });
 
   final InternalMedia media;
@@ -20,6 +22,8 @@ class PlayerMediaInfoComponent extends StatelessWidget {
   final bool showSeries;
   final PlayerMetadataTextAlign textAlignMode;
   final double fontScale;
+  final int titleMaxLines;
+  final int detailMaxLines;
 
   @override
   Widget build(BuildContext context) {
@@ -64,13 +68,19 @@ class PlayerMediaInfoComponent extends StatelessWidget {
           crossAxisAlignment: crossAxis,
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
-            Text(media.title, textAlign: textAlign, maxLines: 3, overflow: TextOverflow.ellipsis, style: titleStyle),
+            Text(
+              media.title,
+              textAlign: textAlign,
+              maxLines: titleMaxLines,
+              overflow: TextOverflow.ellipsis,
+              style: titleStyle,
+            ),
             if (showAuthor && media.author?.trim().isNotEmpty == true) ...<Widget>[
               const SizedBox(height: 4),
               Text(
                 media.author!.trim(),
                 textAlign: textAlign,
-                maxLines: 2,
+                maxLines: detailMaxLines,
                 overflow: TextOverflow.ellipsis,
                 style: detailStyle,
               ),
@@ -80,14 +90,20 @@ class PlayerMediaInfoComponent extends StatelessWidget {
               Text(
                 narratorText!,
                 textAlign: textAlign,
-                maxLines: 2,
+                maxLines: detailMaxLines,
                 overflow: TextOverflow.ellipsis,
                 style: detailStyle,
               ),
             ],
             if (showSeries && seriesText != null) ...<Widget>[
               const SizedBox(height: 3),
-              Text(seriesText, textAlign: textAlign, maxLines: 2, overflow: TextOverflow.ellipsis, style: detailStyle),
+              Text(
+                seriesText,
+                textAlign: textAlign,
+                maxLines: detailMaxLines,
+                overflow: TextOverflow.ellipsis,
+                style: detailStyle,
+              ),
             ],
           ],
         ),

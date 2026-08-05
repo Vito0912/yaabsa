@@ -51,3 +51,4 @@ flatpak-repo/
 AGENTS.md
 /web/drift_worker.js
 /web/sqlite3.wasm
+.github/images/**.png
