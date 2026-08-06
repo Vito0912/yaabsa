@@ -9,7 +9,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_inappwebview: ^6.1.5
+  zikzak_inappwebview:
+    git:
+      url: https://github.com/arrrrny/zikzak_inappwebview.git
+      path: zikzak_inappwebview
+      ref: fix/linux-blue-screen-and-devtools
   path: ^1.9.1
 
 dev_dependencies: 

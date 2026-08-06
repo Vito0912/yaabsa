@@ -8,13 +8,13 @@ list(APPEND FLUTTER_PLUGIN_LIST
   connectivity_plus
   desktop_drop
   file_selector_windows
-  flutter_inappwebview_windows
   flutter_secure_storage_windows
   flutter_tts
   media_kit_libs_windows_audio
   permission_handler_windows
   tray_manager
   url_launcher_windows
+  webview_windows
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST

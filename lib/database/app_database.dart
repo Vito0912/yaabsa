@@ -163,7 +163,12 @@ class AppDatabase extends _$AppDatabase {
   final AuthSecretStore _authSecretStore;
 
   @override
-  int get schemaVersion => 20;
+  int get schemaVersion => 21;
+
+  Future<bool> _columnExists(String tableName, String columnName) async {
+    final rows = await customSelect('PRAGMA table_info("$tableName")').get();
+    return rows.any((row) => row.data['name'] == columnName);
+  }
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -220,8 +225,14 @@ class AppDatabase extends _$AppDatabase {
         );
         await customStatement('DROP TABLE _stored_downloads_old;');
       }
-      if (from >= 14 && from <= 19) {
-        await m.addColumn(playerHistory, playerHistory.detailsJson);
+      if (from >= 14 && from <= 20 && !await _columnExists('player_history', 'details_json')) {
+        try {
+          await m.addColumn(playerHistory, playerHistory.detailsJson);
+        } catch (error) {
+          if (!await _columnExists('player_history', 'details_json')) {
+            rethrow;
+          }
+        }
       }
     },
     beforeOpen: (details) async {},

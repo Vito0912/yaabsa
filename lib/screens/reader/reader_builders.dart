@@ -252,11 +252,6 @@ extension _ReaderBuilders on _ReaderState {
           _hasMediaOverlays = hasMediaOverlays;
         });
         _applyEpubStyles();
-        Future.delayed(const Duration(milliseconds: 200), () {
-          if (mounted) {
-            _applyEpubStyles();
-          }
-        });
         _triggerAutoAnnotationLoadIfNeeded(isEpubMode: true);
         unawaited(_startReadingSession());
       },

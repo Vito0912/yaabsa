@@ -12,6 +12,9 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.View
+import android.view.ViewGroup
+import android.webkit.WebView
 import androidx.core.app.NotificationManagerCompat
 import androidx.documentfile.provider.DocumentFile
 import com.google.android.gms.wearable.MessageClient
@@ -22,6 +25,7 @@ import com.ryanheise.audioservice.AudioServicePlugin
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import wtf.zikzak.zikzak_inappwebview_android.InAppWebViewFlutterPlugin
 
 class MainActivity : AudioServiceFragmentActivity() {
 	companion object {
@@ -35,6 +39,7 @@ class MainActivity : AudioServiceFragmentActivity() {
 		private const val AAOS_MEDIA_COMPONENT_EXTRA = "android.car.intent.extra.MEDIA_COMPONENT"
 		private const val WIDGET_COMMAND_DELAY_MS = 100L
 		private const val AUTO_RESUME_CHANNEL = "de.vito0912.yaabsa/autoresume"
+		private const val READER_WEBVIEW_CHANNEL = "de.vito0912.yaabsa/reader_webview"
 		private const val BLUETOOTH_CONNECT_PERMISSION_REQUEST_CODE = 101
 		private const val AUTO_RESUME_BLUETOOTH_PREFERENCE = "auto_resume_bluetooth"
 		private const val AUTO_RESUME_RESTRICTED_DEVICES_PREFERENCE = "auto_resume_bluetooth_selected_devices_only"
@@ -206,6 +211,9 @@ class MainActivity : AudioServiceFragmentActivity() {
 
 	override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
 		super.configureFlutterEngine(flutterEngine)
+		if (!flutterEngine.plugins.has(InAppWebViewFlutterPlugin::class.java)) {
+			flutterEngine.plugins.add(InAppWebViewFlutterPlugin())
+		}
 
 		MethodChannel(flutterEngine.dartExecutor.binaryMessenger, WIDGET_CHANNEL)
 			.setMethodCallHandler { call, result ->
@@ -253,9 +261,52 @@ class MainActivity : AudioServiceFragmentActivity() {
 				}
 			}
 
+		MethodChannel(flutterEngine.dartExecutor.binaryMessenger, READER_WEBVIEW_CHANNEL)
+			.setMethodCallHandler { call, result ->
+				when (call.method) {
+					"invalidateWebView" -> {
+						val viewId = call.argument<Number>("viewId")?.toInt()
+						if (viewId == null) {
+							result.error("INVALID_VIEW_ID", "A WebView platform view ID is required.", null)
+						} else {
+							result.success(invalidateReaderWebView(flutterEngine, viewId))
+						}
+					}
+					else -> result.notImplemented()
+				}
+			}
+
 		notifyAaosOpenSettingsIfPending()
 		notifyAaosOpenSignInIfPending()
 		notifyWearSignInIfPending()
+	}
+
+	private fun invalidateReaderWebView(flutterEngine: FlutterEngine, viewId: Int): Boolean {
+		val platformView = runCatching {
+			flutterEngine.platformViewsController.getPlatformViewById(viewId)
+		}.getOrNull() ?: return false
+		val webView = findWebView(platformView) ?: return false
+
+		webView.post {
+			var currentView: View? = webView
+			while (currentView != null) {
+				currentView.invalidate()
+				currentView.postInvalidateOnAnimation()
+				currentView = currentView.parent as? View
+			}
+		}
+		return true
+	}
+
+	private fun findWebView(view: View?): WebView? {
+		if (view == null) return null
+		if (view is WebView) return view
+		if (view !is ViewGroup) return null
+
+		for (index in 0 until view.childCount) {
+			findWebView(view.getChildAt(index))?.let { return it }
+		}
+		return null
 	}
 
 	private fun updateAutoResumeSettings(call: MethodCall, result: MethodChannel.Result) {

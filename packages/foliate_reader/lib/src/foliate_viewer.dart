@@ -3,12 +3,14 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:zikzak_inappwebview/zikzak_inappwebview.dart';
 import 'package:path/path.dart' as p;
 import 'models.dart';
 import 'book_server.dart';
 
 class FoliateViewerController {
+  static const MethodChannel _readerWebViewChannel = MethodChannel('de.vito0912.yaabsa/reader_webview');
+
   InAppWebViewController? _webViewController;
 
   void _bind(InAppWebViewController webViewController) {
@@ -20,59 +22,78 @@ class FoliateViewerController {
   }
 
   Future<void> close() async {
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.close();');
+    await _webViewController?.evaluateJavascript(source: 'void window.FoliateReaderAPI.close();');
   }
 
   Future<void> next() async {
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.next();');
+    await _webViewController?.evaluateJavascript(source: 'void window.FoliateReaderAPI.next();');
   }
 
   Future<void> prev() async {
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.prev();');
+    await _webViewController?.evaluateJavascript(source: 'void window.FoliateReaderAPI.prev();');
   }
 
   Future<void> goTo(String target) async {
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.goTo(${jsonEncode(target)});');
+    await _webViewController?.evaluateJavascript(source: 'void window.FoliateReaderAPI.goTo(${jsonEncode(target)});');
   }
 
   Future<void> goToFraction(double fraction) async {
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.goToFraction($fraction);');
+    await _webViewController?.evaluateJavascript(source: 'void window.FoliateReaderAPI.goToFraction($fraction);');
   }
 
-  Future<dynamic> addAnnotation(FoliateAnnotation annotation) async {
-    return await _webViewController?.evaluateJavascript(
-      source: 'window.FoliateReaderAPI.addAnnotation(${jsonEncode(annotation.toJson())});',
+  Future<void> addAnnotation(FoliateAnnotation annotation) async {
+    await _webViewController?.evaluateJavascript(
+      source: 'void window.FoliateReaderAPI.addAnnotation(${jsonEncode(annotation.toJson())});',
     );
   }
 
   Future<void> deleteAnnotation(FoliateAnnotation annotation) async {
     await _webViewController?.evaluateJavascript(
-      source: 'window.FoliateReaderAPI.deleteAnnotation(${jsonEncode(annotation.toJson())});',
+      source: 'void window.FoliateReaderAPI.deleteAnnotation(${jsonEncode(annotation.toJson())});',
     );
   }
 
   Future<void> setStyles(String css) async {
     await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.setStyles(${jsonEncode(css)});');
+    await invalidateNativeSurface();
   }
 
   Future<void> setFlow(String flow) async {
     await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.setFlow(${jsonEncode(flow)});');
+    await invalidateNativeSurface();
   }
 
   Future<void> setMaxColumnCount(int count) async {
     await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.setMaxColumnCount($count);');
+    await invalidateNativeSurface();
+  }
+
+  Future<void> invalidateNativeSurface() async {
+    if (!Platform.isAndroid) return;
+
+    final viewId = _webViewController?.getViewId();
+    final int? platformViewId = switch (viewId) {
+      int value => value,
+      num value => value.toInt(),
+      _ => viewId == null ? null : int.tryParse(viewId.toString()),
+    };
+    if (platformViewId == null) return;
+
+    try {
+      await _readerWebViewChannel.invokeMethod<void>('invalidateWebView', <String, dynamic>{'viewId': platformViewId});
+    } catch (_) {}
   }
 
   Future<void> search(String query) async {
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.search(${jsonEncode(query)});');
+    await _webViewController?.evaluateJavascript(source: 'void window.FoliateReaderAPI.search(${jsonEncode(query)});');
   }
 
   Future<void> clearSearch() async {
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.clearSearch();');
+    await _webViewController?.evaluateJavascript(source: 'void window.FoliateReaderAPI.clearSearch();');
   }
 
   Future<void> deselect() async {
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.deselect();');
+    await _webViewController?.evaluateJavascript(source: 'void window.FoliateReaderAPI.deselect();');
   }
 
   Future<String?> getCurrentSectionText() async {
@@ -92,27 +113,27 @@ class FoliateViewerController {
 
   Future<void> highlightCFI(String cfi, [String? color]) async {
     final args = color != null ? '"$cfi", "$color"' : '"$cfi"';
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.highlightCFI($args);');
+    await _webViewController?.evaluateJavascript(source: 'void window.FoliateReaderAPI.highlightCFI($args);');
   }
 
   Future<void> clearTtsHighlight() async {
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.clearTtsHighlight();');
+    await _webViewController?.evaluateJavascript(source: 'void window.FoliateReaderAPI.clearTtsHighlight();');
   }
 
   Future<void> startMediaOverlay() async {
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.startMediaOverlay();');
+    await _webViewController?.evaluateJavascript(source: 'void window.FoliateReaderAPI.startMediaOverlay();');
   }
 
   Future<void> pauseMediaOverlay() async {
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.pauseMediaOverlay();');
+    await _webViewController?.evaluateJavascript(source: 'void window.FoliateReaderAPI.pauseMediaOverlay();');
   }
 
   Future<void> resumeMediaOverlay() async {
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.resumeMediaOverlay();');
+    await _webViewController?.evaluateJavascript(source: 'void window.FoliateReaderAPI.resumeMediaOverlay();');
   }
 
   Future<void> stopMediaOverlay() async {
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.stopMediaOverlay();');
+    await _webViewController?.evaluateJavascript(source: 'void window.FoliateReaderAPI.stopMediaOverlay();');
   }
 }
 
@@ -279,7 +300,7 @@ class _FoliateViewerState extends State<FoliateViewer> {
             displayZoomControls: false,
             maximumZoomScale: 5,
             minimumZoomScale: 1,
-            transparentBackground: true,
+            transparentBackground: false,
           ),
           onWebViewCreated: (controller) {
             widget.controller?._bind(controller);
@@ -403,7 +424,7 @@ class _FoliateViewerState extends State<FoliateViewer> {
 
   Future<void> _addAnnotationFromSelection(String type, String color) async {
     await widget.controller?._webViewController?.evaluateJavascript(
-      source: 'window.FoliateReaderAPI.addAnnotationFromSelection(${jsonEncode(type)}, ${jsonEncode(color)}, "");',
+      source: 'void window.FoliateReaderAPI.addAnnotationFromSelection(${jsonEncode(type)}, ${jsonEncode(color)}, "");',
     );
   }
 
@@ -420,9 +441,6 @@ class _FoliateViewerState extends State<FoliateViewer> {
       handlerName: 'onBookLoaded',
       callback: (args) {
         if (!mounted) return;
-        setState(() {
-          _isBookLoaded = true;
-        });
         if (args.isNotEmpty && widget.onBookLoaded != null) {
           try {
             final data = Map<String, dynamic>.from(args[0] as Map);
@@ -440,6 +458,21 @@ class _FoliateViewerState extends State<FoliateViewer> {
             widget.onError?.call('Failed to parse book loaded metadata: $e');
           }
         }
+      },
+    );
+
+    controller.addJavaScriptHandler(
+      handlerName: 'onSectionPainted',
+      callback: (args) {
+        if (!mounted || _isBookLoaded) return;
+        setState(() {
+          _isBookLoaded = true;
+        });
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            unawaited(widget.controller?.invalidateNativeSurface());
+          }
+        });
       },
     );
 

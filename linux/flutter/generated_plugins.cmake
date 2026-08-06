@@ -10,6 +10,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   media_kit_libs_linux
   tray_manager
   url_launcher_linux
+  zikzak_inappwebview_linux
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
