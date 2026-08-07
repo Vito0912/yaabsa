@@ -8,6 +8,40 @@ let currentMediaOverlayHighlight = null;
 let clearMediaOverlayHighlight = null;
 let currentStyles = null;
 let currentTtsRanges = [];
+let currentOpenStartedAt = null;
+
+const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+const nextAnimationFrame = win => new Promise(resolve => {
+    let settled = false;
+    const finish = () => {
+        if (settled) return;
+        settled = true;
+        resolve();
+    };
+
+    if (!win?.requestAnimationFrame) {
+        finish();
+        return;
+    }
+    win.requestAnimationFrame(finish);
+    setTimeout(finish, 100);
+});
+
+async function waitForSectionPaint(doc) {
+    try {
+        if (doc?.fonts?.ready) {
+            await Promise.race([doc.fonts.ready, wait(300)]);
+        }
+    } catch (error) {
+        console.warn('Could not wait for document fonts', error);
+    }
+
+    const win = doc?.defaultView;
+    if (win) {
+        await nextAnimationFrame(win);
+    }
+}
 
 const interactiveSelector = [
     'a',
@@ -184,10 +218,14 @@ function applyStylesToDoc(doc, css) {
 window.FoliateReaderAPI = {
     async openBook(url, lastLocation, flow, maxColumnCount, initialStyles) {
         try {
+            const totalStart = performance.now();
+            currentOpenStartedAt = totalStart;
             if (initialStyles) {
                 currentStyles = initialStyles;
             }
+            const openStart = performance.now();
             await view.open(url);
+            console.info(`[READER PERF] view.open: ${(performance.now() - openStart).toFixed(0)} ms`);
             if (view.renderer) {
                 if (flow) {
                     view.renderer.setAttribute('flow', flow);
@@ -225,7 +263,10 @@ window.FoliateReaderAPI = {
                     return contents;
                 };
             }
+            const initStart = performance.now();
             await view.init({ lastLocation });
+            console.info(`[READER PERF] view.init: ${(performance.now() - initStart).toFixed(0)} ms`);
+            console.info(`[READER PERF] openBook total: ${(performance.now() - totalStart).toFixed(0)} ms`);
             if (view.mediaOverlay) {
                 let moState = 'stopped';
                 const updateTrackedState = (state) => {
@@ -836,7 +877,19 @@ view.addEventListener('load', e => {
             window.flutter_inappwebview.callHandler('onSelectionCleared');
         }
     });
-    window.flutter_inappwebview.callHandler('onSectionLoaded', { index });
+    void (async () => {
+        await waitForSectionPaint(doc);
+        if (currentOpenStartedAt != null) {
+            console.info(`[READER PERF] first section painted: `
+                + `${(performance.now() - currentOpenStartedAt).toFixed(0)} ms`);
+            currentOpenStartedAt = null;
+        }
+        try {
+            await window.flutter_inappwebview.callHandler('onSectionPainted', { index });
+        } catch (error) {
+            console.warn('Could not report painted section', error);
+        }
+    })();
 });
 
 view.addEventListener('create-overlay', e => {

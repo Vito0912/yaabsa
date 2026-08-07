@@ -9,6 +9,8 @@ import 'models.dart';
 import 'book_server.dart';
 
 class FoliateViewerController {
+  static const MethodChannel _readerWebViewChannel = MethodChannel('de.vito0912.yaabsa/reader_webview');
+
   InAppWebViewController? _webViewController;
 
   void _bind(InAppWebViewController webViewController) {
@@ -53,14 +55,33 @@ class FoliateViewerController {
 
   Future<void> setStyles(String css) async {
     await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.setStyles(${jsonEncode(css)});');
+    await invalidateNativeSurface();
   }
 
   Future<void> setFlow(String flow) async {
     await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.setFlow(${jsonEncode(flow)});');
+    await invalidateNativeSurface();
   }
 
   Future<void> setMaxColumnCount(int count) async {
     await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.setMaxColumnCount($count);');
+    await invalidateNativeSurface();
+  }
+
+  Future<void> invalidateNativeSurface() async {
+    if (!Platform.isAndroid) return;
+
+    final viewId = _webViewController?.getViewId();
+    final int? platformViewId = switch (viewId) {
+      int value => value,
+      num value => value.toInt(),
+      _ => viewId == null ? null : int.tryParse(viewId.toString()),
+    };
+    if (platformViewId == null) return;
+
+    try {
+      await _readerWebViewChannel.invokeMethod<void>('invalidateWebView', <String, dynamic>{'viewId': platformViewId});
+    } catch (_) {}
   }
 
   Future<void> search(String query) async {
@@ -279,7 +300,7 @@ class _FoliateViewerState extends State<FoliateViewer> {
             displayZoomControls: false,
             maximumZoomScale: 5,
             minimumZoomScale: 1,
-            transparentBackground: true,
+            transparentBackground: false,
           ),
           onWebViewCreated: (controller) {
             widget.controller?._bind(controller);
@@ -420,9 +441,6 @@ class _FoliateViewerState extends State<FoliateViewer> {
       handlerName: 'onBookLoaded',
       callback: (args) {
         if (!mounted) return;
-        setState(() {
-          _isBookLoaded = true;
-        });
         if (args.isNotEmpty && widget.onBookLoaded != null) {
           try {
             final data = Map<String, dynamic>.from(args[0] as Map);
@@ -440,6 +458,21 @@ class _FoliateViewerState extends State<FoliateViewer> {
             widget.onError?.call('Failed to parse book loaded metadata: $e');
           }
         }
+      },
+    );
+
+    controller.addJavaScriptHandler(
+      handlerName: 'onSectionPainted',
+      callback: (args) {
+        if (!mounted || _isBookLoaded) return;
+        setState(() {
+          _isBookLoaded = true;
+        });
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            unawaited(widget.controller?.invalidateNativeSurface());
+          }
+        });
       },
     );
 

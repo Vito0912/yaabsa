@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 
 class BookServer {
+  static final Map<String, Future<Uint8List>> _assetCache = <String, Future<Uint8List>>{};
+
   File? bookFile;
   String? bookUrl;
   Map<String, String>? headers;
@@ -49,9 +51,12 @@ class BookServer {
 
   Future<void> _serveAsset(HttpRequest request, String assetPath, String contentType) async {
     try {
-      final data = await rootBundle.load(assetPath);
-      final bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+      final bytes = await _assetCache.putIfAbsent(assetPath, () async {
+        final data = await rootBundle.load(assetPath);
+        return data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+      });
       request.response.headers.add('Access-Control-Allow-Origin', '*');
+      request.response.headers.set('Cache-Control', 'public, max-age=31536000, immutable');
       request.response.headers.contentType = ContentType.parse(contentType);
       request.response.add(bytes);
       await request.response.close();
