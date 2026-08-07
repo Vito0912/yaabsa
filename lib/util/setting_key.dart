@@ -106,6 +106,7 @@ class SettingKeys {
   static const String playerSeekBarShowChapterMarkers = 'player_seek_bar_show_chapter_markers';
   static const String playerLayoutConfig = 'player_layout_config';
   static const String playerLayoutMode = 'player_layout_mode';
+  static const String playerLayoutModeExplicit = 'player_layout_mode_explicit';
   static const String playerAdaptivePreset = 'player_adaptive_preset';
   static const String playerCoverSize = 'player_cover_size';
   static const String playerImmersiveColors = 'player_immersive_colors';
@@ -264,6 +265,7 @@ final defaultSettings = {
   SettingKeys.playerSeekBarShowChapterMarkers: true,
   SettingKeys.playerLayoutConfig: '',
   SettingKeys.playerLayoutMode: '',
+  SettingKeys.playerLayoutModeExplicit: false,
   SettingKeys.playerAdaptivePreset: 'full',
   SettingKeys.playerCoverSize: 'automatic',
   SettingKeys.playerImmersiveColors: true,

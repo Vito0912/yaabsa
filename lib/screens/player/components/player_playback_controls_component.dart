@@ -20,6 +20,8 @@ class PlayerTransportControlsComponent extends ConsumerWidget {
     this.prominentJumpButtons,
     this.jumpIconSize,
     this.skipIconSize,
+    this.controlButtonSize,
+    this.controlIconSize,
   });
 
   final PlayerTransportMode transportMode;
@@ -28,6 +30,8 @@ class PlayerTransportControlsComponent extends ConsumerWidget {
   final bool? prominentJumpButtons;
   final double? jumpIconSize;
   final double? skipIconSize;
+  final double? controlButtonSize;
+  final double? controlIconSize;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -99,7 +103,11 @@ class PlayerTransportControlsComponent extends ConsumerWidget {
                   iconSize: jumpIconSize ?? (useProminentJumpButtons ? 34 : null),
                   buttonSize: useProminentJumpButtons ? 62 : 48,
                 ),
-              ControlButton(prominent: prominent, iconSize: prominent ? null : 24),
+              ControlButton(
+                prominent: prominent,
+                iconSize: controlIconSize ?? (prominent ? null : 24),
+                buttonSize: controlButtonSize,
+              ),
               if (showJump)
                 JumpButton(
                   rewind: false,

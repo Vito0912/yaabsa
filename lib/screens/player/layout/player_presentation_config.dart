@@ -5,9 +5,16 @@ enum PlayerLayoutMode {
   adaptive,
   custom;
 
-  static PlayerLayoutMode fromSettingValue(String? value, {required bool hasSavedCustomLayout}) {
+  static PlayerLayoutMode fromSettingValue(
+    String? value, {
+    required bool hasSavedCustomLayout,
+    bool hasExplicitSelection = false,
+  }) {
     for (final mode in values) {
       if (mode.name == value?.trim().toLowerCase()) {
+        if (mode == PlayerLayoutMode.custom && !hasExplicitSelection && !hasSavedCustomLayout) {
+          return PlayerLayoutMode.adaptive;
+        }
         return mode;
       }
     }

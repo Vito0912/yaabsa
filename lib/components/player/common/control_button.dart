@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 
 class ControlButton extends StatelessWidget {
-  const ControlButton({super.key, this.prominent = false, this.iconSize});
+  const ControlButton({super.key, this.prominent = false, this.iconSize, this.buttonSize});
 
   final bool prominent;
   final double? iconSize;
+  final double? buttonSize;
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +23,7 @@ class ControlButton extends StatelessWidget {
             playerState.processingState == ProcessingState.buffering) {
           return RepaintBoundary(
             child: SizedBox.square(
-              dimension: prominent ? 68 : 48,
+              dimension: buttonSize ?? (prominent ? 68 : 48),
               child: const Padding(padding: EdgeInsets.all(10), child: CircularProgressIndicator(strokeWidth: 2.5)),
             ),
           );
@@ -31,11 +32,11 @@ class ControlButton extends StatelessWidget {
         return IconButton.filled(
           style: prominent
               ? IconButton.styleFrom(
-                  minimumSize: const Size.square(68),
+                  minimumSize: Size.square(buttonSize ?? 68),
                   backgroundColor: Theme.of(context).colorScheme.primary,
                   foregroundColor: Theme.of(context).colorScheme.onPrimary,
                 )
-              : IconButton.styleFrom(minimumSize: const Size.square(48)),
+              : IconButton.styleFrom(minimumSize: Size.square(buttonSize ?? 48)),
           iconSize: iconSize ?? (prominent ? 34 : 26),
           tooltip: isPlaying ? 'Pause' : 'Play',
           icon: Icon(isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded),

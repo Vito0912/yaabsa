@@ -691,9 +691,10 @@ PlayerLayoutProfile _normalizeLegacyAdaptiveDefaults(PlayerLayoutProfile profile
   }
 
   final seekBar = profile.placementFor(PlayerComponentType.seekBar);
-  if ((seekBar.seekTrackHeight - legacySeekTrackHeight).abs() < 0.0001 &&
-      (seekBar.seekTimeLabelFontSize - legacySeekTimeLabelFontSize).abs() < 0.0001) {
-    normalized = normalized.upsertPlacement(seekBar.copyWith(seekTrackHeight: 8.0, seekTimeLabelFontSize: 12.0));
+  if ((seekBar.seekTrackHeight - 8.0).abs() < 0.0001 && (seekBar.seekTimeLabelFontSize - 12.0).abs() < 0.0001) {
+    normalized = normalized.upsertPlacement(
+      seekBar.copyWith(seekTrackHeight: legacySeekTrackHeight, seekTimeLabelFontSize: legacySeekTimeLabelFontSize),
+    );
   }
 
   return normalized;
@@ -791,6 +792,8 @@ List<PlayerComponentPlacement> _defaultPlacementsForScreen(PlayerLayoutScreenSiz
           height: 4,
           visible: true,
           seekTimePlacement: PlayerSeekTimePlacement.below,
+          seekTrackHeight: 12.0,
+          seekTimeLabelFontSize: 14.0,
         ),
       ];
     case PlayerLayoutScreenSize.tablet:
@@ -858,6 +861,8 @@ List<PlayerComponentPlacement> _defaultPlacementsForScreen(PlayerLayoutScreenSiz
           height: 5,
           visible: true,
           seekTimePlacement: PlayerSeekTimePlacement.below,
+          seekTrackHeight: 16.0,
+          seekTimeLabelFontSize: 18.0,
         ),
       ];
     case PlayerLayoutScreenSize.desktop:
@@ -918,6 +923,8 @@ List<PlayerComponentPlacement> _defaultPlacementsForScreen(PlayerLayoutScreenSiz
           height: 4,
           visible: true,
           seekTimePlacement: PlayerSeekTimePlacement.below,
+          seekTrackHeight: 16.0,
+          seekTimeLabelFontSize: 18.0,
         ),
       ];
   }

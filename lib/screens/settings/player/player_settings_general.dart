@@ -58,10 +58,15 @@ class PlayerSettingsGeneral extends ConsumerWidget {
         ? ref.watch(bluetoothAudioDevicesProvider)
         : null;
     final rawLayoutMode = ref.watch(globalSettingByKeyProvider(SettingKeys.playerLayoutMode)).asData?.value;
+    final rawLayoutModeExplicit = ref
+        .watch(globalSettingByKeyProvider(SettingKeys.playerLayoutModeExplicit))
+        .asData
+        ?.value;
     final rawLayoutConfig = ref.watch(globalSettingByKeyProvider(SettingKeys.playerLayoutConfig)).asData?.value;
     final layoutMode = PlayerLayoutMode.fromSettingValue(
       rawLayoutMode,
       hasSavedCustomLayout: hasCustomLayoutChanges(rawLayoutConfig),
+      hasExplicitSelection: rawLayoutModeExplicit == 'true',
     );
     final rawAdaptivePreset = ref.watch(globalSettingByKeyProvider(SettingKeys.playerAdaptivePreset)).asData?.value;
     final adaptivePreset = PlayerAdaptivePreset.fromSettingValue(rawAdaptivePreset);
@@ -360,6 +365,9 @@ class PlayerSettingsGeneral extends ConsumerWidget {
               ],
               value: layoutMode.name,
               onValueChanged: (value) {
+                ref
+                    .read(settingsManagerProvider.notifier)
+                    .setGlobalSetting<bool>(SettingKeys.playerLayoutModeExplicit, true);
                 ref
                     .read(settingsManagerProvider.notifier)
                     .setGlobalSetting<String>(SettingKeys.playerLayoutMode, value);

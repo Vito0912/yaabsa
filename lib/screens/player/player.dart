@@ -359,6 +359,9 @@ class _PlayerState extends ConsumerState<Player> {
     final nextLayout = currentLayout.copyWithProfile(screenSize, normalized);
 
     _layoutDraft = nextLayout;
+    final settingsManager = ref.read(settingsManagerProvider.notifier);
+    unawaited(settingsManager.setGlobalSetting<bool>(SettingKeys.playerLayoutModeExplicit, true));
+    unawaited(settingsManager.setGlobalSetting<String>(SettingKeys.playerLayoutMode, PlayerLayoutMode.custom.name));
     unawaited(_persistLayoutConfig(nextLayout));
     if (mounted) {
       setState(() {});
@@ -515,7 +518,7 @@ class _PlayerState extends ConsumerState<Player> {
     final scale = placement.scale.clamp(0.6, maxScale);
 
     if (placement.type == PlayerComponentType.seekBar && (scale - 1.0).abs() < 0.0001) {
-      return Align(alignment: Alignment.bottomCenter, child: child);
+      return Align(alignment: Alignment.center, child: child);
     }
 
     if ((scale - 1.0).abs() < 0.0001) {
@@ -524,14 +527,16 @@ class _PlayerState extends ConsumerState<Player> {
 
     final scaleX = placement.type == PlayerComponentType.seekBar ? 1.0 : scale;
     final scaleY = scale;
-    final alignment = placement.type == PlayerComponentType.seekBar ? Alignment.bottomCenter : Alignment.center;
+    final alignment = Alignment.center;
 
-    return ClipRect(
+    final scaledChild = ClipRect(
       child: Align(
         alignment: alignment,
         child: Transform.scale(scaleX: scaleX, scaleY: scaleY, alignment: alignment, child: child),
       ),
     );
+
+    return scaledChild;
   }
 
   Widget _withCardStyle(PlayerComponentPlacement placement, Widget child) {
@@ -576,13 +581,17 @@ class _PlayerState extends ConsumerState<Player> {
           showCurrentChapterBetweenTimeLabels: true,
         );
       case PlayerComponentType.controls:
-        content = PlayerTransportControlsComponent(
-          transportMode: transportMode,
-          prominent: false,
-          prominentSkipButtons: true,
-          prominentJumpButtons: true,
-          jumpIconSize: 40,
-          skipIconSize: 36,
+        content = Center(
+          child: PlayerTransportControlsComponent(
+            transportMode: transportMode,
+            prominent: false,
+            prominentSkipButtons: true,
+            prominentJumpButtons: true,
+            jumpIconSize: 40,
+            skipIconSize: 36,
+            controlButtonSize: 56,
+            controlIconSize: 28,
+          ),
         );
       case PlayerComponentType.utilities:
         content = PlayerUtilitiesComponent(
@@ -605,6 +614,7 @@ class _PlayerState extends ConsumerState<Player> {
   Widget build(BuildContext context) {
     ref.watch(globalSettingByKeyProvider(SettingKeys.playerLayoutConfig));
     ref.watch(globalSettingByKeyProvider(SettingKeys.playerLayoutMode));
+    ref.watch(globalSettingByKeyProvider(SettingKeys.playerLayoutModeExplicit));
     ref.watch(globalSettingByKeyProvider(SettingKeys.playerAdaptivePreset));
     final rawCoverSize = ref.watch(globalSettingByKeyProvider(SettingKeys.playerCoverSize)).asData?.value;
     final rawImmersiveColors = ref.watch(globalSettingByKeyProvider(SettingKeys.playerImmersiveColors)).asData?.value;
@@ -621,9 +631,14 @@ class _PlayerState extends ConsumerState<Player> {
     final settingsManager = ref.read(settingsManagerProvider.notifier);
     final rawLayoutConfig = settingsManager.getGlobalSetting<String>(SettingKeys.playerLayoutConfig, defaultValue: '');
     final rawLayoutMode = settingsManager.getGlobalSetting<String>(SettingKeys.playerLayoutMode, defaultValue: '');
+    final hasExplicitLayoutMode = settingsManager.getGlobalSetting<bool>(
+      SettingKeys.playerLayoutModeExplicit,
+      defaultValue: false,
+    );
     final layoutMode = PlayerLayoutMode.fromSettingValue(
       rawLayoutMode,
       hasSavedCustomLayout: hasCustomLayoutChanges(rawLayoutConfig),
+      hasExplicitSelection: hasExplicitLayoutMode,
     );
     final adaptivePreset = PlayerAdaptivePreset.fromSettingValue(
       settingsManager.getGlobalSetting<String>(SettingKeys.playerAdaptivePreset),
@@ -1062,6 +1077,10 @@ class _PlayerQuickSettingsSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final rawSeekBarMode = ref.watch(globalSettingByKeyProvider(SettingKeys.playerSeekBarMode)).asData?.value;
     final rawLayoutMode = ref.watch(globalSettingByKeyProvider(SettingKeys.playerLayoutMode)).asData?.value;
+    final rawLayoutModeExplicit = ref
+        .watch(globalSettingByKeyProvider(SettingKeys.playerLayoutModeExplicit))
+        .asData
+        ?.value;
     final rawAdaptivePreset = ref.watch(globalSettingByKeyProvider(SettingKeys.playerAdaptivePreset)).asData?.value;
     final rawCoverSize = ref.watch(globalSettingByKeyProvider(SettingKeys.playerCoverSize)).asData?.value;
     final rawImmersiveColors = ref.watch(globalSettingByKeyProvider(SettingKeys.playerImmersiveColors)).asData?.value;
@@ -1071,6 +1090,7 @@ class _PlayerQuickSettingsSheet extends ConsumerWidget {
     final layoutMode = PlayerLayoutMode.fromSettingValue(
       rawLayoutMode,
       hasSavedCustomLayout: hasCustomLayoutChanges(rawLayoutConfig),
+      hasExplicitSelection: rawLayoutModeExplicit == 'true',
     );
     final preset = PlayerAdaptivePreset.fromSettingValue(rawAdaptivePreset);
     final coverSize = PlayerCoverSize.fromSettingValue(rawCoverSize);
@@ -1107,6 +1127,7 @@ class _PlayerQuickSettingsSheet extends ConsumerWidget {
                 ],
                 selected: <PlayerLayoutMode>{layoutMode},
                 onSelectionChanged: (selection) {
+                  settingsManager.setGlobalSetting<bool>(SettingKeys.playerLayoutModeExplicit, true);
                   settingsManager.setGlobalSetting<String>(SettingKeys.playerLayoutMode, selection.first.name);
                 },
               ),
