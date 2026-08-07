@@ -68,7 +68,7 @@ class JumpIcon extends StatelessWidget {
         children: [
           if (rewind) baseIcon else Transform.scale(scaleX: -1, child: baseIcon),
           Transform.translate(
-            offset: const Offset(0, 1),
+            offset: const Offset(0, 2),
             child: Text(
               text,
               textAlign: TextAlign.center,

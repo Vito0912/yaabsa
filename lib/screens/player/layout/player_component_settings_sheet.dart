@@ -67,6 +67,8 @@ class _PlayerComponentSettingsSheetState extends State<PlayerComponentSettingsSh
   @override
   Widget build(BuildContext context) {
     final placement = _placement;
+    final maxScale = widget.componentType == PlayerComponentType.controls ? 1.0 : 1.8;
+    final scale = placement.scale.clamp(0.6, maxScale).toDouble();
 
     return SafeArea(
       child: Padding(
@@ -92,13 +94,13 @@ class _PlayerComponentSettingsSheetState extends State<PlayerComponentSettingsSh
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
-                      Text('Scale ${placement.scale.toStringAsFixed(2)}x'),
+                      Text('Scale ${scale.toStringAsFixed(2)}x'),
                       Slider(
-                        value: placement.scale.clamp(0.6, 1.8),
+                        value: scale,
                         min: 0.6,
-                        max: 1.8,
-                        divisions: 12,
-                        label: '${placement.scale.toStringAsFixed(2)}x',
+                        max: maxScale,
+                        divisions: ((maxScale - 0.6) * 20).round(),
+                        label: '${scale.toStringAsFixed(2)}x',
                         onChanged: (double value) {
                           _updatePlacement(placement.copyWith(scale: value));
                         },

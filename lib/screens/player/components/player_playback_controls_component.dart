@@ -16,10 +16,18 @@ class PlayerTransportControlsComponent extends ConsumerWidget {
     super.key,
     this.transportMode = PlayerTransportMode.both,
     this.prominent = true,
+    this.prominentSkipButtons,
+    this.prominentJumpButtons,
+    this.jumpIconSize,
+    this.skipIconSize,
   });
 
   final PlayerTransportMode transportMode;
   final bool prominent;
+  final bool? prominentSkipButtons;
+  final bool? prominentJumpButtons;
+  final double? jumpIconSize;
+  final double? skipIconSize;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -67,6 +75,8 @@ class PlayerTransportControlsComponent extends ConsumerWidget {
 
             final showJump = transportMode != PlayerTransportMode.skip;
             final showSkip = transportMode != PlayerTransportMode.jump;
+            final useProminentSkipButtons = prominentSkipButtons ?? prominent;
+            final useProminentJumpButtons = prominentJumpButtons ?? prominent;
 
             final controls = <Widget>[
               if (showControls)
@@ -78,12 +88,30 @@ class PlayerTransportControlsComponent extends ConsumerWidget {
                   tooltip: 'Shuffle Queue',
                 ),
               if (showSkip)
-                SkipButton(previous: true, iconSize: prominent ? 30 : null, buttonSize: prominent ? 56 : 48),
-              if (showJump) JumpButton(rewind: true, iconSize: prominent ? 34 : null, buttonSize: prominent ? 62 : 48),
+                SkipButton(
+                  previous: true,
+                  iconSize: skipIconSize ?? (useProminentSkipButtons ? 30 : null),
+                  buttonSize: useProminentSkipButtons ? 56 : 48,
+                ),
+              if (showJump)
+                JumpButton(
+                  rewind: true,
+                  iconSize: jumpIconSize ?? (useProminentJumpButtons ? 34 : null),
+                  buttonSize: useProminentJumpButtons ? 62 : 48,
+                ),
               ControlButton(prominent: prominent, iconSize: prominent ? null : 24),
-              if (showJump) JumpButton(rewind: false, iconSize: prominent ? 34 : null, buttonSize: prominent ? 62 : 48),
+              if (showJump)
+                JumpButton(
+                  rewind: false,
+                  iconSize: jumpIconSize ?? (useProminentJumpButtons ? 34 : null),
+                  buttonSize: useProminentJumpButtons ? 62 : 48,
+                ),
               if (showSkip)
-                SkipButton(previous: false, iconSize: prominent ? 30 : null, buttonSize: prominent ? 56 : 48),
+                SkipButton(
+                  previous: false,
+                  iconSize: skipIconSize ?? (useProminentSkipButtons ? 30 : null),
+                  buttonSize: useProminentSkipButtons ? 56 : 48,
+                ),
               if (showControls)
                 IconButton(
                   icon: Icon(Icons.repeat, color: isLoopOn ? activeColor : inactiveColor),

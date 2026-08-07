@@ -511,7 +511,8 @@ class _PlayerState extends ConsumerState<Player> {
   }
 
   Widget _scaled(PlayerComponentPlacement placement, Widget child) {
-    final scale = placement.scale.clamp(0.6, 1.8);
+    final maxScale = placement.type == PlayerComponentType.controls ? 1.0 : 1.8;
+    final scale = placement.scale.clamp(0.6, maxScale);
 
     if (placement.type == PlayerComponentType.seekBar && (scale - 1.0).abs() < 0.0001) {
       return Align(alignment: Alignment.bottomCenter, child: child);
@@ -575,7 +576,14 @@ class _PlayerState extends ConsumerState<Player> {
           showCurrentChapterBetweenTimeLabels: true,
         );
       case PlayerComponentType.controls:
-        content = PlayerTransportControlsComponent(transportMode: transportMode, prominent: false);
+        content = PlayerTransportControlsComponent(
+          transportMode: transportMode,
+          prominent: false,
+          prominentSkipButtons: true,
+          prominentJumpButtons: true,
+          jumpIconSize: 40,
+          skipIconSize: 36,
+        );
       case PlayerComponentType.utilities:
         content = PlayerUtilitiesComponent(
           utilityOrder: profile.utilityOrder,
