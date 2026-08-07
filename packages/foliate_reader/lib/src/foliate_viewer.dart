@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:zikzak_inappwebview/zikzak_inappwebview.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:path/path.dart' as p;
 import 'models.dart';
 import 'book_server.dart';
@@ -22,34 +22,34 @@ class FoliateViewerController {
   }
 
   Future<void> close() async {
-    await _webViewController?.evaluateJavascript(source: 'void window.FoliateReaderAPI.close();');
+    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.close();');
   }
 
   Future<void> next() async {
-    await _webViewController?.evaluateJavascript(source: 'void window.FoliateReaderAPI.next();');
+    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.next();');
   }
 
   Future<void> prev() async {
-    await _webViewController?.evaluateJavascript(source: 'void window.FoliateReaderAPI.prev();');
+    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.prev();');
   }
 
   Future<void> goTo(String target) async {
-    await _webViewController?.evaluateJavascript(source: 'void window.FoliateReaderAPI.goTo(${jsonEncode(target)});');
+    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.goTo(${jsonEncode(target)});');
   }
 
   Future<void> goToFraction(double fraction) async {
-    await _webViewController?.evaluateJavascript(source: 'void window.FoliateReaderAPI.goToFraction($fraction);');
+    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.goToFraction($fraction);');
   }
 
-  Future<void> addAnnotation(FoliateAnnotation annotation) async {
-    await _webViewController?.evaluateJavascript(
-      source: 'void window.FoliateReaderAPI.addAnnotation(${jsonEncode(annotation.toJson())});',
+  Future<dynamic> addAnnotation(FoliateAnnotation annotation) async {
+    return await _webViewController?.evaluateJavascript(
+      source: 'window.FoliateReaderAPI.addAnnotation(${jsonEncode(annotation.toJson())});',
     );
   }
 
   Future<void> deleteAnnotation(FoliateAnnotation annotation) async {
     await _webViewController?.evaluateJavascript(
-      source: 'void window.FoliateReaderAPI.deleteAnnotation(${jsonEncode(annotation.toJson())});',
+      source: 'window.FoliateReaderAPI.deleteAnnotation(${jsonEncode(annotation.toJson())});',
     );
   }
 
@@ -85,15 +85,15 @@ class FoliateViewerController {
   }
 
   Future<void> search(String query) async {
-    await _webViewController?.evaluateJavascript(source: 'void window.FoliateReaderAPI.search(${jsonEncode(query)});');
+    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.search(${jsonEncode(query)});');
   }
 
   Future<void> clearSearch() async {
-    await _webViewController?.evaluateJavascript(source: 'void window.FoliateReaderAPI.clearSearch();');
+    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.clearSearch();');
   }
 
   Future<void> deselect() async {
-    await _webViewController?.evaluateJavascript(source: 'void window.FoliateReaderAPI.deselect();');
+    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.deselect();');
   }
 
   Future<String?> getCurrentSectionText() async {
@@ -113,27 +113,27 @@ class FoliateViewerController {
 
   Future<void> highlightCFI(String cfi, [String? color]) async {
     final args = color != null ? '"$cfi", "$color"' : '"$cfi"';
-    await _webViewController?.evaluateJavascript(source: 'void window.FoliateReaderAPI.highlightCFI($args);');
+    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.highlightCFI($args);');
   }
 
   Future<void> clearTtsHighlight() async {
-    await _webViewController?.evaluateJavascript(source: 'void window.FoliateReaderAPI.clearTtsHighlight();');
+    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.clearTtsHighlight();');
   }
 
   Future<void> startMediaOverlay() async {
-    await _webViewController?.evaluateJavascript(source: 'void window.FoliateReaderAPI.startMediaOverlay();');
+    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.startMediaOverlay();');
   }
 
   Future<void> pauseMediaOverlay() async {
-    await _webViewController?.evaluateJavascript(source: 'void window.FoliateReaderAPI.pauseMediaOverlay();');
+    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.pauseMediaOverlay();');
   }
 
   Future<void> resumeMediaOverlay() async {
-    await _webViewController?.evaluateJavascript(source: 'void window.FoliateReaderAPI.resumeMediaOverlay();');
+    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.resumeMediaOverlay();');
   }
 
   Future<void> stopMediaOverlay() async {
-    await _webViewController?.evaluateJavascript(source: 'void window.FoliateReaderAPI.stopMediaOverlay();');
+    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.stopMediaOverlay();');
   }
 }
 
@@ -424,7 +424,7 @@ class _FoliateViewerState extends State<FoliateViewer> {
 
   Future<void> _addAnnotationFromSelection(String type, String color) async {
     await widget.controller?._webViewController?.evaluateJavascript(
-      source: 'void window.FoliateReaderAPI.addAnnotationFromSelection(${jsonEncode(type)}, ${jsonEncode(color)}, "");',
+      source: 'window.FoliateReaderAPI.addAnnotationFromSelection(${jsonEncode(type)}, ${jsonEncode(color)}, "");',
     );
   }
 

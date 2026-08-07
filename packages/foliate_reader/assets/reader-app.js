@@ -268,7 +268,7 @@ window.FoliateReaderAPI = {
                     if (moState !== state) {
                         moState = state;
                         view.mediaOverlay.state = state;
-                        window.zikzak_inappwebview.callHandler('onMediaOverlayStateChanged', {
+                        window.flutter_inappwebview.callHandler('onMediaOverlayStateChanged', {
                             state: state
                         });
                     }
@@ -400,22 +400,22 @@ window.FoliateReaderAPI = {
                             }
                         }
                     }
-                    window.zikzak_inappwebview.callHandler('onMediaOverlayHighlight', e.detail);
+                    window.flutter_inappwebview.callHandler('onMediaOverlayHighlight', e.detail);
                 });
                 view.mediaOverlay.addEventListener('unhighlight', e => {
                     clearMediaOverlayHighlight();
-                    window.zikzak_inappwebview.callHandler('onMediaOverlayUnhighlight', e.detail);
+                    window.flutter_inappwebview.callHandler('onMediaOverlayUnhighlight', e.detail);
                 });
                 view.mediaOverlay.addEventListener('statechange', e => {
-                    window.zikzak_inappwebview.callHandler('onMediaOverlayStateChanged', {
+                    window.flutter_inappwebview.callHandler('onMediaOverlayStateChanged', {
                         state: e.detail.state
                     });
                 });
                 view.mediaOverlay.addEventListener('error', e => {
-                    window.zikzak_inappwebview.callHandler('onMediaOverlayError', e.detail ? e.detail.message : '');
+                    window.flutter_inappwebview.callHandler('onMediaOverlayError', e.detail ? e.detail.message : '');
                 });
             }
-            window.zikzak_inappwebview.callHandler('onBookLoaded', {
+            window.flutter_inappwebview.callHandler('onBookLoaded', {
                 metadata: view.book.metadata || {},
                 toc: view.book.toc || [],
                 pageList: view.book.pageList || [],
@@ -423,7 +423,7 @@ window.FoliateReaderAPI = {
                 hasMediaOverlays: !!view.mediaOverlay
             });
         } catch (e) {
-            window.zikzak_inappwebview.callHandler('onError', e.toString());
+            window.flutter_inappwebview.callHandler('onError', e.toString());
         }
     },
     async close() {
@@ -511,7 +511,7 @@ window.FoliateReaderAPI = {
                     const annotation = { value: cfi, color, type, note: note || '' };
                     annotationsMap.set(cfi, annotation);
                     await view.addAnnotation(annotation);
-                    window.zikzak_inappwebview.callHandler('onAnnotationAdded', annotation);
+                    window.flutter_inappwebview.callHandler('onAnnotationAdded', annotation);
                     return cfi;
                 }
             }
@@ -529,9 +529,9 @@ window.FoliateReaderAPI = {
                     results.push(result);
                 }
             }
-            window.zikzak_inappwebview.callHandler('onSearchResults', results);
+            window.flutter_inappwebview.callHandler('onSearchResults', results);
         } catch (e) {
-            window.zikzak_inappwebview.callHandler('onError', e.toString());
+            window.flutter_inappwebview.callHandler('onError', e.toString());
         }
     },
     clearSearch() {
@@ -724,7 +724,7 @@ window.FoliateReaderAPI = {
 };
 
 view.addEventListener('relocate', e => {
-    window.zikzak_inappwebview.callHandler('onRelocate', {
+    window.flutter_inappwebview.callHandler('onRelocate', {
         cfi: e.detail.cfi,
         fraction: e.detail.fraction,
         location: e.detail.location,
@@ -741,7 +741,7 @@ view.addEventListener('click', e => {
         e.stopPropagation();
         return;
     }
-    window.zikzak_inappwebview.callHandler('onCenterTap');
+    window.flutter_inappwebview.callHandler('onCenterTap');
 });
 
 view.addEventListener('load', e => {
@@ -838,7 +838,7 @@ view.addEventListener('load', e => {
                         }
                     });
                     if (match) {
-                        window.zikzak_inappwebview.callHandler('onTtsJumpToSentence', match.index);
+                        window.flutter_inappwebview.callHandler('onTtsJumpToSentence', match.index);
                         ev.preventDefault();
                         ev.stopPropagation();
                         return;
@@ -850,7 +850,7 @@ view.addEventListener('load', e => {
                 ev.stopPropagation();
                 return;
             }
-            window.zikzak_inappwebview.callHandler('onCenterTap');
+            window.flutter_inappwebview.callHandler('onCenterTap');
         }
     });
     doc.addEventListener('selectionchange', () => {
@@ -860,7 +860,7 @@ view.addEventListener('load', e => {
             const cfi = view.getCFI(index, range);
             const text = selection.toString();
             const rect = getVisibleSelectionRect(range, doc);
-            window.zikzak_inappwebview.callHandler('onSelectionChanged', {
+            window.flutter_inappwebview.callHandler('onSelectionChanged', {
                 cfi,
                 text,
                 index,
@@ -869,13 +869,13 @@ view.addEventListener('load', e => {
                 height: rect.height
             });
         } else {
-            window.zikzak_inappwebview.callHandler('onSelectionCleared');
+            window.flutter_inappwebview.callHandler('onSelectionCleared');
         }
     });
     void (async () => {
         await waitForSectionPaint(doc);
         try {
-            await window.zikzak_inappwebview.callHandler('onSectionPainted', { index });
+            await window.flutter_inappwebview.callHandler('onSectionPainted', { index });
         } catch (error) {
             console.warn('Could not report painted section', error);
         }
@@ -912,6 +912,6 @@ view.addEventListener('show-annotation', e => {
     const key = e.detail.value;
     const annotation = annotationsMap.get(key);
     if (annotation) {
-        window.zikzak_inappwebview.callHandler('onAnnotationClicked', annotation);
+        window.flutter_inappwebview.callHandler('onAnnotationClicked', annotation);
     }
 });

@@ -1,10 +1,64 @@
 part of 'reader.dart';
 
 extension _ReaderBuilders on _ReaderState {
+  PreferredSizeWidget _buildReaderAppBar({required bool isEpubMode}) {
+    return AppBar(
+      leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
+      actions: _buildReaderActionButtons(isEpubMode: isEpubMode),
+    );
+  }
+
+  List<Widget> _buildReaderActionButtons({required bool isEpubMode}) {
+    final isTtsActive = _isTtsPlaying;
+
+    return [
+      if (isEpubMode)
+        IconButton(
+          icon: Icon(isTtsActive ? Icons.volume_off : Icons.volume_up),
+          onPressed: () {
+            if (isTtsActive) {
+              _stopTts();
+            } else {
+              unawaited(_startTts());
+            }
+          },
+          tooltip: isTtsActive ? 'Stop TTS' : 'Start TTS',
+        ),
+      if (_hasMediaOverlays)
+        IconButton(
+          icon: Icon(_mediaOverlayState != 'stopped' ? Icons.hearing_disabled : Icons.hearing),
+          onPressed: () {
+            if (_mediaOverlayState != 'stopped') {
+              unawaited(epubController.stopMediaOverlay());
+            } else {
+              if (_isTtsPlaying) {
+                _stopTts();
+              }
+              unawaited(epubController.startMediaOverlay());
+            }
+          },
+          tooltip: _mediaOverlayState != 'stopped' ? 'Stop Narration' : 'Start Narration',
+        ),
+      Builder(
+        builder: (context) => IconButton(
+          icon: const Icon(Icons.menu_book),
+          onPressed: () {
+            Scaffold.of(context).openDrawer();
+          },
+          tooltip: 'Table of Contents',
+        ),
+      ),
+      IconButton(
+        icon: const Icon(Icons.settings),
+        onPressed: () => _showReaderSettingsSheet(isEpubMode: isEpubMode),
+        tooltip: 'Settings',
+      ),
+    ];
+  }
+
   Widget _buildTopBar({required bool isEpubMode}) {
     final theme = Theme.of(context);
     final topPadding = MediaQuery.of(context).padding.top;
-    final isTtsActive = _isTtsPlaying;
 
     return AnimatedPositioned(
       duration: const Duration(milliseconds: 250),
@@ -26,47 +80,7 @@ extension _ReaderBuilders on _ReaderState {
               IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
               const SizedBox(width: 8),
               const Spacer(),
-              if (isEpubMode)
-                IconButton(
-                  icon: Icon(isTtsActive ? Icons.volume_off : Icons.volume_up),
-                  onPressed: () {
-                    if (isTtsActive) {
-                      _stopTts();
-                    } else {
-                      unawaited(_startTts());
-                    }
-                  },
-                  tooltip: isTtsActive ? 'Stop TTS' : 'Start TTS',
-                ),
-              if (_hasMediaOverlays)
-                IconButton(
-                  icon: Icon(_mediaOverlayState != 'stopped' ? Icons.hearing_disabled : Icons.hearing),
-                  onPressed: () {
-                    if (_mediaOverlayState != 'stopped') {
-                      unawaited(epubController.stopMediaOverlay());
-                    } else {
-                      if (_isTtsPlaying) {
-                        _stopTts();
-                      }
-                      unawaited(epubController.startMediaOverlay());
-                    }
-                  },
-                  tooltip: _mediaOverlayState != 'stopped' ? 'Stop Narration' : 'Start Narration',
-                ),
-              Builder(
-                builder: (context) => IconButton(
-                  icon: const Icon(Icons.menu_book),
-                  onPressed: () {
-                    Scaffold.of(context).openDrawer();
-                  },
-                  tooltip: 'Table of Contents',
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.settings),
-                onPressed: () => _showReaderSettingsSheet(isEpubMode: isEpubMode),
-                tooltip: 'Settings',
-              ),
+              ..._buildReaderActionButtons(isEpubMode: isEpubMode),
             ],
           ),
         ),

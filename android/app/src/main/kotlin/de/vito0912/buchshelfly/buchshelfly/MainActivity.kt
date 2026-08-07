@@ -25,7 +25,6 @@ import com.ryanheise.audioservice.AudioServicePlugin
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
-import wtf.zikzak.zikzak_inappwebview_android.InAppWebViewFlutterPlugin
 
 class MainActivity : AudioServiceFragmentActivity() {
 	companion object {
@@ -211,9 +210,6 @@ class MainActivity : AudioServiceFragmentActivity() {
 
 	override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
 		super.configureFlutterEngine(flutterEngine)
-		if (!flutterEngine.plugins.has(InAppWebViewFlutterPlugin::class.java)) {
-			flutterEngine.plugins.add(InAppWebViewFlutterPlugin())
-		}
 
 		MethodChannel(flutterEngine.dartExecutor.binaryMessenger, WIDGET_CHANNEL)
 			.setMethodCallHandler { call, result ->
