@@ -8,9 +8,6 @@ enum PlayerLayoutMode {
   static PlayerLayoutMode fromSettingValue(String? value, {required bool hasSavedCustomLayout}) {
     for (final mode in values) {
       if (mode.name == value?.trim().toLowerCase()) {
-        if (mode == PlayerLayoutMode.custom && !hasSavedCustomLayout) {
-          return PlayerLayoutMode.adaptive;
-        }
         return mode;
       }
     }

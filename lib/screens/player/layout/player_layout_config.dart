@@ -669,10 +669,7 @@ Map<String, dynamic> _ensureMap(dynamic value) {
   return <String, dynamic>{};
 }
 
-PlayerLayoutProfile _normalizeLegacyAdaptiveDefaults(
-  PlayerLayoutProfile profile,
-  PlayerLayoutScreenSize screenSize,
-) {
+PlayerLayoutProfile _normalizeLegacyAdaptiveDefaults(PlayerLayoutProfile profile, PlayerLayoutScreenSize screenSize) {
   final legacyControlScale = switch (screenSize) {
     PlayerLayoutScreenSize.mobile => 1.3,
     PlayerLayoutScreenSize.tablet => 1.4,
@@ -696,9 +693,7 @@ PlayerLayoutProfile _normalizeLegacyAdaptiveDefaults(
   final seekBar = profile.placementFor(PlayerComponentType.seekBar);
   if ((seekBar.seekTrackHeight - legacySeekTrackHeight).abs() < 0.0001 &&
       (seekBar.seekTimeLabelFontSize - legacySeekTimeLabelFontSize).abs() < 0.0001) {
-    normalized = normalized.upsertPlacement(
-      seekBar.copyWith(seekTrackHeight: 8.0, seekTimeLabelFontSize: 12.0),
-    );
+    normalized = normalized.upsertPlacement(seekBar.copyWith(seekTrackHeight: 8.0, seekTimeLabelFontSize: 12.0));
   }
 
   return normalized;
@@ -787,14 +782,7 @@ List<PlayerComponentPlacement> _defaultPlacementsForScreen(PlayerLayoutScreenSiz
           visible: false,
           emptyMode: PlayerCollectionEmptyMode.full,
         ),
-        PlayerComponentPlacement(
-          type: PlayerComponentType.controls,
-          x: 0,
-          y: 35,
-          width: 40,
-          height: 4,
-          visible: true,
-        ),
+        PlayerComponentPlacement(type: PlayerComponentType.controls, x: 0, y: 35, width: 40, height: 4, visible: true),
         PlayerComponentPlacement(
           type: PlayerComponentType.seekBar,
           x: 1,
@@ -861,14 +849,7 @@ List<PlayerComponentPlacement> _defaultPlacementsForScreen(PlayerLayoutScreenSiz
           emptyMode: PlayerCollectionEmptyMode.full,
           cardStyle: true,
         ),
-        PlayerComponentPlacement(
-          type: PlayerComponentType.controls,
-          x: 0,
-          y: 39,
-          width: 40,
-          height: 5,
-          visible: true,
-        ),
+        PlayerComponentPlacement(type: PlayerComponentType.controls, x: 0, y: 39, width: 40, height: 5, visible: true),
         PlayerComponentPlacement(
           type: PlayerComponentType.seekBar,
           x: 1,
@@ -928,14 +909,7 @@ List<PlayerComponentPlacement> _defaultPlacementsForScreen(PlayerLayoutScreenSiz
           emptyMode: PlayerCollectionEmptyMode.full,
           cardStyle: true,
         ),
-        PlayerComponentPlacement(
-          type: PlayerComponentType.controls,
-          x: 14,
-          y: 35,
-          width: 26,
-          height: 4,
-          visible: true,
-        ),
+        PlayerComponentPlacement(type: PlayerComponentType.controls, x: 14, y: 35, width: 26, height: 4, visible: true),
         PlayerComponentPlacement(
           type: PlayerComponentType.seekBar,
           x: 15,
