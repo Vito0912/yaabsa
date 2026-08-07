@@ -77,11 +77,13 @@ class PlayerTransportControlsComponent extends ConsumerWidget {
                   },
                   tooltip: 'Shuffle Queue',
                 ),
-              if (showSkip) const SkipButton(previous: true, iconSize: 30, buttonSize: 56),
-              if (showJump) const JumpButton(rewind: true, iconSize: 34, buttonSize: 62),
-              ControlButton(prominent: prominent),
-              if (showJump) const JumpButton(rewind: false, iconSize: 34, buttonSize: 62),
-              if (showSkip) const SkipButton(previous: false, iconSize: 30, buttonSize: 56),
+              if (showSkip)
+                SkipButton(previous: true, iconSize: prominent ? 30 : null, buttonSize: prominent ? 56 : 48),
+              if (showJump) JumpButton(rewind: true, iconSize: prominent ? 34 : null, buttonSize: prominent ? 62 : 48),
+              ControlButton(prominent: prominent, iconSize: prominent ? null : 24),
+              if (showJump) JumpButton(rewind: false, iconSize: prominent ? 34 : null, buttonSize: prominent ? 62 : 48),
+              if (showSkip)
+                SkipButton(previous: false, iconSize: prominent ? 30 : null, buttonSize: prominent ? 56 : 48),
               if (showControls)
                 IconButton(
                   icon: Icon(Icons.repeat, color: isLoopOn ? activeColor : inactiveColor),

@@ -575,7 +575,7 @@ class _PlayerState extends ConsumerState<Player> {
           showCurrentChapterBetweenTimeLabels: true,
         );
       case PlayerComponentType.controls:
-        content = PlayerTransportControlsComponent(transportMode: transportMode);
+        content = PlayerTransportControlsComponent(transportMode: transportMode, prominent: false);
       case PlayerComponentType.utilities:
         content = PlayerUtilitiesComponent(
           utilityOrder: profile.utilityOrder,
@@ -612,9 +612,10 @@ class _PlayerState extends ConsumerState<Player> {
 
     final settingsManager = ref.read(settingsManagerProvider.notifier);
     final rawLayoutConfig = settingsManager.getGlobalSetting<String>(SettingKeys.playerLayoutConfig, defaultValue: '');
+    final rawLayoutMode = settingsManager.getGlobalSetting<String>(SettingKeys.playerLayoutMode, defaultValue: '');
     final layoutMode = PlayerLayoutMode.fromSettingValue(
-      settingsManager.getGlobalSetting<String>(SettingKeys.playerLayoutMode, defaultValue: ''),
-      hasSavedCustomLayout: rawLayoutConfig.trim().isNotEmpty,
+      rawLayoutMode,
+      hasSavedCustomLayout: hasCustomLayoutChanges(rawLayoutConfig),
     );
     final adaptivePreset = PlayerAdaptivePreset.fromSettingValue(
       settingsManager.getGlobalSetting<String>(SettingKeys.playerAdaptivePreset),
@@ -638,7 +639,9 @@ class _PlayerState extends ConsumerState<Player> {
       fallback: defaultMobilePlayerRightAction,
     );
     final isCustomMode = layoutMode == PlayerLayoutMode.custom;
-    final isEditMode = isCustomMode && _isEditMode;
+    final canEditCustomMode = isCustomMode || rawLayoutMode.trim().toLowerCase() == PlayerLayoutMode.custom.name;
+    final isEditMode = canEditCustomMode && _isEditMode;
+    final usesCustomLayout = isCustomMode || isEditMode;
     final castSupported = ChromeCastService.isSupportedPlatform;
     final isMobile = context.isMobile;
     final activeScreenSize = PlayerLayoutScreenSize.fromBreakpoint(context.breakpoint);
@@ -749,14 +752,14 @@ class _PlayerState extends ConsumerState<Player> {
                   )
                 : null,
             flexibleSpace: headerDragSurface,
-            backgroundColor: isCustomMode ? null : Colors.transparent,
+            backgroundColor: usesCustomLayout ? null : Colors.transparent,
             surfaceTintColor: Colors.transparent,
             scrolledUnderElevation: 0,
             bottom: showTimesUnderAppBar
                 ? const PreferredSize(preferredSize: Size.fromHeight(26), child: _AppBarSeekTimesStrip())
                 : null,
             actions: <Widget>[
-              if (isCustomMode)
+              if (canEditCustomMode)
                 IconButton(
                   icon: const Icon(Icons.edit_rounded),
                   onPressed: () {
@@ -787,7 +790,7 @@ class _PlayerState extends ConsumerState<Player> {
           );
 
     final ABSApi? api = ref.watch(absApiProvider);
-    final systemNavigationColor = !isCustomMode && _adaptiveNavigationBarColor != null
+    final systemNavigationColor = !usesCustomLayout && _adaptiveNavigationBarColor != null
         ? _adaptiveNavigationBarColor!
         : Theme.of(context).colorScheme.surfaceContainer;
     final navigationBarBrightness = ThemeData.estimateBrightnessForColor(systemNavigationColor);
@@ -795,7 +798,7 @@ class _PlayerState extends ConsumerState<Player> {
       value: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: navigationBarBrightness == Brightness.dark ? Brightness.light : Brightness.dark,
-        systemNavigationBarColor: isCustomMode ? systemNavigationColor : Colors.transparent,
+        systemNavigationBarColor: usesCustomLayout ? systemNavigationColor : Colors.transparent,
         systemNavigationBarDividerColor: Colors.transparent,
         systemNavigationBarIconBrightness: navigationBarBrightness == Brightness.dark
             ? Brightness.light
@@ -804,7 +807,7 @@ class _PlayerState extends ConsumerState<Player> {
       ),
       child: Scaffold(
         backgroundColor: systemNavigationColor,
-        extendBodyBehindAppBar: !isCustomMode,
+        extendBodyBehindAppBar: !usesCustomLayout,
         appBar: appBar,
         body: PlayerKeyboardShortcuts(
           child: StreamBuilder<bool>(
@@ -841,7 +844,7 @@ class _PlayerState extends ConsumerState<Player> {
                       final hasChapters = media.chapters?.isNotEmpty == true;
                       final hasQueue = queueState.entries.isNotEmpty;
 
-                      if (!isCustomMode) {
+                      if (!usesCustomLayout) {
                         return PlayerAdaptiveView(
                           api: api,
                           media: media,
@@ -1059,7 +1062,7 @@ class _PlayerQuickSettingsSheet extends ConsumerWidget {
     final selectedMode = PlayerSeekBarMode.fromSettingValue(rawSeekBarMode);
     final layoutMode = PlayerLayoutMode.fromSettingValue(
       rawLayoutMode,
-      hasSavedCustomLayout: rawLayoutConfig?.trim().isNotEmpty == true,
+      hasSavedCustomLayout: hasCustomLayoutChanges(rawLayoutConfig),
     );
     final preset = PlayerAdaptivePreset.fromSettingValue(rawAdaptivePreset);
     final coverSize = PlayerCoverSize.fromSettingValue(rawCoverSize);

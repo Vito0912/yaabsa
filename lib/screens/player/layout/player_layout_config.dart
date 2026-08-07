@@ -600,9 +600,18 @@ class PlayerLayoutConfig {
       final desktopMap = _ensureMap(decoded['desktop']);
 
       return PlayerLayoutConfig(
-        mobile: PlayerLayoutProfile.fromMap(PlayerLayoutScreenSize.mobile, mobileMap),
-        tablet: PlayerLayoutProfile.fromMap(PlayerLayoutScreenSize.tablet, tabletMap),
-        desktop: PlayerLayoutProfile.fromMap(PlayerLayoutScreenSize.desktop, desktopMap),
+        mobile: _normalizeLegacyAdaptiveDefaults(
+          PlayerLayoutProfile.fromMap(PlayerLayoutScreenSize.mobile, mobileMap),
+          PlayerLayoutScreenSize.mobile,
+        ),
+        tablet: _normalizeLegacyAdaptiveDefaults(
+          PlayerLayoutProfile.fromMap(PlayerLayoutScreenSize.tablet, tabletMap),
+          PlayerLayoutScreenSize.tablet,
+        ),
+        desktop: _normalizeLegacyAdaptiveDefaults(
+          PlayerLayoutProfile.fromMap(PlayerLayoutScreenSize.desktop, desktopMap),
+          PlayerLayoutScreenSize.desktop,
+        ),
       );
     } catch (_) {
       return PlayerLayoutConfig.defaults();
@@ -640,6 +649,16 @@ class PlayerLayoutConfig {
   }
 }
 
+bool hasCustomLayoutChanges(String? rawValue) {
+  if (rawValue == null || rawValue.trim().isEmpty) {
+    return false;
+  }
+
+  final savedConfig = PlayerLayoutConfig.fromSettingValue(rawValue);
+  final defaultConfig = PlayerLayoutConfig.defaults();
+  return savedConfig.toSettingValue() != defaultConfig.toSettingValue();
+}
+
 Map<String, dynamic> _ensureMap(dynamic value) {
   if (value is Map<String, dynamic>) {
     return value;
@@ -648,6 +667,41 @@ Map<String, dynamic> _ensureMap(dynamic value) {
     return value.map((key, val) => MapEntry(key.toString(), val));
   }
   return <String, dynamic>{};
+}
+
+PlayerLayoutProfile _normalizeLegacyAdaptiveDefaults(
+  PlayerLayoutProfile profile,
+  PlayerLayoutScreenSize screenSize,
+) {
+  final legacyControlScale = switch (screenSize) {
+    PlayerLayoutScreenSize.mobile => 1.3,
+    PlayerLayoutScreenSize.tablet => 1.4,
+    PlayerLayoutScreenSize.desktop => 1.8,
+  };
+  final legacySeekTrackHeight = switch (screenSize) {
+    PlayerLayoutScreenSize.mobile => 12.0,
+    PlayerLayoutScreenSize.tablet || PlayerLayoutScreenSize.desktop => 16.0,
+  };
+  final legacySeekTimeLabelFontSize = switch (screenSize) {
+    PlayerLayoutScreenSize.mobile => 14.0,
+    PlayerLayoutScreenSize.tablet || PlayerLayoutScreenSize.desktop => 18.0,
+  };
+
+  var normalized = profile;
+  final controls = profile.placementFor(PlayerComponentType.controls);
+  if ((controls.scale - legacyControlScale).abs() < 0.0001) {
+    normalized = normalized.upsertPlacement(controls.copyWith(scale: 1.0));
+  }
+
+  final seekBar = profile.placementFor(PlayerComponentType.seekBar);
+  if ((seekBar.seekTrackHeight - legacySeekTrackHeight).abs() < 0.0001 &&
+      (seekBar.seekTimeLabelFontSize - legacySeekTimeLabelFontSize).abs() < 0.0001) {
+    normalized = normalized.upsertPlacement(
+      seekBar.copyWith(seekTrackHeight: 8.0, seekTimeLabelFontSize: 12.0),
+    );
+  }
+
+  return normalized;
 }
 
 List<PlayerComponentPlacement> _mergeWithDefaultPlacements(
@@ -740,7 +794,6 @@ List<PlayerComponentPlacement> _defaultPlacementsForScreen(PlayerLayoutScreenSiz
           width: 40,
           height: 4,
           visible: true,
-          scale: 1.3,
         ),
         PlayerComponentPlacement(
           type: PlayerComponentType.seekBar,
@@ -750,8 +803,6 @@ List<PlayerComponentPlacement> _defaultPlacementsForScreen(PlayerLayoutScreenSiz
           height: 4,
           visible: true,
           seekTimePlacement: PlayerSeekTimePlacement.below,
-          seekTrackHeight: 12.0,
-          seekTimeLabelFontSize: 14.0,
         ),
       ];
     case PlayerLayoutScreenSize.tablet:
@@ -817,7 +868,6 @@ List<PlayerComponentPlacement> _defaultPlacementsForScreen(PlayerLayoutScreenSiz
           width: 40,
           height: 5,
           visible: true,
-          scale: 1.4,
         ),
         PlayerComponentPlacement(
           type: PlayerComponentType.seekBar,
@@ -827,8 +877,6 @@ List<PlayerComponentPlacement> _defaultPlacementsForScreen(PlayerLayoutScreenSiz
           height: 5,
           visible: true,
           seekTimePlacement: PlayerSeekTimePlacement.below,
-          seekTrackHeight: 16.0,
-          seekTimeLabelFontSize: 18.0,
         ),
       ];
     case PlayerLayoutScreenSize.desktop:
@@ -887,7 +935,6 @@ List<PlayerComponentPlacement> _defaultPlacementsForScreen(PlayerLayoutScreenSiz
           width: 26,
           height: 4,
           visible: true,
-          scale: 1.8,
         ),
         PlayerComponentPlacement(
           type: PlayerComponentType.seekBar,
@@ -897,8 +944,6 @@ List<PlayerComponentPlacement> _defaultPlacementsForScreen(PlayerLayoutScreenSiz
           height: 4,
           visible: true,
           seekTimePlacement: PlayerSeekTimePlacement.below,
-          seekTrackHeight: 16.0,
-          seekTimeLabelFontSize: 18.0,
         ),
       ];
   }

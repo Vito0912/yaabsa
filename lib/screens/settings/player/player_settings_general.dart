@@ -9,6 +9,7 @@ import 'package:yaabsa/components/settings/settings_slider.dart';
 import 'package:yaabsa/components/settings/settings_switch_tile.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/player/bluetooth_audio_devices_provider.dart';
+import 'package:yaabsa/screens/player/layout/player_layout_config.dart';
 import 'package:yaabsa/screens/settings/player/player_settings.dart';
 import 'package:yaabsa/screens/settings/player/player_action_settings_editor.dart';
 import 'package:yaabsa/screens/player/layout/player_presentation_config.dart';
@@ -60,7 +61,7 @@ class PlayerSettingsGeneral extends ConsumerWidget {
     final rawLayoutConfig = ref.watch(globalSettingByKeyProvider(SettingKeys.playerLayoutConfig)).asData?.value;
     final layoutMode = PlayerLayoutMode.fromSettingValue(
       rawLayoutMode,
-      hasSavedCustomLayout: rawLayoutConfig?.trim().isNotEmpty == true,
+      hasSavedCustomLayout: hasCustomLayoutChanges(rawLayoutConfig),
     );
     final rawAdaptivePreset = ref.watch(globalSettingByKeyProvider(SettingKeys.playerAdaptivePreset)).asData?.value;
     final adaptivePreset = PlayerAdaptivePreset.fromSettingValue(rawAdaptivePreset);
