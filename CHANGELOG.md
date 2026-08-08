@@ -2,9 +2,16 @@
 
 ## 1.8.0
 
+### Added
+
+- Zooming for the reader
+
 ### Changed
 
-- Added a completly new player design, which now is enabled by default. You can always switch back to the custom design via the settings.
+- Added a completly new player design, which now is enabled by default. You can always switch back to the custom design via the settings. Some custom designs may need to be changed due to some changes for the seek and control buttons.
+- Bookmarks have been reworked and should be more clear now
+- Added new events for the local history and redesigned the local history to be more clear and easier to use
+- Speed can now also be set to sub 0.1 increments
 
 ## 1.7.0
 
