@@ -1,5 +1,16 @@
 # Changelog
 
+## TBA
+
+### Added
+
+- Encoder now defaults to copy when already acc or opus
+- Running encoding tasks are now clickable and single file status can be shown
+
+### Fixed
+
+- If an book has been deleted it now redirects correctly
+
 ## 1.8.0
 
 ### Added

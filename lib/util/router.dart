@@ -358,7 +358,10 @@ final globalRouter = GoRouter(
                     ),
                     GoRoute(
                       path: '/item/:id',
-                      builder: (context, state) => LibraryItemView(state.pathParameters['id']!),
+                      builder: (context, state) => LibraryItemView(
+                        state.pathParameters['id']!,
+                        initialEditorTab: state.uri.queryParameters['editor'],
+                      ),
                     ),
                     GoRoute(
                       path: SubtitleReadingModeView.routeName,

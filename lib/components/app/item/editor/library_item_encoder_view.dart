@@ -16,12 +16,15 @@ class LibraryItemEncoderView extends StatelessWidget {
     required this.isStarting,
     required this.isTaskRunning,
     required this.isCanceling,
+    this.currentEncodingHint,
     required this.onAdvancedModeChanged,
     required this.onCodecChanged,
     required this.onBitrateChanged,
     required this.onChannelsChanged,
     required this.onStartEncoding,
     required this.onCancelEncoding,
+    this.encodingProgressByIno = const <String, String>{},
+    this.encodingFinishedByIno = const <String, bool>{},
     this.progressLabel,
     this.infoMessage,
     this.errorMessage,
@@ -35,12 +38,15 @@ class LibraryItemEncoderView extends StatelessWidget {
   final bool isStarting;
   final bool isTaskRunning;
   final bool isCanceling;
+  final String? currentEncodingHint;
   final ValueChanged<bool> onAdvancedModeChanged;
   final ValueChanged<String> onCodecChanged;
   final ValueChanged<String> onBitrateChanged;
   final ValueChanged<int> onChannelsChanged;
   final VoidCallback onStartEncoding;
   final VoidCallback onCancelEncoding;
+  final Map<String, String> encodingProgressByIno;
+  final Map<String, bool> encodingFinishedByIno;
   final String? progressLabel;
   final String? infoMessage;
   final String? errorMessage;
@@ -64,6 +70,7 @@ class LibraryItemEncoderView extends StatelessWidget {
           isStarting: isStarting,
           isTaskRunning: isTaskRunning,
           isCanceling: isCanceling,
+          currentEncodingHint: currentEncodingHint,
           progressLabel: progressLabel,
           onAdvancedModeChanged: onAdvancedModeChanged,
           onCodecChanged: onCodecChanged,
@@ -93,7 +100,11 @@ class LibraryItemEncoderView extends StatelessWidget {
             ),
           ),
         const SizedBox(height: 12),
-        _TrackPanel(audioFiles: audioFiles),
+        _TrackPanel(
+          audioFiles: audioFiles,
+          encodingProgressByIno: encodingProgressByIno,
+          encodingFinishedByIno: encodingFinishedByIno,
+        ),
       ],
     );
   }
@@ -108,6 +119,7 @@ class _EncoderActionCard extends StatelessWidget {
     required this.isStarting,
     required this.isTaskRunning,
     required this.isCanceling,
+    this.currentEncodingHint,
     required this.progressLabel,
     required this.onAdvancedModeChanged,
     required this.onCodecChanged,
@@ -124,6 +136,7 @@ class _EncoderActionCard extends StatelessWidget {
   final bool isStarting;
   final bool isTaskRunning;
   final bool isCanceling;
+  final String? currentEncodingHint;
   final String? progressLabel;
   final ValueChanged<bool> onAdvancedModeChanged;
   final ValueChanged<String> onCodecChanged;
@@ -148,6 +161,16 @@ class _EncoderActionCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text('M4B Encoder', style: Theme.of(context).textTheme.titleMedium),
+            if (currentEncodingHint != null && currentEncodingHint!.trim().isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Text(
+                  currentEncodingHint!,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                ),
+              ),
             const SizedBox(height: 4),
             if (isTaskRunning && progressLabel != null && progressLabel!.trim().isNotEmpty) ...[
               Text(
@@ -366,9 +389,15 @@ class _AdvancedOptions extends StatelessWidget {
 }
 
 class _TrackPanel extends StatelessWidget {
-  const _TrackPanel({required this.audioFiles});
+  const _TrackPanel({
+    required this.audioFiles,
+    required this.encodingProgressByIno,
+    required this.encodingFinishedByIno,
+  });
 
   final List<AudioFile> audioFiles;
+  final Map<String, String> encodingProgressByIno;
+  final Map<String, bool> encodingFinishedByIno;
 
   @override
   Widget build(BuildContext context) {
@@ -384,43 +413,99 @@ class _TrackPanel extends StatelessWidget {
           children: [
             Text('Audio Tracks', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
-            for (var i = 0; i < audioFiles.length; i++)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                decoration: BoxDecoration(
-                  color: i.isOdd ? Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3) : null,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(width: 28, child: Text('${audioFiles[i].index ?? i + 1}.')),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            audioFiles[i].metadata.filename,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            _trackMeta(audioFiles[i]),
-                            style: Theme.of(
-                              context,
-                            ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+            SizedBox(
+              height: _trackListHeight,
+              child: ListView.builder(
+                primary: false,
+                itemCount: audioFiles.length,
+                itemBuilder: (context, index) {
+                  final audioFile = audioFiles[index];
+                  return _TrackRow(
+                    index: index,
+                    audioFile: audioFile,
+                    progress: encodingProgressByIno[audioFile.ino],
+                    isFinished: encodingFinishedByIno[audioFile.ino] == true,
+                  );
+                },
               ),
+            ),
           ],
         ),
+      ),
+    );
+  }
+
+  double get _trackListHeight {
+    const rowHeight = 58.0;
+    const maxHeight = 420.0;
+    return (audioFiles.length * rowHeight).clamp(rowHeight, maxHeight).toDouble();
+  }
+}
+
+class _TrackRow extends StatelessWidget {
+  const _TrackRow({required this.index, required this.audioFile, this.progress, required this.isFinished});
+
+  final int index;
+  final AudioFile audioFile;
+  final String? progress;
+  final bool isFinished;
+
+  @override
+  Widget build(BuildContext context) {
+    final normalizedProgress = progress?.trim();
+    final showProgress = normalizedProgress != null && normalizedProgress.isNotEmpty;
+    final showFinished = isFinished || normalizedProgress == '100%';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      decoration: BoxDecoration(
+        color: index.isOdd ? Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3) : null,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(width: 28, child: Text('${audioFile.index ?? index + 1}.')),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  audioFile.metadata.filename,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  _trackMeta(audioFile),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          SizedBox(
+            width: 42,
+            child: Align(
+              alignment: Alignment.topRight,
+              child: showFinished
+                  ? Icon(Icons.check_circle_outline_rounded, color: Theme.of(context).colorScheme.primary, size: 20)
+                  : showProgress
+                  ? Text(
+                      normalizedProgress,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    )
+                  : null,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -513,4 +598,36 @@ String _trackMeta(AudioFile file) {
       : formatDurationLong(Duration(seconds: file.duration!.round()));
 
   return '$codec • $bitrate • $channels • $duration • ${formatBytes(file.metadata.size)}';
+}
+
+String? describeCurrentEncoding(List<AudioFile> audioFiles) {
+  if (audioFiles.isEmpty) {
+    return null;
+  }
+
+  final codecs = audioFiles
+      .map((file) => file.codec?.trim().toLowerCase())
+      .whereType<String>()
+      .where((value) => value.isNotEmpty)
+      .toSet();
+  final bitrates = audioFiles
+      .map((file) => file.bitRate)
+      .whereType<int>()
+      .where((value) => value > 0)
+      .map((value) => (value / 1000).round())
+      .toSet();
+  final channels = audioFiles.map((file) => file.channels).whereType<int>().where((value) => value > 0).toSet();
+
+  final parts = <String>[];
+  if (codecs.isNotEmpty) {
+    parts.add(codecs.length == 1 ? codecs.first.toUpperCase() : 'Mixed codecs');
+  }
+  if (bitrates.isNotEmpty) {
+    parts.add(bitrates.length == 1 ? '${bitrates.first} kbps' : 'Mixed bitrates');
+  }
+  if (channels.isNotEmpty) {
+    parts.add(channels.length == 1 ? '${channels.first} channel${channels.first == 1 ? '' : 's'}' : 'Mixed channels');
+  }
+
+  return parts.isEmpty ? null : 'Current encoding: ${parts.join(' • ')}';
 }

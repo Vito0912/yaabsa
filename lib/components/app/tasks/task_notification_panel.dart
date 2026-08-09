@@ -110,13 +110,10 @@ String? _routeForTask(AbsTask task) {
     return null;
   }
 
-  switch (task.action) {
-    case 'embed-metadata':
-    case 'encode-m4b':
-    case 'scan-item':
-    case 'download-podcast-episode':
-      return '/item/${Uri.encodeComponent(libraryItemId)}';
-    default:
-      return '/item/${Uri.encodeComponent(libraryItemId)}';
+  final itemRoute = '/item/${Uri.encodeComponent(libraryItemId)}';
+  if (task.action == 'encode-m4b') {
+    return '$itemRoute?editor=encoder';
   }
+
+  return itemRoute;
 }

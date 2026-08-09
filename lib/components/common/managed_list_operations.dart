@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/components/common/book_editor_sheet.dart';
 import 'package:yaabsa/components/common/list_management_dialogs.dart';
@@ -28,8 +29,12 @@ Future<void> runManagedListMutation({
       return;
     }
 
-    if (popOnSuccess && Navigator.of(context).canPop()) {
-      Navigator.of(context).pop();
+    if (popOnSuccess) {
+      if (context.canPop()) {
+        context.pop();
+      } else {
+        context.go('/');
+      }
     }
 
     onSuccess?.call();

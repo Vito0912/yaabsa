@@ -58,6 +58,7 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
   final Set<String> _metadataLoadingItemIds = <String>{};
   final Set<String> _refreshingItemIds = <String>{};
   final Set<String> _encoderSeededItemIds = <String>{};
+  final Map<String, String?> _encoderCurrentEncodingHintsByItemId = <String, String?>{};
 
   var _isEmbedding = false;
   var _isEncoding = false;
@@ -163,8 +164,9 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
         .map((file) => (file.codec ?? '').trim().toLowerCase())
         .where((value) => value.isNotEmpty)
         .toSet();
+    _encoderCurrentEncodingHintsByItemId[itemId] = describeCurrentEncoding(audioFiles);
 
-    if (codecs.length == 1 && codecs.first == 'aac') {
+    if (codecs.first == 'aac' || codecs.first == 'opus') {
       _encoderCodec = 'copy';
     } else {
       _encoderCodec = 'aac';
@@ -470,6 +472,8 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
 
       setState(() {
         _cachedItems[itemId] = freshItem;
+        _encoderSeededItemIds.remove(itemId);
+        _encoderCurrentEncodingHintsByItemId.remove(itemId);
       });
 
       await processLibraryItemUpdate(container: ref.container, item: freshItem, source: 'editor.open.refresh');
@@ -520,6 +524,8 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
       final updatedItem = payload.libraryItem;
       if (updatedItem != null) {
         _cachedItems[widget.currentItemId] = updatedItem;
+        _encoderSeededItemIds.remove(widget.currentItemId);
+        _encoderCurrentEncodingHintsByItemId.remove(widget.currentItemId);
         await processLibraryItemUpdate(container: ref.container, item: updatedItem, source: 'editor.save');
       } else {
         unawaited(invalidateCachedLibraryItemEntries(container: ref.container, itemId: widget.currentItemId));
@@ -587,6 +593,12 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
     final isEmbedTaskRunning = embedTask != null && !embedTask.isFinished;
     final isEncodeTaskRunning = encodeTask != null && !encodeTask.isFinished;
     final taskProgressLabel = activeItemId == null ? null : serverTaskState.taskProgressByLibraryItem[activeItemId];
+    final encodingProgressByIno = activeItemId == null
+        ? const <String, String>{}
+        : serverTaskState.audioFilesEncoding[activeItemId] ?? const <String, String>{};
+    final encodingFinishedByIno = activeItemId == null
+        ? const <String, bool>{}
+        : serverTaskState.audioFilesFinished[activeItemId] ?? const <String, bool>{};
 
     final localErrorMessage = _toolErrorMessage?.trim();
 
@@ -624,6 +636,8 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
           .toList(growable: false);
       _seedEncoderDefaultsIfNeeded(itemId: activeItem.id, audioFiles: audioFiles);
     }
+
+    final currentEncodingHint = activeItem == null ? null : _encoderCurrentEncodingHintsByItemId[activeItem.id];
 
     return Positioned.fill(
       child: Focus(
@@ -758,6 +772,9 @@ class _LibraryItemEditOverlayState extends ConsumerState<LibraryItemEditOverlay>
                                             isStarting: _isEncoding,
                                             isTaskRunning: isEncodeTaskRunning,
                                             isCanceling: _isCancelingEncode,
+                                            currentEncodingHint: currentEncodingHint,
+                                            encodingProgressByIno: encodingProgressByIno,
+                                            encodingFinishedByIno: encodingFinishedByIno,
                                             onAdvancedModeChanged: (value) {
                                               setState(() {
                                                 _encoderAdvancedMode = value;
