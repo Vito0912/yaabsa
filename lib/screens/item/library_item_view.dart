@@ -1,23 +1,45 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:yaabsa/api/library_items/library_item.dart';
+import 'package:yaabsa/components/app/item/editor/library_item_edit_overlay.dart';
+import 'package:yaabsa/components/app/item/editor/open_library_item_editor_dialog.dart';
 import 'package:yaabsa/components/common/connection_issue_view.dart';
 import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/item/library_item_book_view.dart';
 import 'package:yaabsa/screens/item/library_item_podcast_view.dart';
 
-class LibraryItemView extends ConsumerWidget {
-  const LibraryItemView(this.itemId, {super.key});
+class LibraryItemView extends ConsumerStatefulWidget {
+  const LibraryItemView(this.itemId, {super.key, this.initialEditorTab});
 
   final String itemId;
+  final String? initialEditorTab;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final itemAsync = ref.watch(libraryItemProvider(itemId));
+  ConsumerState<LibraryItemView> createState() => _LibraryItemViewState();
+}
+
+class _LibraryItemViewState extends ConsumerState<LibraryItemView> {
+  var _didOpenInitialEditor = false;
+
+  @override
+  void didUpdateWidget(covariant LibraryItemView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.itemId != widget.itemId || oldWidget.initialEditorTab != widget.initialEditorTab) {
+      _didOpenInitialEditor = false;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final itemAsync = ref.watch(libraryItemProvider(widget.itemId));
     final canDownload = ref.watch(currentUserProvider).value?.permissions.download ?? false;
     return itemAsync.when(
       data: (item) {
         final isPodcast = item.mediaType == 'podcast' || item.media?.podcastMedia != null;
+        _scheduleInitialEditor(item, isPodcast: isPodcast);
         return isPodcast
             ? LibraryItemPodcastView(item: item, canDownload: canDownload)
             : LibraryItemBookView(item: item, canDownload: canDownload);
@@ -32,8 +54,8 @@ class LibraryItemView extends ConsumerWidget {
               : 'Please try again. If the issue persists, check your server connection.',
           showDownloadsShortcut: !isNotFound,
           onRetry: () async {
-            ref.invalidate(libraryItemProvider(itemId));
-            await ref.read(libraryItemProvider(itemId).future);
+            ref.invalidate(libraryItemProvider(widget.itemId));
+            await ref.read(libraryItemProvider(widget.itemId).future);
           },
         );
       },
@@ -41,6 +63,28 @@ class LibraryItemView extends ConsumerWidget {
         return const Center(child: CircularProgressIndicator());
       },
     );
+  }
+
+  void _scheduleInitialEditor(LibraryItem item, {required bool isPodcast}) {
+    if (_didOpenInitialEditor || isPodcast || widget.initialEditorTab != 'encoder') {
+      return;
+    }
+
+    _didOpenInitialEditor = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+
+      unawaited(
+        openSingleLibraryItemEditorDialog(
+          context: context,
+          item: item,
+          filterData: null,
+          initialTab: LibraryItemEditorTab.encoder,
+        ),
+      );
+    });
   }
 }
 
