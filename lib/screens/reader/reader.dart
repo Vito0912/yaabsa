@@ -113,6 +113,8 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
   bool get _isMediaOverlayActive => _mediaOverlayState != 'stopped';
   bool get _isAudioPlaybackActive => _isTtsPlaying || _isMediaOverlayActive;
   bool get _isAudioPlaying => (_isTtsPlaying && !_isTtsPaused) || _mediaOverlayState == 'playing';
+  bool get _isTouchDevice =>
+      defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS;
 
   late final SessionRepository _sessionRepository;
   double _currentAudioTime = 0.0;
@@ -701,6 +703,7 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
 
     return Scaffold(
       backgroundColor: scaffoldBg,
+      appBar: _isTouchDevice ? null : _buildReaderAppBar(isEpubMode: isEpubMode),
       drawer: _buildDrawer(isEpubMode: isEpubMode),
       body: SafeArea(
         top: false,
@@ -778,7 +781,7 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
                       },
                     ),
                   ),
-                  _buildTopBar(isEpubMode: isEpubMode),
+                  if (_isTouchDevice) _buildTopBar(isEpubMode: isEpubMode),
                   Positioned(
                     left: 0,
                     right: 0,
