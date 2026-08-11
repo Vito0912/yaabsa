@@ -28,6 +28,7 @@ class PlaybackSyncService {
   static const int _minimumIosSyncIntervalSeconds = 20;
 
   DateTime? _currentSegmentStartTime;
+  bool _hasPlaybackSinceLastFlush = false;
 
   PlaybackSyncService(
     this._ref, {
@@ -42,6 +43,9 @@ class PlaybackSyncService {
       final bool isEffectivelyPlaying = playerState.playing && playerState.processingState == ProcessingState.ready;
 
       if (isEffectivelyPlaying) {
+        if (_ref.read(sessionRepositoryProvider).currentSession != null) {
+          _hasPlaybackSinceLastFlush = true;
+        }
         _currentSegmentStartTime ??= DateTime.now();
         unawaited(_startSync());
       } else {
@@ -97,16 +101,29 @@ class PlaybackSyncService {
     return result;
   }
 
-  Future<void> _stopSync({Duration? positionOverride}) async {
+  Future<bool> _stopSync({Duration? positionOverride, bool sessionClosing = false}) async {
     _syncTimer?.cancel();
     _syncTimer = null;
-    await _enqueueSync(positionOverride: positionOverride, force: true);
+
+    if (sessionClosing) {
+      await _syncQueue.catchError((_) {});
+      if (!_hasPlaybackSinceLastFlush) {
+        return false;
+      }
+    }
+
+    final synced = await _enqueueSync(positionOverride: positionOverride, force: true);
+    if (synced) {
+      _hasPlaybackSinceLastFlush = false;
+    }
+    return synced;
   }
 
   Future<bool> _sync({Duration? positionOverride, bool force = false}) async {
     final currentSession = _ref.read(sessionRepositoryProvider).currentSession;
     if (currentSession == null) {
       _currentSegmentStartTime = null;
+      _hasPlaybackSinceLastFlush = false;
       return false;
     }
 
@@ -148,10 +165,17 @@ class PlaybackSyncService {
         .syncOpenSession(currentPositionSeconds, listenedTime, canReachServer: canReachServer);
   }
 
-  Future<bool> flush({Duration? positionOverride}) async {
-    await _stopSync(positionOverride: positionOverride);
+  Future<bool> flush({Duration? positionOverride, bool sessionClosing = false}) async {
+    final synced = await _stopSync(positionOverride: positionOverride, sessionClosing: sessionClosing);
+    if (sessionClosing) {
+      _hasPlaybackSinceLastFlush = false;
+    }
     _currentSegmentStartTime = null;
-    return true;
+    return synced;
+  }
+
+  void markProgressDirty() {
+    _hasPlaybackSinceLastFlush = true;
   }
 
   Future<void> dispose() async {
@@ -160,5 +184,6 @@ class PlaybackSyncService {
     await _playerStateSubscription?.cancel();
     _playerStateSubscription = null;
     _currentSegmentStartTime = null;
+    _hasPlaybackSinceLastFlush = false;
   }
 }

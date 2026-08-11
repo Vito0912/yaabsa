@@ -11,6 +11,7 @@
 
 - If an book has been deleted it now redirects correctly
 - Progress listened in the background now correctly updates the progress in all views
+- Closing the session now only overwrites newer progress if unsynced progress is still queued
 
 ## 1.8.0
 
