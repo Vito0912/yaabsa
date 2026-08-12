@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:yaabsa/components/stats/stats_components.dart';
 import 'package:yaabsa/models/advanced_loading_progress_info.dart';
 import 'package:yaabsa/models/advanced_listening_stats.dart';
 import 'package:yaabsa/screens/main/stats/stats_formatters.dart';
-import 'package:yaabsa/screens/main/stats/stats_ranked_bars.dart';
+import 'package:yaabsa/util/globals.dart';
 
 class StatsAdvancedDashboard extends StatelessWidget {
   const StatsAdvancedDashboard({super.key, required this.statsAsync, required this.onRefresh, this.loadingProgress});
@@ -17,214 +19,233 @@ class StatsAdvancedDashboard extends StatelessWidget {
     return statsAsync.when(
       skipLoadingOnRefresh: true,
       skipLoadingOnReload: true,
-      data: (stats) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: [
-                _MetricChip(label: 'Loaded Pages', value: '${stats.loadedPages}'),
-                _MetricChip(label: 'Loaded Sessions', value: '${stats.totalSessions}'),
-                _MetricChip(label: 'Total Sessions', value: '${stats.totalAvailableSessions}'),
-                _MetricChip(label: 'Total Listening', value: formatListeningSeconds(stats.totalListeningTime)),
-                _MetricChip(label: 'Book Listening', value: formatListeningSeconds(stats.totalBookListeningTime)),
-                _MetricChip(label: 'Podcast Listening', value: formatListeningSeconds(stats.totalPodcastListeningTime)),
-                _MetricChip(label: 'Average Session', value: formatListeningSeconds(stats.averageSessionTime)),
-                _MetricChip(label: 'Median Session', value: formatListeningSeconds(stats.medianSessionTime)),
-                _MetricChip(label: 'Longest Session', value: formatListeningSeconds(stats.longestSessionTime)),
-                _MetricChip(label: 'Unique Items', value: '${stats.uniqueItems}'),
-                _MetricChip(label: 'Unique Authors', value: '${stats.uniqueAuthors}'),
-                _MetricChip(label: 'Longest Streak', value: '${stats.longestStreakDays} day(s)'),
-                if (stats.favoriteWeekday != null)
-                  _MetricChip(label: 'Favorite Weekday', value: stats.favoriteWeekday!),
-                if (stats.favoriteHour != null)
-                  _MetricChip(label: 'Favorite Hour', value: '${stats.favoriteHour!.toString().padLeft(2, '0')}:00'),
-                if (stats.firstSessionAt != null)
-                  _MetricChip(label: 'First Session', value: formatDateTimeLabel(fromEpochMs(stats.firstSessionAt))),
-                if (stats.lastSessionAt != null)
-                  _MetricChip(label: 'Last Session', value: formatDateTimeLabel(fromEpochMs(stats.lastSessionAt))),
-              ],
-            ),
-            const SizedBox(height: 16),
-            _SubSection(
-              title: 'Top Items',
-              child: StatsRankedBars(
-                entries: [
-                  for (final item in stats.topItems)
-                    StatsRankedBarEntry(
-                      label: '${item.title} • ${item.author}',
-                      value: item.totalListeningTime,
-                      trailing: formatListeningSeconds(item.totalListeningTime),
-                    ),
-                ],
-                maxItems: 10,
-                emptyMessage: 'No top items available.',
+      data: (stats) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          StatsMetricGrid(
+            minimumTileWidth: 154,
+            metrics: [
+              StatsMetric(
+                icon: Icons.schedule_rounded,
+                label: 'Total listening',
+                value: formatListeningSeconds(stats.totalListeningTime),
+                emphasized: true,
               ),
-            ),
-            const SizedBox(height: 16),
-            _SubSection(
-              title: 'Top Authors',
-              child: StatsRankedBars(
-                entries: [
-                  for (final author in stats.topAuthors)
-                    StatsRankedBarEntry(
-                      label: author.name,
-                      value: author.totalListeningTime,
-                      trailing: formatListeningSeconds(author.totalListeningTime),
-                    ),
-                ],
-                maxItems: 10,
-                emptyMessage: 'No top authors available.',
+              StatsMetric(
+                icon: Icons.history_rounded,
+                label: 'Sessions',
+                value: '${stats.totalSessions}',
+                emphasized: true,
               ),
-            ),
-            const SizedBox(height: 16),
-            _SubSection(
-              title: 'Weekday Breakdown',
-              child: StatsRankedBars(
-                entries: [
-                  for (final bucket in stats.weekdayBreakdown)
-                    StatsRankedBarEntry(
-                      label: bucket.label,
-                      value: bucket.totalListeningTime,
-                      trailing: formatListeningSeconds(bucket.totalListeningTime),
-                    ),
-                ],
-                maxItems: 7,
-                emptyMessage: 'No weekday data available.',
+              StatsMetric(
+                icon: Icons.timer_outlined,
+                label: 'Average session',
+                value: formatListeningSeconds(stats.averageSessionTime),
               ),
-            ),
-            const SizedBox(height: 16),
-            _SubSection(
-              title: 'Busiest Hours',
-              child: StatsRankedBars(
-                entries: [
-                  for (final bucket in stats.hourlyBreakdown)
-                    StatsRankedBarEntry(
-                      label: bucket.label,
-                      value: bucket.totalListeningTime,
-                      trailing: formatListeningSeconds(bucket.totalListeningTime),
-                    ),
-                ],
-                maxItems: 8,
-                emptyMessage: 'No hourly data available.',
+              StatsMetric(
+                icon: Icons.align_horizontal_left_rounded,
+                label: 'Median session',
+                value: formatListeningSeconds(stats.medianSessionTime),
               ),
-            ),
-            if (stats.monthlyBreakdown.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              _SubSection(
-                title: 'Top Months',
-                child: StatsRankedBars(
+              StatsMetric(
+                icon: Icons.hourglass_top_rounded,
+                label: 'Longest session',
+                value: formatListeningSeconds(stats.longestSessionTime),
+              ),
+              StatsMetric(
+                icon: Icons.local_fire_department_rounded,
+                label: 'Longest streak',
+                value: '${stats.longestStreakDays} days',
+              ),
+              StatsMetric(
+                icon: Icons.menu_book_rounded,
+                label: 'Book listening',
+                value: formatListeningSeconds(stats.totalBookListeningTime),
+              ),
+              StatsMetric(
+                icon: Icons.podcasts_rounded,
+                label: 'Podcast listening',
+                value: formatListeningSeconds(stats.totalPodcastListeningTime),
+              ),
+              StatsMetric(icon: Icons.library_books_rounded, label: 'Unique items', value: '${stats.uniqueItems}'),
+              StatsMetric(icon: Icons.people_alt_rounded, label: 'Unique authors', value: '${stats.uniqueAuthors}'),
+              if (stats.favoriteWeekday != null)
+                StatsMetric(icon: Icons.today_rounded, label: 'Favorite weekday', value: stats.favoriteWeekday!),
+              if (stats.favoriteHour != null)
+                StatsMetric(
+                  icon: Icons.access_time_rounded,
+                  label: 'Favorite hour',
+                  value: '${stats.favoriteHour!.toString().padLeft(2, '0')}:00',
+                ),
+              if (stats.firstSessionAt != null)
+                StatsMetric(
+                  icon: Icons.first_page_rounded,
+                  label: 'First session',
+                  value: formatDateTimeLabel(fromEpochMs(stats.firstSessionAt)),
+                ),
+              if (stats.lastSessionAt != null)
+                StatsMetric(
+                  icon: Icons.last_page_rounded,
+                  label: 'Latest session',
+                  value: formatDateTimeLabel(fromEpochMs(stats.lastSessionAt)),
+                ),
+            ],
+          ),
+          const SizedBox(height: 22),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final columns = context.isMobile || constraints.maxWidth < 760 ? 1 : 2;
+              const spacing = 16.0;
+              final width = (constraints.maxWidth - ((columns - 1) * spacing)) / columns;
+              final panels = [
+                _AdvancedRankPanel(
+                  title: 'Top items',
+                  icon: Icons.library_books_rounded,
                   entries: [
-                    for (final bucket in stats.monthlyBreakdown)
-                      StatsRankedBarEntry(
+                    for (final item in stats.topItems)
+                      StatsRankedEntry(
+                        label: '${item.title} • ${item.author}',
+                        value: item.totalListeningTime,
+                        trailing: formatListeningSeconds(item.totalListeningTime),
+                        onTap: item.id.isEmpty ? null : () => context.push('/item/${item.id}'),
+                      ),
+                  ],
+                ),
+                _AdvancedRankPanel(
+                  title: 'Top authors',
+                  icon: Icons.people_alt_rounded,
+                  entries: [
+                    for (final author in stats.topAuthors)
+                      StatsRankedEntry(
+                        label: author.name,
+                        value: author.totalListeningTime,
+                        trailing: formatListeningSeconds(author.totalListeningTime),
+                        onTap: author.id == null || author.id!.isEmpty
+                            ? null
+                            : () => context.push('/author/${Uri.encodeComponent(author.id!)}'),
+                      ),
+                  ],
+                ),
+                _AdvancedRankPanel(
+                  title: 'Weekday breakdown',
+                  icon: Icons.view_week_rounded,
+                  entries: [
+                    for (final bucket in stats.weekdayBreakdown)
+                      StatsRankedEntry(
                         label: bucket.label,
                         value: bucket.totalListeningTime,
                         trailing: formatListeningSeconds(bucket.totalListeningTime),
                       ),
                   ],
-                  maxItems: 10,
-                  emptyMessage: 'No monthly data available.',
+                  previewCount: 7,
                 ),
-              ),
-            ],
-          ],
-        );
-      },
-      loading: () {
-        final progress = loadingProgress;
-        if (progress == null) {
-          return const Center(child: CircularProgressIndicator());
-        }
+                _AdvancedRankPanel(
+                  title: 'Busiest hours',
+                  icon: Icons.schedule_rounded,
+                  entries: [
+                    for (final bucket in stats.hourlyBreakdown)
+                      StatsRankedEntry(
+                        label: bucket.label,
+                        value: bucket.totalListeningTime,
+                        trailing: formatListeningSeconds(bucket.totalListeningTime),
+                      ),
+                  ],
+                  previewCount: 8,
+                ),
+                if (stats.monthlyBreakdown.isNotEmpty)
+                  _AdvancedRankPanel(
+                    title: 'Top months',
+                    icon: Icons.calendar_month_rounded,
+                    entries: [
+                      for (final bucket in stats.monthlyBreakdown)
+                        StatsRankedEntry(
+                          label: bucket.label,
+                          value: bucket.totalListeningTime,
+                          trailing: formatListeningSeconds(bucket.totalListeningTime),
+                        ),
+                    ],
+                  ),
+              ];
 
-        final progressValue = progress.progress;
-        final totalPagesLabel = progress.totalPages?.toString() ?? '?';
-        final totalSessionsLabel = progress.totalSessions?.toString() ?? '?';
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Loading advanced analytics...', style: Theme.of(context).textTheme.bodyMedium),
-            const SizedBox(height: 8),
-            LinearProgressIndicator(value: progressValue),
-            const SizedBox(height: 8),
-            Text(
-              'Pages ${progress.loadedPages}/$totalPagesLabel • Sessions ${progress.loadedSessions}/$totalSessionsLabel',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ],
-        );
-      },
-      error: (error, _) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Failed to compute advanced stats.', style: Theme.of(context).textTheme.bodyMedium),
-          const SizedBox(height: 6),
-          Text(
-            error.toString(),
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-          const SizedBox(height: 10),
-          OutlinedButton.icon(
-            onPressed: onRefresh,
-            icon: const Icon(Icons.refresh_rounded),
-            label: const Text('Retry Advanced Mode'),
+              return Wrap(
+                spacing: spacing,
+                runSpacing: spacing,
+                children: [for (final panel in panels) SizedBox(width: width, child: panel)],
+              );
+            },
           ),
         ],
       ),
-    );
-  }
-}
-
-class _MetricChip extends StatelessWidget {
-  const _MetricChip({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: theme.colorScheme.outlineVariant),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(label, style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-            const SizedBox(height: 4),
-            Text(value, style: theme.textTheme.bodyMedium),
-          ],
+      loading: () => _AdvancedLoading(progress: loadingProgress),
+      error: (error, _) => StatsMessage(
+        icon: Icons.error_outline_rounded,
+        title: 'Advanced analytics could not be calculated',
+        message: error.toString(),
+        action: OutlinedButton.icon(
+          onPressed: onRefresh,
+          icon: const Icon(Icons.refresh_rounded),
+          label: const Text('Try again'),
         ),
       ),
     );
   }
 }
 
-class _SubSection extends StatelessWidget {
-  const _SubSection({required this.title, required this.child});
+class _AdvancedRankPanel extends StatelessWidget {
+  const _AdvancedRankPanel({required this.title, required this.icon, required this.entries, this.previewCount = 5});
 
   final String title;
-  final Widget child;
+  final IconData icon;
+  final List<StatsRankedEntry> entries;
+  final int previewCount;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(title, style: Theme.of(context).textTheme.titleSmall),
-        const SizedBox(height: 8),
-        child,
-      ],
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: theme.colorScheme.surfaceContainer, borderRadius: BorderRadius.circular(20)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 20, color: theme.colorScheme.primary),
+              const SizedBox(width: 8),
+              Text(title, style: theme.textTheme.titleMedium),
+            ],
+          ),
+          const SizedBox(height: 10),
+          StatsRankedList(entries: entries, previewCount: previewCount),
+        ],
+      ),
+    );
+  }
+}
+
+class _AdvancedLoading extends StatelessWidget {
+  const _AdvancedLoading({required this.progress});
+
+  final AdvancedLoadingProgressInfo? progress;
+
+  @override
+  Widget build(BuildContext context) {
+    final value = progress?.progress;
+    final pages = progress == null ? null : '${progress!.loadedPages}/${progress!.totalPages ?? '?'} pages';
+    final sessions = progress == null ? null : '${progress!.loadedSessions}/${progress!.totalSessions ?? '?'} sessions';
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 24),
+      child: Column(
+        children: [
+          LinearProgressIndicator(value: value),
+          const SizedBox(height: 12),
+          Text(
+            progress == null ? 'Loading advanced analytics…' : 'Loading advanced analytics • $pages • $sessions',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        ],
+      ),
     );
   }
 }

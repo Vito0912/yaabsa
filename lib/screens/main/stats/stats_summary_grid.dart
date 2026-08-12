@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:yaabsa/api/library/stats/items_listened_to.dart';
 import 'package:yaabsa/api/library/stats/user_listening_stats.dart';
+import 'package:yaabsa/components/stats/stats_components.dart';
 import 'package:yaabsa/screens/main/stats/stats_formatters.dart';
 
 class StatsSummaryGrid extends StatelessWidget {
@@ -12,7 +13,6 @@ class StatsSummaryGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final items = stats.items?.values.toList(growable: false) ?? const <ItemsListenedTo>[];
     final totalTime = stats.totalTime ?? 0;
-
     var bookListening = 0.0;
     var podcastListening = 0.0;
     var activeDays = 0;
@@ -26,95 +26,37 @@ class StatsSummaryGrid extends StatelessWidget {
       }
     }
 
-    final dayEntries = stats.days?.entries;
-    if (dayEntries != null) {
-      for (final entry in dayEntries) {
-        if (entry.value > 0) {
-          activeDays += 1;
-        }
-      }
+    for (final value in stats.days?.values ?? const <double>[]) {
+      if (value > 0) activeDays++;
     }
 
     final averagePerActiveDay = activeDays > 0 ? totalTime / activeDays : 0.0;
 
-    final metrics = <_SummaryMetric>[
-      _SummaryMetric(label: 'Total', value: formatListeningSeconds(totalTime)),
-      _SummaryMetric(label: 'Today', value: formatListeningSeconds(stats.today)),
-      _SummaryMetric(label: 'Items', value: '${items.length}'),
-      _SummaryMetric(label: 'Book', value: formatListeningSeconds(bookListening)),
-      _SummaryMetric(label: 'Podcast', value: formatListeningSeconds(podcastListening)),
-      _SummaryMetric(label: 'Active Days', value: '$activeDays'),
-      _SummaryMetric(label: 'Avg Active Day', value: formatListeningSeconds(averagePerActiveDay)),
-    ];
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        final columns = width >= 1300
-            ? 6
-            : width >= 1050
-            ? 5
-            : width >= 820
-            ? 4
-            : width >= 620
-            ? 3
-            : 2;
-        final compactTileWidth = ((width - ((columns - 1) * 8)) / columns).clamp(112.0, 220.0).toDouble();
-
-        return Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (final metric in metrics)
-              SizedBox(
-                width: compactTileWidth,
-                child: _SummaryMetricTile(metric: metric),
-              ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _SummaryMetric {
-  const _SummaryMetric({required this.label, required this.value});
-
-  final String label;
-  final String value;
-}
-
-class _SummaryMetricTile extends StatelessWidget {
-  const _SummaryMetricTile({required this.metric});
-
-  final _SummaryMetric metric;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: theme.colorScheme.outlineVariant),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              metric.label,
-              style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 4),
-            Text(metric.value, style: theme.textTheme.titleSmall, maxLines: 1, overflow: TextOverflow.ellipsis),
-          ],
+    return StatsMetricGrid(
+      minimumTileWidth: 148,
+      metrics: [
+        StatsMetric(
+          icon: Icons.headphones_rounded,
+          label: 'Total listening',
+          value: formatListeningSeconds(totalTime),
+          emphasized: true,
         ),
-      ),
+        StatsMetric(
+          icon: Icons.today_rounded,
+          label: 'Today',
+          value: formatListeningSeconds(stats.today),
+          emphasized: true,
+        ),
+        StatsMetric(icon: Icons.library_books_rounded, label: 'Items listened', value: '${items.length}'),
+        StatsMetric(icon: Icons.menu_book_rounded, label: 'Audiobooks', value: formatListeningSeconds(bookListening)),
+        StatsMetric(icon: Icons.podcasts_rounded, label: 'Podcasts', value: formatListeningSeconds(podcastListening)),
+        StatsMetric(icon: Icons.event_available_rounded, label: 'Active days', value: '$activeDays'),
+        StatsMetric(
+          icon: Icons.av_timer_rounded,
+          label: 'Average active day',
+          value: formatListeningSeconds(averagePerActiveDay),
+        ),
+      ],
     );
   }
 }

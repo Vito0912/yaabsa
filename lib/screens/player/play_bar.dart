@@ -273,11 +273,6 @@ class _PlayBarState extends ConsumerState<PlayBar> {
 
   @override
   Widget build(BuildContext context) {
-    final route = ModalRoute.of(context);
-    if (route != null && !route.isCurrent) {
-      return const SizedBox.shrink();
-    }
-
     final rawTransportMode = ref.watch(globalSettingByKeyProvider(SettingKeys.miniPlayerTransportMode)).asData?.value;
     final rawActions = ref.watch(globalSettingByKeyProvider(SettingKeys.miniPlayerActions)).asData?.value;
     final rawImmersiveColors = ref.watch(globalSettingByKeyProvider(SettingKeys.playerImmersiveColors)).asData?.value;
@@ -301,7 +296,7 @@ class _PlayBarState extends ConsumerState<PlayBar> {
           stream: audioHandler.queueTransitionLoadingStream,
           initialData: audioHandler.queueTransitionLoading,
           builder: (context, loadingSnapshot) {
-            final isTransitionLoading = loadingSnapshot.data == true && audioHandler.currentMediaItem == null;
+            final isTransitionLoading = loadingSnapshot.data == true;
 
             final colorScheme = Theme.of(context).colorScheme;
             final borderRadius = widget.attachedToBottom

@@ -7,8 +7,10 @@ import 'package:yaabsa/api/library/request/library_filter.dart';
 import 'package:yaabsa/api/library/stats/library_stats.dart';
 import 'package:yaabsa/components/settings/admin_library_stats_preview_icons.dart';
 import 'package:yaabsa/components/settings/admin_library_stats_ranked_section.dart';
+import 'package:yaabsa/components/stats/stats_components.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/item_formatters.dart';
 import 'package:yaabsa/util/item_view_navigation.dart';
 
@@ -25,9 +27,8 @@ class _AdminServerLibraryStatsViewState extends ConsumerState<AdminServerLibrary
   String? _activeUserId;
   String? _activeLibraryId;
   String? _loadingLibraryId;
-
-  bool _isLoadingStats = false;
   String? _errorMessage;
+  int _requestGeneration = 0;
 
   bool _isAdminType(String? userType) {
     final normalizedType = (userType ?? '').trim().toLowerCase();
@@ -35,20 +36,17 @@ class _AdminServerLibraryStatsViewState extends ConsumerState<AdminServerLibrary
   }
 
   Future<void> _loadStatsForLibrary(String libraryId, {bool forceRefresh = false}) async {
-    if (!forceRefresh && _statsByLibraryId.containsKey(libraryId)) {
-      return;
-    }
+    if (!forceRefresh && _statsByLibraryId.containsKey(libraryId)) return;
 
     final api = ref.read(absApiProvider);
     if (api == null) {
-      setState(() {
-        _errorMessage = 'No active API client.';
-      });
+      setState(() => _errorMessage = 'No active server connection is available.');
       return;
     }
 
+    final requestGeneration = ++_requestGeneration;
+    final requestUserId = _activeUserId;
     setState(() {
-      _isLoadingStats = true;
       _loadingLibraryId = libraryId;
       _errorMessage = null;
     });
@@ -56,39 +54,26 @@ class _AdminServerLibraryStatsViewState extends ConsumerState<AdminServerLibrary
     try {
       final response = await api.getLibraryApi().getLibraryStats(libraryId);
       final stats = response.data ?? const LibraryStats();
+      if (!mounted || requestUserId != _activeUserId) return;
 
-      if (!mounted) {
-        return;
-      }
-
-      setState(() {
-        _statsByLibraryId[libraryId] = stats;
-      });
+      setState(() => _statsByLibraryId[libraryId] = stats);
     } catch (error) {
-      if (!mounted) {
+      if (!mounted ||
+          requestUserId != _activeUserId ||
+          requestGeneration != _requestGeneration ||
+          _activeLibraryId != libraryId) {
         return;
       }
-
-      setState(() {
-        _errorMessage = 'Failed to load library stats: $error';
-      });
+      setState(() => _errorMessage = 'The statistics for this library could not be loaded. $error');
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoadingStats = false;
-          _loadingLibraryId = null;
-        });
+      if (mounted && requestGeneration == _requestGeneration) {
+        setState(() => _loadingLibraryId = null);
       }
     }
   }
 
-  Future<void> _refreshLibraryStats(String libraryId) async {
-    await _loadStatsForLibrary(libraryId, forceRefresh: true);
-  }
-
   List<AdminLibraryStatsRankedEntry> _buildGenreEntries(BuildContext context, LibraryStats stats) {
     final totalItems = stats.totalItems ?? 0;
-
     return stats.genresWithCount
         .where((genre) => genre.genre.trim().isNotEmpty)
         .map(
@@ -113,11 +98,7 @@ class _AdminServerLibraryStatsViewState extends ConsumerState<AdminServerLibrary
             label: author.name,
             value: author.count.toDouble(),
             trailing: '${author.count}',
-            onTap: author.id.trim().isEmpty
-                ? null
-                : () {
-                    context.push('/author/${Uri.encodeComponent(author.id)}');
-                  },
+            onTap: author.id.trim().isEmpty ? null : () => context.push('/author/${Uri.encodeComponent(author.id)}'),
           ),
         )
         .toList(growable: false);
@@ -151,12 +132,7 @@ class _AdminServerLibraryStatsViewState extends ConsumerState<AdminServerLibrary
         .toList(growable: false);
   }
 
-  int _percentOfTotal(int value, int total) {
-    if (total <= 0) {
-      return 0;
-    }
-    return ((value / total) * 100).round();
-  }
+  int _percentOfTotal(int value, int total) => total <= 0 ? 0 : ((value / total) * 100).round();
 
   @override
   Widget build(BuildContext context) {
@@ -166,16 +142,18 @@ class _AdminServerLibraryStatsViewState extends ConsumerState<AdminServerLibrary
     return currentUserAsync.when(
       data: (currentUser) {
         if (currentUser == null) {
-          return const Padding(
-            padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Text('No active user. Sign in to view library stats.'),
+          return const StatsMessage(
+            icon: Icons.person_off_outlined,
+            title: 'Sign in to view library statistics',
+            message: 'An active admin account is required.',
           );
         }
 
         if (!_isAdminType(currentUser.type)) {
-          return const Padding(
-            padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Text('This page requires an admin account.'),
+          return const StatsMessage(
+            icon: Icons.admin_panel_settings_outlined,
+            title: 'Admin access required',
+            message: 'Library-wide statistics are only available to administrators.',
           );
         }
 
@@ -184,127 +162,98 @@ class _AdminServerLibraryStatsViewState extends ConsumerState<AdminServerLibrary
           _activeLibraryId = null;
           _statsByLibraryId.clear();
           _errorMessage = null;
-          _isLoadingStats = false;
           _loadingLibraryId = null;
+          _requestGeneration++;
         }
 
         if (selectedLibrary == null) {
-          return const Padding(
-            padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Text('Select a library from the main view to inspect its stats.'),
+          return const StatsMessage(
+            icon: Icons.video_library_outlined,
+            title: 'Choose a library',
+            message: 'Use the library switcher in the app bar to select a library to inspect.',
           );
         }
 
-        final selectedLibraryId = selectedLibrary.id;
-        if (_activeLibraryId != selectedLibraryId) {
-          _activeLibraryId = selectedLibraryId;
+        final libraryId = selectedLibrary.id;
+        if (_activeLibraryId != libraryId) {
+          _activeLibraryId = libraryId;
           _errorMessage = null;
         }
 
-        final selectedStats = _statsByLibraryId[selectedLibraryId];
-        final isSelectedLibraryLoading = _isLoadingStats && _loadingLibraryId == selectedLibraryId;
-
-        if (selectedStats == null && !isSelectedLibraryLoading && _errorMessage == null) {
+        final stats = _statsByLibraryId[libraryId];
+        final isLoading = _loadingLibraryId == libraryId;
+        if (stats == null && !isLoading && _errorMessage == null) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!mounted) {
-              return;
+            if (mounted && _activeLibraryId == libraryId) {
+              unawaited(_loadStatsForLibrary(libraryId));
             }
-            unawaited(_loadStatsForLibrary(selectedLibraryId));
           });
         }
 
         final isBookLibrary = selectedLibrary.mediaType.toLowerCase() == 'book';
-
         return Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          padding: EdgeInsets.fromLTRB(context.isMobile ? 12 : 24, 8, context.isMobile ? 12 : 24, 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [Text(selectedLibrary.name, style: Theme.of(context).textTheme.titleMedium)],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    tooltip: 'Refresh stats',
-                    onPressed: isSelectedLibraryLoading
-                        ? null
-                        : () => unawaited(_refreshLibraryStats(selectedLibraryId)),
+              if (isLoading && stats != null) ...[const SizedBox(height: 8), const LinearProgressIndicator()],
+              const SizedBox(height: 8),
+              if (_errorMessage case final message?)
+                StatsMessage(
+                  icon: Icons.cloud_off_rounded,
+                  title: 'Unable to load library statistics',
+                  message: message,
+                  action: FilledButton.tonalIcon(
+                    onPressed: () => unawaited(_loadStatsForLibrary(libraryId, forceRefresh: true)),
                     icon: const Icon(Icons.refresh_rounded),
+                    label: const Text('Try again'),
                   ),
-                ],
-              ),
-              if (_errorMessage != null && _errorMessage!.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 12),
-                  child: _LibraryStatsErrorCard(
-                    message: _errorMessage!,
-                    onRetry: () => unawaited(_refreshLibraryStats(selectedLibraryId)),
-                  ),
-                ),
-              if (selectedStats == null && isSelectedLibraryLoading)
-                const Padding(
-                  padding: EdgeInsets.only(top: 24),
-                  child: Center(child: CircularProgressIndicator()),
                 )
-              else if (selectedStats == null && _errorMessage == null)
+              else if (stats == null)
                 const Padding(
-                  padding: EdgeInsets.only(top: 24),
+                  padding: EdgeInsets.symmetric(vertical: 72),
                   child: Center(child: CircularProgressIndicator()),
-                )
-              else if (selectedStats == null)
-                const Padding(
-                  padding: EdgeInsets.only(top: 24),
-                  child: Text('No stats available for the selected library.'),
                 )
               else ...[
+                StatsSection(
+                  title: 'Library overview',
+                  icon: Icons.space_dashboard_rounded,
+                  trailing: IconButton.filled(
+                    tooltip: 'Refresh library statistics',
+                    onPressed: isLoading ? null : () => unawaited(_loadStatsForLibrary(libraryId, forceRefresh: true)),
+                    icon: const Icon(Icons.refresh_rounded),
+                  ),
+                  child: AdminLibraryStatsPreviewIcons(stats: stats, isBookLibrary: isBookLibrary),
+                ),
                 const SizedBox(height: 16),
-                AdminLibraryStatsPreviewIcons(stats: selectedStats, isBookLibrary: isBookLibrary),
-                const SizedBox(height: 16),
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final panelWidth = constraints.maxWidth >= 920
-                        ? (constraints.maxWidth - 12) / 2
-                        : constraints.maxWidth;
-
-                    final sections = <Widget>[
+                _LibraryRankingsGrid(
+                  sections: [
+                    AdminLibraryStatsRankedSection(
+                      title: 'Top genres',
+                      icon: Icons.sell_rounded,
+                      entries: _buildGenreEntries(context, stats),
+                      emptyMessage: 'No genre information is available.',
+                    ),
+                    if (isBookLibrary)
                       AdminLibraryStatsRankedSection(
-                        title: 'Top 5 Genres',
-                        entries: _buildGenreEntries(context, selectedStats),
-                        maxItems: 5,
-                        emptyMessage: 'No genres available.',
+                        title: 'Top authors',
+                        icon: Icons.people_alt_rounded,
+                        entries: _buildAuthorEntries(context, stats),
+                        emptyMessage: 'No author information is available.',
                       ),
-                      if (isBookLibrary)
-                        AdminLibraryStatsRankedSection(
-                          title: 'Top 10 Authors',
-                          entries: _buildAuthorEntries(context, selectedStats),
-                          maxItems: 10,
-                          emptyMessage: 'No authors available.',
-                        ),
-                      AdminLibraryStatsRankedSection(
-                        title: 'Longest Items',
-                        entries: _buildLongestItemEntries(context, selectedStats),
-                        maxItems: 10,
-                        emptyMessage: 'No items available.',
-                      ),
-                      AdminLibraryStatsRankedSection(
-                        title: 'Largest Items',
-                        entries: _buildLargestItemEntries(context, selectedStats),
-                        maxItems: 10,
-                        emptyMessage: 'No items available.',
-                      ),
-                    ];
-
-                    return Wrap(
-                      spacing: 12,
-                      runSpacing: 12,
-                      children: [for (final section in sections) SizedBox(width: panelWidth, child: section)],
-                    );
-                  },
+                    AdminLibraryStatsRankedSection(
+                      title: 'Longest items',
+                      icon: Icons.timelapse_rounded,
+                      entries: _buildLongestItemEntries(context, stats),
+                      emptyMessage: 'No item duration information is available.',
+                    ),
+                    AdminLibraryStatsRankedSection(
+                      title: 'Largest items',
+                      icon: Icons.storage_rounded,
+                      entries: _buildLargestItemEntries(context, stats),
+                      emptyMessage: 'No item size information is available.',
+                    ),
+                  ],
                 ),
               ],
             ],
@@ -312,39 +261,36 @@ class _AdminServerLibraryStatsViewState extends ConsumerState<AdminServerLibrary
         );
       },
       loading: () => const Padding(
-        padding: EdgeInsets.all(32.0),
+        padding: EdgeInsets.all(48),
         child: Center(child: CircularProgressIndicator()),
       ),
-      error: (error, stackTrace) => Padding(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-        child: Text('Failed to load user data: $error', style: TextStyle(color: Theme.of(context).colorScheme.error)),
+      error: (error, _) => StatsMessage(
+        icon: Icons.person_off_outlined,
+        title: 'Unable to load the active user',
+        message: error.toString(),
       ),
     );
   }
 }
 
-class _LibraryStatsErrorCard extends StatelessWidget {
-  const _LibraryStatsErrorCard({required this.message, required this.onRetry});
+class _LibraryRankingsGrid extends StatelessWidget {
+  const _LibraryRankingsGrid({required this.sections});
 
-  final String message;
-  final VoidCallback onRetry;
+  final List<Widget> sections;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.45),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
-        child: Row(
-          children: [
-            Icon(Icons.error_outline, color: Theme.of(context).colorScheme.error),
-            const SizedBox(width: 10),
-            Expanded(child: Text(message)),
-            const SizedBox(width: 10),
-            TextButton(onPressed: onRetry, child: const Text('Retry')),
-          ],
-        ),
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final useTwoColumns = !context.isMobile && constraints.maxWidth >= 760;
+        const spacing = 16.0;
+        final width = useTwoColumns ? (constraints.maxWidth - spacing) / 2 : constraints.maxWidth;
+        return Wrap(
+          spacing: spacing,
+          runSpacing: spacing,
+          children: [for (final section in sections) SizedBox(width: width, child: section)],
+        );
+      },
     );
   }
 }

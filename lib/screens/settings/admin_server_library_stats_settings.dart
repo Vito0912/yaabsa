@@ -15,7 +15,7 @@ class AdminServerLibraryStatsSettings extends StatelessWidget {
       embedded: true,
       showEmbeddedBackButton: true,
       embeddedBackFallbackRoute: AdminServerSettings.routeName,
-      maxWidth: 1100,
+      maxWidth: 1280,
       children: const [AdminServerLibraryStatsView()],
     );
   }

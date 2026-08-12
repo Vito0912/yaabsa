@@ -20,7 +20,9 @@ class StatsActivitySection extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             StatsActivityRangeChart(activity: activity),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
+            Text('Listening consistency', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 12),
             StatsActivityHeatmap(activity: activity, days: 365),
           ],
         );
