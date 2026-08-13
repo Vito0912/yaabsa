@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';
@@ -65,8 +65,7 @@ class ToolsSettings extends ConsumerWidget {
                     ),
                     SettingSwitchTile(
                       label: 'Force metadata refresh',
-                      subtitle:
-                          'Add a button to force recreation of metadata files in Admin Server Settings under metadata utils',
+                      subtitle: 'Add a button to force recreation of metadata files in Admin Server Settings under metadata utils',
                       settingKey: SettingKeys.toolsForceMetadataRefresh,
                       userId: currentUser.id,
                       defaultValue: false,

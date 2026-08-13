@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/components/settings/rss_feeds/admin_server_rss_feeds_view.dart';
 import 'package:yaabsa/screens/settings/admin_server_settings.dart';

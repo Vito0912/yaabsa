@@ -12,15 +12,21 @@ typedef UserItemProgressUpdatedHandler = void Function(UserItemProgressUpdatedEv
 typedef ItemEventHandler = void Function(LibraryItem item);
 typedef ItemRemovedHandler = void Function({required String itemId, String? libraryId, LibraryItem? item});
 typedef ItemsEventHandler = void Function(List<LibraryItem> items);
-typedef BatchQuickMatchCompleteHandler =
-    void Function({required bool success, required int updates, required int unmatched});
+typedef BatchQuickMatchCompleteHandler = void Function({
+  required bool success,
+  required int updates,
+  required int unmatched,
+});
 typedef TaskEventHandler = void Function(AbsTask task);
 typedef CollectionEventHandler = void Function(Collection collection);
 typedef PlaylistEventHandler = void Function(Playlist playlist);
 typedef MetadataEmbedQueueUpdateHandler = void Function({required String libraryItemId, required bool queued});
 typedef TrackStateHandler = void Function({required String libraryItemId, required String ino});
-typedef TrackProgressHandler =
-    void Function({required String libraryItemId, required String ino, required double progress});
+typedef TrackProgressHandler = void Function({
+  required String libraryItemId,
+  required String ino,
+  required double progress,
+});
 typedef TaskProgressHandler = void Function({required String libraryItemId, required double progress});
 typedef ServerLogHandler = void Function(Map<String, dynamic> logEntry);
 
@@ -34,48 +40,28 @@ class LibraryItemRemovalEvent {
 
 class ABSSocketClient {
   ABSSocketClient({
-    required UserItemProgressUpdatedHandler onUserItemProgressUpdated,
-    required ItemEventHandler onItemAdded,
-    required ItemEventHandler onItemUpdated,
-    required ItemRemovedHandler onItemRemoved,
-    required ItemsEventHandler onItemsAdded,
-    required ItemsEventHandler onItemsUpdated,
-    required BatchQuickMatchCompleteHandler onBatchQuickMatchComplete,
-    required TaskEventHandler onTaskStarted,
-    required TaskEventHandler onTaskFinished,
-    required TaskEventHandler onTaskUpdated,
-    required MetadataEmbedQueueUpdateHandler onMetadataEmbedQueueUpdate,
-    required TrackStateHandler onTrackStarted,
-    required TrackProgressHandler onTrackProgress,
-    required TrackStateHandler onTrackFinished,
-    required TaskProgressHandler onTaskProgress,
-    CollectionEventHandler? onCollectionAdded,
-    CollectionEventHandler? onCollectionUpdated,
-    CollectionEventHandler? onCollectionRemoved,
-    PlaylistEventHandler? onPlaylistAdded,
-    PlaylistEventHandler? onPlaylistUpdated,
-    PlaylistEventHandler? onPlaylistRemoved,
-  }) : _onUserItemProgressUpdated = onUserItemProgressUpdated,
-       _onItemAdded = onItemAdded,
-       _onItemUpdated = onItemUpdated,
-       _onItemRemoved = onItemRemoved,
-       _onItemsAdded = onItemsAdded,
-       _onItemsUpdated = onItemsUpdated,
-       _onBatchQuickMatchComplete = onBatchQuickMatchComplete,
-       _onTaskStarted = onTaskStarted,
-       _onTaskFinished = onTaskFinished,
-       _onTaskUpdated = onTaskUpdated,
-       _onMetadataEmbedQueueUpdate = onMetadataEmbedQueueUpdate,
-       _onTrackStarted = onTrackStarted,
-       _onTrackProgress = onTrackProgress,
-       _onTrackFinished = onTrackFinished,
-       _onTaskProgress = onTaskProgress,
-       _onCollectionAdded = onCollectionAdded,
-       _onCollectionUpdated = onCollectionUpdated,
-       _onCollectionRemoved = onCollectionRemoved,
-       _onPlaylistAdded = onPlaylistAdded,
-       _onPlaylistUpdated = onPlaylistUpdated,
-       _onPlaylistRemoved = onPlaylistRemoved;
+    required this._onUserItemProgressUpdated,
+    required this._onItemAdded,
+    required this._onItemUpdated,
+    required this._onItemRemoved,
+    required this._onItemsAdded,
+    required this._onItemsUpdated,
+    required this._onBatchQuickMatchComplete,
+    required this._onTaskStarted,
+    required this._onTaskFinished,
+    required this._onTaskUpdated,
+    required this._onMetadataEmbedQueueUpdate,
+    required this._onTrackStarted,
+    required this._onTrackProgress,
+    required this._onTrackFinished,
+    required this._onTaskProgress,
+    this._onCollectionAdded,
+    this._onCollectionUpdated,
+    this._onCollectionRemoved,
+    this._onPlaylistAdded,
+    this._onPlaylistUpdated,
+    this._onPlaylistRemoved,
+  });
 
   final UserItemProgressUpdatedHandler _onUserItemProgressUpdated;
   final ItemEventHandler _onItemAdded;

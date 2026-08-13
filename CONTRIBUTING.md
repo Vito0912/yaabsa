@@ -3,7 +3,7 @@
 While developing, make sure you have a sperate process with the following command running to automatically generate code (for Providers and Database models):
 
 ```bash
-dart run build_runner build --delete-conflicting-outputs; dart fix lib --apply; dart format lib
+dart run build_runner build; dart fix lib --apply; dart format lib
 ```
 
 This is recommended as this will be checked if you open a pull request.

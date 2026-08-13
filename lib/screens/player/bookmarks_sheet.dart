@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/api/me/bookmark.dart';
 import 'package:yaabsa/provider/player/user_bookmarks_provider.dart';
@@ -298,9 +298,8 @@ class _PlayerBookmarksSheetState extends ConsumerState<PlayerBookmarksSheet> {
                           Text(
                             'Save a note at the current playback position to find it again later.',
                             textAlign: TextAlign.center,
-                            style: Theme.of(
-                              context,
-                            ).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(color: colorScheme.onSurfaceVariant),
                           ),
                         ],
                       ),

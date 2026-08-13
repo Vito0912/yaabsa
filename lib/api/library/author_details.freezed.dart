@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'author_details.dart';
@@ -9,6 +9,7 @@ part of 'author_details.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$AuthorDetailsCopyWithImpl<$Res>
 /// Create a copy of AuthorDetails
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? asin = freezed,Object? name = null,Object? description = freezed,Object? imagePath = freezed,Object? libraryId = null,Object? addedAt = null,Object? updatedAt = null,Object? series = null,Object? libraryItems = null,}) {
-  return _then(_self.copyWith(
+  return _then(AuthorDetails(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,asin: freezed == asin ? _self.asin : asin // ignore: cast_nullable_to_non_nullable
 as String?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -218,7 +219,7 @@ return $default(_that.id,_that.asin,_that.name,_that.description,_that.imagePath
 @JsonSerializable()
 
 class _AuthorDetails implements AuthorDetails {
-  const _AuthorDetails({@JsonKey(name: 'id') required this.id, @JsonKey(name: 'asin') this.asin, @JsonKey(name: 'name') required this.name, @JsonKey(name: 'description') this.description, @JsonKey(name: 'imagePath') this.imagePath, @JsonKey(name: 'libraryId') required this.libraryId, @JsonKey(name: 'addedAt') required this.addedAt, @JsonKey(name: 'updatedAt') required this.updatedAt, @JsonKey(name: 'series') final  List<AuthorSeriesGroup> series = const <AuthorSeriesGroup>[], @JsonKey(name: 'libraryItems') final  List<LibraryItem> libraryItems = const <LibraryItem>[]}): _series = series,_libraryItems = libraryItems;
+  const _AuthorDetails({@JsonKey(name: 'id') required this.id, @JsonKey(name: 'asin') this.asin, @JsonKey(name: 'name') required this.name, @JsonKey(name: 'description') this.description, @JsonKey(name: 'imagePath') this.imagePath, @JsonKey(name: 'libraryId') required this.libraryId, @JsonKey(name: 'addedAt') required this.addedAt, @JsonKey(name: 'updatedAt') required this.updatedAt, @JsonKey(name: 'series')  List<AuthorSeriesGroup> series = const <AuthorSeriesGroup>[], @JsonKey(name: 'libraryItems')  List<LibraryItem> libraryItems = const <LibraryItem>[]}): _series = series,_libraryItems = libraryItems;
   factory _AuthorDetails.fromJson(Map<String, dynamic> json) => _$AuthorDetailsFromJson(json);
 
 @override@JsonKey(name: 'id') final  String id;
@@ -368,7 +369,7 @@ class _$AuthorSeriesGroupCopyWithImpl<$Res>
 /// Create a copy of AuthorSeriesGroup
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? items = null,}) {
-  return _then(_self.copyWith(
+  return _then(AuthorSeriesGroup(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,items: null == items ? _self.items : items // ignore: cast_nullable_to_non_nullable
@@ -513,7 +514,7 @@ return $default(_that.id,_that.name,_that.items);case _:
 @JsonSerializable()
 
 class _AuthorSeriesGroup implements AuthorSeriesGroup {
-  const _AuthorSeriesGroup({@JsonKey(name: 'id') required this.id, @JsonKey(name: 'name') required this.name, @JsonKey(name: 'items') final  List<LibraryItem> items = const <LibraryItem>[]}): _items = items;
+  const _AuthorSeriesGroup({@JsonKey(name: 'id') required this.id, @JsonKey(name: 'name') required this.name, @JsonKey(name: 'items')  List<LibraryItem> items = const <LibraryItem>[]}): _items = items;
   factory _AuthorSeriesGroup.fromJson(Map<String, dynamic> json) => _$AuthorSeriesGroupFromJson(json);
 
 @override@JsonKey(name: 'id') final  String id;

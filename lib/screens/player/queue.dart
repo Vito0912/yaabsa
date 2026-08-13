@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/screens/player/player_empty_state_mode.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/util/globals.dart';
@@ -80,9 +80,8 @@ class _QueueCompactEmptyState extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             'Queue is empty',
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+            style: Theme.of(context).textTheme.bodySmall
+                ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
         ],
       ),

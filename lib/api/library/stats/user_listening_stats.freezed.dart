@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'user_listening_stats.dart';
@@ -9,6 +9,7 @@ part of 'user_listening_stats.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$UserListeningStatsCopyWithImpl<$Res>
 /// Create a copy of UserListeningStats
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? totalTime = freezed,Object? items = freezed,Object? days = freezed,Object? dayOfWeek = freezed,Object? today = freezed,Object? recentSessions = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(UserListeningStats(
 totalTime: freezed == totalTime ? _self.totalTime : totalTime // ignore: cast_nullable_to_non_nullable
 as double?,items: freezed == items ? _self.items : items // ignore: cast_nullable_to_non_nullable
 as Map<String, ItemsListenedTo>?,days: freezed == days ? _self.days : days // ignore: cast_nullable_to_non_nullable
@@ -226,7 +227,7 @@ return $default(_that.totalTime,_that.items,_that.days,_that.dayOfWeek,_that.tod
 @JsonSerializable()
 
 class _UserListeningStats implements UserListeningStats {
-  const _UserListeningStats({@JsonKey(name: "totalTime") this.totalTime, @JsonKey(name: "items") final  Map<String, ItemsListenedTo>? items, @JsonKey(name: "days") final  Map<String, double>? days, @JsonKey(name: "dayOfWeek") this.dayOfWeek, @JsonKey(name: "today") this.today, @JsonKey(name: "recentSessions") final  List<PlaybackSession>? recentSessions}): _items = items,_days = days,_recentSessions = recentSessions;
+  const _UserListeningStats({@JsonKey(name: "totalTime") this.totalTime, @JsonKey(name: "items")  Map<String, ItemsListenedTo>? items, @JsonKey(name: "days")  Map<String, double>? days, @JsonKey(name: "dayOfWeek") this.dayOfWeek, @JsonKey(name: "today") this.today, @JsonKey(name: "recentSessions")  List<PlaybackSession>? recentSessions}): _items = items,_days = days,_recentSessions = recentSessions;
   factory _UserListeningStats.fromJson(Map<String, dynamic> json) => _$UserListeningStatsFromJson(json);
 
 @override@JsonKey(name: "totalTime") final  double? totalTime;

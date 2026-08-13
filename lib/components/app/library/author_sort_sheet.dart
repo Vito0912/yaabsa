@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/library/request/library_author_sort.dart';
 
 class LibraryAuthorSortSheet extends StatelessWidget {
@@ -60,9 +60,8 @@ class LibraryAuthorSortSheet extends StatelessWidget {
                         if (trailingText != null)
                           Text(
                             trailingText,
-                            style: Theme.of(
-                              context,
-                            ).textTheme.labelSmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(color: colorScheme.onSurfaceVariant),
                           ),
                         if (trailingIcon != null) ...[
                           const SizedBox(width: 4),

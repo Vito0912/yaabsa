@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'collection_response.dart';
@@ -9,6 +9,7 @@ part of 'collection_response.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$CollectionResponseCopyWithImpl<$Res>
 /// Create a copy of CollectionResponse
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? items = null,}) {
-  return _then(_self.copyWith(
+  return _then(CollectionResponse(
 items: null == items ? _self.items : items // ignore: cast_nullable_to_non_nullable
 as List<Collection>,
   ));
@@ -209,7 +210,7 @@ return $default(_that.items);case _:
 @JsonSerializable()
 
 class _CollectionResponse implements CollectionResponse {
-  const _CollectionResponse({@JsonKey(name: "collections") required final  List<Collection> items}): _items = items;
+  const _CollectionResponse({@JsonKey(name: "collections") required  List<Collection> items}): _items = items;
   factory _CollectionResponse.fromJson(Map<String, dynamic> json) => _$CollectionResponseFromJson(json);
 
  final  List<Collection> _items;

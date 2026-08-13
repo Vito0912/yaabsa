@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/api/library_items/author.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
@@ -354,9 +354,8 @@ class _QuickMatchPreviewDialogState extends ConsumerState<QuickMatchPreviewDialo
         .toList(growable: false);
     if (selectedEntries.isEmpty) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Select at least one matched item with changes to apply.')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Select at least one matched item with changes to apply.')));
       }
       return;
     }

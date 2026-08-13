@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/components/settings/settings_dropdown.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';
@@ -261,14 +261,12 @@ class PlayerSettingsGeneral extends ConsumerWidget {
               ),
             const SettingSwitchTile(
               label: 'Auto queue',
-              subtitle:
-                  'Automatically queue upcoming books when playback starts from library, series, playlist, or collection views',
+              subtitle: 'Automatically queue upcoming books when playback starts from library, series, playlist, or collection views',
               settingKey: SettingKeys.autoQueue,
             ),
             SettingSwitchTile(
               label: 'Auto queue everywhere',
-              subtitle:
-                  'Auto queue books from the first linked series even when starting playback outside a series view, including via car, Bluetooth, or voice',
+              subtitle: 'Auto queue books from the first linked series even when starting playback outside a series view, including via car, Bluetooth, or voice',
               disabledReason: 'Enable Auto queue to use this option',
               settingKey: SettingKeys.autoQueueIncludeSeriesOutsideContext,
               enabled: autoQueueEnabled,

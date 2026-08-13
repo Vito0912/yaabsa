@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/settings/settings_dropdown.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/util/logger.dart';

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/screens/settings/tools_settings.dart';
 

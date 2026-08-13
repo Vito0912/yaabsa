@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/app/downloads/download_cover_thumbnail.dart';
 import 'package:yaabsa/models/internal_download.dart';
 
@@ -46,9 +46,8 @@ class DownloadListTile extends StatelessWidget {
           if (podcastTitle != null) ...[
             Text(
               podcastTitle,
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+              style: Theme.of(context).textTheme.bodySmall
+                  ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
             const SizedBox(height: 2),
           ],

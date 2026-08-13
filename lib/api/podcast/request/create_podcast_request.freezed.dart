@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'create_podcast_request.dart';
@@ -9,6 +9,7 @@ part of 'create_podcast_request.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$CreatePodcastRequestCopyWithImpl<$Res>
 /// Create a copy of CreatePodcastRequest
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? path = null,Object? folderId = null,Object? libraryId = null,Object? media = null,}) {
-  return _then(_self.copyWith(
+  return _then(CreatePodcastRequest(
 path: null == path ? _self.path : path // ignore: cast_nullable_to_non_nullable
 as String,folderId: null == folderId ? _self.folderId : folderId // ignore: cast_nullable_to_non_nullable
 as String,libraryId: null == libraryId ? _self.libraryId : libraryId // ignore: cast_nullable_to_non_nullable
@@ -356,7 +357,7 @@ class _$CreatePodcastMediaCopyWithImpl<$Res>
 /// Create a copy of CreatePodcastMedia
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? metadata = null,Object? autoDownloadEpisodes = null,}) {
-  return _then(_self.copyWith(
+  return _then(CreatePodcastMedia(
 metadata: null == metadata ? _self.metadata : metadata // ignore: cast_nullable_to_non_nullable
 as CreatePodcastMetadata,autoDownloadEpisodes: null == autoDownloadEpisodes ? _self.autoDownloadEpisodes : autoDownloadEpisodes // ignore: cast_nullable_to_non_nullable
 as bool,
@@ -640,7 +641,7 @@ class _$CreatePodcastMetadataCopyWithImpl<$Res>
 /// Create a copy of CreatePodcastMetadata
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? title = null,Object? author = freezed,Object? description = freezed,Object? releaseDate = freezed,Object? genres = null,Object? feedUrl = null,Object? imageUrl = freezed,Object? itunesPageUrl = freezed,Object? itunesId = freezed,Object? itunesArtistId = freezed,Object? language = freezed,Object? explicit = freezed,Object? type = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(CreatePodcastMetadata(
 title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,author: freezed == author ? _self.author : author // ignore: cast_nullable_to_non_nullable
 as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
@@ -795,7 +796,7 @@ return $default(_that.title,_that.author,_that.description,_that.releaseDate,_th
 @JsonSerializable()
 
 class _CreatePodcastMetadata implements CreatePodcastMetadata {
-  const _CreatePodcastMetadata({@JsonKey(name: 'title') required this.title, @JsonKey(name: 'author') this.author, @JsonKey(name: 'description') this.description, @JsonKey(name: 'releaseDate') this.releaseDate, @JsonKey(name: 'genres', fromJson: jsonStringListFromDynamic) final  List<String> genres = const <String>[], @JsonKey(name: 'feedUrl') required this.feedUrl, @JsonKey(name: 'imageUrl') this.imageUrl, @JsonKey(name: 'itunesPageUrl') this.itunesPageUrl, @JsonKey(name: 'itunesId', fromJson: jsonStringFromDynamic) this.itunesId, @JsonKey(name: 'itunesArtistId', fromJson: jsonStringFromDynamic) this.itunesArtistId, @JsonKey(name: 'language') this.language, @JsonKey(name: 'explicit', fromJson: jsonBoolFromDynamic) this.explicit, @JsonKey(name: 'type') this.type}): _genres = genres;
+  const _CreatePodcastMetadata({@JsonKey(name: 'title') required this.title, @JsonKey(name: 'author') this.author, @JsonKey(name: 'description') this.description, @JsonKey(name: 'releaseDate') this.releaseDate, @JsonKey(name: 'genres', fromJson: jsonStringListFromDynamic)  List<String> genres = const <String>[], @JsonKey(name: 'feedUrl') required this.feedUrl, @JsonKey(name: 'imageUrl') this.imageUrl, @JsonKey(name: 'itunesPageUrl') this.itunesPageUrl, @JsonKey(name: 'itunesId', fromJson: jsonStringFromDynamic) this.itunesId, @JsonKey(name: 'itunesArtistId', fromJson: jsonStringFromDynamic) this.itunesArtistId, @JsonKey(name: 'language') this.language, @JsonKey(name: 'explicit', fromJson: jsonBoolFromDynamic) this.explicit, @JsonKey(name: 'type') this.type}): _genres = genres;
   factory _CreatePodcastMetadata.fromJson(Map<String, dynamic> json) => _$CreatePodcastMetadataFromJson(json);
 
 @override@JsonKey(name: 'title') final  String title;

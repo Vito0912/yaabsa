@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/settings/settings_section_title.dart';
 
 class SettingsNavigationItem {
@@ -151,9 +151,8 @@ class _SettingsNavigationTile extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         subtitleParts.join('\n'),
-                        style: Theme.of(
-                          context,
-                        ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant.withValues(alpha: 0.78)),
+                        style: Theme.of(context).textTheme.bodySmall
+                            ?.copyWith(color: colorScheme.onSurfaceVariant.withValues(alpha: 0.78)),
                       ),
                     ],
                   ],

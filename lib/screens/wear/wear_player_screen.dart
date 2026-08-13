@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'dart:io';
+
 import 'package:audio_service/audio_service.dart';
 import 'package:background_downloader/background_downloader.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/api/me/media_progress.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';

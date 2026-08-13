@@ -16,8 +16,7 @@ import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/router.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -139,12 +138,7 @@ class MyApp extends ConsumerWidget {
 
         return AndroidEdgeToEdgeInsetGuard(child: child);
       },
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        FlutterQuillLocalizations.delegate,
-      ],
+      localizationsDelegates: [...GlobalMaterialLocalizations.delegates, FlutterQuillLocalizations.delegate],
       themeMode: themeSelection.materialThemeMode,
       theme: themeSelection.themeData(Brightness.light),
       darkTheme: themeSelection.themeData(Brightness.dark),

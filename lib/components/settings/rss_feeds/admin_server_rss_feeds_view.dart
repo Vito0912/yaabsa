@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/api/admin/admin_rss_feed.dart';
 import 'package:yaabsa/components/common/list_management_dialogs.dart';
@@ -381,9 +381,8 @@ class _AdminServerRssFeedsViewState extends ConsumerState<AdminServerRssFeedsVie
                   description,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  style: Theme.of(context).textTheme.bodySmall
+                      ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
             ],
           ),
@@ -412,9 +411,8 @@ class _AdminServerRssFeedsViewState extends ConsumerState<AdminServerRssFeedsVie
                   description,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  style: Theme.of(context).textTheme.bodySmall
+                      ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
             ],
           );
@@ -480,9 +478,8 @@ class _AdminServerRssFeedsViewState extends ConsumerState<AdminServerRssFeedsVie
               Expanded(
                 child: Text(
                   summaryText,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  style: Theme.of(context).textTheme.bodySmall
+                      ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
               ),
               IconButton.filledTonal(
@@ -515,9 +512,8 @@ class _AdminServerRssFeedsViewState extends ConsumerState<AdminServerRssFeedsVie
         const SizedBox(width: 12),
         Text(
           summaryText,
-          style: Theme.of(
-            context,
-          ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+          style: Theme.of(context).textTheme.bodyMedium
+              ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
         const SizedBox(width: 12),
         OutlinedButton.icon(

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/player/common/seek_bar.dart';
 import 'package:yaabsa/screens/player/layout/player_layout_config.dart';
 

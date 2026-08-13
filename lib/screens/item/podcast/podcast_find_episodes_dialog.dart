@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/api/podcast/podcast_feed.dart';
 import 'package:yaabsa/util/item_formatters.dart';
@@ -203,16 +203,14 @@ class _PodcastFindEpisodesDialogState extends State<_PodcastFindEpisodesDialog> 
               if (_selectedCount == 0 && _episodeOptions.every((option) => option.isAlreadyDownloaded))
                 Text(
                   'All episodes are already downloaded.',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  style: Theme.of(context).textTheme.bodyMedium
+                      ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                 )
               else
                 Text(
                   '$_selectedCount selected',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  style: Theme.of(context).textTheme.bodyMedium
+                      ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
               const SizedBox(height: 8),
               Row(
@@ -304,9 +302,8 @@ class _PodcastFindEpisodesDialogState extends State<_PodcastFindEpisodesDialog> 
                             subtitle,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: Theme.of(
-                              context,
-                            ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                           ),
                         ),
                       if (detailParts.isNotEmpty)
@@ -314,9 +311,8 @@ class _PodcastFindEpisodesDialogState extends State<_PodcastFindEpisodesDialog> 
                           padding: const EdgeInsets.only(top: 4),
                           child: Text(
                             detailParts.join(' • '),
-                            style: Theme.of(
-                              context,
-                            ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                           ),
                         ),
                     ],

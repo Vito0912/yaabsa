@@ -7,7 +7,7 @@ import 'package:yaabsa/components/common/library_item_overlay_play_button.dart';
 import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/util/globals.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:just_audio/just_audio.dart';
@@ -274,9 +274,8 @@ class _LibraryItemWidgetState extends ConsumerState<LibraryItemWidget> {
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         child: Text(
                           sequenceBadgeLabel!,
-                          style: Theme.of(
-                            context,
-                          ).textTheme.labelSmall?.copyWith(color: colorScheme.onPrimaryContainer),
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(color: colorScheme.onPrimaryContainer),
                         ),
                       ),
                     ),

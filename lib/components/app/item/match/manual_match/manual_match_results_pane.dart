@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/app/item/match/manual_match/manual_match_models.dart';
 
 class ManualMatchResultsPane extends StatelessWidget {
@@ -113,23 +113,20 @@ class _ManualMatchResultTile extends StatelessWidget {
               if (result.publishedYear != null)
                 Text(
                   result.publishedYear!,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.labelSmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  style: Theme.of(context).textTheme.labelSmall
+                      ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
               if (result.runtimeLabel != null)
                 Text(
                   result.runtimeLabel!,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.labelSmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  style: Theme.of(context).textTheme.labelSmall
+                      ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
               if (identifierLabel != null)
                 Text(
                   identifierLabel,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.labelSmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  style: Theme.of(context).textTheme.labelSmall
+                      ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
             ],
           ),

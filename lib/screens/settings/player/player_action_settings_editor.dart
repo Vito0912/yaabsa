@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/screens/player/layout/player_presentation_config.dart';
@@ -97,9 +97,8 @@ class _PlayerActionEditorSheetState extends State<_PlayerActionEditorSheet> {
                 const SizedBox(height: 4),
                 Text(
                   'Choose visible actions and drag them into the preferred order.',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  style: Theme.of(context).textTheme.bodyMedium
+                      ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
               ],
             ),

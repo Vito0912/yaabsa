@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class ItemHeroCard extends StatelessWidget {
   const ItemHeroCard({
@@ -89,9 +89,8 @@ class _TitleAndActions extends StatelessWidget {
               subtitle!,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+              style: Theme.of(context).textTheme.bodyMedium
+                  ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
           ),
         const SizedBox(height: 10),
@@ -186,9 +185,8 @@ class _ItemMetadataRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final labelStyle = Theme.of(
-      context,
-    ).textTheme.labelSmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant, letterSpacing: 0.4);
+    final labelStyle = Theme.of(context).textTheme.labelSmall
+        ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant, letterSpacing: 0.4);
     const labelColumnWidth = 120.0;
 
     if (inlineValues) {
@@ -280,10 +278,8 @@ class _InlineLinkText extends StatelessWidget {
         onTap: onTap,
         child: Text(
           label,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: color,
-            decoration: onTap == null ? TextDecoration.none : TextDecoration.underline,
-          ),
+          style: Theme.of(context).textTheme.bodyMedium
+              ?.copyWith(color: color, decoration: onTap == null ? TextDecoration.none : TextDecoration.underline),
         ),
       ),
     );

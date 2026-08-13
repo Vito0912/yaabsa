@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/screens/item/podcast/podcast_episode_utils.dart';
 
 class PodcastEpisodesHeaderCard extends StatelessWidget {
@@ -131,10 +131,8 @@ class PodcastEpisodesHeaderCard extends StatelessWidget {
             const SizedBox(height: 2),
             Text(
               resultLabel,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w400,
-              ),
+              style: Theme.of(context).textTheme.bodyMedium
+                  ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant, fontWeight: FontWeight.w400),
             ),
             const SizedBox(height: 8),
             if (isMobileLayout)

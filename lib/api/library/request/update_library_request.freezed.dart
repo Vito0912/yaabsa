@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'update_library_request.dart';
@@ -9,6 +9,7 @@ part of 'update_library_request.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$UpdateLibraryRequestCopyWithImpl<$Res>
 /// Create a copy of UpdateLibraryRequest
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? name = freezed,Object? displayOrder = freezed,Object? icon = freezed,Object? mediaType = freezed,Object? provider = freezed,Object? settings = freezed,Object? folders = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(UpdateLibraryRequest(
 name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,displayOrder: freezed == displayOrder ? _self.displayOrder : displayOrder // ignore: cast_nullable_to_non_nullable
 as int?,icon: freezed == icon ? _self.icon : icon // ignore: cast_nullable_to_non_nullable
@@ -227,7 +228,7 @@ return $default(_that.name,_that.displayOrder,_that.icon,_that.mediaType,_that.p
 
 @JsonSerializable(includeIfNull: false)
 class _UpdateLibraryRequest implements UpdateLibraryRequest {
-  const _UpdateLibraryRequest({@JsonKey(name: 'name') this.name, @JsonKey(name: 'displayOrder') this.displayOrder, @JsonKey(name: 'icon') this.icon, @JsonKey(name: 'mediaType') this.mediaType, @JsonKey(name: 'provider') this.provider, @JsonKey(name: 'settings') this.settings, @JsonKey(name: 'folders') final  List<LibraryFolderPayload>? folders}): _folders = folders;
+  const _UpdateLibraryRequest({@JsonKey(name: 'name') this.name, @JsonKey(name: 'displayOrder') this.displayOrder, @JsonKey(name: 'icon') this.icon, @JsonKey(name: 'mediaType') this.mediaType, @JsonKey(name: 'provider') this.provider, @JsonKey(name: 'settings') this.settings, @JsonKey(name: 'folders')  List<LibraryFolderPayload>? folders}): _folders = folders;
   factory _UpdateLibraryRequest.fromJson(Map<String, dynamic> json) => _$UpdateLibraryRequestFromJson(json);
 
 @override@JsonKey(name: 'name') final  String? name;

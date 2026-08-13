@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:foliate_reader/foliate_reader.dart';
 import 'package:yaabsa/screens/reader/widgets/reader_paged_surface.dart';
 

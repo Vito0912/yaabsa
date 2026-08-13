@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class ListManagementHeader extends StatelessWidget {
   const ListManagementHeader({
@@ -35,9 +35,8 @@ class ListManagementHeader extends StatelessWidget {
                     padding: const EdgeInsets.only(top: 2),
                     child: Text(
                       subtitle!,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      style: Theme.of(context).textTheme.bodySmall
+                          ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                     ),
                   ),
               ],

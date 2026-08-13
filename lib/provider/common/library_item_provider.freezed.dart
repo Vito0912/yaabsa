@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'library_item_provider.dart';
@@ -9,6 +9,7 @@ part of 'library_item_provider.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
@@ -63,7 +64,7 @@ class _$LibraryItemStateCopyWithImpl<$Res>
 /// Create a copy of LibraryItemState
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? items = null,Object? currentPage = null,Object? hasNextPage = null,Object? libraryId = freezed,Object? sort = freezed,Object? desc = freezed,Object? filter = freezed,Object? collapseseries = freezed,Object? include = freezed,Object? error = freezed,Object? stackTrace = freezed,Object? isLoadingNextPage = null,Object? totalItems = null,}) {
-  return _then(_self.copyWith(
+  return _then(LibraryItemState(
 items: null == items ? _self.items : items // ignore: cast_nullable_to_non_nullable
 as List<LibraryItem>,currentPage: null == currentPage ? _self.currentPage : currentPage // ignore: cast_nullable_to_non_nullable
 as int,hasNextPage: null == hasNextPage ? _self.hasNextPage : hasNextPage // ignore: cast_nullable_to_non_nullable
@@ -217,7 +218,7 @@ return $default(_that.items,_that.currentPage,_that.hasNextPage,_that.libraryId,
 
 
 class _LibraryItemState implements LibraryItemState {
-  const _LibraryItemState({final  List<LibraryItem> items = const [], required this.currentPage, required this.hasNextPage, this.libraryId, this.sort, this.desc, this.filter, this.collapseseries, this.include, this.error, this.stackTrace, this.isLoadingNextPage = false, this.totalItems = 0}): _items = items;
+  const _LibraryItemState({ List<LibraryItem> items = const [], required this.currentPage, required this.hasNextPage, this.libraryId, this.sort, this.desc, this.filter, this.collapseseries, this.include, this.error, this.stackTrace, this.isLoadingNextPage = false, this.totalItems = 0}): _items = items;
   
 
  final  List<LibraryItem> _items;

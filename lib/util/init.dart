@@ -8,7 +8,7 @@ import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/handler/download_handler.dart';
 import 'package:yaabsa/util/handler/shake_handler.dart';
 import 'package:yaabsa/util/handler/sleep_timer_handler.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as p;
@@ -18,6 +18,7 @@ import 'package:audio_service_mpris/audio_service_mpris.dart';
 
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/util/setting_key.dart';
+
 import 'logger.dart';
 
 class Init {

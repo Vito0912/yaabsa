@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/admin/admin_user.dart';
 import 'package:yaabsa/components/settings/admin_users/admin_user_badge.dart';
 

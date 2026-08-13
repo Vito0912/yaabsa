@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/library/filter_data/library_filter_data.dart';
 import 'package:yaabsa/api/library/filter_data/library_filter_named_entity.dart';
 import 'package:yaabsa/api/library/request/library_filter.dart';

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/app/item/match/manual_match/manual_match_description_field.dart';
 import 'package:yaabsa/components/app/item/match/manual_match/manual_match_models.dart';
 import 'package:yaabsa/components/common/inputs/expressive_dropdown.dart';
@@ -77,9 +77,8 @@ class ManualMatchFieldEditor extends StatelessWidget {
                       'Current: $currentLabel',
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      style: Theme.of(context).textTheme.bodySmall
+                          ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                     ),
                   ],
                   if (field == ManualMatchField.cover) ...[const SizedBox(height: 6), _buildCoverComparison(context)],
@@ -174,9 +173,8 @@ class ManualMatchFieldEditor extends StatelessWidget {
       children: [
         Text(
           'Mode:',
-          style: Theme.of(
-            context,
-          ).textTheme.labelMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+          style: Theme.of(context).textTheme.labelMedium
+              ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
         const SizedBox(width: 8),
         SizedBox(

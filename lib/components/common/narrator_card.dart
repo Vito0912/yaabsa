@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class NarratorCard extends StatelessWidget {
   const NarratorCard({super.key, required this.name, this.subtitle, this.onTap});

@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/api/me/request/login_request.dart';
 import 'package:yaabsa/api/me/server.dart';
@@ -104,18 +104,16 @@ class _ServerConnectionSettingsState extends ConsumerState<ServerConnectionSetti
 
     final normalizedExternal = _normalizeServerAddress(_externalServerController.text.trim());
     if (normalizedExternal == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please enter a valid external server URL.')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Please enter a valid external server URL.')));
       return;
     }
 
     final localInput = _localServerController.text.trim();
     final normalizedLocal = localInput.isEmpty ? null : _normalizeServerAddress(localInput);
     if (localInput.isNotEmpty && normalizedLocal == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please enter a valid local server URL or leave it blank.')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Please enter a valid local server URL or leave it blank.')));
       return;
     }
 
@@ -124,9 +122,8 @@ class _ServerConnectionSettingsState extends ConsumerState<ServerConnectionSetti
     final wantsCredentialUpdate = username != currentUser.username || password.trim().isNotEmpty;
 
     if (wantsCredentialUpdate && password.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Enter password to update username or credentials.')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Enter password to update username or credentials.')));
       return;
     }
 
@@ -186,9 +183,8 @@ class _ServerConnectionSettingsState extends ConsumerState<ServerConnectionSetti
         return;
       }
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(_parseDioErrorMessage(e, fallback: 'Failed to save server settings.'))));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(_parseDioErrorMessage(e, fallback: 'Failed to save server settings.'))));
     } catch (e) {
       if (!mounted) {
         return;

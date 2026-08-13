@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'download_task_metadata.dart';
@@ -9,6 +9,7 @@ part of 'download_task_metadata.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$DownloadTaskMetadataCopyWithImpl<$Res>
 /// Create a copy of DownloadTaskMetadata
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? itemId = null,Object? userId = null,Object? episodeId = freezed,Object? track = freezed,Object? expectedFileCount = null,Object? fileInode = null,Object? fileIndex = null,Object? fileKind = null,Object? fileName = freezed,Object? fileMimeType = freezed,Object? saf = null,Object? downloadBasePath = freezed,Object? libraryId = freezed,Object? serverUrl = freezed,Object? serverHost = freezed,Object? serverPort = freezed,Object? serverSsl = freezed,Object? title = freezed,Object? downloadType = null,}) {
-  return _then(_self.copyWith(
+  return _then(DownloadTaskMetadata(
 itemId: null == itemId ? _self.itemId : itemId // ignore: cast_nullable_to_non_nullable
 as String,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
 as String,episodeId: freezed == episodeId ? _self.episodeId : episodeId // ignore: cast_nullable_to_non_nullable

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/admin/admin_email_settings.dart';
 import 'package:yaabsa/api/admin/session_user_summary.dart';
 import 'package:yaabsa/components/common/inputs/expressive_dropdown.dart';
@@ -221,9 +221,8 @@ class _AdminEmailDeviceFormDialogState extends State<_AdminEmailDeviceFormDialog
                 if (sortedUsers.isEmpty)
                   Text(
                     'No users available.',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    style: Theme.of(context).textTheme.bodySmall
+                        ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                   )
                 else
                   Container(

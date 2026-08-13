@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'personalized_library.dart';
@@ -9,6 +9,7 @@ part of 'personalized_library.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
@@ -63,7 +64,7 @@ class _$PersonalizedLibraryCopyWithImpl<$Res>
 /// Create a copy of PersonalizedLibrary
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? continueListening = freezed,Object? recentlyAdded = freezed,Object? recentSeries = freezed,Object? discover = freezed,Object? listenAgain = freezed,Object? newestAuthors = freezed,Object? newestEpisodes = freezed,Object? continueSeries = freezed,Object? extraLibraryShelves = null,Object? extraEpisodeShelves = null,}) {
-  return _then(_self.copyWith(
+  return _then(PersonalizedLibrary(
 continueListening: freezed == continueListening ? _self.continueListening : continueListening // ignore: cast_nullable_to_non_nullable
 as ShelfEntry<LibraryItem>?,recentlyAdded: freezed == recentlyAdded ? _self.recentlyAdded : recentlyAdded // ignore: cast_nullable_to_non_nullable
 as ShelfEntry<LibraryItem>?,recentSeries: freezed == recentSeries ? _self.recentSeries : recentSeries // ignore: cast_nullable_to_non_nullable
@@ -311,7 +312,7 @@ return $default(_that.continueListening,_that.recentlyAdded,_that.recentSeries,_
 
 
 class _PersonalizedLibrary extends PersonalizedLibrary {
-  const _PersonalizedLibrary({this.continueListening, this.recentlyAdded, this.recentSeries, this.discover, this.listenAgain, this.newestAuthors, this.newestEpisodes, this.continueSeries, final  List<ShelfEntry<LibraryItem>> extraLibraryShelves = const <ShelfEntry<LibraryItem>>[], final  List<ShelfEntry<Episode>> extraEpisodeShelves = const <ShelfEntry<Episode>>[]}): _extraLibraryShelves = extraLibraryShelves,_extraEpisodeShelves = extraEpisodeShelves,super._();
+  const _PersonalizedLibrary({this.continueListening, this.recentlyAdded, this.recentSeries, this.discover, this.listenAgain, this.newestAuthors, this.newestEpisodes, this.continueSeries,  List<ShelfEntry<LibraryItem>> extraLibraryShelves = const <ShelfEntry<LibraryItem>>[],  List<ShelfEntry<Episode>> extraEpisodeShelves = const <ShelfEntry<Episode>>[]}): _extraLibraryShelves = extraLibraryShelves,_extraEpisodeShelves = extraEpisodeShelves,super._();
   
 
 @override final  ShelfEntry<LibraryItem>? continueListening;
@@ -554,7 +555,7 @@ class _$ShelfEntryCopyWithImpl<T,$Res>
 /// Create a copy of ShelfEntry
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? label = null,Object? labelStringKey = null,Object? type = null,Object? total = null,Object? entities = null,}) {
-  return _then(_self.copyWith(
+  return _then(ShelfEntry(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
 as String,labelStringKey: null == labelStringKey ? _self.labelStringKey : labelStringKey // ignore: cast_nullable_to_non_nullable
@@ -702,7 +703,7 @@ return $default(_that.id,_that.label,_that.labelStringKey,_that.type,_that.total
 @JsonSerializable(genericArgumentFactories: true)
 
 class _ShelfEntry<T> implements ShelfEntry<T> {
-  const _ShelfEntry({@JsonKey(name: "id") required this.id, @JsonKey(name: "label") required this.label, @JsonKey(name: "labelStringKey") required this.labelStringKey, @JsonKey(name: "type")@ShelfTypeConverter() required this.type, @JsonKey(name: "total") required this.total, @JsonKey(name: "entities") required final  List<T> entities}): _entities = entities;
+  const _ShelfEntry({@JsonKey(name: "id") required this.id, @JsonKey(name: "label") required this.label, @JsonKey(name: "labelStringKey") required this.labelStringKey, @JsonKey(name: "type")@ShelfTypeConverter() required this.type, @JsonKey(name: "total") required this.total, @JsonKey(name: "entities") required  List<T> entities}): _entities = entities;
   factory _ShelfEntry.fromJson(Map<String, dynamic> json,T Function(Object?) fromJsonT) => _$ShelfEntryFromJson(json,fromJsonT);
 
 @override@JsonKey(name: "id") final  String id;

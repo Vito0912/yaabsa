@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/components/settings/settings_slider.dart';
@@ -45,8 +45,7 @@ class PlayerSettingsSmartRewind extends ConsumerWidget {
             ),
             SettingSlider<int>(
               label: 'Long-pause threshold',
-              description:
-                  'If paused longer than the short threshold and up to this amount, the medium smart rewind value is used (longer pauses use the long smart rewind value)',
+              description: 'If paused longer than the short threshold and up to this amount, the medium smart rewind value is used (longer pauses use the long smart rewind value)',
               disabledReason: 'Enable Smart rewind to configure this option',
               values: const [300, 600, 900, 1200, 1800, 2700, 3600],
               valueLabels: const ['5 min', '10 min', '15 min', '20 min', '30 min', '45 min', '60 min'],

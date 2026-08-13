@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/api/me/media_progress.dart';
 import 'package:yaabsa/components/app/item/item_more_actions_button.dart';
@@ -134,9 +134,8 @@ class PodcastEpisodeTile extends StatelessWidget {
                               podcastEpisodeSubtitle(episode)!,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: Theme.of(
-                                context,
-                              ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                             ),
                           ),
                         if (descriptionPreview != null)
@@ -146,9 +145,8 @@ class PodcastEpisodeTile extends StatelessWidget {
                               descriptionPreview,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: Theme.of(
-                                context,
-                              ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                             ),
                           ),
                       ],
@@ -245,22 +243,19 @@ class PodcastEpisodeTile extends StatelessWidget {
                   if (publishedLabel != null)
                     Text(
                       publishedLabel,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.labelMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      style: Theme.of(context).textTheme.labelMedium
+                          ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                     ),
                   if (durationLabel != null)
                     Text(
                       durationLabel,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.labelMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      style: Theme.of(context).textTheme.labelMedium
+                          ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                     ),
                   Text(
                     statusLabel,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.labelMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                    style: Theme.of(context).textTheme.labelMedium
+                        ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),

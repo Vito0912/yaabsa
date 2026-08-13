@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'update_library_item_media_request.dart';
@@ -9,6 +9,7 @@ part of 'update_library_item_media_request.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$UpdateLibraryItemMediaRequestCopyWithImpl<$Res>
 /// Create a copy of UpdateLibraryItemMediaRequest
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? metadata = freezed,Object? tags = freezed,Object? url = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(UpdateLibraryItemMediaRequest(
 metadata: freezed == metadata ? _self.metadata : metadata // ignore: cast_nullable_to_non_nullable
 as UpdateLibraryItemMediaMetadataPatch?,tags: freezed == tags ? _self.tags : tags // ignore: cast_nullable_to_non_nullable
 as List<String>?,url: freezed == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
@@ -223,7 +224,7 @@ return $default(_that.metadata,_that.tags,_that.url);case _:
 
 @JsonSerializable(includeIfNull: false)
 class _UpdateLibraryItemMediaRequest implements UpdateLibraryItemMediaRequest {
-  const _UpdateLibraryItemMediaRequest({@JsonKey(name: 'metadata') this.metadata, @JsonKey(name: 'tags') final  List<String>? tags, @JsonKey(name: 'url') this.url}): _tags = tags;
+  const _UpdateLibraryItemMediaRequest({@JsonKey(name: 'metadata') this.metadata, @JsonKey(name: 'tags')  List<String>? tags, @JsonKey(name: 'url') this.url}): _tags = tags;
   factory _UpdateLibraryItemMediaRequest.fromJson(Map<String, dynamic> json) => _$UpdateLibraryItemMediaRequestFromJson(json);
 
 @override@JsonKey(name: 'metadata') final  UpdateLibraryItemMediaMetadataPatch? metadata;
@@ -367,7 +368,7 @@ class _$UpdateLibraryItemMediaMetadataPatchCopyWithImpl<$Res>
 /// Create a copy of UpdateLibraryItemMediaMetadataPatch
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? title = freezed,Object? subtitle = freezed,Object? author = freezed,Object? authors = freezed,Object? narrators = freezed,Object? series = freezed,Object? genres = freezed,Object? publisher = freezed,Object? publishedYear = freezed,Object? publishedDate = freezed,Object? description = freezed,Object? language = freezed,Object? explicit = freezed,Object? abridged = freezed,Object? isbn = freezed,Object? asin = freezed,Object? feedUrl = freezed,Object? itunesPageUrl = freezed,Object? itunesId = freezed,Object? releaseDate = freezed,Object? type = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(UpdateLibraryItemMediaMetadataPatch(
 title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String?,subtitle: freezed == subtitle ? _self.subtitle : subtitle // ignore: cast_nullable_to_non_nullable
 as String?,author: freezed == author ? _self.author : author // ignore: cast_nullable_to_non_nullable
@@ -530,7 +531,7 @@ return $default(_that.title,_that.subtitle,_that.author,_that.authors,_that.narr
 
 @JsonSerializable(includeIfNull: false)
 class _UpdateLibraryItemMediaMetadataPatch implements UpdateLibraryItemMediaMetadataPatch {
-  const _UpdateLibraryItemMediaMetadataPatch({@JsonKey(name: 'title') this.title, @JsonKey(name: 'subtitle') this.subtitle, @JsonKey(name: 'author') this.author, @JsonKey(name: 'authors') final  List<Author>? authors, @JsonKey(name: 'narrators') final  List<String>? narrators, @JsonKey(name: 'series') final  List<Series>? series, @JsonKey(name: 'genres') final  List<String>? genres, @JsonKey(name: 'publisher') this.publisher, @JsonKey(name: 'publishedYear') this.publishedYear, @JsonKey(name: 'publishedDate') this.publishedDate, @JsonKey(name: 'description') this.description, @JsonKey(name: 'language') this.language, @JsonKey(name: 'explicit') this.explicit, @JsonKey(name: 'abridged') this.abridged, @JsonKey(name: 'isbn') this.isbn, @JsonKey(name: 'asin') this.asin, @JsonKey(name: 'feedUrl') this.feedUrl, @JsonKey(name: 'itunesPageUrl') this.itunesPageUrl, @JsonKey(name: 'itunesId') this.itunesId, @JsonKey(name: 'releaseDate') this.releaseDate, @JsonKey(name: 'type') this.type}): _authors = authors,_narrators = narrators,_series = series,_genres = genres;
+  const _UpdateLibraryItemMediaMetadataPatch({@JsonKey(name: 'title') this.title, @JsonKey(name: 'subtitle') this.subtitle, @JsonKey(name: 'author') this.author, @JsonKey(name: 'authors')  List<Author>? authors, @JsonKey(name: 'narrators')  List<String>? narrators, @JsonKey(name: 'series')  List<Series>? series, @JsonKey(name: 'genres')  List<String>? genres, @JsonKey(name: 'publisher') this.publisher, @JsonKey(name: 'publishedYear') this.publishedYear, @JsonKey(name: 'publishedDate') this.publishedDate, @JsonKey(name: 'description') this.description, @JsonKey(name: 'language') this.language, @JsonKey(name: 'explicit') this.explicit, @JsonKey(name: 'abridged') this.abridged, @JsonKey(name: 'isbn') this.isbn, @JsonKey(name: 'asin') this.asin, @JsonKey(name: 'feedUrl') this.feedUrl, @JsonKey(name: 'itunesPageUrl') this.itunesPageUrl, @JsonKey(name: 'itunesId') this.itunesId, @JsonKey(name: 'releaseDate') this.releaseDate, @JsonKey(name: 'type') this.type}): _authors = authors,_narrators = narrators,_series = series,_genres = genres;
   factory _UpdateLibraryItemMediaMetadataPatch.fromJson(Map<String, dynamic> json) => _$UpdateLibraryItemMediaMetadataPatchFromJson(json);
 
 @override@JsonKey(name: 'title') final  String? title;

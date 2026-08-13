@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/components/common/library_item_delete_dialog.dart';
@@ -52,9 +52,8 @@ Future<bool> deleteAudiobookWithConfirmation({
   VoidCallback? onSuccess,
 }) async {
   if (!isAudiobookLibraryItem(item)) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Only audiobooks can be deleted from this action.')));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('Only audiobooks can be deleted from this action.')));
     return false;
   }
 

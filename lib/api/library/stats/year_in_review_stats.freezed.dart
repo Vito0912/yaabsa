@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'year_in_review_stats.dart';
@@ -9,6 +9,7 @@ part of 'year_in_review_stats.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$YearInReviewNamedStatCopyWithImpl<$Res>
 /// Create a copy of YearInReviewNamedStat
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? name = freezed,Object? time = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(YearInReviewNamedStat(
 name: freezed == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String?,time: freezed == time ? _self.time : time // ignore: cast_nullable_to_non_nullable
 as int?,
@@ -332,7 +333,7 @@ class _$YearInReviewGenreStatCopyWithImpl<$Res>
 /// Create a copy of YearInReviewGenreStat
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? genre = freezed,Object? time = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(YearInReviewGenreStat(
 genre: freezed == genre ? _self.genre : genre // ignore: cast_nullable_to_non_nullable
 as String?,time: freezed == time ? _self.time : time // ignore: cast_nullable_to_non_nullable
 as int?,
@@ -598,7 +599,7 @@ class _$YearInReviewMonthStatCopyWithImpl<$Res>
 /// Create a copy of YearInReviewMonthStat
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? month = freezed,Object? time = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(YearInReviewMonthStat(
 month: freezed == month ? _self.month : month // ignore: cast_nullable_to_non_nullable
 as int?,time: freezed == time ? _self.time : time // ignore: cast_nullable_to_non_nullable
 as int?,
@@ -864,7 +865,7 @@ class _$YearInReviewBookStatCopyWithImpl<$Res>
 /// Create a copy of YearInReviewBookStat
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? title = freezed,Object? duration = freezed,Object? finishedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(YearInReviewBookStat(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String?,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String?,duration: freezed == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
@@ -1136,7 +1137,7 @@ class _$YearInReviewStatsCopyWithImpl<$Res>
 /// Create a copy of YearInReviewStats
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? totalListeningSessions = freezed,Object? totalListeningTime = freezed,Object? totalBookListeningTime = freezed,Object? totalPodcastListeningTime = freezed,Object? topAuthors = null,Object? topGenres = null,Object? mostListenedNarrator = freezed,Object? mostListenedMonth = freezed,Object? numBooksFinished = freezed,Object? numBooksListened = freezed,Object? longestAudiobookFinished = freezed,Object? booksWithCovers = null,Object? finishedBooksWithCovers = null,Object? numListeningSessions = freezed,Object? numBooksAdded = freezed,Object? numAuthorsAdded = freezed,Object? totalBooksAddedSize = freezed,Object? totalBooksAddedDuration = freezed,Object? booksAddedWithCovers = null,Object? totalBooksSize = freezed,Object? totalBooksDuration = freezed,Object? numBooks = freezed,Object? topNarrators = null,}) {
-  return _then(_self.copyWith(
+  return _then(YearInReviewStats(
 totalListeningSessions: freezed == totalListeningSessions ? _self.totalListeningSessions : totalListeningSessions // ignore: cast_nullable_to_non_nullable
 as int?,totalListeningTime: freezed == totalListeningTime ? _self.totalListeningTime : totalListeningTime // ignore: cast_nullable_to_non_nullable
 as int?,totalBookListeningTime: freezed == totalBookListeningTime ? _self.totalBookListeningTime : totalBookListeningTime // ignore: cast_nullable_to_non_nullable
@@ -1337,7 +1338,7 @@ return $default(_that.totalListeningSessions,_that.totalListeningTime,_that.tota
 @JsonSerializable()
 
 class _YearInReviewStats implements YearInReviewStats {
-  const _YearInReviewStats({@JsonKey(name: 'totalListeningSessions', fromJson: jsonIntFromDynamic) this.totalListeningSessions, @JsonKey(name: 'totalListeningTime', fromJson: jsonIntFromDynamic) this.totalListeningTime, @JsonKey(name: 'totalBookListeningTime', fromJson: jsonIntFromDynamic) this.totalBookListeningTime, @JsonKey(name: 'totalPodcastListeningTime', fromJson: jsonIntFromDynamic) this.totalPodcastListeningTime, @JsonKey(name: 'topAuthors') final  List<YearInReviewNamedStat> topAuthors = const <YearInReviewNamedStat>[], @JsonKey(name: 'topGenres') final  List<YearInReviewGenreStat> topGenres = const <YearInReviewGenreStat>[], @JsonKey(name: 'mostListenedNarrator') this.mostListenedNarrator, @JsonKey(name: 'mostListenedMonth') this.mostListenedMonth, @JsonKey(name: 'numBooksFinished', fromJson: jsonIntFromDynamic) this.numBooksFinished, @JsonKey(name: 'numBooksListened', fromJson: jsonIntFromDynamic) this.numBooksListened, @JsonKey(name: 'longestAudiobookFinished') this.longestAudiobookFinished, @JsonKey(name: 'booksWithCovers') final  List<String> booksWithCovers = const <String>[], @JsonKey(name: 'finishedBooksWithCovers') final  List<String> finishedBooksWithCovers = const <String>[], @JsonKey(name: 'numListeningSessions', fromJson: jsonIntFromDynamic) this.numListeningSessions, @JsonKey(name: 'numBooksAdded', fromJson: jsonIntFromDynamic) this.numBooksAdded, @JsonKey(name: 'numAuthorsAdded', fromJson: jsonIntFromDynamic) this.numAuthorsAdded, @JsonKey(name: 'totalBooksAddedSize', fromJson: jsonIntFromDynamic) this.totalBooksAddedSize, @JsonKey(name: 'totalBooksAddedDuration', fromJson: jsonIntFromDynamic) this.totalBooksAddedDuration, @JsonKey(name: 'booksAddedWithCovers') final  List<String> booksAddedWithCovers = const <String>[], @JsonKey(name: 'totalBooksSize', fromJson: jsonIntFromDynamic) this.totalBooksSize, @JsonKey(name: 'totalBooksDuration', fromJson: jsonIntFromDynamic) this.totalBooksDuration, @JsonKey(name: 'numBooks', fromJson: jsonIntFromDynamic) this.numBooks, @JsonKey(name: 'topNarrators') final  List<YearInReviewNamedStat> topNarrators = const <YearInReviewNamedStat>[]}): _topAuthors = topAuthors,_topGenres = topGenres,_booksWithCovers = booksWithCovers,_finishedBooksWithCovers = finishedBooksWithCovers,_booksAddedWithCovers = booksAddedWithCovers,_topNarrators = topNarrators;
+  const _YearInReviewStats({@JsonKey(name: 'totalListeningSessions', fromJson: jsonIntFromDynamic) this.totalListeningSessions, @JsonKey(name: 'totalListeningTime', fromJson: jsonIntFromDynamic) this.totalListeningTime, @JsonKey(name: 'totalBookListeningTime', fromJson: jsonIntFromDynamic) this.totalBookListeningTime, @JsonKey(name: 'totalPodcastListeningTime', fromJson: jsonIntFromDynamic) this.totalPodcastListeningTime, @JsonKey(name: 'topAuthors')  List<YearInReviewNamedStat> topAuthors = const <YearInReviewNamedStat>[], @JsonKey(name: 'topGenres')  List<YearInReviewGenreStat> topGenres = const <YearInReviewGenreStat>[], @JsonKey(name: 'mostListenedNarrator') this.mostListenedNarrator, @JsonKey(name: 'mostListenedMonth') this.mostListenedMonth, @JsonKey(name: 'numBooksFinished', fromJson: jsonIntFromDynamic) this.numBooksFinished, @JsonKey(name: 'numBooksListened', fromJson: jsonIntFromDynamic) this.numBooksListened, @JsonKey(name: 'longestAudiobookFinished') this.longestAudiobookFinished, @JsonKey(name: 'booksWithCovers')  List<String> booksWithCovers = const <String>[], @JsonKey(name: 'finishedBooksWithCovers')  List<String> finishedBooksWithCovers = const <String>[], @JsonKey(name: 'numListeningSessions', fromJson: jsonIntFromDynamic) this.numListeningSessions, @JsonKey(name: 'numBooksAdded', fromJson: jsonIntFromDynamic) this.numBooksAdded, @JsonKey(name: 'numAuthorsAdded', fromJson: jsonIntFromDynamic) this.numAuthorsAdded, @JsonKey(name: 'totalBooksAddedSize', fromJson: jsonIntFromDynamic) this.totalBooksAddedSize, @JsonKey(name: 'totalBooksAddedDuration', fromJson: jsonIntFromDynamic) this.totalBooksAddedDuration, @JsonKey(name: 'booksAddedWithCovers')  List<String> booksAddedWithCovers = const <String>[], @JsonKey(name: 'totalBooksSize', fromJson: jsonIntFromDynamic) this.totalBooksSize, @JsonKey(name: 'totalBooksDuration', fromJson: jsonIntFromDynamic) this.totalBooksDuration, @JsonKey(name: 'numBooks', fromJson: jsonIntFromDynamic) this.numBooks, @JsonKey(name: 'topNarrators')  List<YearInReviewNamedStat> topNarrators = const <YearInReviewNamedStat>[]}): _topAuthors = topAuthors,_topGenres = topGenres,_booksWithCovers = booksWithCovers,_finishedBooksWithCovers = finishedBooksWithCovers,_booksAddedWithCovers = booksAddedWithCovers,_topNarrators = topNarrators;
   factory _YearInReviewStats.fromJson(Map<String, dynamic> json) => _$YearInReviewStatsFromJson(json);
 
 @override@JsonKey(name: 'totalListeningSessions', fromJson: jsonIntFromDynamic) final  int? totalListeningSessions;

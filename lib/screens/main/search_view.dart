@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -229,9 +229,8 @@ class _SearchResultItems extends ConsumerWidget {
                             const SizedBox(height: 4),
                             Text(
                               item.mediaType ?? 'Unknown media',
-                              style: Theme.of(
-                                context,
-                              ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                             ),
                           ],
                         ),

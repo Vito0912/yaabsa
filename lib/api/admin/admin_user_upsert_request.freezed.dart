@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'admin_user_upsert_request.dart';
@@ -9,6 +9,7 @@ part of 'admin_user_upsert_request.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$AdminUserUpsertRequestCopyWithImpl<$Res>
 /// Create a copy of AdminUserUpsertRequest
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? username = null,Object? password = freezed,Object? email = freezed,Object? type = null,Object? isActive = null,Object? permissions = null,Object? librariesAccessible = null,Object? itemTagsSelected = null,}) {
-  return _then(_self.copyWith(
+  return _then(AdminUserUpsertRequest(
 username: null == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
 as String,password: freezed == password ? _self.password : password // ignore: cast_nullable_to_non_nullable
 as String?,email: freezed == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
@@ -225,7 +226,7 @@ return $default(_that.username,_that.password,_that.email,_that.type,_that.isAct
 @JsonSerializable()
 
 class _AdminUserUpsertRequest implements AdminUserUpsertRequest {
-  const _AdminUserUpsertRequest({@JsonKey(name: 'username') required this.username, @JsonKey(name: 'password') this.password, @JsonKey(name: 'email') this.email, @JsonKey(name: 'type') this.type = 'user', @JsonKey(name: 'isActive') this.isActive = true, @JsonKey(name: 'permissions') this.permissions = const AdminUserPermissions(), @JsonKey(name: 'librariesAccessible') final  List<String> librariesAccessible = const <String>[], @JsonKey(name: 'itemTagsSelected') final  List<String> itemTagsSelected = const <String>[]}): _librariesAccessible = librariesAccessible,_itemTagsSelected = itemTagsSelected;
+  const _AdminUserUpsertRequest({@JsonKey(name: 'username') required this.username, @JsonKey(name: 'password') this.password, @JsonKey(name: 'email') this.email, @JsonKey(name: 'type') this.type = 'user', @JsonKey(name: 'isActive') this.isActive = true, @JsonKey(name: 'permissions') this.permissions = const AdminUserPermissions(), @JsonKey(name: 'librariesAccessible')  List<String> librariesAccessible = const <String>[], @JsonKey(name: 'itemTagsSelected')  List<String> itemTagsSelected = const <String>[]}): _librariesAccessible = librariesAccessible,_itemTagsSelected = itemTagsSelected;
   factory _AdminUserUpsertRequest.fromJson(Map<String, dynamic> json) => _$AdminUserUpsertRequestFromJson(json);
 
 @override@JsonKey(name: 'username') final  String username;

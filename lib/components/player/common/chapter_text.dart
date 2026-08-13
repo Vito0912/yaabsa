@@ -1,6 +1,6 @@
 import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/util/globals.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class ChapterText extends StatelessWidget {
   const ChapterText({super.key});

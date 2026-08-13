@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'library_authors.dart';
@@ -9,6 +9,7 @@ part of 'library_authors.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$LibraryAuthorsCopyWithImpl<$Res>
 /// Create a copy of LibraryAuthors
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? results = null,Object? total = null,Object? limit = freezed,Object? page = freezed,Object? sortBy = freezed,Object? sortDesc = freezed,Object? filterBy = freezed,Object? minified = freezed,Object? include = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(LibraryAuthors(
 results: null == results ? _self.results : results // ignore: cast_nullable_to_non_nullable
 as List<LibraryAuthor>,total: null == total ? _self.total : total // ignore: cast_nullable_to_non_nullable
 as int,limit: freezed == limit ? _self.limit : limit // ignore: cast_nullable_to_non_nullable
@@ -217,7 +218,7 @@ return $default(_that.results,_that.total,_that.limit,_that.page,_that.sortBy,_t
 @JsonSerializable()
 
 class _LibraryAuthors implements LibraryAuthors {
-  const _LibraryAuthors({@JsonKey(name: 'results') final  List<LibraryAuthor> results = const <LibraryAuthor>[], @JsonKey(name: 'total') this.total = 0, @JsonKey(name: 'limit') this.limit, @JsonKey(name: 'page') this.page, @JsonKey(name: 'sortBy') this.sortBy, @JsonKey(name: 'sortDesc') this.sortDesc, @JsonKey(name: 'filterBy') this.filterBy, @JsonKey(name: 'minified') this.minified, @JsonKey(name: 'include') this.include}): _results = results;
+  const _LibraryAuthors({@JsonKey(name: 'results')  List<LibraryAuthor> results = const <LibraryAuthor>[], @JsonKey(name: 'total') this.total = 0, @JsonKey(name: 'limit') this.limit, @JsonKey(name: 'page') this.page, @JsonKey(name: 'sortBy') this.sortBy, @JsonKey(name: 'sortDesc') this.sortDesc, @JsonKey(name: 'filterBy') this.filterBy, @JsonKey(name: 'minified') this.minified, @JsonKey(name: 'include') this.include}): _results = results;
   factory _LibraryAuthors.fromJson(Map<String, dynamic> json) => _$LibraryAuthorsFromJson(json);
 
  final  List<LibraryAuthor> _results;

@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/models/listening_activity_stats.dart';
 import 'package:yaabsa/screens/main/stats/stats_formatters.dart';
 import 'package:yaabsa/util/globals.dart';

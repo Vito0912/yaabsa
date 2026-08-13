@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/components/settings/settings_dropdown.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';
@@ -84,8 +84,7 @@ class PlayerSettingsSleepTimer extends ConsumerWidget {
           settings: [
             const SettingSwitchTile(
               label: 'Auto-restart timer on playback start',
-              subtitle:
-                  'When playback starts and no timer is active, automatically start a new sleep timer using your last duration',
+              subtitle: 'When playback starts and no timer is active, automatically start a new sleep timer using your last duration',
               settingKey: SettingKeys.sleepTimerAutoRestartEnabled,
             ),
             SettingSwitchTile(

@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'library_filter_data.dart';
@@ -9,6 +9,7 @@ part of 'library_filter_data.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$LibraryFilterDataCopyWithImpl<$Res>
 /// Create a copy of LibraryFilterData
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? authors = null,Object? genres = null,Object? tags = null,Object? series = null,Object? narrators = null,Object? languages = null,Object? publishers = null,Object? publishedDecades = null,Object? bookCount = null,Object? authorCount = null,Object? seriesCount = null,Object? podcastCount = null,Object? numIssues = null,Object? loadedAt = null,}) {
-  return _then(_self.copyWith(
+  return _then(LibraryFilterData(
 authors: null == authors ? _self.authors : authors // ignore: cast_nullable_to_non_nullable
 as List<LibraryFilterNamedEntity>,genres: null == genres ? _self.genres : genres // ignore: cast_nullable_to_non_nullable
 as List<String>,tags: null == tags ? _self.tags : tags // ignore: cast_nullable_to_non_nullable
@@ -222,7 +223,7 @@ return $default(_that.authors,_that.genres,_that.tags,_that.series,_that.narrato
 @JsonSerializable()
 
 class _LibraryFilterData implements LibraryFilterData {
-  const _LibraryFilterData({@JsonKey(name: 'authors') final  List<LibraryFilterNamedEntity> authors = const <LibraryFilterNamedEntity>[], @JsonKey(name: 'genres') final  List<String> genres = const <String>[], @JsonKey(name: 'tags') final  List<String> tags = const <String>[], @JsonKey(name: 'series') final  List<LibraryFilterNamedEntity> series = const <LibraryFilterNamedEntity>[], @JsonKey(name: 'narrators') final  List<String> narrators = const <String>[], @JsonKey(name: 'languages') final  List<String> languages = const <String>[], @JsonKey(name: 'publishers') final  List<String> publishers = const <String>[], @JsonKey(name: 'publishedDecades') final  List<String> publishedDecades = const <String>[], @JsonKey(name: 'bookCount') this.bookCount = 0, @JsonKey(name: 'authorCount') this.authorCount = 0, @JsonKey(name: 'seriesCount') this.seriesCount = 0, @JsonKey(name: 'podcastCount') this.podcastCount = 0, @JsonKey(name: 'numIssues') this.numIssues = 0, @JsonKey(name: 'loadedAt') this.loadedAt = 0}): _authors = authors,_genres = genres,_tags = tags,_series = series,_narrators = narrators,_languages = languages,_publishers = publishers,_publishedDecades = publishedDecades;
+  const _LibraryFilterData({@JsonKey(name: 'authors')  List<LibraryFilterNamedEntity> authors = const <LibraryFilterNamedEntity>[], @JsonKey(name: 'genres')  List<String> genres = const <String>[], @JsonKey(name: 'tags')  List<String> tags = const <String>[], @JsonKey(name: 'series')  List<LibraryFilterNamedEntity> series = const <LibraryFilterNamedEntity>[], @JsonKey(name: 'narrators')  List<String> narrators = const <String>[], @JsonKey(name: 'languages')  List<String> languages = const <String>[], @JsonKey(name: 'publishers')  List<String> publishers = const <String>[], @JsonKey(name: 'publishedDecades')  List<String> publishedDecades = const <String>[], @JsonKey(name: 'bookCount') this.bookCount = 0, @JsonKey(name: 'authorCount') this.authorCount = 0, @JsonKey(name: 'seriesCount') this.seriesCount = 0, @JsonKey(name: 'podcastCount') this.podcastCount = 0, @JsonKey(name: 'numIssues') this.numIssues = 0, @JsonKey(name: 'loadedAt') this.loadedAt = 0}): _authors = authors,_genres = genres,_tags = tags,_series = series,_narrators = narrators,_languages = languages,_publishers = publishers,_publishedDecades = publishedDecades;
   factory _LibraryFilterData.fromJson(Map<String, dynamic> json) => _$LibraryFilterDataFromJson(json);
 
  final  List<LibraryFilterNamedEntity> _authors;

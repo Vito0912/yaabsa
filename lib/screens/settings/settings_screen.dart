@@ -1,7 +1,8 @@
 import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -681,9 +682,8 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
                       : Center(
                           child: Text(
                             'No active user.',
-                            style: Theme.of(
-                              context,
-                            ).textTheme.titleMedium?.copyWith(color: Theme.of(context).colorScheme.onPrimaryContainer),
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(color: Theme.of(context).colorScheme.onPrimaryContainer),
                           ),
                         ),
                 ),
@@ -953,9 +953,8 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
                                       const SizedBox(height: 12),
                                       Text(
                                         "No settings found for '$_searchQuery'",
-                                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                        ),
+                                        style: Theme.of(context).textTheme.titleMedium
+                                            ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                                         textAlign: TextAlign.center,
                                       ),
                                     ],

@@ -1,5 +1,6 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
+
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:yaabsa/database/settings_manager.dart';
@@ -391,10 +392,8 @@ class EqualizerBandSlider extends StatelessWidget {
       children: [
         Text(
           '${currentGain > 0 ? '+' : ''}${currentGain.toStringAsFixed(1)} dB',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            fontWeight: FontWeight.w500,
-            color: enabled ? null : Theme.of(context).disabledColor,
-          ),
+          style: Theme.of(context).textTheme.bodySmall
+              ?.copyWith(fontWeight: FontWeight.w500, color: enabled ? null : Theme.of(context).disabledColor),
         ),
         const SizedBox(height: 8),
         Expanded(
@@ -419,10 +418,8 @@ class EqualizerBandSlider extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           _formatFrequency(band.centerFrequency),
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: enabled ? null : Theme.of(context).disabledColor,
-          ),
+          style: Theme.of(context).textTheme.bodyMedium
+              ?.copyWith(fontWeight: FontWeight.bold, color: enabled ? null : Theme.of(context).disabledColor),
         ),
       ],
     );

@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/components/settings/settings_section_title.dart';
 import 'package:yaabsa/components/settings/theme_color_channel_slider.dart';
@@ -187,9 +187,8 @@ class ThemeAppearanceSection extends ConsumerWidget {
                           ),
                           Text(
                             'R$customRed G$customGreen B$customBlue',
-                            style: Theme.of(
-                              context,
-                            ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                           ),
                         ],
                       ),
@@ -234,9 +233,8 @@ class ThemeAppearanceSection extends ConsumerWidget {
                     const SizedBox(height: 8),
                     Text(
                       'Quick Colors',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.labelLarge?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      style: Theme.of(context).textTheme.labelLarge
+                          ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                     ),
                     const SizedBox(height: 10),
                     Wrap(

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
 
 @immutable
@@ -76,9 +76,8 @@ class LibraryFolderListEditor extends StatelessWidget {
                       subtitle: folder.isExisting
                           ? Text(
                               'Existing folder',
-                              style: Theme.of(
-                                context,
-                              ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(color: colorScheme.onSurfaceVariant),
                             )
                           : null,
                       trailing: IconButton(

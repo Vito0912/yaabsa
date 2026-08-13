@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'admin_user_permissions.dart';
@@ -9,6 +9,7 @@ part of 'admin_user_permissions.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$AdminUserPermissionsCopyWithImpl<$Res>
 /// Create a copy of AdminUserPermissions
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? download = null,Object? update = null,Object? delete = null,Object? upload = null,Object? createEreader = null,Object? accessAllLibraries = null,Object? accessAllTags = null,Object? accessExplicitContent = null,Object? selectedTagsNotAccessible = null,Object? librariesAccessible = null,Object? itemTagsSelected = null,}) {
-  return _then(_self.copyWith(
+  return _then(AdminUserPermissions(
 download: null == download ? _self.download : download // ignore: cast_nullable_to_non_nullable
 as bool,update: null == update ? _self.update : update // ignore: cast_nullable_to_non_nullable
 as bool,delete: null == delete ? _self.delete : delete // ignore: cast_nullable_to_non_nullable
@@ -219,7 +220,7 @@ return $default(_that.download,_that.update,_that.delete,_that.upload,_that.crea
 @JsonSerializable()
 
 class _AdminUserPermissions implements AdminUserPermissions {
-  const _AdminUserPermissions({@JsonKey(name: 'download') this.download = true, @JsonKey(name: 'update') this.update = false, @JsonKey(name: 'delete') this.delete = false, @JsonKey(name: 'upload') this.upload = false, @JsonKey(name: 'createEreader') this.createEreader = false, @JsonKey(name: 'accessAllLibraries') this.accessAllLibraries = true, @JsonKey(name: 'accessAllTags') this.accessAllTags = true, @JsonKey(name: 'accessExplicitContent') this.accessExplicitContent = false, @JsonKey(name: 'selectedTagsNotAccessible') this.selectedTagsNotAccessible = false, @JsonKey(name: 'librariesAccessible') final  List<String> librariesAccessible = const <String>[], @JsonKey(name: 'itemTagsSelected') final  List<String> itemTagsSelected = const <String>[]}): _librariesAccessible = librariesAccessible,_itemTagsSelected = itemTagsSelected;
+  const _AdminUserPermissions({@JsonKey(name: 'download') this.download = true, @JsonKey(name: 'update') this.update = false, @JsonKey(name: 'delete') this.delete = false, @JsonKey(name: 'upload') this.upload = false, @JsonKey(name: 'createEreader') this.createEreader = false, @JsonKey(name: 'accessAllLibraries') this.accessAllLibraries = true, @JsonKey(name: 'accessAllTags') this.accessAllTags = true, @JsonKey(name: 'accessExplicitContent') this.accessExplicitContent = false, @JsonKey(name: 'selectedTagsNotAccessible') this.selectedTagsNotAccessible = false, @JsonKey(name: 'librariesAccessible')  List<String> librariesAccessible = const <String>[], @JsonKey(name: 'itemTagsSelected')  List<String> itemTagsSelected = const <String>[]}): _librariesAccessible = librariesAccessible,_itemTagsSelected = itemTagsSelected;
   factory _AdminUserPermissions.fromJson(Map<String, dynamic> json) => _$AdminUserPermissionsFromJson(json);
 
 @override@JsonKey(name: 'download') final  bool download;

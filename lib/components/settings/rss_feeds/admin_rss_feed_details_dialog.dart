@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:yaabsa/api/admin/admin_rss_feed.dart';
 import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
@@ -207,9 +207,8 @@ class _AdminRssFeedDetailsDialogState extends State<_AdminRssFeedDetailsDialog> 
                         const SizedBox(height: 2),
                         Text(
                           '${_entityLabel(widget.feed.entityType)} • $episodeCount episodes',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                         ),
                       ],
                     ),
@@ -286,9 +285,8 @@ class _AdminRssFeedDetailsDialogState extends State<_AdminRssFeedDetailsDialog> 
                                 tags.join(' • '),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                               ),
                           ],
                         );

@@ -5,7 +5,7 @@ import 'package:desktop_drop/desktop_drop.dart';
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:path/path.dart' as p;
 import 'package:yaabsa/api/library/library.dart';
@@ -1440,9 +1440,8 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
                                           children: [
                                             Text(
                                               'Settings',
-                                              style: Theme.of(
-                                                context,
-                                              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                                              style: Theme.of(context).textTheme.titleSmall
+                                                  ?.copyWith(fontWeight: FontWeight.w600),
                                             ),
                                             const SizedBox(height: 4),
                                             SettingsToggleRow(
@@ -1491,9 +1490,8 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
                                               const SizedBox(height: 6),
                                               Text(
                                                 'Requires admin role.',
-                                                style: Theme.of(
-                                                  context,
-                                                ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                                                style: Theme.of(context).textTheme.bodySmall
+                                                    ?.copyWith(color: colorScheme.onSurfaceVariant),
                                               ),
                                             ],
                                             if (canUseAutocomplete && _isLoadingAutocompleteSuggestions) ...[
@@ -1516,9 +1514,8 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
                                           children: [
                                             Text(
                                               'Bulk update queue metadata',
-                                              style: Theme.of(
-                                                context,
-                                              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                                              style: Theme.of(context).textTheme.titleSmall
+                                                  ?.copyWith(fontWeight: FontWeight.w600),
                                             ),
                                             const SizedBox(height: 8),
                                             LayoutBuilder(

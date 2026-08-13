@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'book_media.dart';
@@ -9,6 +9,7 @@ part of 'book_media.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$BookMediaCopyWithImpl<$Res>
 /// Create a copy of BookMedia
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? libraryItemId = freezed,Object? metadata = null,Object? coverPath = freezed,Object? tags = freezed,Object? audioFiles = freezed,Object? chapters = freezed,Object? ebookFile = freezed,Object? numTracks = freezed,Object? numChapters = freezed,Object? numAudioFiles = freezed,Object? size = freezed,Object? ebookFormat = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(BookMedia(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,libraryItemId: freezed == libraryItemId ? _self.libraryItemId : libraryItemId // ignore: cast_nullable_to_non_nullable
 as String?,metadata: null == metadata ? _self.metadata : metadata // ignore: cast_nullable_to_non_nullable
@@ -242,7 +243,7 @@ return $default(_that.id,_that.libraryItemId,_that.metadata,_that.coverPath,_tha
 @JsonSerializable()
 
 class _BookMedia implements BookMedia {
-  const _BookMedia({@JsonKey(name: "id") required this.id, @JsonKey(name: "libraryItemId") this.libraryItemId, @JsonKey(name: "metadata") required this.metadata, @JsonKey(name: "coverPath") this.coverPath, @JsonKey(name: "tags") final  List<String>? tags, @JsonKey(name: "audioFiles") final  List<AudioFile>? audioFiles, @JsonKey(name: "chapters") final  List<Chapter>? chapters, @JsonKey(name: "ebookFile") this.ebookFile, @JsonKey(name: "numTracks") this.numTracks, @JsonKey(name: "numChapters") this.numChapters, @JsonKey(name: "numAudioFiles") this.numAudioFiles, @JsonKey(name: "size") this.size, @JsonKey(name: "ebookFormat") this.ebookFormat}): _tags = tags,_audioFiles = audioFiles,_chapters = chapters;
+  const _BookMedia({@JsonKey(name: "id") required this.id, @JsonKey(name: "libraryItemId") this.libraryItemId, @JsonKey(name: "metadata") required this.metadata, @JsonKey(name: "coverPath") this.coverPath, @JsonKey(name: "tags")  List<String>? tags, @JsonKey(name: "audioFiles")  List<AudioFile>? audioFiles, @JsonKey(name: "chapters")  List<Chapter>? chapters, @JsonKey(name: "ebookFile") this.ebookFile, @JsonKey(name: "numTracks") this.numTracks, @JsonKey(name: "numChapters") this.numChapters, @JsonKey(name: "numAudioFiles") this.numAudioFiles, @JsonKey(name: "size") this.size, @JsonKey(name: "ebookFormat") this.ebookFormat}): _tags = tags,_audioFiles = audioFiles,_chapters = chapters;
   factory _BookMedia.fromJson(Map<String, dynamic> json) => _$BookMediaFromJson(json);
 
 @override@JsonKey(name: "id") final  String id;

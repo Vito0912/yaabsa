@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'media_metadata.dart';
@@ -9,6 +9,7 @@ part of 'media_metadata.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$MediaMetadataCopyWithImpl<$Res>
 /// Create a copy of MediaMetadata
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? title = null,Object? subtitle = freezed,Object? authors = freezed,Object? narrators = freezed,Object? series = freezed,Object? genres = freezed,Object? publishedYear = freezed,Object? publishedDate = freezed,Object? publisher = freezed,Object? description = freezed,Object? isbn = freezed,Object? asin = freezed,Object? language = freezed,Object? explicit = freezed,Object? abridged = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(MediaMetadata(
 title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,subtitle: freezed == subtitle ? _self.subtitle : subtitle // ignore: cast_nullable_to_non_nullable
 as String?,authors: freezed == authors ? _self.authors : authors // ignore: cast_nullable_to_non_nullable
@@ -223,7 +224,7 @@ return $default(_that.title,_that.subtitle,_that.authors,_that.narrators,_that.s
 @JsonSerializable()
 
 class _MediaMetadata implements MediaMetadata {
-  const _MediaMetadata({@JsonKey(name: "title") required this.title, @JsonKey(name: "subtitle") this.subtitle, @JsonKey(name: "authors") final  List<Author>? authors, @JsonKey(name: "narrators") final  List<String>? narrators, @JsonKey(name: "series")@SeriesConverter() final  List<Series>? series, @JsonKey(name: "genres") final  List<String>? genres, @JsonKey(name: "publishedYear") this.publishedYear, @JsonKey(name: "publishedDate") this.publishedDate, @JsonKey(name: "publisher") this.publisher, @JsonKey(name: "description") this.description, @JsonKey(name: "isbn") this.isbn, @JsonKey(name: "asin") this.asin, @JsonKey(name: "language") this.language, @JsonKey(name: "explicit") this.explicit, @JsonKey(name: "abridged") this.abridged}): _authors = authors,_narrators = narrators,_series = series,_genres = genres;
+  const _MediaMetadata({@JsonKey(name: "title") required this.title, @JsonKey(name: "subtitle") this.subtitle, @JsonKey(name: "authors")  List<Author>? authors, @JsonKey(name: "narrators")  List<String>? narrators, @JsonKey(name: "series")@SeriesConverter()  List<Series>? series, @JsonKey(name: "genres")  List<String>? genres, @JsonKey(name: "publishedYear") this.publishedYear, @JsonKey(name: "publishedDate") this.publishedDate, @JsonKey(name: "publisher") this.publisher, @JsonKey(name: "description") this.description, @JsonKey(name: "isbn") this.isbn, @JsonKey(name: "asin") this.asin, @JsonKey(name: "language") this.language, @JsonKey(name: "explicit") this.explicit, @JsonKey(name: "abridged") this.abridged}): _authors = authors,_narrators = narrators,_series = series,_genres = genres;
   factory _MediaMetadata.fromJson(Map<String, dynamic> json) => _$MediaMetadataFromJson(json);
 
 @override@JsonKey(name: "title") final  String title;

@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'admin_email_settings.dart';
@@ -9,6 +9,7 @@ part of 'admin_email_settings.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$AdminEmailEreaderDeviceCopyWithImpl<$Res>
 /// Create a copy of AdminEmailEreaderDevice
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? email = null,Object? availabilityOption = null,Object? users = null,}) {
-  return _then(_self.copyWith(
+  return _then(AdminEmailEreaderDevice(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
 as String,availabilityOption: null == availabilityOption ? _self.availabilityOption : availabilityOption // ignore: cast_nullable_to_non_nullable
@@ -212,7 +213,7 @@ return $default(_that.name,_that.email,_that.availabilityOption,_that.users);cas
 @JsonSerializable()
 
 class _AdminEmailEreaderDevice implements AdminEmailEreaderDevice {
-  const _AdminEmailEreaderDevice({@JsonKey(name: 'name') required this.name, @JsonKey(name: 'email') required this.email, @JsonKey(name: 'availabilityOption') this.availabilityOption = 'adminOrUp', @JsonKey(name: 'users') final  List<String> users = const <String>[]}): _users = users;
+  const _AdminEmailEreaderDevice({@JsonKey(name: 'name') required this.name, @JsonKey(name: 'email') required this.email, @JsonKey(name: 'availabilityOption') this.availabilityOption = 'adminOrUp', @JsonKey(name: 'users')  List<String> users = const <String>[]}): _users = users;
   factory _AdminEmailEreaderDevice.fromJson(Map<String, dynamic> json) => _$AdminEmailEreaderDeviceFromJson(json);
 
 @override@JsonKey(name: 'name') final  String name;
@@ -344,7 +345,7 @@ class _$AdminEmailSettingsCopyWithImpl<$Res>
 /// Create a copy of AdminEmailSettings
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? host = freezed,Object? port = null,Object? secure = null,Object? rejectUnauthorized = null,Object? user = freezed,Object? pass = freezed,Object? testAddress = freezed,Object? fromAddress = freezed,Object? ereaderDevices = null,}) {
-  return _then(_self.copyWith(
+  return _then(AdminEmailSettings(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,host: freezed == host ? _self.host : host // ignore: cast_nullable_to_non_nullable
 as String?,port: null == port ? _self.port : port // ignore: cast_nullable_to_non_nullable
@@ -496,7 +497,7 @@ return $default(_that.id,_that.host,_that.port,_that.secure,_that.rejectUnauthor
 @JsonSerializable()
 
 class _AdminEmailSettings extends AdminEmailSettings {
-  const _AdminEmailSettings({@JsonKey(name: 'id') this.id = 'email-settings', @JsonKey(name: 'host') this.host, @JsonKey(name: 'port') this.port = 465, @JsonKey(name: 'secure') this.secure = true, @JsonKey(name: 'rejectUnauthorized') this.rejectUnauthorized = true, @JsonKey(name: 'user') this.user, @JsonKey(name: 'pass') this.pass, @JsonKey(name: 'testAddress') this.testAddress, @JsonKey(name: 'fromAddress') this.fromAddress, @JsonKey(name: 'ereaderDevices') final  List<AdminEmailEreaderDevice> ereaderDevices = const <AdminEmailEreaderDevice>[]}): _ereaderDevices = ereaderDevices,super._();
+  const _AdminEmailSettings({@JsonKey(name: 'id') this.id = 'email-settings', @JsonKey(name: 'host') this.host, @JsonKey(name: 'port') this.port = 465, @JsonKey(name: 'secure') this.secure = true, @JsonKey(name: 'rejectUnauthorized') this.rejectUnauthorized = true, @JsonKey(name: 'user') this.user, @JsonKey(name: 'pass') this.pass, @JsonKey(name: 'testAddress') this.testAddress, @JsonKey(name: 'fromAddress') this.fromAddress, @JsonKey(name: 'ereaderDevices')  List<AdminEmailEreaderDevice> ereaderDevices = const <AdminEmailEreaderDevice>[]}): _ereaderDevices = ereaderDevices,super._();
   factory _AdminEmailSettings.fromJson(Map<String, dynamic> json) => _$AdminEmailSettingsFromJson(json);
 
 @override@JsonKey(name: 'id') final  String id;

@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/api/admin/admin_user.dart';
 import 'package:yaabsa/api/admin/admin_user_permissions.dart';
@@ -652,8 +652,7 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
           id: 'last-seen',
           label: 'Last seen',
           width: 148,
-          headerTooltip:
-              'Last seen updates when the user connects via websocket. It may not reflect offline-listening syncs or third-party clients that do not use websockets.',
+          headerTooltip: 'Last seen updates when the user connects via websocket. It may not reflect offline-listening syncs or third-party clients that do not use websockets.',
           cellBuilder: (context, user) =>
               Text(_formatEpoch(user.lastSeen), maxLines: 1, overflow: TextOverflow.ellipsis),
         ),

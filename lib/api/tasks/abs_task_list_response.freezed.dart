@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'abs_task_list_response.dart';
@@ -9,6 +9,7 @@ part of 'abs_task_list_response.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$AbsTaskListResponseCopyWithImpl<$Res>
 /// Create a copy of AbsTaskListResponse
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? tasks = null,Object? queuedTaskData = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(AbsTaskListResponse(
 tasks: null == tasks ? _self.tasks : tasks // ignore: cast_nullable_to_non_nullable
 as List<AbsTask>,queuedTaskData: freezed == queuedTaskData ? _self.queuedTaskData : queuedTaskData // ignore: cast_nullable_to_non_nullable
 as AbsQueuedTaskData?,
@@ -222,7 +223,7 @@ return $default(_that.tasks,_that.queuedTaskData);case _:
 @JsonSerializable()
 
 class _AbsTaskListResponse implements AbsTaskListResponse {
-  const _AbsTaskListResponse({@JsonKey(name: 'tasks') final  List<AbsTask> tasks = const <AbsTask>[], @JsonKey(name: 'queuedTaskData') this.queuedTaskData}): _tasks = tasks;
+  const _AbsTaskListResponse({@JsonKey(name: 'tasks')  List<AbsTask> tasks = const <AbsTask>[], @JsonKey(name: 'queuedTaskData') this.queuedTaskData}): _tasks = tasks;
   factory _AbsTaskListResponse.fromJson(Map<String, dynamic> json) => _$AbsTaskListResponseFromJson(json);
 
  final  List<AbsTask> _tasks;
@@ -362,7 +363,7 @@ class _$AbsQueuedTaskDataCopyWithImpl<$Res>
 /// Create a copy of AbsQueuedTaskData
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? embedMetadata = null,}) {
-  return _then(_self.copyWith(
+  return _then(AbsQueuedTaskData(
 embedMetadata: null == embedMetadata ? _self.embedMetadata : embedMetadata // ignore: cast_nullable_to_non_nullable
 as List<AbsQueuedEmbedMetadataTaskData>,
   ));
@@ -505,7 +506,7 @@ return $default(_that.embedMetadata);case _:
 @JsonSerializable()
 
 class _AbsQueuedTaskData implements AbsQueuedTaskData {
-  const _AbsQueuedTaskData({@JsonKey(name: 'embedMetadata') final  List<AbsQueuedEmbedMetadataTaskData> embedMetadata = const <AbsQueuedEmbedMetadataTaskData>[]}): _embedMetadata = embedMetadata;
+  const _AbsQueuedTaskData({@JsonKey(name: 'embedMetadata')  List<AbsQueuedEmbedMetadataTaskData> embedMetadata = const <AbsQueuedEmbedMetadataTaskData>[]}): _embedMetadata = embedMetadata;
   factory _AbsQueuedTaskData.fromJson(Map<String, dynamic> json) => _$AbsQueuedTaskDataFromJson(json);
 
  final  List<AbsQueuedEmbedMetadataTaskData> _embedMetadata;
@@ -631,7 +632,7 @@ class _$AbsQueuedEmbedMetadataTaskDataCopyWithImpl<$Res>
 /// Create a copy of AbsQueuedEmbedMetadataTaskData
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? libraryItemId = freezed,Object? libraryId = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(AbsQueuedEmbedMetadataTaskData(
 libraryItemId: freezed == libraryItemId ? _self.libraryItemId : libraryItemId // ignore: cast_nullable_to_non_nullable
 as String?,libraryId: freezed == libraryId ? _self.libraryId : libraryId // ignore: cast_nullable_to_non_nullable
 as String?,

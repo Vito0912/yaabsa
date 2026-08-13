@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'custom_metadata_providers_response.dart';
@@ -9,6 +9,7 @@ part of 'custom_metadata_providers_response.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$CustomMetadataProvidersResponseCopyWithImpl<$Res>
 /// Create a copy of CustomMetadataProvidersResponse
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? providers = null,}) {
-  return _then(_self.copyWith(
+  return _then(CustomMetadataProvidersResponse(
 providers: null == providers ? _self.providers : providers // ignore: cast_nullable_to_non_nullable
 as List<CustomMetadataProvider>,
   ));
@@ -209,7 +210,7 @@ return $default(_that.providers);case _:
 @JsonSerializable()
 
 class _CustomMetadataProvidersResponse implements CustomMetadataProvidersResponse {
-  const _CustomMetadataProvidersResponse({@JsonKey(name: 'providers', fromJson: _providersFromJson) final  List<CustomMetadataProvider> providers = const <CustomMetadataProvider>[]}): _providers = providers;
+  const _CustomMetadataProvidersResponse({@JsonKey(name: 'providers', fromJson: _providersFromJson)  List<CustomMetadataProvider> providers = const <CustomMetadataProvider>[]}): _providers = providers;
   factory _CustomMetadataProvidersResponse.fromJson(Map<String, dynamic> json) => _$CustomMetadataProvidersResponseFromJson(json);
 
  final  List<CustomMetadataProvider> _providers;

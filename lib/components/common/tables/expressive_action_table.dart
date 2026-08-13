@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/util/globals.dart';
 
 enum ExpressiveTableActionTone { neutral, primary, danger }
@@ -449,9 +449,8 @@ class ExpressiveActionTable<T> extends StatelessWidget {
                         builder: (context) {
                           final labelText = Text(
                             mobileColumns[index].label,
-                            style: Theme.of(
-                              context,
-                            ).textTheme.labelMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                            style: Theme.of(context).textTheme.labelMedium
+                                ?.copyWith(color: colorScheme.onSurfaceVariant),
                           );
 
                           final headerTooltip = mobileColumns[index].headerTooltip?.trim();

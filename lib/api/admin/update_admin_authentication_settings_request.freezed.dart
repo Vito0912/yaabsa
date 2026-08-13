@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'update_admin_authentication_settings_request.dart';
@@ -9,6 +9,7 @@ part of 'update_admin_authentication_settings_request.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$UpdateAdminAuthenticationSettingsRequestCopyWithImpl<$Res>
 /// Create a copy of UpdateAdminAuthenticationSettingsRequest
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? authLoginCustomMessage = freezed,Object? authActiveAuthMethods = freezed,Object? authOpenIdIssuerUrl = freezed,Object? authOpenIdAuthorizationUrl = freezed,Object? authOpenIdTokenUrl = freezed,Object? authOpenIdUserInfoUrl = freezed,Object? authOpenIdJwksUrl = freezed,Object? authOpenIdLogoutUrl = freezed,Object? authOpenIdClientId = freezed,Object? authOpenIdClientSecret = freezed,Object? authOpenIdTokenSigningAlgorithm = freezed,Object? authOpenIdButtonText = freezed,Object? authOpenIdAutoLaunch = freezed,Object? authOpenIdAutoRegister = freezed,Object? authOpenIdMatchExistingBy = freezed,Object? authOpenIdMobileRedirectUris = freezed,Object? authOpenIdGroupClaim = freezed,Object? authOpenIdAdvancedPermsClaim = freezed,Object? authOpenIdSubfolderForRedirectUrls = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(UpdateAdminAuthenticationSettingsRequest(
 authLoginCustomMessage: freezed == authLoginCustomMessage ? _self.authLoginCustomMessage : authLoginCustomMessage // ignore: cast_nullable_to_non_nullable
 as String?,authActiveAuthMethods: freezed == authActiveAuthMethods ? _self.authActiveAuthMethods : authActiveAuthMethods // ignore: cast_nullable_to_non_nullable
 as List<String>?,authOpenIdIssuerUrl: freezed == authOpenIdIssuerUrl ? _self.authOpenIdIssuerUrl : authOpenIdIssuerUrl // ignore: cast_nullable_to_non_nullable
@@ -227,7 +228,7 @@ return $default(_that.authLoginCustomMessage,_that.authActiveAuthMethods,_that.a
 @JsonSerializable()
 
 class _UpdateAdminAuthenticationSettingsRequest implements UpdateAdminAuthenticationSettingsRequest {
-  const _UpdateAdminAuthenticationSettingsRequest({@JsonKey(name: 'authLoginCustomMessage') this.authLoginCustomMessage, @JsonKey(name: 'authActiveAuthMethods') final  List<String>? authActiveAuthMethods, @JsonKey(name: 'authOpenIDIssuerURL') this.authOpenIdIssuerUrl, @JsonKey(name: 'authOpenIDAuthorizationURL') this.authOpenIdAuthorizationUrl, @JsonKey(name: 'authOpenIDTokenURL') this.authOpenIdTokenUrl, @JsonKey(name: 'authOpenIDUserInfoURL') this.authOpenIdUserInfoUrl, @JsonKey(name: 'authOpenIDJwksURL') this.authOpenIdJwksUrl, @JsonKey(name: 'authOpenIDLogoutURL') this.authOpenIdLogoutUrl, @JsonKey(name: 'authOpenIDClientID') this.authOpenIdClientId, @JsonKey(name: 'authOpenIDClientSecret') this.authOpenIdClientSecret, @JsonKey(name: 'authOpenIDTokenSigningAlgorithm') this.authOpenIdTokenSigningAlgorithm, @JsonKey(name: 'authOpenIDButtonText') this.authOpenIdButtonText, @JsonKey(name: 'authOpenIDAutoLaunch') this.authOpenIdAutoLaunch, @JsonKey(name: 'authOpenIDAutoRegister') this.authOpenIdAutoRegister, @JsonKey(name: 'authOpenIDMatchExistingBy') this.authOpenIdMatchExistingBy, @JsonKey(name: 'authOpenIDMobileRedirectURIs') final  List<String>? authOpenIdMobileRedirectUris, @JsonKey(name: 'authOpenIDGroupClaim') this.authOpenIdGroupClaim, @JsonKey(name: 'authOpenIDAdvancedPermsClaim') this.authOpenIdAdvancedPermsClaim, @JsonKey(name: 'authOpenIDSubfolderForRedirectURLs') this.authOpenIdSubfolderForRedirectUrls}): _authActiveAuthMethods = authActiveAuthMethods,_authOpenIdMobileRedirectUris = authOpenIdMobileRedirectUris;
+  const _UpdateAdminAuthenticationSettingsRequest({@JsonKey(name: 'authLoginCustomMessage') this.authLoginCustomMessage, @JsonKey(name: 'authActiveAuthMethods')  List<String>? authActiveAuthMethods, @JsonKey(name: 'authOpenIDIssuerURL') this.authOpenIdIssuerUrl, @JsonKey(name: 'authOpenIDAuthorizationURL') this.authOpenIdAuthorizationUrl, @JsonKey(name: 'authOpenIDTokenURL') this.authOpenIdTokenUrl, @JsonKey(name: 'authOpenIDUserInfoURL') this.authOpenIdUserInfoUrl, @JsonKey(name: 'authOpenIDJwksURL') this.authOpenIdJwksUrl, @JsonKey(name: 'authOpenIDLogoutURL') this.authOpenIdLogoutUrl, @JsonKey(name: 'authOpenIDClientID') this.authOpenIdClientId, @JsonKey(name: 'authOpenIDClientSecret') this.authOpenIdClientSecret, @JsonKey(name: 'authOpenIDTokenSigningAlgorithm') this.authOpenIdTokenSigningAlgorithm, @JsonKey(name: 'authOpenIDButtonText') this.authOpenIdButtonText, @JsonKey(name: 'authOpenIDAutoLaunch') this.authOpenIdAutoLaunch, @JsonKey(name: 'authOpenIDAutoRegister') this.authOpenIdAutoRegister, @JsonKey(name: 'authOpenIDMatchExistingBy') this.authOpenIdMatchExistingBy, @JsonKey(name: 'authOpenIDMobileRedirectURIs')  List<String>? authOpenIdMobileRedirectUris, @JsonKey(name: 'authOpenIDGroupClaim') this.authOpenIdGroupClaim, @JsonKey(name: 'authOpenIDAdvancedPermsClaim') this.authOpenIdAdvancedPermsClaim, @JsonKey(name: 'authOpenIDSubfolderForRedirectURLs') this.authOpenIdSubfolderForRedirectUrls}): _authActiveAuthMethods = authActiveAuthMethods,_authOpenIdMobileRedirectUris = authOpenIdMobileRedirectUris;
   factory _UpdateAdminAuthenticationSettingsRequest.fromJson(Map<String, dynamic> json) => _$UpdateAdminAuthenticationSettingsRequestFromJson(json);
 
 @override@JsonKey(name: 'authLoginCustomMessage') final  String? authLoginCustomMessage;

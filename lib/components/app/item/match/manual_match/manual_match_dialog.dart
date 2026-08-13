@@ -2,7 +2,7 @@
 
 import 'dart:math';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/api/library/filter_data/library_filter_data.dart';
 import 'package:yaabsa/api/library_items/author.dart';
@@ -383,9 +383,8 @@ class _LibraryItemManualMatchViewState extends ConsumerState<LibraryItemManualMa
 
     final request = _buildUpdateRequest();
     if (request == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('No writable values were selected from this match result.')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('No writable values were selected from this match result.')));
       return;
     }
 

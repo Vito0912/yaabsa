@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/app/download_status.dart';
 import 'package:yaabsa/components/app/library_switcher.dart';
 import 'package:yaabsa/components/app/tasks/task_notification_widget.dart';
@@ -45,10 +45,8 @@ class LayoutHomeMultiSelectAppBar extends StatelessWidget {
               ),
               child: Text(
                 state.selectedCount == 1 ? '1 selected' : '${state.selectedCount} selected',
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
-                  fontWeight: FontWeight.w700,
-                ),
+                style: Theme.of(context).textTheme.labelMedium
+                    ?.copyWith(color: Theme.of(context).colorScheme.onPrimaryContainer, fontWeight: FontWeight.w700),
               ),
             ),
             const Spacer(),

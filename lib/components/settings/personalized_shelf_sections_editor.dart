@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/components/settings/settings_editor_header.dart';
 import 'package:yaabsa/database/app_database.dart';
@@ -200,9 +200,8 @@ class _PersonalizedShelfSectionRow extends StatelessWidget {
           Expanded(
             child: Text(
               sectionLabel,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500, color: colorScheme.onSurface),
+              style: Theme.of(context).textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w500, color: colorScheme.onSurface),
             ),
           ),
           Switch.adaptive(value: isVisible, onChanged: isSaving ? null : onVisibilityChanged),

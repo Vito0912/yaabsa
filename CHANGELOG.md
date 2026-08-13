@@ -2,10 +2,13 @@
 
 ## TBA
 
+This release upgrades to Flutter 3.47
+
 ### Added
 
 - Encoder now defaults to copy when already acc or opus
 - Running encoding tasks are now clickable and single file status can be shown
+- Replaced cached_network_image with way faster cached_network_image_ce package, which should make browsing even faster
 
 ### Fixed
 

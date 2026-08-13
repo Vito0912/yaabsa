@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'search_series.dart';
@@ -9,6 +9,7 @@ part of 'search_series.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$SearchSeriesCopyWithImpl<$Res>
 /// Create a copy of SearchSeries
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? series = null,Object? books = null,}) {
-  return _then(_self.copyWith(
+  return _then(SearchSeries(
 series: null == series ? _self.series : series // ignore: cast_nullable_to_non_nullable
 as Series,books: null == books ? _self.books : books // ignore: cast_nullable_to_non_nullable
 as List<LibraryItem>,
@@ -219,7 +220,7 @@ return $default(_that.series,_that.books);case _:
 @JsonSerializable()
 
 class _SearchSeries implements SearchSeries {
-  const _SearchSeries({@JsonKey(name: "series") required this.series, @JsonKey(name: "books") required final  List<LibraryItem> books}): _books = books;
+  const _SearchSeries({@JsonKey(name: "series") required this.series, @JsonKey(name: "books") required  List<LibraryItem> books}): _books = books;
   factory _SearchSeries.fromJson(Map<String, dynamic> json) => _$SearchSeriesFromJson(json);
 
 @override@JsonKey(name: "series") final  Series series;

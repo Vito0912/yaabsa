@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/admin/metadata_term_update_response.dart';
 import 'package:yaabsa/components/common/list_management_dialogs.dart';
 
@@ -133,9 +133,8 @@ class _AdminMetadataTermManagerState extends State<AdminMetadataTermManager> {
       final updatedCount = response.numItemsUpdated;
       final mergeMessage = merged ? ' Existing ${widget.entityLabel} values were merged.' : '';
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Updated $updatedCount item(s).$mergeMessage')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Updated $updatedCount item(s).$mergeMessage')));
     } catch (error) {
       if (!mounted) {
         return;
@@ -177,9 +176,8 @@ class _AdminMetadataTermManagerState extends State<AdminMetadataTermManager> {
         return;
       }
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Updated ${response.numItemsUpdated} item(s).')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Updated ${response.numItemsUpdated} item(s).')));
     } catch (error) {
       if (!mounted) {
         return;

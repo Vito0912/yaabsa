@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/components/settings/admin_server_backups_view.dart';
 import 'package:yaabsa/screens/settings/admin_server_settings.dart';

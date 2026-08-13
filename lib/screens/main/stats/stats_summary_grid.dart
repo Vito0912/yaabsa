@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/library/stats/items_listened_to.dart';
 import 'package:yaabsa/api/library/stats/user_listening_stats.dart';
 import 'package:yaabsa/components/stats/stats_components.dart';

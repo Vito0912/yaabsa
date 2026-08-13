@@ -1,10 +1,11 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/admin/create_custom_metadata_provider_request.dart';
 import 'package:yaabsa/api/admin/custom_metadata_provider.dart';
 import 'package:yaabsa/components/common/list_management_dialogs.dart';
 
-typedef CreateCustomMetadataProviderCallback =
-    Future<CustomMetadataProvider?> Function(CreateCustomMetadataProviderRequest payload);
+typedef CreateCustomMetadataProviderCallback = Future<CustomMetadataProvider?> Function(
+  CreateCustomMetadataProviderRequest payload,
+);
 typedef DeleteCustomMetadataProviderCallback = Future<void> Function(CustomMetadataProvider provider);
 
 class AdminCustomMetadataProviderManager extends StatefulWidget {

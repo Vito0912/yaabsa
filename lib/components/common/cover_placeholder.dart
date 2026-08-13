@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class CoverPlaceholder extends StatelessWidget {
   const CoverPlaceholder({super.key, this.borderRadius = 14});

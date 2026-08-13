@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'advanced_listening_stats.dart';
@@ -9,6 +9,7 @@ part of 'advanced_listening_stats.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
@@ -63,7 +64,7 @@ class _$AdvancedTopItemCopyWithImpl<$Res>
 /// Create a copy of AdvancedTopItem
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? author = null,Object? mediaType = null,Object? totalListeningTime = null,Object? sessions = null,}) {
-  return _then(_self.copyWith(
+  return _then(AdvancedTopItem(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,author: null == author ? _self.author : author // ignore: cast_nullable_to_non_nullable
@@ -335,7 +336,7 @@ class _$AdvancedTopEntityCopyWithImpl<$Res>
 /// Create a copy of AdvancedTopEntity
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? name = null,Object? totalListeningTime = null,Object? sessions = null,}) {
-  return _then(_self.copyWith(
+  return _then(AdvancedTopEntity(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,totalListeningTime: null == totalListeningTime ? _self.totalListeningTime : totalListeningTime // ignore: cast_nullable_to_non_nullable
@@ -601,7 +602,7 @@ class _$AdvancedTimeBucketCopyWithImpl<$Res>
 /// Create a copy of AdvancedTimeBucket
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? label = null,Object? totalListeningTime = null,}) {
-  return _then(_self.copyWith(
+  return _then(AdvancedTimeBucket(
 label: null == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
 as String,totalListeningTime: null == totalListeningTime ? _self.totalListeningTime : totalListeningTime // ignore: cast_nullable_to_non_nullable
 as double,
@@ -861,7 +862,7 @@ class _$AdvancedListeningStatsCopyWithImpl<$Res>
 /// Create a copy of AdvancedListeningStats
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? loadedPages = null,Object? totalSessions = null,Object? totalAvailableSessions = null,Object? totalListeningTime = null,Object? totalBookListeningTime = null,Object? totalPodcastListeningTime = null,Object? averageSessionTime = null,Object? medianSessionTime = null,Object? longestSessionTime = null,Object? uniqueItems = null,Object? uniqueAuthors = null,Object? longestStreakDays = null,Object? firstSessionAt = freezed,Object? lastSessionAt = freezed,Object? favoriteWeekday = freezed,Object? favoriteHour = freezed,Object? topItems = null,Object? topAuthors = null,Object? weekdayBreakdown = null,Object? hourlyBreakdown = null,Object? monthlyBreakdown = null,}) {
-  return _then(_self.copyWith(
+  return _then(AdvancedListeningStats(
 loadedPages: null == loadedPages ? _self.loadedPages : loadedPages // ignore: cast_nullable_to_non_nullable
 as int,totalSessions: null == totalSessions ? _self.totalSessions : totalSessions // ignore: cast_nullable_to_non_nullable
 as int,totalAvailableSessions: null == totalAvailableSessions ? _self.totalAvailableSessions : totalAvailableSessions // ignore: cast_nullable_to_non_nullable
@@ -1024,7 +1025,7 @@ return $default(_that.loadedPages,_that.totalSessions,_that.totalAvailableSessio
 
 
 class _AdvancedListeningStats implements AdvancedListeningStats {
-  const _AdvancedListeningStats({required this.loadedPages, required this.totalSessions, required this.totalAvailableSessions, required this.totalListeningTime, required this.totalBookListeningTime, required this.totalPodcastListeningTime, required this.averageSessionTime, required this.medianSessionTime, required this.longestSessionTime, required this.uniqueItems, required this.uniqueAuthors, required this.longestStreakDays, required this.firstSessionAt, required this.lastSessionAt, this.favoriteWeekday, this.favoriteHour, final  List<AdvancedTopItem> topItems = const <AdvancedTopItem>[], final  List<AdvancedTopEntity> topAuthors = const <AdvancedTopEntity>[], final  List<AdvancedTimeBucket> weekdayBreakdown = const <AdvancedTimeBucket>[], final  List<AdvancedTimeBucket> hourlyBreakdown = const <AdvancedTimeBucket>[], final  List<AdvancedTimeBucket> monthlyBreakdown = const <AdvancedTimeBucket>[]}): _topItems = topItems,_topAuthors = topAuthors,_weekdayBreakdown = weekdayBreakdown,_hourlyBreakdown = hourlyBreakdown,_monthlyBreakdown = monthlyBreakdown;
+  const _AdvancedListeningStats({required this.loadedPages, required this.totalSessions, required this.totalAvailableSessions, required this.totalListeningTime, required this.totalBookListeningTime, required this.totalPodcastListeningTime, required this.averageSessionTime, required this.medianSessionTime, required this.longestSessionTime, required this.uniqueItems, required this.uniqueAuthors, required this.longestStreakDays, required this.firstSessionAt, required this.lastSessionAt, this.favoriteWeekday, this.favoriteHour,  List<AdvancedTopItem> topItems = const <AdvancedTopItem>[],  List<AdvancedTopEntity> topAuthors = const <AdvancedTopEntity>[],  List<AdvancedTimeBucket> weekdayBreakdown = const <AdvancedTimeBucket>[],  List<AdvancedTimeBucket> hourlyBreakdown = const <AdvancedTimeBucket>[],  List<AdvancedTimeBucket> monthlyBreakdown = const <AdvancedTimeBucket>[]}): _topItems = topItems,_topAuthors = topAuthors,_weekdayBreakdown = weekdayBreakdown,_hourlyBreakdown = hourlyBreakdown,_monthlyBreakdown = monthlyBreakdown;
   
 
 @override final  int loadedPages;

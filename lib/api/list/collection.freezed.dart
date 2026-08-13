@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'collection.dart';
@@ -9,6 +9,7 @@ part of 'collection.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$CollectionCopyWithImpl<$Res>
 /// Create a copy of Collection
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? libraryId = null,Object? userId = freezed,Object? name = null,Object? description = freezed,Object? coverPath = freezed,Object? items = freezed,Object? lastUpdate = null,Object? createdAt = null,}) {
-  return _then(_self.copyWith(
+  return _then(Collection(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,libraryId: null == libraryId ? _self.libraryId : libraryId // ignore: cast_nullable_to_non_nullable
 as String,userId: freezed == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
@@ -217,7 +218,7 @@ return $default(_that.id,_that.libraryId,_that.userId,_that.name,_that.descripti
 @JsonSerializable()
 
 class _Collection implements Collection {
-  const _Collection({@JsonKey(name: "id") required this.id, @JsonKey(name: "libraryId") required this.libraryId, @JsonKey(name: "userId") this.userId, @JsonKey(name: "name") required this.name, @JsonKey(name: "description") this.description, @JsonKey(name: "coverPath") this.coverPath, @JsonKey(name: "books") final  List<LibraryItem>? items, @JsonKey(name: "lastUpdate") required this.lastUpdate, @JsonKey(name: "createdAt") required this.createdAt}): _items = items;
+  const _Collection({@JsonKey(name: "id") required this.id, @JsonKey(name: "libraryId") required this.libraryId, @JsonKey(name: "userId") this.userId, @JsonKey(name: "name") required this.name, @JsonKey(name: "description") this.description, @JsonKey(name: "coverPath") this.coverPath, @JsonKey(name: "books")  List<LibraryItem>? items, @JsonKey(name: "lastUpdate") required this.lastUpdate, @JsonKey(name: "createdAt") required this.createdAt}): _items = items;
   factory _Collection.fromJson(Map<String, dynamic> json) => _$CollectionFromJson(json);
 
 @override@JsonKey(name: "id") final  String id;

@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/util/home_navigation_preferences.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
@@ -189,9 +189,9 @@ class PersonalizedShelfPreferencesCodec {
   }
 
   static PersonalizedShelfPreferences defaultsFor(HomeLibraryMediaType mediaType) {
-    final configurableSectionIds = configurableSectionsFor(
-      mediaType,
-    ).map((section) => section.id).toList(growable: false);
+    final configurableSectionIds = configurableSectionsFor(mediaType)
+        .map((section) => section.id)
+        .toList(growable: false);
 
     return PersonalizedShelfPreferences(
       mediaType: mediaType,
@@ -273,9 +273,9 @@ class PersonalizedShelfPreferencesCodec {
     required List<String> orderedSectionIds,
     required Set<String> hiddenSectionIds,
   }) {
-    final configurableSectionIds = configurableSectionsFor(
-      mediaType,
-    ).map((section) => section.id).toList(growable: false);
+    final configurableSectionIds = configurableSectionsFor(mediaType)
+        .map((section) => section.id)
+        .toList(growable: false);
 
     final normalizedOrder = <String>[];
     for (final sectionId in orderedSectionIds) {

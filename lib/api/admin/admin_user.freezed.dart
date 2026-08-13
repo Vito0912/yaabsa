@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'admin_user.dart';
@@ -9,6 +9,7 @@ part of 'admin_user.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$AdminUserCopyWithImpl<$Res>
 /// Create a copy of AdminUser
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? username = null,Object? email = freezed,Object? type = null,Object? isActive = null,Object? isLocked = freezed,Object? lastSeen = freezed,Object? createdAt = freezed,Object? hasOpenIdLink = freezed,Object? permissions = null,Object? librariesAccessible = null,Object? itemTagsSelected = null,}) {
-  return _then(_self.copyWith(
+  return _then(AdminUser(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,username: null == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
 as String,email: freezed == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
@@ -229,7 +230,7 @@ return $default(_that.id,_that.username,_that.email,_that.type,_that.isActive,_t
 @JsonSerializable()
 
 class _AdminUser extends AdminUser {
-  const _AdminUser({@JsonKey(name: 'id') required this.id, @JsonKey(name: 'username') required this.username, @JsonKey(name: 'email') this.email, @JsonKey(name: 'type') this.type = 'user', @JsonKey(name: 'isActive') this.isActive = true, @JsonKey(name: 'isLocked') this.isLocked, @JsonKey(name: 'lastSeen') this.lastSeen, @JsonKey(name: 'createdAt') this.createdAt, @JsonKey(name: 'hasOpenIDLink') this.hasOpenIdLink, @JsonKey(name: 'permissions') this.permissions = const AdminUserPermissions(), @JsonKey(name: 'librariesAccessible') final  List<String> librariesAccessible = const <String>[], @JsonKey(name: 'itemTagsSelected') final  List<String> itemTagsSelected = const <String>[]}): _librariesAccessible = librariesAccessible,_itemTagsSelected = itemTagsSelected,super._();
+  const _AdminUser({@JsonKey(name: 'id') required this.id, @JsonKey(name: 'username') required this.username, @JsonKey(name: 'email') this.email, @JsonKey(name: 'type') this.type = 'user', @JsonKey(name: 'isActive') this.isActive = true, @JsonKey(name: 'isLocked') this.isLocked, @JsonKey(name: 'lastSeen') this.lastSeen, @JsonKey(name: 'createdAt') this.createdAt, @JsonKey(name: 'hasOpenIDLink') this.hasOpenIdLink, @JsonKey(name: 'permissions') this.permissions = const AdminUserPermissions(), @JsonKey(name: 'librariesAccessible')  List<String> librariesAccessible = const <String>[], @JsonKey(name: 'itemTagsSelected')  List<String> itemTagsSelected = const <String>[]}): _librariesAccessible = librariesAccessible,_itemTagsSelected = itemTagsSelected,super._();
   factory _AdminUser.fromJson(Map<String, dynamic> json) => _$AdminUserFromJson(json);
 
 @override@JsonKey(name: 'id') final  String id;

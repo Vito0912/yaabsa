@@ -5,7 +5,7 @@ import 'package:yaabsa/screens/settings/library_views_settings.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/screens/settings/theme_settings.dart';
 import 'package:yaabsa/util/setting_key.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class AppearanceSettings extends StatelessWidget {
   const AppearanceSettings({super.key});

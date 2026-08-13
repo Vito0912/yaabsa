@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'audio_file.dart';
@@ -9,6 +9,7 @@ part of 'audio_file.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$AudioFileCopyWithImpl<$Res>
 /// Create a copy of AudioFile
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? index = freezed,Object? ino = null,Object? metadata = null,Object? addedAt = null,Object? updatedAt = freezed,Object? trackNumFromMeta = freezed,Object? discNumFromMeta = freezed,Object? trackNumFromFilename = freezed,Object? discNumFromFilename = freezed,Object? manuallyVerified = freezed,Object? exclude = freezed,Object? error = freezed,Object? format = freezed,Object? duration = freezed,Object? bitRate = freezed,Object? language = freezed,Object? codec = freezed,Object? timeBase = freezed,Object? channels = freezed,Object? channelLayout = freezed,Object? chapters = freezed,Object? embeddedCoverArt = freezed,Object? metaTags = freezed,Object? mimeType = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(AudioFile(
 index: freezed == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
 as int?,ino: null == ino ? _self.ino : ino // ignore: cast_nullable_to_non_nullable
 as String,metadata: null == metadata ? _self.metadata : metadata // ignore: cast_nullable_to_non_nullable
@@ -253,7 +254,7 @@ return $default(_that.index,_that.ino,_that.metadata,_that.addedAt,_that.updated
 @JsonSerializable()
 
 class _AudioFile extends AudioFile {
-  const _AudioFile({@JsonKey(name: "index") this.index, @JsonKey(name: "ino") required this.ino, @JsonKey(name: "metadata") required this.metadata, @JsonKey(name: "addedAt") required this.addedAt, @JsonKey(name: "updatedAt") this.updatedAt, @JsonKey(name: "trackNumFromMeta") this.trackNumFromMeta, @JsonKey(name: "discNumFromMeta") this.discNumFromMeta, @JsonKey(name: "trackNumFromFilename") this.trackNumFromFilename, @JsonKey(name: "discNumFromFilename") this.discNumFromFilename, @JsonKey(name: "manuallyVerified") this.manuallyVerified, @JsonKey(name: "exclude") this.exclude, @JsonKey(name: "error") this.error, @JsonKey(name: "format") this.format, @JsonKey(name: "duration") this.duration, @JsonKey(name: "bitRate") this.bitRate, @JsonKey(name: "language") this.language, @JsonKey(name: "codec") this.codec, @JsonKey(name: "timeBase") this.timeBase, @JsonKey(name: "channels") this.channels, @JsonKey(name: "channelLayout") this.channelLayout, @JsonKey(name: "chapters") final  List<Chapter>? chapters, @JsonKey(name: "embeddedCoverArt") this.embeddedCoverArt, @JsonKey(name: "metaTags") this.metaTags, @JsonKey(name: "mimeType") this.mimeType}): _chapters = chapters,super._();
+  const _AudioFile({@JsonKey(name: "index") this.index, @JsonKey(name: "ino") required this.ino, @JsonKey(name: "metadata") required this.metadata, @JsonKey(name: "addedAt") required this.addedAt, @JsonKey(name: "updatedAt") this.updatedAt, @JsonKey(name: "trackNumFromMeta") this.trackNumFromMeta, @JsonKey(name: "discNumFromMeta") this.discNumFromMeta, @JsonKey(name: "trackNumFromFilename") this.trackNumFromFilename, @JsonKey(name: "discNumFromFilename") this.discNumFromFilename, @JsonKey(name: "manuallyVerified") this.manuallyVerified, @JsonKey(name: "exclude") this.exclude, @JsonKey(name: "error") this.error, @JsonKey(name: "format") this.format, @JsonKey(name: "duration") this.duration, @JsonKey(name: "bitRate") this.bitRate, @JsonKey(name: "language") this.language, @JsonKey(name: "codec") this.codec, @JsonKey(name: "timeBase") this.timeBase, @JsonKey(name: "channels") this.channels, @JsonKey(name: "channelLayout") this.channelLayout, @JsonKey(name: "chapters")  List<Chapter>? chapters, @JsonKey(name: "embeddedCoverArt") this.embeddedCoverArt, @JsonKey(name: "metaTags") this.metaTags, @JsonKey(name: "mimeType") this.mimeType}): _chapters = chapters,super._();
   factory _AudioFile.fromJson(Map<String, dynamic> json) => _$AudioFileFromJson(json);
 
 @override@JsonKey(name: "index") final  int? index;

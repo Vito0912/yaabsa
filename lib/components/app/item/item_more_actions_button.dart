@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 enum ItemMoreAction {
   editItem,
@@ -80,9 +80,9 @@ class ItemMoreActionsButton extends StatelessWidget {
                 ListTile(
                   leading: Icon(showMarkAsUnfinished ? Icons.remove_done_rounded : Icons.task_alt_rounded),
                   title: Text(showMarkAsUnfinished ? 'Mark As Unfinished' : 'Mark As Finished'),
-                  onTap: () => Navigator.of(
-                    dialogContext,
-                  ).pop(showMarkAsUnfinished ? ItemMoreAction.markAsUnfinished : ItemMoreAction.markAsFinished),
+                  onTap: () =>
+                      Navigator.of(dialogContext)
+                          .pop(showMarkAsUnfinished ? ItemMoreAction.markAsUnfinished : ItemMoreAction.markAsFinished),
                 ),
               if (showAddToPlaylist)
                 ListTile(

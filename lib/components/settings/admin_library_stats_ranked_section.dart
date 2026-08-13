@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/stats/stats_components.dart';
 
 class AdminLibraryStatsRankedEntry {

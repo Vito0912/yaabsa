@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/common/inputs/expressive_dropdown.dart';
 import 'package:yaabsa/screens/player/layout/player_layout_config.dart';
 import 'package:yaabsa/screens/player/player_empty_state_mode.dart';

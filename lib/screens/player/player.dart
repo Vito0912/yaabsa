@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/screens/settings/player/player_settings_equalizer.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -381,9 +381,8 @@ class _PlayerState extends ConsumerState<Player> {
     if (visible && !current.visible) {
       final free = _findFirstFreePosition(profile, updated.width, updated.height, type, screenSize);
       if (free == null) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('No free grid space available for ${type.label}.')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('No free grid space available for ${type.label}.')));
         return;
       }
       updated = updated.copyWith(x: free.x, y: free.y);
@@ -1155,9 +1154,8 @@ class _PlayerQuickSettingsSheet extends ConsumerWidget {
                 const SizedBox(height: 12),
                 Text(
                   'Cover size',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleSmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  style: Theme.of(context).textTheme.titleSmall
+                      ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
                 const SizedBox(height: 8),
                 Wrap(
@@ -1189,9 +1187,8 @@ class _PlayerQuickSettingsSheet extends ConsumerWidget {
               ),
               Text(
                 'Timeline mode',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleSmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                style: Theme.of(context).textTheme.titleSmall
+                    ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
               const SizedBox(height: 10),
               Wrap(

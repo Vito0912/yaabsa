@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/item_formatters.dart';
@@ -199,17 +199,15 @@ class _PodcastHeaderText extends StatelessWidget {
               author,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+              style: Theme.of(context).textTheme.bodyMedium
+                  ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
           ),
         const SizedBox(height: 8),
         Text(
           durationLabel == null ? countLabel : '$countLabel • $durationLabel',
-          style: Theme.of(
-            context,
-          ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+          style: Theme.of(context).textTheme.bodyMedium
+              ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
         const SizedBox(height: 10),
         Wrap(

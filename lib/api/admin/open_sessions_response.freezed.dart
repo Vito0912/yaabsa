@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'open_sessions_response.dart';
@@ -9,6 +9,7 @@ part of 'open_sessions_response.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
@@ -63,7 +64,7 @@ class _$OpenSessionsResponseCopyWithImpl<$Res>
 /// Create a copy of OpenSessionsResponse
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? sessions = null,Object? shareSessions = null,}) {
-  return _then(_self.copyWith(
+  return _then(OpenSessionsResponse(
 sessions: null == sessions ? _self.sessions : sessions // ignore: cast_nullable_to_non_nullable
 as List<AdminListeningSession>,shareSessions: null == shareSessions ? _self.shareSessions : shareSessions // ignore: cast_nullable_to_non_nullable
 as List<OpenShareSession>,
@@ -207,7 +208,7 @@ return $default(_that.sessions,_that.shareSessions);case _:
 
 
 class _OpenSessionsResponse implements OpenSessionsResponse {
-  const _OpenSessionsResponse({final  List<AdminListeningSession> sessions = const <AdminListeningSession>[], final  List<OpenShareSession> shareSessions = const <OpenShareSession>[]}): _sessions = sessions,_shareSessions = shareSessions;
+  const _OpenSessionsResponse({ List<AdminListeningSession> sessions = const <AdminListeningSession>[],  List<OpenShareSession> shareSessions = const <OpenShareSession>[]}): _sessions = sessions,_shareSessions = shareSessions;
   
 
  final  List<AdminListeningSession> _sessions;
