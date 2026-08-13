@@ -275,6 +275,10 @@ class SessionRepository {
         ),
       );
 
+      await ref
+          .read(mediaProgressProvider.notifier)
+          .updateMediaProgress(_currentSession!.libraryItemId, currentTime, _currentSession!);
+
       PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.sync);
 
       return result;

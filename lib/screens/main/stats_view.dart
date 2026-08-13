@@ -1,22 +1,23 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/api/library_items/playback_session.dart';
 import 'package:yaabsa/components/common/connection_issue_view.dart';
+import 'package:yaabsa/components/stats/stats_components.dart';
 import 'package:yaabsa/models/advanced_listening_analytics_state.dart';
 import 'package:yaabsa/models/advanced_listening_stats.dart';
 import 'package:yaabsa/provider/common/stats_provider.dart';
-import 'package:yaabsa/screens/main/user_listening_sessions_view.dart';
-import 'package:yaabsa/screens/main/stats/stats_advanced_dashboard.dart';
 import 'package:yaabsa/screens/main/stats/stats_activity_section.dart';
 import 'package:yaabsa/screens/main/stats/stats_activity_totals_card.dart';
-import 'package:yaabsa/screens/main/stats/stats_expandable_panel.dart';
-import 'package:yaabsa/screens/main/stats/stats_navigation_panel.dart';
+import 'package:yaabsa/screens/main/stats/stats_achievements_section.dart';
+import 'package:yaabsa/screens/main/stats/stats_advanced_dashboard.dart';
 import 'package:yaabsa/screens/main/stats/stats_recent_sessions_list.dart';
-import 'package:yaabsa/screens/main/stats/stats_section_card.dart';
 import 'package:yaabsa/screens/main/stats/stats_summary_grid.dart';
 import 'package:yaabsa/screens/main/stats/stats_weekday_breakdown.dart';
 import 'package:yaabsa/screens/main/stats/stats_year_rewind_section.dart';
+import 'package:yaabsa/screens/main/user_listening_sessions_view.dart';
 import 'package:yaabsa/util/globals.dart';
 
 class StatsView extends ConsumerStatefulWidget {
@@ -28,8 +29,8 @@ class StatsView extends ConsumerStatefulWidget {
 
 class _StatsViewState extends ConsumerState<StatsView> {
   late int _selectedYear;
-  bool _advancedModeEnabled = false;
   bool _yearInRewindExpanded = false;
+  bool _achievementsExpanded = false;
   bool _advancedExpanded = false;
 
   @override
@@ -41,281 +42,246 @@ class _StatsViewState extends ConsumerState<StatsView> {
   Future<void> _refreshAll() async {
     ref.invalidate(listeningStatsProvider);
     ref.invalidate(listeningActivityStatsProvider);
-    ref.read(advancedListeningAnalyticsProvider.notifier).clear();
+    final analytics = ref.read(advancedListeningAnalyticsProvider);
+    if (_achievementsExpanded || _advancedExpanded || analytics.stats != null) {
+      unawaited(ref.read(advancedListeningAnalyticsProvider.notifier).load());
+    }
     if (_yearInRewindExpanded) {
       ref.invalidate(yearInReviewStatsProvider(_selectedYear));
     }
-    if (_advancedModeEnabled && _advancedExpanded) {
-      await ref.read(advancedListeningAnalyticsProvider.notifier).load();
+  }
+
+  void _setYearExpanded(bool expanded) {
+    setState(() => _yearInRewindExpanded = expanded);
+    if (expanded) {
+      ref.invalidate(yearInReviewStatsProvider(_selectedYear));
     }
   }
 
-  Future<void> _enableAdvancedMode() async {
-    if (_advancedModeEnabled) {
-      return;
+  void _setAdvancedExpanded(bool expanded) {
+    setState(() => _advancedExpanded = expanded);
+    if (expanded) {
+      ref.read(advancedListeningAnalyticsProvider.notifier).load();
     }
+  }
 
-    final shouldLoad = await showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Load advanced analytics?'),
-          content: const Text(
-            'Advanced mode fetches every listening-session page and can take time on large accounts.',
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
-            FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Load')),
-          ],
-        );
-      },
-    );
-
-    if (shouldLoad != true || !mounted) {
-      return;
+  void _setAchievementsExpanded(bool expanded) {
+    setState(() => _achievementsExpanded = expanded);
+    if (expanded) {
+      ref.read(advancedListeningAnalyticsProvider.notifier).load();
     }
-
-    setState(() {
-      _advancedModeEnabled = true;
-    });
-    await ref.read(advancedListeningAnalyticsProvider.notifier).load();
-  }
-
-  void _refreshActivity() {
-    ref.invalidate(listeningActivityStatsProvider);
-  }
-
-  void _refreshAdvanced() {
-    ref.read(advancedListeningAnalyticsProvider.notifier).load();
-  }
-
-  void _onYearSelected(int year) {
-    if (_selectedYear == year) {
-      return;
-    }
-
-    setState(() {
-      _selectedYear = year;
-    });
-  }
-
-  List<int> _availableYears() {
-    final now = DateTime.now().year;
-    return List<int>.generate(25, (index) => now - index);
   }
 
   AsyncValue<AdvancedListeningStats> _advancedAsyncValue(AdvancedListeningAnalyticsState state) {
-    if (state.stats != null) {
-      return AsyncValue.data(state.stats!);
+    if (state.stats != null) return AsyncValue.data(state.stats!);
+    if (state.errorMessage case final message? when message.isNotEmpty) {
+      return AsyncValue.error(message, StackTrace.empty);
     }
-
-    if (state.errorMessage != null && state.errorMessage!.isNotEmpty) {
-      return AsyncValue.error(state.errorMessage!, StackTrace.empty);
-    }
-
-    if (state.isLoading) {
-      return const AsyncValue.loading();
-    }
-
     return const AsyncValue.loading();
   }
 
-  Widget _buildOverviewTab() {
+  @override
+  Widget build(BuildContext context) {
     final listeningStatsAsync = ref.watch(listeningStatsProvider);
     final activityAsync = ref.watch(listeningActivityStatsProvider);
     final yearStatsAsync = _yearInRewindExpanded ? ref.watch(yearInReviewStatsProvider(_selectedYear)) : null;
-    final advancedAnalyticsState = _advancedModeEnabled && _advancedExpanded
-        ? ref.watch(advancedListeningAnalyticsProvider)
-        : null;
+    final horizontalPadding = context.isMobile ? 12.0 : 24.0;
 
     return RefreshIndicator(
       onRefresh: _refreshAll,
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.all(context.isMobile ? 12 : 18),
+        padding: EdgeInsets.fromLTRB(horizontalPadding, 18, horizontalPadding, 40),
         children: [
-          listeningStatsAsync.when(
-            skipLoadingOnRefresh: true,
-            skipLoadingOnReload: true,
-            data: (stats) {
-              return Column(
+          Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1280),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  StatsSectionCard(
-                    title: 'Listening Overview',
-                    padding: const EdgeInsets.all(12),
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final recentSessions = stats.recentSessions ?? const <PlaybackSession>[];
-                        final showRecentSessions = constraints.maxWidth >= 980 && recentSessions.isNotEmpty;
-
-                        final overviewContent = Column(
-                          mainAxisSize: MainAxisSize.max,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            StatsSummaryGrid(stats: stats),
-                            StatsActivityTotalsCard(activityAsync: activityAsync, onRefresh: _refreshActivity),
-                          ],
-                        );
-
-                        if (!showRecentSessions) {
-                          return overviewContent;
-                        }
-
-                        return Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(flex: 3, child: overviewContent),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              flex: 2,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
-                                  borderRadius: BorderRadius.circular(10),
+                  listeningStatsAsync.when(
+                    skipLoadingOnRefresh: true,
+                    skipLoadingOnReload: true,
+                    data: (stats) {
+                      final recentSessions = stats.recentSessions ?? const <PlaybackSession>[];
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          StatsSection(
+                            title: 'Your listening',
+                            icon: Icons.insights_rounded,
+                            trailing: IconButton(
+                              tooltip: 'Refresh stats',
+                              onPressed: _refreshAll,
+                              icon: const Icon(Icons.refresh_rounded),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                StatsSummaryGrid(stats: stats),
+                                const SizedBox(height: 20),
+                                Text('Recent pace', style: Theme.of(context).textTheme.titleMedium),
+                                const SizedBox(height: 10),
+                                StatsActivityTotalsCard(
+                                  activityAsync: activityAsync,
+                                  onRefresh: () => ref.invalidate(listeningActivityStatsProvider),
                                 ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text('Recent Sessions', style: Theme.of(context).textTheme.titleSmall),
-                                      const SizedBox(height: 8),
-                                      StatsRecentSessionsList(sessions: recentSessions, maxItems: 5),
-                                    ],
-                                  ),
-                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          StatsSection(
+                            title: 'Activity',
+                            icon: Icons.stacked_line_chart_rounded,
+                            trailing: IconButton(
+                              tooltip: 'Refresh activity',
+                              onPressed: () => ref.invalidate(listeningActivityStatsProvider),
+                              icon: const Icon(Icons.refresh_rounded),
+                            ),
+                            child: StatsActivitySection(
+                              activityAsync: activityAsync,
+                              onRefresh: () => ref.invalidate(listeningActivityStatsProvider),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          _ResponsiveOverviewPair(
+                            first: StatsSection(
+                              title: 'Weekday rhythm',
+                              icon: Icons.view_week_rounded,
+                              child: StatsWeekdayBreakdown(dayOfWeek: stats.dayOfWeek),
+                            ),
+                            second: StatsSection(
+                              title: 'Recent sessions',
+                              icon: Icons.history_rounded,
+                              trailing: TextButton(
+                                onPressed: () => context.push(UserListeningSessionsView.routeName),
+                                child: const Text('View all'),
+                              ),
+                              child: StatsRecentSessionsList(
+                                sessions: recentSessions,
+                                maxItems: 5,
+                                onSessionTap: (session) {
+                                  if (session.libraryItemId.isNotEmpty) {
+                                    context.push('/item/${session.libraryItemId}');
+                                  }
+                                },
                               ),
                             ),
-                          ],
-                        );
+                          ),
+                          const SizedBox(height: 16),
+                          StatsSection(
+                            title: 'Achievements',
+                            icon: Icons.emoji_events_rounded,
+                            trailing: IconButton(
+                              tooltip: _achievementsExpanded ? 'Collapse achievements' : 'Open achievements',
+                              onPressed: () => _setAchievementsExpanded(!_achievementsExpanded),
+                              icon: Icon(_achievementsExpanded ? Icons.expand_less_rounded : Icons.expand_more_rounded),
+                            ),
+                            compact: !_achievementsExpanded,
+                            child: Consumer(
+                              builder: (context, ref, _) {
+                                final sessionAnalytics = ref.watch(advancedListeningAnalyticsProvider);
+                                return StatsAchievementsSection(
+                                  stats: stats,
+                                  sessionAnalytics: sessionAnalytics,
+                                  onRetrySessionAnalytics: () {
+                                    unawaited(ref.read(advancedListeningAnalyticsProvider.notifier).load());
+                                  },
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                    loading: () => const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 80),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                    error: (error, _) => ConnectionIssueView.requestFailed(
+                      error: error,
+                      title: 'Unable to load listening stats',
+                      showDownloadsShortcut: false,
+                      onRetry: () async {
+                        ref.invalidate(listeningStatsProvider);
+                        ref.invalidate(listeningActivityStatsProvider);
                       },
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  StatsSectionCard(
-                    title: 'Activity Range',
+                  const SizedBox(height: 16),
+                  StatsSection(
+                    title: 'Year in Rewind',
+                    icon: Icons.auto_awesome_rounded,
                     trailing: IconButton(
-                      tooltip: 'Refresh activity',
-                      onPressed: _refreshActivity,
-                      icon: const Icon(Icons.refresh_rounded),
+                      tooltip: _yearInRewindExpanded ? 'Collapse Year in Rewind' : 'Open Year in Rewind',
+                      onPressed: () => _setYearExpanded(!_yearInRewindExpanded),
+                      icon: Icon(_yearInRewindExpanded ? Icons.expand_less_rounded : Icons.expand_more_rounded),
                     ),
-                    padding: const EdgeInsets.all(12),
-                    child: StatsActivitySection(activityAsync: activityAsync, onRefresh: _refreshActivity),
+                    compact: !_yearInRewindExpanded,
+                    child: _yearInRewindExpanded
+                        ? StatsYearRewindSection(
+                            selectedYear: _selectedYear,
+                            availableYears: List<int>.generate(25, (index) => DateTime.now().year - index),
+                            onYearSelected: (year) {
+                              if (_selectedYear == year) return;
+                              setState(() => _selectedYear = year);
+                            },
+                            onRefresh: () => ref.invalidate(yearInReviewStatsProvider(_selectedYear)),
+                            statsAsync: yearStatsAsync!,
+                          )
+                        : const SizedBox.shrink(),
                   ),
-                  const SizedBox(height: 12),
-                  StatsSectionCard(
-                    title: 'Weekday Pattern',
-                    padding: const EdgeInsets.all(12),
-                    child: StatsWeekdayBreakdown(dayOfWeek: stats.dayOfWeek),
+                  const SizedBox(height: 16),
+                  StatsSection(
+                    title: 'Advanced analytics',
+                    icon: Icons.analytics_rounded,
+                    trailing: IconButton(
+                      tooltip: _advancedExpanded ? 'Collapse advanced analytics' : 'Open advanced analytics',
+                      onPressed: () => _setAdvancedExpanded(!_advancedExpanded),
+                      icon: Icon(_advancedExpanded ? Icons.expand_less_rounded : Icons.expand_more_rounded),
+                    ),
+                    compact: !_advancedExpanded,
+                    child: !_advancedExpanded
+                        ? const SizedBox.shrink()
+                        : Consumer(
+                            builder: (context, ref, _) {
+                              final advancedState = ref.watch(advancedListeningAnalyticsProvider);
+                              return StatsAdvancedDashboard(
+                                statsAsync: _advancedAsyncValue(advancedState),
+                                onRefresh: () => ref.read(advancedListeningAnalyticsProvider.notifier).load(),
+                                loadingProgress: advancedState.progress,
+                              );
+                            },
+                          ),
                   ),
                 ],
-              );
-            },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, _) => ConnectionIssueView.requestFailed(
-              error: error,
-              title: 'Unable to load listening stats',
-              showDownloadsShortcut: false,
-              onRetry: () async {
-                ref.invalidate(listeningStatsProvider);
-                ref.invalidate(listeningActivityStatsProvider);
-              },
+              ),
             ),
           ),
-          const SizedBox(height: 12),
-          StatsSectionCard(
-            title: 'More Insights',
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              children: [
-                StatsExpandablePanel(
-                  title: 'Year In Rewind',
-                  icon: Icons.auto_awesome_rounded,
-                  expanded: _yearInRewindExpanded,
-                  onExpansionChanged: (expanded) {
-                    setState(() {
-                      _yearInRewindExpanded = expanded;
-                    });
-                    if (expanded) {
-                      ref.invalidate(yearInReviewStatsProvider(_selectedYear));
-                    }
-                  },
-                  child: yearStatsAsync == null
-                      ? const SizedBox.shrink()
-                      : StatsYearRewindSection(
-                          selectedYear: _selectedYear,
-                          availableYears: _availableYears(),
-                          onYearSelected: _onYearSelected,
-                          onRefresh: () => ref.invalidate(yearInReviewStatsProvider(_selectedYear)),
-                          statsAsync: yearStatsAsync,
-                        ),
-                ),
-                const SizedBox(height: 10),
-                StatsExpandablePanel(
-                  title: 'Advanced Analytics',
-                  icon: Icons.analytics_rounded,
-                  expanded: _advancedExpanded,
-                  onExpansionChanged: (expanded) {
-                    setState(() {
-                      _advancedExpanded = expanded;
-                    });
-                    if (expanded && _advancedModeEnabled) {
-                      ref.read(advancedListeningAnalyticsProvider.notifier).load();
-                    }
-                  },
-                  child: !_advancedModeEnabled
-                      ? Align(
-                          alignment: Alignment.centerLeft,
-                          child: OutlinedButton.icon(
-                            onPressed: _enableAdvancedMode,
-                            icon: const Icon(Icons.analytics_outlined),
-                            label: const Text('Load Advanced Analytics'),
-                          ),
-                        )
-                      : advancedAnalyticsState != null
-                      ? StatsAdvancedDashboard(
-                          statsAsync: _advancedAsyncValue(advancedAnalyticsState),
-                          onRefresh: _refreshAdvanced,
-                          loadingProgress: advancedAnalyticsState.progress,
-                        )
-                      : const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 8),
-                          child: Center(child: CircularProgressIndicator()),
-                        ),
-                ),
-                const SizedBox(height: 10),
-                StatsNavigationPanel(
-                  title: 'Sessions',
-                  icon: Icons.history_rounded,
-                  onTap: () {
-                    context.push(UserListeningSessionsView.routeName);
-                  },
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
         ],
       ),
     );
   }
+}
+
+class _ResponsiveOverviewPair extends StatelessWidget {
+  const _ResponsiveOverviewPair({required this.first, required this.second});
+
+  final Widget first;
+  final Widget second;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+    if (context.isMobile) {
+      return Column(children: [first, const SizedBox(height: 16), second]);
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: EdgeInsets.fromLTRB(
-            context.isMobile ? 12 : 18,
-            context.isMobile ? 10 : 14,
-            context.isMobile ? 12 : 18,
-            0,
-          ),
-          child: Text('Stats', style: Theme.of(context).textTheme.headlineSmall),
-        ),
-        const SizedBox(height: 8),
-        Expanded(child: _buildOverviewTab()),
+        Expanded(child: first),
+        const SizedBox(width: 16),
+        Expanded(child: second),
       ],
     );
   }

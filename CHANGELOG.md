@@ -1,5 +1,18 @@
 # Changelog
 
+## TBA
+
+### Added
+
+- Encoder now defaults to copy when already acc or opus
+- Running encoding tasks are now clickable and single file status can be shown
+
+### Fixed
+
+- If an book has been deleted it now redirects correctly
+- Progress listened in the background now correctly updates the progress in all views
+- Closing the session now only overwrites newer progress if unsynced progress is still queued
+
 ## 1.8.0
 
 ### Added

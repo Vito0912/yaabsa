@@ -3,10 +3,11 @@ import 'package:yaabsa/api/library_items/playback_session.dart';
 import 'package:yaabsa/screens/main/stats/stats_formatters.dart';
 
 class StatsRecentSessionsList extends StatelessWidget {
-  const StatsRecentSessionsList({super.key, required this.sessions, this.maxItems = 8});
+  const StatsRecentSessionsList({super.key, required this.sessions, this.maxItems = 8, this.onSessionTap});
 
   final List<PlaybackSession> sessions;
   final int maxItems;
+  final ValueChanged<PlaybackSession>? onSessionTap;
 
   @override
   Widget build(BuildContext context) {
@@ -32,12 +33,25 @@ class StatsRecentSessionsList extends StatelessWidget {
 
         subtitleParts.add(formatDateTimeLabel(_sessionDate(session)));
 
-        return ListTile(
-          dense: true,
-          contentPadding: EdgeInsets.zero,
-          title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
-          subtitle: Text(subtitleParts.join(' • '), maxLines: 1, overflow: TextOverflow.ellipsis),
-          trailing: Text(formatListeningSeconds(session.timeListening)),
+        return Material(
+          color: Colors.transparent,
+          child: ListTile(
+            dense: true,
+            contentPadding: EdgeInsets.zero,
+            title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
+            subtitle: Text(subtitleParts.join(' • '), maxLines: 1, overflow: TextOverflow.ellipsis),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(formatListeningSeconds(session.timeListening)),
+                if (onSessionTap != null) ...[
+                  const SizedBox(width: 4),
+                  const Icon(Icons.chevron_right_rounded, size: 20),
+                ],
+              ],
+            ),
+            onTap: onSessionTap == null ? null : () => onSessionTap!(session),
+          ),
         );
       },
       separatorBuilder: (_, _) => const Divider(height: 1),

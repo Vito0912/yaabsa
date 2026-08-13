@@ -107,6 +107,8 @@ class AdvancedListeningAnalytics extends _$AdvancedListeningAnalytics {
   AdvancedListeningAnalyticsState build() => const AdvancedListeningAnalyticsState();
 
   Future<void> load() async {
+    if (state.isLoading) return;
+
     final api = ref.read(absApiProvider);
     final currentUser = ref.read(currentUserProvider).value;
     final previousStats = state.stats;
@@ -274,14 +276,15 @@ AdvancedListeningStats _calculateAdvancedListeningStats({
     }
 
     final authors = _resolveAuthors(session);
-    for (final authorName in authors) {
-      final normalized = authorName.trim();
+    for (final author in authors) {
+      final normalized = author.name.trim();
       if (normalized.isEmpty) {
         continue;
       }
 
-      final key = normalized.toLowerCase();
-      final authorAggregate = authorAggregates.putIfAbsent(key, () => _EntityAggregate(name: normalized));
+      final authorId = author.id?.trim();
+      final key = authorId == null || authorId.isEmpty ? normalized.toLowerCase() : authorId;
+      final authorAggregate = authorAggregates.putIfAbsent(key, () => _EntityAggregate(id: authorId, name: normalized));
       authorAggregate.totalListeningTime += sessionListeningTime;
       authorAggregate.sessions += 1;
     }
@@ -339,6 +342,7 @@ AdvancedListeningStats _calculateAdvancedListeningStats({
       authorAggregates.values
           .map(
             (aggregate) => AdvancedTopEntity(
+              id: aggregate.id,
               name: aggregate.name,
               totalListeningTime: aggregate.totalListeningTime,
               sessions: aggregate.sessions,
@@ -512,24 +516,24 @@ String _resolveItemAuthor(PlaybackSession session) {
   return _ItemAggregate.unknownAuthor;
 }
 
-List<String> _resolveAuthors(PlaybackSession session) {
+List<_ResolvedAuthor> _resolveAuthors(PlaybackSession session) {
   final metadata = session.mediaMetadata;
 
-  final authors = <String>[];
+  final authors = <_ResolvedAuthor>[];
 
   final bookAuthors = metadata?.bookMetadata?.authors;
   if (bookAuthors != null) {
     for (final author in bookAuthors) {
       final name = author.name.trim();
       if (name.isNotEmpty) {
-        authors.add(name);
+        authors.add(_ResolvedAuthor(id: author.id, name: name));
       }
     }
   }
 
   final podcastAuthor = metadata?.podcastMetadata?.author?.trim();
   if (podcastAuthor != null && podcastAuthor.isNotEmpty) {
-    authors.add(podcastAuthor);
+    authors.add(_ResolvedAuthor(name: podcastAuthor));
   }
 
   if (authors.isNotEmpty) {
@@ -538,10 +542,15 @@ List<String> _resolveAuthors(PlaybackSession session) {
 
   final displayAuthor = session.displayAuthor?.trim();
   if (displayAuthor != null && displayAuthor.isNotEmpty) {
-    return displayAuthor.split(',').map((entry) => entry.trim()).where((entry) => entry.isNotEmpty).toList();
+    return displayAuthor
+        .split(',')
+        .map((entry) => entry.trim())
+        .where((entry) => entry.isNotEmpty)
+        .map((name) => _ResolvedAuthor(name: name))
+        .toList(growable: false);
   }
 
-  return const <String>[];
+  return const <_ResolvedAuthor>[];
 }
 
 int _calculateLongestStreak(Set<int> dayEpochs) {
@@ -603,9 +612,17 @@ class _ItemAggregate {
 }
 
 class _EntityAggregate {
-  _EntityAggregate({required this.name});
+  _EntityAggregate({required this.name, this.id});
 
+  final String? id;
   final String name;
   double totalListeningTime = 0;
   int sessions = 0;
+}
+
+class _ResolvedAuthor {
+  const _ResolvedAuthor({required this.name, this.id});
+
+  final String? id;
+  final String name;
 }

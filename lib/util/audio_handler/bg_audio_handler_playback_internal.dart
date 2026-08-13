@@ -220,7 +220,7 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
     _currentTrackIndex = 0;
 
     try {
-      await _syncService.flush(positionOverride: transitionPosition);
+      await _syncService.flush(positionOverride: transitionPosition, sessionClosing: true);
       await _ref.read(sessionRepositoryProvider).closeSession();
     } catch (e) {
       logger('Error preparing queued transition: $e', tag: 'AudioHandler', level: InfoLevel.error);

@@ -177,7 +177,7 @@ final class AdvancedListeningAnalyticsProvider
   }
 }
 
-String _$advancedListeningAnalyticsHash() => r'5098f9ca1d92b2551a0c555b72a7f771dec5b55e';
+String _$advancedListeningAnalyticsHash() => r'4e9d0660d3ec1af5721c0f55538d2788ef695b03';
 
 abstract class _$AdvancedListeningAnalytics extends $Notifier<AdvancedListeningAnalyticsState> {
   AdvancedListeningAnalyticsState build();

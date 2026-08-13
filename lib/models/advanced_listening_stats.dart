@@ -16,8 +16,12 @@ abstract class AdvancedTopItem with _$AdvancedTopItem {
 
 @freezed
 abstract class AdvancedTopEntity with _$AdvancedTopEntity {
-  const factory AdvancedTopEntity({required String name, required double totalListeningTime, required int sessions}) =
-      _AdvancedTopEntity;
+  const factory AdvancedTopEntity({
+    String? id,
+    required String name,
+    required double totalListeningTime,
+    required int sessions,
+  }) = _AdvancedTopEntity;
 }
 
 @freezed

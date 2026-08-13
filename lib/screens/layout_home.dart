@@ -696,6 +696,7 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
           )
         : resolvedContent;
     final multiSelectAppBarState = ref.watch(multiSelectAppBarProvider);
+    final playBar = PlayBar(includeBottomSafeArea: isMobile, attachedToBottom: isMobile);
 
     if (isMobile) {
       return _wrapWithUploadPageBackHandling(
@@ -749,7 +750,7 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
                   );
                 },
               ),
-              const PlayBar(includeBottomSafeArea: true, attachedToBottom: true),
+              playBar,
             ],
           ),
         ),
@@ -805,7 +806,7 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
                       child: Column(
                         children: [
                           Expanded(child: currentContent),
-                          const PlayBar(),
+                          playBar,
                         ],
                       ),
                     ),

@@ -786,7 +786,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     try {
       unawaited(
         _syncService
-            .flush(positionOverride: stopPosition)
+            .flush(positionOverride: stopPosition, sessionClosing: true)
             .then((_) => _ref.read(sessionRepositoryProvider).closeSession()),
       );
     } catch (e) {
@@ -1003,6 +1003,10 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     final boundedPosition = resolvedPosition < Duration.zero
         ? Duration.zero
         : (resolvedPosition > maxPosition ? maxPosition : resolvedPosition);
+
+    if (!_isInternalSeek && (boundedPosition - fromPosition).abs() >= const Duration(seconds: 1)) {
+      _syncService.markProgressDirty();
+    }
 
     final shouldRecordPausedManualSeek =
         _internalSeekGuardDepth == 0 &&

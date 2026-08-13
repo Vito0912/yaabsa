@@ -286,7 +286,7 @@ as int,
 /// @nodoc
 mixin _$AdvancedTopEntity {
 
- String get name; double get totalListeningTime; int get sessions;
+ String? get id; String get name; double get totalListeningTime; int get sessions;
 /// Create a copy of AdvancedTopEntity
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -297,16 +297,16 @@ $AdvancedTopEntityCopyWith<AdvancedTopEntity> get copyWith => _$AdvancedTopEntit
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdvancedTopEntity&&(identical(other.name, name) || other.name == name)&&(identical(other.totalListeningTime, totalListeningTime) || other.totalListeningTime == totalListeningTime)&&(identical(other.sessions, sessions) || other.sessions == sessions));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdvancedTopEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.totalListeningTime, totalListeningTime) || other.totalListeningTime == totalListeningTime)&&(identical(other.sessions, sessions) || other.sessions == sessions));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,name,totalListeningTime,sessions);
+int get hashCode => Object.hash(runtimeType,id,name,totalListeningTime,sessions);
 
 @override
 String toString() {
-  return 'AdvancedTopEntity(name: $name, totalListeningTime: $totalListeningTime, sessions: $sessions)';
+  return 'AdvancedTopEntity(id: $id, name: $name, totalListeningTime: $totalListeningTime, sessions: $sessions)';
 }
 
 
@@ -317,7 +317,7 @@ abstract mixin class $AdvancedTopEntityCopyWith<$Res>  {
   factory $AdvancedTopEntityCopyWith(AdvancedTopEntity value, $Res Function(AdvancedTopEntity) _then) = _$AdvancedTopEntityCopyWithImpl;
 @useResult
 $Res call({
- String name, double totalListeningTime, int sessions
+ String? id, String name, double totalListeningTime, int sessions
 });
 
 
@@ -334,9 +334,10 @@ class _$AdvancedTopEntityCopyWithImpl<$Res>
 
 /// Create a copy of AdvancedTopEntity
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? totalListeningTime = null,Object? sessions = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? name = null,Object? totalListeningTime = null,Object? sessions = null,}) {
   return _then(_self.copyWith(
-name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,totalListeningTime: null == totalListeningTime ? _self.totalListeningTime : totalListeningTime // ignore: cast_nullable_to_non_nullable
 as double,sessions: null == sessions ? _self.sessions : sessions // ignore: cast_nullable_to_non_nullable
 as int,
@@ -424,10 +425,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  double totalListeningTime,  int sessions)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? id,  String name,  double totalListeningTime,  int sessions)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AdvancedTopEntity() when $default != null:
-return $default(_that.name,_that.totalListeningTime,_that.sessions);case _:
+return $default(_that.id,_that.name,_that.totalListeningTime,_that.sessions);case _:
   return orElse();
 
 }
@@ -445,10 +446,10 @@ return $default(_that.name,_that.totalListeningTime,_that.sessions);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  double totalListeningTime,  int sessions)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? id,  String name,  double totalListeningTime,  int sessions)  $default,) {final _that = this;
 switch (_that) {
 case _AdvancedTopEntity():
-return $default(_that.name,_that.totalListeningTime,_that.sessions);case _:
+return $default(_that.id,_that.name,_that.totalListeningTime,_that.sessions);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -465,10 +466,10 @@ return $default(_that.name,_that.totalListeningTime,_that.sessions);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  double totalListeningTime,  int sessions)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? id,  String name,  double totalListeningTime,  int sessions)?  $default,) {final _that = this;
 switch (_that) {
 case _AdvancedTopEntity() when $default != null:
-return $default(_that.name,_that.totalListeningTime,_that.sessions);case _:
+return $default(_that.id,_that.name,_that.totalListeningTime,_that.sessions);case _:
   return null;
 
 }
@@ -480,9 +481,10 @@ return $default(_that.name,_that.totalListeningTime,_that.sessions);case _:
 
 
 class _AdvancedTopEntity implements AdvancedTopEntity {
-  const _AdvancedTopEntity({required this.name, required this.totalListeningTime, required this.sessions});
+  const _AdvancedTopEntity({this.id, required this.name, required this.totalListeningTime, required this.sessions});
   
 
+@override final  String? id;
 @override final  String name;
 @override final  double totalListeningTime;
 @override final  int sessions;
@@ -497,16 +499,16 @@ _$AdvancedTopEntityCopyWith<_AdvancedTopEntity> get copyWith => __$AdvancedTopEn
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdvancedTopEntity&&(identical(other.name, name) || other.name == name)&&(identical(other.totalListeningTime, totalListeningTime) || other.totalListeningTime == totalListeningTime)&&(identical(other.sessions, sessions) || other.sessions == sessions));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdvancedTopEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.totalListeningTime, totalListeningTime) || other.totalListeningTime == totalListeningTime)&&(identical(other.sessions, sessions) || other.sessions == sessions));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,name,totalListeningTime,sessions);
+int get hashCode => Object.hash(runtimeType,id,name,totalListeningTime,sessions);
 
 @override
 String toString() {
-  return 'AdvancedTopEntity(name: $name, totalListeningTime: $totalListeningTime, sessions: $sessions)';
+  return 'AdvancedTopEntity(id: $id, name: $name, totalListeningTime: $totalListeningTime, sessions: $sessions)';
 }
 
 
@@ -517,7 +519,7 @@ abstract mixin class _$AdvancedTopEntityCopyWith<$Res> implements $AdvancedTopEn
   factory _$AdvancedTopEntityCopyWith(_AdvancedTopEntity value, $Res Function(_AdvancedTopEntity) _then) = __$AdvancedTopEntityCopyWithImpl;
 @override @useResult
 $Res call({
- String name, double totalListeningTime, int sessions
+ String? id, String name, double totalListeningTime, int sessions
 });
 
 
@@ -534,9 +536,10 @@ class __$AdvancedTopEntityCopyWithImpl<$Res>
 
 /// Create a copy of AdvancedTopEntity
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? totalListeningTime = null,Object? sessions = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? name = null,Object? totalListeningTime = null,Object? sessions = null,}) {
   return _then(_AdvancedTopEntity(
-name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,totalListeningTime: null == totalListeningTime ? _self.totalListeningTime : totalListeningTime // ignore: cast_nullable_to_non_nullable
 as double,sessions: null == sessions ? _self.sessions : sessions // ignore: cast_nullable_to_non_nullable
 as int,
