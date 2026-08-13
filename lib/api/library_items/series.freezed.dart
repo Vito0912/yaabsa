@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'series.dart';
@@ -9,6 +9,7 @@ part of 'series.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$SeriesCopyWithImpl<$Res>
 /// Create a copy of Series
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? sequence = freezed,Object? description = freezed,Object? addedAt = freezed,Object? updatedAt = freezed,Object? nameIgnorePrefix = freezed,Object? nameIgnorePrefixSort = freezed,Object? libraryItemIds = freezed,Object? numBooks = freezed,Object? books = freezed,Object? totalDuration = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(Series(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,sequence: freezed == sequence ? _self.sequence : sequence // ignore: cast_nullable_to_non_nullable
@@ -220,7 +221,7 @@ return $default(_that.id,_that.name,_that.sequence,_that.description,_that.added
 @JsonSerializable()
 
 class _Series implements Series {
-  const _Series({@JsonKey(name: "id") required this.id, @JsonKey(name: "name") required this.name, @JsonKey(name: "sequence") this.sequence, @JsonKey(name: "description") this.description, @JsonKey(name: "addedAt") this.addedAt, @JsonKey(name: "updatedAt") this.updatedAt, @JsonKey(name: "nameIgnorePrefix") this.nameIgnorePrefix, @JsonKey(name: "nameIgnorePrefixSort") this.nameIgnorePrefixSort, @JsonKey(name: "libraryItemIds") final  List<String>? libraryItemIds, @JsonKey(name: "numBooks") this.numBooks, @JsonKey(name: "books") final  List<LibraryItem>? books, @JsonKey(name: "totalDuration") this.totalDuration}): _libraryItemIds = libraryItemIds,_books = books;
+  const _Series({@JsonKey(name: "id") required this.id, @JsonKey(name: "name") required this.name, @JsonKey(name: "sequence") this.sequence, @JsonKey(name: "description") this.description, @JsonKey(name: "addedAt") this.addedAt, @JsonKey(name: "updatedAt") this.updatedAt, @JsonKey(name: "nameIgnorePrefix") this.nameIgnorePrefix, @JsonKey(name: "nameIgnorePrefixSort") this.nameIgnorePrefixSort, @JsonKey(name: "libraryItemIds")  List<String>? libraryItemIds, @JsonKey(name: "numBooks") this.numBooks, @JsonKey(name: "books")  List<LibraryItem>? books, @JsonKey(name: "totalDuration") this.totalDuration}): _libraryItemIds = libraryItemIds,_books = books;
   factory _Series.fromJson(Map<String, dynamic> json) => _$SeriesFromJson(json);
 
 @override@JsonKey(name: "id") final  String id;

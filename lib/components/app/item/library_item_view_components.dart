@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/api/library/request/library_filter.dart';
 import 'package:yaabsa/api/library_items/audio_file.dart';
@@ -317,9 +317,8 @@ class _ChapterTableHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = Theme.of(
-      context,
-    ).textTheme.labelSmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant, letterSpacing: 0.4);
+    final style = Theme.of(context).textTheme.labelSmall
+        ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant, letterSpacing: 0.4);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 2),

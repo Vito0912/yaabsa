@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'admin_api_keys_response.dart';
@@ -9,6 +9,7 @@ part of 'admin_api_keys_response.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$AdminApiKeysResponseCopyWithImpl<$Res>
 /// Create a copy of AdminApiKeysResponse
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? apiKeys = null,}) {
-  return _then(_self.copyWith(
+  return _then(AdminApiKeysResponse(
 apiKeys: null == apiKeys ? _self.apiKeys : apiKeys // ignore: cast_nullable_to_non_nullable
 as List<AdminApiKey>,
   ));
@@ -209,7 +210,7 @@ return $default(_that.apiKeys);case _:
 @JsonSerializable()
 
 class _AdminApiKeysResponse implements AdminApiKeysResponse {
-  const _AdminApiKeysResponse({@JsonKey(name: 'apiKeys') final  List<AdminApiKey> apiKeys = const <AdminApiKey>[]}): _apiKeys = apiKeys;
+  const _AdminApiKeysResponse({@JsonKey(name: 'apiKeys')  List<AdminApiKey> apiKeys = const <AdminApiKey>[]}): _apiKeys = apiKeys;
   factory _AdminApiKeysResponse.fromJson(Map<String, dynamic> json) => _$AdminApiKeysResponseFromJson(json);
 
  final  List<AdminApiKey> _apiKeys;

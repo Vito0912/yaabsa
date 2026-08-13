@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class ListManagementFormResult {
   const ListManagementFormResult({required this.name, this.description});
@@ -154,9 +154,8 @@ class _ListManagementFormDialogState extends State<_ListManagementFormDialog> {
               if (widget.helperText != null && widget.helperText!.trim().isNotEmpty) ...[
                 Text(
                   widget.helperText!,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  style: Theme.of(context).textTheme.bodySmall
+                      ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
                 const SizedBox(height: 12),
               ],

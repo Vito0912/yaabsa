@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/player/common/seek_bar_slider.dart';
 import 'package:yaabsa/util/setting_key.dart';
 

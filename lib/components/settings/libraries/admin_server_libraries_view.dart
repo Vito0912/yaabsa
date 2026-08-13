@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/api/library/library.dart';
 import 'package:yaabsa/api/library/library_folder.dart';
@@ -594,9 +594,8 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
           const SizedBox(height: 8),
           Text(
             summaryText,
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+            style: Theme.of(context).textTheme.bodySmall
+                ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 8),
           Row(
@@ -644,9 +643,8 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
             const SizedBox(width: 12),
             Text(
               summaryText,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+              style: Theme.of(context).textTheme.bodyMedium
+                  ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
           ],
         ),
@@ -664,9 +662,8 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
               const SizedBox(width: 8),
               Text(
                 'Saving order...',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                style: Theme.of(context).textTheme.bodySmall
+                    ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
             ],
             const Spacer(),

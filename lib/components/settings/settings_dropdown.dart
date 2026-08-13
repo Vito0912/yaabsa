@@ -1,6 +1,6 @@
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/util/setting_key.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class SettingDropdown<T> extends ConsumerWidget {
@@ -473,9 +473,8 @@ class SettingMultiSelectDropdown<T> extends StatelessWidget {
                       if (description != null && description!.isNotEmpty) ...[
                         Text(
                           description!,
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                         ),
                         const Divider(height: 24),
                       ],

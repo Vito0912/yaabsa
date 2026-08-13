@@ -1,5 +1,5 @@
 import 'package:background_downloader/background_downloader.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
@@ -152,9 +152,8 @@ class PodcastEpisodeDetailsContent extends ConsumerWidget {
                               padding: const EdgeInsets.only(top: 4),
                               child: Text(
                                 podcastEpisodeSubtitle(episode)!,
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                               ),
                             ),
                           const SizedBox(height: 10),
@@ -251,9 +250,8 @@ class PodcastEpisodeDetailsContent extends ConsumerWidget {
                                             if (!context.mounted) {
                                               return;
                                             }
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(SnackBar(content: Text('Could not delete download: $e')));
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(SnackBar(content: Text('Could not delete download: $e')));
                                           }
                                         },
                                   icon: const Icon(Icons.delete_outline_rounded),
@@ -267,16 +265,14 @@ class PodcastEpisodeDetailsContent extends ConsumerWidget {
                                       if (!context.mounted) {
                                         return;
                                       }
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(const SnackBar(content: Text('Download added to queue.')));
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(const SnackBar(content: Text('Download added to queue.')));
                                     } catch (e) {
                                       if (!context.mounted) {
                                         return;
                                       }
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(SnackBar(content: Text('Could not start download: $e')));
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(SnackBar(content: Text('Could not start download: $e')));
                                     }
                                   },
                                   icon: const Icon(Icons.download_rounded),

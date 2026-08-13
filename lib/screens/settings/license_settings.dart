@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:yaabsa/util/globals.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class LicenseSettings {
   static Future<void> showLicensePage({required BuildContext context, bool useRootNavigator = false}) async {

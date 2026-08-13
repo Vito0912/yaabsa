@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'library_settings.dart';
@@ -9,6 +9,7 @@ part of 'library_settings.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$LibrarySettingsCopyWithImpl<$Res>
 /// Create a copy of LibrarySettings
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? coverAspectRatio = freezed,Object? disableWatcher = freezed,Object? skipMatchingMediaWithAsin = freezed,Object? skipMatchingMediaWithIsbn = freezed,Object? autoScanCronExpression = freezed,Object? audiobooksOnly = freezed,Object? epubScriptedContent = freezed,Object? hideSingleBookSeries = freezed,Object? showLaterBooks = freezed,Object? podcastSearchRegion = freezed,Object? markAsFinishedTimeRemaining = freezed,Object? markAsFinishedPercentComplete = freezed,Object? metadataPrecedence = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(LibrarySettings(
 coverAspectRatio: freezed == coverAspectRatio ? _self.coverAspectRatio : coverAspectRatio // ignore: cast_nullable_to_non_nullable
 as double?,disableWatcher: freezed == disableWatcher ? _self.disableWatcher : disableWatcher // ignore: cast_nullable_to_non_nullable
 as bool?,skipMatchingMediaWithAsin: freezed == skipMatchingMediaWithAsin ? _self.skipMatchingMediaWithAsin : skipMatchingMediaWithAsin // ignore: cast_nullable_to_non_nullable
@@ -221,7 +222,7 @@ return $default(_that.coverAspectRatio,_that.disableWatcher,_that.skipMatchingMe
 @JsonSerializable()
 
 class _LibrarySettings implements LibrarySettings {
-  const _LibrarySettings({@JsonKey(name: "coverAspectRatio") this.coverAspectRatio, @JsonKey(name: "disableWatcher") this.disableWatcher, @JsonKey(name: "skipMatchingMediaWithAsin") this.skipMatchingMediaWithAsin, @JsonKey(name: "skipMatchingMediaWithIsbn") this.skipMatchingMediaWithIsbn, @JsonKey(name: "autoScanCronExpression") this.autoScanCronExpression, @JsonKey(name: "audiobooksOnly") this.audiobooksOnly, @JsonKey(name: "epubsAllowScriptedContent") this.epubScriptedContent, @JsonKey(name: "hideSingleBookSeries") this.hideSingleBookSeries, @JsonKey(name: "onlyShowLaterBooksInContinueSeries") this.showLaterBooks, @JsonKey(name: "podcastSearchRegion") this.podcastSearchRegion, @JsonKey(name: "markAsFinishedTimeRemaining", fromJson: jsonIntFromDynamic) this.markAsFinishedTimeRemaining, @JsonKey(name: "markAsFinishedPercentComplete", fromJson: jsonDoubleFromDynamic) this.markAsFinishedPercentComplete, @JsonKey(name: "metadataPrecedence") final  List<String>? metadataPrecedence}): _metadataPrecedence = metadataPrecedence;
+  const _LibrarySettings({@JsonKey(name: "coverAspectRatio") this.coverAspectRatio, @JsonKey(name: "disableWatcher") this.disableWatcher, @JsonKey(name: "skipMatchingMediaWithAsin") this.skipMatchingMediaWithAsin, @JsonKey(name: "skipMatchingMediaWithIsbn") this.skipMatchingMediaWithIsbn, @JsonKey(name: "autoScanCronExpression") this.autoScanCronExpression, @JsonKey(name: "audiobooksOnly") this.audiobooksOnly, @JsonKey(name: "epubsAllowScriptedContent") this.epubScriptedContent, @JsonKey(name: "hideSingleBookSeries") this.hideSingleBookSeries, @JsonKey(name: "onlyShowLaterBooksInContinueSeries") this.showLaterBooks, @JsonKey(name: "podcastSearchRegion") this.podcastSearchRegion, @JsonKey(name: "markAsFinishedTimeRemaining", fromJson: jsonIntFromDynamic) this.markAsFinishedTimeRemaining, @JsonKey(name: "markAsFinishedPercentComplete", fromJson: jsonDoubleFromDynamic) this.markAsFinishedPercentComplete, @JsonKey(name: "metadataPrecedence")  List<String>? metadataPrecedence}): _metadataPrecedence = metadataPrecedence;
   factory _LibrarySettings.fromJson(Map<String, dynamic> json) => _$LibrarySettingsFromJson(json);
 
 @override@JsonKey(name: "coverAspectRatio") final  double? coverAspectRatio;

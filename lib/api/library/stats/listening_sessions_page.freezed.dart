@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'listening_sessions_page.dart';
@@ -9,6 +9,7 @@ part of 'listening_sessions_page.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$ListeningSessionsPageCopyWithImpl<$Res>
 /// Create a copy of ListeningSessionsPage
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? total = freezed,Object? numPages = freezed,Object? page = freezed,Object? itemsPerPage = freezed,Object? sessions = null,}) {
-  return _then(_self.copyWith(
+  return _then(ListeningSessionsPage(
 total: freezed == total ? _self.total : total // ignore: cast_nullable_to_non_nullable
 as int?,numPages: freezed == numPages ? _self.numPages : numPages // ignore: cast_nullable_to_non_nullable
 as int?,page: freezed == page ? _self.page : page // ignore: cast_nullable_to_non_nullable
@@ -213,7 +214,7 @@ return $default(_that.total,_that.numPages,_that.page,_that.itemsPerPage,_that.s
 @JsonSerializable()
 
 class _ListeningSessionsPage implements ListeningSessionsPage {
-  const _ListeningSessionsPage({@JsonKey(name: 'total') this.total, @JsonKey(name: 'numPages') this.numPages, @JsonKey(name: 'page') this.page, @JsonKey(name: 'itemsPerPage') this.itemsPerPage, @JsonKey(name: 'sessions') final  List<PlaybackSession> sessions = const <PlaybackSession>[]}): _sessions = sessions;
+  const _ListeningSessionsPage({@JsonKey(name: 'total') this.total, @JsonKey(name: 'numPages') this.numPages, @JsonKey(name: 'page') this.page, @JsonKey(name: 'itemsPerPage') this.itemsPerPage, @JsonKey(name: 'sessions')  List<PlaybackSession> sessions = const <PlaybackSession>[]}): _sessions = sessions;
   factory _ListeningSessionsPage.fromJson(Map<String, dynamic> json) => _$ListeningSessionsPageFromJson(json);
 
 @override@JsonKey(name: 'total') final  int? total;

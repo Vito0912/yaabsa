@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
@@ -36,9 +36,8 @@ class LogView extends HookWidget {
     buffer.writeln('</details>');
 
     Clipboard.setData(ClipboardData(text: buffer.toString()));
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('GitHub formatted logs copied to clipboard!')));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('GitHub formatted logs copied to clipboard!')));
   }
 
   Future<void> _exportLogs(BuildContext context, List<LogEntry> logs) async {

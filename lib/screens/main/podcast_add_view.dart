@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/api/library/library.dart';
 import 'package:yaabsa/api/podcast/library_podcast_title.dart';
@@ -200,9 +200,8 @@ class _PodcastAddViewState extends ConsumerState<PodcastAddView> {
     required LibraryPodcastTitle? existing,
   }) async {
     if (existing != null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('This podcast is already in your library.')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('This podcast is already in your library.')));
       return;
     }
 
@@ -234,9 +233,8 @@ class _PodcastAddViewState extends ConsumerState<PodcastAddView> {
         if (!mounted) {
           return;
         }
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Could not read this RSS feed. Check the URL and try again.')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Could not read this RSS feed. Check the URL and try again.')));
         return;
       }
 
@@ -278,9 +276,8 @@ class _PodcastAddViewState extends ConsumerState<PodcastAddView> {
       }
 
       if (e.response?.statusCode == 400) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('This podcast already exists in your library.')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('This podcast already exists in your library.')));
         return;
       }
 

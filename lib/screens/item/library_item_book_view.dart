@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:background_downloader/background_downloader.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:just_audio/just_audio.dart';
@@ -241,16 +241,14 @@ class LibraryItemBookView extends ConsumerWidget {
                                           if (!context.mounted) {
                                             return;
                                           }
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(const SnackBar(content: Text('Download added to queue.')));
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(const SnackBar(content: Text('Download added to queue.')));
                                         } catch (e) {
                                           if (!context.mounted) {
                                             return;
                                           }
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(SnackBar(content: Text('Could not start download: $e')));
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(SnackBar(content: Text('Could not start download: $e')));
                                         }
                                       },
                                       onDeleteDownload: () async {
@@ -281,9 +279,8 @@ class LibraryItemBookView extends ConsumerWidget {
                                           if (!context.mounted) {
                                             return;
                                           }
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(SnackBar(content: Text('Could not delete download: $e')));
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(SnackBar(content: Text('Could not delete download: $e')));
                                         }
                                       },
                                       onQueueToggle: () {

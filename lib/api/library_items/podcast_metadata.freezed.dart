@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'podcast_metadata.dart';
@@ -9,6 +9,7 @@ part of 'podcast_metadata.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$PodcastMetadataCopyWithImpl<$Res>
 /// Create a copy of PodcastMetadata
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? title = freezed,Object? author = freezed,Object? description = freezed,Object? releaseDate = freezed,Object? genres = freezed,Object? feedUrl = freezed,Object? imageUrl = freezed,Object? itunesPageUrl = freezed,Object? itunesId = freezed,Object? itunesArtistId = freezed,Object? explicit = freezed,Object? language = freezed,Object? type = freezed,Object? titleIgnorePrefix = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(PodcastMetadata(
 title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String?,author: freezed == author ? _self.author : author // ignore: cast_nullable_to_non_nullable
 as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
@@ -222,7 +223,7 @@ return $default(_that.title,_that.author,_that.description,_that.releaseDate,_th
 @JsonSerializable()
 
 class _PodcastMetadata implements PodcastMetadata {
-  const _PodcastMetadata({@JsonKey(name: "title") this.title, @JsonKey(name: "author") this.author, @JsonKey(name: "description") this.description, @JsonKey(name: "releaseDate") this.releaseDate, @JsonKey(name: "genres") final  List<String>? genres, @JsonKey(name: "feedUrl") this.feedUrl, @JsonKey(name: "imageUrl") this.imageUrl, @JsonKey(name: "itunesPageUrl") this.itunesPageUrl, @JsonKey(name: "itunesId") this.itunesId, @JsonKey(name: "itunesArtistId") this.itunesArtistId, @JsonKey(name: "explicit") this.explicit, @JsonKey(name: "language") this.language, @JsonKey(name: "type") this.type, @JsonKey(name: "titleIgnorePrefix") this.titleIgnorePrefix}): _genres = genres;
+  const _PodcastMetadata({@JsonKey(name: "title") this.title, @JsonKey(name: "author") this.author, @JsonKey(name: "description") this.description, @JsonKey(name: "releaseDate") this.releaseDate, @JsonKey(name: "genres")  List<String>? genres, @JsonKey(name: "feedUrl") this.feedUrl, @JsonKey(name: "imageUrl") this.imageUrl, @JsonKey(name: "itunesPageUrl") this.itunesPageUrl, @JsonKey(name: "itunesId") this.itunesId, @JsonKey(name: "itunesArtistId") this.itunesArtistId, @JsonKey(name: "explicit") this.explicit, @JsonKey(name: "language") this.language, @JsonKey(name: "type") this.type, @JsonKey(name: "titleIgnorePrefix") this.titleIgnorePrefix}): _genres = genres;
   factory _PodcastMetadata.fromJson(Map<String, dynamic> json) => _$PodcastMetadataFromJson(json);
 
 @override@JsonKey(name: "title") final  String? title;

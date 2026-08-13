@@ -1,6 +1,6 @@
 import 'dart:ui' show ImageFilter;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/components/player/common/bookmarks_button.dart';
 import 'package:yaabsa/components/player/common/sleep_timer_button.dart';
@@ -191,9 +191,8 @@ class _MobilePlayerActionsSheet extends StatelessWidget {
                 child: Text(
                   'No additional actions are enabled.',
                   textAlign: TextAlign.center,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  style: Theme.of(context).textTheme.bodyLarge
+                      ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
               )
             else
@@ -231,9 +230,8 @@ class _MobilePlayerActionsSheet extends StatelessWidget {
                                 textAlign: TextAlign.center,
                                 style: enabled
                                     ? Theme.of(context).textTheme.labelLarge
-                                    : Theme.of(
-                                        context,
-                                      ).textTheme.labelLarge?.copyWith(color: Theme.of(context).disabledColor),
+                                    : Theme.of(context).textTheme.labelLarge
+                                          ?.copyWith(color: Theme.of(context).disabledColor),
                               ),
                             ],
                           ),

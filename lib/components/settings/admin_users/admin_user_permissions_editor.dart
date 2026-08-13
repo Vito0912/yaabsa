@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/admin/admin_user_permissions.dart';
 
 class AdminUserPermissionsEditor extends StatelessWidget {

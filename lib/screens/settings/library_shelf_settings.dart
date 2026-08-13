@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/components/settings/personalized_shelf_sections_editor.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';

@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'server_settings.dart';
@@ -9,6 +9,7 @@ part of 'server_settings.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$ServerSettingsCopyWithImpl<$Res>
 /// Create a copy of ServerSettings
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? scannerFindCovers = freezed,Object? scannerCoverProvider = freezed,Object? scannerParseSubtitle = freezed,Object? scannerPreferMatchedMetadata = freezed,Object? scannerDisableWatcher = freezed,Object? storeCoverWithItem = freezed,Object? storeMetadataWithItem = freezed,Object? metadataFileFormat = freezed,Object? rateLimitLoginRequests = freezed,Object? rateLimitLoginWindow = freezed,Object? allowIframe = freezed,Object? backupPath = freezed,Object? backupSchedule = freezed,Object? backupsToKeep = freezed,Object? maxBackupSize = freezed,Object? loggerDailyLogsToKeep = freezed,Object? loggerScannerLogsToKeep = freezed,Object? homeBookshelfView = freezed,Object? bookshelfView = freezed,Object? podcastEpisodeSchedule = freezed,Object? allowedOrigins = freezed,Object? sortingIgnorePrefix = freezed,Object? sortingPrefixes = freezed,Object? chromecastEnabled = freezed,Object? dateFormat = freezed,Object? timeFormat = freezed,Object? language = freezed,Object? logLevel = freezed,Object? version = freezed,Object? buildNumber = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(ServerSettings(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,scannerFindCovers: freezed == scannerFindCovers ? _self.scannerFindCovers : scannerFindCovers // ignore: cast_nullable_to_non_nullable
 as bool?,scannerCoverProvider: freezed == scannerCoverProvider ? _self.scannerCoverProvider : scannerCoverProvider // ignore: cast_nullable_to_non_nullable
@@ -239,7 +240,7 @@ return $default(_that.id,_that.scannerFindCovers,_that.scannerCoverProvider,_tha
 @JsonSerializable()
 
 class _ServerSettings implements ServerSettings {
-  const _ServerSettings({@JsonKey(name: "id") required this.id, @JsonKey(name: "scannerFindCovers") this.scannerFindCovers, @JsonKey(name: "scannerCoverProvider") this.scannerCoverProvider, @JsonKey(name: "scannerParseSubtitle") this.scannerParseSubtitle, @JsonKey(name: "scannerPreferMatchedMetadata") this.scannerPreferMatchedMetadata, @JsonKey(name: "scannerDisableWatcher") this.scannerDisableWatcher, @JsonKey(name: "storeCoverWithItem") this.storeCoverWithItem, @JsonKey(name: "storeMetadataWithItem") this.storeMetadataWithItem, @JsonKey(name: "metadataFileFormat") this.metadataFileFormat, @JsonKey(name: "rateLimitLoginRequests") this.rateLimitLoginRequests, @JsonKey(name: "rateLimitLoginWindow") this.rateLimitLoginWindow, @JsonKey(name: "allowIframe") this.allowIframe, @JsonKey(name: "backupPath") this.backupPath, @JsonKey(name: "backupSchedule") this.backupSchedule, @JsonKey(name: "backupsToKeep") this.backupsToKeep, @JsonKey(name: "maxBackupSize") this.maxBackupSize, @JsonKey(name: "loggerDailyLogsToKeep") this.loggerDailyLogsToKeep, @JsonKey(name: "loggerScannerLogsToKeep") this.loggerScannerLogsToKeep, @JsonKey(name: "homeBookshelfView") this.homeBookshelfView, @JsonKey(name: "bookshelfView") this.bookshelfView, @JsonKey(name: "podcastEpisodeSchedule") this.podcastEpisodeSchedule, @JsonKey(name: "allowedOrigins") final  List<String>? allowedOrigins, @JsonKey(name: "sortingIgnorePrefix") this.sortingIgnorePrefix, @JsonKey(name: "sortingPrefixes") final  List<String>? sortingPrefixes, @JsonKey(name: "chromecastEnabled") this.chromecastEnabled, @JsonKey(name: "dateFormat") this.dateFormat, @JsonKey(name: "timeFormat") this.timeFormat, @JsonKey(name: "language") this.language, @JsonKey(name: "logLevel") this.logLevel, @JsonKey(name: "version") this.version, @JsonKey(name: "buildNumber") this.buildNumber}): _allowedOrigins = allowedOrigins,_sortingPrefixes = sortingPrefixes;
+  const _ServerSettings({@JsonKey(name: "id") required this.id, @JsonKey(name: "scannerFindCovers") this.scannerFindCovers, @JsonKey(name: "scannerCoverProvider") this.scannerCoverProvider, @JsonKey(name: "scannerParseSubtitle") this.scannerParseSubtitle, @JsonKey(name: "scannerPreferMatchedMetadata") this.scannerPreferMatchedMetadata, @JsonKey(name: "scannerDisableWatcher") this.scannerDisableWatcher, @JsonKey(name: "storeCoverWithItem") this.storeCoverWithItem, @JsonKey(name: "storeMetadataWithItem") this.storeMetadataWithItem, @JsonKey(name: "metadataFileFormat") this.metadataFileFormat, @JsonKey(name: "rateLimitLoginRequests") this.rateLimitLoginRequests, @JsonKey(name: "rateLimitLoginWindow") this.rateLimitLoginWindow, @JsonKey(name: "allowIframe") this.allowIframe, @JsonKey(name: "backupPath") this.backupPath, @JsonKey(name: "backupSchedule") this.backupSchedule, @JsonKey(name: "backupsToKeep") this.backupsToKeep, @JsonKey(name: "maxBackupSize") this.maxBackupSize, @JsonKey(name: "loggerDailyLogsToKeep") this.loggerDailyLogsToKeep, @JsonKey(name: "loggerScannerLogsToKeep") this.loggerScannerLogsToKeep, @JsonKey(name: "homeBookshelfView") this.homeBookshelfView, @JsonKey(name: "bookshelfView") this.bookshelfView, @JsonKey(name: "podcastEpisodeSchedule") this.podcastEpisodeSchedule, @JsonKey(name: "allowedOrigins")  List<String>? allowedOrigins, @JsonKey(name: "sortingIgnorePrefix") this.sortingIgnorePrefix, @JsonKey(name: "sortingPrefixes")  List<String>? sortingPrefixes, @JsonKey(name: "chromecastEnabled") this.chromecastEnabled, @JsonKey(name: "dateFormat") this.dateFormat, @JsonKey(name: "timeFormat") this.timeFormat, @JsonKey(name: "language") this.language, @JsonKey(name: "logLevel") this.logLevel, @JsonKey(name: "version") this.version, @JsonKey(name: "buildNumber") this.buildNumber}): _allowedOrigins = allowedOrigins,_sortingPrefixes = sortingPrefixes;
   factory _ServerSettings.fromJson(Map<String, dynamic> json) => _$ServerSettingsFromJson(json);
 
 @override@JsonKey(name: "id") final  String id;

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 enum LibraryItemDeleteMode { absOnly, absAndFileSystem }
 
@@ -57,8 +57,7 @@ class LibraryItemDeleteDialog extends StatelessWidget {
             LibraryItemDeleteOptionTile(
               icon: Icons.delete_outline_rounded,
               title: 'Delete from Audiobookshelf only',
-              subtitle:
-                  'Removes from ABS database, keeps media files on disk. It might come back after ABS rescans the library/file system.',
+              subtitle: 'Removes from ABS database, keeps media files on disk. It might come back after ABS rescans the library/file system.',
               onTap: () => Navigator.of(context).pop(LibraryItemDeleteMode.absOnly),
             ),
             const SizedBox(height: 8),

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class ThemePresetOptionCard extends StatelessWidget {
   const ThemePresetOptionCard({
@@ -107,9 +107,8 @@ class ThemePresetOptionCard extends StatelessWidget {
                   description,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant, height: 1.25),
+                  style: Theme.of(context).textTheme.bodySmall
+                      ?.copyWith(color: colorScheme.onSurfaceVariant, height: 1.25),
                 ),
               ],
             ),

@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'status.dart';
@@ -9,6 +9,7 @@ part of 'status.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$ServerStatusCopyWithImpl<$Res>
 /// Create a copy of ServerStatus
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? app = null,Object? serverVersion = null,Object? isInit = null,Object? language = null,Object? authMethods = null,Object? authFormData = freezed,Object? configPath = freezed,Object? metadataPath = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(ServerStatus(
 app: null == app ? _self.app : app // ignore: cast_nullable_to_non_nullable
 as String,serverVersion: null == serverVersion ? _self.serverVersion : serverVersion // ignore: cast_nullable_to_non_nullable
 as String,isInit: null == isInit ? _self.isInit : isInit // ignore: cast_nullable_to_non_nullable
@@ -228,7 +229,7 @@ return $default(_that.app,_that.serverVersion,_that.isInit,_that.language,_that.
 @JsonSerializable()
 
 class _ServerStatus implements ServerStatus {
-  const _ServerStatus({@JsonKey(name: 'app') required this.app, @JsonKey(name: 'serverVersion') required this.serverVersion, @JsonKey(name: 'isInit') required this.isInit, @JsonKey(name: 'language') required this.language, @JsonKey(name: 'authMethods') final  List<String> authMethods = const <String>[], @JsonKey(name: 'authFormData') this.authFormData, @JsonKey(name: 'ConfigPath') this.configPath, @JsonKey(name: 'MetadataPath') this.metadataPath}): _authMethods = authMethods;
+  const _ServerStatus({@JsonKey(name: 'app') required this.app, @JsonKey(name: 'serverVersion') required this.serverVersion, @JsonKey(name: 'isInit') required this.isInit, @JsonKey(name: 'language') required this.language, @JsonKey(name: 'authMethods')  List<String> authMethods = const <String>[], @JsonKey(name: 'authFormData') this.authFormData, @JsonKey(name: 'ConfigPath') this.configPath, @JsonKey(name: 'MetadataPath') this.metadataPath}): _authMethods = authMethods;
   factory _ServerStatus.fromJson(Map<String, dynamic> json) => _$ServerStatusFromJson(json);
 
 @override@JsonKey(name: 'app') final  String app;
@@ -380,7 +381,7 @@ class _$AuthFormDataCopyWithImpl<$Res>
 /// Create a copy of AuthFormData
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? authLoginCustomMessage = freezed,Object? authOpenIDButtonText = freezed,Object? authOpenIDAutoLaunch = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(AuthFormData(
 authLoginCustomMessage: freezed == authLoginCustomMessage ? _self.authLoginCustomMessage : authLoginCustomMessage // ignore: cast_nullable_to_non_nullable
 as String?,authOpenIDButtonText: freezed == authOpenIDButtonText ? _self.authOpenIDButtonText : authOpenIDButtonText // ignore: cast_nullable_to_non_nullable
 as String?,authOpenIDAutoLaunch: freezed == authOpenIDAutoLaunch ? _self.authOpenIDAutoLaunch : authOpenIDAutoLaunch // ignore: cast_nullable_to_non_nullable

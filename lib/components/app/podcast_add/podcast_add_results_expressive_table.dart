@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/podcast/library_podcast_title.dart';
 import 'package:yaabsa/api/podcast/podcast_search_result.dart';
 import 'package:yaabsa/components/app/library/cue_badge.dart';

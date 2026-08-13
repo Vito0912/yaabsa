@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/api/admin/admin_authentication_settings.dart';
@@ -762,9 +762,8 @@ class _AdminServerAuthenticationViewState extends ConsumerState<AdminServerAuthe
                               Expanded(
                                 child: Text(
                                   _errorMessage!,
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.error),
+                                  style: Theme.of(context).textTheme.bodyMedium
+                                      ?.copyWith(color: Theme.of(context).colorScheme.error),
                                 ),
                               ),
                             ],
@@ -891,9 +890,8 @@ class _AdminServerAuthenticationViewState extends ConsumerState<AdminServerAuthe
                           if (_enableOpenIdAuth)
                             Text(
                               'OpenID changes may require a server restart to fully apply.',
-                              style: Theme.of(
-                                context,
-                              ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                             ),
                           if (_enableOpenIdAuth) const SizedBox(height: 8),
                           SizedBox(width: double.infinity, child: saveButton),
@@ -907,9 +905,8 @@ class _AdminServerAuthenticationViewState extends ConsumerState<AdminServerAuthe
                           Expanded(
                             child: Text(
                               'OpenID changes may require a server restart to fully apply.',
-                              style: Theme.of(
-                                context,
-                              ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                             ),
                           ),
                         if (_enableOpenIdAuth) const SizedBox(width: 12),

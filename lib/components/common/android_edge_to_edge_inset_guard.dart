@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class AndroidEdgeToEdgeInsetGuard extends StatelessWidget {
   const AndroidEdgeToEdgeInsetGuard({super.key, required this.child});

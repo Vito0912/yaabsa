@@ -1,5 +1,5 @@
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/material.dart';
+import 'package:cached_network_image_ce/cached_network_image.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/components/common/cover_loading_placeholder.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
@@ -116,7 +116,7 @@ class AuthorImage extends ConsumerWidget {
         fadeInDuration: const Duration(milliseconds: 120),
         fadeOutDuration: const Duration(milliseconds: 70),
         placeholder: (context, url) => const CoverLoadingPlaceholder(borderRadius: 0),
-        errorWidget: (context, url, error) => _AuthorImagePlaceholder(width: width, height: height, borderRadius: 0),
+        errorBuilder: (context, url, error) => _AuthorImagePlaceholder(width: width, height: height, borderRadius: 0),
       ),
     );
   }

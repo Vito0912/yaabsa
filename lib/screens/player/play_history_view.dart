@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/components/common/expressive_tab_view.dart';
 import 'package:yaabsa/components/sessions/library_item_listening_sessions_tab.dart';

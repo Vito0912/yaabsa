@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'library_stats.dart';
@@ -9,6 +9,7 @@ part of 'library_stats.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$LibraryStatsCopyWithImpl<$Res>
 /// Create a copy of LibraryStats
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? totalItems = freezed,Object? totalAuthors = freezed,Object? totalGenres = freezed,Object? totalDuration = freezed,Object? longestItems = null,Object? numAudioTracks = freezed,Object? totalSize = freezed,Object? largestItems = null,Object? authorsWithCount = null,Object? genresWithCount = null,}) {
-  return _then(_self.copyWith(
+  return _then(LibraryStats(
 totalItems: freezed == totalItems ? _self.totalItems : totalItems // ignore: cast_nullable_to_non_nullable
 as int?,totalAuthors: freezed == totalAuthors ? _self.totalAuthors : totalAuthors // ignore: cast_nullable_to_non_nullable
 as int?,totalGenres: freezed == totalGenres ? _self.totalGenres : totalGenres // ignore: cast_nullable_to_non_nullable
@@ -218,7 +219,7 @@ return $default(_that.totalItems,_that.totalAuthors,_that.totalGenres,_that.tota
 @JsonSerializable()
 
 class _LibraryStats implements LibraryStats {
-  const _LibraryStats({@JsonKey(name: "totalItems", fromJson: jsonIntFromDynamic) this.totalItems, @JsonKey(name: "totalAuthors", fromJson: jsonIntFromDynamic) this.totalAuthors, @JsonKey(name: "totalGenres", fromJson: jsonIntFromDynamic) this.totalGenres, @JsonKey(name: "totalDuration", fromJson: jsonDoubleFromDynamic) this.totalDuration, @JsonKey(name: "longestItems") final  List<LibraryItemDurationStats> longestItems = const <LibraryItemDurationStats>[], @JsonKey(name: "numAudioTracks", fromJson: jsonIntFromDynamic) this.numAudioTracks, @JsonKey(name: "totalSize", fromJson: jsonIntFromDynamic) this.totalSize, @JsonKey(name: "largestItems") final  List<LibraryItemSizeStats> largestItems = const <LibraryItemSizeStats>[], @JsonKey(name: "authorsWithCount") final  List<AuthorStats> authorsWithCount = const <AuthorStats>[], @JsonKey(name: "genresWithCount") final  List<GenreStats> genresWithCount = const <GenreStats>[]}): _longestItems = longestItems,_largestItems = largestItems,_authorsWithCount = authorsWithCount,_genresWithCount = genresWithCount;
+  const _LibraryStats({@JsonKey(name: "totalItems", fromJson: jsonIntFromDynamic) this.totalItems, @JsonKey(name: "totalAuthors", fromJson: jsonIntFromDynamic) this.totalAuthors, @JsonKey(name: "totalGenres", fromJson: jsonIntFromDynamic) this.totalGenres, @JsonKey(name: "totalDuration", fromJson: jsonDoubleFromDynamic) this.totalDuration, @JsonKey(name: "longestItems")  List<LibraryItemDurationStats> longestItems = const <LibraryItemDurationStats>[], @JsonKey(name: "numAudioTracks", fromJson: jsonIntFromDynamic) this.numAudioTracks, @JsonKey(name: "totalSize", fromJson: jsonIntFromDynamic) this.totalSize, @JsonKey(name: "largestItems")  List<LibraryItemSizeStats> largestItems = const <LibraryItemSizeStats>[], @JsonKey(name: "authorsWithCount")  List<AuthorStats> authorsWithCount = const <AuthorStats>[], @JsonKey(name: "genresWithCount")  List<GenreStats> genresWithCount = const <GenreStats>[]}): _longestItems = longestItems,_largestItems = largestItems,_authorsWithCount = authorsWithCount,_genresWithCount = genresWithCount;
   factory _LibraryStats.fromJson(Map<String, dynamic> json) => _$LibraryStatsFromJson(json);
 
 @override@JsonKey(name: "totalItems", fromJson: jsonIntFromDynamic) final  int? totalItems;

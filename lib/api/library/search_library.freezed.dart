@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'search_library.dart';
@@ -9,6 +9,7 @@ part of 'search_library.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$SearchLibraryCopyWithImpl<$Res>
 /// Create a copy of SearchLibrary
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? book = freezed,Object? podcast = freezed,Object? narrators = freezed,Object? tags = freezed,Object? genres = freezed,Object? series = freezed,Object? authors = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SearchLibrary(
 book: freezed == book ? _self.book : book // ignore: cast_nullable_to_non_nullable
 as List<SearchLibraryResult>?,podcast: freezed == podcast ? _self.podcast : podcast // ignore: cast_nullable_to_non_nullable
 as List<SearchLibraryResult>?,narrators: freezed == narrators ? _self.narrators : narrators // ignore: cast_nullable_to_non_nullable
@@ -215,7 +216,7 @@ return $default(_that.book,_that.podcast,_that.narrators,_that.tags,_that.genres
 @JsonSerializable()
 
 class _SearchLibrary implements SearchLibrary {
-  const _SearchLibrary({@JsonKey(name: "book") final  List<SearchLibraryResult>? book, @JsonKey(name: "podcast") final  List<SearchLibraryResult>? podcast, @JsonKey(name: "narrators") final  List<SearchResultNarrator>? narrators, @JsonKey(name: "tags") final  List<SearchResultItem>? tags, @JsonKey(name: "genres") final  List<SearchResultItem>? genres, @JsonKey(name: "series") final  List<SearchSeries>? series, @JsonKey(name: "authors") final  List<SearchLibraryAuthor>? authors}): _book = book,_podcast = podcast,_narrators = narrators,_tags = tags,_genres = genres,_series = series,_authors = authors;
+  const _SearchLibrary({@JsonKey(name: "book")  List<SearchLibraryResult>? book, @JsonKey(name: "podcast")  List<SearchLibraryResult>? podcast, @JsonKey(name: "narrators")  List<SearchResultNarrator>? narrators, @JsonKey(name: "tags")  List<SearchResultItem>? tags, @JsonKey(name: "genres")  List<SearchResultItem>? genres, @JsonKey(name: "series")  List<SearchSeries>? series, @JsonKey(name: "authors")  List<SearchLibraryAuthor>? authors}): _book = book,_podcast = podcast,_narrators = narrators,_tags = tags,_genres = genres,_series = series,_authors = authors;
   factory _SearchLibrary.fromJson(Map<String, dynamic> json) => _$SearchLibraryFromJson(json);
 
  final  List<SearchLibraryResult>? _book;
@@ -403,7 +404,7 @@ class _$SearchLibraryResultCopyWithImpl<$Res>
 /// Create a copy of SearchLibraryResult
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? libraryItem = freezed,Object? matchKey = freezed,Object? matchText = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SearchLibraryResult(
 libraryItem: freezed == libraryItem ? _self.libraryItem : libraryItem // ignore: cast_nullable_to_non_nullable
 as LibraryItem?,matchKey: freezed == matchKey ? _self.matchKey : matchKey // ignore: cast_nullable_to_non_nullable
 as String?,matchText: freezed == matchText ? _self.matchText : matchText // ignore: cast_nullable_to_non_nullable
@@ -696,7 +697,7 @@ class _$SearchResultItemCopyWithImpl<$Res>
 /// Create a copy of SearchResultItem
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? numItems = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SearchResultItem(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,numItems: freezed == numItems ? _self.numItems : numItems // ignore: cast_nullable_to_non_nullable
 as int?,
@@ -962,7 +963,7 @@ class _$SearchResultNarratorCopyWithImpl<$Res>
 /// Create a copy of SearchResultNarrator
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? numBooks = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(SearchResultNarrator(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,numBooks: freezed == numBooks ? _self.numBooks : numBooks // ignore: cast_nullable_to_non_nullable
 as int?,

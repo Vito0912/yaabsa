@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/library_items/audio_file.dart';
 import 'package:yaabsa/components/common/inputs/expressive_dropdown.dart';
 import 'package:yaabsa/util/item_formatters.dart';
@@ -166,9 +166,8 @@ class _EncoderActionCard extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 2),
                 child: Text(
                   currentEncodingHint!,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  style: Theme.of(context).textTheme.bodySmall
+                      ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
               ),
             const SizedBox(height: 4),
@@ -480,9 +479,8 @@ class _TrackRow extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   _trackMeta(audioFile),
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  style: Theme.of(context).textTheme.bodySmall
+                      ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
               ],
             ),
@@ -497,10 +495,8 @@ class _TrackRow extends StatelessWidget {
                   : showProgress
                   ? Text(
                       normalizedProgress,
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.w700,
-                      ),
+                      style: Theme.of(context).textTheme.labelSmall
+                          ?.copyWith(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w700),
                     )
                   : null,
             ),

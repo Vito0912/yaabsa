@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/api/library/search_library.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
@@ -249,9 +249,8 @@ class _SearchResultsList extends StatelessWidget {
           return Center(
             child: Text(
               'No matching books found.',
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+              style: Theme.of(context).textTheme.bodySmall
+                  ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
           );
         }
@@ -321,9 +320,8 @@ class _SelectedBooksPane extends StatelessWidget {
                   ? Center(
                       child: Text(
                         'No books selected.',
-                        style: Theme.of(
-                          context,
-                        ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                        style: Theme.of(context).textTheme.bodySmall
+                            ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                       ),
                     )
                   : ReorderableListView.builder(

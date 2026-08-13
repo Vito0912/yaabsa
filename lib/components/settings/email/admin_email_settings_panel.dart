@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
 
@@ -94,9 +94,8 @@ class AdminEmailSettingsPanel extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               'Configure server email delivery and send a test message to verify connectivity.',
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+              style: Theme.of(context).textTheme.bodySmall
+                  ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
             const SizedBox(height: 12),
             LayoutBuilder(

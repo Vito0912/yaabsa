@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'podcast_minified.dart';
@@ -9,6 +9,7 @@ part of 'podcast_minified.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$PodcastMinifiedCopyWithImpl<$Res>
 /// Create a copy of PodcastMinified
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? metadata = null,Object? coverPath = freezed,Object? tags = null,Object? numEpisodes = freezed,Object? autoDownloadEpisodes = freezed,Object? autoDownloadSchedule = freezed,Object? lastEpisodeCheck = freezed,Object? maxEpisodesToKeep = freezed,Object? maxNewEpisodesToDownload = freezed,Object? size = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(PodcastMinified(
 metadata: null == metadata ? _self.metadata : metadata // ignore: cast_nullable_to_non_nullable
 as PodcastMetadata,coverPath: freezed == coverPath ? _self.coverPath : coverPath // ignore: cast_nullable_to_non_nullable
 as String?,tags: null == tags ? _self.tags : tags // ignore: cast_nullable_to_non_nullable
@@ -227,7 +228,7 @@ return $default(_that.metadata,_that.coverPath,_that.tags,_that.numEpisodes,_tha
 @JsonSerializable()
 
 class _PodcastMinified implements PodcastMinified {
-  const _PodcastMinified({@JsonKey(name: 'metadata') required this.metadata, @JsonKey(name: 'coverPath') this.coverPath, @JsonKey(name: 'tags') final  List<String> tags = const <String>[], @JsonKey(name: 'numEpisodes', fromJson: jsonIntFromDynamic) this.numEpisodes, @JsonKey(name: 'autoDownloadEpisodes', fromJson: jsonBoolFromDynamic) this.autoDownloadEpisodes, @JsonKey(name: 'autoDownloadSchedule') this.autoDownloadSchedule, @JsonKey(name: 'lastEpisodeCheck', fromJson: jsonIntFromDynamic) this.lastEpisodeCheck, @JsonKey(name: 'maxEpisodesToKeep', fromJson: jsonIntFromDynamic) this.maxEpisodesToKeep, @JsonKey(name: 'maxNewEpisodesToDownload', fromJson: jsonIntFromDynamic) this.maxNewEpisodesToDownload, @JsonKey(name: 'size', fromJson: jsonIntFromDynamic) this.size}): _tags = tags;
+  const _PodcastMinified({@JsonKey(name: 'metadata') required this.metadata, @JsonKey(name: 'coverPath') this.coverPath, @JsonKey(name: 'tags')  List<String> tags = const <String>[], @JsonKey(name: 'numEpisodes', fromJson: jsonIntFromDynamic) this.numEpisodes, @JsonKey(name: 'autoDownloadEpisodes', fromJson: jsonBoolFromDynamic) this.autoDownloadEpisodes, @JsonKey(name: 'autoDownloadSchedule') this.autoDownloadSchedule, @JsonKey(name: 'lastEpisodeCheck', fromJson: jsonIntFromDynamic) this.lastEpisodeCheck, @JsonKey(name: 'maxEpisodesToKeep', fromJson: jsonIntFromDynamic) this.maxEpisodesToKeep, @JsonKey(name: 'maxNewEpisodesToDownload', fromJson: jsonIntFromDynamic) this.maxNewEpisodesToDownload, @JsonKey(name: 'size', fromJson: jsonIntFromDynamic) this.size}): _tags = tags;
   factory _PodcastMinified.fromJson(Map<String, dynamic> json) => _$PodcastMinifiedFromJson(json);
 
 @override@JsonKey(name: 'metadata') final  PodcastMetadata metadata;

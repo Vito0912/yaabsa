@@ -2786,10 +2786,16 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   ];
 }
 
-typedef $$GlobalSettingsTableCreateCompanionBuilder =
-    GlobalSettingsCompanion Function({required String key, required String value, Value<int> rowid});
-typedef $$GlobalSettingsTableUpdateCompanionBuilder =
-    GlobalSettingsCompanion Function({Value<String> key, Value<String> value, Value<int> rowid});
+typedef $$GlobalSettingsTableCreateCompanionBuilder = GlobalSettingsCompanion Function({
+  required String key,
+  required String value,
+  Value<int> rowid,
+});
+typedef $$GlobalSettingsTableUpdateCompanionBuilder = GlobalSettingsCompanion Function({
+  Value<String> key,
+  Value<String> value,
+  Value<int> rowid,
+});
 
 class $$GlobalSettingsTableFilterComposer extends Composer<_$AppDatabase, $GlobalSettingsTable> {
   $$GlobalSettingsTableFilterComposer({
@@ -2856,15 +2862,16 @@ class $$GlobalSettingsTableTableManager
           createFilteringComposer: () => $$GlobalSettingsTableFilterComposer($db: db, $table: table),
           createOrderingComposer: () => $$GlobalSettingsTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () => $$GlobalSettingsTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<String> key = const Value.absent(),
-                Value<String> value = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => GlobalSettingsCompanion(key: key, value: value, rowid: rowid),
-          createCompanionCallback:
-              ({required String key, required String value, Value<int> rowid = const Value.absent()}) =>
-                  GlobalSettingsCompanion.insert(key: key, value: value, rowid: rowid),
+          updateCompanionCallback: ({
+            Value<String> key = const Value.absent(),
+            Value<String> value = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) => GlobalSettingsCompanion(key: key, value: value, rowid: rowid),
+          createCompanionCallback: ({
+            required String key,
+            required String value,
+            Value<int> rowid = const Value.absent(),
+          }) => GlobalSettingsCompanion.insert(key: key, value: value, rowid: rowid),
           withReferenceMapper: (p0) => p0.map((e) => (e.readTable(table), BaseReferences(db, table, e))).toList(),
           prefetchHooksCallback: null,
         ),
@@ -2885,15 +2892,18 @@ typedef $$GlobalSettingsTableProcessedTableManager =
       GlobalSettingEntry,
       PrefetchHooks Function()
     >;
-typedef $$UserSettingsTableCreateCompanionBuilder =
-    UserSettingsCompanion Function({
-      required String userId,
-      required String key,
-      required String value,
-      Value<int> rowid,
-    });
-typedef $$UserSettingsTableUpdateCompanionBuilder =
-    UserSettingsCompanion Function({Value<String> userId, Value<String> key, Value<String> value, Value<int> rowid});
+typedef $$UserSettingsTableCreateCompanionBuilder = UserSettingsCompanion Function({
+  required String userId,
+  required String key,
+  required String value,
+  Value<int> rowid,
+});
+typedef $$UserSettingsTableUpdateCompanionBuilder = UserSettingsCompanion Function({
+  Value<String> userId,
+  Value<String> key,
+  Value<String> value,
+  Value<int> rowid,
+});
 
 class $$UserSettingsTableFilterComposer extends Composer<_$AppDatabase, $UserSettingsTable> {
   $$UserSettingsTableFilterComposer({
@@ -2968,20 +2978,18 @@ class $$UserSettingsTableTableManager
           createFilteringComposer: () => $$UserSettingsTableFilterComposer($db: db, $table: table),
           createOrderingComposer: () => $$UserSettingsTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () => $$UserSettingsTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<String> userId = const Value.absent(),
-                Value<String> key = const Value.absent(),
-                Value<String> value = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => UserSettingsCompanion(userId: userId, key: key, value: value, rowid: rowid),
-          createCompanionCallback:
-              ({
-                required String userId,
-                required String key,
-                required String value,
-                Value<int> rowid = const Value.absent(),
-              }) => UserSettingsCompanion.insert(userId: userId, key: key, value: value, rowid: rowid),
+          updateCompanionCallback: ({
+            Value<String> userId = const Value.absent(),
+            Value<String> key = const Value.absent(),
+            Value<String> value = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) => UserSettingsCompanion(userId: userId, key: key, value: value, rowid: rowid),
+          createCompanionCallback: ({
+            required String userId,
+            required String key,
+            required String value,
+            Value<int> rowid = const Value.absent(),
+          }) => UserSettingsCompanion.insert(userId: userId, key: key, value: value, rowid: rowid),
           withReferenceMapper: (p0) => p0.map((e) => (e.readTable(table), BaseReferences(db, table, e))).toList(),
           prefetchHooksCallback: null,
         ),
@@ -3002,22 +3010,20 @@ typedef $$UserSettingsTableProcessedTableManager =
       UserSettingEntry,
       PrefetchHooks Function()
     >;
-typedef $$BookPlaybackSpeedsTableCreateCompanionBuilder =
-    BookPlaybackSpeedsCompanion Function({
-      required String userId,
-      required String itemId,
-      required double speed,
-      Value<DateTime> updatedAt,
-      Value<int> rowid,
-    });
-typedef $$BookPlaybackSpeedsTableUpdateCompanionBuilder =
-    BookPlaybackSpeedsCompanion Function({
-      Value<String> userId,
-      Value<String> itemId,
-      Value<double> speed,
-      Value<DateTime> updatedAt,
-      Value<int> rowid,
-    });
+typedef $$BookPlaybackSpeedsTableCreateCompanionBuilder = BookPlaybackSpeedsCompanion Function({
+  required String userId,
+  required String itemId,
+  required double speed,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
+typedef $$BookPlaybackSpeedsTableUpdateCompanionBuilder = BookPlaybackSpeedsCompanion Function({
+  Value<String> userId,
+  Value<String> itemId,
+  Value<double> speed,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
 
 class $$BookPlaybackSpeedsTableFilterComposer extends Composer<_$AppDatabase, $BookPlaybackSpeedsTable> {
   $$BookPlaybackSpeedsTableFilterComposer({
@@ -3149,10 +3155,16 @@ typedef $$BookPlaybackSpeedsTableProcessedTableManager =
       BookPlaybackSpeedEntry,
       PrefetchHooks Function()
     >;
-typedef $$StoredUsersTableCreateCompanionBuilder =
-    StoredUsersCompanion Function({required String id, required String userDataJson, Value<int> rowid});
-typedef $$StoredUsersTableUpdateCompanionBuilder =
-    StoredUsersCompanion Function({Value<String> id, Value<String> userDataJson, Value<int> rowid});
+typedef $$StoredUsersTableCreateCompanionBuilder = StoredUsersCompanion Function({
+  required String id,
+  required String userDataJson,
+  Value<int> rowid,
+});
+typedef $$StoredUsersTableUpdateCompanionBuilder = StoredUsersCompanion Function({
+  Value<String> id,
+  Value<String> userDataJson,
+  Value<int> rowid,
+});
 
 class $$StoredUsersTableFilterComposer extends Composer<_$AppDatabase, $StoredUsersTable> {
   $$StoredUsersTableFilterComposer({
@@ -3219,15 +3231,16 @@ class $$StoredUsersTableTableManager
           createFilteringComposer: () => $$StoredUsersTableFilterComposer($db: db, $table: table),
           createOrderingComposer: () => $$StoredUsersTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () => $$StoredUsersTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<String> id = const Value.absent(),
-                Value<String> userDataJson = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => StoredUsersCompanion(id: id, userDataJson: userDataJson, rowid: rowid),
-          createCompanionCallback:
-              ({required String id, required String userDataJson, Value<int> rowid = const Value.absent()}) =>
-                  StoredUsersCompanion.insert(id: id, userDataJson: userDataJson, rowid: rowid),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> userDataJson = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) => StoredUsersCompanion(id: id, userDataJson: userDataJson, rowid: rowid),
+          createCompanionCallback: ({
+            required String id,
+            required String userDataJson,
+            Value<int> rowid = const Value.absent(),
+          }) => StoredUsersCompanion.insert(id: id, userDataJson: userDataJson, rowid: rowid),
           withReferenceMapper: (p0) => p0.map((e) => (e.readTable(table), BaseReferences(db, table, e))).toList(),
           prefetchHooksCallback: null,
         ),
@@ -3248,34 +3261,32 @@ typedef $$StoredUsersTableProcessedTableManager =
       StoredUserEntry,
       PrefetchHooks Function()
     >;
-typedef $$StoredSyncsTableCreateCompanionBuilder =
-    StoredSyncsCompanion Function({
-      required String sessionId,
-      required String itemId,
-      required String userId,
-      Value<String?> episodeId,
-      required double currentTime,
-      required double timeListened,
-      required double duration,
-      required bool sessionLocal,
-      required DateTime lastUpdated,
-      required String mediaProgress,
-      Value<int> rowid,
-    });
-typedef $$StoredSyncsTableUpdateCompanionBuilder =
-    StoredSyncsCompanion Function({
-      Value<String> sessionId,
-      Value<String> itemId,
-      Value<String> userId,
-      Value<String?> episodeId,
-      Value<double> currentTime,
-      Value<double> timeListened,
-      Value<double> duration,
-      Value<bool> sessionLocal,
-      Value<DateTime> lastUpdated,
-      Value<String> mediaProgress,
-      Value<int> rowid,
-    });
+typedef $$StoredSyncsTableCreateCompanionBuilder = StoredSyncsCompanion Function({
+  required String sessionId,
+  required String itemId,
+  required String userId,
+  Value<String?> episodeId,
+  required double currentTime,
+  required double timeListened,
+  required double duration,
+  required bool sessionLocal,
+  required DateTime lastUpdated,
+  required String mediaProgress,
+  Value<int> rowid,
+});
+typedef $$StoredSyncsTableUpdateCompanionBuilder = StoredSyncsCompanion Function({
+  Value<String> sessionId,
+  Value<String> itemId,
+  Value<String> userId,
+  Value<String?> episodeId,
+  Value<double> currentTime,
+  Value<double> timeListened,
+  Value<double> duration,
+  Value<bool> sessionLocal,
+  Value<DateTime> lastUpdated,
+  Value<String> mediaProgress,
+  Value<int> rowid,
+});
 
 class $$StoredSyncsTableFilterComposer extends Composer<_$AppDatabase, $StoredSyncsTable> {
   $$StoredSyncsTableFilterComposer({
@@ -3484,26 +3495,24 @@ typedef $$StoredSyncsTableProcessedTableManager =
       StoredSyncEntry,
       PrefetchHooks Function()
     >;
-typedef $$StoredMediaProgressTableCreateCompanionBuilder =
-    StoredMediaProgressCompanion Function({
-      required String progressId,
-      required String userId,
-      required String itemId,
-      Value<String?> episodeId,
-      required DateTime lastUpdated,
-      required String mediaProgress,
-      Value<int> rowid,
-    });
-typedef $$StoredMediaProgressTableUpdateCompanionBuilder =
-    StoredMediaProgressCompanion Function({
-      Value<String> progressId,
-      Value<String> userId,
-      Value<String> itemId,
-      Value<String?> episodeId,
-      Value<DateTime> lastUpdated,
-      Value<String> mediaProgress,
-      Value<int> rowid,
-    });
+typedef $$StoredMediaProgressTableCreateCompanionBuilder = StoredMediaProgressCompanion Function({
+  required String progressId,
+  required String userId,
+  required String itemId,
+  Value<String?> episodeId,
+  required DateTime lastUpdated,
+  required String mediaProgress,
+  Value<int> rowid,
+});
+typedef $$StoredMediaProgressTableUpdateCompanionBuilder = StoredMediaProgressCompanion Function({
+  Value<String> progressId,
+  Value<String> userId,
+  Value<String> itemId,
+  Value<String?> episodeId,
+  Value<DateTime> lastUpdated,
+  Value<String> mediaProgress,
+  Value<int> rowid,
+});
 
 class $$StoredMediaProgressTableFilterComposer extends Composer<_$AppDatabase, $StoredMediaProgressTable> {
   $$StoredMediaProgressTableFilterComposer({
@@ -3664,26 +3673,24 @@ typedef $$StoredMediaProgressTableProcessedTableManager =
       StoredMediaProgressEntry,
       PrefetchHooks Function()
     >;
-typedef $$StoredBookmarkSyncsTableCreateCompanionBuilder =
-    StoredBookmarkSyncsCompanion Function({
-      required String userId,
-      required String itemId,
-      required int time,
-      Value<String?> title,
-      Value<bool> deleted,
-      required DateTime updatedAt,
-      Value<int> rowid,
-    });
-typedef $$StoredBookmarkSyncsTableUpdateCompanionBuilder =
-    StoredBookmarkSyncsCompanion Function({
-      Value<String> userId,
-      Value<String> itemId,
-      Value<int> time,
-      Value<String?> title,
-      Value<bool> deleted,
-      Value<DateTime> updatedAt,
-      Value<int> rowid,
-    });
+typedef $$StoredBookmarkSyncsTableCreateCompanionBuilder = StoredBookmarkSyncsCompanion Function({
+  required String userId,
+  required String itemId,
+  required int time,
+  Value<String?> title,
+  Value<bool> deleted,
+  required DateTime updatedAt,
+  Value<int> rowid,
+});
+typedef $$StoredBookmarkSyncsTableUpdateCompanionBuilder = StoredBookmarkSyncsCompanion Function({
+  Value<String> userId,
+  Value<String> itemId,
+  Value<int> time,
+  Value<String?> title,
+  Value<bool> deleted,
+  Value<DateTime> updatedAt,
+  Value<int> rowid,
+});
 
 class $$StoredBookmarkSyncsTableFilterComposer extends Composer<_$AppDatabase, $StoredBookmarkSyncsTable> {
   $$StoredBookmarkSyncsTableFilterComposer({
@@ -3838,22 +3845,20 @@ typedef $$StoredBookmarkSyncsTableProcessedTableManager =
       StoredBookmarkSyncEntry,
       PrefetchHooks Function()
     >;
-typedef $$StoredDownloadsTableCreateCompanionBuilder =
-    StoredDownloadsCompanion Function({
-      required String itemId,
-      required String userId,
-      Value<String?> episodeId,
-      required String download,
-      Value<int> rowid,
-    });
-typedef $$StoredDownloadsTableUpdateCompanionBuilder =
-    StoredDownloadsCompanion Function({
-      Value<String> itemId,
-      Value<String> userId,
-      Value<String?> episodeId,
-      Value<String> download,
-      Value<int> rowid,
-    });
+typedef $$StoredDownloadsTableCreateCompanionBuilder = StoredDownloadsCompanion Function({
+  required String itemId,
+  required String userId,
+  Value<String?> episodeId,
+  required String download,
+  Value<int> rowid,
+});
+typedef $$StoredDownloadsTableUpdateCompanionBuilder = StoredDownloadsCompanion Function({
+  Value<String> itemId,
+  Value<String> userId,
+  Value<String?> episodeId,
+  Value<String> download,
+  Value<int> rowid,
+});
 
 class $$StoredDownloadsTableFilterComposer extends Composer<_$AppDatabase, $StoredDownloadsTable> {
   $$StoredDownloadsTableFilterComposer({
@@ -3985,28 +3990,26 @@ typedef $$StoredDownloadsTableProcessedTableManager =
       StoredDownloadsEntry,
       PrefetchHooks Function()
     >;
-typedef $$PlayerHistoryTableCreateCompanionBuilder =
-    PlayerHistoryCompanion Function({
-      Value<int> id,
-      required String itemId,
-      required String userId,
-      Value<String?> episodeId,
-      required String type,
-      required double currentTime,
-      Value<String?> detailsJson,
-      Value<DateTime> created,
-    });
-typedef $$PlayerHistoryTableUpdateCompanionBuilder =
-    PlayerHistoryCompanion Function({
-      Value<int> id,
-      Value<String> itemId,
-      Value<String> userId,
-      Value<String?> episodeId,
-      Value<String> type,
-      Value<double> currentTime,
-      Value<String?> detailsJson,
-      Value<DateTime> created,
-    });
+typedef $$PlayerHistoryTableCreateCompanionBuilder = PlayerHistoryCompanion Function({
+  Value<int> id,
+  required String itemId,
+  required String userId,
+  Value<String?> episodeId,
+  required String type,
+  required double currentTime,
+  Value<String?> detailsJson,
+  Value<DateTime> created,
+});
+typedef $$PlayerHistoryTableUpdateCompanionBuilder = PlayerHistoryCompanion Function({
+  Value<int> id,
+  Value<String> itemId,
+  Value<String> userId,
+  Value<String?> episodeId,
+  Value<String> type,
+  Value<double> currentTime,
+  Value<String?> detailsJson,
+  Value<DateTime> created,
+});
 
 class $$PlayerHistoryTableFilterComposer extends Composer<_$AppDatabase, $PlayerHistoryTable> {
   $$PlayerHistoryTableFilterComposer({

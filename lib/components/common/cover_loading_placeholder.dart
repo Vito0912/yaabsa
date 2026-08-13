@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class CoverLoadingPlaceholder extends StatefulWidget {
   const CoverLoadingPlaceholder({super.key, this.borderRadius = 14});

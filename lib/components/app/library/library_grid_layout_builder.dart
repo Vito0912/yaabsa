@@ -1,11 +1,15 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
-typedef LibraryGridLayoutWidgetBuilder =
-    Widget Function(BuildContext context, AppGridLayout gridLayout, double tileWidth, double scale);
+typedef LibraryGridLayoutWidgetBuilder = Widget Function(
+  BuildContext context,
+  AppGridLayout gridLayout,
+  double tileWidth,
+  double scale,
+);
 
 class LibraryGridLayoutBuilder extends ConsumerStatefulWidget {
   const LibraryGridLayoutBuilder({required this.builder, super.key});

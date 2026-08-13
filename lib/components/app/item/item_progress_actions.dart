@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
@@ -112,9 +112,8 @@ Future<void> _setLibraryItemFinishedState({
   final stateLabel = isFinished ? 'finished' : 'unfinished';
 
   if (!supportsFinishedProgressUpdates(item)) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Progress updates are currently available for books only.')));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('Progress updates are currently available for books only.')));
     return;
   }
 

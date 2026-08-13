@@ -14,9 +14,9 @@ import 'package:yaabsa/api/library_items/update_library_item_media_response.dart
 import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/components/common/cover_loading_placeholder.dart';
 import 'package:yaabsa/components/common/cover_placeholder.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class LibraryItemApi {
   final Dio _dio;
@@ -318,7 +318,7 @@ class LibraryItemApi {
       fadeInDuration: const Duration(milliseconds: 120),
       fadeOutDuration: const Duration(milliseconds: 70),
       placeholder: (context, url) => const CoverLoadingPlaceholder(),
-      errorWidget: (context, url, error) => const CoverPlaceholder(),
+      errorBuilder: (context, url, error) => const CoverPlaceholder(),
     );
   }
 

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class GlowOrb extends StatelessWidget {
   const GlowOrb({super.key, required this.size, required this.color});

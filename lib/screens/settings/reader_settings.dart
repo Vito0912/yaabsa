@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/components/settings/settings_dropdown.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';
@@ -86,8 +86,7 @@ class ReaderSettings extends StatelessWidget {
             ),
             const SettingSwitchTile(
               label: 'Track reading time as listening',
-              subtitle:
-                  'This will count the time spent in the reader towards your listening stats. It might confuse other clients',
+              subtitle: 'This will count the time spent in the reader towards your listening stats. It might confuse other clients',
               settingKey: SettingKeys.readerStartSession,
             ),
           ],

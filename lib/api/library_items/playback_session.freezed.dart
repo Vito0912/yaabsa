@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'playback_session.dart';
@@ -9,6 +9,7 @@ part of 'playback_session.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$PlaybackSessionCopyWithImpl<$Res>
 /// Create a copy of PlaybackSession
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? userId = null,Object? libraryId = freezed,Object? libraryItemId = null,Object? episodeId = freezed,Object? mediaType = freezed,Object? mediaMetadata = freezed,Object? chapters = freezed,Object? displayTitle = freezed,Object? displayAuthor = freezed,Object? coverPath = freezed,Object? duration = freezed,Object? playMethod = freezed,Object? mediaPlayer = freezed,Object? deviceInfo = freezed,Object? serverVersion = freezed,Object? date = freezed,Object? dayOfWeek = freezed,Object? timeListening = freezed,Object? startTime = freezed,Object? currentTime = freezed,Object? startedAt = freezed,Object? updatedAt = freezed,Object? audioTracks = freezed,Object? libraryItem = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(PlaybackSession(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
 as String,libraryId: freezed == libraryId ? _self.libraryId : libraryId // ignore: cast_nullable_to_non_nullable
@@ -269,7 +270,7 @@ return $default(_that.id,_that.userId,_that.libraryId,_that.libraryItemId,_that.
 @JsonSerializable()
 
 class _PlaybackSession extends PlaybackSession {
-  const _PlaybackSession({@JsonKey(name: "id") required this.id, @JsonKey(name: "userId") required this.userId, @JsonKey(name: "libraryId") this.libraryId, @JsonKey(name: "libraryItemId") required this.libraryItemId, @JsonKey(name: "episodeId") this.episodeId, @JsonKey(name: "mediaType") this.mediaType, @JsonKey(name: "mediaMetadata") this.mediaMetadata, @JsonKey(name: "chapters") final  List<Chapter>? chapters, @JsonKey(name: "displayTitle") this.displayTitle, @JsonKey(name: "displayAuthor") this.displayAuthor, @JsonKey(name: "coverPath") this.coverPath, @JsonKey(name: "duration") this.duration, @JsonKey(name: "playMethod") this.playMethod, @JsonKey(name: "mediaPlayer") this.mediaPlayer, @JsonKey(name: "deviceInfo") this.deviceInfo, @JsonKey(name: "serverVersion") this.serverVersion, @JsonKey(name: "date") this.date, @JsonKey(name: "dayOfWeek") this.dayOfWeek, @JsonKey(name: "timeListening") this.timeListening, @JsonKey(name: "startTime") this.startTime, @JsonKey(name: "currentTime") this.currentTime, @JsonKey(name: "startedAt") this.startedAt, @JsonKey(name: "updatedAt") this.updatedAt, @JsonKey(name: "audioTracks") final  List<AudioTrack>? audioTracks, @JsonKey(name: "libraryItem") this.libraryItem}): _chapters = chapters,_audioTracks = audioTracks,super._();
+  const _PlaybackSession({@JsonKey(name: "id") required this.id, @JsonKey(name: "userId") required this.userId, @JsonKey(name: "libraryId") this.libraryId, @JsonKey(name: "libraryItemId") required this.libraryItemId, @JsonKey(name: "episodeId") this.episodeId, @JsonKey(name: "mediaType") this.mediaType, @JsonKey(name: "mediaMetadata") this.mediaMetadata, @JsonKey(name: "chapters")  List<Chapter>? chapters, @JsonKey(name: "displayTitle") this.displayTitle, @JsonKey(name: "displayAuthor") this.displayAuthor, @JsonKey(name: "coverPath") this.coverPath, @JsonKey(name: "duration") this.duration, @JsonKey(name: "playMethod") this.playMethod, @JsonKey(name: "mediaPlayer") this.mediaPlayer, @JsonKey(name: "deviceInfo") this.deviceInfo, @JsonKey(name: "serverVersion") this.serverVersion, @JsonKey(name: "date") this.date, @JsonKey(name: "dayOfWeek") this.dayOfWeek, @JsonKey(name: "timeListening") this.timeListening, @JsonKey(name: "startTime") this.startTime, @JsonKey(name: "currentTime") this.currentTime, @JsonKey(name: "startedAt") this.startedAt, @JsonKey(name: "updatedAt") this.updatedAt, @JsonKey(name: "audioTracks")  List<AudioTrack>? audioTracks, @JsonKey(name: "libraryItem") this.libraryItem}): _chapters = chapters,_audioTracks = audioTracks,super._();
   factory _PlaybackSession.fromJson(Map<String, dynamic> json) => _$PlaybackSessionFromJson(json);
 
 @override@JsonKey(name: "id") final  String id;

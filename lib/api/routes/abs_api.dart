@@ -23,8 +23,9 @@ class ABSApi {
 
   String? get token {
     if (dio.interceptors.any((i) => i is BearerAuthInterceptor)) {
-      return (dio.interceptors.firstWhere((i) => i is BearerAuthInterceptor) as BearerAuthInterceptor)
-          .tokens['BearerAuth'];
+      return (dio.interceptors.firstWhere(
+        (i) => i is BearerAuthInterceptor,
+      ) as BearerAuthInterceptor).tokens['BearerAuth'];
     }
     return null;
   }

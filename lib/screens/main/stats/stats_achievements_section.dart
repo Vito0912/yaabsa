@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/library/stats/user_listening_stats.dart';
 import 'package:yaabsa/models/advanced_listening_analytics_state.dart';
 import 'package:yaabsa/screens/main/stats/stats_formatters.dart';
@@ -258,9 +258,9 @@ class StatsAchievementsSection extends StatelessWidget {
 
   int _journeyDays(int? firstSessionAt, int? lastSessionAt) {
     if (firstSessionAt == null || lastSessionAt == null || lastSessionAt < firstSessionAt) return 0;
-    return DateTime.fromMillisecondsSinceEpoch(
-          lastSessionAt,
-        ).difference(DateTime.fromMillisecondsSinceEpoch(firstSessionAt)).inDays +
+    return DateTime.fromMillisecondsSinceEpoch(lastSessionAt)
+            .difference(DateTime.fromMillisecondsSinceEpoch(firstSessionAt))
+            .inDays +
         1;
   }
 }

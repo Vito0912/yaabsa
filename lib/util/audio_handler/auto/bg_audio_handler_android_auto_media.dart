@@ -98,9 +98,8 @@ extension _BGAudioHandlerAndroidAutoMedia on BGAudioHandler {
   }
 
   int _androidAutoPodcastEpisodeNewestFirstComparator(Episode left, Episode right) {
-    final byTimestamp = _androidAutoPodcastEpisodeSortTimestamp(
-      right,
-    ).compareTo(_androidAutoPodcastEpisodeSortTimestamp(left));
+    final byTimestamp = _androidAutoPodcastEpisodeSortTimestamp(right)
+        .compareTo(_androidAutoPodcastEpisodeSortTimestamp(left));
     if (byTimestamp != 0) {
       return byTimestamp;
     }

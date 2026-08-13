@@ -30,11 +30,7 @@ class PlaybackSyncService {
   DateTime? _currentSegmentStartTime;
   bool _hasPlaybackSinceLastFlush = false;
 
-  PlaybackSyncService(
-    this._ref, {
-    required Stream<PlayerState> playerStateStream,
-    required Duration Function() position,
-  }) : _position = position {
+  PlaybackSyncService(this._ref, {required Stream<PlayerState> playerStateStream, required this._position}) {
     _currentSegmentStartTime = null;
 
     logger('PlaybackSyncService initialized', tag: 'PlaybackSyncService', level: InfoLevel.debug);

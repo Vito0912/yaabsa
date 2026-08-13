@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'search_providers.dart';
@@ -9,6 +9,7 @@ part of 'search_providers.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$SearchProvidersCopyWithImpl<$Res>
 /// Create a copy of SearchProviders
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? books = null,Object? booksCovers = null,Object? podcasts = null,}) {
-  return _then(_self.copyWith(
+  return _then(SearchProviders(
 books: null == books ? _self.books : books // ignore: cast_nullable_to_non_nullable
 as List<SearchProviderOption>,booksCovers: null == booksCovers ? _self.booksCovers : booksCovers // ignore: cast_nullable_to_non_nullable
 as List<SearchProviderOption>,podcasts: null == podcasts ? _self.podcasts : podcasts // ignore: cast_nullable_to_non_nullable
@@ -211,7 +212,7 @@ return $default(_that.books,_that.booksCovers,_that.podcasts);case _:
 @JsonSerializable()
 
 class _SearchProviders implements SearchProviders {
-  const _SearchProviders({@JsonKey(name: 'books') final  List<SearchProviderOption> books = const <SearchProviderOption>[], @JsonKey(name: 'booksCovers') final  List<SearchProviderOption> booksCovers = const <SearchProviderOption>[], @JsonKey(name: 'podcasts') final  List<SearchProviderOption> podcasts = const <SearchProviderOption>[]}): _books = books,_booksCovers = booksCovers,_podcasts = podcasts;
+  const _SearchProviders({@JsonKey(name: 'books')  List<SearchProviderOption> books = const <SearchProviderOption>[], @JsonKey(name: 'booksCovers')  List<SearchProviderOption> booksCovers = const <SearchProviderOption>[], @JsonKey(name: 'podcasts')  List<SearchProviderOption> podcasts = const <SearchProviderOption>[]}): _books = books,_booksCovers = booksCovers,_podcasts = podcasts;
   factory _SearchProviders.fromJson(Map<String, dynamic> json) => _$SearchProvidersFromJson(json);
 
  final  List<SearchProviderOption> _books;

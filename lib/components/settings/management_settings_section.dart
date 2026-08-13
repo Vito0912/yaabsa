@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';

@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'podcast_search_result.dart';
@@ -9,6 +9,7 @@ part of 'podcast_search_result.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$PodcastSearchResultCopyWithImpl<$Res>
 /// Create a copy of PodcastSearchResult
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? artistId = freezed,Object? title = freezed,Object? artistName = freezed,Object? description = freezed,Object? descriptionPlain = freezed,Object? genres = null,Object? cover = freezed,Object? feedUrl = freezed,Object? pageUrl = freezed,Object? releaseDate = freezed,Object? explicit = freezed,Object? trackCount = freezed,Object? language = freezed,Object? type = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(PodcastSearchResult(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String?,artistId: freezed == artistId ? _self.artistId : artistId // ignore: cast_nullable_to_non_nullable
 as String?,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -223,7 +224,7 @@ return $default(_that.id,_that.artistId,_that.title,_that.artistName,_that.descr
 @JsonSerializable()
 
 class _PodcastSearchResult implements PodcastSearchResult {
-  const _PodcastSearchResult({@JsonKey(name: 'id', fromJson: jsonStringFromDynamic) this.id, @JsonKey(name: 'artistId', fromJson: jsonStringFromDynamic) this.artistId, @JsonKey(name: 'title') this.title, @JsonKey(name: 'artistName') this.artistName, @JsonKey(name: 'description') this.description, @JsonKey(name: 'descriptionPlain') this.descriptionPlain, @JsonKey(name: 'genres', fromJson: jsonStringListFromDynamic) final  List<String> genres = const <String>[], @JsonKey(name: 'cover') this.cover, @JsonKey(name: 'feedUrl') this.feedUrl, @JsonKey(name: 'pageUrl') this.pageUrl, @JsonKey(name: 'releaseDate') this.releaseDate, @JsonKey(name: 'explicit', fromJson: jsonBoolFromDynamic) this.explicit, @JsonKey(name: 'trackCount', fromJson: jsonIntFromDynamic) this.trackCount, @JsonKey(name: 'language') this.language, @JsonKey(name: 'type') this.type}): _genres = genres;
+  const _PodcastSearchResult({@JsonKey(name: 'id', fromJson: jsonStringFromDynamic) this.id, @JsonKey(name: 'artistId', fromJson: jsonStringFromDynamic) this.artistId, @JsonKey(name: 'title') this.title, @JsonKey(name: 'artistName') this.artistName, @JsonKey(name: 'description') this.description, @JsonKey(name: 'descriptionPlain') this.descriptionPlain, @JsonKey(name: 'genres', fromJson: jsonStringListFromDynamic)  List<String> genres = const <String>[], @JsonKey(name: 'cover') this.cover, @JsonKey(name: 'feedUrl') this.feedUrl, @JsonKey(name: 'pageUrl') this.pageUrl, @JsonKey(name: 'releaseDate') this.releaseDate, @JsonKey(name: 'explicit', fromJson: jsonBoolFromDynamic) this.explicit, @JsonKey(name: 'trackCount', fromJson: jsonIntFromDynamic) this.trackCount, @JsonKey(name: 'language') this.language, @JsonKey(name: 'type') this.type}): _genres = genres;
   factory _PodcastSearchResult.fromJson(Map<String, dynamic> json) => _$PodcastSearchResultFromJson(json);
 
 @override@JsonKey(name: 'id', fromJson: jsonStringFromDynamic) final  String? id;

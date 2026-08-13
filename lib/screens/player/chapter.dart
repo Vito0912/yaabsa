@@ -2,7 +2,7 @@ import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/screens/player/player_empty_state_mode.dart';
 import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/globals.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class ChapterView extends StatefulWidget {
   const ChapterView({super.key, this.maxHeight, this.emptyMode = PlayerCollectionEmptyMode.full});
@@ -119,9 +119,8 @@ class _ChapterCompactEmptyState extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             'No chapters available',
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+            style: Theme.of(context).textTheme.bodySmall
+                ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
         ],
       ),
@@ -151,9 +150,8 @@ class _ChapterEmptyState extends StatelessWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+              style: Theme.of(context).textTheme.bodyMedium
+                  ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
           ],
         ),

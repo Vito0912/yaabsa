@@ -206,8 +206,7 @@ final defaultSettings = {
   SettingKeys.sortSeriesAscending: false,
   SettingKeys.collapseSeries: false,
   SettingKeys.downloadPath: null,
-  SettingKeys.homeBookViewPreferences:
-      '{"default":"shelf","order":["shelf","library","collections","playlists","series","authors","narrators"],"hidden":[]}',
+  SettingKeys.homeBookViewPreferences: '{"default":"shelf","order":["shelf","library","collections","playlists","series","authors","narrators"],"hidden":[]}',
   SettingKeys.homePodcastViewPreferences:
       '{"default":"shelf","order":["shelf","latestEpisodes","library","collections","playlists"],"hidden":[]}',
   SettingKeys.androidAutoLibrarySortDescending: false,
@@ -216,8 +215,7 @@ final defaultSettings = {
   SettingKeys.androidAutoPodcastSortField: 'added',
   SettingKeys.androidAutoGroupByLetters: true,
   SettingKeys.personalizedShelfShowPlayVisibleButton: false,
-  SettingKeys.personalizedShelfBookSectionsPreferences:
-      '{"order":["continue-listening","continue-series","recently-added","discover","listen-again","recent-series","newest-authors"],"hidden":["newest-episodes"]}',
+  SettingKeys.personalizedShelfBookSectionsPreferences: '{"order":["continue-listening","continue-series","recently-added","discover","listen-again","recent-series","newest-authors"],"hidden":["newest-episodes"]}',
   SettingKeys.personalizedShelfPodcastSectionsPreferences:
       '{"order":["continue-listening","newest-episodes","listen-again","recently-added","discover"],"hidden":[]}',
   SettingKeys.waitForSync: true,

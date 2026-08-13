@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/api/library/library.dart';
 import 'package:yaabsa/api/library/library_folder.dart';
@@ -909,9 +909,8 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
       return Center(
         child: Text(
           'Scanner settings are available for book libraries.',
-          style: Theme.of(
-            context,
-          ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+          style: Theme.of(context).textTheme.bodyMedium
+              ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
       );
     }
@@ -1027,9 +1026,8 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
           const SizedBox(height: 8),
           Text(
             'Disable scheduling to clear the cron expression.',
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+            style: Theme.of(context).textTheme.bodySmall
+                ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
         ],
       ),
@@ -1043,9 +1041,8 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
       return Center(
         child: Text(
           'Create the library first to access tools.',
-          style: Theme.of(
-            context,
-          ).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+          style: Theme.of(context).textTheme.bodyMedium
+              ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
       );
     }
@@ -1060,9 +1057,8 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
           const SizedBox(height: 4),
           Text(
             'Remove generated metadata files from library folders.',
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+            style: Theme.of(context).textTheme.bodySmall
+                ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
           const SizedBox(height: 8),
           Wrap(
@@ -1089,9 +1085,8 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
             const SizedBox(height: 4),
             Text(
               'Run the server match-all process for this library.',
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+              style: Theme.of(context).textTheme.bodySmall
+                  ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
             const SizedBox(height: 8),
             FilledButton.icon(

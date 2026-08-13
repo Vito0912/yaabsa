@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'create_library_request.dart';
@@ -9,6 +9,7 @@ part of 'create_library_request.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$CreateLibraryRequestCopyWithImpl<$Res>
 /// Create a copy of CreateLibraryRequest
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? folders = null,Object? provider = freezed,Object? icon = freezed,Object? mediaType = freezed,Object? settings = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(CreateLibraryRequest(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,folders: null == folders ? _self.folders : folders // ignore: cast_nullable_to_non_nullable
 as List<LibraryFolderPayload>,provider: freezed == provider ? _self.provider : provider // ignore: cast_nullable_to_non_nullable
@@ -226,7 +227,7 @@ return $default(_that.name,_that.folders,_that.provider,_that.icon,_that.mediaTy
 @JsonSerializable()
 
 class _CreateLibraryRequest implements CreateLibraryRequest {
-  const _CreateLibraryRequest({@JsonKey(name: 'name') required this.name, @JsonKey(name: 'folders') required final  List<LibraryFolderPayload> folders, @JsonKey(name: 'provider') this.provider, @JsonKey(name: 'icon') this.icon, @JsonKey(name: 'mediaType') this.mediaType, @JsonKey(name: 'settings') this.settings}): _folders = folders;
+  const _CreateLibraryRequest({@JsonKey(name: 'name') required this.name, @JsonKey(name: 'folders') required  List<LibraryFolderPayload> folders, @JsonKey(name: 'provider') this.provider, @JsonKey(name: 'icon') this.icon, @JsonKey(name: 'mediaType') this.mediaType, @JsonKey(name: 'settings') this.settings}): _folders = folders;
   factory _CreateLibraryRequest.fromJson(Map<String, dynamic> json) => _$CreateLibraryRequestFromJson(json);
 
 @override@JsonKey(name: 'name') final  String name;

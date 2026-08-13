@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class AdminUserBadge extends StatelessWidget {
   const AdminUserBadge({super.key, required this.label, required this.color, this.icon});
@@ -9,9 +9,8 @@ class AdminUserBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textStyle = Theme.of(
-      context,
-    ).textTheme.labelSmall?.copyWith(color: color, fontWeight: FontWeight.w700, height: 1);
+    final textStyle = Theme.of(context).textTheme.labelSmall
+        ?.copyWith(color: color, fontWeight: FontWeight.w700, height: 1);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/provider/player/user_bookmarks_provider.dart';
 import 'package:yaabsa/screens/player/components/bookmark_title_dialog.dart';
@@ -24,9 +24,8 @@ class _BookmarkAddButtonState extends ConsumerState<BookmarkAddButton> {
 
     final bookmarkTime = audioHandler.position.inSeconds;
     if (bookmarkTime <= 0) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Play a little further before creating a bookmark.')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Play a little further before creating a bookmark.')));
       return;
     }
 

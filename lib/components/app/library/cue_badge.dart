@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class CueBadge extends StatelessWidget {
   const CueBadge({super.key, required this.label});
@@ -15,9 +15,8 @@ class CueBadge extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: Theme.of(
-          context,
-        ).textTheme.labelSmall?.copyWith(color: Theme.of(context).colorScheme.onSecondaryContainer),
+        style: Theme.of(context).textTheme.labelSmall
+            ?.copyWith(color: Theme.of(context).colorScheme.onSecondaryContainer),
       ),
     );
   }

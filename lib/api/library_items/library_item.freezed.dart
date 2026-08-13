@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'library_item.dart';
@@ -9,6 +9,7 @@ part of 'library_item.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$LibraryItemCopyWithImpl<$Res>
 /// Create a copy of LibraryItem
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? ino = null,Object? oldLibraryItemId = freezed,Object? libraryId = freezed,Object? folderId = freezed,Object? path = freezed,Object? relPath = freezed,Object? isFile = freezed,Object? mtimeMs = freezed,Object? ctimeMs = freezed,Object? birthtimeMs = freezed,Object? addedAt = freezed,Object? updatedAt = freezed,Object? lastScan = freezed,Object? scanVersion = freezed,Object? isMissing = freezed,Object? isInvalid = freezed,Object? mediaType = freezed,Object? media = freezed,Object? libraryFiles = freezed,Object? size = freezed,Object? collapsedSeries = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(LibraryItem(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,ino: null == ino ? _self.ino : ino // ignore: cast_nullable_to_non_nullable
 as String,oldLibraryItemId: freezed == oldLibraryItemId ? _self.oldLibraryItemId : oldLibraryItemId // ignore: cast_nullable_to_non_nullable
@@ -254,7 +255,7 @@ return $default(_that.id,_that.ino,_that.oldLibraryItemId,_that.libraryId,_that.
 @JsonSerializable()
 
 class _LibraryItem extends LibraryItem {
-  const _LibraryItem({@JsonKey(name: "id") required this.id, @JsonKey(name: "ino") required this.ino, @JsonKey(name: "oldLibraryItemId") this.oldLibraryItemId, @JsonKey(name: "libraryId") this.libraryId, @JsonKey(name: "folderId") this.folderId, @JsonKey(name: "path") this.path, @JsonKey(name: "relPath") this.relPath, @JsonKey(name: "isFile") this.isFile, @JsonKey(name: "mtimeMs") this.mtimeMs, @JsonKey(name: "ctimeMs") this.ctimeMs, @JsonKey(name: "birthtimeMs") this.birthtimeMs, @JsonKey(name: "addedAt") this.addedAt, @JsonKey(name: "updatedAt") this.updatedAt, @JsonKey(name: "lastScan") this.lastScan, @JsonKey(name: "scanVersion") this.scanVersion, @JsonKey(name: "isMissing") this.isMissing, @JsonKey(name: "isInvalid") this.isInvalid, @JsonKey(name: "mediaType") this.mediaType, @JsonKey(name: "media") required this.media, @JsonKey(name: "libraryFiles") required final  List<LibraryFile>? libraryFiles, @JsonKey(name: "size") this.size, @JsonKey(name: "collapsedSeries") this.collapsedSeries}): _libraryFiles = libraryFiles,super._();
+  const _LibraryItem({@JsonKey(name: "id") required this.id, @JsonKey(name: "ino") required this.ino, @JsonKey(name: "oldLibraryItemId") this.oldLibraryItemId, @JsonKey(name: "libraryId") this.libraryId, @JsonKey(name: "folderId") this.folderId, @JsonKey(name: "path") this.path, @JsonKey(name: "relPath") this.relPath, @JsonKey(name: "isFile") this.isFile, @JsonKey(name: "mtimeMs") this.mtimeMs, @JsonKey(name: "ctimeMs") this.ctimeMs, @JsonKey(name: "birthtimeMs") this.birthtimeMs, @JsonKey(name: "addedAt") this.addedAt, @JsonKey(name: "updatedAt") this.updatedAt, @JsonKey(name: "lastScan") this.lastScan, @JsonKey(name: "scanVersion") this.scanVersion, @JsonKey(name: "isMissing") this.isMissing, @JsonKey(name: "isInvalid") this.isInvalid, @JsonKey(name: "mediaType") this.mediaType, @JsonKey(name: "media") required this.media, @JsonKey(name: "libraryFiles") required  List<LibraryFile>? libraryFiles, @JsonKey(name: "size") this.size, @JsonKey(name: "collapsedSeries") this.collapsedSeries}): _libraryFiles = libraryFiles,super._();
   factory _LibraryItem.fromJson(Map<String, dynamic> json) => _$LibraryItemFromJson(json);
 
 @override@JsonKey(name: "id") final  String id;

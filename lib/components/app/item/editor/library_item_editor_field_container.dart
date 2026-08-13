@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 BorderSide libraryItemEditorSoftBorderSide(BuildContext context, {double alpha = 0.4}) {
   return BorderSide(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: alpha));

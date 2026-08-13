@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'internal_media.dart';
@@ -9,6 +9,7 @@ part of 'internal_media.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -59,7 +60,7 @@ class _$InternalMediaCopyWithImpl<$Res>
 /// Create a copy of InternalMedia
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? libraryId = null,Object? itemId = null,Object? episodeId = freezed,Object? sessionId = null,Object? title = null,Object? subtitle = freezed,Object? author = freezed,Object? narrator = freezed,Object? series = freezed,Object? seriesPosition = freezed,Object? cover = freezed,Object? tracks = null,Object? chapters = freezed,Object? duration = freezed,Object? local = null,Object? saf = null,}) {
-  return _then(_self.copyWith(
+  return _then(InternalMedia(
 libraryId: null == libraryId ? _self.libraryId : libraryId // ignore: cast_nullable_to_non_nullable
 as String,itemId: null == itemId ? _self.itemId : itemId // ignore: cast_nullable_to_non_nullable
 as String,episodeId: freezed == episodeId ? _self.episodeId : episodeId // ignore: cast_nullable_to_non_nullable
@@ -360,7 +361,7 @@ class _$InternalTrackCopyWithImpl<$Res>
 /// Create a copy of InternalTrack
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? index = null,Object? duration = null,Object? url = freezed,Object? mimeType = null,Object? start = freezed,Object? end = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(InternalTrack(
 index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
 as int,duration: null == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
 as double,url: freezed == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
@@ -638,7 +639,7 @@ class _$InternalChapterCopyWithImpl<$Res>
 /// Create a copy of InternalChapter
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? start = null,Object? end = null,Object? title = null,}) {
-  return _then(_self.copyWith(
+  return _then(InternalChapter(
 start: null == start ? _self.start : start // ignore: cast_nullable_to_non_nullable
 as double,end: null == end ? _self.end : end // ignore: cast_nullable_to_non_nullable
 as double,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -907,7 +908,7 @@ class _$QueueItemCopyWithImpl<$Res>
 /// Create a copy of QueueItem
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? itemId = null,Object? episodeId = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(QueueItem(
 itemId: null == itemId ? _self.itemId : itemId // ignore: cast_nullable_to_non_nullable
 as String,episodeId: freezed == episodeId ? _self.episodeId : episodeId // ignore: cast_nullable_to_non_nullable
 as String?,

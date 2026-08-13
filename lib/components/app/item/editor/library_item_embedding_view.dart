@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/library_items/audio_file.dart';
 import 'package:yaabsa/api/library_items/chapter.dart';
 import 'package:yaabsa/util/extensions.dart';
@@ -187,9 +187,8 @@ class _EmbedActionCard extends StatelessWidget {
             ),
             Text(
               'Forces chapter markers to be rewritten in the output files, even when chapters already exist.',
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+              style: Theme.of(context).textTheme.bodySmall
+                  ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
             const SizedBox(height: 8),
             Wrap(
@@ -326,9 +325,8 @@ class _ChapterRows extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text(
                   formatDurationLong(chapterDuration(chapters[i].start, chapters[i].end)),
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  style: Theme.of(context).textTheme.bodySmall
+                      ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
               ],
             ),

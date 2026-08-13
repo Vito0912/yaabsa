@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'admin_rss_feed.dart';
@@ -9,6 +9,7 @@ part of 'admin_rss_feed.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$AdminRssFeedsResponseCopyWithImpl<$Res>
 /// Create a copy of AdminRssFeedsResponse
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? feeds = null,Object? minified = null,}) {
-  return _then(_self.copyWith(
+  return _then(AdminRssFeedsResponse(
 feeds: null == feeds ? _self.feeds : feeds // ignore: cast_nullable_to_non_nullable
 as List<AdminRssFeed>,minified: null == minified ? _self.minified : minified // ignore: cast_nullable_to_non_nullable
 as List<AdminRssFeedMinified>,
@@ -210,7 +211,7 @@ return $default(_that.feeds,_that.minified);case _:
 @JsonSerializable()
 
 class _AdminRssFeedsResponse implements AdminRssFeedsResponse {
-  const _AdminRssFeedsResponse({@JsonKey(name: 'feeds') final  List<AdminRssFeed> feeds = const <AdminRssFeed>[], @JsonKey(name: 'minified') final  List<AdminRssFeedMinified> minified = const <AdminRssFeedMinified>[]}): _feeds = feeds,_minified = minified;
+  const _AdminRssFeedsResponse({@JsonKey(name: 'feeds')  List<AdminRssFeed> feeds = const <AdminRssFeed>[], @JsonKey(name: 'minified')  List<AdminRssFeedMinified> minified = const <AdminRssFeedMinified>[]}): _feeds = feeds,_minified = minified;
   factory _AdminRssFeedsResponse.fromJson(Map<String, dynamic> json) => _$AdminRssFeedsResponseFromJson(json);
 
  final  List<AdminRssFeed> _feeds;
@@ -344,7 +345,7 @@ class _$AdminRssFeedCopyWithImpl<$Res>
 /// Create a copy of AdminRssFeed
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? slug = freezed,Object? userId = freezed,Object? entityType = freezed,Object? entityId = freezed,Object? entityUpdatedAt = freezed,Object? coverPath = freezed,Object? meta = freezed,Object? serverAddress = freezed,Object? feedUrl = freezed,Object? episodes = null,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(AdminRssFeed(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,slug: freezed == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
 as String?,userId: freezed == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
@@ -511,7 +512,7 @@ return $default(_that.id,_that.slug,_that.userId,_that.entityType,_that.entityId
 @JsonSerializable()
 
 class _AdminRssFeed extends AdminRssFeed {
-  const _AdminRssFeed({@JsonKey(name: 'id') required this.id, @JsonKey(name: 'slug') this.slug, @JsonKey(name: 'userId') this.userId, @JsonKey(name: 'entityType') this.entityType, @JsonKey(name: 'entityId') this.entityId, @JsonKey(name: 'entityUpdatedAt') this.entityUpdatedAt, @JsonKey(name: 'coverPath') this.coverPath, @JsonKey(name: 'meta') this.meta, @JsonKey(name: 'serverAddress') this.serverAddress, @JsonKey(name: 'feedUrl') this.feedUrl, @JsonKey(name: 'episodes') final  List<AdminRssFeedEpisode> episodes = const <AdminRssFeedEpisode>[], @JsonKey(name: 'createdAt') this.createdAt, @JsonKey(name: 'updatedAt') this.updatedAt}): _episodes = episodes,super._();
+  const _AdminRssFeed({@JsonKey(name: 'id') required this.id, @JsonKey(name: 'slug') this.slug, @JsonKey(name: 'userId') this.userId, @JsonKey(name: 'entityType') this.entityType, @JsonKey(name: 'entityId') this.entityId, @JsonKey(name: 'entityUpdatedAt') this.entityUpdatedAt, @JsonKey(name: 'coverPath') this.coverPath, @JsonKey(name: 'meta') this.meta, @JsonKey(name: 'serverAddress') this.serverAddress, @JsonKey(name: 'feedUrl') this.feedUrl, @JsonKey(name: 'episodes')  List<AdminRssFeedEpisode> episodes = const <AdminRssFeedEpisode>[], @JsonKey(name: 'createdAt') this.createdAt, @JsonKey(name: 'updatedAt') this.updatedAt}): _episodes = episodes,super._();
   factory _AdminRssFeed.fromJson(Map<String, dynamic> json) => _$AdminRssFeedFromJson(json);
 
 @override@JsonKey(name: 'id') final  String id;
@@ -673,7 +674,7 @@ class _$AdminRssFeedMinifiedCopyWithImpl<$Res>
 /// Create a copy of AdminRssFeedMinified
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? entityType = freezed,Object? entityId = freezed,Object? feedUrl = freezed,Object? meta = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(AdminRssFeedMinified(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,entityType: freezed == entityType ? _self.entityType : entityType // ignore: cast_nullable_to_non_nullable
 as String?,entityId: freezed == entityId ? _self.entityId : entityId // ignore: cast_nullable_to_non_nullable
@@ -972,7 +973,7 @@ class _$AdminRssFeedMetaCopyWithImpl<$Res>
 /// Create a copy of AdminRssFeedMeta
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? title = freezed,Object? description = freezed,Object? author = freezed,Object? imageUrl = freezed,Object? feedUrl = freezed,Object? link = freezed,Object? explicit = freezed,Object? type = freezed,Object? language = freezed,Object? preventIndexing = freezed,Object? ownerName = freezed,Object? ownerEmail = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(AdminRssFeedMeta(
 title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,author: freezed == author ? _self.author : author // ignore: cast_nullable_to_non_nullable
@@ -1268,7 +1269,7 @@ class _$AdminRssFeedEpisodeCopyWithImpl<$Res>
 /// Create a copy of AdminRssFeedEpisode
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = freezed,Object? description = freezed,Object? enclosure = freezed,Object? pubDate = freezed,Object? link = freezed,Object? author = freezed,Object? explicit = freezed,Object? duration = freezed,Object? season = freezed,Object? episode = freezed,Object? episodeType = freezed,Object? fullPath = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(AdminRssFeedEpisode(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
@@ -1591,7 +1592,7 @@ class _$AdminRssFeedEpisodeEnclosureCopyWithImpl<$Res>
 /// Create a copy of AdminRssFeedEpisodeEnclosure
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? url = freezed,Object? size = freezed,Object? type = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(AdminRssFeedEpisodeEnclosure(
 url: freezed == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
 as String?,size: freezed == size ? _self.size : size // ignore: cast_nullable_to_non_nullable
 as int?,type: freezed == type ? _self.type : type // ignore: cast_nullable_to_non_nullable

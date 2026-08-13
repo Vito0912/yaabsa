@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
@@ -85,9 +85,8 @@ class CarModeScreen extends ConsumerWidget {
                               final ultraCompactTop = topHeight < 130;
                               final showAuthor = !ultraCompactTop;
                               final titleStyle = Theme.of(context).textTheme.headlineMedium;
-                              final authorStyle = Theme.of(
-                                context,
-                              ).textTheme.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant);
+                              final authorStyle = Theme.of(context).textTheme.bodyLarge
+                                  ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant);
                               final coverToTitleGap = ultraCompactTop
                                   ? 6.0
                                   : compactTop

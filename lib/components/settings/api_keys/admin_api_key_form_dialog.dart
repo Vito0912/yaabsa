@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:yaabsa/api/admin/admin_api_key.dart';
 import 'package:yaabsa/api/admin/create_admin_api_key_request.dart';
@@ -370,9 +370,8 @@ class _UpdateAdminApiKeyDialogState extends State<_UpdateAdminApiKeyDialog> {
                 widget.apiKey.expiresAt == null
                     ? 'Expires: Never'
                     : 'Expires: ${formatDateTimeLabel(widget.apiKey.expiresAt)}',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                style: Theme.of(context).textTheme.bodySmall
+                    ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
               if (_validationError != null && _validationError!.trim().isNotEmpty) ...[
                 const SizedBox(height: 8),

@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'podcast_feed.dart';
@@ -9,6 +9,7 @@ part of 'podcast_feed.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$PodcastFeedResponseCopyWithImpl<$Res>
 /// Create a copy of PodcastFeedResponse
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? podcast = null,}) {
-  return _then(_self.copyWith(
+  return _then(PodcastFeedResponse(
 podcast: null == podcast ? _self.podcast : podcast // ignore: cast_nullable_to_non_nullable
 as PodcastFeed,
   ));
@@ -347,7 +348,7 @@ class _$PodcastFeedCopyWithImpl<$Res>
 /// Create a copy of PodcastFeed
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? metadata = null,Object? episodes = null,Object? numEpisodes = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(PodcastFeed(
 metadata: null == metadata ? _self.metadata : metadata // ignore: cast_nullable_to_non_nullable
 as PodcastFeedMetadata,episodes: null == episodes ? _self.episodes : episodes // ignore: cast_nullable_to_non_nullable
 as List<PodcastFeedEpisode>,numEpisodes: freezed == numEpisodes ? _self.numEpisodes : numEpisodes // ignore: cast_nullable_to_non_nullable
@@ -501,7 +502,7 @@ return $default(_that.metadata,_that.episodes,_that.numEpisodes);case _:
 @JsonSerializable()
 
 class _PodcastFeed implements PodcastFeed {
-  const _PodcastFeed({@JsonKey(name: 'metadata') required this.metadata, @JsonKey(name: 'episodes') final  List<PodcastFeedEpisode> episodes = const <PodcastFeedEpisode>[], @JsonKey(name: 'numEpisodes', fromJson: jsonIntFromDynamic) this.numEpisodes}): _episodes = episodes;
+  const _PodcastFeed({@JsonKey(name: 'metadata') required this.metadata, @JsonKey(name: 'episodes')  List<PodcastFeedEpisode> episodes = const <PodcastFeedEpisode>[], @JsonKey(name: 'numEpisodes', fromJson: jsonIntFromDynamic) this.numEpisodes}): _episodes = episodes;
   factory _PodcastFeed.fromJson(Map<String, dynamic> json) => _$PodcastFeedFromJson(json);
 
 @override@JsonKey(name: 'metadata') final  PodcastFeedMetadata metadata;
@@ -640,7 +641,7 @@ class _$PodcastFeedMetadataCopyWithImpl<$Res>
 /// Create a copy of PodcastFeedMetadata
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? title = freezed,Object? language = freezed,Object? explicit = freezed,Object? author = freezed,Object? pubDate = freezed,Object? link = freezed,Object? image = freezed,Object? categories = null,Object? feedUrl = freezed,Object? description = freezed,Object? descriptionPlain = freezed,Object? type = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(PodcastFeedMetadata(
 title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String?,language: freezed == language ? _self.language : language // ignore: cast_nullable_to_non_nullable
 as String?,explicit: freezed == explicit ? _self.explicit : explicit // ignore: cast_nullable_to_non_nullable
@@ -794,7 +795,7 @@ return $default(_that.title,_that.language,_that.explicit,_that.author,_that.pub
 @JsonSerializable()
 
 class _PodcastFeedMetadata implements PodcastFeedMetadata {
-  const _PodcastFeedMetadata({@JsonKey(name: 'title') this.title, @JsonKey(name: 'language') this.language, @JsonKey(name: 'explicit') this.explicit, @JsonKey(name: 'author') this.author, @JsonKey(name: 'pubDate') this.pubDate, @JsonKey(name: 'link') this.link, @JsonKey(name: 'image') this.image, @JsonKey(name: 'categories') final  List<String> categories = const <String>[], @JsonKey(name: 'feedUrl') this.feedUrl, @JsonKey(name: 'description') this.description, @JsonKey(name: 'descriptionPlain') this.descriptionPlain, @JsonKey(name: 'type') this.type}): _categories = categories;
+  const _PodcastFeedMetadata({@JsonKey(name: 'title') this.title, @JsonKey(name: 'language') this.language, @JsonKey(name: 'explicit') this.explicit, @JsonKey(name: 'author') this.author, @JsonKey(name: 'pubDate') this.pubDate, @JsonKey(name: 'link') this.link, @JsonKey(name: 'image') this.image, @JsonKey(name: 'categories')  List<String> categories = const <String>[], @JsonKey(name: 'feedUrl') this.feedUrl, @JsonKey(name: 'description') this.description, @JsonKey(name: 'descriptionPlain') this.descriptionPlain, @JsonKey(name: 'type') this.type}): _categories = categories;
   factory _PodcastFeedMetadata.fromJson(Map<String, dynamic> json) => _$PodcastFeedMetadataFromJson(json);
 
 @override@JsonKey(name: 'title') final  String? title;
@@ -942,7 +943,7 @@ class _$PodcastFeedEpisodeCopyWithImpl<$Res>
 /// Create a copy of PodcastFeedEpisode
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? title = freezed,Object? subtitle = freezed,Object? description = freezed,Object? descriptionPlain = freezed,Object? pubDate = freezed,Object? episodeType = freezed,Object? season = freezed,Object? episode = freezed,Object? author = freezed,Object? duration = freezed,Object? durationSeconds = freezed,Object? explicit = freezed,Object? publishedAt = freezed,Object? enclosure = freezed,Object? guid = freezed,Object? chaptersUrl = freezed,Object? chaptersType = freezed,Object? chapters = null,}) {
-  return _then(_self.copyWith(
+  return _then(PodcastFeedEpisode(
 title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String?,subtitle: freezed == subtitle ? _self.subtitle : subtitle // ignore: cast_nullable_to_non_nullable
 as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
@@ -1114,7 +1115,7 @@ return $default(_that.title,_that.subtitle,_that.description,_that.descriptionPl
 @JsonSerializable()
 
 class _PodcastFeedEpisode implements PodcastFeedEpisode {
-  const _PodcastFeedEpisode({@JsonKey(name: 'title') this.title, @JsonKey(name: 'subtitle') this.subtitle, @JsonKey(name: 'description') this.description, @JsonKey(name: 'descriptionPlain') this.descriptionPlain, @JsonKey(name: 'pubDate') this.pubDate, @JsonKey(name: 'episodeType') this.episodeType, @JsonKey(name: 'season') this.season, @JsonKey(name: 'episode') this.episode, @JsonKey(name: 'author') this.author, @JsonKey(name: 'duration') this.duration, @JsonKey(name: 'durationSeconds', fromJson: jsonIntFromDynamic) this.durationSeconds, @JsonKey(name: 'explicit') this.explicit, @JsonKey(name: 'publishedAt', fromJson: jsonIntFromDynamic) this.publishedAt, @JsonKey(name: 'enclosure') this.enclosure, @JsonKey(name: 'guid') this.guid, @JsonKey(name: 'chaptersUrl') this.chaptersUrl, @JsonKey(name: 'chaptersType') this.chaptersType, @JsonKey(name: 'chapters') final  List<PodcastFeedEpisodeChapter> chapters = const <PodcastFeedEpisodeChapter>[]}): _chapters = chapters;
+  const _PodcastFeedEpisode({@JsonKey(name: 'title') this.title, @JsonKey(name: 'subtitle') this.subtitle, @JsonKey(name: 'description') this.description, @JsonKey(name: 'descriptionPlain') this.descriptionPlain, @JsonKey(name: 'pubDate') this.pubDate, @JsonKey(name: 'episodeType') this.episodeType, @JsonKey(name: 'season') this.season, @JsonKey(name: 'episode') this.episode, @JsonKey(name: 'author') this.author, @JsonKey(name: 'duration') this.duration, @JsonKey(name: 'durationSeconds', fromJson: jsonIntFromDynamic) this.durationSeconds, @JsonKey(name: 'explicit') this.explicit, @JsonKey(name: 'publishedAt', fromJson: jsonIntFromDynamic) this.publishedAt, @JsonKey(name: 'enclosure') this.enclosure, @JsonKey(name: 'guid') this.guid, @JsonKey(name: 'chaptersUrl') this.chaptersUrl, @JsonKey(name: 'chaptersType') this.chaptersType, @JsonKey(name: 'chapters')  List<PodcastFeedEpisodeChapter> chapters = const <PodcastFeedEpisodeChapter>[]}): _chapters = chapters;
   factory _PodcastFeedEpisode.fromJson(Map<String, dynamic> json) => _$PodcastFeedEpisodeFromJson(json);
 
 @override@JsonKey(name: 'title') final  String? title;
@@ -1286,7 +1287,7 @@ class _$PodcastFeedEpisodeEnclosureCopyWithImpl<$Res>
 /// Create a copy of PodcastFeedEpisodeEnclosure
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? url = freezed,Object? type = freezed,Object? length = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(PodcastFeedEpisodeEnclosure(
 url: freezed == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
 as String?,type: freezed == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String?,length: freezed == length ? _self.length : length // ignore: cast_nullable_to_non_nullable
@@ -1555,7 +1556,7 @@ class _$PodcastFeedEpisodeChapterCopyWithImpl<$Res>
 /// Create a copy of PodcastFeedEpisodeChapter
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? title = freezed,Object? start = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(PodcastFeedEpisodeChapter(
 title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String?,start: freezed == start ? _self.start : start // ignore: cast_nullable_to_non_nullable
 as double?,

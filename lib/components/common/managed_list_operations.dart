@@ -1,11 +1,14 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/components/common/book_editor_sheet.dart';
 import 'package:yaabsa/components/common/list_management_dialogs.dart';
 
-typedef ManagedCreateListCallback =
-    Future<void> Function({required String name, String? description, required List<String> bookIds});
+typedef ManagedCreateListCallback = Future<void> Function({
+  required String name,
+  String? description,
+  required List<String> bookIds,
+});
 
 typedef ManagedEditDetailsCallback = Future<void> Function({required String name, String? description});
 

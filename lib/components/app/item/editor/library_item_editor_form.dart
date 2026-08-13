@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:yaabsa/api/library/filter_data/library_filter_data.dart';
 import 'package:yaabsa/api/library/filter_data/library_filter_named_entity.dart';
@@ -178,9 +178,8 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
         if (!mounted) {
           return;
         }
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Release date must be a valid date in the format YYYY-MM-DD.')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Release date must be a valid date in the format YYYY-MM-DD.')));
         return;
       }
 
@@ -189,9 +188,8 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
         if (!mounted) {
           return;
         }
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Feed URL must be a valid HTTP or HTTPS URL.')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Feed URL must be a valid HTTP or HTTPS URL.')));
         return;
       }
     }

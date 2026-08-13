@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/api/me/server_settings.dart';
 import 'package:yaabsa/components/common/inputs/string_chip_list_input.dart';
@@ -452,8 +452,7 @@ class _AdminServerConfigurationViewState extends ConsumerState<AdminServerConfig
               settings: [
                 SettingSwitchTile.remote(
                   label: 'Store covers with item',
-                  subtitle:
-                      'Store covers in the library item folder instead of /metadata/items (only one file named cover will be kept)',
+                  subtitle: 'Store covers in the library item folder instead of /metadata/items (only one file named cover will be kept)',
                   value: settings.storeCoverWithItem ?? false,
                   isLoading: _isSaving(_operationStoreCoverWithItem),
                   onValueChanged: _isSaving(_operationStoreCoverWithItem)
@@ -485,8 +484,7 @@ class _AdminServerConfigurationViewState extends ConsumerState<AdminServerConfig
                 ),
                 SettingSwitchTile.remote(
                   label: 'Ignore prefixes when sorting',
-                  subtitle:
-                      'Ignore prefix values like "the" when sorting titles (e.g. "The Book Title" is sorted as "Book Title, The")',
+                  subtitle: 'Ignore prefix values like "the" when sorting titles (e.g. "The Book Title" is sorted as "Book Title, The")',
                   value: sortingIgnorePrefix,
                   isLoading: _isSaving(_operationSortingIgnorePrefix),
                   onValueChanged: _isSaving(_operationSortingIgnorePrefix)

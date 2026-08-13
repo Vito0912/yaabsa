@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/library_items/request/batch_quick_match_library_items_request.dart';
@@ -168,9 +168,8 @@ Future<void> quickMatchSelectedBooks({
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Metadata change request sent for $label.')));
       onSuccess();
     } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Could not start metadata change request.')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Could not start metadata change request.')));
     }
   } catch (error) {
     if (!context.mounted) {

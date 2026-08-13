@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'admin_listening_sessions_page.dart';
@@ -9,6 +9,7 @@ part of 'admin_listening_sessions_page.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
@@ -63,7 +64,7 @@ class _$AdminListeningSessionsPageCopyWithImpl<$Res>
 /// Create a copy of AdminListeningSessionsPage
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? total = null,Object? numPages = null,Object? page = null,Object? itemsPerPage = null,Object? sessions = null,}) {
-  return _then(_self.copyWith(
+  return _then(AdminListeningSessionsPage(
 total: null == total ? _self.total : total // ignore: cast_nullable_to_non_nullable
 as int,numPages: null == numPages ? _self.numPages : numPages // ignore: cast_nullable_to_non_nullable
 as int,page: null == page ? _self.page : page // ignore: cast_nullable_to_non_nullable
@@ -210,7 +211,7 @@ return $default(_that.total,_that.numPages,_that.page,_that.itemsPerPage,_that.s
 
 
 class _AdminListeningSessionsPage implements AdminListeningSessionsPage {
-  const _AdminListeningSessionsPage({this.total = 0, this.numPages = 0, this.page = 0, this.itemsPerPage = 0, final  List<AdminListeningSession> sessions = const <AdminListeningSession>[]}): _sessions = sessions;
+  const _AdminListeningSessionsPage({this.total = 0, this.numPages = 0, this.page = 0, this.itemsPerPage = 0,  List<AdminListeningSession> sessions = const <AdminListeningSession>[]}): _sessions = sessions;
   
 
 @override@JsonKey() final  int total;

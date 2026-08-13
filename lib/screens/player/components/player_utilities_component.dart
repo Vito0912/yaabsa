@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/player/common/sleep_timer_button.dart';
 import 'package:yaabsa/components/player/common/bookmarks_button.dart';
 import 'package:yaabsa/components/player/common/speed_slider.dart';

@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'abs_task.dart';
@@ -9,6 +9,7 @@ part of 'abs_task.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -66,7 +67,7 @@ class _$AbsTaskCopyWithImpl<$Res>
 /// Create a copy of AbsTask
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? action = null,Object? data = freezed,Object? title = freezed,Object? titleKey = freezed,Object? titleSubs = null,Object? description = freezed,Object? descriptionKey = freezed,Object? descriptionSubs = null,Object? error = freezed,Object? errorKey = freezed,Object? errorSubs = null,Object? showSuccess = null,Object? isFailed = null,Object? isFinished = null,Object? startedAt = freezed,Object? finishedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(AbsTask(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,action: null == action ? _self.action : action // ignore: cast_nullable_to_non_nullable
 as String,data: freezed == data ? _self.data : data // ignore: cast_nullable_to_non_nullable
@@ -237,7 +238,7 @@ return $default(_that.id,_that.action,_that.data,_that.title,_that.titleKey,_tha
 @JsonSerializable()
 
 class _AbsTask implements AbsTask {
-  const _AbsTask({@JsonKey(name: 'id') required this.id, @JsonKey(name: 'action') this.action = '', @JsonKey(name: 'data') this.data, @JsonKey(name: 'title') this.title, @JsonKey(name: 'titleKey') this.titleKey, @JsonKey(name: 'titleSubs', fromJson: jsonStringListFromDynamic) final  List<String> titleSubs = const <String>[], @JsonKey(name: 'description') this.description, @JsonKey(name: 'descriptionKey') this.descriptionKey, @JsonKey(name: 'descriptionSubs', fromJson: jsonStringListFromDynamic) final  List<String> descriptionSubs = const <String>[], @JsonKey(name: 'error') this.error, @JsonKey(name: 'errorKey') this.errorKey, @JsonKey(name: 'errorSubs', fromJson: jsonStringListFromDynamic) final  List<String> errorSubs = const <String>[], @JsonKey(name: 'showSuccess') this.showSuccess = false, @JsonKey(name: 'isFailed') this.isFailed = false, @JsonKey(name: 'isFinished') this.isFinished = false, @JsonKey(name: 'startedAt', fromJson: jsonIntFromDynamic) this.startedAt, @JsonKey(name: 'finishedAt', fromJson: jsonIntFromDynamic) this.finishedAt}): _titleSubs = titleSubs,_descriptionSubs = descriptionSubs,_errorSubs = errorSubs;
+  const _AbsTask({@JsonKey(name: 'id') required this.id, @JsonKey(name: 'action') this.action = '', @JsonKey(name: 'data') this.data, @JsonKey(name: 'title') this.title, @JsonKey(name: 'titleKey') this.titleKey, @JsonKey(name: 'titleSubs', fromJson: jsonStringListFromDynamic)  List<String> titleSubs = const <String>[], @JsonKey(name: 'description') this.description, @JsonKey(name: 'descriptionKey') this.descriptionKey, @JsonKey(name: 'descriptionSubs', fromJson: jsonStringListFromDynamic)  List<String> descriptionSubs = const <String>[], @JsonKey(name: 'error') this.error, @JsonKey(name: 'errorKey') this.errorKey, @JsonKey(name: 'errorSubs', fromJson: jsonStringListFromDynamic)  List<String> errorSubs = const <String>[], @JsonKey(name: 'showSuccess') this.showSuccess = false, @JsonKey(name: 'isFailed') this.isFailed = false, @JsonKey(name: 'isFinished') this.isFinished = false, @JsonKey(name: 'startedAt', fromJson: jsonIntFromDynamic) this.startedAt, @JsonKey(name: 'finishedAt', fromJson: jsonIntFromDynamic) this.finishedAt}): _titleSubs = titleSubs,_descriptionSubs = descriptionSubs,_errorSubs = errorSubs;
   factory _AbsTask.fromJson(Map<String, dynamic> json) => _$AbsTaskFromJson(json);
 
 @override@JsonKey(name: 'id') final  String id;
@@ -419,7 +420,7 @@ class _$AbsTaskDataCopyWithImpl<$Res>
 /// Create a copy of AbsTaskData
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? libraryItemId = freezed,Object? libraryId = freezed,Object? ino = freezed,Object? encodeOptions = freezed,Object? scanResults = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(AbsTaskData(
 libraryItemId: freezed == libraryItemId ? _self.libraryItemId : libraryItemId // ignore: cast_nullable_to_non_nullable
 as String?,libraryId: freezed == libraryId ? _self.libraryId : libraryId // ignore: cast_nullable_to_non_nullable
 as String?,ino: freezed == ino ? _self.ino : ino // ignore: cast_nullable_to_non_nullable
@@ -742,7 +743,7 @@ class _$AbsTaskEncodeOptionsCopyWithImpl<$Res>
 /// Create a copy of AbsTaskEncodeOptions
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? codec = freezed,Object? bitrate = freezed,Object? channels = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(AbsTaskEncodeOptions(
 codec: freezed == codec ? _self.codec : codec // ignore: cast_nullable_to_non_nullable
 as String?,bitrate: freezed == bitrate ? _self.bitrate : bitrate // ignore: cast_nullable_to_non_nullable
 as String?,channels: freezed == channels ? _self.channels : channels // ignore: cast_nullable_to_non_nullable
@@ -1011,7 +1012,7 @@ class _$AbsTaskScanResultsCopyWithImpl<$Res>
 /// Create a copy of AbsTaskScanResults
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? added = freezed,Object? updated = freezed,Object? missing = freezed,Object? elapsed = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(AbsTaskScanResults(
 added: freezed == added ? _self.added : added // ignore: cast_nullable_to_non_nullable
 as int?,updated: freezed == updated ? _self.updated : updated // ignore: cast_nullable_to_non_nullable
 as int?,missing: freezed == missing ? _self.missing : missing // ignore: cast_nullable_to_non_nullable

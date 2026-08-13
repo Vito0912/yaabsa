@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:background_downloader/background_downloader.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:just_audio/just_audio.dart';
@@ -518,9 +518,8 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
 
     final feedUrl = widget.item.media?.podcastMedia?.metadata.feedUrl?.trim();
     if (feedUrl == null || feedUrl.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('This podcast does not have an RSS feed URL.')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('This podcast does not have an RSS feed URL.')));
       return;
     }
 
@@ -559,9 +558,8 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
         .where((episode) => (episode.enclosure?.url ?? '').trim().isNotEmpty)
         .toList(growable: false);
     if (feedEpisodes.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('No downloadable episodes were found in the RSS feed.')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('No downloadable episodes were found in the RSS feed.')));
       return;
     }
 
@@ -604,9 +602,8 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
         );
         ref.invalidate(libraryItemProvider(widget.item.id));
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Could not queue podcast episodes for download.')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Could not queue podcast episodes for download.')));
       }
     } catch (e) {
       if (!mounted) {
@@ -696,9 +693,8 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
         return;
       }
       final failedSuffix = result.failedFiles > 0 ? ' ${result.failedFiles} file(s) could not be removed.' : '';
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Deleted ${result.deletedFiles} file(s).$failedSuffix')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Deleted ${result.deletedFiles} file(s).$failedSuffix')));
     } catch (e) {
       if (!mounted) {
         return;
@@ -872,9 +868,8 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
 
     if (episodesToDownload.isEmpty) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('No new episodes to download in selection.')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('No new episodes to download in selection.')));
       }
       setState(() {
         _selectionMode = false;

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/library_items/playback_session.dart';
 import 'package:yaabsa/screens/main/stats/stats_formatters.dart';
 

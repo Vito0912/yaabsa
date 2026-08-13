@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/screens/player/layout/player_layout_config.dart';
@@ -31,9 +31,8 @@ class PlayerMediaInfoComponent extends StatelessWidget {
     final textAlign = textAlignMode.textAlign;
     final crossAxis = textAlignMode.crossAxisAlignment;
 
-    final titleStyle = Theme.of(context).textTheme.titleMedium?.copyWith(
-      fontSize: (Theme.of(context).textTheme.titleLarge?.fontSize ?? 16) * resolvedScale,
-    );
+    final titleStyle = Theme.of(context).textTheme.titleMedium
+        ?.copyWith(fontSize: (Theme.of(context).textTheme.titleLarge?.fontSize ?? 16) * resolvedScale);
 
     final detailStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(
       color: Theme.of(context).colorScheme.onSurfaceVariant,

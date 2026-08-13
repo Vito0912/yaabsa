@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class SettingsEditorHeader extends StatelessWidget {
   const SettingsEditorHeader({super.key, required this.title, required this.onReset, this.topPadding = 20});
