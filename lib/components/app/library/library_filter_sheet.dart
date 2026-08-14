@@ -13,17 +13,19 @@ class LibraryFilterSheet extends StatelessWidget {
     required this.libraryMediaType,
     required this.activeFilter,
     required this.filterData,
+    this.includeSpecialFilters = true,
   });
 
   final String libraryMediaType;
   final String? activeFilter;
   final LibraryFilterData? filterData;
+  final bool includeSpecialFilters;
 
   @override
   Widget build(BuildContext context) {
     final isBookLibrary = libraryMediaType == 'book';
     final sections = <_FilterSectionData>[
-      _buildSpecialSection(),
+      if (includeSpecialFilters) _buildSpecialSection(),
       _buildStringSection(
         title: 'Genres',
         group: LibraryFilterGroup.genres,

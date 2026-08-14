@@ -10,6 +10,7 @@ class AuthorCard extends StatelessWidget {
     super.key,
     required this.authorId,
     required this.name,
+    this.imagePath,
     this.subtitle,
     this.description,
     this.compact = false,
@@ -18,6 +19,7 @@ class AuthorCard extends StatelessWidget {
 
   final String authorId;
   final String name;
+  final String? imagePath;
   final String? subtitle;
   final String? description;
   final bool compact;
@@ -33,7 +35,7 @@ class AuthorCard extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: compact ? 10 : 12, vertical: compact ? 8 : 10),
       child: Row(
         children: [
-          AuthorImage(authorId: authorId, width: imageSize, height: imageSize, borderRadius: 12),
+          AuthorImage(authorId: authorId, imagePath: imagePath, width: imageSize, height: imageSize, borderRadius: 12),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -82,19 +84,21 @@ class AuthorImage extends ConsumerWidget {
   const AuthorImage({
     super.key,
     required this.authorId,
+    this.imagePath,
     required this.width,
     required this.height,
     this.borderRadius = 14,
   });
 
   final String authorId;
+  final String? imagePath;
   final double width;
   final double height;
   final double borderRadius;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (authorId.trim().isEmpty) {
+    if (authorId.trim().isEmpty || imagePath?.trim().isNotEmpty != true) {
       return _AuthorImagePlaceholder(width: width, height: height, borderRadius: borderRadius);
     }
 

@@ -33,7 +33,7 @@ class LibraryFilterToolbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeFilterLabel = _resolveActiveFilterLabel(activeFilter, filterDataAsync.value);
+    final activeFilterLabel = resolveActiveFilterLabel(activeFilter, filterDataAsync.value);
     final activeSortLabel = buildLibrarySortLabel(
       libraryMediaType: libraryMediaType,
       activeFilter: activeFilter,
@@ -130,7 +130,7 @@ class LibraryFilterToolbar extends StatelessWidget {
     await onSortSelected(result);
   }
 
-  static String? _resolveActiveFilterLabel(String? filter, LibraryFilterData? filterData) {
+  static String? resolveActiveFilterLabel(String? filter, LibraryFilterData? filterData) {
     if (filter == null || filter.isEmpty) {
       return null;
     }

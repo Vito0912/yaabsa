@@ -14,11 +14,14 @@ import 'package:yaabsa/components/common/connection_issue_view.dart';
 import 'package:yaabsa/components/common/cover_loading_placeholder.dart';
 import 'package:yaabsa/components/common/scroll_to_top_button.dart';
 import 'package:yaabsa/components/common/loading_view.dart';
+import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/common/library_author_provider.dart';
-import 'package:yaabsa/provider/common/library_filter_data_provider.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
+import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
+import 'package:yaabsa/util/library_view_subtitle_preferences.dart';
+import 'package:yaabsa/util/library_view_subtitles.dart';
 
 const int _authorsPrefetchThreshold = 8;
 const int _authorsApproxScrollPastCount = 24;
@@ -31,6 +34,8 @@ class AuthorsView extends HookConsumerWidget {
     final scrollController = useScrollController();
     final selectedLibrary = ref.watch(selectedLibraryProvider);
     final serverReachable = ref.watch(serverStatusProvider).value ?? false;
+    final currentUser = ref.watch(currentUserProvider).value;
+    ref.watch(userSettingsWatcherProvider);
 
     if (selectedLibrary == null) {
       return const Center(child: Text('No library selected. Please select a library via the switcher.'));
@@ -41,6 +46,18 @@ class AuthorsView extends HookConsumerWidget {
     }
 
     final libraryId = selectedLibrary.id;
+    final subtitlePreferences = currentUser == null
+        ? LibraryViewSubtitlePreferencesCodec.defaultsFor(LibraryViewSubtitleView.authors)
+        : LibraryViewSubtitlePreferencesCodec.decode(
+            ref
+                .read(settingsManagerProvider.notifier)
+                .getUserSetting<String>(
+                  currentUser.id,
+                  LibraryViewSubtitleView.authors.settingKey,
+                  defaultValue: LibraryViewSubtitlePreferencesCodec.defaultEncodedFor(LibraryViewSubtitleView.authors),
+                ),
+            LibraryViewSubtitleView.authors,
+          );
     final authorsProvider = libraryAuthorsProvider(libraryId);
     final authorsStateAsync = ref.watch(authorsProvider);
 
@@ -49,6 +66,11 @@ class AuthorsView extends HookConsumerWidget {
       skipLoadingOnReload: true,
       data: (state) {
         final authors = state.items;
+        final subtitleResolver = LibraryViewSubtitleResolver(
+          preferences: subtitlePreferences,
+          view: LibraryViewSubtitleView.authors,
+          activeSort: state.sort,
+        );
 
         Future<void> openSortSheet() async {
           final result = await showModalBottomSheet<LibraryAuthorSortSelection>(
@@ -127,7 +149,8 @@ class AuthorsView extends HookConsumerWidget {
                                     return AuthorGridCard(
                                       authorId: author.id,
                                       name: author.name,
-                                      subtitle: _bookCountLabel(author.numBooks),
+                                      imagePath: author.imagePath,
+                                      subtitle: subtitleResolver.forAuthor(author),
                                       onTap: () {
                                         context.push('/author/${author.id}');
                                       },
@@ -150,8 +173,8 @@ class AuthorsView extends HookConsumerWidget {
         if (!serverReachable) {
           return ConnectionIssueView.offline(
             onRetry: () async {
-              ref.invalidate(libraryFilterDataProvider(libraryId));
-              await ref.read(libraryFilterDataProvider(libraryId).future);
+              ref.invalidate(authorsProvider);
+              await ref.read(authorsProvider.future);
             },
           );
         }
@@ -160,8 +183,8 @@ class AuthorsView extends HookConsumerWidget {
           error: error,
           title: 'Error loading authors',
           onRetry: () async {
-            ref.invalidate(libraryFilterDataProvider(libraryId));
-            await ref.read(libraryFilterDataProvider(libraryId).future);
+            ref.invalidate(authorsProvider);
+            await ref.read(authorsProvider.future);
           },
         );
       },
@@ -180,8 +203,6 @@ int _estimatedItemCount({required int loadedCount, required int totalItems, requ
 
   return loadedCount;
 }
-
-String _bookCountLabel(int numBooks) => '$numBooks ${numBooks == 1 ? 'book' : 'books'}';
 
 class _AuthorsToolbar extends StatelessWidget {
   const _AuthorsToolbar({required this.sortLabel, required this.onSortPressed, this.trailingAction});

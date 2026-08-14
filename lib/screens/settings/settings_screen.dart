@@ -249,6 +249,12 @@ final List<SettingsSearchItem> searchableSettings = [
     route: '/settings/library',
   ),
   const SettingsSearchItem(
+    title: 'View Subtitles',
+    description: 'Configure supporting information shown below library, series, and author cards',
+    categoryPath: 'Settings > General > View Subtitles',
+    route: '/settings/library/view-subtitles',
+  ),
+  const SettingsSearchItem(
     title: 'Show Shelf Play Button',
     description: 'Adds a play-all button on Continue Listening and Newest shelves',
     categoryPath: 'Settings > General',

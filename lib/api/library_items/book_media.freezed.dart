@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$BookMedia {
 
-@JsonKey(name: "id") String get id;@JsonKey(name: "libraryItemId") String? get libraryItemId;@JsonKey(name: "metadata") MediaMetadata get metadata;@JsonKey(name: "coverPath") String? get coverPath;@JsonKey(name: "tags") List<String>? get tags;@JsonKey(name: "audioFiles") List<AudioFile>? get audioFiles;@JsonKey(name: "chapters") List<Chapter>? get chapters;@JsonKey(name: "ebookFile") EbookFile? get ebookFile;@JsonKey(name: "numTracks") int? get numTracks;@JsonKey(name: "numChapters") int? get numChapters;@JsonKey(name: "numAudioFiles") int? get numAudioFiles;@JsonKey(name: "size") int? get size;@JsonKey(name: "ebookFormat") String? get ebookFormat;
+@JsonKey(name: "id") String get id;@JsonKey(name: "libraryItemId") String? get libraryItemId;@JsonKey(name: "metadata") MediaMetadata get metadata;@JsonKey(name: "coverPath") String? get coverPath;@JsonKey(name: "tags") List<String>? get tags;@JsonKey(name: "audioFiles") List<AudioFile>? get audioFiles;@JsonKey(name: "chapters") List<Chapter>? get chapters;@JsonKey(name: "ebookFile") EbookFile? get ebookFile;@JsonKey(name: "numTracks") int? get numTracks;@JsonKey(name: "numChapters") int? get numChapters;@JsonKey(name: "numAudioFiles") int? get numAudioFiles;@JsonKey(name: "duration") double? get duration;@JsonKey(name: "size") int? get size;@JsonKey(name: "ebookFormat") String? get ebookFormat;
 /// Create a copy of BookMedia
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,16 +29,16 @@ $BookMediaCopyWith<BookMedia> get copyWith => _$BookMediaCopyWithImpl<BookMedia>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BookMedia&&(identical(other.id, id) || other.id == id)&&(identical(other.libraryItemId, libraryItemId) || other.libraryItemId == libraryItemId)&&(identical(other.metadata, metadata) || other.metadata == metadata)&&(identical(other.coverPath, coverPath) || other.coverPath == coverPath)&&const DeepCollectionEquality().equals(other.tags, tags)&&const DeepCollectionEquality().equals(other.audioFiles, audioFiles)&&const DeepCollectionEquality().equals(other.chapters, chapters)&&(identical(other.ebookFile, ebookFile) || other.ebookFile == ebookFile)&&(identical(other.numTracks, numTracks) || other.numTracks == numTracks)&&(identical(other.numChapters, numChapters) || other.numChapters == numChapters)&&(identical(other.numAudioFiles, numAudioFiles) || other.numAudioFiles == numAudioFiles)&&(identical(other.size, size) || other.size == size)&&(identical(other.ebookFormat, ebookFormat) || other.ebookFormat == ebookFormat));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BookMedia&&(identical(other.id, id) || other.id == id)&&(identical(other.libraryItemId, libraryItemId) || other.libraryItemId == libraryItemId)&&(identical(other.metadata, metadata) || other.metadata == metadata)&&(identical(other.coverPath, coverPath) || other.coverPath == coverPath)&&const DeepCollectionEquality().equals(other.tags, tags)&&const DeepCollectionEquality().equals(other.audioFiles, audioFiles)&&const DeepCollectionEquality().equals(other.chapters, chapters)&&(identical(other.ebookFile, ebookFile) || other.ebookFile == ebookFile)&&(identical(other.numTracks, numTracks) || other.numTracks == numTracks)&&(identical(other.numChapters, numChapters) || other.numChapters == numChapters)&&(identical(other.numAudioFiles, numAudioFiles) || other.numAudioFiles == numAudioFiles)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.size, size) || other.size == size)&&(identical(other.ebookFormat, ebookFormat) || other.ebookFormat == ebookFormat));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,libraryItemId,metadata,coverPath,const DeepCollectionEquality().hash(tags),const DeepCollectionEquality().hash(audioFiles),const DeepCollectionEquality().hash(chapters),ebookFile,numTracks,numChapters,numAudioFiles,size,ebookFormat);
+int get hashCode => Object.hash(runtimeType,id,libraryItemId,metadata,coverPath,const DeepCollectionEquality().hash(tags),const DeepCollectionEquality().hash(audioFiles),const DeepCollectionEquality().hash(chapters),ebookFile,numTracks,numChapters,numAudioFiles,duration,size,ebookFormat);
 
 @override
 String toString() {
-  return 'BookMedia(id: $id, libraryItemId: $libraryItemId, metadata: $metadata, coverPath: $coverPath, tags: $tags, audioFiles: $audioFiles, chapters: $chapters, ebookFile: $ebookFile, numTracks: $numTracks, numChapters: $numChapters, numAudioFiles: $numAudioFiles, size: $size, ebookFormat: $ebookFormat)';
+  return 'BookMedia(id: $id, libraryItemId: $libraryItemId, metadata: $metadata, coverPath: $coverPath, tags: $tags, audioFiles: $audioFiles, chapters: $chapters, ebookFile: $ebookFile, numTracks: $numTracks, numChapters: $numChapters, numAudioFiles: $numAudioFiles, duration: $duration, size: $size, ebookFormat: $ebookFormat)';
 }
 
 
@@ -49,7 +49,7 @@ abstract mixin class $BookMediaCopyWith<$Res>  {
   factory $BookMediaCopyWith(BookMedia value, $Res Function(BookMedia) _then) = _$BookMediaCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: "id") String id,@JsonKey(name: "libraryItemId") String? libraryItemId,@JsonKey(name: "metadata") MediaMetadata metadata,@JsonKey(name: "coverPath") String? coverPath,@JsonKey(name: "tags") List<String>? tags,@JsonKey(name: "audioFiles") List<AudioFile>? audioFiles,@JsonKey(name: "chapters") List<Chapter>? chapters,@JsonKey(name: "ebookFile") EbookFile? ebookFile,@JsonKey(name: "numTracks") int? numTracks,@JsonKey(name: "numChapters") int? numChapters,@JsonKey(name: "numAudioFiles") int? numAudioFiles,@JsonKey(name: "size") int? size,@JsonKey(name: "ebookFormat") String? ebookFormat
+@JsonKey(name: "id") String id,@JsonKey(name: "libraryItemId") String? libraryItemId,@JsonKey(name: "metadata") MediaMetadata metadata,@JsonKey(name: "coverPath") String? coverPath,@JsonKey(name: "tags") List<String>? tags,@JsonKey(name: "audioFiles") List<AudioFile>? audioFiles,@JsonKey(name: "chapters") List<Chapter>? chapters,@JsonKey(name: "ebookFile") EbookFile? ebookFile,@JsonKey(name: "numTracks") int? numTracks,@JsonKey(name: "numChapters") int? numChapters,@JsonKey(name: "numAudioFiles") int? numAudioFiles,@JsonKey(name: "duration") double? duration,@JsonKey(name: "size") int? size,@JsonKey(name: "ebookFormat") String? ebookFormat
 });
 
 
@@ -66,7 +66,7 @@ class _$BookMediaCopyWithImpl<$Res>
 
 /// Create a copy of BookMedia
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? libraryItemId = freezed,Object? metadata = null,Object? coverPath = freezed,Object? tags = freezed,Object? audioFiles = freezed,Object? chapters = freezed,Object? ebookFile = freezed,Object? numTracks = freezed,Object? numChapters = freezed,Object? numAudioFiles = freezed,Object? size = freezed,Object? ebookFormat = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? libraryItemId = freezed,Object? metadata = null,Object? coverPath = freezed,Object? tags = freezed,Object? audioFiles = freezed,Object? chapters = freezed,Object? ebookFile = freezed,Object? numTracks = freezed,Object? numChapters = freezed,Object? numAudioFiles = freezed,Object? duration = freezed,Object? size = freezed,Object? ebookFormat = freezed,}) {
   return _then(BookMedia(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,libraryItemId: freezed == libraryItemId ? _self.libraryItemId : libraryItemId // ignore: cast_nullable_to_non_nullable
@@ -79,7 +79,8 @@ as List<Chapter>?,ebookFile: freezed == ebookFile ? _self.ebookFile : ebookFile 
 as EbookFile?,numTracks: freezed == numTracks ? _self.numTracks : numTracks // ignore: cast_nullable_to_non_nullable
 as int?,numChapters: freezed == numChapters ? _self.numChapters : numChapters // ignore: cast_nullable_to_non_nullable
 as int?,numAudioFiles: freezed == numAudioFiles ? _self.numAudioFiles : numAudioFiles // ignore: cast_nullable_to_non_nullable
-as int?,size: freezed == size ? _self.size : size // ignore: cast_nullable_to_non_nullable
+as int?,duration: freezed == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
+as double?,size: freezed == size ? _self.size : size // ignore: cast_nullable_to_non_nullable
 as int?,ebookFormat: freezed == ebookFormat ? _self.ebookFormat : ebookFormat // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
@@ -187,10 +188,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "libraryItemId")  String? libraryItemId, @JsonKey(name: "metadata")  MediaMetadata metadata, @JsonKey(name: "coverPath")  String? coverPath, @JsonKey(name: "tags")  List<String>? tags, @JsonKey(name: "audioFiles")  List<AudioFile>? audioFiles, @JsonKey(name: "chapters")  List<Chapter>? chapters, @JsonKey(name: "ebookFile")  EbookFile? ebookFile, @JsonKey(name: "numTracks")  int? numTracks, @JsonKey(name: "numChapters")  int? numChapters, @JsonKey(name: "numAudioFiles")  int? numAudioFiles, @JsonKey(name: "size")  int? size, @JsonKey(name: "ebookFormat")  String? ebookFormat)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "libraryItemId")  String? libraryItemId, @JsonKey(name: "metadata")  MediaMetadata metadata, @JsonKey(name: "coverPath")  String? coverPath, @JsonKey(name: "tags")  List<String>? tags, @JsonKey(name: "audioFiles")  List<AudioFile>? audioFiles, @JsonKey(name: "chapters")  List<Chapter>? chapters, @JsonKey(name: "ebookFile")  EbookFile? ebookFile, @JsonKey(name: "numTracks")  int? numTracks, @JsonKey(name: "numChapters")  int? numChapters, @JsonKey(name: "numAudioFiles")  int? numAudioFiles, @JsonKey(name: "duration")  double? duration, @JsonKey(name: "size")  int? size, @JsonKey(name: "ebookFormat")  String? ebookFormat)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _BookMedia() when $default != null:
-return $default(_that.id,_that.libraryItemId,_that.metadata,_that.coverPath,_that.tags,_that.audioFiles,_that.chapters,_that.ebookFile,_that.numTracks,_that.numChapters,_that.numAudioFiles,_that.size,_that.ebookFormat);case _:
+return $default(_that.id,_that.libraryItemId,_that.metadata,_that.coverPath,_that.tags,_that.audioFiles,_that.chapters,_that.ebookFile,_that.numTracks,_that.numChapters,_that.numAudioFiles,_that.duration,_that.size,_that.ebookFormat);case _:
   return orElse();
 
 }
@@ -208,10 +209,10 @@ return $default(_that.id,_that.libraryItemId,_that.metadata,_that.coverPath,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "libraryItemId")  String? libraryItemId, @JsonKey(name: "metadata")  MediaMetadata metadata, @JsonKey(name: "coverPath")  String? coverPath, @JsonKey(name: "tags")  List<String>? tags, @JsonKey(name: "audioFiles")  List<AudioFile>? audioFiles, @JsonKey(name: "chapters")  List<Chapter>? chapters, @JsonKey(name: "ebookFile")  EbookFile? ebookFile, @JsonKey(name: "numTracks")  int? numTracks, @JsonKey(name: "numChapters")  int? numChapters, @JsonKey(name: "numAudioFiles")  int? numAudioFiles, @JsonKey(name: "size")  int? size, @JsonKey(name: "ebookFormat")  String? ebookFormat)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "libraryItemId")  String? libraryItemId, @JsonKey(name: "metadata")  MediaMetadata metadata, @JsonKey(name: "coverPath")  String? coverPath, @JsonKey(name: "tags")  List<String>? tags, @JsonKey(name: "audioFiles")  List<AudioFile>? audioFiles, @JsonKey(name: "chapters")  List<Chapter>? chapters, @JsonKey(name: "ebookFile")  EbookFile? ebookFile, @JsonKey(name: "numTracks")  int? numTracks, @JsonKey(name: "numChapters")  int? numChapters, @JsonKey(name: "numAudioFiles")  int? numAudioFiles, @JsonKey(name: "duration")  double? duration, @JsonKey(name: "size")  int? size, @JsonKey(name: "ebookFormat")  String? ebookFormat)  $default,) {final _that = this;
 switch (_that) {
 case _BookMedia():
-return $default(_that.id,_that.libraryItemId,_that.metadata,_that.coverPath,_that.tags,_that.audioFiles,_that.chapters,_that.ebookFile,_that.numTracks,_that.numChapters,_that.numAudioFiles,_that.size,_that.ebookFormat);case _:
+return $default(_that.id,_that.libraryItemId,_that.metadata,_that.coverPath,_that.tags,_that.audioFiles,_that.chapters,_that.ebookFile,_that.numTracks,_that.numChapters,_that.numAudioFiles,_that.duration,_that.size,_that.ebookFormat);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -228,10 +229,10 @@ return $default(_that.id,_that.libraryItemId,_that.metadata,_that.coverPath,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "id")  String id, @JsonKey(name: "libraryItemId")  String? libraryItemId, @JsonKey(name: "metadata")  MediaMetadata metadata, @JsonKey(name: "coverPath")  String? coverPath, @JsonKey(name: "tags")  List<String>? tags, @JsonKey(name: "audioFiles")  List<AudioFile>? audioFiles, @JsonKey(name: "chapters")  List<Chapter>? chapters, @JsonKey(name: "ebookFile")  EbookFile? ebookFile, @JsonKey(name: "numTracks")  int? numTracks, @JsonKey(name: "numChapters")  int? numChapters, @JsonKey(name: "numAudioFiles")  int? numAudioFiles, @JsonKey(name: "size")  int? size, @JsonKey(name: "ebookFormat")  String? ebookFormat)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "id")  String id, @JsonKey(name: "libraryItemId")  String? libraryItemId, @JsonKey(name: "metadata")  MediaMetadata metadata, @JsonKey(name: "coverPath")  String? coverPath, @JsonKey(name: "tags")  List<String>? tags, @JsonKey(name: "audioFiles")  List<AudioFile>? audioFiles, @JsonKey(name: "chapters")  List<Chapter>? chapters, @JsonKey(name: "ebookFile")  EbookFile? ebookFile, @JsonKey(name: "numTracks")  int? numTracks, @JsonKey(name: "numChapters")  int? numChapters, @JsonKey(name: "numAudioFiles")  int? numAudioFiles, @JsonKey(name: "duration")  double? duration, @JsonKey(name: "size")  int? size, @JsonKey(name: "ebookFormat")  String? ebookFormat)?  $default,) {final _that = this;
 switch (_that) {
 case _BookMedia() when $default != null:
-return $default(_that.id,_that.libraryItemId,_that.metadata,_that.coverPath,_that.tags,_that.audioFiles,_that.chapters,_that.ebookFile,_that.numTracks,_that.numChapters,_that.numAudioFiles,_that.size,_that.ebookFormat);case _:
+return $default(_that.id,_that.libraryItemId,_that.metadata,_that.coverPath,_that.tags,_that.audioFiles,_that.chapters,_that.ebookFile,_that.numTracks,_that.numChapters,_that.numAudioFiles,_that.duration,_that.size,_that.ebookFormat);case _:
   return null;
 
 }
@@ -243,7 +244,7 @@ return $default(_that.id,_that.libraryItemId,_that.metadata,_that.coverPath,_tha
 @JsonSerializable()
 
 class _BookMedia implements BookMedia {
-  const _BookMedia({@JsonKey(name: "id") required this.id, @JsonKey(name: "libraryItemId") this.libraryItemId, @JsonKey(name: "metadata") required this.metadata, @JsonKey(name: "coverPath") this.coverPath, @JsonKey(name: "tags")  List<String>? tags, @JsonKey(name: "audioFiles")  List<AudioFile>? audioFiles, @JsonKey(name: "chapters")  List<Chapter>? chapters, @JsonKey(name: "ebookFile") this.ebookFile, @JsonKey(name: "numTracks") this.numTracks, @JsonKey(name: "numChapters") this.numChapters, @JsonKey(name: "numAudioFiles") this.numAudioFiles, @JsonKey(name: "size") this.size, @JsonKey(name: "ebookFormat") this.ebookFormat}): _tags = tags,_audioFiles = audioFiles,_chapters = chapters;
+  const _BookMedia({@JsonKey(name: "id") required this.id, @JsonKey(name: "libraryItemId") this.libraryItemId, @JsonKey(name: "metadata") required this.metadata, @JsonKey(name: "coverPath") this.coverPath, @JsonKey(name: "tags")  List<String>? tags, @JsonKey(name: "audioFiles")  List<AudioFile>? audioFiles, @JsonKey(name: "chapters")  List<Chapter>? chapters, @JsonKey(name: "ebookFile") this.ebookFile, @JsonKey(name: "numTracks") this.numTracks, @JsonKey(name: "numChapters") this.numChapters, @JsonKey(name: "numAudioFiles") this.numAudioFiles, @JsonKey(name: "duration") this.duration, @JsonKey(name: "size") this.size, @JsonKey(name: "ebookFormat") this.ebookFormat}): _tags = tags,_audioFiles = audioFiles,_chapters = chapters;
   factory _BookMedia.fromJson(Map<String, dynamic> json) => _$BookMediaFromJson(json);
 
 @override@JsonKey(name: "id") final  String id;
@@ -281,6 +282,7 @@ class _BookMedia implements BookMedia {
 @override@JsonKey(name: "numTracks") final  int? numTracks;
 @override@JsonKey(name: "numChapters") final  int? numChapters;
 @override@JsonKey(name: "numAudioFiles") final  int? numAudioFiles;
+@override@JsonKey(name: "duration") final  double? duration;
 @override@JsonKey(name: "size") final  int? size;
 @override@JsonKey(name: "ebookFormat") final  String? ebookFormat;
 
@@ -297,16 +299,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BookMedia&&(identical(other.id, id) || other.id == id)&&(identical(other.libraryItemId, libraryItemId) || other.libraryItemId == libraryItemId)&&(identical(other.metadata, metadata) || other.metadata == metadata)&&(identical(other.coverPath, coverPath) || other.coverPath == coverPath)&&const DeepCollectionEquality().equals(other._tags, _tags)&&const DeepCollectionEquality().equals(other._audioFiles, _audioFiles)&&const DeepCollectionEquality().equals(other._chapters, _chapters)&&(identical(other.ebookFile, ebookFile) || other.ebookFile == ebookFile)&&(identical(other.numTracks, numTracks) || other.numTracks == numTracks)&&(identical(other.numChapters, numChapters) || other.numChapters == numChapters)&&(identical(other.numAudioFiles, numAudioFiles) || other.numAudioFiles == numAudioFiles)&&(identical(other.size, size) || other.size == size)&&(identical(other.ebookFormat, ebookFormat) || other.ebookFormat == ebookFormat));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BookMedia&&(identical(other.id, id) || other.id == id)&&(identical(other.libraryItemId, libraryItemId) || other.libraryItemId == libraryItemId)&&(identical(other.metadata, metadata) || other.metadata == metadata)&&(identical(other.coverPath, coverPath) || other.coverPath == coverPath)&&const DeepCollectionEquality().equals(other._tags, _tags)&&const DeepCollectionEquality().equals(other._audioFiles, _audioFiles)&&const DeepCollectionEquality().equals(other._chapters, _chapters)&&(identical(other.ebookFile, ebookFile) || other.ebookFile == ebookFile)&&(identical(other.numTracks, numTracks) || other.numTracks == numTracks)&&(identical(other.numChapters, numChapters) || other.numChapters == numChapters)&&(identical(other.numAudioFiles, numAudioFiles) || other.numAudioFiles == numAudioFiles)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.size, size) || other.size == size)&&(identical(other.ebookFormat, ebookFormat) || other.ebookFormat == ebookFormat));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,libraryItemId,metadata,coverPath,const DeepCollectionEquality().hash(_tags),const DeepCollectionEquality().hash(_audioFiles),const DeepCollectionEquality().hash(_chapters),ebookFile,numTracks,numChapters,numAudioFiles,size,ebookFormat);
+int get hashCode => Object.hash(runtimeType,id,libraryItemId,metadata,coverPath,const DeepCollectionEquality().hash(_tags),const DeepCollectionEquality().hash(_audioFiles),const DeepCollectionEquality().hash(_chapters),ebookFile,numTracks,numChapters,numAudioFiles,duration,size,ebookFormat);
 
 @override
 String toString() {
-  return 'BookMedia(id: $id, libraryItemId: $libraryItemId, metadata: $metadata, coverPath: $coverPath, tags: $tags, audioFiles: $audioFiles, chapters: $chapters, ebookFile: $ebookFile, numTracks: $numTracks, numChapters: $numChapters, numAudioFiles: $numAudioFiles, size: $size, ebookFormat: $ebookFormat)';
+  return 'BookMedia(id: $id, libraryItemId: $libraryItemId, metadata: $metadata, coverPath: $coverPath, tags: $tags, audioFiles: $audioFiles, chapters: $chapters, ebookFile: $ebookFile, numTracks: $numTracks, numChapters: $numChapters, numAudioFiles: $numAudioFiles, duration: $duration, size: $size, ebookFormat: $ebookFormat)';
 }
 
 
@@ -317,7 +319,7 @@ abstract mixin class _$BookMediaCopyWith<$Res> implements $BookMediaCopyWith<$Re
   factory _$BookMediaCopyWith(_BookMedia value, $Res Function(_BookMedia) _then) = __$BookMediaCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: "id") String id,@JsonKey(name: "libraryItemId") String? libraryItemId,@JsonKey(name: "metadata") MediaMetadata metadata,@JsonKey(name: "coverPath") String? coverPath,@JsonKey(name: "tags") List<String>? tags,@JsonKey(name: "audioFiles") List<AudioFile>? audioFiles,@JsonKey(name: "chapters") List<Chapter>? chapters,@JsonKey(name: "ebookFile") EbookFile? ebookFile,@JsonKey(name: "numTracks") int? numTracks,@JsonKey(name: "numChapters") int? numChapters,@JsonKey(name: "numAudioFiles") int? numAudioFiles,@JsonKey(name: "size") int? size,@JsonKey(name: "ebookFormat") String? ebookFormat
+@JsonKey(name: "id") String id,@JsonKey(name: "libraryItemId") String? libraryItemId,@JsonKey(name: "metadata") MediaMetadata metadata,@JsonKey(name: "coverPath") String? coverPath,@JsonKey(name: "tags") List<String>? tags,@JsonKey(name: "audioFiles") List<AudioFile>? audioFiles,@JsonKey(name: "chapters") List<Chapter>? chapters,@JsonKey(name: "ebookFile") EbookFile? ebookFile,@JsonKey(name: "numTracks") int? numTracks,@JsonKey(name: "numChapters") int? numChapters,@JsonKey(name: "numAudioFiles") int? numAudioFiles,@JsonKey(name: "duration") double? duration,@JsonKey(name: "size") int? size,@JsonKey(name: "ebookFormat") String? ebookFormat
 });
 
 
@@ -334,7 +336,7 @@ class __$BookMediaCopyWithImpl<$Res>
 
 /// Create a copy of BookMedia
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? libraryItemId = freezed,Object? metadata = null,Object? coverPath = freezed,Object? tags = freezed,Object? audioFiles = freezed,Object? chapters = freezed,Object? ebookFile = freezed,Object? numTracks = freezed,Object? numChapters = freezed,Object? numAudioFiles = freezed,Object? size = freezed,Object? ebookFormat = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? libraryItemId = freezed,Object? metadata = null,Object? coverPath = freezed,Object? tags = freezed,Object? audioFiles = freezed,Object? chapters = freezed,Object? ebookFile = freezed,Object? numTracks = freezed,Object? numChapters = freezed,Object? numAudioFiles = freezed,Object? duration = freezed,Object? size = freezed,Object? ebookFormat = freezed,}) {
   return _then(_BookMedia(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,libraryItemId: freezed == libraryItemId ? _self.libraryItemId : libraryItemId // ignore: cast_nullable_to_non_nullable
@@ -347,7 +349,8 @@ as List<Chapter>?,ebookFile: freezed == ebookFile ? _self.ebookFile : ebookFile 
 as EbookFile?,numTracks: freezed == numTracks ? _self.numTracks : numTracks // ignore: cast_nullable_to_non_nullable
 as int?,numChapters: freezed == numChapters ? _self.numChapters : numChapters // ignore: cast_nullable_to_non_nullable
 as int?,numAudioFiles: freezed == numAudioFiles ? _self.numAudioFiles : numAudioFiles // ignore: cast_nullable_to_non_nullable
-as int?,size: freezed == size ? _self.size : size // ignore: cast_nullable_to_non_nullable
+as int?,duration: freezed == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
+as double?,size: freezed == size ? _self.size : size // ignore: cast_nullable_to_non_nullable
 as int?,ebookFormat: freezed == ebookFormat ? _self.ebookFormat : ebookFormat // ignore: cast_nullable_to_non_nullable
 as String?,
   ));

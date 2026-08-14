@@ -52,6 +52,9 @@ class SettingKeys {
   static const String downloadPath = 'download_path';
   static const String homeBookViewPreferences = 'home_book_view_preferences';
   static const String homePodcastViewPreferences = 'home_podcast_view_preferences';
+  static const String libraryViewSubtitlePreferences = 'library_view_subtitle_preferences';
+  static const String seriesViewSubtitlePreferences = 'series_view_subtitle_preferences';
+  static const String authorsViewSubtitlePreferences = 'authors_view_subtitle_preferences';
   static const String androidAutoLibrarySortDescending = 'android_auto_library_sort_descending';
   static const String androidAutoLibrarySortField = 'android_auto_library_sort_field';
   static const String androidAutoPodcastSortDescending = 'android_auto_podcast_sort_descending';
@@ -209,6 +212,9 @@ final defaultSettings = {
   SettingKeys.homeBookViewPreferences: '{"default":"shelf","order":["shelf","library","collections","playlists","series","authors","narrators"],"hidden":[]}',
   SettingKeys.homePodcastViewPreferences:
       '{"default":"shelf","order":["shelf","latestEpisodes","library","collections","playlists"],"hidden":[]}',
+  SettingKeys.libraryViewSubtitlePreferences: '{"mode":"sort","fields":[]}',
+  SettingKeys.seriesViewSubtitlePreferences: '{"mode":"sort","fields":[]}',
+  SettingKeys.authorsViewSubtitlePreferences: '{"mode":"sort","fields":[]}',
   SettingKeys.androidAutoLibrarySortDescending: false,
   SettingKeys.androidAutoLibrarySortField: 'title',
   SettingKeys.androidAutoPodcastSortDescending: true,
