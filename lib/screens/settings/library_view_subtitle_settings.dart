@@ -201,39 +201,14 @@ class _SubtitleFieldsSetting extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Fields',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: enabled ? colorScheme.primary : colorScheme.primary.withValues(alpha: 0.38),
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Choose up to three fields to show below the item, series or author',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: enabled ? colorScheme.onSurfaceVariant : colorScheme.onSurfaceVariant.withValues(alpha: 0.38),
-                ),
-              ),
-            ],
-          ),
-        ),
         for (final field in fields)
           CheckboxListTile(
             value: selectedFields.contains(field),
             title: Text(field.label),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+            contentPadding: const EdgeInsets.fromLTRB(36, 0, 16, 0),
             controlAffinity: ListTileControlAffinity.trailing,
             onChanged: enabled ? (selected) => onChanged(field, selected) : null,
           ),
