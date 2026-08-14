@@ -11,6 +11,7 @@ This release upgrades to Flutter 3.47
 - Replaced cached_network_image with way faster cached_network_image_ce package, which should make browsing even faster
 - Dynamic subtitles for library items, series and authors
 - Better text, UI quality for desktop platforms due to Flutter upgrade
+- macOS now gets published as a signed DMG file
 
 ### Fixed
 
