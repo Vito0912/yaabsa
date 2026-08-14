@@ -1388,6 +1388,21 @@ jobs:
         run: |
           set -euo pipefail
 
+          flutter build macos --release --config-only
+
+          project_file="macos/Runner.xcodeproj/project.pbxproj"
+          project_backup="$RUNNER_TEMP/Runner.pbxproj"
+          cp "$project_file" "$project_backup"
+          restore_project() {
+            cp "$project_backup" "$project_file"
+          }
+          trap restore_project EXIT
+
+          sed -i '' \
+            -e 's/"CODE_SIGN_IDENTITY\[sdk=macosx\*\]" = "3rd Party Mac Developer Application";/"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";/' \
+            -e 's/"PROVISIONING_PROFILE_SPECIFIER\[sdk=macosx\*\]" = "yaabsa-mac-gh-actions";/"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "yaabsa-mac-gh-developer-id";/' \
+            "$project_file"
+
           xcodebuild \
             -workspace macos/Runner.xcworkspace \
             -scheme Runner \
@@ -1395,10 +1410,6 @@ jobs:
             -destination "generic/platform=macOS" \
             -archivePath "$RUNNER_TEMP/yaabsa-developer-id.xcarchive" \
             archive \
-            CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY="Developer ID Application" \
-            DEVELOPMENT_TEAM=6FDGPDJ42R \
-            PROVISIONING_PROFILE_SPECIFIER="yaabsa-mac-gh-developer-id" \
             ENABLE_HARDENED_RUNTIME=YES
 
           app_path="$RUNNER_TEMP/yaabsa-developer-id.xcarchive/Products/Applications/yaabsa.app"
