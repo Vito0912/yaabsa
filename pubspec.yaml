@@ -3,7 +3,7 @@ description: "An improved cross-platform app for Audiobookshelf"
 publish_to: 'none'
 
 # Always use build numbers divisible by 3!
-version: 1.8.0+123
+version: 1.9.0+126
 
 environment:
   sdk: ^3.13.0
