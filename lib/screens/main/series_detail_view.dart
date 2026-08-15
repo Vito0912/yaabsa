@@ -64,7 +64,7 @@ class SeriesDetailView extends HookConsumerWidget {
         : const AsyncValue<Series>.loading();
     final resolvedSeries = seriesDetailsAsync.value;
     final seriesTitle = resolvedEntry?.title ?? resolvedSeries?.name;
-    final seriesSubtitle = resolvedEntry?.subtitle ?? _seriesSubtitleFromSeries(resolvedSeries);
+    final seriesSubtitle = resolvedEntry?.subtitle?.text ?? _seriesSubtitleFromSeries(resolvedSeries);
 
     final booksArgs = SeriesBooksArgs(libraryId: libraryId, seriesId: seriesId);
     final currentBooksProvider = seriesBooksProvider(booksArgs);

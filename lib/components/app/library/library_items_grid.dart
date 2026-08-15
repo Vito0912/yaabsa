@@ -6,6 +6,7 @@ import 'package:yaabsa/components/app/library/library_grid_layout_builder.dart';
 import 'package:yaabsa/components/common/cover_loading_placeholder.dart';
 import 'package:yaabsa/components/common/library_item_widget.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
+import 'package:yaabsa/util/library_view_subtitles.dart';
 
 const int _libraryPrefetchThreshold = 8;
 const int _libraryApproxScrollPastCount = 24;
@@ -26,6 +27,7 @@ class LibraryItemsGrid extends StatelessWidget {
     this.onToggleSelection,
     this.onEnterSelectionMode,
     this.onPlayItem,
+    this.subtitleBuilder,
     this.canEditItems = false,
     this.onEditItem,
   });
@@ -41,6 +43,7 @@ class LibraryItemsGrid extends StatelessWidget {
   final LibraryGridSelectionCallback? onToggleSelection;
   final LibraryGridSelectionCallback? onEnterSelectionMode;
   final void Function(LibraryItem item, int index)? onPlayItem;
+  final LibraryViewSubtitle? Function(LibraryItem item)? subtitleBuilder;
   final bool canEditItems;
   final void Function(LibraryItem item, int index)? onEditItem;
 
@@ -81,6 +84,7 @@ class LibraryItemsGrid extends StatelessWidget {
               api,
               showProgress: true,
               squareCover: true,
+              subtitle: subtitleBuilder?.call(item),
               enableHoverSelection: true,
               onPlay: onPlayItem == null ? null : () => onPlayItem!(item, index),
               canEdit: canEditItems,

@@ -550,6 +550,71 @@ class SeriesNotifier extends AsyncNotifier<SeriesState> {
     }
   }
 
+  Future<void> setSort(String newSort, {int? newDesc}) async {
+    final currentState = state.value;
+    if (currentState == null) {
+      return;
+    }
+
+    final resolvedDesc = newDesc ?? currentState.desc;
+    if (currentState.sort == newSort && currentState.desc == resolvedDesc) {
+      return;
+    }
+
+    state = AsyncData(currentState.copyWith(isLoadingNextPage: true));
+
+    try {
+      final sorted = await _fetchSeries(0, sort: newSort, desc: resolvedDesc, filter: currentState.filter);
+      state = AsyncData(sorted);
+    } catch (e, s) {
+      state = AsyncData(currentState.copyWith(isLoadingNextPage: false, error: e, stackTrace: s));
+    }
+  }
+
+  Future<void> setFilter(String newFilter) async {
+    final currentState = state.value;
+    if (currentState == null || currentState.filter == newFilter) {
+      return;
+    }
+
+    state = AsyncData(currentState.copyWith(isLoadingNextPage: true));
+
+    try {
+      final filtered = await _fetchSeries(
+        0,
+        sort: currentState.sort,
+        desc: currentState.desc,
+        filter: newFilter,
+        include: currentState.include,
+      );
+      state = AsyncData(filtered);
+    } catch (e, s) {
+      state = AsyncData(currentState.copyWith(isLoadingNextPage: false, error: e, stackTrace: s));
+    }
+  }
+
+  Future<void> clearFilter() async {
+    final currentState = state.value;
+    if (currentState == null || currentState.filter == null) {
+      return;
+    }
+
+    state = AsyncData(currentState.copyWith(isLoadingNextPage: true));
+
+    try {
+      final cleared = await _fetchSeries(
+        0,
+        sort: currentState.sort,
+        desc: currentState.desc,
+        filter: '',
+        include: currentState.include,
+      );
+      state = AsyncData(cleared);
+    } catch (e, s) {
+      state = AsyncData(currentState.copyWith(isLoadingNextPage: false, error: e, stackTrace: s));
+    }
+  }
+
   Future<void> ensureLoadedForIndex(int index) async {
     if (index < 0 || _isEnsuringIndex) {
       return;

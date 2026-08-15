@@ -40,7 +40,7 @@ abstract class Media with _$Media {
 
   List<String>? get authors => podcastMedia != null
       ? podcastMedia!.metadata.author?.split(',')
-      : bookMedia!.metadata.authors?.map((e) => e.name).toList();
+      : bookMedia!.metadata.authors?.map((e) => e.name).toList() ?? bookMedia!.metadata.authorName?.split(',');
 
   String? get seriesSequence => bookMedia?.metadata.series?.firstOrNull?.sequence;
 

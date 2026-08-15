@@ -6,6 +6,8 @@ import 'package:yaabsa/api/library_items/series.dart';
 import 'package:yaabsa/api/list/collection.dart';
 import 'package:yaabsa/api/list/playlist.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
+import 'package:yaabsa/components/common/additional_information_text.dart';
+import 'package:yaabsa/util/library_view_subtitles.dart';
 
 const int defaultMultiBookPreviewLimit = 5;
 const int _maxRenderedSeriesCovers = 5;
@@ -21,7 +23,7 @@ class MultiBookEntryData {
 
   final String id;
   final String title;
-  final String? subtitle;
+  final LibraryViewSubtitle? subtitle;
   final List<String> bookItemIds;
   final int? totalBooks;
 
@@ -31,7 +33,7 @@ class MultiBookEntryData {
     return MultiBookEntryData(
       id: series.id,
       title: series.name,
-      subtitle: series.numBooks != null ? '${series.numBooks} books' : null,
+      subtitle: series.numBooks == null ? null : LibraryViewSubtitle.plain('${series.numBooks} books'),
       bookItemIds: bookIds,
       totalBooks: series.numBooks ?? bookIds.length,
     );
@@ -47,7 +49,7 @@ class MultiBookEntryData {
     return MultiBookEntryData(
       id: playlist.id,
       title: playlist.name,
-      subtitle: description != null && description.isNotEmpty ? description : null,
+      subtitle: description == null || description.isEmpty ? null : LibraryViewSubtitle.plain(description),
       bookItemIds: bookIds,
       totalBooks: itemCount ?? bookIds.length,
     );
@@ -61,7 +63,7 @@ class MultiBookEntryData {
     return MultiBookEntryData(
       id: collection.id,
       title: collection.name,
-      subtitle: description != null && description.isNotEmpty ? description : null,
+      subtitle: description == null || description.isEmpty ? null : LibraryViewSubtitle.plain(description),
       bookItemIds: bookIds,
       totalBooks: itemCount ?? bookIds.length,
     );
@@ -127,10 +129,8 @@ class MultiBookEntryWidget extends StatelessWidget {
           style: compact ? Theme.of(context).textTheme.bodyMedium : null,
         ),
         if (showSubtitle && subtitle != null)
-          Text(
-            subtitle,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+          AdditionalInformationText(
+            subtitle: subtitle,
             style: Theme.of(context).textTheme.bodySmall
                 ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
@@ -145,9 +145,11 @@ class MultiBookEntryWidget extends StatelessWidget {
     );
   }
 
-  String? _resolveSubtitle() {
-    if (entry.subtitle != null && entry.subtitle!.isNotEmpty) return entry.subtitle;
-    if (entry.totalBookCount > 0) return '${entry.totalBookCount} books';
+  LibraryViewSubtitle? _resolveSubtitle() {
+    if (entry.subtitle != null) {
+      return entry.subtitle!.isEmpty ? null : entry.subtitle;
+    }
+    if (entry.totalBookCount > 0) return LibraryViewSubtitle.plain('${entry.totalBookCount} books');
     return null;
   }
 }
