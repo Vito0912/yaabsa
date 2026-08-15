@@ -14,7 +14,7 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
             libraryId: libraryId,
             podcastItemId: item.id,
             podcastItem: item,
-            initialPage: episodeIndex ~/ _autoQueuePageSize,
+            episodeIndex: episodeIndex,
             seededPodcastEpisodes: orderedEpisodes,
           )
         : null;

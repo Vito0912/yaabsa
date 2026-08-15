@@ -212,13 +212,16 @@ class _AutoQueueRequestContext {
     required String libraryId,
     required String podcastItemId,
     required LibraryItem podcastItem,
-    required int initialPage,
+    required int episodeIndex,
     List<Episode>? seededPodcastEpisodes,
   }) {
+    final episodeCount = seededPodcastEpisodes?.length;
+    final reversedEpisodeIndex = episodeCount == null ? 0 : episodeCount - episodeIndex - 1;
+
     return _AutoQueueRequestContext._(
       sourceType: _AutoQueueSourceType.podcast,
       libraryId: libraryId,
-      initialPage: initialPage,
+      initialPage: reversedEpisodeIndex < 0 ? 0 : reversedEpisodeIndex ~/ _autoQueuePageSize,
       podcastItemId: podcastItemId,
       podcastItem: podcastItem,
       seededPodcastEpisodes: seededPodcastEpisodes,

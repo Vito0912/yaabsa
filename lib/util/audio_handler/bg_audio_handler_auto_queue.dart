@@ -703,7 +703,8 @@ extension _BGAudioHandlerAutoQueueExtension on BGAudioHandler {
       return const <_AutoQueueItemCandidate>[];
     }
 
-    final episodes = context.seededPodcastEpisodes ?? baseItem.media?.podcastMedia?.episodes ?? const <Episode>[];
+    final episodes =
+        (context.seededPodcastEpisodes ?? baseItem.media?.podcastMedia?.episodes ?? const <Episode>[]).reversed;
     if (episodes.isEmpty) {
       return const <_AutoQueueItemCandidate>[];
     }
@@ -785,7 +786,7 @@ extension _BGAudioHandlerAutoQueueExtension on BGAudioHandler {
           libraryId: libraryId,
           podcastItemId: libraryItem.id,
           podcastItem: libraryItem,
-          initialPage: episodeIndex ~/ _autoQueuePageSize,
+          episodeIndex: episodeIndex,
           seededPodcastEpisodes: episodes,
         );
         unawaited(_startAutoQueue(autoQueueContext, QueueItem(itemId: itemId, episodeId: episodeId)));
