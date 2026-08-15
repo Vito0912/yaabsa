@@ -162,7 +162,7 @@ class StatsSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               if (icon != null) ...[
                 Container(
@@ -178,9 +178,9 @@ class StatsSection extends StatelessWidget {
                 const SizedBox(width: 12),
               ],
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [Text(title, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700))],
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(title, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
                 ),
               ),
               if (trailing != null) ...[const SizedBox(width: 8), trailing!],

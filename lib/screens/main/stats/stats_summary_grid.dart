@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/library/stats/items_listened_to.dart';
 import 'package:yaabsa/api/library/stats/user_listening_stats.dart';
 import 'package:yaabsa/components/stats/stats_components.dart';
+import 'package:yaabsa/models/listening_activity_stats.dart';
 import 'package:yaabsa/screens/main/stats/stats_formatters.dart';
 
 class StatsSummaryGrid extends StatelessWidget {
@@ -30,6 +31,7 @@ class StatsSummaryGrid extends StatelessWidget {
       if (value > 0) activeDays++;
     }
 
+    final listeningStreak = _currentListeningStreak(stats.days);
     final averagePerActiveDay = activeDays > 0 ? totalTime / activeDays : 0.0;
 
     return StatsMetricGrid(
@@ -52,6 +54,11 @@ class StatsSummaryGrid extends StatelessWidget {
         StatsMetric(icon: Icons.podcasts_rounded, label: 'Podcasts', value: formatListeningSeconds(podcastListening)),
         StatsMetric(icon: Icons.event_available_rounded, label: 'Active days', value: '$activeDays'),
         StatsMetric(
+          icon: Icons.local_fire_department_rounded,
+          label: 'Listening streak',
+          value: '$listeningStreak days',
+        ),
+        StatsMetric(
           icon: Icons.av_timer_rounded,
           label: 'Average active day',
           value: formatListeningSeconds(averagePerActiveDay),
@@ -59,4 +66,42 @@ class StatsSummaryGrid extends StatelessWidget {
       ],
     );
   }
+}
+
+int _currentListeningStreak(Map<String, double>? days, {DateTime? reference}) {
+  if (days == null || days.isEmpty) {
+    return 0;
+  }
+
+  final activeDayKeys = <int>{};
+  for (final entry in days.entries) {
+    if (entry.value <= 0) {
+      continue;
+    }
+
+    final parsedDate = DateTime.tryParse(entry.key);
+    if (parsedDate != null) {
+      activeDayKeys.add(dayKeyFromDate(parsedDate));
+    }
+  }
+
+  if (activeDayKeys.isEmpty) {
+    return 0;
+  }
+
+  var streakDay = dayKeyFromDate(reference ?? DateTime.now());
+  if (!activeDayKeys.contains(streakDay)) {
+    streakDay -= 1;
+    if (!activeDayKeys.contains(streakDay)) {
+      return 0;
+    }
+  }
+
+  var streak = 0;
+  while (activeDayKeys.contains(streakDay)) {
+    streak++;
+    streakDay--;
+  }
+
+  return streak;
 }
