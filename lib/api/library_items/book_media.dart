@@ -21,6 +21,7 @@ abstract class BookMedia with _$BookMedia {
     @JsonKey(name: "numTracks") int? numTracks,
     @JsonKey(name: "numChapters") int? numChapters,
     @JsonKey(name: "numAudioFiles") int? numAudioFiles,
+    @JsonKey(name: "duration") double? duration,
     @JsonKey(name: "size") int? size,
     @JsonKey(name: "ebookFormat") String? ebookFormat,
   }) = _BookMedia;

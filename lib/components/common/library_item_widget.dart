@@ -3,10 +3,12 @@ import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/api/me/media_progress.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
+import 'package:yaabsa/components/common/additional_information_text.dart';
 import 'package:yaabsa/components/common/library_item_overlay_play_button.dart';
 import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/library_view_subtitles.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -18,6 +20,7 @@ class LibraryItemWidget extends ConsumerStatefulWidget {
     this.api, {
     super.key,
     this.sequenceBadge,
+    this.subtitle,
     this.showProgress = false,
     this.compact = false,
     this.squareCover = true,
@@ -34,6 +37,7 @@ class LibraryItemWidget extends ConsumerStatefulWidget {
   final LibraryItem libraryItem;
   final ABSApi api;
   final String? sequenceBadge;
+  final LibraryViewSubtitle? subtitle;
   final bool showProgress;
   final bool compact;
   final bool squareCover;
@@ -366,6 +370,12 @@ class _LibraryItemWidgetState extends ConsumerState<LibraryItemWidget> {
               overflow: TextOverflow.ellipsis,
               style: widget.compact ? Theme.of(context).textTheme.bodyMedium : null,
             ),
+            if (widget.subtitle != null && !widget.subtitle!.isEmpty)
+              AdditionalInformationText(
+                subtitle: widget.subtitle!,
+                style: Theme.of(context).textTheme.bodySmall
+                    ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+              ),
           ],
         );
 

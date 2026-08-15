@@ -87,17 +87,18 @@ class _CoverPaletteBuilderState extends State<CoverPaletteBuilder> {
       (info, synchronousCall) async {
         final palette = await _extractPalette(info.image);
         if (generation != _generation || palette == null) {
+          _detachListener(stream, listener);
           return;
         }
         _cache[key] = palette;
         setStateIfMounted(palette);
-        stream.removeListener(listener);
+        _detachListener(stream, listener);
       },
       onError: (error, stackTrace) {
         if (generation == _generation) {
           setStateIfMounted(null);
         }
-        stream.removeListener(listener);
+        _detachListener(stream, listener);
       },
     );
     _stream = stream;
@@ -105,14 +106,19 @@ class _CoverPaletteBuilderState extends State<CoverPaletteBuilder> {
     stream.addListener(listener);
   }
 
-  void _detachListener() {
-    final stream = _stream;
-    final listener = _listener;
-    if (stream != null && listener != null) {
-      stream.removeListener(listener);
+  void _detachListener([ImageStream? stream, ImageStreamListener? listener]) {
+    final currentStream = _stream;
+    final currentListener = _listener;
+    if (stream != null &&
+        listener != null &&
+        (!identical(currentStream, stream) || !identical(currentListener, listener))) {
+      return;
     }
     _stream = null;
     _listener = null;
+    if (currentStream != null && currentListener != null) {
+      currentStream.removeListener(currentListener);
+    }
   }
 
   void setStateIfMounted(CoverPalette? palette) {

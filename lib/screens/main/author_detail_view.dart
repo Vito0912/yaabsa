@@ -31,6 +31,7 @@ class AuthorDetailView extends ConsumerWidget {
         children: [
           _AuthorTopSection(
             authorId: authorId,
+            imagePath: null,
             title: authorId,
             subtitle: null,
             description: null,
@@ -66,6 +67,7 @@ class _AuthorDetailLoadedView extends StatelessWidget {
       children: [
         _AuthorTopSection(
           authorId: author.id,
+          imagePath: author.imagePath,
           title: author.name,
           subtitle: subtitle,
           description: author.description,
@@ -82,6 +84,7 @@ class _AuthorDetailLoadedView extends StatelessWidget {
 class _AuthorTopSection extends StatelessWidget {
   const _AuthorTopSection({
     required this.authorId,
+    required this.imagePath,
     required this.title,
     required this.subtitle,
     required this.description,
@@ -89,6 +92,7 @@ class _AuthorTopSection extends StatelessWidget {
   });
 
   final String authorId;
+  final String? imagePath;
   final String title;
   final String? subtitle;
   final String? description;
@@ -125,7 +129,13 @@ class _AuthorTopSection extends StatelessWidget {
                 tooltip: 'Back',
               ),
               const SizedBox(width: 6),
-              AuthorImage(authorId: authorId, width: imageSize, height: imageSize, borderRadius: 14),
+              AuthorImage(
+                authorId: authorId,
+                imagePath: imagePath,
+                width: imageSize,
+                height: imageSize,
+                borderRadius: 14,
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(

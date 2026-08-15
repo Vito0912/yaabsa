@@ -16,6 +16,7 @@ import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/settings/library_shelf_settings.dart';
 import 'package:yaabsa/screens/settings/library_order_settings.dart';
+import 'package:yaabsa/screens/settings/library_view_subtitle_settings.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/download_destination.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
@@ -198,6 +199,12 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
                       icon: Icons.sort_rounded,
                       title: 'Reorder & Configure Libraries',
                       onTap: () => context.push(LibraryOrderSettings.routeName),
+                    ),
+                    SettingsNavigationItem(
+                      icon: Icons.subtitles_outlined,
+                      title: 'View Subtitles',
+                      subtitle: 'Configure details that are shown for items, series and authors as a subtitle',
+                      onTap: () => context.push(LibraryViewSubtitleSettings.routeName),
                     ),
                   ],
                   settings: [

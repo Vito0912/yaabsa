@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$MediaMetadata {
 
-@JsonKey(name: "title") String get title;@JsonKey(name: "subtitle") String? get subtitle;@JsonKey(name: "authors") List<Author>? get authors;@JsonKey(name: "narrators") List<String>? get narrators;@JsonKey(name: "series")@SeriesConverter() List<Series>? get series;@JsonKey(name: "genres") List<String>? get genres;@JsonKey(name: "publishedYear") String? get publishedYear;@JsonKey(name: "publishedDate") String? get publishedDate;@JsonKey(name: "publisher") String? get publisher;@JsonKey(name: "description") String? get description;@JsonKey(name: "isbn") String? get isbn;@JsonKey(name: "asin") String? get asin;@JsonKey(name: "language") String? get language;@JsonKey(name: "explicit") bool? get explicit;@JsonKey(name: "abridged") bool? get abridged;
+@JsonKey(name: "title") String get title;@JsonKey(name: "subtitle") String? get subtitle;@JsonKey(name: "authors") List<Author>? get authors;@JsonKey(name: "narrators") List<String>? get narrators;@JsonKey(name: "series")@SeriesConverter() List<Series>? get series;@JsonKey(name: "authorName") String? get authorName;@JsonKey(name: "authorNameLF") String? get authorNameLF;@JsonKey(name: "narratorName") String? get narratorName;@JsonKey(name: "seriesName") String? get seriesName;@JsonKey(name: "genres") List<String>? get genres;@JsonKey(name: "publishedYear") String? get publishedYear;@JsonKey(name: "publishedDate") String? get publishedDate;@JsonKey(name: "publisher") String? get publisher;@JsonKey(name: "description") String? get description;@JsonKey(name: "isbn") String? get isbn;@JsonKey(name: "asin") String? get asin;@JsonKey(name: "language") String? get language;@JsonKey(name: "explicit") bool? get explicit;@JsonKey(name: "abridged") bool? get abridged;
 /// Create a copy of MediaMetadata
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,16 +29,16 @@ $MediaMetadataCopyWith<MediaMetadata> get copyWith => _$MediaMetadataCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MediaMetadata&&(identical(other.title, title) || other.title == title)&&(identical(other.subtitle, subtitle) || other.subtitle == subtitle)&&const DeepCollectionEquality().equals(other.authors, authors)&&const DeepCollectionEquality().equals(other.narrators, narrators)&&const DeepCollectionEquality().equals(other.series, series)&&const DeepCollectionEquality().equals(other.genres, genres)&&(identical(other.publishedYear, publishedYear) || other.publishedYear == publishedYear)&&(identical(other.publishedDate, publishedDate) || other.publishedDate == publishedDate)&&(identical(other.publisher, publisher) || other.publisher == publisher)&&(identical(other.description, description) || other.description == description)&&(identical(other.isbn, isbn) || other.isbn == isbn)&&(identical(other.asin, asin) || other.asin == asin)&&(identical(other.language, language) || other.language == language)&&(identical(other.explicit, explicit) || other.explicit == explicit)&&(identical(other.abridged, abridged) || other.abridged == abridged));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MediaMetadata&&(identical(other.title, title) || other.title == title)&&(identical(other.subtitle, subtitle) || other.subtitle == subtitle)&&const DeepCollectionEquality().equals(other.authors, authors)&&const DeepCollectionEquality().equals(other.narrators, narrators)&&const DeepCollectionEquality().equals(other.series, series)&&(identical(other.authorName, authorName) || other.authorName == authorName)&&(identical(other.authorNameLF, authorNameLF) || other.authorNameLF == authorNameLF)&&(identical(other.narratorName, narratorName) || other.narratorName == narratorName)&&(identical(other.seriesName, seriesName) || other.seriesName == seriesName)&&const DeepCollectionEquality().equals(other.genres, genres)&&(identical(other.publishedYear, publishedYear) || other.publishedYear == publishedYear)&&(identical(other.publishedDate, publishedDate) || other.publishedDate == publishedDate)&&(identical(other.publisher, publisher) || other.publisher == publisher)&&(identical(other.description, description) || other.description == description)&&(identical(other.isbn, isbn) || other.isbn == isbn)&&(identical(other.asin, asin) || other.asin == asin)&&(identical(other.language, language) || other.language == language)&&(identical(other.explicit, explicit) || other.explicit == explicit)&&(identical(other.abridged, abridged) || other.abridged == abridged));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,title,subtitle,const DeepCollectionEquality().hash(authors),const DeepCollectionEquality().hash(narrators),const DeepCollectionEquality().hash(series),const DeepCollectionEquality().hash(genres),publishedYear,publishedDate,publisher,description,isbn,asin,language,explicit,abridged);
+int get hashCode => Object.hashAll([runtimeType,title,subtitle,const DeepCollectionEquality().hash(authors),const DeepCollectionEquality().hash(narrators),const DeepCollectionEquality().hash(series),authorName,authorNameLF,narratorName,seriesName,const DeepCollectionEquality().hash(genres),publishedYear,publishedDate,publisher,description,isbn,asin,language,explicit,abridged]);
 
 @override
 String toString() {
-  return 'MediaMetadata(title: $title, subtitle: $subtitle, authors: $authors, narrators: $narrators, series: $series, genres: $genres, publishedYear: $publishedYear, publishedDate: $publishedDate, publisher: $publisher, description: $description, isbn: $isbn, asin: $asin, language: $language, explicit: $explicit, abridged: $abridged)';
+  return 'MediaMetadata(title: $title, subtitle: $subtitle, authors: $authors, narrators: $narrators, series: $series, authorName: $authorName, authorNameLF: $authorNameLF, narratorName: $narratorName, seriesName: $seriesName, genres: $genres, publishedYear: $publishedYear, publishedDate: $publishedDate, publisher: $publisher, description: $description, isbn: $isbn, asin: $asin, language: $language, explicit: $explicit, abridged: $abridged)';
 }
 
 
@@ -49,7 +49,7 @@ abstract mixin class $MediaMetadataCopyWith<$Res>  {
   factory $MediaMetadataCopyWith(MediaMetadata value, $Res Function(MediaMetadata) _then) = _$MediaMetadataCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: "title") String title,@JsonKey(name: "subtitle") String? subtitle,@JsonKey(name: "authors") List<Author>? authors,@JsonKey(name: "narrators") List<String>? narrators,@JsonKey(name: "series")@SeriesConverter() List<Series>? series,@JsonKey(name: "genres") List<String>? genres,@JsonKey(name: "publishedYear") String? publishedYear,@JsonKey(name: "publishedDate") String? publishedDate,@JsonKey(name: "publisher") String? publisher,@JsonKey(name: "description") String? description,@JsonKey(name: "isbn") String? isbn,@JsonKey(name: "asin") String? asin,@JsonKey(name: "language") String? language,@JsonKey(name: "explicit") bool? explicit,@JsonKey(name: "abridged") bool? abridged
+@JsonKey(name: "title") String title,@JsonKey(name: "subtitle") String? subtitle,@JsonKey(name: "authors") List<Author>? authors,@JsonKey(name: "narrators") List<String>? narrators,@JsonKey(name: "series")@SeriesConverter() List<Series>? series,@JsonKey(name: "authorName") String? authorName,@JsonKey(name: "authorNameLF") String? authorNameLF,@JsonKey(name: "narratorName") String? narratorName,@JsonKey(name: "seriesName") String? seriesName,@JsonKey(name: "genres") List<String>? genres,@JsonKey(name: "publishedYear") String? publishedYear,@JsonKey(name: "publishedDate") String? publishedDate,@JsonKey(name: "publisher") String? publisher,@JsonKey(name: "description") String? description,@JsonKey(name: "isbn") String? isbn,@JsonKey(name: "asin") String? asin,@JsonKey(name: "language") String? language,@JsonKey(name: "explicit") bool? explicit,@JsonKey(name: "abridged") bool? abridged
 });
 
 
@@ -66,14 +66,18 @@ class _$MediaMetadataCopyWithImpl<$Res>
 
 /// Create a copy of MediaMetadata
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? title = null,Object? subtitle = freezed,Object? authors = freezed,Object? narrators = freezed,Object? series = freezed,Object? genres = freezed,Object? publishedYear = freezed,Object? publishedDate = freezed,Object? publisher = freezed,Object? description = freezed,Object? isbn = freezed,Object? asin = freezed,Object? language = freezed,Object? explicit = freezed,Object? abridged = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? title = null,Object? subtitle = freezed,Object? authors = freezed,Object? narrators = freezed,Object? series = freezed,Object? authorName = freezed,Object? authorNameLF = freezed,Object? narratorName = freezed,Object? seriesName = freezed,Object? genres = freezed,Object? publishedYear = freezed,Object? publishedDate = freezed,Object? publisher = freezed,Object? description = freezed,Object? isbn = freezed,Object? asin = freezed,Object? language = freezed,Object? explicit = freezed,Object? abridged = freezed,}) {
   return _then(MediaMetadata(
 title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,subtitle: freezed == subtitle ? _self.subtitle : subtitle // ignore: cast_nullable_to_non_nullable
 as String?,authors: freezed == authors ? _self.authors : authors // ignore: cast_nullable_to_non_nullable
 as List<Author>?,narrators: freezed == narrators ? _self.narrators : narrators // ignore: cast_nullable_to_non_nullable
 as List<String>?,series: freezed == series ? _self.series : series // ignore: cast_nullable_to_non_nullable
-as List<Series>?,genres: freezed == genres ? _self.genres : genres // ignore: cast_nullable_to_non_nullable
+as List<Series>?,authorName: freezed == authorName ? _self.authorName : authorName // ignore: cast_nullable_to_non_nullable
+as String?,authorNameLF: freezed == authorNameLF ? _self.authorNameLF : authorNameLF // ignore: cast_nullable_to_non_nullable
+as String?,narratorName: freezed == narratorName ? _self.narratorName : narratorName // ignore: cast_nullable_to_non_nullable
+as String?,seriesName: freezed == seriesName ? _self.seriesName : seriesName // ignore: cast_nullable_to_non_nullable
+as String?,genres: freezed == genres ? _self.genres : genres // ignore: cast_nullable_to_non_nullable
 as List<String>?,publishedYear: freezed == publishedYear ? _self.publishedYear : publishedYear // ignore: cast_nullable_to_non_nullable
 as String?,publishedDate: freezed == publishedDate ? _self.publishedDate : publishedDate // ignore: cast_nullable_to_non_nullable
 as String?,publisher: freezed == publisher ? _self.publisher : publisher // ignore: cast_nullable_to_non_nullable
@@ -168,10 +172,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "title")  String title, @JsonKey(name: "subtitle")  String? subtitle, @JsonKey(name: "authors")  List<Author>? authors, @JsonKey(name: "narrators")  List<String>? narrators, @JsonKey(name: "series")@SeriesConverter()  List<Series>? series, @JsonKey(name: "genres")  List<String>? genres, @JsonKey(name: "publishedYear")  String? publishedYear, @JsonKey(name: "publishedDate")  String? publishedDate, @JsonKey(name: "publisher")  String? publisher, @JsonKey(name: "description")  String? description, @JsonKey(name: "isbn")  String? isbn, @JsonKey(name: "asin")  String? asin, @JsonKey(name: "language")  String? language, @JsonKey(name: "explicit")  bool? explicit, @JsonKey(name: "abridged")  bool? abridged)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "title")  String title, @JsonKey(name: "subtitle")  String? subtitle, @JsonKey(name: "authors")  List<Author>? authors, @JsonKey(name: "narrators")  List<String>? narrators, @JsonKey(name: "series")@SeriesConverter()  List<Series>? series, @JsonKey(name: "authorName")  String? authorName, @JsonKey(name: "authorNameLF")  String? authorNameLF, @JsonKey(name: "narratorName")  String? narratorName, @JsonKey(name: "seriesName")  String? seriesName, @JsonKey(name: "genres")  List<String>? genres, @JsonKey(name: "publishedYear")  String? publishedYear, @JsonKey(name: "publishedDate")  String? publishedDate, @JsonKey(name: "publisher")  String? publisher, @JsonKey(name: "description")  String? description, @JsonKey(name: "isbn")  String? isbn, @JsonKey(name: "asin")  String? asin, @JsonKey(name: "language")  String? language, @JsonKey(name: "explicit")  bool? explicit, @JsonKey(name: "abridged")  bool? abridged)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _MediaMetadata() when $default != null:
-return $default(_that.title,_that.subtitle,_that.authors,_that.narrators,_that.series,_that.genres,_that.publishedYear,_that.publishedDate,_that.publisher,_that.description,_that.isbn,_that.asin,_that.language,_that.explicit,_that.abridged);case _:
+return $default(_that.title,_that.subtitle,_that.authors,_that.narrators,_that.series,_that.authorName,_that.authorNameLF,_that.narratorName,_that.seriesName,_that.genres,_that.publishedYear,_that.publishedDate,_that.publisher,_that.description,_that.isbn,_that.asin,_that.language,_that.explicit,_that.abridged);case _:
   return orElse();
 
 }
@@ -189,10 +193,10 @@ return $default(_that.title,_that.subtitle,_that.authors,_that.narrators,_that.s
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "title")  String title, @JsonKey(name: "subtitle")  String? subtitle, @JsonKey(name: "authors")  List<Author>? authors, @JsonKey(name: "narrators")  List<String>? narrators, @JsonKey(name: "series")@SeriesConverter()  List<Series>? series, @JsonKey(name: "genres")  List<String>? genres, @JsonKey(name: "publishedYear")  String? publishedYear, @JsonKey(name: "publishedDate")  String? publishedDate, @JsonKey(name: "publisher")  String? publisher, @JsonKey(name: "description")  String? description, @JsonKey(name: "isbn")  String? isbn, @JsonKey(name: "asin")  String? asin, @JsonKey(name: "language")  String? language, @JsonKey(name: "explicit")  bool? explicit, @JsonKey(name: "abridged")  bool? abridged)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "title")  String title, @JsonKey(name: "subtitle")  String? subtitle, @JsonKey(name: "authors")  List<Author>? authors, @JsonKey(name: "narrators")  List<String>? narrators, @JsonKey(name: "series")@SeriesConverter()  List<Series>? series, @JsonKey(name: "authorName")  String? authorName, @JsonKey(name: "authorNameLF")  String? authorNameLF, @JsonKey(name: "narratorName")  String? narratorName, @JsonKey(name: "seriesName")  String? seriesName, @JsonKey(name: "genres")  List<String>? genres, @JsonKey(name: "publishedYear")  String? publishedYear, @JsonKey(name: "publishedDate")  String? publishedDate, @JsonKey(name: "publisher")  String? publisher, @JsonKey(name: "description")  String? description, @JsonKey(name: "isbn")  String? isbn, @JsonKey(name: "asin")  String? asin, @JsonKey(name: "language")  String? language, @JsonKey(name: "explicit")  bool? explicit, @JsonKey(name: "abridged")  bool? abridged)  $default,) {final _that = this;
 switch (_that) {
 case _MediaMetadata():
-return $default(_that.title,_that.subtitle,_that.authors,_that.narrators,_that.series,_that.genres,_that.publishedYear,_that.publishedDate,_that.publisher,_that.description,_that.isbn,_that.asin,_that.language,_that.explicit,_that.abridged);case _:
+return $default(_that.title,_that.subtitle,_that.authors,_that.narrators,_that.series,_that.authorName,_that.authorNameLF,_that.narratorName,_that.seriesName,_that.genres,_that.publishedYear,_that.publishedDate,_that.publisher,_that.description,_that.isbn,_that.asin,_that.language,_that.explicit,_that.abridged);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -209,10 +213,10 @@ return $default(_that.title,_that.subtitle,_that.authors,_that.narrators,_that.s
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "title")  String title, @JsonKey(name: "subtitle")  String? subtitle, @JsonKey(name: "authors")  List<Author>? authors, @JsonKey(name: "narrators")  List<String>? narrators, @JsonKey(name: "series")@SeriesConverter()  List<Series>? series, @JsonKey(name: "genres")  List<String>? genres, @JsonKey(name: "publishedYear")  String? publishedYear, @JsonKey(name: "publishedDate")  String? publishedDate, @JsonKey(name: "publisher")  String? publisher, @JsonKey(name: "description")  String? description, @JsonKey(name: "isbn")  String? isbn, @JsonKey(name: "asin")  String? asin, @JsonKey(name: "language")  String? language, @JsonKey(name: "explicit")  bool? explicit, @JsonKey(name: "abridged")  bool? abridged)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "title")  String title, @JsonKey(name: "subtitle")  String? subtitle, @JsonKey(name: "authors")  List<Author>? authors, @JsonKey(name: "narrators")  List<String>? narrators, @JsonKey(name: "series")@SeriesConverter()  List<Series>? series, @JsonKey(name: "authorName")  String? authorName, @JsonKey(name: "authorNameLF")  String? authorNameLF, @JsonKey(name: "narratorName")  String? narratorName, @JsonKey(name: "seriesName")  String? seriesName, @JsonKey(name: "genres")  List<String>? genres, @JsonKey(name: "publishedYear")  String? publishedYear, @JsonKey(name: "publishedDate")  String? publishedDate, @JsonKey(name: "publisher")  String? publisher, @JsonKey(name: "description")  String? description, @JsonKey(name: "isbn")  String? isbn, @JsonKey(name: "asin")  String? asin, @JsonKey(name: "language")  String? language, @JsonKey(name: "explicit")  bool? explicit, @JsonKey(name: "abridged")  bool? abridged)?  $default,) {final _that = this;
 switch (_that) {
 case _MediaMetadata() when $default != null:
-return $default(_that.title,_that.subtitle,_that.authors,_that.narrators,_that.series,_that.genres,_that.publishedYear,_that.publishedDate,_that.publisher,_that.description,_that.isbn,_that.asin,_that.language,_that.explicit,_that.abridged);case _:
+return $default(_that.title,_that.subtitle,_that.authors,_that.narrators,_that.series,_that.authorName,_that.authorNameLF,_that.narratorName,_that.seriesName,_that.genres,_that.publishedYear,_that.publishedDate,_that.publisher,_that.description,_that.isbn,_that.asin,_that.language,_that.explicit,_that.abridged);case _:
   return null;
 
 }
@@ -224,7 +228,7 @@ return $default(_that.title,_that.subtitle,_that.authors,_that.narrators,_that.s
 @JsonSerializable()
 
 class _MediaMetadata implements MediaMetadata {
-  const _MediaMetadata({@JsonKey(name: "title") required this.title, @JsonKey(name: "subtitle") this.subtitle, @JsonKey(name: "authors")  List<Author>? authors, @JsonKey(name: "narrators")  List<String>? narrators, @JsonKey(name: "series")@SeriesConverter()  List<Series>? series, @JsonKey(name: "genres")  List<String>? genres, @JsonKey(name: "publishedYear") this.publishedYear, @JsonKey(name: "publishedDate") this.publishedDate, @JsonKey(name: "publisher") this.publisher, @JsonKey(name: "description") this.description, @JsonKey(name: "isbn") this.isbn, @JsonKey(name: "asin") this.asin, @JsonKey(name: "language") this.language, @JsonKey(name: "explicit") this.explicit, @JsonKey(name: "abridged") this.abridged}): _authors = authors,_narrators = narrators,_series = series,_genres = genres;
+  const _MediaMetadata({@JsonKey(name: "title") required this.title, @JsonKey(name: "subtitle") this.subtitle, @JsonKey(name: "authors")  List<Author>? authors, @JsonKey(name: "narrators")  List<String>? narrators, @JsonKey(name: "series")@SeriesConverter()  List<Series>? series, @JsonKey(name: "authorName") this.authorName, @JsonKey(name: "authorNameLF") this.authorNameLF, @JsonKey(name: "narratorName") this.narratorName, @JsonKey(name: "seriesName") this.seriesName, @JsonKey(name: "genres")  List<String>? genres, @JsonKey(name: "publishedYear") this.publishedYear, @JsonKey(name: "publishedDate") this.publishedDate, @JsonKey(name: "publisher") this.publisher, @JsonKey(name: "description") this.description, @JsonKey(name: "isbn") this.isbn, @JsonKey(name: "asin") this.asin, @JsonKey(name: "language") this.language, @JsonKey(name: "explicit") this.explicit, @JsonKey(name: "abridged") this.abridged}): _authors = authors,_narrators = narrators,_series = series,_genres = genres;
   factory _MediaMetadata.fromJson(Map<String, dynamic> json) => _$MediaMetadataFromJson(json);
 
 @override@JsonKey(name: "title") final  String title;
@@ -256,6 +260,10 @@ class _MediaMetadata implements MediaMetadata {
   return EqualUnmodifiableListView(value);
 }
 
+@override@JsonKey(name: "authorName") final  String? authorName;
+@override@JsonKey(name: "authorNameLF") final  String? authorNameLF;
+@override@JsonKey(name: "narratorName") final  String? narratorName;
+@override@JsonKey(name: "seriesName") final  String? seriesName;
  final  List<String>? _genres;
 @override@JsonKey(name: "genres") List<String>? get genres {
   final value = _genres;
@@ -288,16 +296,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MediaMetadata&&(identical(other.title, title) || other.title == title)&&(identical(other.subtitle, subtitle) || other.subtitle == subtitle)&&const DeepCollectionEquality().equals(other._authors, _authors)&&const DeepCollectionEquality().equals(other._narrators, _narrators)&&const DeepCollectionEquality().equals(other._series, _series)&&const DeepCollectionEquality().equals(other._genres, _genres)&&(identical(other.publishedYear, publishedYear) || other.publishedYear == publishedYear)&&(identical(other.publishedDate, publishedDate) || other.publishedDate == publishedDate)&&(identical(other.publisher, publisher) || other.publisher == publisher)&&(identical(other.description, description) || other.description == description)&&(identical(other.isbn, isbn) || other.isbn == isbn)&&(identical(other.asin, asin) || other.asin == asin)&&(identical(other.language, language) || other.language == language)&&(identical(other.explicit, explicit) || other.explicit == explicit)&&(identical(other.abridged, abridged) || other.abridged == abridged));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MediaMetadata&&(identical(other.title, title) || other.title == title)&&(identical(other.subtitle, subtitle) || other.subtitle == subtitle)&&const DeepCollectionEquality().equals(other._authors, _authors)&&const DeepCollectionEquality().equals(other._narrators, _narrators)&&const DeepCollectionEquality().equals(other._series, _series)&&(identical(other.authorName, authorName) || other.authorName == authorName)&&(identical(other.authorNameLF, authorNameLF) || other.authorNameLF == authorNameLF)&&(identical(other.narratorName, narratorName) || other.narratorName == narratorName)&&(identical(other.seriesName, seriesName) || other.seriesName == seriesName)&&const DeepCollectionEquality().equals(other._genres, _genres)&&(identical(other.publishedYear, publishedYear) || other.publishedYear == publishedYear)&&(identical(other.publishedDate, publishedDate) || other.publishedDate == publishedDate)&&(identical(other.publisher, publisher) || other.publisher == publisher)&&(identical(other.description, description) || other.description == description)&&(identical(other.isbn, isbn) || other.isbn == isbn)&&(identical(other.asin, asin) || other.asin == asin)&&(identical(other.language, language) || other.language == language)&&(identical(other.explicit, explicit) || other.explicit == explicit)&&(identical(other.abridged, abridged) || other.abridged == abridged));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,title,subtitle,const DeepCollectionEquality().hash(_authors),const DeepCollectionEquality().hash(_narrators),const DeepCollectionEquality().hash(_series),const DeepCollectionEquality().hash(_genres),publishedYear,publishedDate,publisher,description,isbn,asin,language,explicit,abridged);
+int get hashCode => Object.hashAll([runtimeType,title,subtitle,const DeepCollectionEquality().hash(_authors),const DeepCollectionEquality().hash(_narrators),const DeepCollectionEquality().hash(_series),authorName,authorNameLF,narratorName,seriesName,const DeepCollectionEquality().hash(_genres),publishedYear,publishedDate,publisher,description,isbn,asin,language,explicit,abridged]);
 
 @override
 String toString() {
-  return 'MediaMetadata(title: $title, subtitle: $subtitle, authors: $authors, narrators: $narrators, series: $series, genres: $genres, publishedYear: $publishedYear, publishedDate: $publishedDate, publisher: $publisher, description: $description, isbn: $isbn, asin: $asin, language: $language, explicit: $explicit, abridged: $abridged)';
+  return 'MediaMetadata(title: $title, subtitle: $subtitle, authors: $authors, narrators: $narrators, series: $series, authorName: $authorName, authorNameLF: $authorNameLF, narratorName: $narratorName, seriesName: $seriesName, genres: $genres, publishedYear: $publishedYear, publishedDate: $publishedDate, publisher: $publisher, description: $description, isbn: $isbn, asin: $asin, language: $language, explicit: $explicit, abridged: $abridged)';
 }
 
 
@@ -308,7 +316,7 @@ abstract mixin class _$MediaMetadataCopyWith<$Res> implements $MediaMetadataCopy
   factory _$MediaMetadataCopyWith(_MediaMetadata value, $Res Function(_MediaMetadata) _then) = __$MediaMetadataCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: "title") String title,@JsonKey(name: "subtitle") String? subtitle,@JsonKey(name: "authors") List<Author>? authors,@JsonKey(name: "narrators") List<String>? narrators,@JsonKey(name: "series")@SeriesConverter() List<Series>? series,@JsonKey(name: "genres") List<String>? genres,@JsonKey(name: "publishedYear") String? publishedYear,@JsonKey(name: "publishedDate") String? publishedDate,@JsonKey(name: "publisher") String? publisher,@JsonKey(name: "description") String? description,@JsonKey(name: "isbn") String? isbn,@JsonKey(name: "asin") String? asin,@JsonKey(name: "language") String? language,@JsonKey(name: "explicit") bool? explicit,@JsonKey(name: "abridged") bool? abridged
+@JsonKey(name: "title") String title,@JsonKey(name: "subtitle") String? subtitle,@JsonKey(name: "authors") List<Author>? authors,@JsonKey(name: "narrators") List<String>? narrators,@JsonKey(name: "series")@SeriesConverter() List<Series>? series,@JsonKey(name: "authorName") String? authorName,@JsonKey(name: "authorNameLF") String? authorNameLF,@JsonKey(name: "narratorName") String? narratorName,@JsonKey(name: "seriesName") String? seriesName,@JsonKey(name: "genres") List<String>? genres,@JsonKey(name: "publishedYear") String? publishedYear,@JsonKey(name: "publishedDate") String? publishedDate,@JsonKey(name: "publisher") String? publisher,@JsonKey(name: "description") String? description,@JsonKey(name: "isbn") String? isbn,@JsonKey(name: "asin") String? asin,@JsonKey(name: "language") String? language,@JsonKey(name: "explicit") bool? explicit,@JsonKey(name: "abridged") bool? abridged
 });
 
 
@@ -325,14 +333,18 @@ class __$MediaMetadataCopyWithImpl<$Res>
 
 /// Create a copy of MediaMetadata
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? title = null,Object? subtitle = freezed,Object? authors = freezed,Object? narrators = freezed,Object? series = freezed,Object? genres = freezed,Object? publishedYear = freezed,Object? publishedDate = freezed,Object? publisher = freezed,Object? description = freezed,Object? isbn = freezed,Object? asin = freezed,Object? language = freezed,Object? explicit = freezed,Object? abridged = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? title = null,Object? subtitle = freezed,Object? authors = freezed,Object? narrators = freezed,Object? series = freezed,Object? authorName = freezed,Object? authorNameLF = freezed,Object? narratorName = freezed,Object? seriesName = freezed,Object? genres = freezed,Object? publishedYear = freezed,Object? publishedDate = freezed,Object? publisher = freezed,Object? description = freezed,Object? isbn = freezed,Object? asin = freezed,Object? language = freezed,Object? explicit = freezed,Object? abridged = freezed,}) {
   return _then(_MediaMetadata(
 title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,subtitle: freezed == subtitle ? _self.subtitle : subtitle // ignore: cast_nullable_to_non_nullable
 as String?,authors: freezed == authors ? _self._authors : authors // ignore: cast_nullable_to_non_nullable
 as List<Author>?,narrators: freezed == narrators ? _self._narrators : narrators // ignore: cast_nullable_to_non_nullable
 as List<String>?,series: freezed == series ? _self._series : series // ignore: cast_nullable_to_non_nullable
-as List<Series>?,genres: freezed == genres ? _self._genres : genres // ignore: cast_nullable_to_non_nullable
+as List<Series>?,authorName: freezed == authorName ? _self.authorName : authorName // ignore: cast_nullable_to_non_nullable
+as String?,authorNameLF: freezed == authorNameLF ? _self.authorNameLF : authorNameLF // ignore: cast_nullable_to_non_nullable
+as String?,narratorName: freezed == narratorName ? _self.narratorName : narratorName // ignore: cast_nullable_to_non_nullable
+as String?,seriesName: freezed == seriesName ? _self.seriesName : seriesName // ignore: cast_nullable_to_non_nullable
+as String?,genres: freezed == genres ? _self._genres : genres // ignore: cast_nullable_to_non_nullable
 as List<String>?,publishedYear: freezed == publishedYear ? _self.publishedYear : publishedYear // ignore: cast_nullable_to_non_nullable
 as String?,publishedDate: freezed == publishedDate ? _self.publishedDate : publishedDate // ignore: cast_nullable_to_non_nullable
 as String?,publisher: freezed == publisher ? _self.publisher : publisher // ignore: cast_nullable_to_non_nullable

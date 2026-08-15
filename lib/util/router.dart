@@ -43,6 +43,7 @@ import 'package:yaabsa/screens/settings/library_shelf_settings.dart';
 import 'package:yaabsa/screens/settings/library_order_settings.dart';
 import 'package:yaabsa/screens/settings/library_settings.dart';
 import 'package:yaabsa/screens/settings/library_views_settings.dart';
+import 'package:yaabsa/screens/settings/library_view_subtitle_settings.dart';
 import 'package:yaabsa/screens/settings/path_tag_genre_update_settings.dart';
 import 'package:yaabsa/screens/settings/player/global_player_settings.dart';
 import 'package:yaabsa/screens/settings/player/player_settings_notification.dart';
@@ -240,6 +241,10 @@ final globalRouter = GoRouter(
                     GoRoute(
                       path: LibraryViewsSettings.routeName,
                       builder: (context, state) => const LibraryViewsSettings(),
+                    ),
+                    GoRoute(
+                      path: LibraryViewSubtitleSettings.routeName,
+                      builder: (context, state) => const LibraryViewSubtitleSettings(),
                     ),
                     GoRoute(
                       path: LibraryShelfSettings.routeName,

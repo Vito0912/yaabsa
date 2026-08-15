@@ -18,6 +18,8 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/server_management_preferences.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/util/library_view_subtitle_preferences.dart';
+import 'package:yaabsa/util/library_view_subtitles.dart';
 
 class LibraryView extends HookConsumerWidget {
   const LibraryView({super.key, this.initialFilter});
@@ -38,6 +40,18 @@ class LibraryView extends HookConsumerWidget {
     final appDatabase = ref.watch(appDatabaseProvider);
     final currentUser = ref.watch(currentUserProvider).value;
     ref.watch(userSettingsWatcherProvider);
+    final subtitlePreferences = currentUser == null
+        ? LibraryViewSubtitlePreferencesCodec.defaultsFor(LibraryViewSubtitleView.library)
+        : LibraryViewSubtitlePreferencesCodec.decode(
+            ref
+                .read(settingsManagerProvider.notifier)
+                .getUserSetting<String>(
+                  currentUser.id,
+                  LibraryViewSubtitleView.library.settingKey,
+                  defaultValue: LibraryViewSubtitlePreferencesCodec.defaultEncodedFor(LibraryViewSubtitleView.library),
+                ),
+            LibraryViewSubtitleView.library,
+          );
     final managementPreferences = readServerManagementPreferences(ref, currentUser?.id);
     final collapseSeriesFallback = currentUser == null
         ? false
@@ -76,6 +90,11 @@ class LibraryView extends HookConsumerWidget {
             final canEditItems = hasUpdatePermission && managementPreferences.editItemsEnabled;
             final canQuickMatchItems =
                 canManageBooks && canEditItems && managementPreferences.allowMatchesQuickMatchesEnabled;
+            final subtitleResolver = LibraryViewSubtitleResolver(
+              preferences: subtitlePreferences,
+              view: LibraryViewSubtitleView.library,
+              activeSort: state.sort,
+            );
             final editableItemIds = items
                 .where((item) => item.collapsedSeries == null)
                 .map((item) => item.id)
@@ -125,6 +144,7 @@ class LibraryView extends HookConsumerWidget {
                                     totalItems: state.totalItems,
                                     hasNextPage: state.hasNextPage,
                                     api: api,
+                                    subtitleBuilder: subtitleResolver.forLibraryItem,
                                     onPlayItem: (item, _) {
                                       audioHandler.playLibraryItem(
                                         item,
@@ -176,7 +196,8 @@ class LibraryView extends HookConsumerWidget {
             if (!serverReachable) {
               return ConnectionIssueView.offline(
                 onRetry: () async {
-                  await ref.read(itemsProvider.notifier).refresh();
+                  ref.invalidate(itemsProvider);
+                  await ref.read(itemsProvider.future);
                 },
               );
             }
@@ -185,7 +206,8 @@ class LibraryView extends HookConsumerWidget {
               error: err,
               title: 'Error loading library items',
               onRetry: () async {
-                await ref.read(itemsProvider.notifier).refresh();
+                ref.invalidate(itemsProvider);
+                await ref.read(itemsProvider.future);
               },
             );
           },

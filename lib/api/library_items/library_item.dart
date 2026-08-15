@@ -52,28 +52,31 @@ abstract class LibraryItem with _$LibraryItem {
   }
 
   String? get authorString {
-    return media?.bookMedia?.metadata.authors?.map((e) => e.name).join(', ') ?? media?.podcastMedia?.metadata.author;
+    final bookMetadata = media?.bookMedia?.metadata;
+    final authors = bookMetadata?.authors
+        ?.map((author) => author.name.trim())
+        .where((author) => author.isNotEmpty)
+        .join(', ');
+
+    return _firstNonEmpty(<String?>[authors, bookMetadata?.authorName, media?.podcastMedia?.metadata.author]);
   }
 
   String? get narratorString {
-    final narrators = media?.bookMedia?.metadata.narrators;
-    if (narrators == null || narrators.isEmpty) {
-      return null;
-    }
-
-    final normalized = narrators
-        .map((entry) => entry.trim())
+    final bookMetadata = media?.bookMedia?.metadata;
+    final normalized = bookMetadata?.narrators
+        ?.map((entry) => entry.trim())
         .where((entry) => entry.isNotEmpty)
         .toList(growable: false);
-    if (normalized.isEmpty) {
-      return null;
-    }
 
-    return normalized.join(', ');
+    return _firstNonEmpty(<String?>[
+      normalized == null || normalized.isEmpty ? null : normalized.join(', '),
+      bookMetadata?.narratorName,
+    ]);
   }
 
   String? get seriesName {
-    return media?.bookMedia?.metadata.series?.firstOrNull?.name;
+    final metadata = media?.bookMedia?.metadata;
+    return _firstNonEmpty(<String?>[metadata?.series?.firstOrNull?.name, metadata?.seriesName]);
   }
 
   String? get seriesPosition {
@@ -88,4 +91,15 @@ abstract class LibraryItem with _$LibraryItem {
     final path = coverPath;
     return path != null && path.isNotEmpty;
   }
+}
+
+String? _firstNonEmpty(Iterable<String?> values) {
+  for (final value in values) {
+    final normalized = value?.trim();
+    if (normalized != null && normalized.isNotEmpty) {
+      return normalized;
+    }
+  }
+
+  return null;
 }

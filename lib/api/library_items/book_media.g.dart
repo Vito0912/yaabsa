@@ -20,6 +20,7 @@ _BookMedia _$BookMediaFromJson(Map<String, dynamic> json) => _BookMedia(
   numTracks: (json['numTracks'] as num?)?.toInt(),
   numChapters: (json['numChapters'] as num?)?.toInt(),
   numAudioFiles: (json['numAudioFiles'] as num?)?.toInt(),
+  duration: (json['duration'] as num?)?.toDouble(),
   size: (json['size'] as num?)?.toInt(),
   ebookFormat: json['ebookFormat'] as String?,
 );
@@ -36,6 +37,7 @@ Map<String, dynamic> _$BookMediaToJson(_BookMedia instance) => <String, dynamic>
   'numTracks': instance.numTracks,
   'numChapters': instance.numChapters,
   'numAudioFiles': instance.numAudioFiles,
+  'duration': instance.duration,
   'size': instance.size,
   'ebookFormat': instance.ebookFormat,
 };

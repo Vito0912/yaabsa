@@ -1,6 +1,6 @@
 # Changelog
 
-## TBA
+## 1.9.0
 
 This release upgrades to Flutter 3.47
 
@@ -9,6 +9,8 @@ This release upgrades to Flutter 3.47
 - Encoder now defaults to copy when already acc or opus
 - Running encoding tasks are now clickable and single file status can be shown
 - Replaced cached_network_image with way faster cached_network_image_ce package, which should make browsing even faster
+- Dynamic subtitles for library items, series and authors
+- Better text, UI quality for desktop platforms due to Flutter upgrade
 - macOS now gets published as a signed DMG file
 - Setting to play random episodes for podcasts, collections and playlists
 
@@ -17,6 +19,8 @@ This release upgrades to Flutter 3.47
 - If an book has been deleted it now redirects correctly
 - Progress listened in the background now correctly updates the progress in all views
 - Closing the session now only overwrites newer progress if unsynced progress is still queued
+- Clicking on other overlapping context menus now does not hide the mini player
+- Author covers now only get fetched when there should be a cover available
 
 ## 1.8.0
 
