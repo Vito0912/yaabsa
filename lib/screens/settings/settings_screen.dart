@@ -255,6 +255,12 @@ final List<SettingsSearchItem> searchableSettings = [
     route: '/settings/library',
   ),
   const SettingsSearchItem(
+    title: 'Show Shuffle Button',
+    description: 'Adds a shuffle button to collections, playlists, and podcasts',
+    categoryPath: 'Settings > General',
+    route: '/settings/library',
+  ),
+  const SettingsSearchItem(
     title: 'Check Server Updates',
     description: 'Checks for ABS updates via GitHub',
     categoryPath: 'Settings > General',

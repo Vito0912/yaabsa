@@ -219,6 +219,12 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
                       settingKey: SettingKeys.personalizedShelfShowPlayVisibleButton,
                       subtitle: 'Adds a play-all button on Continue Listening and Newest Episodes shelves',
                     ),
+                    SettingSwitchTile(
+                      label: 'Show Shuffle Button',
+                      settingKey: SettingKeys.showShuffleButton,
+                      userId: user.id,
+                      subtitle: 'Adds a shuffle button to collections, playlists, and podcasts',
+                    ),
                     const SettingSwitchTile(
                       label: 'Check Server Updates',
                       settingKey: SettingKeys.checkForServerUpdates,

@@ -19,6 +19,7 @@ class PodcastHeaderCard extends StatelessWidget {
     this.isLoadingCurrentPlayableEpisode = false,
     this.isFindingEpisodes = false,
     this.onPlayLatest,
+    this.onShuffle,
     this.onPauseLatest,
     this.onFindEpisodes,
     this.onEditPodcast,
@@ -37,6 +38,7 @@ class PodcastHeaderCard extends StatelessWidget {
   final bool isLoadingCurrentPlayableEpisode;
   final bool isFindingEpisodes;
   final VoidCallback? onPlayLatest;
+  final VoidCallback? onShuffle;
   final VoidCallback? onPauseLatest;
   final VoidCallback? onFindEpisodes;
   final VoidCallback? onEditPodcast;
@@ -86,6 +88,7 @@ class PodcastHeaderCard extends StatelessWidget {
                     isLoadingCurrentPlayableEpisode: isLoadingCurrentPlayableEpisode,
                     isFindingEpisodes: isFindingEpisodes,
                     onPlayLatest: onPlayLatest,
+                    onShuffle: onShuffle,
                     onPauseLatest: onPauseLatest,
                     onFindEpisodes: onFindEpisodes,
                     onEditPodcast: onEditPodcast,
@@ -113,6 +116,7 @@ class PodcastHeaderCard extends StatelessWidget {
                       isLoadingCurrentPlayableEpisode: isLoadingCurrentPlayableEpisode,
                       isFindingEpisodes: isFindingEpisodes,
                       onPlayLatest: onPlayLatest,
+                      onShuffle: onShuffle,
                       onPauseLatest: onPauseLatest,
                       onFindEpisodes: onFindEpisodes,
                       onEditPodcast: onEditPodcast,
@@ -152,6 +156,7 @@ class _PodcastHeaderText extends StatelessWidget {
     required this.isLoadingCurrentPlayableEpisode,
     required this.isFindingEpisodes,
     this.onPlayLatest,
+    this.onShuffle,
     this.onPauseLatest,
     this.onFindEpisodes,
     this.onEditPodcast,
@@ -167,6 +172,7 @@ class _PodcastHeaderText extends StatelessWidget {
   final bool isLoadingCurrentPlayableEpisode;
   final bool isFindingEpisodes;
   final VoidCallback? onPlayLatest;
+  final VoidCallback? onShuffle;
   final VoidCallback? onPauseLatest;
   final VoidCallback? onFindEpisodes;
   final VoidCallback? onEditPodcast;
@@ -215,6 +221,13 @@ class _PodcastHeaderText extends StatelessWidget {
           runSpacing: 8,
           children: [
             FilledButton.icon(onPressed: onPressed, icon: iconWidget, label: Text(playLabel)),
+            if (onShuffle != null)
+              IconButton.filledTonal(
+                onPressed: onShuffle,
+                tooltip: 'Play random episode',
+                icon: const Icon(Icons.shuffle_rounded),
+                visualDensity: VisualDensity.compact,
+              ),
             if (onDownloadPress != null)
               IconButton.filledTonal(
                 onPressed: onDownloadPress,

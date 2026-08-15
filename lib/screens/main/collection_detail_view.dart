@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -20,7 +22,9 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
+import 'package:yaabsa/util/random_playback.dart';
 import 'package:yaabsa/util/server_management_preferences.dart';
+import 'package:yaabsa/util/setting_key.dart';
 
 class CollectionDetailView extends HookConsumerWidget {
   const CollectionDetailView({required this.collectionId, super.key, this.initialEntry});
@@ -80,6 +84,11 @@ class CollectionDetailView extends HookConsumerWidget {
     final hasCollectionManagementPermission = currentUser?.permissions.update ?? false;
     final canEditCollection = hasCollectionManagementPermission && collectionsManagementEnabled;
     final canDeleteCollection = hasCollectionManagementPermission && collectionsManagementEnabled;
+    final showShuffleButton =
+        currentUser != null &&
+        ref
+            .read(settingsManagerProvider.notifier)
+            .getUserSetting<bool>(currentUser.id, SettingKeys.showShuffleButton, defaultValue: false);
     final description = resolvedCollection.description?.trim();
 
     return LibraryGridLayoutBuilder(
@@ -106,6 +115,18 @@ class CollectionDetailView extends HookConsumerWidget {
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                   ),
+                  if (showShuffleButton && hasRandomPlaybackTarget(collectionItems))
+                    IconButton.filledTonal(
+                      onPressed: () => unawaited(
+                        playRandomLibraryItemOrEpisode(
+                          collectionItems,
+                          sourceType: AutoQueueStartType.collection,
+                          sourceId: collectionId,
+                        ),
+                      ),
+                      icon: const Icon(Icons.shuffle_rounded),
+                      tooltip: 'Play random item',
+                    ),
                   if (canEditCollection || canDeleteCollection)
                     PopupMenuButton<_CollectionDetailAction>(
                       tooltip: 'Collection actions',

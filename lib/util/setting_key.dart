@@ -58,6 +58,7 @@ class SettingKeys {
   static const String androidAutoPodcastSortField = 'android_auto_podcast_sort_field';
   static const String androidAutoGroupByLetters = 'android_auto_group_by_letters';
   static const String personalizedShelfShowPlayVisibleButton = 'personalized_shelf_show_play_visible_button';
+  static const String showShuffleButton = 'show_shuffle_button';
   static const String personalizedShelfBookSectionsPreferences = 'personalized_shelf_book_sections_preferences';
   static const String personalizedShelfPodcastSectionsPreferences = 'personalized_shelf_podcast_sections_preferences';
   static const String waitForSync = 'wait_for_sync';
@@ -215,6 +216,7 @@ final defaultSettings = {
   SettingKeys.androidAutoPodcastSortField: 'added',
   SettingKeys.androidAutoGroupByLetters: true,
   SettingKeys.personalizedShelfShowPlayVisibleButton: false,
+  SettingKeys.showShuffleButton: false,
   SettingKeys.personalizedShelfBookSectionsPreferences: '{"order":["continue-listening","continue-series","recently-added","discover","listen-again","recent-series","newest-authors"],"hidden":["newest-episodes"]}',
   SettingKeys.personalizedShelfPodcastSectionsPreferences:
       '{"order":["continue-listening","newest-episodes","listen-again","recently-added","discover"],"hidden":[]}',

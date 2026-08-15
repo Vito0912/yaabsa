@@ -10,6 +10,7 @@ This release upgrades to Flutter 3.47
 - Running encoding tasks are now clickable and single file status can be shown
 - Replaced cached_network_image with way faster cached_network_image_ce package, which should make browsing even faster
 - macOS now gets published as a signed DMG file
+- Setting to play random episodes for podcasts, collections and playlists
 
 ### Fixed
 

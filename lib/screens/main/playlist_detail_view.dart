@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -13,6 +15,7 @@ import 'package:yaabsa/components/common/managed_list_operations.dart';
 import 'package:yaabsa/components/common/library_item_widget.dart';
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
 import 'package:yaabsa/components/common/scroll_to_top_button.dart';
+import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/common/playlist_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
@@ -20,6 +23,8 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
+import 'package:yaabsa/util/random_playback.dart';
+import 'package:yaabsa/util/setting_key.dart';
 
 class PlaylistDetailView extends HookConsumerWidget {
   const PlaylistDetailView({required this.playlistId, super.key, this.initialEntry});
@@ -44,6 +49,7 @@ class PlaylistDetailView extends HookConsumerWidget {
     final libraryId = selectedLibrary.id;
     final allPlaylistsAsync = ref.watch(playlistsProvider(libraryId));
     final currentUserId = ref.watch(currentUserProvider).value?.id;
+    ref.watch(userSettingsWatcherProvider);
     final allowBookSelection = selectedLibrary.mediaType == 'book';
     final resolvedPlaylist = _resolvePlaylist(playlistId, allPlaylistsAsync.value?.items);
     final resolvedEntry = _resolveEntry(playlistId, initialEntry, resolvedPlaylist);
@@ -77,6 +83,11 @@ class PlaylistDetailView extends HookConsumerWidget {
     final libraryItems = _playlistLibraryItems(playlistItems);
     final missingCount = (playlistItems.length - libraryItems.length).clamp(0, playlistItems.length);
     final canManagePlaylist = _canManagePlaylist(playlist: resolvedPlaylist, currentUserId: currentUserId);
+    final showShuffleButton =
+        currentUserId != null &&
+        ref
+            .read(settingsManagerProvider.notifier)
+            .getUserSetting<bool>(currentUserId, SettingKeys.showShuffleButton, defaultValue: false);
     final description = resolvedPlaylist.description?.trim();
 
     return LibraryGridLayoutBuilder(
@@ -103,6 +114,18 @@ class PlaylistDetailView extends HookConsumerWidget {
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                   ),
+                  if (showShuffleButton && hasRandomPlaylistPlaybackTarget(playlistItems))
+                    IconButton.filledTonal(
+                      onPressed: () => unawaited(
+                        playRandomPlaylistItemOrEpisode(
+                          playlistItems,
+                          sourceType: AutoQueueStartType.playlist,
+                          sourceId: playlistId,
+                        ),
+                      ),
+                      icon: const Icon(Icons.shuffle_rounded),
+                      tooltip: 'Play random item',
+                    ),
                   if (canManagePlaylist)
                     PopupMenuButton<_PlaylistDetailAction>(
                       tooltip: 'Playlist actions',

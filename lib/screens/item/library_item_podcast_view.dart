@@ -31,6 +31,7 @@ import 'package:yaabsa/screens/item/podcast/podcast_header_card.dart';
 import 'package:yaabsa/screens/player/play_history_view.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
+import 'package:yaabsa/util/random_playback.dart';
 import 'package:yaabsa/util/server_management_preferences.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:yaabsa/util/logger.dart';
@@ -110,6 +111,11 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
     ref.watch(userSettingsWatcherProvider);
     final managementPreferences = readServerManagementPreferences(ref, currentUser?.id);
     final canEditItems = (currentUser?.permissions.update ?? false) && managementPreferences.editItemsEnabled;
+    final showShuffleButton =
+        currentUser != null &&
+        ref
+            .read(settingsManagerProvider.notifier)
+            .getUserSetting<bool>(currentUser.id, SettingKeys.showShuffleButton, defaultValue: false);
     final LibraryFilterData? filterData = widget.item.libraryId == null
         ? null
         : ref.watch(libraryFilterDataProvider(widget.item.libraryId!)).value;
@@ -208,6 +214,9 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                                       isPlayingCurrentPlayableEpisode: isPlayingCurrentLatestEpisode,
                                       isLoadingCurrentPlayableEpisode: isLoadingCurrentLatestEpisode,
                                       isFindingEpisodes: _isFetchingPodcastFeed,
+                                      onShuffle: showShuffleButton && hasRandomPlaybackTarget([widget.item])
+                                          ? () => unawaited(playRandomLibraryItemOrEpisode([widget.item]))
+                                          : null,
                                       onBack: () => context.pop(),
                                       onPlayLatest: firstPlayableEpisode == null
                                           ? null
