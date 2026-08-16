@@ -660,12 +660,21 @@ class SignIn extends HookConsumerWidget {
 }
 
 String? _normalizeServerAddress(String input) {
-  if (input.isEmpty) return null;
+  final trimmedInput = input.trim();
+  if (trimmedInput.isEmpty) return null;
 
-  final withScheme = input.contains('://') ? input : 'https://$input';
+  final lowerInput = trimmedInput.toLowerCase();
+  final hasExplicitHttpScheme = RegExp(r'^https?://').hasMatch(lowerInput);
+  final hasExplicitScheme = lowerInput.contains('://');
+  final isIncompleteHttpScheme =
+      lowerInput == 'http' || lowerInput == 'https' || RegExp(r'^https?:/{0,2}$').hasMatch(lowerInput);
+  if (isIncompleteHttpScheme || (hasExplicitScheme && !hasExplicitHttpScheme)) return null;
+
+  final withScheme = hasExplicitHttpScheme ? trimmedInput : 'https://$trimmedInput';
   final uri = Uri.tryParse(withScheme);
+  final scheme = uri?.scheme.toLowerCase();
 
-  if (uri == null || uri.host.isEmpty) {
+  if (uri == null || !uri.hasAuthority || uri.host.isEmpty || (scheme != 'http' && scheme != 'https')) {
     return null;
   }
 
