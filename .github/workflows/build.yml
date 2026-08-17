@@ -685,6 +685,7 @@ jobs:
           cp -a flatpak-repos/x86_64/. flatpak-repo/
           cp -a flatpak-repos/aarch64/objects/. flatpak-repo/objects/
           cp -a flatpak-repos/aarch64/refs/. flatpak-repo/refs/
+          mkdir -p flatpak-repo/refs/heads flatpak-repo/refs/remotes flatpak-repo/refs/tags flatpak-repo/refs/mirrors
           flatpak build-update-repo --gpg-sign="$FLATPAK_GPG_KEY_ID" --generate-static-deltas --prune flatpak-repo
 
       - name: Verify multi-architecture Flatpak repository
