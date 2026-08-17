@@ -435,7 +435,7 @@ jobs:
             runner: ubuntu-26.04
             flutter_arch: x64
           - arch: aarch64
-            runner: ubuntu-24.04-arm
+            runner: ubuntu-26.04-arm
             flutter_arch: arm64
     runs-on: ${{ matrix.runner }}
     needs:
