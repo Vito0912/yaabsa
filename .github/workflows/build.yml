@@ -442,7 +442,7 @@ jobs:
       - changes
       - check-requirements
     if: ${{ needs.changes.outputs.build_flatpak == 'true' && needs.changes.outputs.build_skip != 'true' }}
-    timeout-minutes: 35
+    timeout-minutes: 60
     environment: prod
     steps:
       - name: Checkout
@@ -450,10 +450,36 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Set up Flutter
+      - name: Set up Flutter (x86_64)
+        if: ${{ matrix.flutter_arch == 'x64' }}
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+          architecture: ${{ matrix.flutter_arch }}
+          cache: true
+
+      - name: Determine current stable Flutter version (aarch64)
+        if: ${{ matrix.flutter_arch == 'arm64' }}
+        id: flutter_version
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(curl --fail --silent --show-error --location \
+            https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json \
+            | jq -r '[.releases[] | select(.channel == "stable")] | .[0].version')"
+          if [[ -z "$version" || "$version" == "null" ]]; then
+            echo "Unable to determine the current stable Flutter version."
+            exit 1
+          fi
+          echo "Using Flutter stable version: $version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Flutter (aarch64)
+        if: ${{ matrix.flutter_arch == 'arm64' }}
+        uses: subosito/flutter-action@v2
+        with:
+          channel: master
+          flutter-version: ${{ steps.flutter_version.outputs.version }}
           architecture: ${{ matrix.flutter_arch }}
           cache: true
 
