@@ -50,6 +50,7 @@ jobs:
       changelog: ${{ steps.changelog.outputs.changelog }}
       platform_filter: ${{ steps.platforms.outputs.platform_filter }}
       build_linux: ${{ steps.platforms.outputs.build_linux }}
+      build_flatpak: ${{ steps.platforms.outputs.build_flatpak }}
       build_android: ${{ steps.platforms.outputs.build_android }}
       build_windows: ${{ steps.platforms.outputs.build_windows }}
       build_ios: ${{ steps.platforms.outputs.build_ios }}
@@ -182,13 +183,14 @@ jobs:
           lower_messages="$(printf '%s' "$commit_messages" | tr '[:upper:]' '[:lower:]')"
           markers="$(
             printf '%s\n' "$lower_messages" \
-              | grep -Eio '\[platforms?:[^]]+\]|\[(android|aaos|automotive|wearos|wear os|linux|windows|ios|macos|mac os|osx|web)\]|\((android|aaos|automotive|wearos|wear os|linux|windows|ios|macos|mac os|osx|web)\)' \
+              | grep -Eio '\[platforms?:[^]]+\]|\[(android|aaos|automotive|wearos|wear os|linux|flatpak|windows|ios|macos|mac os|osx|web)\]|\((android|aaos|automotive|wearos|wear os|linux|flatpak|windows|ios|macos|mac os|osx|web)\)' \
               || true
           )"
 
           platform_filter="false"
           selected_android="false"
           selected_linux="false"
+          selected_flatpak="false"
           selected_windows="false"
           selected_ios="false"
           selected_macos="false"
@@ -198,6 +200,7 @@ jobs:
             platform_filter="true"
             [[ "$markers" =~ android|aaos|automotive|wearos|wear[[:space:]]os ]] && selected_android="true"
             [[ "$markers" =~ linux ]] && selected_linux="true"
+            [[ "$markers" =~ linux|flatpak ]] && selected_flatpak="true"
             [[ "$markers" =~ windows ]] && selected_windows="true"
             [[ "$markers" =~ (^|[^a-z])ios([^a-z]|$) ]] && selected_ios="true"
             [[ "$markers" =~ macos|mac[[:space:]]os|osx ]] && selected_macos="true"
@@ -206,6 +209,7 @@ jobs:
 
           if [[ "${{ github.event_name }}" == "workflow_dispatch" || "${{ steps.version.outputs.version_bumped }}" == "true" ]]; then
             build_linux="true"
+            build_flatpak="true"
             build_android="true"
             build_windows="true"
             build_ios="true"
@@ -213,6 +217,7 @@ jobs:
             build_web="true"
           elif [[ "$platform_filter" == "true" ]]; then
             build_linux="$selected_linux"
+            build_flatpak="$selected_flatpak"
             build_android="$selected_android"
             build_windows="$selected_windows"
             build_ios="$selected_ios"
@@ -220,6 +225,7 @@ jobs:
             build_web="$selected_web"
           else
             build_linux="${{ steps.filter.outputs.lib == 'true' || steps.filter.outputs.linux == 'true' }}"
+            build_flatpak="${{ steps.filter.outputs.lib == 'true' || steps.filter.outputs.linux == 'true' }}"
             build_android="${{ steps.filter.outputs.lib == 'true' || steps.filter.outputs.android == 'true' }}"
             build_windows="${{ steps.filter.outputs.lib == 'true' || steps.filter.outputs.windows == 'true' }}"
             build_ios="${{ steps.filter.outputs.lib == 'true' || steps.filter.outputs.ios == 'true' }}"
@@ -229,6 +235,7 @@ jobs:
 
           echo "platform_filter=$platform_filter" >> "$GITHUB_OUTPUT"
           echo "build_linux=$build_linux" >> "$GITHUB_OUTPUT"
+          echo "build_flatpak=$build_flatpak" >> "$GITHUB_OUTPUT"
           echo "build_android=$build_android" >> "$GITHUB_OUTPUT"
           echo "build_windows=$build_windows" >> "$GITHUB_OUTPUT"
           echo "build_ios=$build_ios" >> "$GITHUB_OUTPUT"
@@ -237,7 +244,7 @@ jobs:
 
           echo "Commit platform markers: ${markers:-none}"
           echo "Platform override active: $platform_filter"
-          echo "Selected builds: linux=$build_linux android=$build_android windows=$build_windows ios=$build_ios macos=$build_macos web=$build_web"
+          echo "Selected builds: linux=$build_linux flatpak=$build_flatpak android=$build_android windows=$build_windows ios=$build_ios macos=$build_macos web=$build_web"
 
       - name: Extract changelog for current version
         id: changelog
@@ -420,11 +427,21 @@ jobs:
           path: output/linux/yaabsa_*.rpm
 
   build-flatpak:
-    runs-on: ubuntu-26.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            runner: ubuntu-26.04
+            flutter_arch: x64
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
+            flutter_arch: arm64
+    runs-on: ${{ matrix.runner }}
     needs:
       - changes
       - check-requirements
-    if: ${{ needs.changes.outputs.build_linux == 'true' && needs.changes.outputs.build_skip != 'true' }}
+    if: ${{ needs.changes.outputs.build_flatpak == 'true' && needs.changes.outputs.build_skip != 'true' }}
     timeout-minutes: 35
     environment: prod
     steps:
@@ -437,6 +454,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+          architecture: ${{ matrix.flutter_arch }}
           cache: true
 
       - name: Update apt
@@ -530,9 +548,9 @@ jobs:
           FLATPAK_GPG_KEY_ID: ${{ secrets.FLATPAK_GPG_KEY_ID }}
         run: |
           if [ "$GITHUB_REF" = "refs/heads/master" ]; then
-            flatpak-builder --user --install-deps-from=flathub --force-clean --repo=flatpak-repo --default-branch=master --gpg-sign="$FLATPAK_GPG_KEY_ID" flatpak-build linux/packaging/flatpak/de.vito0912.yaabsa.yml
+            flatpak-builder --arch="${{ matrix.arch }}" --user --install-deps-from=flathub --force-clean --repo=flatpak-repo --default-branch=master --gpg-sign="$FLATPAK_GPG_KEY_ID" flatpak-build linux/packaging/flatpak/de.vito0912.yaabsa.yml
           else
-            flatpak-builder --user --install-deps-from=flathub --force-clean --repo=flatpak-repo --default-branch=master flatpak-build linux/packaging/flatpak/de.vito0912.yaabsa.yml
+            flatpak-builder --arch="${{ matrix.arch }}" --user --install-deps-from=flathub --force-clean --repo=flatpak-repo --default-branch=master flatpak-build linux/packaging/flatpak/de.vito0912.yaabsa.yml
           fi
           if ! find flatpak-build/files -maxdepth 5 -type f -name 'libmpv.so*' | grep -q .; then
             echo "libmpv was not bundled into the Flatpak image."
@@ -545,24 +563,120 @@ jobs:
           FLATPAK_GPG_KEY_ID: ${{ secrets.FLATPAK_GPG_KEY_ID }}
         run: flatpak build-update-repo --gpg-sign="$FLATPAK_GPG_KEY_ID" --generate-static-deltas --prune flatpak-repo
 
+      - name: Upload Flatpak repository artifact
+        if: github.ref == 'refs/heads/master'
+        uses: actions/upload-artifact@v7
+        with:
+          name: flatpak-repo-${{ matrix.arch }}
+          path: flatpak-repo
+
       - name: Build Flatpak bundle for master
         if: github.ref == 'refs/heads/master'
         env:
           FLATPAK_GPG_KEY_ID: ${{ secrets.FLATPAK_GPG_KEY_ID }}
-        run: flatpak build-bundle --gpg-sign="$FLATPAK_GPG_KEY_ID" flatpak-repo de.vito0912.yaabsa.flatpak de.vito0912.yaabsa master
+        run: flatpak build-bundle --arch="${{ matrix.arch }}" --gpg-sign="$FLATPAK_GPG_KEY_ID" flatpak-repo "de.vito0912.yaabsa_${{ matrix.arch }}.flatpak" de.vito0912.yaabsa master
 
       - name: Build Flatpak bundle for non-master
         if: github.ref != 'refs/heads/master'
-        run: flatpak build-bundle flatpak-repo de.vito0912.yaabsa.flatpak de.vito0912.yaabsa master
+        run: flatpak build-bundle --arch="${{ matrix.arch }}" flatpak-repo "de.vito0912.yaabsa_${{ matrix.arch }}.flatpak" de.vito0912.yaabsa master
+
+      - name: Rename Flatpak artifact
+        shell: bash
+        env:
+          FILE_VERSION: ${{ needs.changes.outputs.file_version }}
+        run: |
+          set -euo pipefail
+
+          if [[ ! -f "de.vito0912.yaabsa_${{ matrix.arch }}.flatpak" ]]; then
+            echo "Flatpak bundle not found."
+            exit 1
+          fi
+
+          mkdir -p output/linux
+          mv "de.vito0912.yaabsa_${{ matrix.arch }}.flatpak" "output/linux/yaabsa_${FILE_VERSION}_${{ matrix.arch }}.flatpak"
+
+      - name: Upload Flatpak artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: linux-flatpak-${{ matrix.arch }}
+          path: output/linux/yaabsa_*_${{ matrix.arch }}.flatpak
+
+  combine-flatpak:
+    runs-on: ubuntu-26.04
+    needs:
+      - build-flatpak
+    if: ${{ github.ref == 'refs/heads/master' && needs.build-flatpak.result == 'success' }}
+    timeout-minutes: 15
+    environment: prod
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install Flatpak
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak
+
+      - name: Download x86_64 Flatpak repository
+        uses: actions/download-artifact@v8
+        with:
+          name: flatpak-repo-x86_64
+          path: flatpak-repos/x86_64
+
+      - name: Download aarch64 Flatpak repository
+        uses: actions/download-artifact@v8
+        with:
+          name: flatpak-repo-aarch64
+          path: flatpak-repos/aarch64
+
+      - name: Configure GPG signing key
+        env:
+          FLATPAK_GPG_PRIVATE_KEY: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
+          FLATPAK_GPG_KEY_ID: ${{ secrets.FLATPAK_GPG_KEY_ID }}
+          FLATPAK_GPG_PASSPHRASE: ${{ secrets.FLATPAK_GPG_PASSPHRASE }}
+        run: |
+          mkdir -p ~/.gnupg
+          chmod 700 ~/.gnupg
+          printf '%s' "$FLATPAK_GPG_PRIVATE_KEY" | gpg --batch --import
+          if [ -n "$FLATPAK_GPG_PASSPHRASE" ]; then
+            echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf
+            echo "allow-loopback-pinentry" >> ~/.gnupg/gpg-agent.conf
+            echo "default-cache-ttl 7200" >> ~/.gnupg/gpg-agent.conf
+            echo "max-cache-ttl 7200" >> ~/.gnupg/gpg-agent.conf
+            gpgconf --kill gpg-agent
+            gpgconf --launch gpg-agent
+            printf 'unlock' > /tmp/gpg-unlock.txt
+            gpg --batch --yes --pinentry-mode loopback --passphrase "$FLATPAK_GPG_PASSPHRASE" --local-user "$FLATPAK_GPG_KEY_ID" --output /tmp/gpg-unlock.sig --detach-sign /tmp/gpg-unlock.txt
+          fi
+
+      - name: Combine and finalize Flatpak repository
+        env:
+          FLATPAK_GPG_KEY_ID: ${{ secrets.FLATPAK_GPG_KEY_ID }}
+        run: |
+          set -euo pipefail
+
+          mkdir -p flatpak-repo
+          cp -a flatpak-repos/x86_64/. flatpak-repo/
+          cp -a flatpak-repos/aarch64/objects/. flatpak-repo/objects/
+          cp -a flatpak-repos/aarch64/refs/. flatpak-repo/refs/
+          flatpak build-update-repo --gpg-sign="$FLATPAK_GPG_KEY_ID" --generate-static-deltas --prune flatpak-repo
+
+      - name: Verify multi-architecture Flatpak repository
+        run: |
+          set -euo pipefail
+          for arch in x86_64 aarch64; do
+            test -f "flatpak-repo/refs/heads/app/de.vito0912.yaabsa/${arch}/master"
+          done
 
       - name: Prepare GitHub Pages content
-        if: github.ref == 'refs/heads/master'
         env:
           FLATPAK_GPG_KEY_ID: ${{ secrets.FLATPAK_GPG_KEY_ID }}
           REPO_OWNER: ${{ github.repository_owner }}
           REPO_NAME: ${{ github.event.repository.name }}
           REPO_SLUG: ${{ github.repository }}
         run: |
+          set -euo pipefail
+
           PAGES_URL="https://${REPO_OWNER}.github.io/${REPO_NAME}/"
           HOMEPAGE_URL="https://github.com/${REPO_SLUG}"
           ICON_URL="https://raw.githubusercontent.com/${REPO_SLUG}/master/assets/logo_blue_fill.svg"
@@ -578,38 +692,16 @@ jobs:
             flatpak-pages/de.vito0912.yaabsa.flatpakrepo
 
       - name: Upload Flatpak Pages artifact
-        if: github.ref == 'refs/heads/master'
         uses: actions/upload-artifact@v7
         with:
           name: flatpak-pages
           path: flatpak-pages
 
-      - name: Rename Flatpak artifact
-        shell: bash
-        env:
-          FILE_VERSION: ${{ needs.changes.outputs.file_version }}
-        run: |
-          set -euo pipefail
-
-          if [[ ! -f de.vito0912.yaabsa.flatpak ]]; then
-            echo "Flatpak bundle not found."
-            exit 1
-          fi
-
-          mkdir -p output/linux
-          mv de.vito0912.yaabsa.flatpak "output/linux/yaabsa_${FILE_VERSION}.flatpak"
-
-      - name: Upload Flatpak artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: linux-flatpak
-          path: output/linux/yaabsa_*.flatpak
-
   deploy-pages:
     if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     needs:
-      - build-flatpak
+      - combine-flatpak
       - build-web
     permissions:
       pages: write
@@ -1024,7 +1116,7 @@ jobs:
             artifact_key="${rel%%/*}"
             rel_path="${rel#*/}"
 
-            if [[ "$artifact_key" == "github-pages" || "$artifact_key" == "web-pages" || "$artifact_key" == "flatpak-pages" ]]; then
+            if [[ "$artifact_key" == "github-pages" || "$artifact_key" == "web-pages" || "$artifact_key" == "flatpak-pages" || "$artifact_key" == flatpak-repo-* ]]; then
               continue
             fi
 

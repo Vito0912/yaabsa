@@ -143,7 +143,7 @@ modules:
   - name: yaabsa
     buildsystem: simple
     build-commands:
-      - test -x bundle/yaabsa || (echo "Missing build/linux/x64/release/bundle. Run: flutter build linux --release" && exit 1)
+      - test -x bundle/yaabsa || (echo "Missing Flutter Linux release bundle. Run: flutter build linux --release" && exit 1)
       - install -Dm644 de.vito0912.yaabsa.metainfo.xml /app/share/metainfo/de.vito0912.yaabsa.metainfo.xml
       - install -Dm644 de.vito0912.yaabsa.desktop /app/share/applications/de.vito0912.yaabsa.desktop
       - install -Dm644 app-icon.svg /app/share/icons/hicolor/scalable/apps/de.vito0912.yaabsa.svg
@@ -155,6 +155,13 @@ modules:
       - type: dir
         path: ../../../build/linux/x64/release/bundle
         dest: bundle
+        only-arches:
+          - x86_64
+      - type: dir
+        path: ../../../build/linux/arm64/release/bundle
+        dest: bundle
+        only-arches:
+          - aarch64
       - type: file
         path: de.vito0912.yaabsa.desktop
       - type: file
