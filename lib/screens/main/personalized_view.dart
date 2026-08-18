@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:yaabsa/api/library/filter_data/library_filter_data.dart';
 import 'package:yaabsa/api/library/personalized_library.dart';
 import 'package:yaabsa/api/library_items/author.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
@@ -21,6 +22,7 @@ import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/common/library_filter_data_provider.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
+import 'package:yaabsa/provider/core/server_reachability_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/library/personalized_library_provider.dart';
@@ -39,9 +41,20 @@ class PersonalizedView extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final scrollController = useScrollController();
     final editingItemId = useState<String?>(null);
+    final currentUserAsync = ref.watch(currentUserProvider);
+    final librariesAsync = ref.watch(userLibrariesProvider);
+    final selectedLibraryIdAsync = ref.watch(selectedLibraryIdProvider);
     final selectedLibrary = ref.watch(selectedLibraryProvider);
 
     if (selectedLibrary == null) {
+      final isResolvingLibrary =
+          (currentUserAsync.isLoading && !currentUserAsync.hasValue) ||
+          (librariesAsync.isLoading && !librariesAsync.hasValue) ||
+          (selectedLibraryIdAsync.isLoading && !selectedLibraryIdAsync.hasValue);
+      if (isResolvingLibrary) {
+        return const Center(child: CircularProgressIndicator());
+      }
+
       return const Center(child: Text('No library selected. Please select a library via the switcher.'));
     }
 
@@ -73,8 +86,9 @@ class PersonalizedView extends HookConsumerWidget {
       showShelfPlayButtonSettingValue.value,
       defaultSettings[SettingKeys.personalizedShelfShowPlayVisibleButton] as bool,
     );
-    final filterDataAsync = ref.watch(libraryFilterDataProvider(selectedLibrary.id));
-    final currentUserAsync = ref.watch(currentUserProvider);
+    final filterDataAsync = serverReachable
+        ? ref.watch(libraryFilterDataProvider(selectedLibrary.id))
+        : const AsyncData<LibraryFilterData?>(null);
     final currentUser = currentUserAsync.value;
     ref.watch(userSettingsWatcherProvider);
     final managementPreferences = readServerManagementPreferences(ref, currentUser?.id);
@@ -136,7 +150,25 @@ class PersonalizedView extends HookConsumerWidget {
         ? personalizedLibraryAsyncValue.error
         : null;
 
-    if (libraryError != null) {
+    final shelfMediaType = HomeLibraryMediaType.fromLibraryMediaType(selectedLibrary.mediaType);
+    final shelfSettingKey = PersonalizedShelfPreferencesCodec.settingKeyFor(shelfMediaType);
+    final shelfDefaultValue = PersonalizedShelfPreferencesCodec.defaultEncodedFor(shelfMediaType);
+    final shelfSettingValue = currentUser == null
+        ? shelfDefaultValue
+        : ref
+              .read(settingsManagerProvider.notifier)
+              .getUserSetting<String>(currentUser.id, shelfSettingKey, defaultValue: shelfDefaultValue);
+    final shelfPreferences = PersonalizedShelfPreferencesCodec.decode(shelfSettingValue, shelfMediaType);
+    final downloadsSectionEnabled =
+        shelfPreferences.orderedSectionIds.contains('downloads') &&
+        !shelfPreferences.hiddenSectionIds.contains('downloads');
+    final showOfflineDownloadsOnly =
+        !serverReachable &&
+        personalizedLibrary == null &&
+        downloadsSectionEnabled &&
+        (downloadItems?.isNotEmpty ?? false);
+
+    if (libraryError != null && !showOfflineDownloadsOnly) {
       final title = serverReachable ? 'Could not load personalized shelf' : 'Server connection unavailable';
       final message = serverReachable
           ? 'Pull down to retry loading personalized sections.'
@@ -152,7 +184,7 @@ class PersonalizedView extends HookConsumerWidget {
     }
 
     final api = ref.watch(absApiProvider);
-    if (api == null && !isLibraryLoading) {
+    if (api == null && !isLibraryLoading && !showOfflineDownloadsOnly) {
       return _PersonalizedFeedbackView(
         icon: Icons.cloud_off_rounded,
         title: 'No server connection available',
@@ -161,7 +193,7 @@ class PersonalizedView extends HookConsumerWidget {
       );
     }
 
-    if (personalizedLibrary == null && !isLibraryLoading) {
+    if (personalizedLibrary == null && !isLibraryLoading && !showOfflineDownloadsOnly) {
       return _PersonalizedFeedbackView(
         icon: serverReachable ? Icons.auto_awesome_outlined : Icons.cloud_off_rounded,
         title: serverReachable ? 'No personalized items found' : 'Personalized shelf is offline',
@@ -171,16 +203,6 @@ class PersonalizedView extends HookConsumerWidget {
         onRefresh: refreshPersonalizedLibrary,
       );
     }
-
-    final shelfMediaType = HomeLibraryMediaType.fromLibraryMediaType(selectedLibrary.mediaType);
-    final shelfSettingKey = PersonalizedShelfPreferencesCodec.settingKeyFor(shelfMediaType);
-    final shelfDefaultValue = PersonalizedShelfPreferencesCodec.defaultEncodedFor(shelfMediaType);
-    final shelfSettingValue = currentUser == null
-        ? shelfDefaultValue
-        : ref
-              .read(settingsManagerProvider.notifier)
-              .getUserSetting<String>(currentUser.id, shelfSettingKey, defaultValue: shelfDefaultValue);
-    final shelfPreferences = PersonalizedShelfPreferencesCodec.decode(shelfSettingValue, shelfMediaType);
 
     final List<_SectionData> sections;
     if (isLibraryLoading) {
@@ -214,7 +236,7 @@ class PersonalizedView extends HookConsumerWidget {
         }
       }
     } else {
-      var rawSections = _buildSections(personalizedLibrary!, downloadItems);
+      var rawSections = _buildSections(personalizedLibrary ?? const PersonalizedLibrary(), downloadItems);
       sections = _applyShelfSectionPreferences(rawSections, shelfPreferences);
     }
 
@@ -350,10 +372,9 @@ Future<void> _retryPersonalizedLibrary({
   required String libraryId,
   required bool withLoading,
 }) async {
-  ref.invalidate(currentUserProvider);
-  ref.invalidate(serverStatusProvider);
-
-  await ref.read(currentUserProvider.future);
+  if (!ref.read(serverReachabilityProvider)) {
+    ref.invalidate(serverStatusProvider);
+  }
 
   await ref.read(personalizedLibraryProvider(libraryId).notifier).refresh(libraryId, withLoading: withLoading);
 }

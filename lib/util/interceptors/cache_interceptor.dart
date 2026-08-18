@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/provider/core/server_reachability_provider.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/network/dio_factory.dart';
@@ -163,8 +164,10 @@ class CacheInterceptor extends Interceptor {
       if (cachedData != null) {
         final DateTime cachedTime = DateTime.parse(cachedData['timestamp']);
         final DateTime now = DateTime.now();
+        final isFresh = now.difference(cachedTime) < matchingRoute.cacheDuration;
+        final serverReachable = container.read(serverReachabilityProvider);
 
-        if (now.difference(cachedTime) < matchingRoute.cacheDuration) {
+        if (isFresh || !serverReachable) {
           final decodedHeaders = jsonDecode(cachedData['headers']) as Map<String, dynamic>;
           final headers = decodedHeaders.map<String, List<String>>((key, dynamic value) {
             if (value is List) {
@@ -174,7 +177,11 @@ class CacheInterceptor extends Interceptor {
             }
           });
 
-          logger('Cache hit: ${options.uri.toString()}', tag: 'CacheInterceptor', level: InfoLevel.debug);
+          logger(
+            isFresh ? 'Cache hit: ${options.uri.toString()}' : 'Offline cache hit: ${options.uri.toString()}',
+            tag: 'CacheInterceptor',
+            level: InfoLevel.debug,
+          );
           handler.resolve(
             Response(
               requestOptions: options,
@@ -185,7 +192,7 @@ class CacheInterceptor extends Interceptor {
             ),
           );
 
-          if (boostLoading) {
+          if (boostLoading && serverReachable) {
             final refreshedExtra = Map<String, dynamic>.from(options.extra)..['noCache'] = true;
             final refreshedOptions = options.copyWith(extra: refreshedExtra);
 

@@ -59,7 +59,12 @@ Stream<bool> serverStatus(Ref ref) async* {
       return;
     }
 
-    final currentUser = ref.read(currentUserProvider).value;
+    final currentUserAsync = ref.read(currentUserProvider);
+    if (currentUserAsync.isLoading) {
+      return;
+    }
+
+    final currentUser = currentUserAsync.value;
     final server = currentUser?.server;
     if (currentUser == null || server == null) {
       markUnreachable('current_user_or_server.null');

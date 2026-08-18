@@ -107,7 +107,7 @@ final class UserLibrariesProvider
   }
 }
 
-String _$userLibrariesHash() => r'e5aa67333a7f2e71126fb40bd7308963ae3482a7';
+String _$userLibrariesHash() => r'1ff8db25b7c1cb0464a9f413ad57ff2e4b6ddd05';
 
 @ProviderFor(SelectedLibraryId)
 final selectedLibraryIdProvider = SelectedLibraryIdProvider._();
@@ -132,7 +132,7 @@ final class SelectedLibraryIdProvider extends $StreamNotifierProvider<SelectedLi
   SelectedLibraryId create() => SelectedLibraryId();
 }
 
-String _$selectedLibraryIdHash() => r'0bdbdcc1360b62a965a0489186f0fef8133c10b3';
+String _$selectedLibraryIdHash() => r'0e8ed3e5f327225bdcd3e5b9b98e95185feac0b9';
 
 abstract class _$SelectedLibraryId extends $StreamNotifier<String?> {
   Stream<String?> build();

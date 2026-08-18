@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:yaabsa/api/library/library.dart';
 import 'package:yaabsa/database/app_database.dart';
+import 'package:yaabsa/provider/core/server_reachability_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -25,6 +26,11 @@ Stream<String?> userLibrariesOrder(Ref ref, String userId) {
 @riverpod
 Future<List<Library>> userLibraries(Ref ref) async {
   final activeUserId = ref.watch(currentUserProvider).value?.id;
+  ref.listen<bool>(serverReachabilityProvider, (previous, next) {
+    if (previous != next && next) {
+      Future.microtask(ref.invalidateSelf);
+    }
+  });
 
   String? customOrderRaw;
   if (activeUserId != null) {
@@ -196,6 +202,11 @@ class SelectedLibraryId extends _$SelectedLibraryId {
 
       final library = Library.fromJson(Map<String, dynamic>.from(decoded));
       _selectedLibraryCacheByUserId[userId] = library;
+      Future.microtask(() {
+        if (ref.mounted && ref.read(currentUserProvider).value?.id == userId) {
+          ref.invalidateSelf();
+        }
+      });
     } catch (e, s) {
       logger(
         'SelectedLibraryIdProvider: Failed to hydrate selected library snapshot for user $userId: $e\n$s',

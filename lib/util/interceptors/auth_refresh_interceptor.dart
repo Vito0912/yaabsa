@@ -8,6 +8,7 @@ import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/api/routes/interceptors/bearer_auth_interceptor.dart';
 import 'package:yaabsa/api/routes/interceptors/o_auth_interceptor.dart';
 import 'package:yaabsa/database/app_database.dart';
+import 'package:yaabsa/provider/core/server_reachability_provider.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/network/dio_factory.dart';
 
@@ -28,6 +29,16 @@ class AuthRefreshInterceptor extends Interceptor {
   Future<void> onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
     if (_shouldSkip(options)) {
       return handler.next(options);
+    }
+
+    if (!container.read(serverReachabilityProvider)) {
+      return handler.reject(
+        DioException(
+          requestOptions: options,
+          error: 'Audiobookshelf server is currently unreachable.',
+          type: DioExceptionType.connectionError,
+        ),
+      );
     }
 
     final authHeader = options.headers['Authorization'] as String?;
@@ -140,6 +151,10 @@ class AuthRefreshInterceptor extends Interceptor {
       return inFlight.future;
     }
 
+    if (!container.read(serverReachabilityProvider)) {
+      return null;
+    }
+
     logger(
       'Token is expired or invalid according to JWT. Attempting refresh from server.',
       tag: 'AuthRefreshInterceptor',
@@ -180,7 +195,7 @@ class AuthRefreshInterceptor extends Interceptor {
             options: BaseOptions(
               baseUrl: activeUser.server!.url,
               connectTimeout: const Duration(seconds: 3),
-              receiveTimeout: const Duration(seconds: 20),
+              receiveTimeout: const Duration(seconds: 5),
               headers: activeUser.server!.headers,
             ),
           ),
@@ -217,6 +232,9 @@ class AuthRefreshInterceptor extends Interceptor {
 
         if (e is DioException) {
           final status = e.response?.statusCode;
+          if (_isConnectivityFailure(e)) {
+            container.read(serverReachabilityProvider.notifier).setUnreachable();
+          }
           if (status == 401 || status == 403) {
             logger(
               'Refresh returned $status. Removing user session.',
@@ -235,6 +253,18 @@ class AuthRefreshInterceptor extends Interceptor {
     }();
 
     return completer.future;
+  }
+
+  static bool _isConnectivityFailure(DioException error) {
+    if (error.type == DioExceptionType.connectionTimeout ||
+        error.type == DioExceptionType.sendTimeout ||
+        error.type == DioExceptionType.receiveTimeout ||
+        error.type == DioExceptionType.connectionError) {
+      return true;
+    }
+
+    final statusCode = error.response?.statusCode;
+    return statusCode == 502 || statusCode == 503 || statusCode == 504;
   }
 
   Future<Response<dynamic>> _retryRequest({

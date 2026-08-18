@@ -85,7 +85,6 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
   String? _lastConsumedTabIntent;
   String? _lastConsumedUploadIntent;
   _PageSource _currentlyDisplayedPageSource = _PageSource.internal;
-  String? _bootstrappedUserId;
   final TextEditingController _searchController = TextEditingController();
   Timer? _searchDebounce;
   String _searchQuery = '';
@@ -473,57 +472,8 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
     );
   }
 
-  bool _isBootstrapping() {
-    final currentUserAsync = ref.watch(currentUserProvider);
-    if (currentUserAsync.isLoading && !currentUserAsync.hasValue) {
-      return true;
-    }
-
-    if (currentUserAsync.hasError) {
-      return false;
-    }
-
-    final currentUser = currentUserAsync.value;
-    if (currentUser == null) {
-      _bootstrappedUserId = null;
-      return false;
-    }
-
-    final userId = currentUser.id;
-    if (_bootstrappedUserId == userId) {
-      return false;
-    }
-
-    final librariesAsync = ref.watch(userLibrariesProvider);
-    final selectedLibraryIdAsync = ref.watch(selectedLibraryIdProvider);
-
-    if (librariesAsync.hasError || selectedLibraryIdAsync.hasError) {
-      _bootstrappedUserId = userId;
-      return false;
-    }
-
-    if ((librariesAsync.isLoading && !librariesAsync.hasValue) ||
-        (selectedLibraryIdAsync.isLoading && !selectedLibraryIdAsync.hasValue)) {
-      return true;
-    }
-
-    final libraries = librariesAsync.value ?? const [];
-    final selectedLibraryId = selectedLibraryIdAsync.value;
-
-    if (libraries.isNotEmpty && selectedLibraryId == null) {
-      return true;
-    }
-
-    _bootstrappedUserId = userId;
-    return false;
-  }
-
   @override
   Widget build(BuildContext context) {
-    if (_isBootstrapping()) {
-      return const _LayoutHomeStartupScreen();
-    }
-
     final currentUser = ref.watch(currentUserProvider).value;
     final updateInfo = ref.watch(serverUpdateStateProvider).value;
     final showUpdate = updateInfo != null && updateInfo.isUpdateAvailable && !updateInfo.isDismissed;

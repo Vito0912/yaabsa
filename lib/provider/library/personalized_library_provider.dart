@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:yaabsa/api/library/personalized_library.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/provider/common/library_item_events.dart';
+import 'package:yaabsa/provider/core/server_reachability_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:dio/dio.dart';
@@ -28,6 +29,10 @@ class PersonalizedLibraryNotifier extends _$PersonalizedLibraryNotifier {
     final api = ref.read(absApiProvider);
     final cacheKey = _personalizedCacheKey(libraryId: libraryId, userId: userId);
     final cachedLibrary = _personalizedLibraryCacheByUserLibraryKey[cacheKey];
+
+    if (!ref.read(serverReachabilityProvider)) {
+      return cachedLibrary;
+    }
 
     if (api == null) {
       if (cachedLibrary != null) {
@@ -93,6 +98,12 @@ class PersonalizedLibraryNotifier extends _$PersonalizedLibraryNotifier {
 
   @override
   Future<PersonalizedLibrary?> build(String libraryId) async {
+    ref.listen<bool>(serverReachabilityProvider, (previous, next) {
+      if (previous != next && next) {
+        Future.microtask(ref.invalidateSelf);
+      }
+    });
+
     ref.listen<LibraryItemMutation?>(libraryItemMutationProvider, (previous, next) {
       if (next == null) {
         return;

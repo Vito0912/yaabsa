@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ServerReachabilityNotifier extends Notifier<bool> {
   @override
-  bool build() => false;
+  bool build() => true;
 
   void setReachable() {
     state = true;
