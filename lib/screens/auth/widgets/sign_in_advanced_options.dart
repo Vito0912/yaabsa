@@ -9,6 +9,7 @@ class SignInAdvancedOptions extends StatelessWidget {
     required this.allowsApiKey,
     required this.useApiKey,
     required this.onUseApiKeyChanged,
+    required this.onImportMagicConfig,
     required this.customHeaders,
     required this.onAddHeader,
     required this.onEditHeader,
@@ -21,6 +22,7 @@ class SignInAdvancedOptions extends StatelessWidget {
   final bool allowsApiKey;
   final bool useApiKey;
   final ValueChanged<bool> onUseApiKeyChanged;
+  final VoidCallback onImportMagicConfig;
   final Map<String, String> customHeaders;
   final VoidCallback onAddHeader;
   final ValueChanged<String> onEditHeader;
@@ -48,58 +50,66 @@ class SignInAdvancedOptions extends StatelessWidget {
               border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (allowsApiKey)
-                  SwitchListTile.adaptive(
-                    value: useApiKey,
-                    contentPadding: EdgeInsets.zero,
-                    onChanged: isLoading ? null : onUseApiKeyChanged,
-                    title: const Text('Use API Key'),
-                    subtitle: const Text('Authenticate with a generated API key instead of username/password.'),
-                  ),
-                Row(
-                  children: [
-                    Text('Custom Headers', style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
-                    const Spacer(),
-                    TextButton.icon(
-                      onPressed: isLoading ? null : onAddHeader,
-                      icon: const Icon(Icons.add_rounded),
-                      label: const Text('Add Header'),
-                    ),
-                  ],
-                ),
-                if (customHeaders.isEmpty)
-                  Text(
-                    'No custom headers configured.',
-                    style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
-                  )
-                else
-                  ...customHeaders.entries.map((entry) {
-                    return ListTile(
-                      dense: true,
+            child: Material(
+              color: Colors.transparent,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (allowsApiKey)
+                    SwitchListTile.adaptive(
+                      value: useApiKey,
                       contentPadding: EdgeInsets.zero,
-                      title: Text(entry.key, maxLines: 1, overflow: TextOverflow.ellipsis),
-                      subtitle: Text(entry.value, maxLines: 1, overflow: TextOverflow.ellipsis),
-                      trailing: Wrap(
-                        spacing: 0,
-                        children: [
-                          IconButton(
-                            tooltip: 'Edit header',
-                            onPressed: isLoading ? null : () => onEditHeader(entry.key),
-                            icon: const Icon(Icons.edit_outlined),
-                          ),
-                          IconButton(
-                            tooltip: 'Remove header',
-                            onPressed: isLoading ? null : () => onRemoveHeader(entry.key),
-                            icon: const Icon(Icons.delete_outline),
-                          ),
-                        ],
+                      onChanged: isLoading ? null : onUseApiKeyChanged,
+                      title: const Text('Use API Key'),
+                      subtitle: const Text('Authenticate with a generated API key instead of username/password.'),
+                    ),
+                  OutlinedButton.icon(
+                    onPressed: isLoading ? null : onImportMagicConfig,
+                    icon: const Icon(Icons.qr_code_2_rounded),
+                    label: const Text('Import Authentication Code'),
+                  ),
+                  Row(
+                    children: [
+                      Text('Custom Headers', style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
+                      const Spacer(),
+                      TextButton.icon(
+                        onPressed: isLoading ? null : onAddHeader,
+                        icon: const Icon(Icons.add_rounded),
+                        label: const Text('Add Header'),
                       ),
-                    );
-                  }),
-              ],
+                    ],
+                  ),
+                  if (customHeaders.isEmpty)
+                    Text(
+                      'No custom headers configured.',
+                      style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                    )
+                  else
+                    ...customHeaders.entries.map((entry) {
+                      return ListTile(
+                        dense: true,
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(entry.key, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        subtitle: Text(entry.value, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        trailing: Wrap(
+                          spacing: 0,
+                          children: [
+                            IconButton(
+                              tooltip: 'Edit header',
+                              onPressed: isLoading ? null : () => onEditHeader(entry.key),
+                              icon: const Icon(Icons.edit_outlined),
+                            ),
+                            IconButton(
+                              tooltip: 'Remove header',
+                              onPressed: isLoading ? null : () => onRemoveHeader(entry.key),
+                              icon: const Icon(Icons.delete_outline),
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
+                ],
+              ),
             ),
           ),
       ],

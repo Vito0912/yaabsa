@@ -39,6 +39,8 @@
     <string>This app needs access to the accelerometer to allow actions when you shake your device. You can reset the sleep timer or rewind the current audio by shaking. The app only listens for these actions if the setting is turned on and you can use the feature (for example, shaking to rewind only works if audio is playing). No acceleration data is sent anywhere.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>${PRODUCT_NAME} uses the local network to discover Cast-enabled devices on your WiFi network.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>yaabsa uses the camera to scan Authentication Code QR codes.</string>
 	<key>NSAppleMusicUsageDescription</key>
 	<string>${PRODUCT_NAME} needs access to audio files to add the possibility of uploading them to the server.</string>
 	<key>NSPhotoLibraryUsageDescription</key>

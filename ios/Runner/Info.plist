@@ -46,6 +46,8 @@
 	</dict>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>${PRODUCT_NAME} uses the local network to discover Cast-enabled devices on your WiFi network.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>yaabsa uses the camera to scan Authentication Code QR codes.</string>
 	<key>NSAppleMusicUsageDescription</key>
 	<string>${PRODUCT_NAME} needs access to audio files to add the possibility of uploading them to the server.</string>
 	<key>NSPhotoLibraryUsageDescription</key>

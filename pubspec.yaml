@@ -37,6 +37,7 @@ dependencies:
   audio_service:
     path: ./packages/audio_service/audio_service
   dio: ^5.11.0
+  jose: ^0.3.5+2
   native_dio_adapter: ^1.8.0
   crypto: ^3.0.7
   drift: ^2.34.3
@@ -53,6 +54,9 @@ dependencies:
   connectivity_plus: ^7.3.1
   url_launcher: ^6.3.2
   app_links: ^7.2.1
+  mobile_scanner: ^7.4.0
+  qr_flutter: ^4.1.0
+  share_plus: ^13.3.0
   file_picker: ^12.0.0-beta.7 # https://github.com/miguelpruivo/flutter_file_picker/pull/1981#issuecomment-4288987328
   desktop_drop: ^0.7.1
   flutter_secure_storage: ^11.0.0

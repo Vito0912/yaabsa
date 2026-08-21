@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/api/admin/admin_authentication_settings.dart';
 import 'package:yaabsa/components/app/item/editor/library_item_description_codec.dart';
 import 'package:yaabsa/api/admin/update_admin_authentication_settings_request.dart';
+import 'package:yaabsa/api/magic/magic_config.dart';
 import 'package:yaabsa/components/common/list_management_dialogs.dart';
 import 'package:yaabsa/components/settings/authentication/admin_authentication_settings_panel.dart';
 import 'package:yaabsa/components/settings/authentication/admin_authentication_settings_validation.dart';
@@ -54,6 +55,7 @@ class _AdminServerAuthenticationViewState extends ConsumerState<AdminServerAuthe
   String _callbackUrlBase = 'https://<your.server.com>';
   String _webCallbackUrl = '';
   String _mobileCallbackUrl = '';
+  MagicConfigKeyMarker? _magicConfigKeyMarker;
 
   String? _errorMessage;
   String? _authMethodsError;
@@ -345,7 +347,14 @@ class _AdminServerAuthenticationViewState extends ConsumerState<AdminServerAuthe
         return;
       }
 
-      final customMessageDocument = quillDocumentFromHtml(nextSettings.authLoginCustomMessage);
+      _magicConfigKeyMarker =
+          MagicConfigKeyMarker.extract(nextSettings.authLoginCustomMessage) ??
+          MagicConfigKeyMarker.fromSerializedName(
+            MagicConfigKeyMarker.extractFromSanitizedHtml(nextSettings.authLoginCustomMessage),
+          );
+      final customMessageDocument = quillDocumentFromHtml(
+        MagicConfigKeyMarker.visibleHtml(nextSettings.authLoginCustomMessage),
+      );
       _customLoginMessageController.dispose();
       _customLoginMessageController = QuillController(
         document: customMessageDocument,
@@ -368,7 +377,8 @@ class _AdminServerAuthenticationViewState extends ConsumerState<AdminServerAuthe
       _refreshCallbackPreviews();
 
       setState(() {
-        _showCustomLoginMessage = (nextSettings.authLoginCustomMessage ?? '').trim().isNotEmpty;
+        _showCustomLoginMessage =
+            MagicConfigKeyMarker.visibleHtml(nextSettings.authLoginCustomMessage)?.trim().isNotEmpty ?? false;
         _enableLocalAuth = nextSettings.localAuthEnabled;
         _enableOpenIdAuth = nextSettings.openIdAuthEnabled;
         _authOpenIdAutoLaunch = nextSettings.authOpenIdAutoLaunch;
@@ -392,6 +402,86 @@ class _AdminServerAuthenticationViewState extends ConsumerState<AdminServerAuthe
         _hasLoadedSettings = true;
         _errorMessage = listManagementErrorMessage(error, fallback: 'Failed to load authentication settings.');
       });
+    }
+  }
+
+  Future<void> _rotateMagicKey() async {
+    if (_magicConfigKeyMarker == null || _isSavingSettings || _isLoading) {
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Rotate Authentication Code key?'),
+        content: const Text(
+          'Authentication Codes created with the previous key will stop working. Existing signed-in accounts are not affected.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Rotate key')),
+        ],
+      ),
+    );
+    if (!mounted || confirmed != true) {
+      return;
+    }
+
+    final api = ref.read(absApiProvider);
+    if (api == null) {
+      _showMessage('No active API client.');
+      return;
+    }
+
+    setState(() {
+      _isSavingSettings = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final settings = (await api.getAdminApi().getAuthenticationSettings()).data;
+      final currentMarker =
+          MagicConfigKeyMarker.extract(settings?.authLoginCustomMessage) ??
+          MagicConfigKeyMarker.fromSerializedName(
+            MagicConfigKeyMarker.extractFromSanitizedHtml(settings?.authLoginCustomMessage),
+          );
+      if (currentMarker == null) {
+        _showMessage('Authentication Code key is no longer available. Refresh the settings and try again.');
+        return;
+      }
+
+      final marker = MagicConfigKeyMarker.generate();
+      await api.getAdminApi().updateAuthenticationSettings(
+        payload: UpdateAdminAuthenticationSettingsRequest(
+          authLoginCustomMessage: MagicConfigKeyMarker.appendToHtml(settings?.authLoginCustomMessage, marker),
+        ),
+      );
+      final savedSettings = (await api.getAdminApi().getAuthenticationSettings()).data;
+      final savedMarker =
+          MagicConfigKeyMarker.extract(savedSettings?.authLoginCustomMessage) ??
+          MagicConfigKeyMarker.fromSerializedName(
+            MagicConfigKeyMarker.extractFromSanitizedHtml(savedSettings?.authLoginCustomMessage),
+          );
+      if (savedMarker == null || savedMarker.encodedKey != marker.encodedKey) {
+        throw const FormatException('Audiobookshelf did not preserve the new Authentication Code key.');
+      }
+      if (!mounted) {
+        return;
+      }
+      _showMessage('Authentication Code key rotated. Codes created with the previous key are invalid now.');
+      await _loadAuthenticationSettings(showLoading: false);
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = listManagementErrorMessage(error, fallback: 'Failed to rotate Authentication Code key.');
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSavingSettings = false;
+        });
+      }
     }
   }
 
@@ -503,7 +593,10 @@ class _AdminServerAuthenticationViewState extends ConsumerState<AdminServerAuthe
   UpdateAdminAuthenticationSettingsRequest _buildUpdateRequest() {
     final subfolder = _resolveSubfolderPayloadValue();
     final normalizedRedirectUris = AdminAuthenticationSettingsValidation.normalizeRedirectUris(_mobileRedirectUris);
-    final customLoginMessageHtml = _showCustomLoginMessage ? _currentCustomLoginMessageHtml() : null;
+    final visibleCustomLoginMessageHtml = _showCustomLoginMessage ? _currentCustomLoginMessageHtml() : null;
+    final customLoginMessageHtml = _magicConfigKeyMarker == null
+        ? visibleCustomLoginMessageHtml
+        : MagicConfigKeyMarker.appendToHtml(visibleCustomLoginMessageHtml, _magicConfigKeyMarker!);
 
     return UpdateAdminAuthenticationSettingsRequest(
       authLoginCustomMessage: customLoginMessageHtml,
@@ -747,6 +840,29 @@ class _AdminServerAuthenticationViewState extends ConsumerState<AdminServerAuthe
               child: ListView(
                 padding: const EdgeInsets.only(bottom: 20),
                 children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                    child: Wrap(
+                      alignment: WrapAlignment.end,
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        OutlinedButton.icon(
+                          onPressed: _isLoading
+                              ? null
+                              : () => unawaited(_loadAuthenticationSettings(showLoading: true)),
+                          icon: const Icon(Icons.refresh_rounded),
+                          label: const Text('Refresh'),
+                        ),
+                        if (_magicConfigKeyMarker != null)
+                          OutlinedButton.icon(
+                            onPressed: _isLoading || _isSavingSettings ? null : _rotateMagicKey,
+                            icon: const Icon(Icons.key_outlined),
+                            label: const Text('Rotate Authentication Code key'),
+                          ),
+                      ],
+                    ),
+                  ),
                   if (_errorMessage != null) ...[
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),

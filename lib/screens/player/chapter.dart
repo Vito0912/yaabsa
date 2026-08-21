@@ -79,16 +79,19 @@ class _ChapterViewState extends State<ChapterView> {
               itemCount: chapters.length,
               itemBuilder: (context, index) {
                 final chapter = chapters[index];
-                return ListTile(
-                  title: Text(chapter.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-                  subtitle: Text(
-                    '${chapter.start.toDuration.toHhMmString()} - ${chapter.end.toDuration.toHhMmString()}',
+                return Material(
+                  color: Colors.transparent,
+                  child: ListTile(
+                    title: Text(chapter.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+                    subtitle: Text(
+                      '${chapter.start.toDuration.toHhMmString()} - ${chapter.end.toDuration.toHhMmString()}',
+                    ),
+                    selected: chapter == currentChapter,
+                    selectedTileColor: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.2),
+                    onTap: () {
+                      audioHandler.seekAbsolute(chapter.start.toDuration);
+                    },
                   ),
-                  selected: chapter == currentChapter,
-                  selectedTileColor: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.2),
-                  onTap: () {
-                    audioHandler.seekAbsolute(chapter.start.toDuration);
-                  },
                 );
               },
             );

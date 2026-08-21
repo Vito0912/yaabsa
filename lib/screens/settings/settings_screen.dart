@@ -7,7 +7,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:yaabsa/api/me/user.dart';
+import 'package:yaabsa/api/magic/magic_config.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
+import 'package:yaabsa/components/settings/admin_users/magic_config_dialog.dart';
 import 'package:yaabsa/components/settings/management_settings_section.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/database/app_database.dart';
@@ -548,6 +550,47 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
     return permissions.update || permissions.delete || permissions.upload;
   }
 
+  Future<MagicConfigKeyMarker?> _readAuthenticationCodeKey() async {
+    final api = ref.read(absApiProvider);
+    if (api == null) {
+      return null;
+    }
+
+    try {
+      final status = (await api.getMeApi().getStatus()).data;
+      final customMessage = status?.authFormData?.authLoginCustomMessage;
+      return MagicConfigKeyMarker.extract(customMessage) ??
+          MagicConfigKeyMarker.fromSerializedName(MagicConfigKeyMarker.extractFromSanitizedHtml(customMessage));
+    } catch (error, stackTrace) {
+      logger(
+        'Could not read the Authentication Code key from server status: $error\n$stackTrace',
+        tag: 'MainSettingsScreen',
+        level: InfoLevel.warning,
+      );
+      return null;
+    }
+  }
+
+  Future<void> _showOwnMagicConfig(BuildContext context, User user) async {
+    final server = user.server;
+    if (server == null || server.url.trim().isEmpty) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('This account has no configured server address.')));
+      return;
+    }
+
+    await showMagicConfigDialog(
+      context,
+      serverUrl: server.url,
+      localServerUrl: server.localUrl,
+      username: user.username,
+      password: null,
+      headers: Map<String, String>.from(server.headers ?? const <String, String>{}),
+      allowPassword: false,
+      ensureMarker: _readAuthenticationCodeKey,
+    );
+  }
+
   Future<void> _switchActiveUser(BuildContext context, WidgetRef ref, User user) async {
     final db = ref.read(appDatabaseProvider);
 
@@ -688,6 +731,12 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
                                   ),
                                 ],
                               ),
+                            ),
+                            const SizedBox(width: 8),
+                            IconButton.filledTonal(
+                              onPressed: () => _showOwnMagicConfig(context, currentUser),
+                              icon: const Icon(Icons.qr_code_2_rounded),
+                              tooltip: 'Create Authentication Code',
                             ),
                           ],
                         )

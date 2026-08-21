@@ -5,12 +5,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/api/admin/admin_user.dart';
 import 'package:yaabsa/api/admin/admin_user_permissions.dart';
 import 'package:yaabsa/api/admin/admin_user_upsert_request.dart';
+import 'package:yaabsa/api/admin/update_admin_authentication_settings_request.dart';
+import 'package:yaabsa/api/magic/magic_config.dart';
 import 'package:yaabsa/api/library/library.dart';
 import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
 import 'package:yaabsa/components/common/tables/expressive_action_table.dart';
 import 'package:yaabsa/components/settings/admin_users/admin_user_form_dialog.dart';
 import 'package:yaabsa/components/settings/admin_users/admin_user_badge.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/components/settings/admin_users/magic_config_dialog.dart';
 import 'package:yaabsa/util/globals.dart';
 
 class AdminServerUsersView extends ConsumerStatefulWidget {
@@ -24,6 +27,10 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
   String? _activeUserId;
   bool _isLoading = true;
   bool _isCreatingUser = false;
+  bool _isCreatingAuthenticationCodeKey = false;
+  bool _isDeletingAuthenticationCode = false;
+  bool _authenticationCodeKeyLoaded = false;
+  MagicConfigKeyMarker? _authenticationCodeKey;
   String _searchQuery = '';
   String? _errorMessage;
 
@@ -179,6 +186,16 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
       final librariesResponse = await librariesFuture;
       final tagsResponse = await tagsFuture;
 
+      MagicConfigKeyMarker? authenticationCodeKey;
+      try {
+        final settings = (await api.getAdminApi().getAuthenticationSettings()).data;
+        authenticationCodeKey =
+            MagicConfigKeyMarker.extract(settings?.authLoginCustomMessage) ??
+            MagicConfigKeyMarker.fromSerializedName(
+              MagicConfigKeyMarker.extractFromSanitizedHtml(settings?.authLoginCustomMessage),
+            );
+      } catch (_) {}
+
       final users = _sortedUsers(List<AdminUser>.from(usersResponse.data?.users ?? const <AdminUser>[]));
       final libraries = _sortedLibraries(List<Library>.from(librariesResponse.data?.libraries ?? const <Library>[]));
       final tags = _sortedTags(tagsResponse.data?.tags ?? const <String>[]);
@@ -191,6 +208,8 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
         _users = users;
         _libraries = libraries;
         _tags = tags;
+        _authenticationCodeKey = authenticationCodeKey;
+        _authenticationCodeKeyLoaded = true;
         _errorMessage = null;
       });
     } catch (error) {
@@ -217,6 +236,199 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
     }
 
     messenger.showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<MagicConfigKeyMarker?> _ensureMagicKey() async {
+    final api = ref.read(absApiProvider);
+    if (api == null) {
+      _showMessage('No active API client.');
+      return null;
+    }
+
+    final settingsResponse = await api.getAdminApi().getAuthenticationSettings();
+    final settings = settingsResponse.data;
+    final existingMarker =
+        MagicConfigKeyMarker.extract(settings?.authLoginCustomMessage) ??
+        MagicConfigKeyMarker.fromSerializedName(
+          MagicConfigKeyMarker.extractFromSanitizedHtml(settings?.authLoginCustomMessage),
+        );
+    if (existingMarker != null) {
+      if (mounted) {
+        setState(() {
+          _authenticationCodeKey = existingMarker;
+          _authenticationCodeKeyLoaded = true;
+        });
+      }
+      return existingMarker;
+    }
+
+    if (!mounted) {
+      return null;
+    }
+    final shouldGenerate = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Create Authentication Code key?'),
+        content: const Text(
+          'yaabsa needs to store a server-specific encryption key in the login message. It is hidden from browsers, but anyone who can read the public login message can retrieve it. This key makes Authentication Codes compatible and opaque. This makes sure that if you ever leak a key neither username nor password can be extracted without that key. If you rotate the key and the key is lost, the information of the key is secure.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Create key')),
+        ],
+      ),
+    );
+    if (shouldGenerate != true) {
+      return null;
+    }
+
+    final marker = MagicConfigKeyMarker.generate();
+    await api.getAdminApi().updateAuthenticationSettings(
+      payload: UpdateAdminAuthenticationSettingsRequest(
+        authLoginCustomMessage: MagicConfigKeyMarker.appendToHtml(settings?.authLoginCustomMessage, marker),
+      ),
+    );
+    final savedSettings = (await api.getAdminApi().getAuthenticationSettings()).data;
+    final savedMarker =
+        MagicConfigKeyMarker.extract(savedSettings?.authLoginCustomMessage) ??
+        MagicConfigKeyMarker.fromSerializedName(
+          MagicConfigKeyMarker.extractFromSanitizedHtml(savedSettings?.authLoginCustomMessage),
+        );
+    if (savedMarker == null || savedMarker.encodedKey != marker.encodedKey) {
+      _showMessage('Audiobookshelf did not preserve the Authentication Code key. No Authentication Code was created.');
+      return null;
+    }
+    if (mounted) {
+      setState(() {
+        _authenticationCodeKey = savedMarker;
+        _authenticationCodeKeyLoaded = true;
+      });
+    }
+    return savedMarker;
+  }
+
+  Future<void> _createAuthenticationCodeKey() async {
+    if (_isCreatingAuthenticationCodeKey) {
+      return;
+    }
+
+    setState(() {
+      _isCreatingAuthenticationCodeKey = true;
+    });
+    try {
+      final marker = await _ensureMagicKey();
+      if (marker != null) {
+        _showMessage('Authentication Code key created.');
+      }
+    } catch (error) {
+      _showMessage('Failed to create Authentication Code: $error');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isCreatingAuthenticationCodeKey = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _showMagicConfig({
+    required String username,
+    required String? password,
+    required bool allowPassword,
+  }) async {
+    final currentUser = await ref.read(currentUserProvider.future);
+    final server = currentUser?.server;
+    if (server == null) {
+      _showMessage('The active account has no configured server address.');
+      return;
+    }
+
+    final serverUrl = server.externalUrl;
+    if (!mounted) {
+      return;
+    }
+    await showMagicConfigDialog(
+      context,
+      serverUrl: serverUrl,
+      localServerUrl: server.localUrl,
+      username: username,
+      password: password,
+      headers: Map<String, String>.from(server.headers ?? const <String, String>{}),
+      allowPassword: allowPassword,
+      ensureMarker: _ensureMagicKey,
+    );
+  }
+
+  Future<void> _deleteAuthenticationCode() async {
+    final api = ref.read(absApiProvider);
+    if (api == null) {
+      _showMessage('No active API client.');
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Authentication Code?'),
+        content: Text(
+          'Authentication Codes use one server-wide key. Deleting it will invalidate every Authentication Code. Existing signed-in accounts are not affected.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: FilledButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error),
+            child: const Text('Delete Authentication Code'),
+          ),
+        ],
+      ),
+    );
+    if (!mounted || confirmed != true) {
+      return;
+    }
+
+    setState(() {
+      _isDeletingAuthenticationCode = true;
+    });
+    try {
+      final settings = (await api.getAdminApi().getAuthenticationSettings()).data;
+      final marker =
+          MagicConfigKeyMarker.extract(settings?.authLoginCustomMessage) ??
+          MagicConfigKeyMarker.fromSerializedName(
+            MagicConfigKeyMarker.extractFromSanitizedHtml(settings?.authLoginCustomMessage),
+          );
+      if (marker == null) {
+        if (mounted) {
+          setState(() {
+            _authenticationCodeKey = null;
+            _authenticationCodeKeyLoaded = true;
+          });
+        }
+        _showMessage('No Authentication Code is configured.');
+        return;
+      }
+
+      await api.getAdminApi().updateAuthenticationSettings(
+        payload: UpdateAdminAuthenticationSettingsRequest(
+          authLoginCustomMessage: MagicConfigKeyMarker.visibleHtml(settings?.authLoginCustomMessage),
+        ),
+      );
+      if (mounted) {
+        setState(() {
+          _authenticationCodeKey = null;
+          _authenticationCodeKeyLoaded = true;
+        });
+      }
+      _showMessage('Authentication Code deleted. Existing Authentication Codes are no longer valid.');
+    } catch (error) {
+      _showMessage('Failed to delete Authentication Code: $error');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isDeletingAuthenticationCode = false;
+        });
+      }
+    }
   }
 
   Future<bool> _unlinkOpenId(AdminUser user) async {
@@ -287,6 +499,7 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
         _upsertUserInList(createdUser);
       }
 
+      await _showMagicConfig(username: payload.username, password: payload.password, allowPassword: true);
       _showMessage('User created successfully.');
     } catch (error) {
       _showMessage('Failed to create user: $error');
@@ -456,7 +669,14 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
   }
 
   Widget _buildToolbar({required bool compact}) {
-    final controlsDisabled = _isLoading || _isCreatingUser;
+    final controlsDisabled =
+        _isLoading || _isCreatingUser || _isCreatingAuthenticationCodeKey || _isDeletingAuthenticationCode;
+    final hasAuthenticationCode = _authenticationCodeKey != null;
+    final authenticationCodeActionLabel = hasAuthenticationCode
+        ? 'Delete Authentication Code'
+        : 'Create Authentication Code';
+    final authenticationCodeActionIcon = hasAuthenticationCode ? Icons.delete_sweep_outlined : Icons.qr_code_2_rounded;
+    final authenticationCodeAction = hasAuthenticationCode ? _deleteAuthenticationCode : _createAuthenticationCodeKey;
 
     if (compact) {
       return Column(
@@ -486,6 +706,16 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
                 ),
               ),
               const SizedBox(width: 8),
+              if (_authenticationCodeKeyLoaded)
+                IconButton(
+                  tooltip: authenticationCodeActionLabel,
+                  onPressed: controlsDisabled ? null : authenticationCodeAction,
+                  icon: Icon(authenticationCodeActionIcon),
+                  color: hasAuthenticationCode
+                      ? Theme.of(context).colorScheme.error
+                      : Theme.of(context).colorScheme.primary,
+                ),
+              const SizedBox(width: 4),
               IconButton(
                 tooltip: 'Refresh',
                 onPressed: _isLoading ? null : () => unawaited(_loadUserManagementData(showLoading: true)),
@@ -526,6 +756,18 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
               : const Icon(Icons.person_add_alt_1_rounded),
           label: const Text('Add user'),
         ),
+        const SizedBox(width: 10),
+        if (_authenticationCodeKeyLoaded)
+          OutlinedButton.icon(
+            onPressed: controlsDisabled ? null : authenticationCodeAction,
+            style: OutlinedButton.styleFrom(
+              foregroundColor: hasAuthenticationCode
+                  ? Theme.of(context).colorScheme.error
+                  : Theme.of(context).colorScheme.primary,
+            ),
+            icon: Icon(authenticationCodeActionIcon),
+            label: Text(authenticationCodeActionLabel),
+          ),
       ],
     );
   }
@@ -658,6 +900,13 @@ class _AdminServerUsersViewState extends ConsumerState<AdminServerUsersView> {
         ),
       ],
       actions: [
+        ExpressiveTableAction<AdminUser>(
+          icon: Icons.qr_code_2_rounded,
+          tooltip: 'Create Authentication Code',
+          onPressed: (user) async {
+            await _showMagicConfig(username: user.username, password: null, allowPassword: false);
+          },
+        ),
         ExpressiveTableAction<AdminUser>(
           icon: Icons.edit_outlined,
           tooltip: 'Edit user',

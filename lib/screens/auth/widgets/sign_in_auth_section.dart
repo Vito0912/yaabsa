@@ -11,6 +11,8 @@ class SignInAuthSection extends StatelessWidget {
     required this.openIdButtonText,
     required this.usernameController,
     required this.passwordController,
+    required this.passwordFocusNode,
+    required this.lockImportedIdentity,
     required this.apiKeyController,
     required this.onValidateAndSignIn,
     required this.onStartOpenIdConnect,
@@ -23,6 +25,8 @@ class SignInAuthSection extends StatelessWidget {
   final String openIdButtonText;
   final TextEditingController usernameController;
   final TextEditingController passwordController;
+  final FocusNode passwordFocusNode;
+  final bool lockImportedIdentity;
   final TextEditingController apiKeyController;
   final VoidCallback onValidateAndSignIn;
   final VoidCallback onStartOpenIdConnect;
@@ -68,7 +72,7 @@ class SignInAuthSection extends StatelessWidget {
               children: [
                 TextField(
                   controller: usernameController,
-                  enabled: !isLoading,
+                  enabled: !isLoading && !lockImportedIdentity,
                   textInputAction: TextInputAction.next,
                   autofillHints: const [AutofillHints.username, AutofillHints.email],
                   decoration: InputDecoration(
@@ -80,6 +84,7 @@ class SignInAuthSection extends StatelessWidget {
                 const SizedBox(height: 12),
                 TextField(
                   controller: passwordController,
+                  focusNode: passwordFocusNode,
                   enabled: !isLoading,
                   obscureText: true,
                   enableSuggestions: false,

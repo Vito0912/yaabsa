@@ -9,6 +9,7 @@ import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:yaabsa/api/me/request/login_request.dart';
+import 'package:yaabsa/api/magic/magic_config.dart';
 import 'package:yaabsa/api/me/server.dart';
 import 'package:yaabsa/api/me/status.dart';
 import 'package:yaabsa/api/me/user.dart';
@@ -17,12 +18,14 @@ import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/provider/core/user_scope_invalidation.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/core/oidc_provider.dart';
+import 'package:yaabsa/provider/core/magic_config_provider.dart';
 import 'package:yaabsa/provider/wear/wear_phone_channel.dart';
 import 'package:yaabsa/screens/auth/widgets/glow_orb.dart';
 import 'package:yaabsa/screens/auth/widgets/sign_in_advanced_options.dart';
 import 'package:yaabsa/screens/auth/widgets/sign_in_auth_section.dart';
 import 'package:yaabsa/screens/auth/widgets/sign_in_error_panel.dart';
 import 'package:yaabsa/screens/auth/widgets/sign_in_header_editor_dialog.dart';
+import 'package:yaabsa/screens/auth/widgets/magic_config_import_dialog.dart';
 import 'package:yaabsa/screens/auth/widgets/sign_in_server_status.dart';
 import 'package:yaabsa/util/globals.dart' show audioHandler;
 import 'package:yaabsa/util/aaos_service.dart';
@@ -39,6 +42,7 @@ class SignIn extends HookConsumerWidget {
     final usernameController = useTextEditingController();
     final passwordController = useTextEditingController();
     final apiKeyController = useTextEditingController();
+    final passwordFocusNode = useFocusNode(debugLabel: 'authentication-code-password');
 
     final isLoading = useState(false);
     final useApiKey = useState(false);
@@ -52,6 +56,10 @@ class SignIn extends HookConsumerWidget {
     final statusCancelToken = useRef<CancelToken?>(null);
     final customHeaders = useState<Map<String, String>>(<String, String>{});
     final advancedOptionsExpanded = useState(false);
+    final autoSignInAfterAuthenticationCode = useState(false);
+    final importedMagicConfig = useState<MagicConfig?>(null);
+    final processedMagicLink = useRef<String?>(null);
+    final pendingMagicConfig = ref.watch(magicConfigImportProvider);
     final hasStoredUsers = ref
         .watch(allStoredUsersProvider)
         .maybeWhen(data: (users) => users.isNotEmpty, orElse: () => false);
@@ -204,6 +212,80 @@ class SignIn extends HookConsumerWidget {
       return fetchStatus(showErrors: showErrors);
     }
 
+    Future<void> importMagicConfig(String input) async {
+      if (processedMagicLink.value == input) {
+        return;
+      }
+      processedMagicLink.value = input;
+      setErrorMessage(null);
+
+      try {
+        final serverUrl = await MagicConfigCodec.serverUrlFromInput(input);
+        _setControllerTextKeepingCursor(serverAddressController, serverUrl);
+        status.value = null;
+        lastCheckedServer.value = null;
+
+        late final MagicConfig config;
+        try {
+          config = await MagicConfigCodec.decode(input: input);
+        } on MagicConfigServerKeyRequiredException {
+          final importedStatus = await fetchStatus(showErrors: true);
+          if (importedStatus == null) {
+            throw FormatException(statusError.value ?? 'The Authentication Code server could not be reached.');
+          }
+
+          final customMessage = importedStatus.authFormData?.authLoginCustomMessage;
+          final marker =
+              MagicConfigKeyMarker.extract(customMessage) ??
+              MagicConfigKeyMarker.fromSerializedName(MagicConfigKeyMarker.extractFromSanitizedHtml(customMessage));
+          if (marker == null) {
+            throw const FormatException('The server key for this Authentication Code is unavailable.');
+          }
+          config = await MagicConfigCodec.decode(input: input, marker: marker);
+        }
+        customHeaders.value = Map<String, String>.from(config.headers);
+        importedMagicConfig.value = config;
+        autoSignInAfterAuthenticationCode.value = config.isPasswordBearing;
+        useApiKey.value = false;
+        passwordController.clear();
+        _setControllerTextKeepingCursor(serverAddressController, config.serverUrl);
+        _setControllerTextKeepingCursor(usernameController, config.username);
+        advancedOptionsExpanded.value = config.isPasswordBearing;
+        errorMessage.value = null;
+        loginErrorDetails.value = null;
+        ref.read(magicConfigImportProvider.notifier).clear();
+        if (!config.isPasswordBearing) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (context.mounted) {
+              passwordFocusNode.requestFocus();
+            }
+          });
+        }
+      } catch (error, stackTrace) {
+        processedMagicLink.value = null;
+        ref.read(magicConfigImportProvider.notifier).clear();
+        final message = error is FormatException ? error.message : error.toString();
+        setErrorMessage(
+          'Could not import Authentication Code: $message',
+          details: _buildLoginErrorDetails(error: error, stackTrace: stackTrace),
+        );
+      }
+    }
+
+    Future<void> promptMagicConfigImport() async {
+      final value = await showMagicConfigImportDialog(context);
+      if (value != null && value.isNotEmpty) {
+        ref.read(magicConfigImportProvider.notifier).receive(value);
+      }
+    }
+
+    void clearImportedMagicConfig() {
+      importedMagicConfig.value = null;
+      autoSignInAfterAuthenticationCode.value = false;
+      processedMagicLink.value = null;
+      ref.read(magicConfigImportProvider.notifier).clear();
+    }
+
     Future<void> initializeSelectedLibraryAfterLogin({
       required AppDatabase db,
       required String userId,
@@ -269,11 +351,17 @@ class SignIn extends HookConsumerWidget {
       }
 
       isLoading.value = true;
+      final magicConfig = importedMagicConfig.value;
+      final magicConfigMatches =
+          magicConfig != null &&
+          magicConfig.serverUrl == normalizedServer &&
+          magicConfig.username == usernameController.text.trim();
 
       try {
-        late final User loggedInUser;
+        late User loggedInUser;
         ABSApi? authenticatedApi;
         String? serverDefaultLibraryId;
+        String? loginPassword;
 
         if (useApiKey.value) {
           final apiKey = apiKeyController.text.trim();
@@ -297,12 +385,16 @@ class SignIn extends HookConsumerWidget {
           authenticatedApi = api;
         } else {
           final username = usernameController.text.trim();
-          final password = passwordController.text;
+          final importedPassword = magicConfig != null && magicConfigMatches && magicConfig.isPasswordBearing
+              ? magicConfig.password
+              : null;
+          final password = importedPassword ?? passwordController.text;
 
           if (username.isEmpty || password.isEmpty) {
             setErrorMessage('Username and password are required.');
             return;
           }
+          loginPassword = password;
 
           logger('Attempting login to server: $normalizedServer with username: $username', tag: 'SignIn');
 
@@ -327,6 +419,90 @@ class SignIn extends HookConsumerWidget {
           if (token != null && token.isNotEmpty) {
             api.setBearerAuth('BearerAuth', token);
             authenticatedApi = api;
+          }
+        }
+
+        if (magicConfig != null && magicConfigMatches && magicConfig.isPasswordBearing) {
+          final initialPassword = loginPassword;
+          if (initialPassword == null || initialPassword.isEmpty) {
+            setErrorMessage('The initial password is not available. Enter the account password manually.');
+            return;
+          }
+
+          final isGuest = loggedInUser.type.trim().toLowerCase() == 'guest';
+          if (isGuest) {
+            if (!context.mounted) {
+              return;
+            }
+            final continueWithGuestPassword = await showDialog<bool>(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => AlertDialog(
+                title: const Text('Guest password cannot be changed'),
+                content: const Text(
+                  'Audiobookshelf does not allow guest users to change passwords. The initial password will remain valid after this sign in. Continue only if you accept this risk.',
+                ),
+                actions: [
+                  TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+                  FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Continue')),
+                ],
+              ),
+            );
+            if (continueWithGuestPassword != true) {
+              clearImportedMagicConfig();
+              setErrorMessage('Sign in cancelled because the guest password cannot be rotated.');
+              return;
+            }
+          } else {
+            if (!context.mounted) {
+              return;
+            }
+            final newPassword = await showMagicPasswordChangeDialog(context);
+            if (newPassword == null || newPassword.isEmpty) {
+              clearImportedMagicConfig();
+              setErrorMessage('Password change is required after using an Authentication Code.');
+              return;
+            }
+
+            final api = authenticatedApi;
+            if (api == null) {
+              throw const FormatException('The server did not return a token needed to change the initial password.');
+            }
+
+            final passwordResponse = await api.getMeApi().updatePassword(
+              password: initialPassword,
+              newPassword: newPassword,
+              refreshToken: loggedInUser.refreshToken,
+            );
+            final responseData = passwordResponse.data;
+            final responseUser = responseData is Map ? responseData['user'] : null;
+            final responseAccessToken = responseUser is Map ? responseUser['accessToken'] as String? : null;
+            final responseRefreshToken = responseUser is Map ? responseUser['refreshToken'] as String? : null;
+
+            if (responseAccessToken != null && responseAccessToken.isNotEmpty) {
+              loggedInUser = loggedInUser.copyWith(
+                accessToken: responseAccessToken,
+                refreshToken: responseRefreshToken ?? loggedInUser.refreshToken,
+              );
+              api.setBearerAuth('BearerAuth', responseAccessToken);
+            } else {
+              final reloginApi = buildServerApi(normalizedServer);
+              final reloginResponse = await reloginApi.getMeApi().login(
+                loginRequest: LoginRequest(username: loggedInUser.username, password: newPassword),
+                returnTokens: true,
+              );
+              final reloginData = reloginResponse.data;
+              if (reloginData == null) {
+                throw const FormatException('Password changed, but the follow-up login returned no account data.');
+              }
+              loggedInUser = reloginData.user.copyWith(setting: reloginData.serverSettings);
+              serverDefaultLibraryId = reloginData.userDefaultLibraryId;
+              final reloginToken = loggedInUser.preferredAuthToken;
+              if (reloginToken != null && reloginToken.isNotEmpty) {
+                reloginApi.setBearerAuth('BearerAuth', reloginToken);
+                authenticatedApi = reloginApi;
+              }
+            }
           }
         }
 
@@ -381,6 +557,9 @@ class SignIn extends HookConsumerWidget {
 
         await db.setActiveUserId(loggedInUser.id);
         await audioHandler.clearAndroidAutoAuthenticationError();
+        if (magicConfig != null) {
+          clearImportedMagicConfig();
+        }
 
         ref.invalidate(allStoredUsersProvider);
         ref.invalidate(currentUserProvider);
@@ -400,10 +579,21 @@ class SignIn extends HookConsumerWidget {
           );
         }
       } on DioException catch (e) {
-        setErrorMessage(_parseDioErrorMessage(e, fallback: 'Login failed.'), details: null);
-      } catch (e, s) {
+        final needsPasswordFallback = magicConfig != null && magicConfigMatches && magicConfig.isPasswordBearing;
+        clearImportedMagicConfig();
         setErrorMessage(
-          'Login failed: $e',
+          needsPasswordFallback
+              ? 'Authentication Code login failed. Enter the account password and try again.'
+              : _parseDioErrorMessage(e, fallback: 'Login failed.'),
+          details: null,
+        );
+      } catch (e, s) {
+        final needsPasswordFallback = magicConfig != null && magicConfigMatches && magicConfig.isPasswordBearing;
+        clearImportedMagicConfig();
+        setErrorMessage(
+          needsPasswordFallback
+              ? 'Authentication Code login failed. Enter the account password and try again.'
+              : 'Login failed: $e',
           details: _buildLoginErrorDetails(error: e, stackTrace: s),
         );
       } finally {
@@ -457,7 +647,25 @@ class SignIn extends HookConsumerWidget {
     }
 
     useEffect(() {
+      if (!autoSignInAfterAuthenticationCode.value || importedMagicConfig.value == null) {
+        return null;
+      }
+
+      autoSignInAfterAuthenticationCode.value = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) {
+          unawaited(validateAndSignIn());
+        }
+      });
+      return null;
+    }, [autoSignInAfterAuthenticationCode.value]);
+
+    useEffect(() {
       void onServerChanged() {
+        if (importedMagicConfig.value != null) {
+          return;
+        }
+
         final normalized = _normalizeServerAddress(serverAddressController.text.trim());
 
         statusDebounce.value?.cancel();
@@ -501,7 +709,15 @@ class SignIn extends HookConsumerWidget {
       return null;
     }, const []);
 
+    useEffect(() {
+      if (pendingMagicConfig != null) {
+        unawaited(importMagicConfig(pendingMagicConfig));
+      }
+      return null;
+    }, [pendingMagicConfig]);
+
     final activeStatus = status.value;
+    final importedCodeNeedsPassword = importedMagicConfig.value?.isPasswordBearing == false;
     final isForcedAaosAuth = signInQuery['authRequired'] == '1' && AaosService.instance.currentState.isAutomotiveDevice;
     final allowsLocal = activeStatus == null || activeStatus.authMethods.contains('local');
     final allowsOpenId = (activeStatus?.authMethods.contains('openid') ?? false) && !isWearPairing;
@@ -579,6 +795,7 @@ class SignIn extends HookConsumerWidget {
                             const SizedBox(height: 22),
                             TextField(
                               controller: serverAddressController,
+                              enabled: !isLoading.value && !oidcLoading && !importedCodeNeedsPassword,
                               keyboardType: TextInputType.url,
                               decoration: InputDecoration(
                                 labelText: 'Server Address',
@@ -615,6 +832,8 @@ class SignIn extends HookConsumerWidget {
                               openIdButtonText: openIdButtonText,
                               usernameController: usernameController,
                               passwordController: passwordController,
+                              passwordFocusNode: passwordFocusNode,
+                              lockImportedIdentity: importedCodeNeedsPassword,
                               apiKeyController: apiKeyController,
                               onValidateAndSignIn: validateAndSignIn,
                               onStartOpenIdConnect: startOpenIdConnect,
@@ -639,6 +858,7 @@ class SignIn extends HookConsumerWidget {
                                   advancedOptionsExpanded.value = true;
                                 }
                               },
+                              onImportMagicConfig: promptMagicConfigImport,
                               customHeaders: customHeaders.value,
                               onAddHeader: () => showHeaderEditor(),
                               onEditHeader: (headerName) => showHeaderEditor(originalHeaderName: headerName),

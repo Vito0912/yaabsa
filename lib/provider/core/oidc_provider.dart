@@ -60,9 +60,10 @@ class OidcState extends _$OidcState {
   }
 
   void _handleIncomingUri(Uri uri) {
-    logger('Received deep link URL: $uri', tag: 'OidcProvider');
     if (uri.scheme == 'yaabsa' && uri.host == 'oauth') {
+      logger('Received yaabsa OAuth callback link.', tag: 'OidcProvider');
       handleCallbackUri(uri);
+      return;
     }
   }
 

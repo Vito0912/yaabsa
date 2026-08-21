@@ -13,6 +13,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   flutter_tts
   media_kit_libs_windows_audio
   permission_handler_windows
+  share_plus
   tray_manager
   url_launcher_windows
 )

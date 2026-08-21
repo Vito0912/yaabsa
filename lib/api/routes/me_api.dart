@@ -42,6 +42,30 @@ class MeApi {
     );
   }
 
+  Future<Response<dynamic>> updatePassword({
+    required String password,
+    required String newPassword,
+    String? refreshToken,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    final requestHeaders = <String, dynamic>{...?headers};
+    if (refreshToken != null && refreshToken.isNotEmpty) {
+      requestHeaders['x-refresh-token'] = refreshToken;
+    }
+
+    return ABSApi.makeApiPatchRequest<dynamic>(
+      route: '/api/me/password',
+      fromJson: (data) => data,
+      bodyData: <String, dynamic>{'password': password, 'newPassword': newPassword},
+      cancelToken: cancelToken,
+      headers: requestHeaders,
+      extra: extra,
+      dio: _dio,
+    );
+  }
+
   Future<Response<Login>> checkLogin({
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,

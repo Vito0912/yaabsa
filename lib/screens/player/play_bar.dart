@@ -178,15 +178,18 @@ class _PlayBarState extends ConsumerState<PlayBar> {
                 PlayerActionBar(actions: actions, hasChapters: hasChapters, showLabels: true, spacing: 8),
                 const SizedBox(height: 12),
               ],
-              ListTile(
-                leading: const Icon(Icons.stop_circle_rounded),
-                title: const Text('Stop playback'),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                tileColor: Theme.of(context).colorScheme.surfaceContainerHigh,
-                onTap: () {
-                  Navigator.of(context).pop();
-                  audioHandler.stop();
-                },
+              Material(
+                color: Colors.transparent,
+                child: ListTile(
+                  leading: const Icon(Icons.stop_circle_rounded),
+                  title: const Text('Stop playback'),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  tileColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    audioHandler.stop();
+                  },
+                ),
               ),
             ],
           ),
