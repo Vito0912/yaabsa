@@ -42,6 +42,8 @@ import 'package:yaabsa/screens/settings/caching_settings.dart';
 import 'package:yaabsa/screens/settings/library_shelf_settings.dart';
 import 'package:yaabsa/screens/settings/library_order_settings.dart';
 import 'package:yaabsa/screens/settings/library_settings.dart';
+import 'package:yaabsa/screens/settings/download_settings.dart';
+import 'package:yaabsa/screens/settings/smart_downloads_settings.dart';
 import 'package:yaabsa/screens/settings/library_views_settings.dart';
 import 'package:yaabsa/screens/settings/library_view_subtitle_settings.dart';
 import 'package:yaabsa/screens/settings/path_tag_genre_update_settings.dart';
@@ -238,6 +240,11 @@ final globalRouter = GoRouter(
                       builder: (context, state) => const PlayerSettingsNotification(),
                     ),
                     GoRoute(path: LibrarySettings.routeName, builder: (context, state) => LibrarySettings()),
+                    GoRoute(path: DownloadSettings.routeName, builder: (context, state) => const DownloadSettings()),
+                    GoRoute(
+                      path: SmartDownloadsSettings.routeName,
+                      builder: (context, state) => const SmartDownloadsSettings(),
+                    ),
                     GoRoute(
                       path: LibraryViewsSettings.routeName,
                       builder: (context, state) => const LibraryViewsSettings(),

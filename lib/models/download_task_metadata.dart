@@ -4,9 +4,9 @@ import 'package:yaabsa/models/internal_media.dart';
 part 'download_task_metadata.freezed.dart';
 part 'download_task_metadata.g.dart';
 
-@freezed
+@unfreezed
 abstract class DownloadTaskMetadata with _$DownloadTaskMetadata {
-  const factory DownloadTaskMetadata({
+  factory DownloadTaskMetadata({
     required String itemId,
     required String userId,
     String? episodeId,
@@ -26,6 +26,9 @@ abstract class DownloadTaskMetadata with _$DownloadTaskMetadata {
     bool? serverSsl,
     String? title,
     @Default('both') String downloadType,
+    @Default('manual') String acquisitionOrigin,
+    @Default(<String>[]) List<String> smartProfileIds,
+    int? estimatedBytes,
   }) = _DownloadTaskMetadata;
 
   factory DownloadTaskMetadata.fromJson(Map<String, dynamic> json) => _$DownloadTaskMetadataFromJson(json);

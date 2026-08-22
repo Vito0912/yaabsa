@@ -21,6 +21,7 @@ import 'package:yaabsa/screens/settings/caching_settings.dart';
 import 'package:yaabsa/screens/settings/player/global_player_settings.dart';
 import 'package:yaabsa/screens/settings/player/player_settings.dart';
 import 'package:yaabsa/screens/settings/library_settings.dart';
+import 'package:yaabsa/screens/settings/download_settings.dart';
 import 'package:yaabsa/screens/settings/license_settings.dart';
 import 'package:yaabsa/screens/settings/log_view.dart';
 import 'package:yaabsa/screens/settings/reader_settings.dart';
@@ -46,15 +47,9 @@ class SettingsSearchItem {
 
 final List<SettingsSearchItem> searchableSettings = [
   const SettingsSearchItem(
-    title: 'Server Connection',
-    description: 'Configure server URL, authentication, and connection details',
-    categoryPath: 'Settings > Active Account',
-    route: '/settings/server-connection',
-  ),
-  const SettingsSearchItem(
     title: 'Server Management',
     description: 'Configure visibility for collections, editing, deletion, and uploading',
-    categoryPath: 'Settings > Active Account',
+    categoryPath: 'Settings > Management',
     route: '/settings/server-management',
   ),
   const SettingsSearchItem(
@@ -235,50 +230,68 @@ final List<SettingsSearchItem> searchableSettings = [
   const SettingsSearchItem(
     title: 'Shelf Sections',
     description: 'Choose which shelf sections are visible and their order',
-    categoryPath: 'Settings > General',
+    categoryPath: 'Settings > Library',
     route: '/settings/library',
   ),
   const SettingsSearchItem(
     title: 'Library Grid Scale',
     description: 'Scales library item cards in all grid views',
-    categoryPath: 'Settings > General',
+    categoryPath: 'Settings > Library',
     route: '/settings/library',
   ),
   const SettingsSearchItem(
     title: 'Collapse Series',
     description: 'Collapse books in series into a single entry',
-    categoryPath: 'Settings > General',
+    categoryPath: 'Settings > Library',
     route: '/settings/library',
   ),
   const SettingsSearchItem(
     title: 'View Subtitles',
     description: 'Configure supporting information shown below library, series, and author cards',
-    categoryPath: 'Settings > General > View Subtitles',
+    categoryPath: 'Settings > Library > View Subtitles',
     route: '/settings/library/view-subtitles',
   ),
   const SettingsSearchItem(
     title: 'Show Shelf Play Button',
     description: 'Adds a play-all button on Continue Listening and Newest shelves',
-    categoryPath: 'Settings > General',
+    categoryPath: 'Settings > Library',
     route: '/settings/library',
   ),
   const SettingsSearchItem(
     title: 'Show Shuffle Button',
     description: 'Adds a shuffle button to collections, playlists, and podcasts',
-    categoryPath: 'Settings > General',
+    categoryPath: 'Settings > Library',
     route: '/settings/library',
   ),
   const SettingsSearchItem(
     title: 'Check Server Updates',
     description: 'Checks for ABS updates via GitHub',
-    categoryPath: 'Settings > General',
+    categoryPath: 'Settings > Library',
     route: '/settings/library',
   ),
   const SettingsSearchItem(
     title: 'Download Location',
     description: 'Configure directory to save downloaded audiobooks',
-    categoryPath: 'Settings > General',
-    route: '/settings/library',
+    categoryPath: 'Settings > Downloads',
+    route: '/settings/downloads',
+  ),
+  const SettingsSearchItem(
+    title: 'Download only on Wi-Fi',
+    description: 'Wait for Wi-Fi before starting manual and smart downloads',
+    categoryPath: 'Settings > Downloads',
+    route: '/settings/downloads',
+  ),
+  const SettingsSearchItem(
+    title: 'Maximum parallel downloads',
+    description: 'Limit the number of files downloaded at the same time',
+    categoryPath: 'Settings > Downloads',
+    route: '/settings/downloads',
+  ),
+  const SettingsSearchItem(
+    title: 'Smart Downloads',
+    description: 'Automatically download and remove items according to download rules',
+    categoryPath: 'Settings > Downloads',
+    route: '/settings/library/smart-downloads',
   ),
   const SettingsSearchItem(
     title: 'Theme Settings',
@@ -453,6 +466,9 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
   IconData _getIconForRoute(String route) {
     if (route.contains('/player')) {
       return Icons.play_circle_outline_rounded;
+    }
+    if (route.contains('/downloads') || route.contains('/smart-downloads')) {
+      return Icons.download_for_offline_outlined;
     }
     if (route.contains('/library')) {
       return Icons.library_books_outlined;
@@ -733,10 +749,17 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            IconButton.filledTonal(
+                            IconButton(
                               onPressed: () => _showOwnMagicConfig(context, currentUser),
                               icon: const Icon(Icons.qr_code_2_rounded),
                               tooltip: 'Create Authentication Code',
+                            ),
+                            const SizedBox(width: 4),
+                            IconButton(
+                              tooltip: 'Server connection',
+                              icon: const Icon(Icons.dns_outlined),
+                              color: Theme.of(context).colorScheme.onPrimaryContainer,
+                              onPressed: () => context.push(ServerConnectionSettings.routeName),
                             ),
                           ],
                         )
@@ -797,11 +820,6 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
               SettingsNavigationSection(
                 title: "${currentUser.username}'s Preferences",
                 items: [
-                  SettingsNavigationItem(
-                    icon: Icons.dns_outlined,
-                    title: 'Server Connection',
-                    onTap: () => context.push(ServerConnectionSettings.routeName),
-                  ),
                   if (!AaosService.instance.currentState.isAutomotiveDevice &&
                       _hasAnyServerManagementPermission(currentUser))
                     SettingsNavigationItem(
@@ -1079,8 +1097,13 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
                                       items: [
                                         SettingsNavigationItem(
                                           icon: Icons.library_books_outlined,
-                                          title: 'General',
+                                          title: 'Library',
                                           onTap: () => context.push(LibrarySettings.routeName),
+                                        ),
+                                        SettingsNavigationItem(
+                                          icon: Icons.download_for_offline_outlined,
+                                          title: 'Downloads',
+                                          onTap: () => context.push(DownloadSettings.routeName),
                                         ),
                                         SettingsNavigationItem(
                                           icon: Icons.palette_outlined,

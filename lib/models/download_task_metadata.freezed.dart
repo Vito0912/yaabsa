@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$DownloadTaskMetadata {
 
- String get itemId; String get userId; String? get episodeId; InternalTrack? get track; int get expectedFileCount; String get fileInode; int get fileIndex; String get fileKind; String? get fileName; String? get fileMimeType; bool get saf; String? get downloadBasePath; String? get libraryId; String? get serverUrl; String? get serverHost; int? get serverPort; bool? get serverSsl; String? get title; String get downloadType;
+ String get itemId; set itemId(String value); String get userId; set userId(String value); String? get episodeId; set episodeId(String? value); InternalTrack? get track; set track(InternalTrack? value); int get expectedFileCount; set expectedFileCount(int value); String get fileInode; set fileInode(String value); int get fileIndex; set fileIndex(int value); String get fileKind; set fileKind(String value); String? get fileName; set fileName(String? value); String? get fileMimeType; set fileMimeType(String? value); bool get saf; set saf(bool value); String? get downloadBasePath; set downloadBasePath(String? value); String? get libraryId; set libraryId(String? value); String? get serverUrl; set serverUrl(String? value); String? get serverHost; set serverHost(String? value); int? get serverPort; set serverPort(int? value); bool? get serverSsl; set serverSsl(bool? value); String? get title; set title(String? value); String get downloadType; set downloadType(String value); String get acquisitionOrigin; set acquisitionOrigin(String value); List<String> get smartProfileIds; set smartProfileIds(List<String> value); int? get estimatedBytes; set estimatedBytes(int? value);
 /// Create a copy of DownloadTaskMetadata
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -27,18 +27,11 @@ $DownloadTaskMetadataCopyWith<DownloadTaskMetadata> get copyWith => _$DownloadTa
   Map<String, dynamic> toJson();
 
 
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DownloadTaskMetadata&&(identical(other.itemId, itemId) || other.itemId == itemId)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.episodeId, episodeId) || other.episodeId == episodeId)&&(identical(other.track, track) || other.track == track)&&(identical(other.expectedFileCount, expectedFileCount) || other.expectedFileCount == expectedFileCount)&&(identical(other.fileInode, fileInode) || other.fileInode == fileInode)&&(identical(other.fileIndex, fileIndex) || other.fileIndex == fileIndex)&&(identical(other.fileKind, fileKind) || other.fileKind == fileKind)&&(identical(other.fileName, fileName) || other.fileName == fileName)&&(identical(other.fileMimeType, fileMimeType) || other.fileMimeType == fileMimeType)&&(identical(other.saf, saf) || other.saf == saf)&&(identical(other.downloadBasePath, downloadBasePath) || other.downloadBasePath == downloadBasePath)&&(identical(other.libraryId, libraryId) || other.libraryId == libraryId)&&(identical(other.serverUrl, serverUrl) || other.serverUrl == serverUrl)&&(identical(other.serverHost, serverHost) || other.serverHost == serverHost)&&(identical(other.serverPort, serverPort) || other.serverPort == serverPort)&&(identical(other.serverSsl, serverSsl) || other.serverSsl == serverSsl)&&(identical(other.title, title) || other.title == title)&&(identical(other.downloadType, downloadType) || other.downloadType == downloadType));
-}
 
-@JsonKey(includeFromJson: false, includeToJson: false)
-@override
-int get hashCode => Object.hashAll([runtimeType,itemId,userId,episodeId,track,expectedFileCount,fileInode,fileIndex,fileKind,fileName,fileMimeType,saf,downloadBasePath,libraryId,serverUrl,serverHost,serverPort,serverSsl,title,downloadType]);
 
 @override
 String toString() {
-  return 'DownloadTaskMetadata(itemId: $itemId, userId: $userId, episodeId: $episodeId, track: $track, expectedFileCount: $expectedFileCount, fileInode: $fileInode, fileIndex: $fileIndex, fileKind: $fileKind, fileName: $fileName, fileMimeType: $fileMimeType, saf: $saf, downloadBasePath: $downloadBasePath, libraryId: $libraryId, serverUrl: $serverUrl, serverHost: $serverHost, serverPort: $serverPort, serverSsl: $serverSsl, title: $title, downloadType: $downloadType)';
+  return 'DownloadTaskMetadata(itemId: $itemId, userId: $userId, episodeId: $episodeId, track: $track, expectedFileCount: $expectedFileCount, fileInode: $fileInode, fileIndex: $fileIndex, fileKind: $fileKind, fileName: $fileName, fileMimeType: $fileMimeType, saf: $saf, downloadBasePath: $downloadBasePath, libraryId: $libraryId, serverUrl: $serverUrl, serverHost: $serverHost, serverPort: $serverPort, serverSsl: $serverSsl, title: $title, downloadType: $downloadType, acquisitionOrigin: $acquisitionOrigin, smartProfileIds: $smartProfileIds, estimatedBytes: $estimatedBytes)';
 }
 
 
@@ -49,7 +42,7 @@ abstract mixin class $DownloadTaskMetadataCopyWith<$Res>  {
   factory $DownloadTaskMetadataCopyWith(DownloadTaskMetadata value, $Res Function(DownloadTaskMetadata) _then) = _$DownloadTaskMetadataCopyWithImpl;
 @useResult
 $Res call({
- String itemId, String userId, String? episodeId, InternalTrack? track, int expectedFileCount, String fileInode, int fileIndex, String fileKind, String? fileName, String? fileMimeType, bool saf, String? downloadBasePath, String? libraryId, String? serverUrl, String? serverHost, int? serverPort, bool? serverSsl, String? title, String downloadType
+ String itemId, String userId, String? episodeId, InternalTrack? track, int expectedFileCount, String fileInode, int fileIndex, String fileKind, String? fileName, String? fileMimeType, bool saf, String? downloadBasePath, String? libraryId, String? serverUrl, String? serverHost, int? serverPort, bool? serverSsl, String? title, String downloadType, String acquisitionOrigin, List<String> smartProfileIds, int? estimatedBytes
 });
 
 
@@ -66,7 +59,7 @@ class _$DownloadTaskMetadataCopyWithImpl<$Res>
 
 /// Create a copy of DownloadTaskMetadata
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? itemId = null,Object? userId = null,Object? episodeId = freezed,Object? track = freezed,Object? expectedFileCount = null,Object? fileInode = null,Object? fileIndex = null,Object? fileKind = null,Object? fileName = freezed,Object? fileMimeType = freezed,Object? saf = null,Object? downloadBasePath = freezed,Object? libraryId = freezed,Object? serverUrl = freezed,Object? serverHost = freezed,Object? serverPort = freezed,Object? serverSsl = freezed,Object? title = freezed,Object? downloadType = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? itemId = null,Object? userId = null,Object? episodeId = freezed,Object? track = freezed,Object? expectedFileCount = null,Object? fileInode = null,Object? fileIndex = null,Object? fileKind = null,Object? fileName = freezed,Object? fileMimeType = freezed,Object? saf = null,Object? downloadBasePath = freezed,Object? libraryId = freezed,Object? serverUrl = freezed,Object? serverHost = freezed,Object? serverPort = freezed,Object? serverSsl = freezed,Object? title = freezed,Object? downloadType = null,Object? acquisitionOrigin = null,Object? smartProfileIds = null,Object? estimatedBytes = freezed,}) {
   return _then(DownloadTaskMetadata(
 itemId: null == itemId ? _self.itemId : itemId // ignore: cast_nullable_to_non_nullable
 as String,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
@@ -87,7 +80,10 @@ as String?,serverPort: freezed == serverPort ? _self.serverPort : serverPort // 
 as int?,serverSsl: freezed == serverSsl ? _self.serverSsl : serverSsl // ignore: cast_nullable_to_non_nullable
 as bool?,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String?,downloadType: null == downloadType ? _self.downloadType : downloadType // ignore: cast_nullable_to_non_nullable
-as String,
+as String,acquisitionOrigin: null == acquisitionOrigin ? _self.acquisitionOrigin : acquisitionOrigin // ignore: cast_nullable_to_non_nullable
+as String,smartProfileIds: null == smartProfileIds ? _self.smartProfileIds : smartProfileIds // ignore: cast_nullable_to_non_nullable
+as List<String>,estimatedBytes: freezed == estimatedBytes ? _self.estimatedBytes : estimatedBytes // ignore: cast_nullable_to_non_nullable
+as int?,
   ));
 }
 /// Create a copy of DownloadTaskMetadata
@@ -184,10 +180,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String itemId,  String userId,  String? episodeId,  InternalTrack? track,  int expectedFileCount,  String fileInode,  int fileIndex,  String fileKind,  String? fileName,  String? fileMimeType,  bool saf,  String? downloadBasePath,  String? libraryId,  String? serverUrl,  String? serverHost,  int? serverPort,  bool? serverSsl,  String? title,  String downloadType)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String itemId,  String userId,  String? episodeId,  InternalTrack? track,  int expectedFileCount,  String fileInode,  int fileIndex,  String fileKind,  String? fileName,  String? fileMimeType,  bool saf,  String? downloadBasePath,  String? libraryId,  String? serverUrl,  String? serverHost,  int? serverPort,  bool? serverSsl,  String? title,  String downloadType,  String acquisitionOrigin,  List<String> smartProfileIds,  int? estimatedBytes)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DownloadTaskMetadata() when $default != null:
-return $default(_that.itemId,_that.userId,_that.episodeId,_that.track,_that.expectedFileCount,_that.fileInode,_that.fileIndex,_that.fileKind,_that.fileName,_that.fileMimeType,_that.saf,_that.downloadBasePath,_that.libraryId,_that.serverUrl,_that.serverHost,_that.serverPort,_that.serverSsl,_that.title,_that.downloadType);case _:
+return $default(_that.itemId,_that.userId,_that.episodeId,_that.track,_that.expectedFileCount,_that.fileInode,_that.fileIndex,_that.fileKind,_that.fileName,_that.fileMimeType,_that.saf,_that.downloadBasePath,_that.libraryId,_that.serverUrl,_that.serverHost,_that.serverPort,_that.serverSsl,_that.title,_that.downloadType,_that.acquisitionOrigin,_that.smartProfileIds,_that.estimatedBytes);case _:
   return orElse();
 
 }
@@ -205,10 +201,10 @@ return $default(_that.itemId,_that.userId,_that.episodeId,_that.track,_that.expe
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String itemId,  String userId,  String? episodeId,  InternalTrack? track,  int expectedFileCount,  String fileInode,  int fileIndex,  String fileKind,  String? fileName,  String? fileMimeType,  bool saf,  String? downloadBasePath,  String? libraryId,  String? serverUrl,  String? serverHost,  int? serverPort,  bool? serverSsl,  String? title,  String downloadType)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String itemId,  String userId,  String? episodeId,  InternalTrack? track,  int expectedFileCount,  String fileInode,  int fileIndex,  String fileKind,  String? fileName,  String? fileMimeType,  bool saf,  String? downloadBasePath,  String? libraryId,  String? serverUrl,  String? serverHost,  int? serverPort,  bool? serverSsl,  String? title,  String downloadType,  String acquisitionOrigin,  List<String> smartProfileIds,  int? estimatedBytes)  $default,) {final _that = this;
 switch (_that) {
 case _DownloadTaskMetadata():
-return $default(_that.itemId,_that.userId,_that.episodeId,_that.track,_that.expectedFileCount,_that.fileInode,_that.fileIndex,_that.fileKind,_that.fileName,_that.fileMimeType,_that.saf,_that.downloadBasePath,_that.libraryId,_that.serverUrl,_that.serverHost,_that.serverPort,_that.serverSsl,_that.title,_that.downloadType);case _:
+return $default(_that.itemId,_that.userId,_that.episodeId,_that.track,_that.expectedFileCount,_that.fileInode,_that.fileIndex,_that.fileKind,_that.fileName,_that.fileMimeType,_that.saf,_that.downloadBasePath,_that.libraryId,_that.serverUrl,_that.serverHost,_that.serverPort,_that.serverSsl,_that.title,_that.downloadType,_that.acquisitionOrigin,_that.smartProfileIds,_that.estimatedBytes);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -225,10 +221,10 @@ return $default(_that.itemId,_that.userId,_that.episodeId,_that.track,_that.expe
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String itemId,  String userId,  String? episodeId,  InternalTrack? track,  int expectedFileCount,  String fileInode,  int fileIndex,  String fileKind,  String? fileName,  String? fileMimeType,  bool saf,  String? downloadBasePath,  String? libraryId,  String? serverUrl,  String? serverHost,  int? serverPort,  bool? serverSsl,  String? title,  String downloadType)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String itemId,  String userId,  String? episodeId,  InternalTrack? track,  int expectedFileCount,  String fileInode,  int fileIndex,  String fileKind,  String? fileName,  String? fileMimeType,  bool saf,  String? downloadBasePath,  String? libraryId,  String? serverUrl,  String? serverHost,  int? serverPort,  bool? serverSsl,  String? title,  String downloadType,  String acquisitionOrigin,  List<String> smartProfileIds,  int? estimatedBytes)?  $default,) {final _that = this;
 switch (_that) {
 case _DownloadTaskMetadata() when $default != null:
-return $default(_that.itemId,_that.userId,_that.episodeId,_that.track,_that.expectedFileCount,_that.fileInode,_that.fileIndex,_that.fileKind,_that.fileName,_that.fileMimeType,_that.saf,_that.downloadBasePath,_that.libraryId,_that.serverUrl,_that.serverHost,_that.serverPort,_that.serverSsl,_that.title,_that.downloadType);case _:
+return $default(_that.itemId,_that.userId,_that.episodeId,_that.track,_that.expectedFileCount,_that.fileInode,_that.fileIndex,_that.fileKind,_that.fileName,_that.fileMimeType,_that.saf,_that.downloadBasePath,_that.libraryId,_that.serverUrl,_that.serverHost,_that.serverPort,_that.serverSsl,_that.title,_that.downloadType,_that.acquisitionOrigin,_that.smartProfileIds,_that.estimatedBytes);case _:
   return null;
 
 }
@@ -240,28 +236,31 @@ return $default(_that.itemId,_that.userId,_that.episodeId,_that.track,_that.expe
 @JsonSerializable()
 
 class _DownloadTaskMetadata implements DownloadTaskMetadata {
-  const _DownloadTaskMetadata({required this.itemId, required this.userId, this.episodeId, this.track, this.expectedFileCount = 1, this.fileInode = '', this.fileIndex = 0, this.fileKind = 'file', this.fileName, this.fileMimeType, this.saf = false, this.downloadBasePath, this.libraryId, this.serverUrl, this.serverHost, this.serverPort, this.serverSsl, this.title, this.downloadType = 'both'});
+   _DownloadTaskMetadata({required this.itemId, required this.userId, this.episodeId, this.track, this.expectedFileCount = 1, this.fileInode = '', this.fileIndex = 0, this.fileKind = 'file', this.fileName, this.fileMimeType, this.saf = false, this.downloadBasePath, this.libraryId, this.serverUrl, this.serverHost, this.serverPort, this.serverSsl, this.title, this.downloadType = 'both', this.acquisitionOrigin = 'manual', this.smartProfileIds = const <String>[], this.estimatedBytes});
   factory _DownloadTaskMetadata.fromJson(Map<String, dynamic> json) => _$DownloadTaskMetadataFromJson(json);
 
-@override final  String itemId;
-@override final  String userId;
-@override final  String? episodeId;
-@override final  InternalTrack? track;
-@override@JsonKey() final  int expectedFileCount;
-@override@JsonKey() final  String fileInode;
-@override@JsonKey() final  int fileIndex;
-@override@JsonKey() final  String fileKind;
-@override final  String? fileName;
-@override final  String? fileMimeType;
-@override@JsonKey() final  bool saf;
-@override final  String? downloadBasePath;
-@override final  String? libraryId;
-@override final  String? serverUrl;
-@override final  String? serverHost;
-@override final  int? serverPort;
-@override final  bool? serverSsl;
-@override final  String? title;
-@override@JsonKey() final  String downloadType;
+@override  String itemId;
+@override  String userId;
+@override  String? episodeId;
+@override  InternalTrack? track;
+@override@JsonKey()  int expectedFileCount;
+@override@JsonKey()  String fileInode;
+@override@JsonKey()  int fileIndex;
+@override@JsonKey()  String fileKind;
+@override  String? fileName;
+@override  String? fileMimeType;
+@override@JsonKey()  bool saf;
+@override  String? downloadBasePath;
+@override  String? libraryId;
+@override  String? serverUrl;
+@override  String? serverHost;
+@override  int? serverPort;
+@override  bool? serverSsl;
+@override  String? title;
+@override@JsonKey()  String downloadType;
+@override@JsonKey()  String acquisitionOrigin;
+@override@JsonKey()  List<String> smartProfileIds;
+@override  int? estimatedBytes;
 
 /// Create a copy of DownloadTaskMetadata
 /// with the given fields replaced by the non-null parameter values.
@@ -274,18 +273,11 @@ Map<String, dynamic> toJson() {
   return _$DownloadTaskMetadataToJson(this, );
 }
 
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DownloadTaskMetadata&&(identical(other.itemId, itemId) || other.itemId == itemId)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.episodeId, episodeId) || other.episodeId == episodeId)&&(identical(other.track, track) || other.track == track)&&(identical(other.expectedFileCount, expectedFileCount) || other.expectedFileCount == expectedFileCount)&&(identical(other.fileInode, fileInode) || other.fileInode == fileInode)&&(identical(other.fileIndex, fileIndex) || other.fileIndex == fileIndex)&&(identical(other.fileKind, fileKind) || other.fileKind == fileKind)&&(identical(other.fileName, fileName) || other.fileName == fileName)&&(identical(other.fileMimeType, fileMimeType) || other.fileMimeType == fileMimeType)&&(identical(other.saf, saf) || other.saf == saf)&&(identical(other.downloadBasePath, downloadBasePath) || other.downloadBasePath == downloadBasePath)&&(identical(other.libraryId, libraryId) || other.libraryId == libraryId)&&(identical(other.serverUrl, serverUrl) || other.serverUrl == serverUrl)&&(identical(other.serverHost, serverHost) || other.serverHost == serverHost)&&(identical(other.serverPort, serverPort) || other.serverPort == serverPort)&&(identical(other.serverSsl, serverSsl) || other.serverSsl == serverSsl)&&(identical(other.title, title) || other.title == title)&&(identical(other.downloadType, downloadType) || other.downloadType == downloadType));
-}
 
-@JsonKey(includeFromJson: false, includeToJson: false)
-@override
-int get hashCode => Object.hashAll([runtimeType,itemId,userId,episodeId,track,expectedFileCount,fileInode,fileIndex,fileKind,fileName,fileMimeType,saf,downloadBasePath,libraryId,serverUrl,serverHost,serverPort,serverSsl,title,downloadType]);
 
 @override
 String toString() {
-  return 'DownloadTaskMetadata(itemId: $itemId, userId: $userId, episodeId: $episodeId, track: $track, expectedFileCount: $expectedFileCount, fileInode: $fileInode, fileIndex: $fileIndex, fileKind: $fileKind, fileName: $fileName, fileMimeType: $fileMimeType, saf: $saf, downloadBasePath: $downloadBasePath, libraryId: $libraryId, serverUrl: $serverUrl, serverHost: $serverHost, serverPort: $serverPort, serverSsl: $serverSsl, title: $title, downloadType: $downloadType)';
+  return 'DownloadTaskMetadata(itemId: $itemId, userId: $userId, episodeId: $episodeId, track: $track, expectedFileCount: $expectedFileCount, fileInode: $fileInode, fileIndex: $fileIndex, fileKind: $fileKind, fileName: $fileName, fileMimeType: $fileMimeType, saf: $saf, downloadBasePath: $downloadBasePath, libraryId: $libraryId, serverUrl: $serverUrl, serverHost: $serverHost, serverPort: $serverPort, serverSsl: $serverSsl, title: $title, downloadType: $downloadType, acquisitionOrigin: $acquisitionOrigin, smartProfileIds: $smartProfileIds, estimatedBytes: $estimatedBytes)';
 }
 
 
@@ -296,7 +288,7 @@ abstract mixin class _$DownloadTaskMetadataCopyWith<$Res> implements $DownloadTa
   factory _$DownloadTaskMetadataCopyWith(_DownloadTaskMetadata value, $Res Function(_DownloadTaskMetadata) _then) = __$DownloadTaskMetadataCopyWithImpl;
 @override @useResult
 $Res call({
- String itemId, String userId, String? episodeId, InternalTrack? track, int expectedFileCount, String fileInode, int fileIndex, String fileKind, String? fileName, String? fileMimeType, bool saf, String? downloadBasePath, String? libraryId, String? serverUrl, String? serverHost, int? serverPort, bool? serverSsl, String? title, String downloadType
+ String itemId, String userId, String? episodeId, InternalTrack? track, int expectedFileCount, String fileInode, int fileIndex, String fileKind, String? fileName, String? fileMimeType, bool saf, String? downloadBasePath, String? libraryId, String? serverUrl, String? serverHost, int? serverPort, bool? serverSsl, String? title, String downloadType, String acquisitionOrigin, List<String> smartProfileIds, int? estimatedBytes
 });
 
 
@@ -313,7 +305,7 @@ class __$DownloadTaskMetadataCopyWithImpl<$Res>
 
 /// Create a copy of DownloadTaskMetadata
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? itemId = null,Object? userId = null,Object? episodeId = freezed,Object? track = freezed,Object? expectedFileCount = null,Object? fileInode = null,Object? fileIndex = null,Object? fileKind = null,Object? fileName = freezed,Object? fileMimeType = freezed,Object? saf = null,Object? downloadBasePath = freezed,Object? libraryId = freezed,Object? serverUrl = freezed,Object? serverHost = freezed,Object? serverPort = freezed,Object? serverSsl = freezed,Object? title = freezed,Object? downloadType = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? itemId = null,Object? userId = null,Object? episodeId = freezed,Object? track = freezed,Object? expectedFileCount = null,Object? fileInode = null,Object? fileIndex = null,Object? fileKind = null,Object? fileName = freezed,Object? fileMimeType = freezed,Object? saf = null,Object? downloadBasePath = freezed,Object? libraryId = freezed,Object? serverUrl = freezed,Object? serverHost = freezed,Object? serverPort = freezed,Object? serverSsl = freezed,Object? title = freezed,Object? downloadType = null,Object? acquisitionOrigin = null,Object? smartProfileIds = null,Object? estimatedBytes = freezed,}) {
   return _then(_DownloadTaskMetadata(
 itemId: null == itemId ? _self.itemId : itemId // ignore: cast_nullable_to_non_nullable
 as String,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
@@ -334,7 +326,10 @@ as String?,serverPort: freezed == serverPort ? _self.serverPort : serverPort // 
 as int?,serverSsl: freezed == serverSsl ? _self.serverSsl : serverSsl // ignore: cast_nullable_to_non_nullable
 as bool?,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String?,downloadType: null == downloadType ? _self.downloadType : downloadType // ignore: cast_nullable_to_non_nullable
-as String,
+as String,acquisitionOrigin: null == acquisitionOrigin ? _self.acquisitionOrigin : acquisitionOrigin // ignore: cast_nullable_to_non_nullable
+as String,smartProfileIds: null == smartProfileIds ? _self.smartProfileIds : smartProfileIds // ignore: cast_nullable_to_non_nullable
+as List<String>,estimatedBytes: freezed == estimatedBytes ? _self.estimatedBytes : estimatedBytes // ignore: cast_nullable_to_non_nullable
+as int?,
   ));
 }
 

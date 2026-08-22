@@ -78,7 +78,7 @@ enum PersonalizedShelfSection {
       case PersonalizedShelfSection.recentlyAdded:
         return Icons.schedule_rounded;
       case PersonalizedShelfSection.discover:
-        return Icons.auto_awesome_outlined;
+        return Icons.view_carousel_outlined;
       case PersonalizedShelfSection.recentSeries:
         return Icons.view_column_outlined;
       case PersonalizedShelfSection.newestAuthors:

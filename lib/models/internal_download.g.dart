@@ -18,6 +18,10 @@ _InternalDownload _$InternalDownloadFromJson(Map<String, dynamic> json) => _Inte
   sidecarPaths: (json['sidecarPaths'] as List<dynamic>?)?.map((e) => e as String).toList() ?? const <String>[],
   downloadType: json['downloadType'] as String? ?? 'both',
   downloadBasePath: json['downloadBasePath'] as String?,
+  downloadOrigin: json['downloadOrigin'] as String? ?? 'manual',
+  smartProfileIds: (json['smartProfileIds'] as List<dynamic>?)?.map((e) => e as String).toList() ?? const <String>[],
+  managedBytes: (json['managedBytes'] as num?)?.toInt(),
+  completedAt: (json['completedAt'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$InternalDownloadToJson(_InternalDownload instance) => <String, dynamic>{
@@ -31,4 +35,8 @@ Map<String, dynamic> _$InternalDownloadToJson(_InternalDownload instance) => <St
   'sidecarPaths': instance.sidecarPaths,
   'downloadType': instance.downloadType,
   'downloadBasePath': instance.downloadBasePath,
+  'downloadOrigin': instance.downloadOrigin,
+  'smartProfileIds': instance.smartProfileIds,
+  'managedBytes': instance.managedBytes,
+  'completedAt': instance.completedAt,
 };

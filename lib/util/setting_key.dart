@@ -23,6 +23,7 @@ class SettingKeys {
   static const String sidebarCollapsed = 'sidebar_collapsed';
   static const String autoQueue = 'auto_queue';
   static const String autoQueueIncludeSeriesOutsideContext = 'auto_queue_include_series_outside_context';
+  static const String queueIntent = 'queue_intent_v2';
   static const String sleepTimerExpireAction = 'sleep_timer_expire_action';
   static const String sleepTimerAutoRewindMinutes = 'sleep_timer_auto_rewind_minutes';
   static const String sleepTimerFadeOutEnabled = 'sleep_timer_fade_out_enabled';
@@ -59,6 +60,7 @@ class SettingKeys {
   static const String androidAutoLibrarySortField = 'android_auto_library_sort_field';
   static const String androidAutoPodcastSortDescending = 'android_auto_podcast_sort_descending';
   static const String androidAutoPodcastSortField = 'android_auto_podcast_sort_field';
+  static const String podcastQueueSortDescending = 'podcast_queue_sort_descending';
   static const String androidAutoGroupByLetters = 'android_auto_group_by_letters';
   static const String personalizedShelfShowPlayVisibleButton = 'personalized_shelf_show_play_visible_button';
   static const String showShuffleButton = 'show_shuffle_button';
@@ -147,6 +149,9 @@ class SettingKeys {
   static const String showSkipInsteadOfFastForward = 'show_skip_instead_of_fast_forward';
   static const String desktopSkipControlsSeek = 'desktop_skip_controls_seek';
   static const String downloadTypePreference = 'download_type_preference';
+  static const String downloadContinueListeningAndSeries = 'download_continue_shelf';
+  static const String downloadOnlyOnWifi = 'download_only_on_wifi';
+  static const String downloadMaxParallel = 'download_max_parallel';
 }
 
 bool get _defaultEnableOnDesktop {
@@ -185,6 +190,7 @@ final defaultSettings = {
   SettingKeys.sidebarCollapsed: false,
   SettingKeys.autoQueue: true,
   SettingKeys.autoQueueIncludeSeriesOutsideContext: false,
+  SettingKeys.queueIntent: null,
   SettingKeys.sleepTimerExpireAction: SleepTimerExpireAction.pause.name,
   SettingKeys.sleepTimerAutoRewindMinutes: 0,
   SettingKeys.sleepTimerFadeOutEnabled: true,
@@ -220,6 +226,7 @@ final defaultSettings = {
   SettingKeys.androidAutoLibrarySortField: 'title',
   SettingKeys.androidAutoPodcastSortDescending: true,
   SettingKeys.androidAutoPodcastSortField: 'added',
+  SettingKeys.podcastQueueSortDescending: true,
   SettingKeys.androidAutoGroupByLetters: true,
   SettingKeys.personalizedShelfShowPlayVisibleButton: false,
   SettingKeys.showShuffleButton: false,
@@ -304,6 +311,9 @@ final defaultSettings = {
   SettingKeys.showSkipInsteadOfFastForward: false,
   SettingKeys.desktopSkipControlsSeek: false,
   SettingKeys.downloadTypePreference: 'askEveryTime',
+  SettingKeys.downloadContinueListeningAndSeries: false,
+  SettingKeys.downloadOnlyOnWifi: true,
+  SettingKeys.downloadMaxParallel: 3,
 };
 
 enum AppThemeMode {

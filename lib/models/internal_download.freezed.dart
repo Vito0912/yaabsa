@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$InternalDownload {
 
-@JsonKey(name: "item") LibraryItem? get item;@JsonKey(name: "episode") Episode? get episode;@JsonKey(name: "tracks") List<InternalTrack> get tracks;@JsonKey(name: "expectedFileCount") int? get expectedFileCount;@JsonKey(name: "auxiliaryFilePaths") List<String> get auxiliaryFilePaths;@JsonKey(name: "saf", defaultValue: false) bool get saf;@JsonKey(name: "coverPath") String? get coverPath;@JsonKey(name: "sidecarPaths") List<String> get sidecarPaths;@JsonKey(name: "downloadType") String get downloadType;@JsonKey(name: 'downloadBasePath') String? get downloadBasePath;
+@JsonKey(name: "item") LibraryItem? get item;@JsonKey(name: "item") set item(LibraryItem? value);@JsonKey(name: "episode") Episode? get episode;@JsonKey(name: "episode") set episode(Episode? value);@JsonKey(name: "tracks") List<InternalTrack> get tracks;@JsonKey(name: "tracks") set tracks(List<InternalTrack> value);@JsonKey(name: "expectedFileCount") int? get expectedFileCount;@JsonKey(name: "expectedFileCount") set expectedFileCount(int? value);@JsonKey(name: "auxiliaryFilePaths") List<String> get auxiliaryFilePaths;@JsonKey(name: "auxiliaryFilePaths") set auxiliaryFilePaths(List<String> value);@JsonKey(name: "saf", defaultValue: false) bool get saf;@JsonKey(name: "saf", defaultValue: false) set saf(bool value);@JsonKey(name: "coverPath") String? get coverPath;@JsonKey(name: "coverPath") set coverPath(String? value);@JsonKey(name: "sidecarPaths") List<String> get sidecarPaths;@JsonKey(name: "sidecarPaths") set sidecarPaths(List<String> value);@JsonKey(name: "downloadType") String get downloadType;@JsonKey(name: "downloadType") set downloadType(String value);@JsonKey(name: 'downloadBasePath') String? get downloadBasePath;@JsonKey(name: 'downloadBasePath') set downloadBasePath(String? value);@JsonKey(name: 'downloadOrigin') String get downloadOrigin;@JsonKey(name: 'downloadOrigin') set downloadOrigin(String value);@JsonKey(name: 'smartProfileIds') List<String> get smartProfileIds;@JsonKey(name: 'smartProfileIds') set smartProfileIds(List<String> value);@JsonKey(name: 'managedBytes') int? get managedBytes;@JsonKey(name: 'managedBytes') set managedBytes(int? value);@JsonKey(name: 'completedAt') int? get completedAt;@JsonKey(name: 'completedAt') set completedAt(int? value);
 /// Create a copy of InternalDownload
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -27,18 +27,11 @@ $InternalDownloadCopyWith<InternalDownload> get copyWith => _$InternalDownloadCo
   Map<String, dynamic> toJson();
 
 
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is InternalDownload&&(identical(other.item, item) || other.item == item)&&(identical(other.episode, episode) || other.episode == episode)&&const DeepCollectionEquality().equals(other.tracks, tracks)&&(identical(other.expectedFileCount, expectedFileCount) || other.expectedFileCount == expectedFileCount)&&const DeepCollectionEquality().equals(other.auxiliaryFilePaths, auxiliaryFilePaths)&&(identical(other.saf, saf) || other.saf == saf)&&(identical(other.coverPath, coverPath) || other.coverPath == coverPath)&&const DeepCollectionEquality().equals(other.sidecarPaths, sidecarPaths)&&(identical(other.downloadType, downloadType) || other.downloadType == downloadType)&&(identical(other.downloadBasePath, downloadBasePath) || other.downloadBasePath == downloadBasePath));
-}
 
-@JsonKey(includeFromJson: false, includeToJson: false)
-@override
-int get hashCode => Object.hash(runtimeType,item,episode,const DeepCollectionEquality().hash(tracks),expectedFileCount,const DeepCollectionEquality().hash(auxiliaryFilePaths),saf,coverPath,const DeepCollectionEquality().hash(sidecarPaths),downloadType,downloadBasePath);
 
 @override
 String toString() {
-  return 'InternalDownload(item: $item, episode: $episode, tracks: $tracks, expectedFileCount: $expectedFileCount, auxiliaryFilePaths: $auxiliaryFilePaths, saf: $saf, coverPath: $coverPath, sidecarPaths: $sidecarPaths, downloadType: $downloadType, downloadBasePath: $downloadBasePath)';
+  return 'InternalDownload(item: $item, episode: $episode, tracks: $tracks, expectedFileCount: $expectedFileCount, auxiliaryFilePaths: $auxiliaryFilePaths, saf: $saf, coverPath: $coverPath, sidecarPaths: $sidecarPaths, downloadType: $downloadType, downloadBasePath: $downloadBasePath, downloadOrigin: $downloadOrigin, smartProfileIds: $smartProfileIds, managedBytes: $managedBytes, completedAt: $completedAt)';
 }
 
 
@@ -49,7 +42,7 @@ abstract mixin class $InternalDownloadCopyWith<$Res>  {
   factory $InternalDownloadCopyWith(InternalDownload value, $Res Function(InternalDownload) _then) = _$InternalDownloadCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: "item") LibraryItem? item,@JsonKey(name: "episode") Episode? episode,@JsonKey(name: "tracks") List<InternalTrack> tracks,@JsonKey(name: "expectedFileCount") int? expectedFileCount,@JsonKey(name: "auxiliaryFilePaths") List<String> auxiliaryFilePaths,@JsonKey(name: "saf", defaultValue: false) bool saf,@JsonKey(name: "coverPath") String? coverPath,@JsonKey(name: "sidecarPaths") List<String> sidecarPaths,@JsonKey(name: "downloadType") String downloadType,@JsonKey(name: 'downloadBasePath') String? downloadBasePath
+@JsonKey(name: "item") LibraryItem? item,@JsonKey(name: "episode") Episode? episode,@JsonKey(name: "tracks") List<InternalTrack> tracks,@JsonKey(name: "expectedFileCount") int? expectedFileCount,@JsonKey(name: "auxiliaryFilePaths") List<String> auxiliaryFilePaths,@JsonKey(name: "saf", defaultValue: false) bool saf,@JsonKey(name: "coverPath") String? coverPath,@JsonKey(name: "sidecarPaths") List<String> sidecarPaths,@JsonKey(name: "downloadType") String downloadType,@JsonKey(name: 'downloadBasePath') String? downloadBasePath,@JsonKey(name: 'downloadOrigin') String downloadOrigin,@JsonKey(name: 'smartProfileIds') List<String> smartProfileIds,@JsonKey(name: 'managedBytes') int? managedBytes,@JsonKey(name: 'completedAt') int? completedAt
 });
 
 
@@ -66,7 +59,7 @@ class _$InternalDownloadCopyWithImpl<$Res>
 
 /// Create a copy of InternalDownload
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? item = freezed,Object? episode = freezed,Object? tracks = null,Object? expectedFileCount = freezed,Object? auxiliaryFilePaths = null,Object? saf = null,Object? coverPath = freezed,Object? sidecarPaths = null,Object? downloadType = null,Object? downloadBasePath = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? item = freezed,Object? episode = freezed,Object? tracks = null,Object? expectedFileCount = freezed,Object? auxiliaryFilePaths = null,Object? saf = null,Object? coverPath = freezed,Object? sidecarPaths = null,Object? downloadType = null,Object? downloadBasePath = freezed,Object? downloadOrigin = null,Object? smartProfileIds = null,Object? managedBytes = freezed,Object? completedAt = freezed,}) {
   return _then(InternalDownload(
 item: freezed == item ? _self.item : item // ignore: cast_nullable_to_non_nullable
 as LibraryItem?,episode: freezed == episode ? _self.episode : episode // ignore: cast_nullable_to_non_nullable
@@ -78,7 +71,11 @@ as bool,coverPath: freezed == coverPath ? _self.coverPath : coverPath // ignore:
 as String?,sidecarPaths: null == sidecarPaths ? _self.sidecarPaths : sidecarPaths // ignore: cast_nullable_to_non_nullable
 as List<String>,downloadType: null == downloadType ? _self.downloadType : downloadType // ignore: cast_nullable_to_non_nullable
 as String,downloadBasePath: freezed == downloadBasePath ? _self.downloadBasePath : downloadBasePath // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,downloadOrigin: null == downloadOrigin ? _self.downloadOrigin : downloadOrigin // ignore: cast_nullable_to_non_nullable
+as String,smartProfileIds: null == smartProfileIds ? _self.smartProfileIds : smartProfileIds // ignore: cast_nullable_to_non_nullable
+as List<String>,managedBytes: freezed == managedBytes ? _self.managedBytes : managedBytes // ignore: cast_nullable_to_non_nullable
+as int?,completedAt: freezed == completedAt ? _self.completedAt : completedAt // ignore: cast_nullable_to_non_nullable
+as int?,
   ));
 }
 /// Create a copy of InternalDownload
@@ -187,10 +184,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "item")  LibraryItem? item, @JsonKey(name: "episode")  Episode? episode, @JsonKey(name: "tracks")  List<InternalTrack> tracks, @JsonKey(name: "expectedFileCount")  int? expectedFileCount, @JsonKey(name: "auxiliaryFilePaths")  List<String> auxiliaryFilePaths, @JsonKey(name: "saf", defaultValue: false)  bool saf, @JsonKey(name: "coverPath")  String? coverPath, @JsonKey(name: "sidecarPaths")  List<String> sidecarPaths, @JsonKey(name: "downloadType")  String downloadType, @JsonKey(name: 'downloadBasePath')  String? downloadBasePath)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "item")  LibraryItem? item, @JsonKey(name: "episode")  Episode? episode, @JsonKey(name: "tracks")  List<InternalTrack> tracks, @JsonKey(name: "expectedFileCount")  int? expectedFileCount, @JsonKey(name: "auxiliaryFilePaths")  List<String> auxiliaryFilePaths, @JsonKey(name: "saf", defaultValue: false)  bool saf, @JsonKey(name: "coverPath")  String? coverPath, @JsonKey(name: "sidecarPaths")  List<String> sidecarPaths, @JsonKey(name: "downloadType")  String downloadType, @JsonKey(name: 'downloadBasePath')  String? downloadBasePath, @JsonKey(name: 'downloadOrigin')  String downloadOrigin, @JsonKey(name: 'smartProfileIds')  List<String> smartProfileIds, @JsonKey(name: 'managedBytes')  int? managedBytes, @JsonKey(name: 'completedAt')  int? completedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _InternalDownload() when $default != null:
-return $default(_that.item,_that.episode,_that.tracks,_that.expectedFileCount,_that.auxiliaryFilePaths,_that.saf,_that.coverPath,_that.sidecarPaths,_that.downloadType,_that.downloadBasePath);case _:
+return $default(_that.item,_that.episode,_that.tracks,_that.expectedFileCount,_that.auxiliaryFilePaths,_that.saf,_that.coverPath,_that.sidecarPaths,_that.downloadType,_that.downloadBasePath,_that.downloadOrigin,_that.smartProfileIds,_that.managedBytes,_that.completedAt);case _:
   return orElse();
 
 }
@@ -208,10 +205,10 @@ return $default(_that.item,_that.episode,_that.tracks,_that.expectedFileCount,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "item")  LibraryItem? item, @JsonKey(name: "episode")  Episode? episode, @JsonKey(name: "tracks")  List<InternalTrack> tracks, @JsonKey(name: "expectedFileCount")  int? expectedFileCount, @JsonKey(name: "auxiliaryFilePaths")  List<String> auxiliaryFilePaths, @JsonKey(name: "saf", defaultValue: false)  bool saf, @JsonKey(name: "coverPath")  String? coverPath, @JsonKey(name: "sidecarPaths")  List<String> sidecarPaths, @JsonKey(name: "downloadType")  String downloadType, @JsonKey(name: 'downloadBasePath')  String? downloadBasePath)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "item")  LibraryItem? item, @JsonKey(name: "episode")  Episode? episode, @JsonKey(name: "tracks")  List<InternalTrack> tracks, @JsonKey(name: "expectedFileCount")  int? expectedFileCount, @JsonKey(name: "auxiliaryFilePaths")  List<String> auxiliaryFilePaths, @JsonKey(name: "saf", defaultValue: false)  bool saf, @JsonKey(name: "coverPath")  String? coverPath, @JsonKey(name: "sidecarPaths")  List<String> sidecarPaths, @JsonKey(name: "downloadType")  String downloadType, @JsonKey(name: 'downloadBasePath')  String? downloadBasePath, @JsonKey(name: 'downloadOrigin')  String downloadOrigin, @JsonKey(name: 'smartProfileIds')  List<String> smartProfileIds, @JsonKey(name: 'managedBytes')  int? managedBytes, @JsonKey(name: 'completedAt')  int? completedAt)  $default,) {final _that = this;
 switch (_that) {
 case _InternalDownload():
-return $default(_that.item,_that.episode,_that.tracks,_that.expectedFileCount,_that.auxiliaryFilePaths,_that.saf,_that.coverPath,_that.sidecarPaths,_that.downloadType,_that.downloadBasePath);case _:
+return $default(_that.item,_that.episode,_that.tracks,_that.expectedFileCount,_that.auxiliaryFilePaths,_that.saf,_that.coverPath,_that.sidecarPaths,_that.downloadType,_that.downloadBasePath,_that.downloadOrigin,_that.smartProfileIds,_that.managedBytes,_that.completedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -228,10 +225,10 @@ return $default(_that.item,_that.episode,_that.tracks,_that.expectedFileCount,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "item")  LibraryItem? item, @JsonKey(name: "episode")  Episode? episode, @JsonKey(name: "tracks")  List<InternalTrack> tracks, @JsonKey(name: "expectedFileCount")  int? expectedFileCount, @JsonKey(name: "auxiliaryFilePaths")  List<String> auxiliaryFilePaths, @JsonKey(name: "saf", defaultValue: false)  bool saf, @JsonKey(name: "coverPath")  String? coverPath, @JsonKey(name: "sidecarPaths")  List<String> sidecarPaths, @JsonKey(name: "downloadType")  String downloadType, @JsonKey(name: 'downloadBasePath')  String? downloadBasePath)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "item")  LibraryItem? item, @JsonKey(name: "episode")  Episode? episode, @JsonKey(name: "tracks")  List<InternalTrack> tracks, @JsonKey(name: "expectedFileCount")  int? expectedFileCount, @JsonKey(name: "auxiliaryFilePaths")  List<String> auxiliaryFilePaths, @JsonKey(name: "saf", defaultValue: false)  bool saf, @JsonKey(name: "coverPath")  String? coverPath, @JsonKey(name: "sidecarPaths")  List<String> sidecarPaths, @JsonKey(name: "downloadType")  String downloadType, @JsonKey(name: 'downloadBasePath')  String? downloadBasePath, @JsonKey(name: 'downloadOrigin')  String downloadOrigin, @JsonKey(name: 'smartProfileIds')  List<String> smartProfileIds, @JsonKey(name: 'managedBytes')  int? managedBytes, @JsonKey(name: 'completedAt')  int? completedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _InternalDownload() when $default != null:
-return $default(_that.item,_that.episode,_that.tracks,_that.expectedFileCount,_that.auxiliaryFilePaths,_that.saf,_that.coverPath,_that.sidecarPaths,_that.downloadType,_that.downloadBasePath);case _:
+return $default(_that.item,_that.episode,_that.tracks,_that.expectedFileCount,_that.auxiliaryFilePaths,_that.saf,_that.coverPath,_that.sidecarPaths,_that.downloadType,_that.downloadBasePath,_that.downloadOrigin,_that.smartProfileIds,_that.managedBytes,_that.completedAt);case _:
   return null;
 
 }
@@ -243,37 +240,23 @@ return $default(_that.item,_that.episode,_that.tracks,_that.expectedFileCount,_t
 @JsonSerializable()
 
 class _InternalDownload extends InternalDownload {
-   _InternalDownload({@JsonKey(name: "item") required this.item, @JsonKey(name: "episode") required this.episode, @JsonKey(name: "tracks") required  List<InternalTrack> tracks, @JsonKey(name: "expectedFileCount") this.expectedFileCount, @JsonKey(name: "auxiliaryFilePaths")  List<String> auxiliaryFilePaths = const <String>[], @JsonKey(name: "saf", defaultValue: false) required this.saf, @JsonKey(name: "coverPath") this.coverPath, @JsonKey(name: "sidecarPaths")  List<String> sidecarPaths = const <String>[], @JsonKey(name: "downloadType") this.downloadType = 'both', @JsonKey(name: 'downloadBasePath') this.downloadBasePath}): _tracks = tracks,_auxiliaryFilePaths = auxiliaryFilePaths,_sidecarPaths = sidecarPaths,super._();
+   _InternalDownload({@JsonKey(name: "item") required this.item, @JsonKey(name: "episode") required this.episode, @JsonKey(name: "tracks") required this.tracks, @JsonKey(name: "expectedFileCount") this.expectedFileCount, @JsonKey(name: "auxiliaryFilePaths") this.auxiliaryFilePaths = const <String>[], @JsonKey(name: "saf", defaultValue: false) required this.saf, @JsonKey(name: "coverPath") this.coverPath, @JsonKey(name: "sidecarPaths") this.sidecarPaths = const <String>[], @JsonKey(name: "downloadType") this.downloadType = 'both', @JsonKey(name: 'downloadBasePath') this.downloadBasePath, @JsonKey(name: 'downloadOrigin') this.downloadOrigin = 'manual', @JsonKey(name: 'smartProfileIds') this.smartProfileIds = const <String>[], @JsonKey(name: 'managedBytes') this.managedBytes, @JsonKey(name: 'completedAt') this.completedAt}): super._();
   factory _InternalDownload.fromJson(Map<String, dynamic> json) => _$InternalDownloadFromJson(json);
 
-@override@JsonKey(name: "item") final  LibraryItem? item;
-@override@JsonKey(name: "episode") final  Episode? episode;
- final  List<InternalTrack> _tracks;
-@override@JsonKey(name: "tracks") List<InternalTrack> get tracks {
-  if (_tracks is EqualUnmodifiableListView) return _tracks;
-  // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_tracks);
-}
-
-@override@JsonKey(name: "expectedFileCount") final  int? expectedFileCount;
- final  List<String> _auxiliaryFilePaths;
-@override@JsonKey(name: "auxiliaryFilePaths") List<String> get auxiliaryFilePaths {
-  if (_auxiliaryFilePaths is EqualUnmodifiableListView) return _auxiliaryFilePaths;
-  // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_auxiliaryFilePaths);
-}
-
-@override@JsonKey(name: "saf", defaultValue: false) final  bool saf;
-@override@JsonKey(name: "coverPath") final  String? coverPath;
- final  List<String> _sidecarPaths;
-@override@JsonKey(name: "sidecarPaths") List<String> get sidecarPaths {
-  if (_sidecarPaths is EqualUnmodifiableListView) return _sidecarPaths;
-  // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_sidecarPaths);
-}
-
-@override@JsonKey(name: "downloadType") final  String downloadType;
-@override@JsonKey(name: 'downloadBasePath') final  String? downloadBasePath;
+@override@JsonKey(name: "item")  LibraryItem? item;
+@override@JsonKey(name: "episode")  Episode? episode;
+@override@JsonKey(name: "tracks")  List<InternalTrack> tracks;
+@override@JsonKey(name: "expectedFileCount")  int? expectedFileCount;
+@override@JsonKey(name: "auxiliaryFilePaths")  List<String> auxiliaryFilePaths;
+@override@JsonKey(name: "saf", defaultValue: false)  bool saf;
+@override@JsonKey(name: "coverPath")  String? coverPath;
+@override@JsonKey(name: "sidecarPaths")  List<String> sidecarPaths;
+@override@JsonKey(name: "downloadType")  String downloadType;
+@override@JsonKey(name: 'downloadBasePath')  String? downloadBasePath;
+@override@JsonKey(name: 'downloadOrigin')  String downloadOrigin;
+@override@JsonKey(name: 'smartProfileIds')  List<String> smartProfileIds;
+@override@JsonKey(name: 'managedBytes')  int? managedBytes;
+@override@JsonKey(name: 'completedAt')  int? completedAt;
 
 /// Create a copy of InternalDownload
 /// with the given fields replaced by the non-null parameter values.
@@ -286,18 +269,11 @@ Map<String, dynamic> toJson() {
   return _$InternalDownloadToJson(this, );
 }
 
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _InternalDownload&&(identical(other.item, item) || other.item == item)&&(identical(other.episode, episode) || other.episode == episode)&&const DeepCollectionEquality().equals(other._tracks, _tracks)&&(identical(other.expectedFileCount, expectedFileCount) || other.expectedFileCount == expectedFileCount)&&const DeepCollectionEquality().equals(other._auxiliaryFilePaths, _auxiliaryFilePaths)&&(identical(other.saf, saf) || other.saf == saf)&&(identical(other.coverPath, coverPath) || other.coverPath == coverPath)&&const DeepCollectionEquality().equals(other._sidecarPaths, _sidecarPaths)&&(identical(other.downloadType, downloadType) || other.downloadType == downloadType)&&(identical(other.downloadBasePath, downloadBasePath) || other.downloadBasePath == downloadBasePath));
-}
 
-@JsonKey(includeFromJson: false, includeToJson: false)
-@override
-int get hashCode => Object.hash(runtimeType,item,episode,const DeepCollectionEquality().hash(_tracks),expectedFileCount,const DeepCollectionEquality().hash(_auxiliaryFilePaths),saf,coverPath,const DeepCollectionEquality().hash(_sidecarPaths),downloadType,downloadBasePath);
 
 @override
 String toString() {
-  return 'InternalDownload(item: $item, episode: $episode, tracks: $tracks, expectedFileCount: $expectedFileCount, auxiliaryFilePaths: $auxiliaryFilePaths, saf: $saf, coverPath: $coverPath, sidecarPaths: $sidecarPaths, downloadType: $downloadType, downloadBasePath: $downloadBasePath)';
+  return 'InternalDownload(item: $item, episode: $episode, tracks: $tracks, expectedFileCount: $expectedFileCount, auxiliaryFilePaths: $auxiliaryFilePaths, saf: $saf, coverPath: $coverPath, sidecarPaths: $sidecarPaths, downloadType: $downloadType, downloadBasePath: $downloadBasePath, downloadOrigin: $downloadOrigin, smartProfileIds: $smartProfileIds, managedBytes: $managedBytes, completedAt: $completedAt)';
 }
 
 
@@ -308,7 +284,7 @@ abstract mixin class _$InternalDownloadCopyWith<$Res> implements $InternalDownlo
   factory _$InternalDownloadCopyWith(_InternalDownload value, $Res Function(_InternalDownload) _then) = __$InternalDownloadCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: "item") LibraryItem? item,@JsonKey(name: "episode") Episode? episode,@JsonKey(name: "tracks") List<InternalTrack> tracks,@JsonKey(name: "expectedFileCount") int? expectedFileCount,@JsonKey(name: "auxiliaryFilePaths") List<String> auxiliaryFilePaths,@JsonKey(name: "saf", defaultValue: false) bool saf,@JsonKey(name: "coverPath") String? coverPath,@JsonKey(name: "sidecarPaths") List<String> sidecarPaths,@JsonKey(name: "downloadType") String downloadType,@JsonKey(name: 'downloadBasePath') String? downloadBasePath
+@JsonKey(name: "item") LibraryItem? item,@JsonKey(name: "episode") Episode? episode,@JsonKey(name: "tracks") List<InternalTrack> tracks,@JsonKey(name: "expectedFileCount") int? expectedFileCount,@JsonKey(name: "auxiliaryFilePaths") List<String> auxiliaryFilePaths,@JsonKey(name: "saf", defaultValue: false) bool saf,@JsonKey(name: "coverPath") String? coverPath,@JsonKey(name: "sidecarPaths") List<String> sidecarPaths,@JsonKey(name: "downloadType") String downloadType,@JsonKey(name: 'downloadBasePath') String? downloadBasePath,@JsonKey(name: 'downloadOrigin') String downloadOrigin,@JsonKey(name: 'smartProfileIds') List<String> smartProfileIds,@JsonKey(name: 'managedBytes') int? managedBytes,@JsonKey(name: 'completedAt') int? completedAt
 });
 
 
@@ -325,19 +301,23 @@ class __$InternalDownloadCopyWithImpl<$Res>
 
 /// Create a copy of InternalDownload
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? item = freezed,Object? episode = freezed,Object? tracks = null,Object? expectedFileCount = freezed,Object? auxiliaryFilePaths = null,Object? saf = null,Object? coverPath = freezed,Object? sidecarPaths = null,Object? downloadType = null,Object? downloadBasePath = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? item = freezed,Object? episode = freezed,Object? tracks = null,Object? expectedFileCount = freezed,Object? auxiliaryFilePaths = null,Object? saf = null,Object? coverPath = freezed,Object? sidecarPaths = null,Object? downloadType = null,Object? downloadBasePath = freezed,Object? downloadOrigin = null,Object? smartProfileIds = null,Object? managedBytes = freezed,Object? completedAt = freezed,}) {
   return _then(_InternalDownload(
 item: freezed == item ? _self.item : item // ignore: cast_nullable_to_non_nullable
 as LibraryItem?,episode: freezed == episode ? _self.episode : episode // ignore: cast_nullable_to_non_nullable
-as Episode?,tracks: null == tracks ? _self._tracks : tracks // ignore: cast_nullable_to_non_nullable
+as Episode?,tracks: null == tracks ? _self.tracks : tracks // ignore: cast_nullable_to_non_nullable
 as List<InternalTrack>,expectedFileCount: freezed == expectedFileCount ? _self.expectedFileCount : expectedFileCount // ignore: cast_nullable_to_non_nullable
-as int?,auxiliaryFilePaths: null == auxiliaryFilePaths ? _self._auxiliaryFilePaths : auxiliaryFilePaths // ignore: cast_nullable_to_non_nullable
+as int?,auxiliaryFilePaths: null == auxiliaryFilePaths ? _self.auxiliaryFilePaths : auxiliaryFilePaths // ignore: cast_nullable_to_non_nullable
 as List<String>,saf: null == saf ? _self.saf : saf // ignore: cast_nullable_to_non_nullable
 as bool,coverPath: freezed == coverPath ? _self.coverPath : coverPath // ignore: cast_nullable_to_non_nullable
-as String?,sidecarPaths: null == sidecarPaths ? _self._sidecarPaths : sidecarPaths // ignore: cast_nullable_to_non_nullable
+as String?,sidecarPaths: null == sidecarPaths ? _self.sidecarPaths : sidecarPaths // ignore: cast_nullable_to_non_nullable
 as List<String>,downloadType: null == downloadType ? _self.downloadType : downloadType // ignore: cast_nullable_to_non_nullable
 as String,downloadBasePath: freezed == downloadBasePath ? _self.downloadBasePath : downloadBasePath // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,downloadOrigin: null == downloadOrigin ? _self.downloadOrigin : downloadOrigin // ignore: cast_nullable_to_non_nullable
+as String,smartProfileIds: null == smartProfileIds ? _self.smartProfileIds : smartProfileIds // ignore: cast_nullable_to_non_nullable
+as List<String>,managedBytes: freezed == managedBytes ? _self.managedBytes : managedBytes // ignore: cast_nullable_to_non_nullable
+as int?,completedAt: freezed == completedAt ? _self.completedAt : completedAt // ignore: cast_nullable_to_non_nullable
+as int?,
   ));
 }
 

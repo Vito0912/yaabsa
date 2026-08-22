@@ -1040,7 +1040,31 @@ class _QueueBottomSheet extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Text('Queue', style: Theme.of(context).textTheme.titleLarge),
+              Row(
+                children: [
+                  Expanded(child: Text('Queue', style: Theme.of(context).textTheme.titleLarge)),
+                  IconButton(
+                    tooltip: 'Clear queue',
+                    onPressed: () async {
+                      final shouldClear = await showDialog<bool>(
+                        context: context,
+                        builder: (dialogContext) => AlertDialog(
+                          title: const Text('Clear queue?'),
+                          content: const Text('Remove all queued, auto-queued, and scheduled items?'),
+                          actions: [
+                            TextButton(onPressed: () => dialogContext.pop(false), child: const Text('Cancel')),
+                            FilledButton(onPressed: () => dialogContext.pop(true), child: const Text('Clear queue')),
+                          ],
+                        ),
+                      );
+                      if (shouldClear == true) {
+                        audioHandler.clearQueue();
+                      }
+                    },
+                    icon: const Icon(Icons.clear_all_rounded),
+                  ),
+                ],
+              ),
               const SizedBox(height: 6),
               const Expanded(child: PlayerQueueView(showEmptyIcon: false)),
             ],
@@ -1115,7 +1139,7 @@ class _PlayerQuickSettingsSheet extends ConsumerWidget {
                 segments: const <ButtonSegment<PlayerLayoutMode>>[
                   ButtonSegment<PlayerLayoutMode>(
                     value: PlayerLayoutMode.adaptive,
-                    icon: Icon(Icons.auto_awesome_mosaic_rounded),
+                    icon: Icon(Icons.queue_music_rounded),
                     label: Text('Adaptive'),
                   ),
                   ButtonSegment<PlayerLayoutMode>(

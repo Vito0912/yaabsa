@@ -85,10 +85,9 @@ class _LibraryItemWidgetState extends ConsumerState<LibraryItemWidget> {
     final shelfEpisode = _podcastShelfEpisode();
     final displayTitle = _resolvedDisplayTitle(shelfEpisode);
     final progress = widget.showProgress ? _resolveProgress(progressMap!) : null;
-    final completedDownloadItemIds = ref.watch(completedDownloadItemIdsProvider).asData?.value ?? const <String>{};
-    final isDownloaded = shelfEpisode != null
-        ? completedDownloadItemIds.contains(shelfEpisode.id)
-        : (widget.libraryItem.mediaType != 'podcast' && completedDownloadItemIds.contains(widget.libraryItem.id));
+    final isDownloaded = ref.watch(
+      completedDownloadForItemProvider(widget.libraryItem.id, episodeId: shelfEpisode?.id),
+    );
     final collapsedSeriesBookCount = widget.libraryItem.collapsedSeries?.numBooks ?? 0;
     final collapsedSeriesId = widget.libraryItem.collapsedSeries?.id;
     final isCollapsedSeriesCard = widget.libraryItem.collapsedSeries != null;

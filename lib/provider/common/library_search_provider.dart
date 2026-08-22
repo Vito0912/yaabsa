@@ -4,22 +4,22 @@ import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/logger.dart';
 
-typedef LibrarySearchProviderArgs = ({String query, int? limit});
+typedef LibrarySearchProviderArgs = ({String query, int? limit, String? libraryId});
 
 final librarySearchProvider = FutureProvider.autoDispose.family<SearchLibrary?, LibrarySearchProviderArgs>((
   ref,
   args,
 ) async {
   final api = ref.watch(absApiProvider);
-  final selectedLibrary = ref.watch(selectedLibraryProvider);
+  final libraryId = args.libraryId ?? ref.watch(selectedLibraryProvider)?.id;
   final trimmedQuery = args.query.trim();
 
-  if (api == null || selectedLibrary == null || trimmedQuery.isEmpty) {
+  if (api == null || libraryId == null || trimmedQuery.isEmpty) {
     return null;
   }
 
   try {
-    final response = await api.getLibraryApi().getSearchLibrary(selectedLibrary.id, trimmedQuery, limit: args.limit);
+    final response = await api.getLibraryApi().getSearchLibrary(libraryId, trimmedQuery, limit: args.limit);
     return response.data;
   } catch (error, stack) {
     logger('Error searching library: $error\n$stack', tag: 'LibrarySearchProvider', level: InfoLevel.warning);

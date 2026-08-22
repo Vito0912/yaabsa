@@ -134,7 +134,7 @@ class _BookEditorSheetState extends ConsumerState<_BookEditorSheet> {
   @override
   Widget build(BuildContext context) {
     final searchAsync = _searchQuery.isNotEmpty
-        ? ref.watch(librarySearchProvider((query: _searchQuery, limit: 10)))
+        ? ref.watch(librarySearchProvider((query: _searchQuery, limit: 10, libraryId: null)))
         : const AsyncData<SearchLibrary?>(null);
 
     return Scaffold(

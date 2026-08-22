@@ -6,6 +6,8 @@ import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/database/auth_secret_store.dart';
 import 'package:yaabsa/models/internal_download.dart';
 import 'package:yaabsa/models/internal_media.dart';
+import 'package:yaabsa/models/smart_download.dart';
+import 'package:yaabsa/models/queue_source.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:drift/drift.dart';
@@ -108,9 +110,74 @@ class StoredDownloads extends Table {
   TextColumn get episodeId => text().nullable()();
 
   TextColumn get download => text()();
+  TextColumn get downloadOrigin => text().withDefault(const Constant('manual'))();
+  TextColumn get smartProfileIds => text().withDefault(const Constant('[]'))();
+  IntColumn get managedBytes => integer().nullable()();
+  IntColumn get completedAt => integer().nullable()();
 
   @override
   Set<Column> get primaryKey => {itemId, userId, episodeId};
+}
+
+@DataClassName('StoredDownloadFileEntry')
+class StoredDownloadFiles extends Table {
+  TextColumn get itemId => text()();
+  TextColumn get userId => text()();
+  TextColumn get episodeId => text().nullable()();
+  TextColumn get fileKey => text()();
+
+  TextColumn get trackJson => text().nullable()();
+  TextColumn get auxiliaryPath => text().nullable()();
+  TextColumn get sidecarPath => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {itemId, userId, episodeId, fileKey};
+}
+
+@DataClassName('SmartDownloadProfileEntry')
+class SmartDownloadProfiles extends Table {
+  TextColumn get id => text()();
+  TextColumn get userId => text()();
+  TextColumn get name => text()();
+  TextColumn get policy => text()();
+  BoolColumn get enabled => boolean().withDefault(const Constant(true))();
+  IntColumn get updatedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id, userId};
+}
+
+@DataClassName('SmartDownloadSourceEntry')
+class SmartDownloadSources extends Table {
+  TextColumn get profileId => text()();
+  TextColumn get sourceType => text()();
+  TextColumn get sourceId => text()();
+  TextColumn get libraryId => text()();
+  TextColumn get displayName => text().nullable()();
+  BoolColumn get descending => boolean().withDefault(const Constant(false))();
+  IntColumn get sourceRevision => integer().nullable()();
+  TextColumn get candidateSnapshot => text().nullable()();
+  IntColumn get updatedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {profileId, sourceType, sourceId};
+}
+
+@DataClassName('SmartDownloadClaimEntry')
+class SmartDownloadClaims extends Table {
+  TextColumn get profileId => text()();
+  TextColumn get referenceKey => text()();
+  TextColumn get itemId => text()();
+  TextColumn get episodeId => text().nullable()();
+  TextColumn get sourceType => text()();
+  TextColumn get sourceId => text()();
+  TextColumn get state => text()();
+  IntColumn get estimatedBytes => integer().nullable()();
+  IntColumn get completedAt => integer().nullable()();
+  IntColumn get updatedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {profileId, referenceKey};
 }
 
 @DataClassName('PlayerHistoryEntry')
@@ -138,6 +205,17 @@ class PlayerHistory extends Table {
   ];
 }
 
+class _StoredDownloadCacheEntry {
+  const _StoredDownloadCacheEntry({required this.signature, required this.value});
+
+  final String signature;
+  final Future<InternalDownload?> value;
+}
+
+const int _storedDownloadStorageVersion = 2;
+const String _storedDownloadStorageVersionKey = '_storageVersion';
+const String _storedDownloadStorageBaseKey = 'base';
+
 @DriftDatabase(
   tables: [
     GlobalSettings,
@@ -148,6 +226,10 @@ class PlayerHistory extends Table {
     StoredMediaProgress,
     StoredBookmarkSyncs,
     StoredDownloads,
+    StoredDownloadFiles,
+    SmartDownloadProfiles,
+    SmartDownloadSources,
+    SmartDownloadClaims,
     PlayerHistory,
   ],
 )
@@ -161,9 +243,22 @@ class AppDatabase extends _$AppDatabase {
       super(connection.executor);
 
   final AuthSecretStore _authSecretStore;
+  final Map<String, _StoredDownloadCacheEntry> _storedDownloadCache = <String, _StoredDownloadCacheEntry>{};
+  final Map<String, Future<InternalDownload?>> _storedDownloadBaseCache = <String, Future<InternalDownload?>>{};
+  bool? _storedDownloadFilesAvailable;
 
   @override
-  int get schemaVersion => 20;
+  int get schemaVersion => 24;
+
+  Future<void> _addColumnIfMissing(Migrator migrator, TableInfo table, GeneratedColumn column) async {
+    final tableName = table.actualTableName.replaceAll('"', '""');
+    final columns = await migrator.database.customSelect('PRAGMA table_info("$tableName")').get();
+    final columnName = column.$name.toLowerCase();
+    final columnExists = columns.any((row) => row.read<String>('name').toLowerCase() == columnName);
+    if (!columnExists) {
+      await migrator.addColumn(table, column);
+    }
+  }
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -221,7 +316,37 @@ class AppDatabase extends _$AppDatabase {
         await customStatement('DROP TABLE _stored_downloads_old;');
       }
       if (from >= 14 && from <= 19) {
-        await m.addColumn(playerHistory, playerHistory.detailsJson);
+        await _addColumnIfMissing(m, playerHistory, playerHistory.detailsJson);
+      }
+      if (from <= 20) {
+        await m.createTable(smartDownloadProfiles);
+        await m.createTable(smartDownloadSources);
+        await m.createTable(smartDownloadClaims);
+        if (from > 18) {
+          await _addColumnIfMissing(m, storedDownloads, storedDownloads.downloadOrigin);
+          await _addColumnIfMissing(m, storedDownloads, storedDownloads.smartProfileIds);
+          await _addColumnIfMissing(m, storedDownloads, storedDownloads.managedBytes);
+          await _addColumnIfMissing(m, storedDownloads, storedDownloads.completedAt);
+        }
+      }
+      if (from == 21) {
+        await _addColumnIfMissing(m, smartDownloadSources, smartDownloadSources.displayName);
+      }
+      if (from <= 22) {
+        await m.createTable(storedDownloadFiles);
+      }
+      if (from >= 21 && from <= 23) {
+        await customStatement('ALTER TABLE smart_download_claims RENAME TO _smart_download_claims_old;');
+        await m.createTable(smartDownloadClaims);
+        await customStatement(
+          'INSERT OR REPLACE INTO smart_download_claims '
+          '(profile_id, reference_key, item_id, episode_id, source_type, source_id, state, '
+          'estimated_bytes, completed_at, updated_at) '
+          "SELECT profile_id, item_id || '::' || COALESCE(episode_id, ''), item_id, episode_id, "
+          'source_type, source_id, state, estimated_bytes, completed_at, updated_at '
+          'FROM _smart_download_claims_old ORDER BY updated_at ASC;',
+        );
+        await customStatement('DROP TABLE _smart_download_claims_old;');
       }
     },
     beforeOpen: (details) async {},
@@ -265,6 +390,71 @@ class AppDatabase extends _$AppDatabase {
     return whereClause;
   }
 
+  Expression<bool> _storedDownloadFileWhereExpression({
+    required String itemId,
+    required String userId,
+    required String? episodeId,
+  }) {
+    var whereClause = storedDownloadFiles.itemId.equals(itemId) & storedDownloadFiles.userId.equals(userId);
+    if (episodeId != null) {
+      whereClause = whereClause & storedDownloadFiles.episodeId.equals(episodeId);
+    } else {
+      whereClause = whereClause & storedDownloadFiles.episodeId.isNull();
+    }
+    return whereClause;
+  }
+
+  Future<List<StoredDownloadFileEntry>> _getStoredDownloadFiles({
+    required String itemId,
+    required String userId,
+    required String? episodeId,
+  }) {
+    return (select(
+      storedDownloadFiles,
+    )..where((tbl) => _storedDownloadFileWhereExpression(itemId: itemId, userId: userId, episodeId: episodeId))).get();
+  }
+
+  InternalDownload _withStoredDownloadFiles(InternalDownload base, List<StoredDownloadFileEntry> files) {
+    final tracks = <InternalTrack>[];
+    final auxiliaryPaths = <String>{};
+    final sidecarPaths = <String>{};
+
+    for (final file in files) {
+      final trackJson = file.trackJson;
+      if (trackJson != null) {
+        try {
+          final decoded = jsonDecode(trackJson);
+          if (decoded is Map) {
+            tracks.add(InternalTrack.fromJson(Map<String, dynamic>.from(decoded)));
+          }
+        } catch (e, s) {
+          logger(
+            'Failed to decode stored download file ${file.fileKey}: $e\n$s',
+            tag: 'AppDatabase',
+            level: InfoLevel.warning,
+          );
+        }
+      }
+
+      final auxiliaryPath = file.auxiliaryPath;
+      if (auxiliaryPath != null && auxiliaryPath.trim().isNotEmpty) {
+        auxiliaryPaths.add(auxiliaryPath);
+      }
+
+      final sidecarPath = file.sidecarPath;
+      if (sidecarPath != null && sidecarPath.trim().isNotEmpty) {
+        sidecarPaths.add(sidecarPath);
+      }
+    }
+
+    tracks.sort((left, right) => left.index.compareTo(right.index));
+    return base.copyWith(
+      tracks: tracks,
+      auxiliaryFilePaths: auxiliaryPaths.toList(growable: false)..sort(),
+      sidecarPaths: sidecarPaths.toList(growable: false)..sort(),
+    );
+  }
+
   InternalDownload? _decodeDownloadJsonOrNull(
     String rawJson, {
     required String itemId,
@@ -273,11 +463,13 @@ class AppDatabase extends _$AppDatabase {
   }) {
     try {
       final decoded = jsonDecode(rawJson);
-      if (decoded is Map<String, dynamic>) {
-        return InternalDownload.fromJson(decoded);
-      }
       if (decoded is Map) {
-        return InternalDownload.fromJson(Map<String, dynamic>.from(decoded));
+        final decodedMap = Map<String, dynamic>.from(decoded);
+        final base = decodedMap[_storedDownloadStorageBaseKey];
+        if (decodedMap[_storedDownloadStorageVersionKey] == _storedDownloadStorageVersion && base is Map) {
+          return InternalDownload.fromJson(Map<String, dynamic>.from(base));
+        }
+        return InternalDownload.fromJson(decodedMap);
       }
       throw const FormatException('Stored download payload is not a JSON object');
     } catch (e, s) {
@@ -290,44 +482,150 @@ class AppDatabase extends _$AppDatabase {
     }
   }
 
-  Future<InternalDownload?> _decodeStoredDownloadOrNull(StoredDownloadsEntry entry) async {
-    final decoded = _decodeDownloadJsonOrNull(
+  bool _isNormalizedStoredDownload(String rawJson) {
+    return rawJson.trimLeft().startsWith('{"$_storedDownloadStorageVersionKey":$_storedDownloadStorageVersion,');
+  }
+
+  bool _isStoredDownloadFilesUnavailable(Object error) {
+    final message = error.toString().toLowerCase();
+    return message.contains('stored_download_files') &&
+        (message.contains('no such table') || message.contains('no such column') || message.contains('does not exist'));
+  }
+
+  String _encodeNormalizedStoredDownload(InternalDownload download, {bool includeInlineFiles = false}) {
+    final compactDownload = includeInlineFiles
+        ? download
+        : download.copyWith(
+            tracks: const <InternalTrack>[],
+            auxiliaryFilePaths: const <String>[],
+            sidecarPaths: const <String>[],
+          );
+    return jsonEncode(<String, dynamic>{
+      _storedDownloadStorageVersionKey: _storedDownloadStorageVersion,
+      _storedDownloadStorageBaseKey: compactDownload.toJson(),
+    });
+  }
+
+  String _storedDownloadCacheKey(StoredDownloadsEntry entry) {
+    return '${entry.userId}\u0000${entry.itemId}\u0000${entry.episodeId ?? ''}';
+  }
+
+  String _storedDownloadCacheSignature(StoredDownloadsEntry entry) {
+    return [
       entry.download,
-      itemId: entry.itemId,
-      userId: entry.userId,
-      episodeId: entry.episodeId,
+      entry.downloadOrigin,
+      entry.smartProfileIds,
+      entry.managedBytes,
+      entry.completedAt,
+    ].join('\u0000');
+  }
+
+  Future<InternalDownload?> _decodeStoredDownloadOrNull(StoredDownloadsEntry entry) {
+    final key = _storedDownloadCacheKey(entry);
+    final signature = _storedDownloadCacheSignature(entry);
+    final cached = _storedDownloadCache[key];
+    if (cached?.signature == signature) {
+      return cached!.value;
+    }
+
+    final value = _decodeStoredDownloadUncached(entry);
+    _storedDownloadCache[key] = _StoredDownloadCacheEntry(signature: signature, value: value);
+    return value;
+  }
+
+  Future<InternalDownload?> _decodeNormalizedStoredDownloadBase(StoredDownloadsEntry entry) {
+    final cached = _storedDownloadBaseCache[entry.download];
+    if (cached != null) {
+      return cached;
+    }
+
+    final value = Future<InternalDownload?>.value(
+      _decodeDownloadJsonOrNull(entry.download, itemId: entry.itemId, userId: entry.userId, episodeId: entry.episodeId),
     );
+    _storedDownloadBaseCache[entry.download] = value;
+    return value;
+  }
+
+  Future<InternalDownload?> _decodeStoredDownloadUncached(StoredDownloadsEntry entry) async {
+    final decoded = _isNormalizedStoredDownload(entry.download)
+        ? await _decodeNormalizedStoredDownloadBase(entry)
+        : _decodeDownloadJsonOrNull(
+            entry.download,
+            itemId: entry.itemId,
+            userId: entry.userId,
+            episodeId: entry.episodeId,
+          );
     if (decoded == null) {
       return null;
     }
 
-    final resolvedDownload = await decoded.resolvePaths();
-
-    final validTracks = <InternalTrack>[];
-    for (final track in resolvedDownload.tracks) {
-      final trackUrl = track.url;
-      if (trackUrl == null || !_storedPathExists(trackUrl)) {
-        continue;
+    var storedDownload = decoded;
+    if (_isNormalizedStoredDownload(entry.download)) {
+      if (_storedDownloadFilesAvailable != false) {
+        try {
+          final files = await _getStoredDownloadFiles(
+            itemId: entry.itemId,
+            userId: entry.userId,
+            episodeId: entry.episodeId,
+          );
+          _storedDownloadFilesAvailable = true;
+          if (files.isNotEmpty) {
+            storedDownload = _withStoredDownloadFiles(storedDownload, files);
+          }
+        } catch (e) {
+          if (!_isStoredDownloadFilesUnavailable(e)) {
+            rethrow;
+          }
+          _storedDownloadFilesAvailable = false;
+          logger(
+            'Stored download file table is unavailable. Using inline download fallback: $e',
+            tag: 'AppDatabase',
+            level: InfoLevel.warning,
+          );
+        }
       }
-      validTracks.add(track);
     }
 
-    final validAuxiliaryPaths =
-        resolvedDownload.auxiliaryFilePaths.where(_storedPathExists).toSet().toList(growable: false)..sort();
+    final resolvedDownload = await storedDownload.resolvePaths();
 
-    final validSidecarPaths = resolvedDownload.sidecarPaths.where(_storedPathExists).toSet().toList(growable: false)
-      ..sort();
+    final validTracks = (await Future.wait(
+      resolvedDownload.tracks.map((track) async {
+        final trackUrl = track.url;
+        return trackUrl != null && await _storedPathExists(trackUrl) ? track : null;
+      }),
+    )).whereType<InternalTrack>().toList(growable: false);
 
-    final validCoverPath = resolvedDownload.coverPath != null && _storedPathExists(resolvedDownload.coverPath!)
-        ? resolvedDownload.coverPath
-        : null;
+    final validAuxiliaryPaths = (await Future.wait(
+      resolvedDownload.auxiliaryFilePaths.map((path) async => await _storedPathExists(path) ? path : null),
+    )).whereType<String>().toSet().toList(growable: false)..sort();
+
+    final validSidecarPaths = (await Future.wait(
+      resolvedDownload.sidecarPaths.map((path) async => await _storedPathExists(path) ? path : null),
+    )).whereType<String>().toSet().toList(growable: false)..sort();
+
+    final coverPath = resolvedDownload.coverPath;
+    final validCoverPath = coverPath != null && await _storedPathExists(coverPath) ? coverPath : null;
 
     return resolvedDownload.copyWith(
       tracks: validTracks,
       auxiliaryFilePaths: validAuxiliaryPaths,
       sidecarPaths: validSidecarPaths,
       coverPath: validCoverPath,
+      downloadOrigin: entry.downloadOrigin,
+      smartProfileIds: _decodeSmartProfileIds(entry.smartProfileIds),
+      managedBytes: entry.managedBytes,
+      completedAt: entry.completedAt,
     );
+  }
+
+  List<String> _decodeSmartProfileIds(String raw) {
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is List) {
+        return decoded.whereType<String>().where((id) => id.trim().isNotEmpty).toList(growable: false);
+      }
+    } catch (_) {}
+    return const <String>[];
   }
 
   Future<List<InternalDownload>> _decodeStoredDownloads(Iterable<StoredDownloadsEntry> entries) async {
@@ -337,6 +635,7 @@ class AppDatabase extends _$AppDatabase {
       if (parsed != null) {
         downloads.add(parsed);
       }
+      await Future<void>.delayed(Duration.zero);
     }
     return downloads;
   }
@@ -345,7 +644,7 @@ class AppDatabase extends _$AppDatabase {
     return left.length == right.length && left.containsAll(right);
   }
 
-  bool _storedPathExists(String rawPath) {
+  Future<bool> _storedPathExists(String rawPath) async {
     if (kIsWeb) {
       return false;
     }
@@ -355,17 +654,17 @@ class AppDatabase extends _$AppDatabase {
     }
 
     if (Platform.isWindows && RegExp(r'^[a-zA-Z]:[\\/]').hasMatch(trimmed)) {
-      return File(trimmed).existsSync();
+      return File(trimmed).exists();
     }
 
     final parsed = Uri.tryParse(trimmed);
     if (parsed == null || parsed.scheme.isEmpty) {
-      return File(trimmed).existsSync();
+      return File(trimmed).exists();
     }
 
     if (parsed.scheme == 'file') {
       try {
-        return File.fromUri(parsed).existsSync();
+        return await File.fromUri(parsed).exists();
       } catch (_) {
         return false;
       }
@@ -386,6 +685,35 @@ class AppDatabase extends _$AppDatabase {
     return _decodeStoredDownloads(entries);
   }
 
+  Future<List<StoredDownloadsEntry>> getStoredDownloadEntriesByUser(String userId) {
+    return (select(storedDownloads)..where((tbl) => tbl.userId.equals(userId))).get();
+  }
+
+  Future<List<SmartDownloadClaimEntry>> getSmartDownloadClaimsForReference(String itemId, String? episodeId) {
+    final query = select(smartDownloadClaims)..where((tbl) => tbl.itemId.equals(itemId));
+    if (episodeId == null) {
+      query.where((tbl) => tbl.episodeId.isNull());
+    } else {
+      query.where((tbl) => tbl.episodeId.equals(episodeId));
+    }
+    return query.get();
+  }
+
+  Future<void> deleteSmartDownloadClaimsForProfile(String profileId) {
+    return (delete(smartDownloadClaims)..where((tbl) => tbl.profileId.equals(profileId))).go();
+  }
+
+  Future<void> deleteSmartDownloadClaim(String profileId, String itemId, {String? episodeId}) {
+    final query = delete(smartDownloadClaims)
+      ..where((tbl) => tbl.profileId.equals(profileId) & tbl.itemId.equals(itemId));
+    if (episodeId == null) {
+      query.where((tbl) => tbl.episodeId.isNull());
+    } else {
+      query.where((tbl) => tbl.episodeId.equals(episodeId));
+    }
+    return query.go();
+  }
+
   Future<List<InternalDownload>> getAllStoredDownloadsByUserForLibrary(String userId, String libraryId) async {
     final entries = await (select(storedDownloads)..where((tbl) => tbl.userId.equals(userId))).get();
     return (await _decodeStoredDownloads(entries)).where((d) => d.item?.libraryId == libraryId).toList();
@@ -393,13 +721,35 @@ class AppDatabase extends _$AppDatabase {
 
   Stream<List<InternalDownload>> watchStoredDownloadsByUser(String userId) {
     final query = select(storedDownloads)..where((tbl) => tbl.userId.equals(userId));
-    return query.watch().asyncMap(_decodeStoredDownloads);
+    return query.watch().distinct(_sameStoredDownloadEntries).asyncMap(_decodeStoredDownloads);
+  }
+
+  bool _sameStoredDownloadEntries(List<StoredDownloadsEntry> left, List<StoredDownloadsEntry> right) {
+    if (left.length != right.length) {
+      return false;
+    }
+    for (var index = 0; index < left.length; index++) {
+      final leftEntry = left[index];
+      final rightEntry = right[index];
+      if (leftEntry.itemId != rightEntry.itemId ||
+          leftEntry.userId != rightEntry.userId ||
+          leftEntry.episodeId != rightEntry.episodeId ||
+          leftEntry.download != rightEntry.download ||
+          leftEntry.downloadOrigin != rightEntry.downloadOrigin ||
+          leftEntry.smartProfileIds != rightEntry.smartProfileIds ||
+          leftEntry.managedBytes != rightEntry.managedBytes ||
+          leftEntry.completedAt != rightEntry.completedAt) {
+        return false;
+      }
+    }
+    return true;
   }
 
   Stream<Set<String>> watchCompletedDownloadItemIdsByUser(String userId) {
     final query = select(storedDownloads)..where((tbl) => tbl.userId.equals(userId));
     return query
         .watch()
+        .distinct(_sameStoredDownloadEntries)
         .asyncMap((entries) async {
           final itemIds = <String>{};
           for (final entry in entries) {
@@ -504,6 +854,368 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
+  String _mergeDownloadOrigin(String existing, String requested) {
+    if (existing == 'manual' || requested == 'manual') {
+      return 'manual';
+    }
+    return 'smart';
+  }
+
+  String _mergeSmartProfileIds(String existing, String requested) {
+    Set<String> decode(String value) {
+      try {
+        final decoded = jsonDecode(value);
+        if (decoded is List) {
+          return decoded.whereType<String>().where((id) => id.trim().isNotEmpty).toSet();
+        }
+      } catch (_) {}
+      return <String>{};
+    }
+
+    return jsonEncode(<String>{...decode(existing), ...decode(requested)}.toList()..sort());
+  }
+
+  int? _nextStoredDownloadCompletedAt(int? requested, int? existing) {
+    if (requested == null) {
+      return existing;
+    }
+    if (existing == null || requested > existing) {
+      return requested;
+    }
+    return existing + 1;
+  }
+
+  Future<InternalDownload?> _downloadForStorageMerge(StoredDownloadsEntry entry) async {
+    final decoded = _isNormalizedStoredDownload(entry.download)
+        ? await _decodeNormalizedStoredDownloadBase(entry)
+        : _decodeDownloadJsonOrNull(
+            entry.download,
+            itemId: entry.itemId,
+            userId: entry.userId,
+            episodeId: entry.episodeId,
+          );
+    if (decoded == null || !_isNormalizedStoredDownload(entry.download)) {
+      return decoded;
+    }
+
+    if (_storedDownloadFilesAvailable == false) {
+      return decoded;
+    }
+
+    try {
+      final files = await _getStoredDownloadFiles(
+        itemId: entry.itemId,
+        userId: entry.userId,
+        episodeId: entry.episodeId,
+      );
+      _storedDownloadFilesAvailable = true;
+      return files.isEmpty ? decoded : _withStoredDownloadFiles(decoded, files);
+    } catch (e) {
+      if (_isStoredDownloadFilesUnavailable(e)) {
+        _storedDownloadFilesAvailable = false;
+        return decoded;
+      }
+      rethrow;
+    }
+  }
+
+  Future<void> _replaceStoredDownloadFile({
+    required String itemId,
+    required String userId,
+    required String? episodeId,
+    required String fileKey,
+    required InternalDownload download,
+  }) async {
+    final whereClause = _storedDownloadFileWhereExpression(itemId: itemId, userId: userId, episodeId: episodeId);
+    await (delete(storedDownloadFiles)..where((tbl) => whereClause & tbl.fileKey.equals(fileKey))).go();
+
+    InternalTrack? track;
+    for (final candidate in download.tracks) {
+      if (candidate.url != null && candidate.url!.trim().isNotEmpty) {
+        track = candidate;
+        break;
+      }
+    }
+
+    String? auxiliaryPath;
+    for (final candidate in download.auxiliaryFilePaths) {
+      if (candidate.trim().isNotEmpty) {
+        auxiliaryPath = candidate;
+        break;
+      }
+    }
+
+    String? sidecarPath;
+    for (final candidate in download.sidecarPaths) {
+      if (candidate.trim().isNotEmpty) {
+        sidecarPath = candidate;
+        break;
+      }
+    }
+
+    await into(storedDownloadFiles).insert(
+      StoredDownloadFilesCompanion(
+        itemId: Value(itemId),
+        userId: Value(userId),
+        episodeId: Value(episodeId),
+        fileKey: Value(fileKey),
+        trackJson: Value(track == null ? null : jsonEncode(track.toJson())),
+        auxiliaryPath: Value(auxiliaryPath),
+        sidecarPath: Value(sidecarPath),
+      ),
+    );
+  }
+
+  Future<void> _insertStoredDownloadFilesFromDownload({
+    required String itemId,
+    required String userId,
+    required String? episodeId,
+    required InternalDownload download,
+  }) async {
+    var ordinal = 0;
+    for (final track in download.tracks.where((track) => track.url?.trim().isNotEmpty ?? false)) {
+      await _replaceStoredDownloadFile(
+        itemId: itemId,
+        userId: userId,
+        episodeId: episodeId,
+        fileKey: 'legacy-track-${track.index}-${ordinal++}',
+        download: download.copyWith(
+          tracks: <InternalTrack>[track],
+          auxiliaryFilePaths: const <String>[],
+          sidecarPaths: const <String>[],
+        ),
+      );
+    }
+
+    for (final path in download.auxiliaryFilePaths.where((path) => path.trim().isNotEmpty)) {
+      await _replaceStoredDownloadFile(
+        itemId: itemId,
+        userId: userId,
+        episodeId: episodeId,
+        fileKey: 'legacy-auxiliary-${ordinal++}',
+        download: download.copyWith(
+          tracks: const <InternalTrack>[],
+          auxiliaryFilePaths: <String>[path],
+          sidecarPaths: const <String>[],
+        ),
+      );
+    }
+
+    for (final path in download.sidecarPaths.where((path) => path.trim().isNotEmpty)) {
+      await _replaceStoredDownloadFile(
+        itemId: itemId,
+        userId: userId,
+        episodeId: episodeId,
+        fileKey: 'legacy-sidecar-${ordinal++}',
+        download: download.copyWith(
+          tracks: const <InternalTrack>[],
+          auxiliaryFilePaths: const <String>[],
+          sidecarPaths: <String>[path],
+        ),
+      );
+    }
+  }
+
+  Future<void> _addOrUpdateStoredDownloadFileNormalized({
+    required String itemId,
+    required String userId,
+    required String? episodeId,
+    required String fileKey,
+    required InternalDownload download,
+    required String downloadOrigin,
+    required List<String> smartProfileIds,
+    required int? managedBytes,
+    required int? completedAt,
+  }) async {
+    await transaction(() async {
+      final requestedWhereClause = _storedDownloadWhereExpression(itemId: itemId, userId: userId, episodeId: episodeId);
+      final exactRows = await (select(storedDownloads)..where((tbl) => requestedWhereClause)).get();
+      final rowsToMerge = <StoredDownloadsEntry>[...exactRows];
+
+      if (rowsToMerge.isEmpty && episodeId == null) {
+        final legacyRows =
+            await (select(storedDownloads)
+                  ..where((tbl) => tbl.itemId.equals(itemId) & tbl.userId.equals(userId))
+                  ..limit(1))
+                .get();
+        rowsToMerge.addAll(legacyRows);
+      }
+
+      if (exactRows.length == 1 && _isNormalizedStoredDownload(rowsToMerge.first.download)) {
+        final existing = rowsToMerge.first;
+        final mergedOrigin = _mergeDownloadOrigin(existing.downloadOrigin, downloadOrigin);
+        final mergedProfileIds = _mergeSmartProfileIds(existing.smartProfileIds, jsonEncode(smartProfileIds));
+        await (update(storedDownloads)..where((tbl) => requestedWhereClause)).write(
+          StoredDownloadsCompanion(
+            downloadOrigin: Value(mergedOrigin),
+            smartProfileIds: Value(mergedProfileIds),
+            managedBytes: managedBytes == null ? Value(existing.managedBytes) : Value(managedBytes),
+            completedAt: Value(_nextStoredDownloadCompletedAt(completedAt, existing.completedAt)),
+          ),
+        );
+        await _replaceStoredDownloadFile(
+          itemId: itemId,
+          userId: userId,
+          episodeId: episodeId,
+          fileKey: fileKey,
+          download: download,
+        );
+        _storedDownloadCache.remove('$userId\u0000$itemId\u0000${episodeId ?? ''}');
+        return;
+      }
+
+      InternalDownload mergedDownload = download;
+      var mergedOrigin = downloadOrigin;
+      var mergedProfileIds = jsonEncode(smartProfileIds);
+      int? mergedManagedBytes = managedBytes;
+      int? mergedCompletedAt = completedAt;
+
+      for (final existing in rowsToMerge) {
+        final existingDownload = await _downloadForStorageMerge(existing);
+        if (existingDownload != null) {
+          mergedDownload = _mergeDownloads(existingDownload, mergedDownload);
+        }
+        mergedOrigin = _mergeDownloadOrigin(mergedOrigin, existing.downloadOrigin);
+        mergedProfileIds = _mergeSmartProfileIds(mergedProfileIds, existing.smartProfileIds);
+        mergedManagedBytes ??= existing.managedBytes;
+        mergedCompletedAt = _nextStoredDownloadCompletedAt(mergedCompletedAt, existing.completedAt);
+      }
+
+      for (final existing in rowsToMerge) {
+        _storedDownloadBaseCache.remove(existing.download);
+        final existingWhereClause = _storedDownloadWhereExpression(
+          itemId: existing.itemId,
+          userId: existing.userId,
+          episodeId: existing.episodeId,
+        );
+        await (delete(storedDownloads)..where((tbl) => existingWhereClause)).go();
+        final existingFileWhereClause = _storedDownloadFileWhereExpression(
+          itemId: existing.itemId,
+          userId: existing.userId,
+          episodeId: existing.episodeId,
+        );
+        await (delete(storedDownloadFiles)..where((tbl) => existingFileWhereClause)).go();
+      }
+
+      await into(storedDownloads).insert(
+        StoredDownloadsCompanion(
+          itemId: Value(itemId),
+          userId: Value(userId),
+          episodeId: Value(episodeId),
+          download: Value(_encodeNormalizedStoredDownload(mergedDownload, includeInlineFiles: true)),
+          downloadOrigin: Value(mergedOrigin),
+          smartProfileIds: Value(mergedProfileIds),
+          managedBytes: Value(mergedManagedBytes),
+          completedAt: Value(mergedCompletedAt),
+        ),
+      );
+
+      if (rowsToMerge.isEmpty) {
+        await _replaceStoredDownloadFile(
+          itemId: itemId,
+          userId: userId,
+          episodeId: episodeId,
+          fileKey: fileKey,
+          download: download,
+        );
+      } else {
+        await _insertStoredDownloadFilesFromDownload(
+          itemId: itemId,
+          userId: userId,
+          episodeId: episodeId,
+          download: mergedDownload,
+        );
+      }
+      _storedDownloadCache.remove('$userId\u0000$itemId\u0000${episodeId ?? ''}');
+    });
+  }
+
+  Future<void> _addOrUpdateStoredDownloadFileFallback({
+    required String itemId,
+    required String userId,
+    required String? episodeId,
+    required InternalDownload download,
+    required String downloadOrigin,
+    required List<String> smartProfileIds,
+    required int? managedBytes,
+    required int? completedAt,
+  }) async {
+    await addOrUpdateStoredDownload(
+      StoredDownloadsCompanion(
+        itemId: Value(itemId),
+        userId: Value(userId),
+        episodeId: Value(episodeId),
+        download: Value(jsonEncode(download.toJson())),
+        downloadOrigin: Value(downloadOrigin),
+        smartProfileIds: Value(jsonEncode(smartProfileIds)),
+        managedBytes: Value(managedBytes),
+        completedAt: Value(completedAt),
+      ),
+    );
+    _storedDownloadCache.remove('$userId\u0000$itemId\u0000${episodeId ?? ''}');
+  }
+
+  Future<void> addOrUpdateStoredDownloadFile({
+    required String itemId,
+    required String userId,
+    required String? episodeId,
+    required String fileKey,
+    required InternalDownload download,
+    required String downloadOrigin,
+    required List<String> smartProfileIds,
+    required int? managedBytes,
+    required int? completedAt,
+  }) async {
+    if (_storedDownloadFilesAvailable == false) {
+      await _addOrUpdateStoredDownloadFileFallback(
+        itemId: itemId,
+        userId: userId,
+        episodeId: episodeId,
+        download: download,
+        downloadOrigin: downloadOrigin,
+        smartProfileIds: smartProfileIds,
+        managedBytes: managedBytes,
+        completedAt: completedAt,
+      );
+      return;
+    }
+
+    try {
+      await _addOrUpdateStoredDownloadFileNormalized(
+        itemId: itemId,
+        userId: userId,
+        episodeId: episodeId,
+        fileKey: fileKey,
+        download: download,
+        downloadOrigin: downloadOrigin,
+        smartProfileIds: smartProfileIds,
+        managedBytes: managedBytes,
+        completedAt: completedAt,
+      );
+      _storedDownloadFilesAvailable = true;
+    } catch (e) {
+      if (!_isStoredDownloadFilesUnavailable(e)) {
+        rethrow;
+      }
+      _storedDownloadFilesAvailable = false;
+      logger(
+        'Stored download file table is unavailable. Falling back to legacy download storage: $e',
+        tag: 'AppDatabase',
+        level: InfoLevel.warning,
+      );
+      await _addOrUpdateStoredDownloadFileFallback(
+        itemId: itemId,
+        userId: userId,
+        episodeId: episodeId,
+        download: download,
+        downloadOrigin: downloadOrigin,
+        smartProfileIds: smartProfileIds,
+        managedBytes: managedBytes,
+        completedAt: completedAt,
+      );
+    }
+  }
+
   Future<void> addOrUpdateStoredDownload(StoredDownloadsCompanion companion) {
     return transaction(() async {
       final requestedEpisodeId = companion.episodeId.present ? companion.episodeId.value : null;
@@ -557,7 +1269,23 @@ class AppDatabase extends _$AppDatabase {
           episodeId: legacyExisting.episodeId,
         );
         await (update(storedDownloads)..where((tbl) => legacyWhereClause)).write(
-          StoredDownloadsCompanion(download: Value(jsonEncode(updatedDownload.toJson()))),
+          StoredDownloadsCompanion(
+            download: Value(jsonEncode(updatedDownload.toJson())),
+            downloadOrigin: Value(
+              _mergeDownloadOrigin(
+                legacyExisting.downloadOrigin,
+                companion.downloadOrigin.present ? companion.downloadOrigin.value : 'manual',
+              ),
+            ),
+            smartProfileIds: Value(
+              _mergeSmartProfileIds(
+                legacyExisting.smartProfileIds,
+                companion.smartProfileIds.present ? companion.smartProfileIds.value : '[]',
+              ),
+            ),
+            managedBytes: companion.managedBytes.present ? companion.managedBytes : Value(legacyExisting.managedBytes),
+            completedAt: companion.completedAt.present ? companion.completedAt : Value(legacyExisting.completedAt),
+          ),
         );
         return;
       }
@@ -580,8 +1308,18 @@ class AppDatabase extends _$AppDatabase {
       var mergedDownload = _mergeDownloads(oldDownload, newDownload);
 
       if (existingRows.length > 1) {
+        var mergedOrigin = _mergeDownloadOrigin(
+          existing.downloadOrigin,
+          companion.downloadOrigin.present ? companion.downloadOrigin.value : 'manual',
+        );
+        var mergedProfileIds = _mergeSmartProfileIds(
+          existing.smartProfileIds,
+          companion.smartProfileIds.present ? companion.smartProfileIds.value : '[]',
+        );
         for (var i = 1; i < existingRows.length; i++) {
           final duplicate = existingRows[i];
+          mergedOrigin = _mergeDownloadOrigin(mergedOrigin, duplicate.downloadOrigin);
+          mergedProfileIds = _mergeSmartProfileIds(mergedProfileIds, duplicate.smartProfileIds);
           final duplicateDownload = _decodeDownloadJsonOrNull(
             duplicate.download,
             itemId: duplicate.itemId,
@@ -600,22 +1338,157 @@ class AppDatabase extends _$AppDatabase {
             userId: Value(companion.userId.value),
             episodeId: Value(requestedEpisodeId),
             download: Value(jsonEncode(mergedDownload.toJson())),
+            downloadOrigin: Value(mergedOrigin),
+            smartProfileIds: Value(mergedProfileIds),
+            managedBytes: companion.managedBytes,
+            completedAt: companion.completedAt,
           ),
         );
       } else {
         await (update(storedDownloads)..where((tbl) => requestedWhereClause)).write(
-          StoredDownloadsCompanion(download: Value(jsonEncode(mergedDownload.toJson()))),
+          StoredDownloadsCompanion(
+            download: Value(jsonEncode(mergedDownload.toJson())),
+            downloadOrigin: Value(
+              _mergeDownloadOrigin(
+                existing.downloadOrigin,
+                companion.downloadOrigin.present ? companion.downloadOrigin.value : 'manual',
+              ),
+            ),
+            smartProfileIds: Value(
+              _mergeSmartProfileIds(
+                existing.smartProfileIds,
+                companion.smartProfileIds.present ? companion.smartProfileIds.value : '[]',
+              ),
+            ),
+            managedBytes: companion.managedBytes.present ? companion.managedBytes : Value(existing.managedBytes),
+            completedAt: companion.completedAt.present ? companion.completedAt : Value(existing.completedAt),
+          ),
         );
       }
     });
   }
 
-  Future<void> deleteStoredDownload(String itemId, String userId, {String? episodeId}) {
-    final query = delete(storedDownloads)..where((tbl) => tbl.itemId.equals(itemId) & tbl.userId.equals(userId));
-    if (episodeId != null) {
-      query.where((tbl) => tbl.episodeId.equals(episodeId));
-    }
-    return query.go();
+  Future<void> deleteStoredDownload(String itemId, String userId, {String? episodeId}) async {
+    final whereClause = _storedDownloadWhereExpression(itemId: itemId, userId: userId, episodeId: episodeId);
+    final fileWhereClause = _storedDownloadFileWhereExpression(itemId: itemId, userId: userId, episodeId: episodeId);
+    await transaction(() async {
+      await (delete(storedDownloads)..where((tbl) => whereClause)).go();
+      try {
+        await (delete(storedDownloadFiles)..where((tbl) => fileWhereClause)).go();
+      } catch (e) {
+        if (!_isStoredDownloadFilesUnavailable(e)) {
+          rethrow;
+        }
+      }
+    });
+    _storedDownloadCache.remove('$userId\u0000$itemId\u0000${episodeId ?? ''}');
+  }
+
+  Future<void> updateStoredDownloadSmartProfileIds(
+    String itemId,
+    String userId, {
+    String? episodeId,
+    required List<String> smartProfileIds,
+  }) async {
+    final whereClause = _storedDownloadWhereExpression(itemId: itemId, userId: userId, episodeId: episodeId);
+    await (update(storedDownloads)..where((tbl) => whereClause)).write(
+      StoredDownloadsCompanion(smartProfileIds: Value(jsonEncode(smartProfileIds))),
+    );
+  }
+
+  Future<List<SmartDownloadProfileEntry>> getSmartDownloadProfiles(String userId) {
+    return (select(smartDownloadProfiles)..where((tbl) => tbl.userId.equals(userId))).get();
+  }
+
+  Future<List<SmartDownloadSourceEntry>> getSmartDownloadSources(String profileId) {
+    return (select(smartDownloadSources)..where((tbl) => tbl.profileId.equals(profileId))).get();
+  }
+
+  Future<List<SmartDownloadClaimEntry>> getSmartDownloadClaims(String profileId) {
+    return (select(smartDownloadClaims)..where((tbl) => tbl.profileId.equals(profileId))).get();
+  }
+
+  Future<void> upsertSmartDownloadProfile(SmartDownloadProfile profile) async {
+    await into(smartDownloadProfiles).insert(
+      SmartDownloadProfilesCompanion(
+        id: Value(profile.id),
+        userId: Value(profile.userId),
+        name: Value(profile.name),
+        policy: Value(jsonEncode(profile.policy.toJson())),
+        enabled: Value(profile.enabled),
+        updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+      ),
+      mode: InsertMode.insertOrReplace,
+    );
+  }
+
+  Future<void> replaceSmartDownloadSources(String profileId, List<MediaSourceDescriptor> sources) async {
+    await transaction(() async {
+      await (delete(smartDownloadSources)..where((tbl) => tbl.profileId.equals(profileId))).go();
+      final now = DateTime.now().millisecondsSinceEpoch;
+      for (final source in sources) {
+        await into(smartDownloadSources).insert(
+          SmartDownloadSourcesCompanion(
+            profileId: Value(profileId),
+            sourceType: Value(source.type.name),
+            sourceId: Value(source.sourceId),
+            libraryId: Value(source.libraryId),
+            displayName: Value(source.displayName),
+            descending: Value(source.descending),
+            sourceRevision: Value(source.revision),
+            updatedAt: Value(now),
+          ),
+          mode: InsertMode.insertOrReplace,
+        );
+      }
+    });
+  }
+
+  Future<void> updateSmartDownloadSourceSnapshot(
+    String profileId,
+    MediaSourceDescriptor source, {
+    int? revision,
+    String? candidateSnapshot,
+  }) async {
+    await (update(smartDownloadSources)..where(
+          (tbl) =>
+              tbl.profileId.equals(profileId) &
+              tbl.sourceType.equals(source.type.name) &
+              tbl.sourceId.equals(source.sourceId),
+        ))
+        .write(
+          SmartDownloadSourcesCompanion(
+            sourceRevision: Value(revision),
+            candidateSnapshot: Value(candidateSnapshot),
+            updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+          ),
+        );
+  }
+
+  Future<void> upsertSmartDownloadClaim(SmartDownloadClaim claim) {
+    return into(smartDownloadClaims).insert(
+      SmartDownloadClaimsCompanion(
+        profileId: Value(claim.profileId),
+        referenceKey: Value('${claim.ref.itemId}::${claim.ref.episodeId ?? ''}'),
+        itemId: Value(claim.ref.itemId),
+        episodeId: Value(claim.ref.episodeId),
+        sourceType: Value(claim.source.type.name),
+        sourceId: Value(claim.source.sourceId),
+        state: Value(claim.state),
+        estimatedBytes: Value(claim.estimatedBytes),
+        completedAt: Value(claim.completedAt),
+        updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+      ),
+      mode: InsertMode.insertOrReplace,
+    );
+  }
+
+  Future<void> deleteSmartDownloadProfile(String profileId, String userId) async {
+    await transaction(() async {
+      await (delete(smartDownloadClaims)..where((tbl) => tbl.profileId.equals(profileId))).go();
+      await (delete(smartDownloadSources)..where((tbl) => tbl.profileId.equals(profileId))).go();
+      await (delete(smartDownloadProfiles)..where((tbl) => tbl.id.equals(profileId) & tbl.userId.equals(userId))).go();
+    });
   }
 
   Future<void> updateStoredDownloadItemSnapshot({
@@ -650,8 +1523,16 @@ class AppDatabase extends _$AppDatabase {
       );
 
       await (update(storedDownloads)..where((tbl) => whereClause)).write(
-        StoredDownloadsCompanion(download: Value(jsonEncode(updatedDownload.toJson()))),
+        StoredDownloadsCompanion(
+          download: Value(
+            _isNormalizedStoredDownload(entry.download)
+                ? _encodeNormalizedStoredDownload(updatedDownload, includeInlineFiles: true)
+                : jsonEncode(updatedDownload.toJson()),
+          ),
+        ),
       );
+      _storedDownloadBaseCache.remove(entry.download);
+      _storedDownloadCache.remove(_storedDownloadCacheKey(entry));
     }
   }
 

@@ -125,7 +125,7 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
         : appDatabase.watchStoredDownloadsByUser(currentUser.id);
 
     return StreamBuilder<List<TaskRecord>>(
-      stream: downloadHandler.taskQueueStream,
+      stream: downloadHandler.taskQueueStreamForItem(widget.item.id),
       initialData: const <TaskRecord>[],
       builder: (context, taskSnapshot) {
         final activeTasks = taskSnapshot.data ?? const <TaskRecord>[];

@@ -34,6 +34,9 @@ import 'package:yaabsa/provider/core/server_reachability_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/player/session_provider.dart';
+import 'package:yaabsa/provider/player/queue_source_provider.dart';
+import 'package:yaabsa/provider/library/smart_download_provider.dart';
+import 'package:yaabsa/models/queue_source.dart';
 import 'package:yaabsa/util/globals.dart' show packageInfo;
 import 'package:yaabsa/util/audio_handler/playback_sync_service.dart';
 import 'package:yaabsa/util/bluetooth_auto_resume.dart';
@@ -133,6 +136,13 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   bool _ignoreProgressOnNextPlay = false;
   int _autoQueueGeneration = 0;
   _AutoQueueState? _autoQueueState;
+  final Set<String> _autoQueueSuppressedReferences = <String>{};
+  bool _autoQueueDisabledForCurrentSession = false;
+  bool _manualQueueSessionPending = false;
+  MediaSourceDescriptor? _restoredQueueSource;
+  PlayableRef? _restoredQueueAnchor;
+  bool _skipQueueIntentPersistence = false;
+  Timer? _queueIntentPersistenceTimer;
   DateTime? _pausedAt;
   String? _pausedItemId;
   String? _pausedEpisodeId;
@@ -256,11 +266,31 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   void setQueue(QueueItem item, {QueueDisplayInfo displayInfo = QueueDisplayInfo.empty}) {
     _clearAutoQueueState();
+    _autoQueueSuppressedReferences.clear();
+    _manualQueueSessionPending = false;
+    _restoredQueueSource = null;
+    _restoredQueueAnchor = null;
     queueList = [];
     _originalQueueList.clear();
     _enqueueItem(item, displayInfo: displayInfo);
     _forceQueueSwitchOnNextPlay = true;
     _emitQueueState();
+    _persistQueueIntentSoon();
+  }
+
+  void clearQueue() {
+    _clearAutoQueueState();
+    _activeMusicLibraryId = null;
+    _activeMusicLibraryFilter = null;
+    _autoQueueSuppressedReferences.clear();
+    _manualQueueSessionPending = false;
+    _restoredQueueSource = null;
+    _restoredQueueAnchor = null;
+    queueList.clear();
+    _originalQueueList.clear();
+    _forceQueueSwitchOnNextPlay = false;
+    _emitQueueState();
+    _persistQueueIntentSoon();
   }
 
   void setQueueFromLibraryItem(LibraryItem item) {
@@ -274,9 +304,18 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     );
   }
 
-  void addToQueue(QueueItem item, {QueueDisplayInfo displayInfo = QueueDisplayInfo.empty, bool allowCurrent = false}) {
-    _enqueueItem(item, displayInfo: displayInfo, allowCurrent: allowCurrent);
+  void addToQueue(
+    QueueItem item, {
+    QueueDisplayInfo displayInfo = QueueDisplayInfo.empty,
+    bool allowCurrent = false,
+    bool markAsManual = true,
+  }) {
+    final didAdd = _enqueueItem(item, displayInfo: displayInfo, allowCurrent: allowCurrent);
+    if (didAdd && markAsManual) {
+      _manualQueueSessionPending = true;
+    }
     _emitQueueState();
+    _persistQueueIntentSoon();
   }
 
   void addLibraryItemToQueue(LibraryItem item) {
@@ -291,7 +330,24 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   }
 
   void removeFromQueueByItemId(String itemId, {String? episodeId}) {
-    return _removeFromQueueByItemIdInternal(itemId, episodeId: episodeId);
+    for (final entry in queueList) {
+      final matches = episodeId == null
+          ? entry.item.itemId == itemId
+          : _queueItemsMatch(
+              leftItemId: entry.item.itemId,
+              leftEpisodeId: entry.item.episodeId,
+              rightItemId: itemId,
+              rightEpisodeId: episodeId,
+            );
+      if (matches && entry.autoQueued) {
+        _autoQueueSuppressedReferences.add(
+          _queueItemReferenceKey(itemId: entry.item.itemId, episodeId: entry.item.episodeId),
+        );
+      }
+    }
+    _removeFromQueueByItemIdInternal(itemId, episodeId: episodeId);
+    _clearManualQueueSessionPendingIfNeeded();
+    _persistQueueIntentSoon();
   }
 
   void removeFromQueueItem(QueueItem item) {
@@ -299,6 +355,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   }
 
   void removeQueueEntry(String queueEntryId) {
+    final removedEntry = queueList.where((entry) => entry.id == queueEntryId).firstOrNull;
     final nextQueue = queueList.where((entry) => entry.id != queueEntryId).toList();
     if (nextQueue.length == queueList.length) {
       return;
@@ -306,15 +363,193 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
     queueList = nextQueue;
     _originalQueueList.removeWhere((entry) => entry.id == queueEntryId);
+    if (removedEntry?.autoQueued ?? false) {
+      _autoQueueSuppressedReferences.add(
+        _queueItemReferenceKey(itemId: removedEntry!.item.itemId, episodeId: removedEntry.item.episodeId),
+      );
+    }
+    _clearManualQueueSessionPendingIfNeeded();
     _emitQueueState();
+    _persistQueueIntentSoon();
   }
 
   void reorderQueue(int oldIndex, int newIndex) {
-    return _reorderQueueInternal(oldIndex, newIndex);
+    final movedEntry = oldIndex >= 0 && oldIndex < queueList.length ? queueList[oldIndex] : null;
+    final didReorder = _reorderQueueInternal(oldIndex, newIndex);
+    if (didReorder && (movedEntry?.autoQueued ?? false)) {
+      _manualQueueSessionPending = true;
+    }
+    _persistQueueIntentSoon();
+  }
+
+  void disableAutoQueueForCurrentSession() {
+    if (_autoQueueDisabledForCurrentSession) {
+      return;
+    }
+
+    _autoQueueDisabledForCurrentSession = true;
+    _clearAutoQueueState();
+    _emitQueueState();
+  }
+
+  bool get autoQueueDisabledForCurrentSession => _autoQueueDisabledForCurrentSession;
+
+  void _clearManualQueueSessionPendingIfNeeded() {
+    if (!queueList.any((entry) => !entry.autoQueued)) {
+      _manualQueueSessionPending = false;
+    }
+  }
+
+  void _markManualQueueItemPlayed(PlayerQueueEntry entry) {
+    if (entry.autoQueued) {
+      return;
+    }
+
+    _markPendingManualQueueSessionPlayed();
+  }
+
+  void _markPendingManualQueueSessionPlayed() {
+    if (!_manualQueueSessionPending) {
+      return;
+    }
+
+    _manualQueueSessionPending = false;
+    disableAutoQueueForCurrentSession();
   }
 
   Future<void> loadMoreAutoQueue() {
     return _loadMoreAutoQueue();
+  }
+
+  void _persistQueueIntentSoon() {
+    _queueIntentPersistenceTimer?.cancel();
+    _queueIntentPersistenceTimer = Timer(const Duration(milliseconds: 150), () {
+      unawaited(_persistQueueIntent());
+    });
+  }
+
+  Future<void> _persistQueueIntent() async {
+    final userId = _ref.read(currentUserProvider).value?.id;
+    if (userId == null || userId.isEmpty || _isDisposing || _skipQueueIntentPersistence) {
+      return;
+    }
+
+    final sourceState = _autoQueueState;
+    final source = sourceState == null ? null : _sourceDescriptorFromContext(sourceState.context);
+    final manualEntries = queueList
+        .where((entry) => !entry.autoQueued)
+        .map(
+          (entry) => QueueIntentEntry(
+            ref: PlayableRef(itemId: entry.item.itemId, episodeId: entry.item.episodeId),
+            title: entry.displayInfo.title,
+            subtitle: entry.displayInfo.subtitle,
+            author: entry.displayInfo.author,
+          ),
+        )
+        .toList(growable: false);
+    final anchor = _currentMediaItem == null
+        ? sourceState == null
+              ? null
+              : _playableRefFromKey(sourceState.currentItemReferenceKey)
+        : PlayableRef(itemId: _currentMediaItem!.itemId, episodeId: _currentMediaItem!.episodeId);
+
+    final snapshot = QueueIntentSnapshot(
+      manualEntries: manualEntries,
+      source: source,
+      anchor: anchor,
+      suppressed: _autoQueueSuppressedReferences
+          .map(_playableRefFromKey)
+          .whereType<PlayableRef>()
+          .toList(growable: false),
+      sourceRevision: null,
+    );
+    try {
+      await _ref
+          .read(appDatabaseProvider)
+          .setUserSetting(userId, SettingKeys.queueIntent, jsonEncode(snapshot.toJson()));
+    } catch (e, s) {
+      logger('Failed to persist queue intent: $e\n$s', tag: 'AudioHandler', level: InfoLevel.warning);
+    }
+  }
+
+  Future<void> _restoreQueueIntent(String userId) async {
+    if (_isDisposing || queueList.isNotEmpty || _currentMediaItem != null) {
+      return;
+    }
+
+    final raw = (await _ref.read(appDatabaseProvider).getUserSetting(userId, SettingKeys.queueIntent))?.value;
+    if (raw == null || raw.trim().isEmpty) {
+      return;
+    }
+
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map) {
+        return;
+      }
+      final snapshot = QueueIntentSnapshot.fromJson(Map<String, dynamic>.from(decoded));
+      _autoQueueSuppressedReferences
+        ..clear()
+        ..addAll(
+          snapshot.suppressed.map((ref) => _queueItemReferenceKey(itemId: ref.itemId, episodeId: ref.episodeId)),
+        );
+      _restoredQueueSource = snapshot.source;
+      _restoredQueueAnchor = snapshot.anchor;
+      for (final entry in snapshot.manualEntries) {
+        _enqueueItem(
+          QueueItem(itemId: entry.ref.itemId, episodeId: entry.ref.episodeId),
+          displayInfo: QueueDisplayInfo(title: entry.title, subtitle: entry.subtitle, author: entry.author),
+        );
+      }
+      _manualQueueSessionPending = snapshot.manualEntries.isNotEmpty;
+      if (queueList.isNotEmpty) {
+        _emitQueueState();
+      }
+    } catch (e, s) {
+      logger('Failed to restore queue intent for user $userId: $e\n$s', tag: 'AudioHandler', level: InfoLevel.warning);
+    }
+  }
+
+  MediaSourceDescriptor? _sourceDescriptorFromContext(_AutoQueueRequestContext context) {
+    return switch (context.sourceType) {
+      _AutoQueueSourceType.series => MediaSourceDescriptor(
+        type: MediaSourceType.series,
+        sourceId: context.seriesId ?? '',
+        libraryId: context.libraryId,
+      ),
+      _AutoQueueSourceType.playlist => MediaSourceDescriptor(
+        type: MediaSourceType.playlist,
+        sourceId: context.playlistId ?? '',
+        libraryId: context.libraryId,
+      ),
+      _AutoQueueSourceType.collection => MediaSourceDescriptor(
+        type: MediaSourceType.collection,
+        sourceId: context.collectionId ?? '',
+        libraryId: context.libraryId,
+      ),
+      _AutoQueueSourceType.podcast => MediaSourceDescriptor(
+        type: MediaSourceType.podcast,
+        sourceId: context.podcastItemId ?? '',
+        libraryId: context.libraryId,
+        descending: _ref
+            .read(settingsManagerProvider.notifier)
+            .getUserSetting<bool>(
+              _ref.read(currentUserProvider).value?.id,
+              SettingKeys.podcastQueueSortDescending,
+              defaultValue: true,
+            ),
+      ),
+    };
+  }
+
+  PlayableRef? _playableRefFromKey(String key) {
+    final separator = key.indexOf('::');
+    if (separator < 0) {
+      return key.isEmpty ? null : PlayableRef(itemId: key);
+    }
+    final itemId = key.substring(0, separator);
+    final episodeId = key.substring(separator + 2);
+    return itemId.isEmpty ? null : PlayableRef(itemId: itemId, episodeId: episodeId.isEmpty ? null : episodeId);
   }
 
   void toggleMix() {
@@ -334,6 +569,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       _originalQueueList.clear();
     }
     _emitQueueState();
+    _persistQueueIntentSoon();
   }
 
   void cycleLoopMode() {
@@ -363,7 +599,11 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         if (data != null && data.results.isNotEmpty) {
           final candidate = data.results.first;
           if (!currentQueueIds.contains(candidate.id)) {
-            addToQueue(QueueItem(itemId: candidate.id), displayInfo: _displayInfoFromLibraryItem(candidate));
+            addToQueue(
+              QueueItem(itemId: candidate.id),
+              displayInfo: _displayInfoFromLibraryItem(candidate),
+              markAsManual: false,
+            );
             logger('Successfully refilled music queue with random item ${candidate.id}', tag: 'AudioHandler');
             break;
           } else {
@@ -438,6 +678,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     mediaItemStream.add(mediaItem);
     _refreshPlayerControlState();
     _emitShouldShowPlayer();
+    _persistQueueIntentSoon();
     _handleAutoQueueOnCurrentItemChange(
       mediaItem == null ? null : _queueItemReferenceKey(itemId: mediaItem.itemId, episodeId: mediaItem.episodeId),
     );
@@ -638,11 +879,14 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     }
 
     PlayerQueueEntry? nextEntry = queueList.isNotEmpty ? queueList.removeAt(0) : null;
+    final isPendingManualEntry = nextEntry != null && !nextEntry.autoQueued && _manualQueueSessionPending;
     if (nextEntry != null) {
       _originalQueueList.removeWhere((e) => e.id == nextEntry.id);
       _forceQueueSwitchOnNextPlay = false;
       _emitQueueState();
-      _maybePrefetchAutoQueue();
+      if (!isPendingManualEntry) {
+        _maybePrefetchAutoQueue();
+      }
       final loopMode = _ref
           .read(settingsManagerProvider.notifier)
           .getGlobalSetting<String>(SettingKeys.loopMode, defaultValue: 'off');
@@ -700,6 +944,9 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       );
       _lastQueueItem = null;
       _setLastPlayedMiniPlayerSnapshot(null);
+      if (nextEntry != null && !nextEntry.autoQueued) {
+        _clearManualQueueSessionPendingIfNeeded();
+      }
       PlayerUtils.disableWakelock(_ref);
       TrayManager.update();
       _setQueueTransitionLoading(false, emitMediaWhenEmpty: true);
@@ -719,19 +966,35 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       );
       _setQueueTransitionLoading(false);
       await _syncedPlay(restoreProgress: !ignoreProgress);
+      if (nextEntry != null) {
+        _markManualQueueItemPlayed(nextEntry);
+      }
       if (nextEntry == null) {
         unawaited(_setupAutoQueueOnResume(itemId: nextItem.itemId, episodeId: nextItem.episodeId));
       }
     } catch (e) {
       logger('Failed to start playback source: $e', tag: 'AudioHandler', level: InfoLevel.error);
+      if (nextEntry != null && !nextEntry.autoQueued) {
+        _clearManualQueueSessionPendingIfNeeded();
+      }
       PlayerUtils.disableWakelock(_ref);
       _setQueueTransitionLoading(false, emitMediaWhenEmpty: true);
     }
     TrayManager.update();
   }
 
-  Future<bool> playItemFromPosition({required String itemId, String? episodeId, required Duration position}) async {
-    return _playItemFromPositionInternal(itemId: itemId, episodeId: episodeId, position: position);
+  Future<bool> playItemFromPosition({
+    required String itemId,
+    String? episodeId,
+    required Duration position,
+    bool preserveQueue = false,
+  }) async {
+    return _playItemFromPositionInternal(
+      itemId: itemId,
+      episodeId: episodeId,
+      position: position,
+      preserveQueue: preserveQueue,
+    );
   }
 
   @override
@@ -778,10 +1041,16 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     if (clearQueue) {
       _clearAutoQueueState();
       _activeMusicLibraryId = null;
+      _autoQueueSuppressedReferences.clear();
+      _autoQueueDisabledForCurrentSession = false;
+      _manualQueueSessionPending = false;
+      _restoredQueueSource = null;
+      _restoredQueueAnchor = null;
       queueList.clear();
       _originalQueueList.clear();
       _forceQueueSwitchOnNextPlay = false;
       _emitQueueState();
+      _persistQueueIntentSoon();
     }
     try {
       unawaited(
@@ -927,7 +1196,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           subtitle: finishedMedia.subtitle,
           author: finishedMedia.author,
         );
-        addToQueue(finishedQueueItem, displayInfo: displayInfo, allowCurrent: true);
+        addToQueue(finishedQueueItem, displayInfo: displayInfo, allowCurrent: true, markAsManual: false);
       }
 
       if (queueList.isNotEmpty) {
@@ -1333,6 +1602,12 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         );
         await _syncService.flush();
         unawaited(
+          _ref
+              .read(smartDownloadManagerProvider.notifier)
+              .deleteFinishedContinueDownload(itemId: finishedMedia.itemId, episodeId: finishedMedia.episodeId),
+        );
+        _ref.read(smartDownloadManagerProvider.notifier).requestReconcile(reason: 'playback completed');
+        unawaited(
           refreshPersonalizedShelfForCompletedItem(
             container: _ref,
             itemId: finishedMedia.itemId,
@@ -1354,7 +1629,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
             subtitle: finishedMedia.subtitle,
             author: finishedMedia.author,
           );
-          addToQueue(finishedQueueItem, displayInfo: displayInfo, allowCurrent: true);
+          addToQueue(finishedQueueItem, displayInfo: displayInfo, allowCurrent: true, markAsManual: false);
         }
 
         if (queueList.isNotEmpty) {
@@ -1824,6 +2099,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     _resetStreamRecoveryState(clearWindow: true);
     _androidAutoMoreMenuTimer?.cancel();
     _androidAutoMoreMenuTimer = null;
+    _queueIntentPersistenceTimer?.cancel();
+    _queueIntentPersistenceTimer = null;
     _clearAutoQueueState();
     await _errorSubscription?.cancel();
     _errorSubscription = null;

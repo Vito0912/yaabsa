@@ -29,6 +29,7 @@ class StatsView extends ConsumerStatefulWidget {
 
 class _StatsViewState extends ConsumerState<StatsView> {
   late int _selectedYear;
+  bool _advancedModeEnabled = false;
   bool _yearInRewindExpanded = false;
   bool _achievementsExpanded = false;
   bool _advancedExpanded = false;
@@ -43,7 +44,7 @@ class _StatsViewState extends ConsumerState<StatsView> {
     ref.invalidate(listeningStatsProvider);
     ref.invalidate(listeningActivityStatsProvider);
     final analytics = ref.read(advancedListeningAnalyticsProvider);
-    if (_achievementsExpanded || _advancedExpanded || analytics.stats != null) {
+    if (_achievementsExpanded || (_advancedExpanded && _advancedModeEnabled) || analytics.stats != null) {
       unawaited(ref.read(advancedListeningAnalyticsProvider.notifier).load());
     }
     if (_yearInRewindExpanded) {
@@ -60,9 +61,38 @@ class _StatsViewState extends ConsumerState<StatsView> {
 
   void _setAdvancedExpanded(bool expanded) {
     setState(() => _advancedExpanded = expanded);
-    if (expanded) {
+    if (expanded && _advancedModeEnabled) {
       ref.read(advancedListeningAnalyticsProvider.notifier).load();
     }
+  }
+
+  Future<void> _enableAdvancedMode() async {
+    if (_advancedModeEnabled) {
+      return;
+    }
+
+    final shouldLoad = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Load advanced analytics?'),
+          content: const Text(
+            'Advanced mode fetches every listening-session page and can take time on large accounts.',
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
+            FilledButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Load')),
+          ],
+        );
+      },
+    );
+
+    if (shouldLoad != true || !mounted) {
+      return;
+    }
+
+    setState(() => _advancedModeEnabled = true);
+    await ref.read(advancedListeningAnalyticsProvider.notifier).load();
   }
 
   void _setAchievementsExpanded(bool expanded) {
@@ -243,6 +273,15 @@ class _StatsViewState extends ConsumerState<StatsView> {
                     compact: !_advancedExpanded,
                     child: !_advancedExpanded
                         ? const SizedBox.shrink()
+                        : !_advancedModeEnabled
+                        ? Align(
+                            alignment: Alignment.centerLeft,
+                            child: OutlinedButton.icon(
+                              onPressed: _enableAdvancedMode,
+                              icon: const Icon(Icons.analytics_outlined),
+                              label: const Text('Load Advanced Analytics'),
+                            ),
+                          )
                         : Consumer(
                             builder: (context, ref, _) {
                               final advancedState = ref.watch(advancedListeningAnalyticsProvider);

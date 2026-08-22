@@ -2117,8 +2117,55 @@ class $StoredDownloadsTable extends StoredDownloads with TableInfo<$StoredDownlo
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _downloadOriginMeta = const VerificationMeta('downloadOrigin');
   @override
-  List<GeneratedColumn> get $columns => [itemId, userId, episodeId, download];
+  late final GeneratedColumn<String> downloadOrigin = GeneratedColumn<String>(
+    'download_origin',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('manual'),
+  );
+  static const VerificationMeta _smartProfileIdsMeta = const VerificationMeta('smartProfileIds');
+  @override
+  late final GeneratedColumn<String> smartProfileIds = GeneratedColumn<String>(
+    'smart_profile_ids',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('[]'),
+  );
+  static const VerificationMeta _managedBytesMeta = const VerificationMeta('managedBytes');
+  @override
+  late final GeneratedColumn<int> managedBytes = GeneratedColumn<int>(
+    'managed_bytes',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _completedAtMeta = const VerificationMeta('completedAt');
+  @override
+  late final GeneratedColumn<int> completedAt = GeneratedColumn<int>(
+    'completed_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    itemId,
+    userId,
+    episodeId,
+    download,
+    downloadOrigin,
+    smartProfileIds,
+    managedBytes,
+    completedAt,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -2146,6 +2193,24 @@ class $StoredDownloadsTable extends StoredDownloads with TableInfo<$StoredDownlo
     } else if (isInserting) {
       context.missing(_downloadMeta);
     }
+    if (data.containsKey('download_origin')) {
+      context.handle(
+        _downloadOriginMeta,
+        downloadOrigin.isAcceptableOrUnknown(data['download_origin']!, _downloadOriginMeta),
+      );
+    }
+    if (data.containsKey('smart_profile_ids')) {
+      context.handle(
+        _smartProfileIdsMeta,
+        smartProfileIds.isAcceptableOrUnknown(data['smart_profile_ids']!, _smartProfileIdsMeta),
+      );
+    }
+    if (data.containsKey('managed_bytes')) {
+      context.handle(_managedBytesMeta, managedBytes.isAcceptableOrUnknown(data['managed_bytes']!, _managedBytesMeta));
+    }
+    if (data.containsKey('completed_at')) {
+      context.handle(_completedAtMeta, completedAt.isAcceptableOrUnknown(data['completed_at']!, _completedAtMeta));
+    }
     return context;
   }
 
@@ -2159,6 +2224,16 @@ class $StoredDownloadsTable extends StoredDownloads with TableInfo<$StoredDownlo
       userId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
       episodeId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}episode_id']),
       download: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}download'])!,
+      downloadOrigin: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}download_origin'],
+      )!,
+      smartProfileIds: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}smart_profile_ids'],
+      )!,
+      managedBytes: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}managed_bytes']),
+      completedAt: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}completed_at']),
     );
   }
 
@@ -2173,7 +2248,20 @@ class StoredDownloadsEntry extends DataClass implements Insertable<StoredDownloa
   final String userId;
   final String? episodeId;
   final String download;
-  const StoredDownloadsEntry({required this.itemId, required this.userId, this.episodeId, required this.download});
+  final String downloadOrigin;
+  final String smartProfileIds;
+  final int? managedBytes;
+  final int? completedAt;
+  const StoredDownloadsEntry({
+    required this.itemId,
+    required this.userId,
+    this.episodeId,
+    required this.download,
+    required this.downloadOrigin,
+    required this.smartProfileIds,
+    this.managedBytes,
+    this.completedAt,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -2183,6 +2271,14 @@ class StoredDownloadsEntry extends DataClass implements Insertable<StoredDownloa
       map['episode_id'] = Variable<String>(episodeId);
     }
     map['download'] = Variable<String>(download);
+    map['download_origin'] = Variable<String>(downloadOrigin);
+    map['smart_profile_ids'] = Variable<String>(smartProfileIds);
+    if (!nullToAbsent || managedBytes != null) {
+      map['managed_bytes'] = Variable<int>(managedBytes);
+    }
+    if (!nullToAbsent || completedAt != null) {
+      map['completed_at'] = Variable<int>(completedAt);
+    }
     return map;
   }
 
@@ -2192,6 +2288,10 @@ class StoredDownloadsEntry extends DataClass implements Insertable<StoredDownloa
       userId: Value(userId),
       episodeId: episodeId == null && nullToAbsent ? const Value.absent() : Value(episodeId),
       download: Value(download),
+      downloadOrigin: Value(downloadOrigin),
+      smartProfileIds: Value(smartProfileIds),
+      managedBytes: managedBytes == null && nullToAbsent ? const Value.absent() : Value(managedBytes),
+      completedAt: completedAt == null && nullToAbsent ? const Value.absent() : Value(completedAt),
     );
   }
 
@@ -2202,6 +2302,10 @@ class StoredDownloadsEntry extends DataClass implements Insertable<StoredDownloa
       userId: serializer.fromJson<String>(json['userId']),
       episodeId: serializer.fromJson<String?>(json['episodeId']),
       download: serializer.fromJson<String>(json['download']),
+      downloadOrigin: serializer.fromJson<String>(json['downloadOrigin']),
+      smartProfileIds: serializer.fromJson<String>(json['smartProfileIds']),
+      managedBytes: serializer.fromJson<int?>(json['managedBytes']),
+      completedAt: serializer.fromJson<int?>(json['completedAt']),
     );
   }
   @override
@@ -2212,6 +2316,10 @@ class StoredDownloadsEntry extends DataClass implements Insertable<StoredDownloa
       'userId': serializer.toJson<String>(userId),
       'episodeId': serializer.toJson<String?>(episodeId),
       'download': serializer.toJson<String>(download),
+      'downloadOrigin': serializer.toJson<String>(downloadOrigin),
+      'smartProfileIds': serializer.toJson<String>(smartProfileIds),
+      'managedBytes': serializer.toJson<int?>(managedBytes),
+      'completedAt': serializer.toJson<int?>(completedAt),
     };
   }
 
@@ -2220,11 +2328,19 @@ class StoredDownloadsEntry extends DataClass implements Insertable<StoredDownloa
     String? userId,
     Value<String?> episodeId = const Value.absent(),
     String? download,
+    String? downloadOrigin,
+    String? smartProfileIds,
+    Value<int?> managedBytes = const Value.absent(),
+    Value<int?> completedAt = const Value.absent(),
   }) => StoredDownloadsEntry(
     itemId: itemId ?? this.itemId,
     userId: userId ?? this.userId,
     episodeId: episodeId.present ? episodeId.value : this.episodeId,
     download: download ?? this.download,
+    downloadOrigin: downloadOrigin ?? this.downloadOrigin,
+    smartProfileIds: smartProfileIds ?? this.smartProfileIds,
+    managedBytes: managedBytes.present ? managedBytes.value : this.managedBytes,
+    completedAt: completedAt.present ? completedAt.value : this.completedAt,
   );
   StoredDownloadsEntry copyWithCompanion(StoredDownloadsCompanion data) {
     return StoredDownloadsEntry(
@@ -2232,6 +2348,10 @@ class StoredDownloadsEntry extends DataClass implements Insertable<StoredDownloa
       userId: data.userId.present ? data.userId.value : this.userId,
       episodeId: data.episodeId.present ? data.episodeId.value : this.episodeId,
       download: data.download.present ? data.download.value : this.download,
+      downloadOrigin: data.downloadOrigin.present ? data.downloadOrigin.value : this.downloadOrigin,
+      smartProfileIds: data.smartProfileIds.present ? data.smartProfileIds.value : this.smartProfileIds,
+      managedBytes: data.managedBytes.present ? data.managedBytes.value : this.managedBytes,
+      completedAt: data.completedAt.present ? data.completedAt.value : this.completedAt,
     );
   }
 
@@ -2241,13 +2361,18 @@ class StoredDownloadsEntry extends DataClass implements Insertable<StoredDownloa
           ..write('itemId: $itemId, ')
           ..write('userId: $userId, ')
           ..write('episodeId: $episodeId, ')
-          ..write('download: $download')
+          ..write('download: $download, ')
+          ..write('downloadOrigin: $downloadOrigin, ')
+          ..write('smartProfileIds: $smartProfileIds, ')
+          ..write('managedBytes: $managedBytes, ')
+          ..write('completedAt: $completedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(itemId, userId, episodeId, download);
+  int get hashCode =>
+      Object.hash(itemId, userId, episodeId, download, downloadOrigin, smartProfileIds, managedBytes, completedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2255,7 +2380,11 @@ class StoredDownloadsEntry extends DataClass implements Insertable<StoredDownloa
           other.itemId == this.itemId &&
           other.userId == this.userId &&
           other.episodeId == this.episodeId &&
-          other.download == this.download);
+          other.download == this.download &&
+          other.downloadOrigin == this.downloadOrigin &&
+          other.smartProfileIds == this.smartProfileIds &&
+          other.managedBytes == this.managedBytes &&
+          other.completedAt == this.completedAt);
 }
 
 class StoredDownloadsCompanion extends UpdateCompanion<StoredDownloadsEntry> {
@@ -2263,12 +2392,20 @@ class StoredDownloadsCompanion extends UpdateCompanion<StoredDownloadsEntry> {
   final Value<String> userId;
   final Value<String?> episodeId;
   final Value<String> download;
+  final Value<String> downloadOrigin;
+  final Value<String> smartProfileIds;
+  final Value<int?> managedBytes;
+  final Value<int?> completedAt;
   final Value<int> rowid;
   const StoredDownloadsCompanion({
     this.itemId = const Value.absent(),
     this.userId = const Value.absent(),
     this.episodeId = const Value.absent(),
     this.download = const Value.absent(),
+    this.downloadOrigin = const Value.absent(),
+    this.smartProfileIds = const Value.absent(),
+    this.managedBytes = const Value.absent(),
+    this.completedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   StoredDownloadsCompanion.insert({
@@ -2276,6 +2413,10 @@ class StoredDownloadsCompanion extends UpdateCompanion<StoredDownloadsEntry> {
     required String userId,
     this.episodeId = const Value.absent(),
     required String download,
+    this.downloadOrigin = const Value.absent(),
+    this.smartProfileIds = const Value.absent(),
+    this.managedBytes = const Value.absent(),
+    this.completedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : itemId = Value(itemId),
        userId = Value(userId),
@@ -2285,6 +2426,10 @@ class StoredDownloadsCompanion extends UpdateCompanion<StoredDownloadsEntry> {
     Expression<String>? userId,
     Expression<String>? episodeId,
     Expression<String>? download,
+    Expression<String>? downloadOrigin,
+    Expression<String>? smartProfileIds,
+    Expression<int>? managedBytes,
+    Expression<int>? completedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -2292,6 +2437,10 @@ class StoredDownloadsCompanion extends UpdateCompanion<StoredDownloadsEntry> {
       if (userId != null) 'user_id': userId,
       if (episodeId != null) 'episode_id': episodeId,
       if (download != null) 'download': download,
+      if (downloadOrigin != null) 'download_origin': downloadOrigin,
+      if (smartProfileIds != null) 'smart_profile_ids': smartProfileIds,
+      if (managedBytes != null) 'managed_bytes': managedBytes,
+      if (completedAt != null) 'completed_at': completedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -2301,6 +2450,10 @@ class StoredDownloadsCompanion extends UpdateCompanion<StoredDownloadsEntry> {
     Value<String>? userId,
     Value<String?>? episodeId,
     Value<String>? download,
+    Value<String>? downloadOrigin,
+    Value<String>? smartProfileIds,
+    Value<int?>? managedBytes,
+    Value<int?>? completedAt,
     Value<int>? rowid,
   }) {
     return StoredDownloadsCompanion(
@@ -2308,6 +2461,10 @@ class StoredDownloadsCompanion extends UpdateCompanion<StoredDownloadsEntry> {
       userId: userId ?? this.userId,
       episodeId: episodeId ?? this.episodeId,
       download: download ?? this.download,
+      downloadOrigin: downloadOrigin ?? this.downloadOrigin,
+      smartProfileIds: smartProfileIds ?? this.smartProfileIds,
+      managedBytes: managedBytes ?? this.managedBytes,
+      completedAt: completedAt ?? this.completedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -2327,6 +2484,18 @@ class StoredDownloadsCompanion extends UpdateCompanion<StoredDownloadsEntry> {
     if (download.present) {
       map['download'] = Variable<String>(download.value);
     }
+    if (downloadOrigin.present) {
+      map['download_origin'] = Variable<String>(downloadOrigin.value);
+    }
+    if (smartProfileIds.present) {
+      map['smart_profile_ids'] = Variable<String>(smartProfileIds.value);
+    }
+    if (managedBytes.present) {
+      map['managed_bytes'] = Variable<int>(managedBytes.value);
+    }
+    if (completedAt.present) {
+      map['completed_at'] = Variable<int>(completedAt.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -2340,6 +2509,1771 @@ class StoredDownloadsCompanion extends UpdateCompanion<StoredDownloadsEntry> {
           ..write('userId: $userId, ')
           ..write('episodeId: $episodeId, ')
           ..write('download: $download, ')
+          ..write('downloadOrigin: $downloadOrigin, ')
+          ..write('smartProfileIds: $smartProfileIds, ')
+          ..write('managedBytes: $managedBytes, ')
+          ..write('completedAt: $completedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $StoredDownloadFilesTable extends StoredDownloadFiles
+    with TableInfo<$StoredDownloadFilesTable, StoredDownloadFileEntry> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $StoredDownloadFilesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _itemIdMeta = const VerificationMeta('itemId');
+  @override
+  late final GeneratedColumn<String> itemId = GeneratedColumn<String>(
+    'item_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _episodeIdMeta = const VerificationMeta('episodeId');
+  @override
+  late final GeneratedColumn<String> episodeId = GeneratedColumn<String>(
+    'episode_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _fileKeyMeta = const VerificationMeta('fileKey');
+  @override
+  late final GeneratedColumn<String> fileKey = GeneratedColumn<String>(
+    'file_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _trackJsonMeta = const VerificationMeta('trackJson');
+  @override
+  late final GeneratedColumn<String> trackJson = GeneratedColumn<String>(
+    'track_json',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _auxiliaryPathMeta = const VerificationMeta('auxiliaryPath');
+  @override
+  late final GeneratedColumn<String> auxiliaryPath = GeneratedColumn<String>(
+    'auxiliary_path',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sidecarPathMeta = const VerificationMeta('sidecarPath');
+  @override
+  late final GeneratedColumn<String> sidecarPath = GeneratedColumn<String>(
+    'sidecar_path',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [itemId, userId, episodeId, fileKey, trackJson, auxiliaryPath, sidecarPath];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'stored_download_files';
+  @override
+  VerificationContext validateIntegrity(Insertable<StoredDownloadFileEntry> instance, {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('item_id')) {
+      context.handle(_itemIdMeta, itemId.isAcceptableOrUnknown(data['item_id']!, _itemIdMeta));
+    } else if (isInserting) {
+      context.missing(_itemIdMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(_userIdMeta, userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('episode_id')) {
+      context.handle(_episodeIdMeta, episodeId.isAcceptableOrUnknown(data['episode_id']!, _episodeIdMeta));
+    }
+    if (data.containsKey('file_key')) {
+      context.handle(_fileKeyMeta, fileKey.isAcceptableOrUnknown(data['file_key']!, _fileKeyMeta));
+    } else if (isInserting) {
+      context.missing(_fileKeyMeta);
+    }
+    if (data.containsKey('track_json')) {
+      context.handle(_trackJsonMeta, trackJson.isAcceptableOrUnknown(data['track_json']!, _trackJsonMeta));
+    }
+    if (data.containsKey('auxiliary_path')) {
+      context.handle(
+        _auxiliaryPathMeta,
+        auxiliaryPath.isAcceptableOrUnknown(data['auxiliary_path']!, _auxiliaryPathMeta),
+      );
+    }
+    if (data.containsKey('sidecar_path')) {
+      context.handle(_sidecarPathMeta, sidecarPath.isAcceptableOrUnknown(data['sidecar_path']!, _sidecarPathMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {itemId, userId, episodeId, fileKey};
+  @override
+  StoredDownloadFileEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return StoredDownloadFileEntry(
+      itemId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}item_id'])!,
+      userId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
+      episodeId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}episode_id']),
+      fileKey: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}file_key'])!,
+      trackJson: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}track_json']),
+      auxiliaryPath: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}auxiliary_path']),
+      sidecarPath: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}sidecar_path']),
+    );
+  }
+
+  @override
+  $StoredDownloadFilesTable createAlias(String alias) {
+    return $StoredDownloadFilesTable(attachedDatabase, alias);
+  }
+}
+
+class StoredDownloadFileEntry extends DataClass implements Insertable<StoredDownloadFileEntry> {
+  final String itemId;
+  final String userId;
+  final String? episodeId;
+  final String fileKey;
+  final String? trackJson;
+  final String? auxiliaryPath;
+  final String? sidecarPath;
+  const StoredDownloadFileEntry({
+    required this.itemId,
+    required this.userId,
+    this.episodeId,
+    required this.fileKey,
+    this.trackJson,
+    this.auxiliaryPath,
+    this.sidecarPath,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['item_id'] = Variable<String>(itemId);
+    map['user_id'] = Variable<String>(userId);
+    if (!nullToAbsent || episodeId != null) {
+      map['episode_id'] = Variable<String>(episodeId);
+    }
+    map['file_key'] = Variable<String>(fileKey);
+    if (!nullToAbsent || trackJson != null) {
+      map['track_json'] = Variable<String>(trackJson);
+    }
+    if (!nullToAbsent || auxiliaryPath != null) {
+      map['auxiliary_path'] = Variable<String>(auxiliaryPath);
+    }
+    if (!nullToAbsent || sidecarPath != null) {
+      map['sidecar_path'] = Variable<String>(sidecarPath);
+    }
+    return map;
+  }
+
+  StoredDownloadFilesCompanion toCompanion(bool nullToAbsent) {
+    return StoredDownloadFilesCompanion(
+      itemId: Value(itemId),
+      userId: Value(userId),
+      episodeId: episodeId == null && nullToAbsent ? const Value.absent() : Value(episodeId),
+      fileKey: Value(fileKey),
+      trackJson: trackJson == null && nullToAbsent ? const Value.absent() : Value(trackJson),
+      auxiliaryPath: auxiliaryPath == null && nullToAbsent ? const Value.absent() : Value(auxiliaryPath),
+      sidecarPath: sidecarPath == null && nullToAbsent ? const Value.absent() : Value(sidecarPath),
+    );
+  }
+
+  factory StoredDownloadFileEntry.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return StoredDownloadFileEntry(
+      itemId: serializer.fromJson<String>(json['itemId']),
+      userId: serializer.fromJson<String>(json['userId']),
+      episodeId: serializer.fromJson<String?>(json['episodeId']),
+      fileKey: serializer.fromJson<String>(json['fileKey']),
+      trackJson: serializer.fromJson<String?>(json['trackJson']),
+      auxiliaryPath: serializer.fromJson<String?>(json['auxiliaryPath']),
+      sidecarPath: serializer.fromJson<String?>(json['sidecarPath']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'itemId': serializer.toJson<String>(itemId),
+      'userId': serializer.toJson<String>(userId),
+      'episodeId': serializer.toJson<String?>(episodeId),
+      'fileKey': serializer.toJson<String>(fileKey),
+      'trackJson': serializer.toJson<String?>(trackJson),
+      'auxiliaryPath': serializer.toJson<String?>(auxiliaryPath),
+      'sidecarPath': serializer.toJson<String?>(sidecarPath),
+    };
+  }
+
+  StoredDownloadFileEntry copyWith({
+    String? itemId,
+    String? userId,
+    Value<String?> episodeId = const Value.absent(),
+    String? fileKey,
+    Value<String?> trackJson = const Value.absent(),
+    Value<String?> auxiliaryPath = const Value.absent(),
+    Value<String?> sidecarPath = const Value.absent(),
+  }) => StoredDownloadFileEntry(
+    itemId: itemId ?? this.itemId,
+    userId: userId ?? this.userId,
+    episodeId: episodeId.present ? episodeId.value : this.episodeId,
+    fileKey: fileKey ?? this.fileKey,
+    trackJson: trackJson.present ? trackJson.value : this.trackJson,
+    auxiliaryPath: auxiliaryPath.present ? auxiliaryPath.value : this.auxiliaryPath,
+    sidecarPath: sidecarPath.present ? sidecarPath.value : this.sidecarPath,
+  );
+  StoredDownloadFileEntry copyWithCompanion(StoredDownloadFilesCompanion data) {
+    return StoredDownloadFileEntry(
+      itemId: data.itemId.present ? data.itemId.value : this.itemId,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      episodeId: data.episodeId.present ? data.episodeId.value : this.episodeId,
+      fileKey: data.fileKey.present ? data.fileKey.value : this.fileKey,
+      trackJson: data.trackJson.present ? data.trackJson.value : this.trackJson,
+      auxiliaryPath: data.auxiliaryPath.present ? data.auxiliaryPath.value : this.auxiliaryPath,
+      sidecarPath: data.sidecarPath.present ? data.sidecarPath.value : this.sidecarPath,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StoredDownloadFileEntry(')
+          ..write('itemId: $itemId, ')
+          ..write('userId: $userId, ')
+          ..write('episodeId: $episodeId, ')
+          ..write('fileKey: $fileKey, ')
+          ..write('trackJson: $trackJson, ')
+          ..write('auxiliaryPath: $auxiliaryPath, ')
+          ..write('sidecarPath: $sidecarPath')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(itemId, userId, episodeId, fileKey, trackJson, auxiliaryPath, sidecarPath);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is StoredDownloadFileEntry &&
+          other.itemId == this.itemId &&
+          other.userId == this.userId &&
+          other.episodeId == this.episodeId &&
+          other.fileKey == this.fileKey &&
+          other.trackJson == this.trackJson &&
+          other.auxiliaryPath == this.auxiliaryPath &&
+          other.sidecarPath == this.sidecarPath);
+}
+
+class StoredDownloadFilesCompanion extends UpdateCompanion<StoredDownloadFileEntry> {
+  final Value<String> itemId;
+  final Value<String> userId;
+  final Value<String?> episodeId;
+  final Value<String> fileKey;
+  final Value<String?> trackJson;
+  final Value<String?> auxiliaryPath;
+  final Value<String?> sidecarPath;
+  final Value<int> rowid;
+  const StoredDownloadFilesCompanion({
+    this.itemId = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.episodeId = const Value.absent(),
+    this.fileKey = const Value.absent(),
+    this.trackJson = const Value.absent(),
+    this.auxiliaryPath = const Value.absent(),
+    this.sidecarPath = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  StoredDownloadFilesCompanion.insert({
+    required String itemId,
+    required String userId,
+    this.episodeId = const Value.absent(),
+    required String fileKey,
+    this.trackJson = const Value.absent(),
+    this.auxiliaryPath = const Value.absent(),
+    this.sidecarPath = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : itemId = Value(itemId),
+       userId = Value(userId),
+       fileKey = Value(fileKey);
+  static Insertable<StoredDownloadFileEntry> custom({
+    Expression<String>? itemId,
+    Expression<String>? userId,
+    Expression<String>? episodeId,
+    Expression<String>? fileKey,
+    Expression<String>? trackJson,
+    Expression<String>? auxiliaryPath,
+    Expression<String>? sidecarPath,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (itemId != null) 'item_id': itemId,
+      if (userId != null) 'user_id': userId,
+      if (episodeId != null) 'episode_id': episodeId,
+      if (fileKey != null) 'file_key': fileKey,
+      if (trackJson != null) 'track_json': trackJson,
+      if (auxiliaryPath != null) 'auxiliary_path': auxiliaryPath,
+      if (sidecarPath != null) 'sidecar_path': sidecarPath,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  StoredDownloadFilesCompanion copyWith({
+    Value<String>? itemId,
+    Value<String>? userId,
+    Value<String?>? episodeId,
+    Value<String>? fileKey,
+    Value<String?>? trackJson,
+    Value<String?>? auxiliaryPath,
+    Value<String?>? sidecarPath,
+    Value<int>? rowid,
+  }) {
+    return StoredDownloadFilesCompanion(
+      itemId: itemId ?? this.itemId,
+      userId: userId ?? this.userId,
+      episodeId: episodeId ?? this.episodeId,
+      fileKey: fileKey ?? this.fileKey,
+      trackJson: trackJson ?? this.trackJson,
+      auxiliaryPath: auxiliaryPath ?? this.auxiliaryPath,
+      sidecarPath: sidecarPath ?? this.sidecarPath,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (itemId.present) {
+      map['item_id'] = Variable<String>(itemId.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (episodeId.present) {
+      map['episode_id'] = Variable<String>(episodeId.value);
+    }
+    if (fileKey.present) {
+      map['file_key'] = Variable<String>(fileKey.value);
+    }
+    if (trackJson.present) {
+      map['track_json'] = Variable<String>(trackJson.value);
+    }
+    if (auxiliaryPath.present) {
+      map['auxiliary_path'] = Variable<String>(auxiliaryPath.value);
+    }
+    if (sidecarPath.present) {
+      map['sidecar_path'] = Variable<String>(sidecarPath.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StoredDownloadFilesCompanion(')
+          ..write('itemId: $itemId, ')
+          ..write('userId: $userId, ')
+          ..write('episodeId: $episodeId, ')
+          ..write('fileKey: $fileKey, ')
+          ..write('trackJson: $trackJson, ')
+          ..write('auxiliaryPath: $auxiliaryPath, ')
+          ..write('sidecarPath: $sidecarPath, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SmartDownloadProfilesTable extends SmartDownloadProfiles
+    with TableInfo<$SmartDownloadProfilesTable, SmartDownloadProfileEntry> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SmartDownloadProfilesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _policyMeta = const VerificationMeta('policy');
+  @override
+  late final GeneratedColumn<String> policy = GeneratedColumn<String>(
+    'policy',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _enabledMeta = const VerificationMeta('enabled');
+  @override
+  late final GeneratedColumn<bool> enabled = GeneratedColumn<bool>(
+    'enabled',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('CHECK ("enabled" IN (0, 1))'),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, userId, name, policy, enabled, updatedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'smart_download_profiles';
+  @override
+  VerificationContext validateIntegrity(Insertable<SmartDownloadProfileEntry> instance, {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(_userIdMeta, userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(_nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('policy')) {
+      context.handle(_policyMeta, policy.isAcceptableOrUnknown(data['policy']!, _policyMeta));
+    } else if (isInserting) {
+      context.missing(_policyMeta);
+    }
+    if (data.containsKey('enabled')) {
+      context.handle(_enabledMeta, enabled.isAcceptableOrUnknown(data['enabled']!, _enabledMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta, updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id, userId};
+  @override
+  SmartDownloadProfileEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SmartDownloadProfileEntry(
+      id: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      userId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
+      name: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      policy: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}policy'])!,
+      enabled: attachedDatabase.typeMapping.read(DriftSqlType.bool, data['${effectivePrefix}enabled'])!,
+      updatedAt: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}updated_at'])!,
+    );
+  }
+
+  @override
+  $SmartDownloadProfilesTable createAlias(String alias) {
+    return $SmartDownloadProfilesTable(attachedDatabase, alias);
+  }
+}
+
+class SmartDownloadProfileEntry extends DataClass implements Insertable<SmartDownloadProfileEntry> {
+  final String id;
+  final String userId;
+  final String name;
+  final String policy;
+  final bool enabled;
+  final int updatedAt;
+  const SmartDownloadProfileEntry({
+    required this.id,
+    required this.userId,
+    required this.name,
+    required this.policy,
+    required this.enabled,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['user_id'] = Variable<String>(userId);
+    map['name'] = Variable<String>(name);
+    map['policy'] = Variable<String>(policy);
+    map['enabled'] = Variable<bool>(enabled);
+    map['updated_at'] = Variable<int>(updatedAt);
+    return map;
+  }
+
+  SmartDownloadProfilesCompanion toCompanion(bool nullToAbsent) {
+    return SmartDownloadProfilesCompanion(
+      id: Value(id),
+      userId: Value(userId),
+      name: Value(name),
+      policy: Value(policy),
+      enabled: Value(enabled),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory SmartDownloadProfileEntry.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SmartDownloadProfileEntry(
+      id: serializer.fromJson<String>(json['id']),
+      userId: serializer.fromJson<String>(json['userId']),
+      name: serializer.fromJson<String>(json['name']),
+      policy: serializer.fromJson<String>(json['policy']),
+      enabled: serializer.fromJson<bool>(json['enabled']),
+      updatedAt: serializer.fromJson<int>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'userId': serializer.toJson<String>(userId),
+      'name': serializer.toJson<String>(name),
+      'policy': serializer.toJson<String>(policy),
+      'enabled': serializer.toJson<bool>(enabled),
+      'updatedAt': serializer.toJson<int>(updatedAt),
+    };
+  }
+
+  SmartDownloadProfileEntry copyWith({
+    String? id,
+    String? userId,
+    String? name,
+    String? policy,
+    bool? enabled,
+    int? updatedAt,
+  }) => SmartDownloadProfileEntry(
+    id: id ?? this.id,
+    userId: userId ?? this.userId,
+    name: name ?? this.name,
+    policy: policy ?? this.policy,
+    enabled: enabled ?? this.enabled,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  SmartDownloadProfileEntry copyWithCompanion(SmartDownloadProfilesCompanion data) {
+    return SmartDownloadProfileEntry(
+      id: data.id.present ? data.id.value : this.id,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      name: data.name.present ? data.name.value : this.name,
+      policy: data.policy.present ? data.policy.value : this.policy,
+      enabled: data.enabled.present ? data.enabled.value : this.enabled,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SmartDownloadProfileEntry(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('name: $name, ')
+          ..write('policy: $policy, ')
+          ..write('enabled: $enabled, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, userId, name, policy, enabled, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SmartDownloadProfileEntry &&
+          other.id == this.id &&
+          other.userId == this.userId &&
+          other.name == this.name &&
+          other.policy == this.policy &&
+          other.enabled == this.enabled &&
+          other.updatedAt == this.updatedAt);
+}
+
+class SmartDownloadProfilesCompanion extends UpdateCompanion<SmartDownloadProfileEntry> {
+  final Value<String> id;
+  final Value<String> userId;
+  final Value<String> name;
+  final Value<String> policy;
+  final Value<bool> enabled;
+  final Value<int> updatedAt;
+  final Value<int> rowid;
+  const SmartDownloadProfilesCompanion({
+    this.id = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.name = const Value.absent(),
+    this.policy = const Value.absent(),
+    this.enabled = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SmartDownloadProfilesCompanion.insert({
+    required String id,
+    required String userId,
+    required String name,
+    required String policy,
+    this.enabled = const Value.absent(),
+    required int updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       userId = Value(userId),
+       name = Value(name),
+       policy = Value(policy),
+       updatedAt = Value(updatedAt);
+  static Insertable<SmartDownloadProfileEntry> custom({
+    Expression<String>? id,
+    Expression<String>? userId,
+    Expression<String>? name,
+    Expression<String>? policy,
+    Expression<bool>? enabled,
+    Expression<int>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
+      if (name != null) 'name': name,
+      if (policy != null) 'policy': policy,
+      if (enabled != null) 'enabled': enabled,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SmartDownloadProfilesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? userId,
+    Value<String>? name,
+    Value<String>? policy,
+    Value<bool>? enabled,
+    Value<int>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return SmartDownloadProfilesCompanion(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      name: name ?? this.name,
+      policy: policy ?? this.policy,
+      enabled: enabled ?? this.enabled,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (policy.present) {
+      map['policy'] = Variable<String>(policy.value);
+    }
+    if (enabled.present) {
+      map['enabled'] = Variable<bool>(enabled.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<int>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SmartDownloadProfilesCompanion(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('name: $name, ')
+          ..write('policy: $policy, ')
+          ..write('enabled: $enabled, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SmartDownloadSourcesTable extends SmartDownloadSources
+    with TableInfo<$SmartDownloadSourcesTable, SmartDownloadSourceEntry> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SmartDownloadSourcesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _profileIdMeta = const VerificationMeta('profileId');
+  @override
+  late final GeneratedColumn<String> profileId = GeneratedColumn<String>(
+    'profile_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sourceTypeMeta = const VerificationMeta('sourceType');
+  @override
+  late final GeneratedColumn<String> sourceType = GeneratedColumn<String>(
+    'source_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sourceIdMeta = const VerificationMeta('sourceId');
+  @override
+  late final GeneratedColumn<String> sourceId = GeneratedColumn<String>(
+    'source_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _libraryIdMeta = const VerificationMeta('libraryId');
+  @override
+  late final GeneratedColumn<String> libraryId = GeneratedColumn<String>(
+    'library_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _displayNameMeta = const VerificationMeta('displayName');
+  @override
+  late final GeneratedColumn<String> displayName = GeneratedColumn<String>(
+    'display_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _descendingMeta = const VerificationMeta('descending');
+  @override
+  late final GeneratedColumn<bool> descending = GeneratedColumn<bool>(
+    'descending',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('CHECK ("descending" IN (0, 1))'),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _sourceRevisionMeta = const VerificationMeta('sourceRevision');
+  @override
+  late final GeneratedColumn<int> sourceRevision = GeneratedColumn<int>(
+    'source_revision',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _candidateSnapshotMeta = const VerificationMeta('candidateSnapshot');
+  @override
+  late final GeneratedColumn<String> candidateSnapshot = GeneratedColumn<String>(
+    'candidate_snapshot',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    profileId,
+    sourceType,
+    sourceId,
+    libraryId,
+    displayName,
+    descending,
+    sourceRevision,
+    candidateSnapshot,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'smart_download_sources';
+  @override
+  VerificationContext validateIntegrity(Insertable<SmartDownloadSourceEntry> instance, {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('profile_id')) {
+      context.handle(_profileIdMeta, profileId.isAcceptableOrUnknown(data['profile_id']!, _profileIdMeta));
+    } else if (isInserting) {
+      context.missing(_profileIdMeta);
+    }
+    if (data.containsKey('source_type')) {
+      context.handle(_sourceTypeMeta, sourceType.isAcceptableOrUnknown(data['source_type']!, _sourceTypeMeta));
+    } else if (isInserting) {
+      context.missing(_sourceTypeMeta);
+    }
+    if (data.containsKey('source_id')) {
+      context.handle(_sourceIdMeta, sourceId.isAcceptableOrUnknown(data['source_id']!, _sourceIdMeta));
+    } else if (isInserting) {
+      context.missing(_sourceIdMeta);
+    }
+    if (data.containsKey('library_id')) {
+      context.handle(_libraryIdMeta, libraryId.isAcceptableOrUnknown(data['library_id']!, _libraryIdMeta));
+    } else if (isInserting) {
+      context.missing(_libraryIdMeta);
+    }
+    if (data.containsKey('display_name')) {
+      context.handle(_displayNameMeta, displayName.isAcceptableOrUnknown(data['display_name']!, _displayNameMeta));
+    }
+    if (data.containsKey('descending')) {
+      context.handle(_descendingMeta, descending.isAcceptableOrUnknown(data['descending']!, _descendingMeta));
+    }
+    if (data.containsKey('source_revision')) {
+      context.handle(
+        _sourceRevisionMeta,
+        sourceRevision.isAcceptableOrUnknown(data['source_revision']!, _sourceRevisionMeta),
+      );
+    }
+    if (data.containsKey('candidate_snapshot')) {
+      context.handle(
+        _candidateSnapshotMeta,
+        candidateSnapshot.isAcceptableOrUnknown(data['candidate_snapshot']!, _candidateSnapshotMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta, updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {profileId, sourceType, sourceId};
+  @override
+  SmartDownloadSourceEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SmartDownloadSourceEntry(
+      profileId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}profile_id'])!,
+      sourceType: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}source_type'])!,
+      sourceId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}source_id'])!,
+      libraryId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}library_id'])!,
+      displayName: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}display_name']),
+      descending: attachedDatabase.typeMapping.read(DriftSqlType.bool, data['${effectivePrefix}descending'])!,
+      sourceRevision: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}source_revision']),
+      candidateSnapshot: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}candidate_snapshot'],
+      ),
+      updatedAt: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}updated_at'])!,
+    );
+  }
+
+  @override
+  $SmartDownloadSourcesTable createAlias(String alias) {
+    return $SmartDownloadSourcesTable(attachedDatabase, alias);
+  }
+}
+
+class SmartDownloadSourceEntry extends DataClass implements Insertable<SmartDownloadSourceEntry> {
+  final String profileId;
+  final String sourceType;
+  final String sourceId;
+  final String libraryId;
+  final String? displayName;
+  final bool descending;
+  final int? sourceRevision;
+  final String? candidateSnapshot;
+  final int updatedAt;
+  const SmartDownloadSourceEntry({
+    required this.profileId,
+    required this.sourceType,
+    required this.sourceId,
+    required this.libraryId,
+    this.displayName,
+    required this.descending,
+    this.sourceRevision,
+    this.candidateSnapshot,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['profile_id'] = Variable<String>(profileId);
+    map['source_type'] = Variable<String>(sourceType);
+    map['source_id'] = Variable<String>(sourceId);
+    map['library_id'] = Variable<String>(libraryId);
+    if (!nullToAbsent || displayName != null) {
+      map['display_name'] = Variable<String>(displayName);
+    }
+    map['descending'] = Variable<bool>(descending);
+    if (!nullToAbsent || sourceRevision != null) {
+      map['source_revision'] = Variable<int>(sourceRevision);
+    }
+    if (!nullToAbsent || candidateSnapshot != null) {
+      map['candidate_snapshot'] = Variable<String>(candidateSnapshot);
+    }
+    map['updated_at'] = Variable<int>(updatedAt);
+    return map;
+  }
+
+  SmartDownloadSourcesCompanion toCompanion(bool nullToAbsent) {
+    return SmartDownloadSourcesCompanion(
+      profileId: Value(profileId),
+      sourceType: Value(sourceType),
+      sourceId: Value(sourceId),
+      libraryId: Value(libraryId),
+      displayName: displayName == null && nullToAbsent ? const Value.absent() : Value(displayName),
+      descending: Value(descending),
+      sourceRevision: sourceRevision == null && nullToAbsent ? const Value.absent() : Value(sourceRevision),
+      candidateSnapshot: candidateSnapshot == null && nullToAbsent ? const Value.absent() : Value(candidateSnapshot),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory SmartDownloadSourceEntry.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SmartDownloadSourceEntry(
+      profileId: serializer.fromJson<String>(json['profileId']),
+      sourceType: serializer.fromJson<String>(json['sourceType']),
+      sourceId: serializer.fromJson<String>(json['sourceId']),
+      libraryId: serializer.fromJson<String>(json['libraryId']),
+      displayName: serializer.fromJson<String?>(json['displayName']),
+      descending: serializer.fromJson<bool>(json['descending']),
+      sourceRevision: serializer.fromJson<int?>(json['sourceRevision']),
+      candidateSnapshot: serializer.fromJson<String?>(json['candidateSnapshot']),
+      updatedAt: serializer.fromJson<int>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'profileId': serializer.toJson<String>(profileId),
+      'sourceType': serializer.toJson<String>(sourceType),
+      'sourceId': serializer.toJson<String>(sourceId),
+      'libraryId': serializer.toJson<String>(libraryId),
+      'displayName': serializer.toJson<String?>(displayName),
+      'descending': serializer.toJson<bool>(descending),
+      'sourceRevision': serializer.toJson<int?>(sourceRevision),
+      'candidateSnapshot': serializer.toJson<String?>(candidateSnapshot),
+      'updatedAt': serializer.toJson<int>(updatedAt),
+    };
+  }
+
+  SmartDownloadSourceEntry copyWith({
+    String? profileId,
+    String? sourceType,
+    String? sourceId,
+    String? libraryId,
+    Value<String?> displayName = const Value.absent(),
+    bool? descending,
+    Value<int?> sourceRevision = const Value.absent(),
+    Value<String?> candidateSnapshot = const Value.absent(),
+    int? updatedAt,
+  }) => SmartDownloadSourceEntry(
+    profileId: profileId ?? this.profileId,
+    sourceType: sourceType ?? this.sourceType,
+    sourceId: sourceId ?? this.sourceId,
+    libraryId: libraryId ?? this.libraryId,
+    displayName: displayName.present ? displayName.value : this.displayName,
+    descending: descending ?? this.descending,
+    sourceRevision: sourceRevision.present ? sourceRevision.value : this.sourceRevision,
+    candidateSnapshot: candidateSnapshot.present ? candidateSnapshot.value : this.candidateSnapshot,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  SmartDownloadSourceEntry copyWithCompanion(SmartDownloadSourcesCompanion data) {
+    return SmartDownloadSourceEntry(
+      profileId: data.profileId.present ? data.profileId.value : this.profileId,
+      sourceType: data.sourceType.present ? data.sourceType.value : this.sourceType,
+      sourceId: data.sourceId.present ? data.sourceId.value : this.sourceId,
+      libraryId: data.libraryId.present ? data.libraryId.value : this.libraryId,
+      displayName: data.displayName.present ? data.displayName.value : this.displayName,
+      descending: data.descending.present ? data.descending.value : this.descending,
+      sourceRevision: data.sourceRevision.present ? data.sourceRevision.value : this.sourceRevision,
+      candidateSnapshot: data.candidateSnapshot.present ? data.candidateSnapshot.value : this.candidateSnapshot,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SmartDownloadSourceEntry(')
+          ..write('profileId: $profileId, ')
+          ..write('sourceType: $sourceType, ')
+          ..write('sourceId: $sourceId, ')
+          ..write('libraryId: $libraryId, ')
+          ..write('displayName: $displayName, ')
+          ..write('descending: $descending, ')
+          ..write('sourceRevision: $sourceRevision, ')
+          ..write('candidateSnapshot: $candidateSnapshot, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    profileId,
+    sourceType,
+    sourceId,
+    libraryId,
+    displayName,
+    descending,
+    sourceRevision,
+    candidateSnapshot,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SmartDownloadSourceEntry &&
+          other.profileId == this.profileId &&
+          other.sourceType == this.sourceType &&
+          other.sourceId == this.sourceId &&
+          other.libraryId == this.libraryId &&
+          other.displayName == this.displayName &&
+          other.descending == this.descending &&
+          other.sourceRevision == this.sourceRevision &&
+          other.candidateSnapshot == this.candidateSnapshot &&
+          other.updatedAt == this.updatedAt);
+}
+
+class SmartDownloadSourcesCompanion extends UpdateCompanion<SmartDownloadSourceEntry> {
+  final Value<String> profileId;
+  final Value<String> sourceType;
+  final Value<String> sourceId;
+  final Value<String> libraryId;
+  final Value<String?> displayName;
+  final Value<bool> descending;
+  final Value<int?> sourceRevision;
+  final Value<String?> candidateSnapshot;
+  final Value<int> updatedAt;
+  final Value<int> rowid;
+  const SmartDownloadSourcesCompanion({
+    this.profileId = const Value.absent(),
+    this.sourceType = const Value.absent(),
+    this.sourceId = const Value.absent(),
+    this.libraryId = const Value.absent(),
+    this.displayName = const Value.absent(),
+    this.descending = const Value.absent(),
+    this.sourceRevision = const Value.absent(),
+    this.candidateSnapshot = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SmartDownloadSourcesCompanion.insert({
+    required String profileId,
+    required String sourceType,
+    required String sourceId,
+    required String libraryId,
+    this.displayName = const Value.absent(),
+    this.descending = const Value.absent(),
+    this.sourceRevision = const Value.absent(),
+    this.candidateSnapshot = const Value.absent(),
+    required int updatedAt,
+    this.rowid = const Value.absent(),
+  }) : profileId = Value(profileId),
+       sourceType = Value(sourceType),
+       sourceId = Value(sourceId),
+       libraryId = Value(libraryId),
+       updatedAt = Value(updatedAt);
+  static Insertable<SmartDownloadSourceEntry> custom({
+    Expression<String>? profileId,
+    Expression<String>? sourceType,
+    Expression<String>? sourceId,
+    Expression<String>? libraryId,
+    Expression<String>? displayName,
+    Expression<bool>? descending,
+    Expression<int>? sourceRevision,
+    Expression<String>? candidateSnapshot,
+    Expression<int>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (profileId != null) 'profile_id': profileId,
+      if (sourceType != null) 'source_type': sourceType,
+      if (sourceId != null) 'source_id': sourceId,
+      if (libraryId != null) 'library_id': libraryId,
+      if (displayName != null) 'display_name': displayName,
+      if (descending != null) 'descending': descending,
+      if (sourceRevision != null) 'source_revision': sourceRevision,
+      if (candidateSnapshot != null) 'candidate_snapshot': candidateSnapshot,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SmartDownloadSourcesCompanion copyWith({
+    Value<String>? profileId,
+    Value<String>? sourceType,
+    Value<String>? sourceId,
+    Value<String>? libraryId,
+    Value<String?>? displayName,
+    Value<bool>? descending,
+    Value<int?>? sourceRevision,
+    Value<String?>? candidateSnapshot,
+    Value<int>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return SmartDownloadSourcesCompanion(
+      profileId: profileId ?? this.profileId,
+      sourceType: sourceType ?? this.sourceType,
+      sourceId: sourceId ?? this.sourceId,
+      libraryId: libraryId ?? this.libraryId,
+      displayName: displayName ?? this.displayName,
+      descending: descending ?? this.descending,
+      sourceRevision: sourceRevision ?? this.sourceRevision,
+      candidateSnapshot: candidateSnapshot ?? this.candidateSnapshot,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (profileId.present) {
+      map['profile_id'] = Variable<String>(profileId.value);
+    }
+    if (sourceType.present) {
+      map['source_type'] = Variable<String>(sourceType.value);
+    }
+    if (sourceId.present) {
+      map['source_id'] = Variable<String>(sourceId.value);
+    }
+    if (libraryId.present) {
+      map['library_id'] = Variable<String>(libraryId.value);
+    }
+    if (displayName.present) {
+      map['display_name'] = Variable<String>(displayName.value);
+    }
+    if (descending.present) {
+      map['descending'] = Variable<bool>(descending.value);
+    }
+    if (sourceRevision.present) {
+      map['source_revision'] = Variable<int>(sourceRevision.value);
+    }
+    if (candidateSnapshot.present) {
+      map['candidate_snapshot'] = Variable<String>(candidateSnapshot.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<int>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SmartDownloadSourcesCompanion(')
+          ..write('profileId: $profileId, ')
+          ..write('sourceType: $sourceType, ')
+          ..write('sourceId: $sourceId, ')
+          ..write('libraryId: $libraryId, ')
+          ..write('displayName: $displayName, ')
+          ..write('descending: $descending, ')
+          ..write('sourceRevision: $sourceRevision, ')
+          ..write('candidateSnapshot: $candidateSnapshot, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SmartDownloadClaimsTable extends SmartDownloadClaims
+    with TableInfo<$SmartDownloadClaimsTable, SmartDownloadClaimEntry> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SmartDownloadClaimsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _profileIdMeta = const VerificationMeta('profileId');
+  @override
+  late final GeneratedColumn<String> profileId = GeneratedColumn<String>(
+    'profile_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _referenceKeyMeta = const VerificationMeta('referenceKey');
+  @override
+  late final GeneratedColumn<String> referenceKey = GeneratedColumn<String>(
+    'reference_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _itemIdMeta = const VerificationMeta('itemId');
+  @override
+  late final GeneratedColumn<String> itemId = GeneratedColumn<String>(
+    'item_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _episodeIdMeta = const VerificationMeta('episodeId');
+  @override
+  late final GeneratedColumn<String> episodeId = GeneratedColumn<String>(
+    'episode_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sourceTypeMeta = const VerificationMeta('sourceType');
+  @override
+  late final GeneratedColumn<String> sourceType = GeneratedColumn<String>(
+    'source_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sourceIdMeta = const VerificationMeta('sourceId');
+  @override
+  late final GeneratedColumn<String> sourceId = GeneratedColumn<String>(
+    'source_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _stateMeta = const VerificationMeta('state');
+  @override
+  late final GeneratedColumn<String> state = GeneratedColumn<String>(
+    'state',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _estimatedBytesMeta = const VerificationMeta('estimatedBytes');
+  @override
+  late final GeneratedColumn<int> estimatedBytes = GeneratedColumn<int>(
+    'estimated_bytes',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _completedAtMeta = const VerificationMeta('completedAt');
+  @override
+  late final GeneratedColumn<int> completedAt = GeneratedColumn<int>(
+    'completed_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    profileId,
+    referenceKey,
+    itemId,
+    episodeId,
+    sourceType,
+    sourceId,
+    state,
+    estimatedBytes,
+    completedAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'smart_download_claims';
+  @override
+  VerificationContext validateIntegrity(Insertable<SmartDownloadClaimEntry> instance, {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('profile_id')) {
+      context.handle(_profileIdMeta, profileId.isAcceptableOrUnknown(data['profile_id']!, _profileIdMeta));
+    } else if (isInserting) {
+      context.missing(_profileIdMeta);
+    }
+    if (data.containsKey('reference_key')) {
+      context.handle(_referenceKeyMeta, referenceKey.isAcceptableOrUnknown(data['reference_key']!, _referenceKeyMeta));
+    } else if (isInserting) {
+      context.missing(_referenceKeyMeta);
+    }
+    if (data.containsKey('item_id')) {
+      context.handle(_itemIdMeta, itemId.isAcceptableOrUnknown(data['item_id']!, _itemIdMeta));
+    } else if (isInserting) {
+      context.missing(_itemIdMeta);
+    }
+    if (data.containsKey('episode_id')) {
+      context.handle(_episodeIdMeta, episodeId.isAcceptableOrUnknown(data['episode_id']!, _episodeIdMeta));
+    }
+    if (data.containsKey('source_type')) {
+      context.handle(_sourceTypeMeta, sourceType.isAcceptableOrUnknown(data['source_type']!, _sourceTypeMeta));
+    } else if (isInserting) {
+      context.missing(_sourceTypeMeta);
+    }
+    if (data.containsKey('source_id')) {
+      context.handle(_sourceIdMeta, sourceId.isAcceptableOrUnknown(data['source_id']!, _sourceIdMeta));
+    } else if (isInserting) {
+      context.missing(_sourceIdMeta);
+    }
+    if (data.containsKey('state')) {
+      context.handle(_stateMeta, state.isAcceptableOrUnknown(data['state']!, _stateMeta));
+    } else if (isInserting) {
+      context.missing(_stateMeta);
+    }
+    if (data.containsKey('estimated_bytes')) {
+      context.handle(
+        _estimatedBytesMeta,
+        estimatedBytes.isAcceptableOrUnknown(data['estimated_bytes']!, _estimatedBytesMeta),
+      );
+    }
+    if (data.containsKey('completed_at')) {
+      context.handle(_completedAtMeta, completedAt.isAcceptableOrUnknown(data['completed_at']!, _completedAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta, updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {profileId, referenceKey};
+  @override
+  SmartDownloadClaimEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SmartDownloadClaimEntry(
+      profileId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}profile_id'])!,
+      referenceKey: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}reference_key'])!,
+      itemId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}item_id'])!,
+      episodeId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}episode_id']),
+      sourceType: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}source_type'])!,
+      sourceId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}source_id'])!,
+      state: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}state'])!,
+      estimatedBytes: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}estimated_bytes']),
+      completedAt: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}completed_at']),
+      updatedAt: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}updated_at'])!,
+    );
+  }
+
+  @override
+  $SmartDownloadClaimsTable createAlias(String alias) {
+    return $SmartDownloadClaimsTable(attachedDatabase, alias);
+  }
+}
+
+class SmartDownloadClaimEntry extends DataClass implements Insertable<SmartDownloadClaimEntry> {
+  final String profileId;
+  final String referenceKey;
+  final String itemId;
+  final String? episodeId;
+  final String sourceType;
+  final String sourceId;
+  final String state;
+  final int? estimatedBytes;
+  final int? completedAt;
+  final int updatedAt;
+  const SmartDownloadClaimEntry({
+    required this.profileId,
+    required this.referenceKey,
+    required this.itemId,
+    this.episodeId,
+    required this.sourceType,
+    required this.sourceId,
+    required this.state,
+    this.estimatedBytes,
+    this.completedAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['profile_id'] = Variable<String>(profileId);
+    map['reference_key'] = Variable<String>(referenceKey);
+    map['item_id'] = Variable<String>(itemId);
+    if (!nullToAbsent || episodeId != null) {
+      map['episode_id'] = Variable<String>(episodeId);
+    }
+    map['source_type'] = Variable<String>(sourceType);
+    map['source_id'] = Variable<String>(sourceId);
+    map['state'] = Variable<String>(state);
+    if (!nullToAbsent || estimatedBytes != null) {
+      map['estimated_bytes'] = Variable<int>(estimatedBytes);
+    }
+    if (!nullToAbsent || completedAt != null) {
+      map['completed_at'] = Variable<int>(completedAt);
+    }
+    map['updated_at'] = Variable<int>(updatedAt);
+    return map;
+  }
+
+  SmartDownloadClaimsCompanion toCompanion(bool nullToAbsent) {
+    return SmartDownloadClaimsCompanion(
+      profileId: Value(profileId),
+      referenceKey: Value(referenceKey),
+      itemId: Value(itemId),
+      episodeId: episodeId == null && nullToAbsent ? const Value.absent() : Value(episodeId),
+      sourceType: Value(sourceType),
+      sourceId: Value(sourceId),
+      state: Value(state),
+      estimatedBytes: estimatedBytes == null && nullToAbsent ? const Value.absent() : Value(estimatedBytes),
+      completedAt: completedAt == null && nullToAbsent ? const Value.absent() : Value(completedAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory SmartDownloadClaimEntry.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SmartDownloadClaimEntry(
+      profileId: serializer.fromJson<String>(json['profileId']),
+      referenceKey: serializer.fromJson<String>(json['referenceKey']),
+      itemId: serializer.fromJson<String>(json['itemId']),
+      episodeId: serializer.fromJson<String?>(json['episodeId']),
+      sourceType: serializer.fromJson<String>(json['sourceType']),
+      sourceId: serializer.fromJson<String>(json['sourceId']),
+      state: serializer.fromJson<String>(json['state']),
+      estimatedBytes: serializer.fromJson<int?>(json['estimatedBytes']),
+      completedAt: serializer.fromJson<int?>(json['completedAt']),
+      updatedAt: serializer.fromJson<int>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'profileId': serializer.toJson<String>(profileId),
+      'referenceKey': serializer.toJson<String>(referenceKey),
+      'itemId': serializer.toJson<String>(itemId),
+      'episodeId': serializer.toJson<String?>(episodeId),
+      'sourceType': serializer.toJson<String>(sourceType),
+      'sourceId': serializer.toJson<String>(sourceId),
+      'state': serializer.toJson<String>(state),
+      'estimatedBytes': serializer.toJson<int?>(estimatedBytes),
+      'completedAt': serializer.toJson<int?>(completedAt),
+      'updatedAt': serializer.toJson<int>(updatedAt),
+    };
+  }
+
+  SmartDownloadClaimEntry copyWith({
+    String? profileId,
+    String? referenceKey,
+    String? itemId,
+    Value<String?> episodeId = const Value.absent(),
+    String? sourceType,
+    String? sourceId,
+    String? state,
+    Value<int?> estimatedBytes = const Value.absent(),
+    Value<int?> completedAt = const Value.absent(),
+    int? updatedAt,
+  }) => SmartDownloadClaimEntry(
+    profileId: profileId ?? this.profileId,
+    referenceKey: referenceKey ?? this.referenceKey,
+    itemId: itemId ?? this.itemId,
+    episodeId: episodeId.present ? episodeId.value : this.episodeId,
+    sourceType: sourceType ?? this.sourceType,
+    sourceId: sourceId ?? this.sourceId,
+    state: state ?? this.state,
+    estimatedBytes: estimatedBytes.present ? estimatedBytes.value : this.estimatedBytes,
+    completedAt: completedAt.present ? completedAt.value : this.completedAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  SmartDownloadClaimEntry copyWithCompanion(SmartDownloadClaimsCompanion data) {
+    return SmartDownloadClaimEntry(
+      profileId: data.profileId.present ? data.profileId.value : this.profileId,
+      referenceKey: data.referenceKey.present ? data.referenceKey.value : this.referenceKey,
+      itemId: data.itemId.present ? data.itemId.value : this.itemId,
+      episodeId: data.episodeId.present ? data.episodeId.value : this.episodeId,
+      sourceType: data.sourceType.present ? data.sourceType.value : this.sourceType,
+      sourceId: data.sourceId.present ? data.sourceId.value : this.sourceId,
+      state: data.state.present ? data.state.value : this.state,
+      estimatedBytes: data.estimatedBytes.present ? data.estimatedBytes.value : this.estimatedBytes,
+      completedAt: data.completedAt.present ? data.completedAt.value : this.completedAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SmartDownloadClaimEntry(')
+          ..write('profileId: $profileId, ')
+          ..write('referenceKey: $referenceKey, ')
+          ..write('itemId: $itemId, ')
+          ..write('episodeId: $episodeId, ')
+          ..write('sourceType: $sourceType, ')
+          ..write('sourceId: $sourceId, ')
+          ..write('state: $state, ')
+          ..write('estimatedBytes: $estimatedBytes, ')
+          ..write('completedAt: $completedAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    profileId,
+    referenceKey,
+    itemId,
+    episodeId,
+    sourceType,
+    sourceId,
+    state,
+    estimatedBytes,
+    completedAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SmartDownloadClaimEntry &&
+          other.profileId == this.profileId &&
+          other.referenceKey == this.referenceKey &&
+          other.itemId == this.itemId &&
+          other.episodeId == this.episodeId &&
+          other.sourceType == this.sourceType &&
+          other.sourceId == this.sourceId &&
+          other.state == this.state &&
+          other.estimatedBytes == this.estimatedBytes &&
+          other.completedAt == this.completedAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class SmartDownloadClaimsCompanion extends UpdateCompanion<SmartDownloadClaimEntry> {
+  final Value<String> profileId;
+  final Value<String> referenceKey;
+  final Value<String> itemId;
+  final Value<String?> episodeId;
+  final Value<String> sourceType;
+  final Value<String> sourceId;
+  final Value<String> state;
+  final Value<int?> estimatedBytes;
+  final Value<int?> completedAt;
+  final Value<int> updatedAt;
+  final Value<int> rowid;
+  const SmartDownloadClaimsCompanion({
+    this.profileId = const Value.absent(),
+    this.referenceKey = const Value.absent(),
+    this.itemId = const Value.absent(),
+    this.episodeId = const Value.absent(),
+    this.sourceType = const Value.absent(),
+    this.sourceId = const Value.absent(),
+    this.state = const Value.absent(),
+    this.estimatedBytes = const Value.absent(),
+    this.completedAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SmartDownloadClaimsCompanion.insert({
+    required String profileId,
+    required String referenceKey,
+    required String itemId,
+    this.episodeId = const Value.absent(),
+    required String sourceType,
+    required String sourceId,
+    required String state,
+    this.estimatedBytes = const Value.absent(),
+    this.completedAt = const Value.absent(),
+    required int updatedAt,
+    this.rowid = const Value.absent(),
+  }) : profileId = Value(profileId),
+       referenceKey = Value(referenceKey),
+       itemId = Value(itemId),
+       sourceType = Value(sourceType),
+       sourceId = Value(sourceId),
+       state = Value(state),
+       updatedAt = Value(updatedAt);
+  static Insertable<SmartDownloadClaimEntry> custom({
+    Expression<String>? profileId,
+    Expression<String>? referenceKey,
+    Expression<String>? itemId,
+    Expression<String>? episodeId,
+    Expression<String>? sourceType,
+    Expression<String>? sourceId,
+    Expression<String>? state,
+    Expression<int>? estimatedBytes,
+    Expression<int>? completedAt,
+    Expression<int>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (profileId != null) 'profile_id': profileId,
+      if (referenceKey != null) 'reference_key': referenceKey,
+      if (itemId != null) 'item_id': itemId,
+      if (episodeId != null) 'episode_id': episodeId,
+      if (sourceType != null) 'source_type': sourceType,
+      if (sourceId != null) 'source_id': sourceId,
+      if (state != null) 'state': state,
+      if (estimatedBytes != null) 'estimated_bytes': estimatedBytes,
+      if (completedAt != null) 'completed_at': completedAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SmartDownloadClaimsCompanion copyWith({
+    Value<String>? profileId,
+    Value<String>? referenceKey,
+    Value<String>? itemId,
+    Value<String?>? episodeId,
+    Value<String>? sourceType,
+    Value<String>? sourceId,
+    Value<String>? state,
+    Value<int?>? estimatedBytes,
+    Value<int?>? completedAt,
+    Value<int>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return SmartDownloadClaimsCompanion(
+      profileId: profileId ?? this.profileId,
+      referenceKey: referenceKey ?? this.referenceKey,
+      itemId: itemId ?? this.itemId,
+      episodeId: episodeId ?? this.episodeId,
+      sourceType: sourceType ?? this.sourceType,
+      sourceId: sourceId ?? this.sourceId,
+      state: state ?? this.state,
+      estimatedBytes: estimatedBytes ?? this.estimatedBytes,
+      completedAt: completedAt ?? this.completedAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (profileId.present) {
+      map['profile_id'] = Variable<String>(profileId.value);
+    }
+    if (referenceKey.present) {
+      map['reference_key'] = Variable<String>(referenceKey.value);
+    }
+    if (itemId.present) {
+      map['item_id'] = Variable<String>(itemId.value);
+    }
+    if (episodeId.present) {
+      map['episode_id'] = Variable<String>(episodeId.value);
+    }
+    if (sourceType.present) {
+      map['source_type'] = Variable<String>(sourceType.value);
+    }
+    if (sourceId.present) {
+      map['source_id'] = Variable<String>(sourceId.value);
+    }
+    if (state.present) {
+      map['state'] = Variable<String>(state.value);
+    }
+    if (estimatedBytes.present) {
+      map['estimated_bytes'] = Variable<int>(estimatedBytes.value);
+    }
+    if (completedAt.present) {
+      map['completed_at'] = Variable<int>(completedAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<int>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SmartDownloadClaimsCompanion(')
+          ..write('profileId: $profileId, ')
+          ..write('referenceKey: $referenceKey, ')
+          ..write('itemId: $itemId, ')
+          ..write('episodeId: $episodeId, ')
+          ..write('sourceType: $sourceType, ')
+          ..write('sourceId: $sourceId, ')
+          ..write('state: $state, ')
+          ..write('estimatedBytes: $estimatedBytes, ')
+          ..write('completedAt: $completedAt, ')
+          ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -2769,6 +4703,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $StoredMediaProgressTable storedMediaProgress = $StoredMediaProgressTable(this);
   late final $StoredBookmarkSyncsTable storedBookmarkSyncs = $StoredBookmarkSyncsTable(this);
   late final $StoredDownloadsTable storedDownloads = $StoredDownloadsTable(this);
+  late final $StoredDownloadFilesTable storedDownloadFiles = $StoredDownloadFilesTable(this);
+  late final $SmartDownloadProfilesTable smartDownloadProfiles = $SmartDownloadProfilesTable(this);
+  late final $SmartDownloadSourcesTable smartDownloadSources = $SmartDownloadSourcesTable(this);
+  late final $SmartDownloadClaimsTable smartDownloadClaims = $SmartDownloadClaimsTable(this);
   late final $PlayerHistoryTable playerHistory = $PlayerHistoryTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables => allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2782,6 +4720,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     storedMediaProgress,
     storedBookmarkSyncs,
     storedDownloads,
+    storedDownloadFiles,
+    smartDownloadProfiles,
+    smartDownloadSources,
+    smartDownloadClaims,
     playerHistory,
   ];
 }
@@ -3850,6 +5792,10 @@ typedef $$StoredDownloadsTableCreateCompanionBuilder = StoredDownloadsCompanion 
   required String userId,
   Value<String?> episodeId,
   required String download,
+  Value<String> downloadOrigin,
+  Value<String> smartProfileIds,
+  Value<int?> managedBytes,
+  Value<int?> completedAt,
   Value<int> rowid,
 });
 typedef $$StoredDownloadsTableUpdateCompanionBuilder = StoredDownloadsCompanion Function({
@@ -3857,6 +5803,10 @@ typedef $$StoredDownloadsTableUpdateCompanionBuilder = StoredDownloadsCompanion 
   Value<String> userId,
   Value<String?> episodeId,
   Value<String> download,
+  Value<String> downloadOrigin,
+  Value<String> smartProfileIds,
+  Value<int?> managedBytes,
+  Value<int?> completedAt,
   Value<int> rowid,
 });
 
@@ -3879,6 +5829,18 @@ class $$StoredDownloadsTableFilterComposer extends Composer<_$AppDatabase, $Stor
 
   ColumnFilters<String> get download =>
       $composableBuilder(column: $table.download, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get downloadOrigin =>
+      $composableBuilder(column: $table.downloadOrigin, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get smartProfileIds =>
+      $composableBuilder(column: $table.smartProfileIds, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get managedBytes =>
+      $composableBuilder(column: $table.managedBytes, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get completedAt =>
+      $composableBuilder(column: $table.completedAt, builder: (column) => ColumnFilters(column));
 }
 
 class $$StoredDownloadsTableOrderingComposer extends Composer<_$AppDatabase, $StoredDownloadsTable> {
@@ -3900,6 +5862,18 @@ class $$StoredDownloadsTableOrderingComposer extends Composer<_$AppDatabase, $St
 
   ColumnOrderings<String> get download =>
       $composableBuilder(column: $table.download, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get downloadOrigin =>
+      $composableBuilder(column: $table.downloadOrigin, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get smartProfileIds =>
+      $composableBuilder(column: $table.smartProfileIds, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get managedBytes =>
+      $composableBuilder(column: $table.managedBytes, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get completedAt =>
+      $composableBuilder(column: $table.completedAt, builder: (column) => ColumnOrderings(column));
 }
 
 class $$StoredDownloadsTableAnnotationComposer extends Composer<_$AppDatabase, $StoredDownloadsTable> {
@@ -3917,6 +5891,16 @@ class $$StoredDownloadsTableAnnotationComposer extends Composer<_$AppDatabase, $
   GeneratedColumn<String> get episodeId => $composableBuilder(column: $table.episodeId, builder: (column) => column);
 
   GeneratedColumn<String> get download => $composableBuilder(column: $table.download, builder: (column) => column);
+
+  GeneratedColumn<String> get downloadOrigin =>
+      $composableBuilder(column: $table.downloadOrigin, builder: (column) => column);
+
+  GeneratedColumn<String> get smartProfileIds =>
+      $composableBuilder(column: $table.smartProfileIds, builder: (column) => column);
+
+  GeneratedColumn<int> get managedBytes => $composableBuilder(column: $table.managedBytes, builder: (column) => column);
+
+  GeneratedColumn<int> get completedAt => $composableBuilder(column: $table.completedAt, builder: (column) => column);
 }
 
 class $$StoredDownloadsTableTableManager
@@ -3948,12 +5932,20 @@ class $$StoredDownloadsTableTableManager
                 Value<String> userId = const Value.absent(),
                 Value<String?> episodeId = const Value.absent(),
                 Value<String> download = const Value.absent(),
+                Value<String> downloadOrigin = const Value.absent(),
+                Value<String> smartProfileIds = const Value.absent(),
+                Value<int?> managedBytes = const Value.absent(),
+                Value<int?> completedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => StoredDownloadsCompanion(
                 itemId: itemId,
                 userId: userId,
                 episodeId: episodeId,
                 download: download,
+                downloadOrigin: downloadOrigin,
+                smartProfileIds: smartProfileIds,
+                managedBytes: managedBytes,
+                completedAt: completedAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -3962,12 +5954,20 @@ class $$StoredDownloadsTableTableManager
                 required String userId,
                 Value<String?> episodeId = const Value.absent(),
                 required String download,
+                Value<String> downloadOrigin = const Value.absent(),
+                Value<String> smartProfileIds = const Value.absent(),
+                Value<int?> managedBytes = const Value.absent(),
+                Value<int?> completedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => StoredDownloadsCompanion.insert(
                 itemId: itemId,
                 userId: userId,
                 episodeId: episodeId,
                 download: download,
+                downloadOrigin: downloadOrigin,
+                smartProfileIds: smartProfileIds,
+                managedBytes: managedBytes,
+                completedAt: completedAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0.map((e) => (e.readTable(table), BaseReferences(db, table, e))).toList(),
@@ -3988,6 +5988,823 @@ typedef $$StoredDownloadsTableProcessedTableManager =
       $$StoredDownloadsTableUpdateCompanionBuilder,
       (StoredDownloadsEntry, BaseReferences<_$AppDatabase, $StoredDownloadsTable, StoredDownloadsEntry>),
       StoredDownloadsEntry,
+      PrefetchHooks Function()
+    >;
+typedef $$StoredDownloadFilesTableCreateCompanionBuilder = StoredDownloadFilesCompanion Function({
+  required String itemId,
+  required String userId,
+  Value<String?> episodeId,
+  required String fileKey,
+  Value<String?> trackJson,
+  Value<String?> auxiliaryPath,
+  Value<String?> sidecarPath,
+  Value<int> rowid,
+});
+typedef $$StoredDownloadFilesTableUpdateCompanionBuilder = StoredDownloadFilesCompanion Function({
+  Value<String> itemId,
+  Value<String> userId,
+  Value<String?> episodeId,
+  Value<String> fileKey,
+  Value<String?> trackJson,
+  Value<String?> auxiliaryPath,
+  Value<String?> sidecarPath,
+  Value<int> rowid,
+});
+
+class $$StoredDownloadFilesTableFilterComposer extends Composer<_$AppDatabase, $StoredDownloadFilesTable> {
+  $$StoredDownloadFilesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get itemId =>
+      $composableBuilder(column: $table.itemId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get episodeId =>
+      $composableBuilder(column: $table.episodeId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get fileKey =>
+      $composableBuilder(column: $table.fileKey, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get trackJson =>
+      $composableBuilder(column: $table.trackJson, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get auxiliaryPath =>
+      $composableBuilder(column: $table.auxiliaryPath, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get sidecarPath =>
+      $composableBuilder(column: $table.sidecarPath, builder: (column) => ColumnFilters(column));
+}
+
+class $$StoredDownloadFilesTableOrderingComposer extends Composer<_$AppDatabase, $StoredDownloadFilesTable> {
+  $$StoredDownloadFilesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get itemId =>
+      $composableBuilder(column: $table.itemId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get episodeId =>
+      $composableBuilder(column: $table.episodeId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get fileKey =>
+      $composableBuilder(column: $table.fileKey, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get trackJson =>
+      $composableBuilder(column: $table.trackJson, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get auxiliaryPath =>
+      $composableBuilder(column: $table.auxiliaryPath, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get sidecarPath =>
+      $composableBuilder(column: $table.sidecarPath, builder: (column) => ColumnOrderings(column));
+}
+
+class $$StoredDownloadFilesTableAnnotationComposer extends Composer<_$AppDatabase, $StoredDownloadFilesTable> {
+  $$StoredDownloadFilesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get itemId => $composableBuilder(column: $table.itemId, builder: (column) => column);
+
+  GeneratedColumn<String> get userId => $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get episodeId => $composableBuilder(column: $table.episodeId, builder: (column) => column);
+
+  GeneratedColumn<String> get fileKey => $composableBuilder(column: $table.fileKey, builder: (column) => column);
+
+  GeneratedColumn<String> get trackJson => $composableBuilder(column: $table.trackJson, builder: (column) => column);
+
+  GeneratedColumn<String> get auxiliaryPath =>
+      $composableBuilder(column: $table.auxiliaryPath, builder: (column) => column);
+
+  GeneratedColumn<String> get sidecarPath =>
+      $composableBuilder(column: $table.sidecarPath, builder: (column) => column);
+}
+
+class $$StoredDownloadFilesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $StoredDownloadFilesTable,
+          StoredDownloadFileEntry,
+          $$StoredDownloadFilesTableFilterComposer,
+          $$StoredDownloadFilesTableOrderingComposer,
+          $$StoredDownloadFilesTableAnnotationComposer,
+          $$StoredDownloadFilesTableCreateCompanionBuilder,
+          $$StoredDownloadFilesTableUpdateCompanionBuilder,
+          (StoredDownloadFileEntry, BaseReferences<_$AppDatabase, $StoredDownloadFilesTable, StoredDownloadFileEntry>),
+          StoredDownloadFileEntry,
+          PrefetchHooks Function()
+        > {
+  $$StoredDownloadFilesTableTableManager(_$AppDatabase db, $StoredDownloadFilesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () => $$StoredDownloadFilesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () => $$StoredDownloadFilesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () => $$StoredDownloadFilesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> itemId = const Value.absent(),
+                Value<String> userId = const Value.absent(),
+                Value<String?> episodeId = const Value.absent(),
+                Value<String> fileKey = const Value.absent(),
+                Value<String?> trackJson = const Value.absent(),
+                Value<String?> auxiliaryPath = const Value.absent(),
+                Value<String?> sidecarPath = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => StoredDownloadFilesCompanion(
+                itemId: itemId,
+                userId: userId,
+                episodeId: episodeId,
+                fileKey: fileKey,
+                trackJson: trackJson,
+                auxiliaryPath: auxiliaryPath,
+                sidecarPath: sidecarPath,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String itemId,
+                required String userId,
+                Value<String?> episodeId = const Value.absent(),
+                required String fileKey,
+                Value<String?> trackJson = const Value.absent(),
+                Value<String?> auxiliaryPath = const Value.absent(),
+                Value<String?> sidecarPath = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => StoredDownloadFilesCompanion.insert(
+                itemId: itemId,
+                userId: userId,
+                episodeId: episodeId,
+                fileKey: fileKey,
+                trackJson: trackJson,
+                auxiliaryPath: auxiliaryPath,
+                sidecarPath: sidecarPath,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0.map((e) => (e.readTable(table), BaseReferences(db, table, e))).toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$StoredDownloadFilesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $StoredDownloadFilesTable,
+      StoredDownloadFileEntry,
+      $$StoredDownloadFilesTableFilterComposer,
+      $$StoredDownloadFilesTableOrderingComposer,
+      $$StoredDownloadFilesTableAnnotationComposer,
+      $$StoredDownloadFilesTableCreateCompanionBuilder,
+      $$StoredDownloadFilesTableUpdateCompanionBuilder,
+      (StoredDownloadFileEntry, BaseReferences<_$AppDatabase, $StoredDownloadFilesTable, StoredDownloadFileEntry>),
+      StoredDownloadFileEntry,
+      PrefetchHooks Function()
+    >;
+typedef $$SmartDownloadProfilesTableCreateCompanionBuilder = SmartDownloadProfilesCompanion Function({
+  required String id,
+  required String userId,
+  required String name,
+  required String policy,
+  Value<bool> enabled,
+  required int updatedAt,
+  Value<int> rowid,
+});
+typedef $$SmartDownloadProfilesTableUpdateCompanionBuilder = SmartDownloadProfilesCompanion Function({
+  Value<String> id,
+  Value<String> userId,
+  Value<String> name,
+  Value<String> policy,
+  Value<bool> enabled,
+  Value<int> updatedAt,
+  Value<int> rowid,
+});
+
+class $$SmartDownloadProfilesTableFilterComposer extends Composer<_$AppDatabase, $SmartDownloadProfilesTable> {
+  $$SmartDownloadProfilesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get name => $composableBuilder(column: $table.name, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get policy =>
+      $composableBuilder(column: $table.policy, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get enabled =>
+      $composableBuilder(column: $table.enabled, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$SmartDownloadProfilesTableOrderingComposer extends Composer<_$AppDatabase, $SmartDownloadProfilesTable> {
+  $$SmartDownloadProfilesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get policy =>
+      $composableBuilder(column: $table.policy, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get enabled =>
+      $composableBuilder(column: $table.enabled, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$SmartDownloadProfilesTableAnnotationComposer extends Composer<_$AppDatabase, $SmartDownloadProfilesTable> {
+  $$SmartDownloadProfilesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id => $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get userId => $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get name => $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get policy => $composableBuilder(column: $table.policy, builder: (column) => column);
+
+  GeneratedColumn<bool> get enabled => $composableBuilder(column: $table.enabled, builder: (column) => column);
+
+  GeneratedColumn<int> get updatedAt => $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$SmartDownloadProfilesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SmartDownloadProfilesTable,
+          SmartDownloadProfileEntry,
+          $$SmartDownloadProfilesTableFilterComposer,
+          $$SmartDownloadProfilesTableOrderingComposer,
+          $$SmartDownloadProfilesTableAnnotationComposer,
+          $$SmartDownloadProfilesTableCreateCompanionBuilder,
+          $$SmartDownloadProfilesTableUpdateCompanionBuilder,
+          (
+            SmartDownloadProfileEntry,
+            BaseReferences<_$AppDatabase, $SmartDownloadProfilesTable, SmartDownloadProfileEntry>,
+          ),
+          SmartDownloadProfileEntry,
+          PrefetchHooks Function()
+        > {
+  $$SmartDownloadProfilesTableTableManager(_$AppDatabase db, $SmartDownloadProfilesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () => $$SmartDownloadProfilesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () => $$SmartDownloadProfilesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () => $$SmartDownloadProfilesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> userId = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String> policy = const Value.absent(),
+                Value<bool> enabled = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SmartDownloadProfilesCompanion(
+                id: id,
+                userId: userId,
+                name: name,
+                policy: policy,
+                enabled: enabled,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String userId,
+                required String name,
+                required String policy,
+                Value<bool> enabled = const Value.absent(),
+                required int updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => SmartDownloadProfilesCompanion.insert(
+                id: id,
+                userId: userId,
+                name: name,
+                policy: policy,
+                enabled: enabled,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0.map((e) => (e.readTable(table), BaseReferences(db, table, e))).toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$SmartDownloadProfilesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SmartDownloadProfilesTable,
+      SmartDownloadProfileEntry,
+      $$SmartDownloadProfilesTableFilterComposer,
+      $$SmartDownloadProfilesTableOrderingComposer,
+      $$SmartDownloadProfilesTableAnnotationComposer,
+      $$SmartDownloadProfilesTableCreateCompanionBuilder,
+      $$SmartDownloadProfilesTableUpdateCompanionBuilder,
+      (
+        SmartDownloadProfileEntry,
+        BaseReferences<_$AppDatabase, $SmartDownloadProfilesTable, SmartDownloadProfileEntry>,
+      ),
+      SmartDownloadProfileEntry,
+      PrefetchHooks Function()
+    >;
+typedef $$SmartDownloadSourcesTableCreateCompanionBuilder = SmartDownloadSourcesCompanion Function({
+  required String profileId,
+  required String sourceType,
+  required String sourceId,
+  required String libraryId,
+  Value<String?> displayName,
+  Value<bool> descending,
+  Value<int?> sourceRevision,
+  Value<String?> candidateSnapshot,
+  required int updatedAt,
+  Value<int> rowid,
+});
+typedef $$SmartDownloadSourcesTableUpdateCompanionBuilder = SmartDownloadSourcesCompanion Function({
+  Value<String> profileId,
+  Value<String> sourceType,
+  Value<String> sourceId,
+  Value<String> libraryId,
+  Value<String?> displayName,
+  Value<bool> descending,
+  Value<int?> sourceRevision,
+  Value<String?> candidateSnapshot,
+  Value<int> updatedAt,
+  Value<int> rowid,
+});
+
+class $$SmartDownloadSourcesTableFilterComposer extends Composer<_$AppDatabase, $SmartDownloadSourcesTable> {
+  $$SmartDownloadSourcesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get profileId =>
+      $composableBuilder(column: $table.profileId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get sourceType =>
+      $composableBuilder(column: $table.sourceType, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get sourceId =>
+      $composableBuilder(column: $table.sourceId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get libraryId =>
+      $composableBuilder(column: $table.libraryId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get displayName =>
+      $composableBuilder(column: $table.displayName, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get descending =>
+      $composableBuilder(column: $table.descending, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get sourceRevision =>
+      $composableBuilder(column: $table.sourceRevision, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get candidateSnapshot =>
+      $composableBuilder(column: $table.candidateSnapshot, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$SmartDownloadSourcesTableOrderingComposer extends Composer<_$AppDatabase, $SmartDownloadSourcesTable> {
+  $$SmartDownloadSourcesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get profileId =>
+      $composableBuilder(column: $table.profileId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get sourceType =>
+      $composableBuilder(column: $table.sourceType, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get sourceId =>
+      $composableBuilder(column: $table.sourceId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get libraryId =>
+      $composableBuilder(column: $table.libraryId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get displayName =>
+      $composableBuilder(column: $table.displayName, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get descending =>
+      $composableBuilder(column: $table.descending, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get sourceRevision =>
+      $composableBuilder(column: $table.sourceRevision, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get candidateSnapshot =>
+      $composableBuilder(column: $table.candidateSnapshot, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$SmartDownloadSourcesTableAnnotationComposer extends Composer<_$AppDatabase, $SmartDownloadSourcesTable> {
+  $$SmartDownloadSourcesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get profileId => $composableBuilder(column: $table.profileId, builder: (column) => column);
+
+  GeneratedColumn<String> get sourceType => $composableBuilder(column: $table.sourceType, builder: (column) => column);
+
+  GeneratedColumn<String> get sourceId => $composableBuilder(column: $table.sourceId, builder: (column) => column);
+
+  GeneratedColumn<String> get libraryId => $composableBuilder(column: $table.libraryId, builder: (column) => column);
+
+  GeneratedColumn<String> get displayName =>
+      $composableBuilder(column: $table.displayName, builder: (column) => column);
+
+  GeneratedColumn<bool> get descending => $composableBuilder(column: $table.descending, builder: (column) => column);
+
+  GeneratedColumn<int> get sourceRevision =>
+      $composableBuilder(column: $table.sourceRevision, builder: (column) => column);
+
+  GeneratedColumn<String> get candidateSnapshot =>
+      $composableBuilder(column: $table.candidateSnapshot, builder: (column) => column);
+
+  GeneratedColumn<int> get updatedAt => $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$SmartDownloadSourcesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SmartDownloadSourcesTable,
+          SmartDownloadSourceEntry,
+          $$SmartDownloadSourcesTableFilterComposer,
+          $$SmartDownloadSourcesTableOrderingComposer,
+          $$SmartDownloadSourcesTableAnnotationComposer,
+          $$SmartDownloadSourcesTableCreateCompanionBuilder,
+          $$SmartDownloadSourcesTableUpdateCompanionBuilder,
+          (
+            SmartDownloadSourceEntry,
+            BaseReferences<_$AppDatabase, $SmartDownloadSourcesTable, SmartDownloadSourceEntry>,
+          ),
+          SmartDownloadSourceEntry,
+          PrefetchHooks Function()
+        > {
+  $$SmartDownloadSourcesTableTableManager(_$AppDatabase db, $SmartDownloadSourcesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () => $$SmartDownloadSourcesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () => $$SmartDownloadSourcesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () => $$SmartDownloadSourcesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> profileId = const Value.absent(),
+                Value<String> sourceType = const Value.absent(),
+                Value<String> sourceId = const Value.absent(),
+                Value<String> libraryId = const Value.absent(),
+                Value<String?> displayName = const Value.absent(),
+                Value<bool> descending = const Value.absent(),
+                Value<int?> sourceRevision = const Value.absent(),
+                Value<String?> candidateSnapshot = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SmartDownloadSourcesCompanion(
+                profileId: profileId,
+                sourceType: sourceType,
+                sourceId: sourceId,
+                libraryId: libraryId,
+                displayName: displayName,
+                descending: descending,
+                sourceRevision: sourceRevision,
+                candidateSnapshot: candidateSnapshot,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String profileId,
+                required String sourceType,
+                required String sourceId,
+                required String libraryId,
+                Value<String?> displayName = const Value.absent(),
+                Value<bool> descending = const Value.absent(),
+                Value<int?> sourceRevision = const Value.absent(),
+                Value<String?> candidateSnapshot = const Value.absent(),
+                required int updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => SmartDownloadSourcesCompanion.insert(
+                profileId: profileId,
+                sourceType: sourceType,
+                sourceId: sourceId,
+                libraryId: libraryId,
+                displayName: displayName,
+                descending: descending,
+                sourceRevision: sourceRevision,
+                candidateSnapshot: candidateSnapshot,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0.map((e) => (e.readTable(table), BaseReferences(db, table, e))).toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$SmartDownloadSourcesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SmartDownloadSourcesTable,
+      SmartDownloadSourceEntry,
+      $$SmartDownloadSourcesTableFilterComposer,
+      $$SmartDownloadSourcesTableOrderingComposer,
+      $$SmartDownloadSourcesTableAnnotationComposer,
+      $$SmartDownloadSourcesTableCreateCompanionBuilder,
+      $$SmartDownloadSourcesTableUpdateCompanionBuilder,
+      (SmartDownloadSourceEntry, BaseReferences<_$AppDatabase, $SmartDownloadSourcesTable, SmartDownloadSourceEntry>),
+      SmartDownloadSourceEntry,
+      PrefetchHooks Function()
+    >;
+typedef $$SmartDownloadClaimsTableCreateCompanionBuilder = SmartDownloadClaimsCompanion Function({
+  required String profileId,
+  required String referenceKey,
+  required String itemId,
+  Value<String?> episodeId,
+  required String sourceType,
+  required String sourceId,
+  required String state,
+  Value<int?> estimatedBytes,
+  Value<int?> completedAt,
+  required int updatedAt,
+  Value<int> rowid,
+});
+typedef $$SmartDownloadClaimsTableUpdateCompanionBuilder = SmartDownloadClaimsCompanion Function({
+  Value<String> profileId,
+  Value<String> referenceKey,
+  Value<String> itemId,
+  Value<String?> episodeId,
+  Value<String> sourceType,
+  Value<String> sourceId,
+  Value<String> state,
+  Value<int?> estimatedBytes,
+  Value<int?> completedAt,
+  Value<int> updatedAt,
+  Value<int> rowid,
+});
+
+class $$SmartDownloadClaimsTableFilterComposer extends Composer<_$AppDatabase, $SmartDownloadClaimsTable> {
+  $$SmartDownloadClaimsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get profileId =>
+      $composableBuilder(column: $table.profileId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get referenceKey =>
+      $composableBuilder(column: $table.referenceKey, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get itemId =>
+      $composableBuilder(column: $table.itemId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get episodeId =>
+      $composableBuilder(column: $table.episodeId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get sourceType =>
+      $composableBuilder(column: $table.sourceType, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get sourceId =>
+      $composableBuilder(column: $table.sourceId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get state =>
+      $composableBuilder(column: $table.state, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get estimatedBytes =>
+      $composableBuilder(column: $table.estimatedBytes, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get completedAt =>
+      $composableBuilder(column: $table.completedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$SmartDownloadClaimsTableOrderingComposer extends Composer<_$AppDatabase, $SmartDownloadClaimsTable> {
+  $$SmartDownloadClaimsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get profileId =>
+      $composableBuilder(column: $table.profileId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get referenceKey =>
+      $composableBuilder(column: $table.referenceKey, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get itemId =>
+      $composableBuilder(column: $table.itemId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get episodeId =>
+      $composableBuilder(column: $table.episodeId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get sourceType =>
+      $composableBuilder(column: $table.sourceType, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get sourceId =>
+      $composableBuilder(column: $table.sourceId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get state =>
+      $composableBuilder(column: $table.state, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get estimatedBytes =>
+      $composableBuilder(column: $table.estimatedBytes, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get completedAt =>
+      $composableBuilder(column: $table.completedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$SmartDownloadClaimsTableAnnotationComposer extends Composer<_$AppDatabase, $SmartDownloadClaimsTable> {
+  $$SmartDownloadClaimsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get profileId => $composableBuilder(column: $table.profileId, builder: (column) => column);
+
+  GeneratedColumn<String> get referenceKey =>
+      $composableBuilder(column: $table.referenceKey, builder: (column) => column);
+
+  GeneratedColumn<String> get itemId => $composableBuilder(column: $table.itemId, builder: (column) => column);
+
+  GeneratedColumn<String> get episodeId => $composableBuilder(column: $table.episodeId, builder: (column) => column);
+
+  GeneratedColumn<String> get sourceType => $composableBuilder(column: $table.sourceType, builder: (column) => column);
+
+  GeneratedColumn<String> get sourceId => $composableBuilder(column: $table.sourceId, builder: (column) => column);
+
+  GeneratedColumn<String> get state => $composableBuilder(column: $table.state, builder: (column) => column);
+
+  GeneratedColumn<int> get estimatedBytes =>
+      $composableBuilder(column: $table.estimatedBytes, builder: (column) => column);
+
+  GeneratedColumn<int> get completedAt => $composableBuilder(column: $table.completedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get updatedAt => $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$SmartDownloadClaimsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SmartDownloadClaimsTable,
+          SmartDownloadClaimEntry,
+          $$SmartDownloadClaimsTableFilterComposer,
+          $$SmartDownloadClaimsTableOrderingComposer,
+          $$SmartDownloadClaimsTableAnnotationComposer,
+          $$SmartDownloadClaimsTableCreateCompanionBuilder,
+          $$SmartDownloadClaimsTableUpdateCompanionBuilder,
+          (SmartDownloadClaimEntry, BaseReferences<_$AppDatabase, $SmartDownloadClaimsTable, SmartDownloadClaimEntry>),
+          SmartDownloadClaimEntry,
+          PrefetchHooks Function()
+        > {
+  $$SmartDownloadClaimsTableTableManager(_$AppDatabase db, $SmartDownloadClaimsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () => $$SmartDownloadClaimsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () => $$SmartDownloadClaimsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () => $$SmartDownloadClaimsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> profileId = const Value.absent(),
+                Value<String> referenceKey = const Value.absent(),
+                Value<String> itemId = const Value.absent(),
+                Value<String?> episodeId = const Value.absent(),
+                Value<String> sourceType = const Value.absent(),
+                Value<String> sourceId = const Value.absent(),
+                Value<String> state = const Value.absent(),
+                Value<int?> estimatedBytes = const Value.absent(),
+                Value<int?> completedAt = const Value.absent(),
+                Value<int> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SmartDownloadClaimsCompanion(
+                profileId: profileId,
+                referenceKey: referenceKey,
+                itemId: itemId,
+                episodeId: episodeId,
+                sourceType: sourceType,
+                sourceId: sourceId,
+                state: state,
+                estimatedBytes: estimatedBytes,
+                completedAt: completedAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String profileId,
+                required String referenceKey,
+                required String itemId,
+                Value<String?> episodeId = const Value.absent(),
+                required String sourceType,
+                required String sourceId,
+                required String state,
+                Value<int?> estimatedBytes = const Value.absent(),
+                Value<int?> completedAt = const Value.absent(),
+                required int updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => SmartDownloadClaimsCompanion.insert(
+                profileId: profileId,
+                referenceKey: referenceKey,
+                itemId: itemId,
+                episodeId: episodeId,
+                sourceType: sourceType,
+                sourceId: sourceId,
+                state: state,
+                estimatedBytes: estimatedBytes,
+                completedAt: completedAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0.map((e) => (e.readTable(table), BaseReferences(db, table, e))).toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$SmartDownloadClaimsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SmartDownloadClaimsTable,
+      SmartDownloadClaimEntry,
+      $$SmartDownloadClaimsTableFilterComposer,
+      $$SmartDownloadClaimsTableOrderingComposer,
+      $$SmartDownloadClaimsTableAnnotationComposer,
+      $$SmartDownloadClaimsTableCreateCompanionBuilder,
+      $$SmartDownloadClaimsTableUpdateCompanionBuilder,
+      (SmartDownloadClaimEntry, BaseReferences<_$AppDatabase, $SmartDownloadClaimsTable, SmartDownloadClaimEntry>),
+      SmartDownloadClaimEntry,
       PrefetchHooks Function()
     >;
 typedef $$PlayerHistoryTableCreateCompanionBuilder = PlayerHistoryCompanion Function({
@@ -4200,6 +7017,14 @@ class $AppDatabaseManager {
       $$StoredBookmarkSyncsTableTableManager(_db, _db.storedBookmarkSyncs);
   $$StoredDownloadsTableTableManager get storedDownloads =>
       $$StoredDownloadsTableTableManager(_db, _db.storedDownloads);
+  $$StoredDownloadFilesTableTableManager get storedDownloadFiles =>
+      $$StoredDownloadFilesTableTableManager(_db, _db.storedDownloadFiles);
+  $$SmartDownloadProfilesTableTableManager get smartDownloadProfiles =>
+      $$SmartDownloadProfilesTableTableManager(_db, _db.smartDownloadProfiles);
+  $$SmartDownloadSourcesTableTableManager get smartDownloadSources =>
+      $$SmartDownloadSourcesTableTableManager(_db, _db.smartDownloadSources);
+  $$SmartDownloadClaimsTableTableManager get smartDownloadClaims =>
+      $$SmartDownloadClaimsTableTableManager(_db, _db.smartDownloadClaims);
   $$PlayerHistoryTableTableManager get playerHistory => $$PlayerHistoryTableTableManager(_db, _db.playerHistory);
 }
 

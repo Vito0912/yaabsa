@@ -26,6 +26,9 @@ _DownloadTaskMetadata _$DownloadTaskMetadataFromJson(Map<String, dynamic> json) 
   serverSsl: json['serverSsl'] as bool?,
   title: json['title'] as String?,
   downloadType: json['downloadType'] as String? ?? 'both',
+  acquisitionOrigin: json['acquisitionOrigin'] as String? ?? 'manual',
+  smartProfileIds: (json['smartProfileIds'] as List<dynamic>?)?.map((e) => e as String).toList() ?? const <String>[],
+  estimatedBytes: (json['estimatedBytes'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$DownloadTaskMetadataToJson(_DownloadTaskMetadata instance) => <String, dynamic>{
@@ -48,4 +51,7 @@ Map<String, dynamic> _$DownloadTaskMetadataToJson(_DownloadTaskMetadata instance
   'serverSsl': instance.serverSsl,
   'title': instance.title,
   'downloadType': instance.downloadType,
+  'acquisitionOrigin': instance.acquisitionOrigin,
+  'smartProfileIds': instance.smartProfileIds,
+  'estimatedBytes': instance.estimatedBytes,
 };

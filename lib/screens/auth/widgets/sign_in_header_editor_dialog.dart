@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
 
 class SignInHeaderEntry {
   const SignInHeaderEntry({required this.name, required this.value});
@@ -30,16 +31,18 @@ Future<SignInHeaderEntry?> showSignInHeaderEditorDialog({
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  TextField(
+                  StyledTextField(
+                    label: 'Header Name',
                     controller: keyController,
                     autofocus: true,
                     textInputAction: TextInputAction.next,
-                    decoration: const InputDecoration(labelText: 'Header Name'),
+                    prefixIcon: const Icon(Icons.http_rounded),
                   ),
                   const SizedBox(height: 12),
-                  TextField(
+                  StyledTextField(
+                    label: 'Header Value',
                     controller: valueController,
-                    decoration: const InputDecoration(labelText: 'Header Value'),
+                    prefixIcon: const Icon(Icons.key_rounded),
                   ),
                   if (dialogError != null) ...[
                     const SizedBox(height: 12),

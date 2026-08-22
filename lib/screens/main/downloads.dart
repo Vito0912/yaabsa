@@ -185,60 +185,75 @@ class _DownloadsState extends ConsumerState<Downloads> {
             }
 
             final selectedDownloads = downloads.where(_isSelected).toList(growable: false);
+            final horizontalPadding = context.isMobile ? 12.0 : 24.0;
 
             return Column(
               children: [
                 if (_isDeleting) const LinearProgressIndicator(minHeight: 2),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          _selectionMode
-                              ? '${_selectedDownloadKeys.length} selected'
-                              : '${downloads.length} downloaded item(s)',
-                          style: Theme.of(context).textTheme.labelLarge,
-                        ),
+                Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1120),
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(horizontalPadding, 8, horizontalPadding, 6),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              _selectionMode
+                                  ? '${_selectedDownloadKeys.length} selected'
+                                  : '${downloads.length} downloaded item(s)',
+                              style: Theme.of(context).textTheme.labelLarge,
+                            ),
+                          ),
+                          if (!_selectionMode)
+                            TextButton.icon(
+                              onPressed: _isDeleting ? null : () => _setSelectionMode(true),
+                              icon: const Icon(Icons.checklist_rtl),
+                              label: const Text('Select'),
+                            ),
+                          if (_selectionMode)
+                            TextButton(
+                              onPressed: _isDeleting ? null : () => _setSelectionMode(false),
+                              child: const Text('Cancel'),
+                            ),
+                          if (_selectionMode) const SizedBox(width: 8),
+                          if (_selectionMode)
+                            FilledButton.icon(
+                              onPressed: _isDeleting || selectedDownloads.isEmpty
+                                  ? null
+                                  : () => _deleteDownloads(userId: user.id, downloads: selectedDownloads),
+                              icon: const Icon(Icons.delete_outline),
+                              label: const Text('Delete'),
+                            ),
+                        ],
                       ),
-                      if (!_selectionMode)
-                        TextButton.icon(
-                          onPressed: _isDeleting ? null : () => _setSelectionMode(true),
-                          icon: const Icon(Icons.checklist_rtl),
-                          label: const Text('Select'),
-                        ),
-                      if (_selectionMode)
-                        TextButton(
-                          onPressed: _isDeleting ? null : () => _setSelectionMode(false),
-                          child: const Text('Cancel'),
-                        ),
-                      if (_selectionMode) const SizedBox(width: 8),
-                      if (_selectionMode)
-                        FilledButton.icon(
-                          onPressed: _isDeleting || selectedDownloads.isEmpty
-                              ? null
-                              : () => _deleteDownloads(userId: user.id, downloads: selectedDownloads),
-                          icon: const Icon(Icons.delete_outline),
-                          label: const Text('Delete'),
-                        ),
-                    ],
+                    ),
                   ),
                 ),
                 Expanded(
                   child: ListView.builder(
+                    padding: EdgeInsets.fromLTRB(horizontalPadding, 4, horizontalPadding, 32),
                     itemCount: downloads.length,
                     itemBuilder: (context, index) {
                       final download = downloads[index];
                       final targetItemId = download.item?.id ?? download.episode?.libraryItemId;
 
-                      return DownloadListTile(
-                        download: download,
-                        selectionMode: _selectionMode,
-                        isDeleting: _isDeleting,
-                        isSelected: _isSelected(download),
-                        onToggleSelection: () => _toggleSelection(download),
-                        onDelete: () => _deleteDownloads(userId: user.id, downloads: [download]),
-                        onOpen: targetItemId == null ? null : () => context.push('/item/$targetItemId'),
+                      return Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 1120),
+                          child: Padding(
+                            padding: EdgeInsets.only(bottom: context.isMobile ? 8 : 10),
+                            child: DownloadListTile(
+                              download: download,
+                              selectionMode: _selectionMode,
+                              isDeleting: _isDeleting,
+                              isSelected: _isSelected(download),
+                              onToggleSelection: () => _toggleSelection(download),
+                              onDelete: () => _deleteDownloads(userId: user.id, downloads: [download]),
+                              onOpen: targetItemId == null ? null : () => context.push('/item/$targetItemId'),
+                            ),
+                          ),
+                        ),
                       );
                     },
                   ),

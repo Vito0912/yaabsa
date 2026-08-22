@@ -195,7 +195,7 @@ class PersonalizedView extends HookConsumerWidget {
 
     if (personalizedLibrary == null && !isLibraryLoading && !showOfflineDownloadsOnly) {
       return _PersonalizedFeedbackView(
-        icon: serverReachable ? Icons.auto_awesome_outlined : Icons.cloud_off_rounded,
+        icon: serverReachable ? Icons.view_carousel_outlined : Icons.cloud_off_rounded,
         title: serverReachable ? 'No personalized items found' : 'Personalized shelf is offline',
         message: serverReachable
             ? 'No personalized sections are available for this library yet.'

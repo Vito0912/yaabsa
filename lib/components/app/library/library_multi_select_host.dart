@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 
-import 'package:background_downloader/background_downloader.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -10,13 +9,12 @@ import 'package:yaabsa/components/app/item/item_progress_actions.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/me/media_progress.dart';
 import 'package:yaabsa/components/app/library/library_multi_select_actions.dart';
-import 'package:yaabsa/database/app_database.dart';
-import 'package:yaabsa/models/internal_download.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
+import 'package:yaabsa/provider/common/download_task_provider.dart';
+import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/core/multi_select_app_bar_provider.dart';
 import 'package:yaabsa/provider/core/socket_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
-import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/components/app/downloads/download_helper.dart';
 
 class LibraryMultiSelectBindings {
@@ -98,22 +96,6 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
 
     final currentUser = ref.watch(currentUserProvider).value;
     final canDownload = currentUser?.permissions.download ?? false;
-
-    final appDatabase = ref.watch(appDatabaseProvider);
-    final storedDownloads =
-        useStream(
-          useMemoized(
-            () => currentUserId == null
-                ? Stream<List<InternalDownload>>.value(const <InternalDownload>[])
-                : appDatabase.watchStoredDownloadsByUser(currentUserId!),
-            [currentUserId, appDatabase],
-          ),
-          initialData: const <InternalDownload>[],
-        ).data ??
-        const <InternalDownload>[];
-
-    final activeTasks =
-        useStream(downloadHandler.taskQueueStream, initialData: const <TaskRecord>[]).data ?? const <TaskRecord>[];
 
     useEffect(() {
       if (selectionMode.value) {
@@ -234,13 +216,16 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
     final allSelectedFinished = areAllSupportedLibraryItemsFinished(selectedItems, progressByKey);
     final hasDeletableSelectedItems = selectedItems.any(isAudiobookLibraryItem);
 
-    final downloadedItemIds = storedDownloads
-        .where((d) => d.isComplete && d.episode == null)
-        .map((d) => d.item?.id)
-        .whereType<String>()
-        .toSet();
-
-    final downloadingItemIds = activeTasks.map((task) => task.group).whereType<String>().toSet();
+    final downloadedItemIds = <String>{};
+    final downloadingItemIds = <String>{};
+    for (final item in selectedItems) {
+      if (ref.watch(completedDownloadForItemProvider(item.id))) {
+        downloadedItemIds.add(item.id);
+      }
+      if (ref.watch(downloadInProgressForItemProvider(item.id)).asData?.value ?? false) {
+        downloadingItemIds.add(item.id);
+      }
+    }
 
     final downloadableSelectedItems = selectedItems
         .where(

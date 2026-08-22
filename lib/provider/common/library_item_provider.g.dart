@@ -255,3 +255,74 @@ final class CompletedDownloadItemIdsProvider
 }
 
 String _$completedDownloadItemIdsHash() => r'aca295e2457fdd4cbf3fa79c15e004d1c577f99e';
+
+@ProviderFor(completedDownloadForItem)
+final completedDownloadForItemProvider = CompletedDownloadForItemFamily._();
+
+final class CompletedDownloadForItemProvider extends $FunctionalProvider<bool, bool, bool> with $Provider<bool> {
+  CompletedDownloadForItemProvider._({
+    required CompletedDownloadForItemFamily super.from,
+    required (String, {String? episodeId}) super.argument,
+  }) : super(
+         retry: null,
+         name: r'completedDownloadForItemProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$completedDownloadForItemHash();
+
+  @override
+  String toString() {
+    return r'completedDownloadForItemProvider'
+        ''
+        '$argument';
+  }
+
+  @$internal
+  @override
+  $ProviderElement<bool> $createElement($ProviderPointer pointer) => $ProviderElement(pointer);
+
+  @override
+  bool create(Ref ref) {
+    final argument = this.argument as (String, {String? episodeId});
+    return completedDownloadForItem(ref, argument.$1, episodeId: argument.episodeId);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(bool value) {
+    return $ProviderOverride(origin: this, providerOverride: $SyncValueProvider<bool>(value));
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is CompletedDownloadForItemProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$completedDownloadForItemHash() => r'f79d491f16d030ac2b6ce2e9784c86e6a37f9c1a';
+
+final class CompletedDownloadForItemFamily extends $Family
+    with $FunctionalFamilyOverride<bool, (String, {String? episodeId})> {
+  CompletedDownloadForItemFamily._()
+    : super(
+        retry: null,
+        name: r'completedDownloadForItemProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  CompletedDownloadForItemProvider call(String itemId, {String? episodeId}) =>
+      CompletedDownloadForItemProvider._(argument: (itemId, episodeId: episodeId), from: this);
+
+  @override
+  String toString() => r'completedDownloadForItemProvider';
+}

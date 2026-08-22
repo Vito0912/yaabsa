@@ -33,6 +33,23 @@ class ListApi {
     );
   }
 
+  Future<Response<Playlist>> getPlaylist(
+    String playlistId, {
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiGetRequest(
+      route: '/api/playlists/$playlistId',
+      fromJson: (data) => Playlist.fromJson(data as Map<String, dynamic>),
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
+      queryParams: <String, dynamic>{},
+    );
+  }
+
   Future<Response<CollectionResponse>> getCollections({
     bool forceServer = false,
     CancelToken? cancelToken,
@@ -52,6 +69,23 @@ class ListApi {
       extra: requestExtra,
       dio: _dio,
       queryParams: {},
+    );
+  }
+
+  Future<Response<Collection>> getCollection(
+    String collectionId, {
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiGetRequest(
+      route: '/api/collections/$collectionId',
+      fromJson: (data) => Collection.fromJson(data as Map<String, dynamic>),
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
+      queryParams: <String, dynamic>{},
     );
   }
 

@@ -21,18 +21,33 @@ import 'package:yaabsa/models/internal_download.dart';
 import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/provider/library/smart_download_provider.dart';
 import 'package:yaabsa/util/android_saf.dart';
 import 'package:yaabsa/util/download_destination.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/network/request_headers.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:yaabsa/util/file_formats.dart';
-import 'package:drift/drift.dart' show Value;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+class _DownloadBatchProgress {
+  _DownloadBatchProgress(this.expectedFileCount);
+
+  int expectedFileCount;
+  final Set<String> completedTaskIds = <String>{};
+}
 
 class DownloadHandler {
   final ProviderContainer _ref;
   late final FileDownloader? _downloader;
+  late final Future<void> _initialization;
+  Future<void>? _settingsUpdate;
+  Timer? _taskQueueRefreshTimer;
+  Future<void>? _taskQueueRefresh;
+  bool _taskQueueRefreshRequested = false;
+  List<TaskRecord> _taskQueueSnapshot = const <TaskRecord>[];
+  final Map<String, _DownloadBatchProgress> _downloadBatchProgress = <String, _DownloadBatchProgress>{};
+  final Map<String, Future<String?>> _coverStorageInFlight = <String, Future<String?>>{};
   final _progressUpdateController = StreamController<TaskProgressUpdate>.broadcast();
   final _taskQueueController = StreamController<List<TaskRecord>>.broadcast();
 
@@ -42,6 +57,13 @@ class DownloadHandler {
 
   Stream<List<TaskRecord>> get taskQueueStream => _taskQueueController.stream;
 
+  Stream<List<TaskRecord>> taskQueueStreamForItem(String itemId, {String? episodeId}) async* {
+    yield _tasksForItem(_taskQueueSnapshot, itemId, episodeId: episodeId);
+    yield* taskQueueStream
+        .map((tasks) => _tasksForItem(tasks, itemId, episodeId: episodeId))
+        .distinct(_sameTaskRecords);
+  }
+
   DownloadHandler(this._ref) {
     if (kIsWeb) {
       _downloader = null;
@@ -49,14 +71,25 @@ class DownloadHandler {
     }
     _downloader = FileDownloader();
 
-    _init();
+    _initialization = _init();
 
-    _updateTaskQueue();
+    _ref.listen<AsyncValue<User?>>(currentUserProvider, (previous, next) {
+      if (previous?.value?.id == next.value?.id) {
+        return;
+      }
+      _downloadBatchProgress.clear();
+      unawaited(_applyDownloadSettingsForUser(next.value?.id));
+    }, fireImmediately: true);
+
+    _scheduleTaskQueueRefresh();
 
     dbUpdates.listen(
       (update) async {
-        _updateTaskQueue();
+        _scheduleTaskQueueRefresh();
         if (update.status != TaskStatus.complete) {
+          if (update.status == TaskStatus.failed || update.status == TaskStatus.canceled) {
+            _ref.read(smartDownloadManagerProvider.notifier).requestReconcile(reason: 'download task failed');
+          }
           return;
         }
 
@@ -72,7 +105,7 @@ class DownloadHandler {
         if (update is TaskProgressUpdate) {
           _progressUpdateController.add(update);
         }
-        _updateTaskQueue();
+        _scheduleTaskQueueRefresh();
       },
       onError: (Object error, StackTrace stackTrace) {
         logger('Download progress stream failed: $error\n$stackTrace', tag: 'DownloadHandler', level: InfoLevel.error);
@@ -84,7 +117,15 @@ class DownloadHandler {
     if (kIsWeb || _downloader == null) {
       return;
     }
-    // TODO: Need to find examples for https://github.com/781flyingdutchman/background_downloader/blob/main/doc/CONFIG.md
+    await _ref.read(settingsManagerProvider.notifier).ensureInitialized();
+
+    User? user;
+    try {
+      user = await _ref.read(currentUserProvider.future).timeout(const Duration(seconds: 5));
+    } catch (e) {
+      logger('Could not resolve the active user before configuring downloads: $e', tag: 'DownloadHandler');
+    }
+
     List<String> ids = [];
     await _downloader.database.allRecordsWithStatus(TaskStatus.failed).then((failedTasks) {
       for (final task in failedTasks) {
@@ -98,27 +139,121 @@ class DownloadHandler {
     });
     await _downloader.database.deleteRecordsWithIds(ids);
 
-    if (!kIsWeb && Platform.isAndroid) {
-      await _downloader.configure(androidConfig: [(Config.runInForeground, Config.always)]);
-    } else {
-      await _downloader.configure();
-    }
+    await _configureDownloadSettings(user?.id);
 
     await _downloader.trackTasks();
 
-    _downloader.start();
+    await _downloader.start();
 
-    _updateTaskQueue();
+    _scheduleTaskQueueRefresh();
   }
 
-  Future<void> _updateTaskQueue() async {
+  Future<void> _configureDownloadSettings(String? userId) async {
     if (kIsWeb || _downloader == null) {
       return;
     }
-    final List<TaskRecord> tasks = (await _downloader.database.allRecords())
+
+    final settings = _ref.read(settingsManagerProvider.notifier);
+    final maxParallel = settings
+        .getUserSetting<int>(userId, SettingKeys.downloadMaxParallel, defaultValue: 3)
+        .clamp(1, 10)
+        .toInt();
+    final onlyOnWifi = settings.getUserSetting<bool>(userId, SettingKeys.downloadOnlyOnWifi, defaultValue: true);
+
+    await _downloader.configure(
+      globalConfig: (Config.holdingQueue, (maxParallel, null, null)),
+      androidConfig: !kIsWeb && Platform.isAndroid ? [(Config.runInForeground, Config.always)] : null,
+    );
+    await _downloader.requireWiFi(
+      onlyOnWifi ? RequireWiFi.forAllTasks : RequireWiFi.forNoTasks,
+      rescheduleRunningTasks: true,
+    );
+  }
+
+  Future<void> _applyDownloadSettingsForUser(String? userId) {
+    final previous = _settingsUpdate ?? Future<void>.value();
+    final next = previous.then((_) async {
+      await _initialization;
+      try {
+        await _configureDownloadSettings(userId);
+      } catch (e, s) {
+        logger('Could not apply download settings: $e\n$s', tag: 'DownloadHandler', level: InfoLevel.warning);
+      }
+    });
+    _settingsUpdate = next;
+    return next;
+  }
+
+  /// Re-applies settings after a user changes a download preference.
+  Future<void> applyDownloadSettings() {
+    return _applyDownloadSettingsForUser(_ref.read(currentUserProvider).value?.id);
+  }
+
+  void _scheduleTaskQueueRefresh() {
+    if (kIsWeb || _downloader == null) {
+      return;
+    }
+
+    _taskQueueRefreshRequested = true;
+    if (_taskQueueRefreshTimer != null) {
+      return;
+    }
+
+    _taskQueueRefreshTimer = Timer(const Duration(milliseconds: 100), () {
+      _taskQueueRefreshTimer = null;
+      unawaited(_refreshTaskQueue());
+    });
+  }
+
+  Future<void> _refreshTaskQueue() {
+    final activeRefresh = _taskQueueRefresh;
+    if (activeRefresh != null) {
+      return activeRefresh;
+    }
+
+    final refresh = _refreshTaskQueueInternal();
+    _taskQueueRefresh = refresh;
+    return refresh.whenComplete(() {
+      if (!identical(_taskQueueRefresh, refresh)) {
+        return;
+      }
+
+      _taskQueueRefresh = null;
+      if (_taskQueueRefreshRequested) {
+        _scheduleTaskQueueRefresh();
+      }
+    });
+  }
+
+  Future<void> _refreshTaskQueueInternal() async {
+    _taskQueueRefreshRequested = false;
+    final tasks = (await _downloader!.database.allRecords())
         .where((task) => task.status.isNotFinalState)
-        .toList();
+        .toList(growable: false);
+    _taskQueueSnapshot = tasks;
     _taskQueueController.add(tasks);
+  }
+
+  List<TaskRecord> _tasksForItem(List<TaskRecord> tasks, String itemId, {String? episodeId}) {
+    return tasks.where((task) => taskBelongsToItem(task, itemId, episodeId: episodeId)).toList(growable: false);
+  }
+
+  bool _sameTaskRecords(List<TaskRecord> left, List<TaskRecord> right) {
+    if (left.length != right.length) {
+      return false;
+    }
+
+    for (var index = 0; index < left.length; index++) {
+      final leftTask = left[index];
+      final rightTask = right[index];
+      if (leftTask.taskId != rightTask.taskId ||
+          leftTask.status != rightTask.status ||
+          leftTask.progress != rightTask.progress) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   Future<bool> cancelTask(String taskId) async {
@@ -126,8 +261,82 @@ class DownloadHandler {
       return false;
     }
     final canceled = await _downloader.cancelTaskWithId(taskId);
-    await _updateTaskQueue();
+    await _refreshTaskQueue();
     return canceled;
+  }
+
+  Future<int> cancelSmartTasksForProfile(String profileId, {String? userId}) async {
+    if (kIsWeb || _downloader == null) {
+      return 0;
+    }
+    final records = await _downloader.database.allRecords();
+    var canceled = 0;
+    for (final record in records.where((record) => record.status.isNotFinalState)) {
+      final metadata = _parseMetaData(record.task.metaData);
+      if (metadata?.acquisitionOrigin != 'smart' ||
+          (userId != null && metadata?.userId != userId) ||
+          metadata?.smartProfileIds.length != 1 ||
+          metadata?.smartProfileIds.first != profileId) {
+        continue;
+      }
+      if (await cancelTask(record.task.taskId)) {
+        canceled++;
+      }
+    }
+    return canceled;
+  }
+
+  Future<int> cancelSmartTasksForReferences({
+    required String userId,
+    required Set<String> references,
+    String? profileId,
+  }) async {
+    if (kIsWeb || _downloader == null || references.isEmpty) {
+      return 0;
+    }
+    final records = await _downloader.database.allRecords();
+    var canceled = 0;
+    for (final record in records.where((record) => record.status.isNotFinalState)) {
+      final metadata = _parseMetaData(record.task.metaData);
+      if (metadata == null ||
+          metadata.userId != userId ||
+          metadata.acquisitionOrigin != 'smart' ||
+          (profileId != null &&
+              (metadata.smartProfileIds.length != 1 || metadata.smartProfileIds.first != profileId))) {
+        continue;
+      }
+      final reference = '${metadata.itemId}::${metadata.episodeId ?? ''}';
+      if (!references.contains(reference)) {
+        continue;
+      }
+      if (await cancelTask(record.task.taskId)) {
+        canceled++;
+      }
+    }
+    return canceled;
+  }
+
+  Future<Map<String, int>> activeSmartDownloadReservations(String userId) async {
+    if (kIsWeb || _downloader == null) {
+      return const <String, int>{};
+    }
+    final reservations = <String, int>{};
+    final records = await _downloader.database.allRecords();
+    for (final record in records.where((record) => record.status.isNotFinalState)) {
+      final metadata = _parseMetaData(record.task.metaData);
+      if (metadata == null || metadata.userId != userId || metadata.acquisitionOrigin != 'smart') {
+        continue;
+      }
+      final reference = '${metadata.itemId}::${metadata.episodeId ?? ''}';
+      final estimatedBytes = metadata.estimatedBytes ?? 0;
+      final current = reservations[reference] ?? 0;
+      if (estimatedBytes > current) {
+        reservations[reference] = estimatedBytes;
+      } else {
+        reservations.putIfAbsent(reference, () => current);
+      }
+    }
+    return reservations;
   }
 
   bool taskBelongsToItem(TaskRecord task, String itemId, {String? episodeId}) {
@@ -141,6 +350,48 @@ class DownloadHandler {
     final normalizedItemId = itemId.replaceAll(RegExp(r'[^A-Za-z0-9_.-]'), '_');
     final normalizedEpisodeId = (episodeId ?? 'item').replaceAll(RegExp(r'[^A-Za-z0-9_.-]'), '_');
     return task.taskId.startsWith('${normalizedItemId}_${normalizedEpisodeId}_');
+  }
+
+  Future<bool> hasActiveTask(String itemId, {String? episodeId}) async {
+    if (kIsWeb || _downloader == null) {
+      return false;
+    }
+    final records = await _downloader.database.allRecords();
+    return records.any((task) {
+      if (!task.status.isNotFinalState) {
+        return false;
+      }
+      final metadata = _parseMetaData(task.task.metaData);
+      if (metadata != null && metadata.itemId == itemId && metadata.episodeId == episodeId) {
+        return true;
+      }
+      return taskBelongsToItem(task, itemId, episodeId: episodeId);
+    });
+  }
+
+  String _downloadBatchKey(String itemId, String? episodeId) {
+    return '$itemId::${episodeId ?? ''}';
+  }
+
+  bool _isFinalFileInDownloadBatch(DownloadTaskMetadata metadata, String taskId) {
+    final expectedFileCount = metadata.expectedFileCount;
+    if (expectedFileCount <= 1) {
+      return true;
+    }
+
+    final key = _downloadBatchKey(metadata.itemId, metadata.episodeId);
+    final progress = _downloadBatchProgress.putIfAbsent(key, () => _DownloadBatchProgress(expectedFileCount));
+    if (expectedFileCount > progress.expectedFileCount) {
+      progress.expectedFileCount = expectedFileCount;
+    }
+    progress.completedTaskIds.add(taskId);
+
+    if (progress.completedTaskIds.length < progress.expectedFileCount) {
+      return false;
+    }
+
+    _downloadBatchProgress.remove(key);
+    return true;
   }
 
   Future<void> _ensureNotificationPermissionForDownloads() async {
@@ -172,10 +423,27 @@ class DownloadHandler {
     );
   }
 
-  Future<void> downloadFile(String itemId, {String? episodeId, String? downloadType}) async {
+  Future<void> downloadFile(
+    String itemId, {
+    String? episodeId,
+    String? downloadType,
+    String acquisitionOrigin = 'manual',
+    List<String> smartProfileIds = const <String>[],
+    int? estimatedBytes,
+    String? requiredUserId,
+  }) async {
     if (kIsWeb || _downloader == null) {
       throw UnsupportedError('Downloads are not supported on the Web');
     }
+    await _initialization;
+    final User? user = _ref.read(currentUserProvider).value;
+    if (user == null) {
+      throw Exception('No active user found for download request.');
+    }
+    if (requiredUserId != null && user.id != requiredUserId) {
+      throw StateError('The active user changed before the download could be queued.');
+    }
+
     LibraryItem? item = _ref.read(libraryItemProvider(itemId)).asData?.value;
     if (item == null) {
       try {
@@ -194,12 +462,14 @@ class DownloadHandler {
       throw Exception('Episode ID must be provided for podcast items.');
     }
 
-    final User? user = _ref.read(currentUserProvider).value;
-    if (user == null) {
-      throw Exception('No active user found for download request.');
+    if (_ref.read(currentUserProvider).value?.id != user.id) {
+      throw StateError('The active user changed while preparing the download.');
     }
 
     final effectiveDownloadType = downloadType ?? _defaultDownloadType(resolvedItem, user.id);
+    final onlyOnWifi = _ref
+        .read(settingsManagerProvider.notifier)
+        .getUserSetting<bool>(user.id, SettingKeys.downloadOnlyOnWifi, defaultValue: true);
 
     await _ensureNotificationPermissionForDownloads();
 
@@ -211,7 +481,10 @@ class DownloadHandler {
     if (sourceFiles.isEmpty) {
       throw Exception('No downloadable files found for item $itemId.');
     }
+    final orderedSourceFiles = sourceFiles.toList()..sort((left, right) => (right.size ?? 0).compareTo(left.size ?? 0));
     final expectedFileCount = sourceFiles.length;
+    final actualSourceBytes = sourceFiles.fold<int>(0, (total, source) => total + (source.size ?? 0));
+    final effectiveEstimatedBytes = actualSourceBytes > (estimatedBytes ?? 0) ? actualSourceBytes : estimatedBytes;
 
     final server = user.server;
     if (server == null || server.url.isEmpty) {
@@ -231,7 +504,7 @@ class DownloadHandler {
     final destination = await resolveDownloadTaskDestination(_downloader, customDownloadLocation, resolvedItem.id);
 
     final List<Task> downloadTasks = <Task>[];
-    for (final source in sourceFiles) {
+    for (final source in orderedSourceFiles) {
       final taskId = _taskIdFor(source.ino, resolvedItem.id, episodeId);
       final filename = _sanitizeFilename(
         source.filename,
@@ -259,6 +532,9 @@ class DownloadHandler {
           serverSsl: server.ssl,
           title: resolvedItem.title,
           downloadType: effectiveDownloadType,
+          acquisitionOrigin: acquisitionOrigin,
+          smartProfileIds: smartProfileIds,
+          estimatedBytes: effectiveEstimatedBytes,
         ).toJson(),
       );
 
@@ -275,6 +551,7 @@ class DownloadHandler {
             requestHeaders: requestHeaders,
             metaData: metaData,
             downloadUrl: downloadUrl,
+            requiresWifi: onlyOnWifi,
           ),
         );
         continue;
@@ -294,10 +571,12 @@ class DownloadHandler {
           metaData: metaData,
           retries: 3,
           allowPause: true,
+          requiresWiFi: onlyOnWifi,
         ),
       );
     }
 
+    final notificationGroupId = _notificationGroupId(itemId, episodeId);
     if (downloadTasks.length == 1) {
       _downloader.configureNotificationForGroup(
         resolvedItem.id,
@@ -338,49 +617,80 @@ class DownloadHandler {
         ),
         complete: TaskNotification(
           'Download Complete',
-          '{displayName} - [{filename}]\n'
+          '{displayName}\n'
               'All files downloaded successfully.',
         ),
         canceled: TaskNotification(
           'Download Canceled',
-          '{displayName} - [{filename}]\n'
+          '{displayName}\n'
               'The download was canceled by the user.',
         ),
         error: TaskNotification(
           'Download Failed',
-          '{displayName} - [{filename}]\n'
+          '{displayName}\n'
               'An error occurred during download.',
         ),
         paused: TaskNotification(
           'Download Paused',
-          '{displayName} - [{filename}]\n'
+          '{displayName}\n'
               'Progress: {progress} | Speed: {networkSpeed}\n'
               'Paused at: {progress}',
         ),
         progressBar: true,
         tapOpensFile: false,
-        groupNotificationId: resolvedItem.id,
+        groupNotificationId: notificationGroupId,
       );
     }
 
-    await _ref
-        .read(appDatabaseProvider)
-        .deleteStoredDownload(itemId, _ref.read(currentUserProvider).value!.id, episodeId: episodeId);
+    if (_ref.read(currentUserProvider).value?.id != user.id) {
+      throw StateError('The active user changed before the download could be queued.');
+    }
 
+    await _ref.read(appDatabaseProvider).deleteStoredDownload(itemId, user.id, episodeId: episodeId);
+
+    final batchKey = _downloadBatchKey(itemId, episodeId);
+    _downloadBatchProgress[batchKey] = _DownloadBatchProgress(expectedFileCount);
     final enqueueResults = await _downloader.enqueueAll(downloadTasks);
     final queuedTasks = enqueueResults.where((result) => result).length;
     if (queuedTasks == 0) {
+      _downloadBatchProgress.remove(batchKey);
       throw Exception('Could not queue download. Please check your connection and try again.');
     }
     if (queuedTasks != downloadTasks.length) {
+      for (var index = 0; index < enqueueResults.length; index++) {
+        if (enqueueResults[index]) {
+          await _downloader.cancelTaskWithId(downloadTasks[index].taskId);
+        }
+      }
+      _downloadBatchProgress.remove(batchKey);
       logger(
-        'Only $queuedTasks/${downloadTasks.length} download task(s) were queued for item $itemId.',
+        'Only $queuedTasks/${downloadTasks.length} download task(s) were queued for item $itemId. '
+        'The partial batch was canceled.',
         tag: 'DownloadHandler',
         level: InfoLevel.warning,
       );
+      _scheduleTaskQueueRefresh();
+      throw Exception('Could not queue every file in the download. Please try again.');
     }
 
-    await _updateTaskQueue();
+    _scheduleTaskQueueRefresh();
+  }
+
+  Future<int?> estimateDownloadBytes(String itemId, {String? episodeId, String downloadType = 'both'}) async {
+    LibraryItem? item = _ref.read(libraryItemProvider(itemId)).asData?.value;
+    if (item == null) {
+      try {
+        item = await _ref.read(libraryItemProvider(itemId).future);
+      } catch (_) {
+        return null;
+      }
+    }
+    if (item == null) {
+      return null;
+    }
+    final sources = _collectDownloadSourceFiles(item, episodeId: episodeId, downloadType: downloadType);
+    final total = sources.fold<int>(0, (sum, source) => sum + (source.size ?? 0));
+    return total > 0 ? total : null;
   }
 
   Future<UriDownloadTask> _buildUriDownloadTask({
@@ -392,6 +702,7 @@ class DownloadHandler {
     required Map<String, String> requestHeaders,
     required String metaData,
     required String downloadUrl,
+    required bool requiresWifi,
   }) async {
     final baseTask = UriDownloadTask(
       group: item.id,
@@ -404,6 +715,7 @@ class DownloadHandler {
       metaData: metaData,
       retries: 3,
       allowPause: true,
+      requiresWiFi: requiresWifi,
       directoryUri: destination.directoryUri!,
     );
 
@@ -490,7 +802,7 @@ class DownloadHandler {
       final trackUri = _trackUriFromStoredUrl(storedTrackUrl);
       final resolvedUser = await _resolveUserForDownload(parsedMetaData.userId);
 
-      final coverPath = await _storeCoverLocally(
+      final coverPath = await _storeCoverLocallyOnce(
         item: item,
         user: resolvedUser,
         trackUri: trackUri,
@@ -513,26 +825,17 @@ class DownloadHandler {
       final storedCoverPath = await storeDownloadPath(coverPath, parsedMetaData.downloadBasePath);
       final storedSidecarPath = await storeDownloadPath(sidecarPath, parsedMetaData.downloadBasePath);
 
-      final downloadCompanion = StoredDownloadsCompanion(
-        itemId: Value(parsedMetaData.itemId),
-        episodeId: Value(parsedMetaData.episodeId),
-        userId: Value(parsedMetaData.userId),
-        download: Value(
-          jsonEncode(
-            InternalDownload(
-              item: item,
-              episode: resolvedEpisode,
-              saf: parsedMetaData.saf,
-              downloadBasePath: parsedMetaData.downloadBasePath,
-              tracks: downloadedTrack == null ? const <InternalTrack>[] : <InternalTrack>[downloadedTrack],
-              expectedFileCount: parsedMetaData.expectedFileCount,
-              auxiliaryFilePaths: auxiliaryFilePaths,
-              coverPath: storedCoverPath,
-              sidecarPaths: storedSidecarPath == null ? const <String>[] : <String>[storedSidecarPath],
-              downloadType: parsedMetaData.downloadType,
-            ),
-          ),
-        ),
+      final completedDownload = InternalDownload(
+        item: item,
+        episode: resolvedEpisode,
+        saf: parsedMetaData.saf,
+        downloadBasePath: parsedMetaData.downloadBasePath,
+        tracks: downloadedTrack == null ? const <InternalTrack>[] : <InternalTrack>[downloadedTrack],
+        expectedFileCount: parsedMetaData.expectedFileCount,
+        auxiliaryFilePaths: auxiliaryFilePaths,
+        coverPath: storedCoverPath,
+        sidecarPaths: storedSidecarPath == null ? const <String>[] : <String>[storedSidecarPath],
+        downloadType: parsedMetaData.downloadType,
       );
 
       logger(
@@ -540,7 +843,22 @@ class DownloadHandler {
         tag: 'DownloadHandler',
       );
 
-      await _ref.read(appDatabaseProvider).addOrUpdateStoredDownload(downloadCompanion);
+      await _ref
+          .read(appDatabaseProvider)
+          .addOrUpdateStoredDownloadFile(
+            itemId: parsedMetaData.itemId,
+            userId: parsedMetaData.userId,
+            episodeId: parsedMetaData.episodeId,
+            fileKey: update.task.taskId,
+            download: completedDownload,
+            downloadOrigin: parsedMetaData.acquisitionOrigin,
+            smartProfileIds: parsedMetaData.smartProfileIds,
+            managedBytes: parsedMetaData.estimatedBytes,
+            completedAt: DateTime.now().millisecondsSinceEpoch,
+          );
+      if (_isFinalFileInDownloadBatch(parsedMetaData, update.task.taskId)) {
+        _ref.read(smartDownloadManagerProvider.notifier).requestReconcile(reason: 'download completed');
+      }
     } catch (e, s) {
       logger('Failed to persist completed download: $e\n$s', tag: 'DownloadHandler', level: InfoLevel.error);
     }
@@ -553,6 +871,7 @@ class DownloadHandler {
     }
 
     final episodeId = download.episode?.id;
+    _downloadBatchProgress.remove(_downloadBatchKey(itemId, episodeId));
 
     final trackUris = <Uri>{};
     for (final track in download.tracks) {
@@ -678,6 +997,37 @@ class DownloadHandler {
     } catch (_) {
       return null;
     }
+  }
+
+  Future<String?> _storeCoverLocallyOnce({
+    required LibraryItem? item,
+    required User? user,
+    required Uri? trackUri,
+    required DownloadTaskMetadata metaData,
+  }) {
+    final key = '${metaData.userId}\u0000${metaData.itemId}\u0000${metaData.downloadBasePath ?? ''}';
+    final existing = _coverStorageInFlight[key];
+    if (existing != null) {
+      return existing;
+    }
+
+    final future = _storeCoverLocally(item: item, user: user, trackUri: trackUri, metaData: metaData);
+    _coverStorageInFlight[key] = future;
+    unawaited(
+      future.then<void>(
+        (_) {
+          if (identical(_coverStorageInFlight[key], future)) {
+            _coverStorageInFlight.remove(key);
+          }
+        },
+        onError: (Object error, StackTrace stackTrace) {
+          if (identical(_coverStorageInFlight[key], future)) {
+            _coverStorageInFlight.remove(key);
+          }
+        },
+      ),
+    );
+    return future;
   }
 
   Future<String?> _storeCoverLocally({
@@ -1090,6 +1440,12 @@ class DownloadHandler {
     return raw.replaceAll(RegExp(r'[^A-Za-z0-9_.-]'), '_');
   }
 
+  String _notificationGroupId(String itemId, String? episodeId) {
+    final seed = '$itemId::${episodeId ?? ''}::${DateTime.now().microsecondsSinceEpoch}';
+    final digest = sha256.convert(utf8.encode(seed));
+    return 'yaabsa-${digest.toString()}';
+  }
+
   String _defaultDownloadType(LibraryItem item, String userId) {
     if (item.mediaType == 'podcast') {
       return 'audiobook';
@@ -1164,6 +1520,7 @@ class DownloadHandler {
               url: null,
               mimeType: audioFile.mimeType ?? _mimeTypeForExtension(audioFile.metadata.ext),
             ),
+            size: audioFile.metadata.size,
           ),
         );
         fallbackIndex = index + 1;
@@ -1193,6 +1550,7 @@ class DownloadHandler {
             fileKind: 'audio',
             fileIndex: index,
             mimeType: audioFile.mimeType ?? _mimeTypeForExtension(audioFile.metadata.ext),
+            size: audioFile.metadata.size,
             track: InternalTrack(
               index: index,
               duration: audioFile.duration ?? 0,
@@ -1219,6 +1577,7 @@ class DownloadHandler {
             fileKind: 'ebook',
             fileIndex: fallbackIndex,
             mimeType: _mimeTypeForExtension(ebookFile.metadata.ext),
+            size: ebookFile.metadata.size,
           ),
         );
         fallbackIndex += 1;
@@ -1251,6 +1610,7 @@ class DownloadHandler {
           fileKind: isEbook ? 'ebook' : 'file',
           fileIndex: fallbackIndex,
           mimeType: _mimeTypeForExtension(libraryFile.metadata.ext),
+          size: libraryFile.metadata.size,
         ),
       );
       fallbackIndex += 1;
@@ -1354,6 +1714,7 @@ class _DownloadSourceFile {
     this.track,
     this.mimeType,
     this.extension,
+    this.size,
   });
 
   final String ino;
@@ -1363,6 +1724,7 @@ class _DownloadSourceFile {
   final InternalTrack? track;
   final String? mimeType;
   final String? extension;
+  final int? size;
 }
 
 class DeleteStoredDownloadResult {

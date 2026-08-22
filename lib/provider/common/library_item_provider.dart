@@ -8,6 +8,7 @@ import 'package:yaabsa/util/local_cover_path.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/provider/common/library_item_events.dart';
 
 part 'library_item_provider.freezed.dart';
@@ -508,4 +509,12 @@ Stream<Set<String>> completedDownloadItemIds(Ref ref) {
 
   final db = ref.watch(appDatabaseProvider);
   return db.watchCompletedDownloadItemIdsByUser(user.id);
+}
+
+@riverpod
+bool completedDownloadForItem(Ref ref, String itemId, {String? episodeId}) {
+  final completedId = episodeId ?? itemId;
+  return ref.watch(
+    completedDownloadItemIdsProvider.select((asyncIds) => asyncIds.asData?.value.contains(completedId) ?? false),
+  );
 }

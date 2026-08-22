@@ -16,6 +16,7 @@ import 'package:yaabsa/provider/core/server_tasks_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/library/personalized_shelf_refresh.dart';
+import 'package:yaabsa/provider/library/smart_download_provider.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
@@ -98,6 +99,7 @@ class RemoteMediaProgressUpdateNotifier extends Notifier<MediaProgress?> {
 @Riverpod(keepAlive: true)
 ABSSocketClient absSocketClient(Ref ref) {
   final serverTasksNotifier = ref.read(serverTasksProvider.notifier);
+  final smartDownloadNotifier = ref.read(smartDownloadManagerProvider.notifier);
   final container = ref.container;
 
   final socketClient = ABSSocketClient(
@@ -111,6 +113,7 @@ ABSSocketClient absSocketClient(Ref ref) {
       ref.read(remoteMediaProgressUpdateProvider.notifier).setProgress(progress);
 
       if (becameFinished) {
+        smartDownloadNotifier.requestReconcile(reason: 'remote progress completed');
         unawaited(
           refreshPersonalizedShelfForCompletedItem(
             container: container,
@@ -122,12 +125,15 @@ ABSSocketClient absSocketClient(Ref ref) {
       }
     },
     onItemUpdated: (item) {
+      smartDownloadNotifier.requestReconcile(reason: 'library item updated');
       unawaited(processLibraryItemUpdate(container: ref.container, item: item, source: 'socket.item_updated'));
     },
     onItemAdded: (item) {
+      smartDownloadNotifier.requestReconcile(reason: 'library item added');
       unawaited(processLibraryItemAdded(container: ref.container, item: item, source: 'socket.item_added'));
     },
     onItemRemoved: ({required itemId, libraryId, item}) {
+      smartDownloadNotifier.requestReconcile(reason: 'library item removed');
       unawaited(
         processLibraryItemRemovedById(
           container: ref.container,
@@ -139,9 +145,11 @@ ABSSocketClient absSocketClient(Ref ref) {
       );
     },
     onItemsAdded: (items) {
+      smartDownloadNotifier.requestReconcile(reason: 'library items added');
       unawaited(processLibraryItemsAdded(container: ref.container, items: items, source: 'socket.items_added'));
     },
     onItemsUpdated: (items) {
+      smartDownloadNotifier.requestReconcile(reason: 'library items updated');
       unawaited(processLibraryItemsUpdated(container: ref.container, items: items, source: 'socket.items_updated'));
     },
     onBatchQuickMatchComplete: ({required success, required updates, required unmatched}) {
@@ -174,31 +182,37 @@ ABSSocketClient absSocketClient(Ref ref) {
       serverTasksNotifier.updateTaskProgress(libraryItemId: libraryItemId, progress: progress);
     },
     onCollectionAdded: (collection) {
+      smartDownloadNotifier.requestReconcile(reason: 'collection added');
       unawaited(
         ref.read(collectionsProvider(collection.libraryId).notifier).refresh(withLoading: false, forceServer: true),
       );
     },
     onCollectionUpdated: (collection) {
+      smartDownloadNotifier.requestReconcile(reason: 'collection updated');
       unawaited(
         ref.read(collectionsProvider(collection.libraryId).notifier).refresh(withLoading: false, forceServer: true),
       );
     },
     onCollectionRemoved: (collection) {
+      smartDownloadNotifier.requestReconcile(reason: 'collection removed');
       unawaited(
         ref.read(collectionsProvider(collection.libraryId).notifier).refresh(withLoading: false, forceServer: true),
       );
     },
     onPlaylistAdded: (playlist) {
+      smartDownloadNotifier.requestReconcile(reason: 'playlist added');
       unawaited(
         ref.read(playlistsProvider(playlist.libraryId).notifier).refresh(withLoading: false, forceServer: true),
       );
     },
     onPlaylistUpdated: (playlist) {
+      smartDownloadNotifier.requestReconcile(reason: 'playlist updated');
       unawaited(
         ref.read(playlistsProvider(playlist.libraryId).notifier).refresh(withLoading: false, forceServer: true),
       );
     },
     onPlaylistRemoved: (playlist) {
+      smartDownloadNotifier.requestReconcile(reason: 'playlist removed');
       unawaited(
         ref.read(playlistsProvider(playlist.libraryId).notifier).refresh(withLoading: false, forceServer: true),
       );
@@ -328,12 +342,16 @@ ABSSocketClient absSocketClient(Ref ref) {
 
     currentUser = next.value;
     syncSocketConnection();
+    smartDownloadNotifier.requestReconcile(reason: 'user changed');
     unawaited(hydrateServerTasksForUser(currentUser, serverReachable: canReachServer));
   });
 
   ref.listen<AsyncValue<bool>>(serverStatusProvider, (previous, next) {
     canReachServer = next.value ?? false;
     syncSocketConnection();
+    if (canReachServer) {
+      smartDownloadNotifier.requestReconcile(reason: 'server reconnected');
+    }
     unawaited(hydrateServerTasksForUser(currentUser, serverReachable: canReachServer));
   });
 
@@ -349,6 +367,9 @@ ABSSocketClient absSocketClient(Ref ref) {
     onStateChange: (state) {
       appLifecycleState = state;
       syncSocketConnection();
+      if (state == AppLifecycleState.resumed) {
+        smartDownloadNotifier.requestReconcile(reason: 'app foreground');
+      }
     },
   );
 

@@ -44,9 +44,9 @@ extension _BGAudioHandlerQueue on BGAudioHandler {
         .toList();
   }
 
-  void _reorderQueueInternal(int oldIndex, int newIndex) {
+  bool _reorderQueueInternal(int oldIndex, int newIndex) {
     if (queueList.isEmpty || oldIndex < 0 || oldIndex >= queueList.length) {
-      return;
+      return false;
     }
 
     var targetIndex = newIndex;
@@ -55,14 +55,26 @@ extension _BGAudioHandlerQueue on BGAudioHandler {
     }
 
     if (targetIndex < 0 || targetIndex >= queueList.length) {
-      return;
+      return false;
     }
 
     final nextQueue = List<PlayerQueueEntry>.from(queueList);
     final moved = nextQueue.removeAt(oldIndex);
-    nextQueue.insert(targetIndex, moved);
+    final pinned = moved.autoQueued
+        ? PlayerQueueEntry(id: moved.id, item: moved.item, displayInfo: moved.displayInfo, autoQueuePage: null)
+        : moved;
+    nextQueue.insert(targetIndex, pinned);
+    if (moved.autoQueued) {
+      _autoQueueSuppressedReferences.remove(
+        _queueItemReferenceKey(itemId: moved.item.itemId, episodeId: moved.item.episodeId),
+      );
+      _originalQueueList = _originalQueueList
+          .map((entry) => entry.id == moved.id ? pinned : entry)
+          .toList(growable: false);
+    }
     queueList = nextQueue;
     _emitQueueState();
+    return true;
   }
 
   void _emitQueueLength() {
@@ -109,7 +121,16 @@ extension _BGAudioHandlerQueue on BGAudioHandler {
       autoQueuePage: autoQueuePage,
     );
 
-    queueList = [...queueList, entry];
+    if (autoQueued) {
+      queueList = [...queueList, entry];
+    } else {
+      final firstGeneratedIndex = queueList.indexWhere((queuedEntry) => queuedEntry.autoQueued);
+      if (firstGeneratedIndex < 0) {
+        queueList = [...queueList, entry];
+      } else {
+        queueList = [...queueList.take(firstGeneratedIndex), entry, ...queueList.skip(firstGeneratedIndex)];
+      }
+    }
 
     final manager = _ref.read(settingsManagerProvider.notifier);
     final isMix = manager.getGlobalSetting<bool>(SettingKeys.mixQueue, defaultValue: false);
@@ -133,7 +154,8 @@ extension _BGAudioHandlerQueue on BGAudioHandler {
   }
 
   bool get _isAutoQueueEnabled {
-    return _ref.read(settingsManagerProvider.notifier).getGlobalSetting<bool>(SettingKeys.autoQueue);
+    return !_autoQueueDisabledForCurrentSession &&
+        _ref.read(settingsManagerProvider.notifier).getGlobalSetting<bool>(SettingKeys.autoQueue);
   }
 
   bool get _isSeriesFallbackAutoQueueEnabled {
@@ -174,7 +196,7 @@ extension _BGAudioHandlerQueue on BGAudioHandler {
     return (totalAfterCurrent - loadedAfterCurrent).clamp(0, state.totalItems).toInt();
   }
 
-  void _maybePrefetchAutoQueue({int minBufferedEntries = 1}) {
+  void _maybePrefetchAutoQueue({int minBufferedEntries = 5}) {
     final autoState = _autoQueueState;
     if (autoState == null || autoState.isLoading) {
       return;

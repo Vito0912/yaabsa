@@ -9,7 +9,7 @@ import 'package:yaabsa/util/download_destination.dart';
 part 'internal_download.freezed.dart';
 part 'internal_download.g.dart';
 
-@freezed
+@unfreezed
 abstract class InternalDownload with _$InternalDownload {
   InternalDownload._();
 
@@ -24,6 +24,10 @@ abstract class InternalDownload with _$InternalDownload {
     @JsonKey(name: "sidecarPaths") @Default(<String>[]) List<String> sidecarPaths,
     @JsonKey(name: "downloadType") @Default('both') String downloadType,
     @JsonKey(name: 'downloadBasePath') String? downloadBasePath,
+    @JsonKey(name: 'downloadOrigin') @Default('manual') String downloadOrigin,
+    @JsonKey(name: 'smartProfileIds') @Default(<String>[]) List<String> smartProfileIds,
+    @JsonKey(name: 'managedBytes') int? managedBytes,
+    @JsonKey(name: 'completedAt') int? completedAt,
   }) = _InternalDownload;
 
   bool get isPodcast {

@@ -26,7 +26,7 @@ class SearchView extends HookConsumerWidget {
       return const Center(child: Text('No library selected. Please select a library via the switcher.'));
     }
 
-    final searchAsync = ref.watch(librarySearchProvider((query: query, limit: limit)));
+    final searchAsync = ref.watch(librarySearchProvider((query: query, limit: limit, libraryId: null)));
 
     return searchAsync.when(
       skipLoadingOnRefresh: true,

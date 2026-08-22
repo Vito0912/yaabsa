@@ -44,6 +44,7 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
     required String itemId,
     required String? episodeId,
     required Duration position,
+    bool preserveQueue = false,
   }) async {
     _activeMusicLibraryId = null;
     PlayerUtils.enableWakelock(_ref);
@@ -61,7 +62,7 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
       final hasPlaybackToReplace =
           _currentMediaItem != null || queueList.isNotEmpty || _player.processingState != ProcessingState.idle;
       if (hasPlaybackToReplace) {
-        await stop(clearQueue: true);
+        await stop(clearQueue: !preserveQueue);
       }
 
       final targetItem = QueueItem(itemId: itemId, episodeId: episodeId);
@@ -99,6 +100,7 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
       }
       TrayManager.update();
       if (!isCurrentItem) {
+        _markPendingManualQueueSessionPlayed();
         unawaited(_setupAutoQueueOnResume(itemId: itemId, episodeId: episodeId));
       }
       return true;
@@ -364,7 +366,7 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
 
         final itemsToQueue = otherItems.take(targetSize).toList();
         for (final item in itemsToQueue) {
-          addToQueue(QueueItem(itemId: item.id), displayInfo: _displayInfoFromLibraryItem(item));
+          addToQueue(QueueItem(itemId: item.id), displayInfo: _displayInfoFromLibraryItem(item), markAsManual: false);
         }
       }
     } catch (e) {

@@ -1,24 +1,14 @@
-import 'dart:io';
-
-import 'package:background_downloader/background_downloader.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:file_picker/file_picker.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';
-import 'package:yaabsa/components/settings/settings_button.dart';
-import 'package:yaabsa/components/settings/settings_dropdown.dart';
 import 'package:yaabsa/components/settings/settings_slider.dart';
 import 'package:yaabsa/components/settings/settings_switch_tile.dart';
-import 'package:yaabsa/database/app_database.dart';
-import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/settings/library_shelf_settings.dart';
 import 'package:yaabsa/screens/settings/library_order_settings.dart';
 import 'package:yaabsa/screens/settings/library_view_subtitle_settings.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
-import 'package:yaabsa/util/download_destination.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
@@ -32,144 +22,12 @@ class LibrarySettings extends ConsumerStatefulWidget {
 }
 
 class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
-  bool _isPicking = false;
-  late final Future<String> _defaultLocationFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _defaultLocationFuture = defaultDownloadLocationDescription();
-  }
-
-  Future<void> _pickLocation(String userId) async {
-    if (!supportsCustomDownloadLocation || _isPicking) {
-      return;
-    }
-
-    setState(() => _isPicking = true);
-
-    try {
-      String? nextValue;
-
-      if (!kIsWeb && Platform.isAndroid) {
-        final pickedUri = await FileDownloader().uri.pickDirectory(
-          startLocation: SharedStorage.downloads,
-          persistedUriPermission: true,
-        );
-        if (pickedUri == null) {
-          return;
-        }
-        nextValue = pickedUri.toString();
-      } else if (!kIsWeb && (Platform.isLinux || Platform.isWindows)) {
-        final directoryPath = await FilePicker.getDirectoryPath(dialogTitle: 'Choose download folder');
-        if (directoryPath == null || directoryPath.trim().isEmpty) {
-          return;
-        }
-        nextValue = encodeDesktopDownloadLocation(directoryPath);
-      }
-
-      if (nextValue == null) {
-        return;
-      }
-
-      await ref
-          .read(settingsManagerProvider.notifier)
-          .setUserSetting<String>(userId, SettingKeys.downloadPath, nextValue);
-
-      if (!mounted) {
-        return;
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Download location updated')));
-    } catch (e) {
-      if (!mounted) {
-        return;
-      }
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update location: $e')));
-    } finally {
-      if (mounted) {
-        setState(() => _isPicking = false);
-      }
-    }
-  }
-
-  Future<void> _resetToDefaultLocation(String userId) async {
-    if (_isPicking) {
-      return;
-    }
-
-    setState(() => _isPicking = true);
-
-    try {
-      await ref.read(settingsManagerProvider.notifier).setUserSetting<String>(userId, SettingKeys.downloadPath, '');
-
-      if (!mounted) {
-        return;
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Using default download location')));
-    } catch (e) {
-      if (!mounted) {
-        return;
-      }
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update location: $e')));
-    } finally {
-      if (mounted) {
-        setState(() => _isPicking = false);
-      }
-    }
-  }
-
-  Future<void> _handleLocationAction(String userId, {required bool hasCustomLocation}) async {
-    if (!supportsCustomDownloadLocation || _isPicking) {
-      return;
-    }
-
-    if (!hasCustomLocation) {
-      await _pickLocation(userId);
-      return;
-    }
-
-    final selectedAction = await showModalBottomSheet<_LocationAction>(
-      context: context,
-      builder: (context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.folder_open),
-                title: const Text('Choose folder'),
-                onTap: () => Navigator.of(context).pop(_LocationAction.choose),
-              ),
-              ListTile(
-                leading: const Icon(Icons.restart_alt_rounded),
-                title: const Text('Use default location'),
-                onTap: () => Navigator.of(context).pop(_LocationAction.useDefault),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-
-    if (selectedAction == _LocationAction.choose) {
-      await _pickLocation(userId);
-      return;
-    }
-
-    if (selectedAction == _LocationAction.useDefault) {
-      await _resetToDefaultLocation(userId);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final appDatabase = ref.watch(appDatabaseProvider);
     final currentUser = ref.watch(currentUserProvider);
 
     return SettingsPageScaffold(
-      title: 'General Settings',
+      title: 'Library Settings',
       embedded: true,
       showEmbeddedBackButton: true,
       children: [
@@ -178,7 +36,7 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
             if (user == null) {
               return const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                child: Text('Sign in to configure download settings'),
+                child: Text('Sign in to configure library settings'),
               );
             }
 
@@ -239,69 +97,6 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
                     ),
                   ],
                 ),
-
-                SettingsNavigationSection(
-                  title: 'Downloads',
-                  settings: [
-                    StreamBuilder<UserSettingEntry?>(
-                      stream: appDatabase.watchUserSetting(user.id, SettingKeys.downloadPath),
-                      builder: (context, snapshot) {
-                        final fallbackValue = ref
-                            .read(settingsManagerProvider.notifier)
-                            .getUserSetting<String>(user.id, SettingKeys.downloadPath, defaultValue: '');
-
-                        final currentRawValue = snapshot.data?.value ?? fallbackValue;
-                        final hasCustomLocation = parseDownloadLocationSetting(currentRawValue) != null;
-                        final currentDisplayValue = formatDownloadLocationForDisplay(currentRawValue);
-
-                        return FutureBuilder<String>(
-                          future: _defaultLocationFuture,
-                          builder: (context, defaultLocationSnapshot) {
-                            final defaultLocation = defaultLocationSnapshot.data ?? 'Loading default location...';
-                            final currentLocationDisplay = hasCustomLocation ? currentDisplayValue : defaultLocation;
-
-                            return SettingButton(
-                              label: 'Download Location',
-                              description: currentLocationDisplay,
-                              buttonText: hasCustomLocation ? 'Change' : 'Choose',
-                              buttonIcon: Icons.folder_open,
-                              onPressed: supportsCustomDownloadLocation
-                                  ? () => _handleLocationAction(user.id, hasCustomLocation: hasCustomLocation)
-                                  : null,
-                              isLoading: _isPicking,
-                            );
-                          },
-                        );
-                      },
-                    ),
-                    StreamBuilder<UserSettingEntry?>(
-                      stream: appDatabase.watchUserSetting(user.id, SettingKeys.downloadTypePreference),
-                      builder: (context, snapshot) {
-                        final fallbackValue = ref
-                            .read(settingsManagerProvider.notifier)
-                            .getUserSetting<String>(
-                              user.id,
-                              SettingKeys.downloadTypePreference,
-                              defaultValue: 'askEveryTime',
-                            );
-                        final currentValue = SettingsParser.decodeValue<String>(snapshot.data?.value, fallbackValue);
-
-                        return SettingDropdown<String>.remote(
-                          label: 'Download Preference',
-                          description: 'What files to download by default',
-                          value: currentValue,
-                          values: const ['askEveryTime', 'audiobook', 'ebook', 'both'],
-                          valueLabels: const ['Ask every time', 'Audiobook only', 'Ebook only', 'Both'],
-                          onValueChanged: (newValue) async {
-                            await ref
-                                .read(settingsManagerProvider.notifier)
-                                .setUserSetting<String>(user.id, SettingKeys.downloadTypePreference, newValue);
-                          },
-                        );
-                      },
-                    ),
-                  ],
-                ),
               ],
             );
           },
@@ -316,5 +111,3 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
     );
   }
 }
-
-enum _LocationAction { choose, useDefault }

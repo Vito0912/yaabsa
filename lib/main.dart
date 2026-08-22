@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:yaabsa/components/common/android_edge_to_edge_inset_guard.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/core/socket_provider.dart';
+import 'package:yaabsa/provider/library/smart_download_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/core/oidc_provider.dart';
@@ -93,6 +94,7 @@ void main() {
       initPhoneWearHandler();
       await _configureAndroidEdgeToEdge();
       runApp(UncontrolledProviderScope(container: containerRef, child: MyApp()));
+      containerRef.read(smartDownloadManagerProvider.notifier).markAppReady();
       unawaited(_resumeLastPlayedOnStartup());
     },
     (error, stack) {
@@ -136,7 +138,7 @@ class MyApp extends ConsumerWidget {
           return const SizedBox.shrink();
         }
 
-        return AndroidEdgeToEdgeInsetGuard(child: child);
+        return ScaffoldMessenger(child: AndroidEdgeToEdgeInsetGuard(child: child));
       },
       localizationsDelegates: [...GlobalMaterialLocalizations.delegates, FlutterQuillLocalizations.delegate],
       themeMode: themeSelection.materialThemeMode,

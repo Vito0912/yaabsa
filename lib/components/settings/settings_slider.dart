@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:material_ui/material_ui.dart';
@@ -12,6 +15,7 @@ class SettingSlider<T> extends ConsumerWidget {
   final List<T> values;
   final List<String> valueLabels;
   final String settingKey;
+  final String? userId;
   final ValueChanged<T>? onChanged;
   final bool enabled;
 
@@ -25,15 +29,42 @@ class SettingSlider<T> extends ConsumerWidget {
     required this.values,
     required this.valueLabels,
     required this.settingKey,
+    this.userId,
     this.onChanged,
     this.enabled = true,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settingAsyncValue = ref.watch(globalSettingByKeyProvider(settingKey));
     final ThemeData theme = Theme.of(context);
     final TextTheme textTheme = theme.textTheme;
+
+    if (userId != null) {
+      final appDatabase = ref.watch(appDatabaseProvider);
+      return StreamBuilder<UserSettingEntry?>(
+        stream: appDatabase.watchUserSetting(userId!, settingKey),
+        builder: (context, snapshot) {
+          final dynamic defaultValueDynamic = defaultSettings[settingKey];
+          if (defaultValueDynamic is! T) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+              child: Text(
+                'Error: Default value for $settingKey is not of type $T.',
+                style: textTheme.bodyMedium?.copyWith(color: theme.colorScheme.error),
+              ),
+            );
+          }
+
+          final fallbackValue = ref
+              .read(settingsManagerProvider.notifier)
+              .getUserSetting<T>(userId, settingKey, defaultValue: defaultValueDynamic);
+          final currentValue = SettingsParser.decodeValue<T>(snapshot.data?.value, fallbackValue);
+          return _buildSliderContent(context, ref, currentValue, theme, textTheme);
+        },
+      );
+    }
+
+    final settingAsyncValue = ref.watch(globalSettingByKeyProvider(settingKey));
 
     return settingAsyncValue.when(
       data: (stringValue) {
@@ -203,7 +234,12 @@ class SettingSlider<T> extends ConsumerWidget {
                 onChanged: isEnabled
                     ? (double newIndex) {
                         final T newValue = values[newIndex.round()];
-                        ref.read(settingsManagerProvider.notifier).setGlobalSetting<T>(settingKey, newValue);
+                        final settings = ref.read(settingsManagerProvider.notifier);
+                        if (userId == null) {
+                          unawaited(settings.setGlobalSetting<T>(settingKey, newValue));
+                        } else {
+                          unawaited(settings.setUserSetting<T>(userId, settingKey, newValue));
+                        }
                         onChanged?.call(newValue);
                       }
                     : null,

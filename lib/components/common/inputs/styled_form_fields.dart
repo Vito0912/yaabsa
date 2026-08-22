@@ -35,6 +35,7 @@ class StyledTextField extends StatelessWidget {
     super.key,
     required this.label,
     this.controller,
+    this.focusNode,
     this.hintText,
     this.helperText,
     this.errorText,
@@ -56,6 +57,7 @@ class StyledTextField extends StatelessWidget {
 
   final String label;
   final TextEditingController? controller;
+  final FocusNode? focusNode;
   final String? hintText;
   final String? helperText;
   final String? errorText;
@@ -85,6 +87,7 @@ class StyledTextField extends StatelessWidget {
 
     return TextField(
       controller: controller,
+      focusNode: focusNode,
       keyboardType: keyboardType,
       maxLines: maxLines,
       onChanged: onChanged,

@@ -145,7 +145,7 @@ class _QueueTile extends StatelessWidget {
             if (entry.autoQueued)
               Padding(
                 padding: const EdgeInsets.only(right: 6),
-                child: Icon(Icons.auto_awesome_rounded, size: 18, color: Theme.of(context).colorScheme.secondary),
+                child: Icon(Icons.playlist_add_check_rounded, size: 18, color: Theme.of(context).colorScheme.secondary),
               ),
             IconButton(
               tooltip: 'Remove from queue',

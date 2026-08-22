@@ -79,7 +79,10 @@ extension _BGAudioHandlerResume on BGAudioHandler {
       return false;
     }
 
-    if (playerControlState.playing || _queueTransitionLoading || queueList.isNotEmpty) {
+    final canPreserveRestoredManualQueue = queueList.isNotEmpty && queueList.every((entry) => !entry.autoQueued);
+    if (playerControlState.playing ||
+        _queueTransitionLoading ||
+        (queueList.isNotEmpty && !canPreserveRestoredManualQueue)) {
       return false;
     }
 
@@ -121,6 +124,7 @@ extension _BGAudioHandlerResume on BGAudioHandler {
         itemId: lastPlayedItem.itemId,
         episodeId: lastPlayedItem.episodeId,
         position: resumePosition,
+        preserveQueue: canPreserveRestoredManualQueue,
       );
 
       return _currentMediaItem != null;
@@ -139,26 +143,33 @@ extension _BGAudioHandlerResume on BGAudioHandler {
   Future<void> _handleActiveUserIdEmission(String activeUserId, {required bool stopPlayback}) async {
     if (stopPlayback) {
       _lastPlayedMiniPlayerRestoreGeneration += 1;
+      _skipQueueIntentPersistence = true;
     }
+    try {
+      if (stopPlayback && (_currentMediaItem != null || queueList.isNotEmpty || _queueTransitionLoading)) {
+        await stop(clearQueue: true);
+      }
 
-    if (stopPlayback && (_currentMediaItem != null || queueList.isNotEmpty || _queueTransitionLoading)) {
-      await stop(clearQueue: true);
+      if (_isDisposing || _observedActiveUserId != activeUserId) {
+        return;
+      }
+
+      if (stopPlayback) {
+        _lastQueueItem = null;
+        _restoredMediaItem = null;
+        _restoredPosition = Duration.zero;
+        _setLastPlayedMiniPlayerSnapshot(null);
+      }
+
+      await _restoreQueueIntent(activeUserId);
+
+      unawaited(_androidAutoClearAuthenticationRequiredState(this, refreshBrowseRoots: true));
+      await _restoreLastPlayedMiniPlayerIfEnabledInternal(explicitUserId: activeUserId);
+    } finally {
+      if (stopPlayback) {
+        _skipQueueIntentPersistence = false;
+      }
     }
-
-    if (_isDisposing || _observedActiveUserId != activeUserId) {
-      return;
-    }
-
-    if (stopPlayback) {
-      _lastQueueItem = null;
-      _restoredMediaItem = null;
-      _restoredPosition = Duration.zero;
-      _setLastPlayedMiniPlayerSnapshot(null);
-    }
-
-    // Clear Android Auto auth error as soon as login becomes active.
-    unawaited(_androidAutoClearAuthenticationRequiredState(this, refreshBrowseRoots: true));
-    await _restoreLastPlayedMiniPlayerIfEnabledInternal(explicitUserId: activeUserId);
   }
 
   Future<void> _restoreLastPlayedMiniPlayerIfEnabledInternal({String? explicitUserId}) async {

@@ -138,7 +138,7 @@ class LibraryItemBookView extends ConsumerWidget {
         : appDatabase.watchStoredDownloadsByUser(currentUser.id);
 
     return StreamBuilder<List<TaskRecord>>(
-      stream: downloadHandler.taskQueueStream,
+      stream: downloadHandler.taskQueueStreamForItem(item.id),
       initialData: const <TaskRecord>[],
       builder: (context, taskSnapshot) {
         final activeTasks = taskSnapshot.data ?? const <TaskRecord>[];
