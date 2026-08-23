@@ -474,19 +474,24 @@ extension _BGAudioHandlerAutoQueueExtension on BGAudioHandler {
     autoState.isLoading = true;
     _emitQueueState();
 
-    final nextPage = autoState.highestLoadedPage + 1;
     try {
-      final pageResult = await _fetchAutoQueuePage(autoState.context, nextPage);
-      if (_autoQueueState != autoState) {
-        return;
-      }
+      while (_autoQueueState == autoState && _remainingAutoQueueItems(autoState) > 0) {
+        final nextPage = autoState.highestLoadedPage + 1;
+        final pageResult = await _fetchAutoQueuePage(autoState.context, nextPage);
+        if (_autoQueueState != autoState) {
+          return;
+        }
 
-      autoState.highestLoadedPage = pageResult.page;
-      if (pageResult.items.isNotEmpty) {
-        autoState.firstItemReferenceByPage[pageResult.page] = pageResult.items.first.referenceKey;
-      }
+        autoState.highestLoadedPage = math.max(nextPage, pageResult.page);
+        if (pageResult.items.isNotEmpty) {
+          autoState.firstItemReferenceByPage[pageResult.page] = pageResult.items.first.referenceKey;
+        }
 
-      _appendAutoQueueItems(pageResult.items, page: pageResult.page);
+        final appended = _appendAutoQueueItems(pageResult.items, page: pageResult.page);
+        if (appended > 0) {
+          break;
+        }
+      }
     } catch (e) {
       logger('Failed to load more auto queue items: $e', tag: 'AudioHandler', level: InfoLevel.warning);
     } finally {
@@ -514,10 +519,6 @@ extension _BGAudioHandlerAutoQueueExtension on BGAudioHandler {
 
   Future<_AutoQueuePageResult> _fetchAutoQueuePage(_AutoQueueRequestContext context, int page) async {
     final sourceRepository = _ref.read(queueSourceRepositoryProvider);
-    final activeUserId = _ref.read(currentUserProvider).value?.id;
-    final podcastDescending = _ref
-        .read(settingsManagerProvider.notifier)
-        .getUserSetting<bool>(activeUserId, SettingKeys.podcastQueueSortDescending, defaultValue: true);
     final source = switch (context.sourceType) {
       _AutoQueueSourceType.series => MediaSourceDescriptor(
         type: MediaSourceType.series,
@@ -538,7 +539,7 @@ extension _BGAudioHandlerAutoQueueExtension on BGAudioHandler {
         type: MediaSourceType.podcast,
         sourceId: context.podcastItemId ?? '',
         libraryId: context.libraryId,
-        descending: podcastDescending,
+        descending: false,
       ),
     };
 
@@ -767,7 +768,10 @@ extension _BGAudioHandlerAutoQueueExtension on BGAudioHandler {
     }
 
     final episodes =
-        (context.seededPodcastEpisodes ?? baseItem.media?.podcastMedia?.episodes ?? const <Episode>[]).reversed;
+        (context.seededPodcastEpisodes ?? baseItem.media?.podcastMedia?.episodes ?? const <Episode>[])
+            .where((episode) => episode.audioFile != null)
+            .toList(growable: true)
+          ..sort(_podcastEpisodeOldestFirstComparator);
     if (episodes.isEmpty) {
       return const <_AutoQueueItemCandidate>[];
     }
@@ -813,12 +817,11 @@ extension _BGAudioHandlerAutoQueueExtension on BGAudioHandler {
         return _AutoQueueRequestContext.collection(libraryId: libraryId, collectionId: source.sourceId, initialPage: 0);
       case MediaSourceType.podcast:
         final episodes = await _androidAutoOrderedPlayablePodcastEpisodes(item);
-        final episodeIndex = episodes.indexWhere((episode) => episode.id == _restoredQueueAnchor?.episodeId);
         return _AutoQueueRequestContext.podcast(
           libraryId: libraryId,
           podcastItemId: source.sourceId,
           podcastItem: item,
-          episodeIndex: episodeIndex < 0 ? 0 : episodeIndex,
+          episodeId: _restoredQueueAnchor?.episodeId ?? '',
           seededPodcastEpisodes: episodes,
         );
     }
@@ -897,7 +900,7 @@ extension _BGAudioHandlerAutoQueueExtension on BGAudioHandler {
           libraryId: libraryId,
           podcastItemId: libraryItem.id,
           podcastItem: libraryItem,
-          episodeIndex: episodeIndex,
+          episodeId: episodeId,
           seededPodcastEpisodes: episodes,
         );
         unawaited(_startAutoQueue(autoQueueContext, QueueItem(itemId: itemId, episodeId: episodeId)));

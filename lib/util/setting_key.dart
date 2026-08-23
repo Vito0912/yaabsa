@@ -60,7 +60,6 @@ class SettingKeys {
   static const String androidAutoLibrarySortField = 'android_auto_library_sort_field';
   static const String androidAutoPodcastSortDescending = 'android_auto_podcast_sort_descending';
   static const String androidAutoPodcastSortField = 'android_auto_podcast_sort_field';
-  static const String podcastQueueSortDescending = 'podcast_queue_sort_descending';
   static const String androidAutoGroupByLetters = 'android_auto_group_by_letters';
   static const String personalizedShelfShowPlayVisibleButton = 'personalized_shelf_show_play_visible_button';
   static const String showShuffleButton = 'show_shuffle_button';
@@ -226,7 +225,6 @@ final defaultSettings = {
   SettingKeys.androidAutoLibrarySortField: 'title',
   SettingKeys.androidAutoPodcastSortDescending: true,
   SettingKeys.androidAutoPodcastSortField: 'added',
-  SettingKeys.podcastQueueSortDescending: true,
   SettingKeys.androidAutoGroupByLetters: true,
   SettingKeys.personalizedShelfShowPlayVisibleButton: false,
   SettingKeys.showShuffleButton: false,

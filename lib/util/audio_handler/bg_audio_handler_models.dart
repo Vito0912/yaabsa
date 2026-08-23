@@ -212,16 +212,20 @@ class _AutoQueueRequestContext {
     required String libraryId,
     required String podcastItemId,
     required LibraryItem podcastItem,
-    required int episodeIndex,
+    required String episodeId,
     List<Episode>? seededPodcastEpisodes,
   }) {
-    final episodeCount = seededPodcastEpisodes?.length;
-    final reversedEpisodeIndex = episodeCount == null ? 0 : episodeCount - episodeIndex - 1;
+    final chronologicalEpisodes =
+        (seededPodcastEpisodes ?? podcastItem.media?.podcastMedia?.episodes ?? const <Episode>[])
+            .where((episode) => episode.audioFile != null)
+            .toList(growable: true)
+          ..sort(_podcastEpisodeOldestFirstComparator);
+    final episodeIndex = chronologicalEpisodes.indexWhere((episode) => episode.id == episodeId);
 
     return _AutoQueueRequestContext._(
       sourceType: _AutoQueueSourceType.podcast,
       libraryId: libraryId,
-      initialPage: reversedEpisodeIndex < 0 ? 0 : reversedEpisodeIndex ~/ _autoQueuePageSize,
+      initialPage: episodeIndex < 0 ? 0 : episodeIndex ~/ _autoQueuePageSize,
       podcastItemId: podcastItemId,
       podcastItem: podcastItem,
       seededPodcastEpisodes: seededPodcastEpisodes,
@@ -242,6 +246,24 @@ class _AutoQueueRequestContext {
   final List<Episode>? seededPodcastEpisodes;
 
   List<_AutoQueueItemCandidate>? cachedCandidates;
+}
+
+int _podcastEpisodeOldestFirstComparator(Episode left, Episode right) {
+  final byTimestamp = _podcastEpisodeQueueTimestamp(left).compareTo(_podcastEpisodeQueueTimestamp(right));
+  if (byTimestamp != 0) {
+    return byTimestamp;
+  }
+
+  final byIndex = (left.index ?? -1).compareTo(right.index ?? -1);
+  if (byIndex != 0) {
+    return byIndex;
+  }
+
+  return (left.title ?? '').toLowerCase().compareTo((right.title ?? '').toLowerCase());
+}
+
+int _podcastEpisodeQueueTimestamp(Episode episode) {
+  return episode.publishedAt ?? episode.addedAt ?? episode.updatedAt ?? 0;
 }
 
 class _AutoQueueItemCandidate {

@@ -4,11 +4,51 @@ import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 
-class PlayerQueueView extends StatelessWidget {
+class PlayerQueueView extends StatefulWidget {
   const PlayerQueueView({super.key, this.showEmptyIcon = true, this.emptyMode = PlayerCollectionEmptyMode.full});
 
   final bool showEmptyIcon;
   final PlayerCollectionEmptyMode emptyMode;
+
+  @override
+  State<PlayerQueueView> createState() => _PlayerQueueViewState();
+}
+
+class _PlayerQueueViewState extends State<PlayerQueueView> {
+  static const double _loadMoreThreshold = 320;
+
+  final ScrollController _scrollController = ScrollController();
+  bool _isReordering = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_loadMoreIfNeeded);
+  }
+
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_loadMoreIfNeeded)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _loadMoreIfNeeded() {
+    if (_isReordering || !_scrollController.hasClients) {
+      return;
+    }
+
+    final position = _scrollController.position;
+    if (position.extentAfter > _loadMoreThreshold) {
+      return;
+    }
+
+    final queueSnapshot = audioHandler.queueSnapshot;
+    if (queueSnapshot.canLoadMoreAutoQueue) {
+      audioHandler.loadMoreAutoQueue();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,31 +60,37 @@ class PlayerQueueView extends StatelessWidget {
         final entries = queueSnapshot.entries;
 
         if (entries.isEmpty) {
-          if (emptyMode == PlayerCollectionEmptyMode.hide) {
+          if (widget.emptyMode == PlayerCollectionEmptyMode.hide) {
             return const SizedBox.shrink();
           }
 
-          if (emptyMode == PlayerCollectionEmptyMode.compact) {
+          if (widget.emptyMode == PlayerCollectionEmptyMode.compact) {
             return const _QueueCompactEmptyState();
           }
 
-          return _QueueEmptyState(
-            showIcon: showEmptyIcon,
-            autoQueueRemaining: queueSnapshot.autoQueueRemaining,
-            autoQueueActive: queueSnapshot.autoQueueActive,
-            canLoadMore: queueSnapshot.canLoadMoreAutoQueue,
-            isLoading: queueSnapshot.autoQueueLoading,
-          );
+          return _QueueEmptyState(showIcon: widget.showEmptyIcon, isLoading: queueSnapshot.autoQueueLoading);
         }
 
         return Column(
           children: [
             Expanded(
               child: ReorderableListView.builder(
+                scrollController: _scrollController,
                 physics: const ClampingScrollPhysics(),
                 padding: const EdgeInsets.only(bottom: 8),
                 itemCount: entries.length,
                 onReorderItem: audioHandler.reorderQueue,
+                onReorderStart: (_) {
+                  _isReordering = true;
+                },
+                onReorderEnd: (_) {
+                  _isReordering = false;
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) {
+                      _loadMoreIfNeeded();
+                    }
+                  });
+                },
                 buildDefaultDragHandles: false,
                 itemBuilder: (context, index) {
                   final entry = entries[index];
@@ -53,11 +99,10 @@ class PlayerQueueView extends StatelessWidget {
                 },
               ),
             ),
-            if (queueSnapshot.autoQueueActive)
-              _AutoQueueLoadMoreBar(
-                remaining: queueSnapshot.autoQueueRemaining,
-                canLoadMore: queueSnapshot.canLoadMoreAutoQueue,
-                isLoading: queueSnapshot.autoQueueLoading,
+            if (queueSnapshot.autoQueueLoading)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
               ),
           ],
         );
@@ -161,62 +206,10 @@ class _QueueTile extends StatelessWidget {
   }
 }
 
-class _AutoQueueLoadMoreBar extends StatelessWidget {
-  const _AutoQueueLoadMoreBar({required this.remaining, required this.canLoadMore, required this.isLoading});
-
-  final int remaining;
-  final bool canLoadMore;
-  final bool isLoading;
-
-  @override
-  Widget build(BuildContext context) {
-    if (remaining <= 0) {
-      return const SizedBox.shrink();
-    }
-
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(top: 6),
-      padding: const EdgeInsets.fromLTRB(8, 6, 8, 2),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text('and $remaining more to load', style: Theme.of(context).textTheme.bodySmall, maxLines: 2),
-          ),
-          const SizedBox(width: 8),
-          FilledButton.tonal(
-            onPressed: canLoadMore
-                ? () {
-                    audioHandler.loadMoreAutoQueue();
-                  }
-                : null,
-            child: isLoading
-                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                : const Text('Load more'),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _QueueEmptyState extends StatelessWidget {
-  const _QueueEmptyState({
-    required this.showIcon,
-    required this.autoQueueRemaining,
-    required this.autoQueueActive,
-    required this.canLoadMore,
-    required this.isLoading,
-  });
+  const _QueueEmptyState({required this.showIcon, required this.isLoading});
 
   final bool showIcon;
-  final int autoQueueRemaining;
-  final bool autoQueueActive;
-  final bool canLoadMore;
   final bool isLoading;
 
   @override
@@ -231,9 +224,9 @@ class _QueueEmptyState extends StatelessWidget {
               Icon(Icons.queue_music_rounded, size: 36, color: Theme.of(context).colorScheme.onSurfaceVariant),
             if (showIcon) const SizedBox(height: 10),
             Text('Queue is empty', style: Theme.of(context).textTheme.titleMedium),
-            if (autoQueueActive && autoQueueRemaining > 0) ...[
+            if (isLoading) ...[
               const SizedBox(height: 8),
-              _AutoQueueLoadMoreBar(remaining: autoQueueRemaining, canLoadMore: canLoadMore, isLoading: isLoading),
+              const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
             ],
           ],
         ),
