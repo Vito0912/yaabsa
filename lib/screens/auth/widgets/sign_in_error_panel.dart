@@ -2,10 +2,11 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 
 class SignInErrorPanel extends StatelessWidget {
-  const SignInErrorPanel({super.key, required this.message, this.stackTraceDetails});
+  const SignInErrorPanel({super.key, required this.message, this.stackTraceDetails, this.onRetry});
 
   final String message;
   final String? stackTraceDetails;
+  final VoidCallback? onRetry;
 
   bool get _canCopyDetails => stackTraceDetails != null && stackTraceDetails!.trim().isNotEmpty;
 
@@ -34,14 +35,23 @@ class SignInErrorPanel extends StatelessWidget {
               ),
             ],
           ),
-          if (_canCopyDetails) ...[
+          if (_canCopyDetails || onRetry != null) ...[
             const SizedBox(height: 10),
-            Align(
-              alignment: Alignment.centerRight,
-              child: IconButton(
-                onPressed: () => _copyStackTrace(context),
-                icon: const Icon(Icons.copy_all_rounded, size: 18),
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                if (onRetry != null)
+                  TextButton.icon(
+                    onPressed: onRetry,
+                    icon: const Icon(Icons.refresh_rounded, size: 18),
+                    label: const Text('Retry'),
+                  ),
+                if (_canCopyDetails)
+                  IconButton(
+                    onPressed: () => _copyStackTrace(context),
+                    icon: const Icon(Icons.copy_all_rounded, size: 18),
+                  ),
+              ],
             ),
           ],
         ],

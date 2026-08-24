@@ -2,10 +2,14 @@ import 'dart:async';
 import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
+import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/database/app_database.dart';
+import 'package:yaabsa/database/auth_secret_store.dart';
+import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/auth/sign_in.dart';
 import 'package:yaabsa/screens/item/library_item_view.dart';
 import 'package:yaabsa/screens/layout_home.dart';
@@ -76,16 +80,26 @@ class _ActiveUserIdNotifier extends ChangeNotifier {
       logger('[_ActiveUserIdNotifier] watchGlobalSetting emitted: ${setting?.value}', tag: 'Router');
       _updateState(setting?.value, initialized: true);
     });
+    _currentUserSubscription = containerRef.listen<AsyncValue<User?>>(currentUserProvider, (previous, next) {
+      if (isAuthSecretsUnavailableError(next.error)) {
+        _updateKeyringUnavailable(true);
+      } else if (next.hasValue) {
+        _updateKeyringUnavailable(false);
+      }
+    }, fireImmediately: true);
     unawaited(_loadInitialValue());
   }
 
   final AppDatabase _db;
   late final StreamSubscription<dynamic> _subscription;
+  late final ProviderSubscription<AsyncValue<User?>> _currentUserSubscription;
   String? _activeUserId;
   bool _isInitialized = false;
+  bool _keyringUnavailable = false;
 
   String? get activeUserId => _activeUserId;
   bool get isInitialized => _isInitialized;
+  bool get keyringUnavailable => _keyringUnavailable;
 
   Future<void> _loadInitialValue() async {
     if (_isInitialized) {
@@ -115,9 +129,24 @@ class _ActiveUserIdNotifier extends ChangeNotifier {
     }
   }
 
+  void _updateKeyringUnavailable(bool unavailable) {
+    if (_keyringUnavailable == unavailable) {
+      return;
+    }
+
+    _keyringUnavailable = unavailable;
+    logger(
+      '[_ActiveUserIdNotifier] keyring unavailable state changed to $unavailable',
+      tag: 'Router',
+      level: InfoLevel.warning,
+    );
+    notifyListeners();
+  }
+
   @override
   void dispose() {
     _subscription.cancel();
+    _currentUserSubscription.close();
     super.dispose();
   }
 }
@@ -138,6 +167,10 @@ final globalRouter = GoRouter(
 
     if (!_activeUserIdNotifier.isInitialized) {
       return isBootRoute ? null : _bootRoutePath;
+    }
+
+    if (_activeUserIdNotifier.keyringUnavailable && !isLoginRoute) {
+      return '/add-user?keyringLocked=1';
     }
 
     if (isBootRoute) {

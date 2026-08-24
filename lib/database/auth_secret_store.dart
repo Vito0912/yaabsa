@@ -28,6 +28,20 @@ class AuthSecretsUnavailableException implements Exception {
   String toString() => 'AuthSecretsUnavailableException($error)';
 }
 
+bool isKeyringLockedError(Object error) {
+  final cause = error is AuthSecretsUnavailableException ? error.error : error;
+  return cause is PlatformException && cause.code == 'KeyringLocked';
+}
+
+bool isAuthSecretsUnavailableError(Object? error) {
+  return error is AuthSecretsUnavailableException || error is PlatformException;
+}
+
+String authSecretsUnavailableMessage({required String operation, required bool keyringLocked}) {
+  final reason = keyringLocked ? 'the system keyring is locked' : 'secure credential storage is unavailable';
+  return 'The user could not be $operation because $reason. Unlock your keyring or wallet (for example, GNOME Keyring or KDE Wallet), then try again';
+}
+
 class AuthSecretStore {
   AuthSecretStore({FlutterSecureStorage? storage, FlutterSecureStorage? legacyStorage})
     : _storage =
@@ -71,19 +85,27 @@ class AuthSecretStore {
     String? apiKey,
     bool clearMissing = false,
   }) async {
-    await _writeField(userId, _legacyTokenKey, legacyToken, clearMissing);
-    await _writeField(userId, _accessTokenKey, accessToken, clearMissing);
-    await _writeField(userId, _refreshTokenKey, refreshToken, clearMissing);
-    await _writeField(userId, _apiKeyKey, apiKey, clearMissing);
+    try {
+      await _writeField(userId, _legacyTokenKey, legacyToken, clearMissing);
+      await _writeField(userId, _accessTokenKey, accessToken, clearMissing);
+      await _writeField(userId, _refreshTokenKey, refreshToken, clearMissing);
+      await _writeField(userId, _apiKeyKey, apiKey, clearMissing);
+    } catch (error, stackTrace) {
+      throw AuthSecretsUnavailableException(error: error, stackTrace: stackTrace);
+    }
   }
 
   Future<void> deleteForUser(String userId) async {
-    await Future.wait<void>([
-      _storage.delete(key: _key(userId, _legacyTokenKey)),
-      _storage.delete(key: _key(userId, _accessTokenKey)),
-      _storage.delete(key: _key(userId, _refreshTokenKey)),
-      _storage.delete(key: _key(userId, _apiKeyKey)),
-    ]);
+    try {
+      await Future.wait<void>([
+        _storage.delete(key: _key(userId, _legacyTokenKey)),
+        _storage.delete(key: _key(userId, _accessTokenKey)),
+        _storage.delete(key: _key(userId, _refreshTokenKey)),
+        _storage.delete(key: _key(userId, _apiKeyKey)),
+      ]);
+    } catch (error, stackTrace) {
+      throw AuthSecretsUnavailableException(error: error, stackTrace: stackTrace);
+    }
   }
 
   Future<void> _writeField(String userId, String field, String? value, bool clearMissing) async {

@@ -47,8 +47,7 @@ Stream<User?> currentUser(Ref ref) async* {
         tag: 'currentUserProvider',
         level: InfoLevel.warning,
       );
-      yield null;
-      continue;
+      rethrow;
     }
 
     if (user == null || user.server == null) {
@@ -114,22 +113,9 @@ bool _stringMapEquals(Map<String, dynamic>? a, Map<String, dynamic>? b) {
 }
 
 Future<User?> _refreshCurrentUserFromServer({required AppDatabase db, required User user}) async {
-  Future<void> onAuthFailed(String userId) async {
-    await db.deleteStoredUser(userId);
-    final remainingUsers = await db.getAllStoredUsers();
-    if (remainingUsers.isNotEmpty) {
-      await db.setActiveUserId(remainingUsers.first.id);
-    } else {
-      await db.clearActiveUserId();
-    }
-    containerRef.invalidate(allStoredUsersProvider);
-    containerRef.invalidate(currentUserProvider);
-    invalidateUserScopedProviders(containerRef);
-  }
-
   if (user.preferredAuthToken != null && AuthRefreshInterceptor.isJwtExpired(user.preferredAuthToken!)) {
     logger('Current user token is already expired. Refreshing session directly.', tag: 'currentUserProvider');
-    return AuthRefreshInterceptor.refreshSession(containerRef, onAuthFailed: onAuthFailed);
+    return AuthRefreshInterceptor.refreshSession(containerRef, onAuthFailed: _handleAuthFailed);
   }
 
   ABSApi tmp = ABSApi(
@@ -164,6 +150,9 @@ Future<User?> _refreshCurrentUserFromServer({required AppDatabase db, required U
       tag: 'currentUserProvider',
       level: InfoLevel.warning,
     );
+    if (e is AuthSecretsUnavailableException) {
+      rethrow;
+    }
     // Check if 401 Unauthorized or 403 Forbidden
     if (e is DioException && (e.response?.statusCode == 401 || e.response?.statusCode == 403)) {
       final latestUser = await db.getStoredUser(user.id);
@@ -185,11 +174,39 @@ Future<User?> _refreshCurrentUserFromServer({required AppDatabase db, required U
         'checkLogin returned ${e.response?.statusCode}. Triggering shared refreshSession.',
         tag: 'currentUserProvider',
       );
-      return AuthRefreshInterceptor.refreshSession(containerRef, onAuthFailed: onAuthFailed);
+      return AuthRefreshInterceptor.refreshSession(containerRef, onAuthFailed: _handleAuthFailed);
     }
 
     return null;
   }
+}
+
+Future<void> _handleAuthFailed(String userId) async {
+  final db = containerRef.read(appDatabaseProvider);
+
+  try {
+    await db.deleteStoredUser(userId);
+  } on AuthSecretsUnavailableException catch (e, s) {
+    logger(
+      'Could not remove authentication data for user $userId because secure storage is unavailable. Keeping the user: $e\n$s',
+      tag: 'currentUserProvider',
+      level: InfoLevel.warning,
+    );
+    // Re-run currentUser so the router can show the keyring-unavailable
+    // screen while retaining the local StoredUsers row.
+    containerRef.invalidate(currentUserProvider);
+    return;
+  }
+
+  final remainingUsers = await db.getAllStoredUsers();
+  if (remainingUsers.isNotEmpty) {
+    await db.setActiveUserId(remainingUsers.first.id);
+  } else {
+    await db.clearActiveUserId();
+  }
+  containerRef.invalidate(allStoredUsersProvider);
+  containerRef.invalidate(currentUserProvider);
+  invalidateUserScopedProviders(containerRef);
 }
 
 /// Provider for the list of all stored users.
@@ -264,19 +281,7 @@ ABSApi? absApi(Ref ref) {
       containerRef,
       bearerAuthInterceptor: bearerInterceptor,
       oAuthInterceptor: oauthInterceptor,
-      onAuthFailed: (userId) async {
-        final db = containerRef.read(appDatabaseProvider);
-        await db.deleteStoredUser(userId);
-        final remainingUsers = await db.getAllStoredUsers();
-        if (remainingUsers.isNotEmpty) {
-          await db.setActiveUserId(remainingUsers.first.id);
-        } else {
-          await db.clearActiveUserId();
-        }
-        containerRef.invalidate(allStoredUsersProvider);
-        containerRef.invalidate(currentUserProvider);
-        invalidateUserScopedProviders(containerRef);
-      },
+      onAuthFailed: _handleAuthFailed,
     ),
     ABSInterceptor(containerRef),
   ];

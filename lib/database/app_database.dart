@@ -1853,11 +1853,11 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<void> deleteStoredUser(String userId) async {
+    await _authSecretStore.deleteForUser(userId);
     await deleteStoredMediaProgressByUser(userId);
     await deleteStoredBookmarkSyncByUser(userId);
     await deleteBookPlaybackSpeedsByUser(userId);
     await (delete(storedUsers)..where((tbl) => tbl.id.equals(userId))).go();
-    await _authSecretStore.deleteForUser(userId);
   }
 
   Future<User?> getStoredUser(String userId) async {

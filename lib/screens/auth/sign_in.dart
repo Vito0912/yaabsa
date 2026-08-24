@@ -15,6 +15,7 @@ import 'package:yaabsa/api/me/status.dart';
 import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/database/app_database.dart';
+import 'package:yaabsa/database/auth_secret_store.dart';
 import 'package:yaabsa/provider/core/user_scope_invalidation.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/core/oidc_provider.dart';
@@ -63,6 +64,12 @@ class SignIn extends HookConsumerWidget {
     final hasStoredUsers = ref
         .watch(allStoredUsersProvider)
         .maybeWhen(data: (users) => users.isNotEmpty, orElse: () => false);
+    final signInQuery = GoRouterState.of(context).uri.queryParameters;
+    final isWearPairing = signInQuery['wear'] == '1';
+    final keyringLockedFromRoute = signInQuery['keyringLocked'] == '1';
+    final currentUserState = ref.watch(currentUserProvider);
+    final keyringError = currentUserState.error;
+    final keyringUnavailable = keyringLockedFromRoute || isAuthSecretsUnavailableError(keyringError);
 
     final oidcState = ref.watch(oidcStateProvider);
     final oidcLoading = oidcState.isLoading;
@@ -73,7 +80,7 @@ class SignIn extends HookConsumerWidget {
 
     ref.listen<AsyncValue<String?>>(activeUserIdProvider, (previous, next) {
       final userId = next.value;
-      if (userId != null) {
+      if (userId != null && !keyringUnavailable) {
         logger('SignIn: activeUserId became non-null ($userId). Redirecting to /', tag: 'SignIn');
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (context.mounted) {
@@ -83,8 +90,15 @@ class SignIn extends HookConsumerWidget {
       }
     });
 
-    final signInQuery = GoRouterState.of(context).uri.queryParameters;
-    final isWearPairing = signInQuery['wear'] == '1';
+    ref.listen<AsyncValue<User?>>(currentUserProvider, (previous, next) {
+      if (next.hasValue && next.value != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) {
+            context.go('/');
+          }
+        });
+      }
+    });
 
     ABSApi buildServerApi(String baseUrl) {
       final headers = buildRequestHeaders(serverHeaders: customHeaders.value);
@@ -590,11 +604,16 @@ class SignIn extends HookConsumerWidget {
       } catch (e, s) {
         final needsPasswordFallback = magicConfig != null && magicConfigMatches && magicConfig.isPasswordBearing;
         clearImportedMagicConfig();
+        final storageError = isAuthSecretsUnavailableError(e)
+            ? authSecretsUnavailableMessage(operation: 'saved', keyringLocked: isKeyringLockedError(e))
+            : null;
         setErrorMessage(
-          needsPasswordFallback
+          storageError != null
+              ? 'Login could not be completed. $storageError'
+              : needsPasswordFallback
               ? 'Authentication Code login failed. Enter the account password and try again.'
               : 'Login failed: $e',
-          details: _buildLoginErrorDetails(error: e, stackTrace: s),
+          details: storageError == null ? _buildLoginErrorDetails(error: e, stackTrace: s) : null,
         );
       } finally {
         isLoading.value = false;
@@ -724,6 +743,13 @@ class SignIn extends HookConsumerWidget {
     const allowsApiKey = true;
     final customMessage = activeStatus?.authFormData?.authLoginCustomMessage;
     final openIdButtonText = activeStatus?.authFormData?.authOpenIDButtonText ?? 'Continue with OpenID Connect';
+    final keyringErrorMessage = keyringUnavailable
+        ? authSecretsUnavailableMessage(
+            operation: 'loaded',
+            keyringLocked: keyringLockedFromRoute || (keyringError != null && isKeyringLockedError(keyringError)),
+          )
+        : null;
+    final displayedErrorMessage = keyringErrorMessage ?? errorMessage.value ?? oidcError;
 
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
@@ -838,11 +864,12 @@ class SignIn extends HookConsumerWidget {
                               onValidateAndSignIn: validateAndSignIn,
                               onStartOpenIdConnect: startOpenIdConnect,
                             ),
-                            if (errorMessage.value != null || oidcError != null) ...[
+                            if (displayedErrorMessage != null) ...[
                               const SizedBox(height: 12),
                               SignInErrorPanel(
-                                message: errorMessage.value ?? oidcError!,
-                                stackTraceDetails: loginErrorDetails.value,
+                                message: displayedErrorMessage,
+                                stackTraceDetails: keyringErrorMessage == null ? loginErrorDetails.value : null,
+                                onRetry: keyringErrorMessage == null ? null : () => ref.invalidate(currentUserProvider),
                               ),
                             ],
                             SignInAdvancedOptions(

@@ -12,6 +12,7 @@ import 'package:yaabsa/api/me/login.dart';
 import 'package:yaabsa/api/me/server.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/database/app_database.dart';
+import 'package:yaabsa/database/auth_secret_store.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/core/user_scope_invalidation.dart';
 import 'package:yaabsa/util/globals.dart' show audioHandler;
@@ -127,7 +128,9 @@ class OidcState extends _$OidcState {
 
       state = const AsyncValue.data(null);
     } catch (e, st) {
-      final errorToSet = formatOidcError(e);
+      final errorToSet = isAuthSecretsUnavailableError(e)
+          ? Exception(authSecretsUnavailableMessage(operation: 'saved', keyringLocked: isKeyringLockedError(e)))
+          : formatOidcError(e);
       logger('Failed to initiate OIDC flow: $errorToSet', tag: 'OidcProvider', level: InfoLevel.error);
       state = AsyncValue.error(errorToSet, st);
       throw errorToSet;
@@ -263,7 +266,11 @@ class OidcState extends _$OidcState {
 
       state = const AsyncValue.data(null);
     } catch (e, st) {
-      final errorToSet = formatOidcError(e);
+      final errorToSet = isAuthSecretsUnavailableError(e)
+          ? Exception(
+              authSecretsUnavailableMessage(operation: 'loaded or saved', keyringLocked: isKeyringLockedError(e)),
+            )
+          : formatOidcError(e);
       logger('OIDC Callback exchange failed: $errorToSet', tag: 'OidcProvider', level: InfoLevel.error);
       state = AsyncValue.error(errorToSet, st);
     }

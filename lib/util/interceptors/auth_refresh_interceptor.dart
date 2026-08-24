@@ -8,6 +8,7 @@ import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/api/routes/interceptors/bearer_auth_interceptor.dart';
 import 'package:yaabsa/api/routes/interceptors/o_auth_interceptor.dart';
 import 'package:yaabsa/database/app_database.dart';
+import 'package:yaabsa/database/auth_secret_store.dart';
 import 'package:yaabsa/provider/core/server_reachability_provider.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/network/dio_factory.dart';
@@ -21,7 +22,7 @@ class AuthRefreshInterceptor extends Interceptor {
   final ProviderContainer container;
   final BearerAuthInterceptor? bearerAuthInterceptor;
   final OAuthInterceptor? oAuthInterceptor;
-  final void Function(String userId)? onAuthFailed;
+  final FutureOr<void> Function(String userId)? onAuthFailed;
 
   static Completer<User?>? _globalRefreshCompleter;
 
@@ -140,7 +141,10 @@ class AuthRefreshInterceptor extends Interceptor {
     return refreshSession(container, onAuthFailed: onAuthFailed);
   }
 
-  static Future<User?> refreshSession(ProviderContainer container, {void Function(String userId)? onAuthFailed}) async {
+  static Future<User?> refreshSession(
+    ProviderContainer container, {
+    FutureOr<void> Function(String userId)? onAuthFailed,
+  }) async {
     final inFlight = _globalRefreshCompleter;
     if (inFlight != null) {
       logger(
@@ -184,7 +188,7 @@ class AuthRefreshInterceptor extends Interceptor {
         if (refreshToken == null || refreshToken.isEmpty) {
           logger('No refresh token available. Logging out.', tag: 'AuthRefreshInterceptor', level: InfoLevel.warning);
           if (onAuthFailed != null) {
-            onAuthFailed(activeUserId);
+            await _notifyAuthFailed(onAuthFailed, activeUserId);
           }
           completer.complete(null);
           return;
@@ -230,6 +234,11 @@ class AuthRefreshInterceptor extends Interceptor {
         logger('Failed to refresh auth token: $e', tag: 'AuthRefreshInterceptor', level: InfoLevel.warning);
         logger('Refresh stack trace: $s', tag: 'AuthRefreshInterceptor', level: InfoLevel.debug);
 
+        if (e is AuthSecretsUnavailableException) {
+          completer.completeError(e, s);
+          return;
+        }
+
         if (e is DioException) {
           final status = e.response?.statusCode;
           if (_isConnectivityFailure(e)) {
@@ -242,7 +251,7 @@ class AuthRefreshInterceptor extends Interceptor {
               level: InfoLevel.warning,
             );
             if (onAuthFailed != null && activeUserId != null) {
-              onAuthFailed(activeUserId);
+              await _notifyAuthFailed(onAuthFailed, activeUserId);
             }
           }
         }
@@ -253,6 +262,18 @@ class AuthRefreshInterceptor extends Interceptor {
     }();
 
     return completer.future;
+  }
+
+  static Future<void> _notifyAuthFailed(FutureOr<void> Function(String userId) callback, String userId) async {
+    try {
+      await callback(userId);
+    } catch (e, s) {
+      logger(
+        'Auth failure cleanup did not complete for user $userId: $e\n$s',
+        tag: 'AuthRefreshInterceptor',
+        level: InfoLevel.warning,
+      );
+    }
   }
 
   static bool _isConnectivityFailure(DioException error) {

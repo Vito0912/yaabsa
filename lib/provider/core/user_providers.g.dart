@@ -69,7 +69,7 @@ final class CurrentUserProvider extends $FunctionalProvider<AsyncValue<User?>, U
   }
 }
 
-String _$currentUserHash() => r'44ede569a6b21ba25a5cd89d9516c01d09141aa3';
+String _$currentUserHash() => r'cc03cfad8afcef017005efefe39be923a2967473';
 
 /// Provider for the list of all stored users.
 
@@ -140,7 +140,7 @@ final class AbsApiProvider extends $FunctionalProvider<ABSApi?, ABSApi?, ABSApi?
   }
 }
 
-String _$absApiHash() => r'7563d39bd28618fe2fba1a2096df1d9bd5d8b88b';
+String _$absApiHash() => r'97f3a13550c90826cdd845fc4e14d041a56fc366';
 
 @ProviderFor(serverVersion)
 final serverVersionProvider = ServerVersionProvider._();
