@@ -87,6 +87,7 @@ const int _streamRecoveryMaxDelayMs = 5000;
 
 class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   late final AudioPlayer _player;
+  Stream<Duration>? _subtitlePositionStream;
   final ProviderContainer _ref;
   late final PlaybackSyncService _syncService;
   StreamSubscription<PlayerException>? _errorSubscription;
@@ -774,6 +775,10 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   Stream<Duration> get positionStream {
     return _positionStreamInternal();
+  }
+
+  Stream<Duration> get subtitlePositionStream {
+    return _subtitlePositionStreamInternal();
   }
 
   Stream<Duration> get bufferedPositionStream {

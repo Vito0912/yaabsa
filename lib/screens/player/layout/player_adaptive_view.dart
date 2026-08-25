@@ -460,6 +460,7 @@ class _PlaybackPanel extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
         PlayerSubtitlesComponent(compact: context.isMobile),
+        SizedBox(height: compact ? 6 : 8),
         PlayerSeekBarComponent(
           timePlacement: PlayerSeekTimePlacement.below,
           trackHeight: seekTrackHeight,

@@ -1,5 +1,7 @@
 part of 'bg_audio_handler.dart';
 
+const Duration _subtitlePositionUpdateInterval = Duration(milliseconds: 50);
+
 extension _BGAudioHandlerState on BGAudioHandler {
   Stream<Duration> _durationStreamInternal() {
     return _player.durationStream.map((duration) {
@@ -32,6 +34,37 @@ extension _BGAudioHandlerState on BGAudioHandler {
       }
       return localPositionStream.startWith(position);
     }).distinct();
+  }
+
+  Stream<Duration> _subtitlePositionStreamInternal() {
+    final cachedStream = _subtitlePositionStream;
+    if (cachedStream != null) {
+      return cachedStream;
+    }
+
+    final localPositionStream = _player
+        .createPositionStream(minPeriod: _subtitlePositionUpdateInterval, maxPeriod: _subtitlePositionUpdateInterval)
+        .map((position) => (_currentMediaItem?.offsetForTrack(_currentTrackIndex) ?? Duration.zero) + position)
+        .distinct();
+
+    if (!_supportsCastPlatform) {
+      _subtitlePositionStream = localPositionStream;
+      return localPositionStream;
+    }
+
+    final castPositionStream = GoogleCastRemoteMediaClient.instance.playerPositionStream
+        .throttleTime(_subtitlePositionUpdateInterval)
+        .map(_castAbsolutePosition)
+        .distinct();
+
+    final stream = castControlActiveStream.startWith(isCastControlActive).switchMap((castActive) {
+      if (castActive) {
+        return castPositionStream.startWith(position);
+      }
+      return localPositionStream.startWith(position);
+    }).distinct();
+    _subtitlePositionStream = stream;
+    return stream;
   }
 
   Stream<Duration> _bufferedPositionStreamInternal() {

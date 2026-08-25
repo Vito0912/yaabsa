@@ -9,6 +9,7 @@ import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:yaabsa/util/subtitles/subtitle_loader.dart';
 import 'package:yaabsa/util/subtitles/subtitle_parser.dart';
+import 'package:yaabsa/util/subtitles/subtitle_segment_spans.dart';
 
 class SubtitlePanel extends ConsumerWidget {
   const SubtitlePanel({super.key, this.compact = false, this.openContinuousModeOnTap = true});
@@ -27,7 +28,7 @@ class SubtitlePanel extends ConsumerWidget {
     final subtitlesEnabled = settingsManager.getUserSetting<bool>(
       userId,
       SettingKeys.subtitlesEnabled,
-      defaultValue: defaultSettings[SettingKeys.subtitlesEnabled] as bool? ?? true,
+      defaultValue: defaultSettings[SettingKeys.subtitlesEnabled] as bool? ?? false,
     );
     if (!subtitlesEnabled) {
       return const SizedBox.shrink();
@@ -87,7 +88,7 @@ class SubtitlePanel extends ConsumerWidget {
                 }
 
                 return StreamBuilder<Duration>(
-                  stream: audioHandler.positionStream,
+                  stream: audioHandler.subtitlePositionStream,
                   initialData: audioHandler.position,
                   builder: (context, positionSnapshot) {
                     final position = positionSnapshot.data ?? Duration.zero;
@@ -226,7 +227,14 @@ class _SubtitleCueView extends StatelessWidget {
       final spans = <TextSpan>[];
       for (final segment in cue.segments) {
         final isActive = currentPosition >= segment.start && currentPosition < segment.end;
-        spans.add(TextSpan(text: segment.text, style: isActive ? activeStyle : baseStyle));
+        spans.addAll(
+          buildSubtitleSegmentSpans(
+            text: segment.text,
+            isActive: isActive,
+            inactiveStyle: baseStyle,
+            activeStyle: activeStyle,
+          ).whereType<TextSpan>(),
+        );
       }
 
       content = RichText(

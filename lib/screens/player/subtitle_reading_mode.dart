@@ -9,6 +9,7 @@ import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:yaabsa/util/subtitles/subtitle_loader.dart';
 import 'package:yaabsa/util/subtitles/subtitle_parser.dart';
+import 'package:yaabsa/util/subtitles/subtitle_segment_spans.dart';
 
 class SubtitleReadingModeView extends ConsumerStatefulWidget {
   const SubtitleReadingModeView({super.key});
@@ -55,7 +56,7 @@ class _SubtitleReadingModeViewState extends ConsumerState<SubtitleReadingModeVie
     final subtitlesEnabled = settingsManager.getUserSetting<bool>(
       userId,
       SettingKeys.subtitlesEnabled,
-      defaultValue: defaultSettings[SettingKeys.subtitlesEnabled] as bool? ?? true,
+      defaultValue: defaultSettings[SettingKeys.subtitlesEnabled] as bool? ?? false,
     );
     final readAlongEnabled = settingsManager.getUserSetting<bool>(
       userId,
@@ -98,7 +99,7 @@ class _SubtitleReadingModeViewState extends ConsumerState<SubtitleReadingModeVie
             final paragraphLayout = _SubtitleParagraphLayoutCache.layoutFor(loaded);
 
             return StreamBuilder<Duration>(
-              stream: audioHandler.positionStream,
+              stream: audioHandler.subtitlePositionStream,
               initialData: audioHandler.position,
               builder: (context, positionSnapshot) {
                 final position = positionSnapshot.data ?? Duration.zero;
@@ -398,13 +399,15 @@ class _ParagraphScroller extends StatelessWidget {
     final spans = <InlineSpan>[];
 
     for (final segment in cueData.segments) {
-      final text = segment.text.replaceAll('\n', ' ');
-      if (text.isEmpty) {
-        continue;
-      }
-
       final isActiveWord = currentPosition >= segment.start && currentPosition < segment.end;
-      spans.add(TextSpan(text: text, style: isActiveWord ? activeWordStyle : activeCueStyle));
+      spans.addAll(
+        buildSubtitleSegmentSpans(
+          text: segment.text,
+          isActive: isActiveWord,
+          inactiveStyle: activeCueStyle,
+          activeStyle: activeWordStyle,
+        ),
+      );
     }
 
     return spans;

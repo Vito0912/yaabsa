@@ -179,7 +179,8 @@ Future<List<SubtitleSourceCandidate>> _collectRemoteSubtitleSources({
   }
 
   for (final libraryFile in libraryItem.libraryFiles ?? const []) {
-    final format = _formatForExtension(libraryFile.metadata.ext);
+    final format =
+        _formatForExtension(libraryFile.metadata.ext) ?? _formatForFallbackFilename(libraryFile.metadata.filename);
     if (format == null) {
       continue;
     }
@@ -314,8 +315,7 @@ Future<String?> _readRemoteSource({
 }
 
 SubtitleDocumentFormat? _formatForPath(String pathOrUri) {
-  final extension = _extractExtension(pathOrUri);
-  return _formatForExtension(extension);
+  return _formatForExtension(_extractExtension(pathOrUri)) ?? _formatForFallbackFilename(_filenameFromPath(pathOrUri));
 }
 
 SubtitleDocumentFormat? _formatForExtension(String? rawExtension) {
@@ -334,6 +334,17 @@ SubtitleDocumentFormat? _formatForExtension(String? rawExtension) {
     'srt' => SubtitleDocumentFormat.srt,
     _ => null,
   };
+}
+
+SubtitleDocumentFormat? _formatForFallbackFilename(String? filename) {
+  switch (filename?.trim().toLowerCase()) {
+    case 'subtitle.vtt.txt':
+      return SubtitleDocumentFormat.webvtt;
+    case 'subtitle.srt.txt':
+      return SubtitleDocumentFormat.srt;
+    default:
+      return null;
+  }
 }
 
 String _extractExtension(String value) {

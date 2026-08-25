@@ -287,7 +287,7 @@ final defaultSettings = {
   SettingKeys.mobilePlayerRightAction: 'sleepTimer',
   SettingKeys.miniPlayerActions: 'speed,sleepTimer',
   SettingKeys.podcastEpisodeProgressFilter: 'all',
-  SettingKeys.subtitlesEnabled: true,
+  SettingKeys.subtitlesEnabled: false,
   SettingKeys.subtitleSpeakerHighlighting: true,
   SettingKeys.subtitleReadAlong: true,
   SettingKeys.checkForServerUpdates: false,

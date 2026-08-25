@@ -369,6 +369,10 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
     return UploadPickedFile(absolutePath: absolutePath, relativePath: relativePath, fileName: fileName, kind: kind);
   }
 
+  bool _isPlainTextFile(UploadPickedFile file) {
+    return p.extension(file.fileName).toLowerCase() == '.txt';
+  }
+
   String _cleanSegment(String value) {
     final cleaned = value.replaceAll(RegExp(r'[_\.]+'), ' ').replaceAll(RegExp(r'\s+'), ' ').trim();
     return cleaned.isEmpty ? value : cleaned;
@@ -414,7 +418,20 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
     final ignoredFiles = directFiles.where((file) => file.kind == UploadFileKind.ignored).toList(growable: false);
 
     if (itemFiles.isEmpty) {
-      return const [];
+      return otherFiles
+          .where(_isPlainTextFile)
+          .map(
+            (file) => _buildUploadItem(
+              title: _titleFromFileName(file.fileName),
+              author: '',
+              series: '',
+              itemFiles: const <UploadPickedFile>[],
+              otherFiles: <UploadPickedFile>[file],
+              ignoredFiles: ignoredFiles,
+              sourceDescription: file.relativePath,
+            ),
+          )
+          .toList(growable: false);
     }
 
     if (_isBookLibrary && itemFiles.length > 1) {
@@ -602,6 +619,9 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
 
     if (_autoFetchMetadata) {
       for (final item in createdItems) {
+        if (item.itemFiles.isEmpty) {
+          continue;
+        }
         unawaited(_fetchMetadataForItem(item.id, silentNoResults: true));
       }
     }
