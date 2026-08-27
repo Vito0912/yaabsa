@@ -14,6 +14,7 @@ import 'package:yaabsa/api/library_items/update_library_item_media_response.dart
 import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/components/common/cover_loading_placeholder.dart';
 import 'package:yaabsa/components/common/cover_placeholder.dart';
+import 'package:yaabsa/components/common/local_cover_image.dart';
 import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:dio/dio.dart';
 import 'package:material_ui/material_ui.dart';
@@ -296,14 +297,14 @@ class LibraryItemApi {
     }
 
     final localCoverUri = _resolveLocalCoverUri(item);
-    final localCoverPath = localCoverUri == null ? null : _toLocalFilePath(localCoverUri);
-    if (!kIsWeb && localCoverPath != null) {
-      return Image.file(
-        File(localCoverPath),
+    if (!kIsWeb && localCoverUri != null) {
+      return LocalCoverImage(
+        coverPath: localCoverUri.toString(),
+        cacheKey: 'library-item:$id',
+        placeholder: const CoverPlaceholder(),
         width: width,
         height: height,
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => const CoverPlaceholder(),
       );
     }
 
@@ -391,26 +392,6 @@ class LibraryItemApi {
 
     if (parsed.scheme == 'file' || parsed.scheme == 'content' || parsed.scheme == 'urlbookmark') {
       return parsed;
-    }
-
-    return null;
-  }
-
-  String? _toLocalFilePath(Uri uri) {
-    if (kIsWeb) {
-      return uri.toString();
-    }
-    if (uri.scheme == 'file') {
-      try {
-        return uri.toFilePath(windows: !kIsWeb && Platform.isWindows);
-      } catch (_) {
-        return null;
-      }
-    }
-
-    if (uri.scheme.isEmpty) {
-      final path = uri.toString();
-      return path.isEmpty ? null : path;
     }
 
     return null;

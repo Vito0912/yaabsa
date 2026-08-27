@@ -1,7 +1,5 @@
-import 'dart:io';
-
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/components/common/local_cover_image.dart';
 import 'package:yaabsa/models/internal_download.dart';
 
 class DownloadCoverThumbnail extends StatelessWidget {
@@ -13,64 +11,26 @@ class DownloadCoverThumbnail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final coverPath = _resolveLocalCoverPath(download.coverPath);
+    final coverPath = download.coverPath?.trim();
+    final placeholder = Container(
+      color: colorScheme.surfaceContainerHighest,
+      child: Icon(
+        download.isPodcast ? Icons.podcasts_rounded : Icons.library_books_outlined,
+        color: colorScheme.onSurfaceVariant,
+      ),
+    );
+    final itemId = download.item?.id ?? download.episode?.libraryItemId ?? 'unknown';
+    final episodeId = download.episode?.id ?? 'item';
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
       child: SizedBox(
         width: size,
         height: size,
-        child: coverPath == null
-            ? Container(
-                color: colorScheme.surfaceContainerHighest,
-                child: Icon(
-                  download.isPodcast ? Icons.podcasts_rounded : Icons.library_books_outlined,
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              )
-            : Image.file(
-                File(coverPath),
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    color: colorScheme.surfaceContainerHighest,
-                    child: Icon(
-                      download.isPodcast ? Icons.podcasts_rounded : Icons.library_books_outlined,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  );
-                },
-              ),
+        child: coverPath == null || coverPath.isEmpty
+            ? placeholder
+            : LocalCoverImage(coverPath: coverPath, cacheKey: 'download:$itemId:$episodeId', placeholder: placeholder),
       ),
     );
-  }
-
-  String? _resolveLocalCoverPath(String? rawPath) {
-    if (kIsWeb) {
-      return null;
-    }
-    if (rawPath == null) {
-      return null;
-    }
-
-    final trimmed = rawPath.trim();
-    if (trimmed.isEmpty) {
-      return null;
-    }
-
-    final parsed = Uri.tryParse(trimmed);
-    if (parsed == null || parsed.scheme.isEmpty) {
-      return trimmed;
-    }
-
-    if (parsed.scheme == 'file') {
-      try {
-        return parsed.toFilePath(windows: Platform.isWindows);
-      } catch (_) {
-        return null;
-      }
-    }
-
-    return null;
   }
 }
