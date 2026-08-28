@@ -64,6 +64,11 @@ class DownloadHandler {
         .distinct(_sameTaskRecords);
   }
 
+  Stream<List<TaskRecord>> taskQueueStreamForItemAndEpisodes(String itemId) async* {
+    yield _tasksForItemAndEpisodes(_taskQueueSnapshot, itemId);
+    yield* taskQueueStream.map((tasks) => _tasksForItemAndEpisodes(tasks, itemId)).distinct(_sameTaskRecords);
+  }
+
   DownloadHandler(this._ref) {
     if (kIsWeb) {
       _downloader = null;
@@ -236,6 +241,10 @@ class DownloadHandler {
 
   List<TaskRecord> _tasksForItem(List<TaskRecord> tasks, String itemId, {String? episodeId}) {
     return tasks.where((task) => taskBelongsToItem(task, itemId, episodeId: episodeId)).toList(growable: false);
+  }
+
+  List<TaskRecord> _tasksForItemAndEpisodes(List<TaskRecord> tasks, String itemId) {
+    return tasks.where((task) => task.status.isNotFinalState && task.group == itemId).toList(growable: false);
   }
 
   bool _sameTaskRecords(List<TaskRecord> left, List<TaskRecord> right) {

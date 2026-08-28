@@ -24,6 +24,7 @@ import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/item/podcast/podcast_find_episodes_dialog.dart';
 import 'package:yaabsa/screens/item/podcast/podcast_episode_details.dart';
+import 'package:yaabsa/screens/item/podcast/podcast_episode_sliver_list.dart';
 import 'package:yaabsa/screens/item/podcast/podcast_episode_tile.dart';
 import 'package:yaabsa/screens/item/podcast/podcast_episode_utils.dart';
 import 'package:yaabsa/screens/item/podcast/podcast_episodes_header_card.dart';
@@ -55,10 +56,17 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
   String _searchQuery = '';
   bool _selectionMode = false;
   final Set<String> _selectedEpisodeIds = <String>{};
+  late Stream<List<TaskRecord>> _activeTasksStream;
+  Stream<List<InternalDownload>>? _storedDownloadsStream;
+  String? _storedDownloadsUserId;
 
   @override
   void initState() {
     super.initState();
+
+    _activeTasksStream = downloadHandler
+        .taskQueueStreamForItemAndEpisodes(widget.item.id)
+        .distinct(_samePodcastTaskState);
 
     final currentUserId = ref.read(currentUserProvider).value?.id;
     final settingsManager = ref.read(settingsManagerProvider.notifier);
@@ -68,6 +76,17 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
       defaultValue: PodcastEpisodeProgressFilter.all.name,
     );
     _progressFilter = _progressFilterFromSettingValue(savedFilterValue);
+  }
+
+  @override
+  void didUpdateWidget(covariant LibraryItemPodcastView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.item.id != widget.item.id) {
+      _activeTasksStream = downloadHandler
+          .taskQueueStreamForItemAndEpisodes(widget.item.id)
+          .distinct(_samePodcastTaskState);
+      _storedDownloadsStream = null;
+    }
   }
 
   @override
@@ -89,7 +108,13 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
     }
 
     final allEpisodes = podcastMedia.episodes ?? const <Episode>[];
-    final progressMap = ref.watch(mediaProgressProvider).asData?.value ?? const <String, MediaProgress>{};
+    final progressSnapshot = ref.watch(
+      mediaProgressProvider.select(
+        (progress) =>
+            _PodcastProgressSnapshot.from(progress.asData?.value, libraryItemId: widget.item.id, episodes: allEpisodes),
+      ),
+    );
+    final progressMap = progressSnapshot.progressMap;
     final visibleEpisodes = _buildVisibleEpisodes(allEpisodes, progressMap);
     final firstPlayableEpisode = visibleEpisodes.where((episode) => episode.audioFile != null).firstOrNull;
 
@@ -120,27 +145,63 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
         ? null
         : ref.watch(libraryFilterDataProvider(widget.item.libraryId!)).value;
     final appDatabase = ref.watch(appDatabaseProvider);
-    final storedDownloadsStream = currentUser == null
-        ? Stream<List<InternalDownload>>.value(const <InternalDownload>[])
-        : appDatabase.watchStoredDownloadsByUser(currentUser.id);
+    final storedDownloadsStream = _storedDownloadsFor(currentUser?.id, appDatabase);
 
     return StreamBuilder<List<TaskRecord>>(
-      stream: downloadHandler.taskQueueStreamForItem(widget.item.id),
+      stream: _activeTasksStream,
       initialData: const <TaskRecord>[],
       builder: (context, taskSnapshot) {
         final activeTasks = taskSnapshot.data ?? const <TaskRecord>[];
+        final activePodcastTasks = activeTasks;
+        final downloadingEpisodeIds = <String>{
+          for (final episode in visibleEpisodes)
+            if (activeTasks.any(
+              (task) => downloadHandler.taskBelongsToItem(task, widget.item.id, episodeId: episode.id),
+            ))
+              episode.id,
+        };
 
         return StreamBuilder<List<InternalDownload>>(
           stream: storedDownloadsStream,
           initialData: const <InternalDownload>[],
           builder: (context, storedSnapshot) {
             final storedDownloads = storedSnapshot.data ?? const <InternalDownload>[];
+            final downloadsByEpisodeId = <String, InternalDownload>{
+              for (final download in storedDownloads)
+                if (download.episode case final episode?) episode.id: download,
+            };
+            final notStartedEpisodes = <Episode>[];
+            final unfinishedEpisodes = <Episode>[];
+
+            for (final episode in visibleEpisodes) {
+              final isDownloaded = downloadsByEpisodeId[episode.id]?.isComplete ?? false;
+              if (isDownloaded || downloadingEpisodeIds.contains(episode.id)) {
+                continue;
+              }
+
+              final progress = progressMap[mediaProgressKey(widget.item.id, episode.id)];
+              final isFinished = progress != null && progress.isFinished;
+              if (isFinished) {
+                continue;
+              }
+
+              unfinishedEpisodes.add(episode);
+              final isNotStarted = progress == null || progress.progress == 0;
+              if (isNotStarted) {
+                notStartedEpisodes.add(episode);
+              }
+            }
 
             return StreamBuilder<PlayerQueueSnapshot>(
               stream: audioHandler.queueSnapshotStream,
               initialData: audioHandler.queueSnapshot,
               builder: (context, queueSnapshotBuilder) {
                 final queueSnapshot = queueSnapshotBuilder.data ?? const PlayerQueueSnapshot();
+                final queuedEpisodeIds = queueSnapshot.entries
+                    .where((entry) => entry.item.itemId == widget.item.id)
+                    .map((entry) => entry.item.episodeId)
+                    .whereType<String>()
+                    .toSet();
 
                 return StreamBuilder<PlayerState>(
                   stream: audioHandler.playerControlStateStream,
@@ -164,33 +225,6 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                             latestEpisodeId != null &&
                             isQueueTransitionLoading &&
                             audioHandler.isQueueTransitionForItem(widget.item.id, episodeId: latestEpisodeId);
-
-                        final notStartedEpisodes = <Episode>[];
-                        final unfinishedEpisodes = <Episode>[];
-
-                        for (final episode in visibleEpisodes) {
-                          final isDownloaded = storedDownloads.any((d) => d.episode?.id == episode.id && d.isComplete);
-                          final isDownloading = activeTasks.any(
-                            (task) => downloadHandler.taskBelongsToItem(task, widget.item.id, episodeId: episode.id),
-                          );
-
-                          if (!isDownloaded && !isDownloading) {
-                            final progress = progressMap[mediaProgressKey(widget.item.id, episode.id)];
-                            final isFinished = progress != null && progress.isFinished;
-
-                            if (!isFinished) {
-                              unfinishedEpisodes.add(episode);
-                              final isNotStarted = progress == null || progress.progress == 0;
-                              if (isNotStarted) {
-                                notStartedEpisodes.add(episode);
-                              }
-                            }
-                          }
-                        }
-
-                        final activePodcastTasks = activeTasks
-                            .where((task) => downloadHandler.taskBelongsToItem(task, widget.item.id))
-                            .toList();
 
                         return CustomScrollView(
                           slivers: [
@@ -260,252 +294,225 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                                 ),
                               ),
                             ),
-                            SliverMainAxisGroup(
-                              slivers: [
-                                SliverToBoxAdapter(
-                                  child: Padding(
-                                    padding: EdgeInsets.fromLTRB(horizontalPadding, 0, horizontalPadding, 16),
-                                    child: Center(
-                                      child: ConstrainedBox(
-                                        constraints: BoxConstraints(maxWidth: maxWidth),
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            color: Theme.of(context).colorScheme.surfaceContainerLow,
-                                            borderRadius: BorderRadius.circular(16),
-                                          ),
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                                            children: [
-                                              PodcastEpisodesHeaderCard(
-                                                totalEpisodeCount: allEpisodes.length,
-                                                visibleEpisodeCount: visibleEpisodes.length,
-                                                searchQuery: _searchQuery,
-                                                searchController: _searchController,
-                                                isMobileLayout: context.isMobile,
-                                                progressFilter: _progressFilter,
-                                                sortMode: _sortMode,
-                                                onSearchChanged: (value) {
-                                                  setState(() {
-                                                    _searchQuery = value;
-                                                  });
-                                                },
-                                                onClearSearch: () {
-                                                  _searchController.clear();
-                                                  setState(() {
-                                                    _searchQuery = '';
-                                                  });
-                                                },
-                                                onFilterChanged: (filter) {
-                                                  setState(() {
-                                                    _progressFilter = filter;
-                                                  });
+                            SliverToBoxAdapter(
+                              child: Padding(
+                                padding: EdgeInsets.fromLTRB(
+                                  horizontalPadding,
+                                  0,
+                                  horizontalPadding,
+                                  visibleEpisodes.isEmpty ? 16 : 0,
+                                ),
+                                child: Center(
+                                  child: ConstrainedBox(
+                                    constraints: BoxConstraints(maxWidth: maxWidth),
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context).colorScheme.surfaceContainerLow,
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                                        children: [
+                                          PodcastEpisodesHeaderCard(
+                                            totalEpisodeCount: allEpisodes.length,
+                                            visibleEpisodeCount: visibleEpisodes.length,
+                                            searchQuery: _searchQuery,
+                                            searchController: _searchController,
+                                            isMobileLayout: context.isMobile,
+                                            progressFilter: _progressFilter,
+                                            sortMode: _sortMode,
+                                            onSearchChanged: (value) {
+                                              setState(() {
+                                                _searchQuery = value;
+                                              });
+                                            },
+                                            onClearSearch: () {
+                                              _searchController.clear();
+                                              setState(() {
+                                                _searchQuery = '';
+                                              });
+                                            },
+                                            onFilterChanged: (filter) {
+                                              setState(() {
+                                                _progressFilter = filter;
+                                              });
 
-                                                  final currentUserId = ref.read(currentUserProvider).value?.id;
-                                                  unawaited(
-                                                    ref
-                                                        .read(settingsManagerProvider.notifier)
-                                                        .setUserSetting<String>(
-                                                          currentUserId,
-                                                          SettingKeys.podcastEpisodeProgressFilter,
-                                                          filter.name,
-                                                        ),
-                                                  );
-                                                },
-                                                onSortChanged: (sortMode) {
-                                                  setState(() {
-                                                    _sortMode = sortMode;
-                                                  });
-                                                },
-                                                selectionMode: _selectionMode,
-                                                selectedCount: _selectedEpisodeIds.length,
-                                                onClearSelection: () {
-                                                  setState(() {
-                                                    _selectionMode = false;
-                                                    _selectedEpisodeIds.clear();
-                                                  });
-                                                },
-                                                onSelectAll: () {
-                                                  setState(() {
-                                                    _selectedEpisodeIds.addAll(visibleEpisodes.map((e) => e.id));
-                                                  });
-                                                },
-                                                onDownloadSelected: () {
-                                                  _downloadSelectedEpisodes(
-                                                    visibleEpisodes,
-                                                    storedDownloads,
-                                                    activeTasks,
-                                                  );
-                                                },
-                                              ),
-                                              const Divider(height: 1),
-                                              if (visibleEpisodes.isEmpty)
-                                                const Padding(
-                                                  padding: EdgeInsets.all(24),
-                                                  child: Center(
-                                                    child: Text(
-                                                      'No episodes match the current search/filter settings.',
+                                              final currentUserId = ref.read(currentUserProvider).value?.id;
+                                              unawaited(
+                                                ref
+                                                    .read(settingsManagerProvider.notifier)
+                                                    .setUserSetting<String>(
+                                                      currentUserId,
+                                                      SettingKeys.podcastEpisodeProgressFilter,
+                                                      filter.name,
                                                     ),
-                                                  ),
-                                                )
-                                              else
-                                                ListView.separated(
-                                                  shrinkWrap: true,
-                                                  physics: const NeverScrollableScrollPhysics(),
-                                                  itemCount: visibleEpisodes.length,
-                                                  separatorBuilder: (_, _) => const Divider(height: 1),
-                                                  itemBuilder: (context, index) {
-                                                    final episode = visibleEpisodes[index];
-                                                    final episodeProgress =
-                                                        progressMap[mediaProgressKey(widget.item.id, episode.id)];
-                                                    final isEpisodeFinished = isPodcastEpisodeFinished(
-                                                      item: widget.item,
-                                                      episode: episode,
-                                                      progressByKey: progressMap,
-                                                    );
-                                                    final isQueued = queueSnapshot.entries.any(
-                                                      (entry) =>
-                                                          entry.item.itemId == widget.item.id &&
-                                                          entry.item.episodeId == episode.id,
-                                                    );
-
-                                                    final isCurrentEpisode =
-                                                        audioHandler.currentMediaItem?.itemId == widget.item.id &&
-                                                        audioHandler.currentMediaItem?.episodeId == episode.id;
-                                                    final isPlayingCurrentEpisode =
-                                                        isCurrentEpisode && (playerState?.playing ?? false);
-                                                    final episodeDownload = _episodeDownloadFor(
-                                                      storedDownloads,
-                                                      episode.id,
-                                                    );
-                                                    final isDownloaded = episodeDownload?.isComplete ?? false;
-                                                    final isDownloading = activeTasks.any(
-                                                      (task) => downloadHandler.taskBelongsToItem(
-                                                        task,
-                                                        widget.item.id,
-                                                        episodeId: episode.id,
-                                                      ),
-                                                    );
-
-                                                    return PodcastEpisodeTile(
-                                                      episode: episode,
-                                                      progress: episodeProgress,
-                                                      canDownload: widget.canDownload,
-                                                      isDownloading: isDownloading,
-                                                      isDownloaded: isDownloaded,
-                                                      isQueued: isQueued,
-                                                      isCurrentEpisode: isCurrentEpisode,
-                                                      isPlayingCurrentEpisode: isPlayingCurrentEpisode,
-                                                      selectionMode: _selectionMode,
-                                                      isSelected: _selectedEpisodeIds.contains(episode.id),
-                                                      onSelectedChanged: (selected) {
-                                                        setState(() {
-                                                          if (selected == true) {
-                                                            _selectedEpisodeIds.add(episode.id);
-                                                            _selectionMode = true;
-                                                          } else {
-                                                            _selectedEpisodeIds.remove(episode.id);
-                                                            if (_selectedEpisodeIds.isEmpty) {
-                                                              _selectionMode = false;
-                                                            }
-                                                          }
-                                                        });
-                                                      },
-                                                      onOpenDetails: () =>
-                                                          _openEpisodeDetails(episode, visibleEpisodes),
-                                                      onPlayPressed: episode.audioFile == null
-                                                          ? null
-                                                          : () {
-                                                              if (isCurrentEpisode) {
-                                                                if (isPlayingCurrentEpisode) {
-                                                                  audioHandler.pause();
-                                                                } else {
-                                                                  audioHandler.play();
-                                                                }
-                                                                return;
-                                                              }
-
-                                                              _playEpisode(episode, visibleEpisodes);
-                                                            },
-                                                      onQueueToggle: () {
-                                                        if (isQueued) {
-                                                          audioHandler.removeFromQueueByItemId(
-                                                            widget.item.id,
-                                                            episodeId: episode.id,
-                                                          );
-                                                          return;
-                                                        }
-
-                                                        audioHandler.addPodcastEpisodeToQueue(widget.item, episode);
-                                                      },
-                                                      onDownloadPressed: widget.canDownload && !isDownloaded
-                                                          ? () => _queueEpisodeDownload(episode)
-                                                          : null,
-                                                      onDeletePressed:
-                                                          isDownloaded && currentUser != null && episodeDownload != null
-                                                          ? () => _deleteEpisodeDownload(
-                                                              download: episodeDownload,
-                                                              userId: currentUser.id,
-                                                            )
-                                                          : null,
-                                                      showMarkAsUnfinished: isEpisodeFinished,
-                                                      onMoreActionSelected: (action) async {
-                                                        switch (action) {
-                                                          case ItemMoreAction.editItem:
-                                                          case ItemMoreAction.quickMatch:
-                                                          case ItemMoreAction.manualMatch:
-                                                            return;
-                                                          case ItemMoreAction.markAsFinished:
-                                                            await markPodcastEpisodeAsFinished(
-                                                              context: context,
-                                                              ref: ref,
-                                                              item: widget.item,
-                                                              episode: episode,
-                                                            );
-                                                            return;
-                                                          case ItemMoreAction.markAsUnfinished:
-                                                            await markPodcastEpisodeAsUnfinished(
-                                                              context: context,
-                                                              ref: ref,
-                                                              item: widget.item,
-                                                              episode: episode,
-                                                            );
-                                                            return;
-                                                          case ItemMoreAction.addToPlaylist:
-                                                          case ItemMoreAction.addToCollection:
-                                                          case ItemMoreAction.deleteItem:
-                                                            return;
-                                                          case ItemMoreAction.playHistory:
-                                                            if (!context.mounted) {
-                                                              return;
-                                                            }
-                                                            context.push(
-                                                              PlayHistoryView.location(
-                                                                itemId: widget.item.id,
-                                                                episodeId: episode.id,
-                                                                itemTitle: podcastEpisodeTitle(episode),
-                                                              ),
-                                                            );
-                                                            return;
-                                                          case ItemMoreAction.select:
-                                                            setState(() {
-                                                              _selectionMode = true;
-                                                              _selectedEpisodeIds.add(episode.id);
-                                                            });
-                                                            return;
-                                                        }
-                                                      },
-                                                    );
-                                                  },
-                                                ),
-                                            ],
+                                              );
+                                            },
+                                            onSortChanged: (sortMode) {
+                                              setState(() {
+                                                _sortMode = sortMode;
+                                              });
+                                            },
+                                            selectionMode: _selectionMode,
+                                            selectedCount: _selectedEpisodeIds.length,
+                                            onClearSelection: () {
+                                              setState(() {
+                                                _selectionMode = false;
+                                                _selectedEpisodeIds.clear();
+                                              });
+                                            },
+                                            onSelectAll: () {
+                                              setState(() {
+                                                _selectedEpisodeIds.addAll(visibleEpisodes.map((e) => e.id));
+                                              });
+                                            },
+                                            onDownloadSelected: () {
+                                              _downloadSelectedEpisodes(visibleEpisodes, storedDownloads, activeTasks);
+                                            },
                                           ),
-                                        ),
+                                          if (visibleEpisodes.isEmpty) ...[
+                                            const Divider(height: 1),
+                                            const Padding(
+                                              padding: EdgeInsets.all(24),
+                                              child: Center(
+                                                child: Text('No episodes match the current search/filter settings.'),
+                                              ),
+                                            ),
+                                          ],
+                                        ],
                                       ),
                                     ),
                                   ),
                                 ),
-                              ],
+                              ),
                             ),
+                            if (visibleEpisodes.isNotEmpty)
+                              PodcastEpisodeSliverList(
+                                itemCount: visibleEpisodes.length,
+                                horizontalPadding: horizontalPadding,
+                                maxWidth: maxWidth,
+                                itemBuilder: (context, index) {
+                                  final episode = visibleEpisodes[index];
+                                  final episodeProgress = progressMap[mediaProgressKey(widget.item.id, episode.id)];
+                                  final isEpisodeFinished = isPodcastEpisodeFinished(
+                                    item: widget.item,
+                                    episode: episode,
+                                    progressByKey: progressMap,
+                                  );
+                                  final isQueued = queuedEpisodeIds.contains(episode.id);
+
+                                  final isCurrentEpisode =
+                                      audioHandler.currentMediaItem?.itemId == widget.item.id &&
+                                      audioHandler.currentMediaItem?.episodeId == episode.id;
+                                  final isPlayingCurrentEpisode = isCurrentEpisode && (playerState?.playing ?? false);
+                                  final episodeDownload = downloadsByEpisodeId[episode.id];
+                                  final isDownloaded = episodeDownload?.isComplete ?? false;
+                                  final isDownloading = downloadingEpisodeIds.contains(episode.id);
+
+                                  return PodcastEpisodeTile(
+                                    episode: episode,
+                                    progress: episodeProgress,
+                                    canDownload: widget.canDownload,
+                                    isDownloading: isDownloading,
+                                    isDownloaded: isDownloaded,
+                                    isQueued: isQueued,
+                                    isCurrentEpisode: isCurrentEpisode,
+                                    isPlayingCurrentEpisode: isPlayingCurrentEpisode,
+                                    selectionMode: _selectionMode,
+                                    isSelected: _selectedEpisodeIds.contains(episode.id),
+                                    onSelectedChanged: (selected) {
+                                      setState(() {
+                                        if (selected == true) {
+                                          _selectedEpisodeIds.add(episode.id);
+                                          _selectionMode = true;
+                                        } else {
+                                          _selectedEpisodeIds.remove(episode.id);
+                                          if (_selectedEpisodeIds.isEmpty) {
+                                            _selectionMode = false;
+                                          }
+                                        }
+                                      });
+                                    },
+                                    onOpenDetails: () => _openEpisodeDetails(episode, visibleEpisodes),
+                                    onPlayPressed: episode.audioFile == null
+                                        ? null
+                                        : () {
+                                            if (isCurrentEpisode) {
+                                              if (isPlayingCurrentEpisode) {
+                                                audioHandler.pause();
+                                              } else {
+                                                audioHandler.play();
+                                              }
+                                              return;
+                                            }
+
+                                            _playEpisode(episode, visibleEpisodes);
+                                          },
+                                    onQueueToggle: () {
+                                      if (isQueued) {
+                                        audioHandler.removeFromQueueByItemId(widget.item.id, episodeId: episode.id);
+                                        return;
+                                      }
+
+                                      audioHandler.addPodcastEpisodeToQueue(widget.item, episode);
+                                    },
+                                    onDownloadPressed: widget.canDownload && !isDownloaded
+                                        ? () => _queueEpisodeDownload(episode)
+                                        : null,
+                                    onDeletePressed: isDownloaded && currentUser != null && episodeDownload != null
+                                        ? () =>
+                                              _deleteEpisodeDownload(download: episodeDownload, userId: currentUser.id)
+                                        : null,
+                                    showMarkAsUnfinished: isEpisodeFinished,
+                                    onMoreActionSelected: (action) async {
+                                      switch (action) {
+                                        case ItemMoreAction.editItem:
+                                        case ItemMoreAction.quickMatch:
+                                        case ItemMoreAction.manualMatch:
+                                          return;
+                                        case ItemMoreAction.markAsFinished:
+                                          await markPodcastEpisodeAsFinished(
+                                            context: context,
+                                            ref: ref,
+                                            item: widget.item,
+                                            episode: episode,
+                                          );
+                                          return;
+                                        case ItemMoreAction.markAsUnfinished:
+                                          await markPodcastEpisodeAsUnfinished(
+                                            context: context,
+                                            ref: ref,
+                                            item: widget.item,
+                                            episode: episode,
+                                          );
+                                          return;
+                                        case ItemMoreAction.addToPlaylist:
+                                        case ItemMoreAction.addToCollection:
+                                        case ItemMoreAction.deleteItem:
+                                          return;
+                                        case ItemMoreAction.playHistory:
+                                          if (!context.mounted) {
+                                            return;
+                                          }
+                                          context.push(
+                                            PlayHistoryView.location(
+                                              itemId: widget.item.id,
+                                              episodeId: episode.id,
+                                              itemTitle: podcastEpisodeTitle(episode),
+                                            ),
+                                          );
+                                          return;
+                                        case ItemMoreAction.select:
+                                          setState(() {
+                                            _selectionMode = true;
+                                            _selectedEpisodeIds.add(episode.id);
+                                          });
+                                          return;
+                                      }
+                                    },
+                                  );
+                                },
+                              ),
                           ],
                         );
                       },
@@ -682,13 +689,14 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
     }
   }
 
-  InternalDownload? _episodeDownloadFor(List<InternalDownload> downloads, String episodeId) {
-    for (final download in downloads) {
-      if (download.episode?.id == episodeId) {
-        return download;
-      }
+  Stream<List<InternalDownload>> _storedDownloadsFor(String? userId, AppDatabase appDatabase) {
+    if (_storedDownloadsStream == null || _storedDownloadsUserId != userId) {
+      _storedDownloadsUserId = userId;
+      _storedDownloadsStream = userId == null
+          ? Stream<List<InternalDownload>>.value(const <InternalDownload>[])
+          : appDatabase.watchStoredDownloadsByUserForItem(userId, widget.item.id);
     }
-    return null;
+    return _storedDownloadsStream!;
   }
 
   Future<void> _deleteEpisodeDownload({required InternalDownload download, required String userId}) async {
@@ -894,4 +902,60 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
 
     await _downloadEpisodesList(episodesToDownload);
   }
+}
+
+bool _samePodcastTaskState(List<TaskRecord> previous, List<TaskRecord> next) {
+  if (previous.length != next.length) {
+    return false;
+  }
+
+  for (var index = 0; index < previous.length; index++) {
+    final previousTask = previous[index];
+    final nextTask = next[index];
+    if (previousTask.taskId != nextTask.taskId || previousTask.status != nextTask.status) {
+      return false;
+    }
+  }
+  return true;
+}
+
+class _PodcastProgressSnapshot {
+  const _PodcastProgressSnapshot({required this.progressMap, required this.episodeProgress});
+
+  factory _PodcastProgressSnapshot.from(
+    Map<String, MediaProgress>? progressMap, {
+    required String libraryItemId,
+    required List<Episode> episodes,
+  }) {
+    final resolvedMap = progressMap ?? const <String, MediaProgress>{};
+    return _PodcastProgressSnapshot(
+      progressMap: resolvedMap,
+      episodeProgress: <MediaProgress?>[
+        for (final episode in episodes) resolvedMap[mediaProgressKey(libraryItemId, episode.id)],
+      ],
+    );
+  }
+
+  final Map<String, MediaProgress> progressMap;
+  final List<MediaProgress?> episodeProgress;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    if (other is! _PodcastProgressSnapshot || episodeProgress.length != other.episodeProgress.length) {
+      return false;
+    }
+
+    for (var index = 0; index < episodeProgress.length; index++) {
+      if (episodeProgress[index] != other.episodeProgress[index]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @override
+  int get hashCode => Object.hashAll(episodeProgress);
 }

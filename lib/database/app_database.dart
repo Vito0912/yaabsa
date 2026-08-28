@@ -724,6 +724,11 @@ class AppDatabase extends _$AppDatabase {
     return query.watch().distinct(_sameStoredDownloadEntries).asyncMap(_decodeStoredDownloads);
   }
 
+  Stream<List<InternalDownload>> watchStoredDownloadsByUserForItem(String userId, String itemId) {
+    final query = select(storedDownloads)..where((tbl) => tbl.userId.equals(userId) & tbl.itemId.equals(itemId));
+    return query.watch().distinct(_sameStoredDownloadEntries).asyncMap(_decodeStoredDownloads);
+  }
+
   bool _sameStoredDownloadEntries(List<StoredDownloadsEntry> left, List<StoredDownloadsEntry> right) {
     if (left.length != right.length) {
       return false;
