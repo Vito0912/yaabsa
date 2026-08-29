@@ -633,11 +633,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
     }
 
     final result = await FilePicker.pickFiles();
-    if (result == null) {
-      return;
-    }
-
-    final paths = result.paths.whereType<String>().toList(growable: false);
+    final paths = result.map((file) => file.path).whereType<String>().toList(growable: false);
     await _appendInputPaths(paths);
   }
 

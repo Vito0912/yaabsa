@@ -43,13 +43,14 @@ Future<LogExportResult> exportLogsAsLogFile(List<LogEntry> logs) async {
 
   String? selectedPath;
   try {
-    selectedPath = await FilePicker.saveFile(
+    final selectedUri = await FilePicker.saveFile(
       dialogTitle: 'Export logs',
       fileName: suggestedName,
       type: FileType.custom,
       allowedExtensions: const ['log'],
       bytes: logBytes,
     );
+    selectedPath = selectedUri?.toFilePath();
   } catch (_) {
     selectedPath = null;
   }

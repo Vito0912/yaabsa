@@ -11,7 +11,7 @@ import audio_session
 import connectivity_plus
 import desktop_drop
 import device_info_plus
-import file_picker
+import file_picker_darwin
 import flutter_inappwebview_macos
 import flutter_secure_storage_darwin
 import flutter_tts
