@@ -776,6 +776,6 @@ class _LayoutHomeStartupScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(body: SafeArea(child: LoadingView(alwaysShowDownloadsShortcut: true)));
+    return const Scaffold(body: SafeArea(child: LoadingView(showDownloadsShortcut: false)));
   }
 }

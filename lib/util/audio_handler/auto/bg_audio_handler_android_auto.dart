@@ -5,8 +5,26 @@ const String _androidAutoRecentNodeId = 'aa/recent';
 const String _androidAutoLibrariesNodeId = 'aa/libraries';
 const String _androidAutoDownloadsNodeId = 'aa/downloads';
 const String _androidAutoAutomotiveFeatureFlag = 'android.hardware.type.automotive';
+const String _androidAutoBrowseSessionMarker = '/auth-session-';
 
 bool? _androidAutoIsAutomotiveSystemCache;
+
+String _androidAutoSessionNodeId(BGAudioHandler handler, String nodeId) {
+  return '$nodeId$_androidAutoBrowseSessionMarker${handler._androidAutoBrowseSession}';
+}
+
+String _androidAutoNormalizeSessionNodeId(String nodeId) {
+  for (final rootNodeId in const <String>[
+    _androidAutoContinueNodeId,
+    _androidAutoRecentNodeId,
+    _androidAutoLibrariesNodeId,
+  ]) {
+    if (nodeId.startsWith('$rootNodeId$_androidAutoBrowseSessionMarker')) {
+      return rootNodeId;
+    }
+  }
+  return nodeId;
+}
 
 const String _androidAutoCompletionStatusExtrasKey = 'android.media.extra.PLAYBACK_STATUS';
 const String _androidAutoCompletionPercentageExtrasKey = 'androidx.media.MediaItem.Extras.COMPLETION_PERCENTAGE';
@@ -190,6 +208,11 @@ Future<bool> _androidAutoIsAutomotiveSystem() async {
 
 void _androidAutoSetAuthenticationRequiredStateIfNeeded(BGAudioHandler handler) {
   final currentState = handler.playbackState.value;
+  if (currentState.errorCode == _androidAutoAuthenticationRequiredErrorCode) {
+    return;
+  }
+
+  logger('[AAOS] authentication required', tag: 'AudioHandler', level: InfoLevel.info);
   handler.playbackState.add(
     currentState.copyWith(
       controls: const <MediaControl>[],
@@ -203,38 +226,215 @@ void _androidAutoSetAuthenticationRequiredStateIfNeeded(BGAudioHandler handler) 
   );
 }
 
-Future<void> _androidAutoClearAuthenticationRequiredState(
-  BGAudioHandler handler, {
-  bool refreshBrowseRoots = false,
-}) async {
+Future<void> _androidAutoClearAuthenticationRequiredState(BGAudioHandler handler) async {
   if (handler.playbackState.value.errorCode != _androidAutoAuthenticationRequiredErrorCode) {
     return;
   }
 
   await handler._updatePlaybackState();
+  logger('[AAOS] authentication requirement cleared', tag: 'AudioHandler', level: InfoLevel.info);
+}
 
-  if (refreshBrowseRoots) {
-    // ignore: deprecated_member_use
-    await AudioServiceBackground.notifyChildrenChanged(AudioService.browsableRootId);
-    // ignore: deprecated_member_use
-    await AudioServiceBackground.notifyChildrenChanged(AudioService.recentRootId);
+Future<void> _androidAutoRefreshBrowseRoots(BGAudioHandler handler) async {
+  final activeRefresh = handler._androidAutoBrowseRefreshFuture;
+  if (activeRefresh != null) {
+    await activeRefresh;
+    return;
+  }
+
+  final refresh = () async {
+    const customBrowseNodeIds = <String>[
+      _androidAutoContinueNodeId,
+      _androidAutoRecentNodeId,
+      _androidAutoLibrariesNodeId,
+    ];
+    final browseNodeIds = <String>[
+      AudioService.browsableRootId,
+      AudioService.recentRootId,
+      ...customBrowseNodeIds,
+      ...customBrowseNodeIds.map((nodeId) => _androidAutoSessionNodeId(handler, nodeId)),
+    ];
+
+    logger('[AAOS] browse refresh requested: ${browseNodeIds.join(', ')}', tag: 'AudioHandler', level: InfoLevel.info);
+    for (final browseNodeId in browseNodeIds) {
+      // ignore: deprecated_member_use
+      await AudioServiceBackground.notifyChildrenChanged(browseNodeId);
+    }
+  }();
+  handler._androidAutoBrowseRefreshFuture = refresh;
+
+  try {
+    await refresh;
+  } finally {
+    if (identical(handler._androidAutoBrowseRefreshFuture, refresh)) {
+      handler._androidAutoBrowseRefreshFuture = null;
+    }
+  }
+}
+
+Future<void> _androidAutoAuthenticationChanged(BGAudioHandler handler, {required bool authenticated}) async {
+  logger(
+    '[AAOS] auth changed: authenticated=$authenticated; refreshing roots',
+    tag: 'AudioHandler',
+    level: InfoLevel.info,
+  );
+
+  if (authenticated) {
+    final currentUser = await handler._androidAutoCurrentUser();
+    if (currentUser != null && handler._androidAutoBrowseUserId != currentUser.id) {
+      handler._androidAutoBrowseUserId = currentUser.id;
+      handler._androidAutoBrowseSession += 1;
+      handler._androidAutoPreparedForNextLaunch = false;
+      handler._androidAutoPrimedChildren.clear();
+      logger(
+        '[AAOS] started authenticated browse session ${handler._androidAutoBrowseSession}',
+        tag: 'AudioHandler',
+        level: InfoLevel.info,
+      );
+    }
+    await _androidAutoPrepareBrowse(handler);
+    await _androidAutoClearAuthenticationRequiredState(handler);
+  } else {
+    handler._androidAutoBrowseUserId = null;
+    handler._androidAutoPreparedForNextLaunch = false;
+    handler._androidAutoPrimedChildren.clear();
+    _androidAutoSetAuthenticationRequiredStateIfNeeded(handler);
+  }
+
+  await _androidAutoRefreshBrowseRoots(handler);
+}
+
+Future<void> _androidAutoPrepareBrowse(BGAudioHandler handler) async {
+  if (!await _androidAutoIsAutomotiveSystem()) {
+    return;
+  }
+  if (handler._androidAutoPreparedForNextLaunch) {
+    return;
+  }
+
+  final activePreparation = handler._androidAutoBrowsePreparationFuture;
+  if (activePreparation != null) {
+    await activePreparation;
+    if (handler._androidAutoPreparedForNextLaunch) {
+      return;
+    }
+    if (identical(handler._androidAutoBrowsePreparationFuture, activePreparation)) {
+      handler._androidAutoBrowsePreparationFuture = null;
+    }
+    await _androidAutoPrepareBrowse(handler);
+    return;
+  }
+
+  final preparation = () async {
+    if (!await handler._androidAutoHasAuthenticatedUser()) {
+      handler._androidAutoPrimedChildren.clear();
+      return;
+    }
+
+    logger('[AAOS] preparing browse content', tag: 'AudioHandler', level: InfoLevel.info);
+    const paging = _AndroidAutoPagingOptions(page: 0, pageSize: _androidAutoDefaultPageSize, hasExplicitPaging: false);
+    final libraries = await handler._androidAutoFetchLibraries();
+    final personalizedEntries = await Future.wait(
+      libraries.map(
+        (library) async =>
+            (libraryId: library.id, personalized: await handler._androidAutoFetchPersonalizedLibrary(library.id)),
+      ),
+    );
+    final personalizedByLibraryId = <String, PersonalizedLibrary?>{
+      for (final entry in personalizedEntries) entry.libraryId: entry.personalized,
+    };
+
+    final continueItems = await handler._androidAutoContinueAcrossLibraries(
+      paging,
+      libraries: libraries,
+      personalizedByLibraryId: personalizedByLibraryId,
+    );
+    final recentNodes = await handler._androidAutoRecentLibraryNodes(paging, libraries: libraries);
+    final libraryNodes = await handler._androidAutoLibraryNodes(paging, libraries: libraries);
+
+    final primedChildren = <String, List<MediaItem>>{
+      _androidAutoContinueNodeId: continueItems,
+      _androidAutoRecentNodeId: recentNodes,
+      AudioService.recentRootId: recentNodes,
+      _androidAutoLibrariesNodeId: libraryNodes,
+    };
+    for (final library in libraries) {
+      primedChildren[handler._androidAutoRecentLibraryNodeId(library.id)] = await handler._androidAutoRecentForLibrary(
+        library.id,
+        paging,
+        personalized: personalizedByLibraryId[library.id],
+        personalizedResolved: true,
+      );
+    }
+
+    handler._androidAutoPrimedChildren
+      ..clear()
+      ..addAll(primedChildren);
+    handler._androidAutoPreparedForNextLaunch = true;
+    await handler._updatePlaybackState();
+    logger(
+      '[AAOS] browse content ready: libraries=${libraries.length}; continue=${continueItems.length}',
+      tag: 'AudioHandler',
+      level: InfoLevel.info,
+    );
+  }();
+  handler._androidAutoBrowsePreparationFuture = preparation;
+
+  try {
+    await preparation;
+  } finally {
+    if (identical(handler._androidAutoBrowsePreparationFuture, preparation)) {
+      handler._androidAutoBrowsePreparationFuture = null;
+    }
   }
 }
 
 extension _BGAudioHandlerAndroidAutoEntry on BGAudioHandler {
+  Future<void> _androidAutoHandleSignedOutIfAutomotive() async {
+    if (!await _androidAutoIsAutomotiveSystem()) {
+      return;
+    }
+
+    logger('[AAOS] logout observed', tag: 'AudioHandler', level: InfoLevel.info);
+    await _androidAutoAuthenticationChanged(this, authenticated: false);
+  }
+
   Future<bool> _androidAutoEnsureAuthenticatedUser() async {
-    final currentUser = await _androidAutoCurrentUser();
-    if (currentUser == null) {
+    if (!await _androidAutoHasAuthenticatedUser()) {
+      logger('[AAOS] authenticated user not present', tag: 'AudioHandler', level: InfoLevel.info);
       _androidAutoSetAuthenticationRequiredStateIfNeeded(this);
       return false;
     }
 
+    logger('[AAOS] authenticated user present', tag: 'AudioHandler', level: InfoLevel.debug);
     await _androidAutoClearAuthenticationRequiredState(this);
     return true;
   }
 
+  Future<bool> _androidAutoHasAuthenticatedUser() async {
+    final currentUser = await _androidAutoCurrentUser();
+    final apiUserId = _ref.read(absApiProvider)?.user?.id;
+    if (currentUser == null || apiUserId != currentUser.id) {
+      return false;
+    }
+    return true;
+  }
+
   Future<List<MediaItem>> _androidAutoGetChildren(String parentMediaId, {Map<String, dynamic>? options}) async {
+    final isAutomotiveSystem = await _androidAutoIsAutomotiveSystem();
+    if (isAutomotiveSystem &&
+        (parentMediaId == AudioService.browsableRootId || parentMediaId == AudioService.recentRootId)) {
+      logger('[AAOS] getChildren($parentMediaId)', tag: 'AudioHandler', level: InfoLevel.debug);
+    }
+
     if (!await _androidAutoEnsureAuthenticatedUser()) {
+      if (isAutomotiveSystem) {
+        // The local audio_service Android bridge translates this error into a
+        // null onLoadChildren result so AAOS renders the media-session
+        // authentication error and its sign-in resolution action.
+        throw PlatformException(code: 'authentication_expired', message: _androidAutoAuthenticationRequiredMessage);
+      }
+
       return <MediaItem>[
         _androidAutoBrowsableItem(
           id: 'aa/auth-required/$parentMediaId',
@@ -244,78 +444,113 @@ extension _BGAudioHandlerAndroidAutoEntry on BGAudioHandler {
       ];
     }
 
+    final resolvedParentMediaId = isAutomotiveSystem
+        ? _androidAutoNormalizeSessionNodeId(parentMediaId)
+        : parentMediaId;
     final paging = _androidAutoPagingFromOptions(options);
+    final isTopLevelAuthenticatedNode =
+        resolvedParentMediaId == _androidAutoContinueNodeId ||
+        resolvedParentMediaId == _androidAutoRecentNodeId ||
+        resolvedParentMediaId == _androidAutoLibrariesNodeId ||
+        resolvedParentMediaId == AudioService.recentRootId;
+    if (isAutomotiveSystem && paging.page == 0 && isTopLevelAuthenticatedNode) {
+      logger(
+        '[AAOS] waiting for browse preparation before getChildren($resolvedParentMediaId)',
+        tag: 'AudioHandler',
+        level: InfoLevel.debug,
+      );
+      await _androidAutoPrepareBrowse(this);
+    }
 
-    if (parentMediaId == AudioService.browsableRootId) {
+    if (paging.page == 0) {
+      final primedChildren = _androidAutoPrimedChildren.remove(resolvedParentMediaId);
+      if (primedChildren != null) {
+        if (primedChildren.isNotEmpty) {
+          logger(
+            '[AAOS] serving prepared children for $resolvedParentMediaId',
+            tag: 'AudioHandler',
+            level: InfoLevel.debug,
+          );
+          return paging.hasExplicitPaging ? _androidAutoApplyPaging(primedChildren, paging) : primedChildren;
+        }
+        logger(
+          '[AAOS] prepared children for $resolvedParentMediaId were empty; fetching live content',
+          tag: 'AudioHandler',
+          level: InfoLevel.debug,
+        );
+      }
+    }
+
+    if (resolvedParentMediaId == AudioService.browsableRootId) {
       return _androidAutoRootItems();
     }
 
-    if (parentMediaId == AudioService.recentRootId) {
+    if (resolvedParentMediaId == AudioService.recentRootId) {
       return _androidAutoRecentLibraryNodes(paging);
     }
 
-    if (parentMediaId == _androidAutoDownloadsNodeId) {
+    if (resolvedParentMediaId == _androidAutoDownloadsNodeId) {
       return _androidAutoDownloadItems(paging);
     }
 
-    if (parentMediaId == _androidAutoContinueNodeId) {
+    if (resolvedParentMediaId == _androidAutoContinueNodeId) {
       return _androidAutoContinueAcrossLibraries(paging);
     }
 
-    if (parentMediaId == _androidAutoRecentNodeId) {
+    if (resolvedParentMediaId == _androidAutoRecentNodeId) {
       return _androidAutoRecentLibraryNodes(paging);
     }
 
-    final recentLibraryId = _androidAutoRecentLibraryIdFromNode(parentMediaId);
+    final recentLibraryId = _androidAutoRecentLibraryIdFromNode(resolvedParentMediaId);
     if (recentLibraryId != null) {
       return _androidAutoRecentForLibrary(recentLibraryId, paging);
     }
 
-    if (parentMediaId == _androidAutoLibrariesNodeId) {
+    if (resolvedParentMediaId == _androidAutoLibrariesNodeId) {
       return _androidAutoLibraryNodes(paging);
     }
 
-    final libraryNodeId = _androidAutoLibraryIdFromNode(parentMediaId);
+    final libraryNodeId = _androidAutoLibraryIdFromNode(resolvedParentMediaId);
     if (libraryNodeId != null) {
       return _androidAutoLibraryTabNodes(libraryNodeId);
     }
 
-    final allLetterInfo = _androidAutoAllLetterNodeFromId(parentMediaId);
+    final allLetterInfo = _androidAutoAllLetterNodeFromId(resolvedParentMediaId);
     if (allLetterInfo != null) {
       return _androidAutoAllItemsForLetter(allLetterInfo.libraryId, allLetterInfo.letter, paging);
     }
 
-    final libraryTabInfo = _androidAutoLibraryTabFromNode(parentMediaId);
+    final libraryTabInfo = _androidAutoLibraryTabFromNode(resolvedParentMediaId);
     if (libraryTabInfo != null) {
       return _androidAutoLibraryTabChildren(libraryTabInfo.libraryId, libraryTabInfo.tab, paging);
     }
 
-    final podcastItemId = _androidAutoPodcastItemIdFromNode(parentMediaId);
+    final podcastItemId = _androidAutoPodcastItemIdFromNode(resolvedParentMediaId);
     if (podcastItemId != null) {
       return _androidAutoPodcastEpisodesForItem(podcastItemId, paging);
     }
 
-    final authorInfo = _androidAutoAuthorNodeFromId(parentMediaId);
+    final authorInfo = _androidAutoAuthorNodeFromId(resolvedParentMediaId);
     if (authorInfo != null) {
       return _androidAutoItemsForAuthor(authorInfo.libraryId, authorInfo.authorId);
     }
 
-    final seriesInfo = _androidAutoSeriesNodeFromId(parentMediaId);
+    final seriesInfo = _androidAutoSeriesNodeFromId(resolvedParentMediaId);
     if (seriesInfo != null) {
       return _androidAutoItemsForSeries(seriesInfo.libraryId, seriesInfo.seriesId);
     }
 
-    final collectionInfo = _androidAutoCollectionNodeFromId(parentMediaId);
+    final collectionInfo = _androidAutoCollectionNodeFromId(resolvedParentMediaId);
     if (collectionInfo != null) {
       return _androidAutoItemsForCollection(collectionInfo.libraryId, collectionInfo.collectionId, paging);
     }
 
-    final playlistInfo = _androidAutoPlaylistNodeFromId(parentMediaId);
+    final playlistInfo = _androidAutoPlaylistNodeFromId(resolvedParentMediaId);
     if (playlistInfo != null) {
       return _androidAutoItemsForPlaylist(playlistInfo.libraryId, playlistInfo.playlistId, paging);
     }
 
-    final narratorInfo = _androidAutoNarratorNodeFromId(parentMediaId);
+    final narratorInfo = _androidAutoNarratorNodeFromId(resolvedParentMediaId);
     if (narratorInfo != null) {
       return _androidAutoItemsForNarrator(narratorInfo.libraryId, narratorInfo.narrator);
     }

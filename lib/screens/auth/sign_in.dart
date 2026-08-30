@@ -80,7 +80,7 @@ class SignIn extends HookConsumerWidget {
 
     ref.listen<AsyncValue<String?>>(activeUserIdProvider, (previous, next) {
       final userId = next.value;
-      if (userId != null && !keyringUnavailable) {
+      if (userId != null && !keyringUnavailable && !isLoading.value && !oidcLoading) {
         logger('SignIn: activeUserId became non-null ($userId). Redirecting to /', tag: 'SignIn');
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (context.mounted) {
@@ -91,7 +91,17 @@ class SignIn extends HookConsumerWidget {
     });
 
     ref.listen<AsyncValue<User?>>(currentUserProvider, (previous, next) {
-      if (next.hasValue && next.value != null) {
+      if (next.hasValue && next.value != null && !isLoading.value && !oidcLoading) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) {
+            context.go('/');
+          }
+        });
+      }
+    });
+
+    ref.listen<AsyncValue<void>>(oidcStateProvider, (previous, next) {
+      if (previous?.isLoading == true && next.hasValue && ref.read(currentUserProvider).value != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (context.mounted) {
             context.go('/');
@@ -365,6 +375,7 @@ class SignIn extends HookConsumerWidget {
       }
 
       isLoading.value = true;
+      var authenticationSucceeded = false;
       final magicConfig = importedMagicConfig.value;
       final magicConfigMatches =
           magicConfig != null &&
@@ -570,7 +581,6 @@ class SignIn extends HookConsumerWidget {
         );
 
         await db.setActiveUserId(loggedInUser.id);
-        await audioHandler.clearAndroidAutoAuthenticationError();
         if (magicConfig != null) {
           clearImportedMagicConfig();
         }
@@ -578,6 +588,9 @@ class SignIn extends HookConsumerWidget {
         ref.invalidate(allStoredUsersProvider);
         ref.invalidate(currentUserProvider);
         invalidateUserScopedProviders(ref);
+
+        await ref.read(currentUserProvider.future);
+        ref.read(absApiProvider);
 
         try {
           await db
@@ -592,6 +605,9 @@ class SignIn extends HookConsumerWidget {
             level: InfoLevel.debug,
           );
         }
+
+        await audioHandler.androidAutoAuthenticationChanged(authenticated: true);
+        authenticationSucceeded = true;
       } on DioException catch (e) {
         final needsPasswordFallback = magicConfig != null && magicConfigMatches && magicConfig.isPasswordBearing;
         clearImportedMagicConfig();
@@ -617,6 +633,10 @@ class SignIn extends HookConsumerWidget {
         );
       } finally {
         isLoading.value = false;
+      }
+
+      if (authenticationSucceeded && context.mounted) {
+        context.go('/');
       }
     }
 

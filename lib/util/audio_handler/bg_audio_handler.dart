@@ -8,6 +8,7 @@ import 'dart:math' as math;
 import 'package:audio_service/audio_service.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter_chrome_cast/flutter_chrome_cast.dart';
 import 'package:yaabsa/api/library/filter_data/library_filter_data.dart';
 import 'package:yaabsa/api/library/library.dart';
@@ -177,6 +178,12 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   bool _forceQueueSwitchOnNextPlay = false;
   bool _androidAutoMoreMenuVisible = false;
   Timer? _androidAutoMoreMenuTimer;
+  Future<void>? _androidAutoBrowseRefreshFuture;
+  Future<void>? _androidAutoBrowsePreparationFuture;
+  bool _androidAutoPreparedForNextLaunch = false;
+  int _androidAutoBrowseSession = 0;
+  String? _androidAutoBrowseUserId;
+  final Map<String, List<MediaItem>> _androidAutoPrimedChildren = <String, List<MediaItem>>{};
   late final BehaviorSubject<PlayerState> _playerControlStateSubject;
   final BehaviorSubject<bool> _castControlActiveSubject = BehaviorSubject<bool>.seeded(false);
   String? _castControlledContentId;
@@ -242,8 +249,16 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     return _restoreLastPlayedMiniPlayerIfEnabledInternal(explicitUserId: explicitUserId);
   }
 
-  Future<void> clearAndroidAutoAuthenticationError() {
-    return _androidAutoClearAuthenticationRequiredState(this, refreshBrowseRoots: true);
+  Future<void> androidAutoAuthenticationChanged({required bool authenticated}) {
+    return _androidAutoAuthenticationChanged(this, authenticated: authenticated);
+  }
+
+  Future<void> prepareAndroidAutoBrowse() {
+    return _androidAutoPrepareBrowse(this);
+  }
+
+  void completeAndroidAutoBrowseLaunch() {
+    _androidAutoPreparedForNextLaunch = false;
   }
 
   bool isInQueue(String itemId, {String? episodeId}) {
@@ -1488,7 +1503,13 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         .map((setting) => setting?.value.trim())
         .distinct()
         .listen((activeUserId) {
-          if (_isDisposing || activeUserId == null || activeUserId.isEmpty) {
+          if (_isDisposing) {
+            return;
+          }
+
+          if (activeUserId == null || activeUserId.isEmpty) {
+            _observedActiveUserId = null;
+            unawaited(_androidAutoHandleSignedOutIfAutomotive());
             return;
           }
 

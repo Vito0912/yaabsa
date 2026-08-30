@@ -258,11 +258,14 @@ class OidcState extends _$OidcState {
       }
 
       await db.setActiveUserId(loggedInUser.id);
-      await audioHandler.clearAndroidAutoAuthenticationError();
 
       ref.invalidate(allStoredUsersProvider);
       ref.invalidate(currentUserProvider);
       invalidateUserScopedProviders(ref);
+
+      await ref.read(currentUserProvider.future);
+      ref.read(absApiProvider);
+      await audioHandler.androidAutoAuthenticationChanged(authenticated: true);
 
       state = const AsyncValue.data(null);
     } catch (e, st) {

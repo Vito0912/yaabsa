@@ -163,7 +163,7 @@ extension _BGAudioHandlerResume on BGAudioHandler {
 
       await _restoreQueueIntent(activeUserId);
 
-      unawaited(_androidAutoClearAuthenticationRequiredState(this, refreshBrowseRoots: true));
+      unawaited(_androidAutoAuthenticationChanged(this, authenticated: true));
       await _restoreLastPlayedMiniPlayerIfEnabledInternal(explicitUserId: activeUserId);
     } finally {
       if (stopPlayback) {

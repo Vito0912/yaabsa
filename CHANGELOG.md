@@ -1,5 +1,51 @@
 # Changelog
 
+## 1.10.1
+
+### Fixed
+
+- (Android Automotive OS) Hopeful compliance with Android Automotive OS (again). Improved login flow
+
+The following patchnotes are for the 1.10.0 release which was accidentally published after the release
+
+### Added
+
+- The auto-queue is now "infinite" instead of manually loading more items
+- auto queue improvements, especially for podcasts
+- Auto-downloads. You can now create custom download profiles to automatically download series or other categories such as the Continue listening view
+- Add auth codes to easily onboard new users with passwordless login or just fast track adding all server information
+- Added arm64 builds for Flatpak
+
+### Fixed
+
+- (Android) Downloads saved to custom download location showing no cover
+- Increased podcast scroll and view performance. Very fast scrolling (like dragging the scrollbar and moving around very fast) might have worse performance, but general scrolling should be much better now.
+- Some subtitle improvements for the player and fallback to .txt subtitles
+- (Linux) Wallet that became unavailable now does not clear the current user
+- Check if the server is reachable only if valid domain is entered
+- When online, but the server is reachable you now do not have to wait until the requests times out
+
+## 1.10.0
+
+Upgrades dependencies
+
+### Added
+
+- The auto-queue is now "infinite" instead of manually loading more items
+- auto queue improvements, especially for podcasts
+- Auto-downloads. You can now create custom download profiles to automatically download series or other categories such as the Continue listening view
+- Add auth codes to easily onboard new users with passwordless login or just fast track adding all server information
+- Added arm64 builds for Flatpak
+
+### Fixed
+
+- (Android) Downloads saved to custom download location showing no cover
+- Increased podcast scroll and view performance. Very fast scrolling (like dragging the scrollbar and moving around very fast) might have worse performance, but general scrolling should be much better now.
+- Some subtitle improvements for the player and fallback to .txt subtitles
+- (Linux) Wallet that became unavailable now does not clear the current user
+- Check if the server is reachable only if valid domain is entered
+- When online, but the server is reachable you now do not have to wait until the requests times out
+
 ## 1.9.0
 
 This release upgrades to Flutter 3.47

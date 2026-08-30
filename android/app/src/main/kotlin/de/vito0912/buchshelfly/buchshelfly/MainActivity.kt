@@ -49,6 +49,7 @@ class MainActivity : AudioServiceFragmentActivity() {
 
 
 	private var aaosChannel: MethodChannel? = null
+	private var aaosDartReady = false
 	private var pendingAaosOpenSettings = false
 	private var pendingAaosOpenSignIn = false
 	private var pendingBluetoothAudioDevicesResult: MethodChannel.Result? = null
@@ -179,29 +180,48 @@ class MainActivity : AudioServiceFragmentActivity() {
 	}
 
 	private fun notifyAaosOpenSettingsIfPending() {
-		if (!pendingAaosOpenSettings) {
+		if (!pendingAaosOpenSettings || !aaosDartReady) {
 			return
 		}
 
 		val channel = aaosChannel ?: return
 		pendingAaosOpenSettings = false
 
-		Handler(Looper.getMainLooper()).postDelayed({
+		Handler(Looper.getMainLooper()).post {
 			channel.invokeMethod("openSettings", null)
-		}, 300)
+		}
 	}
 
 	private fun notifyAaosOpenSignInIfPending() {
-		if (!pendingAaosOpenSignIn) {
+		if (!pendingAaosOpenSignIn || !aaosDartReady) {
 			return
 		}
 
 		val channel = aaosChannel ?: return
 		pendingAaosOpenSignIn = false
 
-		Handler(Looper.getMainLooper()).postDelayed({
+		Handler(Looper.getMainLooper()).post {
 			channel.invokeMethod("openSignIn", null)
-		}, 120)
+		}
+	}
+
+	private fun probeAaosDartReadiness() {
+		val channel = aaosChannel ?: return
+		channel.invokeMethod("readinessProbe", null, object : MethodChannel.Result {
+			override fun success(result: Any?) {
+				if (result != true) {
+					return
+				}
+
+				aaosDartReady = true
+				notifyAaosOpenSettingsIfPending()
+				notifyAaosOpenSignInIfPending()
+			}
+
+			override fun error(errorCode: String, errorMessage: String?, errorDetails: Any?) = Unit
+
+			override fun notImplemented() = Unit
+		})
 	}
 
 	override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -230,10 +250,17 @@ class MainActivity : AudioServiceFragmentActivity() {
 		aaosChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, AAOS_CHANNEL)
 		aaosChannel?.setMethodCallHandler { call, result ->
 			when (call.method) {
+				"ready" -> {
+					aaosDartReady = true
+					result.success(null)
+					notifyAaosOpenSettingsIfPending()
+					notifyAaosOpenSignInIfPending()
+				}
 				"launchMediaCenter" -> handleLaunchMediaCenter(call, result)
 				else -> result.notImplemented()
 			}
 		}
+		probeAaosDartReadiness()
 
 		wearChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, WEAR_DATA_CHANNEL)
 		wearChannel?.setMethodCallHandler { call, result ->

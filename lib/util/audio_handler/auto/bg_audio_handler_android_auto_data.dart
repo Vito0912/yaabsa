@@ -290,13 +290,20 @@ extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
   }
 
   Future<User?> _androidAutoCurrentUser() async {
+    final db = _ref.read(appDatabaseProvider);
+    final activeUserId = (await db.getGlobalSetting('activeUserId'))?.value.trim();
+    if (activeUserId == null || activeUserId.isEmpty) {
+      return null;
+    }
+
     final currentUserAsync = _ref.read(currentUserProvider);
-    if (currentUserAsync.hasValue) {
+    if (currentUserAsync.hasValue && currentUserAsync.value?.id == activeUserId) {
       return currentUserAsync.value;
     }
 
     try {
-      return await _ref.read(currentUserProvider.future);
+      final currentUser = await _ref.read(currentUserProvider.future);
+      return currentUser?.id == activeUserId ? currentUser : null;
     } catch (_) {
       return null;
     }

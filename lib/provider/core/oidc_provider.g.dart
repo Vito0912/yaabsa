@@ -37,7 +37,7 @@ final class OidcStateProvider extends $NotifierProvider<OidcState, AsyncValue<vo
   }
 }
 
-String _$oidcStateHash() => r'235be4332b1c24ecb107fb7d1dee8d3b62e08c93';
+String _$oidcStateHash() => r'a69f8efaa79fb1a21bce4815622af14319494a28';
 
 abstract class _$OidcState extends $Notifier<AsyncValue<void>> {
   AsyncValue<void> build();

@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/services.dart';
+import 'package:yaabsa/util/globals.dart' show audioHandler, isAudioHandlerInitialized;
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/router.dart';
 
@@ -64,15 +65,17 @@ class AaosService {
     }
 
     _channel.setMethodCallHandler((call) async {
-      if (call.method == 'openSettings') {
+      if (call.method == 'readinessProbe') {
+        return true;
+      } else if (call.method == 'openSettings') {
         final currentUri = globalRouter.routeInformationProvider.value.uri;
         if (currentUri.path == '/boot' || currentUri.path.startsWith('/add-user')) {
-          return;
+          return null;
         }
 
         final isAlreadyInSettings = currentUri.path == '/' && currentUri.queryParameters['tab'] == 'settings';
         if (isAlreadyInSettings) {
-          return;
+          return null;
         }
 
         final intent = DateTime.now().microsecondsSinceEpoch;
@@ -82,12 +85,13 @@ class AaosService {
         final alreadyForcedSignIn =
             currentUri.path.startsWith('/add-user') && currentUri.queryParameters['authRequired'] == '1';
         if (alreadyForcedSignIn) {
-          return;
+          return null;
         }
 
         final intent = DateTime.now().microsecondsSinceEpoch;
         globalRouter.go('/add-user?authRequired=1&intent=aaos-signin-$intent');
       }
+      return null;
     });
 
     final isAutomotiveDevice = await _detectAutomotiveDevice();
@@ -100,6 +104,12 @@ class AaosService {
             : 'Android Automotive OS not detected on this device.',
       ),
     );
+
+    try {
+      await _channel.invokeMethod<void>('ready');
+    } catch (error) {
+      logger('Failed to signal AAOS Flutter readiness: $error', tag: 'AAOS', level: InfoLevel.warning);
+    }
   }
 
   Future<bool> _detectAutomotiveDevice() async {
@@ -117,8 +127,15 @@ class AaosService {
       if (kIsWeb || !Platform.isAndroid || !currentState.isAutomotiveDevice) {
         return false;
       }
+      if (isAudioHandlerInitialized) {
+        await audioHandler.prepareAndroidAutoBrowse();
+      }
       final result = await _channel.invokeMethod<bool>('launchMediaCenter', {'finishActivity': finishActivity});
-      return result ?? false;
+      final launched = result ?? false;
+      if (launched && isAudioHandlerInitialized) {
+        audioHandler.completeAndroidAutoBrowseLaunch();
+      }
+      return launched;
     } catch (e) {
       logger('Failed to launch AAOS Media Center: $e', tag: 'AAOS', level: InfoLevel.error);
       return false;

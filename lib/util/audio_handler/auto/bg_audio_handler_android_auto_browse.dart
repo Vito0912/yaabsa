@@ -8,19 +8,23 @@ extension _BGAudioHandlerAndroidAutoBrowse on BGAudioHandler {
 
     items.addAll([
       _androidAutoBrowsableItem(
-        id: _androidAutoContinueNodeId,
+        id: isAutomotiveSystem
+            ? _androidAutoSessionNodeId(this, _androidAutoContinueNodeId)
+            : _androidAutoContinueNodeId,
         title: 'Continue',
         artUri: _androidAutoDrawableIconUri('continue_ic'),
         categoryStyle: true,
       ),
       _androidAutoBrowsableItem(
-        id: _androidAutoRecentNodeId,
+        id: isAutomotiveSystem ? _androidAutoSessionNodeId(this, _androidAutoRecentNodeId) : _androidAutoRecentNodeId,
         title: 'Recent',
         artUri: _androidAutoDrawableIconUri('recent'),
         categoryStyle: true,
       ),
       _androidAutoBrowsableItem(
-        id: _androidAutoLibrariesNodeId,
+        id: isAutomotiveSystem
+            ? _androidAutoSessionNodeId(this, _androidAutoLibrariesNodeId)
+            : _androidAutoLibrariesNodeId,
         title: 'Libraries',
         artUri: _androidAutoDrawableIconUri('apps'),
         categoryStyle: true,
@@ -32,15 +36,22 @@ extension _BGAudioHandlerAndroidAutoBrowse on BGAudioHandler {
     return items;
   }
 
-  Future<List<MediaItem>> _androidAutoContinueAcrossLibraries(_AndroidAutoPagingOptions paging) async {
-    final libraries = await _androidAutoFetchLibraries();
-    if (libraries.isEmpty) {
+  Future<List<MediaItem>> _androidAutoContinueAcrossLibraries(
+    _AndroidAutoPagingOptions paging, {
+    List<Library>? libraries,
+    Map<String, PersonalizedLibrary?>? personalizedByLibraryId,
+  }) async {
+    final resolvedLibraries = libraries ?? await _androidAutoFetchLibraries();
+    if (resolvedLibraries.isEmpty) {
       return const <MediaItem>[];
     }
 
     final entries = await Future.wait(
-      libraries.map((library) async {
-        return (library: library, personalized: await _androidAutoFetchPersonalizedLibrary(library.id));
+      resolvedLibraries.map((library) async {
+        final personalized = personalizedByLibraryId?.containsKey(library.id) == true
+            ? personalizedByLibraryId![library.id]
+            : await _androidAutoFetchPersonalizedLibrary(library.id);
+        return (library: library, personalized: personalized);
       }),
     );
 
@@ -70,13 +81,16 @@ extension _BGAudioHandlerAndroidAutoBrowse on BGAudioHandler {
     return paging.hasExplicitPaging ? _androidAutoApplyPaging(results, paging) : results;
   }
 
-  Future<List<MediaItem>> _androidAutoRecentLibraryNodes(_AndroidAutoPagingOptions paging) async {
-    final libraries = await _androidAutoFetchLibraries();
-    if (libraries.isEmpty) {
+  Future<List<MediaItem>> _androidAutoRecentLibraryNodes(
+    _AndroidAutoPagingOptions paging, {
+    List<Library>? libraries,
+  }) async {
+    final resolvedLibraries = libraries ?? await _androidAutoFetchLibraries();
+    if (resolvedLibraries.isEmpty) {
       return const <MediaItem>[];
     }
 
-    final nodes = libraries
+    final nodes = resolvedLibraries
         .map(
           (library) => _androidAutoBrowsableItem(
             id: _androidAutoRecentLibraryNodeId(library.id),
@@ -89,9 +103,16 @@ extension _BGAudioHandlerAndroidAutoBrowse on BGAudioHandler {
     return paging.hasExplicitPaging ? _androidAutoApplyPaging(nodes, paging) : nodes;
   }
 
-  Future<List<MediaItem>> _androidAutoRecentForLibrary(String libraryId, _AndroidAutoPagingOptions paging) async {
-    final personalized = await _androidAutoFetchPersonalizedLibrary(libraryId);
-    final recentItems = personalized?.recentlyAdded?.entities ?? const <LibraryItem>[];
+  Future<List<MediaItem>> _androidAutoRecentForLibrary(
+    String libraryId,
+    _AndroidAutoPagingOptions paging, {
+    PersonalizedLibrary? personalized,
+    bool personalizedResolved = false,
+  }) async {
+    final resolvedPersonalized = personalizedResolved
+        ? personalized
+        : personalized ?? await _androidAutoFetchPersonalizedLibrary(libraryId);
+    final recentItems = resolvedPersonalized?.recentlyAdded?.entities ?? const <LibraryItem>[];
     if (recentItems.isEmpty) {
       return const <MediaItem>[];
     }
@@ -109,13 +130,13 @@ extension _BGAudioHandlerAndroidAutoBrowse on BGAudioHandler {
     return paging.hasExplicitPaging ? _androidAutoApplyPaging(playableItems, paging) : playableItems;
   }
 
-  Future<List<MediaItem>> _androidAutoLibraryNodes(_AndroidAutoPagingOptions paging) async {
-    final libraries = await _androidAutoFetchLibraries();
-    if (libraries.isEmpty) {
+  Future<List<MediaItem>> _androidAutoLibraryNodes(_AndroidAutoPagingOptions paging, {List<Library>? libraries}) async {
+    final resolvedLibraries = libraries ?? await _androidAutoFetchLibraries();
+    if (resolvedLibraries.isEmpty) {
       return const <MediaItem>[];
     }
 
-    final nodes = libraries
+    final nodes = resolvedLibraries
         .map(
           (library) => _androidAutoBrowsableItem(
             id: _androidAutoLibraryNodeId(library.id),

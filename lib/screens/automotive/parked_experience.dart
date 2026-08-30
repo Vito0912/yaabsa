@@ -25,6 +25,7 @@ class ParkedExperienceScreen extends StatelessWidget {
             tooltip: 'Logout',
             onPressed: () async {
               await containerRef.read(appDatabaseProvider).clearActiveUserId();
+              await audioHandler.androidAutoAuthenticationChanged(authenticated: false);
             },
           ),
         ],
