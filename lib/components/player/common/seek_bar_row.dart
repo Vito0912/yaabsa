@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/player/common/seek_bar_slider.dart';
+import 'package:yaabsa/util/handler/sleep_timer_handler.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
 class SeekBarRow extends StatelessWidget {
@@ -23,6 +24,10 @@ class SeekBarRow extends StatelessWidget {
     required this.buildPreviewLabel,
     required this.formatDuration,
     this.centerLabel,
+    this.sleepTimerMarker,
+    this.showSleepTimerPin = true,
+    this.showSleepTimerRange = true,
+    this.onSleepTimerMarkerTap,
   });
 
   final double trackHeight;
@@ -43,6 +48,10 @@ class SeekBarRow extends StatelessWidget {
   final String Function(Duration position) buildPreviewLabel;
   final String Function(Duration? duration) formatDuration;
   final String? centerLabel;
+  final SleepTimerMarker? sleepTimerMarker;
+  final bool showSleepTimerPin;
+  final bool showSleepTimerRange;
+  final Future<void> Function()? onSleepTimerMarkerTap;
 
   Duration _clampDuration(Duration value, Duration min, Duration max) {
     if (value < min) {
@@ -111,6 +120,10 @@ class SeekBarRow extends StatelessWidget {
       executeSeek: executeSeek,
       buildPreviewLabel: buildPreviewLabel,
       previewLabelFontSize: previewLabelFontSize,
+      sleepTimerMarker: sleepTimerMarker,
+      showSleepTimerPin: showSleepTimerPin,
+      showSleepTimerRange: showSleepTimerRange,
+      onSleepTimerMarkerTap: onSleepTimerMarkerTap,
     );
 
     if (!showTimeLabels) {

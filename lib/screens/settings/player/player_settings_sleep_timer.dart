@@ -77,6 +77,11 @@ class PlayerSettingsSleepTimer extends ConsumerWidget {
               subtitle: 'Gradually lower playback volume before the sleep timer ends',
               settingKey: SettingKeys.sleepTimerFadeOutEnabled,
             ),
+            const SettingSwitchTile(
+              label: 'Show sleep timer marker',
+              subtitle: 'Shows a sleep timer on the player timeline after the timer ends. Long press to show or hide the marker again',
+              settingKey: SettingKeys.sleepTimerShowMarker,
+            ),
           ],
         ),
         SettingsNavigationSection(

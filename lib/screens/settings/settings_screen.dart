@@ -162,6 +162,12 @@ final List<SettingsSearchItem> searchableSettings = [
     route: '/settings/player/sleep-timer',
   ),
   const SettingsSearchItem(
+    title: 'Show sleep timer marker',
+    description: 'Shows sleep timer on the player timeline after the timer ends',
+    categoryPath: 'Settings > Player > Sleep timer',
+    route: '/settings/player/sleep-timer',
+  ),
+  const SettingsSearchItem(
     title: 'Auto-restart timer on playback start',
     description: 'Automatically start a new sleep timer using your last duration on playback start',
     categoryPath: 'Settings > Player > Sleep timer',

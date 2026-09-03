@@ -1,5 +1,6 @@
 // lib/provider/sleep_timer_handler.dart
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:yaabsa/database/settings_manager.dart';
@@ -17,24 +18,121 @@ enum SleepTimerState { inactive, running, paused }
 const Duration _sleepTimerTickInterval = Duration(seconds: 1);
 const Duration _sleepTimerUiUpdateInterval = Duration(milliseconds: 500);
 const Duration _sleepTimerFadeOutDuration = Duration(seconds: 30);
+const Duration _sleepTimerMarkerPinVisibilityDuration = Duration(seconds: 10);
 const double _sleepTimerFadeCurveExponent = 1.8;
 
 class SleepTimerData {
   final Duration remainingTime;
   final SleepTimerState state;
   final Duration? totalDuration;
+  final SleepTimerMarker? marker;
+  final bool? _showMarkerPinValue;
+  final bool? _showMarkerRangeValue;
+  final bool? _forceMarkerVisibilityValue;
 
-  const SleepTimerData({required this.remainingTime, required this.state, this.totalDuration});
+  const SleepTimerData({
+    required this.remainingTime,
+    required this.state,
+    this.totalDuration,
+    this.marker,
+    bool showMarkerPin = true,
+    bool showMarkerRange = true,
+    bool forceMarkerVisibility = false,
+  }) : _showMarkerPinValue = showMarkerPin,
+       _showMarkerRangeValue = showMarkerRange,
+       _forceMarkerVisibilityValue = forceMarkerVisibility;
+
+  bool get showMarkerPin => _showMarkerPinValue ?? marker?.endPosition != null;
+  bool get showMarkerRange => _showMarkerRangeValue ?? marker?.endPosition != null;
+  bool get forceMarkerVisibility => _forceMarkerVisibilityValue ?? false;
 
   bool get isActive => state != SleepTimerState.inactive;
   bool get isRunning => state == SleepTimerState.running;
 
-  SleepTimerData copyWith({Duration? remainingTime, SleepTimerState? state, Duration? totalDuration}) {
+  SleepTimerData copyWith({
+    Duration? remainingTime,
+    SleepTimerState? state,
+    Duration? totalDuration,
+    SleepTimerMarker? marker,
+    bool? showMarkerPin,
+    bool? showMarkerRange,
+    bool? forceMarkerVisibility,
+  }) {
     return SleepTimerData(
       remainingTime: remainingTime ?? this.remainingTime,
       state: state ?? this.state,
       totalDuration: totalDuration ?? this.totalDuration,
+      marker: marker ?? this.marker,
+      showMarkerPin: showMarkerPin ?? this.showMarkerPin,
+      showMarkerRange: showMarkerRange ?? this.showMarkerRange,
+      forceMarkerVisibility: forceMarkerVisibility ?? this.forceMarkerVisibility,
     );
+  }
+}
+
+class SleepTimerMarker {
+  const SleepTimerMarker({
+    required this.itemId,
+    required this.episodeId,
+    required this.startPosition,
+    this.endPosition,
+  });
+
+  final String itemId;
+  final String? episodeId;
+  final Duration startPosition;
+  final Duration? endPosition;
+
+  SleepTimerMarker copyWith({Duration? endPosition, bool clearEndPosition = false}) {
+    return SleepTimerMarker(
+      itemId: itemId,
+      episodeId: episodeId,
+      startPosition: startPosition,
+      endPosition: clearEndPosition ? null : endPosition ?? this.endPosition,
+    );
+  }
+
+  bool matches({required String itemId, required String? episodeId}) {
+    return this.itemId == itemId && this.episodeId == episodeId;
+  }
+
+  String toRawJson() {
+    return jsonEncode(<String, Object?>{
+      'itemId': itemId,
+      'episodeId': episodeId,
+      'startPositionMicros': startPosition.inMicroseconds,
+      'endPositionMicros': endPosition?.inMicroseconds,
+    });
+  }
+
+  static SleepTimerMarker? fromRawJson(String? rawValue) {
+    if (rawValue == null || rawValue.trim().isEmpty) {
+      return null;
+    }
+
+    try {
+      final decoded = jsonDecode(rawValue);
+      if (decoded is! Map) {
+        return null;
+      }
+
+      final itemId = decoded['itemId'];
+      final episodeId = decoded['episodeId'];
+      final startPositionMicros = decoded['startPositionMicros'];
+      final endPositionMicros = decoded['endPositionMicros'];
+      if (itemId is! String || itemId.trim().isEmpty || startPositionMicros is! num) {
+        return null;
+      }
+
+      return SleepTimerMarker(
+        itemId: itemId.trim(),
+        episodeId: episodeId is String && episodeId.trim().isNotEmpty ? episodeId.trim() : null,
+        startPosition: Duration(microseconds: startPositionMicros.toInt()),
+        endPosition: endPositionMicros is num ? Duration(microseconds: endPositionMicros.toInt()) : null,
+      );
+    } catch (_) {
+      return null;
+    }
   }
 }
 
@@ -47,6 +145,8 @@ class SleepTimerHandler extends _$SleepTimerHandler {
   bool _wasPlaybackRunning = false;
   bool _pauseTriggeredByPlayback = false;
   double? _fadeBaseVolume;
+  Timer? _markerPinHideTimer;
+  Timer? _markerRangeHideTimer;
 
   @override
   SleepTimerData build() {
@@ -57,6 +157,10 @@ class SleepTimerHandler extends _$SleepTimerHandler {
       _timer = null;
       _countdownStartTime = null;
       _countdownRunDuration = null;
+      _markerPinHideTimer?.cancel();
+      _markerPinHideTimer = null;
+      _markerRangeHideTimer?.cancel();
+      _markerRangeHideTimer = null;
 
       _playerStateSubscription?.cancel();
       _playerStateSubscription = null;
@@ -64,7 +168,18 @@ class SleepTimerHandler extends _$SleepTimerHandler {
       unawaited(_restoreFadeVolumeIfNeeded());
     });
 
-    return const SleepTimerData(remainingTime: Duration.zero, state: SleepTimerState.inactive);
+    final markerRawValue = ref
+        .read(settingsManagerProvider.notifier)
+        .getGlobalSetting<String>(SettingKeys.sleepTimerMarker, defaultValue: '');
+    final marker = SleepTimerMarker.fromRawJson(markerRawValue);
+    final hasEnded = marker?.endPosition != null;
+    return SleepTimerData(
+      remainingTime: Duration.zero,
+      state: SleepTimerState.inactive,
+      marker: marker,
+      showMarkerPin: hasEnded,
+      showMarkerRange: hasEnded,
+    );
   }
 
   void _attachPlaybackStateListener() {
@@ -89,9 +204,11 @@ class SleepTimerHandler extends _$SleepTimerHandler {
     if (!wasRunning && isRunning) {
       if (_pauseTriggeredByPlayback && state.state == SleepTimerState.paused) {
         resume();
+        _scheduleMarkerPinHide();
         return;
       }
 
+      _scheduleMarkerPinHide();
       unawaited(_tryAutoRestartSleepTimerOnPlaybackStart());
     }
   }
@@ -202,6 +319,143 @@ class SleepTimerHandler extends _$SleepTimerHandler {
     }
   }
 
+  Future<void> _persistMarker(SleepTimerMarker? marker) async {
+    try {
+      await ref
+          .read(settingsManagerProvider.notifier)
+          .setGlobalSetting<String>(SettingKeys.sleepTimerMarker, marker?.toRawJson() ?? '');
+    } catch (e) {
+      logger('Failed to persist sleep timer marker: $e', tag: 'SleepTimer', level: InfoLevel.warning);
+    }
+  }
+
+  void _cancelMarkerVisibilityTimers() {
+    _markerPinHideTimer?.cancel();
+    _markerPinHideTimer = null;
+    _markerRangeHideTimer?.cancel();
+    _markerRangeHideTimer = null;
+  }
+
+  void _setMarkerVisibility({bool? showPin, bool? showRange, bool? forceMarkerVisibility}) {
+    final marker = state.marker;
+    if (marker == null) {
+      return;
+    }
+
+    final nextShowPin = showPin ?? state.showMarkerPin;
+    final nextShowRange = showRange ?? state.showMarkerRange;
+    final nextForceMarkerVisibility = forceMarkerVisibility ?? state.forceMarkerVisibility;
+    if (nextShowPin == state.showMarkerPin &&
+        nextShowRange == state.showMarkerRange &&
+        nextForceMarkerVisibility == state.forceMarkerVisibility) {
+      return;
+    }
+
+    state = SleepTimerData(
+      remainingTime: state.remainingTime,
+      state: state.state,
+      totalDuration: state.totalDuration,
+      marker: marker,
+      showMarkerPin: nextShowPin,
+      showMarkerRange: nextShowRange,
+      forceMarkerVisibility: nextForceMarkerVisibility,
+    );
+  }
+
+  void _showMarker({bool showPin = true}) {
+    final marker = state.marker;
+    if (marker == null) {
+      return;
+    }
+
+    _markerPinHideTimer?.cancel();
+    _markerPinHideTimer = null;
+    _markerRangeHideTimer?.cancel();
+    _markerRangeHideTimer = null;
+    final hasEnded = marker.endPosition != null;
+    _setMarkerVisibility(showPin: showPin && hasEnded, showRange: hasEnded);
+  }
+
+  void _scheduleMarkerPinHide() {
+    if (state.marker == null || !state.showMarkerPin) {
+      return;
+    }
+
+    _markerPinHideTimer?.cancel();
+    _markerPinHideTimer = Timer(_sleepTimerMarkerPinVisibilityDuration, () {
+      _markerPinHideTimer = null;
+      _setMarkerVisibility(showPin: false, showRange: false, forceMarkerVisibility: false);
+    });
+  }
+
+  void dismissMarkerPin() {
+    if (state.marker == null) {
+      return;
+    }
+
+    _markerPinHideTimer?.cancel();
+    _markerPinHideTimer = null;
+    _markerRangeHideTimer?.cancel();
+    _setMarkerVisibility(showPin: false, showRange: true, forceMarkerVisibility: false);
+    _markerRangeHideTimer = Timer(_sleepTimerMarkerPinVisibilityDuration, () {
+      _markerRangeHideTimer = null;
+      _setMarkerVisibility(showRange: false);
+    });
+  }
+
+  bool toggleSleepTimerMarker() {
+    final marker = state.marker;
+    final media = audioHandler.currentMediaItem;
+    if (marker == null || media == null || !marker.matches(itemId: media.itemId, episodeId: media.episodeId)) {
+      return false;
+    }
+
+    final showMarkerSetting = ref
+        .read(settingsManagerProvider.notifier)
+        .getGlobalSetting<bool>(SettingKeys.sleepTimerShowMarker);
+    final isMarkerVisible =
+        state.forceMarkerVisibility || (showMarkerSetting && (state.showMarkerPin || state.showMarkerRange));
+    if (isMarkerVisible) {
+      _cancelMarkerVisibilityTimers();
+      state = state.copyWith(showMarkerPin: false, showMarkerRange: false, forceMarkerVisibility: false);
+      return true;
+    }
+
+    final markerWithEnd = marker.endPosition == null ? _completeMarkerAtCurrentPosition() : marker;
+    if (markerWithEnd == null) {
+      return false;
+    }
+
+    _cancelMarkerVisibilityTimers();
+    state = state.copyWith(
+      marker: markerWithEnd,
+      showMarkerPin: markerWithEnd.endPosition != null,
+      showMarkerRange: markerWithEnd.endPosition != null,
+      forceMarkerVisibility: true,
+    );
+    unawaited(_persistMarker(markerWithEnd));
+    return true;
+  }
+
+  SleepTimerMarker? _createMarker() {
+    final media = audioHandler.currentMediaItem;
+    if (media == null) {
+      return null;
+    }
+
+    return SleepTimerMarker(itemId: media.itemId, episodeId: media.episodeId, startPosition: audioHandler.position);
+  }
+
+  SleepTimerMarker? _completeMarkerAtCurrentPosition() {
+    final marker = state.marker;
+    final media = audioHandler.currentMediaItem;
+    if (marker == null || media == null || !marker.matches(itemId: media.itemId, episodeId: media.episodeId)) {
+      return marker;
+    }
+
+    return marker.copyWith(endPosition: audioHandler.position);
+  }
+
   Future<void> _tryAutoRestartSleepTimerOnPlaybackStart() async {
     if (state.isActive) {
       return;
@@ -253,7 +507,20 @@ class SleepTimerHandler extends _$SleepTimerHandler {
 
     logger('Sleep timer started for ${duration.inMinutes} minutes', tag: 'SleepTimer', level: InfoLevel.info);
 
-    state = SleepTimerData(remainingTime: duration, state: SleepTimerState.running, totalDuration: duration);
+    _cancelMarkerVisibilityTimers();
+    final marker = _createMarker();
+    state = SleepTimerData(
+      remainingTime: duration,
+      state: SleepTimerState.running,
+      totalDuration: duration,
+      marker: marker,
+      showMarkerPin: false,
+      showMarkerRange: false,
+    );
+    unawaited(_persistMarker(marker));
+    if (audioHandler.playerControlState.playing) {
+      _scheduleMarkerPinHide();
+    }
 
     unawaited(
       PlayerHistoryHandler.addPlayerHistory(
@@ -272,6 +539,7 @@ class SleepTimerHandler extends _$SleepTimerHandler {
     _countdownStartTime = null;
     _countdownRunDuration = null;
     _pauseTriggeredByPlayback = false;
+    _cancelMarkerVisibilityTimers();
 
     unawaited(_restoreFadeVolumeIfNeeded());
 
@@ -281,7 +549,13 @@ class SleepTimerHandler extends _$SleepTimerHandler {
 
     logger('Sleep timer stopped', tag: 'SleepTimer', level: InfoLevel.info);
 
-    state = const SleepTimerData(remainingTime: Duration.zero, state: SleepTimerState.inactive);
+    state = const SleepTimerData(
+      remainingTime: Duration.zero,
+      state: SleepTimerState.inactive,
+      showMarkerPin: false,
+      showMarkerRange: false,
+    );
+    unawaited(_persistMarker(null));
 
     if (recordHistory) {
       unawaited(
@@ -308,7 +582,10 @@ class SleepTimerHandler extends _$SleepTimerHandler {
 
     logger('Sleep timer paused', tag: 'SleepTimer', level: InfoLevel.info);
 
-    state = state.copyWith(remainingTime: remainingTime, state: SleepTimerState.paused);
+    final marker = _completeMarkerAtCurrentPosition();
+    state = state.copyWith(remainingTime: remainingTime, state: SleepTimerState.paused, marker: marker);
+    _showMarker(showPin: false);
+    unawaited(_persistMarker(marker));
     unawaited(
       PlayerHistoryHandler.addPlayerHistory(
         PlayerHistoryType.sleepTimerStopped,
@@ -331,7 +608,10 @@ class SleepTimerHandler extends _$SleepTimerHandler {
 
     logger('Sleep timer resumed', tag: 'SleepTimer', level: InfoLevel.info);
 
-    state = state.copyWith(state: SleepTimerState.running);
+    final marker = state.marker?.copyWith(clearEndPosition: true);
+    state = state.copyWith(state: SleepTimerState.running, marker: marker, forceMarkerVisibility: false);
+    _showMarker(showPin: false);
+    unawaited(_persistMarker(marker));
     unawaited(
       PlayerHistoryHandler.addPlayerHistory(
         PlayerHistoryType.sleepTimerStarted,
@@ -392,13 +672,30 @@ class SleepTimerHandler extends _$SleepTimerHandler {
     _timer = null;
     _countdownStartTime = null;
     _countdownRunDuration = null;
+    _cancelMarkerVisibilityTimers();
 
+    final marker = state.marker?.copyWith(clearEndPosition: true);
     if (state.state == SleepTimerState.paused) {
-      state = state.copyWith(remainingTime: totalDuration, totalDuration: totalDuration);
+      state = state.copyWith(
+        remainingTime: totalDuration,
+        totalDuration: totalDuration,
+        marker: marker,
+        forceMarkerVisibility: false,
+      );
+      _showMarker(showPin: false);
+      unawaited(_persistMarker(marker));
       return;
     }
 
-    state = SleepTimerData(remainingTime: totalDuration, state: SleepTimerState.running, totalDuration: totalDuration);
+    state = SleepTimerData(
+      remainingTime: totalDuration,
+      state: SleepTimerState.running,
+      totalDuration: totalDuration,
+      marker: marker,
+      forceMarkerVisibility: false,
+    );
+    _showMarker(showPin: false);
+    unawaited(_persistMarker(marker));
 
     _startTimer(totalDuration);
     unawaited(_setAutoRestartSuppressed(false));
@@ -436,8 +733,17 @@ class SleepTimerHandler extends _$SleepTimerHandler {
     _countdownStartTime = null;
     _countdownRunDuration = null;
     _pauseTriggeredByPlayback = false;
+    _cancelMarkerVisibilityTimers();
 
-    state = const SleepTimerData(remainingTime: Duration.zero, state: SleepTimerState.inactive);
+    final marker = _completeMarkerAtCurrentPosition();
+    state = SleepTimerData(
+      remainingTime: Duration.zero,
+      state: SleepTimerState.inactive,
+      marker: marker,
+      forceMarkerVisibility: false,
+    );
+    _showMarker();
+    unawaited(_persistMarker(marker));
 
     unawaited(
       PlayerHistoryHandler.addPlayerHistory(

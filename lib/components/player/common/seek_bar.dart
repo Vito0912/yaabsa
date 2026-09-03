@@ -8,6 +8,7 @@ import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/provider/player/user_bookmarks_provider.dart';
 import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/handler/sleep_timer_handler.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -131,6 +132,17 @@ class SeekBar extends ConsumerWidget {
     final markerModeSetting = ref.watch(globalSettingByKeyProvider(SettingKeys.playerSeekBarMarkerMode));
     final bookmarks = ref.watch(userBookmarksProvider).value ?? const <Bookmark>[];
     final showRemainingSetting = ref.watch(globalSettingByKeyProvider(SettingKeys.playerShowRemainingTime));
+    final showSleepTimerMarkerSetting = ref.watch(globalSettingByKeyProvider(SettingKeys.sleepTimerShowMarker));
+    final sleepTimerDisplay = ref.watch(
+      sleepTimerHandlerProvider.select(
+        (data) => (
+          marker: data.marker,
+          showPin: data.showMarkerPin,
+          showRange: data.showMarkerRange,
+          forceVisibility: data.forceMarkerVisibility,
+        ),
+      ),
+    );
 
     final configuredMode = modeOverride ?? PlayerSeekBarMode.fromSettingValue(seekBarModeSetting.asData?.value);
     final configuredMarkerMode = SeekBarMarkerMode.fromSettingValue(markerModeSetting.asData?.value);
@@ -140,6 +152,10 @@ class SeekBar extends ConsumerWidget {
               : SeekBarMarkerMode.chapters
         : configuredMarkerMode;
     final showRemaining = showRemainingSetting.asData?.value == 'true';
+    final showSleepTimerMarker = SettingsParser.decodeValue<bool>(
+      showSleepTimerMarkerSetting.asData?.value,
+      defaultSettings[SettingKeys.sleepTimerShowMarker] as bool? ?? false,
+    );
 
     void toggleRemaining() {
       ref
@@ -158,6 +174,16 @@ class SeekBar extends ConsumerWidget {
         builder: (context, chaptersSnapshot) {
           final chapters = chaptersSnapshot.data ?? const <InternalChapter>[];
           final currentItemId = audioHandler.currentMediaItem?.itemId;
+          final currentEpisodeId = audioHandler.currentMediaItem?.episodeId;
+          final sleepTimerMarker = sleepTimerDisplay.marker;
+          final visibleSleepTimerMarker =
+              (showSleepTimerMarker || sleepTimerDisplay.forceVisibility) &&
+                  (sleepTimerDisplay.showPin || sleepTimerDisplay.showRange) &&
+                  sleepTimerMarker != null &&
+                  currentItemId != null &&
+                  sleepTimerMarker.matches(itemId: currentItemId, episodeId: currentEpisodeId)
+              ? sleepTimerMarker
+              : null;
           final bookmarkSeconds = _bookmarkSecondsForItem(bookmarks, currentItemId);
           final fullTimelineMarkers = _buildTimelineMarkers(
             markerMode: markerMode,
@@ -186,6 +212,7 @@ class SeekBar extends ConsumerWidget {
                       ensureFullTimeline ||
                       configuredMode == PlayerSeekBarMode.full ||
                       configuredMode == PlayerSeekBarMode.both ||
+                      visibleSleepTimerMarker != null ||
                       !shouldShowChapter;
 
                   final seekRows = <Widget>[];
@@ -222,6 +249,7 @@ class SeekBar extends ConsumerWidget {
                         markerMode: SeekBarMarkerMode.none,
                         buildPreviewLabel: (position) => _buildSeekPreviewTooltip(position, chapters),
                         formatDuration: _formatDuration,
+                        sleepTimerMarker: null,
                         centerLabel: showCurrentChapterBetweenTimeLabels && !shouldShowFull
                             ? currentChapter.title.trim()
                             : null,
@@ -253,6 +281,15 @@ class SeekBar extends ConsumerWidget {
                         markerMode: markerMode,
                         buildPreviewLabel: (position) => _buildSeekPreviewTooltip(position, chapters),
                         formatDuration: _formatDuration,
+                        sleepTimerMarker: visibleSleepTimerMarker,
+                        showSleepTimerPin: visibleSleepTimerMarker != null && sleepTimerDisplay.showPin,
+                        showSleepTimerRange: visibleSleepTimerMarker != null && sleepTimerDisplay.showRange,
+                        onSleepTimerMarkerTap: visibleSleepTimerMarker == null || !sleepTimerDisplay.showPin
+                            ? null
+                            : () async {
+                                ref.read(sleepTimerHandlerProvider.notifier).dismissMarkerPin();
+                                await audioHandler.seekAbsolute(visibleSleepTimerMarker.startPosition);
+                              },
                         centerLabel: showCurrentChapterBetweenTimeLabels ? currentChapter?.title.trim() : null,
                       ),
                     );

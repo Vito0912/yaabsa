@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:yaabsa/util/handler/sleep_timer_handler.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
@@ -17,16 +19,19 @@ void showSleepTimerSheet(BuildContext context, WidgetRef ref) {
 class SleepTimerButton extends ConsumerWidget {
   const SleepTimerButton({super.key});
 
+  static const double _buttonSize = 48;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final sleepTimer = ref.watch(sleepTimerHandlerProvider);
     final isActive = sleepTimer.isActive;
 
     return SizedBox(
-      width: 48,
-      height: 48,
+      width: _buttonSize,
+      height: _buttonSize,
       child: IconButton(
         onPressed: () => showSleepTimerSheet(context, ref),
+        onLongPress: () => _toggleSleepTimerMarker(ref),
         color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
         icon: isActive
             ? Text(
@@ -36,6 +41,13 @@ class SleepTimerButton extends ConsumerWidget {
             : const Icon(Icons.bedtime_rounded),
       ),
     );
+  }
+
+  void _toggleSleepTimerMarker(WidgetRef ref) {
+    final didToggle = ref.read(sleepTimerHandlerProvider.notifier).toggleSleepTimerMarker();
+    if (didToggle) {
+      unawaited(HapticFeedback.mediumImpact());
+    }
   }
 }
 

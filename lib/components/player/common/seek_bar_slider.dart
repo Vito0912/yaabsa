@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/gestures.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/util/handler/sleep_timer_handler.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
 enum SeekTimelineMarkerType { chapter, bookmark }
@@ -59,6 +60,10 @@ class SeekBarSlider extends StatefulWidget {
     required this.executeSeek,
     required this.buildPreviewLabel,
     this.previewLabelFontSize,
+    this.sleepTimerMarker,
+    this.showSleepTimerPin = true,
+    this.showSleepTimerRange = true,
+    this.onSleepTimerMarkerTap,
   });
 
   final double trackHeight;
@@ -73,6 +78,10 @@ class SeekBarSlider extends StatefulWidget {
   final Future<void> Function(double seconds) executeSeek;
   final String Function(Duration position) buildPreviewLabel;
   final double? previewLabelFontSize;
+  final SleepTimerMarker? sleepTimerMarker;
+  final bool showSleepTimerPin;
+  final bool showSleepTimerRange;
+  final Future<void> Function()? onSleepTimerMarkerTap;
 
   @override
   State<SeekBarSlider> createState() => _SeekBarSliderState();
@@ -80,6 +89,9 @@ class SeekBarSlider extends StatefulWidget {
 
 class _SeekBarSliderState extends State<SeekBarSlider> {
   static const Duration _backendSeekInterval = Duration(milliseconds: 120);
+  static const double _sleepTimerPinHitboxSize = 48;
+  static const double _sleepTimerPinVisualSize = 28;
+  static const double _sleepTimerPinLayoutHeight = 32;
 
   double? _dragValue;
   bool _isDragging = false;
@@ -95,6 +107,27 @@ class _SeekBarSliderState extends State<SeekBarSlider> {
   Duration? _cachedRangeEnd;
   double? _cachedSliderWidth;
   List<_SeekTimelineMarkerOffset> _cachedMarkerOffsets = const <_SeekTimelineMarkerOffset>[];
+  bool _isSleepTimerPinHovered = false;
+
+  void _setSleepTimerPinHovered(bool hovered) {
+    if (_isSleepTimerPinHovered == hovered) {
+      return;
+    }
+
+    setState(() => _isSleepTimerPinHovered = hovered);
+  }
+
+  double? _resolvePositionOffset(Duration position, double sliderWidth) {
+    final rangeDuration = widget.rangeEnd - widget.rangeStart;
+    if (rangeDuration <= Duration.zero || sliderWidth <= 0) {
+      return null;
+    }
+
+    final ratio = ((position - widget.rangeStart).inMicroseconds / rangeDuration.inMicroseconds)
+        .clamp(0.0, 1.0)
+        .toDouble();
+    return ratio * sliderWidth;
+  }
 
   void _handleSliderChangeStart(double value) {
     setState(() {
@@ -265,7 +298,7 @@ class _SeekBarSliderState extends State<SeekBarSlider> {
       padding: EdgeInsets.symmetric(horizontal: widget.timeLabelsBelow ? 0 : 4),
       child: SliderTheme(
         data: SliderTheme.of(context).copyWith(
-          padding: widget.timeLabelsBelow ? EdgeInsets.zero : null,
+          padding: EdgeInsets.zero,
           trackHeight: widget.trackHeight,
           trackShape: const _FullWidthRoundedSliderTrackShape(),
           thumbShape: const RoundSliderThumbShape(
@@ -284,6 +317,23 @@ class _SeekBarSliderState extends State<SeekBarSlider> {
             final rangeDuration = widget.rangeEnd - widget.rangeStart;
             final markerOffsets = _resolveMarkerOffsetsCached(sliderWidth);
             final markerProfile = _resolveMarkerPaintProfile(markerOffsets.length);
+            final sleepTimerMarker = widget.sleepTimerMarker;
+            final sleepTimerStartOffset = sleepTimerMarker == null
+                ? null
+                : _resolvePositionOffset(sleepTimerMarker.startPosition, sliderWidth);
+            final sleepTimerEndOffset = sleepTimerMarker?.endPosition == null || !widget.showSleepTimerRange
+                ? null
+                : _resolvePositionOffset(sleepTimerMarker!.endPosition!, sliderWidth);
+            final sleepTimerRangeStart = sleepTimerStartOffset == null || sleepTimerEndOffset == null
+                ? null
+                : sleepTimerStartOffset < sleepTimerEndOffset
+                ? sleepTimerStartOffset
+                : sleepTimerEndOffset;
+            final sleepTimerRangeEnd = sleepTimerStartOffset == null || sleepTimerEndOffset == null
+                ? null
+                : sleepTimerStartOffset > sleepTimerEndOffset
+                ? sleepTimerStartOffset
+                : sleepTimerEndOffset;
 
             final previewPosition = _previewPosition;
             final previewLabel = previewPosition == null ? null : widget.buildPreviewLabel(previewPosition);
@@ -309,6 +359,8 @@ class _SeekBarSliderState extends State<SeekBarSlider> {
                 : (_previewOffset! - (previewWidth / 2))
                       .clamp(0.0, sliderWidth > previewWidth ? sliderWidth - previewWidth : 0.0)
                       .toDouble();
+            final showSleepTimerPin = sleepTimerStartOffset != null && widget.showSleepTimerPin;
+            final previewTop = showSleepTimerPin ? -14.0 : -20.0;
 
             return MouseRegion(
               onEnter: widget.hasSeekRange
@@ -366,70 +418,147 @@ class _SeekBarSliderState extends State<SeekBarSlider> {
                       }
                     : null,
                 onPointerCancel: widget.hasSeekRange ? (_) => _clearPreview() : null,
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Slider(
-                      value: (_dragValue ?? widget.sliderValue).clamp(
-                        0.0,
-                        widget.hasSeekRange ? widget.maxSliderValue : 0.0,
+                child: SizedBox(
+                  height: showSleepTimerPin ? _sleepTimerPinLayoutHeight : null,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    clipBehavior: Clip.none,
+                    children: [
+                      Slider(
+                        value: (_dragValue ?? widget.sliderValue).clamp(
+                          0.0,
+                          widget.hasSeekRange ? widget.maxSliderValue : 0.0,
+                        ),
+                        min: 0.0,
+                        max: widget.hasSeekRange ? widget.maxSliderValue : 1.0,
+                        activeColor: colorScheme.primary,
+                        inactiveColor: colorScheme.onSurface.withValues(alpha: 0.3),
+                        onChangeStart: widget.hasSeekRange ? _handleSliderChangeStart : null,
+                        onChanged: widget.hasSeekRange ? _handleSliderChanged : null,
+                        onChangeEnd: widget.hasSeekRange ? _handleSliderChangeEnd : null,
                       ),
-                      min: 0.0,
-                      max: widget.hasSeekRange ? widget.maxSliderValue : 1.0,
-                      activeColor: colorScheme.primary,
-                      inactiveColor: colorScheme.onSurface.withValues(alpha: 0.3),
-                      onChangeStart: widget.hasSeekRange ? _handleSliderChangeStart : null,
-                      onChanged: widget.hasSeekRange ? _handleSliderChanged : null,
-                      onChangeEnd: widget.hasSeekRange ? _handleSliderChangeEnd : null,
-                    ),
-                    for (final marker in markerOffsets)
-                      Positioned(
-                        left: (marker.offset - (markerProfile.width / 2))
-                            .clamp(0.0, sliderWidth > markerProfile.width ? sliderWidth - markerProfile.width : 0.0)
-                            .toDouble(),
-                        top: 0,
-                        bottom: 0,
-                        child: IgnorePointer(
-                          child: Center(
-                            child: Container(
-                              width: markerProfile.width,
-                              height: widget.trackHeight,
-                              decoration: BoxDecoration(
-                                color:
-                                    (marker.type == SeekTimelineMarkerType.bookmark &&
-                                                widget.markerMode == SeekBarMarkerMode.both
-                                            ? colorScheme.error
-                                            : colorScheme.tertiary)
-                                        .withValues(alpha: markerProfile.alpha),
-                                borderRadius: BorderRadius.circular(999),
+                      if (sleepTimerRangeStart != null && sleepTimerRangeEnd != null)
+                        Positioned(
+                          left: sleepTimerRangeStart,
+                          width: sleepTimerRangeEnd - sleepTimerRangeStart,
+                          top: 0,
+                          bottom: 0,
+                          child: IgnorePointer(
+                            child: Align(
+                              alignment: Alignment.center,
+                              child: Container(
+                                height: widget.trackHeight + 2,
+                                decoration: BoxDecoration(
+                                  color: colorScheme.tertiaryContainer.withValues(alpha: 0.6),
+                                  borderRadius: const BorderRadius.only(
+                                    topLeft: Radius.circular(999),
+                                    bottomLeft: Radius.circular(999),
+                                  ),
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                    if (previewLabel != null && _previewOffset != null)
-                      Positioned(
-                        left: previewLeft,
-                        top: -20,
-                        child: IgnorePointer(
-                          child: Container(
-                            width: previewWidth,
-                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                            decoration: BoxDecoration(
-                              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.82),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              previewLabel,
-                              textAlign: TextAlign.center,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: previewTextStyle,
+                      if (sleepTimerEndOffset != null)
+                        Positioned(
+                          left: sliderWidth > 2 ? (sleepTimerEndOffset - 1).clamp(0.0, sliderWidth - 2).toDouble() : 0,
+                          top: 0,
+                          bottom: 0,
+                          child: IgnorePointer(
+                            child: Center(
+                              child: Container(
+                                width: 2,
+                                height: widget.trackHeight + 12,
+                                decoration: BoxDecoration(
+                                  color: colorScheme.tertiary,
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                  ],
+                      for (final marker in markerOffsets)
+                        Positioned(
+                          left: (marker.offset - (markerProfile.width / 2))
+                              .clamp(0.0, sliderWidth > markerProfile.width ? sliderWidth - markerProfile.width : 0.0)
+                              .toDouble(),
+                          top: 0,
+                          bottom: 0,
+                          child: IgnorePointer(
+                            child: Center(
+                              child: Container(
+                                width: markerProfile.width,
+                                height: widget.trackHeight,
+                                decoration: BoxDecoration(
+                                  color:
+                                      (marker.type == SeekTimelineMarkerType.bookmark &&
+                                                  widget.markerMode == SeekBarMarkerMode.both
+                                              ? colorScheme.error
+                                              : colorScheme.tertiary)
+                                          .withValues(alpha: markerProfile.alpha),
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      if (sleepTimerStartOffset != null && widget.showSleepTimerPin)
+                        Positioned(
+                          left: sleepTimerStartOffset - (_sleepTimerPinHitboxSize / 2),
+                          top: (_sleepTimerPinLayoutHeight - _sleepTimerPinHitboxSize) / 2,
+                          width: _sleepTimerPinHitboxSize,
+                          height: _sleepTimerPinHitboxSize,
+                          child: Tooltip(
+                            message: 'Return to sleep timer start',
+                            child: MouseRegion(
+                              cursor: SystemMouseCursors.click,
+                              onEnter: (_) => _setSleepTimerPinHovered(true),
+                              onExit: (_) => _setSleepTimerPinHovered(false),
+                              child: GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: widget.onSleepTimerMarkerTap == null
+                                    ? null
+                                    : () => unawaited(widget.onSleepTimerMarkerTap!()),
+                                child: Center(
+                                  child: Material(
+                                    color: _isSleepTimerPinHovered
+                                        ? colorScheme.surfaceContainerHigh
+                                        : colorScheme.surfaceContainerHighest,
+                                    shape: const CircleBorder(),
+                                    child: SizedBox.square(
+                                      dimension: _sleepTimerPinVisualSize,
+                                      child: Icon(Icons.bedtime_rounded, size: 20, color: colorScheme.onSurface),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      if (previewLabel != null && _previewOffset != null)
+                        Positioned(
+                          left: previewLeft,
+                          top: previewTop,
+                          child: IgnorePointer(
+                            child: Container(
+                              width: previewWidth,
+                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                              decoration: BoxDecoration(
+                                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.82),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                previewLabel,
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: previewTextStyle,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
             );
