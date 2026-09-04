@@ -6,6 +6,9 @@
         android:required="true" />
 
     <application android:appCategory="audio">
+        <service
+            android:name="de.vito0912.yaabsa.WearSignInListenerService"
+            tools:node="remove" />
         
         <meta-data
             android:name="com.android.automotive"

@@ -1,20 +1,131 @@
 part of '../bg_audio_handler.dart';
 
 extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
-  Future<List<Library>> _androidAutoFetchLibraries() async {
+  Future<void> _androidAutoEnsureMediaProgress() async {
+    final hadData = _ref.read(mediaProgressProvider).asData != null;
+    try {
+      final progress = await _ref
+          .read(mediaProgressProvider.future)
+          .timeout(
+            const Duration(seconds: 5),
+            onTimeout: () => _ref.read(mediaProgressProvider).asData?.value ?? const <String, MediaProgress>{},
+          );
+      if (!hadData) {
+        logger('media progress ready: entries=${progress.length}', tag: 'AAOSBrowse', level: InfoLevel.info);
+      }
+    } catch (e, s) {
+      logger('media progress unavailable: $e\n$s', tag: 'AAOSBrowse', level: InfoLevel.warning);
+    }
+  }
+
+  String _androidAutoSafeServerAddress(ABSApi api) {
+    final uri = Uri.tryParse(api.basePathOverride);
+    if (uri == null || uri.host.isEmpty) {
+      return '<invalid>';
+    }
+    final port = uri.hasPort ? ':${uri.port}' : '';
+    return '${uri.scheme}://${uri.host}$port';
+  }
+
+  Future<List<Library>> _androidAutoFetchLibraries({String? include, bool rethrowOnError = false}) async {
     final api = _ref.read(absApiProvider);
     if (api == null) {
+      if (rethrowOnError) {
+        throw StateError('AAOS browse API is not ready');
+      }
       return const <Library>[];
     }
 
     try {
-      final response = await api.getLibraryApi().getLibraries(extra: const <String, dynamic>{'doNotCache': true});
+      final response = await api.getLibraryApi().getLibraries(
+        include: include,
+        extra: const <String, dynamic>{'doNotCache': true},
+      );
       final libraries = [...?response.data?.libraries]
         ..sort((left, right) => left.displayOrder.compareTo(right.displayOrder));
       return libraries;
     } catch (e) {
-      logger('Failed to fetch Android Auto libraries: $e', tag: 'AudioHandler', level: InfoLevel.warning);
+      logger('Failed to fetch Android Auto libraries: $e', tag: 'AAOSBrowse', level: InfoLevel.warning);
+      if (rethrowOnError) {
+        rethrow;
+      }
       return const <Library>[];
+    }
+  }
+
+  Future<List<Library>> _androidAutoFetchAndroidAutoLibraries() async {
+    final api = _ref.read(absApiProvider);
+    logger(
+      'libraries request started: include=stats; '
+      'server=${api == null ? '<none>' : _androidAutoSafeServerAddress(api)}; '
+      'serverReachable=${_ref.read(serverReachabilityProvider)}',
+      tag: 'AAOSBrowse',
+      level: InfoLevel.info,
+    );
+    final libraries = await _androidAutoFetchLibraries(include: 'stats', rethrowOnError: true);
+    final supportedTypeCount = libraries
+        .where((library) => library.mediaType == 'book' || library.mediaType == 'podcast')
+        .length;
+    for (final library in libraries) {
+      if ((library.mediaType == 'book' || library.mediaType == 'podcast') && library.stats?.numAudioFiles == null) {
+        logger(
+          'library skipped: id=${library.id}; mediaType=${library.mediaType}; missing numAudioFiles',
+          tag: 'AAOSBrowse',
+          level: InfoLevel.warning,
+        );
+      } else if (!isAndroidAutoAudioLibrary(library)) {
+        logger(
+          'library skipped: id=${library.id}; mediaType=${library.mediaType}; '
+          'numAudioFiles=${library.stats?.numAudioFiles}',
+          tag: 'AAOSBrowse',
+          level: InfoLevel.debug,
+        );
+      }
+    }
+    final audioLibraries = filterAndroidAutoLibraries(libraries);
+    logger(
+      'libraries: returned=${libraries.length}; supportedType=$supportedTypeCount; withAudio=${audioLibraries.length}',
+      tag: 'AAOSBrowse',
+      level: InfoLevel.info,
+    );
+    return audioLibraries;
+  }
+
+  Future<List<MediaItem>> _androidAutoFetchContinueItems() async {
+    final api = _ref.read(absApiProvider);
+    if (api == null) {
+      throw StateError('AAOS browse API is not ready');
+    }
+
+    try {
+      logger(
+        'items-in-progress request started: limit=25; '
+        'server=${_androidAutoSafeServerAddress(api)}; '
+        'serverReachable=${_ref.read(serverReachabilityProvider)}',
+        tag: 'AAOSBrowse',
+        level: InfoLevel.info,
+      );
+      final response = await api.getMeApi().getItemsInProgress(
+        limit: 25,
+        extra: const <String, dynamic>{'doNotCache': true},
+      );
+      final data = response.data;
+      if (data == null) {
+        throw StateError('AAOS items-in-progress response was empty');
+      }
+
+      await _androidAutoEnsureMediaProgress();
+      final playableItems = _androidAutoContinueMediaItems(data.libraryItems);
+      logger(
+        'items-in-progress: serverItems=${data.libraryItems.length}; playableItems=${playableItems.length}',
+        tag: 'AAOSBrowse',
+        level: InfoLevel.info,
+      );
+      return playableItems;
+    } catch (e, s) {
+      final details = e is DioException ? 'type=${e.type}; message=${e.message}; cause=${e.error}' : e.toString();
+      logger('items-in-progress failed: $details\n$s', tag: 'AAOSBrowse', level: InfoLevel.warning);
+      rethrow;
     }
   }
 

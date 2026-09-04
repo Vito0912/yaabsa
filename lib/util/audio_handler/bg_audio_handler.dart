@@ -7,6 +7,7 @@ import 'dart:math' as math;
 
 import 'package:audio_service/audio_service.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter_chrome_cast/flutter_chrome_cast.dart';
@@ -20,6 +21,7 @@ import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/library_items/series.dart';
 import 'package:yaabsa/api/me/media_progress.dart';
+import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/api/list/collection.dart';
 import 'package:yaabsa/api/list/playlist.dart';
@@ -42,6 +44,7 @@ import 'package:yaabsa/util/globals.dart' show packageInfo;
 import 'package:yaabsa/util/audio_handler/playback_sync_service.dart';
 import 'package:yaabsa/util/bluetooth_auto_resume.dart';
 import 'package:yaabsa/util/audio_handler/player_history_handler.dart';
+import 'package:yaabsa/util/audio_handler/auto/android_auto_browse_models.dart';
 import 'package:yaabsa/util/handler/tray_handler.dart' show TrayManager;
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/network/request_headers.dart';
@@ -102,6 +105,9 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   late final StreamSubscription<String?> _mediaNotificationPagesSubscription;
   late final StreamSubscription<String?> _showSkipInsteadOfFastForwardSubscription;
   late final StreamSubscription<String?> _desktopSkipControlsSeekSubscription;
+  late final ProviderSubscription<ABSApi?> _androidAutoApiSubscription;
+  late final ProviderSubscription<bool> _androidAutoServerReachabilitySubscription;
+  late final ProviderSubscription<AsyncValue<Map<String, MediaProgress>>> _androidAutoMediaProgressSubscription;
   int _currentNotificationPageIndex = 0;
   List<List<String>> _notificationPages = const [
     ['rewind', 'fastForward', 'speed', 'stop'],
@@ -183,6 +189,9 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   bool _androidAutoPreparedForNextLaunch = false;
   int _androidAutoBrowseSession = 0;
   String? _androidAutoBrowseUserId;
+  ABSApi? _androidAutoBrowseApi;
+  final AndroidAutoBrowseSnapshotCache _androidAutoBrowseCache = AndroidAutoBrowseSnapshotCache();
+  Timer? _androidAutoContinueRefreshDebounce;
   final Map<String, List<MediaItem>> _androidAutoPrimedChildren = <String, List<MediaItem>>{};
   late final BehaviorSubject<PlayerState> _playerControlStateSubject;
   final BehaviorSubject<bool> _castControlActiveSubject = BehaviorSubject<bool>.seeded(false);
@@ -256,6 +265,12 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   Future<void> prepareAndroidAutoBrowse() {
     return _androidAutoPrepareBrowse(this);
   }
+
+  void invalidateAndroidAutoBrowseState({bool notify = true}) {
+    _androidAutoInvalidateBrowseState(this, notify: notify);
+  }
+
+  AndroidAutoBrowseResult<AndroidAutoBrowseSnapshot> get androidAutoBrowseState => _androidAutoBrowseCache.state;
 
   void completeAndroidAutoBrowseLaunch() {
     _androidAutoPreparedForNextLaunch = false;
@@ -1520,6 +1535,33 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           unawaited(_handleActiveUserIdEmission(activeUserId, stopPlayback: !isInitialUser));
         });
 
+    _androidAutoApiSubscription = _ref.listen<ABSApi?>(absApiProvider, (previous, next) {
+      if (_isDisposing || identical(previous, next)) {
+        return;
+      }
+
+      _androidAutoInvalidateBrowseState(this);
+    });
+
+    _androidAutoServerReachabilitySubscription = _ref.listen<bool>(serverReachabilityProvider, (previous, next) {
+      if (_isDisposing || previous == next || !next) {
+        return;
+      }
+
+      unawaited(_androidAutoHandleServerReachabilityChanged(this));
+    });
+
+    _androidAutoMediaProgressSubscription = _ref.listen<AsyncValue<Map<String, MediaProgress>>>(mediaProgressProvider, (
+      previous,
+      next,
+    ) {
+      if (_isDisposing || !_androidAutoProgressMeaningfullyChanged(previous, next)) {
+        return;
+      }
+
+      _androidAutoScheduleContinueRefresh(this);
+    });
+
     _showLastPlayedMiniPlayerSettingSubscription = _ref
         .read(appDatabaseProvider)
         .watchGlobalSetting(SettingKeys.showLastPlayedMiniPlayerAlways)
@@ -2139,6 +2181,9 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   Future<void> dispose() async {
     _isDisposing = true;
+    _androidAutoApiSubscription.close();
+    _androidAutoServerReachabilitySubscription.close();
+    _androidAutoMediaProgressSubscription.close();
     await _activeUserIdSubscription.cancel();
     await _showLastPlayedMiniPlayerSettingSubscription.cancel();
     await _mediaNotificationTypeSubscription.cancel();
@@ -2165,6 +2210,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     _resetStreamRecoveryState(clearWindow: true);
     _androidAutoMoreMenuTimer?.cancel();
     _androidAutoMoreMenuTimer = null;
+    _androidAutoContinueRefreshDebounce?.cancel();
+    _androidAutoContinueRefreshDebounce = null;
     _queueIntentPersistenceTimer?.cancel();
     _queueIntentPersistenceTimer = null;
     _clearAutoQueueState();

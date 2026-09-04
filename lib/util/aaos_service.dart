@@ -128,10 +128,19 @@ class AaosService {
         return false;
       }
       if (isAudioHandlerInitialized) {
-        await audioHandler.prepareAndroidAutoBrowse();
+        try {
+          await audioHandler.prepareAndroidAutoBrowse();
+        } catch (error, stackTrace) {
+          logger(
+            'AAOS browse preparation failed before media center launch: $error\n$stackTrace',
+            tag: 'AAOS',
+            level: InfoLevel.warning,
+          );
+        }
       }
       final result = await _channel.invokeMethod<bool>('launchMediaCenter', {'finishActivity': finishActivity});
       final launched = result ?? false;
+      logger('AAOS media center launch result: $launched', tag: 'AAOS', level: InfoLevel.info);
       if (launched && isAudioHandlerInitialized) {
         audioHandler.completeAndroidAutoBrowseLaunch();
       }

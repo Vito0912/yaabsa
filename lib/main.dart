@@ -91,7 +91,9 @@ void main() {
       TrayManager.update();
 
       Init.late();
-      initPhoneWearHandler();
+      if (!AaosService.instance.currentState.isAutomotiveDevice) {
+        initPhoneWearHandler();
+      }
       await _configureAndroidEdgeToEdge();
       runApp(UncontrolledProviderScope(container: containerRef, child: MyApp()));
       containerRef.read(smartDownloadManagerProvider.notifier).markAppReady();

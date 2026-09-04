@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Library {
 
-@JsonKey(name: "id") String get id;@JsonKey(name: "name") String get name;@JsonKey(name: "displayOrder") int get displayOrder;@JsonKey(name: "icon") String get icon;@JsonKey(name: "mediaType") String get mediaType;@JsonKey(name: "provider") String get provider;@JsonKey(name: "lastScan") int? get lastScan;@JsonKey(name: "lastScanVersion") String? get lastScanVersion;@JsonKey(name: "createdAt") int get createdAt;@JsonKey(name: "lastUpdate") int? get lastUpdate;@JsonKey(name: "settings") LibrarySettings get settings;@JsonKey(name: "folders") List<LibraryFolder>? get folders;
+@JsonKey(name: "id") String get id;@JsonKey(name: "name") String get name;@JsonKey(name: "displayOrder") int get displayOrder;@JsonKey(name: "icon") String get icon;@JsonKey(name: "mediaType") String get mediaType;@JsonKey(name: "provider") String get provider;@JsonKey(name: "lastScan") int? get lastScan;@JsonKey(name: "lastScanVersion") String? get lastScanVersion;@JsonKey(name: "createdAt") int get createdAt;@JsonKey(name: "lastUpdate") int? get lastUpdate;@JsonKey(name: "settings") LibrarySettings get settings;@JsonKey(name: "folders") List<LibraryFolder>? get folders;@JsonKey(name: "stats") LibraryStats? get stats;
 /// Create a copy of Library
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,16 +29,16 @@ $LibraryCopyWith<Library> get copyWith => _$LibraryCopyWithImpl<Library>(this as
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Library&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.displayOrder, displayOrder) || other.displayOrder == displayOrder)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.mediaType, mediaType) || other.mediaType == mediaType)&&(identical(other.provider, provider) || other.provider == provider)&&(identical(other.lastScan, lastScan) || other.lastScan == lastScan)&&(identical(other.lastScanVersion, lastScanVersion) || other.lastScanVersion == lastScanVersion)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.lastUpdate, lastUpdate) || other.lastUpdate == lastUpdate)&&(identical(other.settings, settings) || other.settings == settings)&&const DeepCollectionEquality().equals(other.folders, folders));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Library&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.displayOrder, displayOrder) || other.displayOrder == displayOrder)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.mediaType, mediaType) || other.mediaType == mediaType)&&(identical(other.provider, provider) || other.provider == provider)&&(identical(other.lastScan, lastScan) || other.lastScan == lastScan)&&(identical(other.lastScanVersion, lastScanVersion) || other.lastScanVersion == lastScanVersion)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.lastUpdate, lastUpdate) || other.lastUpdate == lastUpdate)&&(identical(other.settings, settings) || other.settings == settings)&&const DeepCollectionEquality().equals(other.folders, folders)&&(identical(other.stats, stats) || other.stats == stats));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,displayOrder,icon,mediaType,provider,lastScan,lastScanVersion,createdAt,lastUpdate,settings,const DeepCollectionEquality().hash(folders));
+int get hashCode => Object.hash(runtimeType,id,name,displayOrder,icon,mediaType,provider,lastScan,lastScanVersion,createdAt,lastUpdate,settings,const DeepCollectionEquality().hash(folders),stats);
 
 @override
 String toString() {
-  return 'Library(id: $id, name: $name, displayOrder: $displayOrder, icon: $icon, mediaType: $mediaType, provider: $provider, lastScan: $lastScan, lastScanVersion: $lastScanVersion, createdAt: $createdAt, lastUpdate: $lastUpdate, settings: $settings, folders: $folders)';
+  return 'Library(id: $id, name: $name, displayOrder: $displayOrder, icon: $icon, mediaType: $mediaType, provider: $provider, lastScan: $lastScan, lastScanVersion: $lastScanVersion, createdAt: $createdAt, lastUpdate: $lastUpdate, settings: $settings, folders: $folders, stats: $stats)';
 }
 
 
@@ -49,11 +49,11 @@ abstract mixin class $LibraryCopyWith<$Res>  {
   factory $LibraryCopyWith(Library value, $Res Function(Library) _then) = _$LibraryCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: "id") String id,@JsonKey(name: "name") String name,@JsonKey(name: "displayOrder") int displayOrder,@JsonKey(name: "icon") String icon,@JsonKey(name: "mediaType") String mediaType,@JsonKey(name: "provider") String provider,@JsonKey(name: "lastScan") int? lastScan,@JsonKey(name: "lastScanVersion") String? lastScanVersion,@JsonKey(name: "createdAt") int createdAt,@JsonKey(name: "lastUpdate") int? lastUpdate,@JsonKey(name: "settings") LibrarySettings settings,@JsonKey(name: "folders") List<LibraryFolder>? folders
+@JsonKey(name: "id") String id,@JsonKey(name: "name") String name,@JsonKey(name: "displayOrder") int displayOrder,@JsonKey(name: "icon") String icon,@JsonKey(name: "mediaType") String mediaType,@JsonKey(name: "provider") String provider,@JsonKey(name: "lastScan") int? lastScan,@JsonKey(name: "lastScanVersion") String? lastScanVersion,@JsonKey(name: "createdAt") int createdAt,@JsonKey(name: "lastUpdate") int? lastUpdate,@JsonKey(name: "settings") LibrarySettings settings,@JsonKey(name: "folders") List<LibraryFolder>? folders,@JsonKey(name: "stats") LibraryStats? stats
 });
 
 
-$LibrarySettingsCopyWith<$Res> get settings;
+$LibrarySettingsCopyWith<$Res> get settings;$LibraryStatsCopyWith<$Res>? get stats;
 
 }
 /// @nodoc
@@ -66,7 +66,7 @@ class _$LibraryCopyWithImpl<$Res>
 
 /// Create a copy of Library
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? displayOrder = null,Object? icon = null,Object? mediaType = null,Object? provider = null,Object? lastScan = freezed,Object? lastScanVersion = freezed,Object? createdAt = null,Object? lastUpdate = freezed,Object? settings = null,Object? folders = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? displayOrder = null,Object? icon = null,Object? mediaType = null,Object? provider = null,Object? lastScan = freezed,Object? lastScanVersion = freezed,Object? createdAt = null,Object? lastUpdate = freezed,Object? settings = null,Object? folders = freezed,Object? stats = freezed,}) {
   return _then(Library(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -80,7 +80,8 @@ as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore:
 as int,lastUpdate: freezed == lastUpdate ? _self.lastUpdate : lastUpdate // ignore: cast_nullable_to_non_nullable
 as int?,settings: null == settings ? _self.settings : settings // ignore: cast_nullable_to_non_nullable
 as LibrarySettings,folders: freezed == folders ? _self.folders : folders // ignore: cast_nullable_to_non_nullable
-as List<LibraryFolder>?,
+as List<LibraryFolder>?,stats: freezed == stats ? _self.stats : stats // ignore: cast_nullable_to_non_nullable
+as LibraryStats?,
   ));
 }
 /// Create a copy of Library
@@ -91,6 +92,18 @@ $LibrarySettingsCopyWith<$Res> get settings {
   
   return $LibrarySettingsCopyWith<$Res>(_self.settings, (value) {
     return _then(_self.copyWith(settings: value));
+  });
+}/// Create a copy of Library
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$LibraryStatsCopyWith<$Res>? get stats {
+    if (_self.stats == null) {
+    return null;
+  }
+
+  return $LibraryStatsCopyWith<$Res>(_self.stats!, (value) {
+    return _then(_self.copyWith(stats: value));
   });
 }
 }
@@ -174,10 +187,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "name")  String name, @JsonKey(name: "displayOrder")  int displayOrder, @JsonKey(name: "icon")  String icon, @JsonKey(name: "mediaType")  String mediaType, @JsonKey(name: "provider")  String provider, @JsonKey(name: "lastScan")  int? lastScan, @JsonKey(name: "lastScanVersion")  String? lastScanVersion, @JsonKey(name: "createdAt")  int createdAt, @JsonKey(name: "lastUpdate")  int? lastUpdate, @JsonKey(name: "settings")  LibrarySettings settings, @JsonKey(name: "folders")  List<LibraryFolder>? folders)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "name")  String name, @JsonKey(name: "displayOrder")  int displayOrder, @JsonKey(name: "icon")  String icon, @JsonKey(name: "mediaType")  String mediaType, @JsonKey(name: "provider")  String provider, @JsonKey(name: "lastScan")  int? lastScan, @JsonKey(name: "lastScanVersion")  String? lastScanVersion, @JsonKey(name: "createdAt")  int createdAt, @JsonKey(name: "lastUpdate")  int? lastUpdate, @JsonKey(name: "settings")  LibrarySettings settings, @JsonKey(name: "folders")  List<LibraryFolder>? folders, @JsonKey(name: "stats")  LibraryStats? stats)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Library() when $default != null:
-return $default(_that.id,_that.name,_that.displayOrder,_that.icon,_that.mediaType,_that.provider,_that.lastScan,_that.lastScanVersion,_that.createdAt,_that.lastUpdate,_that.settings,_that.folders);case _:
+return $default(_that.id,_that.name,_that.displayOrder,_that.icon,_that.mediaType,_that.provider,_that.lastScan,_that.lastScanVersion,_that.createdAt,_that.lastUpdate,_that.settings,_that.folders,_that.stats);case _:
   return orElse();
 
 }
@@ -195,10 +208,10 @@ return $default(_that.id,_that.name,_that.displayOrder,_that.icon,_that.mediaTyp
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "name")  String name, @JsonKey(name: "displayOrder")  int displayOrder, @JsonKey(name: "icon")  String icon, @JsonKey(name: "mediaType")  String mediaType, @JsonKey(name: "provider")  String provider, @JsonKey(name: "lastScan")  int? lastScan, @JsonKey(name: "lastScanVersion")  String? lastScanVersion, @JsonKey(name: "createdAt")  int createdAt, @JsonKey(name: "lastUpdate")  int? lastUpdate, @JsonKey(name: "settings")  LibrarySettings settings, @JsonKey(name: "folders")  List<LibraryFolder>? folders)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "name")  String name, @JsonKey(name: "displayOrder")  int displayOrder, @JsonKey(name: "icon")  String icon, @JsonKey(name: "mediaType")  String mediaType, @JsonKey(name: "provider")  String provider, @JsonKey(name: "lastScan")  int? lastScan, @JsonKey(name: "lastScanVersion")  String? lastScanVersion, @JsonKey(name: "createdAt")  int createdAt, @JsonKey(name: "lastUpdate")  int? lastUpdate, @JsonKey(name: "settings")  LibrarySettings settings, @JsonKey(name: "folders")  List<LibraryFolder>? folders, @JsonKey(name: "stats")  LibraryStats? stats)  $default,) {final _that = this;
 switch (_that) {
 case _Library():
-return $default(_that.id,_that.name,_that.displayOrder,_that.icon,_that.mediaType,_that.provider,_that.lastScan,_that.lastScanVersion,_that.createdAt,_that.lastUpdate,_that.settings,_that.folders);case _:
+return $default(_that.id,_that.name,_that.displayOrder,_that.icon,_that.mediaType,_that.provider,_that.lastScan,_that.lastScanVersion,_that.createdAt,_that.lastUpdate,_that.settings,_that.folders,_that.stats);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -215,10 +228,10 @@ return $default(_that.id,_that.name,_that.displayOrder,_that.icon,_that.mediaTyp
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "id")  String id, @JsonKey(name: "name")  String name, @JsonKey(name: "displayOrder")  int displayOrder, @JsonKey(name: "icon")  String icon, @JsonKey(name: "mediaType")  String mediaType, @JsonKey(name: "provider")  String provider, @JsonKey(name: "lastScan")  int? lastScan, @JsonKey(name: "lastScanVersion")  String? lastScanVersion, @JsonKey(name: "createdAt")  int createdAt, @JsonKey(name: "lastUpdate")  int? lastUpdate, @JsonKey(name: "settings")  LibrarySettings settings, @JsonKey(name: "folders")  List<LibraryFolder>? folders)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "id")  String id, @JsonKey(name: "name")  String name, @JsonKey(name: "displayOrder")  int displayOrder, @JsonKey(name: "icon")  String icon, @JsonKey(name: "mediaType")  String mediaType, @JsonKey(name: "provider")  String provider, @JsonKey(name: "lastScan")  int? lastScan, @JsonKey(name: "lastScanVersion")  String? lastScanVersion, @JsonKey(name: "createdAt")  int createdAt, @JsonKey(name: "lastUpdate")  int? lastUpdate, @JsonKey(name: "settings")  LibrarySettings settings, @JsonKey(name: "folders")  List<LibraryFolder>? folders, @JsonKey(name: "stats")  LibraryStats? stats)?  $default,) {final _that = this;
 switch (_that) {
 case _Library() when $default != null:
-return $default(_that.id,_that.name,_that.displayOrder,_that.icon,_that.mediaType,_that.provider,_that.lastScan,_that.lastScanVersion,_that.createdAt,_that.lastUpdate,_that.settings,_that.folders);case _:
+return $default(_that.id,_that.name,_that.displayOrder,_that.icon,_that.mediaType,_that.provider,_that.lastScan,_that.lastScanVersion,_that.createdAt,_that.lastUpdate,_that.settings,_that.folders,_that.stats);case _:
   return null;
 
 }
@@ -230,7 +243,7 @@ return $default(_that.id,_that.name,_that.displayOrder,_that.icon,_that.mediaTyp
 @JsonSerializable()
 
 class _Library implements Library {
-  const _Library({@JsonKey(name: "id") required this.id, @JsonKey(name: "name") required this.name, @JsonKey(name: "displayOrder") required this.displayOrder, @JsonKey(name: "icon") required this.icon, @JsonKey(name: "mediaType") required this.mediaType, @JsonKey(name: "provider") required this.provider, @JsonKey(name: "lastScan") this.lastScan, @JsonKey(name: "lastScanVersion") this.lastScanVersion, @JsonKey(name: "createdAt") required this.createdAt, @JsonKey(name: "lastUpdate") this.lastUpdate, @JsonKey(name: "settings") required this.settings, @JsonKey(name: "folders")  List<LibraryFolder>? folders}): _folders = folders;
+  const _Library({@JsonKey(name: "id") required this.id, @JsonKey(name: "name") required this.name, @JsonKey(name: "displayOrder") required this.displayOrder, @JsonKey(name: "icon") required this.icon, @JsonKey(name: "mediaType") required this.mediaType, @JsonKey(name: "provider") required this.provider, @JsonKey(name: "lastScan") this.lastScan, @JsonKey(name: "lastScanVersion") this.lastScanVersion, @JsonKey(name: "createdAt") required this.createdAt, @JsonKey(name: "lastUpdate") this.lastUpdate, @JsonKey(name: "settings") required this.settings, @JsonKey(name: "folders")  List<LibraryFolder>? folders, @JsonKey(name: "stats") this.stats}): _folders = folders;
   factory _Library.fromJson(Map<String, dynamic> json) => _$LibraryFromJson(json);
 
 @override@JsonKey(name: "id") final  String id;
@@ -253,6 +266,7 @@ class _Library implements Library {
   return EqualUnmodifiableListView(value);
 }
 
+@override@JsonKey(name: "stats") final  LibraryStats? stats;
 
 /// Create a copy of Library
 /// with the given fields replaced by the non-null parameter values.
@@ -267,16 +281,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Library&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.displayOrder, displayOrder) || other.displayOrder == displayOrder)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.mediaType, mediaType) || other.mediaType == mediaType)&&(identical(other.provider, provider) || other.provider == provider)&&(identical(other.lastScan, lastScan) || other.lastScan == lastScan)&&(identical(other.lastScanVersion, lastScanVersion) || other.lastScanVersion == lastScanVersion)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.lastUpdate, lastUpdate) || other.lastUpdate == lastUpdate)&&(identical(other.settings, settings) || other.settings == settings)&&const DeepCollectionEquality().equals(other._folders, _folders));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Library&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.displayOrder, displayOrder) || other.displayOrder == displayOrder)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.mediaType, mediaType) || other.mediaType == mediaType)&&(identical(other.provider, provider) || other.provider == provider)&&(identical(other.lastScan, lastScan) || other.lastScan == lastScan)&&(identical(other.lastScanVersion, lastScanVersion) || other.lastScanVersion == lastScanVersion)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.lastUpdate, lastUpdate) || other.lastUpdate == lastUpdate)&&(identical(other.settings, settings) || other.settings == settings)&&const DeepCollectionEquality().equals(other._folders, _folders)&&(identical(other.stats, stats) || other.stats == stats));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,displayOrder,icon,mediaType,provider,lastScan,lastScanVersion,createdAt,lastUpdate,settings,const DeepCollectionEquality().hash(_folders));
+int get hashCode => Object.hash(runtimeType,id,name,displayOrder,icon,mediaType,provider,lastScan,lastScanVersion,createdAt,lastUpdate,settings,const DeepCollectionEquality().hash(_folders),stats);
 
 @override
 String toString() {
-  return 'Library(id: $id, name: $name, displayOrder: $displayOrder, icon: $icon, mediaType: $mediaType, provider: $provider, lastScan: $lastScan, lastScanVersion: $lastScanVersion, createdAt: $createdAt, lastUpdate: $lastUpdate, settings: $settings, folders: $folders)';
+  return 'Library(id: $id, name: $name, displayOrder: $displayOrder, icon: $icon, mediaType: $mediaType, provider: $provider, lastScan: $lastScan, lastScanVersion: $lastScanVersion, createdAt: $createdAt, lastUpdate: $lastUpdate, settings: $settings, folders: $folders, stats: $stats)';
 }
 
 
@@ -287,11 +301,11 @@ abstract mixin class _$LibraryCopyWith<$Res> implements $LibraryCopyWith<$Res> {
   factory _$LibraryCopyWith(_Library value, $Res Function(_Library) _then) = __$LibraryCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: "id") String id,@JsonKey(name: "name") String name,@JsonKey(name: "displayOrder") int displayOrder,@JsonKey(name: "icon") String icon,@JsonKey(name: "mediaType") String mediaType,@JsonKey(name: "provider") String provider,@JsonKey(name: "lastScan") int? lastScan,@JsonKey(name: "lastScanVersion") String? lastScanVersion,@JsonKey(name: "createdAt") int createdAt,@JsonKey(name: "lastUpdate") int? lastUpdate,@JsonKey(name: "settings") LibrarySettings settings,@JsonKey(name: "folders") List<LibraryFolder>? folders
+@JsonKey(name: "id") String id,@JsonKey(name: "name") String name,@JsonKey(name: "displayOrder") int displayOrder,@JsonKey(name: "icon") String icon,@JsonKey(name: "mediaType") String mediaType,@JsonKey(name: "provider") String provider,@JsonKey(name: "lastScan") int? lastScan,@JsonKey(name: "lastScanVersion") String? lastScanVersion,@JsonKey(name: "createdAt") int createdAt,@JsonKey(name: "lastUpdate") int? lastUpdate,@JsonKey(name: "settings") LibrarySettings settings,@JsonKey(name: "folders") List<LibraryFolder>? folders,@JsonKey(name: "stats") LibraryStats? stats
 });
 
 
-@override $LibrarySettingsCopyWith<$Res> get settings;
+@override $LibrarySettingsCopyWith<$Res> get settings;@override $LibraryStatsCopyWith<$Res>? get stats;
 
 }
 /// @nodoc
@@ -304,7 +318,7 @@ class __$LibraryCopyWithImpl<$Res>
 
 /// Create a copy of Library
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? displayOrder = null,Object? icon = null,Object? mediaType = null,Object? provider = null,Object? lastScan = freezed,Object? lastScanVersion = freezed,Object? createdAt = null,Object? lastUpdate = freezed,Object? settings = null,Object? folders = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? displayOrder = null,Object? icon = null,Object? mediaType = null,Object? provider = null,Object? lastScan = freezed,Object? lastScanVersion = freezed,Object? createdAt = null,Object? lastUpdate = freezed,Object? settings = null,Object? folders = freezed,Object? stats = freezed,}) {
   return _then(_Library(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -318,7 +332,8 @@ as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore:
 as int,lastUpdate: freezed == lastUpdate ? _self.lastUpdate : lastUpdate // ignore: cast_nullable_to_non_nullable
 as int?,settings: null == settings ? _self.settings : settings // ignore: cast_nullable_to_non_nullable
 as LibrarySettings,folders: freezed == folders ? _self._folders : folders // ignore: cast_nullable_to_non_nullable
-as List<LibraryFolder>?,
+as List<LibraryFolder>?,stats: freezed == stats ? _self.stats : stats // ignore: cast_nullable_to_non_nullable
+as LibraryStats?,
   ));
 }
 
@@ -330,6 +345,18 @@ $LibrarySettingsCopyWith<$Res> get settings {
   
   return $LibrarySettingsCopyWith<$Res>(_self.settings, (value) {
     return _then(_self.copyWith(settings: value));
+  });
+}/// Create a copy of Library
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$LibraryStatsCopyWith<$Res>? get stats {
+    if (_self.stats == null) {
+    return null;
+  }
+
+  return $LibraryStatsCopyWith<$Res>(_self.stats!, (value) {
+    return _then(_self.copyWith(stats: value));
   });
 }
 }

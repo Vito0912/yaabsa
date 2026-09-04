@@ -33,6 +33,7 @@ _LibraryItem _$LibraryItemFromJson(Map<String, dynamic> json) => _LibraryItem(
   collapsedSeries: json['collapsedSeries'] == null
       ? null
       : CollapsedSeries.fromJson(json['collapsedSeries'] as Map<String, dynamic>),
+  recentEpisode: json['recentEpisode'] == null ? null : Episode.fromJson(json['recentEpisode'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$LibraryItemToJson(_LibraryItem instance) => <String, dynamic>{
@@ -58,4 +59,5 @@ Map<String, dynamic> _$LibraryItemToJson(_LibraryItem instance) => <String, dyna
   'libraryFiles': instance.libraryFiles,
   'size': instance.size,
   'collapsedSeries': instance.collapsedSeries,
+  'recentEpisode': instance.recentEpisode,
 };

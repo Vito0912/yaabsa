@@ -17,6 +17,7 @@ _LibraryStats _$LibraryStatsFromJson(Map<String, dynamic> json) => _LibraryStats
           .toList() ??
       const <LibraryItemDurationStats>[],
   numAudioTracks: jsonIntFromDynamic(json['numAudioTracks']),
+  numAudioFiles: jsonIntFromDynamic(json['numAudioFiles']),
   totalSize: jsonIntFromDynamic(json['totalSize']),
   largestItems:
       (json['largestItems'] as List<dynamic>?)
@@ -42,6 +43,7 @@ Map<String, dynamic> _$LibraryStatsToJson(_LibraryStats instance) => <String, dy
   'totalDuration': instance.totalDuration,
   'longestItems': instance.longestItems,
   'numAudioTracks': instance.numAudioTracks,
+  'numAudioFiles': instance.numAudioFiles,
   'totalSize': instance.totalSize,
   'largestItems': instance.largestItems,
   'authorsWithCount': instance.authorsWithCount,

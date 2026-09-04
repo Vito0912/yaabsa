@@ -4,6 +4,15 @@ extension _BGAudioHandlerAndroidAutoBrowse on BGAudioHandler {
   Future<List<MediaItem>> _androidAutoRootItems() async {
     final isAutomotiveSystem = await _androidAutoIsAutomotiveSystem();
 
+    if (isAutomotiveSystem) {
+      final snapshot = await _androidAutoGetBrowseSnapshot(this);
+      return buildAndroidAutoRoot(
+        snapshot,
+        session: _androidAutoBrowseSession,
+        artUriForNode: (nodeId) => _androidAutoDrawableIconUri(nodeId),
+      );
+    }
+
     final items = <MediaItem>[];
 
     items.addAll([
@@ -41,6 +50,13 @@ extension _BGAudioHandlerAndroidAutoBrowse on BGAudioHandler {
     List<Library>? libraries,
     Map<String, PersonalizedLibrary?>? personalizedByLibraryId,
   }) async {
+    if (await _androidAutoIsAutomotiveSystem() && libraries == null && personalizedByLibraryId == null) {
+      final snapshot = await _androidAutoGetBrowseSnapshot(this);
+      return paging.hasExplicitPaging
+          ? _androidAutoApplyPaging(snapshot.continueItems, paging)
+          : snapshot.continueItems;
+    }
+
     final resolvedLibraries = libraries ?? await _androidAutoFetchLibraries();
     if (resolvedLibraries.isEmpty) {
       return const <MediaItem>[];
@@ -85,7 +101,11 @@ extension _BGAudioHandlerAndroidAutoBrowse on BGAudioHandler {
     _AndroidAutoPagingOptions paging, {
     List<Library>? libraries,
   }) async {
-    final resolvedLibraries = libraries ?? await _androidAutoFetchLibraries();
+    final resolvedLibraries =
+        libraries ??
+        (await _androidAutoIsAutomotiveSystem()
+            ? (await _androidAutoGetBrowseSnapshot(this)).audioLibraries
+            : await _androidAutoFetchLibraries());
     if (resolvedLibraries.isEmpty) {
       return const <MediaItem>[];
     }
@@ -131,7 +151,11 @@ extension _BGAudioHandlerAndroidAutoBrowse on BGAudioHandler {
   }
 
   Future<List<MediaItem>> _androidAutoLibraryNodes(_AndroidAutoPagingOptions paging, {List<Library>? libraries}) async {
-    final resolvedLibraries = libraries ?? await _androidAutoFetchLibraries();
+    final resolvedLibraries =
+        libraries ??
+        (await _androidAutoIsAutomotiveSystem()
+            ? (await _androidAutoGetBrowseSnapshot(this)).audioLibraries
+            : await _androidAutoFetchLibraries());
     if (resolvedLibraries.isEmpty) {
       return const <MediaItem>[];
     }

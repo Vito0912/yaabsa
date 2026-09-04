@@ -133,8 +133,17 @@ final bool _isReleaseConsoleLoggingEnabled =
 
 bool get _shouldPrintToConsole => kDebugMode || _isReleaseConsoleLoggingEnabled;
 
+bool _isReleaseDiagnosticLog(String? tag, String message) {
+  if (kDebugMode || kIsWeb || !Platform.isAndroid) {
+    return false;
+  }
+
+  return tag == 'AAOSBrowse' || tag == 'AAOS' || (tag == 'AudioHandler' && message.startsWith('[AAOS]'));
+}
+
 void logger(String message, {String? tag, InfoLevel level = InfoLevel.info}) {
-  if (!appLoggerService.shouldLog(level)) {
+  final releaseDiagnosticLog = _isReleaseDiagnosticLog(tag, message);
+  if (!appLoggerService.shouldLog(level) && !releaseDiagnosticLog) {
     return;
   }
 
@@ -144,7 +153,7 @@ void logger(String message, {String? tag, InfoLevel level = InfoLevel.info}) {
 
   appLoggerService._addLogEntry(logEntry);
 
-  if (_shouldPrintToConsole) {
+  if (_shouldPrintToConsole || releaseDiagnosticLog) {
     final formattedDate =
         '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
     final fallbackMessage = '[$formattedDate] [${level.name.toUpperCase()}] [${tag ?? 'FALLBACK'}] $message';

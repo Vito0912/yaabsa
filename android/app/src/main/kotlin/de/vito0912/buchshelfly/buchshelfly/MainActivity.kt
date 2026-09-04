@@ -47,6 +47,10 @@ class MainActivity : AudioServiceFragmentActivity() {
 		return WidgetRuntimeSupport.isWidgetSupportEnabled(applicationContext)
 	}
 
+	private fun isAutomotiveDevice(): Boolean {
+		return packageManager.hasSystemFeature(PackageManager.FEATURE_AUTOMOTIVE)
+	}
+
 
 	private var aaosChannel: MethodChannel? = null
 	private var aaosDartReady = false
@@ -64,16 +68,18 @@ class MainActivity : AudioServiceFragmentActivity() {
 		handleWidgetLaunchIntent(intent)
 		handleAaosIntent(intent)
 		handleSignInIntent(intent)
-		handleWearSignInIntent(intent)
-		messageClient = Wearable.getMessageClient(this)
-		wearMessageListener = MessageClient.OnMessageReceivedListener { event ->
-			if (event.path == "/yaabsa/credential_request") {
-				WearPairingStore.savePendingRequest(this, event.sourceNodeId, String(event.data))
-				pendingWearSignInNotification = true
-				runOnUiThread { notifyWearSignInIfPending() }
+		if (!isAutomotiveDevice()) {
+			handleWearSignInIntent(intent)
+			messageClient = Wearable.getMessageClient(this)
+			wearMessageListener = MessageClient.OnMessageReceivedListener { event ->
+				if (event.path == "/yaabsa/credential_request") {
+					WearPairingStore.savePendingRequest(this, event.sourceNodeId, String(event.data))
+					pendingWearSignInNotification = true
+					runOnUiThread { notifyWearSignInIfPending() }
+				}
 			}
+			messageClient?.addListener(wearMessageListener!!)
 		}
-		messageClient?.addListener(wearMessageListener!!)
 		if (maybeLaunchMediaCenterFromMainIntent(intent)) {
 			return
 		}
@@ -85,7 +91,9 @@ class MainActivity : AudioServiceFragmentActivity() {
 		handleWidgetLaunchIntent(intent)
 		handleAaosIntent(intent)
 		handleSignInIntent(intent)
-		handleWearSignInIntent(intent)
+		if (!isAutomotiveDevice()) {
+			handleWearSignInIntent(intent)
+		}
 		if (maybeLaunchMediaCenterFromMainIntent(intent)) {
 			return
 		}
@@ -262,12 +270,14 @@ class MainActivity : AudioServiceFragmentActivity() {
 		}
 		probeAaosDartReadiness()
 
-		wearChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, WEAR_DATA_CHANNEL)
-		wearChannel?.setMethodCallHandler { call, result ->
-			when (call.method) {
-				"sendWearCredentials" -> handleSendWearCredentials(call, result)
-				"hasPendingCredentialRequest" -> handleHasPendingCredentialRequest(result)
-				else -> result.notImplemented()
+		if (!isAutomotiveDevice()) {
+			wearChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, WEAR_DATA_CHANNEL)
+			wearChannel?.setMethodCallHandler { call, result ->
+				when (call.method) {
+					"sendWearCredentials" -> handleSendWearCredentials(call, result)
+					"hasPendingCredentialRequest" -> handleHasPendingCredentialRequest(result)
+					else -> result.notImplemented()
+				}
 			}
 		}
 
@@ -282,7 +292,9 @@ class MainActivity : AudioServiceFragmentActivity() {
 
 		notifyAaosOpenSettingsIfPending()
 		notifyAaosOpenSignInIfPending()
-		notifyWearSignInIfPending()
+		if (!isAutomotiveDevice()) {
+			notifyWearSignInIfPending()
+		}
 	}
 
 	private fun updateAutoResumeSettings(call: MethodCall, result: MethodChannel.Result) {

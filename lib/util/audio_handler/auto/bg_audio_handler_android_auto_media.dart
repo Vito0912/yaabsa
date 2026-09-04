@@ -1,6 +1,27 @@
 part of '../bg_audio_handler.dart';
 
 extension _BGAudioHandlerAndroidAutoMedia on BGAudioHandler {
+  List<MediaItem> _androidAutoContinueMediaItems(Iterable<LibraryItem> items) {
+    return mapAndroidAutoContinueItems<MediaItem>(
+      items,
+      mapAudiobook: (item) {
+        if (_androidAutoIsPodcastLibraryItem(item) || !_androidAutoIsPlayableAudioItem(item)) {
+          return null;
+        }
+
+        return _androidAutoPlayableFromLibraryItem(item, mediaId: _androidAutoItemPlaybackId(item.id));
+      },
+      mapPodcastEpisode: (item, episode) {
+        if (episode.audioFile == null && episode.audioTrack == null) {
+          return null;
+        }
+
+        return _androidAutoPlayableFromEpisode(item: item, episode: episode);
+      },
+      idOf: (source, episode, item) => episode == null ? item.id : '${source.id}:${episode.id}',
+    );
+  }
+
   List<MediaItem> _androidAutoMediaItemsFromLibraryItems(List<LibraryItem> items, {required String subtitlePrefix}) {
     final mediaItems = <MediaItem>[];
     final seen = <String>{};
@@ -292,7 +313,9 @@ extension _BGAudioHandlerAndroidAutoMedia on BGAudioHandler {
       subtitle: subtitle,
       artist: item.authorString,
       artUri: artUriOverride ?? _androidAutoCoverUri(item),
-      duration: _androidAutoDurationFromSeconds(episode.audioFile?.duration),
+      duration: _androidAutoDurationFromSeconds(
+        episode.audioFile?.duration ?? episode.audioTrack?.duration ?? episode.duration,
+      ),
       extras: <String, dynamic>{
         ...completionExtras,
         'itemId': item.id,
@@ -346,7 +369,10 @@ extension _BGAudioHandlerAndroidAutoMedia on BGAudioHandler {
     final progressMap = _ref.read(mediaProgressProvider).value ?? const <String, MediaProgress>{};
     final progress = progressMap[mediaProgressKey(itemId, episodeId)];
     if (progress == null) {
-      return <String, dynamic>{_androidAutoCompletionStatusExtrasKey: _androidAutoCompletionStatusNotPlayed};
+      return <String, dynamic>{
+        _androidAutoCompletionStatusExtrasKey: _androidAutoCompletionStatusNotPlayed,
+        _androidAutoCompletionPercentageExtrasKey: 0.0,
+      };
     }
 
     final normalizedProgress = progress.progress.clamp(0.0, 1.0).toDouble();
@@ -358,7 +384,10 @@ extension _BGAudioHandlerAndroidAutoMedia on BGAudioHandler {
     }
 
     if (normalizedProgress <= 0) {
-      return <String, dynamic>{_androidAutoCompletionStatusExtrasKey: _androidAutoCompletionStatusNotPlayed};
+      return <String, dynamic>{
+        _androidAutoCompletionStatusExtrasKey: _androidAutoCompletionStatusNotPlayed,
+        _androidAutoCompletionPercentageExtrasKey: 0.0,
+      };
     }
 
     return <String, dynamic>{

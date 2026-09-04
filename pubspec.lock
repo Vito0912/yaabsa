@@ -2189,10 +2189,9 @@ packages:
   wear_plus:
     dependency: "direct main"
     description:
-      name: wear_plus
-      sha256: "492caaf15c13d3ea20e5b00f8fb884b412a6ae81ebac7995e47b57d436ad0a1b"
-      url: "https://pub.dev"
-    source: hosted
+      path: "packages/wear_plus"
+      relative: true
+    source: path
     version: "1.2.5"
   web:
     dependency: transitive

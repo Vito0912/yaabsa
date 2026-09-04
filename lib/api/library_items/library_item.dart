@@ -1,4 +1,5 @@
 import 'package:yaabsa/api/library/collapsed_series.dart';
+import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/api/library_items/library_file.dart';
 import 'package:yaabsa/api/library_items/media.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -33,6 +34,7 @@ abstract class LibraryItem with _$LibraryItem {
     @JsonKey(name: "libraryFiles") required List<LibraryFile>? libraryFiles,
     @JsonKey(name: "size") int? size,
     @JsonKey(name: "collapsedSeries") CollapsedSeries? collapsedSeries,
+    @JsonKey(name: "recentEpisode") Episode? recentEpisode,
   }) = _LibraryItem;
 
   factory LibraryItem.fromJson(Map<String, dynamic> json) => _$LibraryItemFromJson(json);

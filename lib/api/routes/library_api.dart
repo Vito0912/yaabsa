@@ -24,6 +24,7 @@ class LibraryApi {
   LibraryApi(this._dio);
 
   Future<Response<LibraryResponse>> getLibraries({
+    String? include,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -35,7 +36,9 @@ class LibraryApi {
       headers: headers,
       extra: extra,
       dio: _dio,
-      queryParams: {},
+      queryParams: {
+        ...?(include == null ? null : <String, dynamic>{'include': include}),
+      },
     );
   }
 

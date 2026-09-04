@@ -6,6 +6,7 @@ import 'package:yaabsa/api/me/bookmarks_response.dart';
 import 'package:yaabsa/api/me/login.dart';
 import 'package:yaabsa/api/me/media_progress.dart';
 import 'package:yaabsa/api/me/media_progress_response.dart';
+import 'package:yaabsa/api/me/items_in_progress.dart';
 import 'package:yaabsa/api/me/request/create_bookmark_request.dart';
 import 'package:yaabsa/api/me/request/login_request.dart';
 import 'package:yaabsa/api/me/status.dart';
@@ -212,6 +213,23 @@ class MeApi {
       extra: extra,
       dio: _dio,
       queryParams: {},
+    );
+  }
+
+  Future<Response<ItemsInProgress>> getItemsInProgress({
+    int limit = 25,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+  }) async {
+    return ABSApi.makeApiGetRequest(
+      route: '/api/me/items-in-progress',
+      fromJson: (data) => ItemsInProgress.fromJson(data as Map<String, dynamic>),
+      cancelToken: cancelToken,
+      headers: headers,
+      extra: extra,
+      dio: _dio,
+      queryParams: {'limit': limit},
     );
   }
 

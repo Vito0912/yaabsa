@@ -10,3 +10,6 @@
 [submodule "packages/just_audio"]
 	path = packages/just_audio
 	url = git@github.com:Vito0912/just_audio.git
+[submodule "packages/wear_plus"]
+	path = packages/wear_plus
+	url = git@github.com:Vito0912/wear_plus.git

@@ -2,6 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'library_folder.dart';
 import 'library_settings.dart';
+import 'stats/library_stats.dart';
 
 part 'library.freezed.dart';
 part 'library.g.dart';
@@ -21,6 +22,7 @@ abstract class Library with _$Library {
     @JsonKey(name: "lastUpdate") int? lastUpdate,
     @JsonKey(name: "settings") required LibrarySettings settings,
     @JsonKey(name: "folders") List<LibraryFolder>? folders,
+    @JsonKey(name: "stats") LibraryStats? stats,
   }) = _Library;
 
   factory Library.fromJson(Map<String, dynamic> json) => _$LibraryFromJson(json);

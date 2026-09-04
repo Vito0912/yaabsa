@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$LibraryItem {
 
-@JsonKey(name: "id") String get id;@JsonKey(name: "ino") String get ino;@JsonKey(name: "oldLibraryItemId") String? get oldLibraryItemId;@JsonKey(name: "libraryId") String? get libraryId;@JsonKey(name: "folderId") String? get folderId;@JsonKey(name: "path") String? get path;@JsonKey(name: "relPath") String? get relPath;@JsonKey(name: "isFile") bool? get isFile;@JsonKey(name: "mtimeMs") int? get mtimeMs;@JsonKey(name: "ctimeMs") int? get ctimeMs;@JsonKey(name: "birthtimeMs") int? get birthtimeMs;@JsonKey(name: "addedAt") int? get addedAt;@JsonKey(name: "updatedAt") int? get updatedAt;@JsonKey(name: "lastScan") int? get lastScan;@JsonKey(name: "scanVersion") String? get scanVersion;@JsonKey(name: "isMissing") bool? get isMissing;@JsonKey(name: "isInvalid") bool? get isInvalid;@JsonKey(name: "mediaType") String? get mediaType;@JsonKey(name: "media") Media? get media;@JsonKey(name: "libraryFiles") List<LibraryFile>? get libraryFiles;@JsonKey(name: "size") int? get size;@JsonKey(name: "collapsedSeries") CollapsedSeries? get collapsedSeries;
+@JsonKey(name: "id") String get id;@JsonKey(name: "ino") String get ino;@JsonKey(name: "oldLibraryItemId") String? get oldLibraryItemId;@JsonKey(name: "libraryId") String? get libraryId;@JsonKey(name: "folderId") String? get folderId;@JsonKey(name: "path") String? get path;@JsonKey(name: "relPath") String? get relPath;@JsonKey(name: "isFile") bool? get isFile;@JsonKey(name: "mtimeMs") int? get mtimeMs;@JsonKey(name: "ctimeMs") int? get ctimeMs;@JsonKey(name: "birthtimeMs") int? get birthtimeMs;@JsonKey(name: "addedAt") int? get addedAt;@JsonKey(name: "updatedAt") int? get updatedAt;@JsonKey(name: "lastScan") int? get lastScan;@JsonKey(name: "scanVersion") String? get scanVersion;@JsonKey(name: "isMissing") bool? get isMissing;@JsonKey(name: "isInvalid") bool? get isInvalid;@JsonKey(name: "mediaType") String? get mediaType;@JsonKey(name: "media") Media? get media;@JsonKey(name: "libraryFiles") List<LibraryFile>? get libraryFiles;@JsonKey(name: "size") int? get size;@JsonKey(name: "collapsedSeries") CollapsedSeries? get collapsedSeries;@JsonKey(name: "recentEpisode") Episode? get recentEpisode;
 /// Create a copy of LibraryItem
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,16 +29,16 @@ $LibraryItemCopyWith<LibraryItem> get copyWith => _$LibraryItemCopyWithImpl<Libr
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LibraryItem&&(identical(other.id, id) || other.id == id)&&(identical(other.ino, ino) || other.ino == ino)&&(identical(other.oldLibraryItemId, oldLibraryItemId) || other.oldLibraryItemId == oldLibraryItemId)&&(identical(other.libraryId, libraryId) || other.libraryId == libraryId)&&(identical(other.folderId, folderId) || other.folderId == folderId)&&(identical(other.path, path) || other.path == path)&&(identical(other.relPath, relPath) || other.relPath == relPath)&&(identical(other.isFile, isFile) || other.isFile == isFile)&&(identical(other.mtimeMs, mtimeMs) || other.mtimeMs == mtimeMs)&&(identical(other.ctimeMs, ctimeMs) || other.ctimeMs == ctimeMs)&&(identical(other.birthtimeMs, birthtimeMs) || other.birthtimeMs == birthtimeMs)&&(identical(other.addedAt, addedAt) || other.addedAt == addedAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.lastScan, lastScan) || other.lastScan == lastScan)&&(identical(other.scanVersion, scanVersion) || other.scanVersion == scanVersion)&&(identical(other.isMissing, isMissing) || other.isMissing == isMissing)&&(identical(other.isInvalid, isInvalid) || other.isInvalid == isInvalid)&&(identical(other.mediaType, mediaType) || other.mediaType == mediaType)&&(identical(other.media, media) || other.media == media)&&const DeepCollectionEquality().equals(other.libraryFiles, libraryFiles)&&(identical(other.size, size) || other.size == size)&&(identical(other.collapsedSeries, collapsedSeries) || other.collapsedSeries == collapsedSeries));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LibraryItem&&(identical(other.id, id) || other.id == id)&&(identical(other.ino, ino) || other.ino == ino)&&(identical(other.oldLibraryItemId, oldLibraryItemId) || other.oldLibraryItemId == oldLibraryItemId)&&(identical(other.libraryId, libraryId) || other.libraryId == libraryId)&&(identical(other.folderId, folderId) || other.folderId == folderId)&&(identical(other.path, path) || other.path == path)&&(identical(other.relPath, relPath) || other.relPath == relPath)&&(identical(other.isFile, isFile) || other.isFile == isFile)&&(identical(other.mtimeMs, mtimeMs) || other.mtimeMs == mtimeMs)&&(identical(other.ctimeMs, ctimeMs) || other.ctimeMs == ctimeMs)&&(identical(other.birthtimeMs, birthtimeMs) || other.birthtimeMs == birthtimeMs)&&(identical(other.addedAt, addedAt) || other.addedAt == addedAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.lastScan, lastScan) || other.lastScan == lastScan)&&(identical(other.scanVersion, scanVersion) || other.scanVersion == scanVersion)&&(identical(other.isMissing, isMissing) || other.isMissing == isMissing)&&(identical(other.isInvalid, isInvalid) || other.isInvalid == isInvalid)&&(identical(other.mediaType, mediaType) || other.mediaType == mediaType)&&(identical(other.media, media) || other.media == media)&&const DeepCollectionEquality().equals(other.libraryFiles, libraryFiles)&&(identical(other.size, size) || other.size == size)&&(identical(other.collapsedSeries, collapsedSeries) || other.collapsedSeries == collapsedSeries)&&(identical(other.recentEpisode, recentEpisode) || other.recentEpisode == recentEpisode));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,ino,oldLibraryItemId,libraryId,folderId,path,relPath,isFile,mtimeMs,ctimeMs,birthtimeMs,addedAt,updatedAt,lastScan,scanVersion,isMissing,isInvalid,mediaType,media,const DeepCollectionEquality().hash(libraryFiles),size,collapsedSeries]);
+int get hashCode => Object.hashAll([runtimeType,id,ino,oldLibraryItemId,libraryId,folderId,path,relPath,isFile,mtimeMs,ctimeMs,birthtimeMs,addedAt,updatedAt,lastScan,scanVersion,isMissing,isInvalid,mediaType,media,const DeepCollectionEquality().hash(libraryFiles),size,collapsedSeries,recentEpisode]);
 
 @override
 String toString() {
-  return 'LibraryItem(id: $id, ino: $ino, oldLibraryItemId: $oldLibraryItemId, libraryId: $libraryId, folderId: $folderId, path: $path, relPath: $relPath, isFile: $isFile, mtimeMs: $mtimeMs, ctimeMs: $ctimeMs, birthtimeMs: $birthtimeMs, addedAt: $addedAt, updatedAt: $updatedAt, lastScan: $lastScan, scanVersion: $scanVersion, isMissing: $isMissing, isInvalid: $isInvalid, mediaType: $mediaType, media: $media, libraryFiles: $libraryFiles, size: $size, collapsedSeries: $collapsedSeries)';
+  return 'LibraryItem(id: $id, ino: $ino, oldLibraryItemId: $oldLibraryItemId, libraryId: $libraryId, folderId: $folderId, path: $path, relPath: $relPath, isFile: $isFile, mtimeMs: $mtimeMs, ctimeMs: $ctimeMs, birthtimeMs: $birthtimeMs, addedAt: $addedAt, updatedAt: $updatedAt, lastScan: $lastScan, scanVersion: $scanVersion, isMissing: $isMissing, isInvalid: $isInvalid, mediaType: $mediaType, media: $media, libraryFiles: $libraryFiles, size: $size, collapsedSeries: $collapsedSeries, recentEpisode: $recentEpisode)';
 }
 
 
@@ -49,11 +49,11 @@ abstract mixin class $LibraryItemCopyWith<$Res>  {
   factory $LibraryItemCopyWith(LibraryItem value, $Res Function(LibraryItem) _then) = _$LibraryItemCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: "id") String id,@JsonKey(name: "ino") String ino,@JsonKey(name: "oldLibraryItemId") String? oldLibraryItemId,@JsonKey(name: "libraryId") String? libraryId,@JsonKey(name: "folderId") String? folderId,@JsonKey(name: "path") String? path,@JsonKey(name: "relPath") String? relPath,@JsonKey(name: "isFile") bool? isFile,@JsonKey(name: "mtimeMs") int? mtimeMs,@JsonKey(name: "ctimeMs") int? ctimeMs,@JsonKey(name: "birthtimeMs") int? birthtimeMs,@JsonKey(name: "addedAt") int? addedAt,@JsonKey(name: "updatedAt") int? updatedAt,@JsonKey(name: "lastScan") int? lastScan,@JsonKey(name: "scanVersion") String? scanVersion,@JsonKey(name: "isMissing") bool? isMissing,@JsonKey(name: "isInvalid") bool? isInvalid,@JsonKey(name: "mediaType") String? mediaType,@JsonKey(name: "media") Media? media,@JsonKey(name: "libraryFiles") List<LibraryFile>? libraryFiles,@JsonKey(name: "size") int? size,@JsonKey(name: "collapsedSeries") CollapsedSeries? collapsedSeries
+@JsonKey(name: "id") String id,@JsonKey(name: "ino") String ino,@JsonKey(name: "oldLibraryItemId") String? oldLibraryItemId,@JsonKey(name: "libraryId") String? libraryId,@JsonKey(name: "folderId") String? folderId,@JsonKey(name: "path") String? path,@JsonKey(name: "relPath") String? relPath,@JsonKey(name: "isFile") bool? isFile,@JsonKey(name: "mtimeMs") int? mtimeMs,@JsonKey(name: "ctimeMs") int? ctimeMs,@JsonKey(name: "birthtimeMs") int? birthtimeMs,@JsonKey(name: "addedAt") int? addedAt,@JsonKey(name: "updatedAt") int? updatedAt,@JsonKey(name: "lastScan") int? lastScan,@JsonKey(name: "scanVersion") String? scanVersion,@JsonKey(name: "isMissing") bool? isMissing,@JsonKey(name: "isInvalid") bool? isInvalid,@JsonKey(name: "mediaType") String? mediaType,@JsonKey(name: "media") Media? media,@JsonKey(name: "libraryFiles") List<LibraryFile>? libraryFiles,@JsonKey(name: "size") int? size,@JsonKey(name: "collapsedSeries") CollapsedSeries? collapsedSeries,@JsonKey(name: "recentEpisode") Episode? recentEpisode
 });
 
 
-$MediaCopyWith<$Res>? get media;$CollapsedSeriesCopyWith<$Res>? get collapsedSeries;
+$MediaCopyWith<$Res>? get media;$CollapsedSeriesCopyWith<$Res>? get collapsedSeries;$EpisodeCopyWith<$Res>? get recentEpisode;
 
 }
 /// @nodoc
@@ -66,7 +66,7 @@ class _$LibraryItemCopyWithImpl<$Res>
 
 /// Create a copy of LibraryItem
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? ino = null,Object? oldLibraryItemId = freezed,Object? libraryId = freezed,Object? folderId = freezed,Object? path = freezed,Object? relPath = freezed,Object? isFile = freezed,Object? mtimeMs = freezed,Object? ctimeMs = freezed,Object? birthtimeMs = freezed,Object? addedAt = freezed,Object? updatedAt = freezed,Object? lastScan = freezed,Object? scanVersion = freezed,Object? isMissing = freezed,Object? isInvalid = freezed,Object? mediaType = freezed,Object? media = freezed,Object? libraryFiles = freezed,Object? size = freezed,Object? collapsedSeries = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? ino = null,Object? oldLibraryItemId = freezed,Object? libraryId = freezed,Object? folderId = freezed,Object? path = freezed,Object? relPath = freezed,Object? isFile = freezed,Object? mtimeMs = freezed,Object? ctimeMs = freezed,Object? birthtimeMs = freezed,Object? addedAt = freezed,Object? updatedAt = freezed,Object? lastScan = freezed,Object? scanVersion = freezed,Object? isMissing = freezed,Object? isInvalid = freezed,Object? mediaType = freezed,Object? media = freezed,Object? libraryFiles = freezed,Object? size = freezed,Object? collapsedSeries = freezed,Object? recentEpisode = freezed,}) {
   return _then(LibraryItem(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,ino: null == ino ? _self.ino : ino // ignore: cast_nullable_to_non_nullable
@@ -90,7 +90,8 @@ as String?,media: freezed == media ? _self.media : media // ignore: cast_nullabl
 as Media?,libraryFiles: freezed == libraryFiles ? _self.libraryFiles : libraryFiles // ignore: cast_nullable_to_non_nullable
 as List<LibraryFile>?,size: freezed == size ? _self.size : size // ignore: cast_nullable_to_non_nullable
 as int?,collapsedSeries: freezed == collapsedSeries ? _self.collapsedSeries : collapsedSeries // ignore: cast_nullable_to_non_nullable
-as CollapsedSeries?,
+as CollapsedSeries?,recentEpisode: freezed == recentEpisode ? _self.recentEpisode : recentEpisode // ignore: cast_nullable_to_non_nullable
+as Episode?,
   ));
 }
 /// Create a copy of LibraryItem
@@ -116,6 +117,18 @@ $CollapsedSeriesCopyWith<$Res>? get collapsedSeries {
 
   return $CollapsedSeriesCopyWith<$Res>(_self.collapsedSeries!, (value) {
     return _then(_self.copyWith(collapsedSeries: value));
+  });
+}/// Create a copy of LibraryItem
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$EpisodeCopyWith<$Res>? get recentEpisode {
+    if (_self.recentEpisode == null) {
+    return null;
+  }
+
+  return $EpisodeCopyWith<$Res>(_self.recentEpisode!, (value) {
+    return _then(_self.copyWith(recentEpisode: value));
   });
 }
 }
@@ -199,10 +212,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "ino")  String ino, @JsonKey(name: "oldLibraryItemId")  String? oldLibraryItemId, @JsonKey(name: "libraryId")  String? libraryId, @JsonKey(name: "folderId")  String? folderId, @JsonKey(name: "path")  String? path, @JsonKey(name: "relPath")  String? relPath, @JsonKey(name: "isFile")  bool? isFile, @JsonKey(name: "mtimeMs")  int? mtimeMs, @JsonKey(name: "ctimeMs")  int? ctimeMs, @JsonKey(name: "birthtimeMs")  int? birthtimeMs, @JsonKey(name: "addedAt")  int? addedAt, @JsonKey(name: "updatedAt")  int? updatedAt, @JsonKey(name: "lastScan")  int? lastScan, @JsonKey(name: "scanVersion")  String? scanVersion, @JsonKey(name: "isMissing")  bool? isMissing, @JsonKey(name: "isInvalid")  bool? isInvalid, @JsonKey(name: "mediaType")  String? mediaType, @JsonKey(name: "media")  Media? media, @JsonKey(name: "libraryFiles")  List<LibraryFile>? libraryFiles, @JsonKey(name: "size")  int? size, @JsonKey(name: "collapsedSeries")  CollapsedSeries? collapsedSeries)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "ino")  String ino, @JsonKey(name: "oldLibraryItemId")  String? oldLibraryItemId, @JsonKey(name: "libraryId")  String? libraryId, @JsonKey(name: "folderId")  String? folderId, @JsonKey(name: "path")  String? path, @JsonKey(name: "relPath")  String? relPath, @JsonKey(name: "isFile")  bool? isFile, @JsonKey(name: "mtimeMs")  int? mtimeMs, @JsonKey(name: "ctimeMs")  int? ctimeMs, @JsonKey(name: "birthtimeMs")  int? birthtimeMs, @JsonKey(name: "addedAt")  int? addedAt, @JsonKey(name: "updatedAt")  int? updatedAt, @JsonKey(name: "lastScan")  int? lastScan, @JsonKey(name: "scanVersion")  String? scanVersion, @JsonKey(name: "isMissing")  bool? isMissing, @JsonKey(name: "isInvalid")  bool? isInvalid, @JsonKey(name: "mediaType")  String? mediaType, @JsonKey(name: "media")  Media? media, @JsonKey(name: "libraryFiles")  List<LibraryFile>? libraryFiles, @JsonKey(name: "size")  int? size, @JsonKey(name: "collapsedSeries")  CollapsedSeries? collapsedSeries, @JsonKey(name: "recentEpisode")  Episode? recentEpisode)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _LibraryItem() when $default != null:
-return $default(_that.id,_that.ino,_that.oldLibraryItemId,_that.libraryId,_that.folderId,_that.path,_that.relPath,_that.isFile,_that.mtimeMs,_that.ctimeMs,_that.birthtimeMs,_that.addedAt,_that.updatedAt,_that.lastScan,_that.scanVersion,_that.isMissing,_that.isInvalid,_that.mediaType,_that.media,_that.libraryFiles,_that.size,_that.collapsedSeries);case _:
+return $default(_that.id,_that.ino,_that.oldLibraryItemId,_that.libraryId,_that.folderId,_that.path,_that.relPath,_that.isFile,_that.mtimeMs,_that.ctimeMs,_that.birthtimeMs,_that.addedAt,_that.updatedAt,_that.lastScan,_that.scanVersion,_that.isMissing,_that.isInvalid,_that.mediaType,_that.media,_that.libraryFiles,_that.size,_that.collapsedSeries,_that.recentEpisode);case _:
   return orElse();
 
 }
@@ -220,10 +233,10 @@ return $default(_that.id,_that.ino,_that.oldLibraryItemId,_that.libraryId,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "ino")  String ino, @JsonKey(name: "oldLibraryItemId")  String? oldLibraryItemId, @JsonKey(name: "libraryId")  String? libraryId, @JsonKey(name: "folderId")  String? folderId, @JsonKey(name: "path")  String? path, @JsonKey(name: "relPath")  String? relPath, @JsonKey(name: "isFile")  bool? isFile, @JsonKey(name: "mtimeMs")  int? mtimeMs, @JsonKey(name: "ctimeMs")  int? ctimeMs, @JsonKey(name: "birthtimeMs")  int? birthtimeMs, @JsonKey(name: "addedAt")  int? addedAt, @JsonKey(name: "updatedAt")  int? updatedAt, @JsonKey(name: "lastScan")  int? lastScan, @JsonKey(name: "scanVersion")  String? scanVersion, @JsonKey(name: "isMissing")  bool? isMissing, @JsonKey(name: "isInvalid")  bool? isInvalid, @JsonKey(name: "mediaType")  String? mediaType, @JsonKey(name: "media")  Media? media, @JsonKey(name: "libraryFiles")  List<LibraryFile>? libraryFiles, @JsonKey(name: "size")  int? size, @JsonKey(name: "collapsedSeries")  CollapsedSeries? collapsedSeries)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "ino")  String ino, @JsonKey(name: "oldLibraryItemId")  String? oldLibraryItemId, @JsonKey(name: "libraryId")  String? libraryId, @JsonKey(name: "folderId")  String? folderId, @JsonKey(name: "path")  String? path, @JsonKey(name: "relPath")  String? relPath, @JsonKey(name: "isFile")  bool? isFile, @JsonKey(name: "mtimeMs")  int? mtimeMs, @JsonKey(name: "ctimeMs")  int? ctimeMs, @JsonKey(name: "birthtimeMs")  int? birthtimeMs, @JsonKey(name: "addedAt")  int? addedAt, @JsonKey(name: "updatedAt")  int? updatedAt, @JsonKey(name: "lastScan")  int? lastScan, @JsonKey(name: "scanVersion")  String? scanVersion, @JsonKey(name: "isMissing")  bool? isMissing, @JsonKey(name: "isInvalid")  bool? isInvalid, @JsonKey(name: "mediaType")  String? mediaType, @JsonKey(name: "media")  Media? media, @JsonKey(name: "libraryFiles")  List<LibraryFile>? libraryFiles, @JsonKey(name: "size")  int? size, @JsonKey(name: "collapsedSeries")  CollapsedSeries? collapsedSeries, @JsonKey(name: "recentEpisode")  Episode? recentEpisode)  $default,) {final _that = this;
 switch (_that) {
 case _LibraryItem():
-return $default(_that.id,_that.ino,_that.oldLibraryItemId,_that.libraryId,_that.folderId,_that.path,_that.relPath,_that.isFile,_that.mtimeMs,_that.ctimeMs,_that.birthtimeMs,_that.addedAt,_that.updatedAt,_that.lastScan,_that.scanVersion,_that.isMissing,_that.isInvalid,_that.mediaType,_that.media,_that.libraryFiles,_that.size,_that.collapsedSeries);case _:
+return $default(_that.id,_that.ino,_that.oldLibraryItemId,_that.libraryId,_that.folderId,_that.path,_that.relPath,_that.isFile,_that.mtimeMs,_that.ctimeMs,_that.birthtimeMs,_that.addedAt,_that.updatedAt,_that.lastScan,_that.scanVersion,_that.isMissing,_that.isInvalid,_that.mediaType,_that.media,_that.libraryFiles,_that.size,_that.collapsedSeries,_that.recentEpisode);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -240,10 +253,10 @@ return $default(_that.id,_that.ino,_that.oldLibraryItemId,_that.libraryId,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "id")  String id, @JsonKey(name: "ino")  String ino, @JsonKey(name: "oldLibraryItemId")  String? oldLibraryItemId, @JsonKey(name: "libraryId")  String? libraryId, @JsonKey(name: "folderId")  String? folderId, @JsonKey(name: "path")  String? path, @JsonKey(name: "relPath")  String? relPath, @JsonKey(name: "isFile")  bool? isFile, @JsonKey(name: "mtimeMs")  int? mtimeMs, @JsonKey(name: "ctimeMs")  int? ctimeMs, @JsonKey(name: "birthtimeMs")  int? birthtimeMs, @JsonKey(name: "addedAt")  int? addedAt, @JsonKey(name: "updatedAt")  int? updatedAt, @JsonKey(name: "lastScan")  int? lastScan, @JsonKey(name: "scanVersion")  String? scanVersion, @JsonKey(name: "isMissing")  bool? isMissing, @JsonKey(name: "isInvalid")  bool? isInvalid, @JsonKey(name: "mediaType")  String? mediaType, @JsonKey(name: "media")  Media? media, @JsonKey(name: "libraryFiles")  List<LibraryFile>? libraryFiles, @JsonKey(name: "size")  int? size, @JsonKey(name: "collapsedSeries")  CollapsedSeries? collapsedSeries)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "id")  String id, @JsonKey(name: "ino")  String ino, @JsonKey(name: "oldLibraryItemId")  String? oldLibraryItemId, @JsonKey(name: "libraryId")  String? libraryId, @JsonKey(name: "folderId")  String? folderId, @JsonKey(name: "path")  String? path, @JsonKey(name: "relPath")  String? relPath, @JsonKey(name: "isFile")  bool? isFile, @JsonKey(name: "mtimeMs")  int? mtimeMs, @JsonKey(name: "ctimeMs")  int? ctimeMs, @JsonKey(name: "birthtimeMs")  int? birthtimeMs, @JsonKey(name: "addedAt")  int? addedAt, @JsonKey(name: "updatedAt")  int? updatedAt, @JsonKey(name: "lastScan")  int? lastScan, @JsonKey(name: "scanVersion")  String? scanVersion, @JsonKey(name: "isMissing")  bool? isMissing, @JsonKey(name: "isInvalid")  bool? isInvalid, @JsonKey(name: "mediaType")  String? mediaType, @JsonKey(name: "media")  Media? media, @JsonKey(name: "libraryFiles")  List<LibraryFile>? libraryFiles, @JsonKey(name: "size")  int? size, @JsonKey(name: "collapsedSeries")  CollapsedSeries? collapsedSeries, @JsonKey(name: "recentEpisode")  Episode? recentEpisode)?  $default,) {final _that = this;
 switch (_that) {
 case _LibraryItem() when $default != null:
-return $default(_that.id,_that.ino,_that.oldLibraryItemId,_that.libraryId,_that.folderId,_that.path,_that.relPath,_that.isFile,_that.mtimeMs,_that.ctimeMs,_that.birthtimeMs,_that.addedAt,_that.updatedAt,_that.lastScan,_that.scanVersion,_that.isMissing,_that.isInvalid,_that.mediaType,_that.media,_that.libraryFiles,_that.size,_that.collapsedSeries);case _:
+return $default(_that.id,_that.ino,_that.oldLibraryItemId,_that.libraryId,_that.folderId,_that.path,_that.relPath,_that.isFile,_that.mtimeMs,_that.ctimeMs,_that.birthtimeMs,_that.addedAt,_that.updatedAt,_that.lastScan,_that.scanVersion,_that.isMissing,_that.isInvalid,_that.mediaType,_that.media,_that.libraryFiles,_that.size,_that.collapsedSeries,_that.recentEpisode);case _:
   return null;
 
 }
@@ -255,7 +268,7 @@ return $default(_that.id,_that.ino,_that.oldLibraryItemId,_that.libraryId,_that.
 @JsonSerializable()
 
 class _LibraryItem extends LibraryItem {
-  const _LibraryItem({@JsonKey(name: "id") required this.id, @JsonKey(name: "ino") required this.ino, @JsonKey(name: "oldLibraryItemId") this.oldLibraryItemId, @JsonKey(name: "libraryId") this.libraryId, @JsonKey(name: "folderId") this.folderId, @JsonKey(name: "path") this.path, @JsonKey(name: "relPath") this.relPath, @JsonKey(name: "isFile") this.isFile, @JsonKey(name: "mtimeMs") this.mtimeMs, @JsonKey(name: "ctimeMs") this.ctimeMs, @JsonKey(name: "birthtimeMs") this.birthtimeMs, @JsonKey(name: "addedAt") this.addedAt, @JsonKey(name: "updatedAt") this.updatedAt, @JsonKey(name: "lastScan") this.lastScan, @JsonKey(name: "scanVersion") this.scanVersion, @JsonKey(name: "isMissing") this.isMissing, @JsonKey(name: "isInvalid") this.isInvalid, @JsonKey(name: "mediaType") this.mediaType, @JsonKey(name: "media") required this.media, @JsonKey(name: "libraryFiles") required  List<LibraryFile>? libraryFiles, @JsonKey(name: "size") this.size, @JsonKey(name: "collapsedSeries") this.collapsedSeries}): _libraryFiles = libraryFiles,super._();
+  const _LibraryItem({@JsonKey(name: "id") required this.id, @JsonKey(name: "ino") required this.ino, @JsonKey(name: "oldLibraryItemId") this.oldLibraryItemId, @JsonKey(name: "libraryId") this.libraryId, @JsonKey(name: "folderId") this.folderId, @JsonKey(name: "path") this.path, @JsonKey(name: "relPath") this.relPath, @JsonKey(name: "isFile") this.isFile, @JsonKey(name: "mtimeMs") this.mtimeMs, @JsonKey(name: "ctimeMs") this.ctimeMs, @JsonKey(name: "birthtimeMs") this.birthtimeMs, @JsonKey(name: "addedAt") this.addedAt, @JsonKey(name: "updatedAt") this.updatedAt, @JsonKey(name: "lastScan") this.lastScan, @JsonKey(name: "scanVersion") this.scanVersion, @JsonKey(name: "isMissing") this.isMissing, @JsonKey(name: "isInvalid") this.isInvalid, @JsonKey(name: "mediaType") this.mediaType, @JsonKey(name: "media") required this.media, @JsonKey(name: "libraryFiles") required  List<LibraryFile>? libraryFiles, @JsonKey(name: "size") this.size, @JsonKey(name: "collapsedSeries") this.collapsedSeries, @JsonKey(name: "recentEpisode") this.recentEpisode}): _libraryFiles = libraryFiles,super._();
   factory _LibraryItem.fromJson(Map<String, dynamic> json) => _$LibraryItemFromJson(json);
 
 @override@JsonKey(name: "id") final  String id;
@@ -288,6 +301,7 @@ class _LibraryItem extends LibraryItem {
 
 @override@JsonKey(name: "size") final  int? size;
 @override@JsonKey(name: "collapsedSeries") final  CollapsedSeries? collapsedSeries;
+@override@JsonKey(name: "recentEpisode") final  Episode? recentEpisode;
 
 /// Create a copy of LibraryItem
 /// with the given fields replaced by the non-null parameter values.
@@ -302,16 +316,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LibraryItem&&(identical(other.id, id) || other.id == id)&&(identical(other.ino, ino) || other.ino == ino)&&(identical(other.oldLibraryItemId, oldLibraryItemId) || other.oldLibraryItemId == oldLibraryItemId)&&(identical(other.libraryId, libraryId) || other.libraryId == libraryId)&&(identical(other.folderId, folderId) || other.folderId == folderId)&&(identical(other.path, path) || other.path == path)&&(identical(other.relPath, relPath) || other.relPath == relPath)&&(identical(other.isFile, isFile) || other.isFile == isFile)&&(identical(other.mtimeMs, mtimeMs) || other.mtimeMs == mtimeMs)&&(identical(other.ctimeMs, ctimeMs) || other.ctimeMs == ctimeMs)&&(identical(other.birthtimeMs, birthtimeMs) || other.birthtimeMs == birthtimeMs)&&(identical(other.addedAt, addedAt) || other.addedAt == addedAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.lastScan, lastScan) || other.lastScan == lastScan)&&(identical(other.scanVersion, scanVersion) || other.scanVersion == scanVersion)&&(identical(other.isMissing, isMissing) || other.isMissing == isMissing)&&(identical(other.isInvalid, isInvalid) || other.isInvalid == isInvalid)&&(identical(other.mediaType, mediaType) || other.mediaType == mediaType)&&(identical(other.media, media) || other.media == media)&&const DeepCollectionEquality().equals(other._libraryFiles, _libraryFiles)&&(identical(other.size, size) || other.size == size)&&(identical(other.collapsedSeries, collapsedSeries) || other.collapsedSeries == collapsedSeries));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LibraryItem&&(identical(other.id, id) || other.id == id)&&(identical(other.ino, ino) || other.ino == ino)&&(identical(other.oldLibraryItemId, oldLibraryItemId) || other.oldLibraryItemId == oldLibraryItemId)&&(identical(other.libraryId, libraryId) || other.libraryId == libraryId)&&(identical(other.folderId, folderId) || other.folderId == folderId)&&(identical(other.path, path) || other.path == path)&&(identical(other.relPath, relPath) || other.relPath == relPath)&&(identical(other.isFile, isFile) || other.isFile == isFile)&&(identical(other.mtimeMs, mtimeMs) || other.mtimeMs == mtimeMs)&&(identical(other.ctimeMs, ctimeMs) || other.ctimeMs == ctimeMs)&&(identical(other.birthtimeMs, birthtimeMs) || other.birthtimeMs == birthtimeMs)&&(identical(other.addedAt, addedAt) || other.addedAt == addedAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.lastScan, lastScan) || other.lastScan == lastScan)&&(identical(other.scanVersion, scanVersion) || other.scanVersion == scanVersion)&&(identical(other.isMissing, isMissing) || other.isMissing == isMissing)&&(identical(other.isInvalid, isInvalid) || other.isInvalid == isInvalid)&&(identical(other.mediaType, mediaType) || other.mediaType == mediaType)&&(identical(other.media, media) || other.media == media)&&const DeepCollectionEquality().equals(other._libraryFiles, _libraryFiles)&&(identical(other.size, size) || other.size == size)&&(identical(other.collapsedSeries, collapsedSeries) || other.collapsedSeries == collapsedSeries)&&(identical(other.recentEpisode, recentEpisode) || other.recentEpisode == recentEpisode));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,ino,oldLibraryItemId,libraryId,folderId,path,relPath,isFile,mtimeMs,ctimeMs,birthtimeMs,addedAt,updatedAt,lastScan,scanVersion,isMissing,isInvalid,mediaType,media,const DeepCollectionEquality().hash(_libraryFiles),size,collapsedSeries]);
+int get hashCode => Object.hashAll([runtimeType,id,ino,oldLibraryItemId,libraryId,folderId,path,relPath,isFile,mtimeMs,ctimeMs,birthtimeMs,addedAt,updatedAt,lastScan,scanVersion,isMissing,isInvalid,mediaType,media,const DeepCollectionEquality().hash(_libraryFiles),size,collapsedSeries,recentEpisode]);
 
 @override
 String toString() {
-  return 'LibraryItem(id: $id, ino: $ino, oldLibraryItemId: $oldLibraryItemId, libraryId: $libraryId, folderId: $folderId, path: $path, relPath: $relPath, isFile: $isFile, mtimeMs: $mtimeMs, ctimeMs: $ctimeMs, birthtimeMs: $birthtimeMs, addedAt: $addedAt, updatedAt: $updatedAt, lastScan: $lastScan, scanVersion: $scanVersion, isMissing: $isMissing, isInvalid: $isInvalid, mediaType: $mediaType, media: $media, libraryFiles: $libraryFiles, size: $size, collapsedSeries: $collapsedSeries)';
+  return 'LibraryItem(id: $id, ino: $ino, oldLibraryItemId: $oldLibraryItemId, libraryId: $libraryId, folderId: $folderId, path: $path, relPath: $relPath, isFile: $isFile, mtimeMs: $mtimeMs, ctimeMs: $ctimeMs, birthtimeMs: $birthtimeMs, addedAt: $addedAt, updatedAt: $updatedAt, lastScan: $lastScan, scanVersion: $scanVersion, isMissing: $isMissing, isInvalid: $isInvalid, mediaType: $mediaType, media: $media, libraryFiles: $libraryFiles, size: $size, collapsedSeries: $collapsedSeries, recentEpisode: $recentEpisode)';
 }
 
 
@@ -322,11 +336,11 @@ abstract mixin class _$LibraryItemCopyWith<$Res> implements $LibraryItemCopyWith
   factory _$LibraryItemCopyWith(_LibraryItem value, $Res Function(_LibraryItem) _then) = __$LibraryItemCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: "id") String id,@JsonKey(name: "ino") String ino,@JsonKey(name: "oldLibraryItemId") String? oldLibraryItemId,@JsonKey(name: "libraryId") String? libraryId,@JsonKey(name: "folderId") String? folderId,@JsonKey(name: "path") String? path,@JsonKey(name: "relPath") String? relPath,@JsonKey(name: "isFile") bool? isFile,@JsonKey(name: "mtimeMs") int? mtimeMs,@JsonKey(name: "ctimeMs") int? ctimeMs,@JsonKey(name: "birthtimeMs") int? birthtimeMs,@JsonKey(name: "addedAt") int? addedAt,@JsonKey(name: "updatedAt") int? updatedAt,@JsonKey(name: "lastScan") int? lastScan,@JsonKey(name: "scanVersion") String? scanVersion,@JsonKey(name: "isMissing") bool? isMissing,@JsonKey(name: "isInvalid") bool? isInvalid,@JsonKey(name: "mediaType") String? mediaType,@JsonKey(name: "media") Media? media,@JsonKey(name: "libraryFiles") List<LibraryFile>? libraryFiles,@JsonKey(name: "size") int? size,@JsonKey(name: "collapsedSeries") CollapsedSeries? collapsedSeries
+@JsonKey(name: "id") String id,@JsonKey(name: "ino") String ino,@JsonKey(name: "oldLibraryItemId") String? oldLibraryItemId,@JsonKey(name: "libraryId") String? libraryId,@JsonKey(name: "folderId") String? folderId,@JsonKey(name: "path") String? path,@JsonKey(name: "relPath") String? relPath,@JsonKey(name: "isFile") bool? isFile,@JsonKey(name: "mtimeMs") int? mtimeMs,@JsonKey(name: "ctimeMs") int? ctimeMs,@JsonKey(name: "birthtimeMs") int? birthtimeMs,@JsonKey(name: "addedAt") int? addedAt,@JsonKey(name: "updatedAt") int? updatedAt,@JsonKey(name: "lastScan") int? lastScan,@JsonKey(name: "scanVersion") String? scanVersion,@JsonKey(name: "isMissing") bool? isMissing,@JsonKey(name: "isInvalid") bool? isInvalid,@JsonKey(name: "mediaType") String? mediaType,@JsonKey(name: "media") Media? media,@JsonKey(name: "libraryFiles") List<LibraryFile>? libraryFiles,@JsonKey(name: "size") int? size,@JsonKey(name: "collapsedSeries") CollapsedSeries? collapsedSeries,@JsonKey(name: "recentEpisode") Episode? recentEpisode
 });
 
 
-@override $MediaCopyWith<$Res>? get media;@override $CollapsedSeriesCopyWith<$Res>? get collapsedSeries;
+@override $MediaCopyWith<$Res>? get media;@override $CollapsedSeriesCopyWith<$Res>? get collapsedSeries;@override $EpisodeCopyWith<$Res>? get recentEpisode;
 
 }
 /// @nodoc
@@ -339,7 +353,7 @@ class __$LibraryItemCopyWithImpl<$Res>
 
 /// Create a copy of LibraryItem
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? ino = null,Object? oldLibraryItemId = freezed,Object? libraryId = freezed,Object? folderId = freezed,Object? path = freezed,Object? relPath = freezed,Object? isFile = freezed,Object? mtimeMs = freezed,Object? ctimeMs = freezed,Object? birthtimeMs = freezed,Object? addedAt = freezed,Object? updatedAt = freezed,Object? lastScan = freezed,Object? scanVersion = freezed,Object? isMissing = freezed,Object? isInvalid = freezed,Object? mediaType = freezed,Object? media = freezed,Object? libraryFiles = freezed,Object? size = freezed,Object? collapsedSeries = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? ino = null,Object? oldLibraryItemId = freezed,Object? libraryId = freezed,Object? folderId = freezed,Object? path = freezed,Object? relPath = freezed,Object? isFile = freezed,Object? mtimeMs = freezed,Object? ctimeMs = freezed,Object? birthtimeMs = freezed,Object? addedAt = freezed,Object? updatedAt = freezed,Object? lastScan = freezed,Object? scanVersion = freezed,Object? isMissing = freezed,Object? isInvalid = freezed,Object? mediaType = freezed,Object? media = freezed,Object? libraryFiles = freezed,Object? size = freezed,Object? collapsedSeries = freezed,Object? recentEpisode = freezed,}) {
   return _then(_LibraryItem(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,ino: null == ino ? _self.ino : ino // ignore: cast_nullable_to_non_nullable
@@ -363,7 +377,8 @@ as String?,media: freezed == media ? _self.media : media // ignore: cast_nullabl
 as Media?,libraryFiles: freezed == libraryFiles ? _self._libraryFiles : libraryFiles // ignore: cast_nullable_to_non_nullable
 as List<LibraryFile>?,size: freezed == size ? _self.size : size // ignore: cast_nullable_to_non_nullable
 as int?,collapsedSeries: freezed == collapsedSeries ? _self.collapsedSeries : collapsedSeries // ignore: cast_nullable_to_non_nullable
-as CollapsedSeries?,
+as CollapsedSeries?,recentEpisode: freezed == recentEpisode ? _self.recentEpisode : recentEpisode // ignore: cast_nullable_to_non_nullable
+as Episode?,
   ));
 }
 
@@ -390,6 +405,18 @@ $CollapsedSeriesCopyWith<$Res>? get collapsedSeries {
 
   return $CollapsedSeriesCopyWith<$Res>(_self.collapsedSeries!, (value) {
     return _then(_self.copyWith(collapsedSeries: value));
+  });
+}/// Create a copy of LibraryItem
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$EpisodeCopyWith<$Res>? get recentEpisode {
+    if (_self.recentEpisode == null) {
+    return null;
+  }
+
+  return $EpisodeCopyWith<$Res>(_self.recentEpisode!, (value) {
+    return _then(_self.copyWith(recentEpisode: value));
   });
 }
 }

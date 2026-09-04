@@ -17,6 +17,7 @@ abstract class LibraryStats with _$LibraryStats {
     @JsonKey(name: "totalDuration", fromJson: jsonDoubleFromDynamic) double? totalDuration,
     @JsonKey(name: "longestItems") @Default(<LibraryItemDurationStats>[]) List<LibraryItemDurationStats> longestItems,
     @JsonKey(name: "numAudioTracks", fromJson: jsonIntFromDynamic) int? numAudioTracks,
+    @JsonKey(name: "numAudioFiles", fromJson: jsonIntFromDynamic) int? numAudioFiles,
     @JsonKey(name: "totalSize", fromJson: jsonIntFromDynamic) int? totalSize,
     @JsonKey(name: "largestItems") @Default(<LibraryItemSizeStats>[]) List<LibraryItemSizeStats> largestItems,
     @JsonKey(name: "authorsWithCount") @Default(<AuthorStats>[]) List<AuthorStats> authorsWithCount,
