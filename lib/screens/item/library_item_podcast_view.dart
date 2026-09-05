@@ -76,6 +76,12 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
       defaultValue: PodcastEpisodeProgressFilter.all.name,
     );
     _progressFilter = _progressFilterFromSettingValue(savedFilterValue);
+    final savedSortModeValue = settingsManager.getUserSetting<String>(
+      currentUserId,
+      SettingKeys.podcastEpisodeSortMode,
+      defaultValue: PodcastEpisodeSortMode.newestFirst.name,
+    );
+    _sortMode = _sortModeFromSettingValue(savedSortModeValue);
   }
 
   @override
@@ -352,6 +358,17 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                                               setState(() {
                                                 _sortMode = sortMode;
                                               });
+
+                                              final currentUserId = ref.read(currentUserProvider).value?.id;
+                                              unawaited(
+                                                ref
+                                                    .read(settingsManagerProvider.notifier)
+                                                    .setUserSetting<String>(
+                                                      currentUserId,
+                                                      SettingKeys.podcastEpisodeSortMode,
+                                                      sortMode.name,
+                                                    ),
+                                              );
                                             },
                                             selectionMode: _selectionMode,
                                             selectedCount: _selectedEpisodeIds.length,
@@ -767,6 +784,15 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
       }
     }
     return PodcastEpisodeProgressFilter.all;
+  }
+
+  PodcastEpisodeSortMode _sortModeFromSettingValue(String value) {
+    for (final candidate in PodcastEpisodeSortMode.values) {
+      if (candidate.name == value) {
+        return candidate;
+      }
+    }
+    return PodcastEpisodeSortMode.newestFirst;
   }
 
   int _compareEpisodes(Episode left, Episode right) {

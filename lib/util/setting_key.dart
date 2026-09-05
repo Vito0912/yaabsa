@@ -133,6 +133,7 @@ class SettingKeys {
   static const String latestServerVersion = 'latest_server_version';
   static const String nextServerVersionCheckAllowed = 'next_server_version_check_allowed';
   static const String playerShowRemainingTime = 'player_show_remaining_time';
+  static const String podcastEpisodeSortMode = 'podcast_episode_sort_mode';
   static const String readerTheme = 'reader_theme';
   static const String readerFontSizeMultiplier = 'reader_font_size_multiplier';
   static const String readerLineHeight = 'reader_line_height';
