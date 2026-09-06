@@ -142,6 +142,7 @@ class MyApp extends ConsumerWidget {
         }
 
         syncDesktopTheme(Theme.brightnessOf(context));
+
         return ScaffoldMessenger(child: AndroidEdgeToEdgeInsetGuard(child: child));
       },
       localizationsDelegates: [...GlobalMaterialLocalizations.delegates, FlutterQuillLocalizations.delegate],
