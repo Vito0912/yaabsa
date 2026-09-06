@@ -18,10 +18,10 @@ mkdir -p %{buildroot}%{_bindir}
 mkdir -p %{buildroot}%{_datadir}/%{name}
 mkdir -p %{buildroot}%{_datadir}/applications
 mkdir -p %{buildroot}%{_datadir}/icons/hicolor/scalable/apps
-cp -a %{_builddir}/%{name}/. %{buildroot}%{_datadir}/%{name}/
+cp -a %{_topdir}/BUILD/%{name}/. %{buildroot}%{_datadir}/%{name}/
 ln -sf %{_datadir}/%{name}/%{name} %{buildroot}%{_bindir}/%{name}
-install -Dm644 %{_builddir}/%{name}.desktop %{buildroot}%{_datadir}/applications/%{name}.desktop
-install -Dm644 %{_builddir}/%{name}.svg %{buildroot}%{_datadir}/icons/hicolor/scalable/apps/%{name}.svg
+install -Dm644 %{_topdir}/BUILD/%{name}.desktop %{buildroot}%{_datadir}/applications/%{name}.desktop
+install -Dm644 %{_topdir}/BUILD/%{name}.svg %{buildroot}%{_datadir}/icons/hicolor/scalable/apps/%{name}.svg
 update-mime-database %{_datadir}/mime &> /dev/null || :
 
 %postun
