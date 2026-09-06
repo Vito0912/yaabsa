@@ -291,7 +291,21 @@ jobs:
         uses: ./.github/actions/check-requirements
       
   build-linux:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            runner: ubuntu-26.04
+            flutter_arch: x64
+            deb_arch: amd64
+            rpm_arch: x86_64
+          - arch: aarch64
+            runner: ubuntu-26.04-arm
+            flutter_arch: arm64
+            deb_arch: arm64
+            rpm_arch: aarch64
+    runs-on: ${{ matrix.runner }}
     needs:
       - changes
       - check-requirements
@@ -303,10 +317,37 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Set up Flutter
+      - name: Set up Flutter (x86_64)
+        if: ${{ matrix.flutter_arch == 'x64' }}
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+          architecture: ${{ matrix.flutter_arch }}
+          cache: true
+
+      - name: Determine current stable Flutter version (aarch64)
+        if: ${{ matrix.flutter_arch == 'arm64' }}
+        id: flutter_version
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(curl --fail --silent --show-error --location \
+            https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json \
+            | jq -r '[.releases[] | select(.channel == "stable")] | .[0].version')"
+          if [[ -z "$version" || "$version" == "null" ]]; then
+            echo "Unable to determine the current stable Flutter version."
+            exit 1
+          fi
+          echo "Using Flutter stable version: $version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Flutter (aarch64)
+        if: ${{ matrix.flutter_arch == 'arm64' }}
+        uses: subosito/flutter-action@v2
+        with:
+          channel: master
+          flutter-version: ${{ steps.flutter_version.outputs.version }}
+          architecture: ${{ matrix.flutter_arch }}
           cache: true
 
       - name: Install apt dependencies
@@ -325,12 +366,34 @@ jobs:
       - name: Install packaging tools
         run: |
           sudo apt-get install -y patchelf dpkg-dev rpm
-          wget -O appimagetool "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage"
+          wget -O appimagetool "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-${{ matrix.arch }}.AppImage"
           chmod +x appimagetool
           sudo mv appimagetool /usr/local/bin/
 
       - name: Build bundle
         run: flutter build linux --release
+
+      - name: Validate Linux bundle architecture
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          bundle_executable="build/linux/${{ matrix.flutter_arch }}/release/bundle/yaabsa"
+          test -x "$bundle_executable"
+          file "$bundle_executable"
+
+          case "${{ matrix.arch }}" in
+            x86_64)
+              file "$bundle_executable" | grep -Eq 'x86-64|x86_64'
+              ;;
+            aarch64)
+              file "$bundle_executable" | grep -Eq 'ARM aarch64|ARM64'
+              ;;
+            *)
+              echo "Unsupported matrix architecture: ${{ matrix.arch }}"
+              exit 1
+              ;;
+          esac
 
       - name: Package Linux bundle artifact
         shell: bash
@@ -339,20 +402,20 @@ jobs:
         run: |
           set -euo pipefail
 
-          bundle_dir="$(find build/linux -type d -path '*/release/bundle' | head -n 1)"
-          if [[ -z "$bundle_dir" ]]; then
-            echo "Linux release bundle directory not found."
+          bundle_dir="build/linux/${{ matrix.flutter_arch }}/release/bundle"
+          if [[ ! -d "$bundle_dir" ]]; then
+            echo "Linux release bundle directory not found: $bundle_dir"
             exit 1
           fi
 
           mkdir -p output/linux
-          tar -C "$bundle_dir" -czf "output/linux/yaabsa_${FILE_VERSION}.tar.gz" .
+          tar -C "$bundle_dir" -czf "output/linux/yaabsa_${FILE_VERSION}_${{ matrix.arch }}.tar.gz" .
 
       - name: Upload Linux bundle artifact
         uses: actions/upload-artifact@v7
         with:
-          name: linux-bundle
-          path: output/linux/yaabsa_*.tar.gz
+          name: linux-bundle-${{ matrix.arch }}
+          path: output/linux/yaabsa_*_${{ matrix.arch }}.tar.gz
 
       - name: Build appimage
         run: bash linux/packaging/appimage/build.sh
@@ -370,13 +433,13 @@ jobs:
             exit 1
           fi
 
-          mv "$appimage_file" "output/linux/yaabsa_${FILE_VERSION}.AppImage"
+          mv "$appimage_file" "output/linux/yaabsa_${FILE_VERSION}_${{ matrix.arch }}.AppImage"
 
       - name: Upload Linux appimage artifact
         uses: actions/upload-artifact@v7
         with:
-          name: linux-appimage
-          path: output/linux/yaabsa_*.AppImage
+          name: linux-appimage-${{ matrix.arch }}
+          path: output/linux/yaabsa_*_${{ matrix.arch }}.AppImage
 
       - name: Build deb
         run: bash linux/packaging/deb/build.sh
@@ -394,13 +457,14 @@ jobs:
             exit 1
           fi
 
-          mv "$deb_file" "output/linux/yaabsa_${FILE_VERSION}.deb"
+          test "$(dpkg-deb -f "$deb_file" Architecture)" = "${{ matrix.deb_arch }}"
+          mv "$deb_file" "output/linux/yaabsa_${FILE_VERSION}_${{ matrix.deb_arch }}.deb"
 
       - name: Upload Linux deb artifact
         uses: actions/upload-artifact@v7
         with:
-          name: linux-deb
-          path: output/linux/yaabsa_*.deb
+          name: linux-deb-${{ matrix.arch }}
+          path: output/linux/yaabsa_*_${{ matrix.deb_arch }}.deb
 
       - name: Build rpm
         run: bash linux/packaging/rpm/build.sh
@@ -418,13 +482,14 @@ jobs:
             exit 1
           fi
 
-          mv "$rpm_file" "output/linux/yaabsa_${FILE_VERSION}.rpm"
+          test "$(rpm -qp --qf '%{ARCH}' "$rpm_file")" = "${{ matrix.rpm_arch }}"
+          mv "$rpm_file" "output/linux/yaabsa_${FILE_VERSION}_${{ matrix.rpm_arch }}.rpm"
 
       - name: Upload Linux rpm artifact
         uses: actions/upload-artifact@v7
         with:
-          name: linux-rpm
-          path: output/linux/yaabsa_*.rpm
+          name: linux-rpm-${{ matrix.arch }}
+          path: output/linux/yaabsa_*_${{ matrix.rpm_arch }}.rpm
 
   build-flatpak:
     strategy:
