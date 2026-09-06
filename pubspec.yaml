@@ -92,6 +92,7 @@ dependencies:
 
   ## Linux
   audio_service_mpris: ^0.2.1 # Needs to be tested
+  gtk: ^2.2.0
   media_kit_libs_linux: any
 
   ## MacOS

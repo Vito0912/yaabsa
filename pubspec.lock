@@ -945,7 +945,7 @@ packages:
     source: hosted
     version: "2.3.2"
   gtk:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: gtk
       sha256: "4ff85b2a16724029dd9e5bbb5a94b6918f9973f74ba571c949d2002801879cf5"
