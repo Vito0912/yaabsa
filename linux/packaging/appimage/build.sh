@@ -7,12 +7,11 @@ output_dir="output/linux"
 icon_path="assets/logo_blue_fill.svg"
 extra_shared_objects=("libmpv.so.2")
 
-if [[ -d "build/linux/x64/release/bundle" ]]; then
-  bundle_dir="build/linux/x64/release/bundle"
-elif [[ -d "build/linux/release/bundle" ]]; then
-  bundle_dir="build/linux/release/bundle"
-else
-  echo "Linux bundle not found. Run flutter build linux --release first."
+source linux/packaging/arch.sh
+
+bundle_dir="${BUNDLE_DIR}"
+if [[ ! -d "${bundle_dir}" ]]; then
+  echo "Linux ${LINUX_ARCH} bundle not found: ${bundle_dir}"
   exit 1
 fi
 
@@ -23,7 +22,7 @@ if [[ -z "${version}" ]]; then
 fi
 
 app_dir="${packaging_dir}/${app_name}.AppDir"
-output_file="${output_dir}/${app_name}-${version}-x86_64.AppImage"
+output_file="${output_dir}/${app_name}-${version}-${LINUX_ARCH}.AppImage"
 
 rm -rf "${app_dir}"
 mkdir -p "${output_dir}"
@@ -110,7 +109,7 @@ for so_name in "${extra_shared_objects[@]}"; do
   cp "${so_path}" "${app_dir}/usr/lib/"
 done
 
-ARCH=x86_64 appimagetool --no-appstream "${app_dir}" "${output_file}"
+APPIMAGE_EXTRACT_AND_RUN=1 ARCH="${LINUX_ARCH}" appimagetool --no-appstream "${app_dir}" "${output_file}"
 rm -rf "${app_dir}"
 
 echo "Created ${output_file}"

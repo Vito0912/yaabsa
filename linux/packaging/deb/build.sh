@@ -7,12 +7,11 @@ packaging_dir="linux/packaging/deb"
 output_dir="output/linux"
 icon_path="assets/logo_blue_fill.svg"
 
-if [[ -d "build/linux/x64/release/bundle" ]]; then
-  bundle_dir="build/linux/x64/release/bundle"
-elif [[ -d "build/linux/release/bundle" ]]; then
-  bundle_dir="build/linux/release/bundle"
-else
-  echo "Linux bundle not found. Run flutter build linux --release first."
+source linux/packaging/arch.sh
+
+bundle_dir="${BUNDLE_DIR}"
+if [[ ! -d "${bundle_dir}" ]]; then
+  echo "Linux ${LINUX_ARCH} bundle not found: ${bundle_dir}"
   exit 1
 fi
 
@@ -22,10 +21,7 @@ if [[ -z "${version}" ]]; then
   exit 1
 fi
 
-arch="amd64"
-if [[ "$(uname -m)" == "aarch64" ]]; then
-  arch="arm64"
-fi
+arch="${DEB_ARCH}"
 
 package_root="${packaging_dir}/${app_name}"
 debian_dir="${package_root}/DEBIAN"
