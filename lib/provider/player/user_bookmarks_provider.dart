@@ -212,12 +212,18 @@ class UserBookmarksNotifier extends _$UserBookmarksNotifier {
 
   Future<List<Bookmark>> _fetchBookmarks({required String userId}) async {
     final pendingEntries = await _pendingEntriesForUser(userId);
+    final localBookmarks = state.asData?.value ?? const <Bookmark>[];
+    final optimisticLocal = _applyPendingMutations(localBookmarks, pendingEntries);
+
+    if (!ref.read(serverReachabilityProvider)) {
+      state = AsyncData(optimisticLocal);
+      return optimisticLocal;
+    }
+
     final api = ref.read(absApiProvider);
     if (api == null) {
-      final bookmarks = state.asData?.value ?? const <Bookmark>[];
-      final merged = _applyPendingMutations(bookmarks, pendingEntries);
-      state = AsyncData(merged);
-      return merged;
+      state = AsyncData(optimisticLocal);
+      return optimisticLocal;
     }
 
     final remoteBookmarks = serverSupportsMediaProgressAndBookmarkRoutes(ref.read(serverVersionProvider))
