@@ -169,14 +169,18 @@ class Init {
     }
 
     final libmpvPath = _resolveLibmpvPath();
+    final settingsManager = containerRef.read(settingsManagerProvider.notifier);
     if (libmpvPath != null) {
       logger('Using libmpv at $libmpvPath', tag: 'Init', level: InfoLevel.info);
     }
     if (!kIsWeb) {
+      JustAudioMediaKit.prefetchPlaylist = false;
       JustAudioMediaKit.ensureInitialized(linux: true, windows: true, libmpv: libmpvPath);
+      final disableFdk = settingsManager.getGlobalSetting<bool>(SettingKeys.disableFdkAacDecoder);
+      JustAudioMediaKit.excludedAudioDecoders = disableFdk ? const {'libfdk_aac'} : const {};
+      logger('FDK AAC decoder disabled by setting: $disableFdk', tag: 'Init', level: InfoLevel.info);
     }
 
-    final settingsManager = containerRef.read(settingsManagerProvider.notifier);
     final ffSeconds = settingsManager.getGlobalSetting<int>(SettingKeys.fastForwardInterval, defaultValue: 10);
     final rwSeconds = settingsManager.getGlobalSetting<int>(SettingKeys.rewindInterval, defaultValue: 10);
 
@@ -202,10 +206,6 @@ class Init {
       ),
     );
 
-    // TODO: Setting
-    if (!kIsWeb) {
-      JustAudioMediaKit.prefetchPlaylist = false;
-    }
     logger('AudioHandler initialized', tag: 'Init', level: InfoLevel.info);
     return _audioHandler!;
   }

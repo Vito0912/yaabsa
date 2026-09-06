@@ -102,6 +102,7 @@ class SettingKeys {
   static const String cacheRouteMe = 'cache_route_me';
 
   static const String playbackSpeed = 'playback_speed';
+  static const String disableFdkAacDecoder = 'disable_fdk_aac_decoder';
   static const String playbackSpeedPerBook = 'playback_speed_per_book';
   static const String volume = 'volume';
   static const String skipSilence = 'skip_silence';
@@ -270,6 +271,7 @@ final defaultSettings = {
   SettingKeys.cacheRouteMe: false,
 
   SettingKeys.playbackSpeed: 1.0,
+  SettingKeys.disableFdkAacDecoder: false,
   SettingKeys.playbackSpeedPerBook: false,
   SettingKeys.volume: 1.0,
   SettingKeys.skipSilence: false,

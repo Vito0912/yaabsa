@@ -1,6 +1,110 @@
 part of 'bg_audio_handler.dart';
 
 extension _BGAudioHandlerRuntime on BGAudioHandler {
+  Future<bool> _handlePlaybackFailure(PlayerException error) {
+    switch (classifyPlaybackError(error)) {
+      case PlaybackFailureAction.retryStream:
+        _scheduleStreamRecoveryRetry(error);
+        return Future<bool>.value(true);
+      case PlaybackFailureAction.transcode:
+        return _attemptTranscodeFallback(error);
+      case PlaybackFailureAction.ignore:
+        return Future<bool>.value(true);
+      case PlaybackFailureAction.fail:
+        return Future<bool>.value(false);
+    }
+  }
+
+  Future<bool> _attemptTranscodeFallback(
+    PlayerException error, {
+    Duration? initialPosition,
+    bool resumePlayback = true,
+  }) {
+    final repository = _ref.read(sessionRepositoryProvider);
+    if (repository.currentSession?.playMethod == 2) {
+      return Future<bool>.value(false);
+    }
+
+    final activeFallback = _transcodeFallbackFuture;
+    if (activeFallback != null) {
+      return activeFallback;
+    }
+
+    final fallback = _performTranscodeFallback(error, initialPosition: initialPosition, resumePlayback: resumePlayback);
+    _transcodeFallbackFuture = fallback;
+    unawaited(
+      fallback.whenComplete(() {
+        if (identical(_transcodeFallbackFuture, fallback)) {
+          _transcodeFallbackFuture = null;
+        }
+      }),
+    );
+    return fallback;
+  }
+
+  Future<bool> _performTranscodeFallback(
+    PlayerException error, {
+    Duration? initialPosition,
+    required bool resumePlayback,
+  }) async {
+    final media = _currentMediaItem;
+    if (_isDisposing || media == null || media.local || isCastControlActive) {
+      return false;
+    }
+
+    final repository = _ref.read(sessionRepositoryProvider);
+    if (repository.currentSession?.playMethod == 2) {
+      return false;
+    }
+
+    final mediaKey = _mediaKey(media);
+    if (_transcodeFallbackInFlight || _transcodeAttemptedFor == mediaKey) {
+      return false;
+    }
+
+    _transcodeFallbackInFlight = true;
+    _transcodeAttemptedFor = mediaKey;
+
+    final resumePosition = initialPosition ?? position;
+    final shouldResume = resumePlayback && playerControlState.playing;
+    bool isCurrentRequest() => !_isDisposing && identical(_currentMediaItem, media) && !isCastControlActive;
+
+    try {
+      logger(
+        'Direct playback failed due to decoder incompatibility ($error). '
+        'Retrying with server transcoding.',
+        tag: 'AudioHandler',
+        level: InfoLevel.warning,
+      );
+
+      await _syncService.flush(positionOverride: resumePosition, sessionClosing: true);
+      if (!isCurrentRequest()) return false;
+
+      final transcodedMedia = await repository.reopenSessionWithTranscode(media.itemId, episodeId: media.episodeId);
+      if (!isCurrentRequest() || transcodedMedia == null) {
+        return false;
+      }
+      if (repository.currentSession?.playMethod != 2) {
+        logger('Server did not return a transcoded session.', tag: 'AudioHandler', level: InfoLevel.error);
+        return false;
+      }
+
+      _currentMediaItem = transcodedMedia;
+      await _setSource(initialPosition: resumePosition, ignoreSavedProgress: true);
+
+      if (shouldResume && identical(_currentMediaItem, transcodedMedia) && !_isDisposing && !isCastControlActive) {
+        await _syncedPlay();
+      }
+
+      return true;
+    } catch (e, s) {
+      logger('Transcode fallback failed: $e\n$s', tag: 'AudioHandler', level: InfoLevel.error);
+      return false;
+    } finally {
+      _transcodeFallbackInFlight = false;
+    }
+  }
+
   bool _isSameControlState(PlayerState left, PlayerState right) {
     return left.playing == right.playing && left.processingState == right.processingState;
   }

@@ -29,10 +29,13 @@ abstract class AudioTrack with _$AudioTrack {
 
   InternalTrack toInternalTrack(String baseUrl, String sessionId, {int? localIndex}) {
     final tmpIndex = (index ?? localIndex)!;
+    final isHls = mimeType.toLowerCase().contains('mpegurl');
+    final baseUri = Uri.parse('${baseUrl.replaceFirst(RegExp(r'/+$'), '')}/');
+    final streamUri = baseUri.resolve(processedContentUrl.replaceFirst(RegExp(r'^/+'), ''));
     return InternalTrack(
       index: tmpIndex,
       duration: duration,
-      url: '$baseUrl/public/session/$sessionId/track/$tmpIndex',
+      url: isHls ? streamUri.toString() : '${baseUri}public/session/$sessionId/track/$tmpIndex',
       mimeType: mimeType,
     );
   }

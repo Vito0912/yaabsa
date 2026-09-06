@@ -238,6 +238,10 @@ Future<void> _androidAutoClearAuthenticationRequiredState(BGAudioHandler handler
 }
 
 Future<void> _androidAutoRefreshBrowseRoots(BGAudioHandler handler) async {
+  if (kIsWeb || !Platform.isAndroid) {
+    return;
+  }
+
   final activeRefresh = handler._androidAutoBrowseRefreshFuture;
   if (activeRefresh != null) {
     await activeRefresh;
@@ -471,6 +475,10 @@ Future<AndroidAutoBrowseSnapshot> _androidAutoLoadBrowseSnapshot(BGAudioHandler 
 }
 
 void _androidAutoInvalidateBrowseState(BGAudioHandler handler, {bool notify = true}) {
+  if (kIsWeb || !Platform.isAndroid) {
+    return;
+  }
+
   handler._androidAutoBrowseCache.invalidate();
   handler._androidAutoPreparedForNextLaunch = false;
   handler._androidAutoPrimedChildren.clear();

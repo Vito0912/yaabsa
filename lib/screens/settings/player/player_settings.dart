@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:yaabsa/screens/settings/player/player_settings_general.dart';
+import 'package:yaabsa/screens/settings/player/player_settings_compatibility.dart';
 import 'package:yaabsa/screens/settings/player/player_settings_equalizer.dart';
 import 'package:yaabsa/screens/settings/player/player_settings_shake_controls.dart';
 import 'package:yaabsa/screens/settings/player/player_settings_sleep_timer.dart';
@@ -75,6 +76,12 @@ class PlayerSettings extends StatelessWidget {
               enabled: supportsShakeActions,
               onTap: supportsShakeActions ? () => context.push(PlayerSettingsShakeControls.routeName) : null,
             ),
+            if (PlayerSettingsCompatibility.isSupported)
+              SettingsNavigationItem(
+                icon: Icons.build_outlined,
+                title: 'Compatibility',
+                onTap: () => context.push(PlayerSettingsCompatibility.routeName),
+              ),
           ],
         ),
       ],

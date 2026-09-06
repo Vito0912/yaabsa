@@ -41,6 +41,7 @@ import 'package:yaabsa/provider/player/queue_source_provider.dart';
 import 'package:yaabsa/provider/library/smart_download_provider.dart';
 import 'package:yaabsa/models/queue_source.dart';
 import 'package:yaabsa/util/globals.dart' show packageInfo;
+import 'package:yaabsa/util/audio_handler/playback_error_classifier.dart';
 import 'package:yaabsa/util/audio_handler/playback_sync_service.dart';
 import 'package:yaabsa/util/bluetooth_auto_resume.dart';
 import 'package:yaabsa/util/audio_handler/player_history_handler.dart';
@@ -161,6 +162,10 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   DateTime? _lastStreamRecoveryAttemptAt;
   int _streamRecoveryAttempts = 0;
   bool _streamRecoveryInFlight = false;
+  bool _transcodeFallbackInFlight = false;
+  String? _transcodeAttemptedFor;
+  Future<bool>? _transcodeFallbackFuture;
+  Completer<PlayerException>? _sourceLoadErrorCompleter;
   int _internalSeekGuardDepth = 0;
   bool _chapterNotificationEnabled = false;
   Duration _chapterNotificationOffset = Duration.zero;
@@ -732,6 +737,12 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   InternalMedia? get _currentMediaItem => __currentMediaItem;
   set _currentMediaItem(InternalMedia? mediaItem) {
+    final oldKey = __currentMediaItem == null ? null : _mediaKey(__currentMediaItem!);
+    final newKey = mediaItem == null ? null : _mediaKey(mediaItem);
+    if (oldKey != newKey) {
+      _transcodeAttemptedFor = null;
+    }
+
     __currentMediaItem = mediaItem;
     _currentTrackIndex = 0;
     _clearPausedManualSeekMarker();
@@ -754,6 +765,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       mediaItem == null ? null : _queueItemReferenceKey(itemId: mediaItem.itemId, episodeId: mediaItem.episodeId),
     );
   }
+
+  String _mediaKey(InternalMedia media) => '${media.itemId}:${media.episodeId ?? ''}';
 
   Stream<double> get volumeStream => _volumeSubject.stream;
 
@@ -1675,8 +1688,11 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
     _errorSubscription = _player.errorStream.listen((error) {
       logger('AudioPlayer error: $error', tag: 'AudioHandler', level: InfoLevel.error);
-      if (error.toString().toLowerCase().contains('ffurl_read')) {
-        _scheduleStreamRecoveryRetry(error);
+      final sourceLoadError = _sourceLoadErrorCompleter;
+      if (sourceLoadError != null && !sourceLoadError.isCompleted) {
+        sourceLoadError.complete(error);
+      } else {
+        unawaited(_handlePlaybackFailure(error));
       }
     });
 

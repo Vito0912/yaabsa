@@ -102,7 +102,12 @@ class SessionRepository {
     _currentSession = null;
   }
 
-  Future<InternalMedia?> openSession(String itemId, {String? episodeId, bool forceDirectPlay = false}) async {
+  Future<InternalMedia?> openSession(
+    String itemId, {
+    String? episodeId,
+    bool forceDirectPlay = false,
+    bool forceTranscode = false,
+  }) async {
     await ref.read(currentUserProvider.future);
 
     final ABSApi? api = ref.read(absApiProvider);
@@ -114,7 +119,7 @@ class SessionRepository {
       return null;
     }
 
-    final downloaded = await db.getStoredDownload(itemId, userId, episodeId: episodeId);
+    final downloaded = forceTranscode ? null : await db.getStoredDownload(itemId, userId, episodeId: episodeId);
 
     if (itemId == _currentSession?.libraryItemId && episodeId == _currentSession?.episodeId) return null;
 
@@ -126,8 +131,8 @@ class SessionRepository {
 
       PlayLibraryItemRequest playRequest = PlayLibraryItemRequest(
         deviceInfo: await PlayerUtils.getDeviceInfo(),
-        forceDirectPlay: forceDirectPlay,
-        forceTranscode: false,
+        forceDirectPlay: forceDirectPlay && !forceTranscode,
+        forceTranscode: forceTranscode,
         supportedMimeTypes: await PlayerUtils.getSupportedMimeTypes(),
         mediaPlayer: '$appName just_audio',
       );
@@ -141,7 +146,18 @@ class SessionRepository {
       if (session != null) {
         _currentSession = session;
         _isLocalSession = false;
-        logger('Session opened successfully: ${session.id}', tag: 'SessionRepository');
+        final trackTypes = session.audioTracks?.map((track) => track.mimeType).join(', ') ?? 'none';
+        final sourceCodecs =
+            session.libraryItem?.media?.bookMedia?.audioFiles
+                ?.map((audioFile) => '${audioFile.codec ?? 'unknown'}/${audioFile.mimeType ?? 'unknown'}')
+                .join(', ') ??
+            'unknown';
+        logger(
+          'Session opened successfully: ${session.id} '
+          '(playMethod=${session.playMethod}, mediaPlayer=${session.mediaPlayer}, '
+          'trackTypes=$trackTypes, sourceCodecs=$sourceCodecs)',
+          tag: 'SessionRepository',
+        );
       } else {
         logger('Failed to open session for item $itemId', tag: 'SessionRepository', level: InfoLevel.warning);
       }
@@ -209,6 +225,12 @@ class SessionRepository {
     internalMedia.populateFields();
 
     return internalMedia;
+  }
+
+  Future<InternalMedia?> reopenSessionWithTranscode(String itemId, {String? episodeId}) async {
+    await closeSession();
+
+    return openSession(itemId, episodeId: episodeId, forceTranscode: true);
   }
 
   Future<bool> syncOpenSession(double currentTime, double timeListened, {required bool canReachServer}) async {

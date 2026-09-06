@@ -20,6 +20,7 @@ import 'package:yaabsa/screens/settings/appearance_settings.dart';
 import 'package:yaabsa/screens/settings/caching_settings.dart';
 import 'package:yaabsa/screens/settings/player/global_player_settings.dart';
 import 'package:yaabsa/screens/settings/player/player_settings.dart';
+import 'package:yaabsa/screens/settings/player/player_settings_compatibility.dart';
 import 'package:yaabsa/screens/settings/library_settings.dart';
 import 'package:yaabsa/screens/settings/download_settings.dart';
 import 'package:yaabsa/screens/settings/license_settings.dart';
@@ -46,6 +47,13 @@ class SettingsSearchItem {
 }
 
 final List<SettingsSearchItem> searchableSettings = [
+  if (PlayerSettingsCompatibility.isSupported)
+    const SettingsSearchItem(
+      title: 'Disable FDK AAC decoder',
+      description: 'Work around AAC decoder crashes. Restart the app to apply.',
+      categoryPath: 'Settings > Player > Compatibility',
+      route: PlayerSettingsCompatibility.routeName,
+    ),
   const SettingsSearchItem(
     title: 'Server Management',
     description: 'Configure visibility for collections, editing, deletion, and uploading',
