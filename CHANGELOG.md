@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.11.0
+
+### Added
+
+- ARM builds for Linux
+- Sleeptimer has an option to show where it started the next time you listen
+- Save last podcast sorting
+- (Android Automotive OS) Reworked how login initially works
+- Allow skipping to be handled as seeking for headphones
+- Added transcoding support when device cannot play the file (not downloads for now, will follow)
+
 ## 1.10.1
 
 ### Fixed
