@@ -32,7 +32,7 @@ final class UserBookmarksNotifierProvider extends $AsyncNotifierProvider<UserBoo
   UserBookmarksNotifier create() => UserBookmarksNotifier();
 }
 
-String _$userBookmarksNotifierHash() => r'53871e04a6951d2a17e6757d17e1dbb71dce5e2d';
+String _$userBookmarksNotifierHash() => r'4220e199372c83357d2d77be26b07c345c8ffe28';
 
 abstract class _$UserBookmarksNotifier extends $AsyncNotifier<List<Bookmark>> {
   FutureOr<List<Bookmark>> build();
