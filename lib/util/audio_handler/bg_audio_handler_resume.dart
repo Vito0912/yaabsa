@@ -98,6 +98,22 @@ extension _BGAudioHandlerResume on BGAudioHandler {
       }
       _setQueueTransitionTargetItem(lastPlayedItem);
 
+      // Widget/auto-resume can reach this path before absApiProvider has seen
+      // the cached active user. Wait for that first user emission so an
+      // available server can participate in progress reconciliation before a
+      // stale local resume position becomes active playback state.
+      if (_ref.read(absApiProvider) == null) {
+        try {
+          await _ref.read(currentUserProvider.future);
+        } catch (e) {
+          logger(
+            'Failed to initialize the active user before last-played progress refresh: $e',
+            tag: 'AudioHandler',
+            level: InfoLevel.debug,
+          );
+        }
+      }
+
       final progress = await _ref
           .read(mediaProgressProvider.notifier)
           .fetchOrRefreshIndividualProgress(
