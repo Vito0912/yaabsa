@@ -11,7 +11,6 @@ import 'package:yaabsa/provider/wear/wear_providers.dart';
 import 'package:yaabsa/util/globals.dart' show appName, audioHandler, containerRef, isAudioHandlerInitialized;
 import 'package:yaabsa/util/aaos_service.dart';
 import 'package:yaabsa/util/app_theme.dart';
-import 'package:yaabsa/util/desktop_theme.dart';
 import 'package:yaabsa/util/handler/tray_handler.dart' show TrayManager;
 import 'package:yaabsa/util/init.dart' show Init;
 import 'package:yaabsa/util/logger.dart';
@@ -140,8 +139,6 @@ class MyApp extends ConsumerWidget {
         if (child == null) {
           return const SizedBox.shrink();
         }
-
-        syncDesktopTheme(Theme.brightnessOf(context));
 
         return ScaffoldMessenger(child: AndroidEdgeToEdgeInsetGuard(child: child));
       },

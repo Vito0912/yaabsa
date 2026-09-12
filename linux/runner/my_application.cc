@@ -1,6 +1,7 @@
 #include "my_application.h"
 
 #include <flutter_linux/flutter_linux.h>
+#include <gio/gio.h>
 #include <glib.h>
 
 #include "flutter/generated_plugin_registrant.h"
@@ -12,16 +13,73 @@ struct _MyApplication {
 
 G_DEFINE_TYPE(MyApplication, my_application, GTK_TYPE_APPLICATION)
 
+static void first_frame_cb(MyApplication* self, FlView* view) {
+  gtk_widget_show(gtk_widget_get_toplevel(GTK_WIDGET(view)));
+}
+
+static void apply_system_color_scheme() {
+  g_autoptr(GError) error = nullptr;
+  g_autoptr(GDBusConnection) connection =
+      g_bus_get_sync(G_BUS_TYPE_SESSION, nullptr, &error);
+
+  if (connection == nullptr) {
+    g_warning("Failed to connect to session D-Bus: %s",
+              error != nullptr ? error->message : "unknown error");
+    return;
+  }
+
+  g_autoptr(GVariant) result = g_dbus_connection_call_sync(
+      connection, "org.freedesktop.portal.Desktop",
+      "/org/freedesktop/portal/desktop", "org.freedesktop.portal.Settings",
+      "ReadOne",
+      g_variant_new("(ss)", "org.freedesktop.appearance", "color-scheme"),
+      G_VARIANT_TYPE("(v)"), G_DBUS_CALL_FLAGS_NONE, 500, nullptr, &error);
+
+  if (result == nullptr) {
+    g_warning("Failed to read desktop color scheme: %s",
+              error != nullptr ? error->message : "unknown error");
+    return;
+  }
+
+  g_autoptr(GVariant) boxed = nullptr;
+  g_variant_get(result, "(@v)", &boxed);
+  g_autoptr(GVariant) value = g_variant_get_variant(boxed);
+
+  if (!g_variant_is_of_type(value, G_VARIANT_TYPE_UINT32)) {
+    return;
+  }
+
+  const guint32 color_scheme = g_variant_get_uint32(value);
+  GtkSettings* settings = gtk_settings_get_default();
+  if (settings == nullptr) {
+    return;
+  }
+
+  switch (color_scheme) {
+    case 1:
+      g_object_set(settings, "gtk-application-prefer-dark-theme", TRUE,
+                   nullptr);
+      break;
+    case 2:
+      g_object_set(settings, "gtk-application-prefer-dark-theme", FALSE,
+                   nullptr);
+      break;
+    default:
+      break;
+  }
+}
+
 // Implements GApplication::activate.
 static void my_application_activate(GApplication* application) {
   MyApplication* self = MY_APPLICATION(application);
+
+  apply_system_color_scheme();
+
   GtkWindow* window =
       GTK_WINDOW(gtk_application_window_new(GTK_APPLICATION(application)));
 
   gtk_window_set_title(window, "yaabsa");
-
   gtk_window_set_default_size(window, 1280, 720);
-  gtk_widget_show(GTK_WIDGET(window));
 
   g_autoptr(FlDartProject) project = fl_dart_project_new();
 
@@ -51,6 +109,9 @@ static void my_application_activate(GApplication* application) {
   FlView* view = fl_view_new(project);
   gtk_widget_show(GTK_WIDGET(view));
   gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(view));
+
+  g_signal_connect_swapped(view, "first-frame", G_CALLBACK(first_frame_cb), self);
+  gtk_widget_realize(GTK_WIDGET(view));
 
   fl_register_plugins(FL_PLUGIN_REGISTRY(view));
 
