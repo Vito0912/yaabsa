@@ -622,7 +622,7 @@ class DownloadHandler {
         resolvedItem.id,
         running: TaskNotification(
           'Downloading {displayName}',
-          '{numFinished} out of {numTotal} | Progress: {progress} | Time left: {timeRemaining}',
+          '{numFinished} out of {numTotal} | Progress: {progress}',
         ),
         complete: TaskNotification(
           'Download Complete',
@@ -642,8 +642,7 @@ class DownloadHandler {
         paused: TaskNotification(
           'Download Paused',
           '{displayName}\n'
-              'Progress: {progress} | Speed: {networkSpeed}\n'
-              'Paused at: {progress}',
+              'Progress: {progress}',
         ),
         progressBar: true,
         tapOpensFile: false,
