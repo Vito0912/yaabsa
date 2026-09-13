@@ -1408,7 +1408,7 @@ jobs:
         run: flutter build ipa --release --export-options-plist=ios/ExportOptions.plist
 
       - name: Upload iOS to TestFlight
-        uses: apple-actions/upload-testflight-build@v4
+        uses: apple-actions/upload-testflight-build@v5
         if: ${{ needs.changes.outputs.version_bumped == 'true' && needs.changes.outputs.build_skip != 'true' }}
         with:
           app-path: build/ios/ipa/Yaabsa.ipa
@@ -1551,7 +1551,7 @@ jobs:
           /usr/local/itms/bin/iTMSTransporter -help
 
       - name: Upload macOS to TestFlight
-        uses: apple-actions/upload-testflight-build@v4
+        uses: apple-actions/upload-testflight-build@v5
         if: ${{ needs.changes.outputs.version_bumped == 'true' && needs.changes.outputs.build_skip != 'true' }}
         with:
           app-path: build/macos/Build/Products/Release/yaabsa.pkg
