@@ -3,6 +3,7 @@ import 'package:yaabsa/components/app/download_status.dart';
 import 'package:yaabsa/components/app/library_switcher.dart';
 import 'package:yaabsa/components/app/tasks/task_notification_widget.dart';
 import 'package:yaabsa/components/app/user_switcher.dart';
+import 'package:yaabsa/components/common/app_update_notifier.dart';
 import 'package:yaabsa/provider/core/multi_select_app_bar_provider.dart';
 import 'package:yaabsa/screens/layout_home/navigation_item_config.dart';
 
@@ -31,6 +32,7 @@ class LayoutHomeMultiSelectAppBar extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(6, 6, 10, 6),
         child: Row(
           children: [
+            const AppUpdateStartupTrigger(),
             if (showSidebarToggle)
               IconButton(
                 tooltip: isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar',
@@ -124,6 +126,7 @@ class LayoutHomeMobileAppBar extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
           child: Row(
             children: [
+              const AppUpdateStartupTrigger(),
               _IconContainerButton(icon: Icons.arrow_back_rounded, onTap: onCollapseSearch),
               const SizedBox(width: 6),
               Expanded(
@@ -152,6 +155,7 @@ class LayoutHomeMobileAppBar extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
         child: Row(
           children: [
+            const AppUpdateStartupTrigger(),
             const UserSwitcher(),
             const SizedBox(width: 6),
             Expanded(
@@ -274,6 +278,7 @@ class LayoutHomeNonMobileAppBar extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(4, 6, 8, 6),
         child: Row(
           children: [
+            const AppUpdateStartupTrigger(),
             IconButton(
               tooltip: isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar',
               onPressed: onSidebarToggle,
