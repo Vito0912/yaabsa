@@ -250,7 +250,16 @@ class _DownloadsState extends ConsumerState<Downloads> {
                               isSelected: _isSelected(download),
                               onToggleSelection: () => _toggleSelection(download),
                               onDelete: () => _deleteDownloads(userId: user.id, downloads: [download]),
-                              onOpen: targetItemId == null ? null : () => context.push('/item/$targetItemId'),
+                              onOpen: targetItemId == null
+                                  ? null
+                                  : () => context.push(
+                                      Uri(
+                                        path: '/item/$targetItemId',
+                                        queryParameters: download.episode == null
+                                            ? null
+                                            : <String, String>{'episodeId': download.episode!.id},
+                                      ).toString(),
+                                    ),
                             ),
                           ),
                         ),

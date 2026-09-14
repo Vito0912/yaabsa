@@ -133,7 +133,7 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
     int? resolveIndexForId(String itemId) => itemIndexById[itemId];
 
     void enterSelectionByIndex(int index) {
-      if (index < 0 || index >= visibleItems.length || visibleItems[index].collapsedSeries != null) {
+      if (index < 0 || index >= visibleItems.length || !_isBulkSelectableLibraryItem(visibleItems[index])) {
         return;
       }
 
@@ -144,7 +144,7 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
     }
 
     void toggleSelectionByIndex(int index) {
-      if (index < 0 || index >= visibleItems.length || visibleItems[index].collapsedSeries != null) {
+      if (index < 0 || index >= visibleItems.length || !_isBulkSelectableLibraryItem(visibleItems[index])) {
         return;
       }
 
@@ -160,7 +160,7 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
 
         for (var currentIndex = start; currentIndex <= end && currentIndex < visibleItems.length; currentIndex++) {
           final item = visibleItems[currentIndex];
-          if (item.collapsedSeries != null) {
+          if (!_isBulkSelectableLibraryItem(item)) {
             continue;
           }
           next.add(item.id);
@@ -442,4 +442,8 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
       child: builder(context, bindings),
     );
   }
+}
+
+bool _isBulkSelectableLibraryItem(LibraryItem item) {
+  return item.collapsedSeries == null && item.mediaType != 'podcast';
 }

@@ -192,7 +192,14 @@ class _StatsViewState extends ConsumerState<StatsView> {
                                 maxItems: 5,
                                 onSessionTap: (session) {
                                   if (session.libraryItemId.isNotEmpty) {
-                                    context.push('/item/${session.libraryItemId}');
+                                    context.push(
+                                      Uri(
+                                        path: '/item/${session.libraryItemId}',
+                                        queryParameters: session.episodeId == null
+                                            ? null
+                                            : <String, String>{'episodeId': session.episodeId!},
+                                      ).toString(),
+                                    );
                                   }
                                 },
                               ),

@@ -1,6 +1,7 @@
 import 'package:yaabsa/api/library/request/library_filter.dart';
 import 'package:yaabsa/api/library/request/library_items_request.dart';
 import 'package:yaabsa/api/library/request/library_sort.dart';
+import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
@@ -427,7 +428,10 @@ Future<LibraryItem> libraryItem(Ref ref, String itemId, {String? episodeId}) asy
   }
 
   final liveSnapshot = _liveLibraryItemSnapshotById[itemId];
-  if (liveSnapshot != null) {
+  final liveSnapshotHasRequestedEpisode =
+      episodeId == null ||
+      (liveSnapshot?.media?.podcastMedia?.episodes ?? const <Episode>[]).any((episode) => episode.id == episodeId);
+  if (liveSnapshot != null && liveSnapshotHasRequestedEpisode) {
     return liveSnapshot;
   }
 

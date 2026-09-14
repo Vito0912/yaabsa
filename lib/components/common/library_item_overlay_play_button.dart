@@ -161,8 +161,8 @@ class LibraryItemOverlayPlayButton extends StatelessWidget {
                                     episodeIndex: episodeIndex < 0 ? null : episodeIndex,
                                     orderedEpisodes: podcastEpisodes,
                                   );
-                                  return;
                                 }
+                                return;
                               }
 
                               audioHandler.playLibraryItem(item);

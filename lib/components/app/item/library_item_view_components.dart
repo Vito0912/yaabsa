@@ -131,6 +131,8 @@ Widget buildItemActionButtons({
   bool showAddToPlaylist = false,
   bool showAddToCollection = false,
   bool showDeleteItem = false,
+  bool showPinAction = false,
+  bool isPinned = false,
 }) {
   return LayoutBuilder(
     builder: (context, constraints) {
@@ -186,6 +188,8 @@ Widget buildItemActionButtons({
         showAddToPlaylist: showAddToPlaylist,
         showAddToCollection: showAddToCollection,
         showDeleteItem: showDeleteItem,
+        showPinAction: showPinAction,
+        isPinned: isPinned,
       );
 
       final placeSmallBelowPrimary = constraints.maxWidth < 360 || !hasPrimaryActions;
@@ -240,6 +244,8 @@ Widget _buildSmallActionButtons(
   required bool showAddToPlaylist,
   required bool showAddToCollection,
   required bool showDeleteItem,
+  required bool showPinAction,
+  required bool isPinned,
 }) {
   final children = <Widget>[
     if (showDownload)
@@ -269,6 +275,8 @@ Widget _buildSmallActionButtons(
         showAddToPlaylist: showAddToPlaylist,
         showAddToCollection: showAddToCollection,
         showDeleteItem: showDeleteItem,
+        showPinAction: showPinAction,
+        isPinned: isPinned,
       ),
   ];
 

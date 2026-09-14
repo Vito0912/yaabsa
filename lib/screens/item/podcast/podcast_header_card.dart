@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
+import 'package:yaabsa/components/app/item/item_more_actions_button.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/item_formatters.dart';
 
@@ -24,6 +25,8 @@ class PodcastHeaderCard extends StatelessWidget {
     this.onFindEpisodes,
     this.onEditPodcast,
     this.onDownloadPress,
+    this.isPinned = false,
+    this.onMoreActionSelected,
   });
 
   final LibraryItem item;
@@ -43,6 +46,8 @@ class PodcastHeaderCard extends StatelessWidget {
   final VoidCallback? onFindEpisodes;
   final VoidCallback? onEditPodcast;
   final VoidCallback? onDownloadPress;
+  final bool isPinned;
+  final Future<void> Function(ItemMoreAction action)? onMoreActionSelected;
   final VoidCallback onToggleDescription;
 
   @override
@@ -93,6 +98,8 @@ class PodcastHeaderCard extends StatelessWidget {
                     onFindEpisodes: onFindEpisodes,
                     onEditPodcast: onEditPodcast,
                     onDownloadPress: onDownloadPress,
+                    isPinned: isPinned,
+                    onMoreActionSelected: onMoreActionSelected,
                   ),
                 ],
               )
@@ -121,6 +128,8 @@ class PodcastHeaderCard extends StatelessWidget {
                       onFindEpisodes: onFindEpisodes,
                       onEditPodcast: onEditPodcast,
                       onDownloadPress: onDownloadPress,
+                      isPinned: isPinned,
+                      onMoreActionSelected: onMoreActionSelected,
                     ),
                   ),
                 ],
@@ -161,6 +170,8 @@ class _PodcastHeaderText extends StatelessWidget {
     this.onFindEpisodes,
     this.onEditPodcast,
     this.onDownloadPress,
+    this.isPinned = false,
+    this.onMoreActionSelected,
   });
 
   final LibraryItem item;
@@ -177,6 +188,8 @@ class _PodcastHeaderText extends StatelessWidget {
   final VoidCallback? onFindEpisodes;
   final VoidCallback? onEditPodcast;
   final VoidCallback? onDownloadPress;
+  final bool isPinned;
+  final Future<void> Function(ItemMoreAction action)? onMoreActionSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -250,6 +263,13 @@ class _PodcastHeaderText extends StatelessWidget {
                 tooltip: 'Edit podcast',
                 icon: const Icon(Icons.edit_rounded),
                 visualDensity: VisualDensity.compact,
+              ),
+            if (onMoreActionSelected != null)
+              ItemMoreActionsButton(
+                onActionSelected: onMoreActionSelected!,
+                showMarkAction: false,
+                showPinAction: true,
+                isPinned: isPinned,
               ),
           ],
         ),

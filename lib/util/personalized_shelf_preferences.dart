@@ -9,6 +9,7 @@ const String _newestEpisodesSectionId = 'newest-episodes';
 enum PersonalizedShelfSection {
   continueListening,
   newestEpisodes,
+  pinned,
   downloads,
   listenAgain,
   continueSeries,
@@ -23,6 +24,8 @@ enum PersonalizedShelfSection {
         return 'continue-listening';
       case PersonalizedShelfSection.newestEpisodes:
         return _newestEpisodesSectionId;
+      case PersonalizedShelfSection.pinned:
+        return 'pinned';
       case PersonalizedShelfSection.downloads:
         return 'downloads';
       case PersonalizedShelfSection.listenAgain:
@@ -46,6 +49,8 @@ enum PersonalizedShelfSection {
         return 'Continue Listening';
       case PersonalizedShelfSection.newestEpisodes:
         return 'Newest Episodes';
+      case PersonalizedShelfSection.pinned:
+        return 'Pinned';
       case PersonalizedShelfSection.downloads:
         return 'Downloads';
       case PersonalizedShelfSection.listenAgain:
@@ -69,6 +74,8 @@ enum PersonalizedShelfSection {
         return Icons.play_circle_outline_rounded;
       case PersonalizedShelfSection.newestEpisodes:
         return Icons.podcasts_outlined;
+      case PersonalizedShelfSection.pinned:
+        return Icons.push_pin_outlined;
       case PersonalizedShelfSection.downloads:
         return Icons.download_rounded;
       case PersonalizedShelfSection.listenAgain:
@@ -162,6 +169,7 @@ class PersonalizedShelfPreferencesCodec {
     switch (mediaType) {
       case HomeLibraryMediaType.book:
         return const [
+          PersonalizedShelfSection.pinned,
           PersonalizedShelfSection.continueListening,
           PersonalizedShelfSection.continueSeries,
           PersonalizedShelfSection.downloads,
@@ -173,6 +181,7 @@ class PersonalizedShelfPreferencesCodec {
         ];
       case HomeLibraryMediaType.podcast:
         return const [
+          PersonalizedShelfSection.pinned,
           PersonalizedShelfSection.continueListening,
           PersonalizedShelfSection.newestEpisodes,
           PersonalizedShelfSection.downloads,
@@ -196,7 +205,10 @@ class PersonalizedShelfPreferencesCodec {
     return PersonalizedShelfPreferences(
       mediaType: mediaType,
       orderedSectionIds: List<String>.unmodifiable(configurableSectionIds),
-      hiddenSectionIds: Set<String>.unmodifiable(_alwaysHiddenSectionIdsFor(mediaType)),
+      hiddenSectionIds: Set<String>.unmodifiable({
+        ..._alwaysHiddenSectionIdsFor(mediaType),
+        ..._defaultHiddenSectionIdsFor(mediaType),
+      }),
     );
   }
 
@@ -239,6 +251,15 @@ class PersonalizedShelfPreferencesCodec {
           hiddenSectionIds.add(sectionId);
         }
       }
+
+      final missingDefaultHiddenSectionIds = _defaultHiddenSectionIdsFor(mediaType)
+          .where((sectionId) => !orderedSectionIds.contains(sectionId))
+          .toSet();
+      final pinnedWasMissing = !orderedSectionIds.contains(PersonalizedShelfSection.pinned.id);
+      if (pinnedWasMissing) {
+        orderedSectionIds.insert(0, PersonalizedShelfSection.pinned.id);
+      }
+      hiddenSectionIds.addAll(missingDefaultHiddenSectionIds);
 
       return _normalize(mediaType: mediaType, orderedSectionIds: orderedSectionIds, hiddenSectionIds: hiddenSectionIds);
     } catch (_) {
@@ -313,5 +334,9 @@ class PersonalizedShelfPreferencesCodec {
       case HomeLibraryMediaType.podcast:
         return const <String>{};
     }
+  }
+
+  static Set<String> _defaultHiddenSectionIdsFor(HomeLibraryMediaType mediaType) {
+    return const <String>{'pinned'};
   }
 }

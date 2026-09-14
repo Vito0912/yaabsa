@@ -32,6 +32,7 @@ class LibraryItemWidget extends ConsumerStatefulWidget {
     this.onPlay,
     this.canEdit = false,
     this.onEdit,
+    this.episodeIdToReveal,
   });
 
   final LibraryItem libraryItem;
@@ -49,6 +50,7 @@ class LibraryItemWidget extends ConsumerStatefulWidget {
   final VoidCallback? onPlay;
   final bool canEdit;
   final VoidCallback? onEdit;
+  final String? episodeIdToReveal;
 
   @override
   ConsumerState<LibraryItemWidget> createState() => _LibraryItemWidgetState();
@@ -67,7 +69,7 @@ class _LibraryItemWidgetState extends ConsumerState<LibraryItemWidget> {
         defaultTargetPlatform == TargetPlatform.windows;
   }
 
-  bool get _isSelectableCard => widget.libraryItem.collapsedSeries == null;
+  bool get _isSelectableCard => widget.libraryItem.collapsedSeries == null && widget.libraryItem.mediaType != 'podcast';
 
   bool get _showHoverSelectionDot {
     return _isDesktopPlatform &&
@@ -135,10 +137,7 @@ class _LibraryItemWidgetState extends ConsumerState<LibraryItemWidget> {
             : colorScheme.primary;
 
         void handleCardTap() {
-          if (widget.selectionMode) {
-            if (isCollapsedSeriesCard) {
-              return;
-            }
+          if (widget.selectionMode && _isSelectableCard) {
             widget.onToggleSelection?.call();
             return;
           }
@@ -148,11 +147,17 @@ class _LibraryItemWidgetState extends ConsumerState<LibraryItemWidget> {
             return;
           }
 
-          context.push('/item/${widget.libraryItem.id}');
+          final episodeId = widget.episodeIdToReveal?.trim();
+          context.push(
+            Uri(
+              path: '/item/${widget.libraryItem.id}',
+              queryParameters: episodeId == null || episodeId.isEmpty ? null : <String, String>{'episodeId': episodeId},
+            ).toString(),
+          );
         }
 
         void handleCardLongPress() {
-          if (isCollapsedSeriesCard) {
+          if (!_isSelectableCard) {
             return;
           }
           if (widget.onEnterSelectionMode != null) {
@@ -218,7 +223,7 @@ class _LibraryItemWidgetState extends ConsumerState<LibraryItemWidget> {
                             ),
                           ),
                   ),
-                  if (widget.selectionMode)
+                  if (widget.selectionMode && _isSelectableCard)
                     Positioned.fill(
                       child: IgnorePointer(
                         child: ClipRRect(
@@ -316,7 +321,7 @@ class _LibraryItemWidgetState extends ConsumerState<LibraryItemWidget> {
                               ),
                             ),
                           )
-                        : widget.selectionMode
+                        : widget.selectionMode && _isSelectableCard
                         ? const SizedBox.shrink()
                         : Container(
                             decoration: BoxDecoration(
@@ -434,6 +439,10 @@ class _LibraryItemWidgetState extends ConsumerState<LibraryItemWidget> {
     }
 
     final episodes = _playablePodcastEpisodes();
+    final recentEpisodeId = widget.libraryItem.recentEpisode?.id;
+    if (recentEpisodeId != null) {
+      return episodes.where((episode) => episode.id == recentEpisodeId).firstOrNull;
+    }
     if (episodes.length != 1) {
       return null;
     }

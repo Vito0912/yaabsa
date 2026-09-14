@@ -411,6 +411,7 @@ final globalRouter = GoRouter(
                       builder: (context, state) => LibraryItemView(
                         state.pathParameters['id']!,
                         initialEditorTab: state.uri.queryParameters['editor'],
+                        initialEpisodeId: state.uri.queryParameters['episodeId'],
                       ),
                     ),
                     GoRoute(

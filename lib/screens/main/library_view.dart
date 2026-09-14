@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/components/app/item/editor/library_item_edit_overlay.dart';
 import 'package:yaabsa/components/app/library/library_filter_toolbar.dart';
 import 'package:yaabsa/components/app/library/library_items_grid.dart';
@@ -145,7 +146,42 @@ class LibraryView extends HookConsumerWidget {
                                     hasNextPage: state.hasNextPage,
                                     api: api,
                                     subtitleBuilder: subtitleResolver.forLibraryItem,
-                                    onPlayItem: (item, _) {
+                                    onPlayItem: (item, _) async {
+                                      if (item.mediaType == 'podcast' || item.media?.podcastMedia != null) {
+                                        try {
+                                          final resolvedItem =
+                                              (await api.getLibraryItemApi().getLibraryItem(itemId: item.id)).data ??
+                                              item;
+                                          final episodes =
+                                              (resolvedItem.media?.podcastMedia?.episodes ?? const <Episode>[])
+                                                  .where((episode) => episode.audioFile != null)
+                                                  .toList(growable: false);
+                                          final episode = episodes.firstOrNull;
+                                          if (episode == null) {
+                                            if (context.mounted) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                const SnackBar(content: Text('This podcast has no playable episodes.')),
+                                              );
+                                            }
+                                            return;
+                                          }
+
+                                          await audioHandler.playPodcastEpisode(
+                                            resolvedItem,
+                                            episode,
+                                            episodeIndex: 0,
+                                            orderedEpisodes: episodes,
+                                          );
+                                        } catch (error) {
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(SnackBar(content: Text('Could not play podcast: $error')));
+                                          }
+                                        }
+                                        return;
+                                      }
+
                                       audioHandler.playLibraryItem(
                                         item,
                                         sort: state.sort,

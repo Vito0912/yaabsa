@@ -15,6 +15,7 @@ import 'package:yaabsa/components/app/item/item_more_actions_button.dart';
 import 'package:yaabsa/components/app/item/item_progress_actions.dart';
 import 'package:yaabsa/components/app/item/item_book_stats_card.dart';
 import 'package:yaabsa/components/app/item/library_item_view_components.dart';
+import 'package:yaabsa/components/app/item/pinned_shelf_snackbar.dart';
 import 'package:yaabsa/components/common/connection_issue_view.dart';
 import 'package:yaabsa/components/common/cover_zoom_view.dart';
 import 'package:yaabsa/components/common/loading_snackbar.dart';
@@ -25,10 +26,12 @@ import 'package:yaabsa/components/app/downloads/download_helper.dart';
 import 'package:yaabsa/provider/common/library_filter_data_provider.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/provider/library/pinned_shelf_provider.dart';
 import 'package:yaabsa/screens/player/play_history_view.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/item_view_navigation.dart';
+import 'package:yaabsa/util/home_navigation_preferences.dart';
 import 'package:yaabsa/util/server_management_preferences.dart';
 
 class LibraryItemBookView extends ConsumerWidget {
@@ -118,6 +121,11 @@ class LibraryItemBookView extends ConsumerWidget {
     final isItemFinished = progressByKey != null && isLibraryItemFinished(item, progressByKey);
 
     final currentUser = ref.watch(currentUserProvider).value;
+    final libraryId = item.libraryId;
+    final isPinned =
+        currentUser != null &&
+        libraryId != null &&
+        ref.watch(pinnedShelfContainsProvider(libraryId: libraryId, itemId: item.id));
     ref.watch(userSettingsWatcherProvider);
     final managementPreferences = readServerManagementPreferences(ref, currentUser?.id);
     final canEditItems = (currentUser?.permissions.update ?? false) && managementPreferences.editItemsEnabled;
@@ -298,6 +306,8 @@ class LibraryItemBookView extends ConsumerWidget {
                                       showAddToPlaylist: canAddToPlaylist,
                                       showAddToCollection: canAddToCollection,
                                       showDeleteItem: canDeleteItem,
+                                      showPinAction: currentUser != null && libraryId != null,
+                                      isPinned: isPinned,
                                       onMoreActionSelected: (action) async {
                                         switch (action) {
                                           case ItemMoreAction.editItem:
@@ -339,6 +349,30 @@ class LibraryItemBookView extends ConsumerWidget {
                                               item: item,
                                               canUpdate: currentUser?.permissions.update ?? false,
                                             );
+                                            return;
+                                          case ItemMoreAction.togglePin:
+                                            if (libraryId == null) {
+                                              return;
+                                            }
+                                            try {
+                                              final undo = await ref
+                                                  .read(pinnedShelfControllerProvider.notifier)
+                                                  .toggle(
+                                                    libraryId: libraryId,
+                                                    mediaType: HomeLibraryMediaType.book,
+                                                    itemId: item.id,
+                                                  );
+                                              if (!context.mounted) {
+                                                return;
+                                              }
+                                              showPinnedShelfSnackBar(context: context, undo: undo);
+                                            } catch (error) {
+                                              if (context.mounted) {
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                  SnackBar(content: Text('Could not update Pinned: $error')),
+                                                );
+                                              }
+                                            }
                                             return;
                                           case ItemMoreAction.deleteItem:
                                             await deleteAudiobookWithConfirmation(

@@ -59,7 +59,12 @@ class PlayerMediaInfoComponent extends StatelessWidget {
             router.go('/');
           }
         }
-        router.push('/item/${media.itemId}');
+        router.push(
+          Uri(
+            path: '/item/${media.itemId}',
+            queryParameters: media.episodeId == null ? null : <String, String>{'episodeId': media.episodeId!},
+          ).toString(),
+        );
       },
       child: Padding(
         padding: const EdgeInsets.all(4.0),
