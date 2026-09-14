@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
+import 'package:yaabsa/components/app/item/library_item_view_components.dart';
 import 'package:yaabsa/components/common/loading_snackbar.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/models/internal_download.dart';
@@ -31,8 +32,10 @@ class PodcastEpisodeDetailsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Episode')),
+      primary: false,
+      appBar: AppBar(primary: false, title: const Text('Episode')),
       body: SafeArea(
+        top: false,
         child: PodcastEpisodeDetailsContent(
           item: item,
           episode: episode,
@@ -44,7 +47,7 @@ class PodcastEpisodeDetailsPage extends StatelessWidget {
   }
 }
 
-class PodcastEpisodeDetailsContent extends ConsumerWidget {
+class PodcastEpisodeDetailsContent extends ConsumerStatefulWidget {
   const PodcastEpisodeDetailsContent({
     super.key,
     required this.item,
@@ -60,9 +63,24 @@ class PodcastEpisodeDetailsContent extends ConsumerWidget {
   final VoidCallback onPlayEpisode;
   final bool showCloseButton;
 
+  @override
+  ConsumerState<PodcastEpisodeDetailsContent> createState() => _PodcastEpisodeDetailsContentState();
+}
+
+class _PodcastEpisodeDetailsContentState extends ConsumerState<PodcastEpisodeDetailsContent> {
+  bool _showFullSummary = false;
+
+  @override
+  void didUpdateWidget(covariant PodcastEpisodeDetailsContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.episode.id != widget.episode.id) {
+      _showFullSummary = false;
+    }
+  }
+
   InternalDownload? _episodeDownloadFor(List<InternalDownload> downloads) {
     for (final download in downloads) {
-      if (download.episode?.id == episode.id) {
+      if (download.episode?.id == widget.episode.id) {
         return download;
       }
     }
@@ -70,7 +88,9 @@ class PodcastEpisodeDetailsContent extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
+    final item = widget.item;
+    final episode = widget.episode;
     final progress = ref.watch(
       mediaProgressProvider.select((asyncValue) => asyncValue.value?[mediaProgressKey(item.id, episode.id)]),
     );
@@ -132,28 +152,55 @@ class PodcastEpisodeDetailsContent extends ConsumerWidget {
                         audioHandler.currentMediaItem?.episodeId == episode.id;
                     final isPlayingCurrentEpisode = isCurrentEpisode && (playerState?.playing ?? false);
 
-                    return Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                    return SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (showCloseButton)
-                            Align(
-                              alignment: Alignment.topRight,
-                              child: IconButton(
-                                onPressed: () => Navigator.of(context).pop(),
-                                icon: const Icon(Icons.close_rounded),
-                                tooltip: 'Close',
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  podcastEpisodeTitle(episode),
+                                  style: Theme.of(context).textTheme.titleLarge,
+                                ),
                               ),
-                            ),
-                          Text(podcastEpisodeTitle(episode), style: Theme.of(context).textTheme.titleLarge),
+                              if (widget.showCloseButton) ...[
+                                const SizedBox(width: 8),
+                                IconButton(
+                                  onPressed: () => Navigator.of(context).pop(),
+                                  icon: const Icon(Icons.close_rounded),
+                                  tooltip: 'Close',
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints.tightFor(width: 40, height: 40),
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                              ],
+                            ],
+                          ),
                           if (podcastEpisodeSubtitle(episode) != null)
                             Padding(
                               padding: const EdgeInsets.only(top: 4),
-                              child: Text(
-                                podcastEpisodeSubtitle(episode)!,
-                                style: Theme.of(context).textTheme.bodyMedium
-                                    ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                              child: Semantics(
+                                button: true,
+                                expanded: _showFullSummary,
+                                child: InkWell(
+                                  onTap: () {
+                                    setState(() => _showFullSummary = !_showFullSummary);
+                                  },
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 2),
+                                    child: Text(
+                                      podcastEpisodeSubtitle(episode)!,
+                                      maxLines: _showFullSummary ? null : 3,
+                                      overflow: _showFullSummary ? TextOverflow.visible : TextOverflow.ellipsis,
+                                      style: Theme.of(context).textTheme.bodyMedium
+                                          ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                           const SizedBox(height: 10),
@@ -174,122 +221,84 @@ class PodcastEpisodeDetailsContent extends ConsumerWidget {
                             ),
                           ],
                           const SizedBox(height: 12),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: [
-                              FilledButton.icon(
-                                onPressed: () {
-                                  if (isCurrentEpisode) {
-                                    if (isPlayingCurrentEpisode) {
-                                      audioHandler.pause();
-                                    } else {
-                                      audioHandler.play();
-                                    }
-                                    return;
-                                  }
-
-                                  onPlayEpisode();
-                                },
-                                icon: Icon(
-                                  isCurrentEpisode && isPlayingCurrentEpisode
-                                      ? Icons.pause_rounded
-                                      : Icons.play_arrow_rounded,
-                                ),
-                                label: Text(isCurrentEpisode && isPlayingCurrentEpisode ? 'Pause' : 'Play'),
-                              ),
-                              FilledButton.tonalIcon(
-                                onPressed: isCurrentEpisode
-                                    ? null
-                                    : () {
-                                        if (isQueued) {
-                                          audioHandler.removeFromQueueByItemId(item.id, episodeId: episode.id);
-                                        } else {
-                                          audioHandler.addPodcastEpisodeToQueue(item, episode);
-                                        }
-                                      },
-                                icon: Icon(isQueued ? Icons.playlist_remove_rounded : Icons.queue_music_rounded),
-                                label: Text(isQueued ? 'Remove from Queue' : 'Add to Queue'),
-                              ),
-                              if (canDownload && isDownloading)
-                                FilledButton.tonalIcon(
-                                  onPressed: null,
-                                  icon: const SizedBox(
-                                    width: 18,
-                                    height: 18,
-                                    child: CircularProgressIndicator(strokeWidth: 2.2),
-                                  ),
-                                  label: const Text('Downloading'),
-                                ),
-                              if (canDownload && !isDownloading && isDownloaded)
-                                FilledButton.tonalIcon(
-                                  onPressed: currentUserId == null || episodeDownload == null
-                                      ? null
-                                      : () async {
-                                          try {
-                                            final result = await runWithLoadingSnackBar(
-                                              context: context,
-                                              message: 'Deleting downloaded files...',
-                                              action: () => downloadHandler.deleteDownloadedItem(
-                                                episodeDownload,
-                                                userId: currentUserId,
-                                              ),
-                                            );
-                                            if (!context.mounted) {
-                                              return;
-                                            }
-                                            final failedSuffix = result.failedFiles > 0
-                                                ? ' ${result.failedFiles} file(s) could not be removed.'
-                                                : '';
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(
-                                                content: Text('Deleted ${result.deletedFiles} file(s).$failedSuffix'),
-                                              ),
-                                            );
-                                          } catch (e) {
-                                            if (!context.mounted) {
-                                              return;
-                                            }
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(SnackBar(content: Text('Could not delete download: $e')));
-                                          }
-                                        },
-                                  icon: const Icon(Icons.delete_outline_rounded),
-                                  label: const Text('Delete download'),
-                                ),
-                              if (canDownload && !isDownloading && !isDownloaded)
-                                FilledButton.tonalIcon(
-                                  onPressed: () async {
-                                    try {
-                                      await downloadHandler.downloadFile(item.id, episodeId: episode.id);
-                                      if (!context.mounted) {
-                                        return;
-                                      }
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(const SnackBar(content: Text('Download added to queue.')));
-                                    } catch (e) {
-                                      if (!context.mounted) {
-                                        return;
-                                      }
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(SnackBar(content: Text('Could not start download: $e')));
-                                    }
-                                  },
-                                  icon: const Icon(Icons.download_rounded),
-                                  label: const Text('Download'),
-                                ),
-                            ],
+                          buildItemActionButtons(
+                            hasAudio: true,
+                            hasBook: false,
+                            canDownload: widget.canDownload,
+                            isDownloadInProgress: isDownloading,
+                            isDownloaded: isDownloaded,
+                            isQueued: isQueued,
+                            isCurrentItem: isCurrentEpisode,
+                            isPlayingCurrentItem: isPlayingCurrentEpisode,
+                            isLoadingCurrentItem: false,
+                            queueEnabled: !isCurrentEpisode,
+                            onPlay: () {
+                              if (isCurrentEpisode) {
+                                audioHandler.play();
+                                return;
+                              }
+                              widget.onPlayEpisode();
+                            },
+                            onPause: audioHandler.pause,
+                            onQueueToggle: () {
+                              if (isQueued) {
+                                audioHandler.removeFromQueueByItemId(item.id, episodeId: episode.id);
+                                return;
+                              }
+                              audioHandler.addPodcastEpisodeToQueue(item, episode);
+                            },
+                            onRead: () {},
+                            onDownload: () async {
+                              try {
+                                await downloadHandler.downloadFile(item.id, episodeId: episode.id);
+                                if (!context.mounted) {
+                                  return;
+                                }
+                                ScaffoldMessenger.of(context)
+                                    .showSnackBar(const SnackBar(content: Text('Download added to queue.')));
+                              } catch (e) {
+                                if (!context.mounted) {
+                                  return;
+                                }
+                                ScaffoldMessenger.of(context)
+                                    .showSnackBar(SnackBar(content: Text('Could not start download: $e')));
+                              }
+                            },
+                            onDeleteDownload: () async {
+                              if (currentUserId == null || episodeDownload == null) {
+                                return;
+                              }
+                              try {
+                                final result = await runWithLoadingSnackBar(
+                                  context: context,
+                                  message: 'Deleting downloaded files...',
+                                  action: () =>
+                                      downloadHandler.deleteDownloadedItem(episodeDownload, userId: currentUserId),
+                                );
+                                if (!context.mounted) {
+                                  return;
+                                }
+                                final failedSuffix = result.failedFiles > 0
+                                    ? ' ${result.failedFiles} file(s) could not be removed.'
+                                    : '';
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Deleted ${result.deletedFiles} file(s).$failedSuffix')),
+                                );
+                              } catch (e) {
+                                if (!context.mounted) {
+                                  return;
+                                }
+                                ScaffoldMessenger.of(context)
+                                    .showSnackBar(SnackBar(content: Text('Could not delete download: $e')));
+                              }
+                            },
                           ),
                           const SizedBox(height: 14),
                           Text('Description', style: Theme.of(context).textTheme.titleMedium),
                           const SizedBox(height: 8),
-                          Expanded(
-                            child: SingleChildScrollView(
-                              child: SelectableText(
-                                fullDescription.isEmpty ? 'No description available.' : fullDescription,
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
-                            ),
+                          Text(
+                            fullDescription.isEmpty ? 'No description available.' : fullDescription,
+                            style: Theme.of(context).textTheme.bodyMedium,
                           ),
                         ],
                       ),
