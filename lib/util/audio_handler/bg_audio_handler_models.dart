@@ -2,6 +2,28 @@ part of 'bg_audio_handler.dart';
 
 const int _autoQueuePageSize = 20;
 
+enum UserSeekNavigationPhase { began, settled }
+
+class UserSeekNavigationEvent {
+  const UserSeekNavigationEvent({required this.operationId, required this.phase, this.shouldRetarget = false});
+
+  final int operationId;
+  final UserSeekNavigationPhase phase;
+  final bool shouldRetarget;
+}
+
+class UserSeekNavigationLedger {
+  final Set<int> _activeOperations = <int>{};
+
+  bool begin(int operationId) => _activeOperations.add(operationId);
+
+  bool settle(int operationId) => _activeOperations.remove(operationId);
+
+  bool get hasActive => _activeOperations.isNotEmpty;
+
+  Set<int> get activeSnapshot => Set<int>.unmodifiable(_activeOperations);
+}
+
 class QueueDisplayInfo {
   const QueueDisplayInfo({this.title, this.subtitle, this.author});
 

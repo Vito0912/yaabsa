@@ -1,9 +1,12 @@
 part of 'bg_audio_handler.dart';
 
 extension _BGAudioHandlerResume on BGAudioHandler {
-  Future<void> _applySleepTimerAutoRewindNowInternal() async {
+  Future<bool> _applySleepTimerAutoRewindNowInternal({PlayerMutationLease? mutationLease}) async {
     if (_currentMediaItem == null) {
-      return;
+      return false;
+    }
+    if (mutationLease != null && !_playerMutationBarrier.isCurrent(mutationLease)) {
+      return false;
     }
 
     final rewindMinutes = _ref
@@ -11,27 +14,19 @@ extension _BGAudioHandlerResume on BGAudioHandler {
         .getGlobalSetting<int>(SettingKeys.sleepTimerAutoRewindMinutes);
 
     if (rewindMinutes <= 0) {
-      return;
+      return true;
     }
 
     final rewindBy = Duration(minutes: rewindMinutes);
     final currentPosition = position;
     final targetPosition = _rewindPosition(currentPosition, rewindBy);
     if (targetPosition >= currentPosition) {
-      return;
+      return true;
     }
 
-    await _seekInternal(targetPosition);
-
-    final currentPositionSeconds = targetPosition.inMicroseconds / Duration.microsecondsPerSecond;
-    final canReachServer = _ref.read(serverReachabilityProvider);
-
-    try {
-      await _ref
-          .read(sessionRepositoryProvider)
-          .syncOpenSession(currentPositionSeconds, 0.3, canReachServer: canReachServer);
-    } catch (e) {
-      logger('Failed to sync sleep timer rewind before stop: $e', tag: 'AudioHandler', level: InfoLevel.warning);
+    await _seekInternal(targetPosition, mutationLease: mutationLease, authoritativeProgressCorrection: true);
+    if (mutationLease != null && !_playerMutationBarrier.isCurrent(mutationLease)) {
+      return false;
     }
 
     logger(
@@ -39,6 +34,7 @@ extension _BGAudioHandlerResume on BGAudioHandler {
       tag: 'AudioHandler',
       level: InfoLevel.debug,
     );
+    return true;
   }
 
   Future<bool> _playLastPlayedInternal({
@@ -54,16 +50,30 @@ extension _BGAudioHandlerResume on BGAudioHandler {
       }
     }
 
+    if (_currentMediaItem != null) {
+      return _performPlayLastPlayed(resumeCurrentIfPaused: resumeCurrentIfPaused);
+    }
+
     final activePlayback = _lastPlayedPlaybackFuture;
-    if (activePlayback != null) {
+    final activeLease = _lastPlayedPlaybackLease;
+    final activeGeneration = _lastPlayedPlaybackGeneration;
+    if (activePlayback != null &&
+        activeLease != null &&
+        activeGeneration == _playbackContextGeneration &&
+        _playerMutationBarrier.isCurrent(activeLease)) {
       logger('Joining active last played playback request.', tag: 'AudioHandler', level: InfoLevel.debug);
       return activePlayback;
+    }
+    if (activePlayback != null) {
+      logger('Superseding stale last played playback request.', tag: 'AudioHandler', level: InfoLevel.debug);
     }
 
     late final Future<bool> playback;
     playback = _performPlayLastPlayed(resumeCurrentIfPaused: resumeCurrentIfPaused).whenComplete(() {
       if (identical(_lastPlayedPlaybackFuture, playback)) {
         _lastPlayedPlaybackFuture = null;
+        _lastPlayedPlaybackLease = null;
+        _lastPlayedPlaybackGeneration = null;
       }
     });
     _lastPlayedPlaybackFuture = playback;
@@ -86,14 +96,35 @@ extension _BGAudioHandlerResume on BGAudioHandler {
       return false;
     }
 
-    _setQueueTransitionLoading(true);
+    final requestGeneration = ++_playbackContextGeneration;
+    final requestLease = _playerMutationBarrier.acquire();
+    _lastPlayedPlaybackLease = requestLease;
+    _lastPlayedPlaybackGeneration = requestGeneration;
+    bool requestIsCurrent() =>
+        !_isDisposing &&
+        requestGeneration == _playbackContextGeneration &&
+        _playerMutationBarrier.isCurrent(requestLease);
+
+    _setOwnedQueueTransitionLoading(requestLease);
     await _updatePlaybackState();
+    if (!requestIsCurrent()) {
+      _abandonQueueTransitionLoadingIfOwned(requestLease, emitMediaWhenEmpty: true);
+      return false;
+    }
 
     try {
       final activeUserId = await _readActiveUserId();
+      if (!requestIsCurrent()) {
+        _abandonQueueTransitionLoadingIfOwned(requestLease, emitMediaWhenEmpty: true);
+        return false;
+      }
       final lastPlayedItem = await _readLastPlayedQueueItemForActiveUser(explicitUserId: activeUserId);
+      if (!requestIsCurrent()) {
+        _abandonQueueTransitionLoadingIfOwned(requestLease, emitMediaWhenEmpty: true);
+        return false;
+      }
       if (lastPlayedItem == null) {
-        _setQueueTransitionLoading(false);
+        _clearQueueTransitionLoadingIfOwned(requestLease, emitMediaWhenEmpty: true);
         return false;
       }
       _setQueueTransitionTargetItem(lastPlayedItem);
@@ -113,6 +144,10 @@ extension _BGAudioHandlerResume on BGAudioHandler {
           );
         }
       }
+      if (!requestIsCurrent()) {
+        _abandonQueueTransitionLoadingIfOwned(requestLease, emitMediaWhenEmpty: true);
+        return false;
+      }
 
       final progress = await _ref
           .read(mediaProgressProvider.notifier)
@@ -121,6 +156,10 @@ extension _BGAudioHandlerResume on BGAudioHandler {
             episodeId: lastPlayedItem.episodeId,
             userId: activeUserId,
           );
+      if (!requestIsCurrent()) {
+        _abandonQueueTransitionLoadingIfOwned(requestLease, emitMediaWhenEmpty: true);
+        return false;
+      }
 
       if (progress?.isFinished ?? false) {
         logger(
@@ -128,25 +167,34 @@ extension _BGAudioHandlerResume on BGAudioHandler {
           tag: 'AudioHandler',
           level: InfoLevel.debug,
         );
-        _setQueueTransitionLoading(false);
+        _clearQueueTransitionLoadingIfOwned(requestLease, emitMediaWhenEmpty: true);
         return false;
       }
 
       final resumePosition = Duration(
         microseconds: ((progress?.currentTime ?? 0) * Duration.microsecondsPerSecond).round(),
       );
+      if (!requestIsCurrent()) {
+        _abandonQueueTransitionLoadingIfOwned(requestLease, emitMediaWhenEmpty: true);
+        return false;
+      }
 
-      await playItemFromPosition(
+      final played = await _playItemFromPositionInternal(
         itemId: lastPlayedItem.itemId,
         episodeId: lastPlayedItem.episodeId,
         position: resumePosition,
         preserveQueue: canPreserveRestoredManualQueue,
+        mutationLease: requestLease,
       );
 
-      return _currentMediaItem != null;
+      return played && _currentMediaItem != null;
     } catch (e, s) {
+      if (!requestIsCurrent()) {
+        _abandonQueueTransitionLoadingIfOwned(requestLease, emitMediaWhenEmpty: true);
+        return false;
+      }
       logger('Failed to resume last played item: $e\n$s', tag: 'AudioHandler', level: InfoLevel.error);
-      _setQueueTransitionLoading(false, emitMediaWhenEmpty: true);
+      _clearQueueTransitionLoadingIfOwned(requestLease, emitMediaWhenEmpty: true);
       PlayerUtils.disableWakelock(_ref);
       return false;
     }
@@ -456,8 +504,8 @@ extension _BGAudioHandlerResume on BGAudioHandler {
     return Duration(seconds: longRewind);
   }
 
-  Future<void> _applySmartRewindOnResumeIfNeeded() async {
-    if (_currentMediaItem == null || playerControlState.playing) {
+  Future<void> _applySmartRewindOnResumeIfNeeded({required PlayerMutationLease mutationLease}) async {
+    if (!_playerMutationBarrier.isCurrent(mutationLease) || _currentMediaItem == null || playerControlState.playing) {
       return;
     }
 
@@ -491,7 +539,10 @@ extension _BGAudioHandlerResume on BGAudioHandler {
     final targetPosition = _rewindPosition(currentPosition, rewindBy);
 
     if (targetPosition < currentPosition) {
-      await _seekWithoutPausedManualMarker(() => _seekInternal(targetPosition));
+      await _seekWithoutPausedManualMarker(() => _seekInternal(targetPosition, mutationLease: mutationLease));
+      if (!_playerMutationBarrier.isCurrent(mutationLease)) {
+        return;
+      }
       logger(
         'Applied smart rewind (${rewindBy.inSeconds}s) after pause (${pausedFor.inSeconds}s).',
         tag: 'AudioHandler',
@@ -499,7 +550,9 @@ extension _BGAudioHandlerResume on BGAudioHandler {
       );
     }
 
-    _clearSmartRewindPauseMarker();
+    if (_playerMutationBarrier.isCurrent(mutationLease)) {
+      _clearSmartRewindPauseMarker();
+    }
   }
 
   Future<void> _persistLastPlayedQueueItem({required String itemId, String? episodeId}) async {
