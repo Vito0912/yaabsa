@@ -51,6 +51,7 @@ class ItemMoreActionsButton extends StatelessWidget {
   Future<void> _openActionDialog(BuildContext context) async {
     final selectedAction = await showDialog<ItemMoreAction>(
       context: context,
+      useRootNavigator: false,
       builder: (dialogContext) {
         return AlertDialog(
           contentPadding: const EdgeInsets.symmetric(vertical: 8),
