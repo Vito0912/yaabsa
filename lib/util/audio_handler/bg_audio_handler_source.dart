@@ -5,10 +5,25 @@ extension _BGAudioHandlerSource on BGAudioHandler {
     Duration initialPosition = Duration.zero,
     bool ignoreSavedProgress = false,
     int transcodeStartupAttempt = 0,
+    PlayerMutationLease? mutationLease,
+    bool Function()? isStillCurrent,
   }) async {
     if (_currentMediaItem == null) return Future.value();
 
-    await _applyPreferredPlaybackSpeed(seedPerBookSpeedWhenMissing: true);
+    final lease = mutationLease ?? _playerMutationBarrier.acquire();
+    bool ownsSourceLoad() => _playerMutationBarrier.isCurrent(lease) && (isStillCurrent == null || isStillCurrent());
+    if (!ownsSourceLoad()) {
+      throw PlayerInterruptedException('Source loading interrupted before it started');
+    }
+
+    await _applyPreferredPlaybackSpeed(
+      seedPerBookSpeedWhenMissing: true,
+      mutationLease: lease,
+      isStillCurrent: ownsSourceLoad,
+    );
+    if (!ownsSourceLoad()) {
+      throw PlayerInterruptedException('Source loading interrupted while applying playback preferences');
+    }
 
     final requestHeaders = _currentRequestHeadersInternal;
     final source = _currentMediaItem!.toAudioSources(headers: requestHeaders);
@@ -44,19 +59,24 @@ extension _BGAudioHandlerSource on BGAudioHandler {
     final relativeTrackInitialPosition = initialPosition > trackStartDuration
         ? initialPosition - trackStartDuration
         : Duration.zero;
-    _currentTrackIndex = trackIndex;
     final loadingMedia = _currentMediaItem;
 
     final setSourceStopwatch = Stopwatch()..start();
     final sourceLoadError = Completer<PlayerException>();
     _sourceLoadErrorCompleter = sourceLoadError;
     try {
-      final sourceLoad = player.setAudioSources(
-        source,
-        initialIndex: trackIndex,
-        initialPosition: relativeTrackInitialPosition,
-        preload: true,
-      );
+      final sourceLoad = _playerMutationBarrier.run<dynamic>(lease, () {
+        if (!ownsSourceLoad()) {
+          throw PlayerInterruptedException('Source loading superseded before the player mutation was issued');
+        }
+        _audioSourceGeneration += 1;
+        return player.setAudioSources(
+          source,
+          initialIndex: trackIndex,
+          initialPosition: relativeTrackInitialPosition,
+          preload: true,
+        );
+      });
       final loadResult = Future.any<dynamic>([
         sourceLoad,
         sourceLoadError.future.then<dynamic>((error) => throw error),
@@ -69,7 +89,15 @@ extension _BGAudioHandlerSource on BGAudioHandler {
       } else {
         await loadResult;
       }
+      if (!ownsSourceLoad()) {
+        throw PlayerInterruptedException('Source loading superseded by a newer player command');
+      }
+      _currentTrackIndex = trackIndex;
     } on PlayerException catch (error) {
+      if (!ownsSourceLoad()) {
+        throw PlayerInterruptedException('Source loading superseded by a newer player command');
+      }
+
       final session = _ref.read(sessionRepositoryProvider).currentSession;
       if (identical(_currentMediaItem, loadingMedia) &&
           !_isDisposing &&
@@ -85,21 +113,39 @@ extension _BGAudioHandlerSource on BGAudioHandler {
           tag: 'AudioHandler',
           level: InfoLevel.warning,
         );
-        await _safePlayerStop();
-        await Future<void>.delayed(delay);
-        if (!identical(_currentMediaItem, loadingMedia) || _isDisposing || isCastControlActive) {
+        final stopped = await _safePlayerStop(lease);
+        if (!stopped || !ownsSourceLoad()) {
+          throw PlayerInterruptedException('Transcoded stream retry superseded while stopping the old source');
+        }
+
+        final delayCompleted = await Future.any<bool>([
+          Future<bool>.delayed(delay, () => true),
+          lease.invalidated.then((_) => false),
+        ]);
+        if (!delayCompleted ||
+            !ownsSourceLoad() ||
+            !identical(_currentMediaItem, loadingMedia) ||
+            _isDisposing ||
+            isCastControlActive) {
           throw PlayerInterruptedException('Transcoded stream loading interrupted');
         }
         return await _setSource(
           initialPosition: initialPosition,
           ignoreSavedProgress: true,
           transcodeStartupAttempt: transcodeStartupAttempt + 1,
+          mutationLease: lease,
+          isStillCurrent: isStillCurrent,
         );
       }
       if (identical(_currentMediaItem, loadingMedia) &&
           !_isDisposing &&
           classifyPlaybackError(error) == PlaybackFailureAction.transcode &&
-          await _attemptTranscodeFallback(error, initialPosition: initialPosition, resumePlayback: false)) {
+          await _attemptTranscodeFallback(
+            error,
+            initialPosition: initialPosition,
+            resumePlayback: false,
+            mutationLease: lease,
+          )) {
         return;
       }
 

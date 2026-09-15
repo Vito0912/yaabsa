@@ -1674,6 +1674,53 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
+  /// Atomically acknowledges only the listening-time portion represented by
+  /// [replayed]. If the row changed while the network replay was in flight,
+  /// newer position/progress data is retained and only the replayed listening
+  /// delta is subtracted.
+  Future<bool> acknowledgeReplayedSync(StoredSyncEntry replayed) {
+    return transaction(() async {
+      final current = await (select(
+        storedSyncs,
+      )..where((tbl) => tbl.sessionId.equals(replayed.sessionId))).getSingleOrNull();
+      if (current == null) {
+        return true;
+      }
+
+      final sameIdentity =
+          current.sessionId == replayed.sessionId &&
+          current.itemId == replayed.itemId &&
+          current.userId == replayed.userId &&
+          current.episodeId == replayed.episodeId;
+      if (!sameIdentity) {
+        return false;
+      }
+
+      final unchangedSnapshot =
+          current.currentTime == replayed.currentTime &&
+          current.timeListened == replayed.timeListened &&
+          current.duration == replayed.duration &&
+          current.sessionLocal == replayed.sessionLocal &&
+          current.lastUpdated == replayed.lastUpdated &&
+          current.mediaProgress == replayed.mediaProgress;
+      if (unchangedSnapshot) {
+        await (delete(storedSyncs)..where((tbl) => tbl.sessionId.equals(replayed.sessionId))).go();
+        return true;
+      }
+
+      const epsilon = 0.000001;
+      if (current.timeListened + epsilon < replayed.timeListened) {
+        return false;
+      }
+
+      final remainingListened = current.timeListened - replayed.timeListened;
+      await (update(storedSyncs)..where((tbl) => tbl.sessionId.equals(replayed.sessionId))).write(
+        StoredSyncsCompanion(timeListened: Value(remainingListened < epsilon ? 0.0 : remainingListened)),
+      );
+      return true;
+    });
+  }
+
   Future<void> deleteSync(String sessionId) {
     final query = delete(storedSyncs)..where((tbl) => tbl.sessionId.equals(sessionId));
     return query.go();

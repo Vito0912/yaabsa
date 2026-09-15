@@ -188,8 +188,19 @@ Future<void> _onServerReachable(Ref ref, {required bool reconnected}) async {
 
         final synced = await sessionRepository.replayStoredSync(sync);
         if (synced) {
-          await db.deleteSync(sync.sessionId);
-          logger('Sync completed successfully for session ID: ${sync.sessionId}', tag: 'ServerStatusProvider');
+          final acknowledged = await db.acknowledgeReplayedSync(sync);
+          if (acknowledged) {
+            logger(
+              'Sync replay acknowledged for session ID: ${sync.sessionId}; concurrent updates were retained if present.',
+              tag: 'ServerStatusProvider',
+            );
+          } else {
+            logger(
+              'Sync replay for ${sync.sessionId} succeeded remotely but local acknowledgement failed closed.',
+              tag: 'ServerStatusProvider',
+              level: InfoLevel.warning,
+            );
+          }
         }
       }
     }

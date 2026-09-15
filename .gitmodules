@@ -9,10 +9,10 @@
 	url = git@github.com:Vito0912/audio_service_win.git
 [submodule "packages/just_audio"]
 	path = packages/just_audio
-	url = git@github.com:Vito0912/just_audio.git
+	url = https://github.com/Kyomorie/just_audio.git
 [submodule "packages/wear_plus"]
 	path = packages/wear_plus
 	url = git@github.com:Vito0912/wear_plus.git
 [submodule "packages/just_audio_media_kit"]
 	path = packages/just_audio_media_kit
-	url = git@github.com:Vito0912/just_audio_media_kit.git
+	url = https://github.com/Kyomorie/just_audio_media_kit.git
