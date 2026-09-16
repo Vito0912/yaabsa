@@ -8,6 +8,22 @@ import 'package:yaabsa/components/common/managed_list_operations.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 
+Episode? selectablePodcastEpisode(LibraryItem item) {
+  if (!supportsPodcastEpisodeFinishedProgressUpdates(item)) {
+    return null;
+  }
+  return item.recentEpisode ?? item.media?.podcastMedia?.episodes?.singleOrNull;
+}
+
+String libraryItemSelectionKey(LibraryItem item) {
+  return mediaProgressKey(item.id, selectablePodcastEpisode(item)?.id);
+}
+
+bool isBulkSelectableLibraryItem(LibraryItem item) {
+  return item.collapsedSeries == null &&
+      (supportsFinishedProgressUpdates(item) || selectablePodcastEpisode(item) != null);
+}
+
 bool supportsFinishedProgressUpdates(LibraryItem item) {
   return item.mediaType == 'book' || item.media?.bookMedia != null;
 }
@@ -90,12 +106,12 @@ bool isPodcastEpisodeFinished({
 bool areAllSupportedLibraryItemsFinished(List<LibraryItem> items, Map<String, MediaProgress> progressByKey) {
   var hasSupportedItems = false;
   for (final item in items) {
-    if (!supportsFinishedProgressUpdates(item)) {
+    if (!isBulkSelectableLibraryItem(item)) {
       continue;
     }
 
     hasSupportedItems = true;
-    if (!isLibraryItemFinished(item, progressByKey)) {
+    if (!(progressByKey[libraryItemSelectionKey(item)]?.isFinished ?? false)) {
       return false;
     }
   }
@@ -215,18 +231,12 @@ Future<void> _setLibraryItemsFinishedState({
 }) async {
   final stateLabel = isFinished ? 'finished' : 'unfinished';
 
-  final selectedBookIds = <String>[];
-  for (final item in items) {
-    if (!supportsFinishedProgressUpdates(item)) {
-      continue;
-    }
-    if (!selectedBookIds.contains(item.id)) {
-      selectedBookIds.add(item.id);
-    }
-  }
+  final selectedItems = <String, LibraryItem>{
+    for (final item in items)
+      if (isBulkSelectableLibraryItem(item)) libraryItemSelectionKey(item): item,
+  };
 
-  if (selectedBookIds.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No selected books can be updated.')));
+  if (selectedItems.isEmpty) {
     return;
   }
 
@@ -238,14 +248,20 @@ Future<void> _setLibraryItemsFinishedState({
         throw Exception('API not available');
       }
 
-      final payloads = selectedBookIds
-          .map((id) => <String, dynamic>{'libraryItemId': id, 'isFinished': isFinished})
+      final payloads = selectedItems.values
+          .map(
+            (item) => <String, dynamic>{
+              'libraryItemId': item.id,
+              if (selectablePodcastEpisode(item) != null) 'episodeId': selectablePodcastEpisode(item)!.id,
+              'isFinished': isFinished,
+            },
+          )
           .toList(growable: false);
 
       await api.getMeApi().batchUpdateMediaProgress(payloads);
-      ref.read(mediaProgressProvider.notifier).refreshAllProgress(clearBefore: false);
+      await ref.read(mediaProgressProvider.notifier).refreshAllProgress(clearBefore: false);
     },
-    successMessage: 'Marked ${selectedBookIds.length} selected item(s) as $stateLabel.',
+    successMessage: 'Marked ${selectedItems.length} selected item(s) as $stateLabel.',
     errorFallback: 'Could not mark selected items as $stateLabel.',
     onSuccess: onSuccess,
   );

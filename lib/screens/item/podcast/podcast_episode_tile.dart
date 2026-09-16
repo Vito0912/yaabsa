@@ -25,6 +25,7 @@ class PodcastEpisodeTile extends StatelessWidget {
     this.onMoreActionSelected,
     this.showMarkAsUnfinished = false,
     this.showPinAction = false,
+    this.showAddToPlaylist = false,
     this.isPinned = false,
     this.isHighlighted = false,
     this.allowSelection = false,
@@ -49,6 +50,7 @@ class PodcastEpisodeTile extends StatelessWidget {
   final Future<void> Function(ItemMoreAction action)? onMoreActionSelected;
   final bool showMarkAsUnfinished;
   final bool showPinAction;
+  final bool showAddToPlaylist;
   final bool isPinned;
   final bool isHighlighted;
   final bool allowSelection;
@@ -242,6 +244,7 @@ class PodcastEpisodeTile extends StatelessWidget {
                             showMarkAsUnfinished: showMarkAsUnfinished,
                             showSelect: allowSelection,
                             showPinAction: showPinAction,
+                            showAddToPlaylist: showAddToPlaylist,
                             isPinned: isPinned,
                           ),
                         ),

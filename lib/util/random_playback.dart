@@ -80,7 +80,11 @@ Future<bool> playRandomPlaylistItemOrEpisode(
   final explicitEpisode = entry.episode;
 
   if (explicitEpisode != null) {
-    await audioHandler.playPodcastEpisode(item, explicitEpisode);
+    await audioHandler.playPodcastEpisode(
+      item,
+      explicitEpisode,
+      autoQueueStart: AutoQueueStart(type: sourceType, sourceId: sourceId, globalIndex: playlistItems.indexOf(entry)),
+    );
     return true;
   }
 

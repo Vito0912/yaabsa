@@ -5,6 +5,7 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/list/playlist.dart';
 import 'package:yaabsa/api/list/playlist_item.dart';
@@ -80,8 +81,8 @@ class PlaylistDetailView extends HookConsumerWidget {
     }
 
     final playlistItems = resolvedPlaylist.items ?? const <PlaylistItem>[];
-    final libraryItems = _playlistLibraryItems(playlistItems);
-    final missingCount = (playlistItems.length - libraryItems.length).clamp(0, playlistItems.length);
+    final displayEntries = _playlistDisplayEntries(playlistItems);
+    final missingCount = (playlistItems.length - displayEntries.length).clamp(0, playlistItems.length);
     final canManagePlaylist = _canManagePlaylist(playlist: resolvedPlaylist, currentUserId: currentUserId);
     final showShuffleButton =
         currentUserId != null &&
@@ -115,7 +116,7 @@ class PlaylistDetailView extends HookConsumerWidget {
                     ),
                   ),
                   if (showShuffleButton && hasRandomPlaylistPlaybackTarget(playlistItems))
-                    IconButton.filledTonal(
+                    IconButton(
                       onPressed: () => unawaited(
                         playRandomPlaylistItemOrEpisode(
                           playlistItems,
@@ -181,13 +182,13 @@ class PlaylistDetailView extends HookConsumerWidget {
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    '$missingCount playlist entr${missingCount == 1 ? 'y is' : 'ies are'} not directly displayable.',
+                    '$missingCount playlist entr${missingCount == 1 ? 'y could' : 'ies could'} not be loaded.',
                     style: Theme.of(context).textTheme.bodySmall
                         ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                 ),
               ),
-            if (libraryItems.isEmpty)
+            if (displayEntries.isEmpty)
               const Expanded(child: Center(child: Text('No library items found in this playlist.')))
             else
               Expanded(
@@ -203,21 +204,37 @@ class PlaylistDetailView extends HookConsumerWidget {
                           crossAxisCount: gridLayout.crossAxisCount,
                           mainAxisSpacing: appGridSpacing,
                           crossAxisSpacing: appGridSpacing,
-                          itemCount: libraryItems.length,
+                          itemCount: displayEntries.length,
                           itemBuilder: (context, index) {
-                            final item = libraryItems[index];
+                            final entry = displayEntries[index];
+                            final item = entry.displayItem;
+                            final episode = entry.episode;
                             return LibraryItemWidget(
                               item,
                               api,
                               showProgress: true,
                               squareCover: true,
+                              episodeIdToReveal: episode?.id,
                               onPlay: () {
+                                if (episode != null) {
+                                  audioHandler.playPodcastEpisode(
+                                    entry.libraryItem,
+                                    episode,
+                                    autoQueueStart: AutoQueueStart(
+                                      type: AutoQueueStartType.playlist,
+                                      sourceId: playlistId,
+                                      globalIndex: entry.playlistIndex,
+                                    ),
+                                  );
+                                  return;
+                                }
+
                                 audioHandler.playLibraryItem(
                                   item,
                                   autoQueueStart: AutoQueueStart(
                                     type: AutoQueueStartType.playlist,
                                     sourceId: playlistId,
-                                    globalIndex: index,
+                                    globalIndex: entry.playlistIndex,
                                   ),
                                 );
                               },
@@ -235,6 +252,68 @@ class PlaylistDetailView extends HookConsumerWidget {
       },
     );
   }
+}
+
+class _PlaylistDisplayEntry {
+  const _PlaylistDisplayEntry({
+    required this.playlistIndex,
+    required this.libraryItem,
+    required this.displayItem,
+    required this.episode,
+  });
+
+  final int playlistIndex;
+  final LibraryItem libraryItem;
+  final LibraryItem displayItem;
+  final Episode? episode;
+}
+
+List<_PlaylistDisplayEntry> _playlistDisplayEntries(List<PlaylistItem> playlistItems) {
+  final entries = <_PlaylistDisplayEntry>[];
+
+  for (var index = 0; index < playlistItems.length; index++) {
+    final playlistItem = playlistItems[index];
+    final libraryItem = playlistItem.libraryItem;
+    if (libraryItem == null) {
+      continue;
+    }
+
+    final episodeId = playlistItem.episodeId?.trim();
+    final episode = playlistItem.episode ?? _findPlaylistEpisode(libraryItem, episodeId);
+    final displayItem = episode == null ? libraryItem : _libraryItemForPlaylistEpisode(libraryItem, episode);
+    entries.add(
+      _PlaylistDisplayEntry(playlistIndex: index, libraryItem: libraryItem, displayItem: displayItem, episode: episode),
+    );
+  }
+
+  return entries;
+}
+
+Episode? _findPlaylistEpisode(LibraryItem item, String? episodeId) {
+  if (episodeId == null || episodeId.isEmpty) {
+    return null;
+  }
+
+  for (final episode in item.media?.podcastMedia?.episodes ?? const <Episode>[]) {
+    if (episode.id == episodeId) {
+      return episode;
+    }
+  }
+
+  return null;
+}
+
+LibraryItem _libraryItemForPlaylistEpisode(LibraryItem item, Episode episode) {
+  final media = item.media;
+  final podcastMedia = media?.podcastMedia;
+  if (media == null || podcastMedia == null) {
+    return item.copyWith(recentEpisode: episode);
+  }
+
+  return item.copyWith(
+    recentEpisode: episode,
+    media: media.copyWith(podcastMedia: podcastMedia.copyWith(episodes: <Episode>[episode])),
+  );
 }
 
 Playlist? _resolvePlaylist(String playlistId, List<Playlist>? allPlaylists) {

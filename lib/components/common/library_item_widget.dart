@@ -1,3 +1,4 @@
+import 'package:yaabsa/components/app/item/item_progress_actions.dart';
 import 'package:flutter/foundation.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
@@ -69,7 +70,7 @@ class _LibraryItemWidgetState extends ConsumerState<LibraryItemWidget> {
         defaultTargetPlatform == TargetPlatform.windows;
   }
 
-  bool get _isSelectableCard => widget.libraryItem.collapsedSeries == null && widget.libraryItem.mediaType != 'podcast';
+  bool get _isSelectableCard => isBulkSelectableLibraryItem(widget.libraryItem);
 
   bool get _showHoverSelectionDot {
     return _isDesktopPlatform &&
@@ -181,7 +182,7 @@ class _LibraryItemWidgetState extends ConsumerState<LibraryItemWidget> {
           widget.onToggleSelection?.call();
         }
 
-        final showSelectionDot = (widget.selectionMode || _showHoverSelectionDot) && !isCollapsedSeriesCard;
+        final showSelectionDot = (widget.selectionMode || _showHoverSelectionDot) && _isSelectableCard;
         final selectionOverlayAlpha = widget.isSelected ? 0.15 : 0.5;
         final downloadBadgeTop = showSelectionDot ? 34.0 : 4.0;
         final sequenceBadgeTop = isDownloaded ? downloadBadgeTop + 30.0 : (showSelectionDot ? 34.0 : 4.0);

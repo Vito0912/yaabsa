@@ -1,3 +1,5 @@
+import 'package:yaabsa/components/app/item/item_progress_actions.dart';
+
 import 'dart:async';
 
 import 'package:material_ui/material_ui.dart';
@@ -304,7 +306,7 @@ class PersonalizedView extends HookConsumerWidget {
           scopeKey: 'shelf:${selectedLibrary.id}',
           libraryId: selectedLibrary.id,
           visibleItems: visibleLibraryItems,
-          canAddToPlaylist: canManageBooks && currentUser != null,
+          canAddToPlaylist: currentUser != null,
           canAddToCollection: canManageBooks && hasUpdatePermission && managementPreferences.collectionsEnabled,
           canQuickMatchItems: canQuickMatchItems,
           canDeleteItems: canManageBooks && hasDeletePermission && managementPreferences.deleteItemsEnabled,
@@ -671,7 +673,7 @@ List<LibraryItem> _collectVisibleShelfLibraryItems(List<_SectionData> sections) 
         continue;
       }
 
-      if (!seenIds.add(entity.id)) {
+      if (!seenIds.add(libraryItemSelectionKey(entity))) {
         continue;
       }
 
@@ -967,12 +969,12 @@ class _SectionList extends StatelessWidget {
         squareCover: true,
         enableHoverSelection: true,
         selectionMode: selectionMode,
-        isSelected: selectedItemIds.contains(item.id),
+        isSelected: selectedItemIds.contains(libraryItemSelectionKey(item)),
         canEdit: canEditItems && !isPodcastEpisodeCard,
         onEdit: isPodcastEpisodeCard ? null : () => onEditItem(item),
         episodeIdToReveal: episodeIdToReveal,
-        onToggleSelection: () => onToggleSelection(item.id),
-        onEnterSelectionMode: () => onEnterSelectionMode(item.id),
+        onToggleSelection: () => onToggleSelection(libraryItemSelectionKey(item)),
+        onEnterSelectionMode: () => onEnterSelectionMode(libraryItemSelectionKey(item)),
       ),
     );
   }

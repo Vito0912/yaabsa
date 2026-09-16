@@ -879,8 +879,15 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     Episode episode, {
     int? episodeIndex,
     List<Episode>? orderedEpisodes,
+    AutoQueueStart autoQueueStart = const AutoQueueStart.none(),
   }) async {
-    return _playPodcastEpisodeInternal(item, episode, episodeIndex: episodeIndex, orderedEpisodes: orderedEpisodes);
+    return _playPodcastEpisodeInternal(
+      item,
+      episode,
+      episodeIndex: episodeIndex,
+      orderedEpisodes: orderedEpisodes,
+      autoQueueStart: autoQueueStart,
+    );
   }
 
   @override

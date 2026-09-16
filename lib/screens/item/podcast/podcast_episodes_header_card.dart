@@ -20,6 +20,9 @@ class PodcastEpisodesHeaderCard extends StatelessWidget {
     this.onClearSelection,
     this.onSelectAll,
     this.onDownloadSelected,
+    this.onAddSelectedToPlaylist,
+    this.onToggleSelectedFinished,
+    this.allSelectedFinished = false,
   });
 
   final int totalEpisodeCount;
@@ -38,6 +41,9 @@ class PodcastEpisodesHeaderCard extends StatelessWidget {
   final VoidCallback? onClearSelection;
   final VoidCallback? onSelectAll;
   final VoidCallback? onDownloadSelected;
+  final VoidCallback? onAddSelectedToPlaylist;
+  final VoidCallback? onToggleSelectedFinished;
+  final bool allSelectedFinished;
 
   @override
   Widget build(BuildContext context) {
@@ -68,6 +74,18 @@ class PodcastEpisodesHeaderCard extends StatelessWidget {
                   onPressed: onDownloadSelected,
                   icon: const Icon(Icons.download_rounded),
                   tooltip: 'Download selected episodes',
+                ),
+              if (onToggleSelectedFinished != null)
+                IconButton(
+                  onPressed: onToggleSelectedFinished,
+                  icon: Icon(allSelectedFinished ? Icons.remove_done_rounded : Icons.task_alt_rounded),
+                  tooltip: allSelectedFinished ? 'Mark selected as unfinished' : 'Mark selected as finished',
+                ),
+              if (onAddSelectedToPlaylist != null)
+                IconButton(
+                  onPressed: onAddSelectedToPlaylist,
+                  icon: const Icon(Icons.playlist_add_rounded),
+                  tooltip: 'Add selected episodes to playlist',
                 ),
             ],
           ),

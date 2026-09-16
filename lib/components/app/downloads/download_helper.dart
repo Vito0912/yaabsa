@@ -1,3 +1,4 @@
+import 'package:yaabsa/components/app/item/item_progress_actions.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
@@ -111,5 +112,44 @@ Future<void> triggerMultiBookDownload(BuildContext context, WidgetRef ref, List<
   if (context.mounted) {
     final message = count == 1 ? '1 download added to queue.' : '$count downloads added to queue.';
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+}
+
+Future<void> triggerMultiLibraryItemDownload(BuildContext context, WidgetRef ref, List<LibraryItem> items) async {
+  if (!(ref.read(currentUserProvider).value?.permissions.download ?? false)) {
+    return;
+  }
+
+  final episodeItems = <String, LibraryItem>{
+    for (final item in items)
+      if (selectablePodcastEpisode(item)?.audioFile != null) libraryItemSelectionKey(item): item,
+  };
+  var count = 0;
+  for (final item in episodeItems.values) {
+    try {
+      await downloadHandler.downloadFile(
+        item.id,
+        episodeId: selectablePodcastEpisode(item)!.id,
+        downloadType: 'audiobook',
+      );
+      count++;
+    } catch (error) {
+      logger(
+        'Could not download ${libraryItemSelectionKey(item)}: $error',
+        tag: 'DownloadHelper',
+        level: InfoLevel.error,
+      );
+    }
+  }
+  if (!context.mounted) {
+    return;
+  }
+  if (episodeItems.isNotEmpty) {
+    final message = count == 1 ? '1 episode download added to queue.' : '$count episode downloads added to queue.';
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+  final bookIds = items.where((item) => selectablePodcastEpisode(item) == null).map((item) => item.id).toSet().toList();
+  if (bookIds.isNotEmpty) {
+    await triggerMultiBookDownload(context, ref, bookIds);
   }
 }

@@ -151,6 +151,37 @@ class PlaylistsNotifier extends AsyncNotifier<PlaylistsState> {
     return updated;
   }
 
+  Future<Playlist> addPodcastEpisodesToPlaylist(
+    String playlistId, {
+    required String libraryItemId,
+    required List<String> episodeIds,
+  }) async {
+    final normalizedEpisodeIds = _normalizeItemIds(episodeIds);
+    if (libraryItemId.isEmpty || normalizedEpisodeIds.isEmpty) {
+      throw Exception('No podcast episodes selected.');
+    }
+
+    final absApi = ref.read(absApiProvider);
+    if (absApi == null) {
+      throw Exception('User not authenticated or API not available.');
+    }
+
+    final updatedResponse = await absApi.getListApi().addItemsToPlaylist(
+      playlistId,
+      items: normalizedEpisodeIds
+          .map((episodeId) => <String, dynamic>{'libraryItemId': libraryItemId, 'episodeId': episodeId})
+          .toList(growable: false),
+    );
+
+    final updated = updatedResponse.data;
+    if (updated == null) {
+      throw Exception('No playlist data returned from add request.');
+    }
+
+    await refresh(withLoading: false, forceServer: true);
+    return updated;
+  }
+
   Future<Playlist> removeBooksFromPlaylist(String playlistId, {required List<String> bookIds}) async {
     if (bookIds.isEmpty) {
       throw Exception('No books selected.');

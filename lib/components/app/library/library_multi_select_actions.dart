@@ -1,3 +1,4 @@
+import 'package:yaabsa/components/app/item/item_progress_actions.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
@@ -12,6 +13,60 @@ import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/common/playlist_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 
+Future<void> addSelectedLibraryItemsToPlaylist({
+  required BuildContext context,
+  required WidgetRef ref,
+  required String libraryId,
+  required String? currentUserId,
+  required List<LibraryItem> items,
+  required VoidCallback onSuccess,
+}) async {
+  final selectedItems = <String, LibraryItem>{
+    for (final item in items)
+      if (isBulkSelectableLibraryItem(item)) libraryItemSelectionKey(item): item,
+  };
+  if (selectedItems.isEmpty || currentUserId == null || currentUserId.isEmpty) {
+    return;
+  }
+  final target = await _showEditablePlaylistPicker(
+    context: context,
+    ref: ref,
+    libraryId: libraryId,
+    currentUserId: currentUserId,
+    title: 'Add to playlist',
+  );
+  if (!context.mounted || target == null) {
+    return;
+  }
+  await runManagedListMutation(
+    context: context,
+    action: () async {
+      final api = ref.read(absApiProvider);
+      if (api == null) {
+        throw Exception('API not available');
+      }
+      final response = await api.getListApi().addItemsToPlaylist(
+        target.id,
+        items: selectedItems.values
+            .map(
+              (item) => <String, dynamic>{
+                'libraryItemId': item.id,
+                if (selectablePodcastEpisode(item) != null) 'episodeId': selectablePodcastEpisode(item)!.id,
+              },
+            )
+            .toList(growable: false),
+      );
+      if (response.data == null) {
+        throw Exception('No playlist data returned from add request.');
+      }
+      await ref.read(playlistsProvider(libraryId).notifier).refresh(withLoading: false, forceServer: true);
+    },
+    successMessage: 'Added ${selectedItems.length} selected item(s) to "${target.title}".',
+    errorFallback: 'Could not add selected items to playlist.',
+    onSuccess: onSuccess,
+  );
+}
+
 Future<void> addSelectedBooksToPlaylist({
   required BuildContext context,
   required WidgetRef ref,
@@ -24,9 +79,78 @@ Future<void> addSelectedBooksToPlaylist({
     return;
   }
 
-  final targetOption = await showLibraryTargetPickerSheet(
+  final targetOption = await _showEditablePlaylistPicker(
     context: context,
+    ref: ref,
+    libraryId: libraryId,
+    currentUserId: currentUserId,
     title: 'Add to playlist',
+  );
+
+  if (!context.mounted || targetOption == null) {
+    return;
+  }
+
+  await runManagedListMutation(
+    context: context,
+    action: () =>
+        ref.read(playlistsProvider(libraryId).notifier).addBooksToPlaylist(targetOption.id, bookIds: selectedBookIds),
+    successMessage: selectedBookIds.length == 1
+        ? 'Added 1 book to "${targetOption.title}".'
+        : 'Added ${selectedBookIds.length} books to "${targetOption.title}".',
+    errorFallback: 'Could not add books to playlist.',
+    onSuccess: onSuccess,
+  );
+}
+
+Future<void> addSelectedPodcastEpisodesToPlaylist({
+  required BuildContext context,
+  required WidgetRef ref,
+  required String libraryId,
+  required String? currentUserId,
+  required String podcastItemId,
+  required List<String> selectedEpisodeIds,
+  required VoidCallback onSuccess,
+}) async {
+  if (selectedEpisodeIds.isEmpty || currentUserId == null || currentUserId.isEmpty) {
+    return;
+  }
+
+  final targetOption = await _showEditablePlaylistPicker(
+    context: context,
+    ref: ref,
+    libraryId: libraryId,
+    currentUserId: currentUserId,
+    title: 'Add episodes to playlist',
+  );
+
+  if (!context.mounted || targetOption == null) {
+    return;
+  }
+
+  await runManagedListMutation(
+    context: context,
+    action: () => ref
+        .read(playlistsProvider(libraryId).notifier)
+        .addPodcastEpisodesToPlaylist(targetOption.id, libraryItemId: podcastItemId, episodeIds: selectedEpisodeIds),
+    successMessage: selectedEpisodeIds.length == 1
+        ? 'Added 1 episode to "${targetOption.title}".'
+        : 'Added ${selectedEpisodeIds.length} episodes to "${targetOption.title}".',
+    errorFallback: 'Could not add episodes to playlist.',
+    onSuccess: onSuccess,
+  );
+}
+
+Future<LibraryTargetPickerOption?> _showEditablePlaylistPicker({
+  required BuildContext context,
+  required WidgetRef ref,
+  required String libraryId,
+  required String currentUserId,
+  required String title,
+}) {
+  return showLibraryTargetPickerSheet(
+    context: context,
+    title: title,
     emptyMessage: 'No editable playlists found.',
     loadErrorMessage: 'Could not load playlists.',
     loadOptions: () async {
@@ -49,21 +173,6 @@ Future<void> addSelectedBooksToPlaylist({
           )
           .toList(growable: false);
     },
-  );
-
-  if (!context.mounted || targetOption == null) {
-    return;
-  }
-
-  await runManagedListMutation(
-    context: context,
-    action: () =>
-        ref.read(playlistsProvider(libraryId).notifier).addBooksToPlaylist(targetOption.id, bookIds: selectedBookIds),
-    successMessage: selectedBookIds.length == 1
-        ? 'Added 1 book to "${targetOption.title}".'
-        : 'Added ${selectedBookIds.length} books to "${targetOption.title}".',
-    errorFallback: 'Could not add books to playlist.',
-    onSuccess: onSuccess,
   );
 }
 

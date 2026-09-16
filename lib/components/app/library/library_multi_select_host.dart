@@ -116,7 +116,9 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
       return null;
     }, <Object?>[scopeKey]);
 
-    final itemIndexById = <String, int>{for (var i = 0; i < visibleItems.length; i++) visibleItems[i].id: i};
+    final itemIndexById = <String, int>{
+      for (var i = 0; i < visibleItems.length; i++) libraryItemSelectionKey(visibleItems[i]): i,
+    };
     final visibleIds = itemIndexById.keys.toSet();
     final effectiveSelectedItemIds = selectedItemIds.value.where(visibleIds.contains).toSet();
 
@@ -133,18 +135,18 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
     int? resolveIndexForId(String itemId) => itemIndexById[itemId];
 
     void enterSelectionByIndex(int index) {
-      if (index < 0 || index >= visibleItems.length || !_isBulkSelectableLibraryItem(visibleItems[index])) {
+      if (index < 0 || index >= visibleItems.length || !isBulkSelectableLibraryItem(visibleItems[index])) {
         return;
       }
 
-      final next = Set<String>.from(effectiveSelectedItemIds)..add(visibleItems[index].id);
+      final next = Set<String>.from(effectiveSelectedItemIds)..add(libraryItemSelectionKey(visibleItems[index]));
       selectedItemIds.value = next;
       selectionMode.value = true;
       selectionAnchorIndex.value = index;
     }
 
     void toggleSelectionByIndex(int index) {
-      if (index < 0 || index >= visibleItems.length || !_isBulkSelectableLibraryItem(visibleItems[index])) {
+      if (index < 0 || index >= visibleItems.length || !isBulkSelectableLibraryItem(visibleItems[index])) {
         return;
       }
 
@@ -160,13 +162,13 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
 
         for (var currentIndex = start; currentIndex <= end && currentIndex < visibleItems.length; currentIndex++) {
           final item = visibleItems[currentIndex];
-          if (!_isBulkSelectableLibraryItem(item)) {
+          if (!isBulkSelectableLibraryItem(item)) {
             continue;
           }
-          next.add(item.id);
+          next.add(libraryItemSelectionKey(item));
         }
       } else {
-        final itemId = visibleItems[index].id;
+        final itemId = libraryItemSelectionKey(visibleItems[index]);
         if (next.contains(itemId)) {
           next.remove(itemId);
         } else {
@@ -203,14 +205,15 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
     final orderedSelectedBookIds = <String>[];
     final seen = <String>{};
     for (final item in visibleItems) {
-      if (!effectiveSelectedItemIds.contains(item.id) || !seen.add(item.id)) {
+      if (!effectiveSelectedItemIds.contains(libraryItemSelectionKey(item)) ||
+          !seen.add(libraryItemSelectionKey(item))) {
         continue;
       }
-      orderedSelectedBookIds.add(item.id);
+      orderedSelectedBookIds.add(libraryItemSelectionKey(item));
     }
     final selectedIdsSignature = orderedSelectedBookIds.join(',');
     final selectedItems = visibleItems
-        .where((item) => effectiveSelectedItemIds.contains(item.id))
+        .where((item) => effectiveSelectedItemIds.contains(libraryItemSelectionKey(item)))
         .toList(growable: false);
     final progressByKey = ref.watch(mediaProgressProvider).asData?.value ?? const <String, MediaProgress>{};
     final allSelectedFinished = areAllSupportedLibraryItemsFinished(selectedItems, progressByKey);
@@ -219,20 +222,24 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
     final downloadedItemIds = <String>{};
     final downloadingItemIds = <String>{};
     for (final item in selectedItems) {
-      if (ref.watch(completedDownloadForItemProvider(item.id))) {
-        downloadedItemIds.add(item.id);
+      if (ref.watch(completedDownloadForItemProvider(item.id, episodeId: selectablePodcastEpisode(item)?.id))) {
+        downloadedItemIds.add(libraryItemSelectionKey(item));
       }
-      if (ref.watch(downloadInProgressForItemProvider(item.id)).asData?.value ?? false) {
-        downloadingItemIds.add(item.id);
+      if (ref
+              .watch(downloadInProgressForItemProvider(item.id, episodeId: selectablePodcastEpisode(item)?.id))
+              .asData
+              ?.value ??
+          false) {
+        downloadingItemIds.add(libraryItemSelectionKey(item));
       }
     }
 
     final downloadableSelectedItems = selectedItems
         .where(
           (item) =>
-              isAudiobookLibraryItem(item) &&
-              !downloadedItemIds.contains(item.id) &&
-              !downloadingItemIds.contains(item.id),
+              (isAudiobookLibraryItem(item) || selectablePodcastEpisode(item)?.audioFile != null) &&
+              !downloadedItemIds.contains(libraryItemSelectionKey(item)) &&
+              !downloadingItemIds.contains(libraryItemSelectionKey(item)),
         )
         .toList();
 
@@ -258,8 +265,7 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
           enabled: !selectionBusy.value && downloadableSelectedItems.isNotEmpty,
           onPressed: () {
             runAction(() async {
-              final ids = downloadableSelectedItems.map((e) => e.id).toList();
-              await triggerMultiBookDownload(context, ref, ids);
+              await triggerMultiLibraryItemDownload(context, ref, downloadableSelectedItems);
               clearSelection();
             });
           },
@@ -271,12 +277,12 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
           enabled: !selectionBusy.value,
           onPressed: () {
             runAction(
-              () => addSelectedBooksToPlaylist(
+              () => addSelectedLibraryItemsToPlaylist(
                 context: context,
                 ref: ref,
                 libraryId: libraryId,
                 currentUserId: currentUserId,
-                selectedBookIds: orderedSelectedBookIds,
+                items: selectedItems,
                 onSuccess: clearSelection,
               ),
             );
@@ -405,6 +411,8 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
         selectionBusy.value,
         selectedIdsSignature,
         allSelectedFinished,
+        downloadableSelectedItems.map(libraryItemSelectionKey).join(','),
+        canDownload,
         actions.length,
         canAddToPlaylist,
         canAddToCollection,
@@ -442,8 +450,4 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
       child: builder(context, bindings),
     );
   }
-}
-
-bool _isBulkSelectableLibraryItem(LibraryItem item) {
-  return item.collapsedSeries == null && item.mediaType != 'podcast';
 }

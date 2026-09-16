@@ -116,7 +116,7 @@ class CollectionDetailView extends HookConsumerWidget {
                     ),
                   ),
                   if (showShuffleButton && hasRandomPlaybackTarget(collectionItems))
-                    IconButton.filledTonal(
+                    IconButton(
                       onPressed: () => unawaited(
                         playRandomLibraryItemOrEpisode(
                           collectionItems,
