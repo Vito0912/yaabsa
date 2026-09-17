@@ -12,10 +12,11 @@ import 'package:yaabsa/screens/item/library_item_book_view.dart';
 import 'package:yaabsa/screens/item/library_item_podcast_view.dart';
 
 class LibraryItemView extends ConsumerStatefulWidget {
-  const LibraryItemView(this.itemId, {super.key, this.initialEditorTab});
+  const LibraryItemView(this.itemId, {super.key, this.initialEditorTab, this.initialEpisodeId});
 
   final String itemId;
   final String? initialEditorTab;
+  final String? initialEpisodeId;
 
   @override
   ConsumerState<LibraryItemView> createState() => _LibraryItemViewState();
@@ -34,14 +35,14 @@ class _LibraryItemViewState extends ConsumerState<LibraryItemView> {
 
   @override
   Widget build(BuildContext context) {
-    final itemAsync = ref.watch(libraryItemProvider(widget.itemId));
+    final itemAsync = ref.watch(libraryItemProvider(widget.itemId, episodeId: widget.initialEpisodeId));
     final canDownload = ref.watch(currentUserProvider).value?.permissions.download ?? false;
     return itemAsync.when(
       data: (item) {
         final isPodcast = item.mediaType == 'podcast' || item.media?.podcastMedia != null;
         _scheduleInitialEditor(item, isPodcast: isPodcast);
         return isPodcast
-            ? LibraryItemPodcastView(item: item, canDownload: canDownload)
+            ? LibraryItemPodcastView(item: item, canDownload: canDownload, initialEpisodeId: widget.initialEpisodeId)
             : LibraryItemBookView(item: item, canDownload: canDownload);
       },
       error: (error, stackTrace) {
@@ -54,8 +55,8 @@ class _LibraryItemViewState extends ConsumerState<LibraryItemView> {
               : 'Please try again. If the issue persists, check your server connection.',
           showDownloadsShortcut: !isNotFound,
           onRetry: () async {
-            ref.invalidate(libraryItemProvider(widget.itemId));
-            await ref.read(libraryItemProvider(widget.itemId).future);
+            ref.invalidate(libraryItemProvider(widget.itemId, episodeId: widget.initialEpisodeId));
+            await ref.read(libraryItemProvider(widget.itemId, episodeId: widget.initialEpisodeId).future);
           },
         );
       },

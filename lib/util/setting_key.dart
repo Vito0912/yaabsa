@@ -67,6 +67,7 @@ class SettingKeys {
   static const String showShuffleButton = 'show_shuffle_button';
   static const String personalizedShelfBookSectionsPreferences = 'personalized_shelf_book_sections_preferences';
   static const String personalizedShelfPodcastSectionsPreferences = 'personalized_shelf_podcast_sections_preferences';
+  static const String pinnedShelfEntries = 'pinned_shelf_entries';
   static const String waitForSync = 'wait_for_sync';
   static const String progressPerChapter = 'progress_per_chapter';
   static const String serverManagementCollections = 'server_management_collections';
@@ -234,9 +235,9 @@ final defaultSettings = {
   SettingKeys.androidAutoGroupByLetters: true,
   SettingKeys.personalizedShelfShowPlayVisibleButton: false,
   SettingKeys.showShuffleButton: false,
-  SettingKeys.personalizedShelfBookSectionsPreferences: '{"order":["continue-listening","continue-series","recently-added","discover","listen-again","recent-series","newest-authors"],"hidden":["newest-episodes"]}',
-  SettingKeys.personalizedShelfPodcastSectionsPreferences:
-      '{"order":["continue-listening","newest-episodes","listen-again","recently-added","discover"],"hidden":[]}',
+  SettingKeys.personalizedShelfBookSectionsPreferences: '{"order":["pinned","continue-listening","continue-series","downloads","recently-added","discover","listen-again","recent-series","newest-authors"],"hidden":["pinned","newest-episodes"]}',
+  SettingKeys.personalizedShelfPodcastSectionsPreferences: '{"order":["pinned","continue-listening","newest-episodes","downloads","listen-again","recently-added","discover"],"hidden":["pinned"]}',
+  SettingKeys.pinnedShelfEntries: '{}',
   SettingKeys.waitForSync: true,
   SettingKeys.progressPerChapter: false,
   SettingKeys.serverManagementCollections: true,

@@ -8,6 +8,7 @@ enum ItemMoreAction {
   markAsUnfinished,
   addToPlaylist,
   addToCollection,
+  togglePin,
   deleteItem,
   playHistory,
   select,
@@ -28,6 +29,8 @@ class ItemMoreActionsButton extends StatelessWidget {
     this.showQuickMatch = false,
     this.showManualMatch = false,
     this.showSelect = false,
+    this.showPinAction = false,
+    this.isPinned = false,
   });
 
   final Future<void> Function(ItemMoreAction action) onActionSelected;
@@ -42,10 +45,13 @@ class ItemMoreActionsButton extends StatelessWidget {
   final bool showQuickMatch;
   final bool showManualMatch;
   final bool showSelect;
+  final bool showPinAction;
+  final bool isPinned;
 
   Future<void> _openActionDialog(BuildContext context) async {
     final selectedAction = await showDialog<ItemMoreAction>(
       context: context,
+      useRootNavigator: false,
       builder: (dialogContext) {
         return AlertDialog(
           contentPadding: const EdgeInsets.symmetric(vertical: 8),
@@ -75,6 +81,12 @@ class ItemMoreActionsButton extends StatelessWidget {
                   leading: const Icon(Icons.manage_search_rounded),
                   title: const Text('Manual Match'),
                   onTap: () => Navigator.of(dialogContext).pop(ItemMoreAction.manualMatch),
+                ),
+              if (showPinAction)
+                ListTile(
+                  leading: Icon(isPinned ? Icons.push_pin_rounded : Icons.push_pin_outlined),
+                  title: Text(isPinned ? 'Unpin from Shelf' : 'Pin to Shelf'),
+                  onTap: () => Navigator.of(dialogContext).pop(ItemMoreAction.togglePin),
                 ),
               if (showMarkAction)
                 ListTile(

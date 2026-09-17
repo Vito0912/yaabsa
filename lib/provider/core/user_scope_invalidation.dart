@@ -7,6 +7,7 @@ import 'package:yaabsa/provider/common/playlist_provider.dart';
 import 'package:yaabsa/provider/common/series_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/library/personalized_library_provider.dart';
+import 'package:yaabsa/provider/library/pinned_shelf_provider.dart';
 
 void invalidateUserScopedProviders(dynamic ref) {
   ref.invalidate(absApiProvider);
@@ -22,4 +23,5 @@ void invalidateUserScopedProviders(dynamic ref) {
   ref.invalidate(seriesBooksProvider);
   ref.invalidate(libraryAuthorsProvider);
   ref.invalidate(personalizedLibraryProvider);
+  ref.invalidate(pinnedShelfControllerProvider);
 }

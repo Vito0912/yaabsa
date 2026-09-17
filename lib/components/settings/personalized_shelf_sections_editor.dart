@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/components/settings/settings_editor_header.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/database/settings_manager.dart';
+import 'package:yaabsa/provider/common/library_provider.dart';
+import 'package:yaabsa/provider/library/pinned_shelf_provider.dart';
 import 'package:yaabsa/util/home_navigation_preferences.dart';
 import 'package:yaabsa/util/personalized_shelf_preferences.dart';
 
@@ -23,7 +25,11 @@ class _PersonalizedShelfSectionsEditorState extends ConsumerState<PersonalizedSh
 
   String get _title => '${widget.mediaType.label} libraries';
 
-  Future<void> _persistPreferences(PersonalizedShelfPreferences preferences, {String? successMessage}) async {
+  Future<void> _persistPreferences(
+    PersonalizedShelfPreferences preferences, {
+    String? successMessage,
+    bool clearPinnedLibraries = false,
+  }) async {
     if (_isSaving) {
       return;
     }
@@ -31,6 +37,14 @@ class _PersonalizedShelfSectionsEditorState extends ConsumerState<PersonalizedSh
     setState(() => _isSaving = true);
 
     try {
+      if (clearPinnedLibraries) {
+        final libraries = await ref.read(userLibrariesProvider.future);
+        final libraryIds = libraries
+            .where((library) => HomeLibraryMediaType.fromLibraryMediaType(library.mediaType) == widget.mediaType)
+            .map((library) => library.id);
+        await ref.read(pinnedShelfControllerProvider.notifier).clearLibraries(libraryIds);
+      }
+
       await ref
           .read(settingsManagerProvider.notifier)
           .setUserSetting<String>(widget.userId, _settingKey, PersonalizedShelfPreferencesCodec.encode(preferences));
@@ -59,7 +73,10 @@ class _PersonalizedShelfSectionsEditorState extends ConsumerState<PersonalizedSh
     bool isVisible,
   ) async {
     final nextPreferences = preferences.withVisibility(sectionId, isVisible);
-    await _persistPreferences(nextPreferences);
+    await _persistPreferences(
+      nextPreferences,
+      clearPinnedLibraries: sectionId == PersonalizedShelfSection.pinned.id && !isVisible,
+    );
   }
 
   Future<void> _handleReorder(PersonalizedShelfPreferences preferences, int oldIndex, int newIndex) async {
@@ -78,7 +95,11 @@ class _PersonalizedShelfSectionsEditorState extends ConsumerState<PersonalizedSh
 
   Future<void> _resetToDefaults() async {
     final defaults = PersonalizedShelfPreferencesCodec.defaultsFor(widget.mediaType);
-    await _persistPreferences(defaults, successMessage: 'Reset $_title to defaults.');
+    await _persistPreferences(
+      defaults,
+      successMessage: 'Reset $_title to defaults.',
+      clearPinnedLibraries: defaults.hiddenSectionIds.contains(PersonalizedShelfSection.pinned.id),
+    );
   }
 
   BorderRadius _getBorderRadius(int index, int total) {

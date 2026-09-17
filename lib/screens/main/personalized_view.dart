@@ -26,6 +26,7 @@ import 'package:yaabsa/provider/core/server_reachability_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/library/personalized_library_provider.dart';
+import 'package:yaabsa/provider/library/pinned_shelf_provider.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/home_navigation_preferences.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
@@ -58,9 +59,27 @@ class PersonalizedView extends HookConsumerWidget {
       return const Center(child: Text('No library selected. Please select a library via the switcher.'));
     }
 
+    final currentUser = currentUserAsync.value;
+    ref.watch(userSettingsWatcherProvider);
+    final shelfMediaType = HomeLibraryMediaType.fromLibraryMediaType(selectedLibrary.mediaType);
+    final shelfSettingKey = PersonalizedShelfPreferencesCodec.settingKeyFor(shelfMediaType);
+    final shelfDefaultValue = PersonalizedShelfPreferencesCodec.defaultEncodedFor(shelfMediaType);
+    final shelfSettingValue = currentUser == null
+        ? shelfDefaultValue
+        : ref
+              .read(settingsManagerProvider.notifier)
+              .getUserSetting<String>(currentUser.id, shelfSettingKey, defaultValue: shelfDefaultValue);
+    final shelfPreferences = PersonalizedShelfPreferencesCodec.decode(shelfSettingValue, shelfMediaType);
+    final pinnedSectionEnabled =
+        shelfPreferences.orderedSectionIds.contains('pinned') && !shelfPreferences.hiddenSectionIds.contains('pinned');
+
     final serverReachable = ref.watch(serverStatusProvider).value ?? true;
     final personalizedLibraryAsyncValue = ref.watch(personalizedLibraryProvider(selectedLibrary.id));
     final downloadsAsyncValue = ref.watch(libraryDownloadsProvider(selectedLibrary.id));
+    final pinnedItemsAsyncValue = pinnedSectionEnabled
+        ? ref.watch(pinnedShelfItemsProvider(selectedLibrary.id))
+        : const AsyncData<List<LibraryItem>>(<LibraryItem>[]);
+    final pinnedItems = pinnedItemsAsyncValue.value;
     final downloads = downloadsAsyncValue.value;
     final downloadItems = downloads
         ?.map((d) {
@@ -72,6 +91,7 @@ class PersonalizedView extends HookConsumerWidget {
             if (media != null && podcastMedia != null) {
               item = item.copyWith(
                 media: media.copyWith(podcastMedia: podcastMedia.copyWith(episodes: [d.episode!])),
+                recentEpisode: d.episode,
               );
             }
           }
@@ -89,8 +109,6 @@ class PersonalizedView extends HookConsumerWidget {
     final filterDataAsync = serverReachable
         ? ref.watch(libraryFilterDataProvider(selectedLibrary.id))
         : const AsyncData<LibraryFilterData?>(null);
-    final currentUser = currentUserAsync.value;
-    ref.watch(userSettingsWatcherProvider);
     final managementPreferences = readServerManagementPreferences(ref, currentUser?.id);
     final mediaProgressMap = ref.watch(mediaProgressProvider).asData?.value ?? const <String, MediaProgress>{};
     final personalizedLibraryForWidgets = personalizedLibraryAsyncValue.asData?.value;
@@ -150,15 +168,6 @@ class PersonalizedView extends HookConsumerWidget {
         ? personalizedLibraryAsyncValue.error
         : null;
 
-    final shelfMediaType = HomeLibraryMediaType.fromLibraryMediaType(selectedLibrary.mediaType);
-    final shelfSettingKey = PersonalizedShelfPreferencesCodec.settingKeyFor(shelfMediaType);
-    final shelfDefaultValue = PersonalizedShelfPreferencesCodec.defaultEncodedFor(shelfMediaType);
-    final shelfSettingValue = currentUser == null
-        ? shelfDefaultValue
-        : ref
-              .read(settingsManagerProvider.notifier)
-              .getUserSetting<String>(currentUser.id, shelfSettingKey, defaultValue: shelfDefaultValue);
-    final shelfPreferences = PersonalizedShelfPreferencesCodec.decode(shelfSettingValue, shelfMediaType);
     final downloadsSectionEnabled =
         shelfPreferences.orderedSectionIds.contains('downloads') &&
         !shelfPreferences.hiddenSectionIds.contains('downloads');
@@ -167,8 +176,11 @@ class PersonalizedView extends HookConsumerWidget {
         personalizedLibrary == null &&
         downloadsSectionEnabled &&
         (downloadItems?.isNotEmpty ?? false);
+    final showOfflinePinnedOnly =
+        !serverReachable && personalizedLibrary == null && pinnedSectionEnabled && (pinnedItems?.isNotEmpty ?? false);
+    final showOfflineLocalOnly = showOfflineDownloadsOnly || showOfflinePinnedOnly;
 
-    if (libraryError != null && !showOfflineDownloadsOnly) {
+    if (libraryError != null && !showOfflineLocalOnly) {
       final title = serverReachable ? 'Could not load personalized shelf' : 'Server connection unavailable';
       final message = serverReachable
           ? 'Pull down to retry loading personalized sections.'
@@ -184,7 +196,7 @@ class PersonalizedView extends HookConsumerWidget {
     }
 
     final api = ref.watch(absApiProvider);
-    if (api == null && !isLibraryLoading && !showOfflineDownloadsOnly) {
+    if (api == null && !isLibraryLoading && !showOfflineLocalOnly) {
       return _PersonalizedFeedbackView(
         icon: Icons.cloud_off_rounded,
         title: 'No server connection available',
@@ -193,7 +205,7 @@ class PersonalizedView extends HookConsumerWidget {
       );
     }
 
-    if (personalizedLibrary == null && !isLibraryLoading && !showOfflineDownloadsOnly) {
+    if (personalizedLibrary == null && !isLibraryLoading && !showOfflineLocalOnly) {
       return _PersonalizedFeedbackView(
         icon: serverReachable ? Icons.view_carousel_outlined : Icons.cloud_off_rounded,
         title: serverReachable ? 'No personalized items found' : 'Personalized shelf is offline',
@@ -217,6 +229,9 @@ class PersonalizedView extends HookConsumerWidget {
             continue;
           }
         }
+        if (sectionId == 'pinned' && (pinnedItems?.isEmpty ?? true)) {
+          continue;
+        }
         final section = PersonalizedShelfSection.fromId(sectionId);
         final title = section?.label ?? sectionId;
         final kind = _kindForSectionId(sectionId);
@@ -231,12 +246,20 @@ class PersonalizedView extends HookConsumerWidget {
               isShimmer: false,
             ),
           );
+        } else if (sectionId == 'pinned' && pinnedItems != null && pinnedItems.isNotEmpty && api != null) {
+          sections.add(
+            _SectionData(id: 'pinned', title: 'Pinned', kind: _ShelfEntityKind.libraryItem, entities: pinnedItems),
+          );
         } else {
           sections.add(_SectionData(id: sectionId, title: title, kind: kind, entities: const [], isShimmer: true));
         }
       }
     } else {
-      var rawSections = _buildSections(personalizedLibrary ?? const PersonalizedLibrary(), downloadItems);
+      var rawSections = _buildSections(
+        personalizedLibrary ?? const PersonalizedLibrary(),
+        downloadedItems: downloadItems,
+        pinnedItems: pinnedItems,
+      );
       sections = _applyShelfSectionPreferences(rawSections, shelfPreferences);
     }
 
@@ -530,7 +553,11 @@ class _SectionData {
   final bool isShimmer;
 }
 
-List<_SectionData> _buildSections(PersonalizedLibrary library, List<LibraryItem>? downloadedItems) {
+List<_SectionData> _buildSections(
+  PersonalizedLibrary library, {
+  required List<LibraryItem>? downloadedItems,
+  required List<LibraryItem>? pinnedItems,
+}) {
   final sections = <_SectionData>[];
 
   void addSection<T>(ShelfEntry<T>? shelf, _ShelfEntityKind kind) {
@@ -574,6 +601,12 @@ List<_SectionData> _buildSections(PersonalizedLibrary library, List<LibraryItem>
   } else if (downloadedItems.isNotEmpty) {
     sections.add(
       _SectionData(id: 'downloads', title: 'Downloads', kind: _ShelfEntityKind.libraryItem, entities: downloadedItems),
+    );
+  }
+
+  if (pinnedItems != null && pinnedItems.isNotEmpty) {
+    sections.add(
+      _SectionData(id: 'pinned', title: 'Pinned', kind: _ShelfEntityKind.libraryItem, entities: pinnedItems),
     );
   }
 
@@ -918,6 +951,12 @@ class _SectionList extends StatelessWidget {
   }
 
   Widget _buildLibraryItemTile(LibraryItem item) {
+    final isPodcastEpisodeCard =
+        item.mediaType == 'podcast' &&
+        (item.recentEpisode != null || section.id == _newestEpisodesShelfId || section.id == 'downloads');
+    final episodeIdToReveal = isPodcastEpisodeCard
+        ? item.recentEpisode?.id ?? item.media?.podcastMedia?.episodes?.singleOrNull?.id
+        : null;
     return SizedBox(
       width: libraryTileWidth,
       child: LibraryItemWidget(
@@ -929,8 +968,9 @@ class _SectionList extends StatelessWidget {
         enableHoverSelection: true,
         selectionMode: selectionMode,
         isSelected: selectedItemIds.contains(item.id),
-        canEdit: canEditItems,
-        onEdit: () => onEditItem(item),
+        canEdit: canEditItems && !isPodcastEpisodeCard,
+        onEdit: isPodcastEpisodeCard ? null : () => onEditItem(item),
+        episodeIdToReveal: episodeIdToReveal,
         onToggleSelection: () => onToggleSelection(item.id),
         onEnterSelectionMode: () => onEnterSelectionMode(item.id),
       ),

@@ -13,6 +13,7 @@ import 'package:yaabsa/api/podcast/podcast_feed.dart';
 import 'package:yaabsa/components/app/item/editor/open_library_item_editor_dialog.dart';
 import 'package:yaabsa/components/app/item/item_more_actions_button.dart';
 import 'package:yaabsa/components/app/item/item_progress_actions.dart';
+import 'package:yaabsa/components/app/item/pinned_shelf_snackbar.dart';
 import 'package:yaabsa/components/common/connection_issue_view.dart';
 import 'package:yaabsa/components/common/loading_snackbar.dart';
 import 'package:yaabsa/database/app_database.dart';
@@ -22,6 +23,7 @@ import 'package:yaabsa/provider/common/library_filter_data_provider.dart';
 import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/provider/library/pinned_shelf_provider.dart';
 import 'package:yaabsa/screens/item/podcast/podcast_find_episodes_dialog.dart';
 import 'package:yaabsa/screens/item/podcast/podcast_episode_details.dart';
 import 'package:yaabsa/screens/item/podcast/podcast_episode_sliver_list.dart';
@@ -31,6 +33,7 @@ import 'package:yaabsa/screens/item/podcast/podcast_episodes_header_card.dart';
 import 'package:yaabsa/screens/item/podcast/podcast_header_card.dart';
 import 'package:yaabsa/screens/player/play_history_view.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/home_navigation_preferences.dart';
 import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/random_playback.dart';
 import 'package:yaabsa/util/server_management_preferences.dart';
@@ -38,10 +41,11 @@ import 'package:yaabsa/util/setting_key.dart';
 import 'package:yaabsa/util/logger.dart';
 
 class LibraryItemPodcastView extends ConsumerStatefulWidget {
-  const LibraryItemPodcastView({super.key, required this.item, required this.canDownload});
+  const LibraryItemPodcastView({super.key, required this.item, required this.canDownload, this.initialEpisodeId});
 
   final LibraryItem item;
   final bool canDownload;
+  final String? initialEpisodeId;
 
   @override
   ConsumerState<LibraryItemPodcastView> createState() => _LibraryItemPodcastViewState();
@@ -56,6 +60,15 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
   String _searchQuery = '';
   bool _selectionMode = false;
   final Set<String> _selectedEpisodeIds = <String>{};
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _targetEpisodeKey = GlobalKey();
+  Timer? _targetRevealRetryTimer;
+  Timer? _highlightTimer;
+  String? _pendingEpisodeId;
+  String? _highlightedEpisodeId;
+  bool _targetRevealScheduled = false;
+  bool _attemptedTargetPreScroll = false;
+  int _targetRevealRetryCount = 0;
   late Stream<List<TaskRecord>> _activeTasksStream;
   Stream<List<InternalDownload>>? _storedDownloadsStream;
   String? _storedDownloadsUserId;
@@ -63,6 +76,8 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
   @override
   void initState() {
     super.initState();
+
+    _pendingEpisodeId = _normalizedEpisodeId(widget.initialEpisodeId);
 
     _activeTasksStream = downloadHandler
         .taskQueueStreamForItemAndEpisodes(widget.item.id)
@@ -75,7 +90,9 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
       SettingKeys.podcastEpisodeProgressFilter,
       defaultValue: PodcastEpisodeProgressFilter.all.name,
     );
-    _progressFilter = _progressFilterFromSettingValue(savedFilterValue);
+    _progressFilter = _pendingEpisodeId == null
+        ? _progressFilterFromSettingValue(savedFilterValue)
+        : PodcastEpisodeProgressFilter.all;
     final savedSortModeValue = settingsManager.getUserSetting<String>(
       currentUserId,
       SettingKeys.podcastEpisodeSortMode,
@@ -93,12 +110,109 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
           .distinct(_samePodcastTaskState);
       _storedDownloadsStream = null;
     }
+
+    if (oldWidget.item.id != widget.item.id || oldWidget.initialEpisodeId != widget.initialEpisodeId) {
+      _targetRevealRetryTimer?.cancel();
+      _highlightTimer?.cancel();
+      _pendingEpisodeId = _normalizedEpisodeId(widget.initialEpisodeId);
+      _highlightedEpisodeId = null;
+      _targetRevealScheduled = false;
+      _attemptedTargetPreScroll = false;
+      _targetRevealRetryCount = 0;
+      if (_pendingEpisodeId != null) {
+        _searchController.clear();
+        _searchQuery = '';
+        _progressFilter = PodcastEpisodeProgressFilter.all;
+      }
+    }
   }
 
   @override
   void dispose() {
+    _targetRevealRetryTimer?.cancel();
+    _highlightTimer?.cancel();
+    _scrollController.dispose();
     _searchController.dispose();
     super.dispose();
+  }
+
+  String? _normalizedEpisodeId(String? value) {
+    final normalized = value?.trim();
+    return normalized == null || normalized.isEmpty ? null : normalized;
+  }
+
+  void _scheduleTargetEpisodeReveal({required int targetEpisodeIndex, required int episodeCount}) {
+    if (_pendingEpisodeId == null || _targetRevealScheduled) {
+      return;
+    }
+
+    _targetRevealScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _targetRevealScheduled = false;
+      _revealTargetEpisode(targetEpisodeIndex: targetEpisodeIndex, episodeCount: episodeCount);
+    });
+  }
+
+  void _revealTargetEpisode({required int targetEpisodeIndex, required int episodeCount}) {
+    if (!mounted) {
+      return;
+    }
+
+    final episodeId = _pendingEpisodeId;
+    if (episodeId == null) {
+      return;
+    }
+
+    final targetContext = _targetEpisodeKey.currentContext;
+    if (targetContext != null) {
+      _pendingEpisodeId = null;
+      _targetRevealRetryCount = 0;
+      setState(() => _highlightedEpisodeId = episodeId);
+      unawaited(
+        Scrollable.ensureVisible(
+          targetContext,
+          alignment: 0.5,
+          duration: const Duration(milliseconds: 320),
+          curve: Curves.easeOutCubic,
+        ).whenComplete(() {
+          if (!mounted) {
+            return;
+          }
+          _highlightTimer?.cancel();
+          _highlightTimer = Timer(const Duration(milliseconds: 1100), () {
+            if (mounted && _highlightedEpisodeId == episodeId) {
+              setState(() => _highlightedEpisodeId = null);
+            }
+          });
+        }),
+      );
+      return;
+    }
+
+    if (!_attemptedTargetPreScroll && _scrollController.hasClients && episodeCount > 1) {
+      final ratio = targetEpisodeIndex / (episodeCount - 1);
+      final maxExtent = _scrollController.position.maxScrollExtent;
+      _attemptedTargetPreScroll = true;
+      unawaited(
+        _scrollController.animateTo(
+          (ratio * maxExtent).clamp(0.0, maxExtent),
+          duration: const Duration(milliseconds: 280),
+          curve: Curves.easeOutCubic,
+        ),
+      );
+    }
+
+    if (_targetRevealRetryCount >= 12) {
+      _pendingEpisodeId = null;
+      _targetRevealRetryCount = 0;
+      return;
+    }
+
+    _targetRevealRetryCount += 1;
+    _targetRevealRetryTimer?.cancel();
+    _targetRevealRetryTimer = Timer(const Duration(milliseconds: 50), () {
+      _revealTargetEpisode(targetEpisodeIndex: targetEpisodeIndex, episodeCount: episodeCount);
+    });
   }
 
   @override
@@ -122,6 +236,12 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
     );
     final progressMap = progressSnapshot.progressMap;
     final visibleEpisodes = _buildVisibleEpisodes(allEpisodes, progressMap);
+    final targetEpisodeIndex = _pendingEpisodeId == null
+        ? -1
+        : visibleEpisodes.indexWhere((episode) => episode.id == _pendingEpisodeId);
+    if (targetEpisodeIndex >= 0) {
+      _scheduleTargetEpisodeReveal(targetEpisodeIndex: targetEpisodeIndex, episodeCount: visibleEpisodes.length);
+    }
     final firstPlayableEpisode = visibleEpisodes.where((episode) => episode.audioFile != null).firstOrNull;
 
     final horizontalPadding = context.isMobile
@@ -139,6 +259,11 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
     final totalDuration = totalDurationSeconds <= 0 ? null : Duration(seconds: totalDurationSeconds.round());
 
     final currentUser = ref.watch(currentUserProvider).value;
+    final libraryId = widget.item.libraryId;
+    final isPodcastPinned =
+        currentUser != null &&
+        libraryId != null &&
+        ref.watch(pinnedShelfContainsProvider(libraryId: libraryId, itemId: widget.item.id));
     ref.watch(userSettingsWatcherProvider);
     final managementPreferences = readServerManagementPreferences(ref, currentUser?.id);
     final canEditItems = (currentUser?.permissions.update ?? false) && managementPreferences.editItemsEnabled;
@@ -152,6 +277,44 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
         : ref.watch(libraryFilterDataProvider(widget.item.libraryId!)).value;
     final appDatabase = ref.watch(appDatabaseProvider);
     final storedDownloadsStream = _storedDownloadsFor(currentUser?.id, appDatabase);
+
+    Future<void> handlePodcastMoreAction(ItemMoreAction action) async {
+      switch (action) {
+        case ItemMoreAction.togglePin:
+          if (libraryId == null) {
+            return;
+          }
+          try {
+            final undo = await ref
+                .read(pinnedShelfControllerProvider.notifier)
+                .toggle(libraryId: libraryId, mediaType: HomeLibraryMediaType.podcast, itemId: widget.item.id);
+            if (!context.mounted) {
+              return;
+            }
+            showPinnedShelfSnackBar(context: context, undo: undo);
+          } catch (error) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not update Pinned: $error')));
+            }
+          }
+          return;
+        case ItemMoreAction.playHistory:
+          if (context.mounted) {
+            context.push(PlayHistoryView.location(itemId: widget.item.id, itemTitle: widget.item.title));
+          }
+          return;
+        case ItemMoreAction.editItem:
+        case ItemMoreAction.quickMatch:
+        case ItemMoreAction.manualMatch:
+        case ItemMoreAction.markAsFinished:
+        case ItemMoreAction.markAsUnfinished:
+        case ItemMoreAction.addToPlaylist:
+        case ItemMoreAction.addToCollection:
+        case ItemMoreAction.deleteItem:
+        case ItemMoreAction.select:
+          return;
+      }
+    }
 
     return StreamBuilder<List<TaskRecord>>(
       stream: _activeTasksStream,
@@ -233,6 +396,7 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                             audioHandler.isQueueTransitionForItem(widget.item.id, episodeId: latestEpisodeId);
 
                         return CustomScrollView(
+                          controller: _scrollController,
                           slivers: [
                             SliverToBoxAdapter(
                               child: Padding(
@@ -254,6 +418,10 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                                       isPlayingCurrentPlayableEpisode: isPlayingCurrentLatestEpisode,
                                       isLoadingCurrentPlayableEpisode: isLoadingCurrentLatestEpisode,
                                       isFindingEpisodes: _isFetchingPodcastFeed,
+                                      isPinned: isPodcastPinned,
+                                      onMoreActionSelected: currentUser != null && libraryId != null
+                                          ? handlePodcastMoreAction
+                                          : null,
                                       onShuffle: showShuffleButton && hasRandomPlaybackTarget([widget.item])
                                           ? () => unawaited(playRandomLibraryItemOrEpisode([widget.item]))
                                           : null,
@@ -425,8 +593,19 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                                   final episodeDownload = downloadsByEpisodeId[episode.id];
                                   final isDownloaded = episodeDownload?.isComplete ?? false;
                                   final isDownloading = downloadingEpisodeIds.contains(episode.id);
+                                  final isPinned =
+                                      currentUser != null &&
+                                      libraryId != null &&
+                                      ref.watch(
+                                        pinnedShelfContainsProvider(
+                                          libraryId: libraryId,
+                                          itemId: widget.item.id,
+                                          episodeId: episode.id,
+                                        ),
+                                      );
 
                                   return PodcastEpisodeTile(
+                                    key: episode.id == _pendingEpisodeId ? _targetEpisodeKey : null,
                                     episode: episode,
                                     progress: episodeProgress,
                                     canDownload: widget.canDownload,
@@ -435,6 +614,9 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                                     isQueued: isQueued,
                                     isCurrentEpisode: isCurrentEpisode,
                                     isPlayingCurrentEpisode: isPlayingCurrentEpisode,
+                                    showPinAction: currentUser != null && libraryId != null,
+                                    isPinned: isPinned,
+                                    isHighlighted: episode.id == _highlightedEpisodeId,
                                     selectionMode: _selectionMode,
                                     isSelected: _selectedEpisodeIds.contains(episode.id),
                                     onSelectedChanged: (selected) {
@@ -506,6 +688,31 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                                         case ItemMoreAction.addToPlaylist:
                                         case ItemMoreAction.addToCollection:
                                         case ItemMoreAction.deleteItem:
+                                          return;
+                                        case ItemMoreAction.togglePin:
+                                          if (libraryId == null) {
+                                            return;
+                                          }
+                                          try {
+                                            final undo = await ref
+                                                .read(pinnedShelfControllerProvider.notifier)
+                                                .toggle(
+                                                  libraryId: libraryId,
+                                                  mediaType: HomeLibraryMediaType.podcast,
+                                                  itemId: widget.item.id,
+                                                  episodeId: episode.id,
+                                                );
+                                            if (!context.mounted) {
+                                              return;
+                                            }
+                                            showPinnedShelfSnackBar(context: context, undo: undo);
+                                          } catch (error) {
+                                            if (context.mounted) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(content: Text('Could not update Pinned: $error')),
+                                              );
+                                            }
+                                          }
                                           return;
                                         case ItemMoreAction.playHistory:
                                           if (!context.mounted) {

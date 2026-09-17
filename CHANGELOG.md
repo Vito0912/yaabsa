@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.12.0
+
+### Added
+
+- You can now pin audiobooks, books, podcast and episodes to the shelf (this is on device only for now)
+- Pressing play on a podcast now plays episodes
+- Clicking on a podcast episodes now brings you to the episode you clicked on
+
+### Fixed
+
+- Wrong placeholder for downloading
+- (Linux) Header should now match system theme
+- Starting playback via widget/bluethoot from a cold boot should now fetch the correct progress
+- Visual fixes for episode view on mobile
+
+- Some minor dep upgrades
+
 ## 1.11.0
 
 ### Added

@@ -166,7 +166,12 @@ class LatestEpisodesView extends HookConsumerWidget {
                       isCurrent: isCurrent,
                       isPlaying: isCurrent && (playbackState.data?.playing ?? false),
                       isLoading: pendingEpisodeIds.value.contains(episode.id),
-                      onOpen: () => context.push('/item/${episode.libraryItemId}'),
+                      onOpen: () => context.push(
+                        Uri(
+                          path: '/item/${episode.libraryItemId}',
+                          queryParameters: <String, String>{'episodeId': episode.id},
+                        ).toString(),
+                      ),
                       onPlay: () => playEpisode(episode),
                     ),
                   ),
