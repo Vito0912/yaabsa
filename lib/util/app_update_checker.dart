@@ -26,7 +26,6 @@ class AppUpdateEligibility {
     String? flavor,
   }) {
     if (isWeb) return false;
-    if (platform == TargetPlatform.linux) return true;
     return platform == TargetPlatform.android && isDirectDistribution && flavor == 'auto';
   }
 }

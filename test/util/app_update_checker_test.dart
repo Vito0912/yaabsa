@@ -8,13 +8,6 @@ import 'package:yaabsa/util/app_update_checker.dart';
 
 void main() {
   group('AppUpdateEligibility', () {
-    test('allows Linux without a direct-distribution marker', () {
-      expect(
-        AppUpdateEligibility.isEligible(isWeb: false, platform: TargetPlatform.linux, isDirectDistribution: false),
-        isTrue,
-      );
-    });
-
     test('allows only marked auto Android builds', () {
       expect(
         AppUpdateEligibility.isEligible(
@@ -66,6 +59,7 @@ void main() {
         TargetPlatform.iOS,
         TargetPlatform.macOS,
         TargetPlatform.windows,
+        TargetPlatform.linux,
         TargetPlatform.fuchsia,
       ]) {
         expect(
