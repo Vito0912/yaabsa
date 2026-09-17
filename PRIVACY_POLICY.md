@@ -1,6 +1,6 @@
 # Privacy Policy for yaabsa
 
-**Effective Date:** May 15, 2026
+**Effective Date:** September 17, 2026
 
 Welcome to **yaabsa**. This Privacy Policy explains how your personal information and data are handled when you use the yaabsa application across all supported platforms (Android, iOS, Windows, macOS, and Linux).
 
@@ -33,10 +33,11 @@ yaabsa acts as a bridge between your device and the Audiobookshelf server you sp
 
 ## 4. Third-Party Services and Image Fetching
 
-While yaabsa connects directly to your server, there are specific server management features that may interact with third-party networks:
+While yaabsa connects directly to your server, there are specific features that may interact with third-party networks:
 
 * **Metadata and Image Matching:** If you use the "Match items" feature to pull metadata or cover art, the app or your connected Audiobookshelf server may fetch images and data from external providers (such as Google Books, the Amazon CDN, or other configurable metadata providers). These are configurable by the Administrator of your Audiobookshelf server, and you can choose yourself which providers to use or not use.
-* **IP Address Exposure:** When your device directly loads these images or fetches this data from third-party networks, those third-party services may log your IP address and process the request according to their own privacy policies.
+* **Optional App Update Check:** On supported direct-distribution builds, you can enable the "Check for app updates" setting. It is disabled by default. When enabled, yaabsa requests the latest release information from GitHub (`api.github.com`) on app start. This request does not include your Audiobookshelf credentials, server URL, or media data.
+* **IP Address Exposure:** When your device directly loads images or contacts third-party services, including GitHub for the optional app update check, those services may log your IP address and process the request according to their own privacy policies.
 
 ## 5. Changes to this Privacy Policy
 

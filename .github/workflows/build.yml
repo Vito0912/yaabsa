@@ -870,7 +870,7 @@ jobs:
 
       - name: Build Android Auto APKs
         run: |
-          flutter build apk --split-per-abi --flavor auto --release
+          flutter build apk --split-per-abi --flavor auto --release --dart-define=YAABSA_DIRECT_DISTRIBUTION=true
         env:
           STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
           STORE_FILE: ${{ secrets.STORE_FILE }}
@@ -946,7 +946,7 @@ jobs:
 
           aaos_bundle_candidates=(build/app/outputs/bundle/automotiveRelease/*.aab)
           if [[ ${#aaos_bundle_candidates[@]} -eq 0 ]]; then
-            echo "Android Automotive app bundle not found."
+            echo "Android Automotive appbundle artifact not found."
             exit 1
           fi
           cp "${aaos_bundle_candidates[0]}" "output/android/aaos/yaabsa_AAOS_${FILE_VERSION}.aab"
@@ -965,7 +965,7 @@ jobs:
 
           wear_bundle_candidates=(build/app/outputs/bundle/wearRelease/*.aab)
           if [[ ${#wear_bundle_candidates[@]} -eq 0 ]]; then
-            echo "Wear OS app bundle not found."
+            echo "Wear OS appbundle artifact not found."
             exit 1
           fi
           cp "${wear_bundle_candidates[0]}" "output/android/wear/yaabsa_wearos_${FILE_VERSION}.aab"
