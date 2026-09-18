@@ -405,6 +405,23 @@ class PlayerSettingsGeneral extends ConsumerWidget {
             ),
           ],
         ),
+        if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS))
+          SettingsNavigationSection(
+            title: 'Audio interruptions',
+            settings: const [
+              SettingDropdown<String>(
+                label: 'During interruptions',
+                description: 'Interrupts may be caused by phone calls, notifications and etc.',
+                values: ['pause', 'duck'],
+                valueLabels: ['Pause', 'Lower volume'],
+                valueDescriptions: [
+                  'Pause playback',
+                  'Lower playback volume',
+                ],
+                settingKey: SettingKeys.audioAnnouncementMode,
+              ),
+            ],
+          ),
       ],
     );
   }

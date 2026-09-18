@@ -36,6 +36,7 @@ dependencies:
     path: ./packages/just_audio/just_audio
   audio_service:
     path: ./packages/audio_service/audio_service
+  audio_session: ^0.2.4
   dio: ^5.11.0
   jose: ^0.3.5+2
   native_dio_adapter: ^1.8.0

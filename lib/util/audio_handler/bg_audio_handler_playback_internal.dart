@@ -262,6 +262,8 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
       );
     }
 
+    await _audioSessionConfigurationFuture;
+    if (_isDisposing) return;
     unawaited(
       _player.play().catchError((error, stackTrace) {
         logger('Failed to start player playback: $error\\n$stackTrace', tag: 'AudioHandler', level: InfoLevel.error);

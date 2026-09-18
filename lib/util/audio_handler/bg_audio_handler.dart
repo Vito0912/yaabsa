@@ -6,6 +6,7 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:audio_service/audio_service.dart';
+import 'package:audio_session/audio_session.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
@@ -61,6 +62,7 @@ part 'bg_audio_handler_runtime.dart';
 part 'bg_audio_handler_resume.dart';
 part 'bg_audio_handler_queue.dart';
 part 'bg_audio_handler_preferences.dart';
+part 'bg_audio_handler_audio_session.dart';
 part 'bg_audio_handler_state.dart';
 part 'bg_audio_handler_playback_internal.dart';
 part 'bg_audio_handler_source.dart';
@@ -120,6 +122,9 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   StreamSubscription<String?>? _equalizerBandGainsSubscription;
   StreamSubscription<int?>? _equalizerSessionSubscription;
   StreamSubscription<String?>? _autoResumeOnBluetoothSubscription;
+  StreamSubscription<String?>? _audioAnnouncementModeSubscription;
+  Future<void> _audioSessionConfigurationFuture = Future<void>.value();
+  bool? _configuredPauseForAnnouncements;
   StreamSubscription<String?>? _autoResumeBluetoothRestrictionSubscription;
   StreamSubscription<String?>? _autoResumeBluetoothDeviceAddressesSubscription;
   AndroidLoudnessEnhancer? _loudnessEnhancer;
@@ -1681,6 +1686,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     }
     _playerControlStateSubject = BehaviorSubject<PlayerState>.seeded(_player.playerState);
     _volumeSubject = BehaviorSubject<double>.seeded(_readLastVolumeSetting());
+    _initializeAudioSession();
 
     if (!kIsWeb && Platform.isAndroid) {
       _volumeBoostAvailabilitySubscription = _loudnessEnhancer!.statusStream.listen((status) {
@@ -2225,6 +2231,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     await _equalizerSessionSubscription?.cancel();
     _equalizerSessionSubscription = null;
     await _autoResumeOnBluetoothSubscription?.cancel();
+    await _audioAnnouncementModeSubscription?.cancel();
+    await _audioSessionConfigurationFuture;
     _autoResumeOnBluetoothSubscription = null;
     await _autoResumeBluetoothRestrictionSubscription?.cancel();
     _autoResumeBluetoothRestrictionSubscription = null;
