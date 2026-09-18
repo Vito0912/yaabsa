@@ -3,6 +3,7 @@ import 'package:yaabsa/components/app/download_status.dart';
 import 'package:yaabsa/components/app/library_switcher.dart';
 import 'package:yaabsa/components/app/tasks/task_notification_widget.dart';
 import 'package:yaabsa/components/app/user_switcher.dart';
+import 'package:yaabsa/components/common/app_update_notifier.dart';
 import 'package:yaabsa/provider/core/multi_select_app_bar_provider.dart';
 import 'package:yaabsa/screens/layout_home/navigation_item_config.dart';
 
@@ -152,6 +153,7 @@ class LayoutHomeMobileAppBar extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
         child: Row(
           children: [
+            const AppUpdateStartupTrigger(),
             const UserSwitcher(),
             const SizedBox(width: 6),
             Expanded(
@@ -274,6 +276,7 @@ class LayoutHomeNonMobileAppBar extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(4, 6, 8, 6),
         child: Row(
           children: [
+            const AppUpdateStartupTrigger(),
             IconButton(
               tooltip: isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar',
               onPressed: onSidebarToggle,
