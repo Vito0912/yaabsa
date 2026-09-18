@@ -215,7 +215,7 @@ final defaultSettings = {
   SettingKeys.smartRewindLongRewindSeconds: 60,
   SettingKeys.libraryGridScale: 1.0,
   SettingKeys.autoResumeOnBluetoothConnection: false,
-  SettingKeys.audioAnnouncementMode: !kIsWeb && defaultTargetPlatform == TargetPlatform.android ? 'duck' : 'pause',
+  SettingKeys.audioAnnouncementMode: 'duck',
   SettingKeys.restrictAutoResumeToSelectedBluetoothDevices: false,
   SettingKeys.autoResumeBluetoothDeviceAddresses: '[]',
 

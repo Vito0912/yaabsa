@@ -414,10 +414,7 @@ class PlayerSettingsGeneral extends ConsumerWidget {
                 description: 'Interrupts may be caused by phone calls, notifications and etc.',
                 values: ['pause', 'duck'],
                 valueLabels: ['Pause', 'Lower volume'],
-                valueDescriptions: [
-                  'Pause playback',
-                  'Lower playback volume',
-                ],
+                valueDescriptions: ['Pause playback', 'Lower playback volume'],
                 settingKey: SettingKeys.audioAnnouncementMode,
               ),
             ],
