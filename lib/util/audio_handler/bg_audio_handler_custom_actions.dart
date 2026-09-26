@@ -71,13 +71,21 @@ extension _BGAudioHandlerCustomActions on BGAudioHandler {
     }
 
     if (name == 'custom.skip_next') {
-      await skipToNext();
+      if (!kIsWeb && Platform.isAndroid) {
+        await skipToNextInApp();
+      } else {
+        await skipToNext();
+      }
       logger('Media notification custom action: skip to next', tag: 'AudioHandler', level: InfoLevel.info);
       return <String, dynamic>{'handled': true, 'action': 'skipToNext'};
     }
 
     if (name == 'custom.skip_previous') {
-      await skipToPrevious();
+      if (!kIsWeb && Platform.isAndroid) {
+        await skipToPreviousInApp();
+      } else {
+        await skipToPrevious();
+      }
       logger('Media notification custom action: skip to previous', tag: 'AudioHandler', level: InfoLevel.info);
       return <String, dynamic>{'handled': true, 'action': 'skipToPrevious'};
     }

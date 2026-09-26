@@ -1213,7 +1213,11 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   @override
   Future<void> fastForward() async {
     if (_currentMediaItem == null) return Future.value();
-    final skipTime = _skipDurationForKey(SettingKeys.fastForwardInterval);
+    return _fastForwardBy(_skipDurationForKey(SettingKeys.fastForwardInterval));
+  }
+
+  Future<void> _fastForwardBy(Duration skipTime) async {
+    if (_currentMediaItem == null) return;
     final fromPosition = position;
     final newPosition = fromPosition + skipTime;
     await _seekInternal(newPosition);
@@ -1228,7 +1232,11 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   @override
   Future<void> rewind() async {
     if (_currentMediaItem == null) return Future.value();
-    final skipTime = _skipDurationForKey(SettingKeys.rewindInterval);
+    return _rewindBy(_skipDurationForKey(SettingKeys.rewindInterval));
+  }
+
+  Future<void> _rewindBy(Duration skipTime) async {
+    if (_currentMediaItem == null) return;
     final fromPosition = position;
     final newPosition = fromPosition - skipTime;
     if (newPosition < Duration.zero) {
@@ -1248,6 +1256,11 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   @override
   Future<void> skipToNext() async {
     if (_currentMediaItem == null) return;
+    // Android Auto and hardware transport controls share these callbacks.
+    // Explicit chapter controls use skipToNextInApp instead.
+    if (!kIsWeb && Platform.isAndroid) {
+      return _fastForwardBy(const Duration(seconds: 10));
+    }
     if (_seekWithDesktopSkipControls) {
       return fastForward();
     }
@@ -1315,6 +1328,9 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   @override
   Future<void> skipToPrevious() async {
     if (_currentMediaItem == null) return;
+    if (!kIsWeb && Platform.isAndroid) {
+      return _rewindBy(const Duration(seconds: 10));
+    }
     if (_seekWithDesktopSkipControls) {
       return rewind();
     }

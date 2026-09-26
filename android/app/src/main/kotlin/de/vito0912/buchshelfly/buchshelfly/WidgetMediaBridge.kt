@@ -33,6 +33,8 @@ object WidgetMediaBridge {
     const val CUSTOM_ACTION_PLAY_LAST = "widget.play_last"
     const val CUSTOM_ACTION_REWIND = "aa.custom.rewind"
     const val CUSTOM_ACTION_FAST_FORWARD = "aa.custom.fast_forward"
+    const val CUSTOM_ACTION_NEXT_CHAPTER = "custom.skip_next"
+    const val CUSTOM_ACTION_PREVIOUS_CHAPTER = "custom.skip_previous"
 
     data class NowPlayingState(
         val title: String,
@@ -99,8 +101,8 @@ object WidgetMediaBridge {
                         }
                     }
 
-                    ACTION_PLAYER_NEXT -> controls.skipToNext()
-                    ACTION_PLAYER_PREVIOUS -> controls.skipToPrevious()
+                    ACTION_PLAYER_NEXT -> controls.sendCustomAction(CUSTOM_ACTION_NEXT_CHAPTER, Bundle.EMPTY)
+                    ACTION_PLAYER_PREVIOUS -> controls.sendCustomAction(CUSTOM_ACTION_PREVIOUS_CHAPTER, Bundle.EMPTY)
                     ACTION_PLAYER_REWIND -> controls.sendCustomAction(CUSTOM_ACTION_REWIND, Bundle.EMPTY)
                     ACTION_PLAYER_FAST_FORWARD -> controls.sendCustomAction(CUSTOM_ACTION_FAST_FORWARD, Bundle.EMPTY)
                     ACTION_PLAYER_STOP -> controls.stop()
@@ -144,11 +146,11 @@ object WidgetMediaBridge {
     }
 
     private fun fallbackAction(context: Context, action: String) {
+        // Chapter controls require a custom action. Standard next/previous media
+        // buttons seek by ten seconds, so they cannot serve as a fallback here.
         val playbackAction = when (action) {
             ACTION_PLAYER_PLAY -> PlaybackStateCompat.ACTION_PLAY
             ACTION_PLAYER_TOGGLE -> PlaybackStateCompat.ACTION_PLAY_PAUSE
-            ACTION_PLAYER_NEXT -> PlaybackStateCompat.ACTION_SKIP_TO_NEXT
-            ACTION_PLAYER_PREVIOUS -> PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS
             ACTION_PLAYER_REWIND -> PlaybackStateCompat.ACTION_REWIND
             ACTION_PLAYER_FAST_FORWARD -> PlaybackStateCompat.ACTION_FAST_FORWARD
             ACTION_PLAYER_STOP -> PlaybackStateCompat.ACTION_STOP
