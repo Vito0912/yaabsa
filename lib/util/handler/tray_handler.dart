@@ -121,10 +121,10 @@ class _TrayManagerState extends ConsumerState<TrayManager> with TrayListener {
         audioHandler.seekAbsolute(audioHandler.position - const Duration(seconds: 10));
         break;
       case TrayManager.nextKey:
-        audioHandler.skipToNext();
+        audioHandler.skipToNextInApp();
         break;
       case TrayManager.previousKey:
-        audioHandler.skipToPrevious();
+        audioHandler.skipToPreviousInApp();
         break;
       case TrayManager.stopKey:
         audioHandler.stop();
