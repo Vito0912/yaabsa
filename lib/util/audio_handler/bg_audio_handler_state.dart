@@ -180,21 +180,43 @@ extension _BGAudioHandlerState on BGAudioHandler {
 
     switch (status.playerState) {
       case CastMediaPlayerState.playing:
+        _castRequestedPlaying = true;
         return PlayerState(true, ProcessingState.ready);
       case CastMediaPlayerState.paused:
+        _castRequestedPlaying = false;
         return PlayerState(false, ProcessingState.ready);
       case CastMediaPlayerState.buffering:
+        if (_castRequestedPlaying == false) {
+          return PlayerState(false, ProcessingState.ready);
+        }
+        if (_castPositionIsAdvancing()) {
+          return PlayerState(true, ProcessingState.ready);
+        }
         return PlayerState(true, ProcessingState.buffering);
       case CastMediaPlayerState.loading:
-        return PlayerState(false, ProcessingState.loading);
+        if (_castRequestedPlaying == false) {
+          return PlayerState(false, ProcessingState.ready);
+        }
+        if (_castPositionIsAdvancing()) {
+          return PlayerState(true, ProcessingState.ready);
+        }
+        return PlayerState(true, ProcessingState.loading);
       case CastMediaPlayerState.idle:
         if (status.idleReason == GoogleCastMediaIdleReason.finished) {
           return PlayerState(false, ProcessingState.completed);
         }
         return PlayerState(false, ProcessingState.idle);
       case CastMediaPlayerState.unknown:
-        return PlayerState(false, ProcessingState.loading);
+        if (_castRequestedPlaying == false) {
+          return PlayerState(false, ProcessingState.ready);
+        }
+        return PlayerState(true, ProcessingState.loading);
     }
+  }
+
+  bool _castPositionIsAdvancing() {
+    final lastAdvance = _lastCastPositionAdvance;
+    return lastAdvance != null && DateTime.now().difference(lastAdvance) < const Duration(seconds: 2);
   }
 
   AudioProcessingState _toAudioProcessingState(ProcessingState state) {
@@ -308,6 +330,9 @@ extension _BGAudioHandlerState on BGAudioHandler {
       final wasCastControlActive = isCastControlActive;
 
       final status = GoogleCastRemoteMediaClient.instance.mediaStatus;
+      if (status?.playerState == CastMediaPlayerState.paused || status?.playerState == CastMediaPlayerState.idle) {
+        _lastCastPositionAdvance = null;
+      }
       if (status != null && status.playerState == CastMediaPlayerState.idle) {
         final reason = status.idleReason;
         if (reason == GoogleCastMediaIdleReason.finished ||
@@ -323,6 +348,28 @@ extension _BGAudioHandlerState on BGAudioHandler {
 
       _refreshPlayerControlState();
       if (wasCastControlActive != isCastControlActive || isCastControlActive) {
+        unawaited(_updatePlaybackState());
+      }
+    });
+
+    _castPositionSubscription = GoogleCastRemoteMediaClient.instance.playerPositionStream.listen((castPosition) {
+      if (!isCastControlActive) {
+        _lastObservedCastPosition = null;
+        _lastCastPositionAdvance = null;
+        return;
+      }
+
+      final previousPosition = _lastObservedCastPosition;
+      _lastObservedCastPosition = castPosition;
+      if (previousPosition != null &&
+          castPosition > previousPosition &&
+          castPosition - previousPosition <= const Duration(seconds: 2)) {
+        _lastCastPositionAdvance = DateTime.now();
+      }
+
+      final previousState = playerControlState;
+      _refreshPlayerControlState();
+      if (!_isSameControlState(previousState, playerControlState)) {
         unawaited(_updatePlaybackState());
       }
     });

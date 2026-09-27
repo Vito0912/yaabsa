@@ -101,6 +101,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   StreamSubscription<int?>? _playerCurrentIndexSubscription;
   StreamSubscription<GoogleCastSession?>? _castSessionSubscription;
   StreamSubscription<GoggleCastMediaStatus?>? _castMediaStatusSubscription;
+  StreamSubscription<Duration>? _castPositionSubscription;
   late final StreamSubscription<String?> _activeUserIdSubscription;
   late final StreamSubscription<String?> _showLastPlayedMiniPlayerSettingSubscription;
   late final StreamSubscription<String?> _mediaNotificationTypeSubscription;
@@ -206,6 +207,9 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   final BehaviorSubject<bool> _castControlActiveSubject = BehaviorSubject<bool>.seeded(false);
   String? _castControlledContentId;
   int _castControlledTrackIndex = 0;
+  bool? _castRequestedPlaying;
+  Duration? _lastObservedCastPosition;
+  DateTime? _lastCastPositionAdvance;
   bool _hasObservedActiveUserId = false;
   String? _observedActiveUserId;
   Future<void>? _lastPlayedMiniPlayerRestoreFuture;
@@ -790,6 +794,9 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   void activateCastControl({required String contentId, required int trackIndex}) {
     _castControlledContentId = contentId;
     _castControlledTrackIndex = trackIndex < 0 ? 0 : trackIndex;
+    _castRequestedPlaying = true;
+    _lastObservedCastPosition = null;
+    _lastCastPositionAdvance = null;
     _refreshPlayerControlState();
     unawaited(_updatePlaybackState());
   }
@@ -802,6 +809,9 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
     _castControlledContentId = null;
     _castControlledTrackIndex = 0;
+    _castRequestedPlaying = null;
+    _lastObservedCastPosition = null;
+    _lastCastPositionAdvance = null;
     _lastKnownCastPosition = Duration.zero;
 
     if (_currentMediaItem != null) {
@@ -903,6 +913,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     if (isCastControlActive) {
       PlayerUtils.enableWakelock(_ref);
       await GoogleCastRemoteMediaClient.instance.play();
+      _castRequestedPlaying = true;
       _refreshPlayerControlState();
       await _updatePlaybackState();
       return;
@@ -1180,6 +1191,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     if (isCastControlActive) {
       _clearSmartRewindPauseMarker();
       await GoogleCastRemoteMediaClient.instance.pause();
+      _castRequestedPlaying = false;
       _refreshPlayerControlState();
       await _updatePlaybackState();
       TrayManager.update();
@@ -2249,6 +2261,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     _castSessionSubscription = null;
     await _castMediaStatusSubscription?.cancel();
     _castMediaStatusSubscription = null;
+    await _castPositionSubscription?.cancel();
+    _castPositionSubscription = null;
     await _syncService.dispose();
     await _player.dispose();
     await mediaItemStream.close();

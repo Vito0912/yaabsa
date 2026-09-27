@@ -112,6 +112,9 @@ extension _BGAudioHandlerRuntime on BGAudioHandler {
   void _clearCastControlTracking() {
     _castControlledContentId = null;
     _castControlledTrackIndex = 0;
+    _castRequestedPlaying = null;
+    _lastObservedCastPosition = null;
+    _lastCastPositionAdvance = null;
   }
 
   void _emitShouldShowPlayer() {
