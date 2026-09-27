@@ -265,6 +265,17 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
   }
 
   Future<void> _reconcileResumeProgressInBackground(InternalMedia resumeItem, Duration startPosition) async {
+    // Ephemeral sessions (e.g. EPUB media-overlay narration) have no real
+    // server session tracking audio `currentTime` for this item — the server
+    // only knows about reading progress (ebookLocation/ebookProgress) for
+    // it, which is unrelated to (and usually far from) the current audio
+    // position. Reconciling against it would spuriously "drift-correct" a
+    // perfectly fine resume back to wherever reading progress happens to be
+    // (typically 0), so skip reconciliation for these entirely.
+    if (isPlayingEphemeralMedia) {
+      return;
+    }
+
     final activeUserId = _ref.read(currentUserProvider).value?.id;
     final isMusic = _ref
         .read(settingsManagerProvider.notifier)

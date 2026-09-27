@@ -14,6 +14,7 @@ class PlayerUtils {
   static final DeviceInfoPlugin _deviceInfoPlugin = DeviceInfoPlugin();
   static const String _playbackWakelockReason = 'playback';
   static const String _uploadWakelockReason = 'upload';
+  static const String _readingWakelockReason = 'reading';
   static final Set<String> _wakelockReasons = <String>{};
 
   static void _enableWakelockReason(String reason) {
@@ -56,6 +57,23 @@ class PlayerUtils {
 
   static void disableUploadWakelock() {
     _disableWakelockReason(_uploadWakelockReason);
+  }
+
+  /// Keeps the screen on while EPUB media-overlay narration is active on the
+  /// reader screen — unlike plain audio/podcast playback (gated behind the
+  /// "keep screen on" setting, since most listening doesn't need the screen
+  /// at all), this mode visually follows along with highlighted text the
+  /// same way a video does, so the screen staying on isn't an optional
+  /// preference here. Scoped to the reader screen's own lifecycle rather
+  /// than the underlying playback session, so leaving the reader for the
+  /// regular full player screen reverts to the normal, setting-gated
+  /// wakelock behavior.
+  static void enableReadingWakelock() {
+    _enableWakelockReason(_readingWakelockReason);
+  }
+
+  static void disableReadingWakelock() {
+    _disableWakelockReason(_readingWakelockReason);
   }
 
   static Future<DeviceInfo> getDeviceInfo() async {

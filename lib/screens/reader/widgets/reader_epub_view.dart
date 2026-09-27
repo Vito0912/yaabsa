@@ -29,6 +29,8 @@ class ReaderEpubView extends StatelessWidget {
     this.onMediaOverlayHighlight,
     this.onMediaOverlayUnhighlight,
     this.onMediaOverlayError,
+    this.onMediaOverlaySeekRequested,
+    this.onMediaOverlayStartTarget,
     this.bookFetcher,
   });
 
@@ -63,6 +65,8 @@ class ReaderEpubView extends StatelessWidget {
   final void Function(Map<String, dynamic> detail)? onMediaOverlayHighlight;
   final void Function(Map<String, dynamic> detail)? onMediaOverlayUnhighlight;
   final void Function(String error)? onMediaOverlayError;
+  final void Function(String textHref)? onMediaOverlaySeekRequested;
+  final void Function((int, String)? target)? onMediaOverlayStartTarget;
 
   Future<void> _goToPreviousPage() async {
     await controller.prev();
@@ -98,6 +102,8 @@ class ReaderEpubView extends StatelessWidget {
         onMediaOverlayHighlight: onMediaOverlayHighlight,
         onMediaOverlayUnhighlight: onMediaOverlayUnhighlight,
         onMediaOverlayError: onMediaOverlayError,
+        onMediaOverlaySeekRequested: onMediaOverlaySeekRequested,
+        onMediaOverlayStartTarget: onMediaOverlayStartTarget,
         bookFetcher: bookFetcher,
       ),
       onPreviousPage: _goToPreviousPage,

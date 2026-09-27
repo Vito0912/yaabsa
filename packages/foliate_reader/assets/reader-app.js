@@ -5,7 +5,10 @@ const view = document.getElementById('viewer');
 const annotationsMap = new Map();
 let currentTtsHighlight = null;
 let currentMediaOverlayHighlight = null;
-let clearMediaOverlayHighlight = null;
+let clearActiveMediaOverlayHighlight = null;
+let applyMediaOverlayHighlight = null;
+let getCFIForMediaOverlayTarget = null;
+let mediaOverlayUiActive = false;
 let currentStyles = null;
 let currentTtsRanges = [];
 
@@ -227,43 +230,14 @@ window.FoliateReaderAPI = {
             }
             await view.init({ lastLocation });
             if (view.mediaOverlay) {
-                let moState = 'stopped';
-                const updateTrackedState = (state) => {
-                    if (moState !== state) {
-                        moState = state;
-                        view.mediaOverlay.state = state;
-                        window.flutter_inappwebview.callHandler('onMediaOverlayStateChanged', {
-                            state: state
-                        });
-                    }
-                };
-
-                view.mediaOverlay.state = 'stopped';
+                // Playback itself is driven from Dart via BGAudioHandler, not
+                // foliate-js's own MediaOverlay engine (see
+                // EpubMediaOverlayPlaybackController) — this block only keeps
+                // the SMIL sync-table parsing (used for tap-to-seek and to
+                // mirror Dart's sync table) and the highlight-application
+                // helpers, which Dart drives explicitly via
+                // setMediaOverlayHighlight/clearMediaOverlayHighlight.
                 view.mediaOverlay.entriesCache = new Map();
-
-                const originalStart = view.mediaOverlay.start;
-                view.mediaOverlay.start = async function(sectionIndex, filter) {
-                    updateTrackedState('playing');
-                    return originalStart.call(this, sectionIndex, filter);
-                };
-
-                const originalPause = view.mediaOverlay.pause;
-                view.mediaOverlay.pause = function() {
-                    updateTrackedState('paused');
-                    return originalPause.call(this);
-                };
-
-                const originalResume = view.mediaOverlay.resume;
-                view.mediaOverlay.resume = function() {
-                    updateTrackedState('playing');
-                    return originalResume.call(this);
-                };
-
-                const originalStop = view.mediaOverlay.stop;
-                view.mediaOverlay.stop = function() {
-                    updateTrackedState('stopped');
-                    return originalStop.call(this);
-                };
 
                 const originalLoadXML = view.mediaOverlay.loadXML;
                 view.mediaOverlay.loadXML = async function(href) {
@@ -298,44 +272,7 @@ window.FoliateReaderAPI = {
                     return doc;
                 };
 
-                let activeAudioInstances = new Set();
-                const OriginalAudio = globalThis.Audio;
-                if (!OriginalAudio._original) {
-                    globalThis.Audio = class extends OriginalAudio {
-                        constructor(src) {
-                            super(src);
-                            const self = this;
-                            activeAudioInstances.add(this);
-                            this.addEventListener('playing', () => {
-                                if (moState !== 'playing') {
-                                    updateTrackedState('playing');
-                                }
-                            });
-                            this.addEventListener('pause', () => {
-                                setTimeout(() => {
-                                    if (self.paused && !self.ended && moState === 'playing') {
-                                        updateTrackedState('paused');
-                                    }
-                                }, 50);
-                            });
-                            this.addEventListener('ended', () => {
-                                activeAudioInstances.delete(self);
-                                setTimeout(() => {
-                                    if (activeAudioInstances.size === 0) {
-                                        updateTrackedState('stopped');
-                                    }
-                                }, 200);
-                            });
-                            this.addEventListener('error', () => {
-                                activeAudioInstances.delete(self);
-                                updateTrackedState('stopped');
-                            });
-                        }
-                    };
-                    globalThis.Audio._original = OriginalAudio;
-                }
-
-                clearMediaOverlayHighlight = () => {
+                clearActiveMediaOverlayHighlight = () => {
                     if (currentMediaOverlayHighlight) {
                         const { item, key } = currentMediaOverlayHighlight;
                         try {
@@ -347,9 +284,9 @@ window.FoliateReaderAPI = {
                     }
                 };
 
-                view.mediaOverlay.addEventListener('highlight', e => {
-                    clearMediaOverlayHighlight();
-                    const resolved = view.resolveNavigation(e.detail.text);
+                applyMediaOverlayHighlight = (text) => {
+                    clearActiveMediaOverlayHighlight();
+                    const resolved = view.resolveNavigation(text);
                     if (resolved) {
                         const contents = view.renderer.getContents();
                         const item = contents.find(x => x.index === resolved.index);
@@ -361,23 +298,45 @@ window.FoliateReaderAPI = {
                                 const key = 'yaabsa-media-overlay-highlight';
                                 item.overlayer.add(key, range, Overlayer.highlight, { color: '#FFEB3B' });
                                 currentMediaOverlayHighlight = { item, key };
+                                return true;
                             }
                         }
                     }
-                    window.flutter_inappwebview.callHandler('onMediaOverlayHighlight', e.detail);
-                });
-                view.mediaOverlay.addEventListener('unhighlight', e => {
-                    clearMediaOverlayHighlight();
-                    window.flutter_inappwebview.callHandler('onMediaOverlayUnhighlight', e.detail);
-                });
-                view.mediaOverlay.addEventListener('statechange', e => {
-                    window.flutter_inappwebview.callHandler('onMediaOverlayStateChanged', {
-                        state: e.detail.state
-                    });
-                });
-                view.mediaOverlay.addEventListener('error', e => {
-                    window.flutter_inappwebview.callHandler('onMediaOverlayError', e.detail ? e.detail.message : '');
-                });
+                    return false;
+                };
+
+                // A point CFI at the very start of the narrated sentence at
+                // `text`, for progress sync. The regular 'relocate' event's
+                // own CFI instead spans the *entire visible page* (its range
+                // runs from the first to the last visible character) -
+                // accurate enough for a plain reader resuming somewhere on
+                // that page, but for narration we want the position to match
+                // where the sentence *starts*, not wherever another CFI
+                // consumer happens to interpret a range as landing. A range
+                // covering the whole sentence element has the same ambiguity
+                // on a smaller scale - if the element happens to straddle a
+                // page boundary (a long paragraph, or a `<p>` shared between
+                // two `<par>`s), its *end* can already be on the next page,
+                // and a consumer that resumes from a range's end lands a
+                // page later than where narration actually was. Collapsing
+                // to the start removes that ambiguity entirely.
+                getCFIForMediaOverlayTarget = (text) => {
+                    try {
+                        const resolved = view.resolveNavigation(text);
+                        if (!resolved) return null;
+                        const contents = view.renderer.getContents();
+                        const item = contents.find(x => x.index === resolved.index);
+                        if (!item) return null;
+                        const el = resolved.anchor(item.doc);
+                        if (!el) return null;
+                        const range = item.doc.createRange();
+                        range.selectNodeContents(el);
+                        range.collapse(true);
+                        return view.getCFI(resolved.index, range);
+                    } catch (e) {
+                        return null;
+                    }
+                };
             }
             window.flutter_inappwebview.callHandler('onBookLoaded', {
                 metadata: view.book.metadata || {},
@@ -399,14 +358,14 @@ window.FoliateReaderAPI = {
             currentStyles = null;
             currentTtsHighlight = null;
             currentTtsRanges = [];
-            if (clearMediaOverlayHighlight) {
-                clearMediaOverlayHighlight();
+            if (clearActiveMediaOverlayHighlight) {
+                clearActiveMediaOverlayHighlight();
             }
-            clearMediaOverlayHighlight = null;
+            clearActiveMediaOverlayHighlight = null;
+            applyMediaOverlayHighlight = null;
+            getCFIForMediaOverlayTarget = null;
             currentMediaOverlayHighlight = null;
-            if (globalThis.Audio._original) {
-                globalThis.Audio = globalThis.Audio._original;
-            }
+            mediaOverlayUiActive = false;
         } catch (e) {}
     },
     async goTo(target) {
@@ -628,72 +587,88 @@ window.FoliateReaderAPI = {
             currentTtsHighlight = null;
         }
     },
-    async startMediaOverlay() {
-        if (view.mediaOverlay) {
-            const contents = view.renderer.getContents();
-            if (contents && contents.length > 0 && view.lastLocation && view.lastLocation.range) {
-                const currentContent = contents[0];
-                const doc = currentContent.doc;
-                const range = view.lastLocation.range;
-                await ensureEntriesForSection(currentContent.index);
-                if (view.mediaOverlay.entries) {
-                    let targetItem = null;
-                    for (const entry of view.mediaOverlay.entries) {
-                        for (const item of entry.items) {
-                            const parts = item.text.split('#');
-                            if (parts.length > 1) {
-                                const id = parts[1];
-                                const el = doc.getElementById(id);
-                                if (el) {
-                                    try {
-                                        const cmp = range.comparePoint(el, 0);
-                                        if (cmp >= 0) {
-                                            targetItem = item;
-                                            break;
+    // Playback control (start/pause/resume/stop) lives entirely on the Dart
+    // side (EpubMediaOverlayPlaybackController -> BGAudioHandler). This API
+    // only applies/clears the on-screen highlight and toggles whether taps
+    // are intercepted for tap-to-seek — both driven explicitly from Dart.
+    setMediaOverlayHighlight(text) {
+        if (applyMediaOverlayHighlight) {
+            applyMediaOverlayHighlight(text);
+        }
+    },
+    getCFIForMediaOverlayTarget(text) {
+        return getCFIForMediaOverlayTarget ? getCFIForMediaOverlayTarget(text) : null;
+    },
+    clearMediaOverlayHighlight() {
+        if (clearActiveMediaOverlayHighlight) {
+            clearActiveMediaOverlayHighlight();
+        }
+    },
+    setMediaOverlayUiActive(active) {
+        mediaOverlayUiActive = !!active;
+        if (!mediaOverlayUiActive && clearActiveMediaOverlayHighlight) {
+            clearActiveMediaOverlayHighlight();
+        }
+    },
+    // Finds the first SMIL sync-point at or after the reader's current
+    // visible position, so narration can start (or be redirected to) close
+    // to what's on screen instead of always restarting at the top of the
+    // current section. Fire-and-forget: reports the result (or null) via
+    // the 'onMediaOverlayStartTarget' handler instead of a return value,
+    // since `evaluateJavascript` does not await returned Promises — an
+    // async function's return value here would never reach Dart.
+    requestMediaOverlayStartTarget() {
+        (async () => {
+            let result = null;
+            try {
+                if (view.mediaOverlay) {
+                    const contents = view.renderer.getContents();
+                    if (contents && contents.length > 0 && view.lastLocation && view.lastLocation.range) {
+                        const currentContent = contents[0];
+                        const doc = currentContent.doc;
+                        const range = view.lastLocation.range;
+                        await ensureEntriesForSection(currentContent.index);
+                        if (view.mediaOverlay.entries) {
+                            outer:
+                            for (const entry of view.mediaOverlay.entries) {
+                                for (const item of entry.items) {
+                                    const parts = item.text.split('#');
+                                    if (parts.length > 1) {
+                                        const id = parts[1];
+                                        const el = doc.getElementById(id);
+                                        if (el) {
+                                            try {
+                                                const cmp = range.comparePoint(el, 0);
+                                                if (cmp >= 0) {
+                                                    result = { sectionIndex: currentContent.index, text: item.text };
+                                                    break outer;
+                                                }
+                                            } catch (err) {}
                                         }
-                                    } catch (err) {}
+                                    }
                                 }
                             }
                         }
-                        if (targetItem) break;
-                    }
-                    if (targetItem) {
-                        view.mediaOverlay.start(currentContent.index, x => x.text === targetItem.text);
-                        return;
                     }
                 }
+            } catch (e) {
+                console.error(e);
             }
-            view.startMediaOverlay();
-        }
-    },
-    pauseMediaOverlay() {
-        if (view.mediaOverlay) {
-            view.mediaOverlay.pause();
-        }
-    },
-    resumeMediaOverlay() {
-        if (view.mediaOverlay) {
-            view.mediaOverlay.resume();
-        }
-    },
-    stopMediaOverlay() {
-        if (view.mediaOverlay) {
-            view.mediaOverlay.stop();
-        }
-    },
-    highlightMediaOverlay(cfi, color) {
-    },
-    clearMediaOverlayHighlight() {
+            window.flutter_inappwebview.callHandler('onMediaOverlayStartTarget', result);
+        })();
     }
 };
 
 view.addEventListener('relocate', e => {
+    const contents = view.renderer.getContents();
+    const sectionIndex = contents && contents.length > 0 ? contents[0].index : null;
     window.flutter_inappwebview.callHandler('onRelocate', {
         cfi: e.detail.cfi,
         fraction: e.detail.fraction,
         location: e.detail.location,
         tocItem: e.detail.tocItem,
-        pageItem: e.detail.pageItem
+        pageItem: e.detail.pageItem,
+        sectionIndex: sectionIndex
     });
 });
 
@@ -762,7 +737,7 @@ view.addEventListener('load', e => {
 
         const selection = doc.defaultView.getSelection();
         if ((!selection || selection.isCollapsed) && !isInteractiveTarget(ev.target)) {
-            if (view.mediaOverlay && (view.mediaOverlay.state === 'playing' || view.mediaOverlay.state === 'paused')) {
+            if (view.mediaOverlay && mediaOverlayUiActive) {
                 await ensureEntriesForSection(index);
                 if (view.mediaOverlay.entries) {
                     let el = ev.target;
@@ -774,10 +749,7 @@ view.addEventListener('load', e => {
                                 for (let j = 0; j < entry.items.length; j++) {
                                     const item = entry.items[j];
                                     if (item.text.endsWith('#' + id)) {
-                                        if (view.mediaOverlay.state === 'paused') {
-                                            view.mediaOverlay.resume();
-                                        }
-                                        view.mediaOverlay.start(index, x => x.text === item.text);
+                                        window.flutter_inappwebview.callHandler('onMediaOverlaySeekRequested', item.text);
                                         ev.preventDefault();
                                         ev.stopPropagation();
                                         return;

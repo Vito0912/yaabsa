@@ -7,7 +7,13 @@ import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:just_audio/just_audio.dart'
-    show AudioSource, ProgressiveAudioSource, ProgressiveAudioSourceOptions, AndroidExtractorOptions;
+    show
+        AudioSource,
+        UriAudioSource,
+        ProgressiveAudioSource,
+        ProgressiveAudioSourceOptions,
+        AndroidExtractorOptions,
+        ClippingAudioSource;
 
 part 'internal_media.freezed.dart';
 part 'internal_media.g.dart';
@@ -103,12 +109,23 @@ abstract class InternalMedia with _$InternalMedia {
         lowerFragment.endsWith('.mpd');
   }
 
-  AudioSource _buildNetworkAudioSource(Uri uri, {Map<String, String>? headers}) {
+  UriAudioSource _buildNetworkAudioSource(Uri uri, {Map<String, String>? headers}) {
     if (_isAdaptiveStream(uri)) {
       return AudioSource.uri(uri, headers: headers);
     }
 
     return ProgressiveAudioSource(uri, headers: headers, options: _progressiveSourceOptions);
+  }
+
+  AudioSource _applyClip(UriAudioSource source, InternalTrack track) {
+    final start = track.clipStart;
+    final end = track.clipEnd;
+    if (start == null && end == null) return source;
+    return ClippingAudioSource(
+      child: source,
+      start: start == null ? null : Duration(microseconds: (start * 1e6).round()),
+      end: end == null ? null : Duration(microseconds: (end * 1e6).round()),
+    );
   }
 
   List<AudioSource> toAudioSources({Map<String, String>? headers}) {
@@ -133,23 +150,23 @@ abstract class InternalMedia with _$InternalMedia {
           final uri = Uri.parse(url);
           final shouldAttachHeaders = uri.scheme == 'http' || uri.scheme == 'https';
           if (shouldAttachHeaders) {
-            return _buildNetworkAudioSource(uri, headers: effectiveHeaders);
+            return _applyClip(_buildNetworkAudioSource(uri, headers: effectiveHeaders), track);
           }
-          return AudioSource.uri(uri);
+          return _applyClip(AudioSource.uri(uri), track);
         }
 
         if (isFileUri) {
           final fileUri = Uri.parse(url);
-          return AudioSource.file(fileUri.toFilePath(windows: !kIsWeb && Platform.isWindows));
+          return _applyClip(AudioSource.file(fileUri.toFilePath(windows: !kIsWeb && Platform.isWindows)), track);
         }
 
-        return AudioSource.file(url);
+        return _applyClip(AudioSource.file(url), track);
       } else {
         final uri = Uri.parse(url);
         if (uri.scheme == 'http' || uri.scheme == 'https') {
-          return _buildNetworkAudioSource(uri, headers: effectiveHeaders);
+          return _applyClip(_buildNetworkAudioSource(uri, headers: effectiveHeaders), track);
         }
-        return AudioSource.uri(uri, headers: effectiveHeaders);
+        return _applyClip(AudioSource.uri(uri, headers: effectiveHeaders), track);
       }
     }).toList();
   }
@@ -284,6 +301,14 @@ abstract class InternalTrack with _$InternalTrack {
     @JsonKey(name: "mimeType") required String mimeType,
     @JsonKey(name: "start") double? start,
     @JsonKey(name: "end") double? end,
+    // When set, only [clipStart, clipEnd) of the underlying audio file at
+    // [url] is played as this track (via ClippingAudioSource), instead of
+    // the whole file. Used for EPUB media-overlay narration, where several
+    // tracks can share one physical audio file at different offset ranges
+    // (e.g. one recording spanning a chapter boundary) — null for every
+    // other kind of media, which always plays a whole file per track.
+    @JsonKey(name: "clipStart") double? clipStart,
+    @JsonKey(name: "clipEnd") double? clipEnd,
   }) = _InternalTrack;
 
   factory InternalTrack.fromJson(Map<String, dynamic> json) => _$InternalTrackFromJson(json);

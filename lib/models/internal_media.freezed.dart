@@ -310,7 +310,7 @@ as bool,
 /// @nodoc
 mixin _$InternalTrack {
 
-@JsonKey(name: "index") int get index;@JsonKey(name: "duration") double get duration;@JsonKey(name: "url") String? get url;@JsonKey(name: "mimeType") String get mimeType;@JsonKey(name: "start") double? get start;@JsonKey(name: "end") double? get end;
+@JsonKey(name: "index") int get index;@JsonKey(name: "duration") double get duration;@JsonKey(name: "url") String? get url;@JsonKey(name: "mimeType") String get mimeType;@JsonKey(name: "start") double? get start;@JsonKey(name: "end") double? get end;@JsonKey(name: "clipStart") double? get clipStart;@JsonKey(name: "clipEnd") double? get clipEnd;
 /// Create a copy of InternalTrack
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -323,16 +323,16 @@ $InternalTrackCopyWith<InternalTrack> get copyWith => _$InternalTrackCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is InternalTrack&&(identical(other.index, index) || other.index == index)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.url, url) || other.url == url)&&(identical(other.mimeType, mimeType) || other.mimeType == mimeType)&&(identical(other.start, start) || other.start == start)&&(identical(other.end, end) || other.end == end));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is InternalTrack&&(identical(other.index, index) || other.index == index)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.url, url) || other.url == url)&&(identical(other.mimeType, mimeType) || other.mimeType == mimeType)&&(identical(other.start, start) || other.start == start)&&(identical(other.end, end) || other.end == end)&&(identical(other.clipStart, clipStart) || other.clipStart == clipStart)&&(identical(other.clipEnd, clipEnd) || other.clipEnd == clipEnd));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,index,duration,url,mimeType,start,end);
+int get hashCode => Object.hash(runtimeType,index,duration,url,mimeType,start,end,clipStart,clipEnd);
 
 @override
 String toString() {
-  return 'InternalTrack(index: $index, duration: $duration, url: $url, mimeType: $mimeType, start: $start, end: $end)';
+  return 'InternalTrack(index: $index, duration: $duration, url: $url, mimeType: $mimeType, start: $start, end: $end, clipStart: $clipStart, clipEnd: $clipEnd)';
 }
 
 
@@ -343,7 +343,7 @@ abstract mixin class $InternalTrackCopyWith<$Res>  {
   factory $InternalTrackCopyWith(InternalTrack value, $Res Function(InternalTrack) _then) = _$InternalTrackCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: "index") int index,@JsonKey(name: "duration") double duration,@JsonKey(name: "url") String? url,@JsonKey(name: "mimeType") String mimeType,@JsonKey(name: "start") double? start,@JsonKey(name: "end") double? end
+@JsonKey(name: "index") int index,@JsonKey(name: "duration") double duration,@JsonKey(name: "url") String? url,@JsonKey(name: "mimeType") String mimeType,@JsonKey(name: "start") double? start,@JsonKey(name: "end") double? end,@JsonKey(name: "clipStart") double? clipStart,@JsonKey(name: "clipEnd") double? clipEnd
 });
 
 
@@ -360,7 +360,7 @@ class _$InternalTrackCopyWithImpl<$Res>
 
 /// Create a copy of InternalTrack
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? index = null,Object? duration = null,Object? url = freezed,Object? mimeType = null,Object? start = freezed,Object? end = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? index = null,Object? duration = null,Object? url = freezed,Object? mimeType = null,Object? start = freezed,Object? end = freezed,Object? clipStart = freezed,Object? clipEnd = freezed,}) {
   return _then(InternalTrack(
 index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
 as int,duration: null == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
@@ -368,6 +368,8 @@ as double,url: freezed == url ? _self.url : url // ignore: cast_nullable_to_non_
 as String?,mimeType: null == mimeType ? _self.mimeType : mimeType // ignore: cast_nullable_to_non_nullable
 as String,start: freezed == start ? _self.start : start // ignore: cast_nullable_to_non_nullable
 as double?,end: freezed == end ? _self.end : end // ignore: cast_nullable_to_non_nullable
+as double?,clipStart: freezed == clipStart ? _self.clipStart : clipStart // ignore: cast_nullable_to_non_nullable
+as double?,clipEnd: freezed == clipEnd ? _self.clipEnd : clipEnd // ignore: cast_nullable_to_non_nullable
 as double?,
   ));
 }
@@ -453,10 +455,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "index")  int index, @JsonKey(name: "duration")  double duration, @JsonKey(name: "url")  String? url, @JsonKey(name: "mimeType")  String mimeType, @JsonKey(name: "start")  double? start, @JsonKey(name: "end")  double? end)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "index")  int index, @JsonKey(name: "duration")  double duration, @JsonKey(name: "url")  String? url, @JsonKey(name: "mimeType")  String mimeType, @JsonKey(name: "start")  double? start, @JsonKey(name: "end")  double? end, @JsonKey(name: "clipStart")  double? clipStart, @JsonKey(name: "clipEnd")  double? clipEnd)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _InternalTrack() when $default != null:
-return $default(_that.index,_that.duration,_that.url,_that.mimeType,_that.start,_that.end);case _:
+return $default(_that.index,_that.duration,_that.url,_that.mimeType,_that.start,_that.end,_that.clipStart,_that.clipEnd);case _:
   return orElse();
 
 }
@@ -474,10 +476,10 @@ return $default(_that.index,_that.duration,_that.url,_that.mimeType,_that.start,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "index")  int index, @JsonKey(name: "duration")  double duration, @JsonKey(name: "url")  String? url, @JsonKey(name: "mimeType")  String mimeType, @JsonKey(name: "start")  double? start, @JsonKey(name: "end")  double? end)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "index")  int index, @JsonKey(name: "duration")  double duration, @JsonKey(name: "url")  String? url, @JsonKey(name: "mimeType")  String mimeType, @JsonKey(name: "start")  double? start, @JsonKey(name: "end")  double? end, @JsonKey(name: "clipStart")  double? clipStart, @JsonKey(name: "clipEnd")  double? clipEnd)  $default,) {final _that = this;
 switch (_that) {
 case _InternalTrack():
-return $default(_that.index,_that.duration,_that.url,_that.mimeType,_that.start,_that.end);case _:
+return $default(_that.index,_that.duration,_that.url,_that.mimeType,_that.start,_that.end,_that.clipStart,_that.clipEnd);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -494,10 +496,10 @@ return $default(_that.index,_that.duration,_that.url,_that.mimeType,_that.start,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "index")  int index, @JsonKey(name: "duration")  double duration, @JsonKey(name: "url")  String? url, @JsonKey(name: "mimeType")  String mimeType, @JsonKey(name: "start")  double? start, @JsonKey(name: "end")  double? end)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "index")  int index, @JsonKey(name: "duration")  double duration, @JsonKey(name: "url")  String? url, @JsonKey(name: "mimeType")  String mimeType, @JsonKey(name: "start")  double? start, @JsonKey(name: "end")  double? end, @JsonKey(name: "clipStart")  double? clipStart, @JsonKey(name: "clipEnd")  double? clipEnd)?  $default,) {final _that = this;
 switch (_that) {
 case _InternalTrack() when $default != null:
-return $default(_that.index,_that.duration,_that.url,_that.mimeType,_that.start,_that.end);case _:
+return $default(_that.index,_that.duration,_that.url,_that.mimeType,_that.start,_that.end,_that.clipStart,_that.clipEnd);case _:
   return null;
 
 }
@@ -509,7 +511,7 @@ return $default(_that.index,_that.duration,_that.url,_that.mimeType,_that.start,
 @JsonSerializable()
 
 class _InternalTrack implements InternalTrack {
-  const _InternalTrack({@JsonKey(name: "index") required this.index, @JsonKey(name: "duration") required this.duration, @JsonKey(name: "url") required this.url, @JsonKey(name: "mimeType") required this.mimeType, @JsonKey(name: "start") this.start, @JsonKey(name: "end") this.end});
+  const _InternalTrack({@JsonKey(name: "index") required this.index, @JsonKey(name: "duration") required this.duration, @JsonKey(name: "url") required this.url, @JsonKey(name: "mimeType") required this.mimeType, @JsonKey(name: "start") this.start, @JsonKey(name: "end") this.end, @JsonKey(name: "clipStart") this.clipStart, @JsonKey(name: "clipEnd") this.clipEnd});
   factory _InternalTrack.fromJson(Map<String, dynamic> json) => _$InternalTrackFromJson(json);
 
 @override@JsonKey(name: "index") final  int index;
@@ -518,6 +520,8 @@ class _InternalTrack implements InternalTrack {
 @override@JsonKey(name: "mimeType") final  String mimeType;
 @override@JsonKey(name: "start") final  double? start;
 @override@JsonKey(name: "end") final  double? end;
+@override@JsonKey(name: "clipStart") final  double? clipStart;
+@override@JsonKey(name: "clipEnd") final  double? clipEnd;
 
 /// Create a copy of InternalTrack
 /// with the given fields replaced by the non-null parameter values.
@@ -532,16 +536,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _InternalTrack&&(identical(other.index, index) || other.index == index)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.url, url) || other.url == url)&&(identical(other.mimeType, mimeType) || other.mimeType == mimeType)&&(identical(other.start, start) || other.start == start)&&(identical(other.end, end) || other.end == end));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _InternalTrack&&(identical(other.index, index) || other.index == index)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.url, url) || other.url == url)&&(identical(other.mimeType, mimeType) || other.mimeType == mimeType)&&(identical(other.start, start) || other.start == start)&&(identical(other.end, end) || other.end == end)&&(identical(other.clipStart, clipStart) || other.clipStart == clipStart)&&(identical(other.clipEnd, clipEnd) || other.clipEnd == clipEnd));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,index,duration,url,mimeType,start,end);
+int get hashCode => Object.hash(runtimeType,index,duration,url,mimeType,start,end,clipStart,clipEnd);
 
 @override
 String toString() {
-  return 'InternalTrack(index: $index, duration: $duration, url: $url, mimeType: $mimeType, start: $start, end: $end)';
+  return 'InternalTrack(index: $index, duration: $duration, url: $url, mimeType: $mimeType, start: $start, end: $end, clipStart: $clipStart, clipEnd: $clipEnd)';
 }
 
 
@@ -552,7 +556,7 @@ abstract mixin class _$InternalTrackCopyWith<$Res> implements $InternalTrackCopy
   factory _$InternalTrackCopyWith(_InternalTrack value, $Res Function(_InternalTrack) _then) = __$InternalTrackCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: "index") int index,@JsonKey(name: "duration") double duration,@JsonKey(name: "url") String? url,@JsonKey(name: "mimeType") String mimeType,@JsonKey(name: "start") double? start,@JsonKey(name: "end") double? end
+@JsonKey(name: "index") int index,@JsonKey(name: "duration") double duration,@JsonKey(name: "url") String? url,@JsonKey(name: "mimeType") String mimeType,@JsonKey(name: "start") double? start,@JsonKey(name: "end") double? end,@JsonKey(name: "clipStart") double? clipStart,@JsonKey(name: "clipEnd") double? clipEnd
 });
 
 
@@ -569,7 +573,7 @@ class __$InternalTrackCopyWithImpl<$Res>
 
 /// Create a copy of InternalTrack
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? index = null,Object? duration = null,Object? url = freezed,Object? mimeType = null,Object? start = freezed,Object? end = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? index = null,Object? duration = null,Object? url = freezed,Object? mimeType = null,Object? start = freezed,Object? end = freezed,Object? clipStart = freezed,Object? clipEnd = freezed,}) {
   return _then(_InternalTrack(
 index: null == index ? _self.index : index // ignore: cast_nullable_to_non_nullable
 as int,duration: null == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
@@ -577,6 +581,8 @@ as double,url: freezed == url ? _self.url : url // ignore: cast_nullable_to_non_
 as String?,mimeType: null == mimeType ? _self.mimeType : mimeType // ignore: cast_nullable_to_non_nullable
 as String,start: freezed == start ? _self.start : start // ignore: cast_nullable_to_non_nullable
 as double?,end: freezed == end ? _self.end : end // ignore: cast_nullable_to_non_nullable
+as double?,clipStart: freezed == clipStart ? _self.clipStart : clipStart // ignore: cast_nullable_to_non_nullable
+as double?,clipEnd: freezed == clipEnd ? _self.clipEnd : clipEnd // ignore: cast_nullable_to_non_nullable
 as double?,
   ));
 }

@@ -64,6 +64,7 @@ part 'bg_audio_handler_preferences.dart';
 part 'bg_audio_handler_state.dart';
 part 'bg_audio_handler_playback_internal.dart';
 part 'bg_audio_handler_source.dart';
+part 'bg_audio_handler_ephemeral.dart';
 part 'bg_audio_handler_custom_actions.dart';
 part 'bg_audio_handler_auto_queue.dart';
 part 'auto/bg_audio_handler_android_auto.dart';
@@ -955,7 +956,17 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         _maybePrefetchAutoQueue();
       }
 
-      if (_player.playerState.processingState == ProcessingState.completed || forceRestart) {
+      // Only treat `completed` as "the whole item finished, restart from the
+      // top" when we're actually on its last track. `completed` is meant to
+      // only fire once the entire multi-track playlist has played through,
+      // but ClippingAudioSource-based tracks (used for EPUB media-overlay
+      // narration, where several tracks can share one physical audio file
+      // at different offset ranges) have been observed reporting it
+      // prematurely after a pause/resume mid-track — without this guard,
+      // that incorrectly resets playback all the way back to track 0.
+      final tracks = _currentMediaItem!.tracks;
+      final isAtLastTrack = tracks.isEmpty || _currentTrackIndex >= tracks.length - 1;
+      if ((_player.playerState.processingState == ProcessingState.completed && isAtLastTrack) || forceRestart) {
         await seek(Duration.zero);
       }
 
@@ -1402,8 +1413,20 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     final relativeTrackPosition = boundedPosition - _currentMediaItem!.startDurationForTrack(newTrackIndex);
 
     if (newTrackIndex != _currentTrackIndex) {
+      // _currentTrackIndex must not be mutated until the seek actually lands:
+      // positionStream/subtitlePositionStream compute absolute position as
+      // offsetForTrack(_currentTrackIndex) + player.position, sampled on a
+      // periodic timer independent of this await. Bumping the field first
+      // opens a window where that combination pairs the *new* track's offset
+      // with the *old* track's still-stale native position, briefly emitting
+      // a bogus absolute position that belongs to neither track - visible as
+      // a seek bar/clock value that matches no seek target ever requested,
+      // and (via subtitlePositionStream) can drive a reader highlight to the
+      // wrong sentence. Keeping the field on the old index until the native
+      // seek resolves means any stream sample taken mid-transition is still
+      // internally consistent (old index + old position), never mismatched.
+      await _player.seek(relativeTrackPosition, index: newTrackIndex);
       _currentTrackIndex = newTrackIndex;
-      await _player.seek(relativeTrackPosition, index: _currentTrackIndex);
       if (!kIsWeb && (Platform.isWindows || Platform.isLinux)) {
         // Bugfix for Windows as it doesn't seek correctly if the index changed
         _player.playerStateStream.firstWhere((state) => state.processingState == ProcessingState.ready).then((_) async {

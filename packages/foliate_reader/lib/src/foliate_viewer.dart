@@ -99,20 +99,50 @@ class FoliateViewerController {
     await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.clearTtsHighlight();');
   }
 
-  Future<void> startMediaOverlay() async {
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.startMediaOverlay();');
+  /// Applies the on-screen highlight for the SMIL text target [textHref]
+  /// (e.g. `chapter1.xhtml#sent3`) — the same format produced by
+  /// `EpubMediaOverlayEngine`'s sync table. Playback itself is driven from
+  /// Dart via `BGAudioHandler`; this only updates the visual highlight.
+  Future<void> setMediaOverlayHighlight(String textHref) async {
+    await _webViewController?.evaluateJavascript(
+      source: 'window.FoliateReaderAPI.setMediaOverlayHighlight(${jsonEncode(textHref)});',
+    );
   }
 
-  Future<void> pauseMediaOverlay() async {
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.pauseMediaOverlay();');
+  Future<void> clearMediaOverlayHighlight() async {
+    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.clearMediaOverlayHighlight();');
   }
 
-  Future<void> resumeMediaOverlay() async {
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.resumeMediaOverlay();');
+  /// A CFI covering exactly the narrated sentence at [textHref] (the same
+  /// element the highlight itself uses), for progress-sync purposes. Unlike
+  /// the CFI a plain `relocate` event reports — which spans the entire
+  /// visible page — this is precise enough that another CFI consumer (e.g.
+  /// a different Audiobookshelf client) resolving it lands on the exact
+  /// sentence instead of wherever it happens to interpret a whole-page range.
+  Future<String?> getCFIForMediaOverlayTarget(String textHref) async {
+    final res = await _webViewController?.evaluateJavascript(
+      source: 'window.FoliateReaderAPI.getCFIForMediaOverlayTarget(${jsonEncode(textHref)});',
+    );
+    return res as String?;
   }
 
-  Future<void> stopMediaOverlay() async {
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.stopMediaOverlay();');
+  /// Tells the WebView whether tapping a paragraph while narration is active
+  /// should be intercepted for tap-to-seek (reported via
+  /// [onMediaOverlaySeekRequested]) instead of behaving as a normal page tap.
+  Future<void> setMediaOverlayUiActive(bool active) async {
+    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.setMediaOverlayUiActive($active);');
+  }
+
+  /// Asks the WebView to find the first SMIL sync-point at or after the
+  /// reader's current visible position, so narration can start close to
+  /// what's on screen instead of always restarting at the top of the
+  /// current section. Fire-and-forget — the result (or `null`) arrives via
+  /// [FoliateViewer.onMediaOverlayStartTarget], not this call's return
+  /// value, since `evaluateJavascript` does not await returned Promises.
+  Future<void> requestMediaOverlayStartTarget() async {
+    await _webViewController?.evaluateJavascript(
+      source: 'window.FoliateReaderAPI.requestMediaOverlayStartTarget();',
+    );
   }
 }
 
@@ -149,6 +179,17 @@ class FoliateViewer extends StatefulWidget {
   final void Function(Map<String, dynamic> detail)? onMediaOverlayUnhighlight;
   final void Function(String error)? onMediaOverlayError;
 
+  /// Fired when the user taps a paragraph while narration is active and
+  /// [FoliateViewerController.setMediaOverlayUiActive] is `true`. The
+  /// argument is the SMIL text target href (e.g. `chapter1.xhtml#sent3`) —
+  /// the same format used throughout `EpubMediaOverlayEngine`'s sync table.
+  final void Function(String textHref)? onMediaOverlaySeekRequested;
+
+  /// Answers a [FoliateViewerController.requestMediaOverlayStartTarget]
+  /// call: `(sectionIndex, textHref)` for the sync-point nearest the current
+  /// visible position, or `null` if none could be resolved.
+  final void Function((int, String)? target)? onMediaOverlayStartTarget;
+
   const FoliateViewer({
     super.key,
     this.bookFile,
@@ -175,6 +216,8 @@ class FoliateViewer extends StatefulWidget {
     this.onMediaOverlayHighlight,
     this.onMediaOverlayUnhighlight,
     this.onMediaOverlayError,
+    this.onMediaOverlaySeekRequested,
+    this.onMediaOverlayStartTarget,
     this.bookFetcher,
   });
 
@@ -481,6 +524,34 @@ class _FoliateViewerState extends State<FoliateViewer> {
         if (args.isNotEmpty && widget.onMediaOverlayError != null) {
           widget.onMediaOverlayError!(args[0].toString());
         }
+      },
+    );
+
+    controller.addJavaScriptHandler(
+      handlerName: 'onMediaOverlaySeekRequested',
+      callback: (args) {
+        if (!mounted) return;
+        if (args.isNotEmpty && widget.onMediaOverlaySeekRequested != null) {
+          widget.onMediaOverlaySeekRequested!(args[0].toString());
+        }
+      },
+    );
+
+    controller.addJavaScriptHandler(
+      handlerName: 'onMediaOverlayStartTarget',
+      callback: (args) {
+        if (!mounted) return;
+        if (widget.onMediaOverlayStartTarget == null) return;
+        if (args.isNotEmpty && args[0] is Map) {
+          final data = Map<String, dynamic>.from(args[0] as Map);
+          final sectionIndex = (data['sectionIndex'] as num?)?.toInt();
+          final text = data['text'] as String?;
+          if (sectionIndex != null && text != null) {
+            widget.onMediaOverlayStartTarget!((sectionIndex, text));
+            return;
+          }
+        }
+        widget.onMediaOverlayStartTarget!(null);
       },
     );
 

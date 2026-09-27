@@ -43,12 +43,9 @@ extension _ReaderBuilders on _ReaderState {
                   icon: Icon(_mediaOverlayState != 'stopped' ? Icons.hearing_disabled : Icons.hearing),
                   onPressed: () {
                     if (_mediaOverlayState != 'stopped') {
-                      unawaited(epubController.stopMediaOverlay());
+                      unawaited(_stopMediaOverlayNarration());
                     } else {
-                      if (_isTtsPlaying) {
-                        _stopTts();
-                      }
-                      unawaited(epubController.startMediaOverlay());
+                      unawaited(_startMediaOverlayNarration());
                     }
                   },
                   tooltip: _mediaOverlayState != 'stopped' ? 'Stop Narration' : 'Start Narration',
@@ -116,6 +113,9 @@ extension _ReaderBuilders on _ReaderState {
           Navigator.pop(context);
           if (item.href != null) {
             unawaited(epubController.goTo(item.href!));
+            if (_isMediaOverlayActive) {
+              _jumpMediaOverlayToHref(item.href!);
+            }
           }
         },
       );
@@ -268,6 +268,8 @@ extension _ReaderBuilders on _ReaderState {
       onMediaOverlayError: (error) {
         _showSnackBar(error);
       },
+      onMediaOverlaySeekRequested: _onMediaOverlaySeekRequested,
+      onMediaOverlayStartTarget: _onMediaOverlayStartTargetResolved,
       onSelectionChanged: (selection) {},
       onSelectionCleared: () {},
       onAnnotationClicked: (annotation) async {
@@ -330,38 +332,4 @@ extension _ReaderBuilders on _ReaderState {
     );
   }
 
-  Widget _buildMediaOverlayControlPanel() {
-    if (_mediaOverlayState == 'stopped') return const SizedBox.shrink();
-    return Card(
-      margin: const EdgeInsets.all(16),
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.stop),
-              onPressed: () {
-                unawaited(epubController.stopMediaOverlay());
-              },
-              tooltip: 'Stop Narration',
-            ),
-            IconButton(
-              icon: Icon(_mediaOverlayState == 'paused' ? Icons.play_arrow : Icons.pause),
-              onPressed: () {
-                if (_mediaOverlayState == 'paused') {
-                  unawaited(epubController.resumeMediaOverlay());
-                } else {
-                  unawaited(epubController.pauseMediaOverlay());
-                }
-              },
-              tooltip: _mediaOverlayState == 'paused' ? 'Resume' : 'Pause',
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
