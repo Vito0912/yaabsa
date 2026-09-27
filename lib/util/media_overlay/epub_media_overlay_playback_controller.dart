@@ -8,18 +8,6 @@ import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/media_overlay/epub_media_overlay_engine.dart';
 import 'package:yaabsa/util/media_overlay/epub_media_overlay_models.dart';
 
-/// Drives EPUB3 media-overlay narration playback through the shared
-/// [BGAudioHandler] (`audioHandler`) via `playEphemeralMedia`, instead of the
-/// old WebView-only `foliate-js` `MediaOverlay` playback path.
-///
-/// The *whole* narrated book (every section that has a media overlay,
-/// concatenated in spine order) is modeled as a single ephemeral
-/// [InternalMedia] "session", the same way a real audiobook's chapters are
-/// all tracks on one continuous timeline. This is what gives narration a
-/// correct total duration and a seek bar spanning the entire book, rather
-/// than restarting fresh (with only that section's duration shown) at every
-/// section boundary — `just_audio`'s own playlist advancement handles moving
-/// between sections, exactly like a normal multi-file audiobook.
 class EpubMediaOverlayPlaybackController {
   EpubMediaOverlayPlaybackController({
     required this.engine,
@@ -44,23 +32,15 @@ class EpubMediaOverlayPlaybackController {
   final String? seriesPosition;
   final Uri? cover;
 
-  /// Directory audio entries are extracted into before being handed to
-  /// `just_audio`. Callers own this directory's lifecycle (e.g. clean it up
-  /// when the reader closes).
   final Directory extractionDir;
 
   final Map<String, String> _extractedPathByHref = {};
 
-  /// Book-wide track list and the [InternalMedia] built from it, cached
-  /// after the first successful build so restarting narration later in the
-  /// same reader session doesn't re-extract audio.
   List<MediaOverlayBookTrack>? _bookTracks;
   InternalMedia? _bookMedia;
 
   bool get isActive => _bookMedia != null && audioHandler.isPlayingEphemeralMedia;
 
-  /// The spine section currently playing, derived from the shared player's
-  /// actual position — `null` if narration isn't active.
   int? get activeSectionIndex {
     final media = _bookMedia;
     final tracks = _bookTracks;
@@ -70,11 +50,6 @@ class EpubMediaOverlayPlaybackController {
     return tracks[trackIndex].sectionIndex;
   }
 
-  /// Starts (or resumes/redirects) narration at the first narrated section
-  /// at or after [sectionIndex]. If that's the current position's own
-  /// section, starts from [initialPosition] within it; otherwise starts that
-  /// section from its beginning. Returns `false` if there is no narrated
-  /// section at or after [sectionIndex].
   Future<bool> playSection(int sectionIndex, {Duration initialPosition = Duration.zero}) async {
     final prepared = await _ensureBookMedia();
     if (prepared == null) return false;
@@ -89,10 +64,6 @@ class EpubMediaOverlayPlaybackController {
     return _playOrSeek(media, target);
   }
 
-  /// Seeks to the clip whose [MediaOverlayClip.textHref] equals [textHref]
-  /// within spine section [sectionIndex] — used for tap-to-seek and for
-  /// starting narration at the paragraph nearest the reader's cursor.
-  /// Returns `false` if no matching clip is found.
   Future<bool> seekToTextHref(int sectionIndex, String textHref) async {
     final prepared = await _ensureBookMedia();
     if (prepared == null) return false;
@@ -103,10 +74,6 @@ class EpubMediaOverlayPlaybackController {
       if (tracks[trackIndex].sectionIndex != sectionIndex) continue;
       for (final clip in group.clips) {
         if (clip.textHref == textHref) {
-          // clip.begin is an absolute offset into the underlying audio file,
-          // but the track (via ClippingAudioSource) starts its own local
-          // clock at the group's first clip's begin — offset by that to get
-          // this clip's position within the track.
           final localSeconds = clip.begin - group.clips.first.begin;
           final target = media.offsetForTrack(trackIndex) + Duration(microseconds: (localSeconds * 1e6).round());
           return _playOrSeek(media, target);
@@ -126,9 +93,6 @@ class EpubMediaOverlayPlaybackController {
     }
   }
 
-  /// Overall book progress (0.0-1.0) at [globalPosition] on the whole-book
-  /// audio timeline — now a direct, accurate fraction since narration spans
-  /// the entire book rather than being estimated per section.
   double? bookFractionAtGlobalPosition(Duration globalPosition) {
     final media = _bookMedia;
     if (media == null) return null;
@@ -137,9 +101,6 @@ class EpubMediaOverlayPlaybackController {
     return (globalPosition.inMicroseconds / totalMicros).clamp(0.0, 1.0);
   }
 
-  /// Looks up the [MediaOverlayFlatClip] active at [globalPosition] on the
-  /// whole-book timeline (i.e. `audioHandler.position`), or `null` if
-  /// nothing is playing or the position is out of range.
   MediaOverlayFlatClip? clipAtGlobalPosition(Duration globalPosition) {
     final media = _bookMedia;
     final tracks = _bookTracks;
@@ -153,9 +114,6 @@ class EpubMediaOverlayPlaybackController {
     final clips = trackInfo.group.clips;
     if (clips.isEmpty) return null;
 
-    // The track (via ClippingAudioSource) starts its own local clock at the
-    // group's first clip's begin, but clip.begin/end are absolute offsets
-    // into the underlying file — add that base back to compare like for like.
     final absoluteSeconds = (globalPosition - trackStart).inMicroseconds / 1e6 + clips.first.begin;
 
     for (final clip in clips) {
@@ -231,11 +189,6 @@ class EpubMediaOverlayPlaybackController {
     for (var i = 0; i < bookTracks.length; i++) {
       final group = bookTracks[i].group;
       final path = await _extractAudio(group.audioHref);
-      // Several groups (in this or another section) can share the same
-      // physical audio file at different offset ranges (e.g. one recording
-      // spanning a chapter boundary) — clip to just this group's own slice
-      // so its duration and playback don't include content another group
-      // already covers.
       tracks.add(
         InternalTrack(
           index: i,

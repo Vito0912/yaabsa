@@ -301,12 +301,6 @@ abstract class InternalTrack with _$InternalTrack {
     @JsonKey(name: "mimeType") required String mimeType,
     @JsonKey(name: "start") double? start,
     @JsonKey(name: "end") double? end,
-    // When set, only [clipStart, clipEnd) of the underlying audio file at
-    // [url] is played as this track (via ClippingAudioSource), instead of
-    // the whole file. Used for EPUB media-overlay narration, where several
-    // tracks can share one physical audio file at different offset ranges
-    // (e.g. one recording spanning a chapter boundary) — null for every
-    // other kind of media, which always plays a whole file per track.
     @JsonKey(name: "clipStart") double? clipStart,
     @JsonKey(name: "clipEnd") double? clipEnd,
   }) = _InternalTrack;

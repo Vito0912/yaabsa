@@ -154,10 +154,6 @@ class _ActiveUserIdNotifier extends ChangeNotifier {
 
 final _activeUserIdNotifier = _ActiveUserIdNotifier();
 
-/// Lets a screen detect when another route is pushed on top of it (and when
-/// it later becomes current again) without being disposed itself - e.g. the
-/// reader releasing its "keep screen on while narrating" wakelock while the
-/// full player screen is open above it, then reacquiring it on return.
 final readerRouteObserver = RouteObserver<PageRoute<void>>();
 
 Page<void> _buildAdaptiveHomeShellPage(BuildContext context, GoRouterState state, Widget child) {

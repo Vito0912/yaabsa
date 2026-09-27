@@ -230,13 +230,6 @@ window.FoliateReaderAPI = {
             }
             await view.init({ lastLocation });
             if (view.mediaOverlay) {
-                // Playback itself is driven from Dart via BGAudioHandler, not
-                // foliate-js's own MediaOverlay engine (see
-                // EpubMediaOverlayPlaybackController) — this block only keeps
-                // the SMIL sync-table parsing (used for tap-to-seek and to
-                // mirror Dart's sync table) and the highlight-application
-                // helpers, which Dart drives explicitly via
-                // setMediaOverlayHighlight/clearMediaOverlayHighlight.
                 view.mediaOverlay.entriesCache = new Map();
 
                 const originalLoadXML = view.mediaOverlay.loadXML;
@@ -305,21 +298,6 @@ window.FoliateReaderAPI = {
                     return false;
                 };
 
-                // A point CFI at the very start of the narrated sentence at
-                // `text`, for progress sync. The regular 'relocate' event's
-                // own CFI instead spans the *entire visible page* (its range
-                // runs from the first to the last visible character) -
-                // accurate enough for a plain reader resuming somewhere on
-                // that page, but for narration we want the position to match
-                // where the sentence *starts*, not wherever another CFI
-                // consumer happens to interpret a range as landing. A range
-                // covering the whole sentence element has the same ambiguity
-                // on a smaller scale - if the element happens to straddle a
-                // page boundary (a long paragraph, or a `<p>` shared between
-                // two `<par>`s), its *end* can already be on the next page,
-                // and a consumer that resumes from a range's end lands a
-                // page later than where narration actually was. Collapsing
-                // to the start removes that ambiguity entirely.
                 getCFIForMediaOverlayTarget = (text) => {
                     try {
                         const resolved = view.resolveNavigation(text);
@@ -587,10 +565,6 @@ window.FoliateReaderAPI = {
             currentTtsHighlight = null;
         }
     },
-    // Playback control (start/pause/resume/stop) lives entirely on the Dart
-    // side (EpubMediaOverlayPlaybackController -> BGAudioHandler). This API
-    // only applies/clears the on-screen highlight and toggles whether taps
-    // are intercepted for tap-to-seek — both driven explicitly from Dart.
     setMediaOverlayHighlight(text) {
         if (applyMediaOverlayHighlight) {
             applyMediaOverlayHighlight(text);
@@ -610,13 +584,6 @@ window.FoliateReaderAPI = {
             clearActiveMediaOverlayHighlight();
         }
     },
-    // Finds the first SMIL sync-point at or after the reader's current
-    // visible position, so narration can start (or be redirected to) close
-    // to what's on screen instead of always restarting at the top of the
-    // current section. Fire-and-forget: reports the result (or null) via
-    // the 'onMediaOverlayStartTarget' handler instead of a return value,
-    // since `evaluateJavascript` does not await returned Promises — an
-    // async function's return value here would never reach Dart.
     requestMediaOverlayStartTarget() {
         (async () => {
             let result = null;

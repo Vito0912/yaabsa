@@ -124,15 +124,6 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver, Ro
   StreamSubscription<Duration>? _mediaOverlayHighlightSubscription;
   bool? _lastShowMiniPlayerForResize;
   bool _lastMiniPlayerAttributedToMediaOverlay = false;
-  // Set right when media-overlay narration stops. Shrinking/growing the
-  // WebView's own container (as the mini player disappears) can make
-  // foliate's paginator reflow and fire its own 'relocate' event on its
-  // own, entirely independent of any explicit `goTo` call from Dart — so by
-  // the time that fires, `_mediaOverlayState` has often already flipped to
-  // 'stopped', making a plain `_isMediaOverlayActive` check at that moment
-  // useless for recognizing it as part of the same transition. This
-  // short-lived window lets `_onEpubRelocated` keep treating a relocate as
-  // narration-caused for a beat after narration actually stops.
   DateTime? _mediaOverlayStoppedAt;
   static const Duration _mediaOverlayStopSyncSuppressWindow = Duration(seconds: 2);
 
@@ -655,17 +646,11 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver, Ro
     }
   }
 
-  // Another route (e.g. the full player, opened from the mini player) was
-  // pushed on top of the reader — it isn't disposed, so `_disposeMediaOverlay`
-  // never runs, but the screen no longer needs to stay on for it: narration
-  // is only visually followed while this screen is actually on top.
   @override
   void didPushNext() {
     PlayerUtils.disableReadingWakelock();
   }
 
-  // Back on top after that route was popped — reacquire the wakelock if
-  // narration is still going.
   @override
   void didPopNext() {
     if (_isMediaOverlayActive) {
@@ -776,42 +761,8 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver, Ro
     final hideMiniPlayerSetting = ref
         .read(settingsManagerProvider.notifier)
         .getGlobalSetting<bool>(SettingKeys.readerHideMiniPlayer);
-    // `PlayBar` itself only renders anything when `audioHandler.shouldShowPlayer`
-    // is true (nothing loaded means it renders SizedBox.shrink()) — mirror that
-    // here so we never reserve space for a player that isn't actually drawing
-    // anything, while still force-showing it during our own narration even if
-    // the user has otherwise hidden the mini player everywhere else.
     final showMiniPlayer = _isMediaOverlayActive || (!hideMiniPlayerSetting && _audioHandlerShouldShowPlayer);
 
-    // Reserving space only while the player is actually visible (rather than
-    // a constant reservation) means the WebView's rendered size does change
-    // when it appears or disappears — but we explicitly restore the current
-    // page's top position right after, via the exact same `goTo` used for
-    // seeking, so it never reads as a disorienting jump.
-    //
-    // Skip this compensation on either end of a transition attributable to
-    // media-overlay narration:
-    // - Appearing *because narration is starting*: `_currentEpubLocation` at
-    //   this exact point in build() still reflects wherever the reader was
-    //   sitting before playback began (the highlight-sync's own goTo to the
-    //   actual narrated sentence hasn't fired yet — it's driven by the
-    //   position stream, which lands slightly later). Using it here would
-    //   momentarily snap the view back to the pre-playback position right
-    //   after the correct one had already been applied.
-    // - Disappearing *because narration is stopping*: re-navigating to
-    //   `_currentEpubLocation.cfi` here re-paginates under a now-larger
-    //   container, which can land on a slightly different page/CFI than the
-    //   one actually being read (the same repagination sensitivity as the
-    //   start case) — and that relocate's own progress sync would then
-    //   overwrite the precise per-sentence position `_syncMediaOverlayProgress`
-    //   already recorded with a coarser, whole-page one, silently regressing
-    //   the saved reading position to somewhere later in that page than
-    //   where narration actually left off.
-    // Narration's own highlight-sync already keeps the view and the synced
-    // position correct throughout, so no compensation is needed on either
-    // end of it. Any resize unrelated to media overlay (e.g. a regular
-    // audiobook's mini player toggling while reading) still gets the
-    // compensation, since `_currentEpubLocation` is accurate in that case.
     final miniPlayerChangeIsForNarration = showMiniPlayer
         ? (!(_lastShowMiniPlayerForResize ?? false) && _isMediaOverlayActive)
         : _lastMiniPlayerAttributedToMediaOverlay;
@@ -830,18 +781,11 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver, Ro
     _lastShowMiniPlayerForResize = showMiniPlayer;
     _lastMiniPlayerAttributedToMediaOverlay = showMiniPlayer && _isMediaOverlayActive;
 
-    // The mini player's own content (cover + seek bar + padding) plus the
-    // device's actual bottom safe-area inset (gesture nav bar etc.), which
-    // PlayBar reserves for itself internally via includeBottomSafeArea.
-    // Reserving less than this leaves the player visually clipped.
     const double miniPlayerContentHeight = 84.0;
     final double reservedBottomInset = showMiniPlayer
         ? miniPlayerContentHeight + MediaQuery.of(context).padding.bottom
         : 0.0;
 
-    // A small, constant (never toggled) sliver reserved for the progress
-    // indicator's own text — roughly one line height — so it never overlaps
-    // the book's last visible line, whether or not the player is showing.
     const double progressIndicatorClearance = 28.0;
     final double webViewBottomInset = reservedBottomInset + progressIndicatorClearance;
 
@@ -859,19 +803,6 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver, Ro
       body: SafeArea(
         top: false,
         bottom: false,
-        // The mini player is an overlay (Positioned), not a Column sibling
-        // that shrinks this Stack directly, so hiding/showing it can never
-        // itself cause layout churn beyond the deliberate resize below.
-        //
-        // The EPUB WebView area is resized by reservedBottomInset when the
-        // player appears/disappears (see above, where we also restore the
-        // page position via `goTo` right after). `top: 0` is left untouched
-        // so the current page's top never moves — shrinking only the bottom
-        // reflows whatever no longer fits down onto the next page, rather
-        // than shifting the current page's content upward. The paginator
-        // measures its own outer container's pixel size for this, not
-        // anything CSS inside a section's document, so this is the only
-        // layer where the reserved space actually has an effect.
         child: Stack(
           children: [
             Positioned(
@@ -954,9 +885,6 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver, Ro
                 ],
               ),
             ),
-            // Anchored right above the reserved player zone (not inside the
-            // shrunk WebView area) so it always has its own room, instead of
-            // competing with the player for the same space.
             Positioned(
               left: 0,
               right: 0,

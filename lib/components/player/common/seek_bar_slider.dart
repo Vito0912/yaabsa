@@ -83,16 +83,6 @@ class SeekBarSlider extends StatefulWidget {
   final bool showSleepTimerPin;
   final bool showSleepTimerRange;
   final Future<void> Function()? onSleepTimerMarkerTap;
-  /// When true, dragging only previews the target time locally (no real
-  /// backend seek) until the drag ends, instead of the default live-scrub
-  /// behavior that commits a real seek on every drag tick. Media-overlay
-  /// narration tracks are SMIL-clip-sized (often just seconds long), so a
-  /// normal drag crosses many of them in a single 120ms tick, and each
-  /// live-scrub seek lands in a wildly different, unrelated part of the
-  /// book - audibly sounding like the book is playing at high speed until
-  /// the drag settles. Regular audiobook tracks are large single files
-  /// where live-scrub is a smooth, deliberate preview, so this only applies
-  /// where the caller knows the underlying content is overlay narration.
   final bool onlySeekOnDragEnd;
 
   @override

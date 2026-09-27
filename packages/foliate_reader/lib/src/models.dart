@@ -5,10 +5,6 @@ class FoliateLocation {
   final FoliateTOCItem? tocItem;
   final FoliateTOCItem? pageItem;
 
-  /// Index of the current spine section (chapter/document), i.e. the same
-  /// indexing used by the EPUB's spine and by
-  /// `EpubMediaOverlayEngine.sectionAt`. Null only if the reader hasn't
-  /// rendered any content yet.
   final int? sectionIndex;
 
   FoliateLocation({

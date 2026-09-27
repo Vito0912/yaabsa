@@ -10,31 +10,16 @@ const String _smilNamespace = 'http://www.w3.org/ns/SMIL';
 const String _opfNamespace = 'http://www.idpf.org/2007/opf';
 const String _containerNamespace = 'urn:oasis:names:tc:opendocument:xmlns:container';
 
-/// Parses an EPUB3's OPF manifest/spine and per-section SMIL media-overlay
-/// files into [MediaOverlaySection] sync tables, entirely in Dart with no
-/// WebView dependency.
-///
-/// This lets media-overlay narration audio be located, sequenced, and mapped
-/// back to book text from contexts that have no WebView at all (Android
-/// Auto, Wear OS, background playback) — the in-app reader's WebView keeps
-/// using its own copy of this parsing (`reader-app.js`) purely to drive
-/// on-screen highlighting; this engine is the source of truth for playback.
 class EpubMediaOverlayEngine {
   final Archive _archive;
 
-  /// Book-relative directory the OPF file lives in (e.g. `OEBPS/`), used to
-  /// resolve manifest hrefs, which are relative to the OPF, not the archive
-  /// root.
   late final String _opfDir;
   late final XmlDocument _opfDoc;
 
-  /// manifest id -> href (opf-relative, already normalized to archive-root-relative)
   late final Map<String, String> _manifestHrefById;
 
-  /// manifest id -> media-overlay attribute value (a manifest id of the SMIL resource), if any
   late final Map<String, String?> _manifestOverlayIdById;
 
-  /// Ordered list of spine itemref ids (idrefs), in reading order.
   late final List<String> _spineIdRefs;
 
   final Map<int, MediaOverlaySection> _sectionCache = {};
@@ -85,26 +70,15 @@ class EpubMediaOverlayEngine {
               .toList(growable: false);
   }
 
-  /// Loads and parses an EPUB from raw bytes.
   static EpubMediaOverlayEngine fromBytes(Uint8List bytes) {
     final archive = ZipDecoder().decodeBytes(bytes);
     return EpubMediaOverlayEngine._(archive);
   }
 
-  /// Cheap check for whether this book has any EPUB3 media overlays at all,
-  /// without parsing any SMIL files — just inspecting the OPF manifest for a
-  /// `media-overlay` attribute. Suitable for lightweight eligibility checks
-  /// (e.g. deciding whether to surface a book on Android Auto) since it only
-  /// requires the OPF, not the full book.
   bool get hasMediaOverlays => _manifestOverlayIdById.values.any((v) => v != null);
 
   int get sectionCount => _spineIdRefs.length;
 
-  /// Finds the spine section index whose manifest href matches [href] (a TOC
-  /// entry's href, which may be relative to a different base than the
-  /// manifest's own hrefs) — used to redirect narration when the user taps a
-  /// table-of-contents entry. Matches on path only (ignoring any fragment),
-  /// falling back to a suffix match to tolerate differing relative bases.
   int? sectionIndexForHref(String href) {
     final hashIndex = href.indexOf('#');
     final rawPath = hashIndex == -1 ? href : href.substring(0, hashIndex);
@@ -123,15 +97,8 @@ class EpubMediaOverlayEngine {
     return null;
   }
 
-  /// Returns the raw bytes of an archive-root-relative entry (e.g. an
-  /// [MediaOverlayAudioGroup.audioHref]), or `null` if it doesn't exist.
   Uint8List? readEntryBytes(String href) => _readEntry(href);
 
-  /// Parses every narrated section in spine order and flattens them into a
-  /// single book-wide track list — one entry per audio file, in the order
-  /// they'll be played. This is what lets narration span the whole
-  /// audiobook (correct total duration, one continuous seek bar) instead of
-  /// restarting fresh at each section boundary.
   List<MediaOverlayBookTrack> collectBookTracks() {
     final tracks = <MediaOverlayBookTrack>[];
     for (var i = 0; i < _spineIdRefs.length; i++) {
@@ -144,9 +111,6 @@ class EpubMediaOverlayEngine {
     return tracks;
   }
 
-  /// Finds the next spine section index at or after [fromSectionIndex]
-  /// (inclusive) that has a media overlay, or `null` if there is none —
-  /// used to continue narration across sections that don't all carry audio.
   int? nextOverlaySectionFrom(int fromSectionIndex) {
     for (var i = fromSectionIndex; i < _spineIdRefs.length; i++) {
       if (sectionAt(i) != null) return i;
@@ -154,8 +118,6 @@ class EpubMediaOverlayEngine {
     return null;
   }
 
-  /// Returns the sync table for spine section [sectionIndex], or `null` if
-  /// that section has no media overlay. Results are cached.
   MediaOverlaySection? sectionAt(int sectionIndex) {
     if (sectionIndex < 0 || sectionIndex >= _spineIdRefs.length) return null;
     final cached = _sectionCache[sectionIndex];
@@ -223,9 +185,6 @@ class EpubMediaOverlayEngine {
   }
 
   static String _resolveRelative(String baseDir, String href) {
-    // Strip any fragment before resolving the path component, then reattach
-    // it, since Uri.resolve on a bare relative dir string can behave
-    // unexpectedly for fragment-only-difference paths.
     final hashIndex = href.indexOf('#');
     final path = hashIndex == -1 ? href : href.substring(0, hashIndex);
     final fragment = hashIndex == -1 ? '' : href.substring(hashIndex);
@@ -241,10 +200,6 @@ class EpubMediaOverlayEngine {
     return '$resolvedPath$fragment';
   }
 
-  /// Parses a SMIL `clipBegin`/`clipEnd` clock value into seconds. Supports
-  /// full clock values (`HH:MM:SS(.frac)`), partial clock values (`MM:SS`),
-  /// and timecount values with unit suffixes (`12.5s`, `500ms`, `2min`, `1h`),
-  /// as well as bare numbers (assumed seconds).
   static double? _parseClock(String? raw) {
     if (raw == null) return null;
     final value = raw.trim();

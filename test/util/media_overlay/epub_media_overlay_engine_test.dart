@@ -63,9 +63,6 @@ Uint8List _buildFixtureEpub() {
   return Uint8List.fromList(ZipEncoder().encode(archive));
 }
 
-/// A fixture with two narrated sections (each with its own audio file),
-/// used to verify that a book-wide track list is built across the whole
-/// book rather than restarting per section.
 Uint8List _buildTwoSectionFixtureEpub() {
   final archive = Archive();
 
@@ -121,13 +118,6 @@ Uint8List _buildTwoSectionFixtureEpub() {
   return Uint8List.fromList(ZipEncoder().encode(archive));
 }
 
-/// A fixture where the SAME physical audio file is shared across a chapter
-/// boundary — section 1 uses the first 10s of `shared.mp4`, and section 2
-/// continues with the SAME file starting from 10s onward. This is the
-/// pattern that caused duration over-counting: a naive reader would treat
-/// section 2's group as spanning [0, 25s) of the file (since its clips'
-/// absolute end is 25s), double-counting the first 10s already played in
-/// section 1.
 Uint8List _buildSharedAudioAcrossSectionsFixtureEpub() {
   final archive = Archive();
 
@@ -312,9 +302,6 @@ void main() {
       final tracks = engine.collectBookTracks();
       expect(tracks, hasLength(2));
 
-      // Section 2's group uses clipBegin=10s/clipEnd=25s of the SAME file
-      // section 1 already used [0s, 10s) of — its own slice is 15s, not the
-      // file's absolute 25s end (which would double-count section 1's 10s).
       expect(tracks[0].group.duration, 10.0);
       expect(tracks[1].group.duration, 15.0);
 

@@ -224,22 +224,6 @@ extension _ReaderCoreHelpers on _ReaderState {
     });
 
     _triggerAutoAnnotationLoadIfNeeded(isEpubMode: true);
-    // While media-overlay narration is active, `_syncMediaOverlayProgress`
-    // already syncs a precise per-sentence CFI on every highlight change -
-    // including the one that triggered *this* relocate (its `goTo` is what
-    // fired it). Also syncing here would race that precise sync with this
-    // event's much coarser whole-page-range CFI on every single tick, and
-    // since the two async chains have no fixed ordering, whichever happens
-    // to resolve later silently wins - occasionally leaving the coarser,
-    // less accurate position as what actually gets saved.
-    //
-    // The same applies for a short window right after narration *stops*:
-    // shrinking/growing the WebView's own container as the mini player
-    // disappears can make foliate's paginator reflow and fire this event on
-    // its own, with no explicit `goTo` involved - by which point
-    // `_isMediaOverlayActive` has usually already flipped to false, so it
-    // alone can't catch this. That reflow-triggered relocate would otherwise
-    // overwrite the last precise per-sentence sync with a coarser one.
     if (!_isMediaOverlayActive && !_isWithinMediaOverlayStopSyncSuppressWindow) {
       unawaited(_syncEpubProgress(location: currentLocation, progress: location.fraction));
     }
