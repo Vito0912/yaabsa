@@ -42,6 +42,40 @@ class QueueSourceRepository {
     }
 
     switch (source.type) {
+      case MediaSourceType.latestEpisodes:
+        final response = await api.getLibraryApi().getRecentEpisodes(
+          source.libraryId,
+          limit: pageSize,
+          page: page,
+          extra: const <String, dynamic>{'doNotCache': true},
+        );
+        final episodes = response.data?.episodes ?? const <Episode>[];
+        final progressNotifier = _ref.read(mediaProgressProvider.notifier);
+        return CandidatePage(
+          candidates: episodes
+              .where(
+                (episode) => episode.id.isNotEmpty && episode.libraryItemId.isNotEmpty && episode.audioFile != null,
+              )
+              .map(
+                (episode) => QueueCandidate(
+                  ref: PlayableRef(itemId: episode.libraryItemId, episodeId: episode.id),
+                  title: episode.title,
+                  subtitle: episode.podcast?.metadata.title,
+                  addedAt: episode.addedAt,
+                  publishedAt: episode.publishedAt,
+                  estimatedBytes: episode.size ?? episode.audioFile?.metadata.size,
+                  isFinished:
+                      progressNotifier
+                          .progressForKey(mediaProgressKey(episode.libraryItemId, episode.id))
+                          ?.isFinished ??
+                      false,
+                ),
+              )
+              .toList(growable: false),
+          page: page,
+          pageSize: pageSize,
+          nextCursor: episodes.length >= pageSize ? '${page + 1}' : null,
+        );
       case MediaSourceType.series:
         return _seriesPage(api, source, page: page, pageSize: pageSize);
       case MediaSourceType.playlist:

@@ -37,6 +37,7 @@ const _$MediaSourceTypeEnumMap = {
   MediaSourceType.series: 'series',
   MediaSourceType.playlist: 'playlist',
   MediaSourceType.collection: 'collection',
+  MediaSourceType.latestEpisodes: 'latestEpisodes',
 };
 
 _QueueCandidate _$QueueCandidateFromJson(Map<String, dynamic> json) => _QueueCandidate(

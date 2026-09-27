@@ -451,14 +451,13 @@ class SmartDownloadManager extends _$SmartDownloadManager {
         }
         final desired = <String>{};
         desiredByProfile[profile.id] = desired;
-        final targetCount = profile.policy.targetCount.clamp(1, 100).toInt();
-
         for (final source in profile.sources) {
+          final targetCount = profile.policy.targetCount.clamp(1, 150).toInt();
           var page = 0;
           var selectedForSource = 0;
           int? sourceRevision;
           final compactSnapshot = <QueueCandidate>[];
-          while (selectedForSource < targetCount && page < 20) {
+          while (selectedForSource < targetCount && page < (source.type == MediaSourceType.latestEpisodes ? 100 : 20)) {
             final result = await sourceRepository.page(source, page: page, pageSize: queueSourcePageSize);
             _throwIfReconcileStale(generation, userId);
             sourceRevision ??= result.revision;
@@ -484,7 +483,7 @@ class SmartDownloadManager extends _$SmartDownloadManager {
                 ),
               );
             }
-            if (candidates.length < queueSourcePageSize) break;
+            if (candidates.length < queueSourcePageSize && result.nextCursor == null) break;
             page++;
           }
           await db.updateSmartDownloadSourceSnapshot(
@@ -942,6 +941,19 @@ class SmartDownloadManager extends _$SmartDownloadManager {
     final now = DateTime.now().millisecondsSinceEpoch;
     final profilesById = <String, SmartDownloadProfile>{for (final profile in profiles) profile.id: profile};
     final entries = await db.getStoredDownloadEntriesByUser(userId);
+    final progressByKey = <String, MediaProgress>{};
+    for (final stored in await db.getStoredMediaProgressByUser(userId)) {
+      final progress = _decodeProgressOrNull(stored.mediaProgress);
+      if (progress != null) {
+        progressByKey[mediaProgressKey(progress.libraryItemId, progress.episodeId)] = progress;
+      }
+    }
+    for (final entry in ref.read(mediaProgressProvider.notifier).snapshot.entries) {
+      final existing = progressByKey[entry.key];
+      if (existing == null || (entry.value.lastUpdate ?? 0) >= (existing.lastUpdate ?? 0)) {
+        progressByKey[entry.key] = entry.value;
+      }
+    }
     _throwIfReconcileStale(generation, userId);
     for (final entry in entries.where((entry) => entry.downloadOrigin == 'smart')) {
       _throwIfReconcileStale(generation, userId);
@@ -953,7 +965,11 @@ class SmartDownloadManager extends _$SmartDownloadManager {
       final graceMillis = Duration(hours: graceHours).inMilliseconds;
       final completedAt = entry.completedAt ?? 0;
       if (completedAt <= 0) continue;
-      if (completedAt > 0 && now - completedAt < graceMillis) continue;
+      final progress = progressByKey[mediaProgressKey(entry.itemId, entry.episodeId)];
+      final finishedAt = progress?.isFinished == true ? (progress?.finishedAt ?? progress?.lastUpdate) : null;
+      if (progress?.isFinished == true && (finishedAt == null || finishedAt <= 0)) continue;
+      final retentionStart = finishedAt != null && finishedAt > completedAt ? finishedAt : completedAt;
+      if (now - retentionStart < graceMillis) continue;
       final download = await db.getStoredDownload(entry.itemId, userId, episodeId: entry.episodeId);
       _throwIfReconcileStale(generation, userId);
       if (download != null) {

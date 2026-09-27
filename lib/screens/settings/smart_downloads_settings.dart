@@ -149,7 +149,9 @@ class _ProfileSection extends StatelessWidget {
               ListTile(
                 leading: Icon(profile.enabled ? Icons.download_done_rounded : Icons.pause_circle_outline_rounded),
                 title: Text(profile.name),
-                subtitle: Text('${profile.sources.length} sources · ${profile.policy.targetCount} items per source'),
+                subtitle: Text(
+                  '${profile.sources.length} sources · ${profile.policy.targetCount.clamp(1, 150)} items per source',
+                ),
                 trailing: PopupMenuButton<String>(
                   onSelected: (value) {
                     if (value == 'edit') onEdit(profile);
@@ -193,7 +195,7 @@ class _SmartDownloadProfileEditorState extends State<_SmartDownloadProfileEditor
     super.initState();
     final profile = widget.initial;
     _nameController = TextEditingController(text: profile?.name ?? 'Offline queue');
-    _targetController = TextEditingController(text: '${profile?.policy.targetCount ?? 3}');
+    _targetController = TextEditingController(text: '${(profile?.policy.targetCount ?? 3).clamp(1, 150)}');
     _ageController = TextEditingController(text: profile?.policy.maxAgeDays?.toString() ?? '');
     _storageController = TextEditingController(
       text: profile?.policy.maxStorageBytes == null ? '' : '${profile!.policy.maxStorageBytes! ~/ (1024 * 1024)}',
@@ -227,7 +229,7 @@ class _SmartDownloadProfileEditorState extends State<_SmartDownloadProfileEditor
               StyledTextField(label: 'Name', controller: _nameController),
               const SizedBox(height: 12),
               StyledTextField(
-                label: 'Item count per source',
+                label: 'Item count per source (1–150)',
                 controller: _targetController,
                 keyboardType: TextInputType.number,
               ),
@@ -245,7 +247,7 @@ class _SmartDownloadProfileEditorState extends State<_SmartDownloadProfileEditor
               ),
               const SizedBox(height: 12),
               StyledTextField(
-                label: 'Keep completed downloads for hours',
+                label: 'Keep finished downloads for hours',
                 controller: _deleteAfterController,
                 keyboardType: TextInputType.number,
               ),
@@ -254,7 +256,7 @@ class _SmartDownloadProfileEditorState extends State<_SmartDownloadProfileEditor
                 label: 'Download types',
                 value: _downloadType,
                 items: const [
-                  DropdownMenuItem(value: 'audiobook', child: Text('Audiobook')),
+                  DropdownMenuItem(value: 'audiobook', child: Text('Audiobook/Episodes')),
                   DropdownMenuItem(value: 'ebook', child: Text('Ebook')),
                   DropdownMenuItem(value: 'both', child: Text('Both')),
                 ],
@@ -311,7 +313,7 @@ class _SmartDownloadProfileEditorState extends State<_SmartDownloadProfileEditor
   void _save() {
     final name = _nameController.text.trim();
     final target = int.tryParse(_targetController.text.trim());
-    if (name.isEmpty || target == null || target < 1 || target > 100) return;
+    if (name.isEmpty || target == null || target < 1 || target > 150) return;
     final age = int.tryParse(_ageController.text.trim());
     final storageMb = int.tryParse(_storageController.text.trim());
     final deleteAfterHours = int.tryParse(_deleteAfterController.text.trim()) ?? 24;
@@ -408,7 +410,9 @@ class _SourceEditorState extends ConsumerState<_SourceEditor> {
       ...remoteSuggestions,
     ];
     _scheduleAutocompleteRefresh();
-    final canAddSource = _selectedSourceId?.trim().isNotEmpty == true && _libraryId?.trim().isNotEmpty == true;
+    final canAddSource =
+        _libraryId?.trim().isNotEmpty == true &&
+        (_type == MediaSourceType.latestEpisodes || _selectedSourceId?.trim().isNotEmpty == true);
 
     return AlertDialog(
       title: const Text('Add source'),
@@ -438,7 +442,14 @@ class _SourceEditorState extends ConsumerState<_SourceEditor> {
                 value: _type,
                 items: [
                   for (final type in availableSourceTypes)
-                    DropdownMenuItem(value: type, child: Text(type.name[0].toUpperCase() + type.name.substring(1))),
+                    DropdownMenuItem(
+                      value: type,
+                      child: Text(
+                        type == MediaSourceType.latestEpisodes
+                            ? 'Latest episodes'
+                            : type.name[0].toUpperCase() + type.name.substring(1),
+                      ),
+                    ),
                 ],
                 onChanged: (value) => setState(() {
                   _type = value ?? MediaSourceType.podcast;
@@ -449,69 +460,70 @@ class _SourceEditorState extends ConsumerState<_SourceEditor> {
                 }),
               ),
               const SizedBox(height: 16),
-              RawAutocomplete<({String id, String name})>(
-                key: ValueKey('${_type.name}:${selectedLibraryId ?? ''}'),
-                textEditingController: _searchController,
-                focusNode: _searchFocusNode,
-                displayStringForOption: (suggestion) => suggestion.name,
-                optionsBuilder: (textEditingValue) {
-                  final query = textEditingValue.text.trim().toLowerCase();
-                  if (query.isEmpty) return const <({String id, String name})>[];
-                  return sourceSuggestions;
-                },
-                onSelected: (suggestion) => setState(() {
-                  _selectedSourceId = suggestion.id;
-                  _selectedSourceName = suggestion.name;
-                }),
-                fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
-                  return StyledTextField(
-                    label: 'Search sources',
-                    controller: controller,
-                    focusNode: focusNode,
-                    prefixIcon: const Icon(Icons.search_rounded),
-                    textInputAction: TextInputAction.search,
-                    onChanged: (value) {
-                      if (_refreshingAutocomplete) return;
-                      final isSelectedValue = _selectedSourceId != null && value.trim() == _selectedSourceName;
-                      setState(() {
-                        _searchQuery = value;
-                        if (!isSelectedValue) {
-                          _selectedSourceId = null;
-                          _selectedSourceName = null;
-                        }
-                      });
-                      _scheduleAutocompleteRefresh();
-                    },
-                    onSubmitted: (_) => onFieldSubmitted(),
-                  );
-                },
-                optionsViewBuilder: (context, onSelected, options) {
-                  return Align(
-                    alignment: Alignment.topLeft,
-                    child: Material(
-                      elevation: 3,
-                      borderRadius: BorderRadius.circular(10),
-                      clipBehavior: Clip.antiAlias,
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxHeight: 220, minWidth: 280),
-                        child: ListView.builder(
-                          padding: EdgeInsets.zero,
-                          shrinkWrap: true,
-                          itemCount: options.length,
-                          itemBuilder: (context, index) {
-                            final suggestion = options.elementAt(index);
-                            return ListTile(
-                              dense: true,
-                              title: Text(suggestion.name),
-                              onTap: () => onSelected(suggestion),
-                            );
-                          },
+              if (_type != MediaSourceType.latestEpisodes)
+                RawAutocomplete<({String id, String name})>(
+                  key: ValueKey('${_type.name}:${selectedLibraryId ?? ''}'),
+                  textEditingController: _searchController,
+                  focusNode: _searchFocusNode,
+                  displayStringForOption: (suggestion) => suggestion.name,
+                  optionsBuilder: (textEditingValue) {
+                    final query = textEditingValue.text.trim().toLowerCase();
+                    if (query.isEmpty) return const <({String id, String name})>[];
+                    return sourceSuggestions;
+                  },
+                  onSelected: (suggestion) => setState(() {
+                    _selectedSourceId = suggestion.id;
+                    _selectedSourceName = suggestion.name;
+                  }),
+                  fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+                    return StyledTextField(
+                      label: 'Search sources',
+                      controller: controller,
+                      focusNode: focusNode,
+                      prefixIcon: const Icon(Icons.search_rounded),
+                      textInputAction: TextInputAction.search,
+                      onChanged: (value) {
+                        if (_refreshingAutocomplete) return;
+                        final isSelectedValue = _selectedSourceId != null && value.trim() == _selectedSourceName;
+                        setState(() {
+                          _searchQuery = value;
+                          if (!isSelectedValue) {
+                            _selectedSourceId = null;
+                            _selectedSourceName = null;
+                          }
+                        });
+                        _scheduleAutocompleteRefresh();
+                      },
+                      onSubmitted: (_) => onFieldSubmitted(),
+                    );
+                  },
+                  optionsViewBuilder: (context, onSelected, options) {
+                    return Align(
+                      alignment: Alignment.topLeft,
+                      child: Material(
+                        elevation: 3,
+                        borderRadius: BorderRadius.circular(10),
+                        clipBehavior: Clip.antiAlias,
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxHeight: 220, minWidth: 280),
+                          child: ListView.builder(
+                            padding: EdgeInsets.zero,
+                            shrinkWrap: true,
+                            itemCount: options.length,
+                            itemBuilder: (context, index) {
+                              final suggestion = options.elementAt(index);
+                              return ListTile(
+                                dense: true,
+                                title: Text(suggestion.name),
+                                onTap: () => onSelected(suggestion),
+                              );
+                            },
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                },
-              ),
+                    );
+                  },
+                ),
               if (searchAsync?.isLoading ?? false) const LinearProgressIndicator(),
               if (searchAsync?.hasError ?? false)
                 const Align(
@@ -522,12 +534,13 @@ class _SourceEditorState extends ConsumerState<_SourceEditor> {
                   ),
                 ),
               const SizedBox(height: 16),
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const Text('Descending/feed direction'),
-                value: _descending,
-                onChanged: (value) => setState(() => _descending = value),
-              ),
+              if (_type != MediaSourceType.latestEpisodes)
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Descending/feed direction'),
+                  value: _descending,
+                  onChanged: (value) => setState(() => _descending = value),
+                ),
             ],
           ),
         ),
@@ -537,14 +550,16 @@ class _SourceEditorState extends ConsumerState<_SourceEditor> {
         FilledButton(
           onPressed: canAddSource
               ? () {
-                  final sourceId = _selectedSourceId!.trim();
+                  final sourceId = _type == MediaSourceType.latestEpisodes
+                      ? _libraryId!.trim()
+                      : _selectedSourceId!.trim();
                   final libraryId = _libraryId!.trim();
                   context.pop(
                     MediaSourceDescriptor(
                       type: _type,
                       sourceId: sourceId,
                       libraryId: libraryId,
-                      displayName: _selectedSourceName,
+                      displayName: _type == MediaSourceType.latestEpisodes ? 'Latest episodes' : _selectedSourceName,
                       descending: _descending,
                     ),
                   );
@@ -590,7 +605,12 @@ class _SourceEditorState extends ConsumerState<_SourceEditor> {
 
   List<MediaSourceType> _sourceTypesForLibrary(String? mediaType) {
     return switch (mediaType?.trim().toLowerCase()) {
-      'podcast' => const [MediaSourceType.podcast, MediaSourceType.playlist, MediaSourceType.collection],
+      'podcast' => const [
+        MediaSourceType.latestEpisodes,
+        MediaSourceType.podcast,
+        MediaSourceType.playlist,
+        MediaSourceType.collection,
+      ],
       'book' => const [MediaSourceType.series, MediaSourceType.playlist, MediaSourceType.collection],
       _ => MediaSourceType.values,
     };

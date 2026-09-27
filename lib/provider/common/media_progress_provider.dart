@@ -657,11 +657,15 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
         nextLastUpdate = previousLastUpdate + 1;
       }
 
+      final isFinished = progress >= 0.999;
       updatedProgress = updatedProgress.copyWith(
         userId: effectiveUserId,
         currentTime: currentTime,
         progress: progress,
-        isFinished: progress >= 0.999,
+        isFinished: isFinished,
+        finishedAt: isFinished
+            ? (updatedProgress.isFinished ? updatedProgress.finishedAt ?? nextLastUpdate : nextLastUpdate)
+            : null,
         lastUpdate: nextLastUpdate,
       );
 
