@@ -1415,6 +1415,7 @@ jobs:
           issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
           api-key-id: ${{ secrets.APPSTORE_KEY_ID }}
           api-private-key: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+          uses-non-exempt-encryption: 'false'
           release-notes: |
             ${{ needs.changes.outputs.changelog }}
 
@@ -1550,22 +1551,75 @@ jobs:
           sudo installer -pkg "/tmp/itmstransporter.pkg" -target /
           /usr/local/itms/bin/iTMSTransporter -help
 
-      - name: Upload macOS to TestFlight
-        uses: apple-actions/upload-testflight-build@v5
+      - name: Set up Ruby for macOS TestFlight upload
+        uses: ruby/setup-ruby@v1
         if: ${{ needs.changes.outputs.version_bumped == 'true' && needs.changes.outputs.build_skip != 'true' }}
         with:
-          app-path: build/macos/Build/Products/Release/yaabsa.pkg
-          app-type: macos
-          issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
-          api-key-id: ${{ secrets.APPSTORE_KEY_ID }}
-          api-private-key: ${{ secrets.APPSTORE_PRIVATE_KEY }}
-          release-notes: |
+          ruby-version: '3.3'
+
+      - name: Install Fastlane
+        if: ${{ needs.changes.outputs.version_bumped == 'true' && needs.changes.outputs.build_skip != 'true' }}
+        run: gem install fastlane --version 2.240.1 --no-document
+
+      - name: Upload macOS to TestFlight
+        if: ${{ needs.changes.outputs.version_bumped == 'true' && needs.changes.outputs.build_skip != 'true' }}
+        shell: bash
+        env:
+          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+          APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+          APPSTORE_PRIVATE_KEY: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+          FASTLANE_SKIP_UPDATE_CHECK: 'true'
+          FASTLANE_OPT_OUT_USAGE: 'true'
+          FASTLANE_ITUNES_TRANSPORTER_USE_SHELL_SCRIPT: 'true'
+          FASTLANE_ITUNES_TRANSPORTER_PATH: /usr/local/itms
+          PILOT_CHANGELOG: |
             ${{ needs.changes.outputs.changelog }}
 
             ---
             Please report any issues or feature requests through GitHub or TestFlight. Please note that feature requests shared through TestFlight without an email attached cannot be taken into account as there is no way to contact you. The same applies to bugs that are not easily reproducible. If you do not want to share your email, please use GitHub instead. Thanks for testing macOS!
-          wait-for-processing: 'true'
-          backend: transporter
+        run: |
+          set -euo pipefail
+          umask 077
+
+          api_key_path="$(mktemp "$RUNNER_TEMP/yaabsa-appstore-api.XXXXXX")"
+          trap 'rm -f "$api_key_path"' EXIT
+
+          python3 - "$api_key_path" <<'PY'
+          import json
+          import os
+          import sys
+
+          with open(sys.argv[1], "w") as api_key_file:
+              json.dump({
+                  "key_id": os.environ["APPSTORE_KEY_ID"],
+                  "issuer_id": os.environ["APPSTORE_ISSUER_ID"],
+                  "key": os.environ["APPSTORE_PRIVATE_KEY"],
+                  "in_house": False,
+              }, api_key_file)
+          PY
+
+          app_plist="build/macos/Build/Products/Release/yaabsa.app/Contents/Info.plist"
+          bundle_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$app_plist")"
+          app_version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$app_plist")"
+          build_number="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$app_plist")"
+
+          env -u PILOT_CHANGELOG fastlane pilot upload \
+            --pkg "build/macos/Build/Products/Release/yaabsa.pkg" \
+            --app_platform osx \
+            --app_identifier "$bundle_id" \
+            --api_key_path "$api_key_path" \
+            --skip_waiting_for_build_processing true
+
+          fastlane run upload_to_testflight \
+            distribute_only:true \
+            app_platform:osx \
+            app_identifier:"$bundle_id" \
+            app_version:"$app_version" \
+            build_number:"$build_number" \
+            api_key_path:"$api_key_path" \
+            uses_non_exempt_encryption:false \
+            skip_submission:true \
+            wait_processing_timeout_duration:900
         continue-on-error: true
 
       - name: Build Developer ID macOS App
