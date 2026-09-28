@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.13.0
+
+### Fixed
+
+- Fixed the Play button getting stuck in a loading state while casting
+- (Android, iOS) Added safe areas around dialogues. Prevents overlapping with naviagtion bars
+- Fixed a bug where opening a narrator could result in an empty/broken view
+- Improved sync (pull) performance
+
+### Added
+
+- Smart Downloads now support the latest episodes for podcasts
+- Added Continue Reading as a section for the shelf
+- Added a setting to sync the latest progress when opening the app (may increase data usage)
+- Pulling down on a shelf or library item now refreshes progress from the server
+- (Android, iOS) Added a setting to choose whether playback pauses or continues during notifications and similar interruptions
+- (@Kyomorie) (Android) Added support for update notifications
+
 ## 1.12.0
 
 ### Added
