@@ -12,6 +12,7 @@ import 'package:yaabsa/util/globals.dart' show appName, audioHandler, containerR
 import 'package:yaabsa/util/aaos_service.dart';
 import 'package:yaabsa/util/app_theme.dart';
 import 'package:yaabsa/util/handler/tray_handler.dart' show TrayManager;
+import 'package:yaabsa/util/handler/sleep_timer_handler.dart';
 import 'package:yaabsa/util/init.dart' show Init;
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/router.dart';
@@ -116,6 +117,7 @@ class MyApp extends ConsumerWidget {
           try {
             final handler = await Init.initAudioHandler().timeout(const Duration(seconds: 5));
             audioHandler = handler;
+            containerRef.read(sleepTimerHandlerProvider.notifier).attachPlaybackListeners();
             unawaited(audioHandler.restoreLastPlayedMiniPlayerIfEnabled());
             unawaited(_resumeLastPlayedOnStartup());
           } catch (e, s) {

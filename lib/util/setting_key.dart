@@ -32,6 +32,9 @@ class SettingKeys {
   static const String sleepTimerAutoRestartRangeStartMinutes = 'sleep_timer_auto_restart_range_start_minutes';
   static const String sleepTimerAutoRestartRangeEndMinutes = 'sleep_timer_auto_restart_range_end_minutes';
   static const String sleepTimerLastDurationMinutes = 'sleep_timer_last_duration_minutes';
+  static const String sleepTimerAutoMode = 'sleep_timer_auto_mode';
+  static const String sleepTimerAutoMinutes = 'sleep_timer_auto_minutes';
+  static const String sleepTimerAutoChapters = 'sleep_timer_auto_chapters';
   static const String sleepTimerAutoRestartSuppressed = 'sleep_timer_auto_restart_suppressed';
   static const String sleepTimerShowMarker = 'sleep_timer_show_marker';
   static const String sleepTimerMarker = 'sleep_timer_marker';
@@ -205,6 +208,9 @@ final defaultSettings = {
   SettingKeys.sleepTimerAutoRestartRangeStartMinutes: 21 * 60,
   SettingKeys.sleepTimerAutoRestartRangeEndMinutes: 7 * 60,
   SettingKeys.sleepTimerLastDurationMinutes: 30,
+  SettingKeys.sleepTimerAutoMode: 'minutes',
+  SettingKeys.sleepTimerAutoMinutes: 0,
+  SettingKeys.sleepTimerAutoChapters: 1,
   SettingKeys.sleepTimerAutoRestartSuppressed: false,
   SettingKeys.sleepTimerShowMarker: false,
   SettingKeys.sleepTimerMarker: '',

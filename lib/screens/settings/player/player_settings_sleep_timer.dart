@@ -4,6 +4,7 @@ import 'package:yaabsa/components/settings/settings_dropdown.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/components/settings/settings_slider.dart';
 import 'package:yaabsa/components/settings/settings_switch_tile.dart';
+import 'package:yaabsa/components/settings/settings_positive_integer.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/screens/settings/player/player_settings.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
@@ -46,6 +47,11 @@ class PlayerSettingsSleepTimer extends ConsumerWidget {
     final useTimeRange = SettingsParser.decodeValue<bool>(useTimeRangeSetting, useTimeRangeDefault);
 
     final timeRangeEnabled = autoRestartEnabled && useTimeRange;
+    final chapterMode =
+        ref.watch(globalSettingByKeyProvider(SettingKeys.sleepTimerAutoMode)).asData?.value == 'chapters';
+    final rememberedMinutes = ref
+        .read(settingsManagerProvider.notifier)
+        .getGlobalSetting<int>(SettingKeys.sleepTimerLastDurationMinutes);
 
     return SettingsPageScaffold(
       title: 'Player - Sleep Timer',
@@ -89,8 +95,23 @@ class PlayerSettingsSleepTimer extends ConsumerWidget {
           settings: [
             const SettingSwitchTile(
               label: 'Auto-restart timer on playback start',
-              subtitle: 'When playback starts and no timer is active, automatically start a new sleep timer using your last duration',
+              subtitle: 'Start the configured timer when playback starts and no timer is active',
               settingKey: SettingKeys.sleepTimerAutoRestartEnabled,
+            ),
+            SettingDropdown<String>(
+              label: 'Automatic timer mode',
+              description: 'Chapter timers only start for items with chapters',
+              values: const ['minutes', 'chapters'],
+              valueLabels: const ['Minutes', 'Chapters'],
+              settingKey: SettingKeys.sleepTimerAutoMode,
+              enabled: autoRestartEnabled,
+            ),
+            SettingPositiveInteger(
+              key: ValueKey(chapterMode),
+              label: chapterMode ? 'Number of chapters' : 'Timer minutes',
+              settingKey: chapterMode ? SettingKeys.sleepTimerAutoChapters : SettingKeys.sleepTimerAutoMinutes,
+              fallback: chapterMode ? 1 : (rememberedMinutes > 0 ? rememberedMinutes : 30),
+              enabled: autoRestartEnabled,
             ),
             SettingSwitchTile(
               label: 'Only auto-restart during a time range',
