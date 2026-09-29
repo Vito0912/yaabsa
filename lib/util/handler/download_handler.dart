@@ -1632,8 +1632,7 @@ class DownloadHandler {
       return true;
     }
 
-    final fileType = file.fileType?.trim().toLowerCase();
-    if (fileType == 'ebook' || fileType == 'e-book') {
+    if (file.fileType == 'ebook') {
       return true;
     }
 

@@ -49,12 +49,13 @@ abstract class InternalDownload with _$InternalDownload {
   }
 
   int get numberOfFiles {
+    final expected = expectedFileCount;
+    if (expected != null && expected > 0) {
+      return expected;
+    }
+
     final resolvedItem = item;
     if (resolvedItem == null) {
-      final expected = expectedFileCount;
-      if (expected != null && expected > 0) {
-        return expected;
-      }
       return numberOfTracks;
     }
 
@@ -65,27 +66,49 @@ abstract class InternalDownload with _$InternalDownload {
     final hasAudio = downloadType == 'audiobook' || downloadType == 'both';
     final hasEbook = downloadType == 'ebook' || downloadType == 'both';
 
-    int count = 0;
+    final fileInodes = <String>{};
+    void addFile(String inode, String filename, String extension) {
+      final normalizedInode = inode.trim();
+      if (normalizedInode.isEmpty ||
+          extension.trim().toLowerCase().replaceFirst(RegExp(r'^\.'), '') == 'json' ||
+          filename.trim().toLowerCase().endsWith('.json')) {
+        return;
+      }
+      fileInodes.add(normalizedInode);
+    }
+
     if (hasAudio) {
-      count += resolvedItem.media?.bookMedia?.audioFiles?.length ?? 0;
+      for (final audioFile in resolvedItem.media?.bookMedia?.audioFiles ?? []) {
+        addFile(audioFile.ino, audioFile.metadata.filename, audioFile.metadata.ext);
+      }
     }
+    final ebookFile = resolvedItem.media?.bookMedia?.ebookFile;
     if (hasEbook) {
-      if (resolvedItem.media?.bookMedia?.ebookFile != null) {
-        count += 1;
-      }
-      final libraryFiles = resolvedItem.libraryFiles ?? const <LibraryFile>[];
-      for (final libraryFile in libraryFiles) {
-        if (FileFormats.isEbook(libraryFile.metadata.ext)) {
-          count += 1;
-        }
+      if (ebookFile != null) {
+        addFile(ebookFile.ino, ebookFile.metadata.filename, ebookFile.metadata.ext);
       }
     }
-    return count > 0 ? count : numberOfTracks;
+    for (final libraryFile in resolvedItem.libraryFiles ?? const <LibraryFile>[]) {
+      final metadata = libraryFile.metadata;
+      final isEbook =
+          libraryFile.ino == ebookFile?.ino ||
+          libraryFile.fileType == 'ebook' ||
+          FileFormats.isEbook(metadata.ext) ||
+          FileFormats.isEbook(metadata.filename) ||
+          FileFormats.isEbook(metadata.path) ||
+          FileFormats.isEbook(metadata.relPath);
+      if (isEbook ? hasEbook : hasAudio) {
+        addFile(libraryFile.ino, metadata.filename, metadata.ext);
+      }
+    }
+    return fileInodes.isNotEmpty ? fileInodes.length : numberOfTracks;
   }
 
   int get numberOfDownloadedFiles {
-    final uniqueAuxiliaryFiles = auxiliaryFilePaths.where((path) => path.trim().isNotEmpty).toSet();
-    return numberOfDownloadedTracks + uniqueAuxiliaryFiles.length;
+    return <String>{
+      ...tracks.map((track) => track.url).whereType<String>().where((path) => path.trim().isNotEmpty),
+      ...auxiliaryFilePaths.where((path) => path.trim().isNotEmpty),
+    }.length;
   }
 
   bool get isComplete {
