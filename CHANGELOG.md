@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- (Android) Added support for Live updates
+  - Time remaining/Current time
+  - Current Progress
+  - Remaining sleep timer time
+
 ## 1.13.0
 
 ### Fixed

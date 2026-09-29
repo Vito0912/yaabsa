@@ -217,6 +217,8 @@ class SleepTimerHandler extends _$SleepTimerHandler {
     return ref.read(settingsManagerProvider.notifier).getGlobalSetting<bool>(SettingKeys.sleepTimerFadeOutEnabled);
   }
 
+  Duration get remainingTime => state.isRunning ? _remainingForCurrentRun() : state.remainingTime;
+
   Duration _remainingForCurrentRun() {
     final countdownStartTime = _countdownStartTime;
     final countdownRunDuration = _countdownRunDuration;

@@ -33,4 +33,10 @@
     <string name="widget_config_subtitle">Select the shelf this widget should display.</string>
     <string name="widget_config_populate_all">Populate all</string>
     <string name="widget_config_cancel">Cancel</string>
+    <string name="live_update_channel">Playback Live Updates</string>
+    <string name="live_update_elapsed">%1$s elapsed</string>
+    <string name="live_update_remaining">%1$s remaining</string>
+    <string name="live_update_sleep_timer">Sleep timer: %1$s remaining</string>
+    <string name="live_update_percentage">%1$d%% completed</string>
+    <string name="live_update_unknown_duration">Remaining time unavailable</string>
 </resources>

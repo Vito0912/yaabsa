@@ -15,6 +15,7 @@ class SettingKeys {
   static const String keepWebsocketConnectionInBackground = 'keep_websocket_connection_in_background';
   static const String lockMediaNotification = 'lock_media_notification';
   static const String mediaNotificationType = 'media_notification_type';
+  static const String androidLiveUpdates = 'android_live_updates';
   static const String mediaNotificationPages = 'media_notification_pages';
   static const String showNotificationMoreButton = 'show_notification_more_button';
   static const String autoPlayLastPlayedOnLaunch = 'auto_play_last_played_on_launch';
@@ -187,6 +188,7 @@ final defaultSettings = {
   SettingKeys.keepWebsocketConnectionInBackground: !_defaultEnableOnMobile,
   SettingKeys.lockMediaNotification: false,
   SettingKeys.mediaNotificationType: MediaNotificationType.full.name,
+  SettingKeys.androidLiveUpdates: AndroidLiveUpdateMode.off.name,
   SettingKeys.mediaNotificationPages: '[["rewind", "fastForward", "speed", "stop"]]',
   SettingKeys.showNotificationMoreButton: false,
   SettingKeys.autoPlayLastPlayedOnLaunch: false,
@@ -631,5 +633,21 @@ enum MediaNotificationType {
       case MediaNotificationType.chapter:
         return 'Chapter';
     }
+  }
+}
+
+enum AndroidLiveUpdateMode {
+  off('Off'),
+  currentTime('Show current time'),
+  remainingTime('Show remaining time'),
+  sleepTimer('Show sleep timer'),
+  progressPercentage('Show progress percentage');
+
+  const AndroidLiveUpdateMode(this.label);
+
+  final String label;
+
+  static AndroidLiveUpdateMode fromSettingValue(String? value) {
+    return values.where((mode) => mode.name == value).firstOrNull ?? off;
   }
 }

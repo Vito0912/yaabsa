@@ -48,6 +48,8 @@ import 'package:yaabsa/util/audio_handler/player_history_handler.dart';
 import 'package:yaabsa/util/audio_handler/auto/android_auto_browse_models.dart';
 import 'package:yaabsa/util/handler/tray_handler.dart' show TrayManager;
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/android_live_updates.dart';
+import 'package:yaabsa/util/handler/sleep_timer_handler.dart';
 import 'package:yaabsa/util/network/request_headers.dart';
 import 'package:yaabsa/util/player_utils.dart' show PlayerUtils;
 import 'package:yaabsa/util/setting_key.dart';
@@ -56,6 +58,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:rxdart/rxdart.dart';
 
+part 'bg_audio_handler_live_updates.dart';
 part 'bg_audio_handler_models.dart';
 part 'bg_audio_handler_runtime.dart';
 part 'bg_audio_handler_resume.dart';
@@ -105,6 +108,10 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   late final StreamSubscription<String?> _activeUserIdSubscription;
   late final StreamSubscription<String?> _showLastPlayedMiniPlayerSettingSubscription;
   late final StreamSubscription<String?> _mediaNotificationTypeSubscription;
+  StreamSubscription<String?>? _liveUpdatesSettingSubscription;
+  ProviderSubscription<SleepTimerData>? _liveUpdatesSleepTimerSubscription;
+  bool _liveUpdatesActive = false;
+  AndroidLiveUpdateMode _liveUpdateMode = AndroidLiveUpdateMode.off;
   late final StreamSubscription<String?> _mediaNotificationPagesSubscription;
   late final StreamSubscription<String?> _showSkipInsteadOfFastForwardSubscription;
   late final StreamSubscription<String?> _mediaSkipControlsSeekSubscription;
@@ -1618,6 +1625,10 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           unawaited(_updatePlaybackState());
         });
 
+    if (!kIsWeb && Platform.isAndroid) {
+      unawaited(_initializeLiveUpdates());
+    }
+
     _loadNotificationPages();
     _mediaNotificationPagesSubscription = _ref
         .read(appDatabaseProvider)
@@ -2170,6 +2181,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         speed: hasPlaybackContext ? effectiveSpeed : 1.0,
       ),
     );
+    _updateLiveUpdateNotification();
   }
 
   void _loadNotificationPages() {
@@ -2221,6 +2233,9 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     await _activeUserIdSubscription.cancel();
     await _showLastPlayedMiniPlayerSettingSubscription.cancel();
     await _mediaNotificationTypeSubscription.cancel();
+    await _liveUpdatesSettingSubscription?.cancel();
+    _liveUpdatesSleepTimerSubscription?.close();
+    if (_liveUpdatesActive) await AndroidLiveUpdates.clear();
     await _mediaNotificationPagesSubscription.cancel();
     await _showSkipInsteadOfFastForwardSubscription.cancel();
     await _mediaSkipControlsSeekSubscription.cancel();
