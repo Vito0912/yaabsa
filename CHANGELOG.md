@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Fixed
+
+- Downloads showing incorrect number of To-Be-Downloaded items
+
 ### Added
 
 - (Android) Added support for Live updates
