@@ -1090,6 +1090,7 @@ jobs:
       - check-requirements
     if: ${{ needs.changes.outputs.build_windows == 'true' && needs.changes.outputs.build_skip != 'true' }}
     timeout-minutes: 20
+    environment: prod
     steps:
       - name: Checkout
         uses: actions/checkout@v7
