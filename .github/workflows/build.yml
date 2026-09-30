@@ -1110,10 +1110,28 @@ jobs:
         with:
           flow: build-windows
 
-      - name: Install packaging tools
+      - name: Check MSIX signing configuration
+        id: msix_signing
+        shell: pwsh
+        env:
+          WINDOWS_MSIX_PFX_BASE64: ${{ secrets.WINDOWS_MSIX_PFX_BASE64 }}
+          WINDOWS_MSIX_PFX_PASSWORD: ${{ secrets.WINDOWS_MSIX_PFX_PASSWORD }}
+        run: |
+          if ([bool]$env:WINDOWS_MSIX_PFX_BASE64 -ne [bool]$env:WINDOWS_MSIX_PFX_PASSWORD) {
+            throw "Set both WINDOWS_MSIX_PFX_BASE64 and WINDOWS_MSIX_PFX_PASSWORD."
+          }
+          if ($env:WINDOWS_MSIX_PFX_BASE64 -and $env:WINDOWS_MSIX_PFX_PASSWORD) {
+            "enabled=true" >> $env:GITHUB_OUTPUT
+          } else {
+            "enabled=false" >> $env:GITHUB_OUTPUT
+          }
+
+      - name: Install MSIX packaging tool
+        if: steps.msix_signing.outputs.enabled == 'true'
+        shell: pwsh
         run: |
           dart pub global activate msix
-          echo "$env:LOCALAPPDATA\Pub\Cache\bin" >> $env:GITHUB_PATH
+          "$env:LOCALAPPDATA\Pub\Cache\bin" >> $env:GITHUB_PATH
 
       - name: Build Windows bundle
         run: flutter build windows --release
@@ -1121,8 +1139,52 @@ jobs:
       - name: Build exe installer
         run: pwsh -File windows/packaging/exe/build.ps1
 
-      - name: Build msix installer
+      - name: Build MSIX installer
+        if: steps.msix_signing.outputs.enabled == 'true'
         run: pwsh -File windows/packaging/msix/build.ps1
+
+      - name: Sign MSIX installer
+        if: steps.msix_signing.outputs.enabled == 'true'
+        shell: pwsh
+        env:
+          WINDOWS_MSIX_PFX_BASE64: ${{ secrets.WINDOWS_MSIX_PFX_BASE64 }}
+          WINDOWS_MSIX_PFX_PASSWORD: ${{ secrets.WINDOWS_MSIX_PFX_PASSWORD }}
+        run: |
+          $pfxPath = Join-Path $env:RUNNER_TEMP "yaabsa-signing.pfx"
+          try {
+            [IO.File]::WriteAllBytes($pfxPath, [Convert]::FromBase64String($env:WINDOWS_MSIX_PFX_BASE64))
+            $certificate = [Security.Cryptography.X509Certificates.X509Certificate2]::new(
+              $pfxPath,
+              $env:WINDOWS_MSIX_PFX_PASSWORD,
+              [Security.Cryptography.X509Certificates.X509KeyStorageFlags]::EphemeralKeySet
+            )
+            if ($certificate.Subject -ne "CN=Vito0912") {
+              throw "MSIX signing certificate subject must be CN=Vito0912."
+            }
+
+            $msix = Get-ChildItem -Path "output/windows" -Filter "*.msix" | Select-Object -First 1
+            if (-not $msix) {
+              throw "Windows MSIX artifact not found."
+            }
+            $signtool = Get-ChildItem -Path "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\signtool.exe" |
+              Sort-Object FullName -Descending | Select-Object -First 1
+            if (-not $signtool) {
+              throw "Windows SDK SignTool not found."
+            }
+
+            & $signtool.FullName sign /fd SHA256 /f $pfxPath /p $env:WINDOWS_MSIX_PFX_PASSWORD $msix.FullName
+            if ($LASTEXITCODE -ne 0) {
+              throw "MSIX signing failed."
+            }
+
+            $cerPath = Join-Path "output/windows" "yaabsa-signing.cer"
+            [IO.File]::WriteAllBytes(
+              $cerPath,
+              $certificate.Export([Security.Cryptography.X509Certificates.X509ContentType]::Cert)
+            )
+          } finally {
+            Remove-Item -Path $pfxPath -Force -ErrorAction SilentlyContinue
+          }
 
       - name: Build Windows bundle zip
         run: |
@@ -1142,10 +1204,9 @@ jobs:
           FILE_VERSION: ${{ needs.changes.outputs.file_version }}
         run: |
           $msix = Get-ChildItem -Path "output/windows" -Filter "*.msix" | Select-Object -First 1
-          if (-not $msix) {
-            throw "Windows msix artifact not found."
+          if ($msix) {
+            Move-Item -Path $msix.FullName -Destination ("output/windows/yaabsa_{0}.msix" -f $env:FILE_VERSION) -Force
           }
-          Move-Item -Path $msix.FullName -Destination ("output/windows/yaabsa_{0}.msix" -f $env:FILE_VERSION) -Force
 
           $exe = Get-ChildItem -Path "output/windows" -Filter "*.exe" | Select-Object -First 1
           if (-not $exe) {
@@ -1159,11 +1220,15 @@ jobs:
           }
           Move-Item -Path $bundleZip.FullName -Destination ("output/windows/yaabsa_{0}.zip" -f $env:FILE_VERSION) -Force
 
-      - name: Upload Windows msix artifact
+      - name: Upload Windows MSIX artifact and public certificate
+        if: steps.msix_signing.outputs.enabled == 'true'
         uses: actions/upload-artifact@v7
         with:
           name: windows-msix
-          path: output/windows/yaabsa_*.msix
+          path: |
+            output/windows/yaabsa_*.msix
+            output/windows/yaabsa-signing.cer
+          if-no-files-found: error
 
       - name: Upload Windows exe artifact
         uses: actions/upload-artifact@v7
