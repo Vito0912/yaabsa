@@ -36,6 +36,7 @@ List<MediaProgress> mediaProgressForLibraryItem(Ref ref, String libraryItemId) {
 }
 
 class MediaProgressStore {
+  String? userId;
   Map<String, MediaProgress> progressByKey = <String, MediaProgress>{};
   Map<String, Map<String, MediaProgress>> progressByLibraryItemId = <String, Map<String, MediaProgress>>{};
   bool isInitialized = false;
@@ -181,6 +182,11 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
   }
 
   String? _activeUserId() {
+    final activeUserId = ref.read(activeUserIdProvider).value;
+    if (activeUserId != null && activeUserId.isNotEmpty) {
+      return activeUserId;
+    }
+
     final currentUserId = ref.read(currentUserProvider).value?.id;
     if (currentUserId != null && currentUserId.isNotEmpty) {
       return currentUserId;
@@ -273,11 +279,13 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
   }
 
   Future<Map<String, MediaProgress>> _loadLocalProgressMap({String? userId}) async {
+    if (userId == null || userId.isEmpty) {
+      return <String, MediaProgress>{};
+    }
+
     final db = ref.read(appDatabaseProvider);
 
-    final List<StoredSyncEntry> syncEntries = (userId == null || userId.isEmpty)
-        ? await db.getAllSyncs()
-        : await db.getAllSyncsByUser(userId);
+    final syncEntries = await db.getAllSyncsByUser(userId);
 
     final Map<String, MediaProgress> syncProgressMap = <String, MediaProgress>{};
     for (final entry in syncEntries) {
@@ -293,10 +301,6 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
       } else {
         syncProgressMap[key] = _preferMostRecentProgress(existing, progress);
       }
-    }
-
-    if (userId == null || userId.isEmpty) {
-      return syncProgressMap;
     }
 
     final cachedEntries = await db.getStoredMediaProgressByUser(userId);
@@ -350,8 +354,9 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
   }
 
   Future<void> _persistProgressList(Iterable<MediaProgress> progressList) async {
+    final operationRef = ref;
     for (final progress in progressList) {
-      if (!ref.mounted) {
+      if (!operationRef.mounted) {
         return;
       }
       await _persistProgress(progress);
@@ -387,23 +392,28 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
 
   @override
   Future<void> build() async {
-    _store.isInitialized = false;
-    _replaceProgressMap(const <String, MediaProgress>{});
+    final operationRef = ref;
+    final absApi = ref.watch(absApiProvider);
+    final userId = ref.watch(activeUserIdProvider).value ?? absApi?.user?.id;
+    if (_store.userId != userId) {
+      _store.userId = userId;
+      _store.isInitialized = false;
+      _replaceProgressMap(const <String, MediaProgress>{});
+    }
 
-    ref.listen(absApiProvider, (previous, next) {
-      Future.microtask(() => ref.invalidateSelf());
-    });
-
-    final userId = _activeUserId();
     final localMap = await _loadLocalProgressMap(userId: userId);
-    if (!ref.mounted) {
+    if (!operationRef.mounted) {
       return;
     }
     _replaceProgressMap(_mergeProgressMaps(localMap, _progressByKey));
     _store.isInitialized = true;
+    logger(
+      'Loaded ${localMap.length} local progress entries. Retaining $progressCount entries in memory.',
+      tag: 'MediaProgressProvider',
+      level: InfoLevel.debug,
+    );
 
-    final absApi = ref.read(absApiProvider);
-    if (absApi == null) {
+    if (absApi == null || absApi.user?.id != userId) {
       logger(
         'ABSApi is not available yet. Skipping remote progress fetch.',
         tag: 'MediaProgressProvider',
@@ -414,27 +424,36 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
 
     try {
       final remoteProgress = await _fetchAllRemoteProgress(absApi);
-      if (!ref.mounted) {
+      if (!operationRef.mounted) {
         return;
       }
       final remoteMap = _listToMap(remoteProgress);
       final mergedMap = _mergeProgressMaps(_progressByKey, remoteMap);
       _replaceProgressMap(mergedMap);
+      logger(
+        'Fetched ${remoteMap.length} remote progress entries. Retaining $progressCount entries after merging.',
+        tag: 'MediaProgressProvider',
+        level: InfoLevel.debug,
+      );
       await _persistProgressList(remoteMap.values);
     } catch (e, s) {
+      if (!operationRef.mounted) {
+        return;
+      }
       logger(
         'Error fetching remote media progress in build: $e\n$s',
         tag: 'MediaProgressProvider',
         level: InfoLevel.error,
       );
-      if (localMap.isEmpty) {
+      if (_progressByKey.isEmpty) {
         _store.isInitialized = false;
         rethrow;
       }
     }
   }
 
-  Future<void> refreshAllProgress({bool clearBefore = true}) async {
+  Future<void> refreshAllProgress({bool clearBefore = false}) async {
+    final operationRef = ref;
     final previousMap = Map<String, MediaProgress>.of(_progressByKey);
     if (clearBefore) {
       _replaceProgressMap(const <String, MediaProgress>{});
@@ -442,10 +461,11 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
 
     final userId = _activeUserId();
     final localMap = await _loadLocalProgressMap(userId: userId);
-    if (!ref.mounted) {
+    if (!operationRef.mounted) {
       return;
     }
     final baseMap = _mergeProgressMaps(previousMap, localMap);
+    _replaceProgressMap(_mergeProgressMaps(baseMap, _progressByKey));
 
     final absApi = ref.read(absApiProvider);
     if (absApi == null) {
@@ -454,13 +474,12 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
         tag: 'MediaProgressProvider',
         level: InfoLevel.debug,
       );
-      _replaceProgressMap(_mergeProgressMaps(baseMap, _progressByKey));
       return;
     }
 
     try {
       final remoteProgress = await _fetchAllRemoteProgress(absApi);
-      if (!ref.mounted) {
+      if (!operationRef.mounted) {
         return;
       }
       final remoteMap = _listToMap(remoteProgress);
@@ -470,7 +489,7 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
     } catch (e, s) {
       logger('Error refreshing all media progress: $e\n$s', tag: 'MediaProgressProvider', level: InfoLevel.error);
 
-      if (!ref.mounted) {
+      if (!operationRef.mounted) {
         return;
       }
       _replaceProgressMap(_mergeProgressMaps(baseMap, _progressByKey));
@@ -482,6 +501,7 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
     String? episodeId,
     String? userId,
   }) async {
+    final operationRef = ref;
     final key = _progressKey(libraryItemId, episodeId);
     final existingMap = _progressByKey;
     MediaProgress? localProgress = existingMap[key];
@@ -489,11 +509,11 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
 
     if (localProgress == null) {
       final localMap = await _loadLocalProgressMap(userId: effectiveUserId);
-      if (!ref.mounted) {
+      if (!operationRef.mounted) {
         return localProgress;
       }
       if (localMap.isNotEmpty) {
-        final mergedMap = _mergeProgressMaps(existingMap, localMap);
+        final mergedMap = _mergeProgressMaps(localMap, _progressByKey);
         _replaceProgressMap(mergedMap);
         localProgress = mergedMap[key];
       }
@@ -512,7 +532,7 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
     try {
       final meApi = absApi.getMeApi();
       final response = await meApi.getProgress(libraryItemId, episodeId: episodeId);
-      if (!ref.mounted) {
+      if (!operationRef.mounted) {
         return localProgress;
       }
       localProgress = _progressByKey[key] ?? localProgress;
@@ -538,7 +558,7 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
       }
 
       await _persistProgress(remoteProgress);
-      if (!ref.mounted) {
+      if (!operationRef.mounted) {
         return localProgress;
       }
 
@@ -570,6 +590,9 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
       await _persistProgress(resolvedProgress);
       return resolvedProgress;
     } on DioException catch (e) {
+      if (!operationRef.mounted) {
+        return localProgress;
+      }
       if (e.response?.statusCode == 404) {
         if (localProgress != null) {
           logger(
