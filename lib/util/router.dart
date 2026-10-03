@@ -154,6 +154,8 @@ class _ActiveUserIdNotifier extends ChangeNotifier {
 
 final _activeUserIdNotifier = _ActiveUserIdNotifier();
 
+final readerRouteObserver = RouteObserver<PageRoute<void>>();
+
 Page<void> _buildAdaptiveHomeShellPage(BuildContext context, GoRouterState state, Widget child) {
   return NoTransitionPage<void>(key: state.pageKey, child: child);
 }
@@ -161,6 +163,7 @@ Page<void> _buildAdaptiveHomeShellPage(BuildContext context, GoRouterState state
 final globalRouter = GoRouter(
   initialLocation: '/',
   refreshListenable: _activeUserIdNotifier,
+  observers: [readerRouteObserver],
   redirect: (context, state) {
     final activeUserId = _activeUserIdNotifier.activeUserId;
     final isBootRoute = state.matchedLocation == _bootRoutePath;

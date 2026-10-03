@@ -64,6 +64,7 @@ class SeekBarSlider extends StatefulWidget {
     this.showSleepTimerPin = true,
     this.showSleepTimerRange = true,
     this.onSleepTimerMarkerTap,
+    this.onlySeekOnDragEnd = false,
   });
 
   final double trackHeight;
@@ -82,6 +83,7 @@ class SeekBarSlider extends StatefulWidget {
   final bool showSleepTimerPin;
   final bool showSleepTimerRange;
   final Future<void> Function()? onSleepTimerMarkerTap;
+  final bool onlySeekOnDragEnd;
 
   @override
   State<SeekBarSlider> createState() => _SeekBarSliderState();
@@ -140,7 +142,9 @@ class _SeekBarSliderState extends State<SeekBarSlider> {
     if (_dragValue != value) {
       setState(() => _dragValue = value);
     }
-    _queueBackendSeek(value);
+    if (!widget.onlySeekOnDragEnd) {
+      _queueBackendSeek(value);
+    }
   }
 
   void _handleSliderChangeEnd(double value) {

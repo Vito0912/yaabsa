@@ -28,6 +28,7 @@ class SeekBarRow extends StatelessWidget {
     this.showSleepTimerPin = true,
     this.showSleepTimerRange = true,
     this.onSleepTimerMarkerTap,
+    this.onlySeekOnDragEnd = false,
   });
 
   final double trackHeight;
@@ -52,6 +53,7 @@ class SeekBarRow extends StatelessWidget {
   final bool showSleepTimerPin;
   final bool showSleepTimerRange;
   final Future<void> Function()? onSleepTimerMarkerTap;
+  final bool onlySeekOnDragEnd;
 
   Duration _clampDuration(Duration value, Duration min, Duration max) {
     if (value < min) {
@@ -124,6 +126,7 @@ class SeekBarRow extends StatelessWidget {
       showSleepTimerPin: showSleepTimerPin,
       showSleepTimerRange: showSleepTimerRange,
       onSleepTimerMarkerTap: onSleepTimerMarkerTap,
+      onlySeekOnDragEnd: onlySeekOnDragEnd,
     );
 
     if (!showTimeLabels) {

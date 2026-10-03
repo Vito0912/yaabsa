@@ -272,6 +272,10 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
   }
 
   Future<void> _reconcileResumeProgressInBackground(InternalMedia resumeItem, Duration startPosition) async {
+    if (isPlayingEphemeralMedia) {
+      return;
+    }
+
     final activeUserId = _ref.read(currentUserProvider).value?.id;
     final isMusic = _ref
         .read(settingsManagerProvider.notifier)

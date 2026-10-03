@@ -80,6 +80,8 @@ dependencies:
   pdfrx: ^2.4.7
   foliate_reader:
     path: ./packages/foliate_reader
+  archive: ^4.2.0
+  xml: ^7.0.1
 
   ## Platform
   just_audio_media_kit:

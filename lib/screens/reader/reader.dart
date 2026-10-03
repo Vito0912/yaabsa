@@ -14,6 +14,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:audio_service/audio_service.dart' show PlaybackState;
 import 'package:dio/dio.dart';
 import 'package:foliate_reader/foliate_reader.dart';
 import 'package:pdfrx/pdfrx.dart';
@@ -25,6 +26,7 @@ import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/models/internal_annotation.dart';
 import 'package:yaabsa/models/internal_download.dart';
+import 'package:yaabsa/models/internal_media.dart' show playerCoverRequestDimension;
 import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/core/server_reachability_provider.dart';
@@ -37,7 +39,13 @@ import 'package:yaabsa/screens/reader/widgets/reader_epub_annotation_sheet.dart'
 import 'package:yaabsa/screens/settings/reader_settings.dart';
 import 'package:yaabsa/screens/settings/reader_tts_settings.dart';
 import 'package:yaabsa/screens/reader/widgets/reader_pdf_view.dart';
+import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/media_overlay/epub_media_overlay_engine.dart';
+import 'package:yaabsa/util/media_overlay/epub_media_overlay_models.dart';
+import 'package:yaabsa/util/player_utils.dart';
+import 'package:yaabsa/util/router.dart' show readerRouteObserver;
+import 'package:yaabsa/util/media_overlay/epub_media_overlay_playback_controller.dart';
 import 'package:yaabsa/util/network/request_headers.dart';
 import 'package:yaabsa/util/server_version.dart';
 import 'package:yaabsa/util/setting_key.dart';
@@ -46,6 +54,7 @@ part 'reader_annotation_actions.dart';
 part 'reader_annotation_sync.dart';
 part 'reader_builders.dart';
 part 'reader_core_helpers.dart';
+part 'reader_media_overlay.dart';
 part 'reader_pdf_helpers.dart';
 
 const Duration _kSnackBarDuration = Duration(seconds: 2);
@@ -61,7 +70,7 @@ class Reader extends ConsumerStatefulWidget {
   ConsumerState<Reader> createState() => _ReaderState();
 }
 
-class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
+class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver, RouteAware {
   final FoliateViewerController epubController = FoliateViewerController();
   final PdfViewerController _pdfController = PdfViewerController();
 
@@ -109,6 +118,27 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
   bool _isApplyingSettings = false;
   bool _hasMediaOverlays = false;
   String _mediaOverlayState = 'stopped';
+  EpubMediaOverlayPlaybackController? _mediaOverlayPlaybackController;
+  bool _isLoadingMediaOverlayController = false;
+  StreamSubscription<PlaybackState>? _mediaOverlayPlaybackStateSubscription;
+  StreamSubscription<Duration>? _mediaOverlayHighlightSubscription;
+  bool? _lastShowMiniPlayerForResize;
+  bool _lastMiniPlayerAttributedToMediaOverlay = false;
+  DateTime? _mediaOverlayStoppedAt;
+  static const Duration _mediaOverlayStopSyncSuppressWindow = Duration(seconds: 2);
+
+  bool get _isWithinMediaOverlayStopSyncSuppressWindow {
+    final stoppedAt = _mediaOverlayStoppedAt;
+    if (stoppedAt == null) return false;
+    return DateTime.now().difference(stoppedAt) < _mediaOverlayStopSyncSuppressWindow;
+  }
+  bool _audioHandlerShouldShowPlayer = false;
+  StreamSubscription<bool>? _shouldShowPlayerSubscription;
+  MediaOverlayFlatClip? _lastHighlightedMediaOverlayClip;
+  bool _isDrainingMediaOverlayHighlightQueue = false;
+  bool _hasPendingMediaOverlayHighlightUpdate = false;
+  MediaOverlayFlatClip? _pendingMediaOverlayHighlightClip;
+  Completer<(int, String)?>? _mediaOverlayStartTargetCompleter;
 
   bool get _isMediaOverlayActive => _mediaOverlayState != 'stopped';
   bool get _isAudioPlaybackActive => _isTtsPlaying || _isMediaOverlayActive;
@@ -491,7 +521,7 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
 
   Future<void> _startTts() async {
     if (_mediaOverlayState != 'stopped') {
-      unawaited(epubController.stopMediaOverlay());
+      unawaited(_stopMediaOverlayNarration());
     }
 
     if (_flutterTts == null) {
@@ -591,6 +621,41 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
     HardwareKeyboard.instance.addHandler(_handleVolumeKeys);
     unawaited(_refreshStoredProgress());
     unawaited(_loadStoredDownload());
+    _listenForMediaOverlayPlaybackState();
+    _audioHandlerShouldShowPlayer = audioHandler.shouldShowPlayerNow;
+    _shouldShowPlayerSubscription = audioHandler.shouldShowPlayer.listen((value) {
+      if (value == _audioHandlerShouldShowPlayer) return;
+      _readerSetState(() {
+        _audioHandlerShouldShowPlayer = value;
+      });
+    });
+  }
+
+  ModalRoute<void>? _subscribedReaderRoute;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is PageRoute<void> && !identical(route, _subscribedReaderRoute)) {
+      if (_subscribedReaderRoute != null) {
+        readerRouteObserver.unsubscribe(this);
+      }
+      _subscribedReaderRoute = route;
+      readerRouteObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void didPushNext() {
+    PlayerUtils.disableReadingWakelock();
+  }
+
+  @override
+  void didPopNext() {
+    if (_isMediaOverlayActive) {
+      PlayerUtils.enableReadingWakelock();
+    }
   }
 
   @override
@@ -599,6 +664,9 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
     if (oldWidget.itemId != widget.itemId) {
       unawaited(_closeReadingSession());
       unawaited(epubController.close());
+      unawaited(_disposeMediaOverlay());
+      _hasMediaOverlays = false;
+      _mediaOverlayState = 'stopped';
       _pendingSyncLocation = null;
       _pendingSyncProgress = null;
       _lastProgressSyncTime = null;
@@ -621,8 +689,11 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
     _isDisposed = true;
     WidgetsBinding.instance.removeObserver(this);
     HardwareKeyboard.instance.removeHandler(_handleVolumeKeys);
+    readerRouteObserver.unsubscribe(this);
+    unawaited(_shouldShowPlayerSubscription?.cancel());
     unawaited(_closeReadingSession());
     unawaited(epubController.close());
+    unawaited(_disposeMediaOverlay());
     _stopTts();
     _annotationsSyncDebounce?.cancel();
     _systemUiTimer?.cancel();
@@ -674,10 +745,6 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
 
     _canReachServer = ref.watch(serverReachabilityProvider);
 
-    final hideMiniPlayerSetting = ref
-        .read(settingsManagerProvider.notifier)
-        .getGlobalSetting<bool>(SettingKeys.readerHideMiniPlayer);
-
     final userAsync = ref.watch(currentUserProvider);
     final itemAsync = ref.watch(libraryItemProvider(widget.itemId));
     final effectiveInitialLocation = _resolvedEbookLocation ?? currentProgress?.ebookLocation;
@@ -686,6 +753,37 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
       data: (item) => _resolveReaderMode(item) == _ReaderRenderMode.epub,
       orElse: () => true,
     );
+
+    final hideMiniPlayerSetting = ref
+        .read(settingsManagerProvider.notifier)
+        .getGlobalSetting<bool>(SettingKeys.readerHideMiniPlayer);
+    final showMiniPlayer = _isMediaOverlayActive || (!hideMiniPlayerSetting && _audioHandlerShouldShowPlayer);
+
+    final miniPlayerChangeIsForNarration = showMiniPlayer
+        ? (!(_lastShowMiniPlayerForResize ?? false) && _isMediaOverlayActive)
+        : _lastMiniPlayerAttributedToMediaOverlay;
+    if (isEpubMode &&
+        _lastShowMiniPlayerForResize != null &&
+        _lastShowMiniPlayerForResize != showMiniPlayer &&
+        !miniPlayerChangeIsForNarration) {
+      final restoreLocation = _currentEpubLocation?.cfi;
+      if (restoreLocation != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          unawaited(epubController.goTo(restoreLocation));
+        });
+      }
+    }
+    _lastShowMiniPlayerForResize = showMiniPlayer;
+    _lastMiniPlayerAttributedToMediaOverlay = showMiniPlayer && _isMediaOverlayActive;
+
+    const double miniPlayerContentHeight = 84.0;
+    final double reservedBottomInset = showMiniPlayer
+        ? miniPlayerContentHeight + MediaQuery.of(context).padding.bottom
+        : 0.0;
+
+    const double progressIndicatorClearance = 28.0;
+    final double webViewBottomInset = reservedBottomInset + progressIndicatorClearance;
 
     final scaffoldBg = switch (_readerTheme) {
       'light' => Colors.white,
@@ -701,9 +799,13 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
       body: SafeArea(
         top: false,
         bottom: false,
-        child: Column(
+        child: Stack(
           children: [
-            Expanded(
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: webViewBottomInset,
               child: Stack(
                 children: [
                   Positioned.fill(
@@ -775,18 +877,23 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
                     ),
                   ),
                   _buildTopBar(isEpubMode: isEpubMode),
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    child: IgnorePointer(child: _buildBottomProgressIndicator(isEpubMode: isEpubMode)),
-                  ),
                   Positioned(left: 0, right: 0, bottom: 80, child: Center(child: _buildTtsControlPanel())),
-                  Positioned(left: 0, right: 0, bottom: 80, child: Center(child: _buildMediaOverlayControlPanel())),
                 ],
               ),
             ),
-            if (!hideMiniPlayerSetting) const PlayBar(includeBottomSafeArea: true, attachedToBottom: true),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: reservedBottomInset,
+              child: IgnorePointer(child: _buildBottomProgressIndicator(isEpubMode: isEpubMode)),
+            ),
+            if (showMiniPlayer)
+              const Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: PlayBar(includeBottomSafeArea: true, attachedToBottom: true),
+              ),
           ],
         ),
       ),

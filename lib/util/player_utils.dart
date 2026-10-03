@@ -14,6 +14,7 @@ class PlayerUtils {
   static final DeviceInfoPlugin _deviceInfoPlugin = DeviceInfoPlugin();
   static const String _playbackWakelockReason = 'playback';
   static const String _uploadWakelockReason = 'upload';
+  static const String _readingWakelockReason = 'reading';
   static final Set<String> _wakelockReasons = <String>{};
 
   static void _enableWakelockReason(String reason) {
@@ -56,6 +57,14 @@ class PlayerUtils {
 
   static void disableUploadWakelock() {
     _disableWakelockReason(_uploadWakelockReason);
+  }
+
+  static void enableReadingWakelock() {
+    _enableWakelockReason(_readingWakelockReason);
+  }
+
+  static void disableReadingWakelock() {
+    _disableWakelockReason(_readingWakelockReason);
   }
 
   static Future<DeviceInfo> getDeviceInfo() async {

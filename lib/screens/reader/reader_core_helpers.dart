@@ -224,7 +224,9 @@ extension _ReaderCoreHelpers on _ReaderState {
     });
 
     _triggerAutoAnnotationLoadIfNeeded(isEpubMode: true);
-    unawaited(_syncEpubProgress(location: currentLocation, progress: location.fraction));
+    if (!_isMediaOverlayActive && !_isWithinMediaOverlayStopSyncSuppressWindow) {
+      unawaited(_syncEpubProgress(location: currentLocation, progress: location.fraction));
+    }
 
     if (_waitingForTtsPageLoad) {
       _waitingForTtsPageLoad = false;

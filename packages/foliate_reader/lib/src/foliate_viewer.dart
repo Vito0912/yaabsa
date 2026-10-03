@@ -99,20 +99,31 @@ class FoliateViewerController {
     await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.clearTtsHighlight();');
   }
 
-  Future<void> startMediaOverlay() async {
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.startMediaOverlay();');
+  Future<void> setMediaOverlayHighlight(String textHref) async {
+    await _webViewController?.evaluateJavascript(
+      source: 'window.FoliateReaderAPI.setMediaOverlayHighlight(${jsonEncode(textHref)});',
+    );
   }
 
-  Future<void> pauseMediaOverlay() async {
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.pauseMediaOverlay();');
+  Future<void> clearMediaOverlayHighlight() async {
+    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.clearMediaOverlayHighlight();');
   }
 
-  Future<void> resumeMediaOverlay() async {
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.resumeMediaOverlay();');
+  Future<String?> getCFIForMediaOverlayTarget(String textHref) async {
+    final res = await _webViewController?.evaluateJavascript(
+      source: 'window.FoliateReaderAPI.getCFIForMediaOverlayTarget(${jsonEncode(textHref)});',
+    );
+    return res as String?;
   }
 
-  Future<void> stopMediaOverlay() async {
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.stopMediaOverlay();');
+  Future<void> setMediaOverlayUiActive(bool active) async {
+    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.setMediaOverlayUiActive($active);');
+  }
+
+  Future<void> requestMediaOverlayStartTarget() async {
+    await _webViewController?.evaluateJavascript(
+      source: 'window.FoliateReaderAPI.requestMediaOverlayStartTarget();',
+    );
   }
 }
 
@@ -149,6 +160,10 @@ class FoliateViewer extends StatefulWidget {
   final void Function(Map<String, dynamic> detail)? onMediaOverlayUnhighlight;
   final void Function(String error)? onMediaOverlayError;
 
+  final void Function(String textHref)? onMediaOverlaySeekRequested;
+
+  final void Function((int, String)? target)? onMediaOverlayStartTarget;
+
   const FoliateViewer({
     super.key,
     this.bookFile,
@@ -175,6 +190,8 @@ class FoliateViewer extends StatefulWidget {
     this.onMediaOverlayHighlight,
     this.onMediaOverlayUnhighlight,
     this.onMediaOverlayError,
+    this.onMediaOverlaySeekRequested,
+    this.onMediaOverlayStartTarget,
     this.bookFetcher,
   });
 
@@ -481,6 +498,34 @@ class _FoliateViewerState extends State<FoliateViewer> {
         if (args.isNotEmpty && widget.onMediaOverlayError != null) {
           widget.onMediaOverlayError!(args[0].toString());
         }
+      },
+    );
+
+    controller.addJavaScriptHandler(
+      handlerName: 'onMediaOverlaySeekRequested',
+      callback: (args) {
+        if (!mounted) return;
+        if (args.isNotEmpty && widget.onMediaOverlaySeekRequested != null) {
+          widget.onMediaOverlaySeekRequested!(args[0].toString());
+        }
+      },
+    );
+
+    controller.addJavaScriptHandler(
+      handlerName: 'onMediaOverlayStartTarget',
+      callback: (args) {
+        if (!mounted) return;
+        if (widget.onMediaOverlayStartTarget == null) return;
+        if (args.isNotEmpty && args[0] is Map) {
+          final data = Map<String, dynamic>.from(args[0] as Map);
+          final sectionIndex = (data['sectionIndex'] as num?)?.toInt();
+          final text = data['text'] as String?;
+          if (sectionIndex != null && text != null) {
+            widget.onMediaOverlayStartTarget!((sectionIndex, text));
+            return;
+          }
+        }
+        widget.onMediaOverlayStartTarget!(null);
       },
     );
 

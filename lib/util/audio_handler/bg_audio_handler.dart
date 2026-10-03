@@ -68,6 +68,7 @@ part 'bg_audio_handler_audio_session.dart';
 part 'bg_audio_handler_state.dart';
 part 'bg_audio_handler_playback_internal.dart';
 part 'bg_audio_handler_source.dart';
+part 'bg_audio_handler_ephemeral.dart';
 part 'bg_audio_handler_custom_actions.dart';
 part 'bg_audio_handler_auto_queue.dart';
 part 'auto/bg_audio_handler_android_auto.dart';
@@ -984,7 +985,9 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         _maybePrefetchAutoQueue();
       }
 
-      if (_player.playerState.processingState == ProcessingState.completed || forceRestart) {
+      final tracks = _currentMediaItem!.tracks;
+      final isAtLastTrack = tracks.isEmpty || _currentTrackIndex >= tracks.length - 1;
+      if ((_player.playerState.processingState == ProcessingState.completed && isAtLastTrack) || forceRestart) {
         await seek(Duration.zero);
       }
 
@@ -1429,8 +1432,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     final relativeTrackPosition = boundedPosition - _currentMediaItem!.startDurationForTrack(newTrackIndex);
 
     if (newTrackIndex != _currentTrackIndex) {
+      await _player.seek(relativeTrackPosition, index: newTrackIndex);
       _currentTrackIndex = newTrackIndex;
-      await _player.seek(relativeTrackPosition, index: _currentTrackIndex);
       if (!kIsWeb && (Platform.isWindows || Platform.isLinux)) {
         // Bugfix for Windows as it doesn't seek correctly if the index changed
         _player.playerStateStream.firstWhere((state) => state.processingState == ProcessingState.ready).then((_) async {

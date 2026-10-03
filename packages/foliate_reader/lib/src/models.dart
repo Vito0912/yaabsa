@@ -5,7 +5,16 @@ class FoliateLocation {
   final FoliateTOCItem? tocItem;
   final FoliateTOCItem? pageItem;
 
-  FoliateLocation({this.cfi, required this.fraction, this.location, this.tocItem, this.pageItem});
+  final int? sectionIndex;
+
+  FoliateLocation({
+    this.cfi,
+    required this.fraction,
+    this.location,
+    this.tocItem,
+    this.pageItem,
+    this.sectionIndex,
+  });
 
   factory FoliateLocation.fromJson(Map<String, dynamic> json) {
     return FoliateLocation(
@@ -18,6 +27,7 @@ class FoliateLocation {
       pageItem: json['pageItem'] != null
           ? FoliateTOCItem.fromJson(Map<String, dynamic>.from(json['pageItem'] as Map))
           : null,
+      sectionIndex: (json['sectionIndex'] as num?)?.toInt(),
     );
   }
 
@@ -28,6 +38,7 @@ class FoliateLocation {
       'location': location,
       'tocItem': tocItem?.toJson(),
       'pageItem': pageItem?.toJson(),
+      'sectionIndex': sectionIndex,
     };
   }
 }
