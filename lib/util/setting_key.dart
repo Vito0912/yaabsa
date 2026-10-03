@@ -10,6 +10,7 @@ class SettingKeys {
   static const String appThemeCustomBlue = 'app_theme_custom_blue';
   static const String currentUserId = 'current_user_id';
   static const String appLogLevel = 'app_log_level';
+  static const String desktopWindowState = 'desktop_window_state';
   static const String bufferSize = 'buffer_size';
   static const String keepScreenOn = 'keep_screen_on';
   static const String keepWebsocketConnectionInBackground = 'keep_websocket_connection_in_background';
@@ -184,6 +185,7 @@ final defaultSettings = {
   SettingKeys.appThemeCustomBlue: 110,
   SettingKeys.currentUserId: null,
   SettingKeys.appLogLevel: InfoLevel.warning.toString(),
+  SettingKeys.desktopWindowState: '',
   SettingKeys.bufferSize: 5 * 1024 * 1024,
   SettingKeys.keepWebsocketConnectionInBackground: !_defaultEnableOnMobile,
   SettingKeys.lockMediaNotification: false,
