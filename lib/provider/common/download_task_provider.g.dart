@@ -12,8 +12,7 @@ part of 'download_task_provider.dart';
 @ProviderFor(downloadInProgressForItem)
 final downloadInProgressForItemProvider = DownloadInProgressForItemFamily._();
 
-final class DownloadInProgressForItemProvider extends $FunctionalProvider<AsyncValue<bool>, bool, Stream<bool>>
-    with $FutureModifier<bool>, $StreamProvider<bool> {
+final class DownloadInProgressForItemProvider extends $FunctionalProvider<bool, bool, bool> with $Provider<bool> {
   DownloadInProgressForItemProvider._({
     required DownloadInProgressForItemFamily super.from,
     required (String, {String? episodeId}) super.argument,
@@ -37,12 +36,17 @@ final class DownloadInProgressForItemProvider extends $FunctionalProvider<AsyncV
 
   @$internal
   @override
-  $StreamProviderElement<bool> $createElement($ProviderPointer pointer) => $StreamProviderElement(pointer);
+  $ProviderElement<bool> $createElement($ProviderPointer pointer) => $ProviderElement(pointer);
 
   @override
-  Stream<bool> create(Ref ref) {
+  bool create(Ref ref) {
     final argument = this.argument as (String, {String? episodeId});
     return downloadInProgressForItem(ref, argument.$1, episodeId: argument.episodeId);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(bool value) {
+    return $ProviderOverride(origin: this, providerOverride: $SyncValueProvider<bool>(value));
   }
 
   @override
@@ -56,10 +60,10 @@ final class DownloadInProgressForItemProvider extends $FunctionalProvider<AsyncV
   }
 }
 
-String _$downloadInProgressForItemHash() => r'fd5eee9480d6cfc9edaec98c23e50a2a6c15eb8f';
+String _$downloadInProgressForItemHash() => r'e5806bff0771241fb790a509e0dc048a3c1939d7';
 
 final class DownloadInProgressForItemFamily extends $Family
-    with $FunctionalFamilyOverride<Stream<bool>, (String, {String? episodeId})> {
+    with $FunctionalFamilyOverride<bool, (String, {String? episodeId})> {
   DownloadInProgressForItemFamily._()
     : super(
         retry: null,

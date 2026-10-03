@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/components/app/downloads/item_download_indicator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/api/library/request/library_filter.dart';
 import 'package:yaabsa/api/library_items/audio_file.dart';
@@ -109,7 +110,8 @@ Widget buildItemActionButtons({
   required bool hasAudio,
   required bool hasBook,
   required bool canDownload,
-  required bool isDownloadInProgress,
+  required String downloadItemId,
+  String? downloadEpisodeId,
   required bool isDownloaded,
   required bool isQueued,
   required bool isCurrentItem,
@@ -170,7 +172,8 @@ Widget buildItemActionButtons({
       final smallActions = _buildSmallActionButtons(
         context,
         showDownload: canDownload,
-        isDownloadInProgress: isDownloadInProgress,
+        downloadItemId: downloadItemId,
+        downloadEpisodeId: downloadEpisodeId,
         isDownloaded: isDownloaded,
         showQueue: hasAudio,
         isQueued: isQueued,
@@ -226,7 +229,8 @@ Widget buildItemActionButtons({
 Widget _buildSmallActionButtons(
   BuildContext context, {
   required bool showDownload,
-  required bool isDownloadInProgress,
+  required String downloadItemId,
+  String? downloadEpisodeId,
   required bool isDownloaded,
   required bool showQueue,
   required bool isQueued,
@@ -249,13 +253,12 @@ Widget _buildSmallActionButtons(
 }) {
   final children = <Widget>[
     if (showDownload)
-      IconButton.filledTonal(
-        onPressed: isDownloadInProgress ? null : (isDownloaded ? onDeleteDownload : onDownload),
-        tooltip: isDownloadInProgress ? 'Downloading' : (isDownloaded ? 'Delete download' : 'Download'),
-        icon: isDownloadInProgress
-            ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.2))
-            : Icon(isDownloaded ? Icons.delete_outline_rounded : Icons.download_rounded),
-        visualDensity: VisualDensity.compact,
+      ItemDownloadButton(
+        itemId: downloadItemId,
+        episodeId: downloadEpisodeId,
+        isDownloaded: isDownloaded,
+        onDownload: onDownload,
+        onDeleteDownload: onDeleteDownload,
       ),
     if (showQueue)
       IconButton.filledTonal(
