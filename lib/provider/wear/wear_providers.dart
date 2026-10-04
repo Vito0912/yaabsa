@@ -53,7 +53,7 @@ Future<bool> pairWithPhone() async {
   final user = login.user.copyWith(
     accessToken: accessToken,
     refreshToken: result?['refreshToken'] as String?,
-    setting: login.user.setting ?? login.serverSettings,
+    setting: login.serverSettings,
     server: Server.fromExternalAddress(externalAddress: serverUrl, activeConnection: ServerConnection.external),
   );
 

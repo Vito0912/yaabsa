@@ -11,6 +11,7 @@ class SettingKeys {
   static const String currentUserId = 'current_user_id';
   static const String appLogLevel = 'app_log_level';
   static const String desktopWindowState = 'desktop_window_state';
+  static const String restartListeningSessionAtMidnight = 'restart_listening_session_at_midnight';
   static const String bufferSize = 'buffer_size';
   static const String keepScreenOn = 'keep_screen_on';
   static const String keepWebsocketConnectionInBackground = 'keep_websocket_connection_in_background';
@@ -34,6 +35,9 @@ class SettingKeys {
   static const String sleepTimerAutoRestartRangeStartMinutes = 'sleep_timer_auto_restart_range_start_minutes';
   static const String sleepTimerAutoRestartRangeEndMinutes = 'sleep_timer_auto_restart_range_end_minutes';
   static const String sleepTimerLastDurationMinutes = 'sleep_timer_last_duration_minutes';
+  static const String sleepTimerAutoMode = 'sleep_timer_auto_mode';
+  static const String sleepTimerAutoMinutes = 'sleep_timer_auto_minutes';
+  static const String sleepTimerAutoChapters = 'sleep_timer_auto_chapters';
   static const String sleepTimerAutoRestartSuppressed = 'sleep_timer_auto_restart_suppressed';
   static const String sleepTimerShowMarker = 'sleep_timer_show_marker';
   static const String sleepTimerMarker = 'sleep_timer_marker';
@@ -209,6 +213,9 @@ final defaultSettings = {
   SettingKeys.sleepTimerAutoRestartRangeStartMinutes: 21 * 60,
   SettingKeys.sleepTimerAutoRestartRangeEndMinutes: 7 * 60,
   SettingKeys.sleepTimerLastDurationMinutes: 30,
+  SettingKeys.sleepTimerAutoMode: 'minutes',
+  SettingKeys.sleepTimerAutoMinutes: 0,
+  SettingKeys.sleepTimerAutoChapters: 1,
   SettingKeys.sleepTimerAutoRestartSuppressed: false,
   SettingKeys.sleepTimerShowMarker: false,
   SettingKeys.sleepTimerMarker: '',
@@ -226,6 +233,7 @@ final defaultSettings = {
   SettingKeys.autoResumeBluetoothDeviceAddresses: '[]',
 
   SettingKeys.syncInterval: 10,
+  SettingKeys.restartListeningSessionAtMidnight: true,
   SettingKeys.syncOnlyOnWifi: false,
   SettingKeys.sortSeriesAscending: false,
   SettingKeys.collapseSeries: false,

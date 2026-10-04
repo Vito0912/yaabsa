@@ -241,18 +241,24 @@ String _eventDescription(PlayerHistoryEntry entry, PlayerHistoryType type) {
           ? 'Changed'
           : '${previousSpeed.toStringAsFixed(2)}× - ${speed.toStringAsFixed(2)}×';
     case PlayerHistoryType.sleepTimerStarted:
+      if (details['mode'] == 'chapters') return 'For ${_chapterCountLabel(details['chapters'])}';
       if (details['source'] == 'resume') {
         return duration == null ? 'Resumed' : '${_positionLabel(duration)} left';
       }
       return duration == null ? 'Started' : 'For ${_positionLabel(duration)}';
     case PlayerHistoryType.sleepTimerAutoStarted:
+      if (details['mode'] == 'chapters') return 'For ${_chapterCountLabel(details['chapters'])}';
       return duration == null ? 'Auto-started' : 'For ${_positionLabel(duration)}';
     case PlayerHistoryType.sleepTimerExtended:
+      if (details['mode'] == 'chapters') {
+        return '+${_chapterCountLabel(details['additionalChapters'])} • ${details['remainingChapters']} left';
+      }
       if (additional != null && remaining != null) {
         return '+${_positionLabel(additional)} • ${_positionLabel(remaining)} left';
       }
       return 'Extended';
     case PlayerHistoryType.sleepTimerStopped:
+      if (details['mode'] == 'chapters') return '${_chapterCountLabel(details['remainingChapters'])} left';
       final prefix = details['source'] == 'playback'
           ? 'Paused with'
           : details['source'] == 'reset'
@@ -360,3 +366,5 @@ Color _eventColor(ColorScheme colorScheme, PlayerHistoryType type) {
 bool _canPlayFrom(PlayerHistoryType type) {
   return type.category == PlayerHistoryCategory.playback && type != PlayerHistoryType.completed;
 }
+
+String _chapterCountLabel(Object? count) => '$count chapter${count == 1 ? '' : 's'}';

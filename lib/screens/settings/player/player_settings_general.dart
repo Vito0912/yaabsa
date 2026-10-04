@@ -222,6 +222,10 @@ class PlayerSettingsGeneral extends ConsumerWidget {
               subtitle: 'Each book remembers its own speed and new books start with your last used speed',
               settingKey: SettingKeys.playbackSpeedPerBook,
             ),
+            const SettingSwitchTile(
+              label: 'Restart listening session at midnight',
+              settingKey: SettingKeys.restartListeningSessionAtMidnight,
+            ),
             SettingSwitchTile(
               label: 'Seek with media skip controls',
               subtitle: 'Make external next/previous media controls seek by the configured skip intervals',

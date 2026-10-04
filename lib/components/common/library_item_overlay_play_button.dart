@@ -8,6 +8,8 @@ import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/util/globals.dart';
 
 class LibraryItemOverlayPlayButton extends StatelessWidget {
+  static const double size = 36;
+
   const LibraryItemOverlayPlayButton({
     super.key,
     this.libraryItem,
@@ -51,15 +53,15 @@ class LibraryItemOverlayPlayButton extends StatelessWidget {
                 audioHandler.isQueueTransitionForItem(resolvedLibraryItemId, episodeId: shelfEpisode?.id));
 
         return SizedBox(
-          width: 36,
-          height: 36,
+          width: size,
+          height: size,
           child: Stack(
             alignment: Alignment.center,
             children: [
               if (showProgressRing)
                 SizedBox(
-                  width: 34,
-                  height: 34,
+                  width: size - 2,
+                  height: size - 2,
                   child: CircularProgressIndicator(
                     value: progressValue,
                     strokeWidth: 3,

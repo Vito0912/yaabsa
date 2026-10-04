@@ -89,7 +89,7 @@ bool _shouldEmitRefreshedUser({required User previous, required User next}) {
     return true;
   }
 
-  if (previous.setting?.version != next.setting?.version) {
+  if (previous.setting?.version != next.setting?.version || previous.setting?.timeZone != next.setting?.timeZone) {
     return true;
   }
 

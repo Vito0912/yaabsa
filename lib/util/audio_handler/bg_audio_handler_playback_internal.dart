@@ -290,6 +290,18 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
       return;
     }
 
+    final binding = _ref.read(sessionRepositoryProvider).currentSessionBinding;
+    final navigationGeneration = sleepTimerNavigationGeneration;
+    final playbackGeneration = sleepTimerPlaybackGeneration;
+    if (binding == null || binding.playbackSessionId != resumeItem.sessionId) return;
+
+    bool requestIsCurrent() => isSleepTimerOwnerCurrent(
+      media: resumeItem,
+      binding: binding,
+      navigationGeneration: navigationGeneration,
+      playbackGeneration: playbackGeneration,
+    );
+
     const driftThreshold = Duration(seconds: 10);
 
     try {
@@ -297,16 +309,9 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
           .read(mediaProgressProvider.notifier)
           .fetchOrRefreshIndividualProgress(resumeItem.itemId, episodeId: resumeItem.episodeId);
 
-      final currentMedia = _currentMediaItem;
-      if (currentMedia == null ||
-          !_queueItemsMatch(
-            leftItemId: currentMedia.itemId,
-            leftEpisodeId: currentMedia.episodeId,
-            rightItemId: resumeItem.itemId,
-            rightEpisodeId: resumeItem.episodeId,
-          )) {
+      if (!requestIsCurrent()) {
         logger(
-          'Background resume reconcile aborted: current media item changed or is null (current=${currentMedia?.itemId}(${currentMedia?.episodeId ?? 'item'}), resume=${resumeItem.itemId}(${resumeItem.episodeId ?? 'item'}))',
+          'Background resume reconcile aborted because playback ownership changed.',
           tag: 'AudioHandler',
           level: InfoLevel.debug,
         );
@@ -338,6 +343,8 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
         return;
       }
 
+      if (!requestIsCurrent()) return;
+
       logger(
         'Background resume reconcile detected position drift of $positionDrift. '
         'Seeking from start position $startPosition to remote position $remotePosition',
@@ -345,7 +352,9 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
         level: InfoLevel.info,
       );
 
-      await _seekWithoutPausedManualMarker(() => _seekInternal(remotePosition));
+      await _seekWithoutPausedManualMarker(
+        () => _queueSleepTimerAwareSeek(remotePosition, internal: true, continuationIsCurrent: requestIsCurrent),
+      );
     } catch (e) {
       logger('Background resume reconcile failed: $e', tag: 'AudioHandler', level: InfoLevel.warning);
     }

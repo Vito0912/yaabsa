@@ -6,7 +6,7 @@ import 'package:yaabsa/api/me/media_progress.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/components/common/additional_information_text.dart';
 import 'package:yaabsa/components/common/library_item_overlay_play_button.dart';
-import 'package:yaabsa/provider/common/library_item_provider.dart';
+import 'package:yaabsa/components/app/downloads/item_download_indicator.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/library_view_subtitles.dart';
@@ -93,9 +93,6 @@ class _LibraryItemWidgetState extends ConsumerState<LibraryItemWidget> {
     final progress = isPodcastItem ? _resolvePodcastProgress(podcastProgress) : itemProgress;
     final finishedEpisodeCount = isPodcastItem ? podcastProgress.where((progress) => progress.isFinished).length : 0;
     final displayTitle = _resolvedDisplayTitle(shelfEpisode);
-    final isDownloaded = ref.watch(
-      completedDownloadForItemProvider(widget.libraryItem.id, episodeId: shelfEpisode?.id),
-    );
     final collapsedSeriesBookCount = widget.libraryItem.collapsedSeries?.numBooks ?? 0;
     final collapsedSeriesId = widget.libraryItem.collapsedSeries?.id;
     final isCollapsedSeriesCard = widget.libraryItem.collapsedSeries != null;
@@ -185,7 +182,6 @@ class _LibraryItemWidgetState extends ConsumerState<LibraryItemWidget> {
         final showSelectionDot = (widget.selectionMode || _showHoverSelectionDot) && _isSelectableCard;
         final selectionOverlayAlpha = widget.isSelected ? 0.15 : 0.5;
         final downloadBadgeTop = showSelectionDot ? 34.0 : 4.0;
-        final sequenceBadgeTop = isDownloaded ? downloadBadgeTop + 30.0 : (showSelectionDot ? 34.0 : 4.0);
         final canShowEditControls =
             widget.canEdit && widget.onEdit != null && !widget.selectionMode && !isCollapsedSeriesCard;
         final showDesktopHoverEdit = canShowEditControls && _isDesktopPlatform && _isHovered;
@@ -260,34 +256,29 @@ class _LibraryItemWidgetState extends ConsumerState<LibraryItemWidget> {
                         ),
                       ),
                     ),
-                  if (isDownloaded)
-                    Positioned(
-                      top: downloadBadgeTop,
-                      left: 4,
-                      child: Container(
-                        decoration: BoxDecoration(borderRadius: BorderRadius.circular(100), color: colorScheme.primary),
-                        padding: const EdgeInsets.all(6),
-                        child: Icon(Icons.cloud_done_rounded, size: 14, color: colorScheme.onPrimary),
-                      ),
+                  Positioned(
+                    top: downloadBadgeTop,
+                    left: 4,
+                    child: ItemDownloadBadges(
+                      itemId: widget.libraryItem.id,
+                      episodeId: shelfEpisode?.id,
+                      sequenceBadge: showSequenceBadge
+                          ? Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(100),
+                                color: colorScheme.primaryContainer.withValues(alpha: 0.92),
+                                border: Border.all(color: colorScheme.primary.withValues(alpha: 0.42)),
+                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              child: Text(
+                                sequenceBadgeLabel!,
+                                style: Theme.of(context).textTheme.labelSmall
+                                    ?.copyWith(color: colorScheme.onPrimaryContainer),
+                              ),
+                            )
+                          : null,
                     ),
-                  if (showSequenceBadge)
-                    Positioned(
-                      top: sequenceBadgeTop,
-                      left: 4,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(100),
-                          color: colorScheme.primaryContainer.withValues(alpha: 0.92),
-                          border: Border.all(color: colorScheme.primary.withValues(alpha: 0.42)),
-                        ),
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        child: Text(
-                          sequenceBadgeLabel!,
-                          style: Theme.of(context).textTheme.labelSmall
-                              ?.copyWith(color: colorScheme.onPrimaryContainer),
-                        ),
-                      ),
-                    ),
+                  ),
                   Positioned(
                     top: topRightPrimaryTop,
                     right: 4,

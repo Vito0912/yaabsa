@@ -186,6 +186,10 @@ Future<void> _onServerReachable(Ref ref, {required bool reconnected}) async {
           continue;
         }
 
+        if (sync.sessionLocal && sessionRepository.currentSession?.id == sync.sessionId) {
+          continue;
+        }
+
         final synced = await sessionRepository.replayStoredSync(sync);
         if (synced) {
           await db.deleteSync(sync.sessionId);

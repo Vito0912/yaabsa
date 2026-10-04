@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:background_downloader/background_downloader.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -142,288 +141,275 @@ class LibraryItemBookView extends ConsumerWidget {
     final appDatabase = ref.watch(appDatabaseProvider);
     final storedDownloadsStream = currentUser == null
         ? Stream<List<InternalDownload>>.value(const <InternalDownload>[])
-        : appDatabase.watchStoredDownloadsByUser(currentUser.id);
+        : appDatabase.watchStoredDownloadsByUserForItem(currentUser.id, item.id, completedOnly: true);
 
-    return StreamBuilder<List<TaskRecord>>(
-      stream: downloadHandler.taskQueueStreamForItem(item.id),
-      initialData: const <TaskRecord>[],
-      builder: (context, taskSnapshot) {
-        final activeTasks = taskSnapshot.data ?? const <TaskRecord>[];
-        final isDownloadInProgress = activeTasks.any((task) => downloadHandler.taskBelongsToItem(task, item.id));
+    return StreamBuilder<List<InternalDownload>>(
+      stream: storedDownloadsStream,
+      initialData: const <InternalDownload>[],
+      builder: (context, storedSnapshot) {
+        final storedDownloads = storedSnapshot.data ?? const <InternalDownload>[];
+        final storedDownload = _findBookDownload(storedDownloads, item.id);
+        final isDownloaded = storedDownload?.isComplete ?? false;
 
-        return StreamBuilder<List<InternalDownload>>(
-          stream: storedDownloadsStream,
-          initialData: const <InternalDownload>[],
-          builder: (context, storedSnapshot) {
-            final storedDownloads = storedSnapshot.data ?? const <InternalDownload>[];
-            final storedDownload = _findBookDownload(storedDownloads, item.id);
-            final isDownloaded = storedDownload?.isComplete ?? false;
+        return StreamBuilder<PlayerQueueSnapshot>(
+          stream: audioHandler.queueSnapshotStream,
+          initialData: audioHandler.queueSnapshot,
+          builder: (context, queueSnapshot) {
+            final isQueued = queueSnapshot.data?.entries.any((entry) => entry.item.itemId == item.id) ?? false;
+            return StreamBuilder<PlayerState>(
+              stream: audioHandler.playerControlStateStream,
+              initialData: audioHandler.playerControlState,
+              builder: (context, playerStateSnapshot) {
+                final isCurrentItem = audioHandler.currentMediaItem?.itemId == item.id;
+                final isPlayingCurrentItem = isCurrentItem && (playerStateSnapshot.data?.playing ?? false);
 
-            return StreamBuilder<PlayerQueueSnapshot>(
-              stream: audioHandler.queueSnapshotStream,
-              initialData: audioHandler.queueSnapshot,
-              builder: (context, queueSnapshot) {
-                final isQueued = queueSnapshot.data?.entries.any((entry) => entry.item.itemId == item.id) ?? false;
-                return StreamBuilder<PlayerState>(
-                  stream: audioHandler.playerControlStateStream,
-                  initialData: audioHandler.playerControlState,
-                  builder: (context, playerStateSnapshot) {
-                    final isCurrentItem = audioHandler.currentMediaItem?.itemId == item.id;
-                    final isPlayingCurrentItem = isCurrentItem && (playerStateSnapshot.data?.playing ?? false);
+                return StreamBuilder<bool>(
+                  stream: audioHandler.queueTransitionLoadingStream,
+                  initialData: audioHandler.queueTransitionLoading,
+                  builder: (context, queueTransitionSnapshot) {
+                    final isQueueTransitionLoading =
+                        queueTransitionSnapshot.data ?? audioHandler.queueTransitionLoading;
+                    final isLoadingCurrentItem =
+                        isQueueTransitionLoading && audioHandler.isQueueTransitionForItem(item.id);
 
-                    return StreamBuilder<bool>(
-                      stream: audioHandler.queueTransitionLoadingStream,
-                      initialData: audioHandler.queueTransitionLoading,
-                      builder: (context, queueTransitionSnapshot) {
-                        final isQueueTransitionLoading =
-                            queueTransitionSnapshot.data ?? audioHandler.queueTransitionLoading;
-                        final isLoadingCurrentItem =
-                            isQueueTransitionLoading && audioHandler.isQueueTransitionForItem(item.id);
+                    return SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: EdgeInsets.fromLTRB(horizontalPadding, 8, horizontalPadding, 16),
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: maxWidth),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              LibraryItemTopContent(
+                                isLargeScreen: isLargeScreen,
+                                title: item.title,
+                                subtitle: item.subtitle,
+                                cover: topCover,
+                                actionButtons: buildItemActionButtons(
+                                  hasAudio: hasAudio,
+                                  hasBook: hasBook,
+                                  canDownload: canDownload,
+                                  downloadItemId: item.id,
+                                  isDownloaded: isDownloaded,
+                                  isQueued: isQueued,
+                                  isCurrentItem: isCurrentItem,
+                                  isPlayingCurrentItem: isPlayingCurrentItem,
+                                  isLoadingCurrentItem: isLoadingCurrentItem,
+                                  queueEnabled: !isCurrentItem,
+                                  onPlay: () {
+                                    if (isCurrentItem) {
+                                      audioHandler.play();
+                                      return;
+                                    }
 
-                        return SingleChildScrollView(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          padding: EdgeInsets.fromLTRB(horizontalPadding, 8, horizontalPadding, 16),
-                          child: Center(
-                            child: ConstrainedBox(
-                              constraints: BoxConstraints(maxWidth: maxWidth),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  LibraryItemTopContent(
-                                    isLargeScreen: isLargeScreen,
-                                    title: item.title,
-                                    subtitle: item.subtitle,
-                                    cover: topCover,
-                                    actionButtons: buildItemActionButtons(
-                                      hasAudio: hasAudio,
-                                      hasBook: hasBook,
-                                      canDownload: canDownload,
-                                      isDownloadInProgress: isDownloadInProgress,
-                                      isDownloaded: isDownloaded,
-                                      isQueued: isQueued,
-                                      isCurrentItem: isCurrentItem,
-                                      isPlayingCurrentItem: isPlayingCurrentItem,
-                                      isLoadingCurrentItem: isLoadingCurrentItem,
-                                      queueEnabled: !isCurrentItem,
-                                      onPlay: () {
-                                        if (isCurrentItem) {
-                                          audioHandler.play();
-                                          return;
+                                    audioHandler.playLibraryItem(item);
+                                  },
+                                  onPause: () {
+                                    audioHandler.pause();
+                                  },
+                                  onRead: () {
+                                    if (!kIsWeb && Platform.isLinux) {
+                                      final bookMedia = item.media?.bookMedia;
+                                      final candidates = <String?>[
+                                        bookMedia?.ebookFile?.ebookFormat,
+                                        bookMedia?.ebookFormat,
+                                        bookMedia?.ebookFile?.metadata.ext,
+                                      ];
+                                      bool isPdf = false;
+                                      for (final candidate in candidates) {
+                                        final normalized = candidate?.trim().toLowerCase() ?? '';
+                                        if (normalized == 'pdf') {
+                                          isPdf = true;
+                                          break;
                                         }
-
-                                        audioHandler.playLibraryItem(item);
-                                      },
-                                      onPause: () {
-                                        audioHandler.pause();
-                                      },
-                                      onRead: () {
-                                        if (!kIsWeb && Platform.isLinux) {
-                                          final bookMedia = item.media?.bookMedia;
-                                          final candidates = <String?>[
-                                            bookMedia?.ebookFile?.ebookFormat,
-                                            bookMedia?.ebookFormat,
-                                            bookMedia?.ebookFile?.metadata.ext,
-                                          ];
-                                          bool isPdf = false;
-                                          for (final candidate in candidates) {
-                                            final normalized = candidate?.trim().toLowerCase() ?? '';
-                                            if (normalized == 'pdf') {
-                                              isPdf = true;
-                                              break;
-                                            }
-                                          }
-                                          if (!isPdf) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              const SnackBar(
-                                                content: Text('Only PDF reading is currently supported on Linux'),
-                                              ),
-                                            );
-                                            return;
-                                          }
-                                        }
-                                        context.push('/ebook/${item.id}');
-                                      },
-                                      onDownload: () async {
-                                        try {
-                                          await triggerBookDownload(context, ref, item.id);
-                                          if (!context.mounted) {
-                                            return;
-                                          }
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(const SnackBar(content: Text('Download added to queue.')));
-                                        } catch (e) {
-                                          if (!context.mounted) {
-                                            return;
-                                          }
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(SnackBar(content: Text('Could not start download: $e')));
-                                        }
-                                      },
-                                      onDeleteDownload: () async {
-                                        if (currentUser == null || storedDownload == null) {
-                                          return;
-                                        }
-                                        try {
-                                          final result = await runWithLoadingSnackBar(
-                                            context: context,
-                                            message: 'Deleting downloaded files...',
-                                            action: () => downloadHandler.deleteDownloadedItem(
-                                              storedDownload,
-                                              userId: currentUser.id,
-                                            ),
-                                          );
-                                          if (!context.mounted) {
-                                            return;
-                                          }
-                                          final failedSuffix = result.failedFiles > 0
-                                              ? ' ${result.failedFiles} file(s) could not be removed.'
-                                              : '';
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
-                                              content: Text('Deleted ${result.deletedFiles} file(s).$failedSuffix'),
-                                            ),
-                                          );
-                                        } catch (e) {
-                                          if (!context.mounted) {
-                                            return;
-                                          }
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(SnackBar(content: Text('Could not delete download: $e')));
-                                        }
-                                      },
-                                      onQueueToggle: () {
-                                        if (isQueued) {
-                                          audioHandler.removeFromQueueByItemId(item.id);
-                                          return;
-                                        }
-
-                                        audioHandler.addLibraryItemToQueue(item);
-                                      },
-                                      showMarkAsUnfinished: isItemFinished,
-                                      showEditItem: canEditItems,
-                                      showQuickMatch: canUseMatchTools,
-                                      showManualMatch: canUseMatchTools,
-                                      showAddToPlaylist: canAddToPlaylist,
-                                      showAddToCollection: canAddToCollection,
-                                      showDeleteItem: canDeleteItem,
-                                      showPinAction: currentUser != null && libraryId != null,
-                                      isPinned: isPinned,
-                                      onMoreActionSelected: (action) async {
-                                        switch (action) {
-                                          case ItemMoreAction.editItem:
-                                            await openSingleLibraryItemEditorDialog(
-                                              context: context,
-                                              item: item,
-                                              filterData: filterData,
-                                            );
-                                            return;
-                                          case ItemMoreAction.quickMatch:
-                                            await quickMatchSingleItem(context: context, ref: ref, item: item);
-                                            return;
-                                          case ItemMoreAction.manualMatch:
-                                            await openSingleLibraryItemEditorDialog(
-                                              context: context,
-                                              item: item,
-                                              filterData: filterData,
-                                              initialTab: LibraryItemEditorTab.match,
-                                            );
-                                            return;
-                                          case ItemMoreAction.markAsFinished:
-                                            await markLibraryItemAsFinished(context: context, ref: ref, item: item);
-                                            return;
-                                          case ItemMoreAction.markAsUnfinished:
-                                            await markLibraryItemAsUnfinished(context: context, ref: ref, item: item);
-                                            return;
-                                          case ItemMoreAction.addToPlaylist:
-                                            await addLibraryItemToPlaylist(
-                                              context: context,
-                                              ref: ref,
-                                              item: item,
-                                              currentUserId: currentUser?.id,
-                                            );
-                                            return;
-                                          case ItemMoreAction.addToCollection:
-                                            await addLibraryItemToCollection(
-                                              context: context,
-                                              ref: ref,
-                                              item: item,
-                                              canUpdate: currentUser?.permissions.update ?? false,
-                                            );
-                                            return;
-                                          case ItemMoreAction.togglePin:
-                                            if (libraryId == null) {
-                                              return;
-                                            }
-                                            try {
-                                              final undo = await ref
-                                                  .read(pinnedShelfControllerProvider.notifier)
-                                                  .toggle(
-                                                    libraryId: libraryId,
-                                                    mediaType: HomeLibraryMediaType.book,
-                                                    itemId: item.id,
-                                                  );
-                                              if (!context.mounted) {
-                                                return;
-                                              }
-                                              showPinnedShelfSnackBar(context: context, undo: undo);
-                                            } catch (error) {
-                                              if (context.mounted) {
-                                                ScaffoldMessenger.of(context).showSnackBar(
-                                                  SnackBar(content: Text('Could not update Pinned: $error')),
-                                                );
-                                              }
-                                            }
-                                            return;
-                                          case ItemMoreAction.deleteItem:
-                                            await deleteAudiobookWithConfirmation(
-                                              context: context,
-                                              ref: ref,
-                                              item: item,
-                                              popOnSuccess: true,
-                                            );
-                                            return;
-                                          case ItemMoreAction.playHistory:
-                                            if (!context.mounted) {
-                                              return;
-                                            }
-                                            context.push(
-                                              PlayHistoryView.location(itemId: item.id, itemTitle: item.title),
-                                            );
-                                            return;
-                                          case ItemMoreAction.select:
-                                            return;
-                                        }
-                                      },
-                                    ),
-                                    metadataRows: metadataRows,
-                                    item: item,
-                                    onBack: () => context.pop(),
-                                  ),
-                                  LibraryItemMediaSections(
-                                    itemId: item.id,
-                                    chapters: chapters,
-                                    audioFiles: audioFiles,
-                                    ebookFile: ebookFile,
-                                    onChapterTap: (chapter) {
-                                      audioHandler.playItemFromPosition(
-                                        itemId: item.id,
-                                        position: Duration(seconds: chapter.start.round()),
+                                      }
+                                      if (!isPdf) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text('Only PDF reading is currently supported on Linux'),
+                                          ),
+                                        );
+                                        return;
+                                      }
+                                    }
+                                    context.push('/ebook/${item.id}');
+                                  },
+                                  onDownload: () async {
+                                    try {
+                                      await triggerBookDownload(context, ref, item.id);
+                                      if (!context.mounted) {
+                                        return;
+                                      }
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(const SnackBar(content: Text('Download added to queue.')));
+                                    } catch (e) {
+                                      if (!context.mounted) {
+                                        return;
+                                      }
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(SnackBar(content: Text('Could not start download: $e')));
+                                    }
+                                  },
+                                  onDeleteDownload: () async {
+                                    if (currentUser == null || storedDownload == null) {
+                                      return;
+                                    }
+                                    try {
+                                      final result = await runWithLoadingSnackBar(
+                                        context: context,
+                                        message: 'Deleting downloaded files...',
+                                        action: () => downloadHandler.deleteDownloadedItem(
+                                          storedDownload,
+                                          userId: currentUser.id,
+                                        ),
                                       );
-                                    },
-                                  ),
-                                  if (hasAudio)
-                                    ItemBookStatsCard(
-                                      item: item,
-                                      isItemFinished: isItemFinished,
-                                      progressValue: progressValue,
-                                      itemProgress: itemProgress,
-                                    ),
-                                ],
+                                      if (!context.mounted) {
+                                        return;
+                                      }
+                                      final failedSuffix = result.failedFiles > 0
+                                          ? ' ${result.failedFiles} file(s) could not be removed.'
+                                          : '';
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text('Deleted ${result.deletedFiles} file(s).$failedSuffix')),
+                                      );
+                                    } catch (e) {
+                                      if (!context.mounted) {
+                                        return;
+                                      }
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(SnackBar(content: Text('Could not delete download: $e')));
+                                    }
+                                  },
+                                  onQueueToggle: () {
+                                    if (isQueued) {
+                                      audioHandler.removeFromQueueByItemId(item.id);
+                                      return;
+                                    }
+
+                                    audioHandler.addLibraryItemToQueue(item);
+                                  },
+                                  showMarkAsUnfinished: isItemFinished,
+                                  showEditItem: canEditItems,
+                                  showQuickMatch: canUseMatchTools,
+                                  showManualMatch: canUseMatchTools,
+                                  showAddToPlaylist: canAddToPlaylist,
+                                  showAddToCollection: canAddToCollection,
+                                  showDeleteItem: canDeleteItem,
+                                  showPinAction: currentUser != null && libraryId != null,
+                                  isPinned: isPinned,
+                                  onMoreActionSelected: (action) async {
+                                    switch (action) {
+                                      case ItemMoreAction.editItem:
+                                        await openSingleLibraryItemEditorDialog(
+                                          context: context,
+                                          item: item,
+                                          filterData: filterData,
+                                        );
+                                        return;
+                                      case ItemMoreAction.quickMatch:
+                                        await quickMatchSingleItem(context: context, ref: ref, item: item);
+                                        return;
+                                      case ItemMoreAction.manualMatch:
+                                        await openSingleLibraryItemEditorDialog(
+                                          context: context,
+                                          item: item,
+                                          filterData: filterData,
+                                          initialTab: LibraryItemEditorTab.match,
+                                        );
+                                        return;
+                                      case ItemMoreAction.markAsFinished:
+                                        await markLibraryItemAsFinished(context: context, ref: ref, item: item);
+                                        return;
+                                      case ItemMoreAction.markAsUnfinished:
+                                        await markLibraryItemAsUnfinished(context: context, ref: ref, item: item);
+                                        return;
+                                      case ItemMoreAction.addToPlaylist:
+                                        await addLibraryItemToPlaylist(
+                                          context: context,
+                                          ref: ref,
+                                          item: item,
+                                          currentUserId: currentUser?.id,
+                                        );
+                                        return;
+                                      case ItemMoreAction.addToCollection:
+                                        await addLibraryItemToCollection(
+                                          context: context,
+                                          ref: ref,
+                                          item: item,
+                                          canUpdate: currentUser?.permissions.update ?? false,
+                                        );
+                                        return;
+                                      case ItemMoreAction.togglePin:
+                                        if (libraryId == null) {
+                                          return;
+                                        }
+                                        try {
+                                          final undo = await ref
+                                              .read(pinnedShelfControllerProvider.notifier)
+                                              .toggle(
+                                                libraryId: libraryId,
+                                                mediaType: HomeLibraryMediaType.book,
+                                                itemId: item.id,
+                                              );
+                                          if (!context.mounted) {
+                                            return;
+                                          }
+                                          showPinnedShelfSnackBar(context: context, undo: undo);
+                                        } catch (error) {
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(SnackBar(content: Text('Could not update Pinned: $error')));
+                                          }
+                                        }
+                                        return;
+                                      case ItemMoreAction.deleteItem:
+                                        await deleteAudiobookWithConfirmation(
+                                          context: context,
+                                          ref: ref,
+                                          item: item,
+                                          popOnSuccess: true,
+                                        );
+                                        return;
+                                      case ItemMoreAction.playHistory:
+                                        if (!context.mounted) {
+                                          return;
+                                        }
+                                        context.push(PlayHistoryView.location(itemId: item.id, itemTitle: item.title));
+                                        return;
+                                      case ItemMoreAction.select:
+                                        return;
+                                    }
+                                  },
+                                ),
+                                metadataRows: metadataRows,
+                                item: item,
+                                onBack: () => context.pop(),
                               ),
-                            ),
+                              LibraryItemMediaSections(
+                                itemId: item.id,
+                                chapters: chapters,
+                                audioFiles: audioFiles,
+                                ebookFile: ebookFile,
+                                onChapterTap: (chapter) {
+                                  audioHandler.playItemFromPosition(
+                                    itemId: item.id,
+                                    position: Duration(seconds: chapter.start.round()),
+                                  );
+                                },
+                              ),
+                              if (hasAudio)
+                                ItemBookStatsCard(
+                                  item: item,
+                                  isItemFinished: isItemFinished,
+                                  progressValue: progressValue,
+                                  itemProgress: itemProgress,
+                                ),
+                            ],
                           ),
-                        );
-                      },
+                        ),
+                      ),
                     );
                   },
                 );

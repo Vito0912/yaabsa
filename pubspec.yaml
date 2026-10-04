@@ -28,6 +28,7 @@ dependencies:
   # Misc
   uuid: ^4.6.0
   intl: ^0.20.3
+  timezone: ^0.11.1
 
   sembast: ^3.8.10-1
 

@@ -15,6 +15,7 @@ import 'package:yaabsa/database/connection/connection.dart' as impl;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'app_database.g.dart';
+part 'download_asset_updates.dart';
 
 @DataClassName('GlobalSettingEntry')
 class GlobalSettings extends Table {
@@ -724,9 +725,23 @@ class AppDatabase extends _$AppDatabase {
     return query.watch().distinct(_sameStoredDownloadEntries).asyncMap(_decodeStoredDownloads);
   }
 
-  Stream<List<InternalDownload>> watchStoredDownloadsByUserForItem(String userId, String itemId) {
+  Stream<List<InternalDownload>> watchStoredDownloadsByUserForItem(
+    String userId,
+    String itemId, {
+    bool completedOnly = false,
+  }) {
     final query = select(storedDownloads)..where((tbl) => tbl.userId.equals(userId) & tbl.itemId.equals(itemId));
-    return query.watch().distinct(_sameStoredDownloadEntries).asyncMap(_decodeStoredDownloads);
+    return query.watch().distinct(_sameStoredDownloadEntries).asyncMap((entries) async {
+      if (!completedOnly) return _decodeStoredDownloads(entries);
+      final completedEntries = <StoredDownloadsEntry>[];
+      for (final entry in entries) {
+        if (await _storedDownloadMayBeComplete(entry)) completedEntries.add(entry);
+      }
+      if (completedEntries.isEmpty) return const <InternalDownload>[];
+      final downloads = await _decodeStoredDownloads(completedEntries);
+      final completed = downloads.where((download) => download.isComplete).toList(growable: false);
+      return completed.isEmpty ? const <InternalDownload>[] : completed;
+    }).distinct();
   }
 
   bool _sameStoredDownloadEntries(List<StoredDownloadsEntry> left, List<StoredDownloadsEntry> right) {
@@ -758,6 +773,9 @@ class AppDatabase extends _$AppDatabase {
         .asyncMap((entries) async {
           final itemIds = <String>{};
           for (final entry in entries) {
+            if (!await _storedDownloadMayBeComplete(entry)) {
+              continue;
+            }
             final parsed = await _decodeStoredDownloadOrNull(entry);
             if (parsed?.isComplete ?? false) {
               if (entry.episodeId == null) {
@@ -770,6 +788,38 @@ class AppDatabase extends _$AppDatabase {
           return itemIds;
         })
         .distinct(_sameStringSet);
+  }
+
+  Future<bool> _storedDownloadMayBeComplete(StoredDownloadsEntry entry) async {
+    final cached = _storedDownloadCache[_storedDownloadCacheKey(entry)];
+    if (cached?.signature == _storedDownloadCacheSignature(entry)) {
+      return (await cached!.value)?.isComplete ?? false;
+    }
+    if (!_isNormalizedStoredDownload(entry.download) || _storedDownloadFilesAvailable == false) {
+      return true;
+    }
+    final base = await _decodeNormalizedStoredDownloadBase(entry);
+    if (base == null) return false;
+    final needsAudio =
+        base.downloadType != 'ebook' &&
+        ((base.item?.media?.bookMedia?.audioFiles?.isNotEmpty ?? false) || base.episode != null);
+    if (!needsAudio) return true;
+
+    try {
+      final count = storedDownloadFiles.trackJson.count();
+      final query = selectOnly(storedDownloadFiles)
+        ..addColumns([count])
+        ..where(
+          _storedDownloadFileWhereExpression(itemId: entry.itemId, userId: entry.userId, episodeId: entry.episodeId),
+        );
+      final row = await query.getSingle();
+      final trackCount = row.read(count) ?? 0;
+      return trackCount == 0 ? base.isComplete : trackCount == base.numberOfTracks;
+    } catch (e) {
+      if (!_isStoredDownloadFilesUnavailable(e)) rethrow;
+      _storedDownloadFilesAvailable = false;
+      return true;
+    }
   }
 
   Future<InternalDownload?> getStoredDownload(String itemId, String userId, {String? episodeId}) async {
@@ -1657,13 +1707,15 @@ class AppDatabase extends _$AppDatabase {
   }
 
   // Sync management
-  Future<void> addOrUpdateSync(StoredSyncsCompanion companion) {
+  Future<void> addOrUpdateSync(StoredSyncsCompanion companion, {bool replaceTimeListened = false}) {
     return into(storedSyncs).insert(
       companion,
       mode: InsertMode.insertOrIgnore,
       onConflict: DoUpdate(
         (old) => StoredSyncsCompanion.custom(
-          timeListened: old.timeListened + Variable<double>(companion.timeListened.value),
+          timeListened: replaceTimeListened
+              ? Variable<double>(companion.timeListened.value)
+              : old.timeListened + Variable<double>(companion.timeListened.value),
           currentTime: Variable<double>(companion.currentTime.value),
           lastUpdated: Variable<DateTime>(companion.lastUpdated.value),
           sessionLocal: Variable<bool>(companion.sessionLocal.value),

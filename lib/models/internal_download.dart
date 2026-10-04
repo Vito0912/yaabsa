@@ -145,21 +145,23 @@ abstract class InternalDownload with _$InternalDownload {
       return this;
     }
 
+    final resolvedBasePath = await resolveDownloadBasePath(basePath);
+
     final resolvedTracks = await Future.wait(
-      tracks.map((track) async => track.copyWith(url: await resolveStoredDownloadPath(track.url, basePath))),
+      tracks.map((track) async => track.copyWith(url: await resolveStoredDownloadPath(track.url, resolvedBasePath))),
     );
     final resolvedAuxiliaryPaths = await Future.wait(
-      auxiliaryFilePaths.map((path) => resolveStoredDownloadPath(path, basePath)),
+      auxiliaryFilePaths.map((path) => resolveStoredDownloadPath(path, resolvedBasePath)),
     );
     final resolvedSidecarPaths = await Future.wait(
-      sidecarPaths.map((path) => resolveStoredDownloadPath(path, basePath)),
+      sidecarPaths.map((path) => resolveStoredDownloadPath(path, resolvedBasePath)),
     );
 
     return copyWith(
       tracks: resolvedTracks,
       auxiliaryFilePaths: resolvedAuxiliaryPaths.whereType<String>().toList(growable: false),
       sidecarPaths: resolvedSidecarPaths.whereType<String>().toList(growable: false),
-      coverPath: await resolveStoredDownloadPath(coverPath, basePath),
+      coverPath: await resolveStoredDownloadPath(coverPath, resolvedBasePath),
     );
   }
 

@@ -26,6 +26,8 @@ extension _BGAudioHandlerLiveUpdates on BGAudioHandler {
       if (_isDisposing) return;
       if (previous == null ||
           previous.state != next.state ||
+          previous.mode != next.mode ||
+          (next.isChapterTimer && previous.remainingTime != next.remainingTime) ||
           previous.totalDuration != next.totalDuration ||
           next.remainingTime > previous.remainingTime) {
         scheduleMicrotask(() {

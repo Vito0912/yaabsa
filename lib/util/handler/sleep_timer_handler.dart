@@ -1,9 +1,9 @@
 // lib/provider/sleep_timer_handler.dart
 import 'dart:async';
-import 'dart:convert';
-import 'dart:math' as math;
 
 import 'package:yaabsa/database/settings_manager.dart';
+import 'package:yaabsa/provider/player/session_provider.dart';
+import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/audio_handler/player_history_handler.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/logger.dart';
@@ -11,148 +11,67 @@ import 'package:yaabsa/util/setting_key.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:yaabsa/models/internal_media.dart';
+
+import 'sleep_timer_data.dart';
+import 'chapter_sleep_timer.dart';
+import 'sleep_timer_fade.dart';
+import 'sleep_timer_auto_config.dart';
+
+export 'sleep_timer_data.dart';
+
 part 'sleep_timer_handler.g.dart';
-
-enum SleepTimerState { inactive, running, paused }
-
-const Duration _sleepTimerTickInterval = Duration(seconds: 1);
-const Duration _sleepTimerUiUpdateInterval = Duration(milliseconds: 500);
-const Duration _sleepTimerFadeOutDuration = Duration(seconds: 30);
-const Duration _sleepTimerMarkerPinVisibilityDuration = Duration(seconds: 10);
-const double _sleepTimerFadeCurveExponent = 1.8;
-
-class SleepTimerData {
-  final Duration remainingTime;
-  final SleepTimerState state;
-  final Duration? totalDuration;
-  final SleepTimerMarker? marker;
-  final bool? _showMarkerPinValue;
-  final bool? _showMarkerRangeValue;
-  final bool? _forceMarkerVisibilityValue;
-
-  const SleepTimerData({
-    required this.remainingTime,
-    required this.state,
-    this.totalDuration,
-    this.marker,
-    bool showMarkerPin = true,
-    bool showMarkerRange = true,
-    bool forceMarkerVisibility = false,
-  }) : _showMarkerPinValue = showMarkerPin,
-       _showMarkerRangeValue = showMarkerRange,
-       _forceMarkerVisibilityValue = forceMarkerVisibility;
-
-  bool get showMarkerPin => _showMarkerPinValue ?? marker?.endPosition != null;
-  bool get showMarkerRange => _showMarkerRangeValue ?? marker?.endPosition != null;
-  bool get forceMarkerVisibility => _forceMarkerVisibilityValue ?? false;
-
-  bool get isActive => state != SleepTimerState.inactive;
-  bool get isRunning => state == SleepTimerState.running;
-
-  SleepTimerData copyWith({
-    Duration? remainingTime,
-    SleepTimerState? state,
-    Duration? totalDuration,
-    SleepTimerMarker? marker,
-    bool? showMarkerPin,
-    bool? showMarkerRange,
-    bool? forceMarkerVisibility,
-  }) {
-    return SleepTimerData(
-      remainingTime: remainingTime ?? this.remainingTime,
-      state: state ?? this.state,
-      totalDuration: totalDuration ?? this.totalDuration,
-      marker: marker ?? this.marker,
-      showMarkerPin: showMarkerPin ?? this.showMarkerPin,
-      showMarkerRange: showMarkerRange ?? this.showMarkerRange,
-      forceMarkerVisibility: forceMarkerVisibility ?? this.forceMarkerVisibility,
-    );
-  }
-}
-
-class SleepTimerMarker {
-  const SleepTimerMarker({
-    required this.itemId,
-    required this.episodeId,
-    required this.startPosition,
-    this.endPosition,
-  });
-
-  final String itemId;
-  final String? episodeId;
-  final Duration startPosition;
-  final Duration? endPosition;
-
-  SleepTimerMarker copyWith({Duration? endPosition, bool clearEndPosition = false}) {
-    return SleepTimerMarker(
-      itemId: itemId,
-      episodeId: episodeId,
-      startPosition: startPosition,
-      endPosition: clearEndPosition ? null : endPosition ?? this.endPosition,
-    );
-  }
-
-  bool matches({required String itemId, required String? episodeId}) {
-    return this.itemId == itemId && this.episodeId == episodeId;
-  }
-
-  String toRawJson() {
-    return jsonEncode(<String, Object?>{
-      'itemId': itemId,
-      'episodeId': episodeId,
-      'startPositionMicros': startPosition.inMicroseconds,
-      'endPositionMicros': endPosition?.inMicroseconds,
-    });
-  }
-
-  static SleepTimerMarker? fromRawJson(String? rawValue) {
-    if (rawValue == null || rawValue.trim().isEmpty) {
-      return null;
-    }
-
-    try {
-      final decoded = jsonDecode(rawValue);
-      if (decoded is! Map) {
-        return null;
-      }
-
-      final itemId = decoded['itemId'];
-      final episodeId = decoded['episodeId'];
-      final startPositionMicros = decoded['startPositionMicros'];
-      final endPositionMicros = decoded['endPositionMicros'];
-      if (itemId is! String || itemId.trim().isEmpty || startPositionMicros is! num) {
-        return null;
-      }
-
-      return SleepTimerMarker(
-        itemId: itemId.trim(),
-        episodeId: episodeId is String && episodeId.trim().isNotEmpty ? episodeId.trim() : null,
-        startPosition: Duration(microseconds: startPositionMicros.toInt()),
-        endPosition: endPositionMicros is num ? Duration(microseconds: endPositionMicros.toInt()) : null,
-      );
-    } catch (_) {
-      return null;
-    }
-  }
-}
+part 'sleep_timer_markers.dart';
+part 'sleep_timer_chapters.dart';
+part 'sleep_timer_automatic.dart';
+part 'sleep_timer_expiry.dart';
 
 @riverpod
 class SleepTimerHandler extends _$SleepTimerHandler {
+  SleepTimerData get _data => state;
+  set _data(SleepTimerData value) => state = value;
+  SettingsManager get _settings => ref.read(settingsManagerProvider.notifier);
+  SessionRepository get _sessionRepository => ref.read(sessionRepositoryProvider);
+
+  DateTime get currentTime => DateTime.now();
+  Future<void> recordHistory(PlayerHistoryType type, {Map<String, Object?> details = const {}}) =>
+      PlayerHistoryHandler.addPlayerHistory(type, details: details);
+
   Timer? _timer;
   DateTime? _countdownStartTime;
   Duration? _countdownRunDuration;
   StreamSubscription<PlayerState>? _playerStateSubscription;
   bool _wasPlaybackRunning = false;
+  bool _autoStartPending = false;
+  String? _lastMediaKey;
   bool _pauseTriggeredByPlayback = false;
-  double? _fadeBaseVolume;
+  late SleepTimerFade _fade;
+  StreamSubscription<Duration>? _positionSubscription;
+  StreamSubscription<InternalMedia?>? _mediaSubscription;
+  ChapterSleepTimer? _chapterTimer;
+  String? _chapterMediaKey;
+  PlaybackSessionBinding? _chapterBinding;
+  int _chapterNavigationGeneration = 0;
+  String? _completedChapterMediaKey;
+  Future<void>? _expiry;
+  bool _disposed = false;
+  int _runRevision = 0;
   Timer? _markerPinHideTimer;
   Timer? _markerRangeHideTimer;
 
   @override
   SleepTimerData build() {
-    _attachPlaybackStateListener();
+    _disposed = false;
+    _fade = SleepTimerFade(
+      readVolume: () => audioHandler.volume,
+      writeVolume: (volume) => _setPlayerVolumeSafely(volume, reason: 'sleep timer fade'),
+    );
+    scheduleMicrotask(attachPlaybackListeners);
 
     ref.onDispose(() {
+      _disposed = true;
+      _positionSubscription?.cancel();
+      _mediaSubscription?.cancel();
       _timer?.cancel();
       _timer = null;
       _countdownStartTime = null;
@@ -182,17 +101,40 @@ class SleepTimerHandler extends _$SleepTimerHandler {
     );
   }
 
-  void _attachPlaybackStateListener() {
-    try {
-      _wasPlaybackRunning = audioHandler.playerControlState.playing;
-      _playerStateSubscription = audioHandler.playerControlStateStream.listen(_handlePlayerStateChanged);
-    } catch (e) {
-      logger('Failed to attach sleep timer playback listener: $e', tag: 'SleepTimer', level: InfoLevel.warning);
-    }
+  void attachPlaybackListeners() {
+    if (_disposed || _playerStateSubscription != null || !isAudioHandlerInitialized) return;
+    unawaited(initializeAutoMinutes());
+    _wasPlaybackRunning = false;
+    _playerStateSubscription = audioHandler.playerControlStateStream.listen(_handlePlayerStateChanged);
+    _positionSubscription = audioHandler.positionStream.listen((position) {
+      if (!audioHandler.sleepTimerSeekInProgress) _updateChapterPosition(position);
+    });
+    _mediaSubscription = audioHandler.mediaItemStream.listen((media) {
+      if (_disposed) return;
+      final key = _mediaKey(media);
+      final changed = key != _lastMediaKey;
+      _lastMediaKey = key;
+      if (_chapterTimer != null && _mediaKey(media) != _chapterMediaKey) {
+        stop(recordHistory: false);
+      }
+      if (changed && media != null) _autoStartPending = true;
+      if (_autoStartPending) _tryAutoRestartSleepTimerOnPlaybackStart();
+    });
+    _handlePlayerStateChanged(audioHandler.playerControlState);
   }
 
   void _handlePlayerStateChanged(PlayerState playerState) {
-    final isRunning = playerState.playing;
+    if (_disposed) return;
+    if (playerState.processingState == ProcessingState.completed && audioHandler.sleepTimerSeekInProgress) return;
+    if (playerState.processingState == ProcessingState.completed &&
+        state.isRunning &&
+        _chapterTimer != null &&
+        !audioHandler.sleepTimerSeekInProgress) {
+      unawaited(_onTimerExpired());
+      _wasPlaybackRunning = false;
+      return;
+    }
+    final isRunning = playerState.playing && playerState.processingState != ProcessingState.completed;
     final wasRunning = _wasPlaybackRunning;
     _wasPlaybackRunning = isRunning;
 
@@ -202,6 +144,9 @@ class SleepTimerHandler extends _$SleepTimerHandler {
     }
 
     if (!wasRunning && isRunning) {
+      if (_expiry != null) return;
+      _completedChapterMediaKey = null;
+      _autoStartPending = true;
       if (_pauseTriggeredByPlayback && state.state == SleepTimerState.paused) {
         resume();
         _scheduleMarkerPinHide();
@@ -209,8 +154,9 @@ class SleepTimerHandler extends _$SleepTimerHandler {
       }
 
       _scheduleMarkerPinHide();
-      unawaited(_tryAutoRestartSleepTimerOnPlaybackStart());
+      _tryAutoRestartSleepTimerOnPlaybackStart();
     }
+    if (_autoStartPending && isRunning) _tryAutoRestartSleepTimerOnPlaybackStart();
   }
 
   bool _isFadeOutEnabled() {
@@ -220,13 +166,14 @@ class SleepTimerHandler extends _$SleepTimerHandler {
   Duration get remainingTime => state.isRunning ? _remainingForCurrentRun() : state.remainingTime;
 
   Duration _remainingForCurrentRun() {
+    if (_chapterTimer != null) return _chapterTimer!.remainingTime(audioHandler.effectivePlaybackSpeed);
     final countdownStartTime = _countdownStartTime;
     final countdownRunDuration = _countdownRunDuration;
     if (countdownStartTime == null || countdownRunDuration == null) {
       return state.remainingTime;
     }
 
-    final elapsed = DateTime.now().difference(countdownStartTime);
+    final elapsed = currentTime.difference(countdownStartTime);
     final remaining = countdownRunDuration - elapsed;
     return remaining.isNegative ? Duration.zero : remaining;
   }
@@ -239,75 +186,10 @@ class SleepTimerHandler extends _$SleepTimerHandler {
     }
   }
 
-  Future<void> _restoreFadeVolumeIfNeeded() async {
-    final fadeBaseVolume = _fadeBaseVolume;
-    if (fadeBaseVolume == null) {
-      return;
-    }
-
-    _fadeBaseVolume = null;
-    await _setPlayerVolumeSafely(fadeBaseVolume, reason: 'sleep timer fade volume restore');
-  }
+  Future<void> _restoreFadeVolumeIfNeeded() => _fade.restore();
 
   void _applyFadeOutIfNeeded(Duration remaining) {
-    if (!_isFadeOutEnabled() || remaining > _sleepTimerFadeOutDuration) {
-      unawaited(_restoreFadeVolumeIfNeeded());
-      return;
-    }
-
-    _fadeBaseVolume ??= audioHandler.volume;
-    final fadeBaseVolume = _fadeBaseVolume;
-    if (fadeBaseVolume == null || fadeBaseVolume <= 0) {
-      return;
-    }
-
-    final progress = remaining.inMilliseconds / _sleepTimerFadeOutDuration.inMilliseconds;
-    final clampedProgress = progress.clamp(0.0, 1.0);
-    final curvedProgress = math.pow(clampedProgress, _sleepTimerFadeCurveExponent).toDouble();
-    final targetVolume = (fadeBaseVolume * curvedProgress).clamp(0.0, fadeBaseVolume).toDouble();
-
-    unawaited(_setPlayerVolumeSafely(targetVolume, reason: 'sleep timer fade out'));
-  }
-
-  int _normalizeMinutesOfDay(int value) {
-    final modulo = value % (24 * 60);
-    return modulo < 0 ? modulo + (24 * 60) : modulo;
-  }
-
-  bool _isWithinAutoRestartTimeRange() {
-    final settingManager = ref.read(settingsManagerProvider.notifier);
-    final useTimeRange = settingManager.getGlobalSetting<bool>(SettingKeys.sleepTimerAutoRestartUseTimeRange);
-    if (!useTimeRange) {
-      return true;
-    }
-
-    final startMinutesRaw = settingManager.getGlobalSetting<int>(SettingKeys.sleepTimerAutoRestartRangeStartMinutes);
-    final endMinutesRaw = settingManager.getGlobalSetting<int>(SettingKeys.sleepTimerAutoRestartRangeEndMinutes);
-    final startMinutes = _normalizeMinutesOfDay(startMinutesRaw);
-    final endMinutes = _normalizeMinutesOfDay(endMinutesRaw);
-
-    final now = DateTime.now();
-    final nowMinutes = now.hour * 60 + now.minute;
-
-    if (startMinutes == endMinutes) {
-      return true;
-    }
-
-    if (startMinutes < endMinutes) {
-      return nowMinutes >= startMinutes && nowMinutes < endMinutes;
-    }
-
-    return nowMinutes >= startMinutes || nowMinutes < endMinutes;
-  }
-
-  Future<void> _setAutoRestartSuppressed(bool value) async {
-    try {
-      await ref
-          .read(settingsManagerProvider.notifier)
-          .setGlobalSetting<bool>(SettingKeys.sleepTimerAutoRestartSuppressed, value);
-    } catch (e) {
-      logger('Failed to update sleep timer auto-restart suppression: $e', tag: 'SleepTimer', level: InfoLevel.warning);
-    }
+    _fade.apply(remaining, enabled: _isFadeOutEnabled());
   }
 
   Future<void> _persistLastDuration(Duration duration) async {
@@ -321,191 +203,23 @@ class SleepTimerHandler extends _$SleepTimerHandler {
     }
   }
 
-  Future<void> _persistMarker(SleepTimerMarker? marker) async {
-    try {
-      await ref
-          .read(settingsManagerProvider.notifier)
-          .setGlobalSetting<String>(SettingKeys.sleepTimerMarker, marker?.toRawJson() ?? '');
-    } catch (e) {
-      logger('Failed to persist sleep timer marker: $e', tag: 'SleepTimer', level: InfoLevel.warning);
-    }
-  }
-
-  void _cancelMarkerVisibilityTimers() {
-    _markerPinHideTimer?.cancel();
-    _markerPinHideTimer = null;
-    _markerRangeHideTimer?.cancel();
-    _markerRangeHideTimer = null;
-  }
-
-  void _setMarkerVisibility({bool? showPin, bool? showRange, bool? forceMarkerVisibility}) {
-    final marker = state.marker;
-    if (marker == null) {
-      return;
-    }
-
-    final nextShowPin = showPin ?? state.showMarkerPin;
-    final nextShowRange = showRange ?? state.showMarkerRange;
-    final nextForceMarkerVisibility = forceMarkerVisibility ?? state.forceMarkerVisibility;
-    if (nextShowPin == state.showMarkerPin &&
-        nextShowRange == state.showMarkerRange &&
-        nextForceMarkerVisibility == state.forceMarkerVisibility) {
-      return;
-    }
-
-    state = SleepTimerData(
-      remainingTime: state.remainingTime,
-      state: state.state,
-      totalDuration: state.totalDuration,
-      marker: marker,
-      showMarkerPin: nextShowPin,
-      showMarkerRange: nextShowRange,
-      forceMarkerVisibility: nextForceMarkerVisibility,
-    );
-  }
-
-  void _showMarker({bool showPin = true}) {
-    final marker = state.marker;
-    if (marker == null) {
-      return;
-    }
-
-    _markerPinHideTimer?.cancel();
-    _markerPinHideTimer = null;
-    _markerRangeHideTimer?.cancel();
-    _markerRangeHideTimer = null;
-    final hasEnded = marker.endPosition != null;
-    _setMarkerVisibility(showPin: showPin && hasEnded, showRange: hasEnded);
-  }
-
-  void _scheduleMarkerPinHide() {
-    if (state.marker == null || !state.showMarkerPin) {
-      return;
-    }
-
-    _markerPinHideTimer?.cancel();
-    _markerPinHideTimer = Timer(_sleepTimerMarkerPinVisibilityDuration, () {
-      _markerPinHideTimer = null;
-      _setMarkerVisibility(showPin: false, showRange: false, forceMarkerVisibility: false);
-    });
-  }
-
-  void dismissMarkerPin() {
-    if (state.marker == null) {
-      return;
-    }
-
-    _markerPinHideTimer?.cancel();
-    _markerPinHideTimer = null;
-    _markerRangeHideTimer?.cancel();
-    _setMarkerVisibility(showPin: false, showRange: true, forceMarkerVisibility: false);
-    _markerRangeHideTimer = Timer(_sleepTimerMarkerPinVisibilityDuration, () {
-      _markerRangeHideTimer = null;
-      _setMarkerVisibility(showRange: false);
-    });
-  }
-
-  bool toggleSleepTimerMarker() {
-    final marker = state.marker;
-    final media = audioHandler.currentMediaItem;
-    if (marker == null || media == null || !marker.matches(itemId: media.itemId, episodeId: media.episodeId)) {
-      return false;
-    }
-
-    final showMarkerSetting = ref
-        .read(settingsManagerProvider.notifier)
-        .getGlobalSetting<bool>(SettingKeys.sleepTimerShowMarker);
-    final isMarkerVisible =
-        state.forceMarkerVisibility || (showMarkerSetting && (state.showMarkerPin || state.showMarkerRange));
-    if (isMarkerVisible) {
-      _cancelMarkerVisibilityTimers();
-      state = state.copyWith(showMarkerPin: false, showMarkerRange: false, forceMarkerVisibility: false);
-      return true;
-    }
-
-    final markerWithEnd = marker.endPosition == null ? _completeMarkerAtCurrentPosition() : marker;
-    if (markerWithEnd == null) {
-      return false;
-    }
-
-    _cancelMarkerVisibilityTimers();
-    state = state.copyWith(
-      marker: markerWithEnd,
-      showMarkerPin: markerWithEnd.endPosition != null,
-      showMarkerRange: markerWithEnd.endPosition != null,
-      forceMarkerVisibility: true,
-    );
-    unawaited(_persistMarker(markerWithEnd));
-    return true;
-  }
-
-  SleepTimerMarker? _createMarker() {
-    final media = audioHandler.currentMediaItem;
-    if (media == null) {
-      return null;
-    }
-
-    return SleepTimerMarker(itemId: media.itemId, episodeId: media.episodeId, startPosition: audioHandler.position);
-  }
-
-  SleepTimerMarker? _completeMarkerAtCurrentPosition() {
-    final marker = state.marker;
-    final media = audioHandler.currentMediaItem;
-    if (marker == null || media == null || !marker.matches(itemId: media.itemId, episodeId: media.episodeId)) {
-      return marker;
-    }
-
-    return marker.copyWith(endPosition: audioHandler.position);
-  }
-
-  Future<void> _tryAutoRestartSleepTimerOnPlaybackStart() async {
-    if (state.isActive) {
-      return;
-    }
-
-    final settingManager = ref.read(settingsManagerProvider.notifier);
-    final autoRestartEnabled = settingManager.getGlobalSetting<bool>(SettingKeys.sleepTimerAutoRestartEnabled);
-    if (!autoRestartEnabled) {
-      return;
-    }
-
-    final autoRestartSuppressed = settingManager.getGlobalSetting<bool>(SettingKeys.sleepTimerAutoRestartSuppressed);
-    if (autoRestartSuppressed) {
-      logger('Sleep timer auto-restart is suppressed after manual stop', tag: 'SleepTimer', level: InfoLevel.debug);
-      return;
-    }
-
-    if (!_isWithinAutoRestartTimeRange()) {
-      logger(
-        'Sleep timer auto-restart skipped outside configured time range',
-        tag: 'SleepTimer',
-        level: InfoLevel.debug,
-      );
-      return;
-    }
-
-    final rememberedMinutes = settingManager.getGlobalSetting<int>(SettingKeys.sleepTimerLastDurationMinutes);
-    final safeMinutes = rememberedMinutes < 1 ? 30 : rememberedMinutes;
-
-    logger('Auto-restarting sleep timer for $safeMinutes minutes', tag: 'SleepTimer', level: InfoLevel.info);
-    start(Duration(minutes: safeMinutes), automatic: true);
-  }
-
   void start(Duration duration, {bool automatic = false}) {
-    if (duration <= Duration.zero) {
+    if (_expiry != null || duration <= Duration.zero) {
       return;
     }
 
     if (state.isActive) {
-      stop(suppressAutoRestart: false, recordHistory: false);
+      stop(recordHistory: false);
     }
 
     _pauseTriggeredByPlayback = false;
 
     unawaited(_restoreFadeVolumeIfNeeded());
 
-    unawaited(_setAutoRestartSuppressed(false));
+    unawaited(initializeAutoMinutes());
     unawaited(_persistLastDuration(duration));
+    _runRevision++;
+    _completedChapterMediaKey = null;
 
     logger('Sleep timer started for ${duration.inMinutes} minutes', tag: 'SleepTimer', level: InfoLevel.info);
 
@@ -513,7 +227,7 @@ class SleepTimerHandler extends _$SleepTimerHandler {
     final marker = _createMarker();
     state = SleepTimerData(
       remainingTime: duration,
-      state: SleepTimerState.running,
+      state: audioHandler.playerControlState.playing ? SleepTimerState.running : SleepTimerState.paused,
       totalDuration: duration,
       marker: marker,
       showMarkerPin: false,
@@ -525,16 +239,22 @@ class SleepTimerHandler extends _$SleepTimerHandler {
     }
 
     unawaited(
-      PlayerHistoryHandler.addPlayerHistory(
+      recordHistory(
         automatic ? PlayerHistoryType.sleepTimerAutoStarted : PlayerHistoryType.sleepTimerStarted,
         details: <String, Object?>{'durationSeconds': duration.inSeconds},
       ),
     );
 
-    _startTimer(duration);
+    _pauseTriggeredByPlayback = !audioHandler.playerControlState.playing;
+    if (state.isRunning) _startTimer(duration);
   }
 
-  void stop({bool suppressAutoRestart = true, bool recordHistory = true}) {
+  void stop({bool recordHistory = true}) {
+    _autoStartPending = false;
+    final chapterDetails = <String, Object?>{
+      if (state.isChapterTimer) 'mode': state.mode.name,
+      if (state.isChapterTimer) 'remainingChapters': state.remainingChapters,
+    };
     final remainingTime = state.isRunning ? _remainingForCurrentRun() : state.remainingTime;
     _timer?.cancel();
     _timer = null;
@@ -545,9 +265,10 @@ class SleepTimerHandler extends _$SleepTimerHandler {
 
     unawaited(_restoreFadeVolumeIfNeeded());
 
-    if (suppressAutoRestart) {
-      unawaited(_setAutoRestartSuppressed(true));
-    }
+    _runRevision++;
+    _chapterTimer = null;
+    _chapterMediaKey = null;
+    _chapterBinding = null;
 
     logger('Sleep timer stopped', tag: 'SleepTimer', level: InfoLevel.info);
 
@@ -561,9 +282,13 @@ class SleepTimerHandler extends _$SleepTimerHandler {
 
     if (recordHistory) {
       unawaited(
-        PlayerHistoryHandler.addPlayerHistory(
+        this.recordHistory(
           PlayerHistoryType.sleepTimerStopped,
-          details: <String, Object?>{'remainingSeconds': remainingTime.inSeconds, 'source': 'manual'},
+          details: <String, Object?>{
+            ...chapterDetails,
+            'remainingSeconds': remainingTime.inSeconds,
+            'source': 'manual',
+          },
         ),
       );
     }
@@ -571,6 +296,10 @@ class SleepTimerHandler extends _$SleepTimerHandler {
 
   void pause({bool triggeredByPlaybackPause = false}) {
     if (!state.isRunning) return;
+    if (_chapterTimer != null) {
+      _updateChapterPosition(audioHandler.position);
+      if (!state.isRunning) return;
+    }
 
     final remainingTime = _remainingForCurrentRun();
 
@@ -589,10 +318,12 @@ class SleepTimerHandler extends _$SleepTimerHandler {
     _showMarker(showPin: false);
     unawaited(_persistMarker(marker));
     unawaited(
-      PlayerHistoryHandler.addPlayerHistory(
+      recordHistory(
         PlayerHistoryType.sleepTimerStopped,
         details: <String, Object?>{
           'remainingSeconds': remainingTime.inSeconds,
+          if (state.isChapterTimer) 'mode': state.mode.name,
+          if (state.isChapterTimer) 'remainingChapters': state.remainingChapters,
           'source': triggeredByPlaybackPause ? 'playback' : 'manual',
         },
       ),
@@ -600,13 +331,11 @@ class SleepTimerHandler extends _$SleepTimerHandler {
   }
 
   void resume() {
-    if (state.state != SleepTimerState.paused || state.remainingTime <= Duration.zero) {
+    if (state.state != SleepTimerState.paused || (!state.isChapterTimer && state.remainingTime <= Duration.zero)) {
       return;
     }
 
     _pauseTriggeredByPlayback = false;
-
-    unawaited(_setAutoRestartSuppressed(false));
 
     logger('Sleep timer resumed', tag: 'SleepTimer', level: InfoLevel.info);
 
@@ -615,16 +344,28 @@ class SleepTimerHandler extends _$SleepTimerHandler {
     _showMarker(showPin: false);
     unawaited(_persistMarker(marker));
     unawaited(
-      PlayerHistoryHandler.addPlayerHistory(
+      recordHistory(
         PlayerHistoryType.sleepTimerStarted,
-        details: <String, Object?>{'durationSeconds': state.remainingTime.inSeconds, 'source': 'resume'},
+        details: <String, Object?>{
+          'durationSeconds': state.remainingTime.inSeconds,
+          'source': 'resume',
+          if (state.isChapterTimer) 'mode': state.mode.name,
+          if (state.isChapterTimer) 'chapters': state.remainingChapters,
+        },
       ),
     );
-    _startTimer(state.remainingTime);
+    if (_chapterTimer != null) {
+      _chapterNavigationGeneration = audioHandler.sleepTimerNavigationGeneration;
+      _chapterTimer!.rebase(audioHandler.position);
+      _updateChapterPosition(audioHandler.position);
+    } else {
+      _startTimer(state.remainingTime);
+    }
   }
 
   void extend(Duration additionalTime) {
-    if (!state.isActive || additionalTime <= Duration.zero) return;
+    if (!state.isActive || state.isChapterTimer || additionalTime <= Duration.zero) return;
+    unawaited(initializeAutoMinutes());
 
     final isRunning = state.isRunning;
     final baseRemainingTime = isRunning ? _remainingForCurrentRun() : state.remainingTime;
@@ -635,7 +376,7 @@ class SleepTimerHandler extends _$SleepTimerHandler {
 
     state = state.copyWith(remainingTime: newRemainingTime, totalDuration: newTotalDuration);
     unawaited(
-      PlayerHistoryHandler.addPlayerHistory(
+      recordHistory(
         PlayerHistoryType.sleepTimerExtended,
         details: <String, Object?>{
           'additionalSeconds': additionalTime.inSeconds,
@@ -654,6 +395,10 @@ class SleepTimerHandler extends _$SleepTimerHandler {
 
   void reset() {
     if (!state.isActive) return;
+    if (state.isChapterTimer) {
+      extendChapter();
+      return;
+    }
 
     final totalDuration = state.totalDuration ?? state.remainingTime;
     if (totalDuration <= Duration.zero) return;
@@ -661,13 +406,12 @@ class SleepTimerHandler extends _$SleepTimerHandler {
     logger('Sleep timer reset to ${totalDuration.inMinutes} minutes', tag: 'SleepTimer', level: InfoLevel.info);
 
     unawaited(
-      PlayerHistoryHandler.addPlayerHistory(
+      recordHistory(
         PlayerHistoryType.sleepTimerStopped,
         details: <String, Object?>{'remainingSeconds': totalDuration.inSeconds, 'source': 'reset'},
       ),
     );
 
-    _pauseTriggeredByPlayback = false;
     unawaited(_restoreFadeVolumeIfNeeded());
 
     _timer?.cancel();
@@ -700,79 +444,28 @@ class SleepTimerHandler extends _$SleepTimerHandler {
     unawaited(_persistMarker(marker));
 
     _startTimer(totalDuration);
-    unawaited(_setAutoRestartSuppressed(false));
     unawaited(_persistLastDuration(totalDuration));
   }
 
   void _startTimer(Duration duration) {
     _timer?.cancel();
-    _countdownStartTime = DateTime.now();
+    _countdownStartTime = currentTime;
     _countdownRunDuration = duration;
 
-    _timer = Timer.periodic(_sleepTimerTickInterval, (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       final remaining = _remainingForCurrentRun();
 
       if (remaining <= Duration.zero) {
-        _onTimerExpired();
+        unawaited(_onTimerExpired());
         timer.cancel();
       } else {
         _applyFadeOutIfNeeded(remaining);
 
-        if ((state.remainingTime - remaining).abs() >= _sleepTimerUiUpdateInterval) {
+        if ((state.remainingTime - remaining).abs() >= const Duration(milliseconds: 500)) {
           state = state.copyWith(remainingTime: remaining);
         }
       }
     });
-  }
-
-  void _onTimerExpired() {
-    final actionSetting = ref
-        .read(settingsManagerProvider.notifier)
-        .getGlobalSetting<String>(SettingKeys.sleepTimerExpireAction);
-    final action = SleepTimerExpireAction.fromSettingValue(actionSetting);
-
-    _timer = null;
-    _countdownStartTime = null;
-    _countdownRunDuration = null;
-    _pauseTriggeredByPlayback = false;
-    _cancelMarkerVisibilityTimers();
-
-    final marker = _completeMarkerAtCurrentPosition();
-    state = SleepTimerData(
-      remainingTime: Duration.zero,
-      state: SleepTimerState.inactive,
-      marker: marker,
-      forceMarkerVisibility: false,
-    );
-    _showMarker();
-    unawaited(_persistMarker(marker));
-
-    unawaited(
-      PlayerHistoryHandler.addPlayerHistory(
-        PlayerHistoryType.sleepTimerExpired,
-        details: <String, Object?>{'action': action.name},
-      ),
-    );
-
-    unawaited(_executeExpireAction(action));
-  }
-
-  Future<void> _executeExpireAction(SleepTimerExpireAction action) async {
-    try {
-      if (action == SleepTimerExpireAction.pause) {
-        logger('Sleep timer expired, pausing playback', tag: 'SleepTimer', level: InfoLevel.info);
-        await audioHandler.applySleepTimerAutoRewindNow();
-        await audioHandler.pause();
-      } else {
-        logger('Sleep timer expired, stopping playback', tag: 'SleepTimer', level: InfoLevel.info);
-        await audioHandler.applySleepTimerAutoRewindNow();
-        await audioHandler.stop();
-      }
-    } catch (e) {
-      logger('Failed to run sleep timer expiry action: $e', tag: 'SleepTimer', level: InfoLevel.warning);
-    } finally {
-      await _restoreFadeVolumeIfNeeded();
-    }
   }
 }
 
