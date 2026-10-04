@@ -188,11 +188,7 @@ class _ServerConnectionSettingsState extends ConsumerState<ServerConnectionSetti
           throw const FormatException('Credentials belong to a different account. Use Add Account instead.');
         }
 
-        updatedUser = loginData.user.copyWith(
-          server: updatedServer,
-          isActive: true,
-          setting: loginData.user.setting ?? loginData.serverSettings,
-        );
+        updatedUser = loginData.user.copyWith(server: updatedServer, isActive: true, setting: loginData.serverSettings);
       } else {
         updatedUser = currentUser.copyWith(server: updatedServer);
       }

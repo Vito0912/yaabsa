@@ -11,6 +11,7 @@ class SettingKeys {
   static const String currentUserId = 'current_user_id';
   static const String appLogLevel = 'app_log_level';
   static const String desktopWindowState = 'desktop_window_state';
+  static const String restartListeningSessionAtMidnight = 'restart_listening_session_at_midnight';
   static const String bufferSize = 'buffer_size';
   static const String keepScreenOn = 'keep_screen_on';
   static const String keepWebsocketConnectionInBackground = 'keep_websocket_connection_in_background';
@@ -226,6 +227,7 @@ final defaultSettings = {
   SettingKeys.autoResumeBluetoothDeviceAddresses: '[]',
 
   SettingKeys.syncInterval: 10,
+  SettingKeys.restartListeningSessionAtMidnight: true,
   SettingKeys.syncOnlyOnWifi: false,
   SettingKeys.sortSeriesAscending: false,
   SettingKeys.collapseSeries: false,

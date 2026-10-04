@@ -73,7 +73,7 @@ extension _BGAudioHandlerSource on BGAudioHandler {
           !_isDisposing &&
           !isCastControlActive &&
           session?.playMethod == 2 &&
-          session?.id == loadingMedia?.sessionId &&
+          _ref.read(sessionRepositoryProvider).streamSessionId == loadingMedia?.sessionId &&
           transcodeStartupAttempt < 10 &&
           _isRetryableTranscodeStartupError(error)) {
         final delay = Duration(seconds: transcodeStartupAttempt < 5 ? 4 : 6);

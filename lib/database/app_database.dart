@@ -1707,13 +1707,15 @@ class AppDatabase extends _$AppDatabase {
   }
 
   // Sync management
-  Future<void> addOrUpdateSync(StoredSyncsCompanion companion) {
+  Future<void> addOrUpdateSync(StoredSyncsCompanion companion, {bool replaceTimeListened = false}) {
     return into(storedSyncs).insert(
       companion,
       mode: InsertMode.insertOrIgnore,
       onConflict: DoUpdate(
         (old) => StoredSyncsCompanion.custom(
-          timeListened: old.timeListened + Variable<double>(companion.timeListened.value),
+          timeListened: replaceTimeListened
+              ? Variable<double>(companion.timeListened.value)
+              : old.timeListened + Variable<double>(companion.timeListened.value),
           currentTime: Variable<double>(companion.currentTime.value),
           lastUpdated: Variable<DateTime>(companion.lastUpdated.value),
           sessionLocal: Variable<bool>(companion.sessionLocal.value),

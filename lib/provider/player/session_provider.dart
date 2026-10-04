@@ -17,6 +17,7 @@ import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/audio_handler/player_history_handler.dart';
+import 'package:yaabsa/util/audio_handler/listening_session_clock.dart';
 import 'package:yaabsa/util/local_cover_path.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/player_utils.dart';
@@ -26,6 +27,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
 part 'session_provider.g.dart';
+part 'session_rollover.dart';
 
 enum _StoredSyncReplayAction { synced, retryWithNewSession, keepLocal }
 
@@ -35,6 +37,11 @@ class SessionRepository {
 
   PlaybackSession? _currentSession;
   bool _isLocalSession = true;
+  String? _streamSessionId;
+  DateTime? _recordingStartedAt;
+
+  DateTime? get recordingStartedAt => _recordingStartedAt;
+  String? get streamSessionId => _streamSessionId ?? _currentSession?.id;
 
   PlaybackSession? get currentSession => _currentSession;
 
@@ -77,6 +84,17 @@ class SessionRepository {
     final currentSession = _currentSession;
     if (currentSession == null) {
       return;
+    }
+
+    final streamSessionId = _streamSessionId;
+    _streamSessionId = null;
+    _recordingStartedAt = null;
+    if (streamSessionId != null) {
+      try {
+        await ref.read(absApiProvider)?.getSessionApi().closeOpenSession(streamSessionId);
+      } catch (e) {
+        logger('Failed to close retained stream session: $e', tag: 'SessionRepository', level: InfoLevel.warning);
+      }
     }
 
     if (_isLocalSession) {
@@ -177,6 +195,10 @@ class SessionRepository {
       _isLocalSession = true;
     }
 
+    _recordingStartedAt = _currentSession?.startedAt == null
+        ? DateTime.now()
+        : DateTime.fromMillisecondsSinceEpoch(_currentSession!.startedAt!);
+
     final hasCoverPath =
         (_currentSession!.coverPath?.isNotEmpty ?? false) || (_currentSession!.libraryItem?.hasCover ?? false);
     final resolvedLocalCoverPath = await resolveDisplayCoverPath(
@@ -233,7 +255,12 @@ class SessionRepository {
     return openSession(itemId, episodeId: episodeId, forceTranscode: true);
   }
 
-  Future<bool> syncOpenSession(double currentTime, double timeListened, {required bool canReachServer}) async {
+  Future<bool> syncOpenSession(
+    double currentTime,
+    double timeListened, {
+    required bool canReachServer,
+    DateTime? recordedAt,
+  }) async {
     if (_currentSession == null) {
       logger('No session available', tag: 'SessionRepository', level: InfoLevel.warning);
       return false;
@@ -244,23 +271,26 @@ class SessionRepository {
       _currentSession = _currentSession!.copyWith(
         currentTime: currentTime,
         timeListening: newTimeListening,
-        updatedAt: DateTime.now().millisecondsSinceEpoch,
+        updatedAt: (recordedAt ?? DateTime.now()).millisecondsSinceEpoch,
       );
 
       final MediaProgress? updatedProgress = await ref
           .read(mediaProgressProvider.notifier)
           .updateMediaProgress(_currentSession!.libraryItemId, currentTime, _currentSession!);
 
+      await _addLocal(currentTime, timeListened, updatedProgress, recordedAt: recordedAt);
+
       if (canReachServer) {
         final syncedRemotely = await _syncLocalSessionProgressDirectly();
         if (syncedRemotely) {
+          await ref.read(appDatabaseProvider).deleteSync(_currentSession!.id);
           return true;
         }
       }
 
       logger('Session is local; storing sync locally', tag: 'SessionRepository', level: InfoLevel.debug);
 
-      return _addLocal(currentTime, timeListened, updatedProgress);
+      return true;
     }
 
     if (!canReachServer) {
@@ -274,7 +304,7 @@ class SessionRepository {
         level: InfoLevel.debug,
       );
 
-      return _addLocal(currentTime, timeListened, updatedProgress);
+      return _addLocal(currentTime, timeListened, updatedProgress, recordedAt: recordedAt);
     }
 
     final ABSApi? api = ref.read(absApiProvider);
@@ -284,7 +314,7 @@ class SessionRepository {
           .updateMediaProgress(_currentSession!.libraryItemId, currentTime, _currentSession!);
 
       logger('No API available, storing sync locally.', tag: 'SessionRepository', level: InfoLevel.warning);
-      return _addLocal(currentTime, timeListened, updatedProgress);
+      return _addLocal(currentTime, timeListened, updatedProgress, recordedAt: recordedAt);
     }
 
     try {
@@ -310,7 +340,7 @@ class SessionRepository {
           .read(mediaProgressProvider.notifier)
           .updateMediaProgress(_currentSession!.libraryItemId, currentTime, _currentSession!);
 
-      return _addLocal(currentTime, timeListened, updatedProgress);
+      return _addLocal(currentTime, timeListened, updatedProgress, recordedAt: recordedAt);
     }
   }
 
@@ -333,7 +363,12 @@ class SessionRepository {
     }
   }
 
-  Future<bool> _addLocal(double currentTime, double timeListened, MediaProgress? progress) async {
+  Future<bool> _addLocal(
+    double currentTime,
+    double timeListened,
+    MediaProgress? progress, {
+    DateTime? recordedAt,
+  }) async {
     final PlaybackSession? currentSession = _currentSession;
     final String? userId = _activeUserId;
 
@@ -357,14 +392,19 @@ class SessionRepository {
       episodeId: Value(currentSession.episodeId),
       userId: Value(userId),
       currentTime: Value(currentTime),
-      timeListened: Value(timeListened),
+      timeListened: Value(_isLocalSession ? currentSession.timeListening ?? timeListened : timeListened),
       duration: Value(duration),
-      lastUpdated: Value(DateTime.now()),
+      lastUpdated: Value(
+        recordedAt ??
+            (_isLocalSession && currentSession.updatedAt != null
+                ? DateTime.fromMillisecondsSinceEpoch(currentSession.updatedAt!)
+                : DateTime.now()),
+      ),
       sessionLocal: Value(_isLocalSession),
       mediaProgress: Value(jsonEncode(effectiveProgress)),
     );
 
-    await ref.read(appDatabaseProvider).addOrUpdateSync(sync);
+    await ref.read(appDatabaseProvider).addOrUpdateSync(sync, replaceTimeListened: _isLocalSession);
     PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.syncOffline);
     logger('Sync stored locally for session ${currentSession.id}', tag: 'SessionRepository', level: InfoLevel.debug);
     return true;
@@ -451,7 +491,7 @@ class SessionRepository {
   }
 
   Future<bool> _syncStoredAsNewSession(ABSApi api, StoredSyncEntry storedSync) async {
-    final String newSessionId = const Uuid().v4();
+    final String newSessionId = storedSync.sessionLocal ? storedSync.sessionId : const Uuid().v4();
 
     try {
       final PlaybackSession session = await createLocalSession(
@@ -589,6 +629,8 @@ class SessionRepository {
       ),
     );
 
+    final calendarDate = ListeningSessionClock(ref.read(currentUserProvider).value?.setting?.timeZone)
+        .calendarDate(date);
     PlaybackSession session = PlaybackSession(
       id: sessionId,
       userId: userId,
@@ -605,11 +647,14 @@ class SessionRepository {
       playMethod: 0,
       deviceInfo: await PlayerUtils.getDeviceInfo(),
       mediaPlayer: '$appName just_audio',
-      date: _formatDateString(date),
-      dayOfWeek: _getWeekdayString(date),
+      date: _formatDateString(calendarDate),
+      dayOfWeek: _getWeekdayString(calendarDate),
       timeListening: initialTimeListening,
       startTime: derivedStartTime,
       currentTime: currentPosition,
+      startedAt: date
+          .subtract(Duration(microseconds: ((initialTimeListening ?? 0) * Duration.microsecondsPerSecond).round()))
+          .millisecondsSinceEpoch,
       updatedAt: date.millisecondsSinceEpoch,
       audioTracks:
           libraryItem.media?.bookMedia?.audioFiles?.map((a) => a.toAudioTrack()).whereType<AudioTrack>().toList() ??

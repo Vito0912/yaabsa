@@ -1963,6 +1963,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     });
   }
 
+  Future<bool> restartListeningSession() => _syncService.restartSession();
+
   Map<String, String> get currentRequestHeaders => _currentRequestHeadersInternal;
 
   Future<void> _updatePlaybackState() async {

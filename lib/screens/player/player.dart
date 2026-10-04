@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform;
+import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kDebugMode;
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/screens/settings/player/player_settings_equalizer.dart';
 import 'package:flutter/services.dart';
@@ -38,7 +38,7 @@ import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
-enum _PlayerAppBarMenuAction { queue, stop, addBookmark, carMode, playHistory, cast, equalizer }
+enum _PlayerAppBarMenuAction { queue, stop, addBookmark, carMode, playHistory, cast, equalizer, restartSession }
 
 class Player extends ConsumerStatefulWidget {
   const Player({super.key});
@@ -213,6 +213,8 @@ class _PlayerState extends ConsumerState<Player> {
         _openPlayHistory(context);
       case _PlayerAppBarMenuAction.cast:
         await showCastDevicePicker(context);
+      case _PlayerAppBarMenuAction.restartSession:
+        if (kDebugMode) await audioHandler.restartListeningSession();
       case _PlayerAppBarMenuAction.equalizer:
         context.go(PlayerSettingsEqualizer.routeName);
     }
@@ -270,6 +272,15 @@ class _PlayerState extends ConsumerState<Player> {
         const PopupMenuItem<_PlayerAppBarMenuAction>(
           value: _PlayerAppBarMenuAction.equalizer,
           child: _PlayerAppBarMenuItem(icon: Icons.equalizer_rounded, label: 'Equalizer'),
+        ),
+      );
+    }
+
+    if (kDebugMode) {
+      items.add(
+        const PopupMenuItem<_PlayerAppBarMenuAction>(
+          value: _PlayerAppBarMenuAction.restartSession,
+          child: _PlayerAppBarMenuItem(icon: Icons.restart_alt, label: 'Restart listening session'),
         ),
       );
     }
