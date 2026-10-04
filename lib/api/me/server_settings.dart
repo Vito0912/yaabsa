@@ -32,6 +32,7 @@ abstract class ServerSettings with _$ServerSettings {
     @JsonKey(name: "sortingPrefixes") List<String>? sortingPrefixes,
     @JsonKey(name: "chromecastEnabled") bool? chromecastEnabled,
     @JsonKey(name: "dateFormat") String? dateFormat,
+    @JsonKey(name: "timeZone") String? timeZone,
     @JsonKey(name: "timeFormat") String? timeFormat,
     @JsonKey(name: "language") String? language,
     @JsonKey(name: "logLevel") LogLevel? logLevel,

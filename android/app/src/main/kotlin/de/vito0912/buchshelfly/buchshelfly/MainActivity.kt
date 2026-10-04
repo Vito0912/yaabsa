@@ -234,6 +234,9 @@ class MainActivity : AudioServiceFragmentActivity() {
 
 	override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
 		super.configureFlutterEngine(flutterEngine)
+		if (!flutterEngine.plugins.has(LiveUpdatesPlugin::class.java)) {
+			flutterEngine.plugins.add(LiveUpdatesPlugin())
+		}
 
 		MethodChannel(flutterEngine.dartExecutor.binaryMessenger, WIDGET_CHANNEL)
 			.setMethodCallHandler { call, result ->

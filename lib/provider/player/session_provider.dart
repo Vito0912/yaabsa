@@ -17,6 +17,7 @@ import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/audio_handler/player_history_handler.dart';
+import 'package:yaabsa/util/audio_handler/listening_session_clock.dart';
 import 'package:yaabsa/util/local_cover_path.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/player_utils.dart';
@@ -26,14 +27,17 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
 
 part 'session_provider.g.dart';
+part 'session_rollover.dart';
 
 enum _StoredSyncReplayAction { synced, retryWithNewSession, keepLocal }
 
 class PlaybackSessionBinding {
-  const PlaybackSessionBinding({required this.session, required this.isLocal});
+  const PlaybackSessionBinding({required this.session, required this.isLocal, this.playbackSessionIdOverride});
 
   final PlaybackSession session;
   final bool isLocal;
+  final String? playbackSessionIdOverride;
+  String get playbackSessionId => playbackSessionIdOverride ?? session.id;
 
   String get sessionId => session.id;
   String get itemId => session.libraryItemId;
@@ -47,6 +51,14 @@ class SessionRepository {
   PlaybackSession? _currentSession;
   bool _isLocalSession = true;
   final Map<String, PlaybackSession> _localBoundSessionVersions = <String, PlaybackSession>{};
+  String? _streamSessionId;
+  String? _playbackSessionId;
+  final Map<String, String> _retainedStreamSessions = {};
+  final Map<String, PlaybackSessionBinding> _detachedSessionBindings = {};
+  DateTime? _recordingStartedAt;
+
+  DateTime? get recordingStartedAt => _recordingStartedAt;
+  String? get streamSessionId => _streamSessionId ?? _currentSession?.id;
 
   PlaybackSession? get currentSession => _currentSession;
   PlaybackSessionBinding? get currentSessionBinding {
@@ -54,7 +66,11 @@ class SessionRepository {
     if (session == null) {
       return null;
     }
-    return PlaybackSessionBinding(session: session, isLocal: _isLocalSession);
+    return PlaybackSessionBinding(
+      session: session,
+      isLocal: _isLocalSession,
+      playbackSessionIdOverride: _playbackSessionId,
+    );
   }
 
   String? get _activeUserId {
@@ -93,18 +109,35 @@ class SessionRepository {
   }
 
   bool isCurrentSessionBinding(PlaybackSessionBinding binding) {
-    return _currentSession?.id == binding.sessionId;
+    return _currentSession != null && (_playbackSessionId ?? _currentSession!.id) == binding.playbackSessionId;
   }
 
   bool detachSessionBinding(PlaybackSessionBinding binding) {
-    if (_currentSession?.id != binding.sessionId) {
+    if (!isCurrentSessionBinding(binding)) {
       return false;
     }
+    _detachedSessionBindings[binding.playbackSessionId] = currentSessionBinding!;
     _currentSession = null;
+    _streamSessionId = null;
+    _playbackSessionId = null;
+    _recordingStartedAt = null;
     return true;
   }
 
   Future<void> closeSessionBinding(PlaybackSessionBinding binding) async {
+    if (isCurrentSessionBinding(binding)) {
+      binding = currentSessionBinding!;
+      detachSessionBinding(binding);
+    }
+    binding = _detachedSessionBindings.remove(binding.playbackSessionId) ?? binding;
+    final streamId = _retainedStreamSessions.remove(binding.playbackSessionId);
+    if (streamId != null) {
+      try {
+        await ref.read(absApiProvider)?.getSessionApi().closeOpenSession(streamId);
+      } catch (e) {
+        logger('Failed to close retained stream session: $e', tag: 'SessionRepository', level: InfoLevel.warning);
+      }
+    }
     if (binding.isLocal) {
       _localBoundSessionVersions.remove(binding.sessionId);
       if (_currentSession?.id == binding.sessionId) {
@@ -226,6 +259,12 @@ class SessionRepository {
       _localBoundSessionVersions[_currentSession!.id] = _currentSession!;
     }
 
+    _playbackSessionId = _currentSession?.id;
+    _streamSessionId = null;
+    _recordingStartedAt = _currentSession?.startedAt == null
+        ? DateTime.now()
+        : DateTime.fromMillisecondsSinceEpoch(_currentSession!.startedAt!);
+
     final hasCoverPath =
         (_currentSession!.coverPath?.isNotEmpty ?? false) || (_currentSession!.libraryItem?.hasCover ?? false);
     final resolvedLocalCoverPath = await resolveDisplayCoverPath(
@@ -282,13 +321,24 @@ class SessionRepository {
     return openSession(itemId, episodeId: episodeId, forceTranscode: true);
   }
 
-  Future<bool> syncOpenSession(double currentTime, double timeListened, {required bool canReachServer}) async {
+  Future<bool> syncOpenSession(
+    double currentTime,
+    double timeListened, {
+    required bool canReachServer,
+    DateTime? recordedAt,
+  }) async {
     final binding = currentSessionBinding;
     if (binding == null) {
       logger('No session available', tag: 'SessionRepository', level: InfoLevel.warning);
       return false;
     }
-    return syncSessionBinding(binding, currentTime, timeListened, canReachServer: canReachServer);
+    return syncSessionBinding(
+      binding,
+      currentTime,
+      timeListened,
+      canReachServer: canReachServer,
+      recordedAt: recordedAt,
+    );
   }
 
   Future<bool> syncSessionBinding(
@@ -296,6 +346,7 @@ class SessionRepository {
     double currentTime,
     double timeListened, {
     required bool canReachServer,
+    DateTime? recordedAt,
   }) async {
     final currentBoundSession = _currentSession?.id == binding.sessionId ? _currentSession : null;
     final session = binding.isLocal
@@ -307,7 +358,7 @@ class SessionRepository {
       final updatedSession = session.copyWith(
         currentTime: currentTime,
         timeListening: newTimeListening,
-        updatedAt: DateTime.now().millisecondsSinceEpoch,
+        updatedAt: (recordedAt ?? DateTime.now()).millisecondsSinceEpoch,
       );
       _localBoundSessionVersions[binding.sessionId] = updatedSession;
       if (_currentSession?.id == binding.sessionId) {
@@ -319,15 +370,25 @@ class SessionRepository {
           .read(mediaProgressProvider.notifier)
           .updateMediaProgress(updatedSession.libraryItemId, currentTime, updatedSession);
 
+      await _addLocal(
+        currentTime,
+        timeListened,
+        updatedProgress,
+        session: updatedSession,
+        sessionLocal: true,
+        recordedAt: recordedAt,
+      );
+
       if (canReachServer) {
         final syncedRemotely = await _syncLocalSessionProgressDirectly(updatedSession);
         if (syncedRemotely) {
+          await ref.read(appDatabaseProvider).deleteSync(updatedSession.id);
           return true;
         }
       }
 
       logger('Session is local; storing bound sync locally', tag: 'SessionRepository', level: InfoLevel.debug);
-      return _addLocal(currentTime, timeListened, updatedProgress, session: updatedSession, sessionLocal: true);
+      return true;
     }
 
     if (!canReachServer) {
@@ -340,7 +401,14 @@ class SessionRepository {
         tag: 'SessionRepository',
         level: InfoLevel.debug,
       );
-      return _addLocal(currentTime, timeListened, updatedProgress, session: session, sessionLocal: false);
+      return _addLocal(
+        currentTime,
+        timeListened,
+        updatedProgress,
+        session: session,
+        sessionLocal: false,
+        recordedAt: recordedAt,
+      );
     }
 
     final ABSApi? api = ref.read(absApiProvider);
@@ -350,7 +418,14 @@ class SessionRepository {
           .updateMediaProgress(session.libraryItemId, currentTime, session);
 
       logger('No API available, storing bound sync locally.', tag: 'SessionRepository', level: InfoLevel.warning);
-      return _addLocal(currentTime, timeListened, updatedProgress, session: session, sessionLocal: false);
+      return _addLocal(
+        currentTime,
+        timeListened,
+        updatedProgress,
+        session: session,
+        sessionLocal: false,
+        recordedAt: recordedAt,
+      );
     }
 
     try {
@@ -376,7 +451,14 @@ class SessionRepository {
           .read(mediaProgressProvider.notifier)
           .updateMediaProgress(session.libraryItemId, currentTime, session);
 
-      return _addLocal(currentTime, timeListened, updatedProgress, session: session, sessionLocal: false);
+      return _addLocal(
+        currentTime,
+        timeListened,
+        updatedProgress,
+        session: session,
+        sessionLocal: false,
+        recordedAt: recordedAt,
+      );
     }
   }
 
@@ -404,6 +486,7 @@ class SessionRepository {
     MediaProgress? progress, {
     required PlaybackSession session,
     required bool sessionLocal,
+    DateTime? recordedAt,
   }) async {
     final String userId = session.userId;
 
@@ -418,14 +501,14 @@ class SessionRepository {
       episodeId: Value(session.episodeId),
       userId: Value(userId),
       currentTime: Value(currentTime),
-      timeListened: Value(timeListened),
+      timeListened: Value(sessionLocal ? session.timeListening ?? timeListened : timeListened),
       duration: Value(duration),
-      lastUpdated: Value(DateTime.now()),
+      lastUpdated: Value(recordedAt ?? DateTime.now()),
       sessionLocal: Value(sessionLocal),
       mediaProgress: Value(jsonEncode(effectiveProgress)),
     );
 
-    await ref.read(appDatabaseProvider).addOrUpdateSync(sync);
+    await ref.read(appDatabaseProvider).addOrUpdateSync(sync, replaceTimeListened: _isLocalSession);
     PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.syncOffline);
     logger('Sync stored locally for session ${session.id}', tag: 'SessionRepository', level: InfoLevel.debug);
     return true;
@@ -512,7 +595,7 @@ class SessionRepository {
   }
 
   Future<bool> _syncStoredAsNewSession(ABSApi api, StoredSyncEntry storedSync) async {
-    final String newSessionId = const Uuid().v4();
+    final String newSessionId = storedSync.sessionLocal ? storedSync.sessionId : const Uuid().v4();
 
     try {
       final PlaybackSession session = await createLocalSession(
@@ -650,6 +733,8 @@ class SessionRepository {
       ),
     );
 
+    final calendarDate = ListeningSessionClock(ref.read(currentUserProvider).value?.setting?.timeZone)
+        .calendarDate(date);
     PlaybackSession session = PlaybackSession(
       id: sessionId,
       userId: userId,
@@ -666,11 +751,14 @@ class SessionRepository {
       playMethod: 0,
       deviceInfo: await PlayerUtils.getDeviceInfo(),
       mediaPlayer: '$appName just_audio',
-      date: _formatDateString(date),
-      dayOfWeek: _getWeekdayString(date),
+      date: _formatDateString(calendarDate),
+      dayOfWeek: _getWeekdayString(calendarDate),
       timeListening: initialTimeListening,
       startTime: derivedStartTime,
       currentTime: currentPosition,
+      startedAt: date
+          .subtract(Duration(microseconds: ((initialTimeListening ?? 0) * Duration.microsecondsPerSecond).round()))
+          .millisecondsSinceEpoch,
       updatedAt: date.millisecondsSinceEpoch,
       audioTracks:
           libraryItem.media?.bookMedia?.audioFiles?.map((a) => a.toAudioTrack()).whereType<AudioTrack>().toList() ??

@@ -13,6 +13,7 @@ import 'package:yaabsa/util/aaos_service.dart';
 import 'package:yaabsa/util/app_theme.dart';
 import 'package:yaabsa/util/handler/tray_handler.dart' show TrayManager;
 import 'package:yaabsa/util/handler/sleep_timer_handler.dart';
+import 'package:yaabsa/util/handler/desktop_window_state.dart';
 import 'package:yaabsa/util/init.dart' show Init;
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/router.dart';
@@ -62,6 +63,7 @@ void main() {
         defaultValue: InfoLevel.warning.toString(),
       );
       appLoggerService.setMinimumLevel(InfoLevel.fromSettingValue(startupLogLevelSetting));
+      await DesktopWindowState.initialize(settingsManager);
 
       unawaited(containerRef.read(currentUserProvider.future));
       unawaited(containerRef.read(serverStatusProvider.future));

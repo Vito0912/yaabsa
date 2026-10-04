@@ -9,7 +9,7 @@ class DownloadStatus extends StatelessWidget {
   Widget build(BuildContext context) {
     return StreamBuilder<List<TaskRecord>>(
       stream: downloadHandler.taskQueueStream,
-      initialData: const <TaskRecord>[],
+      initialData: downloadHandler.taskQueueSnapshot,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return IconButton(
@@ -73,7 +73,7 @@ class DownloadStatus extends StatelessWidget {
             top: false,
             child: StreamBuilder<List<TaskRecord>>(
               stream: downloadHandler.taskQueueStream,
-              initialData: const <TaskRecord>[],
+              initialData: downloadHandler.taskQueueSnapshot,
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
                   return Center(

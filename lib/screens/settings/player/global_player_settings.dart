@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/components/settings/settings_dropdown.dart';
+import 'package:yaabsa/components/settings/android_live_updates_setting.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/components/settings/settings_slider.dart';
 import 'package:yaabsa/components/settings/settings_switch_tile.dart';
@@ -58,6 +59,7 @@ class GlobalPlayerSettings extends StatelessWidget {
               ],
               settingKey: SettingKeys.mediaNotificationType,
             ),
+            const AndroidLiveUpdatesSetting(),
           ],
           items: [
             if (defaultTargetPlatform == TargetPlatform.android)

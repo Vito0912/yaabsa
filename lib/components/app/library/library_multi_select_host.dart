@@ -227,11 +227,7 @@ class LibraryMultiSelectHost extends HookConsumerWidget {
       if (ref.watch(completedDownloadForItemProvider(item.id, episodeId: selectablePodcastEpisode(item)?.id))) {
         downloadedItemIds.add(libraryItemSelectionKey(item));
       }
-      if (ref
-              .watch(downloadInProgressForItemProvider(item.id, episodeId: selectablePodcastEpisode(item)?.id))
-              .asData
-              ?.value ??
-          false) {
+      if (ref.watch(downloadInProgressForItemProvider(item.id, episodeId: selectablePodcastEpisode(item)?.id))) {
         downloadingItemIds.add(libraryItemSelectionKey(item));
       }
     }

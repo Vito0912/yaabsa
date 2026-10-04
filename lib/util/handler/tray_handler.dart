@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tray_manager/tray_manager.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/handler/desktop_window_state.dart';
 import 'package:yaabsa/util/logger.dart';
 
 class TrayManager extends ConsumerStatefulWidget {
@@ -121,16 +122,20 @@ class _TrayManagerState extends ConsumerState<TrayManager> with TrayListener {
         audioHandler.seekAbsolute(audioHandler.position - const Duration(seconds: 10));
         break;
       case TrayManager.nextKey:
-        audioHandler.skipToNext();
+        audioHandler.skipToNextInApp();
         break;
       case TrayManager.previousKey:
-        audioHandler.skipToPrevious();
+        audioHandler.skipToPreviousInApp();
         break;
       case TrayManager.stopKey:
         audioHandler.stop();
         break;
       case TrayManager.exitKey:
-        SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+        if (DesktopWindowState.isSupported) {
+          unawaited(DesktopWindowState.close());
+        } else {
+          SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+        }
         break;
       default:
         logger('Unknown menu item clicked: ${menuItem.key}', tag: 'TrayManager', level: InfoLevel.warning);

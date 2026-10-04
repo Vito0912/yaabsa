@@ -293,7 +293,7 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
     final binding = _ref.read(sessionRepositoryProvider).currentSessionBinding;
     final navigationGeneration = sleepTimerNavigationGeneration;
     final playbackGeneration = sleepTimerPlaybackGeneration;
-    if (binding == null || binding.sessionId != resumeItem.sessionId) return;
+    if (binding == null || binding.playbackSessionId != resumeItem.sessionId) return;
 
     bool requestIsCurrent() => isSleepTimerOwnerCurrent(
       media: resumeItem,

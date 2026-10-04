@@ -31,9 +31,11 @@ import 'package:yaabsa/util/file_formats.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class _DownloadBatchProgress {
-  _DownloadBatchProgress(this.expectedFileCount);
+  _DownloadBatchProgress(this.expectedFileCount, {this.item});
 
   int expectedFileCount;
+  LibraryItem? item;
+  Future<String?>? coverStorage;
   final Set<String> completedTaskIds = <String>{};
 }
 
@@ -44,8 +46,12 @@ class DownloadHandler {
   Future<void>? _settingsUpdate;
   Timer? _taskQueueRefreshTimer;
   Future<void>? _taskQueueRefresh;
-  bool _taskQueueRefreshRequested = false;
+  final Map<String, TaskRecord> _activeTaskRecords = <String, TaskRecord>{};
+  Map<String, TaskRecord>? _taskQueueUpdatesDuringRefresh;
   List<TaskRecord> _taskQueueSnapshot = const <TaskRecord>[];
+  final Map<String, int> _completedFileCounts = <String, int>{};
+  final Map<String, String> _completedTaskBatchKeys = <String, String>{};
+  final Set<String> _handledCompletionTaskIds = <String>{};
   final Map<String, _DownloadBatchProgress> _downloadBatchProgress = <String, _DownloadBatchProgress>{};
   final Map<String, Future<String?>> _coverStorageInFlight = <String, Future<String?>>{};
   final _progressUpdateController = StreamController<TaskProgressUpdate>.broadcast();
@@ -56,6 +62,12 @@ class DownloadHandler {
   Stream<TaskProgressUpdate> get progressUpdateStream => _progressUpdateController.stream;
 
   Stream<List<TaskRecord>> get taskQueueStream => _taskQueueController.stream;
+
+  List<TaskRecord> get taskQueueSnapshot => _taskQueueSnapshot;
+
+  int completedFilesInBatch(String itemId, {String? episodeId}) {
+    return _completedFileCounts[_downloadBatchKey(itemId, episodeId)] ?? 0;
+  }
 
   Stream<List<TaskRecord>> taskQueueStreamForItem(String itemId, {String? episodeId}) async* {
     yield _tasksForItem(_taskQueueSnapshot, itemId, episodeId: episodeId);
@@ -90,15 +102,29 @@ class DownloadHandler {
 
     dbUpdates.listen(
       (update) async {
+        _updateTaskQueueRecord(update);
+        _taskQueueUpdatesDuringRefresh?[update.taskId] = update;
         _scheduleTaskQueueRefresh();
         if (update.status != TaskStatus.complete) {
+          if (update.status.isNotFinalState) {
+            _handledCompletionTaskIds.remove(update.taskId);
+          }
           if (update.status == TaskStatus.failed || update.status == TaskStatus.canceled) {
+            final metadata = _parseMetaData(update.task.metaData);
+            if (metadata != null) {
+              _downloadBatchProgress[_downloadBatchKey(metadata.itemId, metadata.episodeId)]?.item = null;
+            }
             _ref.read(smartDownloadManagerProvider.notifier).requestReconcile(reason: 'download task failed');
           }
           return;
         }
 
-        await _storeCompletedDownload(update);
+        if (!_handledCompletionTaskIds.add(update.taskId)) {
+          return;
+        }
+        if (!await _storeCompletedDownload(update)) {
+          _handledCompletionTaskIds.remove(update.taskId);
+        }
       },
       onError: (Object error, StackTrace stackTrace) {
         logger('Download update stream failed: $error\n$stackTrace', tag: 'DownloadHandler', level: InfoLevel.error);
@@ -110,7 +136,6 @@ class DownloadHandler {
         if (update is TaskProgressUpdate) {
           _progressUpdateController.add(update);
         }
-        _scheduleTaskQueueRefresh();
       },
       onError: (Object error, StackTrace stackTrace) {
         logger('Download progress stream failed: $error\n$stackTrace', tag: 'DownloadHandler', level: InfoLevel.error);
@@ -150,7 +175,7 @@ class DownloadHandler {
 
     await _downloader.start();
 
-    _scheduleTaskQueueRefresh();
+    await _refreshTaskQueue();
   }
 
   Future<void> _configureDownloadSettings(String? userId) async {
@@ -199,14 +224,13 @@ class DownloadHandler {
       return;
     }
 
-    _taskQueueRefreshRequested = true;
     if (_taskQueueRefreshTimer != null) {
       return;
     }
 
     _taskQueueRefreshTimer = Timer(const Duration(milliseconds: 100), () {
       _taskQueueRefreshTimer = null;
-      unawaited(_refreshTaskQueue());
+      _publishTaskQueue();
     });
   }
 
@@ -224,19 +248,64 @@ class DownloadHandler {
       }
 
       _taskQueueRefresh = null;
-      if (_taskQueueRefreshRequested) {
-        _scheduleTaskQueueRefresh();
-      }
     });
   }
 
   Future<void> _refreshTaskQueueInternal() async {
-    _taskQueueRefreshRequested = false;
-    final tasks = (await _downloader!.database.allRecords())
-        .where((task) => task.status.isNotFinalState)
-        .toList(growable: false);
-    _taskQueueSnapshot = tasks;
-    _taskQueueController.add(tasks);
+    final updates = _taskQueueUpdatesDuringRefresh = <String, TaskRecord>{};
+    try {
+      final records = await _downloader!.database.allRecords();
+      final activeGroups = records
+          .where((record) => record.status.isNotFinalState)
+          .map((record) => record.group)
+          .toSet();
+      activeGroups.addAll(updates.values.map((record) => record.group));
+      _activeTaskRecords.clear();
+      _completedFileCounts.clear();
+      _completedTaskBatchKeys.clear();
+      for (final record in records) {
+        if (record.status.isNotFinalState || activeGroups.contains(record.group)) {
+          _updateTaskQueueRecord(record);
+        }
+      }
+      for (final update in updates.values) {
+        _updateTaskQueueRecord(update);
+      }
+      _publishTaskQueue();
+    } finally {
+      _taskQueueUpdatesDuringRefresh = null;
+    }
+  }
+
+  void _updateTaskQueueRecord(TaskRecord record) {
+    if (record.status.isNotFinalState) {
+      _activeTaskRecords[record.taskId] = record;
+    } else {
+      _activeTaskRecords.remove(record.taskId);
+    }
+    if (record.status == TaskStatus.complete) {
+      if (!_completedTaskBatchKeys.containsKey(record.taskId)) {
+        final metadata = _parseMetaData(record.task.metaData);
+        final key = _downloadBatchKey(metadata?.itemId ?? record.group, metadata?.episodeId);
+        _completedTaskBatchKeys[record.taskId] = key;
+        _completedFileCounts.update(key, (count) => count + 1, ifAbsent: () => 1);
+      }
+    } else {
+      final key = _completedTaskBatchKeys.remove(record.taskId);
+      if (key != null) {
+        final remaining = (_completedFileCounts[key] ?? 1) - 1;
+        if (remaining == 0) {
+          _completedFileCounts.remove(key);
+        } else {
+          _completedFileCounts[key] = remaining;
+        }
+      }
+    }
+  }
+
+  void _publishTaskQueue() {
+    _taskQueueSnapshot = _activeTaskRecords.values.toList(growable: false);
+    _taskQueueController.add(_taskQueueSnapshot);
   }
 
   List<TaskRecord> _tasksForItem(List<TaskRecord> tasks, String itemId, {String? episodeId}) {
@@ -270,6 +339,37 @@ class DownloadHandler {
       return false;
     }
     final canceled = await _downloader.cancelTaskWithId(taskId);
+    await _refreshTaskQueue();
+    return canceled;
+  }
+
+  Future<bool> cancelDownloadForItem(String itemId, {String? episodeId}) async {
+    if (kIsWeb || _downloader == null) {
+      return false;
+    }
+    final userId = _ref.read(currentUserProvider).value?.id;
+    if (userId == null) {
+      return false;
+    }
+    final records = await _downloader.database.allRecords();
+    final taskIds = records
+        .where((record) {
+          if (!record.status.isNotFinalState) {
+            return false;
+          }
+          final metadata = _parseMetaData(record.task.metaData);
+          return metadata != null &&
+              metadata.userId == userId &&
+              metadata.itemId == itemId &&
+              metadata.episodeId == episodeId;
+        })
+        .map((record) => record.taskId)
+        .toList(growable: false);
+    if (taskIds.isEmpty) {
+      await _refreshTaskQueue();
+      return false;
+    }
+    final canceled = await _downloader.cancelTasksWithIds(taskIds);
     await _refreshTaskQueue();
     return canceled;
   }
@@ -385,6 +485,7 @@ class DownloadHandler {
   bool _isFinalFileInDownloadBatch(DownloadTaskMetadata metadata, String taskId) {
     final expectedFileCount = metadata.expectedFileCount;
     if (expectedFileCount <= 1) {
+      _downloadBatchProgress.remove(_downloadBatchKey(metadata.itemId, metadata.episodeId));
       return true;
     }
 
@@ -657,7 +758,7 @@ class DownloadHandler {
     await _ref.read(appDatabaseProvider).deleteStoredDownload(itemId, user.id, episodeId: episodeId);
 
     final batchKey = _downloadBatchKey(itemId, episodeId);
-    _downloadBatchProgress[batchKey] = _DownloadBatchProgress(expectedFileCount);
+    _downloadBatchProgress[batchKey] = _DownloadBatchProgress(expectedFileCount, item: resolvedItem);
     final enqueueResults = await _downloader.enqueueAll(downloadTasks);
     final queuedTasks = enqueueResults.where((result) => result).length;
     if (queuedTasks == 0) {
@@ -754,12 +855,17 @@ class DownloadHandler {
     return !kIsWeb && Platform.isAndroid && destination.saf && directoryUri != null && directoryUri.scheme == 'content';
   }
 
-  Future<void> _storeCompletedDownload(TaskRecord update) async {
+  Future<bool> _storeCompletedDownload(TaskRecord update) async {
     try {
       final parsedMetaData = _parseMetaData(update.task.metaData);
       if (parsedMetaData == null) {
-        return;
+        return false;
       }
+
+      final batch = _downloadBatchProgress.putIfAbsent(
+        _downloadBatchKey(parsedMetaData.itemId, parsedMetaData.episodeId),
+        () => _DownloadBatchProgress(parsedMetaData.expectedFileCount),
+      );
 
       final storedTrackUrl = await _resolveStoredTrackUrl(update.task);
       if (storedTrackUrl == null) {
@@ -768,10 +874,10 @@ class DownloadHandler {
           tag: 'DownloadHandler',
           level: InfoLevel.warning,
         );
-        return;
+        return false;
       }
 
-      LibraryItem? item = _ref.read(libraryItemProvider(parsedMetaData.itemId)).asData?.value;
+      LibraryItem? item = batch.item ?? _ref.read(libraryItemProvider(parsedMetaData.itemId)).asData?.value;
       if (item == null) {
         try {
           item = await _ref.read(libraryItemProvider(parsedMetaData.itemId).future);
@@ -804,34 +910,15 @@ class DownloadHandler {
           tag: 'DownloadHandler',
           level: InfoLevel.warning,
         );
-        return;
+        return false;
       }
-
-      final trackUri = _trackUriFromStoredUrl(storedTrackUrl);
-      final resolvedUser = await _resolveUserForDownload(parsedMetaData.userId);
-
-      final coverPath = await _storeCoverLocallyOnce(
-        item: item,
-        user: resolvedUser,
-        trackUri: trackUri,
-        metaData: parsedMetaData,
-      );
-
-      final sidecarPath = await _writeFileSidecar(
-        fileUri: trackUri,
-        item: item,
-        episode: resolvedEpisode,
-        metaData: parsedMetaData,
-        coverPath: coverPath,
-      );
+      batch.item = item;
 
       final storedTrackPath = await storeDownloadPath(storedTrackUrl, parsedMetaData.downloadBasePath);
       final downloadedTrack = parsedMetaData.track?.copyWith(url: storedTrackPath);
       final auxiliaryFilePaths = downloadedTrack == null
           ? <String>[storedTrackPath ?? storedTrackUrl]
           : const <String>[];
-      final storedCoverPath = await storeDownloadPath(coverPath, parsedMetaData.downloadBasePath);
-      final storedSidecarPath = await storeDownloadPath(sidecarPath, parsedMetaData.downloadBasePath);
 
       final completedDownload = InternalDownload(
         item: item,
@@ -841,8 +928,6 @@ class DownloadHandler {
         tracks: downloadedTrack == null ? const <InternalTrack>[] : <InternalTrack>[downloadedTrack],
         expectedFileCount: parsedMetaData.expectedFileCount,
         auxiliaryFilePaths: auxiliaryFilePaths,
-        coverPath: storedCoverPath,
-        sidecarPaths: storedSidecarPath == null ? const <String>[] : <String>[storedSidecarPath],
         downloadType: parsedMetaData.downloadType,
       );
 
@@ -867,8 +952,40 @@ class DownloadHandler {
       if (_isFinalFileInDownloadBatch(parsedMetaData, update.task.taskId)) {
         _ref.read(smartDownloadManagerProvider.notifier).requestReconcile(reason: 'download completed');
       }
+
+      final trackUri = _trackUriFromStoredUrl(storedTrackUrl);
+      final resolvedUser = await _resolveUserForDownload(parsedMetaData.userId);
+      final coverPath = await (batch.coverStorage ??= _storeCoverLocallyOnce(
+        item: item,
+        user: resolvedUser,
+        trackUri: trackUri,
+        metaData: parsedMetaData,
+      ));
+      final sidecarPath = await _writeFileSidecar(
+        fileUri: trackUri,
+        item: item,
+        episode: resolvedEpisode,
+        metaData: parsedMetaData,
+        coverPath: coverPath,
+      );
+      final storedCoverPath = await storeDownloadPath(coverPath, parsedMetaData.downloadBasePath);
+      final storedSidecarPath = await storeDownloadPath(sidecarPath, parsedMetaData.downloadBasePath);
+      if (storedCoverPath != null || storedSidecarPath != null) {
+        await _ref
+            .read(appDatabaseProvider)
+            .updateStoredDownloadAssets(
+              itemId: parsedMetaData.itemId,
+              userId: parsedMetaData.userId,
+              episodeId: parsedMetaData.episodeId,
+              fileKey: update.task.taskId,
+              coverPath: storedCoverPath,
+              sidecarPath: storedSidecarPath,
+            );
+      }
+      return true;
     } catch (e, s) {
       logger('Failed to persist completed download: $e\n$s', tag: 'DownloadHandler', level: InfoLevel.error);
+      return false;
     }
   }
 
@@ -1632,8 +1749,7 @@ class DownloadHandler {
       return true;
     }
 
-    final fileType = file.fileType?.trim().toLowerCase();
-    if (fileType == 'ebook' || fileType == 'e-book') {
+    if (file.fileType == 'ebook') {
       return true;
     }
 

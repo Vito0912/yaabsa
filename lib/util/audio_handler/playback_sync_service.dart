@@ -8,6 +8,7 @@ import 'package:yaabsa/provider/core/server_reachability_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/player/session_provider.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/audio_handler/listening_session_clock.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
@@ -20,6 +21,9 @@ class PlaybackSyncService {
   final ProviderContainer _ref;
   final Duration Function() _position;
   Timer? _syncTimer;
+  Timer? _midnightTimer;
+  bool _disposed = false;
+  ProviderSubscription<bool>? _reachabilitySubscription;
   StreamSubscription<PlayerState>? _playerStateSubscription;
   Future<void> _syncQueue = Future<void>.value();
   int? _effectiveSyncIntervalSeconds;
@@ -34,6 +38,11 @@ class PlaybackSyncService {
 
   PlaybackSyncService(this._ref, {required Stream<PlayerState> playerStateStream, required this._position}) {
     _currentSegmentStartTime = null;
+    _reachabilitySubscription = _ref.listen<bool>(serverReachabilityProvider, (previous, next) {
+      if (previous == false && next && !_disposed) {
+        unawaited(_enqueueSync(force: true));
+      }
+    });
 
     logger('PlaybackSyncService initialized', tag: 'PlaybackSyncService', level: InfoLevel.debug);
 
@@ -59,6 +68,8 @@ class PlaybackSyncService {
         } else {
           _syncTimer?.cancel();
           _syncTimer = null;
+          _midnightTimer?.cancel();
+          _midnightTimer = null;
           _activeSegmentBinding = null;
         }
       }
@@ -82,6 +93,7 @@ class PlaybackSyncService {
   }
 
   Future<void> _startSync() async {
+    _scheduleMidnight();
     final intervalSeconds = _resolvedSyncIntervalSeconds();
     if ((_syncTimer?.isActive ?? false) && _effectiveSyncIntervalSeconds == intervalSeconds) {
       return;
@@ -90,21 +102,23 @@ class PlaybackSyncService {
     _syncTimer?.cancel();
     _effectiveSyncIntervalSeconds = intervalSeconds;
     _syncTimer = Timer.periodic(Duration(seconds: intervalSeconds), (_) {
+      _scheduleMidnight();
       final binding = _activeSegmentBinding ?? _ref.read(sessionRepositoryProvider).currentSessionBinding;
       final positionSnapshot = _position();
       unawaited(_enqueueSync(positionOverride: positionSnapshot, binding: binding));
     });
 
+    unawaited(_enqueueSync());
+
     logger('Playback sync timer running every ${intervalSeconds}s', tag: 'PlaybackSyncService', level: InfoLevel.debug);
   }
 
-  double _consumeListenedTime() {
+  double _consumeListenedTime(DateTime now) {
     final segmentStart = _currentSegmentStartTime;
     if (segmentStart == null) {
       return 0;
     }
 
-    final now = DateTime.now();
     final elapsed = now.difference(segmentStart);
     if (_syncTimer?.isActive ?? false) {
       _currentSegmentStartTime = now;
@@ -119,11 +133,20 @@ class PlaybackSyncService {
     required Duration position,
     required double listenedTime,
     required bool force,
+    DateTime? segmentStart,
+    DateTime? recordedAt,
   }) async {
     var result = false;
 
     _syncQueue = _syncQueue.catchError((_) {}).then((_) async {
-      result = await _dispatchSync(binding: binding, position: position, listenedTime: listenedTime, force: force);
+      result = await _syncCapturedSegment(
+        binding: binding,
+        position: position,
+        listenedTime: listenedTime,
+        force: force,
+        segmentStart: segmentStart,
+        recordedAt: recordedAt ?? DateTime.now(),
+      );
     });
 
     await _syncQueue;
@@ -133,11 +156,15 @@ class PlaybackSyncService {
   Future<bool> _enqueueSync({Duration? positionOverride, bool force = false, PlaybackSessionBinding? binding}) async {
     final capturedBinding = binding ?? _ref.read(sessionRepositoryProvider).currentSessionBinding;
     final capturedPosition = positionOverride ?? _position();
-    final listenedTime = _consumeListenedTime();
+    final segmentStart = _currentSegmentStartTime;
+    final recordedAt = DateTime.now();
+    final listenedTime = _consumeListenedTime(recordedAt);
     return _enqueuePreparedSync(
       binding: capturedBinding,
       position: capturedPosition,
       listenedTime: listenedTime,
+      segmentStart: segmentStart,
+      recordedAt: recordedAt,
       force: force,
     );
   }
@@ -156,7 +183,11 @@ class PlaybackSyncService {
 
     _syncTimer?.cancel();
     _syncTimer = null;
-    final listenedTime = _consumeListenedTime();
+    _midnightTimer?.cancel();
+    _midnightTimer = null;
+    final segmentStart = _currentSegmentStartTime;
+    final recordedAt = DateTime.now();
+    final listenedTime = _consumeListenedTime(recordedAt);
     _activeSegmentBinding = null;
 
     if (sessionClosing) {
@@ -170,6 +201,8 @@ class PlaybackSyncService {
       binding: capturedBinding,
       position: capturedPosition,
       listenedTime: listenedTime,
+      segmentStart: segmentStart,
+      recordedAt: recordedAt,
       force: true,
     );
     if (synced && segmentGeneration == _segmentGeneration) {
@@ -178,13 +211,103 @@ class PlaybackSyncService {
     return synced;
   }
 
+  ListeningSessionClock _sessionClock() =>
+      ListeningSessionClock(_ref.read(currentUserProvider).value?.setting?.timeZone);
+
+  bool get _restartAtMidnight =>
+      _ref.read(settingsManagerProvider.notifier).getGlobalSetting<bool>(SettingKeys.restartListeningSessionAtMidnight);
+
+  void _scheduleMidnight() {
+    _midnightTimer?.cancel();
+    if (_disposed || !_restartAtMidnight) return;
+    final now = DateTime.now();
+    _midnightTimer = Timer(_sessionClock().nextMidnight(now).difference(now), () {
+      unawaited(_enqueueSync(force: true));
+      _scheduleMidnight();
+    });
+  }
+
+  Future<bool> restartSession() async {
+    final binding = _ref.read(sessionRepositoryProvider).currentSessionBinding;
+    final position = _position();
+    if (binding == null || !await _enqueueSync(positionOverride: position, binding: binding, force: true)) return false;
+    var restarted = false;
+    _syncQueue = _syncQueue.catchError((_) {}).then((_) {
+      final repository = _ref.read(sessionRepositoryProvider);
+      if (_disposed || !repository.isCurrentSessionBinding(binding)) return;
+      final now = DateTime.now();
+      restarted = repository.restartListeningSession(
+        startedAt: now,
+        calendarDate: _sessionClock().calendarDate(now),
+        position: position.inMicroseconds / Duration.microsecondsPerSecond,
+      );
+    });
+    await _syncQueue;
+    return restarted;
+  }
+
+  Future<bool> _syncCapturedSegment({
+    required PlaybackSessionBinding? binding,
+    required Duration position,
+    required double listenedTime,
+    required bool force,
+    required DateTime? segmentStart,
+    required DateTime recordedAt,
+  }) async {
+    if (binding == null) return false;
+    final repository = _ref.read(sessionRepositoryProvider);
+    var target = repository.isCurrentSessionBinding(binding) ? repository.currentSessionBinding! : binding;
+    var remaining = listenedTime;
+    var start = segmentStart;
+    final clock = _sessionClock();
+    if (_restartAtMidnight) {
+      while (repository.isCurrentSessionBinding(target) && repository.recordingStartedAt != null) {
+        final boundary = clock.nextMidnight(repository.recordingStartedAt!);
+        if (boundary.isAfter(recordedAt)) break;
+        final earlier = start != null && start.isBefore(boundary);
+        final before = earlier
+            ? (boundary.difference(start).inMicroseconds / Duration.microsecondsPerSecond)
+                  .clamp(0.0, remaining)
+                  .toDouble()
+            : 0.0;
+        if (!await _dispatchSync(
+          binding: target,
+          position: position,
+          listenedTime: before,
+          force: true,
+          recordedAt: boundary.subtract(const Duration(milliseconds: 1)),
+        )) {
+          return false;
+        }
+        if (!repository.isCurrentSessionBinding(target)) return false;
+        final rotatedAt = earlier ? boundary : recordedAt;
+        repository.restartListeningSession(
+          startedAt: rotatedAt,
+          calendarDate: clock.calendarDate(rotatedAt),
+          position: position.inMicroseconds / Duration.microsecondsPerSecond,
+        );
+        target = repository.currentSessionBinding!;
+        remaining -= before;
+        if (earlier) start = boundary;
+      }
+    }
+    return _dispatchSync(
+      binding: target,
+      position: position,
+      listenedTime: remaining,
+      force: force,
+      recordedAt: recordedAt,
+    );
+  }
+
   Future<bool> _dispatchSync({
     required PlaybackSessionBinding? binding,
     required Duration position,
     required double listenedTime,
     required bool force,
+    DateTime? recordedAt,
   }) async {
-    if (binding == null) {
+    if (_disposed || binding == null) {
       return false;
     }
 
@@ -209,7 +332,13 @@ class PlaybackSyncService {
     final bool canReachServer = _ref.read(serverReachabilityProvider);
     return _ref
         .read(sessionRepositoryProvider)
-        .syncSessionBinding(binding, currentPositionSeconds, listenedTime, canReachServer: canReachServer);
+        .syncSessionBinding(
+          binding,
+          currentPositionSeconds,
+          listenedTime,
+          canReachServer: canReachServer,
+          recordedAt: recordedAt,
+        );
   }
 
   Future<bool> flush({
@@ -234,10 +363,16 @@ class PlaybackSyncService {
   }
 
   Future<void> dispose() async {
+    _disposed = true;
+    _reachabilitySubscription?.close();
+    _reachabilitySubscription = null;
     _syncTimer?.cancel();
     _syncTimer = null;
+    _midnightTimer?.cancel();
+    _midnightTimer = null;
     await _playerStateSubscription?.cancel();
     _playerStateSubscription = null;
+    await _syncQueue.catchError((_) {});
     _currentSegmentStartTime = null;
     _activeSegmentBinding = null;
     _hasPlaybackSinceLastFlush = false;

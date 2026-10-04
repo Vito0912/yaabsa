@@ -49,6 +49,7 @@ import 'package:yaabsa/util/audio_handler/player_history_handler.dart';
 import 'package:yaabsa/util/audio_handler/auto/android_auto_browse_models.dart';
 import 'package:yaabsa/util/handler/tray_handler.dart' show TrayManager;
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/android_live_updates.dart';
 import 'package:yaabsa/util/network/request_headers.dart';
 import 'package:yaabsa/util/player_utils.dart' show PlayerUtils;
 import 'package:yaabsa/util/setting_key.dart';
@@ -57,6 +58,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'package:rxdart/rxdart.dart';
 
+part 'bg_audio_handler_live_updates.dart';
 part 'bg_audio_handler_models.dart';
 part 'bg_audio_handler_runtime.dart';
 part 'bg_audio_handler_resume.dart';
@@ -103,12 +105,17 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   StreamSubscription<int?>? _playerCurrentIndexSubscription;
   StreamSubscription<GoogleCastSession?>? _castSessionSubscription;
   StreamSubscription<GoggleCastMediaStatus?>? _castMediaStatusSubscription;
+  StreamSubscription<Duration>? _castPositionSubscription;
   late final StreamSubscription<String?> _activeUserIdSubscription;
   late final StreamSubscription<String?> _showLastPlayedMiniPlayerSettingSubscription;
   late final StreamSubscription<String?> _mediaNotificationTypeSubscription;
+  StreamSubscription<String?>? _liveUpdatesSettingSubscription;
+  ProviderSubscription<SleepTimerData>? _liveUpdatesSleepTimerSubscription;
+  bool _liveUpdatesActive = false;
+  AndroidLiveUpdateMode _liveUpdateMode = AndroidLiveUpdateMode.off;
   late final StreamSubscription<String?> _mediaNotificationPagesSubscription;
   late final StreamSubscription<String?> _showSkipInsteadOfFastForwardSubscription;
-  late final StreamSubscription<String?> _desktopSkipControlsSeekSubscription;
+  late final StreamSubscription<String?> _mediaSkipControlsSeekSubscription;
   late final ProviderSubscription<ABSApi?> _androidAutoApiSubscription;
   late final ProviderSubscription<bool> _androidAutoServerReachabilitySubscription;
   late final ProviderSubscription<int> _androidAutoMediaProgressSubscription;
@@ -219,6 +226,9 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   final BehaviorSubject<bool> _castControlActiveSubject = BehaviorSubject<bool>.seeded(false);
   String? _castControlledContentId;
   int _castControlledTrackIndex = 0;
+  bool? _castRequestedPlaying;
+  Duration? _lastObservedCastPosition;
+  DateTime? _lastCastPositionAdvance;
   bool _hasObservedActiveUserId = false;
   String? _observedActiveUserId;
   Future<void>? _lastPlayedMiniPlayerRestoreFuture;
@@ -804,6 +814,9 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   void activateCastControl({required String contentId, required int trackIndex}) {
     _castControlledContentId = contentId;
     _castControlledTrackIndex = trackIndex < 0 ? 0 : trackIndex;
+    _castRequestedPlaying = true;
+    _lastObservedCastPosition = null;
+    _lastCastPositionAdvance = null;
     _refreshPlayerControlState();
     unawaited(_updatePlaybackState());
   }
@@ -816,6 +829,9 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
     _castControlledContentId = null;
     _castControlledTrackIndex = 0;
+    _castRequestedPlaying = null;
+    _lastObservedCastPosition = null;
+    _lastCastPositionAdvance = null;
     _lastKnownCastPosition = Duration.zero;
 
     if (_currentMediaItem != null) {
@@ -919,6 +935,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     if (isCastControlActive) {
       PlayerUtils.enableWakelock(_ref);
       await GoogleCastRemoteMediaClient.instance.play();
+      _castRequestedPlaying = true;
       _refreshPlayerControlState();
       await _updatePlaybackState();
       return;
@@ -1208,6 +1225,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     if (isCastControlActive) {
       _clearSmartRewindPauseMarker();
       await GoogleCastRemoteMediaClient.instance.pause();
+      _castRequestedPlaying = false;
       _refreshPlayerControlState();
       await _updatePlaybackState();
       TrayManager.update();
@@ -1229,10 +1247,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     return Duration(seconds: safeSeconds);
   }
 
-  bool get _seekWithDesktopSkipControls {
-    if (kIsWeb || (!Platform.isLinux && !Platform.isMacOS && !Platform.isWindows)) {
-      return false;
-    }
+  bool get _seekWithMediaSkipControls {
     return _ref
         .read(settingsManagerProvider.notifier)
         .getGlobalSetting<bool>(SettingKeys.desktopSkipControlsSeek, defaultValue: false);
@@ -1284,7 +1299,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   @override
   Future<void> skipToNext() async {
     if (_currentMediaItem == null) return;
-    if (_seekWithDesktopSkipControls) {
+    if (_seekWithMediaSkipControls) {
       return fastForward();
     }
     return skipToNextInApp();
@@ -1359,7 +1374,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   @override
   Future<void> skipToPrevious() async {
     if (_currentMediaItem == null) return;
-    if (_seekWithDesktopSkipControls) {
+    if (_seekWithMediaSkipControls) {
       return rewind();
     }
     return skipToPreviousInApp();
@@ -1702,6 +1717,10 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           unawaited(_updatePlaybackState());
         });
 
+    if (!kIsWeb && Platform.isAndroid) {
+      unawaited(_initializeLiveUpdates());
+    }
+
     _loadNotificationPages();
     _mediaNotificationPagesSubscription = _ref
         .read(appDatabaseProvider)
@@ -1724,7 +1743,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           unawaited(_updatePlaybackState());
         });
 
-    _desktopSkipControlsSeekSubscription = _ref
+    _mediaSkipControlsSeekSubscription = _ref
         .read(appDatabaseProvider)
         .watchGlobalSetting(SettingKeys.desktopSkipControlsSeek)
         .map((setting) => setting?.value.trim())
@@ -2057,6 +2076,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     });
   }
 
+  Future<bool> restartListeningSession() => _syncService.restartSession();
+
   Map<String, String> get currentRequestHeaders => _currentRequestHeadersInternal;
 
   Future<void> _updatePlaybackState() async {
@@ -2226,7 +2247,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           .read(settingsManagerProvider.notifier)
           .getGlobalSetting<bool>(SettingKeys.showSkipInsteadOfFastForward, defaultValue: false);
 
-      final useSkip = _seekWithDesktopSkipControls || (showSkipInsteadOfFastForward && hasChaptersOrQueue);
+      final useSkip = _seekWithMediaSkipControls || (showSkipInsteadOfFastForward && hasChaptersOrQueue);
       if (useSkip) {
         finalSystemActions = const {
           MediaAction.seek,
@@ -2275,6 +2296,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         speed: hasPlaybackContext ? effectiveSpeed : 1.0,
       ),
     );
+    _updateLiveUpdateNotification();
   }
 
   void _loadNotificationPages() {
@@ -2326,9 +2348,12 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     await _activeUserIdSubscription.cancel();
     await _showLastPlayedMiniPlayerSettingSubscription.cancel();
     await _mediaNotificationTypeSubscription.cancel();
+    await _liveUpdatesSettingSubscription?.cancel();
+    _liveUpdatesSleepTimerSubscription?.close();
+    if (_liveUpdatesActive) await AndroidLiveUpdates.clear();
     await _mediaNotificationPagesSubscription.cancel();
     await _showSkipInsteadOfFastForwardSubscription.cancel();
-    await _desktopSkipControlsSeekSubscription.cancel();
+    await _mediaSkipControlsSeekSubscription.cancel();
     await _chapterSubscription?.cancel();
     await _skipSilenceSubscription?.cancel();
     _skipSilenceSubscription = null;
@@ -2366,6 +2391,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     _castSessionSubscription = null;
     await _castMediaStatusSubscription?.cancel();
     _castMediaStatusSubscription = null;
+    await _castPositionSubscription?.cancel();
+    _castPositionSubscription = null;
     await _syncService.dispose();
     await _player.dispose();
     await mediaItemStream.close();

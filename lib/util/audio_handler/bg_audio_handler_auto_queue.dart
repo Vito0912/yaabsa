@@ -809,6 +809,8 @@ extension _BGAudioHandlerAutoQueueExtension on BGAudioHandler {
     }
 
     switch (source.type) {
+      case MediaSourceType.latestEpisodes:
+        return null;
       case MediaSourceType.series:
         return _AutoQueueRequestContext.series(libraryId: libraryId, seriesId: source.sourceId, initialPage: 0);
       case MediaSourceType.playlist:

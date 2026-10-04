@@ -220,7 +220,7 @@ class AuthRefreshInterceptor extends Interceptor {
         final refreshedUser = refreshedLogin.user.copyWith(
           server: activeUser.server,
           isActive: true,
-          setting: refreshedLogin.user.setting ?? refreshedLogin.serverSettings,
+          setting: refreshedLogin.serverSettings,
         );
 
         await db.addOrUpdateStoredUser(refreshedUser);

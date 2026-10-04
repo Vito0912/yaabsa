@@ -1090,6 +1090,7 @@ jobs:
       - check-requirements
     if: ${{ needs.changes.outputs.build_windows == 'true' && needs.changes.outputs.build_skip != 'true' }}
     timeout-minutes: 20
+    environment: prod
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -1110,10 +1111,28 @@ jobs:
         with:
           flow: build-windows
 
-      - name: Install packaging tools
+      - name: Check MSIX signing configuration
+        id: msix_signing
+        shell: pwsh
+        env:
+          WINDOWS_MSIX_PFX_BASE64: ${{ secrets.WINDOWS_MSIX_PFX_BASE64 }}
+          WINDOWS_MSIX_PFX_PASSWORD: ${{ secrets.WINDOWS_MSIX_PFX_PASSWORD }}
+        run: |
+          if ([bool]$env:WINDOWS_MSIX_PFX_BASE64 -ne [bool]$env:WINDOWS_MSIX_PFX_PASSWORD) {
+            throw "Set both WINDOWS_MSIX_PFX_BASE64 and WINDOWS_MSIX_PFX_PASSWORD."
+          }
+          if ($env:WINDOWS_MSIX_PFX_BASE64 -and $env:WINDOWS_MSIX_PFX_PASSWORD) {
+            "enabled=true" >> $env:GITHUB_OUTPUT
+          } else {
+            "enabled=false" >> $env:GITHUB_OUTPUT
+          }
+
+      - name: Install MSIX packaging tool
+        if: steps.msix_signing.outputs.enabled == 'true'
+        shell: pwsh
         run: |
           dart pub global activate msix
-          echo "$env:LOCALAPPDATA\Pub\Cache\bin" >> $env:GITHUB_PATH
+          "$env:LOCALAPPDATA\Pub\Cache\bin" >> $env:GITHUB_PATH
 
       - name: Build Windows bundle
         run: flutter build windows --release
@@ -1121,8 +1140,52 @@ jobs:
       - name: Build exe installer
         run: pwsh -File windows/packaging/exe/build.ps1
 
-      - name: Build msix installer
+      - name: Build MSIX installer
+        if: steps.msix_signing.outputs.enabled == 'true'
         run: pwsh -File windows/packaging/msix/build.ps1
+
+      - name: Sign MSIX installer
+        if: steps.msix_signing.outputs.enabled == 'true'
+        shell: pwsh
+        env:
+          WINDOWS_MSIX_PFX_BASE64: ${{ secrets.WINDOWS_MSIX_PFX_BASE64 }}
+          WINDOWS_MSIX_PFX_PASSWORD: ${{ secrets.WINDOWS_MSIX_PFX_PASSWORD }}
+        run: |
+          $pfxPath = Join-Path $env:RUNNER_TEMP "yaabsa-signing.pfx"
+          try {
+            [IO.File]::WriteAllBytes($pfxPath, [Convert]::FromBase64String($env:WINDOWS_MSIX_PFX_BASE64))
+            $certificate = [Security.Cryptography.X509Certificates.X509Certificate2]::new(
+              $pfxPath,
+              $env:WINDOWS_MSIX_PFX_PASSWORD,
+              [Security.Cryptography.X509Certificates.X509KeyStorageFlags]::EphemeralKeySet
+            )
+            if ($certificate.Subject -ne "CN=Vito0912") {
+              throw "MSIX signing certificate subject must be CN=Vito0912."
+            }
+
+            $msix = Get-ChildItem -Path "output/windows" -Filter "*.msix" | Select-Object -First 1
+            if (-not $msix) {
+              throw "Windows MSIX artifact not found."
+            }
+            $signtool = Get-ChildItem -Path "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\signtool.exe" |
+              Sort-Object FullName -Descending | Select-Object -First 1
+            if (-not $signtool) {
+              throw "Windows SDK SignTool not found."
+            }
+
+            & $signtool.FullName sign /fd SHA256 /f $pfxPath /p $env:WINDOWS_MSIX_PFX_PASSWORD $msix.FullName
+            if ($LASTEXITCODE -ne 0) {
+              throw "MSIX signing failed."
+            }
+
+            $cerPath = Join-Path "output/windows" "yaabsa-signing.cer"
+            [IO.File]::WriteAllBytes(
+              $cerPath,
+              $certificate.Export([Security.Cryptography.X509Certificates.X509ContentType]::Cert)
+            )
+          } finally {
+            Remove-Item -Path $pfxPath -Force -ErrorAction SilentlyContinue
+          }
 
       - name: Build Windows bundle zip
         run: |
@@ -1142,10 +1205,9 @@ jobs:
           FILE_VERSION: ${{ needs.changes.outputs.file_version }}
         run: |
           $msix = Get-ChildItem -Path "output/windows" -Filter "*.msix" | Select-Object -First 1
-          if (-not $msix) {
-            throw "Windows msix artifact not found."
+          if ($msix) {
+            Move-Item -Path $msix.FullName -Destination ("output/windows/yaabsa_{0}.msix" -f $env:FILE_VERSION) -Force
           }
-          Move-Item -Path $msix.FullName -Destination ("output/windows/yaabsa_{0}.msix" -f $env:FILE_VERSION) -Force
 
           $exe = Get-ChildItem -Path "output/windows" -Filter "*.exe" | Select-Object -First 1
           if (-not $exe) {
@@ -1159,11 +1221,15 @@ jobs:
           }
           Move-Item -Path $bundleZip.FullName -Destination ("output/windows/yaabsa_{0}.zip" -f $env:FILE_VERSION) -Force
 
-      - name: Upload Windows msix artifact
+      - name: Upload Windows MSIX artifact and public certificate
+        if: steps.msix_signing.outputs.enabled == 'true'
         uses: actions/upload-artifact@v7
         with:
           name: windows-msix
-          path: output/windows/yaabsa_*.msix
+          path: |
+            output/windows/yaabsa_*.msix
+            output/windows/yaabsa-signing.cer
+          if-no-files-found: error
 
       - name: Upload Windows exe artifact
         uses: actions/upload-artifact@v7
@@ -1550,22 +1616,75 @@ jobs:
           sudo installer -pkg "/tmp/itmstransporter.pkg" -target /
           /usr/local/itms/bin/iTMSTransporter -help
 
-      - name: Upload macOS to TestFlight
-        uses: apple-actions/upload-testflight-build@v5
+      - name: Set up Ruby for macOS TestFlight upload
+        uses: ruby/setup-ruby@v1
         if: ${{ needs.changes.outputs.version_bumped == 'true' && needs.changes.outputs.build_skip != 'true' }}
         with:
-          app-path: build/macos/Build/Products/Release/yaabsa.pkg
-          app-type: macos
-          issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
-          api-key-id: ${{ secrets.APPSTORE_KEY_ID }}
-          api-private-key: ${{ secrets.APPSTORE_PRIVATE_KEY }}
-          release-notes: |
+          ruby-version: '3.3'
+
+      - name: Install Fastlane
+        if: ${{ needs.changes.outputs.version_bumped == 'true' && needs.changes.outputs.build_skip != 'true' }}
+        run: gem install fastlane --version 2.240.1 --no-document
+
+      - name: Upload macOS to TestFlight
+        if: ${{ needs.changes.outputs.version_bumped == 'true' && needs.changes.outputs.build_skip != 'true' }}
+        shell: bash
+        env:
+          APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+          APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+          APPSTORE_PRIVATE_KEY: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+          FASTLANE_SKIP_UPDATE_CHECK: 'true'
+          FASTLANE_OPT_OUT_USAGE: 'true'
+          FASTLANE_ITUNES_TRANSPORTER_USE_SHELL_SCRIPT: 'true'
+          FASTLANE_ITUNES_TRANSPORTER_PATH: /usr/local/itms
+          PILOT_CHANGELOG: |
             ${{ needs.changes.outputs.changelog }}
 
             ---
             Please report any issues or feature requests through GitHub or TestFlight. Please note that feature requests shared through TestFlight without an email attached cannot be taken into account as there is no way to contact you. The same applies to bugs that are not easily reproducible. If you do not want to share your email, please use GitHub instead. Thanks for testing macOS!
-          wait-for-processing: 'true'
-          backend: transporter
+        run: |
+          set -euo pipefail
+          umask 077
+
+          api_key_path="$(mktemp "$RUNNER_TEMP/yaabsa-appstore-api.XXXXXX")"
+          trap 'rm -f "$api_key_path"' EXIT
+
+          python3 - "$api_key_path" <<'PY'
+          import json
+          import os
+          import sys
+
+          with open(sys.argv[1], "w") as api_key_file:
+              json.dump({
+                  "key_id": os.environ["APPSTORE_KEY_ID"],
+                  "issuer_id": os.environ["APPSTORE_ISSUER_ID"],
+                  "key": os.environ["APPSTORE_PRIVATE_KEY"],
+                  "in_house": False,
+              }, api_key_file)
+          PY
+
+          app_plist="build/macos/Build/Products/Release/yaabsa.app/Contents/Info.plist"
+          bundle_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$app_plist")"
+          app_version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$app_plist")"
+          build_number="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$app_plist")"
+
+          env -u PILOT_CHANGELOG fastlane pilot upload \
+            --pkg "build/macos/Build/Products/Release/yaabsa.pkg" \
+            --app_platform osx \
+            --app_identifier "$bundle_id" \
+            --api_key_path "$api_key_path" \
+            --skip_waiting_for_build_processing true
+
+          fastlane run upload_to_testflight \
+            distribute_only:true \
+            app_platform:osx \
+            app_identifier:"$bundle_id" \
+            app_version:"$app_version" \
+            build_number:"$build_number" \
+            api_key_path:"$api_key_path" \
+            uses_non_exempt_encryption:false \
+            skip_submission:true \
+            wait_processing_timeout_duration:900
         continue-on-error: true
 
       - name: Build Developer ID macOS App

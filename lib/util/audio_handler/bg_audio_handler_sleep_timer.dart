@@ -29,7 +29,7 @@ extension BGAudioHandlerSleepTimer on BGAudioHandler {
         currentMedia.itemId == media.itemId &&
         currentMedia.episodeId == media.episodeId &&
         currentMedia.sessionId == media.sessionId &&
-        binding.sessionId == media.sessionId &&
+        binding.playbackSessionId == media.sessionId &&
         currentSession.isCurrentSessionBinding(binding) &&
         _sleepTimerNavigationGeneration == navigationGeneration &&
         (playbackGeneration == null || _sleepTimerPlaybackGeneration == playbackGeneration);

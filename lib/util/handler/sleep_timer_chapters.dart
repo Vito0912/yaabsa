@@ -45,8 +45,10 @@ extension SleepTimerChapters on SleepTimerHandler {
   }
 
   void _publishChapterTimer(ChapterSleepTimer timer) {
+    final remaining = timer.remainingTime(audioHandler.effectivePlaybackSpeed);
     _data = _data.copyWith(
-      remainingTime: timer.remainingTime(audioHandler.effectivePlaybackSpeed),
+      totalDuration: remaining > (_data.totalDuration ?? Duration.zero) ? remaining : _data.totalDuration,
+      remainingTime: remaining,
       remainingChapters: timer.remainingChapters,
       targetChapterIndex: timer.targetIndex,
     );
@@ -58,7 +60,7 @@ extension SleepTimerChapters on SleepTimerHandler {
     }
     final media = audioHandler.currentMediaItem;
     final binding = _sessionRepository.currentSessionBinding;
-    if (media == null || binding == null || binding.sessionId != media.sessionId) return false;
+    if (media == null || binding == null || binding.playbackSessionId != media.sessionId) return false;
 
     final endings = _chapterEndings();
     if (endings.isEmpty) return false;
@@ -87,6 +89,7 @@ extension SleepTimerChapters on SleepTimerHandler {
       remainingChapters: timer.remainingChapters,
       targetChapterIndex: timer.targetIndex,
       remainingTime: timer.remainingTime(audioHandler.effectivePlaybackSpeed),
+      totalDuration: timer.remainingTime(audioHandler.effectivePlaybackSpeed),
       state: playing ? SleepTimerState.running : SleepTimerState.paused,
       marker: marker,
       showMarkerPin: false,

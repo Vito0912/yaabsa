@@ -43,7 +43,7 @@ An unofficial cross-platform app for Audiobookshelf
 
 ![Windows](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white)
 
-* Download the latest installer from the releases page. _(Microsoft Store availability will follow)._
+* Download the Windows `.exe` installer from the releases page. To install the `.msix`, first add `yaabsa-signing.cer` to the certificate store. _(Microsoft Store availability will follow)._
 
 [![Web](https://img.shields.io/badge/Web-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://yaabsa.de)
 

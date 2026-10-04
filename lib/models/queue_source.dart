@@ -10,7 +10,7 @@ abstract class PlayableRef with _$PlayableRef {
   factory PlayableRef.fromJson(Map<String, dynamic> json) => _$PlayableRefFromJson(json);
 }
 
-enum MediaSourceType { podcast, series, playlist, collection }
+enum MediaSourceType { podcast, series, playlist, collection, latestEpisodes }
 
 @freezed
 abstract class MediaSourceDescriptor with _$MediaSourceDescriptor {

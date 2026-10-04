@@ -10,11 +10,14 @@ class SettingKeys {
   static const String appThemeCustomBlue = 'app_theme_custom_blue';
   static const String currentUserId = 'current_user_id';
   static const String appLogLevel = 'app_log_level';
+  static const String desktopWindowState = 'desktop_window_state';
+  static const String restartListeningSessionAtMidnight = 'restart_listening_session_at_midnight';
   static const String bufferSize = 'buffer_size';
   static const String keepScreenOn = 'keep_screen_on';
   static const String keepWebsocketConnectionInBackground = 'keep_websocket_connection_in_background';
   static const String lockMediaNotification = 'lock_media_notification';
   static const String mediaNotificationType = 'media_notification_type';
+  static const String androidLiveUpdates = 'android_live_updates';
   static const String mediaNotificationPages = 'media_notification_pages';
   static const String showNotificationMoreButton = 'show_notification_more_button';
   static const String autoPlayLastPlayedOnLaunch = 'auto_play_last_played_on_launch';
@@ -186,10 +189,12 @@ final defaultSettings = {
   SettingKeys.appThemeCustomBlue: 110,
   SettingKeys.currentUserId: null,
   SettingKeys.appLogLevel: InfoLevel.warning.toString(),
+  SettingKeys.desktopWindowState: '',
   SettingKeys.bufferSize: 5 * 1024 * 1024,
   SettingKeys.keepWebsocketConnectionInBackground: !_defaultEnableOnMobile,
   SettingKeys.lockMediaNotification: false,
   SettingKeys.mediaNotificationType: MediaNotificationType.full.name,
+  SettingKeys.androidLiveUpdates: AndroidLiveUpdateMode.off.name,
   SettingKeys.mediaNotificationPages: '[["rewind", "fastForward", "speed", "stop"]]',
   SettingKeys.showNotificationMoreButton: false,
   SettingKeys.autoPlayLastPlayedOnLaunch: false,
@@ -228,6 +233,7 @@ final defaultSettings = {
   SettingKeys.autoResumeBluetoothDeviceAddresses: '[]',
 
   SettingKeys.syncInterval: 10,
+  SettingKeys.restartListeningSessionAtMidnight: true,
   SettingKeys.syncOnlyOnWifi: false,
   SettingKeys.sortSeriesAscending: false,
   SettingKeys.collapseSeries: false,
@@ -637,5 +643,21 @@ enum MediaNotificationType {
       case MediaNotificationType.chapter:
         return 'Chapter';
     }
+  }
+}
+
+enum AndroidLiveUpdateMode {
+  off('Off'),
+  currentTime('Show current time'),
+  remainingTime('Show remaining time'),
+  sleepTimer('Show sleep timer'),
+  progressPercentage('Show progress percentage');
+
+  const AndroidLiveUpdateMode(this.label);
+
+  final String label;
+
+  static AndroidLiveUpdateMode fromSettingValue(String? value) {
+    return values.where((mode) => mode.name == value).firstOrNull ?? off;
   }
 }
