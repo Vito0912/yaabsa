@@ -1,10 +1,13 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/components/app/downloads/download_activity_indicator.dart';
 import 'package:yaabsa/components/app/downloads/download_cover_thumbnail.dart';
 import 'package:yaabsa/components/common/expressive_list_tile.dart';
 import 'package:yaabsa/models/internal_download.dart';
+import 'package:yaabsa/provider/common/item_download_status_provider.dart';
 import 'package:yaabsa/util/globals.dart';
 
-class DownloadListTile extends StatelessWidget {
+class DownloadListTile extends ConsumerWidget {
   const DownloadListTile({
     super.key,
     required this.download,
@@ -14,6 +17,7 @@ class DownloadListTile extends StatelessWidget {
     required this.onToggleSelection,
     required this.onDelete,
     required this.onOpen,
+    required this.onFiles,
   });
 
   final InternalDownload download;
@@ -23,87 +27,108 @@ class DownloadListTile extends StatelessWidget {
   final VoidCallback onToggleSelection;
   final VoidCallback onDelete;
   final VoidCallback? onOpen;
+  final VoidCallback onFiles;
 
   @override
-  Widget build(BuildContext context) {
-    final targetItemId = download.item?.id ?? download.episode?.libraryItemId;
-    final isPodcast = download.isPodcast;
-    final title = isPodcast ? (download.episode?.title ?? 'Unknown Episode') : (download.item?.title ?? 'Unknown Item');
-    final podcastTitle = isPodcast ? (download.item?.title ?? 'Unknown Podcast') : null;
-    final totalFiles = download.numberOfFiles;
-    final downloadedFiles = download.numberOfDownloadedFiles;
-    final downloadRatio = totalFiles == 0 ? 0.0 : (downloadedFiles / totalFiles).clamp(0.0, 1.0);
-    final thumbnailSize = context.isMobile
-        ? 52.0
-        : context.isTablet
-        ? 60.0
-        : 68.0;
-    final contentPadding = context.isMobile
-        ? const EdgeInsets.symmetric(horizontal: 16, vertical: 12)
-        : const EdgeInsets.symmetric(horizontal: 20, vertical: 16);
-    final borderRadius = BorderRadius.circular(context.isMobile ? 20 : 24);
-    final colorScheme = Theme.of(context).colorScheme;
-
+  Widget build(BuildContext context, WidgetRef ref) {
+    final itemId = download.item?.id ?? download.episode?.libraryItemId;
+    final status = ref.watch(
+      itemDownloadStatusesProvider.select((value) => value.value?[(itemId, download.episode?.id)]),
+    );
+    final colors = Theme.of(context).colorScheme;
+    final title = download.episode?.title ?? download.item?.title ?? 'Unknown item';
+    final downloaded = download.numberOfDownloadedFiles;
+    final total = download.numberOfFiles;
+    final complete = total > 0 && downloaded >= total;
     return ExpressiveListTile(
-      enabled: targetItemId != null,
       selected: selectionMode && isSelected,
-      borderRadius: borderRadius,
-      contentPadding: contentPadding,
+      borderRadius: BorderRadius.circular(context.isMobile ? 20 : 24),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       onLongPress: isDeleting ? null : onToggleSelection,
-      onTap: selectionMode ? (isDeleting ? null : onToggleSelection) : (targetItemId == null ? null : onOpen),
+      onTap: isDeleting
+          ? null
+          : selectionMode
+          ? onToggleSelection
+          : onOpen,
       leading: selectionMode
           ? Checkbox(value: isSelected, onChanged: isDeleting ? null : (_) => onToggleSelection())
-          : DownloadCoverThumbnail(download: download, size: thumbnailSize),
-      title: Text(title, maxLines: 2, overflow: TextOverflow.ellipsis),
+          : null,
+      edgeLeading: selectionMode ? null : DownloadCoverThumbnail(download: download, borderRadius: BorderRadius.zero),
+      edgeLeadingWidth: context.isMobile ? 80 : 92,
+      title: Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.titleMedium),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (podcastTitle != null) ...[
-            Text(
-              podcastTitle,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodySmall
-                  ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-            ),
-            const SizedBox(height: 2),
-          ],
-          Text('Downloaded files: $downloadedFiles/$totalFiles'),
-          if (download.downloadOrigin == 'smart') ...[
-            const SizedBox(height: 5),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.auto_awesome_rounded, size: 14, color: colorScheme.primary),
-                const SizedBox(width: 4),
-                Text(
-                  'Smart download',
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(color: colorScheme.primary),
+          if (download.isPodcast && download.item != null)
+            Text(download.item!.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              if (status != null) ...[
+                RepaintBoundary(child: ItemDownloadIndicator(status: status, size: 22)),
+                const SizedBox(width: 8),
+              ] else ...[
+                Icon(
+                  complete ? Icons.offline_pin_rounded : Icons.cloud_download_outlined,
+                  size: 18,
+                  color: complete ? colors.primary : colors.onSurfaceVariant,
                 ),
+                const SizedBox(width: 6),
               ],
+              Expanded(
+                child: Text(
+                  status != null
+                      ? ItemDownloadIndicator(status: status).label
+                      : complete
+                      ? 'Available offline'
+                      : '$downloaded of $total files offline',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colors.onSurfaceVariant),
+                ),
+              ),
+            ],
+          ),
+          if (!complete && status == null) ...[
+            const SizedBox(height: 10),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: LinearProgressIndicator(
+                value: total == 0 ? 0 : (downloaded / total).clamp(0.0, 1.0),
+                minHeight: 4,
+                backgroundColor: colors.surfaceContainerHighest,
+              ),
             ),
           ],
-          const SizedBox(height: 4),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(99),
-            child: LinearProgressIndicator(value: downloadRatio, minHeight: 5),
-          ),
-          if (!download.isComplete)
+          if (download.downloadOrigin == 'smart')
             Padding(
-              padding: EdgeInsets.only(top: 4),
+              padding: const EdgeInsets.only(top: 8),
               child: Text(
-                'Warning: Download unfinished or incomplete. Not available for offline use yet.',
-                style: TextStyle(color: colorScheme.error),
+                'Smart download',
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(color: colors.onSurfaceVariant),
               ),
             ),
         ],
       ),
       trailing: selectionMode
           ? null
-          : IconButton(
-              tooltip: 'Delete download',
-              onPressed: isDeleting ? null : onDelete,
-              icon: const Icon(Icons.delete_outline),
+          : PopupMenuButton<String>(
+              enabled: !isDeleting,
+              tooltip: 'Download actions',
+              icon: const Icon(Icons.more_vert_rounded),
+              onSelected: (value) {
+                switch (value) {
+                  case 'files':
+                    onFiles();
+                  case 'delete':
+                    onDelete();
+                  case 'open':
+                    onOpen?.call();
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(value: 'files', child: Text('Files')),
+                const PopupMenuItem(value: 'open', child: Text('Open item')),
+                const PopupMenuItem(value: 'delete', child: Text('Delete download')),
+              ],
             ),
     );
   }

@@ -160,6 +160,7 @@ class SettingKeys {
   static const String showPlayerLoopShuffle = 'show_player_loop_shuffle';
   static const String showSkipInsteadOfFastForward = 'show_skip_instead_of_fast_forward';
   static const String desktopSkipControlsSeek = 'desktop_skip_controls_seek';
+  static const String downloadAllAudioFiles = 'download_all_audio_files';
   static const String downloadTypePreference = 'download_type_preference';
   static const String downloadContinueListeningAndSeries = 'download_continue_shelf';
   static const String downloadOnlyOnWifi = 'download_only_on_wifi';
@@ -332,6 +333,7 @@ final defaultSettings = {
   SettingKeys.showPlayerLoopShuffle: 'music_only',
   SettingKeys.showSkipInsteadOfFastForward: false,
   SettingKeys.desktopSkipControlsSeek: false,
+  SettingKeys.downloadAllAudioFiles: false,
   SettingKeys.downloadTypePreference: 'askEveryTime',
   SettingKeys.downloadContinueListeningAndSeries: false,
   SettingKeys.downloadOnlyOnWifi: true,

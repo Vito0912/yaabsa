@@ -6,6 +6,8 @@ class ExpressiveListTile extends StatelessWidget {
     required this.title,
     this.subtitle,
     this.leading,
+    this.edgeLeading,
+    this.edgeLeadingWidth = 80,
     this.trailing,
     this.onTap,
     this.onLongPress,
@@ -21,6 +23,8 @@ class ExpressiveListTile extends StatelessWidget {
   final Widget title;
   final Widget? subtitle;
   final Widget? leading;
+  final Widget? edgeLeading;
+  final double edgeLeadingWidth;
   final Widget? trailing;
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
@@ -44,6 +48,52 @@ class ExpressiveListTile extends StatelessWidget {
     final selectedBgColor = selectedCardColor ?? colorScheme.primaryContainer;
     final activeBgColor = selected ? selectedBgColor : defaultBgColor;
 
+    final basePadding = (contentPadding ?? const EdgeInsets.symmetric(horizontal: 20, vertical: 16)).resolve(
+      Directionality.of(context),
+    );
+    final resolvedPadding = edgeLeading == null
+        ? basePadding
+        : basePadding.copyWith(left: basePadding.left + edgeLeadingWidth);
+    final content = Padding(
+      padding: resolvedPadding,
+      child: Row(
+        children: [
+          if (leading != null) ...[leading!, const SizedBox(width: 16)],
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                DefaultTextStyle(
+                  style: theme.textTheme.titleMedium!.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: enabled
+                        ? (selected ? colorScheme.onPrimaryContainer : colorScheme.onSurface)
+                        : colorScheme.onSurface.withValues(alpha: 0.38),
+                  ),
+                  child: title,
+                ),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 4),
+                  DefaultTextStyle(
+                    style: theme.textTheme.bodyMedium!.copyWith(
+                      color: enabled
+                          ? (selected
+                                ? colorScheme.onPrimaryContainer.withValues(alpha: 0.8)
+                                : colorScheme.onSurfaceVariant)
+                          : colorScheme.onSurfaceVariant.withValues(alpha: 0.38),
+                    ),
+                    child: subtitle!,
+                  ),
+                ],
+              ],
+            ),
+          ),
+          if (trailing != null) ...[const SizedBox(width: 16), trailing!],
+        ],
+      ),
+    );
+
     return Card(
       elevation: elevation ?? (selected ? 1.0 : 0.0),
       margin: EdgeInsets.zero,
@@ -57,45 +107,14 @@ class ExpressiveListTile extends StatelessWidget {
         onTap: enabled ? onTap : null,
         onLongPress: enabled ? onLongPress : null,
         borderRadius: resolvedBorderRadius,
-        child: Padding(
-          padding: contentPadding ?? const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          child: Row(
-            children: [
-              if (leading != null) ...[leading!, const SizedBox(width: 16)],
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    DefaultTextStyle(
-                      style: theme.textTheme.titleMedium!.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: enabled
-                            ? (selected ? colorScheme.onPrimaryContainer : colorScheme.onSurface)
-                            : colorScheme.onSurface.withValues(alpha: 0.38),
-                      ),
-                      child: title,
-                    ),
-                    if (subtitle != null) ...[
-                      const SizedBox(height: 4),
-                      DefaultTextStyle(
-                        style: theme.textTheme.bodyMedium!.copyWith(
-                          color: enabled
-                              ? (selected
-                                    ? colorScheme.onPrimaryContainer.withValues(alpha: 0.8)
-                                    : colorScheme.onSurfaceVariant)
-                              : colorScheme.onSurfaceVariant.withValues(alpha: 0.38),
-                        ),
-                        child: subtitle!,
-                      ),
-                    ],
-                  ],
-                ),
+        child: edgeLeading == null
+            ? content
+            : Stack(
+                children: [
+                  Positioned(left: 0, top: 0, bottom: 0, width: edgeLeadingWidth, child: edgeLeading!),
+                  content,
+                ],
               ),
-              if (trailing != null) ...[const SizedBox(width: 16), trailing!],
-            ],
-          ),
-        ),
       ),
     );
   }

@@ -11,6 +11,9 @@ import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
 import 'download_type_dialog.dart';
+import 'audio_file_download_dialog.dart';
+
+import 'package:yaabsa/util/audio_file_download_mode.dart';
 
 Future<void> triggerBookDownload(BuildContext context, WidgetRef ref, String itemId, {String? episodeId}) async {
   final user = ref.read(currentUserProvider).value;
@@ -31,13 +34,48 @@ Future<void> triggerBookDownload(BuildContext context, WidgetRef ref, String ite
     hasEbook = item.libraryFiles!.any((file) => FileFormats.isEbook(file.metadata.ext));
   }
 
+  Future<void> download(String type) async {
+    var mode = AudioFileDownloadMode.all;
+    int? fileCount;
+    final settings = ref.read(settingsManagerProvider.notifier);
+    final alwaysDownloadAll = settings.getUserSetting<bool>(
+      user.id,
+      SettingKeys.downloadAllAudioFiles,
+      defaultValue: false,
+    );
+    if (!alwaysDownloadAll &&
+        type != 'ebook' &&
+        item!.mediaType != 'podcast' &&
+        (item.media?.bookMedia?.audioFiles?.length ?? 0) > 1) {
+      if (!context.mounted) return;
+      final selected = await showDialog<AudioFileDownloadChoice>(
+        context: context,
+        builder: (context) => AudioFileDownloadDialog(fileCount: item!.media!.bookMedia!.audioFiles!.length),
+      );
+      if (selected == null) return;
+      mode = selected.mode;
+      fileCount = selected.fileCount;
+      if (selected.alwaysDownloadAll) {
+        await settings.setUserSetting<bool>(user.id, SettingKeys.downloadAllAudioFiles, true);
+      }
+    }
+    await downloadHandler.downloadFile(
+      itemId,
+      episodeId: episodeId,
+      downloadType: type,
+      audioFileMode: mode,
+      audioFileCount: fileCount,
+      requiredUserId: user.id,
+    );
+  }
+
   if (hasAudio && !hasEbook) {
-    await downloadHandler.downloadFile(itemId, episodeId: episodeId, downloadType: 'audiobook');
+    await download('audiobook');
     return;
   }
 
   if (hasEbook && !hasAudio) {
-    await downloadHandler.downloadFile(itemId, episodeId: episodeId, downloadType: 'ebook');
+    await download('ebook');
     return;
   }
 
@@ -49,7 +87,7 @@ Future<void> triggerBookDownload(BuildContext context, WidgetRef ref, String ite
   );
 
   if (pref != 'askEveryTime') {
-    await downloadHandler.downloadFile(itemId, episodeId: episodeId, downloadType: pref);
+    await download(pref);
     return;
   }
 
@@ -68,7 +106,7 @@ Future<void> triggerBookDownload(BuildContext context, WidgetRef ref, String ite
     await settings.setUserSetting<String>(user.id, SettingKeys.downloadTypePreference, result.type);
   }
 
-  await downloadHandler.downloadFile(itemId, episodeId: episodeId, downloadType: result.type);
+  await download(result.type);
 }
 
 Future<void> triggerMultiBookDownload(BuildContext context, WidgetRef ref, List<String> itemIds) async {

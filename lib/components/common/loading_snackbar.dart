@@ -6,7 +6,10 @@ Future<T> runWithLoadingSnackBar<T>({
   required Future<T> Function() action,
 }) async {
   final messenger = ScaffoldMessenger.of(context);
-  messenger.showSnackBar(
+  messenger.clearSnackBars();
+  messenger.removeCurrentSnackBar();
+  var isClosed = false;
+  final controller = messenger.showSnackBar(
     SnackBar(
       duration: const Duration(days: 1),
       content: Row(
@@ -19,11 +22,14 @@ Future<T> runWithLoadingSnackBar<T>({
     ),
   );
 
+  controller.closed.then((_) => isClosed = true);
+
   try {
     return await action();
   } finally {
-    if (context.mounted) {
-      messenger.hideCurrentSnackBar();
+    if (messenger.mounted && !isClosed) {
+      controller.close();
+      await controller.closed;
     }
   }
 }

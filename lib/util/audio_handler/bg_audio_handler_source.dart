@@ -68,6 +68,10 @@ extension _BGAudioHandlerSource on BGAudioHandler {
         await loadResult;
       }
     } on PlayerException catch (error) {
+      if (identical(_currentMediaItem, loadingMedia) &&
+          await _attemptLocalStreamingFallback(error, initialPosition: initialPosition, resumePlayback: false)) {
+        return;
+      }
       final session = _ref.read(sessionRepositoryProvider).currentSession;
       if (identical(_currentMediaItem, loadingMedia) &&
           !_isDisposing &&

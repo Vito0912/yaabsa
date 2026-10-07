@@ -197,6 +197,12 @@ class _DownloadSettingsState extends ConsumerState<DownloadSettings> {
                           },
                         ),
                         SettingSwitchTile(
+                          label: 'Always download all audio files',
+                          settingKey: SettingKeys.downloadAllAudioFiles,
+                          userId: user.id,
+                          subtitle: 'Skip the audio file selection when downloading books.',
+                        ),
+                        SettingSwitchTile(
                           label: 'Download only on Wi-Fi',
                           settingKey: SettingKeys.downloadOnlyOnWifi,
                           userId: user.id,
@@ -206,7 +212,8 @@ class _DownloadSettingsState extends ConsumerState<DownloadSettings> {
                         ),
                         SettingSlider<int>(
                           label: 'Maximum parallel downloads',
-                          description: 'Limit the number of files downloading at the same time across all items.',
+                          description:
+                              'Limit simultaneous downloads across items. Files within each item download in order.',
                           values: const <int>[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                           valueLabels: const <String>[
                             '1 file',

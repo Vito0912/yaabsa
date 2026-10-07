@@ -1,7 +1,8 @@
 part of 'bg_audio_handler.dart';
 
 extension _BGAudioHandlerRuntime on BGAudioHandler {
-  Future<bool> _handlePlaybackFailure(PlayerException error) {
+  Future<bool> _handlePlaybackFailure(PlayerException error) async {
+    if (await _attemptLocalStreamingFallback(error)) return true;
     switch (classifyPlaybackError(error)) {
       case PlaybackFailureAction.retryStream:
         _scheduleStreamRecoveryRetry(error);
@@ -12,6 +13,62 @@ extension _BGAudioHandlerRuntime on BGAudioHandler {
         return Future<bool>.value(true);
       case PlaybackFailureAction.fail:
         return Future<bool>.value(false);
+    }
+  }
+
+  Future<bool> _attemptLocalStreamingFallback(
+    PlayerException error, {
+    Duration? initialPosition,
+    bool resumePlayback = true,
+  }) async {
+    final media = _currentMediaItem;
+    if (_isDisposing || media == null || !media.local || isCastControlActive) return false;
+    final index = error.index ?? _currentTrackIndex;
+    if (index < 0 || index >= media.tracks.length) return false;
+    final uri = Uri.tryParse(media.tracks[index].url ?? '');
+    if (uri?.scheme != 'http' && uri?.scheme != 'https') return false;
+    final activeFallback = _localStreamingFallbackFuture;
+    if (activeFallback != null) return activeFallback;
+
+    final fallback = _reopenLocalSessionForStreaming(
+      media,
+      resumePosition: initialPosition ?? position,
+      shouldResume: resumePlayback && playerControlState.playing,
+    );
+    _localStreamingFallbackFuture = fallback;
+    try {
+      return await fallback;
+    } finally {
+      if (identical(_localStreamingFallbackFuture, fallback)) _localStreamingFallbackFuture = null;
+    }
+  }
+
+  Future<bool> _reopenLocalSessionForStreaming(
+    InternalMedia media, {
+    required Duration resumePosition,
+    required bool shouldResume,
+  }) async {
+    bool isCurrentRequest() => !_isDisposing && identical(_currentMediaItem, media) && !isCastControlActive;
+    try {
+      await _syncService.flush(positionOverride: resumePosition, sessionClosing: true);
+      if (!isCurrentRequest()) return false;
+      final streamedMedia = await _ref
+          .read(sessionRepositoryProvider)
+          .reopenSessionForStreaming(media.itemId, episodeId: media.episodeId);
+      if (!isCurrentRequest() || streamedMedia == null || streamedMedia.local) return false;
+      _currentMediaItem = streamedMedia;
+      await _setSource(initialPosition: resumePosition, ignoreSavedProgress: true);
+      if (shouldResume && identical(_currentMediaItem, streamedMedia) && !_isDisposing && !isCastControlActive) {
+        await _syncedPlay();
+      }
+      return true;
+    } catch (error, stackTrace) {
+      logger(
+        'Could not stream the missing audio file: $error\n$stackTrace',
+        tag: 'AudioHandler',
+        level: InfoLevel.warning,
+      );
+      return false;
     }
   }
 

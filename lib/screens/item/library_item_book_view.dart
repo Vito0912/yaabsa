@@ -141,7 +141,7 @@ class LibraryItemBookView extends ConsumerWidget {
     final appDatabase = ref.watch(appDatabaseProvider);
     final storedDownloadsStream = currentUser == null
         ? Stream<List<InternalDownload>>.value(const <InternalDownload>[])
-        : appDatabase.watchStoredDownloadsByUserForItem(currentUser.id, item.id, completedOnly: true);
+        : appDatabase.watchStoredDownloadsByUserForItem(currentUser.id, item.id);
 
     return StreamBuilder<List<InternalDownload>>(
       stream: storedDownloadsStream,

@@ -5,6 +5,10 @@ import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/database/auth_secret_store.dart';
 import 'package:yaabsa/models/internal_download.dart';
+import 'package:yaabsa/models/download_availability.dart';
+import 'package:yaabsa/models/download_file_entry.dart';
+import 'package:path/path.dart' as p;
+import 'package:yaabsa/util/download_destination.dart';
 import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/models/smart_download.dart';
 import 'package:yaabsa/models/queue_source.dart';
@@ -244,6 +248,7 @@ class AppDatabase extends _$AppDatabase {
       super(connection.executor);
 
   final AuthSecretStore _authSecretStore;
+  final Map<String, Future<bool>> _storedPathExistenceCache = {};
   final Map<String, _StoredDownloadCacheEntry> _storedDownloadCache = <String, _StoredDownloadCacheEntry>{};
   final Map<String, Future<InternalDownload?>> _storedDownloadBaseCache = <String, Future<InternalDownload?>>{};
   bool? _storedDownloadFilesAvailable;
@@ -413,6 +418,173 @@ class AppDatabase extends _$AppDatabase {
     return (select(
       storedDownloadFiles,
     )..where((tbl) => _storedDownloadFileWhereExpression(itemId: itemId, userId: userId, episodeId: episodeId))).get();
+  }
+
+  Future<Set<String>> downloadedFileKeys(InternalDownload download, {required String userId}) async {
+    final itemId = download.item?.id ?? download.episode?.libraryItemId;
+    if (itemId == null || _storedDownloadFilesAvailable == false) return <String>{};
+    final validIndices = download.tracks.map((track) => track.index).toSet();
+    final validAuxiliaryPaths = download.auxiliaryFilePaths.toSet();
+    final basePath = download.downloadBasePath == null
+        ? null
+        : await resolveDownloadBasePath(download.downloadBasePath!);
+    try {
+      final files = await _getStoredDownloadFiles(itemId: itemId, userId: userId, episodeId: download.episode?.id);
+      final keys = <String>{};
+      for (final file in files) {
+        if (file.trackJson != null) {
+          final track = InternalTrack.fromJson(jsonDecode(file.trackJson!) as Map<String, dynamic>);
+          if (validIndices.contains(track.index)) keys.add(file.fileKey);
+        } else if (file.auxiliaryPath != null) {
+          final resolved = await resolveStoredDownloadPath(file.auxiliaryPath, basePath);
+          if (validAuxiliaryPaths.contains(resolved)) keys.add(file.fileKey);
+        }
+      }
+      return keys;
+    } catch (error) {
+      if (!_isStoredDownloadFilesUnavailable(error)) rethrow;
+      _storedDownloadFilesAvailable = false;
+      return <String>{};
+    }
+  }
+
+  Future<DownloadFileLocation?> downloadFileLocation(
+    InternalDownload download, {
+    required String userId,
+    required String fileKey,
+    int? audioIndex,
+    required String filename,
+  }) async {
+    final itemId = download.item?.id ?? download.episode?.libraryItemId;
+    if (itemId == null) return null;
+    if (_storedDownloadFilesAvailable != false) {
+      final files = await _getStoredDownloadFiles(itemId: itemId, userId: userId, episodeId: download.episode?.id);
+      final basePath = await resolveDownloadBasePath(download.downloadBasePath);
+      for (final file in files) {
+        final track = file.trackJson == null
+            ? null
+            : InternalTrack.fromJson(jsonDecode(file.trackJson!) as Map<String, dynamic>);
+        final path = await resolveStoredDownloadPath(track?.url ?? file.auxiliaryPath, basePath);
+        if (path == null) continue;
+        if (file.fileKey == fileKey ||
+            (audioIndex != null && track?.index == audioIndex) ||
+            (audioIndex == null &&
+                file.auxiliaryPath != null &&
+                p.basename(Uri.tryParse(path)?.path ?? path) == filename)) {
+          return (
+            path: path,
+            sidecarPath: await resolveStoredDownloadPath(file.sidecarPath, basePath),
+            fileKey: file.fileKey,
+          );
+        }
+      }
+    }
+    if (audioIndex != null) {
+      for (final track in download.tracks) {
+        if (track.index == audioIndex && track.url != null) return (path: track.url!, sidecarPath: null, fileKey: null);
+      }
+    } else {
+      for (final path in download.auxiliaryFilePaths) {
+        if (p.basename(Uri.tryParse(path)?.path ?? path) == filename) {
+          return (path: path, sidecarPath: null, fileKey: null);
+        }
+      }
+    }
+    return null;
+  }
+
+  Future<void> removeStoredDownloadFile(
+    InternalDownload download, {
+    required String userId,
+    required DownloadFileLocation location,
+    int? audioIndex,
+  }) async {
+    final itemId = download.item?.id ?? download.episode?.libraryItemId;
+    if (itemId == null) return;
+    await transaction(() async {
+      final whereClause = _storedDownloadWhereExpression(
+        itemId: itemId,
+        userId: userId,
+        episodeId: download.episode?.id,
+      );
+      final entry = await (select(storedDownloads)..where((table) => whereClause)).getSingleOrNull();
+      if (entry == null) return;
+      final stored = await _downloadForStorageMerge(entry);
+      if (stored == null) return;
+      final current = await stored.resolvePaths();
+      final updated = current.copyWith(
+        tracks: current.tracks.where((track) => track.index != audioIndex && track.url != location.path).toList(),
+        auxiliaryFilePaths: current.auxiliaryFilePaths.where((path) => path != location.path).toList(),
+        sidecarPaths: current.sidecarPaths.where((path) => path != location.sidecarPath).toList(),
+      );
+      if (_storedDownloadFilesAvailable != false) {
+        final files = await _getStoredDownloadFiles(itemId: itemId, userId: userId, episodeId: download.episode?.id);
+        final basePath = await resolveDownloadBasePath(current.downloadBasePath);
+        final keys = <String>{};
+        for (final file in files) {
+          final track = file.trackJson == null
+              ? null
+              : InternalTrack.fromJson(jsonDecode(file.trackJson!) as Map<String, dynamic>);
+          final path = await resolveStoredDownloadPath(track?.url ?? file.auxiliaryPath, basePath);
+          final sidecar = await resolveStoredDownloadPath(file.sidecarPath, basePath);
+          if (file.fileKey == location.fileKey ||
+              path == location.path ||
+              (audioIndex != null && track?.index == audioIndex) ||
+              (location.sidecarPath != null && sidecar == location.sidecarPath && path == null)) {
+            keys.add(file.fileKey);
+          }
+        }
+        if (keys.isNotEmpty) {
+          await (delete(storedDownloadFiles)..where(
+                (table) =>
+                    _storedDownloadFileWhereExpression(
+                      itemId: itemId,
+                      userId: userId,
+                      episodeId: download.episode?.id,
+                    ) &
+                    table.fileKey.isIn(keys),
+              ))
+              .go();
+        }
+      }
+      await (update(storedDownloads)..where((table) => whereClause)).write(
+        StoredDownloadsCompanion(
+          download: Value(_encodeNormalizedStoredDownload(updated, includeInlineFiles: true)),
+          completedAt: Value(_nextStoredDownloadCompletedAt(DateTime.now().millisecondsSinceEpoch, entry.completedAt)),
+        ),
+      );
+      _storedDownloadCache.remove(_storedDownloadCacheKey(entry));
+      _storedDownloadBaseCache.remove(entry.download);
+      _storedPathExistenceCache.remove(location.path);
+      if (location.sidecarPath != null) _storedPathExistenceCache.remove(location.sidecarPath);
+    });
+  }
+
+  Future<void> ensureStoredDownloadEntry({
+    required String itemId,
+    required String userId,
+    required String? episodeId,
+    required InternalDownload download,
+  }) async {
+    await transaction(() async {
+      final existing =
+          await (select(
+                storedDownloads,
+              )..where((table) => _storedDownloadWhereExpression(itemId: itemId, userId: userId, episodeId: episodeId)))
+              .getSingleOrNull();
+      if (existing != null) return;
+      await into(storedDownloads).insert(
+        StoredDownloadsCompanion.insert(
+          itemId: itemId,
+          userId: userId,
+          episodeId: Value(episodeId),
+          download: _encodeNormalizedStoredDownload(download),
+          downloadOrigin: Value(download.downloadOrigin),
+          smartProfileIds: Value(jsonEncode(download.smartProfileIds)),
+          managedBytes: Value(download.managedBytes),
+        ),
+      );
+    });
   }
 
   InternalDownload _withStoredDownloadFiles(InternalDownload base, List<StoredDownloadFileEntry> files) {
@@ -631,12 +803,13 @@ class AppDatabase extends _$AppDatabase {
 
   Future<List<InternalDownload>> _decodeStoredDownloads(Iterable<StoredDownloadsEntry> entries) async {
     final downloads = <InternalDownload>[];
+    var processed = 0;
     for (final entry in entries) {
       final parsed = await _decodeStoredDownloadOrNull(entry);
       if (parsed != null) {
         downloads.add(parsed);
       }
-      await Future<void>.delayed(Duration.zero);
+      if (++processed % 32 == 0) await Future<void>.delayed(Duration.zero);
     }
     return downloads;
   }
@@ -645,7 +818,21 @@ class AppDatabase extends _$AppDatabase {
     return left.length == right.length && left.containsAll(right);
   }
 
-  Future<bool> _storedPathExists(String rawPath) async {
+  Future<bool> _storedPathExists(String rawPath) {
+    final cached = _storedPathExistenceCache[rawPath];
+    if (cached != null) return cached;
+    if (_storedPathExistenceCache.length >= 16384) {
+      _storedPathExistenceCache.remove(_storedPathExistenceCache.keys.first);
+    }
+    final lookup = _checkStoredPathExists(rawPath).then((exists) {
+      if (!exists) _storedPathExistenceCache.remove(rawPath);
+      return exists;
+    });
+    _storedPathExistenceCache[rawPath] = lookup;
+    return lookup;
+  }
+
+  Future<bool> _checkStoredPathExists(String rawPath) async {
     if (kIsWeb) {
       return false;
     }
@@ -720,9 +907,50 @@ class AppDatabase extends _$AppDatabase {
     return (await _decodeStoredDownloads(entries)).where((d) => d.item?.libraryId == libraryId).toList();
   }
 
+  Stream<Map<(String, String?), DownloadAvailability>> watchDownloadAvailabilityByUser(String userId) {
+    final trackCount = storedDownloadFiles.trackJson.count();
+    final auxiliaryCount = storedDownloadFiles.auxiliaryPath.count(distinct: true);
+    final query =
+        select(storedDownloads).join([
+            leftOuterJoin(
+              storedDownloadFiles,
+              storedDownloadFiles.userId.equalsExp(storedDownloads.userId) &
+                  storedDownloadFiles.itemId.equalsExp(storedDownloads.itemId) &
+                  (storedDownloadFiles.episodeId.equalsExp(storedDownloads.episodeId) |
+                      (storedDownloadFiles.episodeId.isNull() & storedDownloads.episodeId.isNull())),
+            ),
+          ])
+          ..addColumns([trackCount, auxiliaryCount])
+          ..where(storedDownloads.userId.equals(userId))
+          ..groupBy([storedDownloads.userId, storedDownloads.itemId, storedDownloads.episodeId]);
+    return query.watch().asyncMap((rows) async {
+      final availability = <(String, String?), DownloadAvailability>{};
+      for (final row in rows) {
+        final entry = row.readTable(storedDownloads);
+        final base = await _decodeNormalizedStoredDownloadBase(entry);
+        if (base == null) continue;
+        final storedCount = (row.read(trackCount) ?? 0) + (row.read(auxiliaryCount) ?? 0);
+        final count = storedCount > 0 ? storedCount.toInt() : base.numberOfDownloadedFiles;
+        final total = base.numberOfFiles;
+        availability[(entry.itemId, entry.episodeId)] = (
+          count: count,
+          total: total,
+          complete: total > 0 && count >= total,
+        );
+      }
+      return availability;
+    });
+  }
+
   Stream<List<InternalDownload>> watchStoredDownloadsByUser(String userId) {
     final query = select(storedDownloads)..where((tbl) => tbl.userId.equals(userId));
     return query.watch().distinct(_sameStoredDownloadEntries).asyncMap(_decodeStoredDownloads);
+  }
+
+  Stream<InternalDownload?> watchStoredDownloadByKey(String itemId, String userId, {String? episodeId}) {
+    final query = select(storedDownloads)
+      ..where((table) => _storedDownloadWhereExpression(itemId: itemId, userId: userId, episodeId: episodeId));
+    return query.watchSingleOrNull().asyncMap((entry) => entry == null ? null : _decodeStoredDownloadOrNull(entry));
   }
 
   Stream<List<InternalDownload>> watchStoredDownloadsByUserForItem(
@@ -877,15 +1105,6 @@ class AppDatabase extends _$AppDatabase {
       ...newDownload.sidecarPaths.where((path) => path.trim().isNotEmpty),
     }.toList(growable: false)..sort();
 
-    final expectedCountCandidates = <int>{
-      if (oldDownload.expectedFileCount != null && oldDownload.expectedFileCount! > 0) oldDownload.expectedFileCount!,
-      if (newDownload.expectedFileCount != null && newDownload.expectedFileCount! > 0) newDownload.expectedFileCount!,
-    };
-
-    final mergedExpectedFileCount = expectedCountCandidates.isEmpty
-        ? null
-        : expectedCountCandidates.reduce((left, right) => left > right ? left : right);
-
     final String mergedDownloadType;
     if (oldDownload.downloadType == 'both' || newDownload.downloadType == 'both') {
       mergedDownloadType = 'both';
@@ -899,7 +1118,14 @@ class AppDatabase extends _$AppDatabase {
       item: newDownload.item ?? oldDownload.item,
       episode: newDownload.episode ?? oldDownload.episode,
       tracks: mergedTracks,
-      expectedFileCount: mergedExpectedFileCount,
+      expectedFileCount: oldDownload
+          .copyWith(
+            item: newDownload.item ?? oldDownload.item,
+            episode: newDownload.episode ?? oldDownload.episode,
+            downloadType: mergedDownloadType,
+            expectedFileCount: null,
+          )
+          .numberOfFiles,
       auxiliaryFilePaths: mergedAuxiliaryPaths,
       saf: oldDownload.saf || newDownload.saf,
       downloadBasePath: newDownload.downloadBasePath ?? oldDownload.downloadBasePath,
@@ -1100,8 +1326,17 @@ class AppDatabase extends _$AppDatabase {
         final existing = rowsToMerge.first;
         final mergedOrigin = _mergeDownloadOrigin(existing.downloadOrigin, downloadOrigin);
         final mergedProfileIds = _mergeSmartProfileIds(existing.smartProfileIds, jsonEncode(smartProfileIds));
+        final base = await _decodeNormalizedStoredDownloadBase(existing);
+        String? updatedPayload;
+        if (base != null &&
+            ((base.downloadType != 'both' && base.downloadType != download.downloadType) ||
+                (download.expectedFileCount ?? 0) > (base.expectedFileCount ?? 0))) {
+          final merged = _mergeDownloads(base, download);
+          updatedPayload = _encodeNormalizedStoredDownload(merged);
+        }
         await (update(storedDownloads)..where((tbl) => requestedWhereClause)).write(
           StoredDownloadsCompanion(
+            download: updatedPayload == null ? const Value.absent() : Value(updatedPayload),
             downloadOrigin: Value(mergedOrigin),
             smartProfileIds: Value(mergedProfileIds),
             managedBytes: managedBytes == null ? Value(existing.managedBytes) : Value(managedBytes),
@@ -1424,6 +1659,17 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<void> deleteStoredDownload(String itemId, String userId, {String? episodeId}) async {
+    final existing = await getStoredDownload(itemId, userId, episodeId: episodeId);
+    if (existing != null) {
+      for (final path in [
+        ...existing.tracks.map((track) => track.url).whereType<String>(),
+        ...existing.auxiliaryFilePaths,
+        ...existing.sidecarPaths,
+        if (existing.coverPath != null) existing.coverPath!,
+      ]) {
+        _storedPathExistenceCache.remove(path);
+      }
+    }
     final whereClause = _storedDownloadWhereExpression(itemId: itemId, userId: userId, episodeId: episodeId);
     final fileWhereClause = _storedDownloadFileWhereExpression(itemId: itemId, userId: userId, episodeId: episodeId);
     await transaction(() async {

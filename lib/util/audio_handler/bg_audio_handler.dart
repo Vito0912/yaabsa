@@ -189,6 +189,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   bool _transcodeFallbackInFlight = false;
   String? _transcodeAttemptedFor;
   Future<bool>? _transcodeFallbackFuture;
+  Future<bool>? _localStreamingFallbackFuture;
   Completer<PlayerException>? _sourceLoadErrorCompleter;
   int _internalSeekGuardDepth = 0;
   bool _chapterNotificationEnabled = false;

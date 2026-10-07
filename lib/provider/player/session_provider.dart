@@ -16,6 +16,7 @@ import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/download_playback_tracks.dart';
 import 'package:yaabsa/util/audio_handler/player_history_handler.dart';
 import 'package:yaabsa/util/audio_handler/listening_session_clock.dart';
 import 'package:yaabsa/util/local_cover_path.dart';
@@ -204,7 +205,8 @@ class SessionRepository {
 
     if (itemId == _currentSession?.libraryItemId && episodeId == _currentSession?.episodeId) return null;
 
-    if (downloaded == null) {
+    var openedServerSession = false;
+    if (downloaded == null || (!downloaded.isComplete && api != null)) {
       if (api == null) {
         logger('No API available and no local download found.', tag: 'SessionRepository', level: InfoLevel.warning);
         return null;
@@ -212,20 +214,27 @@ class SessionRepository {
 
       PlayLibraryItemRequest playRequest = PlayLibraryItemRequest(
         deviceInfo: await PlayerUtils.getDeviceInfo(),
-        forceDirectPlay: forceDirectPlay && !forceTranscode,
+        forceDirectPlay: (forceDirectPlay || downloaded != null) && !forceTranscode,
         forceTranscode: forceTranscode,
         supportedMimeTypes: await PlayerUtils.getSupportedMimeTypes(),
         mediaPlayer: '$appName just_audio',
       );
 
-      final PlaybackSession? session = (await api.getLibraryItemApi().playLibraryItem(
-        itemId,
-        episodeId: episodeId,
-        playRequest: playRequest,
-      )).data;
+      PlaybackSession? session;
+      try {
+        session = (await api.getLibraryItemApi().playLibraryItem(
+          itemId,
+          episodeId: episodeId,
+          playRequest: playRequest,
+        )).data;
+      } catch (error) {
+        if (downloaded == null || downloaded.tracks.isEmpty) rethrow;
+        logger('Server playback unavailable, using downloaded files: $error', tag: 'SessionRepository');
+      }
 
       if (session != null) {
         _currentSession = session;
+        openedServerSession = true;
         _isLocalSession = false;
         final trackTypes = session.audioTracks?.map((track) => track.mimeType).join(', ') ?? 'none';
         final sourceCodecs =
@@ -242,21 +251,17 @@ class SessionRepository {
       } else {
         logger('Failed to open session for item $itemId', tag: 'SessionRepository', level: InfoLevel.warning);
       }
-
-      if (_currentSession == null) {
-        logger(
-          'Session is null, cannot create InternalMedia object.',
-          tag: 'SessionRepository',
-          level: InfoLevel.error,
-        );
-        return null;
-      }
-    } else {
+    }
+    if (!openedServerSession && downloaded != null) {
       logger('Using local download for item $itemId', tag: 'SessionRepository', level: InfoLevel.debug);
       final randomId = Uuid().v4();
       _currentSession = await createLocalSession(randomId, itemId, userId, DateTime.now(), episodeId: episodeId);
       _isLocalSession = true;
       _localBoundSessionVersions[_currentSession!.id] = _currentSession!;
+    }
+    if (_currentSession == null || (!openedServerSession && downloaded == null)) {
+      logger('Session is null, cannot create InternalMedia object.', tag: 'SessionRepository', level: InfoLevel.error);
+      return null;
     }
 
     _playbackSessionId = _currentSession?.id;
@@ -288,6 +293,9 @@ class SessionRepository {
         _currentSession!.libraryItem?.narratorString ??
         ((metadataNarrators == null || metadataNarrators.isEmpty) ? null : metadataNarrators.join(', '));
 
+    final downloadedTracks = downloaded == null
+        ? const <InternalTrack>[]
+        : downloadPlaybackTracks(downloaded, null).where((track) => track.url != null).toList();
     final InternalMedia internalMedia = InternalMedia(
       libraryId: _currentSession!.libraryId!,
       itemId: _currentSession!.libraryItemId,
@@ -301,11 +309,29 @@ class SessionRepository {
       narrator: narrator,
       cover: localCoverUri ?? remoteCoverUri,
       chapters: _currentSession!.chapters?.map((e) => e.toInternalChapter()).toList(),
-      tracks: downloaded != null
-          ? downloaded.tracks
-          : (_currentSession!.audioTracks ?? const <AudioTrack>[])
-                .map((e) => e.toInternalTrack(api!.basePathOverride, _currentSession!.id))
-                .toList(),
+      tracks: _isLocalSession
+          ? downloadPlaybackTracks(downloaded!, ref.read(currentUserProvider).value?.server?.url)
+          : (_currentSession!.audioTracks ?? const <AudioTrack>[]).map((track) {
+              if (downloaded != null && _currentSession!.playMethod != 2) {
+                for (final localTrack in downloadedTracks) {
+                  final sameFile = localTrack.start == null
+                      ? localTrack.index == track.index
+                      : (localTrack.start! - track.startOffset).abs() < 0.1 &&
+                            (localTrack.duration - track.duration).abs() < 0.1;
+                  if (sameFile) {
+                    final localUrl = localTrack.url;
+                    return localTrack.copyWith(
+                      url: localUrl != null && !Uri.parse(localUrl).hasScheme
+                          ? Uri.file(localUrl, windows: !kIsWeb && Platform.isWindows).toString()
+                          : localUrl,
+                      start: track.startOffset,
+                      end: track.startOffset + track.duration,
+                    );
+                  }
+                }
+              }
+              return track.toInternalTrack(api!.basePathOverride, _currentSession!.id);
+            }).toList(),
       local: _isLocalSession,
       saf: downloaded?.saf ?? false,
     );
@@ -313,6 +339,11 @@ class SessionRepository {
     internalMedia.populateFields();
 
     return internalMedia;
+  }
+
+  Future<InternalMedia?> reopenSessionForStreaming(String itemId, {String? episodeId}) async {
+    await closeSession();
+    return openSession(itemId, episodeId: episodeId, forceDirectPlay: true);
   }
 
   Future<InternalMedia?> reopenSessionWithTranscode(String itemId, {String? episodeId}) async {

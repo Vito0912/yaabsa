@@ -97,21 +97,23 @@ Below is a list of all features, but I want to _highlight_ a few, as this client
 >
 > If a feature already has a 🅿️, ❓, or ✅ and ❌ for the other platforms for the same feature, it is not planned to be implemented, either because it is not possible or not worth the effort for a single platform. However, PRs will not be closed. Issues will
 
-### Library
+### Views
 
 | Feature            | Android | iOS | Windows | MacOS | Linux |
 | ------------------ | ------- | --- | ------- | ----- | ----- |
-| Library (Book)     | ✅      | ✅  | ✅      | ✅    | ✅    |
-| Library (Podcast)  | ✅      | ✅  | ✅      | ✅    | ✅    |
-| Personalized/Shelf | ✅      | ✅  | ✅      | ✅    | ✅    |
-| Series             | ✅      | ✅  | ✅      | ✅    | ✅    |
-| Collections        | ✅      | ✅  | ✅      | ✅    | ✅    |
-| Playlists          | ✅      | ✅  | ✅      | ✅    | ✅    |
-| Author             | ✅      | ✅  | ✅      | ✅    | ✅    |
-| Narrator           | ✅      | ✅  | ✅      | ✅    | ✅    |
-| Search             | ✅      | ✅  | ✅      | ✅    | ✅    |
-| Stats              | ✅      | ✅  | ✅      | ✅    | ✅    |
-| Music\*            | ✅      | ✅  | ✅      | ✅    | ✅    |
+| Library (Book)     | ✅       | ✅   | ✅       | ✅     | ✅     |
+| Library (Podcast)  | ✅       | ✅   | ✅       | ✅     | ✅     |
+| Personalized/Shelf | ✅       | ✅   | ✅       | ✅     | ✅     |
+| Series             | ✅       | ✅   | ✅       | ✅     | ✅     |
+| Collections        | ✅       | ✅   | ✅       | ✅     | ✅     |
+| Playlists          | ✅       | ✅   | ✅       | ✅     | ✅     |
+| Author             | ✅       | ✅   | ✅       | ✅     | ✅     |
+| Narrator           | ✅       | ✅   | ✅       | ✅     | ✅     |
+| Search             | ✅       | ✅   | ✅       | ✅     | ✅     |
+| Stats              | ✅       | ✅   | ✅       | ✅     | ✅     |
+| Listening streaks  | ✅       | ✅   | ✅       | ✅     | ✅     |
+| Achievements       | ✅       | ✅   | ✅       | ✅     | ✅     |
+| Music\*            | ✅       | ✅   | ✅       | ✅     | ✅     |
 
 \* This is no official library type and just changes behaviour in the app, making it more suitable for music libraries.
 
@@ -121,18 +123,20 @@ Below is a list of all features, but I want to _highlight_ a few, as this client
 | ------------------------------- | ------- | --- | ------- | ----- | ----- |
 | Play/Pause/Seeking/Speed/Volume | ✅      | ✅  | ❓      | ✅    | ✅    |
 | Background Playback             | ✅      | ✅  | ❓      | ✅    | ✅    |
-| Device Controls                 | ✅      | ✅  | ❌      | ✅    | ❌    |
+| Device Controls                 | ✅      | ✅  | ✅      | ✅    | ✅    |
 | (Auto)-Queue                    | ✅      | ✅  | ❓      | ✅    | ✅    |
 | Gapless playback                | ✅      | ✅  | ❓      | ✅    | ✅    |
+| Transcoding fallback            | ✅      | ✅  | ✅      | ✅    | ✅    |
+| Shuffle playback                | ✅      | ✅  | ✅      | ✅    | ✅    |
 | Buffering                       | ✅      | ✅  | ❓      | ✅    | ❓    |
 | Volume Boost                    | ✅      | ❌  | ❌      | ❌    | ✅    |
 | Audio ducking                   | ✅      | ❓  | ❌      | ❌    | ❌    |
 | Sleep Timer                     | ✅      | ✅  | ❓      | ✅    | ✅    |
 | Chapters                        | ✅      | ✅  | ❓      | ✅    | ✅    |
 | Play History                    | ✅      | ✅  | ❓      | ✅    | ✅    |
+| Bookmarks                       | ✅      | ✅  | ✅      | ✅    | ✅    |
 | Shake to rewind                 | ✅      | ✅  | ❌      | ❌    | ❌    |
 | Cast                            | ✅      | ❓  | ❌      | ❌    | ❌    |
-| Auto-Download next in queue     | 🅿️      | 🅿️  | 🅿️      | 🅿️    | 🅿️    |
 | Auto-Resume                     | ✅      | ✅  | ✅      | ✅    | ✅    |
 | Subtitles (karaoke-style)       | ✅      | ✅  | ✅      | ✅    | ✅    |
 
@@ -154,17 +158,22 @@ Below is a list of all features, but I want to _highlight_ a few, as this client
 
 ### Other Features
 
-| Feature             | Android | iOS  | Windows | MacOS | Linux |
-| ------------------- | ------- | ---- | ------- | ----- | ----- |
-| Sync                | ✅      | ✅   | ✅      | ✅    | ✅    |
-| Caching             | ✅      | ✅   | ✅      | ✅    | ✅    |
-| Downloads           | ✅      | ✅   | ❓      | ✅\*  | ✅    |
-| Headers             | ✅      | ✅   | ✅      | ✅    | ✅    |
-| Tray/Statusbar Icon | ❌      | ❌   | ❓      | ✅    | ✅    |
-| Car                 | ✅      | ✅   | ❌      | ❌    | ❌    |
-| Android Automotive  | ✅      | ❌   | ❌      | ❌    | ❌    |
-| Widgets             | ✅      | 🅿️   | ❌      | ❌    | ❌    |
-| OIDC Login\*\*      | ✅      | ❓   | ✅      | ❓    | ✅    |
+| Feature              | Android | iOS  | Windows | MacOS | Linux |
+| -------------------- | ------- | ---- | ------- | ----- | ----- |
+| Sync                 | ✅       | ✅    | ✅       | ✅     | ✅     |
+| Caching              | ✅       | ✅    | ✅       | ✅     | ✅     |
+| Downloads            | ✅       | ✅    | ❓       | ✅\*   | ✅     |
+| Auto-Downloads       | ✅       | ❓    | ❓       | ❓     | ✅     |
+| Per-file Downloads   | ✅       | ✅    | ✅       | ✅     | ✅     |
+| Download Profiles    | ✅       | ❓    | ❓       | ❓     | ✅     |
+| Headers              | ✅       | ✅    | ✅       | ✅     | ✅     |
+| Tray/Statusbar Icon  | ❌       | ❌    | ❓       | ✅     | ✅     |
+| Car                  | ✅       | ✅    | ❌       | ❌     | ❌     |
+| Android Automotive   | ✅       | ❌    | ❌       | ❌     | ❌     |
+| Widgets              | ✅       | 🅿️   | ❌       | ❌     | ❌     |
+| OIDC Login\*\*       | ✅       | ❓    | ✅       | ❓     | ✅     |
+| Auth-code Login      | ✅       | ❓    | ❓       | ❓     | ✅     |
+| Android Live Updates | ✅       | ❌    | ❌       | ❌     | ❌     |
 
 \* Only supports the default download location, due to sandboxing limitations. Will be addressed in the future.\
 \*\* You need to add `yaabsa://oauth` to the list of "Allowed Mobile Redirect URIs" in the OIDC settings of ABS. Please see the [ABS docs](https://audiobookshelf.org/docs/documentation/server-management/oidc-authentication#manual-configuration) for more information.

@@ -3,10 +3,16 @@ import 'package:yaabsa/components/common/local_cover_image.dart';
 import 'package:yaabsa/models/internal_download.dart';
 
 class DownloadCoverThumbnail extends StatelessWidget {
-  const DownloadCoverThumbnail({super.key, required this.download, this.size = 44});
+  const DownloadCoverThumbnail({
+    super.key,
+    required this.download,
+    this.size = 44,
+    this.borderRadius = const BorderRadius.all(Radius.circular(8)),
+  });
 
   final InternalDownload download;
   final double size;
+  final BorderRadius borderRadius;
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +29,7 @@ class DownloadCoverThumbnail extends StatelessWidget {
     final episodeId = download.episode?.id ?? 'item';
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: borderRadius,
       child: SizedBox(
         width: size,
         height: size,

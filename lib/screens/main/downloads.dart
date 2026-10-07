@@ -1,6 +1,7 @@
 import 'package:yaabsa/components/app/downloads/download_list_tile.dart';
 import 'package:yaabsa/components/common/connection_issue_view.dart';
-import 'package:yaabsa/database/app_database.dart';
+import 'package:yaabsa/provider/common/stored_downloads_provider.dart';
+import 'package:yaabsa/components/app/downloads/download_files_sheet.dart';
 import 'package:yaabsa/models/internal_download.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
@@ -19,6 +20,9 @@ class _DownloadsState extends ConsumerState<Downloads> {
   final Set<String> _selectedDownloadKeys = <String>{};
   bool _selectionMode = false;
   bool _isDeleting = false;
+  _DownloadFilter _filter = _DownloadFilter.all;
+  List<InternalDownload>? _cachedDownloads;
+  final Set<String> _completeDownloadKeys = <String>{};
 
   String? _downloadKeyFor(InternalDownload download) {
     final itemId = download.item?.id ?? download.episode?.libraryItemId;
@@ -141,7 +145,6 @@ class _DownloadsState extends ConsumerState<Downloads> {
 
   @override
   Widget build(BuildContext context) {
-    final appDatabase = ref.watch(appDatabaseProvider);
     final currentUser = ref.watch(currentUserProvider);
 
     return currentUser.when(
@@ -150,130 +153,192 @@ class _DownloadsState extends ConsumerState<Downloads> {
           return const Center(child: Text('No active user.'));
         }
 
-        return StreamBuilder<List<InternalDownload>>(
-          stream: appDatabase.watchStoredDownloadsByUser(user.id),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            if (snapshot.hasError) {
-              return ConnectionIssueView.requestFailed(
-                error: snapshot.error ?? 'Unknown error',
-                title: 'Unable to load downloads',
-              );
-            }
-
-            final downloads = snapshot.data ?? const <InternalDownload>[];
-            if (downloads.isEmpty) {
-              return const Center(child: Text('No downloads available.'));
-            }
-
-            final validKeys = downloads.map(_downloadKeyFor).whereType<String>().toSet();
-            if (_selectedDownloadKeys.any((key) => !validKeys.contains(key))) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (!mounted) {
-                  return;
-                }
-                setState(() {
-                  _selectedDownloadKeys.removeWhere((key) => !validKeys.contains(key));
-                  if (_selectedDownloadKeys.isEmpty) {
-                    _selectionMode = false;
+        return ref
+            .watch(storedDownloadsProvider)
+            .when(
+              skipLoadingOnReload: true,
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, _) => ConnectionIssueView.requestFailed(error: error, title: 'Unable to load downloads'),
+              data: (downloads) {
+                if (!identical(_cachedDownloads, downloads)) {
+                  _cachedDownloads = downloads;
+                  _completeDownloadKeys.clear();
+                  for (final download in downloads) {
+                    final key = _downloadKeyFor(download);
+                    if (key != null &&
+                        download.numberOfFiles > 0 &&
+                        download.numberOfDownloadedFiles >= download.numberOfFiles) {
+                      _completeDownloadKeys.add(key);
+                    }
                   }
-                });
-              });
-            }
+                }
+                final visibleDownloads = switch (_filter) {
+                  _DownloadFilter.all => downloads,
+                  _DownloadFilter.partial =>
+                    downloads
+                        .where((download) => !_completeDownloadKeys.contains(_downloadKeyFor(download)))
+                        .toList(growable: false),
+                  _DownloadFilter.offline =>
+                    downloads
+                        .where((download) => _completeDownloadKeys.contains(_downloadKeyFor(download)))
+                        .toList(growable: false),
+                };
+                if (downloads.isEmpty) {
+                  return const Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.download_for_offline_outlined, size: 48),
+                        SizedBox(height: 16),
+                        Text('Your offline library starts here'),
+                        SizedBox(height: 8),
+                        Text('Download a book or episode to listen offline.'),
+                      ],
+                    ),
+                  );
+                }
 
-            final selectedDownloads = downloads.where(_isSelected).toList(growable: false);
-            final horizontalPadding = context.isMobile ? 12.0 : 24.0;
+                final validKeys = downloads.map(_downloadKeyFor).whereType<String>().toSet();
+                if (_selectedDownloadKeys.any((key) => !validKeys.contains(key))) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (!mounted) {
+                      return;
+                    }
+                    setState(() {
+                      _selectedDownloadKeys.removeWhere((key) => !validKeys.contains(key));
+                      if (_selectedDownloadKeys.isEmpty) {
+                        _selectionMode = false;
+                      }
+                    });
+                  });
+                }
 
-            return Column(
-              children: [
-                if (_isDeleting) const LinearProgressIndicator(minHeight: 2),
-                Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 1120),
-                    child: Padding(
-                      padding: EdgeInsets.fromLTRB(horizontalPadding, 8, horizontalPadding, 6),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              _selectionMode
-                                  ? '${_selectedDownloadKeys.length} selected'
-                                  : '${downloads.length} downloaded item(s)',
-                              style: Theme.of(context).textTheme.labelLarge,
-                            ),
+                final selectedDownloads = downloads.where(_isSelected).toList(growable: false);
+                final horizontalPadding = context.isMobile ? 12.0 : 24.0;
+
+                return Column(
+                  children: [
+                    if (_isDeleting) const LinearProgressIndicator(minHeight: 2),
+                    Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 1120),
+                        child: Padding(
+                          padding: EdgeInsets.fromLTRB(horizontalPadding, 8, horizontalPadding, 6),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  _selectionMode
+                                      ? '${_selectedDownloadKeys.length} selected'
+                                      : '${downloads.length} ${downloads.length == 1 ? 'item' : 'items'}',
+                                  style: Theme.of(context).textTheme.labelLarge,
+                                ),
+                              ),
+                              if (!_selectionMode)
+                                TextButton.icon(
+                                  onPressed: _isDeleting ? null : () => _setSelectionMode(true),
+                                  icon: const Icon(Icons.checklist_rtl),
+                                  label: const Text('Select'),
+                                ),
+                              if (_selectionMode)
+                                TextButton(
+                                  onPressed: _isDeleting ? null : () => _setSelectionMode(false),
+                                  child: const Text('Cancel'),
+                                ),
+                              if (_selectionMode) const SizedBox(width: 8),
+                              if (_selectionMode)
+                                FilledButton.icon(
+                                  onPressed: _isDeleting || selectedDownloads.isEmpty
+                                      ? null
+                                      : () => _deleteDownloads(userId: user.id, downloads: selectedDownloads),
+                                  icon: const Icon(Icons.delete_outline),
+                                  label: const Text('Delete'),
+                                ),
+                            ],
                           ),
-                          if (!_selectionMode)
-                            TextButton.icon(
-                              onPressed: _isDeleting ? null : () => _setSelectionMode(true),
-                              icon: const Icon(Icons.checklist_rtl),
-                              label: const Text('Select'),
-                            ),
-                          if (_selectionMode)
-                            TextButton(
-                              onPressed: _isDeleting ? null : () => _setSelectionMode(false),
-                              child: const Text('Cancel'),
-                            ),
-                          if (_selectionMode) const SizedBox(width: 8),
-                          if (_selectionMode)
-                            FilledButton.icon(
-                              onPressed: _isDeleting || selectedDownloads.isEmpty
-                                  ? null
-                                  : () => _deleteDownloads(userId: user.id, downloads: selectedDownloads),
-                              icon: const Icon(Icons.delete_outline),
-                              label: const Text('Delete'),
-                            ),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
-                ),
-                Expanded(
-                  child: ListView.builder(
-                    padding: EdgeInsets.fromLTRB(horizontalPadding, 4, horizontalPadding, 32),
-                    itemCount: downloads.length,
-                    itemBuilder: (context, index) {
-                      final download = downloads[index];
-                      final targetItemId = download.item?.id ?? download.episode?.libraryItemId;
-
-                      return Center(
+                    if (!_selectionMode)
+                      Center(
                         child: ConstrainedBox(
                           constraints: const BoxConstraints(maxWidth: 1120),
                           child: Padding(
-                            padding: EdgeInsets.only(bottom: context.isMobile ? 8 : 10),
-                            child: DownloadListTile(
-                              download: download,
-                              selectionMode: _selectionMode,
-                              isDeleting: _isDeleting,
-                              isSelected: _isSelected(download),
-                              onToggleSelection: () => _toggleSelection(download),
-                              onDelete: () => _deleteDownloads(userId: user.id, downloads: [download]),
-                              onOpen: targetItemId == null
-                                  ? null
-                                  : () => context.push(
-                                      Uri(
-                                        path: '/item/$targetItemId',
-                                        queryParameters: download.episode == null
-                                            ? null
-                                            : <String, String>{'episodeId': download.episode!.id},
-                                      ).toString(),
+                            padding: EdgeInsets.fromLTRB(horizontalPadding, 4, horizontalPadding, 12),
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  for (final filter in _DownloadFilter.values)
+                                    FilterChip(
+                                      selected: _filter == filter,
+                                      label: Text(switch (filter) {
+                                        _DownloadFilter.all => 'All',
+                                        _DownloadFilter.partial =>
+                                          'Partial · ${downloads.length - _completeDownloadKeys.length}',
+                                        _DownloadFilter.offline => 'Offline · ${_completeDownloadKeys.length}',
+                                      }),
+                                      onSelected: (_) => setState(() => _filter = filter),
                                     ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      );
-                    },
-                  ),
-                ),
-              ],
+                      ),
+                    Expanded(
+                      child: visibleDownloads.isEmpty
+                          ? const Center(child: Text('No downloads in this view'))
+                          : ListView.builder(
+                              padding: EdgeInsets.fromLTRB(horizontalPadding, 4, horizontalPadding, 32),
+                              itemCount: visibleDownloads.length,
+                              itemBuilder: (context, index) {
+                                final download = visibleDownloads[index];
+                                final targetItemId = download.item?.id ?? download.episode?.libraryItemId;
+
+                                return Center(
+                                  child: ConstrainedBox(
+                                    constraints: const BoxConstraints(maxWidth: 1120),
+                                    child: Padding(
+                                      padding: EdgeInsets.only(bottom: context.isMobile ? 8 : 10),
+                                      child: DownloadListTile(
+                                        key: ValueKey(_downloadKeyFor(download)),
+                                        onFiles: () =>
+                                            showDownloadFiles(context, targetItemId!, episodeId: download.episode?.id),
+                                        download: download,
+                                        selectionMode: _selectionMode,
+                                        isDeleting: _isDeleting,
+                                        isSelected: _isSelected(download),
+                                        onToggleSelection: () => _toggleSelection(download),
+                                        onDelete: () => _deleteDownloads(userId: user.id, downloads: [download]),
+                                        onOpen: targetItemId == null
+                                            ? null
+                                            : () => context.push(
+                                                Uri(
+                                                  path: '/item/$targetItemId',
+                                                  queryParameters: download.episode == null
+                                                      ? null
+                                                      : <String, String>{'episodeId': download.episode!.id},
+                                                ).toString(),
+                                              ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                    ),
+                  ],
+                );
+              },
             );
-          },
-        );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => ConnectionIssueView.requestFailed(error: error, title: 'Unable to load downloads'),
     );
   }
 }
+
+enum _DownloadFilter { all, partial, offline }
