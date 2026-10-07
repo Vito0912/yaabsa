@@ -78,7 +78,7 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
   String? _resolvedEbookLocation;
   InternalDownload? _storedDownload;
   File? _localEbookFile;
-  bool _loadingLocalFile = false;
+  bool _loadingLocalFile = true;
   File? _tempEbookFile;
   int _progressRefreshToken = 0;
   Timer? _annotationsSyncDebounce;
@@ -90,6 +90,7 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
   List<FoliateTOCItem>? _epubPageList;
   List<PdfOutlineNode>? _pdfToc;
   bool _isSystemUiVisible = false;
+  bool _isBookReady = false;
 
   FoliateLocation? _currentEpubLocation;
   int? _currentPdfPage;
@@ -191,7 +192,7 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
   void _startSystemUiTimer() {
     _systemUiTimer?.cancel();
     _systemUiTimer = Timer(const Duration(seconds: 5), () {
-      if (mounted && _isSystemUiVisible) {
+      if (mounted && _isSystemUiVisible && _isBookReady) {
         _readerSetState(() {
           _isSystemUiVisible = false;
         });
@@ -607,6 +608,7 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
       _progressSyncChain = null;
       _resetPdfState();
       _lastSyncedEpubCfi = null;
+      _isBookReady = false;
       _resolvedEbookLocation = null;
       _autoAnnotationLoadStarted = false;
       _isApplyingRemoteAnnotations = false;
@@ -882,23 +884,28 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
   }
 
   Future<void> _loadStoredDownload() async {
-    final user = ref.read(currentUserProvider).value;
-    if (user != null) {
-      final db = ref.read(appDatabaseProvider);
-      final download = await db.getStoredDownload(widget.itemId, user.id);
-      _readerSetState(() {
-        _storedDownload = download;
-      });
-      if (download != null) {
+    try {
+      final user = ref.read(currentUserProvider).value;
+      if (user != null) {
+        final db = ref.read(appDatabaseProvider);
+        final download = await db.getStoredDownload(widget.itemId, user.id);
+        if (!mounted) return;
         _readerSetState(() {
-          _loadingLocalFile = true;
+          _storedDownload = download;
         });
-        final file = await _resolveEbookFile();
-        _readerSetState(() {
-          _localEbookFile = file;
-          _loadingLocalFile = false;
-        });
+        if (download != null) {
+          final file = await _resolveEbookFile();
+          _readerSetState(() {
+            _localEbookFile = file;
+          });
+        }
       }
+    } catch (e, s) {
+      logger('Failed to load downloaded ebook: $e\n$s', tag: 'Reader', level: InfoLevel.error);
+    } finally {
+      _readerSetState(() {
+        _loadingLocalFile = false;
+      });
     }
   }
 

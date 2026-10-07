@@ -7,6 +7,7 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:path/path.dart' as p;
 import 'models.dart';
 import 'book_server.dart';
+import 'windows_webview_environment.dart';
 
 class FoliateViewerController {
   InAppWebViewController? _webViewController;
@@ -191,6 +192,9 @@ class _FoliateViewerState extends State<FoliateViewer> {
   String? _serverError;
   int _webViewProgress = 0;
   bool _isBookLoaded = false;
+  WebViewEnvironment? _webViewEnvironment;
+  Timer? _startupTimer;
+  String? _loadError;
 
   @override
   void initState() {
@@ -200,6 +204,11 @@ class _FoliateViewerState extends State<FoliateViewer> {
 
   Future<void> _startServer() async {
     try {
+      if (Platform.isWindows) {
+        final environment = await windowsWebViewEnvironment();
+        if (!mounted) return;
+        _webViewEnvironment = environment;
+      }
       _server = BookServer(
         bookFile: widget.bookFile,
         bookUrl: widget.bookUrl,
@@ -207,6 +216,13 @@ class _FoliateViewerState extends State<FoliateViewer> {
         bookFetcher: widget.bookFetcher,
       );
       final port = await _server!.start();
+      if (!mounted) {
+        await _server?.stop();
+        return;
+      }
+      _startupTimer = Timer(const Duration(seconds: 30), () {
+        _reportLoadError('The eBook reader could not start. Please try opening the book again.');
+      });
       if (mounted) {
         setState(() {
           _port = port;
@@ -220,8 +236,19 @@ class _FoliateViewerState extends State<FoliateViewer> {
           _isLoadingServer = false;
         });
       }
-      widget.onError?.call('Failed to start server: $e');
+      if (mounted) {
+        widget.onError?.call('Failed to initialize the eBook reader: $e');
+      }
     }
+  }
+
+  void _reportLoadError(String error) {
+    if (!mounted) return;
+    _startupTimer?.cancel();
+    setState(() {
+      _loadError = error;
+    });
+    widget.onError?.call(error);
   }
 
   @override
@@ -251,6 +278,7 @@ class _FoliateViewerState extends State<FoliateViewer> {
 
   @override
   void dispose() {
+    _startupTimer?.cancel();
     widget.controller?._unbind();
     _server?.stop();
     super.dispose();
@@ -265,8 +293,10 @@ class _FoliateViewerState extends State<FoliateViewer> {
       return Center(child: Text('Error: $_serverError'));
     }
     return Stack(
+      fit: StackFit.expand,
       children: [
         InAppWebView(
+          webViewEnvironment: _webViewEnvironment,
           initialUrlRequest: URLRequest(url: WebUri('http://127.0.0.1:$_port/reader.html')),
           contextMenu: _selectionContextMenu,
           initialSettings: InAppWebViewSettings(
@@ -286,6 +316,8 @@ class _FoliateViewerState extends State<FoliateViewer> {
             _setupHandlers(controller);
           },
           onLoadStop: (controller, url) async {
+            if (!mounted || _loadError != null) return;
+            _startupTimer?.cancel();
             final String bookPath;
             if (widget.bookFile != null) {
               bookPath = p.basename(widget.bookFile!.path);
@@ -294,7 +326,7 @@ class _FoliateViewerState extends State<FoliateViewer> {
               final dotExt = ext.startsWith('.') ? ext : '.$ext';
               bookPath = 'remote_book$dotExt';
             }
-            final bookUrl = 'http://127.0.0.1:$_port/book/$bookPath';
+            final bookUrl = 'http://127.0.0.1:$_port/book/${Uri.encodeComponent(bookPath)}';
             final initialCfi = widget.initialCfi;
             final initialStyles = widget.initialStyles;
             final jsCode =
@@ -303,8 +335,8 @@ class _FoliateViewerState extends State<FoliateViewer> {
                 const callOpen = () => {
                   if (window.FoliateReaderAPI && window.FoliateReaderAPI.openBook) {
                     window.FoliateReaderAPI.openBook(
-                      "$bookUrl", 
-                      ${initialCfi != null ? '"$initialCfi"' : 'null'}, 
+                      ${jsonEncode(bookUrl)},
+                      ${jsonEncode(initialCfi)},
                       "${widget.flow}", 
                       ${widget.maxColumnCount}, 
                       ${initialStyles != null ? jsonEncode(initialStyles) : 'null'}
@@ -325,6 +357,7 @@ class _FoliateViewerState extends State<FoliateViewer> {
                     clearInterval(interval);
                     if (!window.FoliateReaderAPI || !window.FoliateReaderAPI.openBook) {
                       console.error("FoliateReaderAPI failed to load within timeout.");
+                      window.flutter_inappwebview.callHandler('onError', 'The eBook reader failed to initialize.');
                     }
                   }, 15000);
                 } else {
@@ -332,7 +365,21 @@ class _FoliateViewerState extends State<FoliateViewer> {
                 }
               })();
             ''';
-            await controller.evaluateJavascript(source: jsCode);
+            try {
+              await controller.evaluateJavascript(source: jsCode);
+            } catch (error) {
+              _reportLoadError('Failed to initialize the eBook reader: $error');
+            }
+          },
+          onReceivedError: (controller, request, error) {
+            if (request.isForMainFrame == true) {
+              _reportLoadError('Failed to load the eBook reader: ${error.description}');
+            }
+          },
+          onReceivedHttpError: (controller, request, response) {
+            if (request.isForMainFrame == true) {
+              _reportLoadError('Failed to load the eBook reader: HTTP ${response.statusCode}');
+            }
           },
           onConsoleMessage: (controller, consoleMessage) {
             debugPrint('[WebView Console] [${consoleMessage.messageLevel}] ${consoleMessage.message}');
@@ -345,7 +392,13 @@ class _FoliateViewerState extends State<FoliateViewer> {
             widget.onProgressChanged?.call(progress);
           },
         ),
-        if (!_isBookLoaded)
+        if (_loadError != null)
+          Container(
+            color: Theme.of(context).colorScheme.surface,
+            padding: const EdgeInsets.all(24),
+            child: Center(child: Text(_loadError!, textAlign: TextAlign.center)),
+          )
+        else if (!_isBookLoaded)
           Container(
             color: Theme.of(context).colorScheme.surface,
             child: Center(
@@ -358,7 +411,7 @@ class _FoliateViewerState extends State<FoliateViewer> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    _webViewProgress >= 100 ? 'Loading eBook' : 'Downloading eBook ($_webViewProgress%)',
+                    _webViewProgress >= 100 ? 'Loading eBook' : 'Loading reader ($_webViewProgress%)',
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ],
@@ -556,7 +609,7 @@ class _FoliateViewerState extends State<FoliateViewer> {
       callback: (args) {
         if (!mounted) return;
         if (args.isNotEmpty) {
-          widget.onError?.call(args[0].toString());
+          _reportLoadError(args[0].toString());
         }
       },
     );

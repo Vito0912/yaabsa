@@ -9,7 +9,7 @@ extension _ReaderBuilders on _ReaderState {
     return AnimatedPositioned(
       duration: const Duration(milliseconds: 250),
       curve: Curves.easeInOut,
-      top: _isSystemUiVisible ? 0.0 : -100.0 - topPadding,
+      top: _isSystemUiVisible || !_isBookReady ? 0.0 : -100.0 - topPadding,
       left: 0,
       right: 0,
       child: Material(
@@ -250,6 +250,7 @@ extension _ReaderBuilders on _ReaderState {
       onBookLoaded: (metadata, toc, pageList, dir, hasMediaOverlays) {
         if (!mounted) return;
         _readerSetState(() {
+          _isBookReady = true;
           _epubToc = toc;
           _epubPageList = pageList;
           _hasMediaOverlays = hasMediaOverlays;
@@ -291,6 +292,10 @@ extension _ReaderBuilders on _ReaderState {
         _scheduleAutoAnnotationSync(isEpubMode: true);
       },
       onError: (error) {
+        _readerSetState(() {
+          _isBookReady = false;
+        });
+        logger('Failed to load ebook: $error', tag: 'EpubReader', level: InfoLevel.error);
         _showSnackBar(error);
       },
       onCenterTap: _toggleSystemUi,
@@ -321,6 +326,7 @@ extension _ReaderBuilders on _ReaderState {
       onGeneralTap: _onPdfViewerGeneralTap,
       onDocumentReady: (doc) {
         _readerSetState(() {
+          _isBookReady = true;
           _pdfDocument = doc;
         });
         unawaited(_startReadingSession());
