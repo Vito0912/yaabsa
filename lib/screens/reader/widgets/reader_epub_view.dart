@@ -30,9 +30,11 @@ class ReaderEpubView extends StatelessWidget {
     this.onMediaOverlayUnhighlight,
     this.onMediaOverlayError,
     this.bookFetcher,
+    this.onDiagnostic,
   });
 
   final Future<void> Function(String url, Map<String, String>? headers, HttpRequest request)? bookFetcher;
+  final void Function(String message, bool isError)? onDiagnostic;
 
   final FoliateViewerController controller;
   final String bookUrl;
@@ -99,6 +101,7 @@ class ReaderEpubView extends StatelessWidget {
         onMediaOverlayUnhighlight: onMediaOverlayUnhighlight,
         onMediaOverlayError: onMediaOverlayError,
         bookFetcher: bookFetcher,
+        onDiagnostic: onDiagnostic,
       ),
       onPreviousPage: _goToPreviousPage,
       onNextPage: _goToNextPage,

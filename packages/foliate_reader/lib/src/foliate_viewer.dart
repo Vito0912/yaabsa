@@ -8,6 +8,9 @@ import 'package:path/path.dart' as p;
 import 'models.dart';
 import 'book_server.dart';
 import 'windows_webview_environment.dart';
+import 'reader_diagnostics.dart';
+
+part 'foliate_viewer_handlers.dart';
 
 class FoliateViewerController {
   InAppWebViewController? _webViewController;
@@ -177,9 +180,11 @@ class FoliateViewer extends StatefulWidget {
     this.onMediaOverlayUnhighlight,
     this.onMediaOverlayError,
     this.bookFetcher,
+    this.onDiagnostic,
   });
 
   final Future<void> Function(String url, Map<String, String>? headers, HttpRequest request)? bookFetcher;
+  final void Function(String message, bool isError)? onDiagnostic;
 
   @override
   State<FoliateViewer> createState() => _FoliateViewerState();
@@ -195,31 +200,45 @@ class _FoliateViewerState extends State<FoliateViewer> {
   WebViewEnvironment? _webViewEnvironment;
   Timer? _startupTimer;
   String? _loadError;
+  late final ReaderDiagnostics _diagnostics;
 
   @override
   void initState() {
     super.initState();
+    _diagnostics = ReaderDiagnostics((message, isError) {
+      widget.onDiagnostic?.call(message, isError);
+    });
+    _diagnostics.record(
+      'Reader source: ${widget.bookFile != null ? 'local file' : 'remote'}, '
+      'format: ${widget.bookExtension ?? '(unspecified)'}, '
+      'remote endpoint: ${ReaderDiagnostics.url(Uri.tryParse(widget.bookUrl ?? ''))}',
+    );
     _startServer();
   }
 
   Future<void> _startServer() async {
     try {
       if (Platform.isWindows) {
-        final environment = await windowsWebViewEnvironment();
+        _diagnostics.enterStage('initializing Windows WebView2 environment');
+        final environment = await windowsWebViewEnvironment(onDiagnostic: _diagnostics.record);
         if (!mounted) return;
         _webViewEnvironment = environment;
       }
+      _diagnostics.enterStage('binding local reader server');
       _server = BookServer(
         bookFile: widget.bookFile,
         bookUrl: widget.bookUrl,
         headers: widget.headers,
         bookFetcher: widget.bookFetcher,
+        onDiagnostic: (message, isError) => _diagnostics.record(message, isError: isError),
       );
       final port = await _server!.start();
       if (!mounted) {
         await _server?.stop();
         return;
       }
+      _diagnostics.record('Local reader server listening at http://127.0.0.1:$port/reader.html');
+      _diagnostics.enterStage('waiting for WebView creation and reader navigation');
       _startupTimer = Timer(const Duration(seconds: 30), () {
         _reportLoadError('The eBook reader could not start. Please try opening the book again.');
       });
@@ -229,7 +248,8 @@ class _FoliateViewerState extends State<FoliateViewer> {
           _isLoadingServer = false;
         });
       }
-    } catch (e) {
+    } catch (e, s) {
+      _diagnostics.failure('Failed to initialize the eBook reader', error: e, stackTrace: s);
       if (mounted) {
         setState(() {
           _serverError = e.toString();
@@ -242,13 +262,21 @@ class _FoliateViewerState extends State<FoliateViewer> {
     }
   }
 
-  void _reportLoadError(String error) {
+  void _reportLoadError(String error, {StackTrace? stackTrace}) {
     if (!mounted) return;
+    _diagnostics.failure(error, stackTrace: stackTrace);
     _startupTimer?.cancel();
     setState(() {
       _loadError = error;
     });
     widget.onError?.call(error);
+  }
+
+  void _markBookLoaded() {
+    _diagnostics.enterStage('book loaded');
+    setState(() {
+      _isBookLoaded = true;
+    });
   }
 
   @override
@@ -278,6 +306,7 @@ class _FoliateViewerState extends State<FoliateViewer> {
 
   @override
   void dispose() {
+    _diagnostics.record('Reader disposed');
     _startupTimer?.cancel();
     widget.controller?._unbind();
     _server?.stop();
@@ -312,12 +341,22 @@ class _FoliateViewerState extends State<FoliateViewer> {
             transparentBackground: true,
           ),
           onWebViewCreated: (controller) {
+            _diagnostics.webViewCreated = true;
+            _diagnostics.enterStage('WebView created, waiting for reader page');
             widget.controller?._bind(controller);
             _setupHandlers(controller);
           },
+          onLoadStart: (controller, url) {
+            _diagnostics.navigationStarted = true;
+            _diagnostics.enterStage('loading reader page');
+            _diagnostics.record('Navigation started: ${ReaderDiagnostics.url(url)}');
+          },
           onLoadStop: (controller, url) async {
+            _diagnostics.navigationFinished = true;
+            _diagnostics.record('Navigation finished: ${ReaderDiagnostics.url(url)}');
             if (!mounted || _loadError != null) return;
             _startupTimer?.cancel();
+            _diagnostics.enterStage('initializing FoliateReaderAPI and opening book');
             final String bookPath;
             if (widget.bookFile != null) {
               bookPath = p.basename(widget.bookFile!.path);
@@ -367,25 +406,43 @@ class _FoliateViewerState extends State<FoliateViewer> {
             ''';
             try {
               await controller.evaluateJavascript(source: jsCode);
-            } catch (error) {
-              _reportLoadError('Failed to initialize the eBook reader: $error');
+              _diagnostics.record('Reader initialization JavaScript submitted');
+            } catch (error, stackTrace) {
+              _reportLoadError('Failed to initialize the eBook reader: $error', stackTrace: stackTrace);
             }
           },
           onReceivedError: (controller, request, error) {
+            _diagnostics.record(
+              'WebView resource error: url=${ReaderDiagnostics.url(request.url)}, '
+              'mainFrame=${request.isForMainFrame}, type=${error.type}, description=${error.description}',
+              isError: true,
+            );
             if (request.isForMainFrame == true) {
               _reportLoadError('Failed to load the eBook reader: ${error.description}');
             }
           },
           onReceivedHttpError: (controller, request, response) {
+            _diagnostics.record(
+              'WebView HTTP error: url=${ReaderDiagnostics.url(request.url)}, '
+              'mainFrame=${request.isForMainFrame}, status=${response.statusCode}, reason=${response.reasonPhrase}',
+              isError: true,
+            );
             if (request.isForMainFrame == true) {
               _reportLoadError('Failed to load the eBook reader: HTTP ${response.statusCode}');
             }
           },
           onConsoleMessage: (controller, consoleMessage) {
-            debugPrint('[WebView Console] [${consoleMessage.messageLevel}] ${consoleMessage.message}');
+            _diagnostics.record(
+              'WebView console [${consoleMessage.messageLevel}]: ${consoleMessage.message}',
+              isError: consoleMessage.messageLevel == ConsoleMessageLevel.ERROR,
+            );
           },
           onProgressChanged: (controller, progress) {
             if (!mounted) return;
+            if (progress ~/ 25 != _diagnostics.progress ~/ 25) {
+              _diagnostics.record('Reader page progress: $progress%');
+            }
+            _diagnostics.progress = progress;
             setState(() {
               _webViewProgress = progress;
             });
@@ -419,209 +476,6 @@ class _FoliateViewerState extends State<FoliateViewer> {
             ),
           ),
       ],
-    );
-  }
-
-  ContextMenu? get _selectionContextMenu {
-    if (!Platform.isAndroid && !Platform.isIOS) {
-      return null;
-    }
-
-    return ContextMenu(
-      menuItems: [
-        ContextMenuItem(
-          id: 1,
-          title: 'Highlight',
-          action: () => unawaited(_addAnnotationFromSelection('highlight', '#FFEB3B')),
-        ),
-        ContextMenuItem(
-          id: 2,
-          title: 'Underline',
-          action: () => unawaited(_addAnnotationFromSelection('underline', '#2196F3')),
-        ),
-        ContextMenuItem(id: 3, title: 'Copy', action: () => unawaited(_copyWebViewSelection())),
-      ],
-      settings: ContextMenuSettings(hideDefaultSystemContextMenuItems: true),
-    );
-  }
-
-  Future<void> _copyWebViewSelection() async {
-    final text = await widget.controller?._webViewController?.getSelectedText();
-    if (text == null || text.isEmpty) {
-      return;
-    }
-
-    await Clipboard.setData(ClipboardData(text: text));
-  }
-
-  Future<void> _addAnnotationFromSelection(String type, String color) async {
-    await widget.controller?._webViewController?.evaluateJavascript(
-      source: 'window.FoliateReaderAPI.addAnnotationFromSelection(${jsonEncode(type)}, ${jsonEncode(color)}, "");',
-    );
-  }
-
-  void _setupHandlers(InAppWebViewController controller) {
-    controller.addJavaScriptHandler(
-      handlerName: 'onCenterTap',
-      callback: (args) {
-        if (!mounted) return;
-        widget.onCenterTap?.call();
-      },
-    );
-
-    controller.addJavaScriptHandler(
-      handlerName: 'onBookLoaded',
-      callback: (args) {
-        if (!mounted) return;
-        setState(() {
-          _isBookLoaded = true;
-        });
-        if (args.isNotEmpty && widget.onBookLoaded != null) {
-          try {
-            final data = Map<String, dynamic>.from(args[0] as Map);
-            final metadata = FoliateMetadata.fromJson(Map<String, dynamic>.from(data['metadata'] as Map));
-            final tocList = data['toc'] as List;
-            final toc = tocList.map((e) => FoliateTOCItem.fromJson(Map<String, dynamic>.from(e as Map))).toList();
-            final pageListRaw = data['pageList'] as List;
-            final pageList = pageListRaw
-                .map((e) => FoliateTOCItem.fromJson(Map<String, dynamic>.from(e as Map)))
-                .toList();
-            final dir = data['dir'] as String? ?? 'ltr';
-            final hasMediaOverlays = data['hasMediaOverlays'] as bool? ?? false;
-            widget.onBookLoaded!(metadata, toc, pageList, dir, hasMediaOverlays);
-          } catch (e) {
-            widget.onError?.call('Failed to parse book loaded metadata: $e');
-          }
-        }
-      },
-    );
-
-    controller.addJavaScriptHandler(
-      handlerName: 'onMediaOverlayStateChanged',
-      callback: (args) {
-        if (!mounted) return;
-        if (args.isNotEmpty && widget.onMediaOverlayStateChanged != null) {
-          final data = Map<String, dynamic>.from(args[0] as Map);
-          widget.onMediaOverlayStateChanged!(data['state'] as String? ?? 'stopped');
-        }
-      },
-    );
-
-    controller.addJavaScriptHandler(
-      handlerName: 'onMediaOverlayHighlight',
-      callback: (args) {
-        if (!mounted) return;
-        if (args.isNotEmpty && widget.onMediaOverlayHighlight != null) {
-          widget.onMediaOverlayHighlight!(Map<String, dynamic>.from(args[0] as Map));
-        }
-      },
-    );
-
-    controller.addJavaScriptHandler(
-      handlerName: 'onMediaOverlayUnhighlight',
-      callback: (args) {
-        if (!mounted) return;
-        if (args.isNotEmpty && widget.onMediaOverlayUnhighlight != null) {
-          widget.onMediaOverlayUnhighlight!(Map<String, dynamic>.from(args[0] as Map));
-        }
-      },
-    );
-
-    controller.addJavaScriptHandler(
-      handlerName: 'onMediaOverlayError',
-      callback: (args) {
-        if (!mounted) return;
-        if (args.isNotEmpty && widget.onMediaOverlayError != null) {
-          widget.onMediaOverlayError!(args[0].toString());
-        }
-      },
-    );
-
-    controller.addJavaScriptHandler(
-      handlerName: 'onRelocate',
-      callback: (args) {
-        if (!mounted) return;
-        if (args.isNotEmpty && widget.onRelocate != null) {
-          final data = Map<String, dynamic>.from(args[0] as Map);
-          widget.onRelocate!(FoliateLocation.fromJson(data));
-        }
-      },
-    );
-
-    controller.addJavaScriptHandler(
-      handlerName: 'onSelectionChanged',
-      callback: (args) {
-        if (!mounted) return;
-        if (args.isNotEmpty) {
-          final data = Map<String, dynamic>.from(args[0] as Map);
-          final selection = FoliateSelection.fromJson(data);
-          widget.onSelectionChanged?.call(selection);
-        }
-      },
-    );
-
-    controller.addJavaScriptHandler(
-      handlerName: 'onSelectionCleared',
-      callback: (args) {
-        if (!mounted) return;
-        widget.onSelectionCleared?.call();
-      },
-    );
-
-    controller.addJavaScriptHandler(
-      handlerName: 'onAnnotationClicked',
-      callback: (args) {
-        if (!mounted) return;
-        if (args.isNotEmpty && widget.onAnnotationClicked != null) {
-          final data = Map<String, dynamic>.from(args[0] as Map);
-          widget.onAnnotationClicked!(FoliateAnnotation.fromJson(data));
-        }
-      },
-    );
-
-    controller.addJavaScriptHandler(
-      handlerName: 'onAnnotationAdded',
-      callback: (args) {
-        if (!mounted) return;
-        if (args.isNotEmpty && widget.onAnnotationAdded != null) {
-          final data = Map<String, dynamic>.from(args[0] as Map);
-          widget.onAnnotationAdded!(FoliateAnnotation.fromJson(data));
-        }
-      },
-    );
-
-    controller.addJavaScriptHandler(
-      handlerName: 'onSearchResults',
-      callback: (args) {
-        if (!mounted) return;
-        if (args.isNotEmpty && widget.onSearchResults != null) {
-          final rawResults = args[0] as List;
-          final results = rawResults
-              .map((e) => FoliateSearchResult.fromJson(Map<String, dynamic>.from(e as Map)))
-              .toList();
-          widget.onSearchResults!(results);
-        }
-      },
-    );
-
-    controller.addJavaScriptHandler(
-      handlerName: 'onError',
-      callback: (args) {
-        if (!mounted) return;
-        if (args.isNotEmpty) {
-          _reportLoadError(args[0].toString());
-        }
-      },
-    );
-
-    controller.addJavaScriptHandler(
-      handlerName: 'onTtsJumpToSentence',
-      callback: (args) {
-        if (!mounted) return;
-        if (args.isNotEmpty && widget.onTtsJumpToSentence != null) {
-          widget.onTtsJumpToSentence!(args[0] as int);
-        }
-      },
     );
   }
 }

@@ -7,14 +7,17 @@ class BookServer {
   Map<String, String>? headers;
   HttpServer? _server;
   final Future<void> Function(String url, Map<String, String>? headers, HttpRequest request)? bookFetcher;
+  final void Function(String message, bool isError)? onDiagnostic;
 
-  BookServer({this.bookFile, this.bookUrl, this.headers, this.bookFetcher});
+  BookServer({this.bookFile, this.bookUrl, this.headers, this.bookFetcher, this.onDiagnostic});
 
   Future<int> start() async {
     _server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
     _server!.listen((HttpRequest request) async {
+      final elapsed = Stopwatch()..start();
+      final path = request.uri.path;
+      onDiagnostic?.call('Local reader request: ${request.method} $path', false);
       try {
-        final path = request.uri.path;
         if (path == '/' || path == '/index.html' || path == '/reader.html') {
           await _serveAsset(request, 'packages/foliate_reader/assets/reader.html', 'text/html; charset=utf-8');
         } else if (path == '/reader-app.js') {
@@ -33,10 +36,17 @@ class BookServer {
           request.response.statusCode = HttpStatus.notFound;
           await request.response.close();
         }
-      } catch (e) {
+      } catch (e, s) {
+        onDiagnostic?.call('Local reader request failed: $path\nCause: $e\nStack trace:\n$s', true);
         request.response.statusCode = HttpStatus.internalServerError;
         request.response.write(e.toString());
         await request.response.close();
+      } finally {
+        final status = request.response.statusCode;
+        onDiagnostic?.call(
+          'Local reader response: ${request.method} $path, status=$status, elapsed=${elapsed.elapsedMilliseconds}ms',
+          status >= 400,
+        );
       }
     });
     return _server!.port;
@@ -55,7 +65,8 @@ class BookServer {
       request.response.headers.contentType = ContentType.parse(contentType);
       request.response.add(bytes);
       await request.response.close();
-    } catch (e) {
+    } catch (e, s) {
+      onDiagnostic?.call('Reader asset failed: $assetPath\nCause: $e\nStack trace:\n$s', true);
       request.response.statusCode = HttpStatus.notFound;
       await request.response.close();
     }
@@ -64,6 +75,7 @@ class BookServer {
   Future<void> _serveBook(HttpRequest request) async {
     if (bookFile != null) {
       if (await bookFile!.exists()) {
+        onDiagnostic?.call('Serving local eBook: bytes=${await bookFile!.length()}', false);
         final path = bookFile!.path.toLowerCase();
         String mime = 'application/octet-stream';
         if (path.endsWith('.epub')) {
@@ -81,14 +93,17 @@ class BookServer {
         request.response.headers.contentType = ContentType.parse(mime);
         await bookFile!.openRead().pipe(request.response);
       } else {
+        onDiagnostic?.call('Local eBook file does not exist: ${bookFile!.path}', true);
         request.response.statusCode = HttpStatus.notFound;
         await request.response.close();
       }
     } else if (bookUrl != null) {
       if (bookFetcher != null) {
+        onDiagnostic?.call('Fetching remote eBook using app HTTP client', false);
         try {
           await bookFetcher!(bookUrl!, headers, request);
-        } catch (e) {
+        } catch (e, s) {
+          onDiagnostic?.call('Remote eBook fetch failed\nCause: $e\nStack trace:\n$s', true);
           request.response.statusCode = HttpStatus.internalServerError;
           request.response.write(e.toString());
           await request.response.close();
@@ -111,7 +126,8 @@ class BookServer {
           });
           request.response.headers.set('Access-Control-Allow-Origin', '*');
           await clientRes.pipe(request.response);
-        } catch (e) {
+        } catch (e, s) {
+          onDiagnostic?.call('Remote eBook fetch failed\nCause: $e\nStack trace:\n$s', true);
           request.response.statusCode = HttpStatus.internalServerError;
           request.response.write(e.toString());
           await request.response.close();

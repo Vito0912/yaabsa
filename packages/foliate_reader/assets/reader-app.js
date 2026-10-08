@@ -387,7 +387,7 @@ window.FoliateReaderAPI = {
                 hasMediaOverlays: !!view.mediaOverlay
             });
         } catch (e) {
-            window.flutter_inappwebview.callHandler('onError', e.toString());
+            window.flutter_inappwebview.callHandler('onError', e.toString(), e.stack || '');
         }
     },
     async close() {
@@ -495,7 +495,7 @@ window.FoliateReaderAPI = {
             }
             window.flutter_inappwebview.callHandler('onSearchResults', results);
         } catch (e) {
-            window.flutter_inappwebview.callHandler('onError', e.toString());
+            window.flutter_inappwebview.callHandler('onError', e.toString(), e.stack || '');
         }
     },
     clearSearch() {

@@ -212,6 +212,13 @@ extension _ReaderBuilders on _ReaderState {
       maxColumnCount: _epubMaxColumnCount,
       onRelocated: _onEpubRelocated,
       onTtsJumpToSentence: _jumpToTtsSentence,
+      onDiagnostic: (message, isError) {
+        logger(
+          'Item ${widget.itemId}: $message',
+          tag: 'EpubReader',
+          level: isError ? InfoLevel.error : InfoLevel.debug,
+        );
+      },
       bookFetcher: (url, headers, request) async {
         try {
           final api = ref.read(absApiProvider);
@@ -239,8 +246,12 @@ extension _ReaderBuilders on _ReaderState {
           } else {
             await request.response.close();
           }
-        } catch (e) {
-          logger('bookFetcher error fetching $url: $e', tag: 'EpubReader', level: InfoLevel.error);
+        } catch (e, s) {
+          logger(
+            'Item ${widget.itemId}: remote eBook fetch failed\nCause: $e\nStack trace:\n$s',
+            tag: 'EpubReader',
+            level: InfoLevel.error,
+          );
           request.response.statusCode = 500;
           request.response.headers.set('Access-Control-Allow-Origin', '*');
           request.response.write('Internal Server Error: $e');
