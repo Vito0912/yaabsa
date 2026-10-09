@@ -186,6 +186,10 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   DateTime? _lastStreamRecoveryAttemptAt;
   int _streamRecoveryAttempts = 0;
   bool _streamRecoveryInFlight = false;
+  Object? _streamRecoveryPendingError;
+  int _streamRecoveryGeneration = 0;
+  Duration? _streamRecoveryResumePosition;
+  Future<void>? _streamSourceReloadFuture;
   bool _transcodeFallbackInFlight = false;
   String? _transcodeAttemptedFor;
   Future<bool>? _transcodeFallbackFuture;
@@ -773,6 +777,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     }
 
     __currentMediaItem = mediaItem;
+    _streamRecoveryResumePosition = null;
     _currentTrackIndex = 0;
     _clearPausedManualSeekMarker();
     _resetStreamRecoveryState(clearWindow: true);
@@ -974,9 +979,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           rightItemId: _currentMediaItem!.itemId,
           rightEpisodeId: _currentMediaItem!.episodeId,
         ) &&
-        (_forceQueueSwitchOnNextPlay ||
-            _player.playerState.processingState == ProcessingState.completed ||
-            _player.playerState.processingState == ProcessingState.idle);
+        (_forceQueueSwitchOnNextPlay || _player.playerState.processingState == ProcessingState.completed);
 
     if (shouldSwitchToQueuedItem) {
       _forceQueueSwitchOnNextPlay = false;
@@ -1824,15 +1827,11 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       logger(state.toString(), tag: 'AudioHandler', level: InfoLevel.debug);
       _recordPlayerHistoryForState(state);
 
-      if (state.playing && state.processingState == ProcessingState.ready) {
-        _resetStreamRecoveryState(clearWindow: true);
-      }
-
       if (state.processingState != ProcessingState.completed) {
         _hasFiredCompleted = false;
       }
 
-      if (state.processingState == ProcessingState.completed || state.processingState == ProcessingState.idle) {
+      if (state.processingState == ProcessingState.completed) {
         _resetStreamRecoveryState(clearWindow: true);
       }
 

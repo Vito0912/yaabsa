@@ -236,7 +236,11 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
     await _safePlayerStop();
   }
 
-  Future<void> _syncedPlay({bool restoreProgress = false, bool skipResumeProgressReconcile = false}) async {
+  Future<void> _syncedPlay({
+    bool restoreProgress = false,
+    bool skipResumeProgressReconcile = false,
+    bool reloadSource = false,
+  }) async {
     if (_chapterNotificationEnabled) {
       _updateMediaItemForChapterNotification();
     } else {
@@ -245,14 +249,40 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
 
     if (_currentMediaItem == null) return Future.value();
     final resumeItem = _currentMediaItem!;
-    final startPosition = position;
+    final playbackGeneration = _sleepTimerPlaybackGeneration;
+    final navigationGeneration = _sleepTimerNavigationGeneration;
+    final recoveryGeneration = _streamRecoveryGeneration;
+    final needsSourceReload =
+        reloadSource || _player.processingState == ProcessingState.idle || _streamSourceReloadFuture != null;
+    bool isCurrentRequest() =>
+        !_isDisposing &&
+        identical(_currentMediaItem, resumeItem) &&
+        _sleepTimerPlaybackGeneration == playbackGeneration &&
+        (!needsSourceReload || _sleepTimerNavigationGeneration == navigationGeneration) &&
+        _streamRecoveryGeneration == recoveryGeneration &&
+        !isCastControlActive;
+    final startPosition = needsSourceReload ? (_streamRecoveryResumePosition ?? position) : position;
+    if (needsSourceReload) {
+      _streamRecoveryResumePosition = startPosition;
+      try {
+        await _reloadStreamSource(startPosition, isCurrentRequest);
+      } on PlayerException catch (error) {
+        if (!isCurrentRequest()) return;
+        if (!_streamRecoveryInFlight && classifyPlaybackError(error) == PlaybackFailureAction.retryStream) {
+          _scheduleStreamRecoveryRetry(error, resumeAfterReloadFailure: true);
+          return;
+        }
+        rethrow;
+      }
+      if (!isCurrentRequest()) return;
+    }
     logger(
       'Starting playback for item: ${resumeItem.itemId} (${resumeItem.episodeId ?? 'item'}) from position: $startPosition (restoreProgress=$restoreProgress, castControl=$isCastControlActive)',
       tag: 'AudioHandler',
       level: InfoLevel.info,
     );
 
-    if (restoreProgress && !skipResumeProgressReconcile && !isCastControlActive) {
+    if (restoreProgress && !skipResumeProgressReconcile && !needsSourceReload && !isCastControlActive) {
       unawaited(_reconcileResumeProgressInBackground(resumeItem, startPosition));
     } else if (restoreProgress && skipResumeProgressReconcile) {
       logger(
@@ -263,7 +293,8 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
     }
 
     await _audioSessionConfigurationFuture;
-    if (_isDisposing) return;
+    if (!isCurrentRequest()) return;
+    if (needsSourceReload) _streamRecoveryResumePosition = null;
     unawaited(
       _player.play().catchError((error, stackTrace) {
         logger('Failed to start player playback: $error\\n$stackTrace', tag: 'AudioHandler', level: InfoLevel.error);

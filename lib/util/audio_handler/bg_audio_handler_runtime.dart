@@ -299,7 +299,8 @@ extension _BGAudioHandlerRuntime on BGAudioHandler {
   void _resetStreamRecoveryState({bool clearWindow = false}) {
     _streamRecoveryRetryTimer?.cancel();
     _streamRecoveryRetryTimer = null;
-    _streamRecoveryInFlight = false;
+    _streamRecoveryGeneration++;
+    _streamRecoveryPendingError = null;
 
     if (clearWindow) {
       _streamRecoveryAttempts = 0;
@@ -307,20 +308,30 @@ extension _BGAudioHandlerRuntime on BGAudioHandler {
     }
   }
 
-  void _scheduleStreamRecoveryRetry(Object error) {
+  void _scheduleStreamRecoveryRetry(Object error, {bool resumeAfterReloadFailure = false}) {
     if (_isDisposing || _currentMediaItem == null || isCastControlActive) {
       return;
     }
 
-    if (_streamRecoveryRetryTimer != null || _streamRecoveryInFlight) {
+    if (!_player.playing && !resumeAfterReloadFailure) return;
+
+    _streamRecoveryResumePosition ??= position;
+    if (_streamRecoveryInFlight) {
+      _streamRecoveryPendingError = error;
       return;
     }
 
-    final currentState = _player.playerState;
-    if (currentState.playing && currentState.processingState == ProcessingState.ready) {
-      _resetStreamRecoveryState(clearWindow: true);
+    if (_streamRecoveryRetryTimer != null) {
       return;
     }
+
+    final recoveryMedia = _currentMediaItem;
+    final recoveryGeneration = _streamRecoveryGeneration;
+    bool isCurrentRecovery() =>
+        !_isDisposing &&
+        identical(_currentMediaItem, recoveryMedia) &&
+        _streamRecoveryGeneration == recoveryGeneration &&
+        !isCastControlActive;
 
     final now = DateTime.now();
     final lastAttemptAt = _lastStreamRecoveryAttemptAt;
@@ -335,6 +346,7 @@ extension _BGAudioHandlerRuntime on BGAudioHandler {
         tag: 'AudioHandler',
         level: InfoLevel.warning,
       );
+      unawaited(pause());
       return;
     }
 
@@ -353,7 +365,7 @@ extension _BGAudioHandlerRuntime on BGAudioHandler {
     _streamRecoveryRetryTimer = Timer(delay, () async {
       _streamRecoveryRetryTimer = null;
 
-      if (_isDisposing || _currentMediaItem == null || isCastControlActive || _streamRecoveryInFlight) {
+      if (!isCurrentRecovery() || (!_player.playing && !resumeAfterReloadFailure) || _streamRecoveryInFlight) {
         return;
       }
 
@@ -361,18 +373,53 @@ extension _BGAudioHandlerRuntime on BGAudioHandler {
       _streamRecoveryAttempts += 1;
       _lastStreamRecoveryAttemptAt = DateTime.now();
 
+      Object? retryError;
       try {
-        await _syncedPlay();
+        await _syncedPlay(reloadSource: true);
       } catch (e, s) {
         logger(
           'Stream recovery attempt $_streamRecoveryAttempts failed: $e\n$s',
           tag: 'AudioHandler',
           level: InfoLevel.warning,
         );
+        if (e is PlayerException && classifyPlaybackError(e) == PlaybackFailureAction.retryStream) {
+          retryError = e;
+        } else if (isCurrentRecovery()) {
+          unawaited(pause());
+        }
       } finally {
         _streamRecoveryInFlight = false;
       }
+
+      retryError ??= _streamRecoveryPendingError;
+      _streamRecoveryPendingError = null;
+      if (retryError != null && isCurrentRecovery()) {
+        _scheduleStreamRecoveryRetry(retryError, resumeAfterReloadFailure: true);
+      }
     });
+  }
+
+  Future<void> _reloadStreamSource(Duration resumePosition, bool Function() isCurrentRequest) async {
+    final activeReload = _streamSourceReloadFuture;
+    if (activeReload != null) {
+      await activeReload;
+      if (isCurrentRequest() && _player.processingState == ProcessingState.idle) {
+        await _reloadStreamSource(resumePosition, isCurrentRequest);
+      }
+      return;
+    }
+
+    final reload = () async {
+      await _player.pause();
+      if (!isCurrentRequest()) return;
+      await _setSource(initialPosition: resumePosition, ignoreSavedProgress: true);
+    }();
+    _streamSourceReloadFuture = reload;
+    try {
+      await reload;
+    } finally {
+      if (identical(_streamSourceReloadFuture, reload)) _streamSourceReloadFuture = null;
+    }
   }
 
   Duration _rewindPosition(Duration position, Duration rewindBy) {
