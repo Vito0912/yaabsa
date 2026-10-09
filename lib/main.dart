@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:yaabsa/components/common/android_edge_to_edge_inset_guard.dart';
+import 'package:yaabsa/components/common/desktop_navigation_controls.dart';
 import 'package:yaabsa/database/settings_manager.dart';
+import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/core/socket_provider.dart';
 import 'package:yaabsa/provider/library/smart_download_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
@@ -134,6 +136,7 @@ class MyApp extends ConsumerWidget {
     appLoggerService.setMinimumLevel(InfoLevel.fromSettingValue(appLogLevelSetting));
 
     final themeSelection = watchAppThemeSelection(ref);
+    ref.watch(mediaProgressProvider);
 
     return MaterialApp.router(
       routerConfig: globalRouter,
@@ -144,7 +147,13 @@ class MyApp extends ConsumerWidget {
           return const SizedBox.shrink();
         }
 
-        return ScaffoldMessenger(child: AndroidEdgeToEdgeInsetGuard(child: child));
+        return ScaffoldMessenger(
+          child: DesktopNavigationControls(
+            router: globalRouter,
+            history: desktopNavigationHistory,
+            child: AndroidEdgeToEdgeInsetGuard(child: child),
+          ),
+        );
       },
       localizationsDelegates: [...GlobalMaterialLocalizations.delegates, FlutterQuillLocalizations.delegate],
       themeMode: themeSelection.materialThemeMode,

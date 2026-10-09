@@ -70,6 +70,7 @@ import 'package:yaabsa/screens/settings/theme_settings.dart';
 import 'package:yaabsa/screens/settings/tools_settings.dart';
 import 'package:yaabsa/util/aaos_service.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/util/desktop_navigation_history.dart';
 import 'package:yaabsa/util/handler/tray_handler.dart';
 import 'package:yaabsa/util/logger.dart';
 
@@ -158,7 +159,10 @@ Page<void> _buildAdaptiveHomeShellPage(BuildContext context, GoRouterState state
   return NoTransitionPage<void>(key: state.pageKey, child: child);
 }
 
+final desktopNavigationHistory = DesktopNavigationHistory();
+
 final globalRouter = GoRouter(
+  observers: [desktopNavigationHistory.createObserver()],
   initialLocation: '/',
   refreshListenable: _activeUserIdNotifier,
   redirect: (context, state) {
@@ -196,6 +200,7 @@ final globalRouter = GoRouter(
   },
   routes: [
     ShellRoute(
+      observers: [desktopNavigationHistory.createObserver()],
       builder: (BuildContext context, GoRouterState state, Widget child) {
         if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
           return TrayManager(child);
@@ -247,6 +252,7 @@ final globalRouter = GoRouter(
           builder: (context, state) => const UserListeningSessionsView(),
         ),
         ShellRoute(
+          observers: [desktopNavigationHistory.createObserver()],
           builder: (BuildContext context, GoRouterState state, Widget child) {
             return child;
           },
@@ -256,12 +262,14 @@ final globalRouter = GoRouter(
               redirect: (context, state) => '/?tab=settings&intent=settings-main',
             ),
             ShellRoute(
+              observers: [desktopNavigationHistory.createObserver()],
               builder: (BuildContext context, GoRouterState state, Widget child) {
                 return child;
               },
               routes: [
                 GoRoute(path: '/', builder: (context, state) => LayoutHome()),
                 ShellRoute(
+                  observers: [desktopNavigationHistory.createObserver()],
                   pageBuilder: (BuildContext context, GoRouterState state, Widget child) {
                     return _buildAdaptiveHomeShellPage(context, state, LayoutHome(child: child));
                   },

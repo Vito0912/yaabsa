@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:yaabsa/components/common/screen_refresh_indicator.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -117,7 +118,7 @@ class _StatsViewState extends ConsumerState<StatsView> {
     final yearStatsAsync = _yearInRewindExpanded ? ref.watch(yearInReviewStatsProvider(_selectedYear)) : null;
     final horizontalPadding = context.isMobile ? 12.0 : 24.0;
 
-    return RefreshIndicator(
+    return ScreenRefreshIndicator(
       onRefresh: _refreshAll,
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),

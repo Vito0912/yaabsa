@@ -1888,6 +1888,31 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
+  Future<void> addOrUpdateStoredMediaProgressEntries(Iterable<StoredMediaProgressCompanion> entries) {
+    return batch((batch) {
+      for (final entry in entries) {
+        final row = entry.copyWith(
+          progressId: Value(
+            _storedMediaProgressId(
+              userId: entry.userId.value,
+              itemId: entry.itemId.value,
+              episodeId: entry.episodeId.value,
+            ),
+          ),
+        );
+        batch.insert(
+          storedMediaProgress,
+          row,
+          onConflict: DoUpdate<StoredMediaProgress, StoredMediaProgressEntry>(
+            (old) => row,
+            target: [storedMediaProgress.progressId],
+            where: (old) => old.lastUpdated.isSmallerThanValue(entry.lastUpdated.value),
+          ),
+        );
+      }
+    });
+  }
+
   Future<void> deleteStoredMediaProgress(String userId, String itemId, {String? episodeId}) {
     final query = delete(storedMediaProgress)
       ..where((tbl) => _storedMediaProgressWhereExpression(userId: userId, itemId: itemId, episodeId: episodeId));

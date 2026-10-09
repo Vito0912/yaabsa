@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:yaabsa/components/common/screen_refresh_indicator.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/api/admin/admin_listening_session.dart';
@@ -739,7 +740,7 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
         final canEdit = true;
         final canDelete = currentUser.permissions.delete;
 
-        return RefreshIndicator(
+        return ScreenRefreshIndicator(
           onRefresh: _loadAllData,
           child: ListView(
             physics: const AlwaysScrollableScrollPhysics(),

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:yaabsa/components/app/upload/library_upload_panel.dart';
+import 'package:yaabsa/components/common/desktop_page_shortcuts.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/screens/automotive/aaos_settings_scaffold.dart';
 import 'package:yaabsa/screens/main/downloads.dart';
@@ -86,6 +87,7 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
   String? _lastConsumedUploadIntent;
   _PageSource _currentlyDisplayedPageSource = _PageSource.internal;
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode(debugLabel: 'library-search');
   Timer? _searchDebounce;
   String _searchQuery = '';
   int? _searchLimit = 5;
@@ -117,6 +119,7 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
   void dispose() {
     _searchDebounce?.cancel();
     _searchController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
@@ -367,11 +370,40 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
   }
 
   void _clearSearch() {
+    _searchDebounce?.cancel();
     setState(() {
       _searchQuery = '';
       _searchLimit = 5;
       _searchController.clear();
     });
+  }
+
+  void _focusLibrarySearch() {
+    final selection = ref.read(multiSelectAppBarProvider);
+    if (selection?.isBusy ?? false) return;
+    selection?.onClearSelection();
+    if (context.isMobile) _expandMobileSearch();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _searchFocusNode.requestFocus();
+      _searchController.selection = TextSelection(baseOffset: 0, extentOffset: _searchController.text.length);
+    });
+    WidgetsBinding.instance.scheduleFrame();
+  }
+
+  bool _dismissSearchOrSelection() {
+    final selection = ref.read(multiSelectAppBarProvider);
+    if (selection != null) {
+      if (!selection.isBusy) selection.onClearSelection();
+      return true;
+    }
+    if (_searchFocusNode.hasFocus || _isMobileSearchExpanded) {
+      _clearSearch();
+      _searchFocusNode.unfocus();
+      if (_isMobileSearchExpanded) _collapseMobileSearch();
+      return true;
+    }
+    return false;
   }
 
   void _setSidebarCollapsed(bool isCollapsed) {
@@ -451,7 +483,7 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
   }
 
   Widget _wrapWithUploadPageBackHandling(Widget child) {
-    return PopScope(
+    final content = PopScope(
       canPop: !_isUploadPageVisible,
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop || !_isUploadPageVisible) {
@@ -469,6 +501,11 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
         });
       },
       child: child,
+    );
+    return DesktopPageShortcuts(
+      onSearch: _isUploadPageVisible ? null : _focusLibrarySearch,
+      onDismiss: _dismissSearchOrSelection,
+      child: content,
     );
   }
 
@@ -543,8 +580,9 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
     );
     final advancedMenuItems = _visibleAdvancedMenuItems();
 
-    final queryParameters = GoRouterState.of(context).uri.queryParameters;
-    final tabIntent = queryParameters['tab'];
+    final uri = GoRouterState.of(context).uri;
+    final queryParameters = uri.queryParameters;
+    final tabIntent = queryParameters['tab'] ?? (uri.path == '/' ? primaryPreferences.defaultView.tabIntent : null);
     final intentKey = queryParameters['intent'] ?? tabIntent;
     if (tabIntent != null && intentKey != null && intentKey != _lastConsumedTabIntent) {
       final targetPrimaryView = HomePrimaryView.fromTabIntent(tabIntent);
@@ -659,6 +697,7 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
                 LayoutHomeMobileAppBar(
                   isSearchExpanded: _isMobileSearchExpanded,
                   searchController: _searchController,
+                  searchFocusNode: _searchFocusNode,
                   searchQuery: _searchQuery,
                   advancedMenuItems: advancedMenuItems,
                   advancedMenuStartIndex: primaryItems.length,
@@ -744,6 +783,7 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
                         isTablet: isTablet,
                         isSidebarCollapsed: isSidebarCollapsed,
                         searchController: _searchController,
+                        searchFocusNode: _searchFocusNode,
                         searchQuery: _searchQuery,
                         onSearchChanged: _onSearchChanged,
                         onSearchSubmitted: _submitSearch,

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:yaabsa/components/common/screen_refresh_indicator.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/api/admin/admin_rss_feed.dart';
@@ -596,7 +597,7 @@ class _AdminServerRssFeedsViewState extends ConsumerState<AdminServerRssFeedsVie
               _buildErrorCard(),
               if (_errorMessage?.isNotEmpty == true) const SizedBox(height: 10),
               Expanded(
-                child: RefreshIndicator(
+                child: ScreenRefreshIndicator(
                   onRefresh: () => _loadFeeds(showLoading: false),
                   child: ExpressiveActionTable<AdminRssFeed>(
                     rows: filteredFeeds,

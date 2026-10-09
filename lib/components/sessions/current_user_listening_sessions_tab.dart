@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:yaabsa/components/common/screen_refresh_indicator.dart';
 import 'package:dio/dio.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -47,7 +48,11 @@ class _CurrentUserListeningSessionsTabState extends ConsumerState<CurrentUserLis
     required int page,
   }) async {
     try {
-      final response = await api.getMeApi().getMeListeningSessions(page: page, itemsPerPage: _itemsPerPage);
+      final response = await api.getMeApi().getMeListeningSessions(
+        page: page,
+        itemsPerPage: _itemsPerPage,
+        extra: const <String, dynamic>{'doNotCache': true},
+      );
       return response.data ?? const ListeningSessionsPage();
     } on DioException catch (error) {
       final statusCode = error.response?.statusCode;
@@ -56,6 +61,7 @@ class _CurrentUserListeningSessionsTabState extends ConsumerState<CurrentUserLis
           userId,
           page: page,
           itemsPerPage: _itemsPerPage,
+          extra: const <String, dynamic>{'doNotCache': true},
         );
         return fallbackResponse.data ?? const ListeningSessionsPage();
       }
@@ -325,7 +331,7 @@ class _CurrentUserListeningSessionsTabState extends ConsumerState<CurrentUserLis
           return const Center(child: CircularProgressIndicator());
         }
 
-        return RefreshIndicator(
+        return ScreenRefreshIndicator(
           onRefresh: _loadSessions,
           child: ListView(
             physics: const AlwaysScrollableScrollPhysics(),

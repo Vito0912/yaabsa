@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:yaabsa/components/common/screen_refresh_indicator.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
@@ -7,8 +8,9 @@ import 'package:yaabsa/components/app/item/editor/library_item_edit_overlay.dart
 import 'package:yaabsa/components/app/item/editor/open_library_item_editor_dialog.dart';
 import 'package:yaabsa/components/common/connection_issue_view.dart';
 import 'package:yaabsa/provider/common/library_item_provider.dart';
-import 'package:yaabsa/provider/common/media_progress_provider.dart';
+import 'package:yaabsa/provider/common/library_item_sync.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/screens/item/library_item_book_view.dart';
 import 'package:yaabsa/screens/item/library_item_podcast_view.dart';
 
@@ -26,6 +28,32 @@ class LibraryItemView extends ConsumerStatefulWidget {
 class _LibraryItemViewState extends ConsumerState<LibraryItemView> {
   var _didOpenInitialEditor = false;
 
+  Future<void> _refreshItem() async {
+    final api = ref.read(absApiProvider);
+    final itemId = widget.itemId;
+    try {
+      if (api == null) throw StateError('API unavailable for item refresh');
+      final response = await api.getLibraryItemApi().getLibraryItem(
+        itemId: itemId,
+        extra: const <String, dynamic>{'doNotCache': true},
+      );
+      if (!mounted || widget.itemId != itemId || !identical(ref.read(absApiProvider), api)) return;
+      final item = response.data;
+      if (item == null) throw StateError('Item refresh returned no data');
+      await processLibraryItemUpdate(
+        container: ProviderScope.containerOf(context, listen: false),
+        item: item,
+        source: 'screen refresh',
+      );
+    } catch (e, s) {
+      logger(
+        'Failed to refresh item $itemId. Keeping existing item. Cause: $e\n$s',
+        tag: 'LibraryItemView',
+        level: InfoLevel.error,
+      );
+    }
+  }
+
   @override
   void didUpdateWidget(covariant LibraryItemView oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -42,10 +70,8 @@ class _LibraryItemViewState extends ConsumerState<LibraryItemView> {
       data: (item) {
         final isPodcast = item.mediaType == 'podcast' || item.media?.podcastMedia != null;
         _scheduleInitialEditor(item, isPodcast: isPodcast);
-        return RefreshIndicator(
-          onRefresh: () => isPodcast
-              ? ref.read(mediaProgressProvider.notifier).refreshAllProgress(clearBefore: false)
-              : ref.read(mediaProgressProvider.notifier).fetchOrRefreshIndividualProgress(item.id),
+        return ScreenRefreshIndicator(
+          onRefresh: _refreshItem,
           child: isPodcast
               ? LibraryItemPodcastView(item: item, canDownload: canDownload, initialEpisodeId: widget.initialEpisodeId)
               : LibraryItemBookView(item: item, canDownload: canDownload),

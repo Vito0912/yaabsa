@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:yaabsa/components/common/screen_refresh_indicator.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/api/library/stats/listening_sessions_page.dart';
@@ -88,6 +89,7 @@ class _LibraryItemListeningSessionsTabState extends ConsumerState<LibraryItemLis
         episodeId: _selectedEpisodeId,
         page: _currentPage,
         itemsPerPage: _itemsPerPage,
+        extra: const <String, dynamic>{'doNotCache': true},
       );
 
       final pageData = response.data ?? const ListeningSessionsPage();
@@ -340,7 +342,7 @@ class _LibraryItemListeningSessionsTabState extends ConsumerState<LibraryItemLis
           return const Center(child: CircularProgressIndicator());
         }
 
-        return RefreshIndicator(
+        return ScreenRefreshIndicator(
           onRefresh: _loadSessions,
           child: ListView(
             physics: const AlwaysScrollableScrollPhysics(),

@@ -1,3 +1,4 @@
+import 'package:yaabsa/components/common/screen_refresh_indicator.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/admin/create_custom_metadata_provider_request.dart';
 import 'package:yaabsa/api/admin/custom_metadata_provider.dart';
@@ -224,7 +225,7 @@ class _AdminCustomMetadataProviderManagerState extends State<AdminCustomMetadata
           ),
         ),
         Expanded(
-          child: RefreshIndicator(
+          child: ScreenRefreshIndicator(
             onRefresh: _handleRefresh,
             child: widget.providers.isEmpty
                 ? ListView(

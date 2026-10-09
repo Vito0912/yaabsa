@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:yaabsa/components/common/screen_refresh_indicator.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
@@ -94,7 +95,7 @@ class LatestEpisodesView extends HookConsumerWidget {
       skipLoadingOnRefresh: false,
       data: (state) {
         if (state.episodes.isEmpty) {
-          return RefreshIndicator(
+          return ScreenRefreshIndicator(
             onRefresh: () => ref.read(provider.notifier).refresh(),
             child: ListView(
               controller: scrollController,
@@ -109,7 +110,7 @@ class LatestEpisodesView extends HookConsumerWidget {
           );
         }
 
-        return RefreshIndicator(
+        return ScreenRefreshIndicator(
           onRefresh: () => ref.read(provider.notifier).refresh(),
           child: ListView.builder(
             controller: scrollController,

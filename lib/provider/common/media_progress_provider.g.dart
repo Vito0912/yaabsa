@@ -251,7 +251,7 @@ final class MediaProgressNotifierProvider extends $AsyncNotifierProvider<MediaPr
   MediaProgressNotifier create() => MediaProgressNotifier();
 }
 
-String _$mediaProgressNotifierHash() => r'0cb78d947b0e7931723dec134e3ef29d2eb96eb2';
+String _$mediaProgressNotifierHash() => r'45e828d465f5b757fbec34731384c513295656e7';
 
 abstract class _$MediaProgressNotifier extends $AsyncNotifier<void> {
   FutureOr<void> build();

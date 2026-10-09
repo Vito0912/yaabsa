@@ -1,3 +1,4 @@
+import 'package:yaabsa/components/common/screen_refresh_indicator.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
@@ -63,7 +64,7 @@ class ManagedMultiBookView extends StatelessWidget {
                   : Stack(
                       children: [
                         Positioned.fill(
-                          child: RefreshIndicator(
+                          child: ScreenRefreshIndicator(
                             onRefresh: onRefresh,
                             child: AlignedGridView.count(
                               controller: scrollController,

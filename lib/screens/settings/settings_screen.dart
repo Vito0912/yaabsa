@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/api/magic/magic_config.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
+import 'package:yaabsa/components/common/desktop_page_shortcuts.dart';
 import 'package:yaabsa/components/settings/admin_users/magic_config_dialog.dart';
 import 'package:yaabsa/components/settings/management_settings_section.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';
@@ -475,11 +476,13 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
   static final Uri _githubSponsorUri = Uri.parse('https://github.com/sponsors/Vito0912');
 
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode(debugLabel: 'settings-search');
   String _searchQuery = '';
 
   @override
   void dispose() {
     _searchController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
@@ -1000,12 +1003,13 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
       return item.title.toLowerCase().contains(query) || item.description.toLowerCase().contains(query);
     }).toList();
 
-    return Column(
+    final content = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
           child: SearchBar(
+            focusNode: _searchFocusNode,
             leading: const Icon(Icons.search),
             hintText: 'Search settings...',
             onChanged: (value) {
@@ -1219,6 +1223,22 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
           ),
         ),
       ],
+    );
+    return DesktopPageShortcuts(
+      onSearch: () {
+        _searchFocusNode.requestFocus();
+        _searchController.selection = TextSelection(baseOffset: 0, extentOffset: _searchController.text.length);
+      },
+      onDismiss: () {
+        if (!_searchFocusNode.hasFocus) return false;
+        _searchController.clear();
+        setState(() {
+          _searchQuery = '';
+        });
+        _searchFocusNode.unfocus();
+        return true;
+      },
+      child: content,
     );
   }
 }

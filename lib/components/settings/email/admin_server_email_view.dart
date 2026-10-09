@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:yaabsa/components/common/screen_refresh_indicator.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/api/admin/admin_email_settings.dart';
@@ -675,7 +676,7 @@ class _AdminServerEmailViewState extends ConsumerState<AdminServerEmailView> {
               _buildErrorCard(),
               if (_errorMessage?.isNotEmpty == true) const SizedBox(height: 10),
               Expanded(
-                child: RefreshIndicator(
+                child: ScreenRefreshIndicator(
                   onRefresh: () => _loadEmailData(showLoading: false),
                   child: ListView(
                     physics: const AlwaysScrollableScrollPhysics(),

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:yaabsa/components/common/screen_refresh_indicator.dart';
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:material_ui/material_ui.dart';
@@ -853,7 +854,7 @@ class _AdminServerBackupsViewState extends ConsumerState<AdminServerBackupsView>
 
         final compact = MediaQuery.sizeOf(context).width < 720;
         final horizontalPadding = compact ? 10.0 : 0.0;
-        final table = RefreshIndicator(
+        final table = ScreenRefreshIndicator(
           onRefresh: () => _loadBackupsData(showLoading: false),
           child: AdminBackupTable(
             backups: _backups,

@@ -212,7 +212,8 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
   }
 
   bool _handleVolumeKeys(KeyEvent event) {
-    if (_isAudioPlaybackActive) {
+    final keyboard = HardwareKeyboard.instance;
+    if (_isAudioPlaybackActive || keyboard.isAltPressed || keyboard.isControlPressed || keyboard.isMetaPressed) {
       return false;
     }
     if (event is KeyDownEvent) {

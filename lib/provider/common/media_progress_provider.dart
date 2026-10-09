@@ -10,6 +10,7 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/server_version.dart';
 import 'package:dio/dio.dart';
+import 'package:drift/drift.dart' show Value;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'media_progress_provider.g.dart';
@@ -40,6 +41,7 @@ class MediaProgressStore {
   Map<String, MediaProgress> progressByKey = <String, MediaProgress>{};
   Map<String, Map<String, MediaProgress>> progressByLibraryItemId = <String, Map<String, MediaProgress>>{};
   bool isInitialized = false;
+  bool startupFetchAttempted = false;
 }
 
 @Riverpod(keepAlive: true)
@@ -59,6 +61,11 @@ class MediaProgressRevision extends _$MediaProgressRevision {
 
 @Riverpod(keepAlive: true)
 class MediaProgressNotifier extends _$MediaProgressNotifier {
+  ABSApi? _progressFetchApi;
+  Future<List<MediaProgress>>? _progressFetch;
+  ABSApi? _progressRefreshApi;
+  String? _progressRefreshUserId;
+  Future<void>? _progressRefresh;
   MediaProgressStore get _store => ref.read(mediaProgressStoreProvider);
 
   Map<String, MediaProgress> get _progressByKey => _store.progressByKey;
@@ -284,46 +291,58 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
     }
 
     final db = ref.read(appDatabaseProvider);
+    final user = ref.read(currentUserProvider).value;
+    var localMap = _listToMap(user?.id == userId ? user?.mediaProgress : null);
 
-    final syncEntries = await db.getAllSyncsByUser(userId);
+    try {
+      final syncEntries = await db.getAllSyncsByUser(userId);
 
-    final Map<String, MediaProgress> syncProgressMap = <String, MediaProgress>{};
-    for (final entry in syncEntries) {
-      final progress = _decodeProgressJsonOrNull(entry.mediaProgress, source: 'storedSyncs:${entry.sessionId}');
-      if (progress == null) {
-        continue;
+      final Map<String, MediaProgress> syncProgressMap = <String, MediaProgress>{};
+      for (final entry in syncEntries) {
+        final progress = _decodeProgressJsonOrNull(entry.mediaProgress, source: 'storedSyncs:${entry.sessionId}');
+        if (progress == null) {
+          continue;
+        }
+
+        final key = _progressKeyFromMediaProgress(progress);
+        final existing = syncProgressMap[key];
+        if (existing == null) {
+          syncProgressMap[key] = progress;
+        } else {
+          syncProgressMap[key] = _preferMostRecentProgress(existing, progress);
+        }
       }
 
-      final key = _progressKeyFromMediaProgress(progress);
-      final existing = syncProgressMap[key];
-      if (existing == null) {
-        syncProgressMap[key] = progress;
-      } else {
-        syncProgressMap[key] = _preferMostRecentProgress(existing, progress);
-      }
-    }
+      localMap = _mergeProgressMaps(localMap, syncProgressMap);
+      final cachedEntries = await db.getStoredMediaProgressByUser(userId);
+      final Map<String, MediaProgress> cachedProgressMap = <String, MediaProgress>{};
+      for (final entry in cachedEntries) {
+        final progress = _decodeProgressJsonOrNull(
+          entry.mediaProgress,
+          source: 'storedMediaProgress:${entry.progressId}',
+        );
+        if (progress == null) {
+          continue;
+        }
 
-    final cachedEntries = await db.getStoredMediaProgressByUser(userId);
-    final Map<String, MediaProgress> cachedProgressMap = <String, MediaProgress>{};
-    for (final entry in cachedEntries) {
-      final progress = _decodeProgressJsonOrNull(
-        entry.mediaProgress,
-        source: 'storedMediaProgress:${entry.progressId}',
+        final key = _progressKeyFromMediaProgress(progress);
+        final existing = cachedProgressMap[key];
+        if (existing == null) {
+          cachedProgressMap[key] = progress;
+        } else {
+          cachedProgressMap[key] = _preferMostRecentProgress(existing, progress);
+        }
+      }
+
+      return _mergeProgressMaps(cachedProgressMap, localMap);
+    } catch (e, s) {
+      logger(
+        'Failed to load cached progress for user $userId. Keeping existing progress. Cause: $e\n$s',
+        tag: 'MediaProgressProvider',
+        level: InfoLevel.error,
       );
-      if (progress == null) {
-        continue;
-      }
-
-      final key = _progressKeyFromMediaProgress(progress);
-      final existing = cachedProgressMap[key];
-      if (existing == null) {
-        cachedProgressMap[key] = progress;
-      } else {
-        cachedProgressMap[key] = _preferMostRecentProgress(existing, progress);
-      }
+      return localMap;
     }
-
-    return _mergeProgressMaps(cachedProgressMap, syncProgressMap);
   }
 
   Future<void> _persistProgress(MediaProgress progress) async {
@@ -354,12 +373,25 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
   }
 
   Future<void> _persistProgressList(Iterable<MediaProgress> progressList) async {
-    final operationRef = ref;
-    for (final progress in progressList) {
-      if (!operationRef.mounted) {
-        return;
-      }
-      await _persistProgress(progress);
+    if (!ref.mounted) return;
+    try {
+      await ref
+          .read(appDatabaseProvider)
+          .addOrUpdateStoredMediaProgressEntries(
+            progressList
+                .where((progress) => progress.userId.trim().isNotEmpty)
+                .map(
+                  (progress) => StoredMediaProgressCompanion(
+                    userId: Value(progress.userId.trim()),
+                    itemId: Value(progress.libraryItemId),
+                    episodeId: Value(progress.episodeId),
+                    lastUpdated: Value(DateTime.fromMillisecondsSinceEpoch(_lastUpdatedMillis(progress))),
+                    mediaProgress: Value(jsonEncode(progress.toJson())),
+                  ),
+                ),
+          );
+    } catch (e, s) {
+      logger('Failed to persist progress batch: $e\n$s', tag: 'MediaProgressProvider', level: InfoLevel.warning);
     }
   }
 
@@ -375,14 +407,36 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
     }
   }
 
-  Future<List<MediaProgress>> _fetchAllRemoteProgress(ABSApi absApi) async {
+  Future<List<MediaProgress>> _fetchAllRemoteProgress(ABSApi absApi) {
+    final pending = _progressFetch;
+    if (pending != null && identical(_progressFetchApi, absApi)) return pending;
+    _progressFetchApi = absApi;
+    final fetch = _requestAllRemoteProgress(absApi);
+    late final Future<List<MediaProgress>> trackedFetch;
+    trackedFetch = fetch.whenComplete(() {
+      if (identical(_progressFetch, trackedFetch)) {
+        _progressFetch = null;
+        _progressFetchApi = null;
+      }
+    });
+    _progressFetch = trackedFetch;
+    return trackedFetch;
+  }
+
+  Future<List<MediaProgress>> _requestAllRemoteProgress(ABSApi absApi) async {
     final meApi = absApi.getMeApi();
+    const extra = <String, dynamic>{'doNotCache': true};
 
     if (!serverSupportsMediaProgressAndBookmarkRoutes(ref.read(serverVersionProvider))) {
-      return (await meApi.getUser()).data?.mediaProgress ?? const <MediaProgress>[];
+      final response = await meApi.getUser(extra: extra);
+      final progress = response.data?.mediaProgress;
+      if (progress == null) {
+        throw const FormatException('Missing mediaProgress in /api/me response');
+      }
+      return progress;
     }
 
-    final response = await meApi.getAllMediaProgress();
+    final response = await meApi.getAllMediaProgress(extra: extra);
     final progressResponse = response.data;
     if (progressResponse == null) {
       throw Exception('Media progress response is null.');
@@ -398,6 +452,7 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
     if (_store.userId != userId) {
       _store.userId = userId;
       _store.isInitialized = false;
+      _store.startupFetchAttempted = false;
       _replaceProgressMap(const <String, MediaProgress>{});
     }
 
@@ -422,42 +477,34 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
       return;
     }
 
-    try {
-      final remoteProgress = await _fetchAllRemoteProgress(absApi);
-      if (!operationRef.mounted) {
-        return;
-      }
-      final remoteMap = _listToMap(remoteProgress);
-      final mergedMap = _mergeProgressMaps(_progressByKey, remoteMap);
-      _replaceProgressMap(mergedMap);
-      logger(
-        'Fetched ${remoteMap.length} remote progress entries. Retaining $progressCount entries after merging.',
-        tag: 'MediaProgressProvider',
-        level: InfoLevel.debug,
-      );
-      await _persistProgressList(remoteMap.values);
-    } catch (e, s) {
-      if (!operationRef.mounted) {
-        return;
-      }
-      logger(
-        'Error fetching remote media progress in build: $e\n$s',
-        tag: 'MediaProgressProvider',
-        level: InfoLevel.error,
-      );
-      if (_progressByKey.isEmpty) {
-        _store.isInitialized = false;
-        rethrow;
-      }
+    if (!_store.startupFetchAttempted) {
+      await refreshAllProgress();
     }
   }
 
-  Future<void> refreshAllProgress({bool clearBefore = false}) async {
+  Future<void> refreshAllProgress({bool clearBefore = false}) {
+    final api = ref.read(absApiProvider);
+    final userId = _activeUserId();
+    final pending = _progressRefresh;
+    if (pending != null && identical(_progressRefreshApi, api) && _progressRefreshUserId == userId) return pending;
+    _progressRefreshApi = api;
+    _progressRefreshUserId = userId;
+    late final Future<void> refresh;
+    refresh = _refreshAllProgress().whenComplete(() {
+      if (identical(_progressRefresh, refresh)) {
+        _progressRefresh = null;
+        _progressRefreshApi = null;
+        _progressRefreshUserId = null;
+      }
+    });
+    _progressRefresh = refresh;
+    return refresh;
+  }
+
+  Future<void> _refreshAllProgress() async {
+    final elapsed = Stopwatch()..start();
     final operationRef = ref;
     final previousMap = Map<String, MediaProgress>.of(_progressByKey);
-    if (clearBefore) {
-      _replaceProgressMap(const <String, MediaProgress>{});
-    }
 
     final userId = _activeUserId();
     final localMap = await _loadLocalProgressMap(userId: userId);
@@ -468,11 +515,11 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
     _replaceProgressMap(_mergeProgressMaps(baseMap, _progressByKey));
 
     final absApi = ref.read(absApiProvider);
-    if (absApi == null) {
+    if (absApi == null || absApi.user?.id != userId) {
       logger(
-        'ABSApi is not available yet. Skipping remote refresh.',
+        'Cannot refresh progress for user $userId because its API is unavailable. Keeping $progressCount entries.',
         tag: 'MediaProgressProvider',
-        level: InfoLevel.debug,
+        level: InfoLevel.warning,
       );
       return;
     }
@@ -482,16 +529,28 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
       if (!operationRef.mounted) {
         return;
       }
+      if (_store.userId == userId) _store.startupFetchAttempted = true;
       final remoteMap = _listToMap(remoteProgress);
-      final mergedMap = _mergeProgressMaps(_progressByKey, remoteMap);
+      final mergedMap = _mergeProgressMaps(_progressByKey, remoteMap, preferIncomingOnTie: true);
       _replaceProgressMap(mergedMap);
-      await _persistProgressList(remoteMap.values);
+      await _persistProgressList(remoteMap.keys.map((key) => mergedMap[key]!));
+      if (!operationRef.mounted) return;
+      logger(
+        'Refreshed ${remoteMap.length} progress entries for user $userId in ${elapsed.elapsedMilliseconds}ms. '
+        'Retaining $progressCount entries.',
+        tag: 'MediaProgressProvider',
+        level: InfoLevel.info,
+      );
     } catch (e, s) {
-      logger('Error refreshing all media progress: $e\n$s', tag: 'MediaProgressProvider', level: InfoLevel.error);
-
       if (!operationRef.mounted) {
         return;
       }
+      if (_store.userId == userId) _store.startupFetchAttempted = true;
+      logger(
+        'Progress refresh failed for user $userId. Keeping $progressCount existing entries. Cause: $e\n$s',
+        tag: 'MediaProgressProvider',
+        level: InfoLevel.error,
+      );
       _replaceProgressMap(_mergeProgressMaps(baseMap, _progressByKey));
     }
   }
@@ -531,7 +590,11 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
 
     try {
       final meApi = absApi.getMeApi();
-      final response = await meApi.getProgress(libraryItemId, episodeId: episodeId);
+      final response = await meApi.getProgress(
+        libraryItemId,
+        episodeId: episodeId,
+        extra: const <String, dynamic>{'doNotCache': true},
+      );
       if (!operationRef.mounted) {
         return localProgress;
       }

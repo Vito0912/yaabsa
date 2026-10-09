@@ -1,3 +1,4 @@
+import 'package:yaabsa/components/common/screen_refresh_indicator.dart';
 import 'package:yaabsa/components/app/item/item_progress_actions.dart';
 
 import 'dart:async';
@@ -322,7 +323,7 @@ class PersonalizedView extends HookConsumerWidget {
                     children: [
                       if (!serverReachable && !isLibraryLoading) const _PersonalizedConnectionBanner(),
                       Expanded(
-                        child: RefreshIndicator(
+                        child: ScreenRefreshIndicator(
                           onRefresh: refreshPersonalizedLibrary,
                           child: ListView.separated(
                             controller: scrollController,
@@ -402,7 +403,9 @@ Future<void> _retryPersonalizedLibrary({
     ref.invalidate(serverStatusProvider);
   }
 
-  await ref.read(personalizedLibraryProvider(libraryId).notifier).refresh(libraryId, withLoading: withLoading);
+  await ref
+      .read(personalizedLibraryProvider(libraryId).notifier)
+      .refresh(libraryId, withLoading: withLoading, bypassCache: true);
 }
 
 class _PersonalizedConnectionBanner extends StatelessWidget {
@@ -453,7 +456,7 @@ class _PersonalizedFeedbackView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
+    return ScreenRefreshIndicator(
       onRefresh: onRefresh,
       child: LayoutBuilder(
         builder: (context, constraints) {

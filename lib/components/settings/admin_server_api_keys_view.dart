@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:yaabsa/components/common/screen_refresh_indicator.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -647,7 +648,7 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
                   ),
                 ),
               Expanded(
-                child: RefreshIndicator(
+                child: ScreenRefreshIndicator(
                   onRefresh: () => _loadApiKeysData(showLoading: false),
                   child: AdminApiKeyTable(
                     apiKeys: filteredApiKeys,

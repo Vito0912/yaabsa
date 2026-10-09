@@ -6,6 +6,7 @@ import 'package:yaabsa/api/library/request/library_filter.dart';
 import 'package:yaabsa/api/library/search_library.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
+import 'package:yaabsa/components/common/desktop_page_shortcuts.dart';
 import 'package:yaabsa/components/common/scroll_to_top_button.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/common/library_search_provider.dart';
@@ -26,9 +27,10 @@ class SearchView extends HookConsumerWidget {
       return const Center(child: Text('No library selected. Please select a library via the switcher.'));
     }
 
-    final searchAsync = ref.watch(librarySearchProvider((query: query, limit: limit, libraryId: null)));
+    final searchProvider = librarySearchProvider((query: query, limit: limit, libraryId: null));
+    final searchAsync = ref.watch(searchProvider);
 
-    return searchAsync.when(
+    final content = searchAsync.when(
       skipLoadingOnRefresh: true,
       skipLoadingOnReload: true,
       data: (searchResult) {
@@ -158,6 +160,13 @@ class SearchView extends HookConsumerWidget {
           child: Text('Error loading search results: $err', textAlign: TextAlign.center),
         ),
       ),
+    );
+    return DesktopPageShortcuts(
+      onRefresh: () async {
+        ref.invalidate(searchProvider);
+        await ref.read(searchProvider.future);
+      },
+      child: content,
     );
   }
 

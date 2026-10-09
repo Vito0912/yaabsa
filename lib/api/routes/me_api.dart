@@ -207,7 +207,12 @@ class MeApi {
   }) async {
     return ABSApi.makeApiGetRequest(
       route: '/api/me/progress',
-      fromJson: (data) => MediaProgressResponse.fromJson(data as Map<String, dynamic>),
+      fromJson: (data) {
+        if (data is! Map<String, dynamic> || data['mediaProgress'] is! List) {
+          throw const FormatException('Missing or invalid mediaProgress in /api/me/progress response');
+        }
+        return MediaProgressResponse.fromJson(data);
+      },
       cancelToken: cancelToken,
       headers: headers,
       extra: extra,

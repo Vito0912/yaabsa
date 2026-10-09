@@ -55,6 +55,7 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
     int? desc,
     String? filter,
     bool useCurrentFilterFallback = true,
+    bool forceServer = false,
     int? collapseseries,
     String? include,
   }) async {
@@ -77,7 +78,11 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
     );
 
     try {
-      final response = await absApi.getLibraryApi().getLibraryItems(libraryId, request);
+      final response = await absApi.getLibraryApi().getLibraryItems(
+        libraryId,
+        request,
+        extra: forceServer ? const <String, dynamic>{'doNotCache': true} : null,
+      );
       final data = response.data;
       if (data == null) {
         throw Exception('No data received from API');
@@ -374,6 +379,7 @@ class LibraryItemsNotifier extends _$LibraryItemsNotifier {
         useCurrentFilterFallback: false,
         collapseseries: refreshCollapseSeries,
         include: refreshInclude,
+        forceServer: true,
       );
       state = AsyncData(newState);
     } catch (e, s) {

@@ -1,5 +1,6 @@
 // ignore_for_file: use_null_aware_elements
 
+import 'package:yaabsa/components/common/screen_refresh_indicator.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
@@ -105,7 +106,7 @@ class AuthorsView extends HookConsumerWidget {
                   ),
                   Expanded(
                     child: authors.isEmpty && !state.hasNextPage && !state.isLoadingNextPage
-                        ? RefreshIndicator(
+                        ? ScreenRefreshIndicator(
                             onRefresh: () => ref.read(authorsProvider.notifier).refresh(withLoading: false),
                             child: ListView(
                               controller: scrollController,
@@ -117,7 +118,7 @@ class AuthorsView extends HookConsumerWidget {
                               ],
                             ),
                           )
-                        : RefreshIndicator(
+                        : ScreenRefreshIndicator(
                             onRefresh: () => ref.read(authorsProvider.notifier).refresh(withLoading: false),
                             child: LibraryGridLayoutBuilder(
                               builder: (context, gridLayout, _, _) {

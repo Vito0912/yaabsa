@@ -1,3 +1,4 @@
+import 'package:yaabsa/components/common/screen_refresh_indicator.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -142,7 +143,7 @@ class SeriesView extends HookConsumerWidget {
                       ),
                       Expanded(
                         child: seriesItems.isEmpty && !state.hasNextPage && !state.isLoadingNextPage
-                            ? RefreshIndicator(
+                            ? ScreenRefreshIndicator(
                                 onRefresh: () =>
                                     ref.read(seriesProvider(libraryId).notifier).refresh(withLoading: false),
                                 child: ListView(
@@ -155,7 +156,7 @@ class SeriesView extends HookConsumerWidget {
                                   ],
                                 ),
                               )
-                            : RefreshIndicator(
+                            : ScreenRefreshIndicator(
                                 onRefresh: () =>
                                     ref.read(seriesProvider(libraryId).notifier).refresh(withLoading: false),
                                 child: AlignedGridView.count(

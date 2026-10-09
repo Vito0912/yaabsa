@@ -1,3 +1,4 @@
+import 'package:yaabsa/components/common/screen_refresh_indicator.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
@@ -62,7 +63,7 @@ class NarratorsView extends HookConsumerWidget {
         return Stack(
           children: [
             Positioned.fill(
-              child: RefreshIndicator(
+              child: ScreenRefreshIndicator(
                 onRefresh: () => ref.refresh(libraryFilterDataProvider(libraryId).future),
                 child: GridView.builder(
                   controller: scrollController,

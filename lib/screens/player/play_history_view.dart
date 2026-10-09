@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/components/common/expressive_tab_view.dart';
+import 'package:yaabsa/components/common/desktop_page_shortcuts.dart';
 import 'package:yaabsa/components/sessions/library_item_listening_sessions_tab.dart';
 import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
@@ -129,12 +130,20 @@ class _PlayHistorySessionsTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final itemAsync = ref.watch(libraryItemProvider(itemId));
+    final itemProvider = libraryItemProvider(itemId);
+    final itemAsync = ref.watch(itemProvider);
 
-    return itemAsync.when(
+    final content = itemAsync.when(
       data: (item) => LibraryItemListeningSessionsTab(item: item, initialEpisodeId: episodeId),
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => _SessionLoadError(error: error),
+    );
+    return DesktopPageShortcuts(
+      onRefresh: () async {
+        ref.invalidate(itemProvider);
+        await ref.read(itemProvider.future);
+      },
+      child: content,
     );
   }
 }

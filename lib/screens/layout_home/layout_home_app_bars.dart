@@ -86,6 +86,7 @@ class LayoutHomeMobileAppBar extends StatelessWidget {
     super.key,
     required this.isSearchExpanded,
     required this.searchController,
+    this.searchFocusNode,
     required this.searchQuery,
     required this.advancedMenuItems,
     required this.advancedMenuStartIndex,
@@ -101,6 +102,7 @@ class LayoutHomeMobileAppBar extends StatelessWidget {
 
   final bool isSearchExpanded;
   final TextEditingController searchController;
+  final FocusNode? searchFocusNode;
   final String searchQuery;
   final List<NavigationItemConfig> advancedMenuItems;
   final int advancedMenuStartIndex;
@@ -130,6 +132,7 @@ class LayoutHomeMobileAppBar extends StatelessWidget {
               Expanded(
                 child: _LayoutHomeSearchField(
                   controller: searchController,
+                  focusNode: searchFocusNode,
                   searchQuery: searchQuery,
                   isMobile: true,
                   autofocus: true,
@@ -243,6 +246,7 @@ class LayoutHomeNonMobileAppBar extends StatelessWidget {
     required this.isTablet,
     required this.isSidebarCollapsed,
     required this.searchController,
+    this.searchFocusNode,
     required this.searchQuery,
     required this.onSearchChanged,
     required this.onSearchSubmitted,
@@ -255,6 +259,7 @@ class LayoutHomeNonMobileAppBar extends StatelessWidget {
   final bool isTablet;
   final bool isSidebarCollapsed;
   final TextEditingController searchController;
+  final FocusNode? searchFocusNode;
   final String searchQuery;
   final ValueChanged<String> onSearchChanged;
   final ValueChanged<String> onSearchSubmitted;
@@ -292,6 +297,7 @@ class LayoutHomeNonMobileAppBar extends StatelessWidget {
                   constraints: BoxConstraints(maxWidth: searchMaxWidth),
                   child: _LayoutHomeSearchField(
                     controller: searchController,
+                    focusNode: searchFocusNode,
                     searchQuery: searchQuery,
                     isMobile: false,
                     onChanged: onSearchChanged,
@@ -339,6 +345,7 @@ class LayoutHomeNonMobileAppBar extends StatelessWidget {
 class _LayoutHomeSearchField extends StatelessWidget {
   const _LayoutHomeSearchField({
     required this.controller,
+    this.focusNode,
     required this.searchQuery,
     required this.isMobile,
     required this.onChanged,
@@ -348,6 +355,7 @@ class _LayoutHomeSearchField extends StatelessWidget {
   });
 
   final TextEditingController controller;
+  final FocusNode? focusNode;
   final String searchQuery;
   final bool isMobile;
   final bool autofocus;
@@ -361,6 +369,7 @@ class _LayoutHomeSearchField extends StatelessWidget {
       height: 40,
       child: TextField(
         controller: controller,
+        focusNode: focusNode,
         autofocus: autofocus,
         textInputAction: TextInputAction.search,
         onChanged: onChanged,

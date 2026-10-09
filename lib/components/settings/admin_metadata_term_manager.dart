@@ -1,3 +1,4 @@
+import 'package:yaabsa/components/common/screen_refresh_indicator.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/admin/metadata_term_update_response.dart';
 import 'package:yaabsa/components/common/list_management_dialogs.dart';
@@ -214,7 +215,7 @@ class _AdminMetadataTermManagerState extends State<AdminMetadataTermManager> {
           ),
         ),
         Expanded(
-          child: RefreshIndicator(
+          child: ScreenRefreshIndicator(
             onRefresh: _handleRefresh,
             child: widget.items.isEmpty
                 ? ListView(

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:yaabsa/components/common/screen_refresh_indicator.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/api/library/library.dart';
@@ -688,7 +689,7 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
         filteredLibraries.length == _libraries.length &&
         _libraries.length > 1;
 
-    return RefreshIndicator(
+    return ScreenRefreshIndicator(
       onRefresh: () => _loadLibraries(showLoading: false),
       child: ExpressiveTileList<Library>(
         items: filteredLibraries,

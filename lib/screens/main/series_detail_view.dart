@@ -1,3 +1,4 @@
+import 'package:yaabsa/components/common/screen_refresh_indicator.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -178,7 +179,7 @@ class SeriesDetailView extends HookConsumerWidget {
                               child: Stack(
                                 children: [
                                   Positioned.fill(
-                                    child: RefreshIndicator(
+                                    child: ScreenRefreshIndicator(
                                       onRefresh: () =>
                                           ref.read(seriesBooksProvider(booksArgs).notifier).refresh(withLoading: false),
                                       child: AlignedGridView.count(

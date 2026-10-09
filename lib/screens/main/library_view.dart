@@ -7,6 +7,7 @@ import 'package:yaabsa/components/app/library/library_filter_toolbar.dart';
 import 'package:yaabsa/components/app/library/library_items_grid.dart';
 import 'package:yaabsa/components/app/library/library_multi_select_host.dart';
 import 'package:yaabsa/components/common/connection_issue_view.dart';
+import 'package:yaabsa/components/common/screen_refresh_indicator.dart';
 import 'package:yaabsa/components/common/scroll_to_top_button.dart';
 import 'package:yaabsa/components/common/loading_view.dart';
 import 'package:yaabsa/database/app_database.dart';
@@ -80,7 +81,7 @@ class LibraryView extends HookConsumerWidget {
         );
         final libraryItemsStateAsync = ref.watch(itemsProvider);
 
-        return libraryItemsStateAsync.when(
+        final content = libraryItemsStateAsync.when(
           skipLoadingOnRefresh: true,
           skipLoadingOnReload: true,
           data: (state) {
@@ -138,7 +139,15 @@ class LibraryView extends HookConsumerWidget {
                           ),
                           Expanded(
                             child: items.isEmpty && !state.hasNextPage && !state.isLoadingNextPage
-                                ? const Center(child: Text('No items found in this library.'))
+                                ? ListView(
+                                    physics: const AlwaysScrollableScrollPhysics(),
+                                    children: const [
+                                      SizedBox(
+                                        height: 200,
+                                        child: Center(child: Text('No items found in this library.')),
+                                      ),
+                                    ],
+                                  )
                                 : LibraryItemsGrid(
                                     scrollController: scrollController,
                                     items: items,
@@ -247,6 +256,11 @@ class LibraryView extends HookConsumerWidget {
               },
             );
           },
+        );
+        return ScreenRefreshIndicator(
+          enabled: editingItemId.value == null,
+          onRefresh: () => ref.read(itemsProvider.notifier).refresh(),
+          child: content,
         );
       },
     );
