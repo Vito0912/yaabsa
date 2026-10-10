@@ -28,7 +28,8 @@ class TrayManager extends ConsumerStatefulWidget {
     }
 
     // TODO: Icon for Windows
-    await trayManager.setIcon('assets/logo_blue_fill.png');
+    final isFlatpak = Platform.isLinux && Platform.environment.containsKey('FLATPAK_ID');
+    await trayManager.setIcon(isFlatpak ? 'de.vito0912.yaabsa' : 'assets/logo_blue_fill.png');
     Menu menu = Menu(
       items: [
         if (audioHandler.currentMediaItem != null)

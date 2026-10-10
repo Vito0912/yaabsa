@@ -4,14 +4,30 @@
 
 ### Fixed
 
-- Downloads showing incorrect number of To-Be-Downloaded items
+- Fixed downloads showing incorrect number of files
+- Improved download progress updates
+- Fixed listening progress disappearing during refresh or reconnect
+- Improved playback progress and sync when switching items
+- Failed audio streams now reload and retry from the current position
+- (Windows) Improved EPUB reader startup and error reporting
 
 ### Added
 
-- (Android) Added support for Live updates
-  - Time remaining/Current time
-  - Current Progress
-  - Remaining sleep timer time
+- Sleep timers now have the option to pause at the end of chapters
+- Added automatic sleep timer settings for chapters
+- Added an option to restart listening sessions at midnight
+- Added download management to view, download or delete individual files and download missing files
+- Audiobook downloads can now start from the current file or download a chosen number of files
+- Partially downloaded audiobooks now use local files where available and stream missing files when online
+- Download status and progress are now shown on library items and podcast episodes
+- (Desktop) Added back and forward navigation with keyboard shortcuts and mouse buttons, plus shortcuts for search, refresh and settings
+- (Desktop) Remember window position, size and maximized state across launches
+- (Windows) Added signed MSIX
+- (Android) Added support for Live Updates
+
+### Changed
+
+- Refreshing now also fetches the latest progress from the server
 
 ## 1.13.0
 
