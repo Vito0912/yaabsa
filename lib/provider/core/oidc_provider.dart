@@ -39,17 +39,6 @@ class OidcState extends _$OidcState {
 
     final appLinks = AppLinks();
 
-    appLinks
-        .getInitialLink()
-        .then((uri) {
-          if (uri != null) {
-            _handleIncomingUri(uri);
-          }
-        })
-        .catchError((dynamic err) {
-          logger('Failed to get initial app link: $err', tag: 'OidcProvider', level: InfoLevel.warning);
-        });
-
     _linkSubscription = appLinks.uriLinkStream.listen(
       (uri) {
         _handleIncomingUri(uri);
