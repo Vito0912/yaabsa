@@ -445,7 +445,7 @@ Future<LibraryItem> libraryItem(Ref ref, String itemId, {String? episodeId}) asy
     throw Exception('User not authenticated or API not available.');
   }
 
-  final download = await db.getStoredDownload(itemId, absApi.user!.id, episodeId: episodeId);
+  final download = await db.getStoredDownload(itemId, absApi.user!.id, episodeId: episodeId, allowIncomplete: true);
   if (download != null && download.item != null) {
     final resolvedCoverPath = await resolveDisplayCoverPath(
       download.coverPath,

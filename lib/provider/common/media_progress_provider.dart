@@ -7,6 +7,7 @@ import 'package:yaabsa/api/me/media_item_type.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/provider/core/server_reachability_provider.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/server_version.dart';
 import 'package:dio/dio.dart';
@@ -508,7 +509,7 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
 
     final userId = _activeUserId();
     final localMap = await _loadLocalProgressMap(userId: userId);
-    if (!operationRef.mounted) {
+    if (!operationRef.mounted || _activeUserId() != userId) {
       return;
     }
     final baseMap = _mergeProgressMaps(previousMap, localMap);
@@ -526,15 +527,15 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
 
     try {
       final remoteProgress = await _fetchAllRemoteProgress(absApi);
-      if (!operationRef.mounted) {
+      if (!operationRef.mounted || _activeUserId() != userId) {
         return;
       }
       if (_store.userId == userId) _store.startupFetchAttempted = true;
       final remoteMap = _listToMap(remoteProgress);
-      final mergedMap = _mergeProgressMaps(_progressByKey, remoteMap, preferIncomingOnTie: true);
+      final mergedMap = _mergeProgressMaps(_progressByKey, remoteMap);
       _replaceProgressMap(mergedMap);
       await _persistProgressList(remoteMap.keys.map((key) => mergedMap[key]!));
-      if (!operationRef.mounted) return;
+      if (!operationRef.mounted || _activeUserId() != userId) return;
       logger(
         'Refreshed ${remoteMap.length} progress entries for user $userId in ${elapsed.elapsedMilliseconds}ms. '
         'Retaining $progressCount entries.',
@@ -542,7 +543,7 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
         level: InfoLevel.info,
       );
     } catch (e, s) {
-      if (!operationRef.mounted) {
+      if (!operationRef.mounted || _activeUserId() != userId) {
         return;
       }
       if (_store.userId == userId) _store.startupFetchAttempted = true;
@@ -563,23 +564,23 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
     final operationRef = ref;
     final key = _progressKey(libraryItemId, episodeId);
     final existingMap = _progressByKey;
-    MediaProgress? localProgress = existingMap[key];
     final effectiveUserId = userId ?? _activeUserId();
+    MediaProgress? localProgress = existingMap[key]?.userId == effectiveUserId ? existingMap[key] : null;
 
-    if (localProgress == null) {
-      final localMap = await _loadLocalProgressMap(userId: effectiveUserId);
-      if (!operationRef.mounted) {
-        return localProgress;
-      }
-      if (localMap.isNotEmpty) {
-        final mergedMap = _mergeProgressMaps(localMap, _progressByKey);
-        _replaceProgressMap(mergedMap);
-        localProgress = mergedMap[key];
-      }
+    final localMap = await _loadLocalProgressMap(userId: effectiveUserId);
+    if (!operationRef.mounted || _activeUserId() != effectiveUserId) {
+      return localMap[key] ?? localProgress;
     }
+    final currentMap = <String, MediaProgress>{
+      for (final entry in _progressByKey.entries)
+        if (entry.value.userId == effectiveUserId) entry.key: entry.value,
+    };
+    final mergedMap = _mergeProgressMaps(localMap, currentMap);
+    _replaceProgressMap(mergedMap);
+    localProgress = mergedMap[key];
 
     final absApi = ref.read(absApiProvider);
-    if (absApi == null) {
+    if (absApi == null || absApi.user?.id != effectiveUserId || !ref.read(serverReachabilityProvider)) {
       logger(
         'ABSApi is not available yet. Skipping remote individual progress fetch for $libraryItemId.',
         tag: 'MediaProgressProvider',
@@ -595,7 +596,7 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
         episodeId: episodeId,
         extra: const <String, dynamic>{'doNotCache': true},
       );
-      if (!operationRef.mounted) {
+      if (!operationRef.mounted || _activeUserId() != effectiveUserId) {
         return localProgress;
       }
       localProgress = _progressByKey[key] ?? localProgress;
@@ -620,25 +621,9 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
         return null;
       }
 
-      await _persistProgress(remoteProgress);
-      if (!operationRef.mounted) {
-        return localProgress;
-      }
-
-      late final MediaProgress resolvedProgress;
-      if (localProgress == null) {
-        resolvedProgress = remoteProgress;
-      } else if (localProgress.isFinished != remoteProgress.isFinished) {
-        resolvedProgress = remoteProgress;
-        logger(
-          'Preferring remote progress for $key due to finished-state change '
-          '(local=${localProgress.isFinished}, remote=${remoteProgress.isFinished}).',
-          tag: 'MediaProgressProvider',
-          level: InfoLevel.debug,
-        );
-      } else {
-        resolvedProgress = _preferMostRecentProgress(localProgress, remoteProgress, preferIncomingOnTie: true);
-      }
+      final resolvedProgress = localProgress == null
+          ? remoteProgress
+          : _preferMostRecentProgress(localProgress, remoteProgress);
 
       _setProgress(key, resolvedProgress);
 
@@ -653,7 +638,7 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
       await _persistProgress(resolvedProgress);
       return resolvedProgress;
     } on DioException catch (e) {
-      if (!operationRef.mounted) {
+      if (!operationRef.mounted || _activeUserId() != effectiveUserId) {
         return localProgress;
       }
       if (e.response?.statusCode == 404) {
@@ -695,11 +680,11 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
     try {
       final key = _progressKey(libraryItemId, session.episodeId);
 
+      final effectiveUserId = session.userId;
       MediaProgress? updatedProgress = _progressByKey[key];
-
-      final String effectiveUserId = (updatedProgress?.userId.isNotEmpty ?? false)
-          ? updatedProgress!.userId
-          : (_activeUserId() ?? session.userId);
+      if (updatedProgress?.userId != effectiveUserId) {
+        updatedProgress = (await _loadLocalProgressMap(userId: effectiveUserId))[key];
+      }
 
       if (updatedProgress == null) {
         updatedProgress = session.toMediaProgress(null, effectiveUserId, 0, 0);
@@ -722,8 +707,8 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
             currentTime: currentTime,
             lastUpdate: nextLastUpdate,
           );
-          _setProgress(key, updatedProgress);
-          unawaited(_persistProgress(updatedProgress));
+          if (_activeUserId() == effectiveUserId) _setProgress(key, updatedProgress);
+          await _persistProgress(updatedProgress);
           return updatedProgress;
         }
 
@@ -755,7 +740,7 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
         lastUpdate: nextLastUpdate,
       );
 
-      _setProgress(key, updatedProgress);
+      if (_activeUserId() == effectiveUserId) _setProgress(key, updatedProgress);
       await _persistProgress(updatedProgress);
       return updatedProgress;
     } catch (e, s) {
@@ -774,9 +759,12 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
 
     final incomingLastUpdated = _lastUpdatedMillis(progress);
     final existingLastUpdated = _lastUpdatedMillis(existingProgress);
-    final finishedStateChanged = existingProgress != null && progress.isFinished != existingProgress.isFinished;
+    if (progress.userId != _activeUserId()) {
+      unawaited(_persistProgress(progress));
+      return;
+    }
 
-    if (incomingLastUpdated < existingLastUpdated && !finishedStateChanged) {
+    if (incomingLastUpdated <= existingLastUpdated && existingProgress != null) {
       logger(
         'Ignoring stale remote progress update for key $key '
         '(incoming=$incomingLastUpdated, existing=$existingLastUpdated).',
@@ -786,15 +774,6 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
 
       unawaited(_persistProgress(progress));
       return;
-    }
-
-    if (incomingLastUpdated < existingLastUpdated && finishedStateChanged) {
-      logger(
-        'Accepting older remote progress update for key $key due to finished-state change '
-        '(incomingFinished=${progress.isFinished}, existingFinished=${existingProgress.isFinished}).',
-        tag: 'MediaProgressProvider',
-        level: InfoLevel.debug,
-      );
     }
 
     _setProgress(key, progress);

@@ -84,7 +84,7 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
           _setQueueTransitionLoading(false, emitMediaWhenEmpty: true);
           return false;
         }
-        await _setSource(ignoreSavedProgress: true);
+        await _setSource(initialPosition: position, ignoreSavedProgress: true);
       } catch (e, s) {
         logger('Failed to prepare item $itemId for playback: $e\n$s', tag: 'AudioHandler', level: InfoLevel.error);
         _currentMediaItem = null;

@@ -1193,22 +1193,19 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       _emitQueueState();
       _persistQueueIntentSoon();
     }
+    final finalSync = stopBinding == null
+        ? null
+        : _syncService.flush(positionOverride: stopPosition, sessionClosing: true, binding: stopBinding);
+    await _safePlayerStop();
     try {
       if (stopBinding != null) {
-        unawaited(
-          _syncService
-              .flush(positionOverride: stopPosition, sessionClosing: true, binding: stopBinding)
-              .catchError((Object e) {
-                logger('Error syncing stopped session: $e', tag: 'AudioHandler', level: InfoLevel.warning);
-                return false;
-              })
-              .then((_) => sessionRepository.closeSessionBinding(stopBinding)),
-        );
+        await finalSync;
+        await sessionRepository.closeSessionBinding(stopBinding);
       }
     } catch (e) {
       logger('Error closing session: $e', tag: 'AudioHandler', level: InfoLevel.error);
     }
-    return _safePlayerStop();
+    return;
   }
 
   Future<void> _safePlayerStop() async {
@@ -1237,6 +1234,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     }
 
     await _player.pause();
+    await _syncService.flush();
     _recordPausedPlaybackMarker();
     TrayManager.update();
     return Future.value();

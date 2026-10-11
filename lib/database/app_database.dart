@@ -1050,7 +1050,12 @@ class AppDatabase extends _$AppDatabase {
     }
   }
 
-  Future<InternalDownload?> getStoredDownload(String itemId, String userId, {String? episodeId}) async {
+  Future<InternalDownload?> getStoredDownload(
+    String itemId,
+    String userId, {
+    String? episodeId,
+    bool allowIncomplete = false,
+  }) async {
     final query = select(storedDownloads)..where((tbl) => tbl.itemId.equals(itemId) & tbl.userId.equals(userId));
     if (episodeId != null) {
       query.where((tbl) => tbl.episodeId.equals(episodeId));
@@ -1064,7 +1069,7 @@ class AppDatabase extends _$AppDatabase {
       if (download == null) {
         return null;
       }
-      if (download.isComplete) {
+      if (download.isComplete || allowIncomplete) {
         return download;
       } else {
         logger(
@@ -2000,6 +2005,18 @@ class AppDatabase extends _$AppDatabase {
   Future<void> deleteSync(String sessionId) {
     final query = delete(storedSyncs)..where((tbl) => tbl.sessionId.equals(sessionId));
     return query.go();
+  }
+
+  Future<void> deleteSyncIfUnchanged(StoredSyncEntry sync) {
+    return (delete(storedSyncs)..where(
+          (row) =>
+              row.sessionId.equals(sync.sessionId) &
+              row.lastUpdated.equals(sync.lastUpdated) &
+              row.currentTime.equals(sync.currentTime) &
+              row.timeListened.equals(sync.timeListened) &
+              row.mediaProgress.equals(sync.mediaProgress),
+        ))
+        .go();
   }
 
   Future<StoredSyncEntry?> getSync(String sessionId) async {

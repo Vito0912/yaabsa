@@ -6,30 +6,36 @@ extension _BGAudioHandlerSource on BGAudioHandler {
     bool ignoreSavedProgress = false,
     int transcodeStartupAttempt = 0,
   }) async {
-    if (_currentMediaItem == null) return Future.value();
+    final loadingMedia = _currentMediaItem;
+    if (loadingMedia == null) return Future.value();
 
     await _applyPreferredPlaybackSpeed(seedPerBookSpeedWhenMissing: true);
+    if (!identical(_currentMediaItem, loadingMedia) || _isDisposing) {
+      throw PlayerInterruptedException('Playback preparation interrupted');
+    }
 
     final requestHeaders = _currentRequestHeadersInternal;
     final source = _currentMediaItem!.toAudioSources(headers: requestHeaders);
     if (!ignoreSavedProgress) {
-      final sessionStartTimeSeconds = _ref.read(sessionRepositoryProvider).currentSession?.startTime;
-      if (sessionStartTimeSeconds != null && sessionStartTimeSeconds > 0) {
-        initialPosition = Duration(microseconds: (sessionStartTimeSeconds * Duration.microsecondsPerSecond).round());
+      final currentProgress = await _ref
+          .read(mediaProgressProvider.notifier)
+          .fetchOrRefreshIndividualProgress(loadingMedia.itemId, episodeId: loadingMedia.episodeId);
+      if (!identical(_currentMediaItem, loadingMedia) || _isDisposing) {
+        throw PlayerInterruptedException('Playback preparation interrupted');
+      }
+      if (currentProgress != null) {
+        if (currentProgress.isFinished) {
+          initialPosition = Duration.zero;
+          logger('Progress indicates finished. Starting from beginning', tag: 'AudioHandler', level: InfoLevel.debug);
+        } else {
+          initialPosition = Duration(
+            microseconds: (currentProgress.currentTime * Duration.microsecondsPerSecond).round(),
+          );
+        }
       } else {
-        final currentProgress = _ref
-            .read(mediaProgressProvider.notifier)
-            .progressForKey(mediaProgressKey(_currentMediaItem!.itemId, _currentMediaItem!.episodeId));
-
-        if (currentProgress != null) {
-          if (currentProgress.isFinished == true) {
-            initialPosition = Duration.zero;
-            logger('Progress indicates finished. Starting from beginning', tag: 'AudioHandler', level: InfoLevel.debug);
-          } else {
-            initialPosition = Duration(
-              microseconds: ((currentProgress.currentTime) * Duration.microsecondsPerSecond).round(),
-            );
-          }
+        final sessionStartTimeSeconds = _ref.read(sessionRepositoryProvider).currentSession?.startTime;
+        if (sessionStartTimeSeconds != null && sessionStartTimeSeconds > 0) {
+          initialPosition = Duration(microseconds: (sessionStartTimeSeconds * Duration.microsecondsPerSecond).round());
         }
       }
     }
@@ -43,7 +49,6 @@ extension _BGAudioHandlerSource on BGAudioHandler {
         ? initialPosition - trackStartDuration
         : Duration.zero;
     _currentTrackIndex = trackIndex;
-    final loadingMedia = _currentMediaItem;
 
     final setSourceStopwatch = Stopwatch()..start();
     final sourceLoadError = Completer<PlayerException>();
@@ -77,7 +82,7 @@ extension _BGAudioHandlerSource on BGAudioHandler {
           !_isDisposing &&
           !isCastControlActive &&
           session?.playMethod == 2 &&
-          _ref.read(sessionRepositoryProvider).streamSessionId == loadingMedia?.sessionId &&
+          _ref.read(sessionRepositoryProvider).streamSessionId == loadingMedia.sessionId &&
           transcodeStartupAttempt < 10 &&
           _isRetryableTranscodeStartupError(error)) {
         final delay = Duration(seconds: transcodeStartupAttempt < 5 ? 4 : 6);

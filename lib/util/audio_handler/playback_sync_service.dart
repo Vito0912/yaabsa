@@ -363,6 +363,7 @@ class PlaybackSyncService {
   }
 
   Future<void> dispose() async {
+    await flush(sessionClosing: true);
     _disposed = true;
     _reachabilitySubscription?.close();
     _reachabilitySubscription = null;
