@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.14.1
+
+### Fixed
+
+(iOS) SSO login should now work again
+
 ## 1.14.0
 
 ### Fixed
