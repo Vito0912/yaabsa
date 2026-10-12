@@ -7,10 +7,11 @@ import 'dart:math' as math;
 
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
+import 'package:background_downloader/background_downloader.dart' show TaskRecord, TaskStatus;
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
-import 'package:flutter/services.dart' show PlatformException;
+import 'package:flutter/services.dart' show MethodChannel, PlatformException;
 import 'package:flutter_chrome_cast/flutter_chrome_cast.dart';
 import 'package:yaabsa/api/library/filter_data/library_filter_data.dart';
 import 'package:yaabsa/api/library/library.dart';
@@ -30,6 +31,7 @@ import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/models/internal_download.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/common/library_item_provider.dart';
+import 'package:yaabsa/provider/common/library_item_events.dart';
 import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/library/personalized_shelf_refresh.dart';
@@ -40,7 +42,7 @@ import 'package:yaabsa/provider/player/session_provider.dart';
 import 'package:yaabsa/provider/player/queue_source_provider.dart';
 import 'package:yaabsa/provider/library/smart_download_provider.dart';
 import 'package:yaabsa/models/queue_source.dart';
-import 'package:yaabsa/util/globals.dart' show packageInfo;
+import 'package:yaabsa/util/globals.dart' show packageInfo, downloadHandler;
 import 'package:yaabsa/util/handler/sleep_timer_handler.dart';
 import 'package:yaabsa/util/audio_handler/playback_error_classifier.dart';
 import 'package:yaabsa/util/audio_handler/playback_sync_service.dart';
@@ -76,6 +78,14 @@ part 'auto/bg_audio_handler_android_auto_ids.dart';
 part 'auto/bg_audio_handler_android_auto_data.dart';
 part 'auto/bg_audio_handler_android_auto_media.dart';
 part 'auto/bg_audio_handler_android_auto_browse.dart';
+part 'auto/bg_audio_handler_automotive.dart';
+part 'auto/bg_audio_handler_car_requests.dart';
+part 'auto/bg_audio_handler_car_support.dart';
+part 'auto/bg_audio_handler_car_library_icons.dart';
+part 'auto/bg_audio_handler_automotive_browse_actions.dart';
+part 'auto/bg_audio_handler_automotive_lifecycle.dart';
+part 'auto/bg_audio_handler_android_auto_preferences.dart';
+part 'auto/bg_audio_handler_android_auto_library_browse.dart';
 
 const String _androidAutoCustomActionRewind = 'aa.custom.rewind';
 const String _androidAutoCustomActionFastForward = 'aa.custom.fast_forward';
@@ -119,6 +129,20 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   late final ProviderSubscription<ABSApi?> _androidAutoApiSubscription;
   late final ProviderSubscription<bool> _androidAutoServerReachabilitySubscription;
   late final ProviderSubscription<int> _androidAutoMediaProgressSubscription;
+  ProviderSubscription<LibraryItemMutation?>? _aaosLibraryMutationSubscription;
+  StreamSubscription<List<InternalDownload>>? _aaosDownloadsSubscription;
+  StreamSubscription<List<TaskRecord>>? _aaosBrowseTasksSubscription;
+  Timer? _aaosBrowseActionRefreshTimer;
+  final Map<(String, String?), InternalDownload> _aaosBrowseDownloads = {};
+  final Set<(String, String?)> _aaosBrowseActiveDownloads = {};
+  final Set<(String, String, String?)> _aaosBrowsePreparingDownloads = {};
+  bool _aaosBrowseDownloadsReady = false;
+  final Map<String, BehaviorSubject<Map<String, dynamic>>> _aaosChildrenSignals = {};
+  final Map<String, ({DateTime startedAt, Future<Object?> future})> _carBrowseRequests = {};
+  Timer? _aaosContentRefreshTimer;
+  Timer? _aaosRetryTimer;
+  Future<void>? _aaosContinueRefreshFuture;
+  String? _aaosDownloadsUserId;
   int _currentNotificationPageIndex = 0;
   List<List<String>> _notificationPages = const [
     ['rewind', 'fastForward', 'speed', 'stop'],
@@ -218,7 +242,6 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   bool _forceQueueSwitchOnNextPlay = false;
   bool _androidAutoMoreMenuVisible = false;
   Timer? _androidAutoMoreMenuTimer;
-  Future<void>? _androidAutoBrowseRefreshFuture;
   Future<void>? _androidAutoBrowsePreparationFuture;
   bool _androidAutoPreparedForNextLaunch = false;
   int _androidAutoBrowseSession = 0;
@@ -304,10 +327,18 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   }
 
   void invalidateAndroidAutoBrowseState({bool notify = true}) {
-    _androidAutoInvalidateBrowseState(this, notify: notify);
+    unawaited(_aaosScheduleContentRefresh(this, notify: notify));
   }
 
   AndroidAutoBrowseResult<AndroidAutoBrowseSnapshot> get androidAutoBrowseState => _androidAutoBrowseCache.state;
+
+  @override
+  ValueStream<Map<String, dynamic>> subscribeToChildren(String parentMediaId) {
+    return _aaosChildrenSignals.putIfAbsent(
+      parentMediaId,
+      () => BehaviorSubject<Map<String, dynamic>>.seeded(<String, dynamic>{}),
+    );
+  }
 
   void completeAndroidAutoBrowseLaunch() {
     _androidAutoPreparedForNextLaunch = false;
@@ -729,17 +760,53 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   @override
   Future<List<MediaItem>> getChildren(String parentMediaId, [Map<String, dynamic>? options]) {
-    return _androidAutoGetChildren(parentMediaId, options: options);
+    return runZoned(() async {
+      for (var attempt = 0; attempt < 2; attempt++) {
+        try {
+          final children = await _androidAutoGetChildren(parentMediaId, options: options);
+          final actionLimit = options?[_aaosBrowseActionLimitKey] as int? ?? 0;
+          final generation = _androidAutoBrowseCache.generation;
+          final decorated = await _aaosAttachBrowseActions(this, children, limit: actionLimit);
+
+          if (generation != _androidAutoBrowseCache.generation) {
+            throw const AndroidAutoBrowseStaleRequestException();
+          }
+
+          return decorated;
+        } on AndroidAutoBrowseStaleRequestException {
+          if (!await _androidAutoIsAutomotiveSystem()) {
+            rethrow;
+          }
+        }
+      }
+
+      _aaosBeginBrowseLoading(this);
+      _aaosScheduleRetry(this);
+      return const <MediaItem>[];
+    }, zoneValues: {#carBrowseRequest: true});
   }
 
   @override
   Future<MediaItem?> getMediaItem(String mediaId) {
-    return _androidAutoGetMediaItem(mediaId);
+    return runZoned(() async {
+      final item = await _androidAutoGetMediaItem(mediaId);
+
+      if (item == null) {
+        return null;
+      }
+
+      return (await _aaosAttachBrowseActions(this, [item])).first;
+    }, zoneValues: {#carBrowseRequest: true});
   }
 
   @override
   Future<List<MediaItem>> search(String query, [Map<String, dynamic>? extras]) {
-    return _androidAutoSearch(query, extras: extras);
+    return runZoned(() async {
+      final items = await _androidAutoSearch(query, extras: extras);
+      final actionLimit = extras?[_aaosBrowseActionLimitKey] as int? ?? 0;
+
+      return _aaosAttachBrowseActions(this, items, limit: actionLimit);
+    }, zoneValues: {#carBrowseRequest: true});
   }
 
   @override
@@ -1205,6 +1272,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     } catch (e) {
       logger('Error closing session: $e', tag: 'AudioHandler', level: InfoLevel.error);
     }
+    _androidAutoScheduleContinueRefresh(this);
     return;
   }
 
@@ -1235,6 +1303,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
     await _player.pause();
     await _syncService.flush();
+    _androidAutoScheduleContinueRefresh(this);
     _recordPausedPlaybackMarker();
     TrayManager.update();
     return Future.value();
@@ -1569,7 +1638,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         .getGlobalSetting<String>(SettingKeys.mediaNotificationType);
     final mode = MediaNotificationType.fromSettingValue(settingValue);
 
-    if (mode != MediaNotificationType.chapter) {
+    if (mode != MediaNotificationType.chapter || _androidAutoIsAutomotiveSystemCache == true) {
       _chapterNotificationEnabled = false;
       _chapterNotificationOffset = Duration.zero;
       _chapterNotificationDuration = Duration.zero;
@@ -1596,7 +1665,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     final currentItem = _currentMediaItem;
     if (currentItem == null) return;
 
-    late final MediaItem nextMediaItem;
+    late MediaItem nextMediaItem;
     if (_chapterNotificationEnabled) {
       final searchPos = customPosition ?? position;
       final chapter = currentItem.getChapterForDuration(searchPos);
@@ -1613,6 +1682,14 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       );
     } else {
       nextMediaItem = currentItem.toMediaItem();
+    }
+
+    if (_androidAutoIsAutomotiveSystemCache == true) {
+      nextMediaItem = nextMediaItem.copyWith(
+        id: currentItem.episodeId == null
+            ? _androidAutoItemPlaybackId(currentItem.itemId)
+            : _androidAutoEpisodePlaybackId(currentItem.itemId, currentItem.episodeId!),
+      );
     }
 
     final publishedMediaItem = mediaItem.valueOrNull;
@@ -1674,7 +1751,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         return;
       }
 
-      _androidAutoInvalidateBrowseState(this);
+      _androidAutoInvalidateBrowseState(this, notify: false);
+      unawaited(_aaosHandleApiChanged(this));
     });
 
     _androidAutoServerReachabilitySubscription = _ref.listen<bool>(serverReachabilityProvider, (previous, next) {
@@ -2343,6 +2421,20 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     _androidAutoApiSubscription.close();
     _androidAutoServerReachabilitySubscription.close();
     _androidAutoMediaProgressSubscription.close();
+    _aaosLibraryMutationSubscription?.close();
+    await _aaosDownloadsSubscription?.cancel();
+    await _aaosBrowseTasksSubscription?.cancel();
+    _aaosBrowseActionRefreshTimer?.cancel();
+    _aaosBrowseDownloads.clear();
+    _aaosBrowseActiveDownloads.clear();
+    _aaosBrowsePreparingDownloads.clear();
+    _aaosContentRefreshTimer?.cancel();
+    _aaosRetryTimer?.cancel();
+    for (final signal in _aaosChildrenSignals.values) {
+      await signal.close();
+    }
+    _aaosChildrenSignals.clear();
+    _carBrowseRequests.clear();
     await _activeUserIdSubscription.cancel();
     await _showLastPlayedMiniPlayerSettingSubscription.cancel();
     await _mediaNotificationTypeSubscription.cancel();

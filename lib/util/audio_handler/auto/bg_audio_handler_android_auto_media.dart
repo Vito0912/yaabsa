@@ -84,6 +84,17 @@ extension _BGAudioHandlerAndroidAutoMedia on BGAudioHandler {
     return media.hasAudio;
   }
 
+  bool _androidAutoHasAvailableAudio(LibraryItem item) {
+    if (!_androidAutoIsPodcastLibraryItem(item)) {
+      return _androidAutoIsPlayableAudioItem(item);
+    }
+
+    final podcast = item.media?.podcastMedia;
+
+    return (podcast?.numEpisodes ?? 0) > 0 ||
+        (podcast?.episodes?.any((episode) => episode.audioFile != null || episode.audioTrack != null) ?? false);
+  }
+
   bool _androidAutoIsPlayableAudioItem(LibraryItem item) {
     final media = item.media;
     if (media == null) {

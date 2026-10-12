@@ -27,7 +27,7 @@ extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
     return '${uri.scheme}://${uri.host}$port';
   }
 
-  Future<List<Library>> _androidAutoFetchLibraries({String? include, bool rethrowOnError = false}) async {
+  Future<List<Library>> _androidAutoFetchLibrariesLive({String? include, bool rethrowOnError = false}) async {
     final api = _ref.read(absApiProvider);
     if (api == null) {
       if (rethrowOnError) {
@@ -45,6 +45,9 @@ extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
         ..sort((left, right) => left.displayOrder.compareTo(right.displayOrder));
       return libraries;
     } catch (e) {
+      if (await _androidAutoIsAutomotiveSystem()) {
+        rethrow;
+      }
       logger('Failed to fetch Android Auto libraries: $e', tag: 'AAOSBrowse', level: InfoLevel.warning);
       if (rethrowOnError) {
         rethrow;
@@ -91,7 +94,7 @@ extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
     return audioLibraries;
   }
 
-  Future<List<MediaItem>> _androidAutoFetchContinueItems() async {
+  Future<List<MediaItem>> _androidAutoFetchContinueItemsLive() async {
     final api = _ref.read(absApiProvider);
     if (api == null) {
       throw StateError('AAOS browse API is not ready');
@@ -114,8 +117,8 @@ extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
         throw StateError('AAOS items-in-progress response was empty');
       }
 
-      await _androidAutoEnsureMediaProgress();
-      final playableItems = _androidAutoContinueMediaItems(data.libraryItems);
+      unawaited(_androidAutoEnsureMediaProgress());
+      final playableItems = _aaosContinueWithProgress(this, _androidAutoContinueMediaItems(data.libraryItems));
       logger(
         'items-in-progress: serverItems=${data.libraryItems.length}; playableItems=${playableItems.length}',
         tag: 'AAOSBrowse',
@@ -129,7 +132,7 @@ extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
     }
   }
 
-  Future<PersonalizedLibrary?> _androidAutoFetchPersonalizedLibrary(String libraryId) async {
+  Future<PersonalizedLibrary?> _androidAutoFetchPersonalizedLibraryLive(String libraryId) async {
     final api = _ref.read(absApiProvider);
     if (api == null) {
       return null;
@@ -142,6 +145,9 @@ extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
       );
       return response.data;
     } catch (e) {
+      if (await _androidAutoIsAutomotiveSystem()) {
+        rethrow;
+      }
       logger(
         'Failed to fetch Android Auto personalized data for $libraryId: $e',
         tag: 'AudioHandler',
@@ -166,6 +172,9 @@ extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
       );
       return response.data?.episodes ?? const <Episode>[];
     } catch (e) {
+      if (await _androidAutoIsAutomotiveSystem()) {
+        rethrow;
+      }
       logger(
         'Failed to fetch Android Auto latest episodes for $libraryId: $e',
         tag: 'AudioHandler',
@@ -175,7 +184,7 @@ extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
     }
   }
 
-  Future<LibraryFilterData?> _androidAutoFetchFilterData(String libraryId) async {
+  Future<LibraryFilterData?> _androidAutoFetchFilterDataLive(String libraryId) async {
     final api = _ref.read(absApiProvider);
     if (api == null) {
       return null;
@@ -188,6 +197,9 @@ extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
       );
       return response.data?.filterData;
     } catch (e) {
+      if (await _androidAutoIsAutomotiveSystem()) {
+        rethrow;
+      }
       logger(
         'Failed to fetch Android Auto filter data for $libraryId: $e',
         tag: 'AudioHandler',
@@ -197,7 +209,7 @@ extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
     }
   }
 
-  Future<_AndroidAutoSeriesPage> _androidAutoFetchSeriesPageForLibrary(
+  Future<_AndroidAutoSeriesPage> _androidAutoFetchSeriesPageForLibraryLive(
     String libraryId,
     _AndroidAutoPagingOptions paging,
   ) async {
@@ -221,12 +233,15 @@ extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
         pageSize: data?.limit ?? paging.pageSize,
       );
     } catch (e) {
+      if (await _androidAutoIsAutomotiveSystem()) {
+        rethrow;
+      }
       logger('Failed to fetch Android Auto series for $libraryId: $e', tag: 'AudioHandler', level: InfoLevel.warning);
       return _AndroidAutoSeriesPage(series: const <Series>[], total: 0, page: paging.page, pageSize: paging.pageSize);
     }
   }
 
-  Future<List<Collection>> _androidAutoFetchCollectionsForLibrary(String libraryId) async {
+  Future<List<Collection>> _androidAutoFetchCollectionsForLibraryLive(String libraryId) async {
     final api = _ref.read(absApiProvider);
     if (api == null) {
       return const <Collection>[];
@@ -241,6 +256,9 @@ extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
             ..sort((left, right) => left.name.toLowerCase().compareTo(right.name.toLowerCase()));
       return items;
     } catch (e) {
+      if (await _androidAutoIsAutomotiveSystem()) {
+        rethrow;
+      }
       logger(
         'Failed to fetch Android Auto collections for $libraryId: $e',
         tag: 'AudioHandler',
@@ -250,7 +268,7 @@ extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
     }
   }
 
-  Future<List<Playlist>> _androidAutoFetchPlaylistsForLibrary(String libraryId) async {
+  Future<List<Playlist>> _androidAutoFetchPlaylistsForLibraryLive(String libraryId) async {
     final api = _ref.read(absApiProvider);
     if (api == null) {
       return const <Playlist>[];
@@ -265,6 +283,9 @@ extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
             ..sort((left, right) => left.name.toLowerCase().compareTo(right.name.toLowerCase()));
       return items;
     } catch (e) {
+      if (await _androidAutoIsAutomotiveSystem()) {
+        rethrow;
+      }
       logger(
         'Failed to fetch Android Auto playlists for $libraryId: $e',
         tag: 'AudioHandler',
@@ -274,7 +295,7 @@ extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
     }
   }
 
-  Future<_AndroidAutoLibraryItemsPage> _androidAutoFetchLibraryItemsPage({
+  Future<_AndroidAutoLibraryItemsPage> _androidAutoFetchLibraryItemsPageLive({
     required String libraryId,
     required _AndroidAutoPagingOptions paging,
     String? sort,
@@ -334,6 +355,9 @@ extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
         } catch (_) {}
       }
 
+      if (await _androidAutoIsAutomotiveSystem()) {
+        rethrow;
+      }
       logger(
         'Failed to fetch Android Auto library items for $libraryId: $e',
         tag: 'AudioHandler',
@@ -348,7 +372,7 @@ extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
     }
   }
 
-  Future<List<LibraryItem>> _androidAutoFetchAllLibraryItems({
+  Future<List<LibraryItem>> _androidAutoFetchAllLibraryItemsLive({
     required String libraryId,
     required String sort,
     required int desc,
@@ -356,185 +380,42 @@ extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
     int? collapseseries,
     String? include,
   }) async {
-    final allItems = <LibraryItem>[];
-    final seen = <String>{};
-    var page = 0;
-
-    while (page < 500) {
-      final pageResult = await _androidAutoFetchLibraryItemsPage(
+    Future<_AndroidAutoLibraryItemsPage> loadPage(int page, int pageSize) {
+      return _androidAutoFetchLibraryItemsPage(
         libraryId: libraryId,
-        paging: _AndroidAutoPagingOptions(page: page, pageSize: _androidAutoDefaultPageSize, hasExplicitPaging: true),
+        paging: _AndroidAutoPagingOptions(page: page, pageSize: pageSize, hasExplicitPaging: true),
         sort: sort,
         desc: desc,
         filter: filter,
         collapseseries: collapseseries,
         include: include,
       );
+    }
 
-      if (pageResult.items.isEmpty) {
-        break;
-      }
-
-      for (final item in pageResult.items) {
-        if (seen.add(item.id)) {
-          allItems.add(item);
+    final firstPage = await loadPage(0, _androidAutoMaxPageSize);
+    final allItems = <LibraryItem>[...firstPage.items];
+    final seen = firstPage.items.map((item) => item.id).toSet();
+    if (!firstPage.hasMore || firstPage.items.isEmpty || firstPage.pageSize <= 0) {
+      return allItems;
+    }
+    final totalPages = ((firstPage.total + firstPage.pageSize - 1) ~/ firstPage.pageSize).clamp(1, 500);
+    for (var startPage = 1; startPage < totalPages; startPage += 4) {
+      final pages = await Future.wait([
+        for (var page = startPage; page < startPage + 4 && page < totalPages; page++)
+          loadPage(page, firstPage.pageSize),
+      ]);
+      for (var index = 0; index < pages.length; index++) {
+        final page = pages[index];
+        if (page.items.isEmpty || page.page != startPage + index) {
+          return allItems;
+        }
+        for (final item in page.items) {
+          if (seen.add(item.id)) {
+            allItems.add(item);
+          }
         }
       }
-
-      if (!pageResult.hasMore) {
-        break;
-      }
-
-      page += 1;
     }
-
     return allItems;
-  }
-
-  Future<InternalDownload?> _androidAutoStoredDownload(String itemId, {String? episodeId}) async {
-    final user = await _androidAutoCurrentUser();
-    if (user == null) {
-      return null;
-    }
-
-    return _ref.read(appDatabaseProvider).getStoredDownload(itemId, user.id, episodeId: episodeId);
-  }
-
-  Future<User?> _androidAutoCurrentUser() async {
-    final db = _ref.read(appDatabaseProvider);
-    final activeUserId = (await db.getGlobalSetting('activeUserId'))?.value.trim();
-    if (activeUserId == null || activeUserId.isEmpty) {
-      return null;
-    }
-
-    final currentUserAsync = _ref.read(currentUserProvider);
-    if (currentUserAsync.hasValue && currentUserAsync.value?.id == activeUserId) {
-      return currentUserAsync.value;
-    }
-
-    try {
-      final currentUser = await _ref.read(currentUserProvider.future);
-      return currentUser?.id == activeUserId ? currentUser : null;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  Future<Library?> _androidAutoLibraryForId(String libraryId) async {
-    final libraries = await _androidAutoFetchLibraries();
-    for (final library in libraries) {
-      if (library.id == libraryId) {
-        return library;
-      }
-    }
-    return null;
-  }
-
-  Future<bool> _androidAutoLibraryIsPodcast(String libraryId) async {
-    final library = await _androidAutoLibraryForId(libraryId);
-    return library?.mediaType == 'podcast';
-  }
-
-  Future<bool> _androidAutoLibrarySortDescending() async {
-    final user = await _androidAutoCurrentUser();
-    return _ref
-        .read(settingsManagerProvider.notifier)
-        .getUserSetting<bool>(user?.id, SettingKeys.androidAutoLibrarySortDescending, defaultValue: false);
-  }
-
-  Future<bool> _androidAutoPodcastSortDescending() async {
-    final user = await _androidAutoCurrentUser();
-    return _ref
-        .read(settingsManagerProvider.notifier)
-        .getUserSetting<bool>(user?.id, SettingKeys.androidAutoPodcastSortDescending, defaultValue: true);
-  }
-
-  Future<String> _androidAutoLibrarySortField() async {
-    final user = await _androidAutoCurrentUser();
-    final sortField = _ref
-        .read(settingsManagerProvider.notifier)
-        .getUserSetting<String>(
-          user?.id,
-          SettingKeys.androidAutoLibrarySortField,
-          defaultValue: _androidAutoSortFieldTitle,
-        );
-
-    if (!_androidAutoBookSortFieldToApiSort.containsKey(sortField)) {
-      return _androidAutoSortFieldTitle;
-    }
-
-    return sortField;
-  }
-
-  Future<String> _androidAutoPodcastSortField() async {
-    final user = await _androidAutoCurrentUser();
-    final sortField = _ref
-        .read(settingsManagerProvider.notifier)
-        .getUserSetting<String>(
-          user?.id,
-          SettingKeys.androidAutoPodcastSortField,
-          defaultValue: _androidAutoSortFieldAdded,
-        );
-
-    if (!_androidAutoPodcastSortFieldToApiSort.containsKey(sortField)) {
-      return _androidAutoSortFieldAdded;
-    }
-
-    return sortField;
-  }
-
-  Future<bool> _androidAutoSortDescendingForLibrary(String libraryId) async {
-    if (await _androidAutoLibraryIsPodcast(libraryId)) {
-      return _androidAutoPodcastSortDescending();
-    }
-
-    return _androidAutoLibrarySortDescending();
-  }
-
-  Future<String> _androidAutoLibrarySortApiField() async {
-    final sortField = await _androidAutoLibrarySortField();
-    return _androidAutoBookSortFieldToApiSort[sortField] ??
-        _androidAutoBookSortFieldToApiSort[_androidAutoSortFieldTitle]!;
-  }
-
-  Future<String> _androidAutoPodcastSortApiField() async {
-    final sortField = await _androidAutoPodcastSortField();
-    return _androidAutoPodcastSortFieldToApiSort[sortField] ??
-        _androidAutoPodcastSortFieldToApiSort[_androidAutoSortFieldAdded]!;
-  }
-
-  Future<String> _androidAutoSortApiFieldForLibrary(String libraryId) async {
-    if (await _androidAutoLibraryIsPodcast(libraryId)) {
-      return _androidAutoPodcastSortApiField();
-    }
-
-    return _androidAutoLibrarySortApiField();
-  }
-
-  Future<bool> _androidAutoGroupByLettersEnabled() async {
-    final user = await _androidAutoCurrentUser();
-    return _ref
-        .read(settingsManagerProvider.notifier)
-        .getUserSetting<bool>(user?.id, SettingKeys.androidAutoGroupByLetters, defaultValue: true);
-  }
-
-  Future<bool> _androidAutoHasServerConnection() async {
-    final status = _ref.read(serverStatusProvider);
-    if (status.hasValue) {
-      return status.value ?? false;
-    }
-
-    final api = _ref.read(absApiProvider);
-    if (api == null) {
-      return false;
-    }
-
-    try {
-      await api.getMeApi().getPing();
-      return true;
-    } catch (_) {
-      logger('Failed to ping server for Android Auto connection check', tag: 'AudioHandler', level: InfoLevel.warning);
-      return false;
-    }
   }
 }

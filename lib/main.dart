@@ -28,6 +28,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 Future<void> _resumeLastPlayedOnStartup() async {
   try {
+    if (AaosService.instance.currentState.isAutomotiveDevice) {
+      return;
+    }
     await containerRef.read(currentUserProvider.future);
     if (isAudioHandlerInitialized) {
       await audioHandler.playLastPlayedIfEnabledOnStartup();

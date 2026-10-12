@@ -2,6 +2,10 @@ part of 'bg_audio_handler.dart';
 
 extension _BGAudioHandlerCustomActions on BGAudioHandler {
   Future<Map<String, dynamic>?> _handleCustomAction(String name, {Map<String, dynamic>? extras}) async {
+    if (name == _aaosBrowseDownloadAction || name == _aaosBrowseDeleteAction || name == _aaosBrowseDownloadingAction) {
+      return _aaosHandleBrowseDownloadAction(this, name, extras);
+    }
+
     if (name == _widgetCustomActionPlayLast) {
       final started = await playLastPlayed();
       logger('Widget custom action: play last (started=$started)', tag: 'AudioHandler', level: InfoLevel.info);

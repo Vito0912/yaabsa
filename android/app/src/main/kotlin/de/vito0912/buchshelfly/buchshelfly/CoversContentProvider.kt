@@ -28,6 +28,16 @@ class CoversContentProvider : ContentProvider() {
 
     @Throws(FileNotFoundException::class)
     override fun openFile(uri: Uri, mode: String): ParcelFileDescriptor? {
+        if (uri.pathSegments.firstOrNull() == "drawable") {
+            if (mode != "r") {
+                throw FileNotFoundException("Icons are read only")
+            }
+
+            val providerContext = context ?: throw FileNotFoundException("Icon provider is unavailable")
+            val name = uri.lastPathSegment ?: throw FileNotFoundException("No icon name")
+            return DrawableIconCache.open(providerContext, name)
+        }
+
         val lastSegment = uri.lastPathSegment ?: throw FileNotFoundException("No URI path segment")
         val source = try {
             val decodedBytes = Base64.decode(lastSegment, Base64.URL_SAFE or Base64.NO_PADDING)
@@ -139,6 +149,10 @@ class CoversContentProvider : ContentProvider() {
     ): Cursor? = null
 
     override fun getType(uri: Uri): String {
+        if (uri.pathSegments.firstOrNull() == "drawable") {
+            return "image/png"
+        }
+
         val lastSegment = uri.lastPathSegment ?: return "image/*"
         val source = try {
             val decodedBytes = Base64.decode(lastSegment, Base64.URL_SAFE or Base64.NO_PADDING)

@@ -18,6 +18,8 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/library/personalized_shelf_refresh.dart';
 import 'package:yaabsa/provider/library/smart_download_provider.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/util/aaos_service.dart';
+import 'package:yaabsa/util/globals.dart' show audioHandler, isAudioHandlerInitialized;
 import 'package:yaabsa/util/setting_key.dart';
 
 part 'socket_provider.g.dart';
@@ -107,6 +109,12 @@ ABSSocketClient absSocketClient(Ref ref) {
   final smartDownloadNotifier = ref.read(smartDownloadManagerProvider.notifier);
   final container = ref.container;
 
+  void refreshAutomotiveBrowse() {
+    if (isAudioHandlerInitialized && AaosService.instance.currentState.isAutomotiveDevice) {
+      audioHandler.invalidateAndroidAutoBrowseState();
+    }
+  }
+
   final socketClient = ABSSocketClient(
     onUserItemProgressUpdated: (event) {
       final progress = event.data;
@@ -187,36 +195,42 @@ ABSSocketClient absSocketClient(Ref ref) {
       serverTasksNotifier.updateTaskProgress(libraryItemId: libraryItemId, progress: progress);
     },
     onCollectionAdded: (collection) {
+      refreshAutomotiveBrowse();
       smartDownloadNotifier.requestReconcile(reason: 'collection added');
       unawaited(
         ref.read(collectionsProvider(collection.libraryId).notifier).refresh(withLoading: false, forceServer: true),
       );
     },
     onCollectionUpdated: (collection) {
+      refreshAutomotiveBrowse();
       smartDownloadNotifier.requestReconcile(reason: 'collection updated');
       unawaited(
         ref.read(collectionsProvider(collection.libraryId).notifier).refresh(withLoading: false, forceServer: true),
       );
     },
     onCollectionRemoved: (collection) {
+      refreshAutomotiveBrowse();
       smartDownloadNotifier.requestReconcile(reason: 'collection removed');
       unawaited(
         ref.read(collectionsProvider(collection.libraryId).notifier).refresh(withLoading: false, forceServer: true),
       );
     },
     onPlaylistAdded: (playlist) {
+      refreshAutomotiveBrowse();
       smartDownloadNotifier.requestReconcile(reason: 'playlist added');
       unawaited(
         ref.read(playlistsProvider(playlist.libraryId).notifier).refresh(withLoading: false, forceServer: true),
       );
     },
     onPlaylistUpdated: (playlist) {
+      refreshAutomotiveBrowse();
       smartDownloadNotifier.requestReconcile(reason: 'playlist updated');
       unawaited(
         ref.read(playlistsProvider(playlist.libraryId).notifier).refresh(withLoading: false, forceServer: true),
       );
     },
     onPlaylistRemoved: (playlist) {
+      refreshAutomotiveBrowse();
       smartDownloadNotifier.requestReconcile(reason: 'playlist removed');
       unawaited(
         ref.read(playlistsProvider(playlist.libraryId).notifier).refresh(withLoading: false, forceServer: true),
@@ -325,7 +339,9 @@ ABSSocketClient absSocketClient(Ref ref) {
 
   void syncSocketConnection() {
     final shouldSuppressForBackground =
-        !keepSocketConnectedInBackground && _isBackgroundLifecycleState(appLifecycleState);
+        !AaosService.instance.currentState.isAutomotiveDevice &&
+        !keepSocketConnectedInBackground &&
+        _isBackgroundLifecycleState(appLifecycleState);
 
     if (shouldSuppressForBackground) {
       if (!socketSuppressedForBackground) {
@@ -401,10 +417,17 @@ ABSSocketClient absSocketClient(Ref ref) {
     },
   );
 
+  final automotiveStateSubscription = AaosService.instance.stream.listen((_) {
+    syncSocketConnection();
+  });
+
   syncSocketConnection();
   unawaited(Future<void>(() => hydrateServerTasksForUser(currentUser, serverReachable: canReachServer)));
 
   ref.onDispose(lifecycleListener.dispose);
+  ref.onDispose(() {
+    unawaited(automotiveStateSubscription.cancel());
+  });
   ref.onDispose(socketClient.dispose);
 
   return socketClient;

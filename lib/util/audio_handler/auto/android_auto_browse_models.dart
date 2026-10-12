@@ -6,14 +6,36 @@ import 'package:yaabsa/api/library_items/library_item.dart';
 const String androidAutoContinueNodeId = 'aa/continue';
 const String androidAutoRecentNodeId = 'aa/recent';
 const String androidAutoLibrariesNodeId = 'aa/libraries';
+const String androidAutoDownloadsNodeId = 'aa/downloads';
+const String automotiveContinueProgressKnownKey = 'aaos.progressKnown';
+
+bool automotiveContinueSupportsGrid(List<MediaItem> items) {
+  return items.isNotEmpty && items.every((item) => item.extras?[automotiveContinueProgressKnownKey] == true);
+}
 
 class AndroidAutoBrowseSnapshot {
-  AndroidAutoBrowseSnapshot({required List<MediaItem> continueItems, required List<Library> audioLibraries})
-    : continueItems = List.unmodifiable(continueItems),
-      audioLibraries = List.unmodifiable(audioLibraries);
+  AndroidAutoBrowseSnapshot({
+    required List<MediaItem> continueItems,
+    required List<Library> audioLibraries,
+    List<MediaItem> downloadItems = const <MediaItem>[],
+    this.remoteContentUnavailable = false,
+  }) : continueItems = List.unmodifiable(continueItems),
+       audioLibraries = List.unmodifiable(audioLibraries),
+       downloadItems = List.unmodifiable(downloadItems);
 
   final List<MediaItem> continueItems;
   final List<Library> audioLibraries;
+  final List<MediaItem> downloadItems;
+  final bool remoteContentUnavailable;
+
+  AndroidAutoBrowseSnapshot copyWith({List<MediaItem>? continueItems, List<MediaItem>? downloadItems}) {
+    return AndroidAutoBrowseSnapshot(
+      continueItems: continueItems ?? this.continueItems,
+      audioLibraries: audioLibraries,
+      downloadItems: downloadItems ?? this.downloadItems,
+      remoteContentUnavailable: remoteContentUnavailable,
+    );
+  }
 }
 
 sealed class AndroidAutoBrowseResult<T> {
@@ -77,6 +99,9 @@ class AndroidAutoBrowseSnapshotCache {
         _state = AndroidAutoBrowseReady<AndroidAutoBrowseSnapshot>(nextSnapshot);
         return nextSnapshot;
       } catch (error, stackTrace) {
+        if (requestGeneration != _generation) {
+          throw const AndroidAutoBrowseStaleRequestException();
+        }
         _state = AndroidAutoBrowseFailure<AndroidAutoBrowseSnapshot>(error, stackTrace);
         if (error is AndroidAutoBrowseStaleRequestException) {
           rethrow;
@@ -152,11 +177,24 @@ List<MediaItem> buildAndroidAutoRoot(
         id: nodeId(androidAutoContinueNodeId),
         title: 'Continue',
         artUri: artUri('continue_ic'),
+        playableStyle: automotiveContinueSupportsGrid(snapshot.continueItems)
+            ? AndroidContentStyle.gridItemHintValue
+            : AndroidContentStyle.listItemHintValue,
       ),
     if (snapshot.audioLibraries.isNotEmpty) ...[
-      _androidAutoBrowsableRootItem(id: nodeId(androidAutoLibrariesNodeId), title: 'Libraries', artUri: artUri('apps')),
-      _androidAutoBrowsableRootItem(id: nodeId(androidAutoRecentNodeId), title: 'Recent', artUri: artUri('recent')),
+      _androidAutoBrowsableRootItem(
+        id: nodeId(androidAutoLibrariesNodeId),
+        title: 'Libraries',
+        artUri: artUri('apps'),
+        browsableStyle: AndroidContentStyle.categoryListItemHintValue,
+      ),
     ],
+    if (snapshot.downloadItems.isNotEmpty)
+      _androidAutoBrowsableRootItem(
+        id: nodeId(androidAutoDownloadsNodeId),
+        title: 'Downloads',
+        artUri: artUri('download'),
+      ),
   ];
 }
 
@@ -189,13 +227,22 @@ bool _isAndroidAutoPodcastItem(LibraryItem item) {
   return item.mediaType == 'podcast' || item.media?.podcastMedia != null;
 }
 
-MediaItem _androidAutoBrowsableRootItem({required String id, required String title, Uri? artUri}) {
+MediaItem _androidAutoBrowsableRootItem({
+  required String id,
+  required String title,
+  Uri? artUri,
+  int browsableStyle = AndroidContentStyle.listItemHintValue,
+  int playableStyle = AndroidContentStyle.listItemHintValue,
+}) {
   return MediaItem(
     id: id,
     title: title,
     displayTitle: title,
     artUri: artUri,
     playable: false,
-    extras: const <String, dynamic>{'android.media.browse.CONTENT_STYLE_BROWSABLE_HINT': 2},
+    extras: <String, dynamic>{
+      AndroidContentStyle.browsableHintKey: browsableStyle,
+      AndroidContentStyle.playableHintKey: playableStyle,
+    },
   );
 }

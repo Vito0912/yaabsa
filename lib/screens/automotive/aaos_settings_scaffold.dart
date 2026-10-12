@@ -1,6 +1,8 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter/services.dart';
 import 'package:yaabsa/util/aaos_service.dart';
+import 'package:yaabsa/util/globals.dart' show audioHandler, isAudioHandlerInitialized;
 
 enum AaosSettingsBackTarget { mediaCenter, settingsHome }
 
@@ -23,41 +25,57 @@ class AaosSettingsScaffold extends StatelessWidget {
 
   Future<void> _handleBack(BuildContext context) async {
     if (backTarget == AaosSettingsBackTarget.settingsHome) {
-      context.go('/?tab=settings');
+      if (context.canPop()) {
+        context.pop();
+      } else {
+        context.go('/?tab=settings');
+      }
       return;
     }
 
+    if (isAudioHandlerInitialized) {
+      audioHandler.invalidateAndroidAutoBrowseState(notify: false);
+    }
     final launched = await AaosService.instance.launchMediaCenter(finishActivity: true);
     if (!context.mounted || launched) {
       return;
     }
 
-    context.go('/?tab=settings');
+    await SystemNavigator.pop();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          tooltip: 'Back',
-          onPressed: () async {
-            await _handleBack(context);
-          },
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Refresh',
-            onPressed: () {
-              _refreshCurrentRoute(context);
+    final isTopLevel = backTarget == AaosSettingsBackTarget.mediaCenter;
+    return PopScope(
+      canPop: !isTopLevel && context.canPop(),
+      onPopInvokedWithResult: (didPop, result) async {
+        if (!didPop) {
+          await _handleBack(context);
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(title),
+          leading: IconButton(
+            icon: Icon(isTopLevel ? Icons.close : Icons.arrow_back),
+            tooltip: isTopLevel ? 'Close' : 'Back',
+            onPressed: () async {
+              await _handleBack(context);
             },
           ),
-        ],
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              tooltip: 'Refresh',
+              onPressed: () {
+                _refreshCurrentRoute(context);
+              },
+            ),
+          ],
+        ),
+        body: SafeArea(child: child),
       ),
-      body: child,
     );
   }
 }

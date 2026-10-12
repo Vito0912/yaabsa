@@ -359,12 +359,12 @@ class DownloadHandler {
     return canceled;
   }
 
-  Future<bool> cancelDownloadForItem(String itemId, {String? episodeId}) async {
+  Future<bool> cancelDownloadForItem(String itemId, {String? episodeId, String? userId}) async {
     if (kIsWeb || _downloader == null) {
       return false;
     }
-    final userId = _ref.read(currentUserProvider).value?.id;
-    if (userId == null) {
+    final resolvedUserId = userId ?? _ref.read(currentUserProvider).value?.id;
+    if (resolvedUserId == null) {
       return false;
     }
     final records = await _downloader.database.allRecords();
@@ -375,7 +375,7 @@ class DownloadHandler {
           }
           final metadata = _parseMetaData(record.task.metaData);
           return metadata != null &&
-              metadata.userId == userId &&
+              metadata.userId == resolvedUserId &&
               metadata.itemId == itemId &&
               metadata.episodeId == episodeId;
         })
@@ -520,7 +520,7 @@ class DownloadHandler {
     return true;
   }
 
-  Future<void> _ensureNotificationPermissionForDownloads() async {
+  Future<void> _ensureNotificationPermissionForDownloads({bool requestPermission = true}) async {
     if (kIsWeb || _downloader == null || (!Platform.isAndroid && !Platform.isIOS)) {
       return;
     }
@@ -529,6 +529,10 @@ class DownloadHandler {
     var status = await _downloader.permissions.status(permissionType);
     if (status == PermissionStatus.granted || status == PermissionStatus.partial) {
       return;
+    }
+
+    if (!requestPermission) {
+      throw Exception('Notifications permission is required. Enable notifications in app settings.');
     }
 
     if (await _downloader.permissions.shouldShowRationale(permissionType)) {
@@ -560,6 +564,7 @@ class DownloadHandler {
     List<String> smartProfileIds = const <String>[],
     int? estimatedBytes,
     String? requiredUserId,
+    bool requestNotificationPermission = true,
   }) async {
     final userId = _ref.read(currentUserProvider).value?.id;
     final key = '$userId::$itemId::${episodeId ?? ''}';
@@ -576,6 +581,7 @@ class DownloadHandler {
         smartProfileIds: smartProfileIds,
         estimatedBytes: estimatedBytes,
         requiredUserId: requiredUserId,
+        requestNotificationPermission: requestNotificationPermission,
       );
     } finally {
       _preparingDownloads.remove(key);
@@ -593,6 +599,7 @@ class DownloadHandler {
     List<String> smartProfileIds = const <String>[],
     int? estimatedBytes,
     String? requiredUserId,
+    bool requestNotificationPermission = true,
   }) async {
     if (kIsWeb || _downloader == null) {
       throw UnsupportedError('Downloads are not supported on the Web');
@@ -669,7 +676,7 @@ class DownloadHandler {
           _sourceIsDownloaded(source, resolvedItem.id, episodeId, downloadedKeys, downloadedIndices, auxiliaryNames),
     );
     if (orderedSourceFiles.isEmpty) return;
-    await _ensureNotificationPermissionForDownloads();
+    await _ensureNotificationPermissionForDownloads(requestPermission: requestNotificationPermission);
     final expectedFileCount = orderedSourceFiles.length;
     final actualSourceBytes = orderedSourceFiles.fold<int>(0, (total, source) => total + (source.size ?? 0));
     final effectiveEstimatedBytes = actualSourceBytes > (estimatedBytes ?? 0) ? actualSourceBytes : estimatedBytes;
@@ -1253,7 +1260,7 @@ class DownloadHandler {
     }
 
     final episodeId = download.episode?.id;
-    await cancelDownloadForItem(itemId, episodeId: episodeId);
+    await cancelDownloadForItem(itemId, episodeId: episodeId, userId: userId);
     final persistenceKey = '$userId::$itemId::${episodeId ?? ''}';
     await Future.wait(
       _pendingDownloadPersistence.values.where((entry) => entry.key == persistenceKey).map((entry) => entry.future),

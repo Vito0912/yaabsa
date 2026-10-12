@@ -96,6 +96,7 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
   bool _isUploadPageVisible = false;
   bool _isUploadInProgress = false;
   bool _didRequestAaosMediaCenterLaunch = false;
+  bool _aaosMediaCenterLaunchFailed = false;
 
   late final NavigationItemConfig _downloadsMenuItem;
   late final List<NavigationItemConfig> _advancedMenuItems;
@@ -538,10 +539,19 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
           if (!mounted || launched) {
             return;
           }
+          setState(() {
+            _aaosMediaCenterLaunchFailed = true;
+          });
+          if (!context.mounted) {
+            return;
+          }
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Unable to open the Media Center. Try Open Car Library in Settings.')),
+          );
         });
       }
 
-      if (currentUser != null) {
+      if (currentUser != null && !_aaosMediaCenterLaunchFailed) {
         return const _LayoutHomeStartupScreen();
       }
 

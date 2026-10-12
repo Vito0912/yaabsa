@@ -114,6 +114,18 @@ class AaosService {
 
   Future<bool> _detectAutomotiveDevice() async {
     try {
+      final connectionType = await const MethodChannel('com.ryanheise.audio_service.client.methods')
+          .invokeMethod<int>('getCarConnectionType')
+          .timeout(const Duration(seconds: 1));
+
+      if (connectionType != null) {
+        return connectionType == 1;
+      }
+    } catch (error) {
+      logger('Native AAOS detection unavailable: $error', tag: 'AAOS', level: InfoLevel.debug);
+    }
+
+    try {
       final androidInfo = await _deviceInfoPlugin.androidInfo.timeout(const Duration(seconds: 2));
       return androidInfo.systemFeatures.contains(_automotiveFeatureFlag);
     } catch (error) {
@@ -128,17 +140,19 @@ class AaosService {
         return false;
       }
       if (isAudioHandlerInitialized) {
-        try {
-          await audioHandler.prepareAndroidAutoBrowse();
-        } catch (error, stackTrace) {
-          logger(
-            'AAOS browse preparation failed before media center launch: $error\n$stackTrace',
-            tag: 'AAOS',
-            level: InfoLevel.warning,
-          );
-        }
+        unawaited(
+          audioHandler.prepareAndroidAutoBrowse().catchError((Object error, StackTrace stackTrace) {
+            logger(
+              'AAOS browse preparation failed before media center launch: $error\n$stackTrace',
+              tag: 'AAOS',
+              level: InfoLevel.warning,
+            );
+          }),
+        );
       }
-      final result = await _channel.invokeMethod<bool>('launchMediaCenter', {'finishActivity': finishActivity});
+      final result = await _channel
+          .invokeMethod<bool>('launchMediaCenter', {'finishActivity': finishActivity})
+          .timeout(const Duration(seconds: 2));
       final launched = result ?? false;
       logger('AAOS media center launch result: $launched', tag: 'AAOS', level: InfoLevel.info);
       if (launched && isAudioHandlerInitialized) {

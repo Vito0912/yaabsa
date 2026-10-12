@@ -6,6 +6,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:yaabsa/api/me/request/login_request.dart';
@@ -757,7 +758,16 @@ class SignIn extends HookConsumerWidget {
 
     final activeStatus = status.value;
     final importedCodeNeedsPassword = importedMagicConfig.value?.isPasswordBearing == false;
-    final isForcedAaosAuth = signInQuery['authRequired'] == '1' && AaosService.instance.currentState.isAutomotiveDevice;
+    final isAutomotive = AaosService.instance.currentState.isAutomotiveDevice;
+    final isForcedAaosAuth = signInQuery['authRequired'] == '1' && isAutomotive;
+
+    Future<void> closeAutomotiveSignIn() async {
+      final launched = await AaosService.instance.launchMediaCenter(finishActivity: true);
+      if (!launched) {
+        await SystemNavigator.pop();
+      }
+    }
+
     final allowsLocal = activeStatus == null || activeStatus.authMethods.contains('local');
     final allowsOpenId = (activeStatus?.authMethods.contains('openid') ?? false) && !isWearPairing;
     const allowsApiKey = true;
@@ -775,8 +785,19 @@ class SignIn extends HookConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return PopScope(
-      canPop: !isForcedAaosAuth,
+      canPop: !isAutomotive,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (!didPop && isAutomotive) {
+          await closeAutomotiveSignIn();
+        }
+      },
       child: Scaffold(
+        appBar: isAutomotive
+            ? AppBar(
+                title: const Text('Sign in'),
+                leading: IconButton(tooltip: 'Close', icon: const Icon(Icons.close), onPressed: closeAutomotiveSignIn),
+              )
+            : null,
         backgroundColor: colorScheme.surface,
         body: Stack(
           children: [
@@ -806,7 +827,7 @@ class SignIn extends HookConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            if (hasStoredUsers && !isForcedAaosAuth) ...[
+                            if (hasStoredUsers && !isForcedAaosAuth && !isAutomotive) ...[
                               Align(
                                 alignment: Alignment.centerLeft,
                                 child: IconButton(
