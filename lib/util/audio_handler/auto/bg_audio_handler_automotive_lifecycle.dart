@@ -37,7 +37,7 @@ Future<void> _aaosWaitForBrowseReady(BGAudioHandler handler) async {
   }, fireImmediately: true);
 
   try {
-    await ready.future.timeout(const Duration(seconds: 2), onTimeout: () {});
+    await ready.future.timeout(const Duration(seconds: 15), onTimeout: () {});
   } finally {
     subscription.close();
   }
@@ -102,6 +102,10 @@ Future<void> _androidAutoAuthenticationChanged(BGAudioHandler handler, {required
     final apiChanged = currentApi != null && !identical(handler._androidAutoBrowseApi, currentApi);
 
     if (currentUser != null && (userChanged || apiChanged)) {
+      if (userChanged) {
+        handler._aaosPostSignInLoadingDeadline = DateTime.now().add(const Duration(seconds: 30));
+      }
+
       _androidAutoInvalidateBrowseState(handler, notify: false);
       handler._androidAutoBrowseUserId = currentUser.id;
       handler._androidAutoBrowseApi = currentApi;
@@ -141,6 +145,7 @@ Future<void> _androidAutoAuthenticationChanged(BGAudioHandler handler, {required
     _androidAutoInvalidateBrowseState(handler, notify: false);
     handler._androidAutoBrowseUserId = null;
     handler._androidAutoBrowseApi = null;
+    handler._aaosPostSignInLoadingDeadline = null;
     await _aaosObserveContent(handler, null);
     _androidAutoSetAuthenticationRequiredStateIfNeeded(handler);
   }
@@ -283,6 +288,34 @@ Future<AndroidAutoBrowseSnapshot> _androidAutoGetBrowseSnapshot(BGAudioHandler h
 }
 
 Future<AndroidAutoBrowseSnapshot> _androidAutoLoadBrowseSnapshot(BGAudioHandler handler, int requestGeneration) async {
+  while (true) {
+    final snapshot = await _aaosLoadBrowseSnapshotOnce(handler, requestGeneration);
+    final deadline = handler._aaosPostSignInLoadingDeadline;
+    final hasContent =
+        snapshot.continueItems.isNotEmpty || snapshot.audioLibraries.isNotEmpty || snapshot.downloadItems.isNotEmpty;
+    final retryAfterSignIn =
+        snapshot.remoteContentUnavailable && !hasContent && deadline != null && DateTime.now().isBefore(deadline);
+
+    if (!retryAfterSignIn) {
+      if (snapshot.remoteContentUnavailable) {
+        _aaosScheduleRetry(handler);
+      } else {
+        handler._aaosPostSignInLoadingDeadline = null;
+      }
+
+      return snapshot;
+    }
+
+    _aaosBeginBrowseLoading(handler);
+    await Future<void>.delayed(const Duration(seconds: 2));
+
+    if (handler._isDisposing || requestGeneration != handler._androidAutoBrowseCache.generation) {
+      throw const AndroidAutoBrowseStaleRequestException();
+    }
+  }
+}
+
+Future<AndroidAutoBrowseSnapshot> _aaosLoadBrowseSnapshotOnce(BGAudioHandler handler, int requestGeneration) async {
   final requestApi = handler._ref.read(absApiProvider);
 
   try {
@@ -340,9 +373,6 @@ Future<AndroidAutoBrowseSnapshot> _androidAutoLoadBrowseSnapshot(BGAudioHandler 
       downloadItems: results[2] as List<MediaItem>,
       remoteContentUnavailable: remoteContentUnavailable,
     );
-    if (remoteContentUnavailable) {
-      _aaosScheduleRetry(handler);
-    }
     handler._androidAutoPreparedForNextLaunch = false;
     handler._androidAutoPrimedChildren.clear();
     return snapshot;

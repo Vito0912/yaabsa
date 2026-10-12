@@ -14,8 +14,8 @@ extension _BGAudioHandlerAndroidAutoBrowse on BGAudioHandler {
                 : playbackState.value.processingState,
             errorCode: 1,
             errorMessage: snapshot.remoteContentUnavailable
-                ? 'Unable to connect. Check your server in Settings.'
-                : 'No audio available. Add audiobooks, podcasts or downloads to get started.',
+                ? 'Unable to connect. Loading after your first sign-in can take some time. Check your server in Settings if this continues.'
+                : 'No audio available yet. The first sign-in may take a little longer. Add audiobooks, podcasts or downloads if this continues.',
           ),
         );
         _aaosScheduleRetry(this);

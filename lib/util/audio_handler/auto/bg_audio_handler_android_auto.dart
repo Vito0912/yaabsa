@@ -47,7 +47,7 @@ extension _BGAudioHandlerAndroidAutoEntry on BGAudioHandler {
 
       if (authenticationState == _AndroidAutoAuthenticationState.initializing) {
         _aaosScheduleRetry(this);
-        return const <MediaItem>[];
+        throw PlatformException(code: 'browse_not_ready', message: 'Loading content');
       }
     }
 

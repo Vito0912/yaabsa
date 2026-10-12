@@ -141,6 +141,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   final Map<String, ({DateTime startedAt, Future<Object?> future})> _carBrowseRequests = {};
   Timer? _aaosContentRefreshTimer;
   Timer? _aaosRetryTimer;
+  DateTime? _aaosPostSignInLoadingDeadline;
   Future<void>? _aaosContinueRefreshFuture;
   String? _aaosDownloadsUserId;
   int _currentNotificationPageIndex = 0;
@@ -782,7 +783,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
       _aaosBeginBrowseLoading(this);
       _aaosScheduleRetry(this);
-      return const <MediaItem>[];
+      throw PlatformException(code: 'browse_not_ready', message: 'Loading content');
     }, zoneValues: {#carBrowseRequest: true});
   }
 
