@@ -1260,14 +1260,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.1"
-  media_kit_libs_windows_audio:
+  media_kit_libs_windows_video:
     dependency: "direct main"
     description:
-      name: media_kit_libs_windows_audio
-      sha256: c2fd558cc87b9d89a801141fcdffe02e338a3b21a41a18fbd63d5b221a1b8e53
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.9"
+      path: "libs/windows/media_kit_libs_windows_video"
+      ref: "490747286c6fc30814f03d3cb7ba647998ac6651"
+      resolved-ref: "490747286c6fc30814f03d3cb7ba647998ac6651"
+      url: "https://github.com/Vito0912/media-kit.git"
+    source: git
+    version: "1.0.12"
   menu_base:
     dependency: transitive
     description:
