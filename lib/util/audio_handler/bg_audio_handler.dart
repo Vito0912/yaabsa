@@ -45,6 +45,7 @@ import 'package:yaabsa/models/queue_source.dart';
 import 'package:yaabsa/util/globals.dart' show packageInfo, downloadHandler;
 import 'package:yaabsa/util/handler/sleep_timer_handler.dart';
 import 'package:yaabsa/util/audio_handler/playback_error_classifier.dart';
+import 'package:yaabsa/util/audio_handler/playback_diagnostics.dart';
 import 'package:yaabsa/util/audio_handler/playback_sync_service.dart';
 import 'package:yaabsa/util/bluetooth_auto_resume.dart';
 import 'package:yaabsa/util/audio_handler/player_history_handler.dart';
@@ -1860,7 +1861,6 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       darwinLoadControl: iOSLoadControl,
     );
 
-    final disableHeaderProxy = kIsWeb || Platform.isAndroid || Platform.isLinux;
     if (!kIsWeb && Platform.isAndroid) {
       _loudnessEnhancer = AndroidLoudnessEnhancer();
       _equalizer = AndroidEqualizer();
@@ -1868,10 +1868,10 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       _player = AudioPlayer(
         audioPipeline: pipeline,
         audioLoadConfiguration: loadCfg,
-        useProxyForRequestHeaders: !disableHeaderProxy,
+        useProxyForRequestHeaders: _useRequestHeaderProxy,
       );
     } else {
-      _player = AudioPlayer(audioLoadConfiguration: loadCfg, useProxyForRequestHeaders: !disableHeaderProxy);
+      _player = AudioPlayer(audioLoadConfiguration: loadCfg, useProxyForRequestHeaders: _useRequestHeaderProxy);
     }
     _playerControlStateSubject = BehaviorSubject<PlayerState>.seeded(_player.playerState);
     _volumeSubject = BehaviorSubject<double>.seeded(_readLastVolumeSetting());

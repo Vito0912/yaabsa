@@ -7,7 +7,9 @@ extension _BGAudioHandlerSource on BGAudioHandler {
     int transcodeStartupAttempt = 0,
   }) async {
     final loadingMedia = _currentMediaItem;
-    if (loadingMedia == null) return Future.value();
+    if (loadingMedia == null) {
+      return;
+    }
 
     await _applyPreferredPlaybackSpeed(seedPerBookSpeedWhenMissing: true);
     if (!identical(_currentMediaItem, loadingMedia) || _isDisposing) {
@@ -50,6 +52,8 @@ extension _BGAudioHandlerSource on BGAudioHandler {
         : Duration.zero;
     _currentTrackIndex = trackIndex;
 
+    _logSourceLoadDiagnostics(loadingMedia, requestHeaders, source, trackIndex, transcodeStartupAttempt);
+
     final setSourceStopwatch = Stopwatch()..start();
     final sourceLoadError = Completer<PlayerException>();
     _sourceLoadErrorCompleter = sourceLoadError;
@@ -73,6 +77,18 @@ extension _BGAudioHandlerSource on BGAudioHandler {
         await loadResult;
       }
     } on PlayerException catch (error) {
+      logger(
+        'Source load failed after ${setSourceStopwatch.elapsedMilliseconds}ms '
+        '(itemId=${loadingMedia.itemId}, sessionId=${loadingMedia.sessionId}, '
+        'requestedTrackIndex=$trackIndex, errorIndex=${error.index}, code=${error.code}, '
+        'action=${classifyPlaybackError(error).name}, '
+        'processingState=${player.processingState.name}, playing=${player.playing}, '
+        'bufferedPosition=${player.bufferedPosition}, '
+        'message=${sanitizePlaybackDiagnostic(error.message ?? '')}). See MPV entries for native failure details.',
+        tag: 'AudioHandler',
+        level: InfoLevel.debug,
+      );
+
       if (identical(_currentMediaItem, loadingMedia) &&
           await _attemptLocalStreamingFallback(error, initialPosition: initialPosition, resumePlayback: false)) {
         return;
@@ -112,15 +128,59 @@ extension _BGAudioHandlerSource on BGAudioHandler {
 
       rethrow;
     } finally {
+      setSourceStopwatch.stop();
       if (identical(_sourceLoadErrorCompleter, sourceLoadError)) {
         _sourceLoadErrorCompleter = null;
       }
     }
-    setSourceStopwatch.stop();
 
     logger(
       'setAudioSources completed in ${setSourceStopwatch.elapsedMilliseconds}ms '
       '(trackIndex=$trackIndex, trackCount=$trackCount, initialPosition=$relativeTrackInitialPosition, preload=true)',
+      tag: 'AudioHandler',
+      level: InfoLevel.debug,
+    );
+  }
+
+  void _logSourceLoadDiagnostics(
+    InternalMedia media,
+    Map<String, String> headers,
+    List<AudioSource> sources,
+    int trackIndex,
+    int transcodeStartupAttempt,
+  ) {
+    if (!appLoggerService.shouldLog(InfoLevel.debug)) {
+      return;
+    }
+
+    final session = _ref.read(sessionRepositoryProvider).currentSession;
+    final user = _ref.read(currentUserProvider).value;
+    final serverUrl = user?.server?.url;
+    final serverUri = serverUrl == null ? null : Uri.tryParse(serverUrl);
+    final headerNames = headers.keys.map((key) => key.toLowerCase()).toSet();
+    final backend = !kIsWeb && (Platform.isWindows || Platform.isLinux) ? 'media_kit/mpv' : 'just_audio';
+    logger(
+      'Source load context: platform=${kIsWeb ? 'web' : Platform.operatingSystem}, backend=$backend, '
+      'itemId=${media.itemId}, sessionId=${media.sessionId}, playMethod=${session?.playMethod}, '
+      'local=${media.local}, trackIndex=$trackIndex, trackCount=${media.tracks.length}, '
+      'transcodeStartupAttempt=$transcodeStartupAttempt, headerCount=${headers.length}, '
+      'authorizationHeader=${headerNames.contains('authorization')}, cookieHeader=${headerNames.contains('cookie')}, '
+      'requestHeaderProxy=$_useRequestHeaderProxy, '
+      'bufferBytes=${JustAudioMediaKit.bufferSize}, excludedDecoders=${JustAudioMediaKit.excludedAudioDecoders}',
+      tag: 'AudioHandler',
+      level: InfoLevel.debug,
+    );
+
+    if (trackIndex < 0 || trackIndex >= media.tracks.length) {
+      return;
+    }
+
+    final track = media.tracks[trackIndex];
+    final uri = track.url == null ? null : Uri.tryParse(track.url!);
+    logger(
+      'Selected source: type=${sources[trackIndex].runtimeType}, mimeType=${track.mimeType}, '
+      'durationSeconds=${track.duration}, startSeconds=${track.start}, '
+      '${describePlaybackUri(uri, serverUri: serverUri)}',
       tag: 'AudioHandler',
       level: InfoLevel.debug,
     );
@@ -140,6 +200,8 @@ extension _BGAudioHandlerSource on BGAudioHandler {
         message.contains('no video or audio streams') ||
         message.contains('failed to create file cache');
   }
+
+  bool get _useRequestHeaderProxy => !kIsWeb && !Platform.isAndroid && !Platform.isLinux;
 
   Map<String, String> get _currentRequestHeadersInternal {
     final user = _ref.read(currentUserProvider).value;

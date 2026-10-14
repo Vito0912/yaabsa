@@ -5,6 +5,8 @@ import 'package:yaabsa/models/internal_media.dart' show notificationArtworkDecod
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/device_capabilities.dart';
 import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
+import 'package:yaabsa/util/audio_handler/playback_diagnostics.dart';
+import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/handler/download_handler.dart';
 import 'package:yaabsa/util/handler/shake_handler.dart';
 import 'package:yaabsa/util/handler/sleep_timer_handler.dart';
@@ -175,6 +177,23 @@ class Init {
     }
     if (!kIsWeb) {
       JustAudioMediaKit.prefetchPlaylist = false;
+      JustAudioMediaKit.mpvLogLevel = MPVLogLevel.warn;
+      JustAudioMediaKit.nativeLogCallback = (playerId, level, prefix, message) {
+        final user = containerRef.read(currentUserProvider).value;
+        logNativePlaybackDiagnostic(
+          playerId,
+          level,
+          prefix,
+          message,
+          secrets: [
+            user?.token,
+            user?.accessToken,
+            user?.refreshToken,
+            user?.apiKey,
+            ...?user?.server?.headers?.values,
+          ],
+        );
+      };
       JustAudioMediaKit.ensureInitialized(linux: true, windows: true, libmpv: libmpvPath);
       final disableFdk = settingsManager.getGlobalSetting<bool>(SettingKeys.disableFdkAacDecoder);
       JustAudioMediaKit.excludedAudioDecoders = disableFdk ? const {'libfdk_aac'} : const {};
