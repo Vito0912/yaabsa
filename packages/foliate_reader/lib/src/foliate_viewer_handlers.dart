@@ -40,6 +40,16 @@ extension _FoliateViewerHandlers on _FoliateViewerState {
   }
 
   void _setupHandlers(InAppWebViewController controller) {
+    // Handles section load events to prevent a crash on Windows
+    controller.addJavaScriptHandler(
+      handlerName: 'onSectionLoaded',
+      callback: (args) {
+        if (!mounted) return;
+        final data = args.isNotEmpty && args[0] is Map ? args[0] as Map : null;
+        _diagnostics.record('Reader section loaded: ${data?['index']}');
+      },
+    );
+
     controller.addJavaScriptHandler(
       handlerName: 'onCenterTap',
       callback: (args) {
