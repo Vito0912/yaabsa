@@ -29,6 +29,7 @@ analyzer:
     todo: ignore
   exclude:
     - packages/**
+    - build/**
 
 formatter:
   page_width: 120
