@@ -139,6 +139,7 @@ class MyApp extends ConsumerWidget {
     appLoggerService.setMinimumLevel(InfoLevel.fromSettingValue(appLogLevelSetting));
 
     final themeSelection = watchAppThemeSelection(ref);
+
     ref.watch(mediaProgressProvider);
 
     return MaterialApp.router(
