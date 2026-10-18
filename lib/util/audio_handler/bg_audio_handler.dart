@@ -834,6 +834,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   AudioPlayer get player => _player;
 
   int _currentTrackIndex = 0;
+  bool _enableIndexSeeking = false;
   InternalMedia? __currentMediaItem;
 
   InternalMedia? get _currentMediaItem => __currentMediaItem;
@@ -1837,6 +1838,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
     final settingManager = _ref.read(settingsManagerProvider.notifier);
     final bufferSize = settingManager.getGlobalSetting<int>(SettingKeys.bufferSize);
+    _enableIndexSeeking =
+        !kIsWeb && Platform.isAndroid && settingManager.getGlobalSetting<bool>(SettingKeys.enableIndexSeeking);
 
     logger('Buffer size: $bufferSize', tag: 'AudioHandler', level: InfoLevel.debug);
 

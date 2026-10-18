@@ -4,6 +4,7 @@
 
 ### Added
 
+- (Android) Added optional MP3 index seeking
 - (Android Automotive OS) Added Download section and action
 - (Android Automotive OS/Android Auto) Added support for library icons in the media browser
 
@@ -16,6 +17,7 @@
 - Fixed an error when logging out of the last stored user
 - Fixed a race that could discard fetched listening progress during first login
 - Smart downloads now skip items without downloadable files instead of stopping the remaining downloads
+- (Android) transcoding after unexpected runtime errors
 
 ### Changed
 

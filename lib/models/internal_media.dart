@@ -1,7 +1,3 @@
-import 'dart:io';
-
-import 'package:flutter/foundation.dart' show kIsWeb;
-
 import 'package:audio_service/audio_service.dart';
 import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/logger.dart';
@@ -103,19 +99,30 @@ abstract class InternalMedia with _$InternalMedia {
         lowerFragment.endsWith('.mpd');
   }
 
-  AudioSource _buildNetworkAudioSource(Uri uri, {Map<String, String>? headers}) {
+  AudioSource _buildAudioSource(
+    Uri uri, {
+    Map<String, String>? headers,
+    required ProgressiveAudioSourceOptions options,
+  }) {
     if (_isAdaptiveStream(uri)) {
       return AudioSource.uri(uri, headers: headers);
     }
 
-    return ProgressiveAudioSource(uri, headers: headers, options: _progressiveSourceOptions);
+    return ProgressiveAudioSource(uri, headers: headers, options: options);
   }
 
-  List<AudioSource> toAudioSources({Map<String, String>? headers}) {
+  List<AudioSource> toAudioSources({Map<String, String>? headers, bool enableIndexSeeking = false}) {
     if (local) {
       logger('Using local audio sources', tag: 'InternalMedia', level: InfoLevel.debug);
     }
     final effectiveHeaders = headers == null || headers.isEmpty ? null : headers;
+    final options = enableIndexSeeking
+        ? const ProgressiveAudioSourceOptions(
+            androidExtractorOptions: AndroidExtractorOptions(
+              mp3Flags: AndroidExtractorOptions.flagMp3EnableIndexSeeking,
+            ),
+          )
+        : _progressiveSourceOptions;
 
     return tracks.map((track) {
       if (track.url == null) {
@@ -133,23 +140,20 @@ abstract class InternalMedia with _$InternalMedia {
           final uri = Uri.parse(url);
           final shouldAttachHeaders = uri.scheme == 'http' || uri.scheme == 'https';
           if (shouldAttachHeaders) {
-            return _buildNetworkAudioSource(uri, headers: effectiveHeaders);
+            return _buildAudioSource(uri, headers: effectiveHeaders, options: options);
           }
-          return AudioSource.uri(uri);
+          return _buildAudioSource(uri, options: options);
         }
 
         if (isFileUri) {
           final fileUri = Uri.parse(url);
-          return AudioSource.file(fileUri.toFilePath(windows: !kIsWeb && Platform.isWindows));
+          return _buildAudioSource(fileUri, options: options);
         }
 
-        return AudioSource.file(url);
+        return _buildAudioSource(Uri.file(url), options: options);
       } else {
         final uri = Uri.parse(url);
-        if (uri.scheme == 'http' || uri.scheme == 'https') {
-          return _buildNetworkAudioSource(uri, headers: effectiveHeaders);
-        }
-        return AudioSource.uri(uri, headers: effectiveHeaders);
+        return _buildAudioSource(uri, headers: effectiveHeaders, options: options);
       }
     }).toList();
   }

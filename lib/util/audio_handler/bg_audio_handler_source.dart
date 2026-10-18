@@ -17,7 +17,7 @@ extension _BGAudioHandlerSource on BGAudioHandler {
     }
 
     final requestHeaders = _currentRequestHeadersInternal;
-    final source = _currentMediaItem!.toAudioSources(headers: requestHeaders);
+    final source = _currentMediaItem!.toAudioSources(headers: requestHeaders, enableIndexSeeking: _enableIndexSeeking);
     if (!ignoreSavedProgress) {
       final currentProgress = await _ref
           .read(mediaProgressProvider.notifier)
@@ -81,7 +81,7 @@ extension _BGAudioHandlerSource on BGAudioHandler {
         'Source load failed after ${setSourceStopwatch.elapsedMilliseconds}ms '
         '(itemId=${loadingMedia.itemId}, sessionId=${loadingMedia.sessionId}, '
         'requestedTrackIndex=$trackIndex, errorIndex=${error.index}, code=${error.code}, '
-        'action=${classifyPlaybackError(error).name}, '
+        'action=${_classifyPlaybackError(error).name}, '
         'processingState=${player.processingState.name}, playing=${player.playing}, '
         'bufferedPosition=${player.bufferedPosition}, '
         'message=${sanitizePlaybackDiagnostic(error.message ?? '')}). See MPV entries for native failure details.',
@@ -121,7 +121,7 @@ extension _BGAudioHandlerSource on BGAudioHandler {
       }
       if (identical(_currentMediaItem, loadingMedia) &&
           !_isDisposing &&
-          classifyPlaybackError(error) == PlaybackFailureAction.transcode &&
+          _classifyPlaybackError(error) == PlaybackFailureAction.transcode &&
           await _attemptTranscodeFallback(error, initialPosition: initialPosition, resumePlayback: false)) {
         return;
       }
@@ -189,10 +189,10 @@ extension _BGAudioHandlerSource on BGAudioHandler {
   bool _isRetryableTranscodeStartupError(PlayerException error) {
     final message = '${error.message}'.toLowerCase();
     if (RegExp(r'\b(?:400|401|403)\b').hasMatch(message) ||
-        classifyPlaybackError(error) == PlaybackFailureAction.transcode) {
+        _classifyPlaybackError(error) == PlaybackFailureAction.transcode) {
       return false;
     }
-    return classifyPlaybackError(error) == PlaybackFailureAction.retryStream ||
+    return _classifyPlaybackError(error) == PlaybackFailureAction.retryStream ||
         RegExp(r'\b(?:404|408|425|429|500|502|503|504)\b').hasMatch(message) ||
         message.contains('failed to open') ||
         message.contains('avformat_open_input') ||

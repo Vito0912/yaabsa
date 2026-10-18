@@ -268,7 +268,7 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
         await _reloadStreamSource(startPosition, isCurrentRequest);
       } on PlayerException catch (error) {
         if (!isCurrentRequest()) return;
-        if (!_streamRecoveryInFlight && classifyPlaybackError(error) == PlaybackFailureAction.retryStream) {
+        if (!_streamRecoveryInFlight && _classifyPlaybackError(error) == PlaybackFailureAction.retryStream) {
           _scheduleStreamRecoveryRetry(error, resumeAfterReloadFailure: true);
           return;
         }

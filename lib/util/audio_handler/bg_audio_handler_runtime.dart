@@ -1,9 +1,18 @@
 part of 'bg_audio_handler.dart';
 
 extension _BGAudioHandlerRuntime on BGAudioHandler {
+  PlaybackFailureAction _classifyPlaybackError(PlayerException error) {
+    final isDirectPlay =
+        _currentMediaItem?.local == false &&
+        !isCastControlActive &&
+        _ref.read(sessionRepositoryProvider).currentSession?.playMethod == 0;
+
+    return classifyPlaybackError(error, isDirectPlay: isDirectPlay);
+  }
+
   Future<bool> _handlePlaybackFailure(PlayerException error) async {
     if (await _attemptLocalStreamingFallback(error)) return true;
-    switch (classifyPlaybackError(error)) {
+    switch (_classifyPlaybackError(error)) {
       case PlaybackFailureAction.retryStream:
         _scheduleStreamRecoveryRetry(error);
         return Future<bool>.value(true);
@@ -128,7 +137,7 @@ extension _BGAudioHandlerRuntime on BGAudioHandler {
 
     try {
       logger(
-        'Direct playback failed due to decoder incompatibility ($error). '
+        'Direct playback failed ($error). '
         'Retrying with server transcoding.',
         tag: 'AudioHandler',
         level: InfoLevel.warning,
@@ -382,7 +391,7 @@ extension _BGAudioHandlerRuntime on BGAudioHandler {
           tag: 'AudioHandler',
           level: InfoLevel.warning,
         );
-        if (e is PlayerException && classifyPlaybackError(e) == PlaybackFailureAction.retryStream) {
+        if (e is PlayerException && _classifyPlaybackError(e) == PlaybackFailureAction.retryStream) {
           retryError = e;
         } else if (isCurrentRecovery()) {
           unawaited(pause());

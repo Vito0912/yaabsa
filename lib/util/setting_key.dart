@@ -112,6 +112,7 @@ class SettingKeys {
 
   static const String playbackSpeed = 'playback_speed';
   static const String disableFdkAacDecoder = 'disable_fdk_aac_decoder';
+  static const String enableIndexSeeking = 'enable_index_seeking';
   static const String playbackSpeedPerBook = 'playback_speed_per_book';
   static const String volume = 'volume';
   static const String skipSilence = 'skip_silence';
@@ -290,6 +291,7 @@ final defaultSettings = {
 
   SettingKeys.playbackSpeed: 1.0,
   SettingKeys.disableFdkAacDecoder: false,
+  SettingKeys.enableIndexSeeking: false,
   SettingKeys.playbackSpeedPerBook: false,
   SettingKeys.volume: 1.0,
   SettingKeys.skipSilence: false,

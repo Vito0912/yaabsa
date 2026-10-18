@@ -1,9 +1,9 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:just_audio/just_audio.dart';
 
 enum PlaybackFailureAction { transcode, retryStream, ignore, fail }
 
-PlaybackFailureAction classifyPlaybackError(PlayerException error) {
+PlaybackFailureAction classifyPlaybackError(PlayerException error, {bool isDirectPlay = false}) {
   final message = '${error.message ?? ''} ${error.toString()}'.toLowerCase();
 
   if (RegExp(r'\bhttps?\s*(?:error|status)?\s*[:=]?\s*([45]\d{2})\b').hasMatch(message) ||
@@ -23,6 +23,10 @@ PlaybackFailureAction classifyPlaybackError(PlayerException error) {
   }
 
   if (kIsWeb && (error.code == 3 || error.code == 4)) {
+    return PlaybackFailureAction.transcode;
+  }
+
+  if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android && isDirectPlay && error.code == 2) {
     return PlaybackFailureAction.transcode;
   }
 

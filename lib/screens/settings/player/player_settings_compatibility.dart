@@ -10,8 +10,11 @@ class PlayerSettingsCompatibility extends StatelessWidget {
   const PlayerSettingsCompatibility({super.key});
 
   static const String routeName = '/settings/player/compatibility';
-  static bool get isSupported =>
+  static bool get _supportsFdkAacDecoder =>
       !kIsWeb && (defaultTargetPlatform == TargetPlatform.linux || defaultTargetPlatform == TargetPlatform.windows);
+  static bool get _supportsIndexSeeking => !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+
+  static bool get isSupported => _supportsFdkAacDecoder || _supportsIndexSeeking;
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +28,7 @@ class PlayerSettingsCompatibility extends StatelessWidget {
           title: 'Audio Decoding',
           topPadding: 0,
           settings: [
-            if (isSupported)
+            if (_supportsFdkAacDecoder)
               SettingSwitchTile(
                 label: 'Disable FDK AAC decoder',
                 subtitle:
@@ -33,6 +36,14 @@ class PlayerSettingsCompatibility extends StatelessWidget {
                     'Uses other available decoders or server transcoding. '
                     'Applies to system and bundled codecs. Restart the app to apply.',
                 settingKey: SettingKeys.disableFdkAacDecoder,
+              ),
+            if (_supportsIndexSeeking)
+              SettingSwitchTile(
+                label: 'Enable MP3 index seeking',
+                subtitle:
+                    'Improve seeking compatibility for MP3 files. '
+                    'Seeking may be slower and use more data. Restart the app to apply.',
+                settingKey: SettingKeys.enableIndexSeeking,
               ),
           ],
         ),
