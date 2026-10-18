@@ -1,0 +1,54 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Automotive OS: Build release APK",
+      "type": "process",
+      "command": "flutter",
+      "args": ["build", "apk", "--flavor", "automotive", "--release"],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Android Auto: Forward TCP port",
+      "type": "process",
+      "command": "${userHome}/Android/Sdk/platform-tools/adb",
+      "args": ["forward", "tcp:5277", "tcp:5277"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Android Auto: Start head unit (TCP)",
+      "type": "process",
+      "command": "${userHome}/Android/Sdk/extras/google/auto/desktop-head-unit",
+      "args": ["--adb=5277"],
+      "options": {
+        "cwd": "${userHome}/Android/Sdk/extras/google/auto"
+      },
+      "dependsOn": ["Android Auto: Forward TCP port"],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Android Auto: Start head unit (USB)",
+      "type": "process",
+      "command": "${userHome}/Android/Sdk/extras/google/auto/desktop-head-unit",
+      "args": ["--usb"],
+      "options": {
+        "cwd": "${userHome}/Android/Sdk/extras/google/auto"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": true
+      },
+      "problemMatcher": []
+    }
+  ]
+}

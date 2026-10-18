@@ -34,6 +34,15 @@ import 'package:yaabsa/util/setting_key.dart';
 import 'package:yaabsa/util/file_formats.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+class NoDownloadableFilesException implements Exception {
+  const NoDownloadableFilesException(this.itemId);
+
+  final String itemId;
+
+  @override
+  String toString() => 'No downloadable files found for item $itemId.';
+}
+
 class _DownloadBatchProgress {
   _DownloadBatchProgress(this.expectedFileCount, {this.item});
 
@@ -656,7 +665,7 @@ class DownloadHandler {
       downloadType: effectiveDownloadType,
     );
     if (sourceFiles.isEmpty) {
-      throw Exception('No downloadable files found for item $itemId.');
+      throw NoDownloadableFilesException(itemId);
     }
     final orderedSourceFiles = await _orderAudioDownloadFiles(
       sourceFiles,

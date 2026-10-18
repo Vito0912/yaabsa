@@ -20,6 +20,7 @@ import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/library/personalized_library_provider.dart';
 import 'package:yaabsa/provider/player/queue_source_provider.dart';
 import 'package:yaabsa/util/globals.dart' show audioHandler, downloadHandler, isAudioHandlerInitialized;
+import 'package:yaabsa/util/handler/download_handler.dart' show NoDownloadableFilesException;
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
@@ -653,15 +654,21 @@ class SmartDownloadManager extends _$SmartDownloadManager {
         if (await downloadHandler.hasActiveTask(itemId, episodeId: episodeId)) continue;
         _throwIfReconcileStale(generation, userId);
         plannedKeys.add(key);
-        await downloadHandler.downloadFile(
-          itemId,
-          episodeId: episodeId,
-          downloadType: downloadTypeByKey[key] ?? profile.policy.downloadType,
-          acquisitionOrigin: 'smart',
-          smartProfileIds: (profileIdsByKey[key] ?? <String>{profile.id}).toList(growable: false)..sort(),
-          estimatedBytes: estimatedBytes > 0 ? estimatedBytes : null,
-          requiredUserId: userId,
-        );
+        try {
+          await downloadHandler.downloadFile(
+            itemId,
+            episodeId: episodeId,
+            downloadType: downloadTypeByKey[key] ?? profile.policy.downloadType,
+            acquisitionOrigin: 'smart',
+            smartProfileIds: (profileIdsByKey[key] ?? <String>{profile.id}).toList(growable: false)..sort(),
+            estimatedBytes: estimatedBytes > 0 ? estimatedBytes : null,
+            requiredUserId: userId,
+          );
+        } on NoDownloadableFilesException {
+          _throwIfReconcileStale(generation, userId);
+          continue;
+        }
+
         _throwIfReconcileStale(generation, userId);
         activeReservations[key] = estimatedBytes;
         managedBytes += estimatedBytes;
@@ -826,14 +833,20 @@ class SmartDownloadManager extends _$SmartDownloadManager {
         continue;
       }
       _throwIfReconcileStale(generation, userId);
-      await downloadHandler.downloadFile(
-        reference.itemId,
-        episodeId: reference.episodeId,
-        downloadType: downloadType,
-        acquisitionOrigin: 'smart',
-        smartProfileIds: const <String>[_continueShelfProfileId],
-        requiredUserId: userId,
-      );
+      try {
+        await downloadHandler.downloadFile(
+          reference.itemId,
+          episodeId: reference.episodeId,
+          downloadType: downloadType,
+          acquisitionOrigin: 'smart',
+          smartProfileIds: const <String>[_continueShelfProfileId],
+          requiredUserId: userId,
+        );
+      } on NoDownloadableFilesException {
+        _throwIfReconcileStale(generation, userId);
+        continue;
+      }
+
       activeKeys.add(key);
     }
   }

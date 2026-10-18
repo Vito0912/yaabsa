@@ -408,12 +408,23 @@ void _androidAutoInvalidateBrowseState(BGAudioHandler handler, {bool notify = tr
 }
 
 void _androidAutoScheduleContinueRefresh(BGAudioHandler handler) {
-  if (handler._isDisposing || _androidAutoIsAutomotiveSystemCache != true) {
+  if (handler._isDisposing) {
     return;
   }
   handler._androidAutoContinueRefreshDebounce?.cancel();
   handler._androidAutoContinueRefreshDebounce = Timer(const Duration(seconds: 2), () {
-    unawaited(_aaosRefreshContinue(handler));
+    handler._carBrowseRequests.removeWhere((key, _) => key == 'continue' || key.startsWith('personalized/'));
+    handler._androidAutoPrimedChildren.remove(_androidAutoContinueNodeId);
+
+    if (_androidAutoIsAutomotiveSystemCache == true) {
+      unawaited(_aaosRefreshContinue(handler));
+    }
+
+    for (final signal in handler._aaosChildrenSignals.values.toList(growable: false)) {
+      if (!signal.isClosed) {
+        signal.add(<String, dynamic>{});
+      }
+    }
   });
 }
 

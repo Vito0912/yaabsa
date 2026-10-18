@@ -188,7 +188,6 @@ class UserSwitcher extends ConsumerWidget {
 
         return allUsersAsync.when(
           data: (allUsers) {
-            if (allUsers.isEmpty) context.go('/add-user');
             return PlatformBuilder(
               mobileBuilder: (ctx) => _buildMobile(ctx, ref, currentUser, allUsers, serverReachable: serverReachable),
               tabletBuilder: (ctx) => _buildTabletOrDesktop(

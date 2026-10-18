@@ -1,5 +1,27 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- (Android Automotive OS) Added Download section and action
+- (Android Automotive OS/Android Auto) Added support for library icons in the media browser
+
+### Fixed
+
+- (Windows) Fixed audio playback compatibility issues
+- (Windows) Fixed EPUB reader crash
+- (Android Automotive OS) Improved initial loading
+- (Android Auto) Improved Continue refresh after finishing a book
+- Fixed an error when logging out of the last stored user
+- Fixed a race that could discard fetched listening progress during first login
+- Smart downloads now skip items without downloadable files instead of stopping the remaining downloads
+
+### Changed
+
+- (Android Automotive OS) Server updates remain connected while the app is in the background, and collection and playlist changes refresh the media browser
+- (Android Automotive OS) Disabled automatic playback resume on app startup
+
 ## 1.14.1
 
 ### Fixed

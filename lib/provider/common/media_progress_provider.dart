@@ -66,6 +66,7 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
   Future<List<MediaProgress>>? _progressFetch;
   ABSApi? _progressRefreshApi;
   String? _progressRefreshUserId;
+  Ref? _progressRefreshRef;
   Future<void>? _progressRefresh;
   MediaProgressStore get _store => ref.read(mediaProgressStoreProvider);
 
@@ -487,15 +488,24 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
     final api = ref.read(absApiProvider);
     final userId = _activeUserId();
     final pending = _progressRefresh;
-    if (pending != null && identical(_progressRefreshApi, api) && _progressRefreshUserId == userId) return pending;
+    if (pending != null &&
+        identical(_progressRefreshApi, api) &&
+        _progressRefreshUserId == userId &&
+        identical(_progressRefreshRef, ref)) {
+      return pending;
+    }
+
     _progressRefreshApi = api;
     _progressRefreshUserId = userId;
+    _progressRefreshRef = ref;
+
     late final Future<void> refresh;
     refresh = _refreshAllProgress().whenComplete(() {
       if (identical(_progressRefresh, refresh)) {
         _progressRefresh = null;
         _progressRefreshApi = null;
         _progressRefreshUserId = null;
+        _progressRefreshRef = null;
       }
     });
     _progressRefresh = refresh;

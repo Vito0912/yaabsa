@@ -1952,7 +1952,11 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
             preferredLibraryId: finishedMedia.libraryId,
             sourceTag: 'AudioHandler',
             reason: 'playback completed',
-          ),
+          ).then((_) {
+            if (!_isDisposing) {
+              _androidAutoScheduleContinueRefresh(this);
+            }
+          }),
         );
 
         if (await _ref.read(sleepTimerHandlerProvider.notifier).handleItemCompletion(finishedMedia)) return;
