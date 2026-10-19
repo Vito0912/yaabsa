@@ -19,23 +19,26 @@ class ManagementSettingsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final isAdminUser = _isAdminUser;
 
-    return SettingsNavigationSection(
-      title: 'Management',
-      items: [
-        if (isAdminUser)
-          SettingsNavigationItem(
-            icon: Icons.admin_panel_settings_outlined,
-            title: 'Admin Server Settings',
-            enabled: isAdminUser,
-            onTap: isAdminUser ? () => context.push(AdminServerSettings.routeName) : null,
-          ),
-        if (currentUser.permissions.update || currentUser.permissions.delete || currentUser.permissions.upload)
-          SettingsNavigationItem(
-            icon: Icons.handyman_outlined,
-            title: 'Tools',
-            onTap: () => context.push(ToolsSettings.routeName),
-          ),
-      ],
-    );
+    final items = <SettingsNavigationItem>[
+      if (isAdminUser)
+        SettingsNavigationItem(
+          icon: Icons.admin_panel_settings_outlined,
+          title: 'Admin Server Settings',
+          enabled: isAdminUser,
+          onTap: isAdminUser ? () => context.push(AdminServerSettings.routeName) : null,
+        ),
+      if (currentUser.permissions.update || currentUser.permissions.delete || currentUser.permissions.upload)
+        SettingsNavigationItem(
+          icon: Icons.handyman_outlined,
+          title: 'Tools',
+          onTap: () => context.push(ToolsSettings.routeName),
+        ),
+    ];
+
+    if (items.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return SettingsNavigationSection(title: 'Management', items: items);
   }
 }
