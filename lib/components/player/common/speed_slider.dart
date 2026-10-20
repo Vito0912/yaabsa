@@ -9,7 +9,10 @@ Future<void> showPlaybackSpeedSheet(BuildContext context, {double? currentSpeed}
     isScrollControlled: true,
     showDragHandle: true,
     builder: (sheetContext) {
-      return SafeArea(top: false, child: _SpeedSheet(initialSpeed: currentSpeed ?? audioHandler.player.speed));
+      return SafeArea(
+        top: false,
+        child: _SpeedSheet(initialSpeed: currentSpeed ?? audioHandler.effectivePlaybackSpeed),
+      );
     },
   );
 }
@@ -25,10 +28,11 @@ class SpeedSlider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<double>(
-      stream: audioHandler.player.speedStream,
-      initialData: defaultSpeed,
+      stream: audioHandler.effectivePlaybackSpeedStream,
+      initialData: audioHandler.effectivePlaybackSpeed,
       builder: (context, snapshot) {
         final speed = (snapshot.data ?? defaultSpeed).clamp(minSpeed, maxSpeed);
+
         return SizedBox(
           height: 48,
           width: 48,
@@ -80,6 +84,7 @@ class _SpeedSheetState extends State<_SpeedSheet> {
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+
     return Padding(
       padding: EdgeInsets.fromLTRB(16, 8, 16, 16 + bottomInset),
       child: Column(
@@ -137,9 +142,11 @@ class _SpeedSheetState extends State<_SpeedSheet> {
                 child: FilledButton(
                   onPressed: () {
                     final didApplyCustom = _applyCustomValue();
+
                     if (!didApplyCustom) {
                       audioHandler.setSpeed(_value);
                     }
+
                     Navigator.of(context).pop();
                   },
                   child: const Text('Apply'),
@@ -161,18 +168,24 @@ class _SpeedSheetState extends State<_SpeedSheet> {
 
   bool _applyCustomValue() {
     final raw = _customController.text.trim();
+
     if (raw.isEmpty) {
       return false;
     }
+
     final parsed = double.tryParse(raw);
+
     if (parsed == null) {
       return false;
     }
+
     final clamped = _clampSpeed(parsed);
+
     setState(() {
       _value = clamped;
     });
     audioHandler.setSpeed(clamped);
+
     return true;
   }
 
@@ -182,14 +195,17 @@ class _SpeedSheetState extends State<_SpeedSheet> {
 
   double _roundToStep(double value) {
     final normalized = (value / SpeedSlider.step).round() * SpeedSlider.step;
+
     return _clampSpeed(normalized);
   }
 
   String _formatSheetSpeed(double value) {
     final roundedToTenth = (value * 10).round() / 10;
+
     if ((value - roundedToTenth).abs() < 0.000000001) {
       return roundedToTenth.toStringAsFixed(1);
     }
+
     return value.toString();
   }
 }

@@ -3,18 +3,26 @@ part of 'bg_audio_handler.dart';
 extension _BGAudioHandlerPreferences on BGAudioHandler {
   Future<void> _applyVolume(double volume) async {
     final normalizedVolume = _clampVolume(volume);
+
     _volumeSubject.add(normalizedVolume);
+    await _speechPlayback?.setVolume(normalizedVolume);
+
     final loudnessEnhancer = _loudnessEnhancer;
+
     if (loudnessEnhancer != null && BGAudioHandler.supportsVolumeBoostPlatform && Platform.isAndroid) {
       final baseVolume = normalizedVolume.clamp(0.0, 1.0).toDouble();
+
       await _player.setVolume(baseVolume);
+
       if (normalizedVolume > 1.0 && volumeBoostAvailable) {
         final targetGain = 20 * math.log(normalizedVolume) / math.ln10;
+
         await loudnessEnhancer.setTargetGain(targetGain);
         await loudnessEnhancer.setEnabled(true);
       } else {
         await loudnessEnhancer.setEnabled(false);
       }
+
       return;
     }
 
@@ -26,9 +34,13 @@ extension _BGAudioHandlerPreferences on BGAudioHandler {
       logger('Volume out of bounds: $volume', tag: 'AudioHandler', level: InfoLevel.error);
       return Future.value();
     }
+
     final normalizedVolume = _clampVolume(volume);
+
     await _applyVolume(normalizedVolume);
+
     unawaited(_persistLastVolume(normalizedVolume));
+
     return Future.value();
   }
 
@@ -39,11 +51,25 @@ extension _BGAudioHandlerPreferences on BGAudioHandler {
     }
 
     final normalizedSpeed = _clampSpeed(speed);
+    final speech = _speechPlayback;
+
+    if (speech != null) {
+      await speech.setRate(normalizedSpeed);
+      await _ref
+          .read(settingsManagerProvider.notifier)
+          .setGlobalSetting<double>(SettingKeys.readerTtsRate, speech.rate);
+      await _updatePlaybackState();
+
+      return;
+    }
+
     final previousSpeed = _player.speed;
+
     await _player.setSpeed(normalizedSpeed);
     await _persistLastPlaybackSpeed(normalizedSpeed);
     await _persistCurrentBookPlaybackSpeed(normalizedSpeed);
     await _updatePlaybackState();
+
     if ((previousSpeed - normalizedSpeed).abs() > BGAudioHandler._playbackPreferenceEpsilon) {
       unawaited(
         PlayerHistoryHandler.addPlayerHistory(
@@ -52,14 +78,17 @@ extension _BGAudioHandlerPreferences on BGAudioHandler {
         ),
       );
     }
+
     return Future.value();
   }
 
   String? get _activeUserId {
     final userId = _ref.read(currentUserProvider).value?.id;
+
     if (userId == null || userId.isEmpty) {
       return null;
     }
+
     return userId;
   }
 
@@ -79,6 +108,7 @@ extension _BGAudioHandlerPreferences on BGAudioHandler {
     final settingsManager = _ref.read(settingsManagerProvider.notifier);
     final globalSpeed = _clampSpeed(settingsManager.getGlobalSetting<double>(SettingKeys.playbackSpeed));
     final userId = _activeUserId;
+
     if (userId == null) {
       return globalSpeed;
     }
@@ -90,16 +120,19 @@ extension _BGAudioHandlerPreferences on BGAudioHandler {
 
   double _readLastVolumeSetting() {
     final settingsManager = _ref.read(settingsManagerProvider.notifier);
+
     return _clampVolume(settingsManager.getGlobalSetting<double>(SettingKeys.volume));
   }
 
   Future<void> _persistLastPlaybackSpeed(double speed) async {
     final normalizedSpeed = _clampSpeed(speed);
     final settingsManager = _ref.read(settingsManagerProvider.notifier);
+
     try {
       await settingsManager.setGlobalSetting<double>(SettingKeys.playbackSpeed, normalizedSpeed);
 
       final userId = _activeUserId;
+
       if (userId != null) {
         await settingsManager.setUserSetting<double>(userId, SettingKeys.playbackSpeed, normalizedSpeed);
       }
@@ -110,6 +143,7 @@ extension _BGAudioHandlerPreferences on BGAudioHandler {
 
   Future<void> _persistLastVolume(double volume) async {
     final normalizedVolume = _clampVolume(volume);
+
     try {
       await _ref.read(settingsManagerProvider.notifier).setGlobalSetting<double>(SettingKeys.volume, normalizedVolume);
     } catch (e, s) {
@@ -124,11 +158,13 @@ extension _BGAudioHandlerPreferences on BGAudioHandler {
 
     final mediaItem = _currentMediaItem;
     final userId = _activeUserId;
+
     if (mediaItem == null || userId == null) {
       return;
     }
 
     final normalizedSpeed = _clampSpeed(speed);
+
     try {
       await _ref.read(appDatabaseProvider).setBookPlaybackSpeed(userId, mediaItem.itemId, normalizedSpeed);
     } catch (e, s) {
@@ -149,12 +185,14 @@ extension _BGAudioHandlerPreferences on BGAudioHandler {
 
     final mediaItem = _currentMediaItem;
     final userId = _activeUserId;
+
     if (mediaItem == null || userId == null) {
       return fallbackSpeed;
     }
 
     try {
       final persistedBookSpeed = await _ref.read(appDatabaseProvider).getBookPlaybackSpeed(userId, mediaItem.itemId);
+
       if (persistedBookSpeed != null) {
         return _clampSpeed(persistedBookSpeed);
       }
@@ -175,6 +213,7 @@ extension _BGAudioHandlerPreferences on BGAudioHandler {
 
   Future<void> _restoreSavedVolume() async {
     final targetVolume = _readLastVolumeSetting();
+
     await _applyVolume(targetVolume);
   }
 

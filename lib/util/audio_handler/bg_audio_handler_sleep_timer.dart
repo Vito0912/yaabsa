@@ -9,7 +9,7 @@ class SleepTimerPlaybackOwner {
   });
 
   final InternalMedia media;
-  final PlaybackSessionBinding binding;
+  final PlaybackSessionBinding? binding;
   final int navigationGeneration;
   final int playbackGeneration;
 }
@@ -17,7 +17,7 @@ class SleepTimerPlaybackOwner {
 extension BGAudioHandlerSleepTimer on BGAudioHandler {
   bool isSleepTimerOwnerCurrent({
     required InternalMedia media,
-    required PlaybackSessionBinding binding,
+    required PlaybackSessionBinding? binding,
     required int navigationGeneration,
     int? playbackGeneration,
   }) {
@@ -29,8 +29,11 @@ extension BGAudioHandlerSleepTimer on BGAudioHandler {
         currentMedia.itemId == media.itemId &&
         currentMedia.episodeId == media.episodeId &&
         currentMedia.sessionId == media.sessionId &&
-        binding.playbackSessionId == media.sessionId &&
-        currentSession.isCurrentSessionBinding(binding) &&
+        (isReaderNarration
+            ? binding == null
+            : binding != null &&
+                  binding.playbackSessionId == media.sessionId &&
+                  currentSession.isCurrentSessionBinding(binding)) &&
         _sleepTimerNavigationGeneration == navigationGeneration &&
         (playbackGeneration == null || _sleepTimerPlaybackGeneration == playbackGeneration);
   }
@@ -45,31 +48,52 @@ extension BGAudioHandlerSleepTimer on BGAudioHandler {
   }
 
   Future<bool> pauseForSleepTimer(SleepTimerPlaybackOwner owner) async {
-    if (!_isSleepTimerPlaybackOwnerCurrent(owner)) return false;
+    if (!_isSleepTimerPlaybackOwnerCurrent(owner)) {
+      return false;
+    }
 
     PlayerUtils.disableWakelock(_ref);
     _resetStreamRecoveryState(clearWindow: true);
-    await _player.pause();
 
-    if (!_isSleepTimerPlaybackOwnerCurrent(owner)) return false;
+    if (_speechPlayback != null) {
+      await _speechPlayback!.pause();
+    } else {
+      await _player.pause();
+    }
+
+    if (!_isSleepTimerPlaybackOwnerCurrent(owner)) {
+      return false;
+    }
+
     _clearSmartRewindPauseMarker();
     TrayManager.update();
+
     return true;
   }
 
   Future<Duration?> rewindForSleepTimer(SleepTimerPlaybackOwner owner) async {
     bool isCurrent() => _isSleepTimerPlaybackOwnerCurrent(owner);
-    if (!isCurrent()) return null;
+
+    if (!isCurrent()) {
+      return null;
+    }
 
     final rewindMinutes = _ref
         .read(settingsManagerProvider.notifier)
         .getGlobalSetting<int>(SettingKeys.sleepTimerAutoRewindMinutes);
-    if (rewindMinutes <= 0) return position;
+
+    if (rewindMinutes <= 0) {
+      return position;
+    }
 
     final target = _rewindPosition(position, Duration(minutes: rewindMinutes));
-    if (target >= position) return position;
+
+    if (target >= position) {
+      return position;
+    }
 
     await _queueSleepTimerAwareSeek(target, internal: true, continuationIsCurrent: isCurrent);
+
     return isCurrent() ? position : null;
   }
 
@@ -78,7 +102,13 @@ extension BGAudioHandlerSleepTimer on BGAudioHandler {
     required Duration position,
     bool closing = false,
   }) async {
-    if (!_isSleepTimerPlaybackOwnerCurrent(owner)) return false;
+    if (!_isSleepTimerPlaybackOwnerCurrent(owner)) {
+      return false;
+    }
+
+    if (isReaderNarration) {
+      return true;
+    }
 
     await _syncService.flush(
       positionOverride: position,
@@ -86,23 +116,42 @@ extension BGAudioHandlerSleepTimer on BGAudioHandler {
       binding: owner.binding,
       forcePositionSync: true,
     );
+
     return _isSleepTimerPlaybackOwnerCurrent(owner);
   }
 
   Future<bool> stopForSleepTimer(SleepTimerPlaybackOwner owner, {required Duration position}) async {
-    if (!_isSleepTimerPlaybackOwnerCurrent(owner)) return false;
+    if (!_isSleepTimerPlaybackOwnerCurrent(owner)) {
+      return false;
+    }
+
+    if (isReaderNarration) {
+      await stop();
+
+      return true;
+    }
+
+    final binding = owner.binding;
+
+    if (binding == null) {
+      return false;
+    }
 
     final repository = _ref.read(sessionRepositoryProvider);
-    if (!repository.detachSessionBinding(owner.binding)) return false;
+
+    if (!repository.detachSessionBinding(binding)) {
+      return false;
+    }
 
     _recordSleepTimerStop(owner.media, position);
     _clearSleepTimerMedia();
+
     final detachedGeneration = _sleepTimerNavigationGeneration;
 
     try {
       await _stopPlayerForSleepTimer(detachedGeneration);
     } finally {
-      await repository.closeSessionBinding(owner.binding);
+      await repository.closeSessionBinding(binding);
     }
 
     return _sleepTimerNavigationGeneration == detachedGeneration && _currentMediaItem == null;
@@ -138,6 +187,7 @@ extension BGAudioHandlerSleepTimer on BGAudioHandler {
   Future<void> _stopPlayerForSleepTimer(int detachedGeneration) async {
     if (!kIsWeb && Platform.isLinux) {
       await _player.pause();
+
       if (_sleepTimerNavigationGeneration == detachedGeneration && _currentMediaItem == null) {
         await _player.seek(Duration.zero);
       }

@@ -3,12 +3,15 @@ part of 'reader.dart';
 extension _ReaderCoreHelpers on _ReaderState {
   Future<void> _refreshStoredProgress() async {
     final requestToken = ++_progressRefreshToken;
+
     final progress = await ref.read(mediaProgressProvider.notifier).fetchOrRefreshIndividualProgress(widget.itemId);
+
     if (!mounted || requestToken != _progressRefreshToken) {
       return;
     }
 
     final refreshedLocation = progress?.ebookLocation;
+
     if (_resolvedEbookLocation == refreshedLocation) {
       return;
     }
@@ -21,6 +24,7 @@ extension _ReaderCoreHelpers on _ReaderState {
   void _resetPdfState() {
     _lastSyncedPdfPageNumber = null;
     _pdfAnnotations = const <PdfAnnotationEntry>[];
+    _pdfBookmarks = [];
     _hoveredPdfAnnotationCfi = null;
   }
 
@@ -42,6 +46,7 @@ extension _ReaderCoreHelpers on _ReaderState {
 
     for (final candidate in candidates) {
       final normalized = _normalizeEbookFormat(candidate);
+
       if (normalized.isEmpty) {
         continue;
       }
@@ -63,6 +68,7 @@ extension _ReaderCoreHelpers on _ReaderState {
     }
 
     final page = int.tryParse(ebookLocation.trim());
+
     if (page == null || page < 1) {
       return 1;
     }
@@ -71,13 +77,20 @@ extension _ReaderCoreHelpers on _ReaderState {
   }
 
   String _colorToHex(Color color, {bool allowNone = false}) {
-    if (allowNone && color == Colors.transparent) return 'none';
+    if (allowNone && color == Colors.transparent) {
+      return 'none';
+    }
+
     final argb = color.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase();
+
     return '#${argb.substring(2)}';
   }
 
   void _showSnackBar(String message) {
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
+
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), duration: _kSnackBarDuration));
   }
 
@@ -97,6 +110,7 @@ extension _ReaderCoreHelpers on _ReaderState {
     }
 
     final parsed = int.tryParse(color.substring(1), radix: 16);
+
     if (parsed == null) {
       return fallback;
     }
@@ -106,11 +120,13 @@ extension _ReaderCoreHelpers on _ReaderState {
 
   Color _applyOpacity(Color color, double opacity) {
     final alpha = (opacity.clamp(0.0, 1.0) * 255).round();
+
     return color.withAlpha(alpha);
   }
 
   Map<String, dynamic> _annotationToCompactJson(InternalAnnotation annotation) {
     final compact = Map<String, dynamic>.from(annotation.toJson());
+
     compact.removeWhere((key, value) {
       if (value == null) {
         return true;
@@ -118,17 +134,20 @@ extension _ReaderCoreHelpers on _ReaderState {
 
       return key == 'text' && value is String && value.trim().isEmpty;
     });
+
     return compact;
   }
 
   Future<List<Bookmark>> _fetchLatestBookmarks() async {
     final ABSApi? api = ref.read(absApiProvider);
+
     if (api == null) {
       throw Exception('API not available');
     }
 
     if (!serverSupportsMediaProgressAndBookmarkRoutes(ref.read(serverVersionProvider))) {
       final userResponse = await api.getMeApi().getUser();
+
       return userResponse.data?.bookmarks
               ?.where((bookmark) => bookmark.libraryItemId == widget.itemId)
               .toList(growable: false) ??
@@ -136,6 +155,7 @@ extension _ReaderCoreHelpers on _ReaderState {
     }
 
     final bookmarksResponse = await api.getMeApi().getBookmarksForLibraryItem(widget.itemId);
+
     return bookmarksResponse.data?.bookmarks ?? const <Bookmark>[];
   }
 
@@ -162,6 +182,7 @@ extension _ReaderCoreHelpers on _ReaderState {
     _autoAnnotationLoadStarted = true;
     unawaited(() async {
       final loaded = await _loadAnnotationsFromApi(isEpubMode: isEpubMode, showFeedback: false);
+
       if (!loaded && mounted && isEpubMode) {
         _autoAnnotationLoadStarted = false;
       }
@@ -169,7 +190,9 @@ extension _ReaderCoreHelpers on _ReaderState {
   }
 
   Future<void> _syncEpubProgress({required String location, required double progress}) async {
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
     if (location.trim().isEmpty) {
       return;
     }
@@ -182,7 +205,9 @@ extension _ReaderCoreHelpers on _ReaderState {
   }
 
   Future<void> _syncPdfProgress({required int pageNumber}) async {
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
     if (pageNumber < 1 || _lastSyncedPdfPageNumber == pageNumber) {
       return;
     }
@@ -193,6 +218,7 @@ extension _ReaderCoreHelpers on _ReaderState {
 
     final pageCount = _pdfController.pageCount;
     final progress = pageCount <= 0 ? 0.0 : (pageNumber / pageCount).clamp(0.0, 1.0).toDouble();
+
     _lastSyncedPdfPageNumber = pageNumber;
 
     _readerSetState(() {
@@ -211,29 +237,28 @@ extension _ReaderCoreHelpers on _ReaderState {
   }
 
   void _onEpubRelocated(FoliateLocation location) {
-    if (!mounted) return;
-    final currentLocation = location.cfi;
-    if (currentLocation == null || _lastSyncedEpubCfi == currentLocation) {
+    if (!mounted) {
       return;
     }
 
-    _lastSyncedEpubCfi = currentLocation;
+    final currentLocation = location.cfi;
+
+    if (currentLocation == null) {
+      return;
+    }
 
     _readerSetState(() {
       _currentEpubLocation = location;
     });
 
+    if (_lastSyncedEpubCfi == currentLocation) {
+      return;
+    }
+
+    _lastSyncedEpubCfi = currentLocation;
+
     _triggerAutoAnnotationLoadIfNeeded(isEpubMode: true);
     unawaited(_syncEpubProgress(location: currentLocation, progress: location.fraction));
-
-    if (_waitingForTtsPageLoad) {
-      _waitingForTtsPageLoad = false;
-      Future.delayed(const Duration(milliseconds: 300), () {
-        if (mounted && _isTtsPlaying) {
-          unawaited(_startTts());
-        }
-      });
-    }
 
     logger(
       'Epub relocated: $currentLocation, progress: ${location.fraction}',

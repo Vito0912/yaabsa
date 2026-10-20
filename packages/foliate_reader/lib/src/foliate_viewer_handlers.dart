@@ -26,6 +26,7 @@ extension _FoliateViewerHandlers on _FoliateViewerState {
 
   Future<void> _copyWebViewSelection() async {
     final text = await widget.controller?._webViewController?.getSelectedText();
+
     if (text == null || text.isEmpty) {
       return;
     }
@@ -53,7 +54,10 @@ extension _FoliateViewerHandlers on _FoliateViewerState {
     controller.addJavaScriptHandler(
       handlerName: 'onCenterTap',
       callback: (args) {
-        if (!mounted) return;
+        if (!mounted) {
+          return;
+        }
+
         widget.onCenterTap?.call();
       },
     );
@@ -61,8 +65,12 @@ extension _FoliateViewerHandlers on _FoliateViewerState {
     controller.addJavaScriptHandler(
       handlerName: 'onBookLoaded',
       callback: (args) {
-        if (!mounted) return;
+        if (!mounted) {
+          return;
+        }
+
         _markBookLoaded();
+
         if (args.isNotEmpty && widget.onBookLoaded != null) {
           try {
             final data = Map<String, dynamic>.from(args[0] as Map);
@@ -75,6 +83,7 @@ extension _FoliateViewerHandlers on _FoliateViewerState {
                 .toList();
             final dir = data['dir'] as String? ?? 'ltr';
             final hasMediaOverlays = data['hasMediaOverlays'] as bool? ?? false;
+
             widget.onBookLoaded!(metadata, toc, pageList, dir, hasMediaOverlays);
           } catch (e, s) {
             _diagnostics.failure('Failed to parse book loaded metadata', error: e, stackTrace: s);
@@ -85,11 +94,30 @@ extension _FoliateViewerHandlers on _FoliateViewerState {
     );
 
     controller.addJavaScriptHandler(
+      handlerName: 'onNarrationSeek',
+      callback: (args) {
+        if (!mounted || args.isEmpty) {
+          return;
+        }
+
+        final target = args.first;
+
+        if (target is String) {
+          widget.onNarrationSeek?.call(target);
+        }
+      },
+    );
+
+    controller.addJavaScriptHandler(
       handlerName: 'onMediaOverlayStateChanged',
       callback: (args) {
-        if (!mounted) return;
+        if (!mounted) {
+          return;
+        }
+
         if (args.isNotEmpty && widget.onMediaOverlayStateChanged != null) {
           final data = Map<String, dynamic>.from(args[0] as Map);
+
           widget.onMediaOverlayStateChanged!(data['state'] as String? ?? 'stopped');
         }
       },
@@ -98,7 +126,10 @@ extension _FoliateViewerHandlers on _FoliateViewerState {
     controller.addJavaScriptHandler(
       handlerName: 'onMediaOverlayHighlight',
       callback: (args) {
-        if (!mounted) return;
+        if (!mounted) {
+          return;
+        }
+
         if (args.isNotEmpty && widget.onMediaOverlayHighlight != null) {
           widget.onMediaOverlayHighlight!(Map<String, dynamic>.from(args[0] as Map));
         }
@@ -108,7 +139,10 @@ extension _FoliateViewerHandlers on _FoliateViewerState {
     controller.addJavaScriptHandler(
       handlerName: 'onMediaOverlayUnhighlight',
       callback: (args) {
-        if (!mounted) return;
+        if (!mounted) {
+          return;
+        }
+
         if (args.isNotEmpty && widget.onMediaOverlayUnhighlight != null) {
           widget.onMediaOverlayUnhighlight!(Map<String, dynamic>.from(args[0] as Map));
         }
@@ -118,7 +152,10 @@ extension _FoliateViewerHandlers on _FoliateViewerState {
     controller.addJavaScriptHandler(
       handlerName: 'onMediaOverlayError',
       callback: (args) {
-        if (!mounted) return;
+        if (!mounted) {
+          return;
+        }
+
         if (args.isNotEmpty && widget.onMediaOverlayError != null) {
           widget.onMediaOverlayError!(args[0].toString());
         }
@@ -128,9 +165,13 @@ extension _FoliateViewerHandlers on _FoliateViewerState {
     controller.addJavaScriptHandler(
       handlerName: 'onRelocate',
       callback: (args) {
-        if (!mounted) return;
+        if (!mounted) {
+          return;
+        }
+
         if (args.isNotEmpty && widget.onRelocate != null) {
           final data = Map<String, dynamic>.from(args[0] as Map);
+
           widget.onRelocate!(FoliateLocation.fromJson(data));
         }
       },
@@ -139,10 +180,14 @@ extension _FoliateViewerHandlers on _FoliateViewerState {
     controller.addJavaScriptHandler(
       handlerName: 'onSelectionChanged',
       callback: (args) {
-        if (!mounted) return;
+        if (!mounted) {
+          return;
+        }
+
         if (args.isNotEmpty) {
           final data = Map<String, dynamic>.from(args[0] as Map);
           final selection = FoliateSelection.fromJson(data);
+
           widget.onSelectionChanged?.call(selection);
         }
       },
@@ -151,7 +196,10 @@ extension _FoliateViewerHandlers on _FoliateViewerState {
     controller.addJavaScriptHandler(
       handlerName: 'onSelectionCleared',
       callback: (args) {
-        if (!mounted) return;
+        if (!mounted) {
+          return;
+        }
+
         widget.onSelectionCleared?.call();
       },
     );
@@ -159,9 +207,13 @@ extension _FoliateViewerHandlers on _FoliateViewerState {
     controller.addJavaScriptHandler(
       handlerName: 'onAnnotationClicked',
       callback: (args) {
-        if (!mounted) return;
+        if (!mounted) {
+          return;
+        }
+
         if (args.isNotEmpty && widget.onAnnotationClicked != null) {
           final data = Map<String, dynamic>.from(args[0] as Map);
+
           widget.onAnnotationClicked!(FoliateAnnotation.fromJson(data));
         }
       },
@@ -170,9 +222,13 @@ extension _FoliateViewerHandlers on _FoliateViewerState {
     controller.addJavaScriptHandler(
       handlerName: 'onAnnotationAdded',
       callback: (args) {
-        if (!mounted) return;
+        if (!mounted) {
+          return;
+        }
+
         if (args.isNotEmpty && widget.onAnnotationAdded != null) {
           final data = Map<String, dynamic>.from(args[0] as Map);
+
           widget.onAnnotationAdded!(FoliateAnnotation.fromJson(data));
         }
       },
@@ -181,12 +237,16 @@ extension _FoliateViewerHandlers on _FoliateViewerState {
     controller.addJavaScriptHandler(
       handlerName: 'onSearchResults',
       callback: (args) {
-        if (!mounted) return;
+        if (!mounted) {
+          return;
+        }
+
         if (args.isNotEmpty && widget.onSearchResults != null) {
           final rawResults = args[0] as List;
           final results = rawResults
               .map((e) => FoliateSearchResult.fromJson(Map<String, dynamic>.from(e as Map)))
               .toList();
+
           widget.onSearchResults!(results);
         }
       },
@@ -195,7 +255,10 @@ extension _FoliateViewerHandlers on _FoliateViewerState {
     controller.addJavaScriptHandler(
       handlerName: 'onError',
       callback: (args) {
-        if (!mounted) return;
+        if (!mounted) {
+          return;
+        }
+
         if (args.isNotEmpty) {
           _reportLoadError(
             args[0].toString(),
@@ -210,9 +273,12 @@ extension _FoliateViewerHandlers on _FoliateViewerState {
     controller.addJavaScriptHandler(
       handlerName: 'onTtsJumpToSentence',
       callback: (args) {
-        if (!mounted) return;
+        if (!mounted) {
+          return;
+        }
+
         if (args.isNotEmpty && widget.onTtsJumpToSentence != null) {
-          widget.onTtsJumpToSentence!(args[0] as int);
+          widget.onTtsJumpToSentence!(args[0] as String);
         }
       },
     );

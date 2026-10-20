@@ -20,10 +20,15 @@ class _SleepTimerExpiryContext {
 
 extension _SleepTimerExpiry on SleepTimerHandler {
   Future<void> _onTimerExpired() {
-    if (_expiry != null) return _expiry!;
-    if (!_data.isActive) return Future.value();
+    if (_expiry != null) {
+      return _expiry!;
+    }
+    if (!_data.isActive) {
+      return Future.value();
+    }
 
     final owner = _captureChapterExpiryOwner();
+
     if (_data.isChapterTimer && owner == null) {
       stop(recordHistory: false);
       return Future.value();
@@ -46,20 +51,30 @@ extension _SleepTimerExpiry on SleepTimerHandler {
     );
 
     _clearActiveTimerForExpiry(context);
-    if (owner == null) _recordExpiry(context);
+
+    if (owner == null) {
+      _recordExpiry(context);
+    }
 
     final expiry = Future<void>.microtask(() => _runExpiry(context));
+
     _expiry = expiry;
     unawaited(expiry.whenComplete(() => _finishExpiry(context)));
+
     return expiry;
   }
 
   SleepTimerPlaybackOwner? _captureChapterExpiryOwner() {
-    if (!_data.isChapterTimer) return null;
+    if (!_data.isChapterTimer) {
+      return null;
+    }
 
     final media = audioHandler.currentMediaItem;
     final binding = _chapterBinding;
-    if (media == null || binding == null) return null;
+
+    if (media == null || (binding == null && !audioHandler.isReaderNarration)) {
+      return null;
+    }
 
     final owner = SleepTimerPlaybackOwner(
       media: media,
@@ -73,6 +88,7 @@ extension _SleepTimerExpiry on SleepTimerHandler {
       navigationGeneration: owner.navigationGeneration,
       playbackGeneration: owner.playbackGeneration,
     );
+
     return isCurrent ? owner : null;
   }
 
@@ -94,7 +110,10 @@ extension _SleepTimerExpiry on SleepTimerHandler {
 
   Future<void> _runExpiry(_SleepTimerExpiryContext context) async {
     final completed = await _executeExpiry(context);
-    if (context.owner == null) return;
+
+    if (context.owner == null) {
+      return;
+    }
 
     if (completed) {
       _recordExpiry(context);
@@ -106,12 +125,16 @@ extension _SleepTimerExpiry on SleepTimerHandler {
 
   Future<bool> _executeExpiry(_SleepTimerExpiryContext context) async {
     try {
-      if (!_isExpiryCurrent(context)) return false;
+      if (!_isExpiryCurrent(context)) {
+        return false;
+      }
 
       final owner = context.owner;
+
       if (owner != null) {
         return await _executeChapterExpiry(context, owner);
       }
+
       return await _executeDurationExpiry(context);
     } catch (e) {
       logger('Failed to run sleep timer expiry action: $e', tag: 'SleepTimer', level: InfoLevel.warning);
@@ -123,34 +146,51 @@ extension _SleepTimerExpiry on SleepTimerHandler {
 
   Future<bool> _executeChapterExpiry(_SleepTimerExpiryContext context, SleepTimerPlaybackOwner owner) async {
     final paused = await audioHandler.pauseForSleepTimer(owner);
-    if (!paused || !_isExpiryCurrent(context)) return false;
+
+    if (!paused || !_isExpiryCurrent(context)) {
+      return false;
+    }
 
     final rewoundPosition = await audioHandler.rewindForSleepTimer(owner);
-    if (rewoundPosition == null || !_isExpiryCurrent(context)) return false;
+
+    if (rewoundPosition == null || !_isExpiryCurrent(context)) {
+      return false;
+    }
 
     final stillCurrent = await audioHandler.flushForSleepTimer(
       owner,
       position: rewoundPosition,
       closing: context.action == SleepTimerExpireAction.stop,
     );
-    if (!stillCurrent || !_isExpiryCurrent(context)) return false;
+
+    if (!stillCurrent || !_isExpiryCurrent(context)) {
+      return false;
+    }
 
     if (context.action == SleepTimerExpireAction.stop) {
       return audioHandler.stopForSleepTimer(owner, position: rewoundPosition);
     }
+
     return true;
   }
 
   Future<bool> _executeDurationExpiry(_SleepTimerExpiryContext context) async {
     await audioHandler.pause();
-    if (!_isExpiryCurrent(context)) return false;
+
+    if (!_isExpiryCurrent(context)) {
+      return false;
+    }
 
     await audioHandler.applySleepTimerAutoRewindNow();
-    if (!_isExpiryCurrent(context)) return false;
+
+    if (!_isExpiryCurrent(context)) {
+      return false;
+    }
 
     if (context.action == SleepTimerExpireAction.stop) {
       await audioHandler.stop();
     }
+
     return true;
   }
 
@@ -168,6 +208,7 @@ extension _SleepTimerExpiry on SleepTimerHandler {
 
   void _finishExpiry(_SleepTimerExpiryContext context) {
     _expiry = null;
+
     if (!_disposed && _autoStartPending && context.mediaKey != _mediaKey(audioHandler.currentMediaItem)) {
       _tryAutoRestartSleepTimerOnPlaybackStart();
     }

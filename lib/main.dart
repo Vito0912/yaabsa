@@ -17,6 +17,7 @@ import 'package:yaabsa/util/handler/tray_handler.dart' show TrayManager;
 import 'package:yaabsa/util/handler/sleep_timer_handler.dart';
 import 'package:yaabsa/util/handler/desktop_window_state.dart';
 import 'package:yaabsa/util/init.dart' show Init;
+import 'package:yaabsa/util/reader/reader_speech_providers.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/router.dart';
 import 'package:yaabsa/util/setting_key.dart';
@@ -31,7 +32,9 @@ Future<void> _resumeLastPlayedOnStartup() async {
     if (AaosService.instance.currentState.isAutomotiveDevice) {
       return;
     }
+
     await containerRef.read(currentUserProvider.future);
+
     if (isAudioHandlerInitialized) {
       await audioHandler.playLastPlayedIfEnabledOnStartup();
     }
@@ -60,13 +63,18 @@ void main() {
   runZonedGuarded(
     () async {
       await Init.globals();
+
       final settingsManager = containerRef.read(settingsManagerProvider.notifier);
+
       await settingsManager.ensureInitialized();
+
+      registerReaderSpeechProviders(containerRef);
 
       final startupLogLevelSetting = settingsManager.getGlobalSetting<String>(
         SettingKeys.appLogLevel,
         defaultValue: InfoLevel.warning.toString(),
       );
+
       appLoggerService.setMinimumLevel(InfoLevel.fromSettingValue(startupLogLevelSetting));
       await DesktopWindowState.initialize(settingsManager);
 
@@ -75,8 +83,10 @@ void main() {
       containerRef.read(absSocketClientProvider);
       containerRef.read(oidcStateProvider.notifier).initializeDeepLinkListener();
       Init.initLogger();
+
       try {
         final handler = await Init.initAudioHandler().timeout(const Duration(seconds: 5));
+
         audioHandler = handler;
         unawaited(audioHandler.restoreLastPlayedMiniPlayerIfEnabled());
       } catch (e, s) {
@@ -96,13 +106,17 @@ void main() {
           level: InfoLevel.error,
         );
       }
+
       TrayManager.update();
 
       Init.late();
+
       if (!AaosService.instance.currentState.isAutomotiveDevice) {
         initPhoneWearHandler();
       }
+
       await _configureAndroidEdgeToEdge();
+
       runApp(UncontrolledProviderScope(container: containerRef, child: MyApp()));
       containerRef.read(smartDownloadManagerProvider.notifier).markAppReady();
       unawaited(_resumeLastPlayedOnStartup());
@@ -123,6 +137,7 @@ class MyApp extends ConsumerWidget {
         if (!isAudioHandlerInitialized) {
           try {
             final handler = await Init.initAudioHandler().timeout(const Duration(seconds: 5));
+
             audioHandler = handler;
             containerRef.read(sleepTimerHandlerProvider.notifier).attachPlaybackListeners();
             unawaited(audioHandler.restoreLastPlayedMiniPlayerIfEnabled());

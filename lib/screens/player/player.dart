@@ -12,7 +12,7 @@ import 'package:yaabsa/components/player/common/stop_button.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
-import 'package:yaabsa/screens/player/bookmarks_sheet.dart';
+import 'package:yaabsa/components/player/common/bookmarks_button.dart';
 import 'package:yaabsa/screens/player/car_mode_screen.dart';
 import 'package:yaabsa/screens/player/components/player_chapters_component.dart';
 import 'package:yaabsa/screens/player/components/player_cover_component.dart';
@@ -86,6 +86,7 @@ class _PlayerState extends ConsumerState<Player> {
       if (!mounted) {
         return;
       }
+
       _openCarMode(context);
     });
   }
@@ -116,6 +117,7 @@ class _PlayerState extends ConsumerState<Player> {
 
   void _openPlayHistory(BuildContext context) {
     final currentMedia = audioHandler.currentMediaItem;
+
     if (currentMedia == null) {
       context.push(PlayHistoryView.routeName);
       return;
@@ -136,6 +138,7 @@ class _PlayerState extends ConsumerState<Player> {
     }
 
     final location = GoRouterState.of(context).matchedLocation;
+
     if (location != '/player') {
       return;
     }
@@ -165,6 +168,7 @@ class _PlayerState extends ConsumerState<Player> {
     final velocity = details.primaryVelocity ?? 0;
     final draggedDownEnough = _verticalDragDelta >= _minimizeDragDistanceThreshold;
     final flungDown = velocity >= _minimizeDragVelocityThreshold;
+
     _verticalDragDelta = 0;
 
     if (draggedDownEnough || flungDown) {
@@ -183,20 +187,7 @@ class _PlayerState extends ConsumerState<Player> {
   }
 
   void _showBookmarksSheet(BuildContext context) {
-    final messenger = ScaffoldMessenger.of(context);
-    final media = audioHandler.currentMediaItem;
-    if (media == null) {
-      messenger.showSnackBar(const SnackBar(content: Text('No active media to bookmark.')));
-      return;
-    }
-
-    showModalBottomSheet<void>(
-      context: context,
-      useSafeArea: true,
-      showDragHandle: true,
-      isScrollControlled: true,
-      builder: (BuildContext context) => PlayerBookmarksSheet(itemId: media.itemId, itemTitle: media.title),
-    );
+    showPlayerBookmarksSheet(context);
   }
 
   Future<void> _handleAppBarMenuAction(BuildContext context, _PlayerAppBarMenuAction action) async {
@@ -214,7 +205,9 @@ class _PlayerState extends ConsumerState<Player> {
       case _PlayerAppBarMenuAction.cast:
         await showCastDevicePicker(context);
       case _PlayerAppBarMenuAction.restartSession:
-        if (kDebugMode) await audioHandler.restartListeningSession();
+        if (kDebugMode) {
+          await audioHandler.restartListeningSession();
+        }
       case _PlayerAppBarMenuAction.equalizer:
         context.go(PlayerSettingsEqualizer.routeName);
     }
@@ -301,11 +294,13 @@ class _PlayerState extends ConsumerState<Player> {
 
   PlayerLayoutProfile _activeProfileForScreen(PlayerLayoutScreenSize screenSize) {
     final layoutConfig = _currentLayoutConfig();
+
     return normalizePlayerLayoutProfile(layoutConfig.profileFor(screenSize), screenSize, allowOverlap: true);
   }
 
   Future<void> _persistLayoutConfig(PlayerLayoutConfig layoutConfig) async {
     final settingsManager = ref.read(settingsManagerProvider.notifier);
+
     _persistSequence = _persistSequence
         .catchError((_) {})
         .then(
@@ -340,6 +335,7 @@ class _PlayerState extends ConsumerState<Player> {
         return true;
       }
     }
+
     return false;
   }
 
@@ -370,10 +366,13 @@ class _PlayerState extends ConsumerState<Player> {
     final nextLayout = currentLayout.copyWithProfile(screenSize, normalized);
 
     _layoutDraft = nextLayout;
+
     final settingsManager = ref.read(settingsManagerProvider.notifier);
+
     unawaited(settingsManager.setGlobalSetting<bool>(SettingKeys.playerLayoutModeExplicit, true));
     unawaited(settingsManager.setGlobalSetting<String>(SettingKeys.playerLayoutMode, PlayerLayoutMode.custom.name));
     unawaited(_persistLayoutConfig(nextLayout));
+
     if (mounted) {
       setState(() {});
     }
@@ -389,13 +388,16 @@ class _PlayerState extends ConsumerState<Player> {
     final current = profile.placementFor(type);
 
     var updated = current.copyWith(visible: visible);
+
     if (visible && !current.visible) {
       final free = _findFirstFreePosition(profile, updated.width, updated.height, type, screenSize);
+
       if (free == null) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('No free grid space available for ${type.label}.')));
         return;
       }
+
       updated = updated.copyWith(x: free.x, y: free.y);
     }
 
@@ -453,10 +455,13 @@ class _PlayerState extends ConsumerState<Player> {
 
   Future<void> _copyLayoutConfigToClipboard(BuildContext context) async {
     final configString = _currentLayoutConfig().toSettingValue();
+
     await Clipboard.setData(ClipboardData(text: configString));
+
     if (!context.mounted) {
       return;
     }
+
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Layout config copied to clipboard.')));
   }
 
@@ -571,6 +576,7 @@ class _PlayerState extends ConsumerState<Player> {
     required PlayerTransportMode transportMode,
   }) {
     Widget content;
+
     switch (placement.type) {
       case PlayerComponentType.cover:
         content = PlayerCoverComponent(api: api, media: media, fitMode: placement.coverFitMode);
@@ -626,12 +632,14 @@ class _PlayerState extends ConsumerState<Player> {
     ref.watch(globalSettingByKeyProvider(SettingKeys.playerLayoutMode));
     ref.watch(globalSettingByKeyProvider(SettingKeys.playerLayoutModeExplicit));
     ref.watch(globalSettingByKeyProvider(SettingKeys.playerAdaptivePreset));
+
     final rawCoverSize = ref.watch(globalSettingByKeyProvider(SettingKeys.playerCoverSize)).asData?.value;
     final rawImmersiveColors = ref.watch(globalSettingByKeyProvider(SettingKeys.playerImmersiveColors)).asData?.value;
     final rawFullTransportMode = ref
         .watch(globalSettingByKeyProvider(SettingKeys.fullPlayerTransportMode))
         .asData
         ?.value;
+
     ref.watch(globalSettingByKeyProvider(SettingKeys.fullPlayerActions));
     ref.watch(globalSettingByKeyProvider(SettingKeys.mobilePlayerLeftAction));
     ref.watch(globalSettingByKeyProvider(SettingKeys.mobilePlayerRightAction));
@@ -827,6 +835,7 @@ class _PlayerState extends ConsumerState<Player> {
         ? _adaptiveNavigationBarColor!
         : Theme.of(context).colorScheme.surfaceContainer;
     final navigationBarBrightness = ThemeData.estimateBrightnessForColor(systemNavigationColor);
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
@@ -858,12 +867,14 @@ class _PlayerState extends ConsumerState<Player> {
                   }
 
                   final media = mediaSnapshot.data;
+
                   if (media == null) {
                     if (isTransitionLoading) {
                       return const _PlayerTransitionLoadingView();
                     }
 
                     _scheduleClosePlayerIfOpen();
+
                     return const SizedBox.shrink();
                   }
 
@@ -980,6 +991,7 @@ class _AppBarSeekTimesStrip extends ConsumerWidget {
     if (duration == null) {
       return '--:--';
     }
+
     return duration.toPlaybackTimeString();
   }
 
@@ -1068,6 +1080,7 @@ class _QueueBottomSheet extends StatelessWidget {
                           ],
                         ),
                       );
+
                       if (shouldClear == true) {
                         audioHandler.clearQueue();
                       }
@@ -1232,6 +1245,7 @@ class _PlayerQuickSettingsSheet extends ConsumerWidget {
                 children: PlayerSeekBarMode.values
                     .map((PlayerSeekBarMode mode) {
                       final selected = mode == selectedMode;
+
                       return ChoiceChip(
                         label: Text(mode.label),
                         selected: selected,
@@ -1239,6 +1253,7 @@ class _PlayerQuickSettingsSheet extends ConsumerWidget {
                           if (!value) {
                             return;
                           }
+
                           ref
                               .read(settingsManagerProvider.notifier)
                               .setGlobalSetting<String>(SettingKeys.playerSeekBarMode, mode.name);

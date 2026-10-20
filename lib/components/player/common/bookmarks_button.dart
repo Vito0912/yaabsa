@@ -4,7 +4,14 @@ import 'package:yaabsa/util/globals.dart';
 
 void showPlayerBookmarksSheet(BuildContext context) {
   final messenger = ScaffoldMessenger.of(context);
+
+  if (audioHandler.isReaderNarration) {
+    messenger.showSnackBar(const SnackBar(content: Text('Use the reader to bookmark a passage')));
+    return;
+  }
+
   final media = audioHandler.currentMediaItem;
+
   if (media == null) {
     messenger.showSnackBar(const SnackBar(content: Text('No active media to bookmark.')));
     return;
@@ -32,9 +39,9 @@ class BookmarksButton extends StatelessWidget {
       child: IconButton(
         iconSize: iconSize,
         color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-        tooltip: 'Bookmarks',
+        tooltip: audioHandler.isReaderNarration ? 'Use reader bookmarks' : 'Bookmarks',
         icon: const Icon(Icons.bookmarks_rounded),
-        onPressed: () => showPlayerBookmarksSheet(context),
+        onPressed: audioHandler.isReaderNarration ? null : () => showPlayerBookmarksSheet(context),
       ),
     );
   }

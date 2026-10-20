@@ -41,6 +41,7 @@ class _FullWidthRoundedSliderTrackShape extends RoundedRectSliderTrackShape {
   }) {
     final trackHeight = sliderTheme.trackHeight ?? 0;
     final trackTop = offset.dy + (parentBox.size.height - trackHeight) / 2;
+
     return Rect.fromLTWH(offset.dx, trackTop, parentBox.size.width, trackHeight);
   }
 }
@@ -64,6 +65,7 @@ class SeekBarSlider extends StatefulWidget {
     this.showSleepTimerPin = true,
     this.showSleepTimerRange = true,
     this.onSleepTimerMarkerTap,
+    this.seekOnReleaseOnly = false,
   });
 
   final double trackHeight;
@@ -82,6 +84,7 @@ class SeekBarSlider extends StatefulWidget {
   final bool showSleepTimerPin;
   final bool showSleepTimerRange;
   final Future<void> Function()? onSleepTimerMarkerTap;
+  final bool seekOnReleaseOnly;
 
   @override
   State<SeekBarSlider> createState() => _SeekBarSliderState();
@@ -119,6 +122,7 @@ class _SeekBarSliderState extends State<SeekBarSlider> {
 
   double? _resolvePositionOffset(Duration position, double sliderWidth) {
     final rangeDuration = widget.rangeEnd - widget.rangeStart;
+
     if (rangeDuration <= Duration.zero || sliderWidth <= 0) {
       return null;
     }
@@ -126,10 +130,15 @@ class _SeekBarSliderState extends State<SeekBarSlider> {
     final ratio = ((position - widget.rangeStart).inMicroseconds / rangeDuration.inMicroseconds)
         .clamp(0.0, 1.0)
         .toDouble();
+
     return ratio * sliderWidth;
   }
 
   void _handleSliderChangeStart(double value) {
+    if (widget.seekOnReleaseOnly) {
+      _queuedSeekValue = null;
+    }
+
     setState(() {
       _isDragging = true;
       _dragValue = value;
@@ -140,7 +149,10 @@ class _SeekBarSliderState extends State<SeekBarSlider> {
     if (_dragValue != value) {
       setState(() => _dragValue = value);
     }
-    _queueBackendSeek(value);
+
+    if (!widget.seekOnReleaseOnly || !_isDragging) {
+      _queueBackendSeek(value);
+    }
   }
 
   void _handleSliderChangeEnd(double value) {
@@ -148,11 +160,26 @@ class _SeekBarSliderState extends State<SeekBarSlider> {
       _isDragging = false;
       _dragValue = value;
     });
+
     _queueBackendSeek(value);
+  }
+
+  void _cancelSliderDrag() {
+    if (widget.seekOnReleaseOnly && _isDragging) {
+      _queuedSeekValue = null;
+
+      setState(() {
+        _isDragging = false;
+        _dragValue = null;
+      });
+    }
+
+    _clearPreview();
   }
 
   void _queueBackendSeek(double value) {
     _queuedSeekValue = value;
+
     if (!_seekLoopActive) {
       unawaited(_drainSeekQueue());
     }
@@ -160,25 +187,37 @@ class _SeekBarSliderState extends State<SeekBarSlider> {
 
   Future<void> _drainSeekQueue() async {
     _seekLoopActive = true;
+
     try {
       while (mounted && _queuedSeekValue != null) {
         final lastSeekAt = _lastBackendSeekAt;
+
         if (lastSeekAt != null) {
           final elapsed = DateTime.now().difference(lastSeekAt);
+
           if (elapsed < _backendSeekInterval) {
             await Future<void>.delayed(_backendSeekInterval - elapsed);
           }
         }
+
         if (!mounted || _queuedSeekValue == null) {
           break;
         }
+
+        if (widget.seekOnReleaseOnly && _isDragging) {
+          _queuedSeekValue = null;
+          break;
+        }
+
         final value = _queuedSeekValue!;
+
         _queuedSeekValue = null;
         _lastBackendSeekAt = DateTime.now();
         await widget.executeSeek(value);
       }
     } finally {
       _seekLoopActive = false;
+
       if (mounted && _queuedSeekValue != null) {
         unawaited(_drainSeekQueue());
       }
@@ -188,6 +227,7 @@ class _SeekBarSliderState extends State<SeekBarSlider> {
   @override
   void didUpdateWidget(SeekBarSlider oldWidget) {
     super.didUpdateWidget(oldWidget);
+
     if (!_isDragging && _dragValue != null && oldWidget.sliderValue != widget.sliderValue) {
       _dragValue = null;
     }
@@ -213,6 +253,7 @@ class _SeekBarSliderState extends State<SeekBarSlider> {
 
     const trackInset = 0.0;
     final trackWidth = sliderWidth;
+
     _cachedMarkerOffsets =
         _resolveMarkerOffsets(
               markers: widget.markers,
@@ -228,6 +269,7 @@ class _SeekBarSliderState extends State<SeekBarSlider> {
     _cachedRangeStart = widget.rangeStart;
     _cachedRangeEnd = widget.rangeEnd;
     _cachedSliderWidth = sliderWidth;
+
     return _cachedMarkerOffsets;
   }
 
@@ -244,6 +286,7 @@ class _SeekBarSliderState extends State<SeekBarSlider> {
 
     final offsetChanged = _previewOffset == null || (_previewOffset! - clampedDx).abs() >= 0.5;
     final positionChanged = _previewPosition != nextPosition;
+
     if (!offsetChanged && !positionChanged) {
       return;
     }
@@ -274,6 +317,7 @@ class _SeekBarSliderState extends State<SeekBarSlider> {
     required TextDirection textDirection,
   }) {
     final measurementKey = '$label|${textStyle.hashCode}|${maxWidth.round()}';
+
     if (_cachedPreviewKey == measurementKey) {
       return _cachedPreviewWidth;
     }
@@ -286,6 +330,7 @@ class _SeekBarSliderState extends State<SeekBarSlider> {
 
     _cachedPreviewKey = measurementKey;
     _cachedPreviewWidth = textPainter.width + 14;
+
     return _cachedPreviewWidth;
   }
 
@@ -386,7 +431,10 @@ class _SeekBarSliderState extends State<SeekBarSlider> {
                 behavior: HitTestBehavior.translucent,
                 onPointerDown: widget.hasSeekRange
                     ? (event) {
-                        if (event.kind == PointerDeviceKind.touch) return;
+                        if (event.kind == PointerDeviceKind.touch) {
+                          return;
+                        }
+
                         _updatePreview(
                           dx: event.localPosition.dx,
                           sliderWidth: sliderWidth,
@@ -396,7 +444,10 @@ class _SeekBarSliderState extends State<SeekBarSlider> {
                     : null,
                 onPointerMove: widget.hasSeekRange
                     ? (event) {
-                        if (event.kind == PointerDeviceKind.touch) return;
+                        if (event.kind == PointerDeviceKind.touch) {
+                          return;
+                        }
+
                         _updatePreview(
                           dx: event.localPosition.dx,
                           sliderWidth: sliderWidth,
@@ -410,6 +461,7 @@ class _SeekBarSliderState extends State<SeekBarSlider> {
                           _clearPreview();
                           return;
                         }
+
                         _updatePreview(
                           dx: event.localPosition.dx,
                           sliderWidth: sliderWidth,
@@ -417,7 +469,7 @@ class _SeekBarSliderState extends State<SeekBarSlider> {
                         );
                       }
                     : null,
-                onPointerCancel: widget.hasSeekRange ? (_) => _clearPreview() : null,
+                onPointerCancel: widget.hasSeekRange ? (_) => _cancelSliderDrag() : null,
                 child: SizedBox(
                   height: showSleepTimerPin ? _sleepTimerPinLayoutHeight : null,
                   child: Stack(
@@ -579,6 +631,7 @@ _MarkerPaintProfile _resolveMarkerPaintProfile(int markerCount) {
   if (markerCount <= 140) {
     return const _MarkerPaintProfile(width: 1.6, alpha: 0.84);
   }
+
   return const _MarkerPaintProfile(width: 1.2, alpha: 0.78);
 }
 
@@ -590,11 +643,13 @@ List<_SeekTimelineMarkerOffset> _resolveMarkerOffsets({
 }) {
   final rangeDuration = rangeEnd - rangeStart;
   final rangeSeconds = rangeDuration.inMilliseconds / 1000.0;
+
   if (rangeSeconds <= 0 || sliderWidth <= 0 || markers.isEmpty) {
     return const <_SeekTimelineMarkerOffset>[];
   }
 
   final rawOffsets = <_SeekTimelineMarkerOffset>[];
+
   for (final marker in markers) {
     if (marker.position <= rangeStart || marker.position >= rangeEnd) {
       continue;
@@ -602,6 +657,7 @@ List<_SeekTimelineMarkerOffset> _resolveMarkerOffsets({
 
     final markerSeconds = (marker.position - rangeStart).inMilliseconds / 1000.0;
     final offset = (markerSeconds / rangeSeconds) * sliderWidth;
+
     rawOffsets.add(_SeekTimelineMarkerOffset(offset: offset.clamp(0.0, sliderWidth).toDouble(), type: marker.type));
   }
 
@@ -625,10 +681,12 @@ List<_SeekTimelineMarkerOffset> _resolveMarkerOffsets({
   }
 
   final filtered = <_SeekTimelineMarkerOffset>[rawOffsets.first];
+
   for (var i = 1; i < rawOffsets.length; i++) {
     final candidate = rawOffsets[i];
     final hasVisualGap = candidate.offset - filtered.last.offset >= minVisualGap;
     final hasDifferentMarkerType = candidate.type != filtered.last.type;
+
     if (hasVisualGap || hasDifferentMarkerType) {
       filtered.add(rawOffsets[i]);
     }

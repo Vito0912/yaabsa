@@ -7,6 +7,7 @@ import 'package:yaabsa/components/settings/settings_switch_tile.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/screens/settings/reader_tts_settings.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/screens/reader/widgets/reader_appearance_controls.dart';
 
 class ReaderSettings extends StatelessWidget {
   const ReaderSettings({super.key});
@@ -24,12 +25,14 @@ class ReaderSettings extends StatelessWidget {
           title: 'Display & Theme',
           topPadding: 0,
           settings: [
+            const ReaderAppearancePreview(),
+            const ReaderPageColorPicker(),
             SettingDropdown<String>(
-              label: 'Reader Theme',
-              description: 'Choose the background and text color theme of the reader',
-              values: const ['light', 'sepia', 'grey', 'dark'],
-              valueLabels: const ['Light', 'Sepia', 'Grey', 'Dark'],
-              settingKey: SettingKeys.readerTheme,
+              label: 'Typeface',
+              description: 'Choose a comfortable reading font',
+              values: const ['publisher', 'serif', 'sans'],
+              valueLabels: const ['Book default', 'Serif', 'Sans serif'],
+              settingKey: SettingKeys.readerFontFamily,
             ),
             SettingSlider<double>(
               label: 'Font Size',
@@ -50,11 +53,26 @@ class ReaderSettings extends StatelessWidget {
         SettingsNavigationSection(
           title: 'Layout',
           settings: [
+            const ReaderPageGeometrySettings(),
+            SettingDropdown<String>(
+              label: 'Text alignment',
+              description: 'Choose how paragraphs are aligned',
+              values: const ['publisher', 'start', 'justify'],
+              valueLabels: const ['Book default', 'Start aligned', 'Justified'],
+              settingKey: SettingKeys.readerTextAlignment,
+            ),
+            SettingSlider<double>(
+              label: 'Letter spacing',
+              description: 'Adjust the space between letters',
+              values: const [0.0, 0.02, 0.04, 0.08, 0.12],
+              valueLabels: const ['Book default', 'Slight', 'Medium', 'Wide', 'Extra wide'],
+              settingKey: SettingKeys.readerLetterSpacing,
+            ),
             SettingDropdown<String>(
               label: 'Layout Mode',
-              description: 'Choose between paginated columns or vertical infinite scroll',
+              description: 'Choose how pages move while reading',
               values: const ['paginated_1', 'paginated_2', 'scrolled'],
-              valueLabels: const ['Single Column', 'Two Columns', 'Infinite Scroll'],
+              valueLabels: const ['Single page', 'Two pages on wide screens', 'Scroll'],
               settingKey: SettingKeys.readerLayout,
             ),
           ],
@@ -67,6 +85,7 @@ class ReaderSettings extends StatelessWidget {
               title: 'Text-to-Speech (TTS)',
               onTap: () {
                 final isNested = Navigator.of(context) != Navigator.of(context, rootNavigator: true);
+
                 if (isNested) {
                   Navigator.of(context).pushNamed(ReaderTtsSettings.routeName);
                 } else {
@@ -86,7 +105,7 @@ class ReaderSettings extends StatelessWidget {
             ),
             const SettingSwitchTile(
               label: 'Track reading time as listening',
-              subtitle: 'This will count the time spent in the reader towards your listening stats. It might confuse other clients',
+              subtitle: 'Includes reading time in your listening statistics',
               settingKey: SettingKeys.readerStartSession,
             ),
           ],

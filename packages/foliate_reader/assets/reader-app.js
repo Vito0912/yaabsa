@@ -1,13 +1,89 @@
+import { ReaderBookSearch } from './reader-search.js';
 import { View } from './foliate-js/view.js';
 import { Overlayer } from './foliate-js/overlayer.js';
+import { prepareNarration, highlightNarration } from './reader-narration.js';
+import { collectSpeech, nextSpeechSection, prepareSpeech } from './reader-tts.js';
 
 const view = document.getElementById('viewer');
+const bookSearch = new ReaderBookSearch(view);
 const annotationsMap = new Map();
 let currentTtsHighlight = null;
 let currentMediaOverlayHighlight = null;
 let clearMediaOverlayHighlight = null;
 let currentStyles = null;
 let currentTtsRanges = [];
+let nativeSpeechActive = false;
+let currentSpeechDocument = null;
+let currentPageGeometry = null;
+let pageGeometryFrame = null;
+
+function applyPageGeometry() {
+    pageGeometryFrame = null;
+    const renderer = view?.renderer;
+    if (!renderer || !currentPageGeometry) {
+        return;
+    }
+
+    const bounds = renderer.getBoundingClientRect();
+    const doc = renderer.getContents?.()[0]?.doc;
+    const writingMode = doc?.body ? doc.defaultView.getComputedStyle(doc.body).writingMode : '';
+    const vertical = writingMode === 'vertical-rl' || writingMode === 'vertical-lr';
+    const inlineSize = vertical ? bounds.height : bounds.width;
+    const blockSize = vertical ? bounds.width : bounds.height;
+    if (inlineSize <= 0 || blockSize <= 0) {
+        return;
+    }
+
+    const margin = Math.min(currentPageGeometry.margin, inlineSize * 0.2);
+    const verticalMargin = Math.min(currentPageGeometry.verticalMargin, blockSize * 0.2);
+    const scrolled = renderer.getAttribute('flow') === 'scrolled';
+    const gap = scrolled ? margin / (inlineSize + margin) : margin / inlineSize;
+    const attributes = {
+        margin: `${verticalMargin}px`,
+        gap: `${(gap * 100).toFixed(4)}%`,
+        'max-inline-size': `${currentPageGeometry.width}px`,
+    };
+
+    for (const [name, value] of Object.entries(attributes)) {
+        if (renderer.getAttribute(name) !== value) {
+            renderer.setAttribute(name, value);
+        }
+    }
+}
+
+function schedulePageGeometry() {
+    if (currentPageGeometry && pageGeometryFrame === null) {
+        pageGeometryFrame = requestAnimationFrame(applyPageGeometry);
+    }
+}
+
+const pageGeometryObserver = new ResizeObserver(schedulePageGeometry);
+pageGeometryObserver.observe(view);
+view.addEventListener('load', schedulePageGeometry);
+window.addEventListener('pagehide', () => {
+    bookSearch.clearHighlight();
+    pageGeometryObserver.disconnect();
+    if (pageGeometryFrame !== null) {
+        cancelAnimationFrame(pageGeometryFrame);
+        pageGeometryFrame = null;
+    }
+}, { once: true });
+
+function refreshSpeechRanges() {
+    if (!nativeSpeechActive) {
+        return;
+    }
+
+    const contents = view.renderer?.getContents?.();
+    const item = contents?.find(item => item.index === view.lastLocation?.section?.current) ?? contents?.[0];
+    if (!item?.doc || currentSpeechDocument === item.doc) {
+        return;
+    }
+    currentSpeechDocument = item.doc;
+    currentTtsRanges = collectSpeech(view, false).ranges;
+}
+
+let nativeNarrationActive = false;
 
 const interactiveSelector = [
     'a',
@@ -44,7 +120,9 @@ const isAnnotationAtPoint = (index, event) => {
 };
 
 const getReaderClientX = (event, doc) => {
-    if (Number.isFinite(event.screenX)) return event.screenX - window.screenX;
+    if (Number.isFinite(event.screenX)) {
+        return event.screenX - window.screenX;
+    }
 
     try {
         const frame = doc?.defaultView?.frameElement;
@@ -55,21 +133,36 @@ const getReaderClientX = (event, doc) => {
     } catch (error) {
         console.error(error);
     }
+
     return event.screenX - window.screenX;
 };
 
 const getPageTurnDirection = (clientX, viewportWidth) => {
-    if (!Number.isFinite(clientX) || !Number.isFinite(viewportWidth) || viewportWidth <= 0) return false;
+    if (!Number.isFinite(clientX) || !Number.isFinite(viewportWidth) || viewportWidth <= 0) {
+        return false;
+    }
+
+    if (view.renderer?.getAttribute('flow') === 'scrolled') {
+        return 0;
+    }
 
     const edgeWidth = Math.min(120, viewportWidth / 3);
-    if (clientX <= edgeWidth) return -1;
-    if (clientX >= viewportWidth - edgeWidth) return 1;
+    if (clientX <= edgeWidth) {
+        return -1;
+    }
+
+    if (clientX >= viewportWidth - edgeWidth) {
+        return 1;
+    }
+
     return 0;
 };
 
 const turnPageAtEdge = (clientX, viewportWidth) => {
     const direction = getPageTurnDirection(clientX, viewportWidth);
-    if (!direction) return false;
+    if (!direction) {
+        return false;
+    }
 
     const navigation = direction < 0 ? view.prev() : view.next();
     navigation.catch(error => console.error(error));
@@ -92,6 +185,7 @@ const getReaderRect = (rect, doc) => {
     } catch (error) {
         console.error(error);
     }
+
     return rect;
 };
 
@@ -105,7 +199,10 @@ const getVisibleSelectionRect = (range, doc) => {
 
 const resolveURL = (url, relativeTo) => {
     try {
-        if (relativeTo.includes(':')) return new URL(url, relativeTo);
+        if (relativeTo.includes(':')) {
+            return new URL(url, relativeTo);
+        }
+
         const root = 'https://invalid.invalid/';
         const obj = new URL(url, root + relativeTo);
         obj.search = '';
@@ -116,16 +213,21 @@ const resolveURL = (url, relativeTo) => {
 };
 
 const parseClock = str => {
-    if (!str) return;
+    if (!str) {
+        return;
+    }
+
     const parts = str.split(':').map(x => parseFloat(x));
     if (parts.length === 3) {
         const [h, m, s] = parts;
         return h * 60 * 60 + m * 60 + s;
     }
+
     if (parts.length === 2) {
         const [m, s] = parts;
         return m * 60 + s;
     }
+
     const [x, unit] = str.split(/(?=[^\d.])/) || [];
     const n = parseFloat(x);
     const f = unit === 'h' ? 60 * 60
@@ -136,7 +238,10 @@ const parseClock = str => {
 };
 
 async function ensureEntriesForSection(sectionIndex) {
-    if (!view.mediaOverlay) return;
+    if (!view.mediaOverlay) {
+        return;
+    }
+
     const section = view.book.sections[sectionIndex];
     if (section && section.mediaOverlay) {
         const smilHref = section.mediaOverlay.href;
@@ -153,7 +258,10 @@ async function ensureEntriesForSection(sectionIndex) {
 }
 
 function applyStylesToDoc(doc, css) {
-    if (!doc) return;
+    if (!doc) {
+        return;
+    }
+
     const inject = () => {
         try {
             let styleEl = doc.getElementById('yaabsa-reader-styles');
@@ -165,6 +273,7 @@ function applyStylesToDoc(doc, css) {
                     target.appendChild(styleEl);
                 }
             }
+
             const activeClass = (view.book && view.book.media && view.book.media.activeClass) || 'undefined';
             const mediaOverlayOverride = `
                 .${activeClass}, .-epub-media-overlay-active {
@@ -187,44 +296,18 @@ window.FoliateReaderAPI = {
             if (initialStyles) {
                 currentStyles = initialStyles;
             }
+
             await view.open(url);
             if (view.renderer) {
                 if (flow) {
                     view.renderer.setAttribute('flow', flow);
                 }
+
                 if (maxColumnCount) {
                     view.renderer.setAttribute('max-column-count', maxColumnCount.toString());
                 }
-                const originalGetContents = view.renderer.getContents;
-                view.renderer.getContents = function() {
-                    const contents = originalGetContents.call(this);
-                    if (contents) {
-                        const originalFind = contents.find;
-                        contents.find = function(predicate) {
-                            let assignedValue = null;
-                            const mock = new Proxy({}, {
-                                get(target, prop) {
-                                    return undefined;
-                                },
-                                set(target, prop, value) {
-                                    if (prop === 'index') {
-                                        assignedValue = value;
-                                    }
-                                    return true;
-                                }
-                            });
-                            try {
-                                predicate(mock);
-                            } catch (e) {}
-                            if (assignedValue !== null) {
-                                return Array.prototype.find.call(this, x => x.index === assignedValue);
-                            }
-                            return originalFind.call(this, predicate);
-                        };
-                    }
-                    return contents;
-                };
             }
+
             await view.init({ lastLocation });
             if (view.mediaOverlay) {
                 let moState = 'stopped';
@@ -269,11 +352,12 @@ window.FoliateReaderAPI = {
                 view.mediaOverlay.loadXML = async function(href) {
                     const doc = await originalLoadXML.call(this, href);
                     try {
-                        const pars = doc.getElementsByTagNameNS('http://www.w3.org/ns/SMIL', 'par');
+                        const pars = doc.getElementsByTagNameNS('*', 'par');
                         const entries = [];
+
                         for (const $par of pars) {
-                            const textEl = $par.querySelector('text');
-                            const audioEl = $par.querySelector('audio');
+                            const textEl = $par.getElementsByTagNameNS('*', 'text')[0];
+                            const audioEl = $par.getElementsByTagNameNS('*', 'audio')[0];
                             if (textEl && audioEl) {
                                 const text = resolveURL(textEl.getAttribute('src'), href);
                                 const src = resolveURL(audioEl.getAttribute('src'), href);
@@ -295,6 +379,7 @@ window.FoliateReaderAPI = {
                     } catch (e) {
                         console.error(e);
                     }
+
                     return doc;
                 };
 
@@ -391,6 +476,12 @@ window.FoliateReaderAPI = {
         }
     },
     async close() {
+        bookSearch.reset();
+        currentPageGeometry = null;
+        if (pageGeometryFrame !== null) {
+            cancelAnimationFrame(pageGeometryFrame);
+            pageGeometryFrame = null;
+        }
         try {
             if (view && typeof view.close === 'function') {
                 view.close();
@@ -399,6 +490,8 @@ window.FoliateReaderAPI = {
             currentStyles = null;
             currentTtsHighlight = null;
             currentTtsRanges = [];
+            nativeSpeechActive = false;
+            currentSpeechDocument = null;
             if (clearMediaOverlayHighlight) {
                 clearMediaOverlayHighlight();
             }
@@ -410,8 +503,7 @@ window.FoliateReaderAPI = {
         } catch (e) {}
     },
     async goTo(target) {
-        const resolved = await view.goTo(target);
-        return resolved;
+        await view.goTo(target);
     },
     async goToFraction(frac) {
         await view.goToFraction(frac);
@@ -437,12 +529,17 @@ window.FoliateReaderAPI = {
         view.deselect();
     },
     setStyles(css) {
+        if (currentStyles === css) {
+            return;
+        }
+
         currentStyles = css;
         if (view && view.renderer && typeof view.renderer.setStyles === 'function') {
             try {
                 view.renderer.setStyles(css);
             } catch (e) {}
         }
+
         if (view && view.renderer && typeof view.renderer.getContents === 'function') {
             const contents = view.renderer.getContents();
             if (contents) {
@@ -452,9 +549,18 @@ window.FoliateReaderAPI = {
             }
         }
     },
+    setPageGeometry(margin, width, verticalMargin = margin) {
+        currentPageGeometry = {
+            margin: Number.isFinite(margin) && margin >= 0 ? margin : 32,
+            verticalMargin: Number.isFinite(verticalMargin) && verticalMargin >= 0 ? verticalMargin : 32,
+            width: Number.isFinite(width) && width > 0 ? width : 720,
+        };
+        schedulePageGeometry();
+    },
     setFlow(flow) {
         if (view && view.renderer && typeof view.renderer.setAttribute === 'function') {
             view.renderer.setAttribute('flow', flow);
+            schedulePageGeometry();
         }
     },
     setMaxColumnCount(count) {
@@ -463,7 +569,10 @@ window.FoliateReaderAPI = {
         }
     },
     async addAnnotationFromSelection(type, color, note) {
-        if (!view || !view.renderer || typeof view.renderer.getContents !== 'function') return null;
+        if (!view || !view.renderer || typeof view.renderer.getContents !== 'function') {
+            return null;
+        }
+
         const contents = view.renderer.getContents();
         if (contents) {
             for (const item of contents) {
@@ -480,151 +589,91 @@ window.FoliateReaderAPI = {
                 }
             }
         }
+
         return null;
     },
-    async search(query) {
-        const results = [];
-        try {
-            for await (const result of view.search({ query })) {
-                if (result === 'done') break;
-                if (result.subitems) {
-                    results.push(...result.subitems);
-                } else if (result.cfi) {
-                    results.push(result);
-                }
-            }
-            window.flutter_inappwebview.callHandler('onSearchResults', results);
-        } catch (e) {
-            window.flutter_inappwebview.callHandler('onError', e.toString(), e.stack || '');
+    async search(query, maxResults = 300, notifyResults = true) {
+        const results = await bookSearch.search(query, maxResults);
+        if (results === null) {
+            return [];
         }
+
+        if (notifyResults) {
+            window.flutter_inappwebview.callHandler('onSearchResults', results);
+        }
+        return results;
     },
     clearSearch() {
-        view.clearSearch();
+        bookSearch.cancel();
+    },
+    highlightSearchResult(cfi) {
+        bookSearch.highlight(cfi);
     },
     getCurrentSectionText() {
-        if (!view || !view.renderer || typeof view.renderer.getContents !== 'function') return '';
+        if (!view || !view.renderer || typeof view.renderer.getContents !== 'function') {
+            return '';
+        }
+
         const contents = view.renderer.getContents();
         if (contents && contents.length > 0) {
             return contents[0].doc.body.innerText.trim();
         }
+
         return '';
     },
     getTtsSentences() {
-        if (!view || !view.renderer || typeof view.renderer.getContents !== 'function') return [];
-        const contents = view.renderer.getContents();
-        if (!contents || contents.length === 0) return [];
-        const item = contents[0];
-        const doc = item.doc;
-
-        let startNode = doc.body;
-        let startOffset = 0;
-
-        if (view.lastLocation && view.lastLocation.range) {
-            const r = view.lastLocation.range;
-            if (r.startContainer.nodeType === Node.ELEMENT_NODE) {
-                if (r.startContainer.childNodes.length > r.startOffset) {
-                    startNode = r.startContainer.childNodes[r.startOffset];
-                    startOffset = 0;
-                } else {
-                    startNode = r.startContainer;
-                    startOffset = 0;
-                }
-            } else {
-                startNode = r.startContainer;
-                startOffset = r.startOffset;
-            }
-        }
-
-        const textNodes = [];
-        const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT, null, false);
-        let foundStart = false;
-        
-        while (walker.nextNode()) {
-            const node = walker.currentNode;
-            if (!foundStart) {
-                if (node === startNode || startNode.contains(node) || (startNode.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING)) {
-                    foundStart = true;
-                    const offset = (node === startNode) ? startOffset : 0;
-                    textNodes.push({ node, offset });
-                }
-            } else {
-                textNodes.push({ node, offset: 0 });
-            }
-        }
-
-        if (textNodes.length === 0) {
-            walker.currentNode = doc.body;
-            while (walker.nextNode()) {
-                textNodes.push({ node: walker.currentNode, offset: 0 });
-            }
-        }
-
-        let fullText = '';
-        const mappings = [];
-        for (const entry of textNodes) {
-            const textContent = entry.node.textContent.substring(entry.offset);
-            const startIdx = fullText.length;
-            fullText += textContent + ' ';
-            mappings.push({
-                start: startIdx,
-                end: fullText.length,
-                node: entry.node,
-                offset: entry.offset
-            });
-        }
-
-        const sentenceRegex = /[^.!?\n]+[.!?\n]+/g;
-        const sentences = [];
-        let match;
-        
-        currentTtsRanges = [];
-        while ((match = sentenceRegex.exec(fullText)) !== null) {
-            const sentenceText = match[0].trim();
-            if (sentenceText.length === 0) continue;
-
-            const startChar = match.index;
-            const endChar = match.index + match[0].length;
-
-            const startMap = mappings.find(m => startChar >= m.start && startChar < m.end);
-            const endMap = mappings.find(m => endChar > m.start && endChar <= m.end);
-
-            if (startMap && endMap) {
-                try {
-                    const range = doc.createRange();
-                    range.setStart(startMap.node, startMap.offset + (startChar - startMap.start));
-                    range.setEnd(endMap.node, endMap.offset + (endChar - endMap.start));
-                    
-                    const cfi = view.getCFI(item.index, range);
-                    sentences.push({
-                        text: sentenceText,
-                        cfi: cfi
-                    });
-                    currentTtsRanges.push({ range, index: sentences.length - 1 });
-                } catch (e) {
-                }
-            }
-        }
-
-        if (sentences.length === 0 && fullText.trim().length > 0) {
-            sentences.push({
-                text: fullText.trim(),
-                cfi: view.lastLocation ? view.lastLocation.cfi : ''
-            });
-        }
-
+        const { sentences, ranges } = collectSpeech(view);
+        currentTtsRanges = ranges;
         return sentences;
     },
-    highlightCFI(cfi, color) {
+    async prepareSpeech() {
+        return prepareSpeech(view);
+    },
+    setSpeechActive(active) {
+        nativeSpeechActive = active;
+        if (active) {
+            refreshSpeechRanges();
+        } else {
+            currentTtsRanges = [];
+            currentSpeechDocument = null;
+        }
+    },
+    async nextTtsSection() {
+        return nextSpeechSection(view);
+    },
+    async prepareMediaOverlay(exportPath) {
+        await view.mediaOverlay?.stop();
+        return prepareNarration(view, exportPath);
+    },
+    async highlightNarrationTarget(target) {
+        nativeNarrationActive = !!target;
+        clearMediaOverlayHighlight?.();
+        if (!target) {
+            return;
+        }
+
+        const highlight = await highlightNarration(view, target);
+        if (!highlight) {
+            return;
+        }
+
+        const key = 'yaabsa-native-narration';
+        highlight.item.overlayer.add(key, highlight.range, Overlayer.highlight, { color: '#FFEB3B' });
+        currentMediaOverlayHighlight = { item: highlight.item, key };
+    },
+    async highlightCFI(cfi, color) {
+        refreshSpeechRanges();
         if (currentTtsHighlight) {
-            view.deleteAnnotation(currentTtsHighlight);
+            await view.deleteAnnotation(currentTtsHighlight);
         }
         currentTtsHighlight = { value: cfi, color: color || '#FFEB3B', type: 'highlight', note: '' };
-        view.addAnnotation(currentTtsHighlight);
+        await view.addAnnotation(currentTtsHighlight);
     },
-    clearTtsHighlight() {
+    async clearTtsHighlight() {
         currentTtsRanges = [];
+        currentSpeechDocument = null;
         if (currentTtsHighlight) {
-            view.deleteAnnotation(currentTtsHighlight);
+            await view.deleteAnnotation(currentTtsHighlight);
             currentTtsHighlight = null;
         }
     },
@@ -638,6 +687,7 @@ window.FoliateReaderAPI = {
                 await ensureEntriesForSection(currentContent.index);
                 if (view.mediaOverlay.entries) {
                     let targetItem = null;
+
                     for (const entry of view.mediaOverlay.entries) {
                         for (const item of entry.items) {
                             const parts = item.text.split('#');
@@ -655,8 +705,12 @@ window.FoliateReaderAPI = {
                                 }
                             }
                         }
-                        if (targetItem) break;
+
+                        if (targetItem) {
+                            break;
+                        }
                     }
+
                     if (targetItem) {
                         view.mediaOverlay.start(currentContent.index, x => x.text === targetItem.text);
                         return;
@@ -688,6 +742,7 @@ window.FoliateReaderAPI = {
 };
 
 view.addEventListener('relocate', e => {
+    refreshSpeechRanges();
     window.flutter_inappwebview.callHandler('onRelocate', {
         cfi: e.detail.cfi,
         fraction: e.detail.fraction,
@@ -698,7 +753,9 @@ view.addEventListener('relocate', e => {
 });
 
 view.addEventListener('click', e => {
-    if (isInteractiveTarget(e.target) || readerHasActiveSelection()) return;
+    if (isInteractiveTarget(e.target) || readerHasActiveSelection()) {
+        return;
+    }
 
     if (turnPageAtEdge(e.clientX, window.innerWidth)) {
         e.preventDefault();
@@ -719,8 +776,125 @@ view.addEventListener('load', e => {
             view.renderer.setStyles(currentStyles);
         } catch (err) {}
     }
+
+    const doubleTapInterval = 500;
+    let singleTapTimer = null;
+    let previousTouchTap = null;
+    const speechIsActive = () => nativeNarrationActive || currentTtsRanges.length > 0
+        || ['playing', 'paused'].includes(view.mediaOverlay?.state);
+    const cancelSingleTap = () => {
+        clearTimeout(singleTapTimer);
+        singleTapTimer = null;
+    };
+    const handleSingleTap = clientX => {
+        if (hasActiveSelection(doc) || !view.renderer.getContents().some(item => item.doc === doc)) {
+            return;
+        }
+
+        if (!turnPageAtEdge(clientX, window.innerWidth)) {
+            window.flutter_inappwebview.callHandler('onCenterTap');
+        }
+    };
+    const deferSingleTap = clientX => {
+        cancelSingleTap();
+        singleTapTimer = setTimeout(() => {
+            singleTapTimer = null;
+            handleSingleTap(clientX);
+        }, doubleTapInterval);
+    };
+    const jumpToSpokenPosition = async (targetElement, point) => {
+        if (nativeNarrationActive) {
+            await ensureEntriesForSection(index);
+            let element = targetElement;
+
+            while (element && element !== doc.body) {
+                if (element.id) {
+                    const target = view.mediaOverlay?.entries?.flatMap(entry => entry.items).find(item => {
+                        const [path, fragment] = item.text.split('#');
+                        return path === view.book.sections[index].id && decodeURIComponent(fragment || '') === element.id;
+                    })?.text;
+                    if (target) {
+                        window.flutter_inappwebview.callHandler('onNarrationSeek', target);
+                        return true;
+                    }
+                }
+                element = element.parentElement;
+            }
+        }
+
+        if (view.mediaOverlay && (view.mediaOverlay.state === 'playing' || view.mediaOverlay.state === 'paused')) {
+            await ensureEntriesForSection(index);
+            if (view.mediaOverlay.entries) {
+                let el = targetElement;
+
+                while (el && el !== doc.body) {
+                    if (el.id) {
+                        const id = el.id;
+
+                        for (let i = 0; i < view.mediaOverlay.entries.length; i++) {
+                            const entry = view.mediaOverlay.entries[i];
+
+                            for (let j = 0; j < entry.items.length; j++) {
+                                const item = entry.items[j];
+                                if (item.text.endsWith('#' + id)) {
+                                    if (view.mediaOverlay.state === 'paused') {
+                                        view.mediaOverlay.resume();
+                                    }
+                                    view.mediaOverlay.start(index, x => x.text === item.text);
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                    el = el.parentElement;
+                }
+            }
+        }
+
+        if (currentTtsRanges.length > 0) {
+            const clickRange = doc.caretRangeFromPoint?.(point.clientX, point.clientY);
+            if (clickRange) {
+                const clickedNode = clickRange.startContainer;
+                const clickedOffset = clickRange.startOffset;
+                const match = currentTtsRanges.find(entry => {
+                    try {
+                        return entry.range.comparePoint(clickedNode, clickedOffset) === 0;
+                    } catch (err) {
+                        return false;
+                    }
+                });
+                if (match) {
+                    window.flutter_inappwebview.callHandler('onTtsJumpToSentence', match.cfi);
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    };
+    doc.defaultView.addEventListener('pagehide', cancelSingleTap, { once: true });
+    doc.addEventListener('mousedown', ev => {
+        if (ev.detail !== 2 || !speechIsActive() || hasActiveSelection(doc)
+            || isInteractiveTarget(ev.target) || isAnnotationAtPoint(index, ev)) {
+            return;
+        }
+        cancelSingleTap();
+        ev.preventDefault();
+    });
+    doc.addEventListener('dblclick', ev => {
+        if (performance.now() < suppressPageClickUntil || !speechIsActive()
+            || hasActiveSelection(doc) || isInteractiveTarget(ev.target) || isAnnotationAtPoint(index, ev)) {
+            return;
+        }
+        cancelSingleTap();
+        ev.preventDefault();
+        ev.stopPropagation();
+        jumpToSpokenPosition(ev.target, ev).catch(error => console.error(error));
+    });
     const stopPagingDuringSelection = ev => {
-        if (hasActiveSelection(doc)) ev.stopPropagation();
+        if (hasActiveSelection(doc)) {
+            ev.stopPropagation();
+        }
     };
     doc.addEventListener('touchmove', stopPagingDuringSelection, { capture: true, passive: true });
     doc.addEventListener('touchend', stopPagingDuringSelection, { capture: true, passive: true });
@@ -729,97 +903,107 @@ view.addEventListener('load', e => {
             touchStart = null;
             return;
         }
+
         const touch = ev.touches[0];
+        if (speechIsActive() && previousTouchTap && performance.now() - previousTouchTap.time <= doubleTapInterval
+            && Math.hypot(touch.screenX - previousTouchTap.x, touch.screenY - previousTouchTap.y) <= 24
+            && !hasActiveSelection(doc) && !isInteractiveTarget(ev.target)
+            && !isAnnotationAtPoint(index, touch)) {
+            ev.preventDefault();
+        }
         touchStart = {
             x: touch.screenX,
             y: touch.screenY,
             time: ev.timeStamp,
             target: ev.target
         };
+    }, { passive: false });
+    doc.addEventListener('touchmove', ev => {
+        const touch = ev.touches[0];
+        if (touchStart && touch && Math.hypot(touch.screenX - touchStart.x, touch.screenY - touchStart.y) > 18) {
+            cancelSingleTap();
+            previousTouchTap = null;
+        }
     }, { passive: true });
     doc.addEventListener('touchend', ev => {
         const touch = ev.changedTouches[0];
         const start = touchStart;
         touchStart = null;
-        if (!touch || !start) return;
+        if (!touch || !start) {
+            return;
+        }
 
         const distance = Math.hypot(touch.screenX - start.x, touch.screenY - start.y);
-        if (distance > 18 || ev.timeStamp - start.time > 500) return;
-        if (hasActiveSelection(doc) || isInteractiveTarget(start.target)) return;
-        if (isAnnotationAtPoint(index, { x: touch.clientX, y: touch.clientY })) return;
+        if (distance > 18 || ev.timeStamp - start.time > 500) {
+            return;
+        }
+
+        if (hasActiveSelection(doc) || isInteractiveTarget(start.target)) {
+            return;
+        }
+
+        if (isAnnotationAtPoint(index, { x: touch.clientX, y: touch.clientY })) {
+            return;
+        }
+
+        if (speechIsActive()) {
+            const now = performance.now();
+            const previous = previousTouchTap;
+            const isDoubleTap = previous && now - previous.time <= doubleTapInterval
+                && Math.hypot(touch.screenX - previous.x, touch.screenY - previous.y) <= 24;
+            suppressPageClickUntil = now + 750;
+            ev.preventDefault();
+            ev.stopPropagation();
+            if (isDoubleTap) {
+                previousTouchTap = null;
+                cancelSingleTap();
+                jumpToSpokenPosition(start.target, touch).catch(error => console.error(error));
+            } else {
+                previousTouchTap = { time: now, x: touch.screenX, y: touch.screenY };
+                deferSingleTap(touch.screenX - window.screenX);
+            }
+
+            return;
+        }
 
         const clientX = touch.screenX - window.screenX;
-        if (!getPageTurnDirection(clientX, window.innerWidth)) return;
+        if (!getPageTurnDirection(clientX, window.innerWidth)) {
+            return;
+        }
 
         suppressPageClickUntil = performance.now() + 750;
         ev.preventDefault();
         ev.stopPropagation();
         requestAnimationFrame(() => turnPageAtEdge(clientX, window.innerWidth));
     }, { passive: false });
-    doc.addEventListener('click', async ev => {
-        if (performance.now() < suppressPageClickUntil) return;
-        if (isAnnotationAtPoint(index, ev)) return;
-
-        const selection = doc.defaultView.getSelection();
-        if ((!selection || selection.isCollapsed) && !isInteractiveTarget(ev.target)) {
-            if (view.mediaOverlay && (view.mediaOverlay.state === 'playing' || view.mediaOverlay.state === 'paused')) {
-                await ensureEntriesForSection(index);
-                if (view.mediaOverlay.entries) {
-                    let el = ev.target;
-                    while (el && el !== doc.body) {
-                        if (el.id) {
-                            const id = el.id;
-                            for (let i = 0; i < view.mediaOverlay.entries.length; i++) {
-                                const entry = view.mediaOverlay.entries[i];
-                                for (let j = 0; j < entry.items.length; j++) {
-                                    const item = entry.items[j];
-                                    if (item.text.endsWith('#' + id)) {
-                                        if (view.mediaOverlay.state === 'paused') {
-                                            view.mediaOverlay.resume();
-                                        }
-                                        view.mediaOverlay.start(index, x => x.text === item.text);
-                                        ev.preventDefault();
-                                        ev.stopPropagation();
-                                        return;
-                                    }
-                                }
-                            }
-                        }
-                        el = el.parentElement;
-                    }
-                }
-            }
-            if (currentTtsRanges.length > 0) {
-                const clickRange = doc.caretRangeFromPoint(ev.clientX, ev.clientY);
-                if (clickRange) {
-                    const clickedNode = clickRange.startContainer;
-                    const clickedOffset = clickRange.startOffset;
-                    const match = currentTtsRanges.find(entry => {
-                        try {
-                            return entry.range.comparePoint(clickedNode, clickedOffset) === 0;
-                        } catch (err) {
-                            return false;
-                        }
-                    });
-                    if (match) {
-                        window.flutter_inappwebview.callHandler('onTtsJumpToSentence', match.index);
-                        ev.preventDefault();
-                        ev.stopPropagation();
-                        return;
-                    }
-                }
-            }
-            if (turnPageAtEdge(getReaderClientX(ev, doc), window.innerWidth)) {
-                ev.preventDefault();
-                ev.stopPropagation();
-                return;
-            }
-            window.flutter_inappwebview.callHandler('onCenterTap');
+    doc.addEventListener('click', ev => {
+        if (performance.now() < suppressPageClickUntil || isAnnotationAtPoint(index, ev)
+            || hasActiveSelection(doc) || isInteractiveTarget(ev.target)) {
+            return;
         }
+
+        if (speechIsActive()) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            if (ev.detail < 2) {
+                deferSingleTap(getReaderClientX(ev, doc));
+            }
+
+            return;
+        }
+
+        if (turnPageAtEdge(getReaderClientX(ev, doc), window.innerWidth)) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            return;
+        }
+        window.flutter_inappwebview.callHandler('onCenterTap');
     });
     doc.addEventListener('selectionchange', () => {
         const selection = doc.defaultView.getSelection();
         if (selection && !selection.isCollapsed) {
+            cancelSingleTap();
+            previousTouchTap = null;
             const range = selection.getRangeAt(0);
             const cfi = view.getCFI(index, range);
             const text = selection.toString();
@@ -841,6 +1025,7 @@ view.addEventListener('load', e => {
 
 view.addEventListener('create-overlay', e => {
     const { index } = e.detail;
+
     for (const annotation of annotationsMap.values()) {
         const resolved = view.resolveNavigation(annotation.value);
         if (resolved && resolved.index === index) {
@@ -852,6 +1037,9 @@ view.addEventListener('create-overlay', e => {
 view.addEventListener('draw-annotation', e => {
     const { draw, annotation } = e.detail;
     const { color, type } = annotation;
+    if (type === 'bookmark') {
+        return;
+    }
     if (type === 'underline') {
         draw(Overlayer.underline, { color });
     } else if (type === 'strikethrough') {

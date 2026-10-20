@@ -1,4 +1,4 @@
-library foliate_reader;
+library;
 
 export 'src/models.dart';
 export 'src/foliate_viewer.dart';

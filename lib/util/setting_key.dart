@@ -147,9 +147,19 @@ class SettingKeys {
   static const String nextServerVersionCheckAllowed = 'next_server_version_check_allowed';
   static const String playerShowRemainingTime = 'player_show_remaining_time';
   static const String podcastEpisodeSortMode = 'podcast_episode_sort_mode';
+  static const String readerElevenLabsModel = 'reader_elevenlabs_model';
+  static const String readerElevenLabsLanguage = 'reader_elevenlabs_language';
+  static const String readerElevenLabsVoiceId = 'reader_elevenlabs_voice_id';
+  static const String readerElevenLabsKeyRevision = 'reader_elevenlabs_key_revision';
+  static const String readerTtsEngine = 'reader_tts_engine';
+  static const String readerFontFamily = 'reader_font_family';
+  static const String readerTextAlignment = 'reader_text_alignment';
+  static const String readerLetterSpacing = 'reader_letter_spacing';
   static const String readerTheme = 'reader_theme';
   static const String readerFontSizeMultiplier = 'reader_font_size_multiplier';
   static const String readerLineHeight = 'reader_line_height';
+  static const String readerPageMargin = 'reader_page_margin';
+  static const String readerPageWidth = 'reader_page_width';
   static const String readerLayout = 'reader_layout';
   static const String readerHideMiniPlayer = 'reader_hide_mini_player';
   static const String readerStartSession = 'reader_start_session';
@@ -321,9 +331,19 @@ final defaultSettings = {
   SettingKeys.latestServerVersion: '',
   SettingKeys.nextServerVersionCheckAllowed: 0,
   SettingKeys.playerShowRemainingTime: false,
+  SettingKeys.readerElevenLabsModel: 'eleven_flash_v2_5',
+  SettingKeys.readerElevenLabsLanguage: '',
+  SettingKeys.readerElevenLabsVoiceId: '',
+  SettingKeys.readerElevenLabsKeyRevision: 0,
+  SettingKeys.readerTtsEngine: 'system',
+  SettingKeys.readerFontFamily: 'publisher',
+  SettingKeys.readerTextAlignment: 'publisher',
+  SettingKeys.readerLetterSpacing: 0.0,
   SettingKeys.readerTheme: 'sepia',
   SettingKeys.readerFontSizeMultiplier: 1.0,
   SettingKeys.readerLineHeight: 1.5,
+  SettingKeys.readerPageMargin: 32.0,
+  SettingKeys.readerPageWidth: 720.0,
   SettingKeys.readerLayout: 'paginated_2',
   SettingKeys.readerHideMiniPlayer: false,
   SettingKeys.readerStartSession: false,
@@ -461,6 +481,7 @@ enum SleepTimerExpireAction {
 
     if (normalized.startsWith('sleeptimerexpireaction.')) {
       final suffix = normalized.split('.').last;
+
       for (final action in SleepTimerExpireAction.values) {
         if (action.name == suffix) {
           return action;
@@ -501,6 +522,7 @@ enum PlayerSeekBarMode {
 
     if (normalized.startsWith('playerseekbarmode.')) {
       final suffix = normalized.split('.').last;
+
       for (final mode in PlayerSeekBarMode.values) {
         if (mode.name == suffix) {
           return mode;
@@ -519,6 +541,7 @@ enum PlayerSeekBarMode {
         return mode;
       }
     }
+
     return PlayerSeekBarMode.full;
   }
 
@@ -555,6 +578,7 @@ enum SeekBarMarkerMode {
 
     if (normalized.startsWith('seekbarmarkermode.')) {
       final suffix = normalized.split('.').last;
+
       for (final mode in SeekBarMarkerMode.values) {
         if (mode.name == suffix) {
           return mode;
@@ -619,6 +643,7 @@ enum MediaNotificationType {
 
     if (normalized.startsWith('medianotificationtype.')) {
       final suffix = normalized.split('.').last;
+
       for (final mode in MediaNotificationType.values) {
         if (mode.name == suffix) {
           return mode;
@@ -637,6 +662,7 @@ enum MediaNotificationType {
         return mode;
       }
     }
+
     return MediaNotificationType.full;
   }
 

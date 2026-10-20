@@ -20,6 +20,10 @@ flutter:
   assets:
     - assets/reader.html
     - assets/reader-app.js
+    - assets/reader-resize.js
+    - assets/reader-search.js
+    - assets/reader-narration.js
+    - assets/reader-tts.js
     - foliate-js/view.js
     - foliate-js/epub.js
     - foliate-js/epubcfi.js

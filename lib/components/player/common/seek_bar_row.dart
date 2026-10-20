@@ -24,6 +24,8 @@ class SeekBarRow extends StatelessWidget {
     required this.buildPreviewLabel,
     required this.formatDuration,
     this.centerLabel,
+    this.isEstimated = false,
+    this.seekOnReleaseOnly = false,
     this.sleepTimerMarker,
     this.showSleepTimerPin = true,
     this.showSleepTimerRange = true,
@@ -48,6 +50,8 @@ class SeekBarRow extends StatelessWidget {
   final String Function(Duration position) buildPreviewLabel;
   final String Function(Duration? duration) formatDuration;
   final String? centerLabel;
+  final bool isEstimated;
+  final bool seekOnReleaseOnly;
   final SleepTimerMarker? sleepTimerMarker;
   final bool showSleepTimerPin;
   final bool showSleepTimerRange;
@@ -60,13 +64,16 @@ class SeekBarRow extends StatelessWidget {
     if (value > max) {
       return max;
     }
+
     return value;
   }
 
   Widget _buildTimeLabel(BuildContext context, Duration time, {bool isRightLabel = false}) {
     final colorScheme = Theme.of(context).colorScheme;
     final formatted = formatDuration(time);
-    final timeText = (isRightLabel && showRemaining) ? '-$formatted' : formatted;
+    final value = (isRightLabel && showRemaining) ? '-$formatted' : formatted;
+    final timeText = isEstimated ? '≈$value' : value;
+
     return Text(
       timeText,
       maxLines: 1,
@@ -104,6 +111,7 @@ class SeekBarRow extends StatelessWidget {
 
     Future<void> executeSeek(double seconds) {
       final seekPosition = rangeStart + Duration(milliseconds: (seconds * 1000).round());
+
       return onSeek(seekPosition);
     }
 
@@ -118,6 +126,7 @@ class SeekBarRow extends StatelessWidget {
       markers: markers,
       markerMode: markerMode,
       executeSeek: executeSeek,
+      seekOnReleaseOnly: seekOnReleaseOnly,
       buildPreviewLabel: buildPreviewLabel,
       previewLabelFontSize: previewLabelFontSize,
       sleepTimerMarker: sleepTimerMarker,

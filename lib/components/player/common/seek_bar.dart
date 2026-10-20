@@ -42,11 +42,13 @@ class SeekBar extends ConsumerWidget {
     if (duration == null) {
       return '--:--';
     }
+
     return duration.toPlaybackTimeString();
   }
 
   InternalChapter? _getCurrentChapter(List<InternalChapter> chapters, Duration currentPosition) {
     final mediaChapter = audioHandler.currentMediaItem?.getChapterForDuration(currentPosition);
+
     if (mediaChapter != null) {
       return mediaChapter;
     }
@@ -58,12 +60,14 @@ class SeekBar extends ConsumerWidget {
     for (final chapter in chapters) {
       final chapterStart = chapter.start.toDuration;
       final chapterEnd = chapter.end.toDuration;
+
       if (currentPosition >= chapterStart && currentPosition < chapterEnd) {
         return chapter;
       }
     }
 
     final lastChapter = chapters.last;
+
     if (currentPosition >= lastChapter.end.toDuration) {
       return lastChapter;
     }
@@ -78,6 +82,7 @@ class SeekBar extends ConsumerWidget {
   String _buildSeekPreviewTooltip(Duration position, List<InternalChapter> chapters) {
     final chapter = _getCurrentChapter(chapters, position);
     final chapterTitle = chapter?.title.trim() ?? '';
+
     if (chapterTitle.isEmpty) {
       return _formatDuration(position);
     }
@@ -223,15 +228,19 @@ class SeekBar extends ConsumerWidget {
                     final chapterEnd = chapter.end.toDuration;
                     final chapterDuration = chapterEnd - chapterStart;
                     var chapterElapsed = currentPosition - chapterStart;
+
                     if (chapterElapsed < Duration.zero) {
                       chapterElapsed = Duration.zero;
                     }
+
                     if (chapterElapsed > chapterDuration) {
                       chapterElapsed = chapterDuration;
                     }
 
                     seekRows.add(
                       SeekBarRow(
+                        isEstimated: audioHandler.readerSpeechIsEstimated,
+                        seekOnReleaseOnly: audioHandler.isReaderSpeech,
                         trackHeight: trackHeight,
                         timeLabelsBelow: timeLabelsBelow,
                         showTimeLabels: showTimeLabels,
@@ -264,6 +273,8 @@ class SeekBar extends ConsumerWidget {
                   if (shouldShowFull) {
                     seekRows.add(
                       SeekBarRow(
+                        isEstimated: audioHandler.readerSpeechIsEstimated,
+                        seekOnReleaseOnly: audioHandler.isReaderSpeech,
                         trackHeight: trackHeight,
                         timeLabelsBelow: timeLabelsBelow,
                         showTimeLabels: showTimeLabels,

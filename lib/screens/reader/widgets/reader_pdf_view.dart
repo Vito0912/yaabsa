@@ -21,9 +21,15 @@ class ReaderPdfView extends StatefulWidget {
     required this.onGeneralTap,
     required this.onDocumentReady,
     this.onOutlineLoaded,
+    required this.backgroundColor,
+    this.searcher,
+    this.searchHighlight,
   });
 
   final File? pdfFile;
+  final Color backgroundColor;
+  final PdfTextSearcher? searcher;
+  final PdfPageTextRange? searchHighlight;
 
   final PdfViewerController controller;
   final String documentUrl;
@@ -87,6 +93,21 @@ class _ReaderPdfViewState extends State<ReaderPdfView> {
     await widget.controller.goToPage(pageNumber: currentPage + 1, anchor: PdfPageAnchor.all);
   }
 
+  void _paintSearchHighlight(Canvas canvas, Rect pageRect, PdfPage page) {
+    final match = widget.searchHighlight;
+    if (match == null || match.pageNumber != page.pageNumber) {
+      return;
+    }
+
+    final paint = Paint()..color = const Color(0x66FFCA28);
+    for (final fragment in match.enumerateFragmentBoundingRects()) {
+      final rect = fragment.bounds
+          .toRect(page: page, scaledPageSize: pageRect.size)
+          .translate(pageRect.left, pageRect.top);
+      canvas.drawRect(rect, paint);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isViewerReady = widget.controller.isReady;
@@ -94,7 +115,11 @@ class _ReaderPdfViewState extends State<ReaderPdfView> {
     final pageCount = isViewerReady ? widget.controller.pageCount : 0;
 
     final params = PdfViewerParams(
-      backgroundColor: Colors.black,
+      backgroundColor: widget.backgroundColor,
+      pagePaintCallbacks: [
+        if (widget.searcher != null) widget.searcher!.pageTextMatchPaintCallback,
+        if (widget.searchHighlight != null) _paintSearchHighlight,
+      ],
       pageAnchor: PdfPageAnchor.all,
       pageAnchorEnd: PdfPageAnchor.all,
       // TODO: Check the use of smart
@@ -179,6 +204,7 @@ class _ReaderPdfViewState extends State<ReaderPdfView> {
       canGoPrevious: isViewerReady && (currentPage ?? 1) > 1,
       canGoNext: isViewerReady && pageCount > 0 && currentPage != null && currentPage < pageCount,
       interceptPointerScrollForPaging: true,
+      showNavigationHoverAreas: false,
     );
   }
 }

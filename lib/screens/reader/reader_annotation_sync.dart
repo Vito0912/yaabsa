@@ -34,7 +34,7 @@ extension _ReaderAnnotationSync on _ReaderState {
           );
         }).toList();
       } else {
-        annotations = _pdfAnnotations.map((annotation) => annotation.toInternalAnnotation()).toList(growable: false);
+        annotations = [..._pdfBookmarks, ..._pdfAnnotations.map((annotation) => annotation.toInternalAnnotation())];
       }
 
       final payload = annotations.map(_annotationToCompactJson).toList(growable: false);
@@ -142,6 +142,14 @@ extension _ReaderAnnotationSync on _ReaderState {
 
       _readerSetState(() {
         _pdfAnnotations = parsedPdfAnnotations;
+        _pdfBookmarks = annotations.where((annotation) {
+          if (annotation.type != AnnotationType.bookmark || !annotation.cfi.startsWith('pdf:bookmark:')) {
+            return false;
+          }
+
+          final page = int.tryParse(annotation.cfi.substring('pdf:bookmark:'.length));
+          return page != null && page > 0;
+        }).toList();
       });
 
       if (showFeedback) {
@@ -184,7 +192,9 @@ extension _ReaderAnnotationSync on _ReaderState {
       });
 
       for (final annotation in parsedEpubAnnotations) {
-        await epubController.addAnnotation(annotation);
+        if (annotation.type != 'bookmark') {
+          await epubController.addAnnotation(annotation);
+        }
       }
     } catch (e, s) {
       logger(

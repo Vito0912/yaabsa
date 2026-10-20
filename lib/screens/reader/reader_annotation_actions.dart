@@ -3,7 +3,9 @@ part of 'reader.dart';
 extension _ReaderAnnotationActions on _ReaderState {
   Future<void> _removeEpubAnnotation(FoliateAnnotation annotation) async {
     try {
-      await epubController.deleteAnnotation(annotation);
+      if (annotation.type != 'bookmark') {
+        await epubController.deleteAnnotation(annotation);
+      }
       _readerSetState(() {
         _epubAnnotations.removeWhere((a) => a.value == annotation.value && a.type == annotation.type);
       });

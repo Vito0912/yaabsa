@@ -11,7 +11,16 @@ extension _BGAudioHandlerRuntime on BGAudioHandler {
   }
 
   Future<bool> _handlePlaybackFailure(PlayerException error) async {
-    if (await _attemptLocalStreamingFallback(error)) return true;
+    if (isReaderNarration) {
+      await pause();
+
+      return true;
+    }
+
+    if (await _attemptLocalStreamingFallback(error)) {
+      return true;
+    }
+
     switch (_classifyPlaybackError(error)) {
       case PlaybackFailureAction.retryStream:
         _scheduleStreamRecoveryRetry(error);
@@ -31,24 +40,43 @@ extension _BGAudioHandlerRuntime on BGAudioHandler {
     bool resumePlayback = true,
   }) async {
     final media = _currentMediaItem;
-    if (_isDisposing || media == null || !media.local || isCastControlActive) return false;
+
+    if (_isDisposing || media == null || !media.local || isCastControlActive) {
+      return false;
+    }
+
     final index = error.index ?? _currentTrackIndex;
-    if (index < 0 || index >= media.tracks.length) return false;
+
+    if (index < 0 || index >= media.tracks.length) {
+      return false;
+    }
+
     final uri = Uri.tryParse(media.tracks[index].url ?? '');
-    if (uri?.scheme != 'http' && uri?.scheme != 'https') return false;
+
+    if (uri?.scheme != 'http' && uri?.scheme != 'https') {
+      return false;
+    }
+
     final activeFallback = _localStreamingFallbackFuture;
-    if (activeFallback != null) return activeFallback;
+
+    if (activeFallback != null) {
+      return activeFallback;
+    }
 
     final fallback = _reopenLocalSessionForStreaming(
       media,
       resumePosition: initialPosition ?? position,
       shouldResume: resumePlayback && playerControlState.playing,
     );
+
     _localStreamingFallbackFuture = fallback;
+
     try {
       return await fallback;
     } finally {
-      if (identical(_localStreamingFallbackFuture, fallback)) _localStreamingFallbackFuture = null;
+      if (identical(_localStreamingFallbackFuture, fallback)) {
+        _localStreamingFallbackFuture = null;
+      }
     }
   }
 
@@ -58,18 +86,29 @@ extension _BGAudioHandlerRuntime on BGAudioHandler {
     required bool shouldResume,
   }) async {
     bool isCurrentRequest() => !_isDisposing && identical(_currentMediaItem, media) && !isCastControlActive;
+
     try {
       await _syncService.flush(positionOverride: resumePosition, sessionClosing: true);
-      if (!isCurrentRequest()) return false;
+
+      if (!isCurrentRequest()) {
+        return false;
+      }
+
       final streamedMedia = await _ref
           .read(sessionRepositoryProvider)
           .reopenSessionForStreaming(media.itemId, episodeId: media.episodeId);
-      if (!isCurrentRequest() || streamedMedia == null || streamedMedia.local) return false;
+
+      if (!isCurrentRequest() || streamedMedia == null || streamedMedia.local) {
+        return false;
+      }
+
       _currentMediaItem = streamedMedia;
       await _setSource(initialPosition: resumePosition, ignoreSavedProgress: true);
+
       if (shouldResume && identical(_currentMediaItem, streamedMedia) && !_isDisposing && !isCastControlActive) {
         await _syncedPlay();
       }
+
       return true;
     } catch (error, stackTrace) {
       logger(
@@ -87,16 +126,19 @@ extension _BGAudioHandlerRuntime on BGAudioHandler {
     bool resumePlayback = true,
   }) {
     final repository = _ref.read(sessionRepositoryProvider);
+
     if (repository.currentSession?.playMethod == 2) {
       return Future<bool>.value(false);
     }
 
     final activeFallback = _transcodeFallbackFuture;
+
     if (activeFallback != null) {
       return activeFallback;
     }
 
     final fallback = _performTranscodeFallback(error, initialPosition: initialPosition, resumePlayback: resumePlayback);
+
     _transcodeFallbackFuture = fallback;
     unawaited(
       fallback.whenComplete(() {
@@ -105,6 +147,7 @@ extension _BGAudioHandlerRuntime on BGAudioHandler {
         }
       }),
     );
+
     return fallback;
   }
 
@@ -114,16 +157,19 @@ extension _BGAudioHandlerRuntime on BGAudioHandler {
     required bool resumePlayback,
   }) async {
     final media = _currentMediaItem;
+
     if (_isDisposing || media == null || media.local || isCastControlActive) {
       return false;
     }
 
     final repository = _ref.read(sessionRepositoryProvider);
+
     if (repository.currentSession?.playMethod == 2) {
       return false;
     }
 
     final mediaKey = _mediaKey(media);
+
     if (_transcodeFallbackInFlight || _transcodeAttemptedFor == mediaKey) {
       return false;
     }
@@ -133,6 +179,7 @@ extension _BGAudioHandlerRuntime on BGAudioHandler {
 
     final resumePosition = initialPosition ?? position;
     final shouldResume = resumePlayback && playerControlState.playing;
+
     bool isCurrentRequest() => !_isDisposing && identical(_currentMediaItem, media) && !isCastControlActive;
 
     try {
@@ -144,12 +191,17 @@ extension _BGAudioHandlerRuntime on BGAudioHandler {
       );
 
       await _syncService.flush(positionOverride: resumePosition, sessionClosing: true);
-      if (!isCurrentRequest()) return false;
+
+      if (!isCurrentRequest()) {
+        return false;
+      }
 
       final transcodedMedia = await repository.reopenSessionWithTranscode(media.itemId, episodeId: media.episodeId);
+
       if (!isCurrentRequest() || transcodedMedia == null) {
         return false;
       }
+
       if (repository.currentSession?.playMethod != 2) {
         logger('Server did not return a transcoded session.', tag: 'AudioHandler', level: InfoLevel.error);
         return false;
@@ -212,6 +264,7 @@ extension _BGAudioHandlerRuntime on BGAudioHandler {
     }
 
     final current = _lastPlayedMiniPlayerSnapshotSubject.value;
+
     if (_isSameLastPlayedMiniPlayerSnapshot(current, snapshot)) {
       return;
     }
@@ -255,9 +308,11 @@ extension _BGAudioHandlerRuntime on BGAudioHandler {
     }
 
     _queueTransitionLoading = value;
+
     if (!_queueTransitionLoadingSubject.isClosed) {
       _queueTransitionLoadingSubject.add(value);
     }
+
     _emitShouldShowPlayer();
 
     if (emitMediaWhenEmpty && !value && _currentMediaItem == null && !mediaItemStream.isClosed) {
@@ -322,9 +377,12 @@ extension _BGAudioHandlerRuntime on BGAudioHandler {
       return;
     }
 
-    if (!_player.playing && !resumeAfterReloadFailure) return;
+    if (!_player.playing && !resumeAfterReloadFailure) {
+      return;
+    }
 
     _streamRecoveryResumePosition ??= position;
+
     if (_streamRecoveryInFlight) {
       _streamRecoveryPendingError = error;
       return;
@@ -336,14 +394,17 @@ extension _BGAudioHandlerRuntime on BGAudioHandler {
 
     final recoveryMedia = _currentMediaItem;
     final recoveryGeneration = _streamRecoveryGeneration;
-    bool isCurrentRecovery() =>
-        !_isDisposing &&
-        identical(_currentMediaItem, recoveryMedia) &&
-        _streamRecoveryGeneration == recoveryGeneration &&
-        !isCastControlActive;
+
+    bool isCurrentRecovery() {
+      return !_isDisposing &&
+          identical(_currentMediaItem, recoveryMedia) &&
+          _streamRecoveryGeneration == recoveryGeneration &&
+          !isCastControlActive;
+    }
 
     final now = DateTime.now();
     final lastAttemptAt = _lastStreamRecoveryAttemptAt;
+
     if (lastAttemptAt == null || now.difference(lastAttemptAt) > _streamRecoveryResetWindow) {
       _streamRecoveryAttempts = 0;
     }
@@ -356,6 +417,7 @@ extension _BGAudioHandlerRuntime on BGAudioHandler {
         level: InfoLevel.warning,
       );
       unawaited(pause());
+
       return;
     }
 
@@ -383,6 +445,7 @@ extension _BGAudioHandlerRuntime on BGAudioHandler {
       _lastStreamRecoveryAttemptAt = DateTime.now();
 
       Object? retryError;
+
       try {
         await _syncedPlay(reloadSource: true);
       } catch (e, s) {
@@ -391,6 +454,7 @@ extension _BGAudioHandlerRuntime on BGAudioHandler {
           tag: 'AudioHandler',
           level: InfoLevel.warning,
         );
+
         if (e is PlayerException && _classifyPlaybackError(e) == PlaybackFailureAction.retryStream) {
           retryError = e;
         } else if (isCurrentRecovery()) {
@@ -402,6 +466,7 @@ extension _BGAudioHandlerRuntime on BGAudioHandler {
 
       retryError ??= _streamRecoveryPendingError;
       _streamRecoveryPendingError = null;
+
       if (retryError != null && isCurrentRecovery()) {
         _scheduleStreamRecoveryRetry(retryError, resumeAfterReloadFailure: true);
       }
@@ -410,24 +475,35 @@ extension _BGAudioHandlerRuntime on BGAudioHandler {
 
   Future<void> _reloadStreamSource(Duration resumePosition, bool Function() isCurrentRequest) async {
     final activeReload = _streamSourceReloadFuture;
+
     if (activeReload != null) {
       await activeReload;
+
       if (isCurrentRequest() && _player.processingState == ProcessingState.idle) {
         await _reloadStreamSource(resumePosition, isCurrentRequest);
       }
+
       return;
     }
 
     final reload = () async {
       await _player.pause();
-      if (!isCurrentRequest()) return;
+
+      if (!isCurrentRequest()) {
+        return;
+      }
+
       await _setSource(initialPosition: resumePosition, ignoreSavedProgress: true);
     }();
+
     _streamSourceReloadFuture = reload;
+
     try {
       await reload;
     } finally {
-      if (identical(_streamSourceReloadFuture, reload)) _streamSourceReloadFuture = null;
+      if (identical(_streamSourceReloadFuture, reload)) {
+        _streamSourceReloadFuture = null;
+      }
     }
   }
 
@@ -437,6 +513,7 @@ extension _BGAudioHandlerRuntime on BGAudioHandler {
     }
 
     final rewoundPosition = position - rewindBy;
+
     return rewoundPosition.isNegative ? Duration.zero : rewoundPosition;
   }
 }

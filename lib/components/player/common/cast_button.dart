@@ -15,23 +15,31 @@ import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/player_utils.dart';
 
 String? _resolveCastAvailabilityMessage() {
+  if (audioHandler.isReaderNarration) {
+    return 'Casting is unavailable for book narration';
+  }
+
   final media = audioHandler.currentMediaItem;
+
   if (media == null || media.tracks.isEmpty) {
     return 'Nothing is currently playing to cast.';
   }
 
   final currentTrackIndex = audioHandler.player.currentIndex ?? 0;
+
   if (currentTrackIndex < 0 || currentTrackIndex >= media.tracks.length) {
     return 'Unable to determine the current track.';
   }
 
   final currentTrack = media.tracks[currentTrackIndex];
   final trackUrl = currentTrack.url;
+
   if (trackUrl == null || trackUrl.isEmpty) {
     return 'Current track does not have a playable URL.';
   }
 
   final trackUri = Uri.tryParse(trackUrl);
+
   if (trackUri == null) {
     return 'Current track does not have a playable URL.';
   }
@@ -71,6 +79,7 @@ Future<_ResolvedCastTrack?> _resolveRemoteCastTrack({
   required int currentTrackIndex,
 }) async {
   final api = containerRef.read(absApiProvider);
+
   if (api == null) {
     return null;
   }
@@ -100,6 +109,7 @@ Future<_ResolvedCastTrack?> _resolveRemoteCastTrack({
       currentTrack: currentTrack,
       currentTrackIndex: currentTrackIndex,
     );
+
     if (remoteTrack == null) {
       return null;
     }
@@ -114,6 +124,7 @@ Future<_ResolvedCastTrack?> _resolveRemoteCastTrack({
     }
 
     final remoteUri = Uri.tryParse(remoteTrackUrl);
+
     if (remoteUri == null || !_isHttpUri(remoteUri)) {
       return null;
     }
@@ -131,11 +142,13 @@ Future<_ResolvedCastTrack?> _resolveCastTrack({
   required int currentTrackIndex,
 }) async {
   final trackUrl = currentTrack.url;
+
   if (trackUrl == null || trackUrl.isEmpty) {
     return null;
   }
 
   final parsedTrackUri = Uri.tryParse(trackUrl);
+
   if (parsedTrackUri != null && _isHttpUri(parsedTrackUri)) {
     return _ResolvedCastTrack(uri: parsedTrackUri, mimeType: currentTrack.mimeType);
   }
@@ -145,11 +158,13 @@ Future<_ResolvedCastTrack?> _resolveCastTrack({
 
 Uri? _resolveCastCoverUri(InternalMedia media) {
   final coverUri = media.cover;
+
   if (coverUri != null && _isHttpUri(coverUri)) {
     return coverUri;
   }
 
   final api = containerRef.read(absApiProvider);
+
   if (api == null) {
     return null;
   }
@@ -164,6 +179,7 @@ Future<void> showCastDevicePicker(BuildContext context, {bool ensureInitialized 
   }
 
   final castUnavailableMessage = _resolveCastAvailabilityMessage();
+
   if (castUnavailableMessage != null) {
     _showCastMessage(context, castUnavailableMessage);
     return;
@@ -171,6 +187,7 @@ Future<void> showCastDevicePicker(BuildContext context, {bool ensureInitialized 
 
   if (ensureInitialized) {
     final initialized = await ChromeCastService.ensureInitialized();
+
     if (!context.mounted) {
       return;
     }
@@ -222,14 +239,17 @@ Future<void> _disconnectSession(BuildContext context) async {
     final castPosition = audioHandler.position;
 
     await GoogleCastSessionManager.instance.endSessionAndStopCasting();
+
     if (!context.mounted) {
       return;
     }
 
     await audioHandler.deactivateCastControl(fallbackPosition: castPosition);
+
     if (!context.mounted) {
       return;
     }
+
     _showCastMessage(context, 'Disconnected from cast device.');
   } catch (e) {
     if (!context.mounted) {
@@ -243,6 +263,7 @@ Future<void> _disconnectSession(BuildContext context) async {
 Future<void> _connectAndCast(BuildContext context, GoogleCastDevice device) async {
   try {
     final started = await GoogleCastSessionManager.instance.startSessionWithDevice(device);
+
     final connected = started
         ? await _waitForConnectedSession()
         : GoogleCastSessionManager.instance.hasConnectedSession;
@@ -257,6 +278,7 @@ Future<void> _connectAndCast(BuildContext context, GoogleCastDevice device) asyn
     }
 
     final castTarget = await _castCurrentTrack(context);
+
     if (!context.mounted) {
       return;
     }
@@ -266,6 +288,7 @@ Future<void> _connectAndCast(BuildContext context, GoogleCastDevice device) asyn
     }
 
     await audioHandler.pause();
+
     if (!context.mounted) {
       return;
     }
@@ -300,40 +323,47 @@ Future<bool> _waitForConnectedSession() async {
 
 Future<_CastTarget?> _castCurrentTrack(BuildContext context) async {
   final media = audioHandler.currentMediaItem;
+
   if (media == null || media.tracks.isEmpty) {
     _showCastMessage(context, 'Nothing is currently playing to cast.');
     return null;
   }
 
   final currentTrackIndex = audioHandler.player.currentIndex ?? 0;
+
   if (currentTrackIndex < 0 || currentTrackIndex >= media.tracks.length) {
     _showCastMessage(context, 'Unable to determine the current track.');
     return null;
   }
 
   final currentTrack = media.tracks[currentTrackIndex];
+
   final resolvedCastTrack = await _resolveCastTrack(
     media: media,
     currentTrack: currentTrack,
     currentTrackIndex: currentTrackIndex,
   );
+
   if (!context.mounted) {
     return null;
   }
 
   if (resolvedCastTrack == null) {
     final hasApi = containerRef.read(absApiProvider) != null;
+
     _showCastMessage(
       context,
       hasApi
           ? 'Unable to prepare a server stream for this item.'
           : 'Casting local downloads requires an active server connection.',
     );
+
     return null;
   }
 
   final metadataImages = <GoogleCastImage>[];
   final coverUri = _resolveCastCoverUri(media);
+
   if (coverUri != null) {
     metadataImages.add(GoogleCastImage(url: coverUri));
   }
@@ -349,6 +379,7 @@ Future<_CastTarget?> _castCurrentTrack(BuildContext context) async {
       : (currentTrack.mimeType.isNotEmpty ? currentTrack.mimeType : 'audio/mpeg');
 
   final GoogleCastMediaInformation mediaInfo;
+
   if (!kIsWeb && Platform.isAndroid) {
     mediaInfo = GoogleCastMediaInformationAndroid(
       contentId: media.id,
@@ -414,6 +445,7 @@ class _CastButtonState extends ConsumerState<CastButton> {
     }
 
     final initialized = await ChromeCastService.ensureInitialized();
+
     if (!mounted) {
       return initialized;
     }
@@ -428,12 +460,14 @@ class _CastButtonState extends ConsumerState<CastButton> {
 
   Future<void> _handlePressed() async {
     final castUnavailableMessage = _resolveCastAvailabilityMessage();
+
     if (castUnavailableMessage != null) {
       _showCastMessage(context, castUnavailableMessage);
       return;
     }
 
     final initialized = _isInitialized || await _ensureInitialized();
+
     if (!mounted) {
       return;
     }
@@ -545,6 +579,7 @@ class _CastDeviceSheet extends StatelessWidget {
                                 trailing: TextButton(
                                   onPressed: () async {
                                     await onDisconnect();
+
                                     if (context.mounted) {
                                       Navigator.of(context).pop();
                                     }

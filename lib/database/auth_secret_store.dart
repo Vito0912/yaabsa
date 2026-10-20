@@ -30,6 +30,7 @@ class AuthSecretsUnavailableException implements Exception {
 
 bool isKeyringLockedError(Object error) {
   final cause = error is AuthSecretsUnavailableException ? error.error : error;
+
   return cause is PlatformException && cause.code == 'KeyringLocked';
 }
 
@@ -39,6 +40,7 @@ bool isAuthSecretsUnavailableError(Object? error) {
 
 String authSecretsUnavailableMessage({required String operation, required bool keyringLocked}) {
   final reason = keyringLocked ? 'the system keyring is locked' : 'secure credential storage is unavailable';
+
   return 'The user could not be $operation because $reason. Unlock your keyring or wallet (for example, GNOME Keyring or KDE Wallet), then try again';
 }
 
@@ -61,6 +63,32 @@ class AuthSecretStore {
   static const MethodChannel _iosKeychainMigrationChannel = MethodChannel('de.vito0912.yaabsa/auth_secret_migration');
 
   String _key(String userId, String field) => 'auth.$userId.$field';
+
+  Future<String?> readSpeechProviderApiKey(String providerId) async {
+    try {
+      return await _readField('tts.$providerId.apiKey');
+    } catch (error, stackTrace) {
+      throw AuthSecretsUnavailableException(error: error, stackTrace: stackTrace);
+    }
+  }
+
+  Future<void> writeSpeechProviderApiKey(String providerId, String value) async {
+    final key = 'tts.$providerId.apiKey';
+
+    try {
+      if (value.trim().isEmpty) {
+        await _storage.delete(key: key);
+
+        if (!identical(_storage, _legacyStorage)) {
+          await _legacyStorage.delete(key: key);
+        }
+      } else {
+        await _storage.write(key: key, value: value.trim());
+      }
+    } catch (error, stackTrace) {
+      throw AuthSecretsUnavailableException(error: error, stackTrace: stackTrace);
+    }
+  }
 
   Future<AuthSecrets> read(String userId) async {
     try {
@@ -110,9 +138,12 @@ class AuthSecretStore {
 
   Future<void> _writeField(String userId, String field, String? value, bool clearMissing) async {
     final fieldKey = _key(userId, field);
+
     if (value != null) {
       final migrated = await _migrateLegacyValueIfNeeded(fieldKey);
+
       await (migrated ? _storage : _legacyStorage).write(key: fieldKey, value: value);
+
       return;
     }
 
@@ -123,16 +154,19 @@ class AuthSecretStore {
 
   Future<String?> _readField(String key) async {
     final value = await _storage.read(key: key);
+
     if (value != null || identical(_storage, _legacyStorage)) {
       return value;
     }
 
     final legacyValue = await _legacyStorage.read(key: key);
+
     if (legacyValue == null) {
       return null;
     }
 
     await _migrateLegacyValue(key);
+
     return legacyValue;
   }
 
@@ -142,11 +176,13 @@ class AuthSecretStore {
     }
 
     final value = await _storage.read(key: key);
+
     if (value != null) {
       return true;
     }
 
     final legacyValue = await _legacyStorage.read(key: key);
+
     if (legacyValue != null) {
       return _migrateLegacyValue(key);
     }
@@ -161,6 +197,7 @@ class AuthSecretStore {
 
     try {
       await _iosKeychainMigrationChannel.invokeMethod<void>('migrateAccessibility', <String, String>{'key': key});
+
       return true;
     } catch (_) {
       return false;

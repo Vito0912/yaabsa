@@ -30,6 +30,7 @@ import 'package:uuid/uuid.dart';
 
 part 'session_provider.g.dart';
 part 'session_rollover.dart';
+part 'session_reader.dart';
 
 enum _StoredSyncReplayAction { synced, retryWithNewSession, keepLocal }
 

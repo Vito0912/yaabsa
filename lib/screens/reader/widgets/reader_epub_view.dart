@@ -25,6 +25,7 @@ class ReaderEpubView extends StatelessWidget {
     required this.onError,
     required this.onCenterTap,
     this.onTtsJumpToSentence,
+    this.onNarrationSeek,
     this.onMediaOverlayStateChanged,
     this.onMediaOverlayHighlight,
     this.onMediaOverlayUnhighlight,
@@ -60,7 +61,8 @@ class ReaderEpubView extends StatelessWidget {
   final ValueChanged<FoliateAnnotation> onAnnotationAdded;
   final ValueChanged<String> onError;
   final VoidCallback onCenterTap;
-  final ValueChanged<int>? onTtsJumpToSentence;
+  final ValueChanged<String>? onTtsJumpToSentence;
+  final ValueChanged<String>? onNarrationSeek;
   final void Function(String state)? onMediaOverlayStateChanged;
   final void Function(Map<String, dynamic> detail)? onMediaOverlayHighlight;
   final void Function(Map<String, dynamic> detail)? onMediaOverlayUnhighlight;
@@ -96,6 +98,7 @@ class ReaderEpubView extends StatelessWidget {
         onError: onError,
         onCenterTap: onCenterTap,
         onTtsJumpToSentence: onTtsJumpToSentence,
+        onNarrationSeek: onNarrationSeek,
         onMediaOverlayStateChanged: onMediaOverlayStateChanged,
         onMediaOverlayHighlight: onMediaOverlayHighlight,
         onMediaOverlayUnhighlight: onMediaOverlayUnhighlight,
@@ -107,7 +110,7 @@ class ReaderEpubView extends StatelessWidget {
       onNextPage: _goToNextPage,
       canGoPrevious: true,
       canGoNext: true,
-      interceptPointerScrollForPaging: true,
+      interceptPointerScrollForPaging: flow != 'scrolled',
       showNavigationHoverAreas: false,
     );
   }

@@ -1,7 +1,8 @@
-import 'package:flutter/foundation.dart';
+import 'dart:async';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_tts/flutter_tts.dart';
+import 'package:yaabsa/util/reader/reader_speech_engine.dart';
 import 'package:yaabsa/components/settings/settings_dropdown.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/components/settings/settings_slider.dart';
@@ -10,7 +11,9 @@ import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
 class ReaderTtsSettings extends ConsumerStatefulWidget {
-  const ReaderTtsSettings({super.key});
+  const ReaderTtsSettings({super.key, this.showTitle = true});
+
+  final bool showTitle;
 
   static const String routeName = '/settings/reader/tts';
 
@@ -22,6 +25,8 @@ class _ReaderTtsSettingsState extends ConsumerState<ReaderTtsSettings> {
   List<String> _languages = [];
   List<Map<String, String>> _voices = [];
   bool _isLoadingTts = true;
+  String? _ttsError;
+  int _loadGeneration = 0;
 
   @override
   void initState() {
@@ -30,47 +35,52 @@ class _ReaderTtsSettingsState extends ConsumerState<ReaderTtsSettings> {
   }
 
   Future<void> _loadTtsInfo() async {
+    final generation = ++_loadGeneration;
+
+    setState(() {
+      _isLoadingTts = true;
+      _ttsError = null;
+    });
+
     try {
-      final tts = FlutterTts();
-      final dynamic rawLangs = await tts.getLanguages;
+      final id = ref.read(settingsManagerProvider.notifier).getGlobalSetting<String>(SettingKeys.readerTtsEngine);
 
-      final List<String> languages = [];
-      if (rawLangs is List) {
-        languages.addAll(rawLangs.map((e) => e.toString()));
-      }
-
-      final List<Map<String, String>> voices = [];
-      final isVoiceSupported =
-          defaultTargetPlatform == TargetPlatform.android ||
-          defaultTargetPlatform == TargetPlatform.iOS ||
-          defaultTargetPlatform == TargetPlatform.macOS;
-
-      if (isVoiceSupported) {
-        final dynamic rawVoices = await tts.getVoices;
-        if (rawVoices is List) {
-          for (final voice in rawVoices) {
-            if (voice is Map) {
-              final name = voice['name']?.toString() ?? '';
-              final locale = voice['locale']?.toString() ?? '';
-              if (name.isNotEmpty && locale.isNotEmpty) {
-                voices.add({'name': name, 'locale': locale});
-              }
-            }
-          }
+      if (!ReaderSpeechEngines.registration(id).showStandardVoiceSettings) {
+        if (mounted && generation == _loadGeneration) {
+          setState(() => _isLoadingTts = false);
         }
+
+        return;
       }
 
-      if (mounted) {
+      final engine = ReaderSpeechEngines.create(id);
+
+      final languages = await engine.languages();
+
+      List<Map<String, String>> voices;
+
+      try {
+        voices = await engine.voices();
+      } catch (_) {
+        voices = [];
+      }
+
+      if (mounted && generation == _loadGeneration) {
         setState(() {
           _languages = languages..sort();
           _voices = voices..sort((a, b) => a['name']!.compareTo(b['name']!));
           _isLoadingTts = false;
+
+          if (languages.isEmpty) {
+            _ttsError = 'No speech voices are available. Check your device speech settings.';
+          }
         });
       }
     } catch (_) {
-      if (mounted) {
+      if (mounted && generation == _loadGeneration) {
         setState(() {
           _isLoadingTts = false;
+          _ttsError = 'Speech is unavailable. Check your speech provider or device settings.';
         });
       }
     }
@@ -80,16 +90,45 @@ class _ReaderTtsSettingsState extends ConsumerState<ReaderTtsSettings> {
   Widget build(BuildContext context) {
     final canPop = Navigator.of(context).canPop();
 
+    ref.watch(globalSettingByKeyProvider(SettingKeys.readerTtsEngine));
+    ref.listen(globalSettingByKeyProvider(SettingKeys.readerTtsEngine), (previous, next) {
+      if (previous?.value != next.value) {
+        unawaited(_loadTtsInfo());
+      }
+    });
+
+    final selectedId = ref.read(settingsManagerProvider.notifier).getGlobalSetting<String>(SettingKeys.readerTtsEngine);
+    final registration = ReaderSpeechEngines.registration(selectedId);
+
     return SettingsPageScaffold(
-      title: 'TTS Settings',
+      title: 'Read aloud',
+      showEmbeddedTitle: widget.showTitle,
       embedded: true,
-      showEmbeddedBackButton: canPop,
+      showEmbeddedBackButton: widget.showTitle && canPop,
       children: [
         SettingsNavigationSection(
           title: '',
           showSectionTitle: false,
           topPadding: 0,
           settings: [
+            SettingDropdown<String>(
+              label: 'Speech provider',
+              description: 'Choose which service reads your book',
+              values: ReaderSpeechEngines.available.map((engine) => engine.id).toList(),
+              valueLabels: ReaderSpeechEngines.available.map((engine) => engine.label).toList(),
+              settingKey: SettingKeys.readerTtsEngine,
+            ),
+            if (registration.settingsBuilder != null) registration.settingsBuilder!(context),
+            if (registration.showStandardVoiceSettings && _ttsError != null)
+              ListTile(
+                leading: const Icon(Icons.info_outline),
+                title: Text(_ttsError!),
+                trailing: IconButton(
+                  tooltip: 'Reload voices',
+                  icon: const Icon(Icons.refresh),
+                  onPressed: _loadTtsInfo,
+                ),
+              ),
             SettingSlider<double>(
               label: 'Speech Rate',
               description: 'Adjust the TTS speech rate multiplier',
@@ -97,33 +136,25 @@ class _ReaderTtsSettingsState extends ConsumerState<ReaderTtsSettings> {
               valueLabels: const ['0.5x', '0.75x', '1.0x (Normal)', '1.25x', '1.5x', '1.75x', '2.0x'],
               settingKey: SettingKeys.readerTtsRate,
             ),
-            if (_isLoadingTts)
+            if (registration.showStandardVoiceSettings && _isLoadingTts)
               const Center(
                 child: Padding(padding: EdgeInsets.symmetric(vertical: 16.0), child: CircularProgressIndicator()),
               )
-            else ...[
+            else if (registration.showStandardVoiceSettings) ...[
               SettingDropdown<String>(
                 label: 'TTS Language',
                 description: 'Select the language for text-to-speech',
                 values: _languages.isNotEmpty ? _languages : const ['en-US'],
                 valueLabels: _languages.isNotEmpty ? _languages : const ['en-US'],
-                settingKey: SettingKeys.readerTtsLanguage,
+                settingKey: registration.languageSettingKey,
                 onChanged: (lang) {
-                  ref.read(settingsManagerProvider.notifier).setGlobalSetting<String>(SettingKeys.readerTtsVoice, '');
+                  ref.read(settingsManagerProvider.notifier).setGlobalSetting<String>(registration.voiceSettingKey, '');
                 },
               ),
               Consumer(
                 builder: (context, ref, child) {
-                  final isVoiceSupported =
-                      defaultTargetPlatform == TargetPlatform.android ||
-                      defaultTargetPlatform == TargetPlatform.iOS ||
-                      defaultTargetPlatform == TargetPlatform.macOS;
-                  if (!isVoiceSupported) {
-                    return const SizedBox.shrink();
-                  }
-
                   final currentLang =
-                      ref.watch(globalSettingByKeyProvider(SettingKeys.readerTtsLanguage)).value ?? 'en-US';
+                      ref.watch(globalSettingByKeyProvider(registration.languageSettingKey)).value ?? 'en-US';
                   final filteredVoices = _voices
                       .where((v) => v['locale'] == currentLang || v['locale']!.startsWith('$currentLang-'))
                       .toList();
@@ -131,6 +162,7 @@ class _ReaderTtsSettingsState extends ConsumerState<ReaderTtsSettings> {
                   final values = ['', ...filteredVoices.map((v) => v['name']!)];
                   final displayLabels = <String>['System Default'];
                   int voiceIndex = 1;
+
                   for (final voice in filteredVoices) {
                     final name = voice['name']!;
                     final isLocal = name.toLowerCase().endsWith('local');
@@ -150,7 +182,7 @@ class _ReaderTtsSettingsState extends ConsumerState<ReaderTtsSettings> {
                     description: 'Select a specific voice for text-to-speech',
                     values: values,
                     valueLabels: displayLabels,
-                    settingKey: SettingKeys.readerTtsVoice,
+                    settingKey: registration.voiceSettingKey,
                   );
                 },
               ),

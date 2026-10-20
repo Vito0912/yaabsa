@@ -1,124 +1,19 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:path/path.dart' as p;
+
 import 'models.dart';
 import 'book_server.dart';
 import 'windows_webview_environment.dart';
 import 'reader_diagnostics.dart';
 
 part 'foliate_viewer_handlers.dart';
-
-class FoliateViewerController {
-  InAppWebViewController? _webViewController;
-
-  void _bind(InAppWebViewController webViewController) {
-    _webViewController = webViewController;
-  }
-
-  void _unbind() {
-    _webViewController = null;
-  }
-
-  Future<void> close() async {
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.close();');
-  }
-
-  Future<void> next() async {
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.next();');
-  }
-
-  Future<void> prev() async {
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.prev();');
-  }
-
-  Future<void> goTo(String target) async {
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.goTo(${jsonEncode(target)});');
-  }
-
-  Future<void> goToFraction(double fraction) async {
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.goToFraction($fraction);');
-  }
-
-  Future<dynamic> addAnnotation(FoliateAnnotation annotation) async {
-    return await _webViewController?.evaluateJavascript(
-      source: 'window.FoliateReaderAPI.addAnnotation(${jsonEncode(annotation.toJson())});',
-    );
-  }
-
-  Future<void> deleteAnnotation(FoliateAnnotation annotation) async {
-    await _webViewController?.evaluateJavascript(
-      source: 'window.FoliateReaderAPI.deleteAnnotation(${jsonEncode(annotation.toJson())});',
-    );
-  }
-
-  Future<void> setStyles(String css) async {
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.setStyles(${jsonEncode(css)});');
-  }
-
-  Future<void> setFlow(String flow) async {
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.setFlow(${jsonEncode(flow)});');
-  }
-
-  Future<void> setMaxColumnCount(int count) async {
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.setMaxColumnCount($count);');
-  }
-
-  Future<void> search(String query) async {
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.search(${jsonEncode(query)});');
-  }
-
-  Future<void> clearSearch() async {
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.clearSearch();');
-  }
-
-  Future<void> deselect() async {
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.deselect();');
-  }
-
-  Future<String?> getCurrentSectionText() async {
-    final res = await _webViewController?.evaluateJavascript(
-      source: 'window.FoliateReaderAPI.getCurrentSectionText();',
-    );
-    return res as String?;
-  }
-
-  Future<List<Map<String, String>>> getTtsSentences() async {
-    final res = await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.getTtsSentences();');
-    if (res is List) {
-      return res.map((e) => Map<String, String>.from(e as Map)).toList();
-    }
-    return const [];
-  }
-
-  Future<void> highlightCFI(String cfi, [String? color]) async {
-    final args = color != null ? '"$cfi", "$color"' : '"$cfi"';
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.highlightCFI($args);');
-  }
-
-  Future<void> clearTtsHighlight() async {
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.clearTtsHighlight();');
-  }
-
-  Future<void> startMediaOverlay() async {
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.startMediaOverlay();');
-  }
-
-  Future<void> pauseMediaOverlay() async {
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.pauseMediaOverlay();');
-  }
-
-  Future<void> resumeMediaOverlay() async {
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.resumeMediaOverlay();');
-  }
-
-  Future<void> stopMediaOverlay() async {
-    await _webViewController?.evaluateJavascript(source: 'window.FoliateReaderAPI.stopMediaOverlay();');
-  }
-}
+part 'foliate_viewer_controller.dart';
 
 class FoliateViewer extends StatefulWidget {
   final File? bookFile;
@@ -147,7 +42,8 @@ class FoliateViewer extends StatefulWidget {
   final void Function(String)? onError;
   final VoidCallback? onCenterTap;
   final void Function(int)? onProgressChanged;
-  final void Function(int)? onTtsJumpToSentence;
+  final void Function(String)? onTtsJumpToSentence;
+  final ValueChanged<String>? onNarrationSeek;
   final void Function(String state)? onMediaOverlayStateChanged;
   final void Function(Map<String, dynamic> detail)? onMediaOverlayHighlight;
   final void Function(Map<String, dynamic> detail)? onMediaOverlayUnhighlight;
@@ -175,6 +71,7 @@ class FoliateViewer extends StatefulWidget {
     this.onCenterTap,
     this.onProgressChanged,
     this.onTtsJumpToSentence,
+    this.onNarrationSeek,
     this.onMediaOverlayStateChanged,
     this.onMediaOverlayHighlight,
     this.onMediaOverlayUnhighlight,
@@ -220,10 +117,16 @@ class _FoliateViewerState extends State<FoliateViewer> {
     try {
       if (Platform.isWindows) {
         _diagnostics.enterStage('initializing Windows WebView2 environment');
+
         final environment = await windowsWebViewEnvironment(onDiagnostic: _diagnostics.record);
-        if (!mounted) return;
+
+        if (!mounted) {
+          return;
+        }
+
         _webViewEnvironment = environment;
       }
+
       _diagnostics.enterStage('binding local reader server');
       _server = BookServer(
         bookFile: widget.bookFile,
@@ -232,16 +135,21 @@ class _FoliateViewerState extends State<FoliateViewer> {
         bookFetcher: widget.bookFetcher,
         onDiagnostic: (message, isError) => _diagnostics.record(message, isError: isError),
       );
+
       final port = await _server!.start();
+
       if (!mounted) {
         await _server?.stop();
+
         return;
       }
+
       _diagnostics.record('Local reader server listening at http://127.0.0.1:$port/reader.html');
       _diagnostics.enterStage('waiting for WebView creation and reader navigation');
       _startupTimer = Timer(const Duration(seconds: 30), () {
         _reportLoadError('The eBook reader could not start. Please try opening the book again.');
       });
+
       if (mounted) {
         setState(() {
           _port = port;
@@ -250,12 +158,14 @@ class _FoliateViewerState extends State<FoliateViewer> {
       }
     } catch (e, s) {
       _diagnostics.failure('Failed to initialize the eBook reader', error: e, stackTrace: s);
+
       if (mounted) {
         setState(() {
           _serverError = e.toString();
           _isLoadingServer = false;
         });
       }
+
       if (mounted) {
         widget.onError?.call('Failed to initialize the eBook reader: $e');
       }
@@ -263,7 +173,10 @@ class _FoliateViewerState extends State<FoliateViewer> {
   }
 
   void _reportLoadError(String error, {StackTrace? stackTrace}) {
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
+
     _diagnostics.failure(error, stackTrace: stackTrace);
     _startupTimer?.cancel();
     setState(() {
@@ -282,6 +195,7 @@ class _FoliateViewerState extends State<FoliateViewer> {
   @override
   void didUpdateWidget(covariant FoliateViewer oldWidget) {
     super.didUpdateWidget(oldWidget);
+
     if (oldWidget.bookUrl != widget.bookUrl || oldWidget.bookFile != widget.bookFile) {
       setState(() {
         _isBookLoaded = false;
@@ -290,15 +204,19 @@ class _FoliateViewerState extends State<FoliateViewer> {
       _server?.bookUrl = widget.bookUrl;
       _server?.bookFile = widget.bookFile;
     }
+
     if (oldWidget.headers != widget.headers) {
       _server?.headers = widget.headers;
     }
+
     if (oldWidget.flow != widget.flow) {
       widget.controller?.setFlow(widget.flow);
     }
+
     if (oldWidget.maxColumnCount != widget.maxColumnCount) {
       widget.controller?.setMaxColumnCount(widget.maxColumnCount);
     }
+
     if (oldWidget.initialStyles != widget.initialStyles && widget.initialStyles != null) {
       widget.controller?.setStyles(widget.initialStyles!);
     }
@@ -321,6 +239,7 @@ class _FoliateViewerState extends State<FoliateViewer> {
     if (_serverError != null) {
       return Center(child: Text('Error: $_serverError'));
     }
+
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -344,6 +263,7 @@ class _FoliateViewerState extends State<FoliateViewer> {
             _diagnostics.webViewCreated = true;
             _diagnostics.enterStage('WebView created, waiting for reader page');
             widget.controller?._bind(controller);
+            widget.controller?._narrationExportPath = _server?.narrationExportPath;
             _setupHandlers(controller);
           },
           onLoadStart: (controller, url) {
@@ -354,17 +274,25 @@ class _FoliateViewerState extends State<FoliateViewer> {
           onLoadStop: (controller, url) async {
             _diagnostics.navigationFinished = true;
             _diagnostics.record('Navigation finished: ${ReaderDiagnostics.url(url)}');
-            if (!mounted || _loadError != null) return;
+
+            if (!mounted || _loadError != null) {
+              return;
+            }
+
             _startupTimer?.cancel();
             _diagnostics.enterStage('initializing FoliateReaderAPI and opening book');
+
             final String bookPath;
+
             if (widget.bookFile != null) {
               bookPath = p.basename(widget.bookFile!.path);
             } else {
               final ext = widget.bookExtension ?? 'epub';
               final dotExt = ext.startsWith('.') ? ext : '.$ext';
+
               bookPath = 'remote_book$dotExt';
             }
+
             final bookUrl = 'http://127.0.0.1:$_port/book/${Uri.encodeComponent(bookPath)}';
             final initialCfi = widget.initialCfi;
             final initialStyles = widget.initialStyles;
@@ -404,8 +332,10 @@ class _FoliateViewerState extends State<FoliateViewer> {
                 }
               })();
             ''';
+
             try {
               await controller.evaluateJavascript(source: jsCode);
+
               _diagnostics.record('Reader initialization JavaScript submitted');
             } catch (error, stackTrace) {
               _reportLoadError('Failed to initialize the eBook reader: $error', stackTrace: stackTrace);
@@ -417,6 +347,7 @@ class _FoliateViewerState extends State<FoliateViewer> {
               'mainFrame=${request.isForMainFrame}, type=${error.type}, description=${error.description}',
               isError: true,
             );
+
             if (request.isForMainFrame == true) {
               _reportLoadError('Failed to load the eBook reader: ${error.description}');
             }
@@ -427,6 +358,7 @@ class _FoliateViewerState extends State<FoliateViewer> {
               'mainFrame=${request.isForMainFrame}, status=${response.statusCode}, reason=${response.reasonPhrase}',
               isError: true,
             );
+
             if (request.isForMainFrame == true) {
               _reportLoadError('Failed to load the eBook reader: HTTP ${response.statusCode}');
             }
@@ -438,10 +370,14 @@ class _FoliateViewerState extends State<FoliateViewer> {
             );
           },
           onProgressChanged: (controller, progress) {
-            if (!mounted) return;
+            if (!mounted) {
+              return;
+            }
+
             if (progress ~/ 25 != _diagnostics.progress ~/ 25) {
               _diagnostics.record('Reader page progress: $progress%');
             }
+
             _diagnostics.progress = progress;
             setState(() {
               _webViewProgress = progress;
