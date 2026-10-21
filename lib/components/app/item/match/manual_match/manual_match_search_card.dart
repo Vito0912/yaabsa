@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/api/search/search_provider_option.dart';
 import 'package:yaabsa/components/app/item/match/manual_match/manual_match_provider_dropdown.dart';
+import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
 
 class ManualMatchSearchCard extends StatelessWidget {
   const ManualMatchSearchCard({
@@ -32,19 +33,16 @@ class ManualMatchSearchCard extends StatelessWidget {
         child: LayoutBuilder(
           builder: (context, constraints) {
             final providerField = _buildProviderField(context);
-            final titleField = TextField(
+            final titleField = StyledTextField(
               controller: titleController,
-              decoration: const InputDecoration(
-                labelText: 'Title',
-                hintText: 'Search title',
-                border: OutlineInputBorder(),
-              ),
+              label: 'Title',
+              hintText: 'Search title',
               textInputAction: TextInputAction.search,
               onSubmitted: (_) => onSearch(),
             );
-            final authorField = TextField(
+            final authorField = StyledTextField(
               controller: authorController,
-              decoration: const InputDecoration(labelText: 'Author', border: OutlineInputBorder()),
+              label: 'Author',
               textInputAction: TextInputAction.search,
               onSubmitted: (_) => onSearch(),
             );
@@ -107,9 +105,9 @@ class ManualMatchSearchCard extends StatelessWidget {
 
   Widget _buildProviderField(BuildContext context) {
     return providersAsync.when(
-      loading: () => const InputDecorator(
-        decoration: InputDecoration(labelText: 'Providers', border: OutlineInputBorder()),
-        child: Row(
+      loading: () => InputDecorator(
+        decoration: yaabsaFieldDecoration(context, label: 'Providers'),
+        child: const Row(
           children: [
             SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2.0)),
             SizedBox(width: 8),
@@ -118,11 +116,7 @@ class ManualMatchSearchCard extends StatelessWidget {
         ),
       ),
       error: (error, _) => InputDecorator(
-        decoration: InputDecoration(
-          labelText: 'Providers',
-          border: const OutlineInputBorder(),
-          errorText: 'Failed to load providers',
-        ),
+        decoration: yaabsaFieldDecoration(context, label: 'Providers').copyWith(errorText: 'Failed to load providers'),
         child: Text(
           '$error',
           maxLines: 1,
@@ -132,9 +126,9 @@ class ManualMatchSearchCard extends StatelessWidget {
       ),
       data: (providers) {
         if (providers.isEmpty) {
-          return const InputDecorator(
-            decoration: InputDecoration(labelText: 'Providers', border: OutlineInputBorder()),
-            child: Text('No providers available'),
+          return InputDecorator(
+            decoration: yaabsaFieldDecoration(context, label: 'Providers'),
+            child: const Text('No providers available'),
           );
         }
 

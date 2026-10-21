@@ -222,7 +222,7 @@ class _ItemBookStatsCardState extends ConsumerState<ItemBookStatsCard> {
     allFinishes.addAll(_pastFinishDates);
 
     return ExpressiveExpandableCard(
-      margin: const EdgeInsets.only(top: 12),
+      margin: const EdgeInsets.only(top: 8),
       title: 'Book stats',
       initiallyExpanded: false,
       onExpansionChanged: (expanded) {

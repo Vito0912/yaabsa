@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/search/search_provider_option.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
 
 class ManualMatchProviderDropdown extends StatelessWidget {
   const ManualMatchProviderDropdown({
@@ -58,12 +59,10 @@ class ManualMatchProviderDropdown extends StatelessWidget {
       borderRadius: BorderRadius.circular(10),
       onTap: enabled ? () => _openSelector(context) : null,
       child: InputDecorator(
-        decoration: InputDecoration(
-          labelText: labelText,
-          suffixIcon: const Icon(Icons.arrow_drop_down_rounded),
-          enabled: enabled,
-          border: const OutlineInputBorder(),
-        ),
+        decoration: yaabsaFieldDecoration(
+          context,
+          label: labelText,
+        ).copyWith(suffixIcon: const Icon(Icons.arrow_drop_down_rounded), enabled: enabled),
         child: Text(
           _selectedLabel(),
           maxLines: 1,

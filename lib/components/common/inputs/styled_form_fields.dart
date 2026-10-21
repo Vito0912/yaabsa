@@ -43,9 +43,11 @@ class StyledTextField extends StatelessWidget {
     this.keyboardType,
     this.onChanged,
     this.onSubmitted,
+    this.onEditingComplete,
     this.textInputAction,
     this.inputFormatters,
     this.autofocus = false,
+    this.isDense,
     this.readOnly = false,
     this.style,
     this.enabled = true,
@@ -65,9 +67,11 @@ class StyledTextField extends StatelessWidget {
   final TextInputType? keyboardType;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
+  final VoidCallback? onEditingComplete;
   final TextInputAction? textInputAction;
   final List<TextInputFormatter>? inputFormatters;
   final bool autofocus;
+  final bool? isDense;
   final bool readOnly;
   final TextStyle? style;
   final bool enabled;
@@ -78,12 +82,14 @@ class StyledTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final decoration = yaabsaFieldDecoration(
-      context,
-      label: label,
-      hintText: hintText,
-      contentPadding: contentPadding,
-    ).copyWith(helperText: helperText, errorText: errorText, prefixIcon: prefixIcon, suffixIcon: suffixIcon);
+    final decoration = yaabsaFieldDecoration(context, label: label, hintText: hintText, contentPadding: contentPadding)
+        .copyWith(
+          helperText: helperText,
+          errorText: errorText,
+          prefixIcon: prefixIcon,
+          suffixIcon: suffixIcon,
+          isDense: isDense,
+        );
 
     return TextField(
       controller: controller,
@@ -92,6 +98,7 @@ class StyledTextField extends StatelessWidget {
       maxLines: maxLines,
       onChanged: onChanged,
       onSubmitted: onSubmitted,
+      onEditingComplete: onEditingComplete,
       textInputAction: textInputAction,
       inputFormatters: inputFormatters,
       autofocus: autofocus,

@@ -392,6 +392,7 @@ class LibraryItemBookView extends ConsumerWidget {
                                 chapters: chapters,
                                 audioFiles: audioFiles,
                                 ebookFile: ebookFile,
+                                libraryFiles: item.libraryFiles ?? const [],
                                 onChapterTap: (chapter) {
                                   audioHandler.playItemFromPosition(
                                     itemId: item.id,

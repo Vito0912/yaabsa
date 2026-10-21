@@ -1,7 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/app/item/match/manual_match/manual_match_description_field.dart';
 import 'package:yaabsa/components/app/item/match/manual_match/manual_match_models.dart';
-import 'package:yaabsa/components/common/inputs/expressive_dropdown.dart';
+import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
 import 'package:yaabsa/components/common/inputs/string_chip_list_input.dart';
 
 class ManualMatchFieldEditor extends StatelessWidget {
@@ -43,7 +43,6 @@ class ManualMatchFieldEditor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentLabel = (currentValue?.trim().isNotEmpty ?? false) ? currentValue!.trim() : 'Not set';
-    final showHeadingInRow = !_usesChipsEditor && !_isMultilineField;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(4, 0, 4, 2),
@@ -64,12 +63,6 @@ class ManualMatchFieldEditor extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (showHeadingInRow)
-                    Text(
-                      field.label,
-                      style: Theme.of(context).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
-                    ),
-                  if (showHeadingInRow) const SizedBox(height: 4),
                   _buildValueEditor(context),
                   if (field != ManualMatchField.cover) ...[
                     const SizedBox(height: 4),
@@ -111,18 +104,15 @@ class ManualMatchFieldEditor extends StatelessWidget {
   Widget _buildCompactTextInput() {
     final readOnly = field == ManualMatchField.cover;
 
-    return TextField(
+    return StyledTextField(
       controller: textController,
       enabled: !saving,
       readOnly: readOnly,
-      minLines: 1,
       maxLines: 1,
       onChanged: readOnly ? null : onTextChanged,
-      decoration: const InputDecoration(
-        border: OutlineInputBorder(),
-        isDense: true,
-        contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-      ),
+      label: field.label,
+      isDense: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
     );
   }
 
@@ -152,48 +142,34 @@ class ManualMatchFieldEditor extends StatelessWidget {
   }
 
   Widget _buildBooleanInput(BuildContext context) {
-    return YaabsaExpressiveDropdownField<bool>(
+    return YaabsaDropdownField<bool>(
       key: ValueKey<bool?>(boolValue),
       value: boolValue,
       onChanged: saving ? null : onBoolChanged,
-      decoration: const InputDecoration(
-        border: OutlineInputBorder(),
-        isDense: true,
-        contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-      ),
-      options: const [
-        YaabsaDropdownOption<bool>(value: true, label: 'Yes'),
-        YaabsaDropdownOption<bool>(value: false, label: 'No'),
+      label: field.label,
+      enabled: !saving,
+      items: const [
+        DropdownMenuItem(value: true, child: Text('Yes')),
+        DropdownMenuItem(value: false, child: Text('No')),
       ],
     );
   }
 
   Widget _buildListModeSelector(BuildContext context) {
-    return Row(
-      children: [
-        Text(
-          'Mode:',
-          style: Theme.of(context).textTheme.labelMedium
-              ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-        ),
-        const SizedBox(width: 8),
-        SizedBox(
-          width: 180,
-          child: YaabsaExpressiveDropdown<ManualListApplyMode>(
-            value: listMode,
-            enabled: !saving,
-            options: ManualListApplyMode.values
-                .map((mode) => YaabsaDropdownOption<ManualListApplyMode>(value: mode, label: mode.label))
-                .toList(growable: false),
-            onChanged: (value) {
-              if (value == null) {
-                return;
-              }
-              onListModeChanged(value);
-            },
-          ),
-        ),
-      ],
+    return SizedBox(
+      width: 180,
+      child: YaabsaDropdownField<ManualListApplyMode>(
+        label: 'Mode',
+        value: listMode,
+        enabled: !saving,
+        items: [for (final mode in ManualListApplyMode.values) DropdownMenuItem(value: mode, child: Text(mode.label))],
+        onChanged: (value) {
+          if (value == null) {
+            return;
+          }
+          onListModeChanged(value);
+        },
+      ),
     );
   }
 

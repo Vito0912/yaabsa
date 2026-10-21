@@ -128,14 +128,8 @@ class _ReaderPlayerPreferences extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Column(
       children: [
-        SettingSwitchTile(
-          label: 'Hide mini player when reading',
-          settingKey: SettingKeys.readerHideMiniPlayer,
-        ),
-        SettingSwitchTile(
-          label: 'Track reading time as listening',
-          settingKey: SettingKeys.readerStartSession,
-        ),
+        SettingSwitchTile(label: 'Hide mini player when reading', settingKey: SettingKeys.readerHideMiniPlayer),
+        SettingSwitchTile(label: 'Track reading time as listening', settingKey: SettingKeys.readerStartSession),
       ],
     );
   }

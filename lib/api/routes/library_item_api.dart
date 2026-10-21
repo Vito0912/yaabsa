@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:yaabsa/api/library_items/library_item.dart';
+import 'package:yaabsa/api/library_items/chapter.dart';
 import 'package:yaabsa/api/library_items/playback_session.dart';
 import 'package:yaabsa/api/library_items/quick_match_library_item_response.dart';
 import 'package:yaabsa/api/library_items/batch_update_library_items_response.dart';
@@ -205,6 +206,74 @@ class LibraryItemApi {
       dio: _dio,
       bodyData: request.toJson(),
     );
+  }
+
+  Future<bool> deleteLibraryFile(String itemId, String fileIno) {
+    return ABSApi.makeApiDeleteRequest(
+      route: '/api/items/${Uri.encodeComponent(itemId)}/file/${Uri.encodeComponent(fileIno)}',
+      dio: _dio,
+    );
+  }
+
+  Future<Map<String, dynamic>> getAudioFileFFProbeData(
+    String itemId,
+    String fileIno, {
+    CancelToken? cancelToken,
+  }) async {
+    final response = await ABSApi.makeApiGetRequest<Map<String, dynamic>>(
+      route: '/api/items/${Uri.encodeComponent(itemId)}/ffprobe/${Uri.encodeComponent(fileIno)}',
+      queryParams: {},
+      fromJson: (data) => Map<String, dynamic>.from(data as Map),
+      cancelToken: cancelToken,
+      extra: {'doNotCache': true},
+      dio: _dio,
+    );
+    final data = response.data;
+    if (data == null) {
+      throw StateError('No FFprobe data available.');
+    }
+
+    return data;
+  }
+
+  Future<void> updateLibraryItemChapters(
+    String itemId, {
+    required List<Chapter> chapters,
+    CancelToken? cancelToken,
+  }) async {
+    final response = await ABSApi.makeApiPostRequest<Map<String, dynamic>>(
+      route: '/api/items/$itemId/chapters',
+      fromJson: (data) => Map<String, dynamic>.from(data as Map),
+      bodyData: {'chapters': chapters.map((chapter) => chapter.toJson()).toList(growable: false)},
+      cancelToken: cancelToken,
+      dio: _dio,
+    );
+
+    final status = response.statusCode;
+    if (status == null || status < 200 || status >= 300 || response.data?['error'] != null) {
+      throw StateError('Could not save chapters.');
+    }
+  }
+
+  Future<Map<String, dynamic>> searchChapters({
+    required String asin,
+    required String region,
+    CancelToken? cancelToken,
+  }) async {
+    final response = await ABSApi.makeApiGetRequest<Map<String, dynamic>>(
+      route: '/api/search/chapters',
+      queryParams: {'asin': asin, 'region': region},
+      fromJson: (data) => Map<String, dynamic>.from(data as Map),
+      cancelToken: cancelToken,
+      dio: _dio,
+    );
+
+    final data = response.data;
+    if (data == null || data['error'] != null) {
+      throw StateError(data?['error']?.toString() ?? 'No chapters found.');
+    }
+
+    return data;
   }
 
   Future<Response<Map<String, dynamic>>> getLibraryItemMetadataObject(

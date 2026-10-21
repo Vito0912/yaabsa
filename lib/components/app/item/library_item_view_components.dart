@@ -2,18 +2,15 @@ import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/app/downloads/item_download_indicator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/api/library/request/library_filter.dart';
-import 'package:yaabsa/api/library_items/audio_file.dart';
-import 'package:yaabsa/api/library_items/chapter.dart';
-import 'package:yaabsa/api/library_items/ebook_file.dart';
-import 'package:yaabsa/api/library_items/library_file_metadata.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/library_items/media_metadata.dart';
 import 'package:yaabsa/components/app/item/item_description.dart';
 import 'package:yaabsa/components/app/item/item_detail_components.dart';
 import 'package:yaabsa/components/app/item/item_more_actions_button.dart';
-import 'package:yaabsa/components/common/expressive_expandable_card.dart';
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
 import 'package:yaabsa/util/item_formatters.dart';
+
+export 'package:yaabsa/components/app/item/library_item_media_sections.dart';
 
 List<ItemMetadataRowData> buildItemMetadataRows(
   BuildContext context, {
@@ -290,66 +287,6 @@ Widget _buildSmallActionButtons(
   return Row(mainAxisSize: MainAxisSize.min, spacing: 8.0, children: children);
 }
 
-class ItemChapterRow extends StatelessWidget {
-  const ItemChapterRow({
-    super.key,
-    required this.title,
-    required this.start,
-    required this.duration,
-    required this.onTap,
-  });
-
-  final String title;
-  final Duration start;
-  final Duration duration;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        child: Row(
-          children: [
-            Expanded(child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis)),
-            SizedBox(width: 74, child: Text(formatDurationShort(start), textAlign: TextAlign.right)),
-            const SizedBox(width: 10),
-            SizedBox(width: 74, child: Text(formatDurationShort(duration), textAlign: TextAlign.right)),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ChapterTableHeader extends StatelessWidget {
-  const _ChapterTableHeader();
-
-  @override
-  Widget build(BuildContext context) {
-    final style = Theme.of(context).textTheme.labelSmall
-        ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant, letterSpacing: 0.4);
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 2),
-      child: Row(
-        children: [
-          Expanded(child: Text('Chapter', style: style)),
-          SizedBox(
-            width: 74,
-            child: Text('Start', style: style, textAlign: TextAlign.right),
-          ),
-          SizedBox(
-            width: 74,
-            child: Text('Length', style: style, textAlign: TextAlign.right),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class LibraryItemTopContent extends StatelessWidget {
   const LibraryItemTopContent({
     super.key,
@@ -417,130 +354,6 @@ class LibraryItemTopContent extends StatelessWidget {
         ItemDescription(item: item, useCard: false),
         const SizedBox(height: 4),
         ItemMetadataCard(rows: metadataRows, inlineValues: true, useCard: false),
-      ],
-    );
-  }
-}
-
-class LibraryItemMediaSections extends StatefulWidget {
-  const LibraryItemMediaSections({
-    super.key,
-    required this.itemId,
-    required this.chapters,
-    required this.audioFiles,
-    required this.ebookFile,
-    required this.onChapterTap,
-  });
-
-  final String itemId;
-  final List<Chapter> chapters;
-  final List<AudioFile> audioFiles;
-  final EbookFile? ebookFile;
-  final void Function(Chapter chapter) onChapterTap;
-
-  @override
-  State<LibraryItemMediaSections> createState() => _LibraryItemMediaSectionsState();
-}
-
-class _LibraryItemMediaSectionsState extends State<LibraryItemMediaSections> {
-  bool _showAbsolutePaths = false;
-
-  Widget _buildPathTitle(BuildContext context, LibraryFileMetadata metadata) {
-    if (!_showAbsolutePaths) {
-      return Text(metadata.filename);
-    }
-
-    final absPath = metadata.path;
-    final relPath = metadata.relPath;
-
-    if (absPath.endsWith(relPath) && relPath.isNotEmpty) {
-      final rootPath = absPath.substring(0, absPath.length - relPath.length);
-      return Text.rich(
-        TextSpan(
-          children: [
-            TextSpan(
-              text: rootPath,
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.7)),
-            ),
-            TextSpan(text: relPath),
-          ],
-        ),
-      );
-    }
-
-    return Text(absPath);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (widget.chapters.isNotEmpty) ...[
-          const SizedBox(height: 8),
-          ItemExpandableSection(
-            title: 'Chapters (${widget.chapters.length})',
-            children: [
-              const _ChapterTableHeader(),
-              ...widget.chapters.map(
-                (chapter) => ItemChapterRow(
-                  title: chapter.title,
-                  start: Duration(seconds: chapter.start.round()),
-                  duration: chapterDuration(chapter.start, chapter.end),
-                  onTap: () => widget.onChapterTap(chapter),
-                ),
-              ),
-            ],
-          ),
-        ],
-        if (widget.audioFiles.isNotEmpty) ...[
-          const SizedBox(height: 8),
-          ExpressiveExpandableCard(
-            title: 'Audio files (${widget.audioFiles.length})',
-            initiallyExpanded: false,
-            actions: [
-              TextButton.icon(
-                onPressed: () => setState(() => _showAbsolutePaths = !_showAbsolutePaths),
-                icon: Icon(_showAbsolutePaths ? Icons.folder_open_rounded : Icons.insert_drive_file_rounded, size: 16),
-                label: Text(_showAbsolutePaths ? 'Absolute' : 'Filenames'),
-              ),
-            ],
-            children: widget.audioFiles
-                .map(
-                  (audioFile) => ListTile(
-                    dense: true,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                    title: _buildPathTitle(context, audioFile.metadata),
-                    subtitle: audioFile.duration == null
-                        ? null
-                        : Text(formatDurationShort(Duration(seconds: audioFile.duration!.round()))),
-                  ),
-                )
-                .toList(),
-          ),
-        ],
-        if (widget.ebookFile != null) ...[
-          const SizedBox(height: 8),
-          ExpressiveExpandableCard(
-            title: 'Ebook files',
-            initiallyExpanded: false,
-            actions: [
-              TextButton.icon(
-                onPressed: () => setState(() => _showAbsolutePaths = !_showAbsolutePaths),
-                icon: Icon(_showAbsolutePaths ? Icons.folder_open_rounded : Icons.insert_drive_file_rounded, size: 16),
-                label: Text(_showAbsolutePaths ? 'Absolute paths' : 'Filenames'),
-              ),
-            ],
-            children: [
-              ListTile(
-                dense: true,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                title: _buildPathTitle(context, widget.ebookFile!.metadata),
-                subtitle: Text(widget.ebookFile!.ebookFormat.toUpperCase()),
-              ),
-            ],
-          ),
-        ],
       ],
     );
   }
