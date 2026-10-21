@@ -10,9 +10,11 @@ import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/core/oidc_provider.dart';
 import 'package:yaabsa/provider/wear/wear_providers.dart';
-import 'package:yaabsa/util/globals.dart' show appName, audioHandler, containerRef, isAudioHandlerInitialized;
+import 'package:yaabsa/util/globals.dart'
+    show appName, audioHandler, containerRef, isAudioHandlerInitialized, packageInfo;
 import 'package:yaabsa/util/aaos_service.dart';
 import 'package:yaabsa/util/app_theme.dart';
+import 'package:yaabsa/util/changelog.dart';
 import 'package:yaabsa/util/handler/tray_handler.dart' show TrayManager;
 import 'package:yaabsa/util/handler/sleep_timer_handler.dart';
 import 'package:yaabsa/util/handler/desktop_window_state.dart';
@@ -67,6 +69,12 @@ void main() {
       final settingsManager = containerRef.read(settingsManagerProvider.notifier);
 
       await settingsManager.ensureInitialized();
+
+      try {
+        await Changelog.prepareStartup(settingsManager, packageInfo.version);
+      } catch (error, stack) {
+        logger('Changelog initialization failed: $error\n$stack', tag: 'Changelog', level: InfoLevel.warning);
+      }
 
       registerReaderSpeechProviders(containerRef);
 

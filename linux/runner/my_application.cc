@@ -6,6 +6,14 @@
 
 #include "flutter/generated_plugin_registrant.h"
 
+#ifndef NDEBUG
+static constexpr char kApplicationId[] = APPLICATION_ID ".dev";
+static constexpr char kWindowTitle[] = "yaabsa Dev";
+#else
+static constexpr char kApplicationId[] = APPLICATION_ID;
+static constexpr char kWindowTitle[] = "yaabsa";
+#endif
+
 struct _MyApplication {
   GtkApplication parent_instance;
   char** dart_entrypoint_arguments;
@@ -78,7 +86,7 @@ static void my_application_activate(GApplication* application) {
   GtkWindow* window =
       GTK_WINDOW(gtk_application_window_new(GTK_APPLICATION(application)));
 
-  gtk_window_set_title(window, "yaabsa");
+  gtk_window_set_title(window, kWindowTitle);
   gtk_window_set_default_size(window, 1280, 720);
 
   g_autoptr(FlDartProject) project = fl_dart_project_new();
@@ -181,10 +189,10 @@ MyApplication* my_application_new() {
   // like GTK and desktop environments map this running application to its
   // corresponding .desktop file. This ensures better integration by allowing
   // the application to be recognized beyond its binary name.
-  g_set_prgname(APPLICATION_ID);
+  g_set_prgname(kApplicationId);
 
   return MY_APPLICATION(g_object_new(my_application_get_type(),
-                                     "application-id", APPLICATION_ID,
+                                     "application-id", kApplicationId,
                                      "flags", G_APPLICATION_HANDLES_COMMAND_LINE,
                                      nullptr));
 }

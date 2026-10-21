@@ -245,6 +245,12 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
 
   Future<void> _prepareForQueuedItemTransition() async {
     final transitionPosition = position;
+    final repository = _ref.read(sessionRepositoryProvider);
+    final binding = repository.currentSessionBinding;
+
+    if (binding != null) {
+      repository.detachSessionBinding(binding);
+    }
 
     _setQueueTransitionTargetItem(null);
     _setQueueTransitionLoading(true);
@@ -252,13 +258,25 @@ extension _BGAudioHandlerPlaybackInternal on BGAudioHandler {
     _currentTrackIndex = 0;
 
     try {
-      await _syncService.flush(positionOverride: transitionPosition, sessionClosing: true);
-      await _ref.read(sessionRepositoryProvider).closeSession();
+      if (binding != null) {
+        await _syncService.flush(
+          positionOverride: transitionPosition,
+          sessionClosing: true,
+          binding: binding,
+          forcePositionSync: true,
+        );
+      }
     } catch (e) {
       logger('Error preparing queued transition: $e', tag: 'AudioHandler', level: InfoLevel.error);
     }
 
-    await _safePlayerStop();
+    try {
+      await _safePlayerStop();
+    } finally {
+      if (binding != null) {
+        await repository.closeSessionBinding(binding);
+      }
+    }
   }
 
   Future<void> _syncedPlay({

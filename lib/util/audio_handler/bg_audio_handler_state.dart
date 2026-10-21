@@ -400,6 +400,11 @@ extension _BGAudioHandlerState on BGAudioHandler {
   }
 
   Duration _localAbsolutePosition() {
+    final media = _currentMediaItem;
+    if (media != null && _player.processingState == ProcessingState.completed) {
+      return media.totalDuration;
+    }
+
     return _localTrackOffset + _player.position;
   }
 

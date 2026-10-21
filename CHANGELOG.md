@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.16.0
+
+### Added
+
+- Added chapter editor
+- Added file details
+- Added search within EPUB and PDF books
+- Added third party TTS provider
+- Integrated playback with media player
+- Added an in-app changelog
+
+### Fixed
+
+- Listening progress now retries loading when the server becomes reachable after an offline or failed startup
+- Improved final progress syncing when a book finishes or playback moves to the next queued item
+
+### Changed
+
+- Redesign of the ebook reader
+- Improved the item editor layout to match new Audiobookshelf design
+- Integrated read-aloud and embedded book narration with player controls and sleep timers
+
 ## 1.15.0
 
 ### Added

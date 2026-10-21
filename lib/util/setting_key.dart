@@ -3,6 +3,8 @@ import 'package:yaabsa/util/logger.dart';
 
 class SettingKeys {
   // Global Settings
+  static const String changelogLastVersion = 'changelog_last_version';
+  static const String changelogDisabled = 'changelog_disabled';
   static const String appThemeMode = 'app_theme_mode';
   static const String appThemePreset = 'app_theme_preset';
   static const String appThemeCustomRed = 'app_theme_custom_red';

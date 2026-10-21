@@ -5,7 +5,10 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart'
     show getApplicationCacheDirectory, getApplicationDocumentsDirectory, getApplicationSupportDirectory;
 
+import 'development_identity.dart';
 import 'globals.dart';
+
+String get _storageDirectoryName => isLinuxDevelopmentBuild ? '${appName}Dev' : appName;
 
 String? _resolveLinuxBasePath({required String envKey, required String dotFolderName}) {
   if (kIsWeb) {
@@ -31,16 +34,16 @@ Future<Directory> resolveDefaultCacheDirectory() async {
   if (Platform.isLinux) {
     final basePath = _resolveLinuxBasePath(envKey: 'XDG_CACHE_HOME', dotFolderName: '.cache');
     if (basePath != null) {
-      return Directory(p.join(basePath, appName));
+      return Directory(p.join(basePath, _storageDirectoryName));
     }
   }
 
   try {
     final cacheDirectory = await getApplicationCacheDirectory();
-    return Directory(p.join(cacheDirectory.path, appName));
+    return Directory(p.join(cacheDirectory.path, _storageDirectoryName));
   } catch (_) {
     final documentsDirectory = await getApplicationDocumentsDirectory();
-    return Directory(p.join(documentsDirectory.path, appName, 'cache'));
+    return Directory(p.join(documentsDirectory.path, _storageDirectoryName, 'cache'));
   }
 }
 
@@ -51,15 +54,15 @@ Future<Directory> resolveDefaultConfigDirectory() async {
   if (Platform.isLinux) {
     final basePath = _resolveLinuxBasePath(envKey: 'XDG_CONFIG_HOME', dotFolderName: '.config');
     if (basePath != null) {
-      return Directory(p.join(basePath, appName));
+      return Directory(p.join(basePath, _storageDirectoryName));
     }
   }
 
   try {
     final supportDirectory = await getApplicationSupportDirectory();
-    return Directory(p.join(supportDirectory.path, appName));
+    return Directory(p.join(supportDirectory.path, _storageDirectoryName));
   } catch (_) {
     final documentsDirectory = await getApplicationDocumentsDirectory();
-    return Directory(p.join(documentsDirectory.path, appName, 'config'));
+    return Directory(p.join(documentsDirectory.path, _storageDirectoryName, 'config'));
   }
 }

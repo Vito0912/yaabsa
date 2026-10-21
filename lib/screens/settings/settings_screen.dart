@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:yaabsa/components/changelog/changelog_dialog.dart';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:material_ui/material_ui.dart';
@@ -1212,6 +1214,11 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
                                   title: 'Information & Attribution',
                                   subtitle: 'Licenses, app version, licenses, and more',
                                   onTap: () => LicenseSettings.showLicensePage(context: context),
+                                ),
+                                SettingsNavigationItem(
+                                  icon: Icons.history_rounded,
+                                  title: 'Changelog',
+                                  onTap: () => showChangelogDialog(context),
                                 ),
                               ],
                             ),

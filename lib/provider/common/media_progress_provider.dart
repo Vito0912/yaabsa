@@ -449,6 +449,7 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
   @override
   Future<void> build() async {
     final operationRef = ref;
+    final canReachServer = ref.watch(serverReachabilityProvider);
     final absApi = ref.watch(absApiProvider);
     final userId = ref.watch(activeUserIdProvider).value ?? absApi?.user?.id;
     if (_store.userId != userId) {
@@ -456,6 +457,10 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
       _store.isInitialized = false;
       _store.startupFetchAttempted = false;
       _replaceProgressMap(const <String, MediaProgress>{});
+    }
+
+    if (!canReachServer) {
+      _store.startupFetchAttempted = false;
     }
 
     final localMap = await _loadLocalProgressMap(userId: userId);
@@ -473,6 +478,15 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
     if (absApi == null || absApi.user?.id != userId) {
       logger(
         'ABSApi is not available yet. Skipping remote progress fetch.',
+        tag: 'MediaProgressProvider',
+        level: InfoLevel.debug,
+      );
+      return;
+    }
+
+    if (!canReachServer) {
+      logger(
+        'Server is unreachable. Keeping cached progress and waiting to retry when it becomes reachable.',
         tag: 'MediaProgressProvider',
         level: InfoLevel.debug,
       );
@@ -540,12 +554,16 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
       if (!operationRef.mounted || _activeUserId() != userId) {
         return;
       }
-      if (_store.userId == userId) _store.startupFetchAttempted = true;
+      if (_store.userId == userId) {
+        _store.startupFetchAttempted = true;
+      }
       final remoteMap = _listToMap(remoteProgress);
       final mergedMap = _mergeProgressMaps(_progressByKey, remoteMap);
       _replaceProgressMap(mergedMap);
       await _persistProgressList(remoteMap.keys.map((key) => mergedMap[key]!));
-      if (!operationRef.mounted || _activeUserId() != userId) return;
+      if (!operationRef.mounted || _activeUserId() != userId) {
+        return;
+      }
       logger(
         'Refreshed ${remoteMap.length} progress entries for user $userId in ${elapsed.elapsedMilliseconds}ms. '
         'Retaining $progressCount entries.',
@@ -556,7 +574,9 @@ class MediaProgressNotifier extends _$MediaProgressNotifier {
       if (!operationRef.mounted || _activeUserId() != userId) {
         return;
       }
-      if (_store.userId == userId) _store.startupFetchAttempted = true;
+      if (_store.userId == userId) {
+        _store.startupFetchAttempted = false;
+      }
       logger(
         'Progress refresh failed for user $userId. Keeping $progressCount existing entries. Cause: $e\n$s',
         tag: 'MediaProgressProvider',

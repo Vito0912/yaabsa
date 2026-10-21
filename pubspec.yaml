@@ -139,4 +139,5 @@ flutter:
   uses-material-design: true
 
   assets:
+    - CHANGELOG.md
     - assets/logo_blue_fill.png

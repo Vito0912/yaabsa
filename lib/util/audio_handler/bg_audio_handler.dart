@@ -2417,7 +2417,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
         final completionNavigationGeneration = _sleepTimerNavigationGeneration;
         final completionPlaybackGeneration = _sleepTimerPlaybackGeneration;
-        final completionSessionId = _ref.read(sessionRepositoryProvider).currentSession?.id;
+        final completionBinding = _ref.read(sessionRepositoryProvider).currentSessionBinding;
+        final completionSessionId = completionBinding?.sessionId;
 
         bool completionIsCurrent() {
           return identical(_currentMediaItem, finishedMedia) &&
@@ -2432,7 +2433,13 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           tag: 'AudioHandler',
           level: InfoLevel.debug,
         );
-        await _syncService.flush();
+        if (completionBinding != null) {
+          await _syncService.flush(
+            positionOverride: finishedMedia.totalDuration,
+            binding: completionBinding,
+            forcePositionSync: true,
+          );
+        }
 
         if (!completionIsCurrent()) {
           return;

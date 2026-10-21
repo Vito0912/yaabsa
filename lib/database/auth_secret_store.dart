@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatf
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:yaabsa/util/development_identity.dart';
 
 part 'auth_secret_store.g.dart';
 
@@ -62,18 +63,18 @@ class AuthSecretStore {
   static const String _apiKeyKey = 'apiKey';
   static const MethodChannel _iosKeychainMigrationChannel = MethodChannel('de.vito0912.yaabsa/auth_secret_migration');
 
-  String _key(String userId, String field) => 'auth.$userId.$field';
+  String _key(String userId, String field) => '${developmentStoragePrefix}auth.$userId.$field';
 
   Future<String?> readSpeechProviderApiKey(String providerId) async {
     try {
-      return await _readField('tts.$providerId.apiKey');
+      return await _readField('${developmentStoragePrefix}tts.$providerId.apiKey');
     } catch (error, stackTrace) {
       throw AuthSecretsUnavailableException(error: error, stackTrace: stackTrace);
     }
   }
 
   Future<void> writeSpeechProviderApiKey(String providerId, String value) async {
-    final key = 'tts.$providerId.apiKey';
+    final key = '${developmentStoragePrefix}tts.$providerId.apiKey';
 
     try {
       if (value.trim().isEmpty) {

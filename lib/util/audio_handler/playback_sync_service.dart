@@ -51,10 +51,12 @@ class PlaybackSyncService {
 
       if (isEffectivelyPlaying) {
         final currentBinding = _ref.read(sessionRepositoryProvider).currentSessionBinding;
-        if (currentBinding != null) {
-          _hasPlaybackSinceLastFlush = true;
-          _activeSegmentBinding ??= currentBinding;
+        if (currentBinding == null) {
+          return;
         }
+
+        _hasPlaybackSinceLastFlush = true;
+        _activeSegmentBinding ??= currentBinding;
         if (_currentSegmentStartTime == null) {
           _segmentGeneration += 1;
           _currentSegmentStartTime = DateTime.now();
