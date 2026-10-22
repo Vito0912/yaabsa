@@ -39,6 +39,21 @@
             </intent-filter>
         </activity>
 
+        <!-- Phone-only components inherited from the main manifest. Without
+             this the watch shows a second launcher icon that opens the phone
+             UI, whose wear_data channel has no requestCredentials handler. -->
+        <activity
+            android:name="de.vito0912.yaabsa.MainActivity"
+            tools:node="remove" />
+
+        <activity-alias
+            android:name="de.vito0912.yaabsa.SignInActivity"
+            tools:node="remove" />
+
+        <service
+            android:name="de.vito0912.yaabsa.WearSignInListenerService"
+            tools:node="remove" />
+
         <service
             android:name="com.ryanheise.audioservice.AudioService"
             android:foregroundServiceType="mediaPlayback"

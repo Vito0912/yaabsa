@@ -1,5 +1,7 @@
+import 'package:dio/dio.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/provider/wear/wear_providers.dart';
+import 'package:yaabsa/util/logger.dart';
 
 class WearPairingScreen extends StatefulWidget {
   const WearPairingScreen({super.key});
@@ -27,10 +29,14 @@ class _WearPairingScreenState extends State<WearPairingScreen> {
       }
       // On success the home screen switches to the player via the
       // active-user providers; nothing to do here.
-    } catch (e) {
+    } catch (e, stack) {
+      // DioException.message is null for transport failures; the actual
+      // cause (socket, TLS, Cronet error) is in DioException.error.
+      final detail = e is DioException ? '${e.type.name}: ${e.error ?? e.message}' : '$e';
+      logger('Wear pairing failed: $detail\n$stack', tag: 'WearPairing', level: InfoLevel.error);
       if (mounted) {
         setState(() {
-          _errorMessage = 'Failed: $e';
+          _errorMessage = 'Failed: $detail';
         });
       }
     } finally {

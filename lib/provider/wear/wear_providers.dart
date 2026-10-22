@@ -33,6 +33,7 @@ Future<bool> pairWithPhone() async {
   if (serverUrl == null || serverUrl.isEmpty || accessToken == null || accessToken.isEmpty) {
     return false;
   }
+  final headers = (result?['headers'] as Map<dynamic, dynamic>?)?.cast<String, String>();
 
   final api = ABSApi(
     dio: createNativeDio(
@@ -40,6 +41,7 @@ Future<bool> pairWithPhone() async {
         baseUrl: serverUrl,
         connectTimeout: const Duration(seconds: 5),
         receiveTimeout: const Duration(seconds: 20),
+        headers: headers,
       ),
     ),
     basePathOverride: serverUrl,
@@ -54,7 +56,11 @@ Future<bool> pairWithPhone() async {
     accessToken: accessToken,
     refreshToken: result?['refreshToken'] as String?,
     setting: login.serverSettings,
-    server: Server.fromExternalAddress(externalAddress: serverUrl, activeConnection: ServerConnection.external),
+    server: Server.fromExternalAddress(
+      externalAddress: serverUrl,
+      headers: headers == null || headers.isEmpty ? null : headers,
+      activeConnection: ServerConnection.external,
+    ),
   );
 
   final db = containerRef.read(appDatabaseProvider);

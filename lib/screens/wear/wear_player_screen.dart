@@ -360,49 +360,61 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
               padding: const EdgeInsets.only(top: 4),
               child: Text(t, style: TextStyle(fontSize: 11, color: _onSurface(0.38))),
             ),
-            const Spacer(),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (_author != null && _author!.isNotEmpty)
-                    Text(
-                      _author!,
-                      style: TextStyle(fontSize: 11, color: _onSurface(0.60)),
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  Text(
-                    _title ?? '',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colorScheme.onSurface),
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 8),
-                  _progress(),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _btn(Icons.replay_30, _rew),
-                      const SizedBox(width: 8),
-                      Container(
-                        decoration: BoxDecoration(shape: BoxShape.circle, color: colorScheme.primary),
-                        child: _btn(
-                          _isPlaying ? Icons.pause : Icons.play_arrow,
-                          _toggle,
-                          s: 30,
-                          color: colorScheme.onPrimary,
-                        ),
+            // Shrinks instead of overflowing when the screen is shorter than
+            // the fixed layout (small watches, larger font scales).
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, constraints) => FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.bottomCenter,
+                  child: SizedBox(
+                    width: constraints.maxWidth,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (_author != null && _author!.isNotEmpty)
+                            Text(
+                              _author!,
+                              style: TextStyle(fontSize: 11, color: _onSurface(0.60)),
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          Text(
+                            _title ?? '',
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: colorScheme.onSurface),
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 8),
+                          _progress(),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              _btn(Icons.replay_30, _rew),
+                              const SizedBox(width: 8),
+                              Container(
+                                decoration: BoxDecoration(shape: BoxShape.circle, color: colorScheme.primary),
+                                child: _btn(
+                                  _isPlaying ? Icons.pause : Icons.play_arrow,
+                                  _toggle,
+                                  s: 30,
+                                  color: colorScheme.onPrimary,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              _btn(Icons.forward_30, _ff),
+                            ],
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 8),
-                      _btn(Icons.forward_30, _ff),
-                    ],
+                    ),
                   ),
-                ],
+                ),
               ),
             ),
             const SizedBox(height: 12),

@@ -543,6 +543,7 @@ class SignIn extends HookConsumerWidget {
             serverUrl: normalizedServer,
             accessToken: accessToken,
             refreshToken: useApiKey.value ? null : loggedInUser.refreshToken,
+            headers: buildRequestHeaders(serverHeaders: customHeaders.value),
           );
 
           if (!context.mounted) return;
