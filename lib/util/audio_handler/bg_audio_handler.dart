@@ -2177,6 +2177,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     }
 
     late MediaItem nextMediaItem;
+    final artHeaders = _artRequestHeadersInternal;
 
     if (_chapterNotificationEnabled) {
       final searchPos = customPosition ?? position;
@@ -2192,9 +2193,10 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         duration: _chapterNotificationDuration,
         isLive: false,
         artUri: notificationArtworkUri(currentItem.cover),
+        artHeaders: artHeaders.isEmpty ? null : artHeaders,
       );
     } else {
-      nextMediaItem = currentItem.toMediaItem();
+      nextMediaItem = currentItem.toMediaItem(artHeaders: artHeaders);
     }
 
     if (_androidAutoIsAutomotiveSystemCache == true) {
