@@ -598,17 +598,36 @@ class SessionRepository {
   }
 
   Future<_StoredSyncReplayAction> _syncStoredOpenSession(ABSApi api, StoredSyncEntry storedSync) async {
+    MediaProgress? remoteProgress;
+
     try {
-      final PlaybackSession? remoteSession = (await api.getSessionApi().getSessionById(storedSync.sessionId)).data;
+      remoteProgress = (await api.getMeApi().getProgress(
+        storedSync.itemId,
+        episodeId: storedSync.episodeId,
+        extra: const <String, dynamic>{'doNotCache': true},
+      )).data;
+    } catch (e) {
+      final progressIsMissing = e is DioException && e.response?.statusCode == 404;
 
-      final int localUpdatedAt = storedSync.lastUpdated.millisecondsSinceEpoch;
-      final int? remoteUpdatedAt = remoteSession?.updatedAt;
+      if (!progressIsMissing) {
+        logger(
+          'Failed to check server progress for stored sync ${storedSync.sessionId}, retaining local sync: $e',
+          tag: 'SessionRepository',
+          level: InfoLevel.warning,
+        );
+        return _StoredSyncReplayAction.keepLocal;
+      }
+    }
 
-      final bool useLocalCurrentTime = remoteUpdatedAt == null || localUpdatedAt > remoteUpdatedAt;
-      final double syncedCurrentTime = useLocalCurrentTime
-          ? storedSync.currentTime
-          : (remoteSession?.currentTime ?? storedSync.currentTime);
+    final int localUpdatedAt = storedSync.lastUpdated.millisecondsSinceEpoch;
+    final int? remoteUpdatedAt = remoteProgress?.lastUpdate;
 
+    final bool useLocalCurrentTime = remoteUpdatedAt == null || localUpdatedAt > remoteUpdatedAt;
+    final double syncedCurrentTime = useLocalCurrentTime
+        ? storedSync.currentTime
+        : (remoteProgress?.currentTime ?? storedSync.currentTime);
+
+    try {
       await api.getSessionApi().syncOpenSession(
         storedSync.sessionId,
         request: SyncSessionRequest(
@@ -621,7 +640,7 @@ class SessionRepository {
       logger(
         'Replayed stored sync into open session ${storedSync.sessionId}. '
         'currentTime=$syncedCurrentTime, timeListened=${storedSync.timeListened}, '
-        'localUpdatedAt=$localUpdatedAt, remoteUpdatedAt=${remoteUpdatedAt ?? 'null'}.',
+        'localUpdatedAt=$localUpdatedAt, remoteProgressUpdatedAt=${remoteUpdatedAt ?? 'null'}.',
         tag: 'SessionRepository',
         level: InfoLevel.debug,
       );
