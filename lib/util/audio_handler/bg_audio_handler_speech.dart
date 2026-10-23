@@ -13,6 +13,7 @@ extension _BGAudioHandlerSpeech on BGAudioHandler {
     }
 
     final generation = ++_readerNarrationRequestGeneration;
+    final userId = _ref.read(currentUserProvider).value?.id;
 
     await stop();
 
@@ -22,6 +23,9 @@ extension _BGAudioHandlerSpeech on BGAudioHandler {
 
     _speechItem = item;
     _speechCover = cover;
+    _speechProgressUserId = userId;
+    _lastSpeechProgressCfi = null;
+    _lastSpeechProgressSavedAt = null;
     _installReaderSpeech(timeline, newSession: true);
     _watchReaderSpeechSettings();
     await play();
@@ -74,6 +78,12 @@ extension _BGAudioHandlerSpeech on BGAudioHandler {
       final old = previous;
 
       previous = state;
+
+      final stoppedPlaying = old?.playerState.playing == true && !state.playerState.playing;
+      final completed =
+          state.playerState.processingState == ProcessingState.completed &&
+          old?.playerState.processingState != ProcessingState.completed;
+      unawaited(_saveReaderSpeechProgress(force: stoppedPlaying || completed));
 
       if (old?.duration != state.duration || old?.isEstimated != state.isEstimated) {
         final media = _currentMediaItem;
@@ -220,9 +230,14 @@ extension _BGAudioHandlerSpeech on BGAudioHandler {
   Future<void> _disposeReaderSpeech() async {
     final session = _speechPlayback;
 
+    await _saveReaderSpeechProgress(force: true);
+
     _speechPlayback = null;
     _speechItem = null;
     _speechCover = null;
+    _speechProgressUserId = null;
+    _lastSpeechProgressCfi = null;
+    _lastSpeechProgressSavedAt = null;
 
     if (!_speechPlaybackSubject.isClosed) {
       _speechPlaybackSubject.add(null);

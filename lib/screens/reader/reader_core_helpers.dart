@@ -3,14 +3,21 @@ part of 'reader.dart';
 extension _ReaderCoreHelpers on _ReaderState {
   Future<void> _refreshStoredProgress() async {
     final requestToken = ++_progressRefreshToken;
-
-    final progress = await ref.read(mediaProgressProvider.notifier).fetchOrRefreshIndividualProgress(widget.itemId);
+    final itemId = widget.itemId;
+    final userId = _api?.user?.id;
+    final pendingLocation = userId == null ? null : await audioHandler.pendingEpubLocation(userId, itemId);
 
     if (!mounted || requestToken != _progressRefreshToken) {
       return;
     }
 
-    final refreshedLocation = progress?.ebookLocation;
+    final progress = await ref.read(mediaProgressProvider.notifier).fetchOrRefreshIndividualProgress(itemId);
+
+    if (!mounted || requestToken != _progressRefreshToken) {
+      return;
+    }
+
+    final refreshedLocation = pendingLocation ?? progress?.ebookLocation;
 
     if (_resolvedEbookLocation == refreshedLocation) {
       return;
@@ -190,7 +197,7 @@ extension _ReaderCoreHelpers on _ReaderState {
   }
 
   Future<void> _syncEpubProgress({required String location, required double progress}) async {
-    if (!mounted) {
+    if (!mounted || audioHandler.isReaderSpeechFor(widget.itemId)) {
       return;
     }
     if (location.trim().isEmpty) {

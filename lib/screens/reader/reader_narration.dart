@@ -7,6 +7,12 @@ extension _ReaderNarration on _ReaderState {
         return;
       }
 
+      if (audioHandler.currentMediaItem == null) {
+        unawaited(_startReadingSession());
+      } else if (_readingSessionBinding != null || _openingReadingSessionGeneration != null) {
+        unawaited(_closeReadingSession());
+      }
+
       final active = audioHandler.isReaderNarrationFor(widget.itemId);
       final state = active
           ? audioHandler.playerControlState.playing &&
@@ -137,6 +143,7 @@ extension _ReaderNarration on _ReaderState {
       }
     } finally {
       _readerSetState(() => _isPreparingNarration = false);
+      unawaited(_startReadingSession());
     }
   }
 }

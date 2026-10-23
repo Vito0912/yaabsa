@@ -162,6 +162,10 @@ extension SleepTimerChapters on SleepTimerHandler {
     }
 
     final timer = _chapterTimer!;
+    if (audioHandler.isReaderSpeech) {
+      timer.updateEndings(_chapterEndings());
+    }
+
     final positionChapterIndex = _chapterIndexAt(media, timer.endings, position);
 
     if ((position < timer.target && positionChapterIndex < 0) ||

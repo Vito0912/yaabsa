@@ -2,7 +2,13 @@ part of 'reader.dart';
 
 extension _ReaderSession on _ReaderState {
   Future<void> _startReadingSession() async {
-    if (_readingSessionBinding != null ||
+    if (!mounted ||
+        _isDisposed ||
+        !_isBookReady ||
+        _isStartingTts ||
+        _isPreparingNarration ||
+        WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed ||
+        _readingSessionBinding != null ||
         _openingReadingSessionGeneration != null ||
         audioHandler.currentMediaItem != null) {
       return;

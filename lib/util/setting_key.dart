@@ -165,6 +165,7 @@ class SettingKeys {
   static const String readerLayout = 'reader_layout';
   static const String readerHideMiniPlayer = 'reader_hide_mini_player';
   static const String readerStartSession = 'reader_start_session';
+  static const String readerPendingProgress = 'reader_pending_progress';
   static const String readerTtsRate = 'reader_tts_rate';
   static const String readerTtsVoice = 'reader_tts_voice';
   static const String readerTtsLanguage = 'reader_tts_language';

@@ -185,11 +185,21 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
     }
 
     final itemId = widget.itemId;
+    final userId = api.user?.id;
     final completer = Completer<void>();
     final newChain = (_progressSyncChain ?? Future<void>.value())
         .then((_) async {
           try {
-            await api.getMeApi().updateBookProgress(itemId, epubCfi: location, progress: progress);
+            if (location.startsWith('epubcfi(') && userId != null) {
+              await audioHandler.saveEpubProgress(
+                userId: userId,
+                itemId: itemId,
+                location: location,
+                progress: progress,
+              );
+            } else {
+              await api.getMeApi().updateBookProgress(itemId, epubCfi: location, progress: progress);
+            }
           } catch (e, s) {
             logger('Failed to sync progress for $itemId: $e\n$s', tag: 'ReaderProgressSync', level: InfoLevel.error);
           }
@@ -245,6 +255,7 @@ class _ReaderState extends ConsumerState<Reader> with WidgetsBindingObserver {
         unawaited(_pauseReadingSession());
       }
     } else {
+      unawaited(_startReadingSession());
       _resumeReadingSession();
     }
   }

@@ -1,3 +1,5 @@
+import { SectionProgress } from './foliate-js/progress.js';
+
 const blockSelector = 'p,li,blockquote,h1,h2,h3,h4,h5,h6,dt,dd,td,th,figcaption,pre';
 const excludedSelector = 'script,style,noscript,nav,[hidden],[aria-hidden="true"]';
 
@@ -119,6 +121,7 @@ function collectDocumentSpeech(view, item, start) {
 
 export async function prepareSpeech(view) {
     const sentences = [];
+    const progress = new SectionProgress(view.book.sections, 1500, 1600);
     const currentIndex = view.lastLocation?.section?.current ?? 0;
     const current = view.renderer?.getContents?.()?.find(item => item.index === currentIndex);
     let foundStart = false;
@@ -152,6 +155,7 @@ export async function prepareSpeech(view) {
                 ...collected.sentences[sentence],
                 section: String(index),
                 title,
+                fraction: String(progress.getProgress(index, sentence / collected.sentences.length).fraction),
                 isStart: String(isStart),
             });
         }

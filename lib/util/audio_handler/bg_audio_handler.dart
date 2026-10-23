@@ -37,6 +37,7 @@ import 'package:yaabsa/models/epub_narration_clip.dart';
 import 'package:yaabsa/util/reader/reader_speech_engine.dart';
 import 'package:yaabsa/util/reader/reader_speech_playback.dart';
 import 'package:yaabsa/util/reader/reader_speech_timeline.dart';
+import 'package:yaabsa/util/reader/reader_progress_sync.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/library/personalized_shelf_refresh.dart';
 import 'package:yaabsa/provider/core/server_reachability_provider.dart';
@@ -78,6 +79,7 @@ part 'bg_audio_handler_playback_internal.dart';
 part 'bg_audio_handler_source.dart';
 part 'bg_audio_handler_reader.dart';
 part 'bg_audio_handler_speech.dart';
+part 'bg_audio_handler_reader_progress.dart';
 part 'bg_audio_handler_custom_actions.dart';
 part 'bg_audio_handler_auto_queue.dart';
 part 'auto/bg_audio_handler_android_auto.dart';
@@ -117,6 +119,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   Stream<Duration>? _subtitlePositionStream;
   final ProviderContainer _ref;
   late final PlaybackSyncService _syncService;
+  late final ReaderProgressSync _readerProgressSync;
   StreamSubscription<PlayerException>? _errorSubscription;
   StreamSubscription<PlayerState>? _playerStateSubscription;
   StreamSubscription<int?>? _playerCurrentIndexSubscription;
@@ -304,6 +307,22 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   Future<void> _speechSettingsTransition = Future.value();
   LibraryItem? _speechItem;
   Uri? _speechCover;
+  String? _speechProgressUserId;
+  String? _lastSpeechProgressCfi;
+  DateTime? _lastSpeechProgressSavedAt;
+
+  Future<void> saveEpubProgress({
+    required String userId,
+    required String itemId,
+    required String location,
+    required double progress,
+  }) {
+    return _readerProgressSync.save(userId: userId, itemId: itemId, location: location, progress: progress);
+  }
+
+  Future<String?> pendingEpubLocation(String userId, String itemId) {
+    return _readerProgressSync.pendingLocation(userId, itemId);
+  }
 
   bool get isReaderSpeech => _speechPlayback != null;
   bool isReaderSpeechFor(String itemId) => isReaderSpeech && _currentMediaItem?.itemId == itemId;
@@ -1590,6 +1609,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
     if (_speechPlayback != null) {
       await _speechPlayback!.pause();
+      await _saveReaderSpeechProgress(force: true);
 
       TrayManager.update();
 
@@ -2135,6 +2155,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   }
 
   BGAudioHandler(this._ref) {
+    _readerProgressSync = ReaderProgressSync(_ref);
+
     _activeUserIdSubscription = _ref
         .read(appDatabaseProvider)
         .watchGlobalSetting('activeUserId')
@@ -2998,6 +3020,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     _isDisposing = true;
     await _disposeReaderSpeech();
     await _speechPlaybackSubject.close();
+    await _readerProgressSync.dispose();
 
     _readerNarrationRequestGeneration++;
     _androidAutoApiSubscription.close();

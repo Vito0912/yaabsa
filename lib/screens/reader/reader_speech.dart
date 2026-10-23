@@ -143,6 +143,7 @@ extension _ReaderSpeech on _ReaderState {
     } finally {
       if (generation == _ttsGeneration) {
         _readerSetState(() => _isStartingTts = false);
+        unawaited(_startReadingSession());
       }
     }
   }

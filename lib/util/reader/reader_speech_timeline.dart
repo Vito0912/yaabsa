@@ -3,6 +3,14 @@ import 'package:yaabsa/util/reader/reader_speech_chunk.dart';
 
 class ReaderSpeechTimeline {
   ReaderSpeechTimeline(this.sentences) {
+    for (var index = 0; index < sentences.length; index++) {
+      final sentence = sentences[index];
+      final fraction = double.tryParse(sentence['fraction'] ?? '');
+      _progressByCfi[sentence['cfi'] ?? ''] = fraction != null && fraction.isFinite
+          ? fraction.clamp(0.0, 1.0)
+          : index / sentences.length;
+    }
+
     for (var start = 0; start < sentences.length;) {
       var end = start + 1;
 
@@ -34,6 +42,9 @@ class ReaderSpeechTimeline {
 
   final List<Map<String, String>> sentences;
   final List<ReaderSpeechChunk> chunks = [];
+  final Map<String, double> _progressByCfi = {};
+
+  double progressForCfi(String cfi) => _progressByCfi[cfi] ?? 0;
 
   late final List<Duration?> _measured;
   late final List<double> _units;

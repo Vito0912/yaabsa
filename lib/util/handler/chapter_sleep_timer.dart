@@ -1,12 +1,13 @@
 class ChapterSleepTimer {
   ChapterSleepTimer({required List<Duration> endings, required Duration position, required int chapters})
-    : endings = List.unmodifiable(endings),
+    : _endings = List.unmodifiable(endings),
       _position = position,
       remainingChapters = chapters {
     rebase(position);
   }
 
-  final List<Duration> endings;
+  List<Duration> _endings;
+  List<Duration> get endings => _endings;
   Duration _position;
   int remainingChapters;
   int targetIndex = 0;
@@ -14,6 +15,12 @@ class ChapterSleepTimer {
 
   Duration get target => endings[targetIndex];
   bool get expired => remainingChapters == 0;
+
+  void updateEndings(List<Duration> updated) {
+    if (updated.length == endings.length) {
+      _endings = List.unmodifiable(updated);
+    }
+  }
 
   int _chapterAt(Duration position) {
     final index = endings.indexWhere((ending) => ending > position);
