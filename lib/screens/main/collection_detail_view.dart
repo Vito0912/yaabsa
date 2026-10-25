@@ -28,9 +28,10 @@ import 'package:yaabsa/util/server_management_preferences.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
 class CollectionDetailView extends HookConsumerWidget {
-  const CollectionDetailView({required this.collectionId, super.key, this.initialEntry});
+  const CollectionDetailView({required this.collectionId, super.key, this.initialEntry, this.libraryId});
 
   final String collectionId;
+  final String? libraryId;
   final MultiBookEntryData? initialEntry;
 
   @override
@@ -38,7 +39,8 @@ class CollectionDetailView extends HookConsumerWidget {
     final scrollController = useScrollController();
     final selectedLibrary = ref.watch(selectedLibraryProvider);
     final serverReachable = ref.watch(serverStatusProvider).value ?? false;
-    if (selectedLibrary == null) {
+    final libraryId = this.libraryId ?? selectedLibrary?.id;
+    if (libraryId == null || libraryId.isEmpty) {
       return const Center(child: Text('No library selected. Please select a library via the switcher.'));
     }
 
@@ -47,7 +49,6 @@ class CollectionDetailView extends HookConsumerWidget {
       return ConnectionIssueView.offline();
     }
 
-    final libraryId = selectedLibrary.id;
     final allCollectionsAsync = ref.watch(collectionsProvider(libraryId));
     final resolvedCollection = _resolveCollection(collectionId, allCollectionsAsync.value?.items);
     final resolvedEntry = _resolveEntry(collectionId, initialEntry, resolvedCollection);

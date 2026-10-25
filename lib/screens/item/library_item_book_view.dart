@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
+import 'package:yaabsa/components/app/item/book_collections_metadata.dart';
+import 'package:yaabsa/components/app/item/book_playlists_metadata.dart';
 import 'package:yaabsa/components/app/item/editor/library_item_edit_overlay.dart';
 import 'package:yaabsa/components/app/item/editor/open_library_item_editor_dialog.dart';
 import 'package:yaabsa/components/app/item/match/library_item_quick_match_actions.dart';
@@ -22,6 +24,8 @@ import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/models/internal_download.dart';
 import 'package:yaabsa/components/app/downloads/download_helper.dart';
+import 'package:yaabsa/provider/common/collection_provider.dart';
+import 'package:yaabsa/provider/common/playlist_provider.dart';
 import 'package:yaabsa/provider/common/library_filter_data_provider.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
@@ -110,6 +114,20 @@ class LibraryItemBookView extends ConsumerWidget {
 
     final metadataRows = buildItemMetadataRows(
       context,
+      collectionsRow: item.libraryId == null || item.libraryId!.isEmpty
+          ? null
+          : buildBookCollectionsMetadataRow(
+              context,
+              collections: ref.watch(bookCollectionMembershipsProvider((libraryId: item.libraryId!, bookId: item.id))),
+              onRetry: () => ref.read(collectionsProvider(item.libraryId!).notifier).refresh(requireServer: true),
+            ),
+      playlistsRow: item.libraryId == null || item.libraryId!.isEmpty
+          ? null
+          : buildBookPlaylistsMetadataRow(
+              context,
+              playlists: ref.watch(bookPlaylistMembershipsProvider((libraryId: item.libraryId!, bookId: item.id))),
+              onRetry: () => ref.read(playlistsProvider(item.libraryId!).notifier).refresh(requireServer: true),
+            ),
       metadata: metadata,
       tags: bookMedia?.tags,
       duration: duration,

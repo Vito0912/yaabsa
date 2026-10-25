@@ -240,7 +240,9 @@ class CacheInterceptor extends Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    if (err.requestOptions.extra['doNotCache'] == true || err.requestOptions.responseType == ResponseType.stream) {
+    if (err.requestOptions.extra['doNotCache'] == true ||
+        err.requestOptions.extra['skipCacheOnError'] == true ||
+        err.requestOptions.responseType == ResponseType.stream) {
       return handler.next(err);
     }
     final matchingRoute = _getMatchingRoute(err.requestOptions);

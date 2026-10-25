@@ -198,42 +198,54 @@ ABSSocketClient absSocketClient(Ref ref) {
       refreshAutomotiveBrowse();
       smartDownloadNotifier.requestReconcile(reason: 'collection added');
       unawaited(
-        ref.read(collectionsProvider(collection.libraryId).notifier).refresh(withLoading: false, forceServer: true),
+        ref
+            .read(collectionsProvider(collection.libraryId).notifier)
+            .refresh(withLoading: false, forceServer: true, invalidatePending: true),
       );
     },
     onCollectionUpdated: (collection) {
       refreshAutomotiveBrowse();
       smartDownloadNotifier.requestReconcile(reason: 'collection updated');
       unawaited(
-        ref.read(collectionsProvider(collection.libraryId).notifier).refresh(withLoading: false, forceServer: true),
+        ref
+            .read(collectionsProvider(collection.libraryId).notifier)
+            .refresh(withLoading: false, forceServer: true, invalidatePending: true),
       );
     },
     onCollectionRemoved: (collection) {
       refreshAutomotiveBrowse();
       smartDownloadNotifier.requestReconcile(reason: 'collection removed');
       unawaited(
-        ref.read(collectionsProvider(collection.libraryId).notifier).refresh(withLoading: false, forceServer: true),
+        ref
+            .read(collectionsProvider(collection.libraryId).notifier)
+            .refresh(withLoading: false, forceServer: true, invalidatePending: true),
       );
     },
     onPlaylistAdded: (playlist) {
       refreshAutomotiveBrowse();
       smartDownloadNotifier.requestReconcile(reason: 'playlist added');
       unawaited(
-        ref.read(playlistsProvider(playlist.libraryId).notifier).refresh(withLoading: false, forceServer: true),
+        ref
+            .read(playlistsProvider(playlist.libraryId).notifier)
+            .refresh(withLoading: false, forceServer: true, invalidatePending: true),
       );
     },
     onPlaylistUpdated: (playlist) {
       refreshAutomotiveBrowse();
       smartDownloadNotifier.requestReconcile(reason: 'playlist updated');
       unawaited(
-        ref.read(playlistsProvider(playlist.libraryId).notifier).refresh(withLoading: false, forceServer: true),
+        ref
+            .read(playlistsProvider(playlist.libraryId).notifier)
+            .refresh(withLoading: false, forceServer: true, invalidatePending: true),
       );
     },
     onPlaylistRemoved: (playlist) {
       refreshAutomotiveBrowse();
       smartDownloadNotifier.requestReconcile(reason: 'playlist removed');
       unawaited(
-        ref.read(playlistsProvider(playlist.libraryId).notifier).refresh(withLoading: false, forceServer: true),
+        ref
+            .read(playlistsProvider(playlist.libraryId).notifier)
+            .refresh(withLoading: false, forceServer: true, invalidatePending: true),
       );
     },
   );

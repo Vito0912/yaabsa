@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Collection {
 
-@JsonKey(name: "id") String get id;@JsonKey(name: "libraryId") String get libraryId;@JsonKey(name: "userId") String? get userId;@JsonKey(name: "name") String get name;@JsonKey(name: "description") String? get description;@JsonKey(name: "coverPath") String? get coverPath;@JsonKey(name: "books") List<LibraryItem>? get items;@JsonKey(name: "lastUpdate") int get lastUpdate;@JsonKey(name: "createdAt") int get createdAt;
+@JsonKey(name: "id") String get id;@JsonKey(name: "libraryId") String get libraryId;@JsonKey(name: "userId") String? get userId;@JsonKey(name: "name") String get name;@JsonKey(name: "description") String? get description;@JsonKey(name: "coverPath") String? get coverPath;@JsonKey(name: "books") List<LibraryItem>? get items;@JsonKey(name: "numBooks") int? get numBooks;@JsonKey(name: "lastUpdate") int get lastUpdate;@JsonKey(name: "createdAt") int get createdAt;
 /// Create a copy of Collection
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,16 +29,16 @@ $CollectionCopyWith<Collection> get copyWith => _$CollectionCopyWithImpl<Collect
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Collection&&(identical(other.id, id) || other.id == id)&&(identical(other.libraryId, libraryId) || other.libraryId == libraryId)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.coverPath, coverPath) || other.coverPath == coverPath)&&const DeepCollectionEquality().equals(other.items, items)&&(identical(other.lastUpdate, lastUpdate) || other.lastUpdate == lastUpdate)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Collection&&(identical(other.id, id) || other.id == id)&&(identical(other.libraryId, libraryId) || other.libraryId == libraryId)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.coverPath, coverPath) || other.coverPath == coverPath)&&const DeepCollectionEquality().equals(other.items, items)&&(identical(other.numBooks, numBooks) || other.numBooks == numBooks)&&(identical(other.lastUpdate, lastUpdate) || other.lastUpdate == lastUpdate)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,libraryId,userId,name,description,coverPath,const DeepCollectionEquality().hash(items),lastUpdate,createdAt);
+int get hashCode => Object.hash(runtimeType,id,libraryId,userId,name,description,coverPath,const DeepCollectionEquality().hash(items),numBooks,lastUpdate,createdAt);
 
 @override
 String toString() {
-  return 'Collection(id: $id, libraryId: $libraryId, userId: $userId, name: $name, description: $description, coverPath: $coverPath, items: $items, lastUpdate: $lastUpdate, createdAt: $createdAt)';
+  return 'Collection(id: $id, libraryId: $libraryId, userId: $userId, name: $name, description: $description, coverPath: $coverPath, items: $items, numBooks: $numBooks, lastUpdate: $lastUpdate, createdAt: $createdAt)';
 }
 
 
@@ -49,7 +49,7 @@ abstract mixin class $CollectionCopyWith<$Res>  {
   factory $CollectionCopyWith(Collection value, $Res Function(Collection) _then) = _$CollectionCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: "id") String id,@JsonKey(name: "libraryId") String libraryId,@JsonKey(name: "userId") String? userId,@JsonKey(name: "name") String name,@JsonKey(name: "description") String? description,@JsonKey(name: "coverPath") String? coverPath,@JsonKey(name: "books") List<LibraryItem>? items,@JsonKey(name: "lastUpdate") int lastUpdate,@JsonKey(name: "createdAt") int createdAt
+@JsonKey(name: "id") String id,@JsonKey(name: "libraryId") String libraryId,@JsonKey(name: "userId") String? userId,@JsonKey(name: "name") String name,@JsonKey(name: "description") String? description,@JsonKey(name: "coverPath") String? coverPath,@JsonKey(name: "books") List<LibraryItem>? items,@JsonKey(name: "numBooks") int? numBooks,@JsonKey(name: "lastUpdate") int lastUpdate,@JsonKey(name: "createdAt") int createdAt
 });
 
 
@@ -66,7 +66,7 @@ class _$CollectionCopyWithImpl<$Res>
 
 /// Create a copy of Collection
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? libraryId = null,Object? userId = freezed,Object? name = null,Object? description = freezed,Object? coverPath = freezed,Object? items = freezed,Object? lastUpdate = null,Object? createdAt = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? libraryId = null,Object? userId = freezed,Object? name = null,Object? description = freezed,Object? coverPath = freezed,Object? items = freezed,Object? numBooks = freezed,Object? lastUpdate = null,Object? createdAt = null,}) {
   return _then(Collection(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,libraryId: null == libraryId ? _self.libraryId : libraryId // ignore: cast_nullable_to_non_nullable
@@ -75,7 +75,8 @@ as String?,name: null == name ? _self.name : name // ignore: cast_nullable_to_no
 as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,coverPath: freezed == coverPath ? _self.coverPath : coverPath // ignore: cast_nullable_to_non_nullable
 as String?,items: freezed == items ? _self.items : items // ignore: cast_nullable_to_non_nullable
-as List<LibraryItem>?,lastUpdate: null == lastUpdate ? _self.lastUpdate : lastUpdate // ignore: cast_nullable_to_non_nullable
+as List<LibraryItem>?,numBooks: freezed == numBooks ? _self.numBooks : numBooks // ignore: cast_nullable_to_non_nullable
+as int?,lastUpdate: null == lastUpdate ? _self.lastUpdate : lastUpdate // ignore: cast_nullable_to_non_nullable
 as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as int,
   ));
@@ -162,10 +163,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "libraryId")  String libraryId, @JsonKey(name: "userId")  String? userId, @JsonKey(name: "name")  String name, @JsonKey(name: "description")  String? description, @JsonKey(name: "coverPath")  String? coverPath, @JsonKey(name: "books")  List<LibraryItem>? items, @JsonKey(name: "lastUpdate")  int lastUpdate, @JsonKey(name: "createdAt")  int createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "libraryId")  String libraryId, @JsonKey(name: "userId")  String? userId, @JsonKey(name: "name")  String name, @JsonKey(name: "description")  String? description, @JsonKey(name: "coverPath")  String? coverPath, @JsonKey(name: "books")  List<LibraryItem>? items, @JsonKey(name: "numBooks")  int? numBooks, @JsonKey(name: "lastUpdate")  int lastUpdate, @JsonKey(name: "createdAt")  int createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Collection() when $default != null:
-return $default(_that.id,_that.libraryId,_that.userId,_that.name,_that.description,_that.coverPath,_that.items,_that.lastUpdate,_that.createdAt);case _:
+return $default(_that.id,_that.libraryId,_that.userId,_that.name,_that.description,_that.coverPath,_that.items,_that.numBooks,_that.lastUpdate,_that.createdAt);case _:
   return orElse();
 
 }
@@ -183,10 +184,10 @@ return $default(_that.id,_that.libraryId,_that.userId,_that.name,_that.descripti
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "libraryId")  String libraryId, @JsonKey(name: "userId")  String? userId, @JsonKey(name: "name")  String name, @JsonKey(name: "description")  String? description, @JsonKey(name: "coverPath")  String? coverPath, @JsonKey(name: "books")  List<LibraryItem>? items, @JsonKey(name: "lastUpdate")  int lastUpdate, @JsonKey(name: "createdAt")  int createdAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: "id")  String id, @JsonKey(name: "libraryId")  String libraryId, @JsonKey(name: "userId")  String? userId, @JsonKey(name: "name")  String name, @JsonKey(name: "description")  String? description, @JsonKey(name: "coverPath")  String? coverPath, @JsonKey(name: "books")  List<LibraryItem>? items, @JsonKey(name: "numBooks")  int? numBooks, @JsonKey(name: "lastUpdate")  int lastUpdate, @JsonKey(name: "createdAt")  int createdAt)  $default,) {final _that = this;
 switch (_that) {
 case _Collection():
-return $default(_that.id,_that.libraryId,_that.userId,_that.name,_that.description,_that.coverPath,_that.items,_that.lastUpdate,_that.createdAt);case _:
+return $default(_that.id,_that.libraryId,_that.userId,_that.name,_that.description,_that.coverPath,_that.items,_that.numBooks,_that.lastUpdate,_that.createdAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -203,10 +204,10 @@ return $default(_that.id,_that.libraryId,_that.userId,_that.name,_that.descripti
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "id")  String id, @JsonKey(name: "libraryId")  String libraryId, @JsonKey(name: "userId")  String? userId, @JsonKey(name: "name")  String name, @JsonKey(name: "description")  String? description, @JsonKey(name: "coverPath")  String? coverPath, @JsonKey(name: "books")  List<LibraryItem>? items, @JsonKey(name: "lastUpdate")  int lastUpdate, @JsonKey(name: "createdAt")  int createdAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: "id")  String id, @JsonKey(name: "libraryId")  String libraryId, @JsonKey(name: "userId")  String? userId, @JsonKey(name: "name")  String name, @JsonKey(name: "description")  String? description, @JsonKey(name: "coverPath")  String? coverPath, @JsonKey(name: "books")  List<LibraryItem>? items, @JsonKey(name: "numBooks")  int? numBooks, @JsonKey(name: "lastUpdate")  int lastUpdate, @JsonKey(name: "createdAt")  int createdAt)?  $default,) {final _that = this;
 switch (_that) {
 case _Collection() when $default != null:
-return $default(_that.id,_that.libraryId,_that.userId,_that.name,_that.description,_that.coverPath,_that.items,_that.lastUpdate,_that.createdAt);case _:
+return $default(_that.id,_that.libraryId,_that.userId,_that.name,_that.description,_that.coverPath,_that.items,_that.numBooks,_that.lastUpdate,_that.createdAt);case _:
   return null;
 
 }
@@ -218,7 +219,7 @@ return $default(_that.id,_that.libraryId,_that.userId,_that.name,_that.descripti
 @JsonSerializable()
 
 class _Collection implements Collection {
-  const _Collection({@JsonKey(name: "id") required this.id, @JsonKey(name: "libraryId") required this.libraryId, @JsonKey(name: "userId") this.userId, @JsonKey(name: "name") required this.name, @JsonKey(name: "description") this.description, @JsonKey(name: "coverPath") this.coverPath, @JsonKey(name: "books")  List<LibraryItem>? items, @JsonKey(name: "lastUpdate") required this.lastUpdate, @JsonKey(name: "createdAt") required this.createdAt}): _items = items;
+  const _Collection({@JsonKey(name: "id") required this.id, @JsonKey(name: "libraryId") required this.libraryId, @JsonKey(name: "userId") this.userId, @JsonKey(name: "name") required this.name, @JsonKey(name: "description") this.description, @JsonKey(name: "coverPath") this.coverPath, @JsonKey(name: "books")  List<LibraryItem>? items, @JsonKey(name: "numBooks") this.numBooks, @JsonKey(name: "lastUpdate") required this.lastUpdate, @JsonKey(name: "createdAt") required this.createdAt}): _items = items;
   factory _Collection.fromJson(Map<String, dynamic> json) => _$CollectionFromJson(json);
 
 @override@JsonKey(name: "id") final  String id;
@@ -236,6 +237,7 @@ class _Collection implements Collection {
   return EqualUnmodifiableListView(value);
 }
 
+@override@JsonKey(name: "numBooks") final  int? numBooks;
 @override@JsonKey(name: "lastUpdate") final  int lastUpdate;
 @override@JsonKey(name: "createdAt") final  int createdAt;
 
@@ -252,16 +254,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Collection&&(identical(other.id, id) || other.id == id)&&(identical(other.libraryId, libraryId) || other.libraryId == libraryId)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.coverPath, coverPath) || other.coverPath == coverPath)&&const DeepCollectionEquality().equals(other._items, _items)&&(identical(other.lastUpdate, lastUpdate) || other.lastUpdate == lastUpdate)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Collection&&(identical(other.id, id) || other.id == id)&&(identical(other.libraryId, libraryId) || other.libraryId == libraryId)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.coverPath, coverPath) || other.coverPath == coverPath)&&const DeepCollectionEquality().equals(other._items, _items)&&(identical(other.numBooks, numBooks) || other.numBooks == numBooks)&&(identical(other.lastUpdate, lastUpdate) || other.lastUpdate == lastUpdate)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,libraryId,userId,name,description,coverPath,const DeepCollectionEquality().hash(_items),lastUpdate,createdAt);
+int get hashCode => Object.hash(runtimeType,id,libraryId,userId,name,description,coverPath,const DeepCollectionEquality().hash(_items),numBooks,lastUpdate,createdAt);
 
 @override
 String toString() {
-  return 'Collection(id: $id, libraryId: $libraryId, userId: $userId, name: $name, description: $description, coverPath: $coverPath, items: $items, lastUpdate: $lastUpdate, createdAt: $createdAt)';
+  return 'Collection(id: $id, libraryId: $libraryId, userId: $userId, name: $name, description: $description, coverPath: $coverPath, items: $items, numBooks: $numBooks, lastUpdate: $lastUpdate, createdAt: $createdAt)';
 }
 
 
@@ -272,7 +274,7 @@ abstract mixin class _$CollectionCopyWith<$Res> implements $CollectionCopyWith<$
   factory _$CollectionCopyWith(_Collection value, $Res Function(_Collection) _then) = __$CollectionCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: "id") String id,@JsonKey(name: "libraryId") String libraryId,@JsonKey(name: "userId") String? userId,@JsonKey(name: "name") String name,@JsonKey(name: "description") String? description,@JsonKey(name: "coverPath") String? coverPath,@JsonKey(name: "books") List<LibraryItem>? items,@JsonKey(name: "lastUpdate") int lastUpdate,@JsonKey(name: "createdAt") int createdAt
+@JsonKey(name: "id") String id,@JsonKey(name: "libraryId") String libraryId,@JsonKey(name: "userId") String? userId,@JsonKey(name: "name") String name,@JsonKey(name: "description") String? description,@JsonKey(name: "coverPath") String? coverPath,@JsonKey(name: "books") List<LibraryItem>? items,@JsonKey(name: "numBooks") int? numBooks,@JsonKey(name: "lastUpdate") int lastUpdate,@JsonKey(name: "createdAt") int createdAt
 });
 
 
@@ -289,7 +291,7 @@ class __$CollectionCopyWithImpl<$Res>
 
 /// Create a copy of Collection
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? libraryId = null,Object? userId = freezed,Object? name = null,Object? description = freezed,Object? coverPath = freezed,Object? items = freezed,Object? lastUpdate = null,Object? createdAt = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? libraryId = null,Object? userId = freezed,Object? name = null,Object? description = freezed,Object? coverPath = freezed,Object? items = freezed,Object? numBooks = freezed,Object? lastUpdate = null,Object? createdAt = null,}) {
   return _then(_Collection(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,libraryId: null == libraryId ? _self.libraryId : libraryId // ignore: cast_nullable_to_non_nullable
@@ -298,7 +300,8 @@ as String?,name: null == name ? _self.name : name // ignore: cast_nullable_to_no
 as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,coverPath: freezed == coverPath ? _self.coverPath : coverPath // ignore: cast_nullable_to_non_nullable
 as String?,items: freezed == items ? _self._items : items // ignore: cast_nullable_to_non_nullable
-as List<LibraryItem>?,lastUpdate: null == lastUpdate ? _self.lastUpdate : lastUpdate // ignore: cast_nullable_to_non_nullable
+as List<LibraryItem>?,numBooks: freezed == numBooks ? _self.numBooks : numBooks // ignore: cast_nullable_to_non_nullable
+as int?,lastUpdate: null == lastUpdate ? _self.lastUpdate : lastUpdate // ignore: cast_nullable_to_non_nullable
 as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as int,
   ));

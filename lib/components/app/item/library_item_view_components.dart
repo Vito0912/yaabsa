@@ -19,6 +19,8 @@ List<ItemMetadataRowData> buildItemMetadataRows(
   required Duration? duration,
   required int? sizeBytes,
   required Future<void> Function(String filter) onFilterTap,
+  ItemMetadataRowData? collectionsRow,
+  ItemMetadataRowData? playlistsRow,
 }) {
   return <ItemMetadataRowData>[
     if (metadata?.series != null && metadata!.series!.isNotEmpty)
@@ -40,6 +42,8 @@ List<ItemMetadataRowData> buildItemMetadataRows(
             .map((author) => ItemLinkValue(label: author.name, onTap: () => context.push('/author/${author.id}')))
             .toList(),
       ),
+    ?collectionsRow,
+    ?playlistsRow,
     if (metadata?.narrators != null && metadata!.narrators!.isNotEmpty)
       ItemMetadataRowData(
         label: 'Narrators',

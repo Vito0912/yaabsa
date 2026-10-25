@@ -99,13 +99,13 @@ class ItemMoreActionsButton extends StatelessWidget {
               if (showAddToPlaylist)
                 ListTile(
                   leading: const Icon(Icons.playlist_add_rounded),
-                  title: const Text('Add To Playlist'),
+                  title: const Text('Manage playlists'),
                   onTap: () => Navigator.of(dialogContext).pop(ItemMoreAction.addToPlaylist),
                 ),
               if (showAddToCollection)
                 ListTile(
                   leading: const Icon(Icons.collections_bookmark_outlined),
-                  title: const Text('Add To Collection'),
+                  title: const Text('Manage collections'),
                   onTap: () => Navigator.of(dialogContext).pop(ItemMoreAction.addToCollection),
                 ),
               if (showDeleteItem)
