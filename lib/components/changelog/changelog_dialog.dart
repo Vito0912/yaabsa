@@ -129,7 +129,7 @@ class _ChangelogDialogState extends State<ChangelogDialog> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
-    final padding = context.isMobile ? 16.0 : 24.0;
+    final padding = context.isMobile ? 8.0 : 12.0;
 
     return Dialog(
       insetPadding: EdgeInsets.all(context.isMobile ? 12 : 32),
@@ -141,7 +141,7 @@ class _ChangelogDialogState extends State<ChangelogDialog> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: EdgeInsets.fromLTRB(padding, padding, padding, 12),
+              padding: EdgeInsets.fromLTRB(16, padding, padding, 8),
               child: Row(
                 children: [
                   Expanded(
@@ -152,7 +152,6 @@ class _ChangelogDialogState extends State<ChangelogDialog> {
                           widget.releases == null ? 'Changelog' : 'What’s new',
                           style: theme.textTheme.headlineSmall,
                         ),
-                        Text('Yaabsa ${packageInfo.version}', style: theme.textTheme.bodyMedium),
                       ],
                     ),
                   ),
@@ -205,17 +204,13 @@ class _ChangelogDialogState extends State<ChangelogDialog> {
                       shrinkWrap: true,
                       padding: EdgeInsets.symmetric(horizontal: padding, vertical: 8),
                       children: [
-                        if (widget.releases != null)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 16),
-                            child: Text(
-                              'Explore what’s changed since your last version.',
-                              style: theme.textTheme.bodyMedium,
-                            ),
-                          ),
                         if (releases.isEmpty) const Text('No release notes are available for this version yet.'),
                         for (final (index, release) in releases.indexed)
-                          ChangelogReleaseCard(release: release, initiallyExpanded: index == 0),
+                          ChangelogReleaseCard(
+                            release: release,
+                            initiallyExpanded: index == 0,
+                            onSponsor: index == 0 ? _sponsor : null,
+                          ),
                       ],
                     ),
                   );
@@ -238,35 +233,18 @@ class _ChangelogDialogState extends State<ChangelogDialog> {
                     overflowAlignment: OverflowBarAlignment.end,
                     overflowSpacing: 8,
                     children: [
-                      TextButton.icon(
-                        onPressed: _sponsor,
-                        style: TextButton.styleFrom(foregroundColor: colors.onSurfaceVariant),
-                        icon: const Icon(Icons.favorite_outline),
-                        label: const Text('Sponsor'),
+                      SizedBox(
+                        width: 200,
+                        child: CheckboxListTile(
+                          contentPadding: EdgeInsets.zero,
+                          controlAffinity: ListTileControlAffinity.leading,
+                          dense: true,
+                          title: const Text('Don\'t show again'),
+                          value: _disabled,
+                          onChanged: _saving ? null : _setDisabled,
+                        ),
                       ),
-                      Wrap(
-                        alignment: WrapAlignment.end,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        spacing: 12,
-                        runSpacing: 8,
-                        children: [
-                          Tooltip(
-                            message: 'You can always open the changelog in Settings.',
-                            child: SizedBox(
-                              width: 200,
-                              child: CheckboxListTile(
-                                contentPadding: EdgeInsets.zero,
-                                controlAffinity: ListTileControlAffinity.leading,
-                                dense: true,
-                                title: const Text('Don’t show again'),
-                                value: _disabled,
-                                onChanged: _saving ? null : _setDisabled,
-                              ),
-                            ),
-                          ),
-                          FilledButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Done')),
-                        ],
-                      ),
+                      FilledButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Done')),
                     ],
                   ),
                 ],
