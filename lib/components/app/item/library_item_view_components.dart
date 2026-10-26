@@ -9,6 +9,7 @@ import 'package:yaabsa/components/app/item/item_detail_components.dart';
 import 'package:yaabsa/components/app/item/item_more_actions_button.dart';
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
 import 'package:yaabsa/util/item_formatters.dart';
+import 'package:yaabsa/util/globals.dart';
 
 export 'package:yaabsa/components/app/item/library_item_media_sections.dart';
 
@@ -52,7 +53,7 @@ List<ItemMetadataRowData> buildItemMetadataRows(
             )
             .toList(),
       ),
-    if (hasText(metadata?.publishedYear)) ItemMetadataRowData(label: 'Published year', value: metadata!.publishedYear!),
+    if (hasText(metadata?.publishedYear)) ItemMetadataRowData(label: 'Published', value: metadata!.publishedYear!),
     if (hasText(metadata?.publisher))
       ItemMetadataRowData(
         label: 'Publisher',
@@ -115,6 +116,9 @@ Widget buildItemActionButtons({
   required bool isPlayingCurrentItem,
   required bool isLoadingCurrentItem,
   bool queueEnabled = true,
+  String? playbackLabel,
+  String? playbackDetail,
+  bool prominentPlayback = false,
   required VoidCallback onPlay,
   required VoidCallback onPause,
   required VoidCallback onQueueToggle,
@@ -137,32 +141,39 @@ Widget buildItemActionButtons({
     builder: (context, constraints) {
       final hasPrimaryActions = hasBook || hasAudio;
       final hasSmallActions = canDownload || hasAudio || onMoreActionSelected != null;
-      final playLabel = isLoadingCurrentItem
-          ? 'Loading'
-          : (isPlayingCurrentItem ? 'Pause' : (isCurrentItem ? 'Resume' : 'Play'));
+      final playLabel =
+          playbackLabel ??
+          (isLoadingCurrentItem ? 'Loading' : (isPlayingCurrentItem ? 'Pause' : (isCurrentItem ? 'Resume' : 'Play')));
       final primaryActions = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (hasBook)
+          if (hasBook && !prominentPlayback)
             OutlinedButton.icon(
               onPressed: onRead,
               style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12)),
               icon: const Icon(Icons.menu_book_rounded),
               label: const Text('Read'),
             ),
-          if (hasBook && hasAudio) const SizedBox(height: 8),
+          if (hasBook && hasAudio && !prominentPlayback) const SizedBox(height: 8),
           if (hasAudio)
             FilledButton.icon(
               onPressed: isLoadingCurrentItem ? null : (isPlayingCurrentItem ? onPause : onPlay),
               icon: isLoadingCurrentItem
                   ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.2))
                   : Icon(isPlayingCurrentItem ? Icons.pause_rounded : Icons.play_arrow_rounded),
-              label: Text(playLabel),
+              style: prominentPlayback
+                  ? FilledButton.styleFrom(
+                      minimumSize: const Size(0, 40),
+                      visualDensity: VisualDensity.compact,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    )
+                  : null,
+              label: Text(playbackDetail ?? playLabel),
             ),
         ],
       );
 
-      if (!hasSmallActions) {
+      if (!hasSmallActions && !prominentPlayback) {
         return primaryActions;
       }
 
@@ -191,6 +202,29 @@ Widget buildItemActionButtons({
         showPinAction: showPinAction,
         isPinned: isPinned,
       );
+
+      if (prominentPlayback) {
+        return Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            if (hasAudio) primaryActions,
+            if (hasBook)
+              OutlinedButton.icon(
+                onPressed: onRead,
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(0, 40),
+                  visualDensity: VisualDensity.compact,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                ),
+                icon: const Icon(Icons.menu_book_rounded),
+                label: const Text('Read'),
+              ),
+            smallActions,
+          ],
+        );
+      }
 
       final placeSmallBelowPrimary = constraints.maxWidth < 360 || !hasPrimaryActions;
 
@@ -298,8 +332,14 @@ class LibraryItemTopContent extends StatelessWidget {
     required this.metadataRows,
     required this.item,
     required this.onBack,
+    required this.mediaSections,
+    this.progressValue = 0,
+    this.stats,
   });
 
+  final Widget mediaSections;
+  final double progressValue;
+  final Widget? stats;
   final bool isLargeScreen;
   final String title;
   final String? subtitle;
@@ -311,50 +351,77 @@ class LibraryItemTopContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (isLargeScreen) {
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: 3,
-            child: Column(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final hasDescription = hasText(item.media?.bookMedia?.metadata.description);
+        final description = ItemDescription(item: item, useCard: false);
+        final showSidebar = isLargeScreen && constraints.maxWidth >= 1000 && metadataRows.isNotEmpty;
+        final metadata = ItemMetadataCard(rows: metadataRows, inlineValues: !context.isDesktop, useCard: !showSidebar);
+        final bookMetadata = item.media?.bookMedia?.metadata;
+        final byline = bookMetadata?.authors?.map((author) => author.name).join(', ');
+        final duration = item.media?.duration() ?? 0;
+        final summary = [
+          if (duration > 0) formatDurationLong(Duration(seconds: duration.round())),
+          if (hasText(bookMetadata?.publishedYear)) bookMetadata!.publishedYear!,
+        ].join(' · ');
+        final mainContent = Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (hasDescription) ...[description, const SizedBox(height: 12)],
+            if (!showSidebar && metadataRows.isNotEmpty) ...[metadata, const SizedBox(height: 12)],
+            mediaSections,
+            ?stats,
+          ],
+        );
+
+        final pageContent = Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ItemHeroCard(
+              compactLayout: !isLargeScreen,
+              progressValue: progressValue,
+              onBack: onBack,
+              title: title,
+              subtitle: subtitle,
+              byline: byline,
+              summary: summary,
+              cover: cover,
+              actions: actionButtons,
+            ),
+            const SizedBox(height: 16),
+            mainContent,
+          ],
+        );
+
+        if (!showSidebar) {
+          return pageContent;
+        }
+
+        return Stack(
+          children: [
+            Positioned(
+              top: 0,
+              bottom: 0,
+              right: 0,
+              width: 320,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+              ),
+            ),
+            Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ItemHeroCard(
-                  compactLayout: false,
-                  onBack: onBack,
-                  title: title,
-                  subtitle: subtitle,
-                  cover: cover,
-                  actions: actionButtons,
-                ),
-                const SizedBox(height: 8),
-                ItemDescription(item: item),
+                Expanded(child: pageContent),
+                const SizedBox(width: 16),
+                SizedBox(width: 320, child: metadata),
               ],
             ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(flex: 2, child: ItemMetadataCard(rows: metadataRows, inlineValues: true)),
-        ],
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ItemHeroCard(
-          compactLayout: true,
-          onBack: onBack,
-          title: title,
-          subtitle: subtitle,
-          cover: cover,
-          actions: actionButtons,
-        ),
-        const SizedBox(height: 4),
-        ItemDescription(item: item, useCard: false),
-        const SizedBox(height: 4),
-        ItemMetadataCard(rows: metadataRows, inlineValues: true, useCard: false),
-      ],
+          ],
+        );
+      },
     );
   }
 }
