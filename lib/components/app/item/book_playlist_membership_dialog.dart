@@ -15,7 +15,7 @@ Future<void> showBookPlaylistMembershipDialog({required BuildContext context, re
     builder: (_) => BookPlaylistMembershipDialog(item: item),
   );
   if (saved == true && context.mounted) {
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Playlist memberships updated.')));
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Playlists updated.')));
   }
 }
 
@@ -45,15 +45,35 @@ class BookPlaylistMembershipDialog extends ConsumerWidget {
       },
       disabledReason: (entry) {
         if (!canEditPlaylistMembership(entry, userId)) return 'Only your own playlists can be edited.';
-        if (playlistMembership(entry, item.id) == PlaylistMembership.unknown) {
-          return 'Membership unknown. Reload playlists before editing.';
-        }
         if (!hasCompletePlaylistItems(entry)) return 'Full item list unavailable. Reload playlists before editing.';
-        if (playlistMembership(entry, item.id) == PlaylistMembership.present &&
-            !canRemovePlaylistMembership(entry, item.id)) {
-          return 'This is the only item. Playlists cannot be empty.';
-        }
         return null;
+      },
+      confirmSave: (original, selected) async {
+        final deleted = original
+            .where(
+              (entry) =>
+                  !selected.contains(entry.id) &&
+                  entry.items?.length == 1 &&
+                  playlistMembership(entry, item.id) == PlaylistMembership.present,
+            )
+            .map((entry) => entry.name)
+            .toList();
+        if (deleted.isEmpty) return true;
+        return await showDialog<bool>(
+              context: context,
+              builder: (dialogContext) => AlertDialog(
+                scrollable: true,
+                title: const Text('Delete empty playlists?'),
+                content: Text(
+                  'Removing this book will leave these playlists empty. Audiobookshelf will delete them:\n\n${deleted.join('\n')}',
+                ),
+                actions: [
+                  TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('Cancel')),
+                  FilledButton(onPressed: () => Navigator.of(dialogContext).pop(true), child: const Text('Continue')),
+                ],
+              ),
+            ) ??
+            false;
       },
       onReload: () => ref.read(playlistsProvider(libraryId).notifier).refresh(requireServer: true),
       onSave: (original, selected) => ref

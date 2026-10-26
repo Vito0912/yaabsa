@@ -61,6 +61,24 @@ Future<void> mount(WidgetTester tester, ProviderContainer container) async {
 Finder tile(String title) => find.ancestor(of: find.text(title), matching: find.byType(CheckboxListTile));
 
 void main() {
+  testWidgets('socket changes update visible metadata without reloading lists', (tester) async {
+    final server = CollectionTestServer([collection('Alpha')]);
+    final container = server.container();
+    addTearDown(container.dispose);
+    await mount(tester, container);
+    server.requests.clear();
+    final notifier = container.read(collectionsProvider('library').notifier);
+    notifier.applyServerUpdate(collection('Alpha', books: [testBook], revision: 2));
+    await tester.pumpAndSettle();
+    expect(find.text('Alpha'), findsOneWidget);
+    expect(find.text('No collections'), findsNothing);
+    notifier.applyServerRemoval('Alpha');
+    await tester.pumpAndSettle();
+    expect(find.text('Alpha'), findsNothing);
+    expect(find.text('No collections'), findsOneWidget);
+    expect(server.requests, isEmpty);
+  });
+
   testWidgets('metadata distinguishes loading, error, unknown and loaded empty', (tester) async {
     final states = <AsyncValue<CollectionsState>>[
       const AsyncLoading(),
@@ -97,7 +115,7 @@ void main() {
       expect(find.text('No collections'), i == 2 ? findsOneWidget : findsNothing);
       if (i == 0) expect(find.text('Loading collections…'), findsOneWidget);
       if (i == 1 || i == 4) expect(find.text('Could not load collections. Retry'), findsOneWidget);
-      if (i == 3) expect(find.text('Some memberships are unknown. Retry'), findsOneWidget);
+      if (i == 3) expect(find.text('Some collections could not be checked. Retry'), findsOneWidget);
     }
   });
 
@@ -188,10 +206,12 @@ void main() {
     expect(find.byType(BookCollectionMembershipDialog), findsNothing);
     expect(find.text('Alpha'), findsNothing);
     expect(find.text('Beta'), findsOneWidget);
-    expect(find.text('Collection memberships updated.'), findsOneWidget);
+    expect(find.text('Collections updated.'), findsOneWidget);
   });
 
-  testWidgets('unknown, sole-book and permission-restricted memberships are disabled', (tester) async {
+  testWidgets('sole-book removal is allowed while unknown and permission-restricted entries are disabled', (
+    tester,
+  ) async {
     for (final allowed in [true, false]) {
       final server = CollectionTestServer([
         collection('Only', books: [testBook]),
@@ -203,7 +223,7 @@ void main() {
       await mount(tester, container);
       await tester.tap(find.text('Manage'));
       await tester.pumpAndSettle();
-      expect(tester.widget<CheckboxListTile>(tile('Only')).onChanged, isNull);
+      expect(tester.widget<CheckboxListTile>(tile('Only')).onChanged, allowed ? isNotNull : isNull);
       expect(tester.widget<CheckboxListTile>(tile('Unknown')).onChanged, isNull);
       expect(tester.widget<CheckboxListTile>(tile('Unknown')).value, isNull);
       expect(tester.widget<CheckboxListTile>(tile('Partial')).value, isTrue);
@@ -232,7 +252,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.textContaining('Collections changed'), findsOneWidget);
     expect(tester.widget<CheckboxListTile>(tile('Alpha')).value, isTrue);
-    expect(tester.widget<CheckboxListTile>(tile('Alpha')).onChanged, isNull);
+    expect(tester.widget<CheckboxListTile>(tile('Alpha')).onChanged, isNotNull);
     expect(server.requests.where((request) => request.method == 'POST'), isEmpty);
   });
 

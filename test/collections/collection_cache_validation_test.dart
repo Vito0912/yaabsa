@@ -31,11 +31,11 @@ void main() {
     final api = ABSApi(dio: dio, interceptors: []);
     // No cache database is initialized: a fallback attempt would fail here.
     await expectLater(
-      api.getListApi().getCollections(forceServer: true, extra: {'skipCacheOnError': true}),
+      api.getListApi().getAllLibraryCollections('library', forceServer: true, extra: {'skipCacheOnError': true}),
       throwsA(isA<DioException>()),
     );
     await expectLater(
-      api.getListApi().getUserPlaylist(forceServer: true, extra: {'skipCacheOnError': true}),
+      api.getListApi().getAllLibraryPlaylists('library', forceServer: true, extra: {'skipCacheOnError': true}),
       throwsA(isA<DioException>()),
     );
   });

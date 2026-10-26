@@ -50,8 +50,7 @@ bool hasCompleteCollectionBooks(Collection collection) {
 
 bool canRemoveCollectionMembership(Collection collection, String bookId) {
   return hasCompleteCollectionBooks(collection) &&
-      collectionMembership(collection, bookId) == CollectionMembership.present &&
-      collection.items!.any((book) => book.id != bookId);
+      collectionMembership(collection, bookId) == CollectionMembership.present;
 }
 
 /// Only explicit edits are applied; untouched collections may change elsewhere.
@@ -71,7 +70,6 @@ Map<String, bool> collectionMembershipChanges({
   };
 }
 
-/// A changed revision or book list requires the user to review the fresh data.
 bool sameCollectionMembershipRevision(Collection original, Collection current) {
   if (original.libraryId != current.libraryId || original.lastUpdate != current.lastUpdate) return false;
   if (!hasCompleteCollectionBooks(original) || !hasCompleteCollectionBooks(current)) return false;

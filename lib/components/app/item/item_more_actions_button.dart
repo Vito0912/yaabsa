@@ -25,6 +25,7 @@ class ItemMoreActionsButton extends StatelessWidget {
     this.showMarkAsUnfinished = false,
     this.showAddToPlaylist = false,
     this.showAddToCollection = false,
+    this.manageMemberships = false,
     this.showDeleteItem = false,
     this.showQuickMatch = false,
     this.showManualMatch = false,
@@ -41,6 +42,7 @@ class ItemMoreActionsButton extends StatelessWidget {
   final bool showMarkAsUnfinished;
   final bool showAddToPlaylist;
   final bool showAddToCollection;
+  final bool manageMemberships;
   final bool showDeleteItem;
   final bool showQuickMatch;
   final bool showManualMatch;
@@ -99,13 +101,13 @@ class ItemMoreActionsButton extends StatelessWidget {
               if (showAddToPlaylist)
                 ListTile(
                   leading: const Icon(Icons.playlist_add_rounded),
-                  title: const Text('Manage playlists'),
+                  title: Text(manageMemberships ? 'Manage playlists' : 'Add To Playlist'),
                   onTap: () => Navigator.of(dialogContext).pop(ItemMoreAction.addToPlaylist),
                 ),
               if (showAddToCollection)
                 ListTile(
                   leading: const Icon(Icons.collections_bookmark_outlined),
-                  title: const Text('Manage collections'),
+                  title: Text(manageMemberships ? 'Manage collections' : 'Add To Collection'),
                   onTap: () => Navigator.of(dialogContext).pop(ItemMoreAction.addToCollection),
                 ),
               if (showDeleteItem)

@@ -37,7 +37,20 @@ class CollectionTestServer {
           try {
             if (request.method == 'GET') {
               if (failReads) throw Exception('Offline');
-              final data = jsonDecode(jsonEncode({'collections': collections}));
+              Object payload = {'collections': collections};
+              if (request.path.startsWith('/api/libraries/')) {
+                final libraryId = request.path.split('/')[3];
+                final page = int.parse('${request.uri.queryParameters['page']}');
+                final limit = int.parse('${request.uri.queryParameters['limit']}');
+                final matching = collections.where((entry) => entry.libraryId == libraryId).toList();
+                payload = {
+                  'results': matching.skip(page * limit).take(limit).toList(),
+                  'total': matching.length,
+                  'page': page,
+                  'limit': limit,
+                };
+              }
+              final data = jsonDecode(jsonEncode(payload));
               await beforeRead?.call();
               handler.resolve(Response(requestOptions: request, statusCode: 200, data: data));
               return;

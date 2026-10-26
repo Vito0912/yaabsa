@@ -59,7 +59,20 @@ class PlaylistTestServer {
           try {
             if (request.method == 'GET') {
               if (failReads) throw Exception('Offline');
-              final data = jsonDecode(jsonEncode({'playlists': playlists}));
+              Object payload = {'playlists': playlists};
+              if (request.path.startsWith('/api/libraries/')) {
+                final libraryId = request.path.split('/')[3];
+                final page = int.parse('${request.uri.queryParameters['page']}');
+                final limit = int.parse('${request.uri.queryParameters['limit']}');
+                final matching = playlists.where((entry) => entry.libraryId == libraryId).toList();
+                payload = {
+                  'results': matching.skip(page * limit).take(limit).toList(),
+                  'total': matching.length,
+                  'page': page,
+                  'limit': limit,
+                };
+              }
+              final data = jsonDecode(jsonEncode(payload));
               await beforeRead?.call();
               handler.resolve(Response(requestOptions: request, statusCode: 200, data: data));
               return;
@@ -89,7 +102,11 @@ class PlaylistTestServer {
               );
             }
             final updated = current.copyWith(items: entries, lastUpdate: current.lastUpdate + 1);
-            playlists[index] = updated;
+            if (request.path.endsWith('/remove') && entries.isEmpty) {
+              playlists.removeAt(index);
+            } else {
+              playlists[index] = updated;
+            }
             handler.resolve(Response(requestOptions: request, statusCode: 200, data: jsonDecode(jsonEncode(updated))));
           } catch (error) {
             handler.reject(DioException(requestOptions: request, error: error));

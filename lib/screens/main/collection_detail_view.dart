@@ -245,15 +245,11 @@ Collection? _resolveCollection(String collectionId, List<Collection>? allCollect
 }
 
 MultiBookEntryData? _resolveEntry(String collectionId, MultiBookEntryData? initialEntry, Collection? collection) {
-  if (initialEntry != null && initialEntry.id == collectionId) {
-    return initialEntry;
-  }
-
   if (collection != null) {
     return MultiBookEntryData.fromCollection(collection);
   }
 
-  return initialEntry;
+  return initialEntry?.id == collectionId ? initialEntry : null;
 }
 
 Future<void> _handleCollectionAction({

@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/app/item/book_playlist_membership_dialog.dart';
+import 'package:yaabsa/components/app/item/item_more_actions_button.dart';
 import 'package:yaabsa/api/list/playlist_item.dart';
 import 'package:yaabsa/components/app/item/book_playlists_metadata.dart';
 import 'package:yaabsa/components/app/item/item_detail_components.dart';
@@ -77,6 +78,88 @@ Future<void> mount(WidgetTester tester, ProviderContainer container) async {
 Finder tile(String title) => find.ancestor(of: find.text(title), matching: find.byType(CheckboxListTile));
 
 void main() {
+  testWidgets('book management labels preserve the existing podcast add action', (tester) async {
+    for (final manageMemberships in [false, true]) {
+      ItemMoreAction? selected;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ItemMoreActionsButton(
+              onActionSelected: (action) async {
+                selected = action;
+              },
+              showMarkAction: false,
+              showAddToPlaylist: true,
+              manageMemberships: manageMemberships,
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.byType(IconButton));
+      await tester.pumpAndSettle();
+      final label = manageMemberships ? 'Manage playlists' : 'Add To Playlist';
+      expect(find.text(label), findsOneWidget);
+      await tester.tap(find.text(label));
+      await tester.pumpAndSettle();
+      expect(selected, ItemMoreAction.addToPlaylist);
+    }
+  });
+
+  testWidgets('last-item deletion requires confirmation and Cancel leaves all changes local', (tester) async {
+    final server = PlaylistTestServer([
+      playlist('Alpha', items: [bookEntry]),
+      playlist('Beta', items: [bookEntry]),
+      playlist('Additional'),
+    ]);
+    final container = await server.container();
+    addTearDown(container.dispose);
+    await mount(tester, container);
+    await tester.tap(find.text('Manage'));
+    await tester.pumpAndSettle();
+    await tester.tap(tile('Alpha'));
+    await tester.tap(tile('Beta'));
+    await tester.tap(tile('Additional'));
+    await tester.pump();
+    server.requests.clear();
+    await tester.tap(find.text('Save changes'));
+    await tester.pumpAndSettle();
+    expect(find.text('Delete empty playlists?'), findsOneWidget);
+    expect(find.textContaining('Alpha\nBeta'), findsOneWidget);
+    expect(server.requests, isEmpty);
+    await tester.tap(find.widgetWithText(TextButton, 'Cancel').last);
+    await tester.pumpAndSettle();
+    expect(find.byType(BookPlaylistMembershipDialog), findsOneWidget);
+    expect(tester.widget<CheckboxListTile>(tile('Alpha')).value, isFalse);
+    expect(server.requests, isEmpty);
+    await tester.tap(find.text('Save changes'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Continue'));
+    await tester.pumpAndSettle();
+    expect(find.byType(BookPlaylistMembershipDialog), findsNothing);
+    expect(server.playlists.map((entry) => entry.id), ['Additional']);
+    expect(find.text('Additional'), findsOneWidget);
+    expect(find.text('Alpha'), findsNothing);
+    expect(find.text('Beta'), findsNothing);
+  });
+
+  testWidgets('socket changes update visible metadata without reloading lists', (tester) async {
+    final server = PlaylistTestServer([playlist('Alpha')]);
+    final container = await server.container();
+    addTearDown(container.dispose);
+    await mount(tester, container);
+    server.requests.clear();
+    final notifier = container.read(playlistsProvider('library').notifier);
+    notifier.applyServerUpdate(playlist('Alpha', items: [bookEntry], revision: 2));
+    await tester.pumpAndSettle();
+    expect(find.text('Alpha'), findsOneWidget);
+    expect(find.text('No playlists'), findsNothing);
+    notifier.applyServerRemoval('Alpha');
+    await tester.pumpAndSettle();
+    expect(find.text('Alpha'), findsNothing);
+    expect(find.text('No playlists'), findsOneWidget);
+    expect(server.requests, isEmpty);
+  });
+
   testWidgets('metadata distinguishes loading, error, unknown and loaded empty', (tester) async {
     final states = <AsyncValue<PlaylistsState>>[
       const AsyncLoading(),
@@ -113,7 +196,7 @@ void main() {
       expect(find.text('No playlists'), i == 2 ? findsOneWidget : findsNothing);
       if (i == 0) expect(find.text('Loading playlists…'), findsOneWidget);
       if (i == 1 || i == 4) expect(find.text('Could not load playlists. Retry'), findsOneWidget);
-      if (i == 3) expect(find.text('Some memberships are unknown. Retry'), findsOneWidget);
+      if (i == 3) expect(find.text('Some playlists could not be checked. Retry'), findsOneWidget);
     }
   });
 
@@ -206,10 +289,12 @@ void main() {
     expect(find.byType(BookPlaylistMembershipDialog), findsNothing);
     expect(find.text('Alpha'), findsNothing);
     expect(find.text('Beta'), findsOneWidget);
-    expect(find.text('Playlist memberships updated.'), findsOneWidget);
+    expect(find.text('Playlists updated.'), findsOneWidget);
   });
 
-  testWidgets('unknown, sole-book and permission-restricted memberships are disabled', (tester) async {
+  testWidgets('unknown and permission-restricted entries are disabled but sole-book removal is allowed', (
+    tester,
+  ) async {
     for (final allowed in [true, false]) {
       final server = PlaylistTestServer([
         playlist('Only', items: [bookEntry]),
@@ -227,7 +312,7 @@ void main() {
       await mount(tester, container);
       await tester.tap(find.text('Manage'));
       await tester.pumpAndSettle();
-      expect(tester.widget<CheckboxListTile>(tile('Only')).onChanged, isNull);
+      expect(tester.widget<CheckboxListTile>(tile('Only')).onChanged, allowed ? isNotNull : isNull);
       expect(tester.widget<CheckboxListTile>(tile('Unknown')).onChanged, isNull);
       expect(tester.widget<CheckboxListTile>(tile('Unknown')).value, isNull);
       expect(tester.widget<CheckboxListTile>(tile('Partial')).value, isTrue);
@@ -256,7 +341,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.textContaining('Playlists changed'), findsOneWidget);
     expect(tester.widget<CheckboxListTile>(tile('Alpha')).value, isTrue);
-    expect(tester.widget<CheckboxListTile>(tile('Alpha')).onChanged, isNull);
+    expect(tester.widget<CheckboxListTile>(tile('Alpha')).onChanged, isNotNull);
     expect(server.requests.where((request) => request.method == 'POST'), isEmpty);
   });
 

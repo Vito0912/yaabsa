@@ -43,6 +43,8 @@ import 'package:yaabsa/provider/library/personalized_shelf_refresh.dart';
 import 'package:yaabsa/provider/core/server_reachability_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/provider/common/collection_provider.dart';
+import 'package:yaabsa/provider/common/playlist_provider.dart';
 import 'package:yaabsa/provider/player/session_provider.dart';
 import 'package:yaabsa/provider/player/queue_source_provider.dart';
 import 'package:yaabsa/provider/library/smart_download_provider.dart';

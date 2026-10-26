@@ -53,8 +53,6 @@ final collectionsProvider = AsyncNotifierProvider.family<CollectionsNotifier, Co
   CollectionsNotifier.new,
 );
 
-/// Recompute only when collection state changes, rather than on book/player
-/// rebuilds. The underlying collection list and HTTP cache remain shared.
 final bookCollectionMembershipsProvider = Provider.autoDispose
     .family<AsyncValue<BookCollectionMemberships>, ({String libraryId, String bookId})>((ref, key) {
       return ref
@@ -85,16 +83,13 @@ class CollectionsNotifier extends AsyncNotifier<CollectionsState> {
       throw Exception('User not authenticated or API not available.');
     }
 
-    final response = await absApi.getListApi().getCollections(
+    final data = await absApi.getListApi().getAllLibraryCollections(
+      libraryId,
       forceServer: forceServer || requireServer,
       extra: requireServer ? const {'skipCacheOnError': true} : null,
     );
-    final data = response.data;
-    if (data == null) {
-      throw Exception('No collections data received from API.');
-    }
 
-    final filteredCollections = data.items.where((item) => item.libraryId == libraryId).toList(growable: false)
+    final filteredCollections = data.where((item) => item.libraryId == libraryId).toList(growable: false)
       ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 
     return CollectionsState(items: filteredCollections, libraryId: libraryId, totalItems: filteredCollections.length);
@@ -102,7 +97,30 @@ class CollectionsNotifier extends AsyncNotifier<CollectionsState> {
 
   @override
   Future<CollectionsState> build() async {
-    return _fetchCollections();
+    while (true) {
+      final revision = _revision;
+      final loaded = await _fetchCollections(forceServer: revision != 0, requireServer: revision != 0);
+      if (!ref.mounted || revision == _revision) return loaded;
+    }
+  }
+
+  void applyServerUpdate(Collection item) {
+    if (!ref.mounted || item.libraryId != libraryId) return;
+    _revision++;
+    final current = state.value;
+    if (current == null) return;
+    final items = [...current.items.where((entry) => entry.id != item.id), item]
+      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    state = AsyncData(current.copyWith(items: items, totalItems: items.length));
+  }
+
+  void applyServerRemoval(String id) {
+    if (!ref.mounted) return;
+    _revision++;
+    final current = state.value;
+    if (current == null) return;
+    final items = current.items.where((entry) => entry.id != id).toList(growable: false);
+    state = AsyncData(current.copyWith(items: items, totalItems: items.length));
   }
 
   Future<void> refresh({
@@ -112,7 +130,6 @@ class CollectionsNotifier extends AsyncNotifier<CollectionsState> {
     bool invalidatePending = false,
   }) {
     if (!ref.mounted) return Future.value();
-    // A known server change or explicit validation must not reuse an older response.
     if (invalidatePending) _revision++;
     final inFlight = _refreshInFlight;
     if (inFlight != null) {
@@ -146,7 +163,7 @@ class CollectionsNotifier extends AsyncNotifier<CollectionsState> {
     required bool requireServer,
     required int revision,
   }) async {
-    if (withLoading) {
+    if (withLoading && !state.hasValue) {
       state = const AsyncValue.loading();
     }
 
@@ -164,9 +181,8 @@ class CollectionsNotifier extends AsyncNotifier<CollectionsState> {
     }
   }
 
-  /// Additions use the loaded snapshot and the server's updated collection.
-  /// Removals require a fresh snapshot before sending any mutations.
-  /// Only send this book's ID so concurrent changes to other books survive.
+  /// Validate removals against fresh data to detect edits made while the dialog was open.
+  /// Batch operations send only this book's ID to preserve other entries.
   Future<void> updateBookMemberships({
     required String bookId,
     required List<Collection> original,
@@ -198,17 +214,19 @@ class CollectionsNotifier extends AsyncNotifier<CollectionsState> {
     }
     final loaded = state.value;
     if (loaded == null || loaded.error != null) {
-      throw Exception('Reload collections before editing their memberships.');
+      throw Exception('Reload collections before editing.');
     }
     final currentById = {for (final collection in loaded.items) collection.id: collection};
     final originalById = {for (final collection in original) collection.id: collection};
     for (final edit in changes.entries) {
       final current = currentById[edit.key];
       if (current == null || !sameCollectionMembershipRevision(originalById[edit.key]!, current)) {
-        throw Exception('Collections changed or membership is unknown. Review the updated selections and try again.');
+        throw Exception(
+          'Collections changed or their contents are unavailable. Review the updated selections and try again.',
+        );
       }
       if (!edit.value && !canRemoveCollectionMembership(current, bookId)) {
-        throw Exception('Collections cannot be empty. Keep at least one book in "${current.name}".');
+        throw Exception('Full book list unavailable for "${current.name}". Reload collections before editing.');
       }
     }
     checkPermission();
@@ -229,11 +247,10 @@ class CollectionsNotifier extends AsyncNotifier<CollectionsState> {
             updated.libraryId != libraryId ||
             collectionMembership(updated, bookId) !=
                 (edit.value ? CollectionMembership.present : CollectionMembership.absent)) {
-          throw Exception('The server did not confirm the membership change.');
+          throw Exception('The server did not confirm the collection changes.');
         }
         succeeded++;
         _revision++;
-        // Publish confirmed responses immediately, including partial successes.
         final current = state.value!;
         state = AsyncData(
           CollectionsState(
@@ -248,8 +265,7 @@ class CollectionsNotifier extends AsyncNotifier<CollectionsState> {
     }
 
     if (!hasRemovals && failures.isEmpty) {
-      // Do not keep Save blocked while reloading every collection and its books.
-      // Equivalent refreshes share work; older requests cannot overwrite this edit.
+      // Keep successful additions responsive while the shared list synchronizes.
       unawaited(refresh(withLoading: false, forceServer: true, requireServer: true));
       return;
     }
@@ -259,7 +275,7 @@ class CollectionsNotifier extends AsyncNotifier<CollectionsState> {
     if (failures.isNotEmpty || syncError != null) {
       throw Exception(
         [
-          '$succeeded of ${changes.length} collection change(s) confirmed.',
+          'Collections updated: $succeeded of ${changes.length}.',
           ...failures,
           if (syncError != null) 'Could not reload collections. Retry loading before editing again: $syncError',
           'Review the updated selections before retrying.',

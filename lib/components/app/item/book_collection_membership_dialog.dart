@@ -14,7 +14,7 @@ Future<void> showBookCollectionMembershipDialog({required BuildContext context, 
     builder: (_) => BookCollectionMembershipDialog(item: item),
   );
   if (saved == true && context.mounted) {
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Collection memberships updated.')));
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Collections updated.')));
   }
 }
 
@@ -42,14 +42,7 @@ class BookCollectionMembershipDialog extends ConsumerWidget {
         CollectionMembership.unknown => null,
       },
       disabledReason: (entry) {
-        if (collectionMembership(entry, item.id) == CollectionMembership.unknown) {
-          return 'Membership unknown. Reload collections before editing.';
-        }
         if (!hasCompleteCollectionBooks(entry)) return 'Full book list unavailable. Reload collections before editing.';
-        if (collectionMembership(entry, item.id) == CollectionMembership.present &&
-            !canRemoveCollectionMembership(entry, item.id)) {
-          return 'This is the only book. Collections cannot be empty.';
-        }
         return null;
       },
       onReload: () => ref.read(collectionsProvider(libraryId).notifier).refresh(requireServer: true),

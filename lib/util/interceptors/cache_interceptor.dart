@@ -57,12 +57,14 @@ const List<CacheRouteDefinition> cacheRouteDefinitions = [
     settingKey: SettingKeys.cacheRoutePlaylists,
     label: 'Playlists',
     pathPattern: '/api/playlists',
+    additionalPathPatterns: ['/api/libraries/{uuidv4}/playlists'],
     cacheDuration: Duration(days: 7),
   ),
   CacheRouteDefinition(
     settingKey: SettingKeys.cacheRouteCollections,
     label: 'Collections',
     pathPattern: '/api/collections',
+    additionalPathPatterns: ['/api/libraries/{uuidv4}/collections'],
     cacheDuration: Duration(days: 7),
   ),
   CacheRouteDefinition(
@@ -240,6 +242,9 @@ class CacheInterceptor extends Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
+    // noCache bypasses request-time lookup but still permits the fallback below.
+    // Fresh validation and post-save synchronization must not return stale data.
+    // skipCacheOnError still allows successful responses to update the cache.
     if (err.requestOptions.extra['doNotCache'] == true ||
         err.requestOptions.extra['skipCacheOnError'] == true ||
         err.requestOptions.responseType == ResponseType.stream) {
@@ -314,6 +319,7 @@ class CacheRouteDefinition {
   final String settingKey;
   final String label;
   final String pathPattern;
+  final List<String> additionalPathPatterns;
   final Duration cacheDuration;
   final bool aggressiveCache;
 
@@ -321,12 +327,17 @@ class CacheRouteDefinition {
     required this.settingKey,
     required this.label,
     required this.pathPattern,
+    this.additionalPathPatterns = const [],
     required this.cacheDuration,
     this.aggressiveCache = false,
   });
 
   bool matches(String path) {
-    final patternSegments = pathPattern.split('/');
+    return [pathPattern, ...additionalPathPatterns].any((pattern) => _matchesPattern(pattern, path));
+  }
+
+  bool _matchesPattern(String pattern, String path) {
+    final patternSegments = pattern.split('/');
     final pathSegments = Uri.parse(path).path.split('/');
 
     if (patternSegments.length != pathSegments.length) {

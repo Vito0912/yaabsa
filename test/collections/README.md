@@ -27,7 +27,8 @@ and synchronization failures, selection/cancellation, navigation, responsive
 scrolling, metadata updates, and the existing multi-book add pickers. Playlist
 tests also cover ownership, entry order, episode identities and the existing
 podcast-episode addition method. Refresh tests cover incoming server changes,
-the library bulk-add action, and provider disposal during background work.
+background pagination, the library bulk-add action, and provider disposal during
+background work. Later-page failures retain the complete previous list.
 
 ## Manual checks against Audiobookshelf
 
@@ -48,10 +49,9 @@ Use disposable test collections for mutation checks.
 4. Repeat and choose **Save changes**. Controls should be disabled while saving.
    The dialog closes on success, a confirmation appears, and the metadata and
    server web client reflect all changes.
-5. Remove the book from every collection containing it, leaving another book
-   in each collection. The metadata should now show **No collections**. A
-   collection containing only this book has a disabled checked box explaining
-   that collections cannot be empty.
+5. Remove the book from every collection containing it. The metadata should
+   now show **No collections**. Removing the only book leaves an empty collection
+   available in the server web client.
 6. Sign in without update permission, then separately disable collection
    management in settings. Metadata links should still work; the management
    action should be unavailable.
@@ -73,20 +73,56 @@ Use disposable test collections for mutation checks.
     the existing bulk picker. All selected IDs should be added as before.
 11. Try a narrow window and a library with many collections. The dialog should
     scroll while Cancel and Save stay accessible.
+12. With more than 50 collections or playlists, verify that entries beyond the
+    first page appear and their memberships are correct. Refresh while watching
+    the list; existing entries should stay visible. Switch libraries and verify
+    that only entries from the selected library appear.
+13. Keep the list screen, a collection/playlist detail page, or book metadata
+    open. In the server web client, add, rename, change and delete a list. The
+    open view should update from the websocket without a manual refresh.
+14. With automatic queue enabled, start playback from collections and playlists,
+    including lists beyond the first API page. Verify item order after edits
+    made in the web client. When an Android Auto device is available, repeat
+    browsing and playback there, including playlists containing episodes.
 
 Repeat the applicable checks for **Playlists** and **Manage playlists**. Playlist
 editing follows the existing ownership rule and does not require the server's
 update permission or the collection-management preference. Verify that an owner
 without update permission can still edit their playlists. Any playlist belonging
 to another user that appears in loaded data must remain read-only. Only playlists
-returned by the existing user-playlist endpoint can be displayed; this does not
-expose other users' private playlists.
+returned for the current user by the library-playlist endpoint can be displayed;
+this does not expose other users' private playlists.
 
 For playlists, also verify that removing a book preserves the other entries and
 their order, and that existing multi-book and podcast-episode additions still
-work. A playlist containing only the current book cannot be unchecked: the
-server deletes playlists when their last entry is removed. Use a playlist with
-another book to test removing the book's last playlist membership.
+work. Removing the only item opens a confirmation naming the playlists that
+Audiobookshelf will delete. Cancel must leave every selected change local;
+Continue saves the changes and removes the deleted playlists from the UI.
+Collections remain available when their last book is removed.
+
+## Loading and caching
+
+Collections and playlists use their existing library-specific endpoints,
+requesting 50 entries per page. Pages load sequentially in the background and the provider
+publishes the combined list after all pages succeed. Existing results stay visible
+throughout refreshes. List and detail screens, pickers, and Android Auto keep
+receiving complete lists; no additional UI pagination is required. If a server
+returns an oversized page, the next request starts after the returned range to
+avoid downloading duplicate entries. Short or inconsistent pages fail loading.
+
+The page URLs reuse the existing collection and playlist cache preferences.
+Riverpod retains the combined results, so opening another book in the same
+library does not fetch the pages again. Websocket events update this state
+directly, including visible membership metadata and detail titles. Automatic
+queue loading reads the same providers, so it also sees socket changes and
+avoids fetching a second list when the library is already loaded.
+
+`noCache` bypasses the interceptor's initial lookup, but its error handler can
+still return a cached response after a network failure. `skipCacheOnError`
+disables that fallback for removal validation and post-save synchronization:
+these requests must not mistake stale cached data for a fresh server response
+or overwrite a confirmed edit. Unlike `doNotCache`, this still allows successful
+responses to update the cache. Normal browsing retains its offline fallback.
 
 ## Safety limits
 
@@ -99,8 +135,9 @@ preserves other books and tolerates a book already being present. Cache
 synchronization runs in the background, so Save does not wait for a full list
 reload. Equivalent overlapping refreshes share a request; a refresh started
 before a confirmed edit cannot overwrite the updated provider state.
-Incoming socket changes and the library bulk-add action invalidate older pending
-responses. They schedule a fresh synchronization while sharing equivalent work.
+Incoming socket changes update the shared list directly and invalidate older
+pending responses. The library bulk-add action schedules a fresh synchronization
+while sharing equivalent work.
 Background synchronization stops publishing if the provider has been disposed.
 
 Saves containing removals validate one fresh snapshot before any writes and

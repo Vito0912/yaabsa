@@ -63,9 +63,9 @@ void main() {
     expect(canEditPlaylistMembership(playlist('mine'), null), isFalse);
   });
 
-  test('last-item removal is blocked and revision includes order and ownership', () {
+  test('last-item removal is allowed and revision includes order and ownership', () {
     final original = playlist('a', items: [bookEntry, otherEntry]);
-    expect(canRemovePlaylistMembership(playlist('only', items: [bookEntry]), 'book'), isFalse);
+    expect(canRemovePlaylistMembership(playlist('only', items: [bookEntry]), 'book'), isTrue);
     expect(canRemovePlaylistMembership(original, 'book'), isTrue);
     expect(samePlaylistMembershipRevision(original, original), isTrue);
     expect(samePlaylistMembershipRevision(original, original.copyWith(items: [otherEntry, bookEntry])), isFalse);

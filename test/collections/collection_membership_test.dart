@@ -55,8 +55,8 @@ void main() {
     );
   });
 
-  test('cannot remove the only book or edit an incomplete list', () {
-    expect(canRemoveCollectionMembership(collection('only', books: [testBook]), 'book'), isFalse);
+  test('allows removing the only book but not editing an incomplete list', () {
+    expect(canRemoveCollectionMembership(collection('only', books: [testBook]), 'book'), isTrue);
     expect(canRemoveCollectionMembership(collection('many', books: [testBook, otherBook]), 'book'), isTrue);
     expect(canRemoveCollectionMembership(collection('unknown', books: null), 'book'), isFalse);
   });

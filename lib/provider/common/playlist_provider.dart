@@ -41,8 +41,6 @@ final playlistsProvider = AsyncNotifierProvider.family<PlaylistsNotifier, Playli
   PlaylistsNotifier.new,
 );
 
-/// Recompute only when playlist state changes, rather than on book/player
-/// rebuilds. The underlying playlist list and HTTP cache remain shared.
 final bookPlaylistMembershipsProvider = Provider.autoDispose
     .family<AsyncValue<BookPlaylistMemberships>, ({String libraryId, String bookId})>((ref, key) {
       return ref
@@ -73,16 +71,13 @@ class PlaylistsNotifier extends AsyncNotifier<PlaylistsState> {
       throw Exception('User not authenticated or API not available.');
     }
 
-    final response = await absApi.getListApi().getUserPlaylist(
+    final data = await absApi.getListApi().getAllLibraryPlaylists(
+      libraryId,
       forceServer: forceServer || requireServer,
       extra: requireServer ? const {'skipCacheOnError': true} : null,
     );
-    final data = response.data;
-    if (data == null) {
-      throw Exception('No playlists data received from API.');
-    }
 
-    final filteredPlaylists = data.items.where((item) => item.libraryId == libraryId).toList(growable: false)
+    final filteredPlaylists = data.where((item) => item.libraryId == libraryId).toList(growable: false)
       ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 
     return PlaylistsState(items: filteredPlaylists, libraryId: libraryId, totalItems: filteredPlaylists.length);
@@ -90,7 +85,30 @@ class PlaylistsNotifier extends AsyncNotifier<PlaylistsState> {
 
   @override
   Future<PlaylistsState> build() async {
-    return _fetchPlaylists();
+    while (true) {
+      final revision = _revision;
+      final loaded = await _fetchPlaylists(forceServer: revision != 0, requireServer: revision != 0);
+      if (!ref.mounted || revision == _revision) return loaded;
+    }
+  }
+
+  void applyServerUpdate(Playlist item) {
+    if (!ref.mounted || item.libraryId != libraryId) return;
+    _revision++;
+    final current = state.value;
+    if (current == null) return;
+    final items = [...current.items.where((entry) => entry.id != item.id), item]
+      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    state = AsyncData(current.copyWith(items: items, totalItems: items.length));
+  }
+
+  void applyServerRemoval(String id) {
+    if (!ref.mounted) return;
+    _revision++;
+    final current = state.value;
+    if (current == null) return;
+    final items = current.items.where((entry) => entry.id != id).toList(growable: false);
+    state = AsyncData(current.copyWith(items: items, totalItems: items.length));
   }
 
   Future<void> refresh({
@@ -100,7 +118,6 @@ class PlaylistsNotifier extends AsyncNotifier<PlaylistsState> {
     bool invalidatePending = false,
   }) {
     if (!ref.mounted) return Future.value();
-    // A known server change or explicit validation must not reuse an older response.
     if (invalidatePending) _revision++;
     final inFlight = _refreshInFlight;
     if (inFlight != null) {
@@ -134,7 +151,7 @@ class PlaylistsNotifier extends AsyncNotifier<PlaylistsState> {
     required bool requireServer,
     required int revision,
   }) async {
-    if (withLoading) {
+    if (withLoading && !state.hasValue) {
       state = const AsyncValue.loading();
     }
 
@@ -152,9 +169,8 @@ class PlaylistsNotifier extends AsyncNotifier<PlaylistsState> {
     }
   }
 
-  /// Additions use the loaded snapshot and the server's updated playlist.
-  /// Removals require a fresh snapshot before sending any mutations.
-  /// Only send this book's ID so concurrent changes to other books survive.
+  /// Validate removals against fresh data to detect edits made while the dialog was open.
+  /// Batch operations send only this book's ID to preserve other entries.
   Future<void> updateBookMemberships({
     required String bookId,
     required List<Playlist> original,
@@ -187,7 +203,7 @@ class PlaylistsNotifier extends AsyncNotifier<PlaylistsState> {
     }
     final loaded = state.value;
     if (loaded == null || loaded.error != null) {
-      throw Exception('Reload playlists before editing their memberships.');
+      throw Exception('Reload playlists before editing.');
     }
     final currentById = {for (final playlist in loaded.items) playlist.id: playlist};
     final originalById = {for (final playlist in original) playlist.id: playlist};
@@ -197,10 +213,12 @@ class PlaylistsNotifier extends AsyncNotifier<PlaylistsState> {
         throw Exception('Playlist editing is not allowed.');
       }
       if (current == null || !samePlaylistMembershipRevision(originalById[edit.key]!, current)) {
-        throw Exception('Playlists changed or membership is unknown. Review the updated selections and try again.');
+        throw Exception(
+          'Playlists changed or their contents are unavailable. Review the updated selections and try again.',
+        );
       }
       if (!edit.value && !canRemovePlaylistMembership(current, bookId)) {
-        throw Exception('Playlists cannot be empty. Keep at least one book in "${current.name}".');
+        throw Exception('Full item list unavailable for "${current.name}". Reload playlists before editing.');
       }
     }
     checkPermission();
@@ -234,27 +252,22 @@ class PlaylistsNotifier extends AsyncNotifier<PlaylistsState> {
             updated.libraryId != libraryId ||
             playlistMembership(updated, bookId) !=
                 (edit.value ? PlaylistMembership.present : PlaylistMembership.absent)) {
-          throw Exception('The server did not confirm the membership change.');
+          throw Exception('The server did not confirm the playlist changes.');
         }
         succeeded++;
-        _revision++;
-        // Publish confirmed responses immediately, including partial successes.
-        final current = state.value!;
-        state = AsyncData(
-          PlaylistsState(
-            libraryId: libraryId,
-            items: current.items.map((item) => item.id == updated.id ? updated : item).toList(growable: false),
-            totalItems: current.totalItems,
-          ),
-        );
+        // The removal endpoint deletes playlists when their last item is removed.
+        if (!edit.value && updated.items!.isEmpty) {
+          applyServerRemoval(updated.id);
+        } else {
+          applyServerUpdate(updated);
+        }
       } catch (error) {
         failures.add('${playlist.name}: $error');
       }
     }
 
     if (!hasRemovals && failures.isEmpty) {
-      // Do not keep Save blocked while reloading every playlist and its books.
-      // Equivalent refreshes share work; older requests cannot overwrite this edit.
+      // Keep successful additions responsive while the shared list synchronizes.
       unawaited(refresh(withLoading: false, forceServer: true, requireServer: true));
       return;
     }
@@ -264,7 +277,7 @@ class PlaylistsNotifier extends AsyncNotifier<PlaylistsState> {
     if (failures.isNotEmpty || syncError != null) {
       throw Exception(
         [
-          '$succeeded of ${changes.length} playlist change(s) confirmed.',
+          'Playlists updated: $succeeded of ${changes.length}.',
           ...failures,
           if (syncError != null) 'Could not reload playlists. Retry loading before editing again: $syncError',
           'Review the updated selections before retrying.',

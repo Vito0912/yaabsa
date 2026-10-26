@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart' show setEquals;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
-/// Shared selection UI; each provider retains its own permission and mutation rules.
 class BookListMembershipDialog<T> extends StatefulWidget {
   const BookListMembershipDialog({
     super.key,
@@ -16,6 +15,7 @@ class BookListMembershipDialog<T> extends StatefulWidget {
     required this.disabledReason,
     required this.onReload,
     required this.onSave,
+    this.confirmSave,
   });
 
   final AsyncValue<List<T>> entries;
@@ -28,6 +28,7 @@ class BookListMembershipDialog<T> extends StatefulWidget {
   final String? Function(T) disabledReason;
   final Future<void> Function() onReload;
   final Future<void> Function(List<T>, Set<String>) onSave;
+  final Future<bool> Function(List<T>, Set<String>)? confirmSave;
 
   @override
   State<BookListMembershipDialog<T>> createState() => _BookListMembershipDialogState<T>();
@@ -59,18 +60,21 @@ class _BookListMembershipDialogState<T> extends State<BookListMembershipDialog<T
   }
 
   Future<void> _save() async {
+    final selected = Set.of(_selected);
+    if (widget.confirmSave != null && !await widget.confirmSave!(_original!, selected)) return;
+    if (!mounted) return;
     setState(() {
       _saving = true;
       _error = null;
     });
     try {
-      await widget.onSave(_original!, Set.of(_selected));
+      await widget.onSave(_original!, selected);
       if (mounted) Navigator.of(context).pop(true);
     } catch (error) {
       if (mounted) {
         setState(() {
           _error = error.toString();
-          // Rebase after conflicts or partial success. Never retry stale edits.
+          // Reload selections from confirmed state after conflicts or partial saves.
           _original = null;
         });
       }
@@ -97,7 +101,7 @@ class _BookListMembershipDialogState<T> extends State<BookListMembershipDialog<T
     final hasChanges = !setEquals(_initialSelected, _selected);
 
     Widget content;
-    if (loading) {
+    if (loading && _original == null) {
       content = const Center(child: CircularProgressIndicator());
     } else if (loadFailed || data == null) {
       content = Center(
@@ -124,7 +128,7 @@ class _BookListMembershipDialogState<T> extends State<BookListMembershipDialog<T
             subtitle: reason == null ? null : Text(reason),
             tristate: membership == null,
             value: membership == null ? null : _selected.contains(id),
-            onChanged: !allowed || _saving || reason != null
+            onChanged: !allowed || _saving || loading || reason != null
                 ? null
                 : (selected) {
                     setState(() {
@@ -142,7 +146,7 @@ class _BookListMembershipDialogState<T> extends State<BookListMembershipDialog<T
     return PopScope(
       canPop: !_saving,
       child: AlertDialog(
-        title: Text('Manage ${widget.plural} — ${widget.bookTitle}'),
+        title: Text('Manage ${widget.plural}: ${widget.bookTitle}'),
         content: SizedBox(
           width: 520,
           height: MediaQuery.sizeOf(context).height * 0.55,

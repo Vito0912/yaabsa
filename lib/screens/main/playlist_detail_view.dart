@@ -331,15 +331,11 @@ Playlist? _resolvePlaylist(String playlistId, List<Playlist>? allPlaylists) {
 }
 
 MultiBookEntryData? _resolveEntry(String playlistId, MultiBookEntryData? initialEntry, Playlist? playlist) {
-  if (initialEntry != null && initialEntry.id == playlistId) {
-    return initialEntry;
-  }
-
   if (playlist != null) {
     return MultiBookEntryData.fromPlaylist(playlist);
   }
 
-  return initialEntry;
+  return initialEntry?.id == playlistId ? initialEntry : null;
 }
 
 List<LibraryItem> _playlistLibraryItems(List<PlaylistItem> playlistItems) {

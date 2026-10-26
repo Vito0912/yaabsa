@@ -50,9 +50,7 @@ bool canEditPlaylistMembership(Playlist playlist, String? userId) =>
     userId != null && userId.isNotEmpty && (playlist.userId == null || playlist.userId == userId);
 
 bool canRemovePlaylistMembership(Playlist playlist, String bookId) =>
-    hasCompletePlaylistItems(playlist) &&
-    playlistMembership(playlist, bookId) == PlaylistMembership.present &&
-    playlist.items!.any((item) => item.itemId != bookId || item.episodeId != null);
+    hasCompletePlaylistItems(playlist) && playlistMembership(playlist, bookId) == PlaylistMembership.present;
 
 Map<String, bool> playlistMembershipChanges({
   required Iterable<Playlist> original,

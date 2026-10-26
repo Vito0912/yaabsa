@@ -668,8 +668,7 @@ extension _BGAudioHandlerAutoQueueExtension on BGAudioHandler {
       throw Exception('Missing playlist id for auto queue');
     }
 
-    final response = await api.getListApi().getUserPlaylist();
-    final playlists = response.data?.items ?? const [];
+    final playlists = (await _ref.read(playlistsProvider(context.libraryId).future)).items;
 
     for (final playlist in playlists) {
       if (playlist.id != playlistId) {
@@ -718,8 +717,7 @@ extension _BGAudioHandlerAutoQueueExtension on BGAudioHandler {
       throw Exception('Missing collection id for auto queue');
     }
 
-    final response = await api.getListApi().getCollections();
-    final collections = response.data?.items ?? const [];
+    final collections = (await _ref.read(collectionsProvider(context.libraryId).future)).items;
 
     for (final collection in collections) {
       if (collection.id != collectionId) {

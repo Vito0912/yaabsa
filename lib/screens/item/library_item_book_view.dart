@@ -205,6 +205,7 @@ class LibraryItemBookView extends ConsumerWidget {
                                 subtitle: item.subtitle,
                                 cover: topCover,
                                 actionButtons: buildItemActionButtons(
+                                  manageMemberships: true,
                                   hasAudio: hasAudio,
                                   hasBook: hasBook,
                                   canDownload: canDownload,

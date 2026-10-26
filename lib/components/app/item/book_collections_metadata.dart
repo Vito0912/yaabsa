@@ -33,7 +33,7 @@ ItemMetadataRowData buildBookCollectionsMetadataRow(
   if (hasError || state == null) {
     values.add(ItemLinkValue(label: 'Could not load collections. Retry', onTap: onRetry));
   } else if (unknown) {
-    values.add(ItemLinkValue(label: 'Some memberships are unknown. Retry', onTap: onRetry));
+    values.add(ItemLinkValue(label: 'Some collections could not be checked. Retry', onTap: onRetry));
   } else if (values.isEmpty) {
     return const ItemMetadataRowData(label: 'Collections', value: 'No collections');
   }

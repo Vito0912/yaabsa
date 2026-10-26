@@ -1,11 +1,120 @@
 import 'dart:async';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:yaabsa/provider/common/collection_provider.dart';
 
 import 'collection_test_support.dart';
 
 void main() {
+  test('a socket change during initial loading retries without a stale cache fallback', () async {
+    final server = CollectionTestServer([collection('a')]);
+    final started = Completer<void>();
+    final gate = Completer<void>();
+    server.beforeRead = () async {
+      if (!started.isCompleted) {
+        started.complete();
+        await gate.future;
+      }
+    };
+    final container = server.container();
+    addTearDown(container.dispose);
+    final loading = container.read(collectionsProvider('library').future);
+    await started.future;
+    server.collections[0] = collection('a', books: [testBook], revision: 2);
+    container.read(collectionsProvider('library').notifier).applyServerUpdate(server.collections[0]);
+    gate.complete();
+    expect((await loading).items.single.lastUpdate, 2);
+    expect(server.requests, hasLength(2));
+    expect(server.requests.last.extra['noCache'], isTrue);
+    expect(server.requests.last.extra['skipCacheOnError'], isTrue);
+  });
+
+  test('initial loading publishes all library pages together', () async {
+    final server = CollectionTestServer([
+      for (var index = 0; index < 51; index++) collection('Collection $index'),
+      collection('Elsewhere', libraryId: 'another'),
+    ]);
+    final finalPageStarted = Completer<void>();
+    final gate = Completer<void>();
+    server.beforeRead = () async {
+      if (server.requests.last.uri.queryParameters['page'] == '1') {
+        finalPageStarted.complete();
+        await gate.future;
+      }
+    };
+    final container = server.container();
+    addTearDown(container.dispose);
+    final published = <int>[];
+    container.listen(collectionsProvider('library'), (_, next) {
+      if (next.hasValue) published.add(next.requireValue.items.length);
+    });
+    final loading = container.read(collectionsProvider('library').future);
+    await finalPageStarted.future;
+    expect(container.read(collectionsProvider('library')).isLoading, isTrue);
+    expect(published, isEmpty);
+    gate.complete();
+    final loaded = await loading;
+    expect(loaded.items, hasLength(51));
+    expect(published, [51]);
+    expect(server.requests, hasLength(2));
+  });
+
+  test('refresh retains the previous lists while loading', () async {
+    final server = CollectionTestServer([
+      collection('a', books: [testBook, otherBook]),
+    ]);
+    final container = server.container();
+    addTearDown(container.dispose);
+    final original = await container.read(collectionsProvider('library').future);
+    final gate = Completer<void>();
+    server.beforeRead = () => gate.future;
+    final refresh = container.read(collectionsProvider('library').notifier).refresh();
+    final during = container.read(collectionsProvider('library'));
+    expect(during.isLoading, isFalse);
+    expect(during.requireValue.items, original.items);
+    gate.complete();
+    await refresh;
+  });
+
+  test('socket changes update lists without a list request', () async {
+    final server = CollectionTestServer([collection('a')]);
+    final container = server.container();
+    addTearDown(container.dispose);
+    await container.read(collectionsProvider('library').future);
+    server.requests.clear();
+    final notifier = container.read(collectionsProvider('library').notifier);
+    notifier.applyServerUpdate(collection('b', books: [testBook, otherBook]));
+    notifier.applyServerUpdate(collection('a').copyWith(name: 'Renamed'));
+    expect(container.read(collectionsProvider('library')).requireValue.items.map((item) => item.name), [
+      'b',
+      'Renamed',
+    ]);
+    notifier.applyServerRemoval('b');
+    expect(container.read(collectionsProvider('library')).requireValue.items.single.name, 'Renamed');
+    expect(server.requests, isEmpty);
+  });
+
+  test('an old refresh cannot overwrite a socket update', () async {
+    final server = CollectionTestServer([collection('a')]);
+    final container = server.container();
+    addTearDown(container.dispose);
+    await container.read(collectionsProvider('library').future);
+    final gate = Completer<void>();
+    final readStarted = Completer<void>();
+    server.beforeRead = () {
+      if (!readStarted.isCompleted) readStarted.complete();
+      return gate.future;
+    };
+    final notifier = container.read(collectionsProvider('library').notifier);
+    final refresh = notifier.refresh();
+    await readStarted.future;
+    notifier.applyServerUpdate(collection('a', books: [testBook, otherBook], revision: 2));
+    gate.complete();
+    await refresh;
+    expect(container.read(collectionsProvider('library')).requireValue.items.single.lastUpdate, 2);
+  });
+
   test('a change arriving during removal validation aborts the save', () async {
     final server = CollectionTestServer([
       collection('a', books: [testBook, otherBook]),
@@ -82,10 +191,10 @@ void main() {
         .read(collectionsProvider('library').notifier)
         .updateBookMemberships(bookId: 'book', original: original.items, selectedIds: {'add'});
     expect(server.requests.map((request) => request.uri.path), [
-      '/api/collections',
+      '/api/libraries/library/collections',
       '/api/collections/add/batch/add',
       '/api/collections/remove/batch/remove',
-      '/api/collections',
+      '/api/libraries/library/collections',
     ]);
     expect(
       server.requests
@@ -396,23 +505,28 @@ void main() {
     expect(server.requests, isEmpty);
   });
 
-  test('unknown data and last-book removal never send a destructive request', () async {
-    for (final books in [
-      null,
-      [testBook],
-    ]) {
-      final server = CollectionTestServer([collection('a', books: books)]);
-      final container = server.container();
-      addTearDown(container.dispose);
-      final original = await container.read(collectionsProvider('library').future);
-      try {
-        await container
-            .read(collectionsProvider('library').notifier)
-            .updateBookMemberships(bookId: 'book', original: original.items, selectedIds: {});
-      } catch (_) {
-        /* A last-book removal is rejected. Unknown entries are ignored. */
-      }
-      expect(server.requests.where((request) => request.method == 'POST'), isEmpty);
-    }
+  test('unknown membership never sends a destructive request', () async {
+    final server = CollectionTestServer([collection('a', books: null)]);
+    final container = server.container();
+    addTearDown(container.dispose);
+    final original = await container.read(collectionsProvider('library').future);
+    await container
+        .read(collectionsProvider('library').notifier)
+        .updateBookMemberships(bookId: 'book', original: original.items, selectedIds: {});
+    expect(server.requests.where((request) => request.method == 'POST'), isEmpty);
+  });
+
+  test('removing the only book leaves an empty collection', () async {
+    final server = CollectionTestServer([
+      collection('a', books: [testBook]),
+    ]);
+    final container = server.container();
+    addTearDown(container.dispose);
+    final original = await container.read(collectionsProvider('library').future);
+    await container
+        .read(collectionsProvider('library').notifier)
+        .updateBookMemberships(bookId: 'book', original: original.items, selectedIds: {});
+    expect(server.collections.single.items, isEmpty);
+    expect(container.read(collectionsProvider('library')).requireValue.items.single.items, isEmpty);
   });
 }

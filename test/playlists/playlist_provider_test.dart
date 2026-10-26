@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:yaabsa/api/list/playlist_item.dart';
 import 'package:yaabsa/provider/common/playlist_provider.dart';
@@ -7,6 +8,90 @@ import 'package:yaabsa/provider/common/playlist_provider.dart';
 import 'playlist_test_support.dart';
 
 void main() {
+  test('a later page failure preserves the complete previous playlist list', () async {
+    final server = PlaylistTestServer([playlist('Original')]);
+    final container = await server.container();
+    addTearDown(container.dispose);
+    final original = await container.read(playlistsProvider('library').future);
+    server.playlists = [for (var index = 0; index < 51; index++) playlist('New $index')];
+    final finalPageStarted = Completer<void>();
+    final gate = Completer<void>();
+    server.beforeRead = () async {
+      if (server.requests.last.uri.queryParameters['page'] == '1') {
+        finalPageStarted.complete();
+        await gate.future;
+        throw Exception('Second page unavailable');
+      }
+    };
+    final published = <List<String>>[];
+    container.listen(playlistsProvider('library'), (_, next) {
+      if (next.hasValue) published.add(next.requireValue.items.map((item) => item.id).toList());
+    });
+    final refresh = container.read(playlistsProvider('library').notifier).refresh(requireServer: true);
+    await finalPageStarted.future;
+    expect(container.read(playlistsProvider('library')).requireValue.items, original.items);
+    gate.complete();
+    await refresh;
+    final result = container.read(playlistsProvider('library')).requireValue;
+    expect(result.items, original.items);
+    expect(result.error, isNotNull);
+    expect(published, [
+      ['Original'],
+    ]);
+  });
+
+  test('refresh retains the previous lists while loading', () async {
+    final server = PlaylistTestServer([
+      playlist('a', items: [bookEntry, otherEntry]),
+    ]);
+    final container = await server.container();
+    addTearDown(container.dispose);
+    final original = await container.read(playlistsProvider('library').future);
+    final gate = Completer<void>();
+    server.beforeRead = () => gate.future;
+    final refresh = container.read(playlistsProvider('library').notifier).refresh();
+    final during = container.read(playlistsProvider('library'));
+    expect(during.isLoading, isFalse);
+    expect(during.requireValue.items, original.items);
+    gate.complete();
+    await refresh;
+  });
+
+  test('socket changes update lists without a list request', () async {
+    final server = PlaylistTestServer([playlist('a')]);
+    final container = await server.container();
+    addTearDown(container.dispose);
+    await container.read(playlistsProvider('library').future);
+    server.requests.clear();
+    final notifier = container.read(playlistsProvider('library').notifier);
+    notifier.applyServerUpdate(playlist('b', items: [bookEntry, otherEntry]));
+    notifier.applyServerUpdate(playlist('a').copyWith(name: 'Renamed'));
+    expect(container.read(playlistsProvider('library')).requireValue.items.map((item) => item.name), ['b', 'Renamed']);
+    notifier.applyServerRemoval('b');
+    expect(container.read(playlistsProvider('library')).requireValue.items.single.name, 'Renamed');
+    expect(server.requests, isEmpty);
+  });
+
+  test('an old refresh cannot overwrite a socket update', () async {
+    final server = PlaylistTestServer([playlist('a')]);
+    final container = await server.container();
+    addTearDown(container.dispose);
+    await container.read(playlistsProvider('library').future);
+    final gate = Completer<void>();
+    final readStarted = Completer<void>();
+    server.beforeRead = () {
+      if (!readStarted.isCompleted) readStarted.complete();
+      return gate.future;
+    };
+    final notifier = container.read(playlistsProvider('library').notifier);
+    final refresh = notifier.refresh();
+    await readStarted.future;
+    notifier.applyServerUpdate(playlist('a', items: [bookEntry, otherEntry], revision: 2));
+    gate.complete();
+    await refresh;
+    expect(container.read(playlistsProvider('library')).requireValue.items.single.lastUpdate, 2);
+  });
+
   test('a change arriving during removal validation aborts the save', () async {
     final server = PlaylistTestServer([
       playlist('a', items: [bookEntry, otherEntry]),
@@ -131,10 +216,10 @@ void main() {
         .read(playlistsProvider('library').notifier)
         .updateBookMemberships(bookId: 'book', original: original.items, selectedIds: {'add'});
     expect(server.requests.map((request) => request.uri.path), [
-      '/api/playlists',
+      '/api/libraries/library/playlists',
       '/api/playlists/add/batch/add',
       '/api/playlists/remove/batch/remove',
-      '/api/playlists',
+      '/api/libraries/library/playlists',
     ]);
     expect(
       server.requests
@@ -445,23 +530,37 @@ void main() {
     expect(server.requests, isEmpty);
   });
 
-  test('unknown data and last-book removal never send a destructive request', () async {
-    for (final books in [
-      null,
-      [bookEntry],
-    ]) {
-      final server = PlaylistTestServer([playlist('a', items: books)]);
-      final container = await server.container();
-      addTearDown(container.dispose);
-      final original = await container.read(playlistsProvider('library').future);
-      try {
-        await container
-            .read(playlistsProvider('library').notifier)
-            .updateBookMemberships(bookId: 'book', original: original.items, selectedIds: {});
-      } catch (_) {
-        /* A last-book removal is rejected. Unknown entries are ignored. */
-      }
-      expect(server.requests.where((request) => request.method == 'POST'), isEmpty);
-    }
+  test('unknown membership never sends a destructive request', () async {
+    final server = PlaylistTestServer([playlist('a', items: null)]);
+    final container = await server.container();
+    addTearDown(container.dispose);
+    final original = await container.read(playlistsProvider('library').future);
+    await container
+        .read(playlistsProvider('library').notifier)
+        .updateBookMemberships(bookId: 'book', original: original.items, selectedIds: {});
+    expect(server.requests.where((request) => request.method == 'POST'), isEmpty);
+  });
+
+  test('last-item removal deletes the playlist without restoring the empty response', () async {
+    final server = PlaylistTestServer([
+      playlist('a', items: [bookEntry]),
+    ]);
+    final container = await server.container();
+    addTearDown(container.dispose);
+    final original = await container.read(playlistsProvider('library').future);
+    server.beforeMutation = () async {
+      server.failReads = true;
+    };
+    await expectLater(
+      container
+          .read(playlistsProvider('library').notifier)
+          .updateBookMemberships(bookId: 'book', original: original.items, selectedIds: {}),
+      throwsException,
+    );
+    expect(server.playlists, isEmpty);
+    final result = container.read(playlistsProvider('library')).requireValue;
+    expect(result.items, isEmpty);
+    expect(result.totalItems, 0);
+    expect(result.error, isNotNull);
   });
 }
