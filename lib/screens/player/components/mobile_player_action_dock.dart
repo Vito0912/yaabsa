@@ -1,5 +1,9 @@
 import 'dart:ui' show ImageFilter;
 
+import 'package:yaabsa/models/playback_feature.dart';
+import 'package:yaabsa/components/common/feature_gate.dart';
+import 'package:yaabsa/util/globals.dart';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/components/player/common/bookmarks_button.dart';
@@ -213,7 +217,7 @@ class _MobilePlayerActionsSheet extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final action = actions[index];
                     final enabled = action != PlayerActionType.chapter || hasChapters;
-                    return Material(
+                    final tile = Material(
                       color: Theme.of(context).colorScheme.surfaceContainerLow.withValues(alpha: 0.58),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                       clipBehavior: Clip.antiAlias,
@@ -241,6 +245,17 @@ class _MobilePlayerActionsSheet extends StatelessWidget {
                         ),
                       ),
                     );
+
+                    if (action == PlayerActionType.speed) {
+                      return FeatureGate(
+                        enabled: audioHandler.supportsFeature(PlaybackFeature.speed),
+                        availability: audioHandler.featureAvailability(PlaybackFeature.speed),
+                        disabledReason: 'Playback speed is unavailable for this playback',
+                        child: tile,
+                      );
+                    }
+
+                    return tile;
                   },
                 ),
               ),

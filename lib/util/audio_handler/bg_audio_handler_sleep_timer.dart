@@ -55,7 +55,9 @@ extension BGAudioHandlerSleepTimer on BGAudioHandler {
     PlayerUtils.disableWakelock(_ref);
     _resetStreamRecoveryState(clearWindow: true);
 
-    if (_speechPlayback != null) {
+    if (isCastControlActive) {
+      await pause();
+    } else if (_speechPlayback != null) {
       await _speechPlayback!.pause();
     } else {
       await _player.pause();

@@ -23,9 +23,8 @@ class ControlButton extends StatelessWidget {
           final castActive = castSnapshot.data ?? false;
 
           if (playerState == null ||
-              (!castActive &&
-                  (playerState.processingState == ProcessingState.loading ||
-                      playerState.processingState == ProcessingState.buffering))) {
+              playerState.processingState == ProcessingState.loading ||
+              (!castActive && playerState.processingState == ProcessingState.buffering)) {
             return RepaintBoundary(
               child: SizedBox.square(
                 dimension: buttonSize ?? (prominent ? 68 : 48),

@@ -107,6 +107,10 @@ dependencies:
   ## iOS
 
   ## Android
+  upnp_client:
+    git:
+      url: https://github.com/Hillpro/upnp_client.git
+      ref: d6be3dc727db29056221313df906cd0fca6e1877
   flutter_chrome_cast: ^1.4.6
   flutter_tts: ^4.2.5
   sembast_web: ^2.4.5+1

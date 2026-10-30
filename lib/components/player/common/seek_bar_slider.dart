@@ -150,7 +150,7 @@ class _SeekBarSliderState extends State<SeekBarSlider> {
       setState(() => _dragValue = value);
     }
 
-    if (!widget.seekOnReleaseOnly || !_isDragging) {
+    if (!widget.seekOnReleaseOnly) {
       _queueBackendSeek(value);
     }
   }

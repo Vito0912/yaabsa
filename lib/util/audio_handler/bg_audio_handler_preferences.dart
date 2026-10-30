@@ -37,6 +37,10 @@ extension _BGAudioHandlerPreferences on BGAudioHandler {
 
     final normalizedVolume = _clampVolume(volume);
 
+    if (isCastControlActive) {
+      await casting.setVolume(normalizedVolume.clamp(0, 1).toDouble());
+    }
+
     await _applyVolume(normalizedVolume);
 
     unawaited(_persistLastVolume(normalizedVolume));
@@ -45,6 +49,10 @@ extension _BGAudioHandlerPreferences on BGAudioHandler {
   }
 
   Future<void> _setSpeedInternal(double speed) async {
+    if (!supportsFeature(PlaybackFeature.speed)) {
+      return;
+    }
+
     if (speed < BGAudioHandler._minPlaybackSpeed || speed > BGAudioHandler._maxPlaybackSpeed) {
       logger('Speed out of bounds: $speed', tag: 'AudioHandler', level: InfoLevel.error);
       return Future.value();
@@ -61,6 +69,10 @@ extension _BGAudioHandlerPreferences on BGAudioHandler {
       await _updatePlaybackState();
 
       return;
+    }
+
+    if (isCastControlActive) {
+      await casting.setSpeed(normalizedSpeed);
     }
 
     final previousSpeed = _player.speed;

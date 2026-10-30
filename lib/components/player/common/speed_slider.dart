@@ -1,8 +1,14 @@
+import 'package:yaabsa/models/playback_feature.dart';
+import 'package:yaabsa/components/common/feature_gate.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 
 Future<void> showPlaybackSpeedSheet(BuildContext context, {double? currentSpeed}) {
+  if (!audioHandler.supportsFeature(PlaybackFeature.speed)) {
+    return Future.value();
+  }
+
   return showModalBottomSheet<void>(
     context: context,
     useSafeArea: true,
@@ -27,6 +33,15 @@ class SpeedSlider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return FeatureGate(
+      enabled: audioHandler.supportsFeature(PlaybackFeature.speed),
+      availability: audioHandler.featureAvailability(PlaybackFeature.speed),
+      disabledReason: 'Playback speed is unavailable for this playback',
+      child: _buildControl(context),
+    );
+  }
+
+  Widget _buildControl(BuildContext context) {
     return StreamBuilder<double>(
       stream: audioHandler.effectivePlaybackSpeedStream,
       initialData: audioHandler.effectivePlaybackSpeed,

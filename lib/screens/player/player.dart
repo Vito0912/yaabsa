@@ -32,7 +32,8 @@ import 'package:yaabsa/screens/player/player_empty_state_mode.dart';
 import 'package:yaabsa/screens/player/play_history_view.dart';
 import 'package:yaabsa/screens/player/queue.dart';
 import 'package:yaabsa/util/aaos_service.dart';
-import 'package:yaabsa/util/chrome_cast_service.dart';
+import 'package:yaabsa/util/cast/cast_service.dart';
+import 'package:yaabsa/components/player/common/player_cast_status.dart';
 import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
@@ -260,7 +261,7 @@ class _PlayerState extends ConsumerState<Player> {
       );
     }
 
-    if (defaultTargetPlatform == TargetPlatform.android) {
+    if (defaultTargetPlatform == TargetPlatform.android && !audioHandler.casting.hasConnectedSession) {
       items.add(
         const PopupMenuItem<_PlayerAppBarMenuAction>(
           value: _PlayerAppBarMenuAction.equalizer,
@@ -683,7 +684,7 @@ class _PlayerState extends ConsumerState<Player> {
     final canEditCustomMode = isCustomMode || rawLayoutMode.trim().toLowerCase() == PlayerLayoutMode.custom.name;
     final isEditMode = canEditCustomMode && _isEditMode;
     final usesCustomLayout = isCustomMode || isEditMode;
-    final castSupported = ChromeCastService.isSupportedPlatform;
+    final castSupported = CastService.isSupportedPlatform;
     final isMobile = context.isMobile;
     final activeScreenSize = PlayerLayoutScreenSize.fromBreakpoint(context.breakpoint);
     final activeProfile = _activeProfileForScreen(activeScreenSize);
@@ -784,7 +785,7 @@ class _PlayerState extends ConsumerState<Player> {
             ],
           )
         : AppBar(
-            title: Text(isCustomMode ? 'Custom player' : 'Now playing'),
+            title: PlayerCastStatus(fallbackTitle: isCustomMode ? 'Custom player' : 'Now playing'),
             leading: isMobile
                 ? IconButton(
                     icon: const Icon(Icons.keyboard_arrow_down_rounded),

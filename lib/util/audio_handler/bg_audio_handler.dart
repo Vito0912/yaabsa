@@ -1,3 +1,4 @@
+import 'package:yaabsa/models/playback_feature.dart';
 // ignore_for_file: unused_element_parameter
 
 import 'dart:async';
@@ -12,7 +13,9 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/services.dart' show MethodChannel, PlatformException;
-import 'package:flutter_chrome_cast/flutter_chrome_cast.dart';
+import 'package:yaabsa/util/cast/cast_backend.dart';
+import 'package:yaabsa/util/cast/cast_service.dart';
+import 'package:yaabsa/util/cast/cast_track_resolver.dart';
 import 'package:yaabsa/api/library/filter_data/library_filter_data.dart';
 import 'package:yaabsa/api/library/library.dart';
 import 'package:yaabsa/api/library/personalized_library.dart';
@@ -75,6 +78,7 @@ part 'bg_audio_handler_queue.dart';
 part 'bg_audio_handler_preferences.dart';
 part 'bg_audio_handler_audio_session.dart';
 part 'bg_audio_handler_state.dart';
+part 'bg_audio_handler_cast.dart';
 part 'bg_audio_handler_playback_internal.dart';
 part 'bg_audio_handler_source.dart';
 part 'bg_audio_handler_reader.dart';
@@ -116,6 +120,7 @@ const int _streamRecoveryMaxDelayMs = 5000;
 
 class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   late final AudioPlayer _player;
+  final CastService casting = CastService();
   Stream<Duration>? _subtitlePositionStream;
   final ProviderContainer _ref;
   late final PlaybackSyncService _syncService;
@@ -123,8 +128,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   StreamSubscription<PlayerException>? _errorSubscription;
   StreamSubscription<PlayerState>? _playerStateSubscription;
   StreamSubscription<int?>? _playerCurrentIndexSubscription;
-  StreamSubscription<GoogleCastSession?>? _castSessionSubscription;
-  StreamSubscription<GoggleCastMediaStatus?>? _castMediaStatusSubscription;
+  StreamSubscription<bool>? _castSessionSubscription;
+  StreamSubscription<RemoteMediaStatus?>? _castMediaStatusSubscription;
   StreamSubscription<Duration>? _castPositionSubscription;
   late final StreamSubscription<String?> _activeUserIdSubscription;
   late final StreamSubscription<String?> _showLastPlayedMiniPlayerSettingSubscription;
@@ -179,12 +184,22 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   final BehaviorSubject<bool> _volumeBoostAvailableSubject = BehaviorSubject<bool>.seeded(supportsVolumeBoostPlatform);
   Stream<bool> get volumeBoostAvailableStream => _volumeBoostAvailableSubject.stream;
   bool get volumeBoostAvailable => _volumeBoostAvailableSubject.value;
-  double get maxVolume => supportsVolumeBoostPlatform && volumeBoostAvailable ? 2.0 : 1.0;
+  double get maxVolume =>
+      !casting.hasConnectedSession && supportsVolumeBoostPlatform && volumeBoostAvailable ? 2.0 : 1.0;
   double get volume => _volumeSubject.value;
   Stream<double> get effectivePlaybackSpeedStream {
-    return _speechPlaybackSubject
-        .switchMap((speech) => speech == null ? _player.speedStream : speech.states.map((_) => speech.rate))
-        .distinct();
+    return _speechPlaybackSubject.switchMap((speech) {
+      if (speech != null) {
+        return speech.states.map((_) => speech.rate);
+      }
+
+      return Rx.combineLatest3<double, RemoteMediaStatus?, bool, double>(
+        _player.speedStream,
+        casting.mediaStatusStream,
+        casting.connected,
+        (localSpeed, status, connected) => connected ? status?.playbackRate ?? 1 : localSpeed,
+      );
+    }).distinct();
   }
 
   double get effectivePlaybackSpeed {
@@ -195,7 +210,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     }
 
     if (isCastControlActive) {
-      return GoogleCastRemoteMediaClient.instance.mediaStatus?.playbackRate.toDouble() ?? _player.speed;
+      return casting.mediaStatus?.playbackRate.toDouble() ?? _player.speed;
     }
 
     return _player.speed;
@@ -282,6 +297,9 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   final BehaviorSubject<bool> _castControlActiveSubject = BehaviorSubject<bool>.seeded(false);
   String? _castControlledContentId;
   int _castControlledTrackIndex = 0;
+  bool _castTrackLoading = false;
+  bool _castConnecting = false;
+  Future<void>? _castDeactivation;
   bool? _castRequestedPlaying;
   Duration? _lastObservedCastPosition;
   DateTime? _lastCastPositionAdvance;
@@ -433,10 +451,16 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   }
 
   PlayerState get playerControlState => _playerControlStateSubject.value;
+  bool supportsFeature(PlaybackFeature feature) => casting.features.value.contains(feature);
+
+  Stream<bool> featureAvailability(PlaybackFeature feature) {
+    return casting.features.map((available) => available.contains(feature)).distinct();
+  }
+
   Stream<bool> get castControlActiveStream => _castControlActiveSubject.stream.distinct();
   bool get isCastControlActive => _castControlActiveSubject.value;
 
-  bool get _supportsCastPlatform => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+  bool get _supportsCastPlatform => CastService.isSupportedPlatform;
 
   Future<void> applySleepTimerAutoRewindNow() async {
     return _applySleepTimerAutoRewindNowInternal();
@@ -1084,6 +1108,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     _castControlledContentId = contentId;
     _castControlledTrackIndex = trackIndex < 0 ? 0 : trackIndex;
     _castRequestedPlaying = true;
+    _lastKnownCastPosition = _castAbsolutePosition(casting.playerPosition);
     _lastObservedCastPosition = null;
     _lastCastPositionAdvance = null;
     _refreshPlayerControlState();
@@ -1091,25 +1116,48 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   }
 
   Duration _lastKnownCastPosition = Duration.zero;
+  Duration? _castHandoffPosition;
 
-  Future<void> deactivateCastControl({Duration? fallbackPosition}) async {
-    final castPosition = fallbackPosition ?? _lastKnownCastPosition;
-
-    await _syncService.flush(positionOverride: castPosition);
-
-    _castControlledContentId = null;
-    _castControlledTrackIndex = 0;
-    _castRequestedPlaying = null;
-    _lastObservedCastPosition = null;
-    _lastCastPositionAdvance = null;
-    _lastKnownCastPosition = Duration.zero;
-
-    if (_currentMediaItem != null) {
-      await _seekInternal(castPosition);
+  Future<void> deactivateCastControl({Duration? fallbackPosition, bool restoreLocalPosition = true}) {
+    final pending = _castDeactivation;
+    if (pending != null) {
+      return pending;
     }
 
+    final operation = _deactivateCastControlInternal(
+      fallbackPosition: fallbackPosition,
+      restoreLocalPosition: restoreLocalPosition,
+    );
+    _castDeactivation = operation.whenComplete(() {
+      _castDeactivation = null;
+    });
+
+    return _castDeactivation!;
+  }
+
+  Future<void> _deactivateCastControlInternal({Duration? fallbackPosition, required bool restoreLocalPosition}) async {
+    final castPosition = fallbackPosition ?? _lastKnownCastPosition;
+    final castMedia = _currentMediaItem;
+    final ownsHandoff = _castHandoffPosition == null;
+    _castHandoffPosition = castPosition;
+    _clearCastControlTracking();
+    _lastKnownCastPosition = Duration.zero;
     _refreshPlayerControlState();
-    unawaited(_updatePlaybackState());
+
+    try {
+      if (restoreLocalPosition && castMedia != null && identical(_currentMediaItem, castMedia) && !_isDisposing) {
+        await _seekInternal(castPosition);
+      }
+
+      await _syncService.flush(positionOverride: castPosition, forcePositionSync: true);
+    } finally {
+      if (ownsHandoff) {
+        _castHandoffPosition = null;
+      }
+
+      _refreshPlayerControlState();
+      unawaited(_updatePlaybackState());
+    }
   }
 
   Stream<Duration> get durationStream {
@@ -1200,6 +1248,10 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   @override
   Future<void> play() async {
+    if (_castConnecting || _castTrackLoading) {
+      return;
+    }
+
     if (isReaderNarration && _forceQueueSwitchOnNextPlay && queueList.isNotEmpty) {
       await stop(clearQueue: false);
     }
@@ -1255,11 +1307,25 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
     if (isCastControlActive) {
       PlayerUtils.enableWakelock(_ref);
-      await GoogleCastRemoteMediaClient.instance.play();
-
       _castRequestedPlaying = true;
+      _castTrackLoading = true;
       _refreshPlayerControlState();
-      await _updatePlaybackState();
+
+      try {
+        await casting.play();
+      } on CastPlaybackException catch (error) {
+        final remote = casting.currentMedia;
+        if (error.canTranscode && remote != null && !remote.isTranscoded && _ref.read(absApiProvider) != null) {
+          await _loadCastPosition(position, autoPlay: true, forceTranscode: true);
+        } else {
+          await disconnectCast();
+          rethrow;
+        }
+      } finally {
+        _castTrackLoading = false;
+        _refreshPlayerControlState();
+        await _updatePlaybackState();
+      }
 
       return;
     }
@@ -1537,7 +1603,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
     if (shouldStopCastPlayback) {
       try {
-        await GoogleCastRemoteMediaClient.instance.stop();
+        await casting.stop();
       } catch (e) {
         logger('Error stopping cast playback: $e', tag: 'AudioHandler', level: InfoLevel.warning);
       }
@@ -1603,6 +1669,10 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   @override
   Future<void> pause() async {
+    if (_castConnecting || _castTrackLoading) {
+      return;
+    }
+
     _sleepTimerPlaybackGeneration++;
     PlayerUtils.disableWakelock(_ref);
     _resetStreamRecoveryState(clearWindow: true);
@@ -1618,7 +1688,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
     if (isCastControlActive) {
       _clearSmartRewindPauseMarker();
-      await GoogleCastRemoteMediaClient.instance.pause();
+      await casting.pause();
 
       _castRequestedPlaying = false;
       _refreshPlayerControlState();
@@ -1871,7 +1941,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     required bool internal,
     bool Function()? continuationIsCurrent,
   }) {
-    if (_currentMediaItem == null) {
+    if (_currentMediaItem == null || ((_castConnecting || _castTrackLoading) && _castHandoffPosition == null)) {
       return Future.value();
     }
 
@@ -1905,6 +1975,9 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     bool Function()? continuationIsCurrent,
   }) async {
     if (continuationIsCurrent != null && !continuationIsCurrent()) {
+      return;
+    }
+    if (isCastControlActive && seekRequestGeneration != _sleepTimerSeekRequestGeneration) {
       return;
     }
 
@@ -1960,10 +2033,20 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         _markPausedManualSeek(boundedPosition);
       }
 
+      if (isCastControlActive && boundedPosition == maxPosition) {
+        await disconnectCast(positionOverride: boundedPosition, restoreLocalPosition: false);
+      }
+
       if (isCastControlActive) {
         final relativePosition = _absoluteToCastRelativePosition(boundedPosition);
 
-        await GoogleCastRemoteMediaClient.instance.seek(GoogleCastMediaSeekOption(position: relativePosition));
+        final remote = casting.currentMedia;
+        if (remote != null &&
+            (boundedPosition < remote.trackOffset || boundedPosition >= remote.trackOffset + remote.duration)) {
+          await _loadCastPosition(boundedPosition, autoPlay: playerControlState.playing);
+        } else {
+          await casting.seek(relativePosition);
+        }
 
         _refreshPlayerControlState();
         _refreshChapterNotificationState(customPosition: boundedPosition);
@@ -2187,6 +2270,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         return;
       }
 
+      unawaited(_disconnectCastForUserChange());
       _androidAutoInvalidateBrowseState(this, notify: false);
       unawaited(_aaosHandleApiChanged(this));
     });
@@ -2802,6 +2886,12 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           }
         }
 
+        if (castActive) {
+          if (resolvedAction == 'speed' && !casting.features.value.contains(PlaybackFeature.speed)) {
+            continue;
+          }
+        }
+
         switch (resolvedAction) {
           case 'rewind':
             controls.add(
@@ -3110,6 +3200,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     await _castPositionSubscription?.cancel();
 
     _castPositionSubscription = null;
+    await casting.dispose();
     await _syncService.dispose();
     await _player.dispose();
 
