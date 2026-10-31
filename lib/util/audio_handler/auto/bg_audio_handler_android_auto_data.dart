@@ -248,12 +248,12 @@ extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
     }
 
     try {
-      final response = await api.getListApi().getCollections(extra: const <String, dynamic>{'doNotCache': true});
-      final items =
-          (response.data?.items ?? const <Collection>[])
-              .where((collection) => collection.libraryId == libraryId)
-              .toList(growable: false)
-            ..sort((left, right) => left.name.toLowerCase().compareTo(right.name.toLowerCase()));
+      final collections = await api.getListApi().getAllLibraryCollections(
+        libraryId,
+        extra: const <String, dynamic>{'doNotCache': true},
+      );
+      final items = collections.where((collection) => collection.libraryId == libraryId).toList(growable: false)
+        ..sort((left, right) => left.name.toLowerCase().compareTo(right.name.toLowerCase()));
       return items;
     } catch (e) {
       if (await _androidAutoIsAutomotiveSystem()) {
@@ -275,12 +275,12 @@ extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
     }
 
     try {
-      final response = await api.getListApi().getUserPlaylist(extra: const <String, dynamic>{'doNotCache': true});
-      final items =
-          (response.data?.items ?? const <Playlist>[])
-              .where((playlist) => playlist.libraryId == libraryId)
-              .toList(growable: false)
-            ..sort((left, right) => left.name.toLowerCase().compareTo(right.name.toLowerCase()));
+      final playlists = await api.getListApi().getAllLibraryPlaylists(
+        libraryId,
+        extra: const <String, dynamic>{'doNotCache': true},
+      );
+      final items = playlists.where((playlist) => playlist.libraryId == libraryId).toList(growable: false)
+        ..sort((left, right) => left.name.toLowerCase().compareTo(right.name.toLowerCase()));
       return items;
     } catch (e) {
       if (await _androidAutoIsAutomotiveSystem()) {

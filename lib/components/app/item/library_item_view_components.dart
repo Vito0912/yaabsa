@@ -20,6 +20,8 @@ List<ItemMetadataRowData> buildItemMetadataRows(
   required Duration? duration,
   required int? sizeBytes,
   required Future<void> Function(String filter) onFilterTap,
+  ItemMetadataRowData? collectionsRow,
+  ItemMetadataRowData? playlistsRow,
 }) {
   return <ItemMetadataRowData>[
     if (metadata?.series != null && metadata!.series!.isNotEmpty)
@@ -41,6 +43,8 @@ List<ItemMetadataRowData> buildItemMetadataRows(
             .map((author) => ItemLinkValue(label: author.name, onTap: () => context.push('/author/${author.id}')))
             .toList(),
       ),
+    ?collectionsRow,
+    ?playlistsRow,
     if (metadata?.narrators != null && metadata!.narrators!.isNotEmpty)
       ItemMetadataRowData(
         label: 'Narrators',
@@ -133,6 +137,7 @@ Widget buildItemActionButtons({
   bool showManualMatch = false,
   bool showAddToPlaylist = false,
   bool showAddToCollection = false,
+  bool manageMemberships = false,
   bool showDeleteItem = false,
   bool showPinAction = false,
   bool isPinned = false,
@@ -198,6 +203,7 @@ Widget buildItemActionButtons({
         showManualMatch: showManualMatch,
         showAddToPlaylist: showAddToPlaylist,
         showAddToCollection: showAddToCollection,
+        manageMemberships: manageMemberships,
         showDeleteItem: showDeleteItem,
         showPinAction: showPinAction,
         isPinned: isPinned,
@@ -278,6 +284,7 @@ Widget _buildSmallActionButtons(
   required bool showManualMatch,
   required bool showAddToPlaylist,
   required bool showAddToCollection,
+  required bool manageMemberships,
   required bool showDeleteItem,
   required bool showPinAction,
   required bool isPinned,
@@ -308,6 +315,7 @@ Widget _buildSmallActionButtons(
         showMarkAsUnfinished: showMarkAsUnfinished,
         showAddToPlaylist: showAddToPlaylist,
         showAddToCollection: showAddToCollection,
+        manageMemberships: manageMemberships,
         showDeleteItem: showDeleteItem,
         showPinAction: showPinAction,
         isPinned: isPinned,

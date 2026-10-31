@@ -29,9 +29,10 @@ import 'package:yaabsa/util/random_playback.dart';
 import 'package:yaabsa/util/setting_key.dart';
 
 class PlaylistDetailView extends HookConsumerWidget {
-  const PlaylistDetailView({required this.playlistId, super.key, this.initialEntry});
+  const PlaylistDetailView({required this.playlistId, super.key, this.initialEntry, this.libraryId});
 
   final String playlistId;
+  final String? libraryId;
   final MultiBookEntryData? initialEntry;
 
   @override
@@ -39,7 +40,8 @@ class PlaylistDetailView extends HookConsumerWidget {
     final scrollController = useScrollController();
     final selectedLibrary = ref.watch(selectedLibraryProvider);
     final serverReachable = ref.watch(serverStatusProvider).value ?? false;
-    if (selectedLibrary == null) {
+    final libraryId = this.libraryId ?? selectedLibrary?.id;
+    if (libraryId == null || libraryId.isEmpty) {
       return const Center(child: Text('No library selected. Please select a library via the switcher.'));
     }
 
@@ -48,12 +50,11 @@ class PlaylistDetailView extends HookConsumerWidget {
       return ConnectionIssueView.offline();
     }
 
-    final libraryId = selectedLibrary.id;
     final allPlaylistsAsync = ref.watch(playlistsProvider(libraryId));
     final currentUserId = ref.watch(currentUserProvider).value?.id;
     ref.watch(userSettingsWatcherProvider);
-    final allowBookSelection = selectedLibrary.mediaType == 'book';
     final resolvedPlaylist = _resolvePlaylist(playlistId, allPlaylistsAsync.value?.items);
+    final allowBookSelection = resolvedPlaylist?.items?.every((item) => item.episodeId == null) ?? false;
     final resolvedEntry = _resolveEntry(playlistId, initialEntry, resolvedPlaylist);
 
     if (resolvedPlaylist == null) {
@@ -330,15 +331,11 @@ Playlist? _resolvePlaylist(String playlistId, List<Playlist>? allPlaylists) {
 }
 
 MultiBookEntryData? _resolveEntry(String playlistId, MultiBookEntryData? initialEntry, Playlist? playlist) {
-  if (initialEntry != null && initialEntry.id == playlistId) {
-    return initialEntry;
-  }
-
   if (playlist != null) {
     return MultiBookEntryData.fromPlaylist(playlist);
   }
 
-  return initialEntry;
+  return initialEntry?.id == playlistId ? initialEntry : null;
 }
 
 List<LibraryItem> _playlistLibraryItems(List<PlaylistItem> playlistItems) {

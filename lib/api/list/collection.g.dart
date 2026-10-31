@@ -14,6 +14,7 @@ _Collection _$CollectionFromJson(Map<String, dynamic> json) => _Collection(
   description: json['description'] as String?,
   coverPath: json['coverPath'] as String?,
   items: (json['books'] as List<dynamic>?)?.map((e) => LibraryItem.fromJson(e as Map<String, dynamic>)).toList(),
+  numBooks: (json['numBooks'] as num?)?.toInt(),
   lastUpdate: (json['lastUpdate'] as num).toInt(),
   createdAt: (json['createdAt'] as num).toInt(),
 );
@@ -26,6 +27,7 @@ Map<String, dynamic> _$CollectionToJson(_Collection instance) => <String, dynami
   'description': instance.description,
   'coverPath': instance.coverPath,
   'books': instance.items,
+  'numBooks': instance.numBooks,
   'lastUpdate': instance.lastUpdate,
   'createdAt': instance.createdAt,
 };

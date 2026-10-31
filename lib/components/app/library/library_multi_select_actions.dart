@@ -59,7 +59,9 @@ Future<void> addSelectedLibraryItemsToPlaylist({
       if (response.data == null) {
         throw Exception('No playlist data returned from add request.');
       }
-      await ref.read(playlistsProvider(libraryId).notifier).refresh(withLoading: false, forceServer: true);
+      await ref
+          .read(playlistsProvider(libraryId).notifier)
+          .refresh(withLoading: false, forceServer: true, invalidatePending: true);
     },
     successMessage: 'Added ${selectedItems.length} selected item(s) to "${target.title}".',
     errorFallback: 'Could not add selected items to playlist.',
