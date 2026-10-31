@@ -19,6 +19,7 @@
 ### Changed
 
 - Redesign of the ebook reader
+- Redesign of the book details page
 - Improved the item editor layout to match new Audiobookshelf design
 - Integrated read-aloud and embedded book narration with player controls and sleep timers
 

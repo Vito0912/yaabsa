@@ -240,7 +240,7 @@ class SeekBar extends ConsumerWidget {
                     seekRows.add(
                       SeekBarRow(
                         isEstimated: audioHandler.readerSpeechIsEstimated,
-                        seekOnReleaseOnly: audioHandler.isReaderSpeech,
+                        seekOnReleaseOnly: audioHandler.isReaderSpeech || audioHandler.isCastControlActive,
                         trackHeight: trackHeight,
                         timeLabelsBelow: timeLabelsBelow,
                         showTimeLabels: showTimeLabels,
@@ -274,7 +274,7 @@ class SeekBar extends ConsumerWidget {
                     seekRows.add(
                       SeekBarRow(
                         isEstimated: audioHandler.readerSpeechIsEstimated,
-                        seekOnReleaseOnly: audioHandler.isReaderSpeech,
+                        seekOnReleaseOnly: audioHandler.isReaderSpeech || audioHandler.isCastControlActive,
                         trackHeight: trackHeight,
                         timeLabelsBelow: timeLabelsBelow,
                         showTimeLabels: showTimeLabels,

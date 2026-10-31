@@ -3,10 +3,11 @@ import 'package:yaabsa/components/changelog/changelog_entry_text.dart';
 import 'package:yaabsa/util/changelog.dart';
 
 class ChangelogReleaseCard extends StatelessWidget {
-  const ChangelogReleaseCard({super.key, required this.release, this.initiallyExpanded = false});
+  const ChangelogReleaseCard({super.key, required this.release, this.initiallyExpanded = false, this.onSponsor});
 
   final ChangelogRelease release;
   final bool initiallyExpanded;
+  final VoidCallback? onSponsor;
 
   @override
   Widget build(BuildContext context) {
@@ -35,21 +36,30 @@ class ChangelogReleaseCard extends StatelessWidget {
                     Text(section.title, style: theme.textTheme.titleSmall?.copyWith(color: colors.primary)),
                     const SizedBox(height: 8),
                     for (final entry in section.entries)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('•  '),
-                            Expanded(
-                              child: SelectionArea(child: ChangelogEntryText(entry: entry)),
-                            ),
-                          ],
-                        ),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('•  '),
+                          Expanded(
+                            child: SelectionArea(child: ChangelogEntryText(entry: entry)),
+                          ),
+                        ],
                       ),
                   ],
                 ),
               ),
+          if (onSponsor != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  onPressed: onSponsor,
+                  icon: const Icon(Icons.favorite_outline),
+                  label: const Text('Sponsors'),
+                ),
+              ),
+            ),
         ],
       ),
     );

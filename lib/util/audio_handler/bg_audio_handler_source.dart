@@ -11,6 +11,11 @@ extension _BGAudioHandlerSource on BGAudioHandler {
       return;
     }
 
+    if (casting.currentMedia != null && casting.currentMedia!.contentId != loadingMedia.id) {
+      await casting.disconnect();
+      _clearCastControlTracking();
+    }
+
     await _applyPreferredPlaybackSpeed(seedPerBookSpeedWhenMissing: true);
     if (!identical(_currentMediaItem, loadingMedia) || _isDisposing) {
       throw PlayerInterruptedException('Playback preparation interrupted');

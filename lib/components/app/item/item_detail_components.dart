@@ -6,6 +6,9 @@ class ItemHeroCard extends StatelessWidget {
     required this.cover,
     required this.title,
     this.subtitle,
+    this.byline,
+    this.summary,
+    this.progressValue = 0,
     required this.actions,
     required this.compactLayout,
     required this.onBack,
@@ -14,88 +17,133 @@ class ItemHeroCard extends StatelessWidget {
   final Widget cover;
   final String title;
   final String? subtitle;
+  final String? byline;
+  final String? summary;
+  final double progressValue;
   final Widget actions;
   final bool compactLayout;
   final VoidCallback onBack;
 
   @override
   Widget build(BuildContext context) {
-    final coverSize = compactLayout ? 186.0 : 236.0;
-    final coverWidget = ClipRRect(
-      borderRadius: BorderRadius.circular(12),
-      child: SizedBox(width: coverSize, height: coverSize, child: cover),
-    );
-
-    return Card(
-      elevation: 0,
-      clipBehavior: Clip.antiAlias,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final theme = Theme.of(context);
+        final coverSize = compactLayout ? 128.0 : 200.0;
+        final textScale = MediaQuery.textScalerOf(context).scale(14) / 14;
+        final coverSpacing = compactLayout ? 12.0 : 20.0;
+        final actionSpace = constraints.maxWidth - 24 - coverSize - coverSpacing;
+        final placeActionsBesideCover = actionSpace >= 320 * textScale;
+        final coverWidget = SizedBox.square(
+          dimension: coverSize,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Stack(
+              fit: StackFit.expand,
               children: [
-                IconButton(onPressed: onBack, icon: const Icon(Icons.arrow_back_rounded), tooltip: 'Back'),
-                const SizedBox(width: 4),
-                Text('Book details', style: Theme.of(context).textTheme.titleSmall),
-              ],
-            ),
-            const SizedBox(height: 6),
-            if (compactLayout)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Align(alignment: Alignment.centerLeft, child: coverWidget),
-                  const SizedBox(height: 10),
-                  _TitleAndActions(title: title, subtitle: subtitle, actions: actions),
-                ],
-              )
-            else
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  coverWidget,
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _TitleAndActions(title: title, subtitle: subtitle, actions: actions),
+                cover,
+                if (progressValue > 0) ...[
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: LinearProgressIndicator(
+                      value: progressValue.clamp(0.0, 1.0),
+                      minHeight: 6,
+                      backgroundColor: Colors.black54,
+                      semanticsLabel: 'Listening progress',
+                    ),
+                  ),
+                  Positioned(
+                    right: 6,
+                    bottom: 10,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surface.withValues(alpha: 0.92),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '${(progressValue.clamp(0.0, 1.0) * 100).toStringAsFixed(1)}%',
+                        style: theme.textTheme.labelMedium,
+                      ),
+                    ),
                   ),
                 ],
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _TitleAndActions extends StatelessWidget {
-  const _TitleAndActions({required this.title, this.subtitle, required this.actions});
-
-  final String title;
-  final String? subtitle;
-  final Widget actions;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(title, maxLines: 3, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.titleLarge),
-        if (subtitle != null && subtitle!.trim().isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Text(
-              subtitle!,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodyMedium
-                  ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+              ],
             ),
           ),
-        const SizedBox(height: 10),
-        actions,
-      ],
+        );
+        final heading = Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: (compactLayout ? theme.textTheme.titleLarge : theme.textTheme.headlineSmall)?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            if (subtitle != null && subtitle!.trim().isNotEmpty) ...[
+              const SizedBox(height: 2),
+              Text(subtitle!, style: theme.textTheme.bodyMedium),
+            ],
+            if (byline != null && byline!.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(byline!, style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+            ],
+            if (summary != null && summary!.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(summary!, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+            ],
+          ],
+        );
+
+        return Card(
+          margin: EdgeInsets.zero,
+          elevation: 0,
+          color: theme.colorScheme.surfaceContainerLow,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    IconButton(onPressed: onBack, icon: const Icon(Icons.arrow_back_rounded), tooltip: 'Back'),
+                    Text('Book details', style: theme.textTheme.labelLarge),
+                  ],
+                ),
+                if (!placeActionsBesideCover) ...[
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      coverWidget,
+                      const SizedBox(width: 12),
+                      Expanded(child: heading),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  actions,
+                ] else
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      coverWidget,
+                      SizedBox(width: coverSpacing),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [heading, const SizedBox(height: 12), actions],
+                        ),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -134,11 +182,22 @@ class ItemExpandableSection extends StatelessWidget {
 }
 
 class ItemMetadataCard extends StatelessWidget {
-  const ItemMetadataCard({super.key, required this.rows, this.inlineValues = false, this.useCard = true});
+  const ItemMetadataCard({
+    super.key,
+    required this.rows,
+    this.inlineValues = false,
+    this.useCard = true,
+    this.showHeading = true,
+    this.gridLayout = false,
+    this.maxColumns = 2,
+  });
 
   final List<ItemMetadataRowData> rows;
   final bool inlineValues;
   final bool useCard;
+  final bool showHeading;
+  final bool gridLayout;
+  final int maxColumns;
 
   @override
   Widget build(BuildContext context) {
@@ -147,10 +206,45 @@ class ItemMetadataCard extends StatelessWidget {
     }
 
     final content = Padding(
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: rows.map((row) => _ItemMetadataRow(row: row, inlineValues: inlineValues)).toList(),
+        children: [
+          if (showHeading) ...[
+            Text('Book information', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
+          ],
+          if (gridLayout)
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final textScale = MediaQuery.textScalerOf(context).scale(14) / 14;
+                final columns = (constraints.maxWidth / (130 * textScale)).floor().clamp(1, maxColumns);
+                final width = (constraints.maxWidth - (columns - 1) * 12) / columns;
+
+                return Wrap(
+                  spacing: 12,
+                  runSpacing: 4,
+                  children: [
+                    for (final row in rows)
+                      SizedBox(
+                        width: row.label == 'Series' || row.label == 'Tags' ? constraints.maxWidth : width,
+                        child: _ItemMetadataRow(row: row, inlineValues: false),
+                      ),
+                  ],
+                );
+              },
+            )
+          else
+            for (var index = 0; index < rows.length; index++) ...[
+              if (index > 0)
+                Divider(
+                  height: 8,
+                  thickness: 1,
+                  color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.45),
+                ),
+              _ItemMetadataRow(row: rows[index], inlineValues: inlineValues),
+            ],
+        ],
       ),
     );
 
@@ -158,7 +252,14 @@ class ItemMetadataCard extends StatelessWidget {
       return content;
     }
 
-    return Card(elevation: 0, clipBehavior: Clip.antiAlias, child: content);
+    return Card(
+      margin: EdgeInsets.zero,
+      elevation: 0,
+      color: Theme.of(context).colorScheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      clipBehavior: Clip.antiAlias,
+      child: content,
+    );
   }
 }
 
@@ -185,19 +286,19 @@ class _ItemMetadataRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final labelStyle = Theme.of(context).textTheme.labelSmall
-        ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant, letterSpacing: 0.4);
-    const labelColumnWidth = 120.0;
+    final labelStyle = Theme.of(context).textTheme.labelMedium
+        ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant);
+    final labelColumnWidth = MediaQuery.textScalerOf(context).scale(80.0).clamp(80.0, 120.0);
 
     if (inlineValues) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 2),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             SizedBox(
               width: labelColumnWidth,
-              child: Text(row.label.toUpperCase(), style: labelStyle),
+              child: Text(row.label, style: labelStyle),
             ),
             const SizedBox(width: 8),
             Expanded(
@@ -211,30 +312,22 @@ class _ItemMetadataRow extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 2),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(row.label.toUpperCase(), style: labelStyle),
-          const SizedBox(height: 3),
+          Text(row.label, style: labelStyle),
+          const SizedBox(height: 2),
           if (row.value != null)
-            Text(row.value!, style: Theme.of(context).textTheme.bodyLarge)
+            ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 28),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(row.value!, style: Theme.of(context).textTheme.bodyMedium),
+              ),
+            )
           else if (row.values != null)
-            Wrap(
-              spacing: 6,
-              runSpacing: -4,
-              children: row.values!
-                  .map(
-                    (value) => value.onTap == null
-                        ? Chip(label: Text(value.label), visualDensity: VisualDensity.compact)
-                        : ActionChip(
-                            label: Text(value.label),
-                            visualDensity: VisualDensity.compact,
-                            onPressed: value.onTap,
-                          ),
-                  )
-                  .toList(),
-            ),
+            _InlineLinkValues(values: row.values!),
         ],
       ),
     );
@@ -248,40 +341,56 @@ class _InlineLinkValues extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textStyle = Theme.of(context).textTheme.bodyMedium;
-    final muted = Theme.of(context).colorScheme.onSurfaceVariant;
-    final surface = Theme.of(context).colorScheme.onSurface;
-
     return Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        for (int i = 0; i < values.length; i++) ...[
-          if (i > 0) Text(', ', style: textStyle?.copyWith(color: muted)),
-          _InlineLinkText(label: values[i].label, onTap: values[i].onTap, color: surface),
-        ],
+        for (var index = 0; index < values.length; index++)
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (index > 0) ...[
+                ExcludeSemantics(
+                  child: Text(
+                    '·',
+                    style: Theme.of(context).textTheme.bodyMedium
+                        ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  ),
+                ),
+                const SizedBox(width: 6),
+              ],
+              Flexible(
+                child: _InlineLinkText(label: values[index].label, onTap: values[index].onTap),
+              ),
+            ],
+          ),
       ],
     );
   }
 }
 
 class _InlineLinkText extends StatelessWidget {
-  const _InlineLinkText({required this.label, this.onTap, required this.color});
+  const _InlineLinkText({required this.label, this.onTap});
 
   final String label;
   final VoidCallback? onTap;
-  final Color color;
 
   @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      cursor: onTap == null ? SystemMouseCursors.basic : SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: onTap,
-        child: Text(
-          label,
-          style: Theme.of(context).textTheme.bodyMedium
-              ?.copyWith(color: color, decoration: onTap == null ? TextDecoration.none : TextDecoration.underline),
-        ),
+    if (onTap == null) {
+      return Text(label, style: Theme.of(context).textTheme.bodyMedium);
+    }
+
+    return TextButton(
+      onPressed: onTap,
+      style: TextButton.styleFrom(
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        minimumSize: const Size(0, 28),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        alignment: Alignment.centerLeft,
       ),
+      child: Text(label),
     );
   }
 }
