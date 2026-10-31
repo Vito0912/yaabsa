@@ -2087,8 +2087,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         _currentTrackIndex = newTrackIndex;
         await _player.seek(relativeTrackPosition, index: _currentTrackIndex);
 
-        if (!kIsWeb && (Platform.isWindows || Platform.isLinux)) {
-          // Bugfix for Windows as it doesn't seek correctly if the index changed
+        if (!kIsWeb && Platform.isLinux) {
           _player.playerStateStream.firstWhere((state) => state.processingState == ProcessingState.ready).then((
             _,
           ) async {
@@ -2380,7 +2379,9 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
       targetBufferBytes: bufferSize,
     );
 
-    JustAudioMediaKit.bufferSize = bufferSize;
+    if (!kIsWeb && Platform.isLinux) {
+      JustAudioMediaKit.bufferSize = bufferSize;
+    }
 
     final DarwinLoadControl iOSLoadControl = DarwinLoadControl(
       // iOS does what iOS wants anyways

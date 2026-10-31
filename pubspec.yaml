@@ -92,11 +92,10 @@ dependencies:
   ## Windows
   audio_service_win:
     path: ./packages/audio_service_win
-  media_kit_libs_windows_audio:
+  just_audio_windows_plus:
     git:
-      url: https://github.com/Vito0912/media-kit.git
-      ref: aed5d67c9364e7e67361cba5947fdec6af1ffca4
-      path: libs/windows/media_kit_libs_windows_audio
+      url: https://github.com/OmarAfifi-CSE/just_audio_windows_plus.git
+      ref: e3663432f6abb68bceb26b5d3b3940243e9f3583
 
   ## Linux
   audio_service_mpris: ^0.2.1 # Needs to be tested
