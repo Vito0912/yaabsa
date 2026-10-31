@@ -170,12 +170,13 @@ class Init {
       AudioServiceMpris.registerWith();
     }
 
-    final libmpvPath = _resolveLibmpvPath();
     final settingsManager = containerRef.read(settingsManagerProvider.notifier);
-    if (libmpvPath != null) {
-      logger('Using libmpv at $libmpvPath', tag: 'Init', level: InfoLevel.info);
-    }
-    if (!kIsWeb) {
+    if (!kIsWeb && Platform.isLinux) {
+      final libmpvPath = _resolveLibmpvPath();
+      if (libmpvPath != null) {
+        logger('Using libmpv at $libmpvPath', tag: 'Init', level: InfoLevel.info);
+      }
+
       JustAudioMediaKit.prefetchPlaylist = false;
       JustAudioMediaKit.mpvLogLevel = MPVLogLevel.warn;
       JustAudioMediaKit.nativeLogCallback = (playerId, level, prefix, message) {
@@ -194,10 +195,12 @@ class Init {
           ],
         );
       };
-      JustAudioMediaKit.ensureInitialized(linux: true, windows: true, libmpv: libmpvPath);
+      JustAudioMediaKit.ensureInitialized(linux: true, windows: false, libmpv: libmpvPath);
       final disableFdk = settingsManager.getGlobalSetting<bool>(SettingKeys.disableFdkAacDecoder);
       JustAudioMediaKit.excludedAudioDecoders = disableFdk ? const {'libfdk_aac'} : const {};
       logger('FDK AAC decoder disabled by setting: $disableFdk', tag: 'Init', level: InfoLevel.info);
+    } else if (!kIsWeb && Platform.isWindows) {
+      logger('Using Windows MediaPlayer', tag: 'Init', level: InfoLevel.info);
     }
 
     final ffSeconds = settingsManager.getGlobalSetting<int>(SettingKeys.fastForwardInterval, defaultValue: 10);

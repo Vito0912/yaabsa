@@ -10,8 +10,7 @@ class PlayerSettingsCompatibility extends StatelessWidget {
   const PlayerSettingsCompatibility({super.key});
 
   static const String routeName = '/settings/player/compatibility';
-  static bool get _supportsFdkAacDecoder =>
-      !kIsWeb && (defaultTargetPlatform == TargetPlatform.linux || defaultTargetPlatform == TargetPlatform.windows);
+  static bool get _supportsFdkAacDecoder => !kIsWeb && defaultTargetPlatform == TargetPlatform.linux;
   static bool get _supportsIndexSeeking => !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
 
   static bool get isSupported => _supportsFdkAacDecoder || _supportsIndexSeeking;
