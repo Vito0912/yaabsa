@@ -7,6 +7,7 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:audio_service/audio_service.dart';
+import 'package:yaabsa/util/android_cover_cache.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:background_downloader/background_downloader.dart' show TaskRecord, TaskStatus;
 import 'package:device_info_plus/device_info_plus.dart';
@@ -976,12 +977,13 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           final generation = _androidAutoBrowseCache.generation;
 
           final decorated = await _aaosAttachBrowseActions(this, children, limit: actionLimit);
+          final prepared = await prepareAndroidCarArtwork(decorated, packageName: packageInfo.packageName);
 
           if (generation != _androidAutoBrowseCache.generation) {
             throw const AndroidAutoBrowseStaleRequestException();
           }
 
-          return decorated;
+          return prepared;
         } on AndroidAutoBrowseStaleRequestException {
           if (!await _androidAutoIsAutomotiveSystem()) {
             rethrow;
@@ -1004,7 +1006,9 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         return null;
       }
 
-      return (await _aaosAttachBrowseActions(this, [item])).first;
+      final decorated = await _aaosAttachBrowseActions(this, [item]);
+      final prepared = await prepareAndroidCarArtwork(decorated, packageName: packageInfo.packageName);
+      return prepared.first;
     }, zoneValues: {#carBrowseRequest: true});
   }
 
@@ -1015,7 +1019,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
       final actionLimit = extras?[_aaosBrowseActionLimitKey] as int? ?? 0;
 
-      return _aaosAttachBrowseActions(this, items, limit: actionLimit);
+      final decorated = await _aaosAttachBrowseActions(this, items, limit: actionLimit);
+      return prepareAndroidCarArtwork(decorated, packageName: packageInfo.packageName);
     }, zoneValues: {#carBrowseRequest: true});
   }
 
