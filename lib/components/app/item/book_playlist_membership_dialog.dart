@@ -8,7 +8,9 @@ import 'package:yaabsa/util/playlist_membership.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 
 Future<void> showBookPlaylistMembershipDialog({required BuildContext context, required LibraryItem item}) async {
-  if (item.libraryId == null || item.libraryId!.isEmpty) return;
+  if (item.libraryId == null || item.libraryId!.isEmpty) {
+    return;
+  }
   final saved = await showDialog<bool>(
     context: context,
     barrierDismissible: false,
@@ -28,11 +30,18 @@ class BookPlaylistMembershipDialog extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final libraryId = item.libraryId!;
     final userId = ref.watch(currentUserProvider).value?.id;
+    final lists = ref.watch(playlistsProvider(libraryId));
     return BookListMembershipDialog<Playlist>(
-      entries: ref.watch(playlistsProvider(libraryId)).whenData((state) {
-        if (state.error != null) throw state.error!;
+      entries: lists.whenData((state) {
+        if (state.error != null) {
+          throw state.error!;
+        }
         return state.items.where((entry) => entry.libraryId == libraryId).toList(growable: false);
       }),
+      hasNextPage: lists.value?.hasNextPage ?? false,
+      isLoadingNextPage: lists.value?.isLoadingNextPage ?? false,
+      nextPageError: lists.value?.nextPageError,
+      onLoadMore: () => ref.read(playlistsProvider(libraryId).notifier).loadNextPage(),
       allowed: userId != null && userId.isNotEmpty,
       plural: 'playlists',
       bookTitle: item.title,
@@ -43,9 +52,15 @@ class BookPlaylistMembershipDialog extends ConsumerWidget {
         PlaylistMembership.absent => false,
         PlaylistMembership.unknown => null,
       },
+      sameRevision: samePlaylistMembershipRevision,
+      canRetryEntry: (entry) => !hasCompletePlaylistItems(entry),
       disabledReason: (entry) {
-        if (!canEditPlaylistMembership(entry, userId)) return 'Only your own playlists can be edited.';
-        if (!hasCompletePlaylistItems(entry)) return 'Full item list unavailable. Reload playlists before editing.';
+        if (!canEditPlaylistMembership(entry, userId)) {
+          return 'Only your own playlists can be edited.';
+        }
+        if (!hasCompletePlaylistItems(entry)) {
+          return 'Full item list unavailable.';
+        }
         return null;
       },
       confirmSave: (original, selected) async {
@@ -58,7 +73,9 @@ class BookPlaylistMembershipDialog extends ConsumerWidget {
             )
             .map((entry) => entry.name)
             .toList();
-        if (deleted.isEmpty) return true;
+        if (deleted.isEmpty) {
+          return true;
+        }
         return await showDialog<bool>(
               context: context,
               builder: (dialogContext) => AlertDialog(

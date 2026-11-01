@@ -15,7 +15,8 @@ class ListApi {
   Future<Response<LibraryListPage<Collection>>> getLibraryCollections(
     String libraryId, {
     int page = 0,
-    int limit = 50,
+    int limit = libraryListPageSize,
+    bool trimToLimit = false,
     bool forceServer = false,
     Map<String, dynamic>? extra,
   }) => _getLibraryPage(
@@ -24,6 +25,7 @@ class ListApi {
     Collection.fromJson,
     page: page,
     limit: limit,
+    trimToLimit: trimToLimit,
     forceServer: forceServer,
     extra: extra,
   );
@@ -31,7 +33,8 @@ class ListApi {
   Future<Response<LibraryListPage<Playlist>>> getLibraryPlaylists(
     String libraryId, {
     int page = 0,
-    int limit = 50,
+    int limit = libraryListPageSize,
+    bool trimToLimit = false,
     bool forceServer = false,
     Map<String, dynamic>? extra,
   }) => _getLibraryPage(
@@ -40,6 +43,7 @@ class ListApi {
     Playlist.fromJson,
     page: page,
     limit: limit,
+    trimToLimit: trimToLimit,
     forceServer: forceServer,
     extra: extra,
   );
@@ -51,13 +55,21 @@ class ListApi {
     required int page,
     required int limit,
     required bool forceServer,
+    required bool trimToLimit,
     Map<String, dynamic>? extra,
   }) {
-    if (libraryId.isEmpty || page < 0 || limit <= 0) throw ArgumentError('Invalid library pagination.');
+    if (libraryId.isEmpty || page < 0 || limit <= 0) {
+      throw ArgumentError('Invalid library pagination.');
+    }
     return ABSApi.makeApiGetRequest(
       route: '/api/libraries/$libraryId/$resource',
-      fromJson: (data) =>
-          LibraryListPage.fromJson(Map<String, dynamic>.from(data), parse, requestedPage: page, requestedLimit: limit),
+      fromJson: (data) => LibraryListPage.fromJson(
+        Map<String, dynamic>.from(data),
+        parse,
+        requestedPage: page,
+        requestedLimit: limit,
+        trimToLimit: trimToLimit,
+      ),
       dio: _dio,
       extra: {...?extra, if (forceServer) 'noCache': true},
       queryParams: {'page': page, 'limit': limit},
@@ -85,13 +97,11 @@ class ListApi {
         throw const FormatException('Incomplete library list response.');
       }
       items.addAll(data.items);
-      if (!data.hasMore) return items;
-      if (data.items.length % data.limit != 0) {
-        throw const FormatException('Invalid library list page boundary.');
+      if (!data.hasMore) {
+        return items;
       }
-      // Some servers return more than the requested limit. Skip the entire
-      // received range so subsequent requests do not download duplicate entries.
-      page += data.items.length ~/ data.limit;
+
+      page = data.nextPage;
     }
   }
 

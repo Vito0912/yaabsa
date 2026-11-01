@@ -10,6 +10,31 @@ import 'collection_test_support.dart';
 import '../playlists/playlist_test_support.dart' as playlists;
 
 void main() {
+  test('a requested automotive page trims oversized responses before parsing models', () {
+    var parsed = 0;
+    final page = LibraryListPage<String>.fromJson(
+      {
+        'results': List.generate(5000, (index) => {'id': 'List ${index + 50}'}),
+        'total': 5101,
+        'page': 1,
+        'limit': 50,
+      },
+      (item) {
+        parsed++;
+        return item['id'] as String;
+      },
+      requestedPage: 1,
+      requestedLimit: 50,
+      trimToLimit: true,
+    );
+
+    expect(parsed, 50);
+    expect(page.items.first, 'List 50');
+    expect(page.items.last, 'List 99');
+    expect(page.nextPage, 2);
+    expect(page.hasMore, isTrue);
+  });
+
   test('oversized server pages advance past all received entries without duplicates', () async {
     for (final kind in ['collections', 'playlists']) {
       for (final count in [121, 5101]) {
@@ -68,8 +93,11 @@ void main() {
     expect(items, hasLength(121));
     expect(items.every((item) => item.libraryId == 'library'), isTrue);
     expect(server.requests.map((request) => request.uri.path).toSet(), {'/api/libraries/library/collections'});
-    expect(server.requests.map((request) => request.uri.queryParameters['page']), ['0', '1', '2']);
-    expect(server.requests.every((request) => request.uri.queryParameters['limit'] == '50'), isTrue);
+    expect(
+      server.requests.map((request) => request.uri.queryParameters['page']),
+      List.generate((items.length / libraryListPageSize).ceil(), (index) => '$index'),
+    );
+    expect(server.requests.every((request) => request.uri.queryParameters['limit'] == '$libraryListPageSize'), isTrue);
     expect(server.requests.every((request) => request.extra['noCache'] == true), isTrue);
   });
 
@@ -81,7 +109,10 @@ void main() {
     final items = await server.api.getListApi().getAllLibraryPlaylists('library', extra: {'doNotCache': true});
     expect(items.map((item) => item.id), List.generate(103, (index) => 'Playlist $index'));
     expect(server.requests.map((request) => request.uri.path).toSet(), {'/api/libraries/library/playlists'});
-    expect(server.requests.map((request) => request.uri.queryParameters['page']), ['0', '1', '2']);
+    expect(
+      server.requests.map((request) => request.uri.queryParameters['page']),
+      List.generate((items.length / libraryListPageSize).ceil(), (index) => '$index'),
+    );
     expect(server.requests.every((request) => request.extra['doNotCache'] == true), isTrue);
   });
 

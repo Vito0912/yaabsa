@@ -668,42 +668,34 @@ extension _BGAudioHandlerAutoQueueExtension on BGAudioHandler {
       throw Exception('Missing playlist id for auto queue');
     }
 
-    final playlists = (await _ref.read(playlistsProvider(context.libraryId).future)).items;
+    final playlist = await _ref.read(playlistByIdProvider(context.libraryId, playlistId).future);
 
-    for (final playlist in playlists) {
-      if (playlist.id != playlistId) {
+    final items = <_AutoQueueItemCandidate>[];
+    final seen = <String>{};
+    for (final playlistItem in playlist.items ?? const []) {
+      final libraryItem = playlistItem.libraryItem;
+      if (libraryItem == null || libraryItem.id.isEmpty) {
+        continue;
+      }
+      if (libraryItem.libraryId != null && libraryItem.libraryId != context.libraryId) {
         continue;
       }
 
-      final items = <_AutoQueueItemCandidate>[];
-      final seen = <String>{};
-      for (final playlistItem in playlist.items ?? const []) {
-        final libraryItem = playlistItem.libraryItem;
-        if (libraryItem == null || libraryItem.id.isEmpty) {
-          continue;
-        }
-        if (libraryItem.libraryId != null && libraryItem.libraryId != context.libraryId) {
-          continue;
-        }
-
-        final episode = playlistItem.episode;
-        final queueItem = QueueItem(itemId: libraryItem.id, episodeId: playlistItem.episodeId ?? episode?.id);
-        final referenceKey = _queueItemReferenceKey(itemId: queueItem.itemId, episodeId: queueItem.episodeId);
-        if (!seen.add(referenceKey)) {
-          continue;
-        }
-
-        final displayInfo = episode == null
-            ? _displayInfoFromLibraryItem(libraryItem)
-            : _displayInfoFromPodcastEpisode(libraryItem, episode);
-
-        items.add(_AutoQueueItemCandidate(queueItem: queueItem, referenceKey: referenceKey, displayInfo: displayInfo));
+      final episode = playlistItem.episode;
+      final queueItem = QueueItem(itemId: libraryItem.id, episodeId: playlistItem.episodeId ?? episode?.id);
+      final referenceKey = _queueItemReferenceKey(itemId: queueItem.itemId, episodeId: queueItem.episodeId);
+      if (!seen.add(referenceKey)) {
+        continue;
       }
 
-      return items;
+      final displayInfo = episode == null
+          ? _displayInfoFromLibraryItem(libraryItem)
+          : _displayInfoFromPodcastEpisode(libraryItem, episode);
+
+      items.add(_AutoQueueItemCandidate(queueItem: queueItem, referenceKey: referenceKey, displayInfo: displayInfo));
     }
 
-    return const <_AutoQueueItemCandidate>[];
+    return items;
   }
 
   Future<List<_AutoQueueItemCandidate>> _resolveCollectionItems(_AutoQueueRequestContext context) async {
@@ -717,40 +709,32 @@ extension _BGAudioHandlerAutoQueueExtension on BGAudioHandler {
       throw Exception('Missing collection id for auto queue');
     }
 
-    final collections = (await _ref.read(collectionsProvider(context.libraryId).future)).items;
+    final collection = await _ref.read(collectionByIdProvider(context.libraryId, collectionId).future);
 
-    for (final collection in collections) {
-      if (collection.id != collectionId) {
+    final items = <_AutoQueueItemCandidate>[];
+    final seen = <String>{};
+    for (final item in collection.items ?? const []) {
+      if (item.id.isEmpty) {
+        continue;
+      }
+      if (item.libraryId != null && item.libraryId != context.libraryId) {
         continue;
       }
 
-      final items = <_AutoQueueItemCandidate>[];
-      final seen = <String>{};
-      for (final item in collection.items ?? const []) {
-        if (item.id.isEmpty) {
-          continue;
-        }
-        if (item.libraryId != null && item.libraryId != context.libraryId) {
-          continue;
-        }
-
-        final queueItem = QueueItem(itemId: item.id);
-        final referenceKey = _queueItemReferenceKey(itemId: queueItem.itemId, episodeId: queueItem.episodeId);
-        if (seen.add(referenceKey)) {
-          items.add(
-            _AutoQueueItemCandidate(
-              queueItem: queueItem,
-              referenceKey: referenceKey,
-              displayInfo: _displayInfoFromLibraryItem(item),
-            ),
-          );
-        }
+      final queueItem = QueueItem(itemId: item.id);
+      final referenceKey = _queueItemReferenceKey(itemId: queueItem.itemId, episodeId: queueItem.episodeId);
+      if (seen.add(referenceKey)) {
+        items.add(
+          _AutoQueueItemCandidate(
+            queueItem: queueItem,
+            referenceKey: referenceKey,
+            displayInfo: _displayInfoFromLibraryItem(item),
+          ),
+        );
       }
-
-      return items;
     }
 
-    return const <_AutoQueueItemCandidate>[];
+    return items;
   }
 
   Future<List<_AutoQueueItemCandidate>> _resolvePodcastEpisodeItems(_AutoQueueRequestContext context) async {

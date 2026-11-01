@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
+
 import 'package:yaabsa/components/common/screen_refresh_indicator.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
@@ -50,28 +52,30 @@ class PlaylistDetailView extends HookConsumerWidget {
       return ConnectionIssueView.offline();
     }
 
-    final allPlaylistsAsync = ref.watch(playlistsProvider(libraryId));
+    final details = ref.watch(playlistByIdProvider(libraryId, playlistId));
     final currentUserId = ref.watch(currentUserProvider).value?.id;
     ref.watch(userSettingsWatcherProvider);
-    final resolvedPlaylist = _resolvePlaylist(playlistId, allPlaylistsAsync.value?.items);
+    final resolvedPlaylist = details.hasError ? null : details.value;
     final allowBookSelection = resolvedPlaylist?.items?.every((item) => item.episodeId == null) ?? false;
     final resolvedEntry = _resolveEntry(playlistId, initialEntry, resolvedPlaylist);
 
     if (resolvedPlaylist == null) {
-      if (allPlaylistsAsync.isLoading) {
+      if (details.isLoading) {
         return const Center(child: CircularProgressIndicator());
       }
-      if (allPlaylistsAsync.hasError) {
+      final error = details.error;
+      final missing = error is DioException && error.response?.statusCode == 404;
+      if (details.hasError && !missing) {
         if (!serverReachable) {
           return ConnectionIssueView.offline(
-            onRetry: () => ref.read(playlistsProvider(libraryId).notifier).refresh(withLoading: true),
+            onRetry: () => ref.refresh(playlistByIdProvider(libraryId, playlistId).future),
           );
         }
 
         return ConnectionIssueView.requestFailed(
-          error: allPlaylistsAsync.error ?? Exception('Unknown playlist loading error.'),
+          error: details.error ?? Exception('Unknown playlist loading error.'),
           title: 'Playlist details could not be loaded',
-          onRetry: () => ref.read(playlistsProvider(libraryId).notifier).refresh(withLoading: true),
+          onRetry: () => ref.refresh(playlistByIdProvider(libraryId, playlistId).future),
         );
       }
 
@@ -198,7 +202,7 @@ class PlaylistDetailView extends HookConsumerWidget {
                   children: [
                     Positioned.fill(
                       child: ScreenRefreshIndicator(
-                        onRefresh: () => ref.read(playlistsProvider(libraryId).notifier).refresh(withLoading: false),
+                        onRefresh: () => ref.refresh(playlistByIdProvider(libraryId, playlistId).future),
                         child: AlignedGridView.count(
                           controller: scrollController,
                           physics: const AlwaysScrollableScrollPhysics(),
@@ -316,18 +320,6 @@ LibraryItem _libraryItemForPlaylistEpisode(LibraryItem item, Episode episode) {
     recentEpisode: episode,
     media: media.copyWith(podcastMedia: podcastMedia.copyWith(episodes: <Episode>[episode])),
   );
-}
-
-Playlist? _resolvePlaylist(String playlistId, List<Playlist>? allPlaylists) {
-  if (allPlaylists == null) return null;
-
-  for (final playlist in allPlaylists) {
-    if (playlist.id == playlistId) {
-      return playlist;
-    }
-  }
-
-  return null;
 }
 
 MultiBookEntryData? _resolveEntry(String playlistId, MultiBookEntryData? initialEntry, Playlist? playlist) {

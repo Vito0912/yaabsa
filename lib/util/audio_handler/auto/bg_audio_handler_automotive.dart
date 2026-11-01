@@ -289,6 +289,15 @@ Future<List<MediaItem>> _aaosLoadPage(BGAudioHandler handler, _CarBrowsePage nod
     hasExplicitPaging: false,
   );
 
+  if (node.kind == 'collections' || node.kind == 'playlists') {
+    final listPaging = _AndroidAutoPagingOptions(page: node.page, pageSize: carListPageSize, hasExplicitPaging: true);
+    if (node.kind == 'collections') {
+      return handler._androidAutoCollectionNodes(node.libraryId, listPaging);
+    }
+
+    return handler._androidAutoPlaylistNodes(node.libraryId, listPaging);
+  }
+
   if (node.kind == 'series') {
     return _aaosSeriesPage(handler, node.libraryId, paging);
   }

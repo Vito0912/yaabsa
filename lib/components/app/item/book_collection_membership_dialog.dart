@@ -7,7 +7,9 @@ import 'package:yaabsa/provider/common/collection_provider.dart';
 import 'package:yaabsa/util/collection_membership.dart';
 
 Future<void> showBookCollectionMembershipDialog({required BuildContext context, required LibraryItem item}) async {
-  if (item.libraryId == null || item.libraryId!.isEmpty) return;
+  if (item.libraryId == null || item.libraryId!.isEmpty) {
+    return;
+  }
   final saved = await showDialog<bool>(
     context: context,
     barrierDismissible: false,
@@ -26,11 +28,18 @@ class BookCollectionMembershipDialog extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final libraryId = item.libraryId!;
+    final lists = ref.watch(collectionsProvider(libraryId));
     return BookListMembershipDialog<Collection>(
-      entries: ref.watch(collectionsProvider(libraryId)).whenData((state) {
-        if (state.error != null) throw state.error!;
+      entries: lists.whenData((state) {
+        if (state.error != null) {
+          throw state.error!;
+        }
         return state.items.where((entry) => entry.libraryId == libraryId).toList(growable: false);
       }),
+      hasNextPage: lists.value?.hasNextPage ?? false,
+      isLoadingNextPage: lists.value?.isLoadingNextPage ?? false,
+      nextPageError: lists.value?.nextPageError,
+      onLoadMore: () => ref.read(collectionsProvider(libraryId).notifier).loadNextPage(),
       allowed: ref.watch(collectionMembershipEditingAllowedProvider),
       plural: 'collections',
       bookTitle: item.title,
@@ -41,8 +50,12 @@ class BookCollectionMembershipDialog extends ConsumerWidget {
         CollectionMembership.absent => false,
         CollectionMembership.unknown => null,
       },
+      sameRevision: sameCollectionMembershipRevision,
+      canRetryEntry: (entry) => !hasCompleteCollectionBooks(entry),
       disabledReason: (entry) {
-        if (!hasCompleteCollectionBooks(entry)) return 'Full book list unavailable. Reload collections before editing.';
+        if (!hasCompleteCollectionBooks(entry)) {
+          return 'Full book list unavailable.';
+        }
         return null;
       },
       onReload: () => ref.read(collectionsProvider(libraryId).notifier).refresh(requireServer: true),

@@ -8,36 +8,97 @@ import 'package:yaabsa/provider/common/playlist_provider.dart';
 import 'playlist_test_support.dart';
 
 void main() {
-  test('a later page failure preserves the complete previous playlist list', () async {
-    final server = PlaylistTestServer([playlist('Original')]);
+  test('creation publishes the confirmed list beyond the loaded page without a full reload', () async {
+    final server = PlaylistTestServer([for (var index = 0; index < 121; index++) playlist('List $index')]);
     final container = await server.container();
     addTearDown(container.dispose);
-    final original = await container.read(playlistsProvider('library').future);
-    server.playlists = [for (var index = 0; index < 51; index++) playlist('New $index')];
-    final finalPageStarted = Completer<void>();
-    final gate = Completer<void>();
-    server.beforeRead = () async {
-      if (server.requests.last.uri.queryParameters['page'] == '1') {
-        finalPageStarted.complete();
-        await gate.future;
-        throw Exception('Second page unavailable');
-      }
-    };
-    final published = <List<String>>[];
-    container.listen(playlistsProvider('library'), (_, next) {
-      if (next.hasValue) published.add(next.requireValue.items.map((item) => item.id).toList());
-    });
-    final refresh = container.read(playlistsProvider('library').notifier).refresh(requireServer: true);
-    await finalPageStarted.future;
-    expect(container.read(playlistsProvider('library')).requireValue.items, original.items);
-    gate.complete();
-    await refresh;
-    final result = container.read(playlistsProvider('library')).requireValue;
-    expect(result.items, original.items);
-    expect(result.error, isNotNull);
-    expect(published, [
-      ['Original'],
-    ]);
+    await container.read(playlistsProvider('library').future);
+    server.requests.clear();
+
+    final created = await container.read(playlistsProvider('library').notifier).createPlaylist(name: 'New list');
+    final loaded = container.read(playlistsProvider('library')).requireValue;
+    expect(loaded.items.any((item) => item.id == created.id), isTrue);
+    expect(loaded.hasNextPage, isTrue);
+    expect(server.requests, hasLength(1));
+    expect(server.requests.single.method, 'POST');
+  });
+
+  test('individual lists beyond the first page are fetched directly', () async {
+    final server = PlaylistTestServer([for (var index = 0; index < 121; index++) playlist('List $index')]);
+    final container = await server.container();
+    addTearDown(container.dispose);
+    await container.read(playlistsProvider('library').future);
+    server.requests.clear();
+
+    final item = await container.read(playlistByIdProvider('library', 'List 120').future);
+    expect(item.id, 'List 120');
+    expect(server.requests.single.path, '/api/playlists/List 120');
+    expect(container.read(playlistsProvider('library')).requireValue.items, hasLength(20));
+  });
+
+  test('complete-index consumers explicitly load later pages', () async {
+    final server = PlaylistTestServer([for (var index = 0; index < 121; index++) playlist('List $index')]);
+    final container = await server.container();
+    addTearDown(container.dispose);
+
+    await container.read(playlistsProvider('library').notifier).ensureAllLoaded();
+    final state = container.read(playlistsProvider('library')).requireValue;
+    expect(state.items, hasLength(121));
+    expect(state.hasNextPage, isFalse);
+    expect(server.requests, hasLength(7));
+  });
+
+  test('socket updates clear a previous refresh failure', () async {
+    final server = PlaylistTestServer([playlist('List')]);
+    final container = await server.container();
+    addTearDown(container.dispose);
+    await container.read(playlistsProvider('library').future);
+    final notifier = container.read(playlistsProvider('library').notifier);
+
+    server.failReads = true;
+    await notifier.refresh(requireServer: true);
+    expect(container.read(playlistsProvider('library')).requireValue.error, isNotNull);
+
+    notifier.applyServerUpdate(playlist('List', revision: 2));
+    final updated = container.read(playlistsProvider('library')).requireValue;
+    expect(updated.items.single.lastUpdate, 2);
+    expect(updated.error, isNull);
+    expect(updated.stackTrace, isNull);
+  });
+
+  test('overlapping scroll requests fetch the next page once', () async {
+    final server = PlaylistTestServer([for (var index = 0; index < 21; index++) playlist('List $index')]);
+    final container = await server.container();
+    addTearDown(container.dispose);
+    await container.read(playlistsProvider('library').future);
+    final notifier = container.read(playlistsProvider('library').notifier);
+
+    await Future.wait([notifier.loadNextPage(), notifier.loadNextPage()]);
+    expect(server.requests, hasLength(2));
+    expect(container.read(playlistsProvider('library')).requireValue.items, hasLength(21));
+  });
+
+  test('a later page failure keeps loaded playlists and permits retry', () async {
+    final server = PlaylistTestServer([for (var index = 0; index < 21; index++) playlist('List $index')]);
+    final container = await server.container();
+    addTearDown(container.dispose);
+    final first = await container.read(playlistsProvider('library').future);
+    final notifier = container.read(playlistsProvider('library').notifier);
+
+    server.failReads = true;
+    await notifier.loadNextPage();
+    final failed = container.read(playlistsProvider('library')).requireValue;
+    expect(failed.items, first.items);
+    expect(failed.nextPageError, isNotNull);
+    expect(failed.error, isNull);
+    expect(failed.hasNextPage, isTrue);
+
+    server.failReads = false;
+    await notifier.loadNextPage();
+    final complete = container.read(playlistsProvider('library')).requireValue;
+    expect(complete.items, hasLength(21));
+    expect(complete.nextPageError, isNull);
+    expect(complete.hasNextPage, isFalse);
   });
 
   test('refresh retains the previous lists while loading', () async {
@@ -66,7 +127,7 @@ void main() {
     final notifier = container.read(playlistsProvider('library').notifier);
     notifier.applyServerUpdate(playlist('b', items: [bookEntry, otherEntry]));
     notifier.applyServerUpdate(playlist('a').copyWith(name: 'Renamed'));
-    expect(container.read(playlistsProvider('library')).requireValue.items.map((item) => item.name), ['b', 'Renamed']);
+    expect(container.read(playlistsProvider('library')).requireValue.items.map((item) => item.name), ['Renamed', 'b']);
     notifier.applyServerRemoval('b');
     expect(container.read(playlistsProvider('library')).requireValue.items.single.name, 'Renamed');
     expect(server.requests, isEmpty);

@@ -61,6 +61,41 @@ Future<void> mount(WidgetTester tester, ProviderContainer container) async {
 Finder tile(String title) => find.ancestor(of: find.text(title), matching: find.byType(CheckboxListTile));
 
 void main() {
+  testWidgets('live dialog rows reconcile updates and deletions without losing pending edits', (tester) async {
+    final server = CollectionTestServer([collection('Alpha'), collection('Beta'), collection('Deleted')]);
+    final container = server.container();
+    addTearDown(container.dispose);
+    await mount(tester, container);
+    await tester.tap(find.text('Manage'));
+    await tester.pumpAndSettle();
+    await tester.tap(tile('Alpha'));
+    await tester.pump();
+    final notifier = container.read(collectionsProvider('library').notifier);
+
+    server.collections[1] = collection('Beta', books: [testBook], revision: 2).copyWith(name: 'Updated Beta');
+    notifier.applyServerUpdate(server.collections[1]);
+    server.collections.removeLast();
+    notifier.applyServerRemoval('Deleted');
+    await tester.pumpAndSettle();
+    expect(tester.widget<CheckboxListTile>(tile('Alpha')).value, isTrue);
+    expect(tester.widget<CheckboxListTile>(tile('Updated Beta')).value, isTrue);
+    expect(tile('Deleted'), findsNothing);
+
+    server.collections[0] = collection('Alpha', revision: 2).copyWith(name: 'Updated Alpha');
+    notifier.applyServerUpdate(server.collections[0]);
+    await tester.pumpAndSettle();
+    expect(tester.widget<CheckboxListTile>(tile('Updated Alpha')).value, isTrue);
+    expect(find.text('This list changed. Review the updates before saving.'), findsOneWidget);
+    expect(tester.widget<FilledButton>(find.widgetWithText(FilledButton, 'Save changes')).onPressed, isNull);
+    expect(server.requests.where((request) => request.method == 'POST'), isEmpty);
+
+    await tester.tap(find.text('Review updates'));
+    await tester.pumpAndSettle();
+    expect(tester.widget<CheckboxListTile>(tile('Updated Alpha')).value, isTrue);
+    expect(tester.widget<FilledButton>(find.widgetWithText(FilledButton, 'Save changes')).onPressed, isNotNull);
+    expect(tester.widget<CheckboxListTile>(tile('Updated Beta')).value, isTrue);
+  });
+
   testWidgets('socket changes update visible metadata without reloading lists', (tester) async {
     final server = CollectionTestServer([collection('Alpha')]);
     final container = server.container();
@@ -256,7 +291,7 @@ void main() {
     expect(server.requests.where((request) => request.method == 'POST'), isEmpty);
   });
 
-  testWidgets('Reload waits for an existing background refresh before resetting selections', (tester) async {
+  testWidgets('background refresh updates untouched selections without a Reload button', (tester) async {
     final server = CollectionTestServer([collection('Alpha')]);
     final container = server.container();
     addTearDown(container.dispose);
@@ -269,7 +304,7 @@ void main() {
     final refresh = container
         .read(collectionsProvider('library').notifier)
         .refresh(withLoading: false, requireServer: true);
-    await tester.tap(find.text('Reload'));
+    expect(find.text('Reload'), findsNothing);
     await tester.pump();
     gate.complete();
     await tester.pumpAndSettle();

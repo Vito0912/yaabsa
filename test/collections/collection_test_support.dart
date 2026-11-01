@@ -50,12 +50,35 @@ class CollectionTestServer {
                   'limit': limit,
                 };
               }
+              if (request.path.startsWith('/api/collections/')) {
+                final id = request.path.split('/')[3];
+                final status = readStatusById[id];
+                if (status != null) {
+                  throw DioException(
+                    requestOptions: request,
+                    response: Response(requestOptions: request, statusCode: status),
+                  );
+                }
+                payload = collections.firstWhere((entry) => entry.id == id);
+              }
               final data = jsonDecode(jsonEncode(payload));
               await beforeRead?.call();
               handler.resolve(Response(requestOptions: request, statusCode: 200, data: data));
               return;
             }
             await beforeMutation?.call();
+            if (request.method == 'POST' && request.path == '/api/collections') {
+              final created = collection(
+                'created-${collections.length}',
+                libraryId: request.data['libraryId'] as String,
+                books: (request.data['books'] as List).map((id) => testBook.copyWith(id: id as String)).toList(),
+              ).copyWith(name: request.data['name'] as String);
+              collections.add(created);
+              handler.resolve(
+                Response(requestOptions: request, statusCode: 200, data: jsonDecode(jsonEncode(created))),
+              );
+              return;
+            }
             final id = request.path.split('/')[3];
             if (failIds.contains(id)) throw Exception('Mutation failed');
             final index = collections.indexWhere((entry) => entry.id == id);
@@ -76,7 +99,7 @@ class CollectionTestServer {
             collections[index] = updated;
             handler.resolve(Response(requestOptions: request, statusCode: 200, data: jsonDecode(jsonEncode(updated))));
           } catch (error) {
-            handler.reject(DioException(requestOptions: request, error: error));
+            handler.reject(error is DioException ? error : DioException(requestOptions: request, error: error));
           }
         },
       ),
@@ -87,12 +110,14 @@ class CollectionTestServer {
   List<Collection> collections;
   final requests = <RequestOptions>[];
   final failIds = <String>{};
+  final readStatusById = <String, int>{};
   bool failReads = false;
   Future<void> Function()? beforeMutation;
   Future<void> Function()? beforeRead;
   late final ABSApi api;
 
   ProviderContainer container({bool allowed = true}) => ProviderContainer(
+    retry: (_, _) => null,
     overrides: [
       absApiProvider.overrideWithValue(api),
       collectionMembershipEditingAllowedProvider.overrideWithValue(allowed),

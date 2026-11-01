@@ -9,6 +9,7 @@ ItemMetadataRowData buildBookPlaylistsMetadataRow(
   BuildContext context, {
   required AsyncValue<BookPlaylistMemberships> playlists,
   required VoidCallback onRetry,
+  VoidCallback? onLoadMore,
 }) {
   if (playlists.isLoading && !playlists.hasValue) {
     return const ItemMetadataRowData(label: 'Playlists', value: 'Loading playlists…');
@@ -34,7 +35,15 @@ ItemMetadataRowData buildBookPlaylistsMetadataRow(
     values.add(ItemLinkValue(label: 'Could not load playlists. Retry', onTap: onRetry));
   } else if (unknown) {
     values.add(ItemLinkValue(label: 'Some playlists could not be checked. Retry', onTap: onRetry));
-  } else if (values.isEmpty) {
+  }
+  if (state?.hasMore ?? false) {
+    values.add(
+      ItemLinkValue(
+        label: state!.isLoadingMore ? 'Loading playlists…' : 'Load more playlists',
+        onTap: state.isLoadingMore ? null : onLoadMore,
+      ),
+    );
+  } else if (!hasError && !unknown && values.isEmpty) {
     return const ItemMetadataRowData(label: 'Playlists', value: 'No playlists');
   }
   return ItemMetadataRowData(label: 'Playlists', values: values);

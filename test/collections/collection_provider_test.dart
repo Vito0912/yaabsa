@@ -7,6 +7,128 @@ import 'package:yaabsa/provider/common/collection_provider.dart';
 import 'collection_test_support.dart';
 
 void main() {
+  test('socket synchronization fetches only the changed collection after a full index load', () async {
+    final server = CollectionTestServer([for (var index = 0; index < 121; index++) collection('List $index')]);
+    final container = server.container();
+    addTearDown(container.dispose);
+    final notifier = container.read(collectionsProvider('library').notifier);
+    await notifier.ensureAllLoaded();
+    server.requests.clear();
+    server.collections[120] = server.collections[120].copyWith(name: 'Renamed', lastUpdate: 2);
+
+    await notifier.synchronizeCollection('List 120');
+    expect(server.requests, hasLength(1));
+    expect(server.requests.single.path, '/api/collections/List 120');
+    expect(server.requests.single.extra['skipCacheOnError'], isTrue);
+    final items = container.read(collectionsProvider('library')).requireValue.items;
+    expect(items.last.name, 'Renamed');
+    expect(items, hasLength(121));
+  });
+
+  test('authenticated socket synchronization removes a collection that is no longer accessible', () async {
+    final server = CollectionTestServer([collection('a')]);
+    final container = server.container();
+    addTearDown(container.dispose);
+    await container.read(collectionsProvider('library').future);
+    server.readStatusById['a'] = 403;
+
+    await container.read(collectionsProvider('library').notifier).synchronizeCollection('a');
+    expect(container.read(collectionsProvider('library')).requireValue.items, isEmpty);
+  });
+
+  test('an older socket lookup cannot overwrite a newer confirmed mutation', () async {
+    final server = CollectionTestServer([collection('a')]);
+    final container = server.container();
+    addTearDown(container.dispose);
+    await container.read(collectionsProvider('library').future);
+    final notifier = container.read(collectionsProvider('library').notifier);
+    final started = Completer<void>();
+    final gate = Completer<void>();
+    server.beforeRead = () {
+      started.complete();
+      return gate.future;
+    };
+
+    final update = notifier.synchronizeCollection('a');
+    await started.future;
+    notifier.applyServerUpdate(collection('a', revision: 3));
+    gate.complete();
+    await update;
+    expect(container.read(collectionsProvider('library')).requireValue.items.single.lastUpdate, 3);
+  });
+
+  test('creation publishes the confirmed list beyond the loaded page without a full reload', () async {
+    final server = CollectionTestServer([for (var index = 0; index < 121; index++) collection('List $index')]);
+    final container = server.container();
+    addTearDown(container.dispose);
+    await container.read(collectionsProvider('library').future);
+    server.requests.clear();
+
+    final created = await container
+        .read(collectionsProvider('library').notifier)
+        .createCollection(name: 'New list', bookIds: ['book']);
+    final loaded = container.read(collectionsProvider('library')).requireValue;
+    expect(loaded.items.any((item) => item.id == created.id), isTrue);
+    expect(loaded.hasNextPage, isTrue);
+    expect(server.requests, hasLength(1));
+    expect(server.requests.single.method, 'POST');
+  });
+
+  test('individual lists beyond the first page are fetched directly', () async {
+    final server = CollectionTestServer([for (var index = 0; index < 121; index++) collection('List $index')]);
+    final container = server.container();
+    addTearDown(container.dispose);
+    await container.read(collectionsProvider('library').future);
+    server.requests.clear();
+
+    final item = await container.read(collectionByIdProvider('library', 'List 120').future);
+    expect(item.id, 'List 120');
+    expect(server.requests.single.path, '/api/collections/List 120');
+    expect(container.read(collectionsProvider('library')).requireValue.items, hasLength(20));
+  });
+
+  test('complete-index consumers explicitly load later pages', () async {
+    final server = CollectionTestServer([for (var index = 0; index < 121; index++) collection('List $index')]);
+    final container = server.container();
+    addTearDown(container.dispose);
+
+    await container.read(collectionsProvider('library').notifier).ensureAllLoaded();
+    final state = container.read(collectionsProvider('library')).requireValue;
+    expect(state.items, hasLength(121));
+    expect(state.hasNextPage, isFalse);
+    expect(server.requests, hasLength(7));
+  });
+
+  test('socket updates clear a previous refresh failure', () async {
+    final server = CollectionTestServer([collection('List')]);
+    final container = server.container();
+    addTearDown(container.dispose);
+    await container.read(collectionsProvider('library').future);
+    final notifier = container.read(collectionsProvider('library').notifier);
+
+    server.failReads = true;
+    await notifier.refresh(requireServer: true);
+    expect(container.read(collectionsProvider('library')).requireValue.error, isNotNull);
+
+    notifier.applyServerUpdate(collection('List', revision: 2));
+    final updated = container.read(collectionsProvider('library')).requireValue;
+    expect(updated.items.single.lastUpdate, 2);
+    expect(updated.error, isNull);
+    expect(updated.stackTrace, isNull);
+  });
+
+  test('overlapping scroll requests fetch the next page once', () async {
+    final server = CollectionTestServer([for (var index = 0; index < 21; index++) collection('List $index')]);
+    final container = server.container();
+    addTearDown(container.dispose);
+    await container.read(collectionsProvider('library').future);
+    final notifier = container.read(collectionsProvider('library').notifier);
+
+    await Future.wait([notifier.loadNextPage(), notifier.loadNextPage()]);
+    expect(server.requests, hasLength(2));
+    expect(container.read(collectionsProvider('library')).requireValue.items, hasLength(21));
+  });
+
   test('a socket change during initial loading retries without a stale cache fallback', () async {
     final server = CollectionTestServer([collection('a')]);
     final started = Completer<void>();
@@ -30,34 +152,25 @@ void main() {
     expect(server.requests.last.extra['skipCacheOnError'], isTrue);
   });
 
-  test('initial loading publishes all library pages together', () async {
-    final server = CollectionTestServer([
-      for (var index = 0; index < 51; index++) collection('Collection $index'),
-      collection('Elsewhere', libraryId: 'another'),
-    ]);
-    final finalPageStarted = Completer<void>();
-    final gate = Completer<void>();
-    server.beforeRead = () async {
-      if (server.requests.last.uri.queryParameters['page'] == '1') {
-        finalPageStarted.complete();
-        await gate.future;
-      }
-    };
+  test('initial loading fetches one page and scrolling appends later pages', () async {
+    final server = CollectionTestServer([for (var index = 0; index < 121; index++) collection('List $index')]);
     final container = server.container();
     addTearDown(container.dispose);
-    final published = <int>[];
-    container.listen(collectionsProvider('library'), (_, next) {
-      if (next.hasValue) published.add(next.requireValue.items.length);
-    });
-    final loading = container.read(collectionsProvider('library').future);
-    await finalPageStarted.future;
-    expect(container.read(collectionsProvider('library')).isLoading, isTrue);
-    expect(published, isEmpty);
-    gate.complete();
-    final loaded = await loading;
-    expect(loaded.items, hasLength(51));
-    expect(published, [51]);
-    expect(server.requests, hasLength(2));
+
+    final first = await container.read(collectionsProvider('library').future);
+    expect(first.items, hasLength(20));
+    expect(first.totalItems, 121);
+    expect(first.hasNextPage, isTrue);
+    expect(server.requests, hasLength(1));
+
+    final notifier = container.read(collectionsProvider('library').notifier);
+    await notifier.loadNextPage();
+    expect(container.read(collectionsProvider('library')).requireValue.items, hasLength(40));
+    await notifier.ensureAllLoaded();
+    final complete = container.read(collectionsProvider('library')).requireValue;
+    expect(complete.items, hasLength(121));
+    expect(complete.hasNextPage, isFalse);
+    expect(server.requests, hasLength(7));
   });
 
   test('refresh retains the previous lists while loading', () async {
@@ -87,8 +200,8 @@ void main() {
     notifier.applyServerUpdate(collection('b', books: [testBook, otherBook]));
     notifier.applyServerUpdate(collection('a').copyWith(name: 'Renamed'));
     expect(container.read(collectionsProvider('library')).requireValue.items.map((item) => item.name), [
-      'b',
       'Renamed',
+      'b',
     ]);
     notifier.applyServerRemoval('b');
     expect(container.read(collectionsProvider('library')).requireValue.items.single.name, 'Renamed');

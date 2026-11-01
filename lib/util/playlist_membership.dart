@@ -8,11 +8,15 @@ class BookPlaylistMemberships {
     required String libraryId,
     required String bookId,
     this.error,
+    this.hasMore = false,
+    this.isLoadingMore = false,
   }) {
     final containing = <Playlist>[];
     var unknown = false;
     for (final playlist in playlists) {
-      if (playlist.libraryId != libraryId) continue;
+      if (playlist.libraryId != libraryId) {
+        continue;
+      }
       switch (playlistMembership(playlist, bookId)) {
         case PlaylistMembership.present:
           containing.add(playlist);
@@ -29,12 +33,18 @@ class BookPlaylistMemberships {
   late final List<Playlist> items;
   late final bool hasUnknown;
   final Object? error;
+  final bool hasMore;
+  final bool isLoadingMore;
 }
 
 PlaylistMembership playlistMembership(Playlist playlist, String bookId) {
   final items = playlist.items;
-  if (items == null) return PlaylistMembership.unknown;
-  if (items.any((item) => item.itemId == bookId && item.episodeId == null)) return PlaylistMembership.present;
+  if (items == null) {
+    return PlaylistMembership.unknown;
+  }
+  if (items.any((item) => item.itemId == bookId && item.episodeId == null)) {
+    return PlaylistMembership.present;
+  }
   return hasCompletePlaylistItems(playlist) ? PlaylistMembership.absent : PlaylistMembership.unknown;
 }
 
@@ -57,15 +67,23 @@ Map<String, bool> playlistMembershipChanges({
   required String libraryId,
   required String bookId,
   required Set<String> selectedIds,
-}) => {
-  for (final playlist in original)
-    if (playlist.libraryId == libraryId &&
-        playlistMembership(playlist, bookId) != PlaylistMembership.unknown &&
-        (playlistMembership(playlist, bookId) == PlaylistMembership.present) != selectedIds.contains(playlist.id))
-      playlist.id: selectedIds.contains(playlist.id),
-};
+}) {
+  final changes = <String, bool>{};
+  for (final entry in original) {
+    if (entry.libraryId != libraryId) {
+      continue;
+    }
 
-/// Preserve order and episode identities when checking for concurrent changes.
+    final membership = playlistMembership(entry, bookId);
+    final selected = selectedIds.contains(entry.id);
+    if (membership != PlaylistMembership.unknown && (membership == PlaylistMembership.present) != selected) {
+      changes[entry.id] = selected;
+    }
+  }
+
+  return changes;
+}
+
 bool samePlaylistMembershipRevision(Playlist original, Playlist current) {
   if (original.libraryId != current.libraryId ||
       original.userId != current.userId ||
@@ -76,9 +94,13 @@ bool samePlaylistMembershipRevision(Playlist original, Playlist current) {
   }
   final before = original.items!;
   final after = current.items!;
-  if (before.length != after.length) return false;
+  if (before.length != after.length) {
+    return false;
+  }
   for (var index = 0; index < before.length; index++) {
-    if (before[index].itemId != after[index].itemId || before[index].episodeId != after[index].episodeId) return false;
+    if (before[index].itemId != after[index].itemId || before[index].episodeId != after[index].episodeId) {
+      return false;
+    }
   }
   return true;
 }

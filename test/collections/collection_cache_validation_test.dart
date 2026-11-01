@@ -20,7 +20,35 @@ class _OfflineAdapter implements HttpClientAdapter {
   void close({bool force = false}) {}
 }
 
+class _ForbiddenAdapter implements HttpClientAdapter {
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    return ResponseBody.fromString('Forbidden', 403);
+  }
+
+  @override
+  void close({bool force = false}) {}
+}
+
 void main() {
+  test('detail lookups do not restore cached data after permission denial', () async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final dio = Dio(BaseOptions(baseUrl: 'https://test.invalid'))
+      ..httpClientAdapter = _ForbiddenAdapter()
+      ..interceptors.add(CacheInterceptor(container));
+    addTearDown(dio.close);
+    final api = ABSApi(dio: dio, interceptors: []);
+    const extra = {'noCache': true, 'cacheFallbackOnNetworkErrorOnly': true};
+
+    await expectLater(api.getListApi().getCollection('id', extra: extra), throwsA(isA<DioException>()));
+    await expectLater(api.getListApi().getPlaylist('id', extra: extra), throwsA(isA<DioException>()));
+  });
+
   test('fresh membership validation cannot fall back to the offline cache', () async {
     final container = ProviderContainer();
     addTearDown(container.dispose);

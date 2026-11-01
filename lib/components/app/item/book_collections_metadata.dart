@@ -9,6 +9,7 @@ ItemMetadataRowData buildBookCollectionsMetadataRow(
   BuildContext context, {
   required AsyncValue<BookCollectionMemberships> collections,
   required VoidCallback onRetry,
+  VoidCallback? onLoadMore,
 }) {
   if (collections.isLoading && !collections.hasValue) {
     return const ItemMetadataRowData(label: 'Collections', value: 'Loading collections…');
@@ -34,7 +35,15 @@ ItemMetadataRowData buildBookCollectionsMetadataRow(
     values.add(ItemLinkValue(label: 'Could not load collections. Retry', onTap: onRetry));
   } else if (unknown) {
     values.add(ItemLinkValue(label: 'Some collections could not be checked. Retry', onTap: onRetry));
-  } else if (values.isEmpty) {
+  }
+  if (state?.hasMore ?? false) {
+    values.add(
+      ItemLinkValue(
+        label: state!.isLoadingMore ? 'Loading collections…' : 'Load more collections',
+        onTap: state.isLoadingMore ? null : onLoadMore,
+      ),
+    );
+  } else if (!hasError && !unknown && values.isEmpty) {
     return const ItemMetadataRowData(label: 'Collections', value: 'No collections');
   }
   return ItemMetadataRowData(label: 'Collections', values: values);

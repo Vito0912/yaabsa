@@ -115,6 +115,16 @@ ABSSocketClient absSocketClient(Ref ref) {
     }
   }
 
+  void refreshCollections(String libraryId, String id) {
+    ref.invalidate(collectionByIdProvider(libraryId, id));
+    final index = collectionsProvider(libraryId);
+    if (!ref.exists(index)) {
+      return;
+    }
+
+    unawaited(ref.read(index.notifier).synchronizeCollection(id));
+  }
+
   final socketClient = ABSSocketClient(
     onUserItemProgressUpdated: (event) {
       final progress = event.data;
@@ -197,32 +207,48 @@ ABSSocketClient absSocketClient(Ref ref) {
     onCollectionAdded: (collection) {
       refreshAutomotiveBrowse();
       smartDownloadNotifier.requestReconcile(reason: 'collection added');
-      ref.read(collectionsProvider(collection.libraryId).notifier).applyServerUpdate(collection);
+      refreshCollections(collection.libraryId, collection.id);
     },
     onCollectionUpdated: (collection) {
       refreshAutomotiveBrowse();
       smartDownloadNotifier.requestReconcile(reason: 'collection updated');
-      ref.read(collectionsProvider(collection.libraryId).notifier).applyServerUpdate(collection);
+      refreshCollections(collection.libraryId, collection.id);
     },
     onCollectionRemoved: (collection) {
       refreshAutomotiveBrowse();
       smartDownloadNotifier.requestReconcile(reason: 'collection removed');
-      ref.read(collectionsProvider(collection.libraryId).notifier).applyServerRemoval(collection.id);
+      ref.invalidate(collectionByIdProvider(collection.libraryId, collection.id));
+      final index = collectionsProvider(collection.libraryId);
+      if (ref.exists(index)) {
+        ref.read(index.notifier).applyServerRemoval(collection.id);
+      }
     },
     onPlaylistAdded: (playlist) {
       refreshAutomotiveBrowse();
       smartDownloadNotifier.requestReconcile(reason: 'playlist added');
-      ref.read(playlistsProvider(playlist.libraryId).notifier).applyServerUpdate(playlist);
+      ref.invalidate(playlistByIdProvider(playlist.libraryId, playlist.id));
+      final index = playlistsProvider(playlist.libraryId);
+      if (ref.exists(index)) {
+        ref.read(index.notifier).applyServerUpdate(playlist);
+      }
     },
     onPlaylistUpdated: (playlist) {
       refreshAutomotiveBrowse();
       smartDownloadNotifier.requestReconcile(reason: 'playlist updated');
-      ref.read(playlistsProvider(playlist.libraryId).notifier).applyServerUpdate(playlist);
+      ref.invalidate(playlistByIdProvider(playlist.libraryId, playlist.id));
+      final index = playlistsProvider(playlist.libraryId);
+      if (ref.exists(index)) {
+        ref.read(index.notifier).applyServerUpdate(playlist);
+      }
     },
     onPlaylistRemoved: (playlist) {
       refreshAutomotiveBrowse();
       smartDownloadNotifier.requestReconcile(reason: 'playlist removed');
-      ref.read(playlistsProvider(playlist.libraryId).notifier).applyServerRemoval(playlist.id);
+      ref.invalidate(playlistByIdProvider(playlist.libraryId, playlist.id));
+      final index = playlistsProvider(playlist.libraryId);
+      if (ref.exists(index)) {
+        ref.read(index.notifier).applyServerRemoval(playlist.id);
+      }
     },
   );
 

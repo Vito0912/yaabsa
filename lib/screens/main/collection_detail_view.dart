@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
+
 import 'package:yaabsa/components/common/screen_refresh_indicator.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
@@ -49,25 +51,27 @@ class CollectionDetailView extends HookConsumerWidget {
       return ConnectionIssueView.offline();
     }
 
-    final allCollectionsAsync = ref.watch(collectionsProvider(libraryId));
-    final resolvedCollection = _resolveCollection(collectionId, allCollectionsAsync.value?.items);
+    final details = ref.watch(collectionByIdProvider(libraryId, collectionId));
+    final resolvedCollection = details.hasError ? null : details.value;
     final resolvedEntry = _resolveEntry(collectionId, initialEntry, resolvedCollection);
 
     if (resolvedCollection == null) {
-      if (allCollectionsAsync.isLoading) {
+      if (details.isLoading) {
         return const Center(child: CircularProgressIndicator());
       }
-      if (allCollectionsAsync.hasError) {
+      final error = details.error;
+      final missing = error is DioException && error.response?.statusCode == 404;
+      if (details.hasError && !missing) {
         if (!serverReachable) {
           return ConnectionIssueView.offline(
-            onRetry: () => ref.read(collectionsProvider(libraryId).notifier).refresh(withLoading: true),
+            onRetry: () => ref.refresh(collectionByIdProvider(libraryId, collectionId).future),
           );
         }
 
         return ConnectionIssueView.requestFailed(
-          error: allCollectionsAsync.error ?? Exception('Unknown collection loading error.'),
+          error: details.error ?? Exception('Unknown collection loading error.'),
           title: 'Collection details could not be loaded',
-          onRetry: () => ref.read(collectionsProvider(libraryId).notifier).refresh(withLoading: true),
+          onRetry: () => ref.refresh(collectionByIdProvider(libraryId, collectionId).future),
         );
       }
 
@@ -190,7 +194,7 @@ class CollectionDetailView extends HookConsumerWidget {
                   children: [
                     Positioned.fill(
                       child: ScreenRefreshIndicator(
-                        onRefresh: () => ref.read(collectionsProvider(libraryId).notifier).refresh(withLoading: false),
+                        onRefresh: () => ref.refresh(collectionByIdProvider(libraryId, collectionId).future),
                         child: AlignedGridView.count(
                           controller: scrollController,
                           physics: const AlwaysScrollableScrollPhysics(),
@@ -230,18 +234,6 @@ class CollectionDetailView extends HookConsumerWidget {
       },
     );
   }
-}
-
-Collection? _resolveCollection(String collectionId, List<Collection>? allCollections) {
-  if (allCollections == null) return null;
-
-  for (final collection in allCollections) {
-    if (collection.id == collectionId) {
-      return collection;
-    }
-  }
-
-  return null;
 }
 
 MultiBookEntryData? _resolveEntry(String collectionId, MultiBookEntryData? initialEntry, Collection? collection) {

@@ -57,14 +57,14 @@ const List<CacheRouteDefinition> cacheRouteDefinitions = [
     settingKey: SettingKeys.cacheRoutePlaylists,
     label: 'Playlists',
     pathPattern: '/api/playlists',
-    additionalPathPatterns: ['/api/libraries/{uuidv4}/playlists'],
+    additionalPathPatterns: ['/api/libraries/{uuidv4}/playlists', '/api/playlists/{uuidv4}'],
     cacheDuration: Duration(days: 7),
   ),
   CacheRouteDefinition(
     settingKey: SettingKeys.cacheRouteCollections,
     label: 'Collections',
     pathPattern: '/api/collections',
-    additionalPathPatterns: ['/api/libraries/{uuidv4}/collections'],
+    additionalPathPatterns: ['/api/libraries/{uuidv4}/collections', '/api/collections/{uuidv4}'],
     cacheDuration: Duration(days: 7),
   ),
   CacheRouteDefinition(
@@ -247,6 +247,9 @@ class CacheInterceptor extends Interceptor {
     // skipCacheOnError still allows successful responses to update the cache.
     if (err.requestOptions.extra['doNotCache'] == true ||
         err.requestOptions.extra['skipCacheOnError'] == true ||
+        (err.requestOptions.extra['cacheFallbackOnNetworkErrorOnly'] == true &&
+            err.response?.statusCode != null &&
+            err.response!.statusCode! < 500) ||
         err.requestOptions.responseType == ResponseType.stream) {
       return handler.next(err);
     }

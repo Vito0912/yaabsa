@@ -72,12 +72,37 @@ class PlaylistTestServer {
                   'limit': limit,
                 };
               }
+              if (request.path.startsWith('/api/playlists/')) {
+                final id = request.path.split('/')[3];
+                final status = readStatusById[id];
+                if (status != null) {
+                  throw DioException(
+                    requestOptions: request,
+                    response: Response(requestOptions: request, statusCode: status),
+                  );
+                }
+                payload = playlists.firstWhere((entry) => entry.id == id);
+              }
               final data = jsonDecode(jsonEncode(payload));
               await beforeRead?.call();
               handler.resolve(Response(requestOptions: request, statusCode: 200, data: data));
               return;
             }
             await beforeMutation?.call();
+            if (request.method == 'POST' && request.path == '/api/playlists') {
+              final created = playlist(
+                'created-${playlists.length}',
+                libraryId: request.data['libraryId'] as String,
+                items: (request.data['items'] as List).map((item) {
+                  return PlaylistItem(itemId: item['libraryItemId'] as String, episodeId: item['episodeId'] as String?);
+                }).toList(),
+              ).copyWith(name: request.data['name'] as String);
+              playlists.add(created);
+              handler.resolve(
+                Response(requestOptions: request, statusCode: 200, data: jsonDecode(jsonEncode(created))),
+              );
+              return;
+            }
             final id = request.path.split('/')[3];
             if (failIds.contains(id)) throw Exception('Mutation failed');
             final index = playlists.indexWhere((entry) => entry.id == id);
@@ -109,7 +134,7 @@ class PlaylistTestServer {
             }
             handler.resolve(Response(requestOptions: request, statusCode: 200, data: jsonDecode(jsonEncode(updated))));
           } catch (error) {
-            handler.reject(DioException(requestOptions: request, error: error));
+            handler.reject(error is DioException ? error : DioException(requestOptions: request, error: error));
           }
         },
       ),
@@ -120,6 +145,7 @@ class PlaylistTestServer {
   List<Playlist> playlists;
   final requests = <RequestOptions>[];
   final failIds = <String>{};
+  final readStatusById = <String, int>{};
   bool failReads = false;
   Future<void> Function()? beforeMutation;
   Future<void> Function()? beforeRead;
@@ -127,6 +153,7 @@ class PlaylistTestServer {
 
   Future<ProviderContainer> container({bool allowed = true, String userId = 'user'}) async {
     final container = ProviderContainer(
+      retry: (_, _) => null,
       overrides: [
         absApiProvider.overrideWithValue(api),
         currentUserProvider.overrideWith((ref) => Stream.value(allowed ? playlistUser(userId) : null)),
