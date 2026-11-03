@@ -5,6 +5,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.Tasks
 import com.google.android.gms.wearable.CapabilityClient
 import com.google.android.gms.wearable.MessageClient
@@ -40,6 +41,15 @@ class WearMainActivity : AudioServiceActivity() {
     private var messageClient: MessageClient? = null
     private var flutterUiDisplayed = false
 
+    private val handler = Handler(Looper.getMainLooper())
+    private var pendingPairing: PairingRequest? = null
+
+    private class PairingRequest(val result: MethodChannel.Result) {
+        val response = CountDownLatch(1)
+        var credentials: Map<String, Any?>? = null
+        lateinit var worker: Thread
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen().setKeepOnScreenCondition { !flutterUiDisplayed }
         super.onCreate(savedInstanceState)
@@ -63,10 +73,19 @@ class WearMainActivity : AudioServiceActivity() {
     }
 
     private fun requestCredentials(result: MethodChannel.Result) {
-        val handler = Handler(Looper.getMainLooper())
-        val latch = CountDownLatch(1)
+        if (pendingPairing != null) {
+            result.error("PAIRING_IN_PROGRESS", "A pairing request is already in progress", null)
+            return
+        }
+
+        val client = messageClient
+        if (client == null) {
+            result.error("UNAVAILABLE", "Pairing is unavailable", null)
+            return
+        }
+
+        val request = PairingRequest(result)
         val requestId = UUID.randomUUID().toString()
-        var received: Map<String, Any?>? = null
 
         val listener = MessageClient.OnMessageReceivedListener { event: MessageEvent ->
             if (event.path == RESP_PATH) {
@@ -81,13 +100,13 @@ class WearMainActivity : AudioServiceActivity() {
                         // Custom headers the server needs (e.g. reverse-proxy auth).
                         val headersJson = json.optJSONObject("headers")
                         val headers = headersJson?.keys()?.asSequence()?.associateWith { headersJson.getString(it) }
-                        received = mapOf(
+                        request.credentials = mapOf(
                             "serverUrl" to serverUrl,
                             "accessToken" to accessToken,
                             "refreshToken" to json.optString("refreshToken").ifEmpty { null },
                             "headers" to headers,
                         )
-                        latch.countDown()
+                        request.response.countDown()
                     }
                 } catch (e: Exception) {
                     Log.w(TAG, "Ignoring malformed credential response: ${e.message}")
@@ -95,52 +114,112 @@ class WearMainActivity : AudioServiceActivity() {
             }
         }
 
-        Thread {
+        request.worker = Thread {
+            var registration: Task<Void>? = null
+
             try {
                 val nodeIds = findPhoneNodes()
+                ensurePairingActive()
+
                 if (nodeIds.isEmpty()) {
-                    handler.post { result.error("NO_PHONE", "No connected phone found", null) }
+                    completePairing(request) {
+                        it.error("NO_PHONE", "No connected phone found", null)
+                    }
                     return@Thread
                 }
 
-                // Register listener BEFORE sending the request to avoid race condition
-                messageClient!!.addListener(listener)
+                registration = client.addListener(listener)
+                Tasks.await(registration, CONNECT_TIMEOUT, TimeUnit.SECONDS)
+                ensurePairingActive()
 
-                try {
-                    // Only the phone that signs in answers; the requestId check
-                    // above ignores anything else.
-                    var sent = 0
-                    var lastError: Exception? = null
-                    for (nodeId in nodeIds) {
-                        try {
-                            Tasks.await(messageClient!!.sendMessage(nodeId, REQ_PATH, requestId.toByteArray()), CONNECT_TIMEOUT, TimeUnit.SECONDS)
-                            sent++
-                            Log.d(TAG, "Credential request $requestId sent to $nodeId")
-                        } catch (e: Exception) {
-                            lastError = e
-                            Log.w(TAG, "Sending credential request to $nodeId failed: ${e.message}")
-                        }
-                    }
-                    if (sent == 0) {
-                        throw lastError ?: IllegalStateException("Credential request could not be sent")
-                    }
+                var sent = false
+                var lastError: Exception? = null
+                for (nodeId in nodeIds) {
+                    ensurePairingActive()
 
-                    val success = latch.await(LOGIN_TIMEOUT, TimeUnit.SECONDS)
-                    val credentials = received
+                    try {
+                        Tasks.await(
+                            client.sendMessage(nodeId, REQ_PATH, requestId.toByteArray()),
+                            CONNECT_TIMEOUT,
+                            TimeUnit.SECONDS,
+                        )
+                        sent = true
+                        Log.d(TAG, "Credential request $requestId sent to $nodeId")
+                        break
+                    } catch (e: InterruptedException) {
+                        throw e
+                    } catch (e: Exception) {
+                        lastError = e
+                        Log.w(TAG, "Sending credential request to $nodeId failed: ${e.message}")
+                    }
+                }
+
+                if (!sent) {
+                    throw lastError ?: IllegalStateException("Credential request could not be sent")
+                }
+
+                val success = request.response.await(LOGIN_TIMEOUT, TimeUnit.SECONDS)
+                val credentials = request.credentials
+                ensurePairingActive()
+
+                completePairing(request) {
                     if (success && credentials != null) {
-                        handler.post { result.success(credentials) }
+                        it.success(credentials)
                     } else {
-                        handler.post { result.error("TIMEOUT", "Timed out waiting for phone response", null) }
+                        it.error("TIMEOUT", "Timed out waiting for phone response", null)
                     }
-                } finally {
-                    messageClient!!.removeListener(listener)
+                }
+            } catch (e: InterruptedException) {
+                Thread.currentThread().interrupt()
+                completePairing(request) {
+                    it.error("CANCELLED", "Pairing cancelled", null)
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Failed: ${e.message}")
-                messageClient?.removeListener(listener)
-                handler.post { result.error("FAILED", e.message, null) }
+                completePairing(request) {
+                    it.error("FAILED", e.message, null)
+                }
+            } finally {
+                // Registration can finish after an interrupted or timed-out await.
+                registration?.addOnCompleteListener {
+                    client.removeListener(listener)
+                }
             }
-        }.start()
+        }
+
+        pendingPairing = request
+        request.worker.start()
+    }
+
+    private fun ensurePairingActive() {
+        if (Thread.currentThread().isInterrupted) {
+            throw InterruptedException()
+        }
+    }
+
+    private fun completePairing(request: PairingRequest, complete: (MethodChannel.Result) -> Unit) {
+        handler.post {
+            if (pendingPairing !== request) {
+                return@post
+            }
+
+            pendingPairing = null
+            complete(request.result)
+        }
+    }
+
+    override fun onDestroy() {
+        channel?.setMethodCallHandler(null)
+        channel = null
+
+        val request = pendingPairing
+        pendingPairing = null
+        request?.worker?.interrupt()
+        request?.result?.error("CANCELLED", "Pairing cancelled", null)
+
+        handler.removeCallbacksAndMessages(null)
+        messageClient = null
+        super.onDestroy()
     }
 
     /**
@@ -159,6 +238,8 @@ class WearMainActivity : AudioServiceActivity() {
             if (nodes.isNotEmpty()) {
                 return nodes.map { it.id }
             }
+        } catch (e: InterruptedException) {
+            throw e
         } catch (e: Exception) {
             Log.w(TAG, "Capability lookup failed: ${e.message}")
         }
