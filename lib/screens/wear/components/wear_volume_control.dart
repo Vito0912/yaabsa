@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/screens/wear/components/wear_scroll_view.dart';
 
 class WearVolumeControl extends StatefulWidget {
   const WearVolumeControl({required this.volume, required this.onChanged, super.key});
@@ -17,7 +18,9 @@ class _WearVolumeControlState extends State<WearVolumeControl> {
   @override
   void didUpdateWidget(WearVolumeControl old) {
     super.didUpdateWidget(old);
-    if (old.volume != widget.volume) _v = widget.volume;
+    if (old.volume != widget.volume) {
+      _v = widget.volume;
+    }
   }
 
   @override
@@ -34,56 +37,47 @@ class _WearVolumeControlState extends State<WearVolumeControl> {
         } catch (_) {}
       },
       child: Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.volume_up, color: colorScheme.onSurface.withValues(alpha: 0.38), size: 18),
-              const SizedBox(height: 4),
-              SizedBox(
-                width: 110,
-                height: 110,
-                child: CustomPaint(
-                  painter: _CircularVolumePainter(
-                    volume: _v,
-                    color: colorScheme.primary,
-                    bg: colorScheme.onSurface.withValues(alpha: 0.24),
-                  ),
-                  child: Center(
-                    child: Text(
-                      '${(_v * 100).round()}%',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w300, color: colorScheme.onSurface),
-                    ),
-                  ),
+        body: WearScrollView(
+          children: [
+            Icon(Icons.volume_up, color: colorScheme.onSurface.withValues(alpha: 0.38), size: 18),
+            const SizedBox(height: 8),
+            SizedBox.square(
+              dimension: 80,
+              child: CustomPaint(
+                painter: _CircularVolumePainter(
+                  volume: _v,
+                  color: colorScheme.primary,
+                  bg: colorScheme.onSurface.withValues(alpha: 0.24),
                 ),
               ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _vBtn(Icons.remove_circle_outline, () {
-                    setState(() => _v = (_v - 0.1).clamp(0.0, 1.0));
-                    widget.onChanged(_v);
-                  }),
-                  const SizedBox(width: 20),
-                  GestureDetector(
-                    onTap: () => Navigator.of(context).pop(),
-                    child: Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(shape: BoxShape.circle, color: colorScheme.primary),
-                      child: Icon(Icons.check, color: colorScheme.onPrimary, size: 22),
-                    ),
-                  ),
-                  const SizedBox(width: 20),
-                  _vBtn(Icons.add_circle_outline, () {
-                    setState(() => _v = (_v + 0.1).clamp(0.0, 1.0));
-                    widget.onChanged(_v);
-                  }),
-                ],
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '${(_v * 100).round()}%',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w300, color: colorScheme.onSurface),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              alignment: WrapAlignment.center,
+              children: [
+                _vBtn(Icons.remove_circle_outline, () {
+                  setState(() => _v = (_v - 0.1).clamp(0.0, 1.0));
+                  widget.onChanged(_v);
+                }),
+                IconButton.filled(
+                  onPressed: () => Navigator.of(context).pop(),
+                  tooltip: 'Done',
+                  constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                  icon: const Icon(Icons.check, size: 22),
+                ),
+                _vBtn(Icons.add_circle_outline, () {
+                  setState(() => _v = (_v + 0.1).clamp(0.0, 1.0));
+                  widget.onChanged(_v);
+                }),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -92,8 +86,9 @@ class _WearVolumeControlState extends State<WearVolumeControl> {
   Widget _vBtn(IconData i, VoidCallback f) => IconButton(
     icon: Icon(i, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.70), size: 26),
     onPressed: f,
+    tooltip: i == Icons.remove_circle_outline ? 'Decrease volume' : 'Increase volume',
     padding: EdgeInsets.zero,
-    constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+    constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
   );
 }
 

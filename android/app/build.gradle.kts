@@ -101,6 +101,7 @@ flutter {
 }
 
 dependencies {
+    implementation("androidx.core:core-splashscreen:1.2.0")
     implementation("androidx.documentfile:documentfile:1.0.1")
     implementation("androidx.media:media:1.7.0")
     implementation("com.google.android.gms:play-services-wearable:19.0.0")

@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.google.android.gms.tasks.Tasks
 import com.google.android.gms.wearable.CapabilityClient
 import com.google.android.gms.wearable.MessageClient
@@ -37,10 +38,17 @@ class WearMainActivity : AudioServiceActivity() {
 
     private var channel: MethodChannel? = null
     private var messageClient: MessageClient? = null
+    private var flutterUiDisplayed = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen().setKeepOnScreenCondition { !flutterUiDisplayed }
         super.onCreate(savedInstanceState)
         messageClient = Wearable.getMessageClient(this)
+    }
+
+    override fun onFlutterUiDisplayed() {
+        super.onFlutterUiDisplayed()
+        flutterUiDisplayed = true
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
