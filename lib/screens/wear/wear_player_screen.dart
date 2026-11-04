@@ -16,14 +16,19 @@ import 'package:yaabsa/provider/core/socket_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/player/session_provider.dart';
 import 'package:yaabsa/screens/wear/components/wear_fixed_view.dart';
+import 'package:yaabsa/screens/wear/components/wear_ambient_view.dart';
+import 'package:yaabsa/screens/wear/components/wear_swipe_to_dismiss.dart';
 import 'package:yaabsa/screens/wear/components/wear_volume_control.dart';
 import 'package:yaabsa/util/audio_handler/wear_audio_handler.dart';
 import 'package:yaabsa/util/extensions.dart';
-import 'package:yaabsa/util/globals.dart' show downloadHandler;
+import 'package:yaabsa/util/globals.dart' show BreakpointContextX, downloadHandler;
 import 'package:yaabsa/util/server_version.dart';
 
 class WearPlayerScreen extends ConsumerStatefulWidget {
-  const WearPlayerScreen({super.key});
+  const WearPlayerScreen({this.isAmbient = false, super.key});
+
+  final bool isAmbient;
+
   @override
   ConsumerState<WearPlayerScreen> createState() => _WearPlayerScreenState();
 }
@@ -54,10 +59,14 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
     _pos = _h.player
         .createPositionStream(minPeriod: const Duration(milliseconds: 500), maxPeriod: const Duration(seconds: 1))
         .listen((_) {
-          if (mounted && !_isLoading) setState(() => _position = _h.position);
+          if (mounted && !_isLoading && !widget.isAmbient) {
+            setState(() => _position = _h.position);
+          }
         });
     _clock = Timer.periodic(const Duration(seconds: 30), (_) {
-      if (mounted) setState(() => _now = DateTime.now());
+      if (mounted && !widget.isAmbient) {
+        setState(() => _now = DateTime.now());
+      }
     });
     _dlProgress = downloadHandler.progressUpdateStream.listen((update) {
       final itemId = _itemId;
@@ -145,6 +154,16 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
       _isDownloading = false;
       _downloadProgress = 0.0;
     });
+  }
+
+  @override
+  void didUpdateWidget(WearPlayerScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.isAmbient && !widget.isAmbient) {
+      _position = _h.position;
+      _now = DateTime.now();
+    }
   }
 
   @override
@@ -303,12 +322,16 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
   Widget build(BuildContext c) {
     final downloadedIds = ref.watch(completedDownloadItemIdsProvider).value;
     _isDownloaded = _itemId != null && (downloadedIds?.contains(_itemId) ?? false);
-    return Scaffold(
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
-          : _error != null
-          ? _err()
-          : Stack(fit: StackFit.expand, children: [_coverBackground(), _player()]),
+    return WearSwipeToDismiss(
+      child: Scaffold(
+        body: widget.isAmbient
+            ? WearAmbientView(title: _title, author: _author)
+            : _isLoading
+            ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
+            : _error != null
+            ? _err()
+            : Stack(fit: StackFit.expand, children: [_coverBackground(), _player()]),
+      ),
     );
   }
 
@@ -362,94 +385,104 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final time = '${_now.hour.toString().padLeft(2, '0')}:${_now.minute.toString().padLeft(2, '0')}';
 
-    return WearFixedView(
-      children: [
-        Text(
-          time,
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 12, color: _onSurface(0.60)),
-        ),
-        Expanded(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (_author != null && _author!.isNotEmpty)
-                    Text(
-                      _author!,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 12, color: _onSurface(0.70)),
-                      textAlign: TextAlign.center,
-                    ),
-                  Flexible(
-                    child: Text(
-                      _title ?? '',
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: colorScheme.onSurface),
-                      textAlign: TextAlign.center,
-                    ),
+    return WearFixedView.builder(
+      builder: (context, constraints) {
+        final scaler = MediaQuery.textScalerOf(context);
+        final compact = context.screenWidth < 225 || constraints.maxHeight < 180 || scaler.scale(12) > 15;
+        final showTime = constraints.maxHeight >= 102 + scaler.scale(16) * 1.4 + scaler.scale(12) * 1.4;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (!compact)
+              Text(
+                time,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12, color: _onSurface(0.60)),
+              ),
+            Expanded(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (!compact && _author != null && _author!.isNotEmpty)
+                        Text(
+                          _author!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 12, color: _onSurface(0.70)),
+                          textAlign: TextAlign.center,
+                        ),
+                      Flexible(
+                        child: Text(
+                          _title ?? '',
+                          maxLines: compact ? 1 : 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: colorScheme.onSurface),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        _progress(),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _btn(Icons.replay_30, _rew, label: 'Rewind 15 seconds'),
-            DecoratedBox(
-              decoration: BoxDecoration(shape: BoxShape.circle, color: colorScheme.primary),
-              child: _btn(
-                _isPlaying ? Icons.pause : Icons.play_arrow,
-                _toggle,
-                label: _isPlaying ? 'Pause' : 'Play',
-                s: 36,
-                color: colorScheme.onPrimary,
-              ),
-            ),
-            _btn(Icons.forward_30, _ff, label: 'Forward 30 seconds'),
-          ],
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            _btn(Icons.volume_up, _vol, label: 'Volume', s: 22),
-            if (_isDownloading)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox.square(
-                      dimension: 24,
-                      child: CircularProgressIndicator(value: _downloadProgress, strokeWidth: 2),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${(_downloadProgress * 100).round()}%',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 12, color: _onSurface(0.70)),
-                    ),
-                  ],
                 ),
-              )
-            else
-              _btn(
-                _isDownloaded ? Icons.file_download_done : Icons.download,
-                _toggleDownload,
-                label: _isDownloaded ? 'Remove download' : 'Download',
-                s: 22,
               ),
+            ),
+            _progress(showTime: showTime),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _btn(Icons.replay_30, _rew, label: 'Rewind 15 seconds'),
+                DecoratedBox(
+                  decoration: BoxDecoration(shape: BoxShape.circle, color: colorScheme.primary),
+                  child: _btn(
+                    _isPlaying ? Icons.pause : Icons.play_arrow,
+                    _toggle,
+                    label: _isPlaying ? 'Pause' : 'Play',
+                    s: 36,
+                    color: colorScheme.onPrimary,
+                  ),
+                ),
+                _btn(Icons.forward_30, _ff, label: 'Forward 30 seconds'),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                _btn(Icons.volume_up, _vol, label: 'Volume', s: 22),
+                if (_isDownloading)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox.square(
+                          dimension: 24,
+                          child: CircularProgressIndicator(value: _downloadProgress, strokeWidth: 2),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${(_downloadProgress * 100).round()}%',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 12, color: _onSurface(0.70)),
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  _btn(
+                    _isDownloaded ? Icons.file_download_done : Icons.download,
+                    _toggleDownload,
+                    label: _isDownloaded ? 'Remove download' : 'Download',
+                    s: 22,
+                  ),
+              ],
+            ),
           ],
-        ),
-      ],
+        );
+      },
     );
   }
 
@@ -461,7 +494,7 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
     constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
   );
 
-  Widget _progress() {
+  Widget _progress({bool showTime = true}) {
     final total = _h.media?.totalDuration ?? Duration.zero;
     final fraction = total.inMilliseconds > 0 ? (_position.inMilliseconds / total.inMilliseconds).clamp(0.0, 1.0) : 0.0;
     return Padding(
@@ -478,12 +511,16 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
               color: Theme.of(context).colorScheme.primary,
             ),
           ),
-          const SizedBox(height: 3),
-          Text(
-            '${_position.toCompactClockString()} / ${total.toCompactClockString()}',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 12, color: _onSurface(0.70)),
-          ),
+          if (showTime) ...[
+            const SizedBox(height: 3),
+            Text(
+              '${_position.toCompactClockString()} / ${total.toCompactClockString()}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 12, color: _onSurface(0.70)),
+            ),
+          ],
         ],
       ),
     );

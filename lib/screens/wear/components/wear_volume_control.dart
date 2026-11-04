@@ -2,6 +2,9 @@ import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:wear_plus/wear_plus.dart';
+import 'package:yaabsa/screens/wear/components/wear_ambient_view.dart';
+import 'package:yaabsa/screens/wear/components/wear_swipe_to_dismiss.dart';
 import 'package:yaabsa/screens/wear/components/wear_fixed_view.dart';
 
 class WearVolumeControl extends StatefulWidget {
@@ -26,80 +29,89 @@ class _WearVolumeControlState extends State<WearVolumeControl> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Listener(
-      onPointerSignal: (e) {
-        if (e is PointerScrollEvent) {
-          setState(() => _v = (_v + e.scrollDelta.dy * 0.05).clamp(0.0, 1.0));
-          widget.onChanged(_v);
-        }
-      },
-      child: Scaffold(
-        body: WearFixedView(
-          children: [
-            Expanded(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return Center(
-                    child: SizedBox.square(
-                      dimension: constraints.biggest.shortestSide,
-                      child: CustomPaint(
-                        painter: _CircularVolumePainter(
-                          volume: _v,
-                          color: colorScheme.primary,
-                          bg: colorScheme.onSurface.withValues(alpha: 0.24),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: Center(
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.volume_up, color: colorScheme.onSurface.withValues(alpha: 0.70), size: 18),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    '${(_v * 100).round()}%',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 30,
-                                      fontWeight: FontWeight.w300,
-                                      color: colorScheme.onSurface,
-                                    ),
-                                  ),
-                                ],
-                              ),
+    return WearSwipeToDismiss(
+      child: AmbientMode(
+        builder: (context, mode, child) {
+          return Listener(
+            onPointerSignal: (e) {
+              if (mode == WearMode.active && e is PointerScrollEvent) {
+                setState(() => _v = (_v + e.scrollDelta.dy * 0.05).clamp(0.0, 1.0));
+                widget.onChanged(_v);
+              }
+            },
+            child: Scaffold(
+              body: mode == WearMode.ambient
+                  ? const WearAmbientView()
+                  : WearFixedView(
+                      children: [
+                        Expanded(child: LayoutBuilder(builder: _volumeIndicator)),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            _vBtn(Icons.remove_circle_outline, () {
+                              setState(() => _v = (_v - 0.1).clamp(0.0, 1.0));
+                              widget.onChanged(_v);
+                            }),
+                            IconButton.filled(
+                              onPressed: () => Navigator.of(context).pop(),
+                              tooltip: 'Done',
+                              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                              icon: const Icon(Icons.check, size: 22),
                             ),
-                          ),
+                            _vBtn(Icons.add_circle_outline, () {
+                              setState(() => _v = (_v + 0.1).clamp(0.0, 1.0));
+                              widget.onChanged(_v);
+                            }),
+                          ],
                         ),
-                      ),
+                      ],
                     ),
-                  );
-                },
-              ),
             ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _volumeIndicator(BuildContext context, BoxConstraints constraints) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final label = '${(_v * 100).round()}%';
+    final style = DefaultTextStyle.of(context).style
+        .copyWith(fontSize: 30, fontWeight: FontWeight.w300, color: colorScheme.onSurface);
+    final textPainter = TextPainter(
+      text: TextSpan(text: '100%', style: style),
+      textDirection: Directionality.of(context),
+      textScaler: MediaQuery.textScalerOf(context),
+    )..layout();
+    final diameter = constraints.biggest.shortestSide;
+    final showRing = textPainter.width <= diameter - 40 && textPainter.height + 22 <= diameter - 40;
+    textPainter.dispose();
+
+    final percentage = Text(label, textAlign: TextAlign.center, style: style);
+    if (!showRing) {
+      return Center(child: percentage);
+    }
+
+    return Center(
+      child: SizedBox.square(
+        dimension: diameter,
+        child: CustomPaint(
+          painter: _CircularVolumePainter(
+            volume: _v,
+            color: colorScheme.primary,
+            bg: colorScheme.onSurface.withValues(alpha: 0.24),
+          ),
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                _vBtn(Icons.remove_circle_outline, () {
-                  setState(() => _v = (_v - 0.1).clamp(0.0, 1.0));
-                  widget.onChanged(_v);
-                }),
-                IconButton.filled(
-                  onPressed: () => Navigator.of(context).pop(),
-                  tooltip: 'Done',
-                  constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-                  icon: const Icon(Icons.check, size: 22),
-                ),
-                _vBtn(Icons.add_circle_outline, () {
-                  setState(() => _v = (_v + 0.1).clamp(0.0, 1.0));
-                  widget.onChanged(_v);
-                }),
+                Icon(Icons.volume_up, color: colorScheme.onSurface.withValues(alpha: 0.70), size: 18),
+                const SizedBox(height: 4),
+                percentage,
               ],
             ),
-          ],
+          ),
         ),
       ),
     );

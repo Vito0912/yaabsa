@@ -2,9 +2,12 @@ import 'package:material_ui/material_ui.dart';
 import 'package:wear_plus/wear_plus.dart';
 
 class WearFixedView extends StatelessWidget {
-  const WearFixedView({required this.children, super.key});
+  const WearFixedView({required this.children, super.key}) : builder = null;
+
+  const WearFixedView.builder({required this.builder, super.key}) : children = const [];
 
   final List<Widget> children;
+  final LayoutWidgetBuilder? builder;
 
   @override
   Widget build(BuildContext context) {
@@ -22,11 +25,13 @@ class WearFixedView extends StatelessWidget {
 
               return Padding(
                 padding: padding,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: children,
-                ),
+                child: builder != null
+                    ? LayoutBuilder(builder: builder!)
+                    : Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: children,
+                      ),
               );
             },
           ),

@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wear_plus/wear_plus.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/screens/wear/components/wear_ambient_view.dart';
 import 'package:yaabsa/screens/wear/wear_pairing_screen.dart';
 import 'package:yaabsa/screens/wear/wear_player_screen.dart';
 
@@ -19,12 +20,18 @@ class WearHomeScreen extends ConsumerWidget {
             return currentUser.when(
               data: (user) {
                 if (user != null) {
-                  return const WearPlayerScreen();
+                  return WearPlayerScreen(isAmbient: mode == WearMode.ambient);
                 }
-                return const WearPairingScreen();
+                return WearPairingScreen(isAmbient: mode == WearMode.ambient);
               },
-              loading: () => const Scaffold(body: Center(child: CircularProgressIndicator(strokeWidth: 2))),
-              error: (_, _) => const WearPairingScreen(),
+              loading: () {
+                if (mode == WearMode.ambient) {
+                  return const WearAmbientView();
+                }
+
+                return const Scaffold(body: Center(child: CircularProgressIndicator(strokeWidth: 2)));
+              },
+              error: (_, _) => WearPairingScreen(isAmbient: mode == WearMode.ambient),
             );
           },
         );

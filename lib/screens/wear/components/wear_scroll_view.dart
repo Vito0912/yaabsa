@@ -49,7 +49,17 @@ class _WearScrollViewState extends State<WearScrollView> {
               if (shape == WearShape.round) {
                 return ScrollConfiguration(
                   behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
-                  child: scrollView,
+                  child: RawScrollbar(
+                    controller: _controller,
+                    interactive: false,
+                    thickness: 3,
+                    radius: const Radius.circular(3),
+                    minThumbLength: 16,
+                    mainAxisMargin: constraints.maxHeight * 0.25,
+                    crossAxisMargin: constraints.maxWidth * 0.07,
+                    thumbColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.70),
+                    child: scrollView,
+                  ),
                 );
               }
 
