@@ -22,8 +22,17 @@ class _WearPairingScreenState extends State<WearPairingScreen> {
     });
 
     try {
-      final paired = await pairWithPhone();
-      if (!paired && mounted) {
+      final result = await pairWithPhone();
+
+      if (!mounted) {
+        return;
+      }
+
+      if (result == WearPairingResult.noPhone) {
+        setState(() {
+          _errorMessage = 'No phone connected.\nConnect your watch to your phone and try again.';
+        });
+      } else if (result == WearPairingResult.noResponse) {
         setState(() {
           _errorMessage = 'No response from phone.\nCheck your phone for a pairing notification.';
         });
@@ -62,7 +71,7 @@ class _WearPairingScreenState extends State<WearPairingScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Connect to your Audiobookshelf.',
+            'Connect to your Audiobookshelf',
             style: TextStyle(fontSize: 13, color: colorScheme.onSurface.withValues(alpha: 0.70)),
             textAlign: TextAlign.center,
           ),
@@ -94,12 +103,6 @@ class _WearPairingScreenState extends State<WearPairingScreen> {
               _errorMessage!,
               style: TextStyle(fontSize: 12, color: colorScheme.error),
               textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: _requestCredentials,
-              style: TextButton.styleFrom(minimumSize: const Size(48, 48)),
-              child: const Text('Retry', style: TextStyle(fontSize: 12)),
             ),
           ],
         ],

@@ -12,26 +12,31 @@ import 'package:yaabsa/util/router.dart' show globalRouter;
 
 const _wearDataChannelName = 'de.vito0912.yaabsa/wear_data';
 
+enum WearPairingResult { paired, noPhone, noResponse }
+
 /// Watch side: asks the phone for credentials (which opens the sign-in
 /// screen there), then fetches the full user with the returned token pair
 /// and stores it exactly like a phone sign-in. From then on the watch uses
 /// the regular stored-user stack ([currentUserProvider], [absApiProvider],
 /// `AuthRefreshInterceptor`).
 ///
-/// Returns false when the phone did not answer; throws on server errors.
-Future<bool> pairWithPhone() async {
+Future<WearPairingResult> pairWithPhone() async {
   const channel = MethodChannel(_wearDataChannelName);
   final Map<dynamic, dynamic>? result;
   try {
     result = await channel.invokeMethod<Map<dynamic, dynamic>>('requestCredentials');
-  } on PlatformException catch (_) {
-    return false;
+  } on PlatformException catch (error) {
+    if (error.code == 'NO_PHONE') {
+      return WearPairingResult.noPhone;
+    }
+
+    return WearPairingResult.noResponse;
   }
 
   final serverUrl = result?['serverUrl'] as String?;
   final accessToken = result?['accessToken'] as String?;
   if (serverUrl == null || serverUrl.isEmpty || accessToken == null || accessToken.isEmpty) {
-    return false;
+    return WearPairingResult.noResponse;
   }
   final headers = (result?['headers'] as Map<dynamic, dynamic>?)?.cast<String, String>();
 
@@ -49,7 +54,7 @@ Future<bool> pairWithPhone() async {
 
   final login = (await api.getMeApi().checkLogin()).data;
   if (login == null) {
-    return false;
+    return WearPairingResult.noResponse;
   }
 
   final user = login.user.copyWith(
@@ -66,7 +71,7 @@ Future<bool> pairWithPhone() async {
   final db = containerRef.read(appDatabaseProvider);
   await db.addOrUpdateStoredUser(user);
   await db.setActiveUserId(user.id);
-  return true;
+  return WearPairingResult.paired;
 }
 
 /// Phone side: reacts to a watch pairing request by opening the sign-in

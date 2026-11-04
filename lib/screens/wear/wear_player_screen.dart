@@ -6,6 +6,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/api/me/media_progress.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
+import 'package:yaabsa/components/common/cover_zoom_view.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/main_wear.dart' show wearAudioHandler;
 import 'package:yaabsa/models/internal_media.dart';
@@ -14,7 +15,7 @@ import 'package:yaabsa/provider/core/server_reachability_provider.dart';
 import 'package:yaabsa/provider/core/socket_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/player/session_provider.dart';
-import 'package:yaabsa/screens/wear/components/wear_scroll_view.dart';
+import 'package:yaabsa/screens/wear/components/wear_fixed_view.dart';
 import 'package:yaabsa/screens/wear/components/wear_volume_control.dart';
 import 'package:yaabsa/util/audio_handler/wear_audio_handler.dart';
 import 'package:yaabsa/util/extensions.dart';
@@ -307,7 +308,7 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
           ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
           : _error != null
           ? _err()
-          : _player(),
+          : Stack(fit: StackFit.expand, children: [_coverBackground(), _player()]),
     );
   }
 
@@ -315,8 +316,30 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
   // color, mirroring the white opacity steps used before the shared theme.
   Color _onSurface(double alpha) => Theme.of(context).colorScheme.onSurface.withValues(alpha: alpha);
 
+  Widget _coverBackground() {
+    final api = ref.watch(absApiProvider);
+    final image = coverImageProviderFromUri(
+      _h.media?.cover,
+      requestHeaders: normalizeImageRequestHeaders(api?.dio.options.headers),
+    );
+
+    if (image == null) {
+      return const SizedBox.expand();
+    }
+
+    return ExcludeSemantics(
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image(image: image, fit: BoxFit.cover, errorBuilder: (context, error, stackTrace) => const SizedBox.expand()),
+          ColoredBox(color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.80)),
+        ],
+      ),
+    );
+  }
+
   Widget _err() {
-    return WearScrollView(
+    return WearFixedView(
       children: [
         Icon(Icons.error_outline, size: 32, color: Theme.of(context).colorScheme.error),
         const SizedBox(height: 8),
@@ -339,30 +362,45 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
     final colorScheme = Theme.of(context).colorScheme;
     final time = '${_now.hour.toString().padLeft(2, '0')}:${_now.minute.toString().padLeft(2, '0')}';
 
-    return WearScrollView(
+    return WearFixedView(
       children: [
         Text(
           time,
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 12, color: _onSurface(0.60)),
         ),
-        const SizedBox(height: 8),
-        if (_author != null && _author!.isNotEmpty)
-          Text(
-            _author!,
-            style: TextStyle(fontSize: 12, color: _onSurface(0.70)),
-            textAlign: TextAlign.center,
+        Expanded(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (_author != null && _author!.isNotEmpty)
+                    Text(
+                      _author!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 12, color: _onSurface(0.70)),
+                      textAlign: TextAlign.center,
+                    ),
+                  Flexible(
+                    child: Text(
+                      _title ?? '',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: colorScheme.onSurface),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-        Text(
-          _title ?? '',
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: colorScheme.onSurface),
-          textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 8),
         _progress(),
-        const SizedBox(height: 8),
-        Wrap(
-          alignment: WrapAlignment.center,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             _btn(Icons.replay_30, _rew, label: 'Rewind 15 seconds'),
             DecoratedBox(
@@ -371,22 +409,21 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
                 _isPlaying ? Icons.pause : Icons.play_arrow,
                 _toggle,
                 label: _isPlaying ? 'Pause' : 'Play',
-                s: 30,
+                s: 36,
                 color: colorScheme.onPrimary,
               ),
             ),
             _btn(Icons.forward_30, _ff, label: 'Forward 30 seconds'),
           ],
         ),
-        const SizedBox(height: 8),
-        Wrap(
-          alignment: WrapAlignment.spaceEvenly,
-          crossAxisAlignment: WrapCrossAlignment.center,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             _btn(Icons.volume_up, _vol, label: 'Volume', s: 22),
             if (_isDownloading)
               Padding(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [

@@ -26,35 +26,34 @@ class _WearScrollViewState extends State<WearScrollView> {
         return SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              // An 80% wide, 60% tall rectangle fits inside a round display (~)
               final padding = shape == WearShape.round
                   ? EdgeInsets.symmetric(
-                      horizontal: constraints.maxWidth * 0.10,
-                      vertical: constraints.maxHeight * 0.20,
+                      horizontal: constraints.maxWidth * 0.14,
+                      vertical: constraints.maxHeight * 0.12,
                     )
                   : const EdgeInsets.all(12);
 
-              return Padding(
+              final scrollView = SingleChildScrollView(
+                controller: _controller,
                 padding: padding,
-                child: LayoutBuilder(
-                  builder: (context, viewport) {
-                    return Scrollbar(
-                      controller: _controller,
-                      child: SingleChildScrollView(
-                        controller: _controller,
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(minHeight: viewport.maxHeight),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: widget.children,
-                          ),
-                        ),
-                      ),
-                    );
-                  },
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight - padding.vertical),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: widget.children,
+                  ),
                 ),
               );
+
+              if (shape == WearShape.round) {
+                return ScrollConfiguration(
+                  behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
+                  child: scrollView,
+                );
+              }
+
+              return Scrollbar(controller: _controller, child: scrollView);
             },
           ),
         );

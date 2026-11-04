@@ -1,7 +1,8 @@
 import 'dart:math' as math;
 
+import 'package:flutter/gestures.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:yaabsa/screens/wear/components/wear_scroll_view.dart';
+import 'package:yaabsa/screens/wear/components/wear_fixed_view.dart';
 
 class WearVolumeControl extends StatefulWidget {
   const WearVolumeControl({required this.volume, required this.onChanged, super.key});
@@ -28,38 +29,59 @@ class _WearVolumeControlState extends State<WearVolumeControl> {
     final colorScheme = Theme.of(context).colorScheme;
     return Listener(
       onPointerSignal: (e) {
-        try {
-          final d = (e as dynamic).scrollDelta?.y as double?;
-          if (d != null) {
-            setState(() => _v = (_v + d * 0.05).clamp(0.0, 1.0));
-            widget.onChanged(_v);
-          }
-        } catch (_) {}
+        if (e is PointerScrollEvent) {
+          setState(() => _v = (_v + e.scrollDelta.dy * 0.05).clamp(0.0, 1.0));
+          widget.onChanged(_v);
+        }
       },
       child: Scaffold(
-        body: WearScrollView(
+        body: WearFixedView(
           children: [
-            Icon(Icons.volume_up, color: colorScheme.onSurface.withValues(alpha: 0.38), size: 18),
-            const SizedBox(height: 8),
-            SizedBox.square(
-              dimension: 80,
-              child: CustomPaint(
-                painter: _CircularVolumePainter(
-                  volume: _v,
-                  color: colorScheme.primary,
-                  bg: colorScheme.onSurface.withValues(alpha: 0.24),
-                ),
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return Center(
+                    child: SizedBox.square(
+                      dimension: constraints.biggest.shortestSide,
+                      child: CustomPaint(
+                        painter: _CircularVolumePainter(
+                          volume: _v,
+                          color: colorScheme.primary,
+                          bg: colorScheme.onSurface.withValues(alpha: 0.24),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Center(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.volume_up, color: colorScheme.onSurface.withValues(alpha: 0.70), size: 18),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '${(_v * 100).round()}%',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 30,
+                                      fontWeight: FontWeight.w300,
+                                      color: colorScheme.onSurface,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
             const SizedBox(height: 8),
-            Text(
-              '${(_v * 100).round()}%',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w300, color: colorScheme.onSurface),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              alignment: WrapAlignment.center,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _vBtn(Icons.remove_circle_outline, () {
                   setState(() => _v = (_v - 0.1).clamp(0.0, 1.0));
@@ -123,5 +145,5 @@ class _CircularVolumePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _CircularVolumePainter o) => o.volume != volume;
+  bool shouldRepaint(covariant _CircularVolumePainter o) => o.volume != volume || o.color != color || o.bg != bg;
 }
