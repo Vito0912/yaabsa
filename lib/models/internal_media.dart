@@ -71,7 +71,7 @@ abstract class InternalMedia with _$InternalMedia {
 
   String get id => episodeId ?? itemId;
 
-  MediaItem toMediaItem() {
+  MediaItem toMediaItem({Map<String, String>? artHeaders}) {
     return MediaItem(
       id: episodeId ?? itemId,
       album: (series != null && seriesPosition != null) ? '$series #$seriesPosition' : (series ?? ''),
@@ -83,6 +83,7 @@ abstract class InternalMedia with _$InternalMedia {
       duration: totalDuration,
       isLive: false,
       artUri: notificationArtworkUri(cover),
+      artHeaders: artHeaders == null || artHeaders.isEmpty ? null : artHeaders,
     );
   }
 

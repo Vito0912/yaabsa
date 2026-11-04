@@ -720,6 +720,7 @@ class MainActivity : AudioServiceFragmentActivity() {
 			put("serverUrl", serverUrl)
 			put("accessToken", accessToken)
 			call.argument<String>("refreshToken")?.takeIf { it.isNotEmpty() }?.let { put("refreshToken", it) }
+			call.argument<Map<String, String>>("headers")?.takeIf { it.isNotEmpty() }?.let { put("headers", JSONObject(it)) }
 		}
 
 		val client = messageClient
