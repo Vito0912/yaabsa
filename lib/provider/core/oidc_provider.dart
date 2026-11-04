@@ -26,6 +26,8 @@ part 'oidc_provider.g.dart';
 class OidcState extends _$OidcState {
   StreamSubscription<Uri>? _linkSubscription;
 
+  Future<void> _pendingOperation = Future<void>.value();
+
   @override
   AsyncValue<void> build() {
     ref.onDispose(() {
@@ -35,7 +37,9 @@ class OidcState extends _$OidcState {
   }
 
   void initializeDeepLinkListener() {
-    if (_linkSubscription != null) return;
+    if (_linkSubscription != null) {
+      return;
+    }
 
     final appLinks = AppLinks();
 
@@ -52,12 +56,27 @@ class OidcState extends _$OidcState {
   void _handleIncomingUri(Uri uri) {
     if (uri.scheme == 'yaabsa' && uri.host == 'oauth') {
       logger('Received yaabsa OAuth callback link.', tag: 'OidcProvider');
-      handleCallbackUri(uri);
+      unawaited(handleCallbackUri(uri));
       return;
     }
   }
 
   Future<void> initiateOidc({required String serverUrl, required Map<String, String> customHeaders}) async {
+    if (state.isLoading) {
+      return;
+    }
+
+    state = const AsyncValue.loading();
+    await _serializeOperation(() => _initiateOidc(serverUrl: serverUrl, customHeaders: customHeaders));
+  }
+
+  Future<void> _serializeOperation(Future<void> Function() operation) {
+    final result = _pendingOperation.then((_) => operation());
+    _pendingOperation = result.then<void>((_) {}, onError: (Object error, StackTrace stackTrace) {});
+    return result;
+  }
+
+  Future<void> _initiateOidc({required String serverUrl, required Map<String, String> customHeaders}) async {
     state = const AsyncValue.loading();
     try {
       final codeVerifier = _generateCodeVerifier();
@@ -109,7 +128,7 @@ class OidcState extends _$OidcState {
       const storage = FlutterSecureStorage();
       await storage.write(key: 'oidc_session', value: jsonEncode(session));
 
-      logger('OIDC flow initialized. Launching browser: $location', tag: 'OidcProvider');
+      logger('OIDC flow initialized. Launching the login browser.', tag: 'OidcProvider');
       final launched = await launchUrl(Uri.parse(location), mode: LaunchMode.externalApplication);
       if (!launched) {
         throw Exception('Could not launch OpenID login page in browser.');
@@ -127,38 +146,49 @@ class OidcState extends _$OidcState {
   }
 
   Future<void> handleCallbackUri(Uri uri) async {
-    state = const AsyncValue.loading();
+    if (uri.scheme != 'yaabsa' || uri.host != 'oauth') {
+      return;
+    }
+
+    await _serializeOperation(() => _handleCallbackUri(uri));
+  }
+
+  Future<void> _handleCallbackUri(Uri uri) async {
     try {
       final queryParams = uri.queryParameters;
       final code = queryParams['code'];
       final stateValue = queryParams['state'];
 
-      if (code == null || stateValue == null) {
+      if (code == null || code.isEmpty || stateValue == null || stateValue.isEmpty) {
         throw Exception('Authorization callback URL is missing code or state parameters.');
       }
 
       const storage = FlutterSecureStorage();
       final sessionJson = await storage.read(key: 'oidc_session');
       if (sessionJson == null) {
-        throw Exception('No active OIDC session context found in storage. Please try logging in again.');
+        logger('Ignoring an OAuth callback without an active login session.', tag: 'OidcProvider');
+        return;
       }
 
       final session = jsonDecode(sessionJson) as Map<String, dynamic>;
-      await storage.delete(key: 'oidc_session');
-
       final savedState = session['state'] as String;
+
+      if (savedState != stateValue) {
+        logger('Ignoring an OAuth callback for a different login session.', tag: 'OidcProvider');
+        return;
+      }
+
       final codeVerifier = session['codeVerifier'] as String;
       final serverUrl = session['serverUrl'] as String;
       final cookie = session['cookie'] as String?;
       final customHeaders = Map<String, String>.from(session['customHeaders'] as Map);
       final timestamp = DateTime.parse(session['timestamp'] as String);
 
+      state = const AsyncValue.loading();
+      await storage.delete(key: 'oidc_session');
+
       if (DateTime.now().difference(timestamp) > const Duration(minutes: 5)) {
         throw Exception('Authorization session timed out. Please try logging in again.');
-      }
-
-      if (savedState != stateValue) {
-        throw Exception('State validation mismatch. Potential security breach or duplicate login flow.');
       }
 
       final baseHeaders = buildRequestHeaders(serverHeaders: customHeaders);
@@ -277,9 +307,29 @@ Object formatOidcError(Object e) {
   if (e is DioException) {
     final statusCode = e.response?.statusCode;
     if (statusCode == 400) {
-      return Exception(
-        'HTTP 400 Bad Request: Invalid redirect_uri. Please make sure "yaabsa://oauth" is added under Allowed Mobile Redirect URIs in the Auth settings of ABS.',
-      );
+      final data = e.response?.data;
+      final Object? message;
+      if (data is Map) {
+        message = data['message'] ?? data['error'];
+      } else {
+        message = data;
+      }
+
+      final serverMessage = message is String ? message.trim() : null;
+      if (serverMessage == 'Invalid redirect_uri') {
+        return Exception(
+          'HTTP 400 Bad Request: Invalid redirect_uri. Please make sure "yaabsa://oauth" is added under Allowed Mobile Redirect URIs in the Auth settings of ABS.',
+        );
+      }
+
+      if (serverMessage != null &&
+          serverMessage.isNotEmpty &&
+          serverMessage.length <= 500 &&
+          !serverMessage.startsWith('<')) {
+        return Exception('HTTP 400 Bad Request: $serverMessage');
+      }
+
+      return Exception('HTTP 400 Bad Request: The server rejected the OpenID Connect request.');
     }
   }
   return e;
