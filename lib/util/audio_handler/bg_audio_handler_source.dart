@@ -216,4 +216,11 @@ extension _BGAudioHandlerSource on BGAudioHandler {
       bearerToken: isHls ? user?.preferredAuthToken : null,
     );
   }
+
+  /// Headers audio_service sends when it downloads the notification artwork;
+  /// without them a reverse proxy that requires custom headers drops it.
+  Map<String, String> get _artRequestHeadersInternal {
+    final user = _ref.read(currentUserProvider).value;
+    return buildRequestHeaders(serverHeaders: user?.server?.headers);
+  }
 }

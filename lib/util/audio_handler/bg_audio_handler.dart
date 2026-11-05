@@ -30,6 +30,7 @@ import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/api/list/collection.dart';
 import 'package:yaabsa/api/list/playlist.dart';
+import 'package:yaabsa/api/list/response/library_list_page.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/models/internal_download.dart';
@@ -47,6 +48,8 @@ import 'package:yaabsa/provider/library/personalized_shelf_refresh.dart';
 import 'package:yaabsa/provider/core/server_reachability_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/provider/common/collection_provider.dart';
+import 'package:yaabsa/provider/common/playlist_provider.dart';
 import 'package:yaabsa/provider/player/session_provider.dart';
 import 'package:yaabsa/provider/player/queue_source_provider.dart';
 import 'package:yaabsa/provider/library/smart_download_provider.dart';
@@ -59,6 +62,7 @@ import 'package:yaabsa/util/audio_handler/playback_sync_service.dart';
 import 'package:yaabsa/util/bluetooth_auto_resume.dart';
 import 'package:yaabsa/util/audio_handler/player_history_handler.dart';
 import 'package:yaabsa/util/audio_handler/auto/android_auto_browse_models.dart';
+import 'package:yaabsa/util/audio_handler/auto/car_list_ranges.dart';
 import 'package:yaabsa/util/handler/tray_handler.dart' show TrayManager;
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/android_live_updates.dart';
@@ -94,6 +98,7 @@ part 'auto/bg_audio_handler_android_auto_media.dart';
 part 'auto/bg_audio_handler_android_auto_browse.dart';
 part 'auto/bg_audio_handler_automotive.dart';
 part 'auto/bg_audio_handler_car_requests.dart';
+part 'auto/bg_audio_handler_car_lists.dart';
 part 'auto/bg_audio_handler_car_support.dart';
 part 'auto/bg_audio_handler_car_library_icons.dart';
 part 'auto/bg_audio_handler_automotive_browse_actions.dart';
@@ -2177,6 +2182,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     }
 
     late MediaItem nextMediaItem;
+    final artHeaders = _artRequestHeadersInternal;
 
     if (_chapterNotificationEnabled) {
       final searchPos = customPosition ?? position;
@@ -2192,9 +2198,10 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         duration: _chapterNotificationDuration,
         isLive: false,
         artUri: notificationArtworkUri(currentItem.cover),
+        artHeaders: artHeaders.isEmpty ? null : artHeaders,
       );
     } else {
-      nextMediaItem = currentItem.toMediaItem();
+      nextMediaItem = currentItem.toMediaItem(artHeaders: artHeaders);
     }
 
     if (_androidAutoIsAutomotiveSystemCache == true) {

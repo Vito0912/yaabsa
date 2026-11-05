@@ -1,86 +1,284 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:async';
+
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:yaabsa/api/list/playlist.dart';
+import 'package:yaabsa/api/list/response/library_list_page.dart';
+import 'package:yaabsa/provider/common/library_list_pagination.dart';
+import 'package:yaabsa/provider/common/playlist_lookup_provider.dart';
+import 'package:yaabsa/provider/common/playlist_state.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/util/list_item_ids.dart';
+import 'package:yaabsa/util/playlist_membership.dart';
 
-class PlaylistsState {
-  const PlaylistsState({
-    this.items = const <Playlist>[],
-    required this.libraryId,
-    this.error,
-    this.stackTrace,
-    this.totalItems = 0,
-  });
+export 'playlist_state.dart';
+export 'playlist_lookup_provider.dart';
 
-  final List<Playlist> items;
-  final String libraryId;
-  final Object? error;
-  final StackTrace? stackTrace;
-  final int totalItems;
+part 'playlist_provider.g.dart';
+part 'playlist_provider_memberships.dart';
 
-  PlaylistsState copyWith({
-    List<Playlist>? items,
-    String? libraryId,
-    Object? error,
-    StackTrace? stackTrace,
-    int? totalItems,
-  }) {
+@Riverpod(keepAlive: true)
+class PlaylistsNotifier extends _$PlaylistsNotifier with _PlaylistMembershipMutations {
+  @override
+  int get membershipRevision => _revision;
+
+  Future<void>? _refreshInFlight;
+  int _revision = 0;
+  int _refreshRevision = 0;
+  bool _refreshForcesServer = false;
+  bool _refreshRequiresServer = false;
+  Future<void>? _nextPageInFlight;
+  bool _paginationDirty = false;
+
+  Future<LibraryListPage<Playlist>> _fetchPage(int page, {bool forceServer = false, bool requireServer = false}) =>
+      fetchPlaylistListPage(ref, libraryId, page, forceServer: forceServer, requireServer: requireServer);
+
+  Future<PlaylistsState> _fetchPlaylists({bool forceServer = false, bool requireServer = false}) async {
+    final targetCount = state.value?.items.length ?? libraryListPageSize;
+    var pagination = const LibraryListPagination<Playlist>();
+    final items = <String, Playlist>{};
+    var initial = true;
+
+    do {
+      final batch = await pagination.loadNext(
+        (page) => _fetchPage(page, forceServer: forceServer, requireServer: requireServer),
+        initial: initial,
+      );
+      initial = false;
+      pagination = batch.pagination;
+      for (final item in batch.items) {
+        if (item.libraryId == libraryId) {
+          items[item.id] = item;
+        }
+      }
+    } while (items.length < targetCount && pagination.hasNextPage);
+
     return PlaylistsState(
-      items: items ?? this.items,
-      libraryId: libraryId ?? this.libraryId,
-      error: error ?? this.error,
-      stackTrace: stackTrace ?? this.stackTrace,
-      totalItems: totalItems ?? this.totalItems,
+      items: items.values.toList(growable: false),
+      libraryId: libraryId,
+      totalItems: pagination.total,
+      pagination: pagination,
     );
-  }
-}
-
-final playlistsProvider = AsyncNotifierProvider.family<PlaylistsNotifier, PlaylistsState, String>(
-  PlaylistsNotifier.new,
-);
-
-class PlaylistsNotifier extends AsyncNotifier<PlaylistsState> {
-  PlaylistsNotifier(this.libraryId);
-
-  final String libraryId;
-
-  Future<PlaylistsState> _fetchPlaylists({bool forceServer = false}) async {
-    final absApi = ref.read(absApiProvider);
-    if (absApi == null) {
-      throw Exception('User not authenticated or API not available.');
-    }
-
-    final response = await absApi.getListApi().getUserPlaylist(forceServer: forceServer);
-    final data = response.data;
-    if (data == null) {
-      throw Exception('No playlists data received from API.');
-    }
-
-    final filteredPlaylists = data.items.where((item) => item.libraryId == libraryId).toList(growable: false)
-      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-
-    return PlaylistsState(items: filteredPlaylists, libraryId: libraryId, totalItems: filteredPlaylists.length);
   }
 
   @override
-  Future<PlaylistsState> build() async {
-    return _fetchPlaylists();
+  Future<PlaylistsState> build(String libraryId) async {
+    while (true) {
+      final revision = _revision;
+      final loaded = await _fetchPlaylists(forceServer: revision != 0, requireServer: revision != 0);
+      if (!ref.mounted) {
+        return loaded;
+      }
+      if (revision == _revision) {
+        _paginationDirty = false;
+        return loaded;
+      }
+    }
   }
 
-  Future<void> refresh({bool withLoading = true, bool forceServer = true}) async {
-    if (withLoading) {
+  @override
+  void applyServerUpdate(Playlist item) {
+    if (!ref.mounted || item.libraryId != libraryId) {
+      return;
+    }
+    _revision++;
+    _paginationDirty = true;
+    ref.invalidate(playlistByIdProvider(libraryId, item.id));
+    final current = state.value;
+    if (current == null) {
+      return;
+    }
+    final itemsById = {for (final entry in current.items) entry.id: entry};
+    itemsById[item.id] = item;
+    final items = itemsById.values.toList(growable: false);
+    state = AsyncData(
+      current.copyWith(
+        items: items,
+        totalItems: current.totalItems > items.length ? current.totalItems : items.length,
+        clearError: true,
+        clearNextPageError: true,
+        isLoadingNextPage: false,
+      ),
+    );
+  }
+
+  @override
+  void applyServerRemoval(String id) {
+    if (!ref.mounted) {
+      return;
+    }
+    _revision++;
+    _paginationDirty = true;
+    ref.invalidate(playlistByIdProvider(libraryId, id));
+    final current = state.value;
+    if (current == null) {
+      return;
+    }
+    final items = current.items.where((entry) => entry.id != id).toList(growable: false);
+    state = AsyncData(
+      current.copyWith(
+        items: items,
+        totalItems: current.items.any((entry) => entry.id == id) && current.totalItems > 0
+            ? current.totalItems - 1
+            : current.totalItems,
+        clearError: true,
+        clearNextPageError: true,
+        isLoadingNextPage: false,
+      ),
+    );
+  }
+
+  @override
+  Future<void> refresh({
+    bool withLoading = true,
+    bool forceServer = true,
+    bool requireServer = false,
+    bool invalidatePending = false,
+  }) {
+    if (!ref.mounted) {
+      return Future.value();
+    }
+    if (invalidatePending) {
+      _revision++;
+    }
+    final inFlight = _refreshInFlight;
+    if (inFlight != null) {
+      if (_refreshRevision == _revision &&
+          (!(forceServer || requireServer) || _refreshForcesServer) &&
+          (!requireServer || _refreshRequiresServer)) {
+        return inFlight;
+      }
+      // A request started before a confirmed edit, or one that permits an
+      // offline cache fallback, cannot satisfy a fresh synchronization request.
+      return inFlight.then(
+        (_) => refresh(withLoading: withLoading, forceServer: forceServer, requireServer: requireServer),
+      );
+    }
+    _revision++;
+    _refreshRevision = _revision;
+    _refreshForcesServer = forceServer || requireServer;
+    _refreshRequiresServer = requireServer;
+    final request = _refreshPlaylists(
+      withLoading: withLoading,
+      forceServer: forceServer,
+      requireServer: requireServer,
+      revision: _revision,
+    );
+    _refreshInFlight = request;
+    return request.whenComplete(() => _refreshInFlight = null);
+  }
+
+  Future<void> _refreshPlaylists({
+    required bool withLoading,
+    required bool forceServer,
+    required bool requireServer,
+    required int revision,
+  }) async {
+    if (withLoading && !state.hasValue) {
       state = const AsyncValue.loading();
     }
 
     try {
-      final refreshed = await _fetchPlaylists(forceServer: forceServer);
-      state = AsyncData(refreshed);
+      final refreshed = await _fetchPlaylists(forceServer: forceServer, requireServer: requireServer);
+      if (ref.mounted && revision == _revision) {
+        _paginationDirty = false;
+        state = AsyncData(refreshed);
+      }
     } catch (e, s) {
+      if (!ref.mounted || revision != _revision) {
+        return;
+      }
       final currentState = state.value;
       if (currentState != null) {
-        state = AsyncData(currentState.copyWith(error: e, stackTrace: s));
+        state = AsyncData(currentState.copyWith(error: e, stackTrace: s, isLoadingNextPage: false));
       } else {
         state = AsyncError(e, s);
       }
+    }
+  }
+
+  Future<void> loadNextPage() {
+    final pending = _nextPageInFlight;
+    if (pending != null) {
+      return pending;
+    }
+
+    final operation = _loadNextPage();
+    _nextPageInFlight = operation.whenComplete(() {
+      _nextPageInFlight = null;
+    });
+    return _nextPageInFlight!;
+  }
+
+  Future<void> _loadNextPage() async {
+    await _refreshInFlight;
+    if (!ref.mounted) {
+      return;
+    }
+    if (_paginationDirty) {
+      await refresh(withLoading: false, requireServer: true, invalidatePending: true);
+    }
+    if (!ref.mounted) {
+      return;
+    }
+
+    final current = state.value;
+    if (current == null || current.error != null || !current.hasNextPage) {
+      return;
+    }
+
+    final revision = _revision;
+    state = AsyncData(current.copyWith(isLoadingNextPage: true, clearNextPageError: true));
+    try {
+      final batch = await current.pagination.loadNext((page) => _fetchPage(page, forceServer: true));
+      if (!ref.mounted || revision != _revision) {
+        return;
+      }
+
+      final items = {for (final item in current.items) item.id: item};
+      for (final item in batch.items) {
+        if (item.libraryId == libraryId) {
+          items[item.id] = item;
+        }
+      }
+      state = AsyncData(
+        current.copyWith(
+          items: items.values.toList(growable: false),
+          pagination: batch.pagination,
+          totalItems: batch.pagination.total,
+          isLoadingNextPage: false,
+          clearNextPageError: true,
+        ),
+      );
+    } catch (error) {
+      if (ref.mounted && revision == _revision) {
+        state = AsyncData(current.copyWith(nextPageError: error, isLoadingNextPage: false));
+      }
+    }
+  }
+
+  Future<void> ensureAllLoaded() async {
+    await future;
+    if (!ref.mounted) {
+      return;
+    }
+
+    if (state.requireValue.error != null) {
+      await refresh(withLoading: false, requireServer: true);
+    } else if (state.requireValue.nextPageError != null) {
+      await loadNextPage();
+    }
+
+    while (ref.mounted) {
+      final current = state.requireValue;
+      final error = current.error ?? current.nextPageError;
+      if (error != null) {
+        throw error;
+      }
+      if (!current.hasNextPage) {
+        return;
+      }
+
+      await loadNextPage();
     }
   }
 
@@ -106,7 +304,7 @@ class PlaylistsNotifier extends AsyncNotifier<PlaylistsState> {
       throw Exception('No playlist data returned from create request.');
     }
 
-    await refresh(withLoading: false, forceServer: true);
+    applyServerUpdate(created);
     return created;
   }
 
@@ -123,6 +321,8 @@ class PlaylistsNotifier extends AsyncNotifier<PlaylistsState> {
       throw Exception('No playlist data returned from update request.');
     }
 
+    ref.invalidate(playlistByIdProvider(libraryId, playlistId));
+    _revision++;
     await refresh(withLoading: false, forceServer: true);
     return updated;
   }
@@ -147,6 +347,8 @@ class PlaylistsNotifier extends AsyncNotifier<PlaylistsState> {
       throw Exception('No playlist data returned from add request.');
     }
 
+    ref.invalidate(playlistByIdProvider(libraryId, playlistId));
+    _revision++;
     await refresh(withLoading: false, forceServer: true);
     return updated;
   }
@@ -156,7 +358,7 @@ class PlaylistsNotifier extends AsyncNotifier<PlaylistsState> {
     required String libraryItemId,
     required List<String> episodeIds,
   }) async {
-    final normalizedEpisodeIds = _normalizeItemIds(episodeIds);
+    final normalizedEpisodeIds = normalizeListItemIds(episodeIds);
     if (libraryItemId.isEmpty || normalizedEpisodeIds.isEmpty) {
       throw Exception('No podcast episodes selected.');
     }
@@ -178,6 +380,8 @@ class PlaylistsNotifier extends AsyncNotifier<PlaylistsState> {
       throw Exception('No playlist data returned from add request.');
     }
 
+    ref.invalidate(playlistByIdProvider(libraryId, playlistId));
+    _revision++;
     await refresh(withLoading: false, forceServer: true);
     return updated;
   }
@@ -204,6 +408,8 @@ class PlaylistsNotifier extends AsyncNotifier<PlaylistsState> {
       throw Exception('No playlist data returned from remove request.');
     }
 
+    ref.invalidate(playlistByIdProvider(libraryId, playlistId));
+    _revision++;
     await refresh(withLoading: false, forceServer: true);
     return updated;
   }
@@ -213,21 +419,15 @@ class PlaylistsNotifier extends AsyncNotifier<PlaylistsState> {
     required List<String> currentBookIds,
     required List<String> desiredBookIds,
   }) async {
-    final normalizedCurrent = _normalizeItemIds(currentBookIds);
-    final normalizedDesired = _normalizeItemIds(desiredBookIds);
+    final normalizedCurrent = normalizeListItemIds(currentBookIds);
+    final normalizedDesired = normalizeListItemIds(desiredBookIds);
 
     if (normalizedDesired.isEmpty) {
       throw Exception('Playlists cannot be empty. Keep at least one book selected.');
     }
 
-    if (_sameOrder(normalizedCurrent, normalizedDesired)) {
-      await refresh(withLoading: false, forceServer: true);
-      for (final playlist in state.value?.items ?? const <Playlist>[]) {
-        if (playlist.id == playlistId) {
-          return playlist;
-        }
-      }
-      throw Exception('Playlist could not be refreshed.');
+    if (sameListItemOrder(normalizedCurrent, normalizedDesired)) {
+      return ref.refresh(playlistByIdProvider(libraryId, playlistId).future);
     }
 
     final absApi = ref.read(absApiProvider);
@@ -262,6 +462,8 @@ class PlaylistsNotifier extends AsyncNotifier<PlaylistsState> {
       items: normalizedDesired.map((bookId) => <String, dynamic>{'libraryItemId': bookId}).toList(growable: false),
     );
 
+    ref.invalidate(playlistByIdProvider(libraryId, playlistId));
+    _revision++;
     await refresh(withLoading: false, forceServer: true);
 
     final updated = updatedResponse.data;
@@ -269,13 +471,7 @@ class PlaylistsNotifier extends AsyncNotifier<PlaylistsState> {
       return updated;
     }
 
-    for (final playlist in state.value?.items ?? const <Playlist>[]) {
-      if (playlist.id == playlistId) {
-        return playlist;
-      }
-    }
-
-    throw Exception('No playlist data returned from replace request.');
+    return ref.refresh(playlistByIdProvider(libraryId, playlistId).future);
   }
 
   Future<void> deletePlaylist(String playlistId) async {
@@ -289,34 +485,8 @@ class PlaylistsNotifier extends AsyncNotifier<PlaylistsState> {
       throw Exception('Playlist delete request failed.');
     }
 
+    ref.invalidate(playlistByIdProvider(libraryId, playlistId));
+    _revision++;
     await refresh(withLoading: false, forceServer: true);
   }
-}
-
-List<String> _normalizeItemIds(List<String> ids) {
-  final normalized = <String>[];
-  final seen = <String>{};
-
-  for (final id in ids) {
-    if (id.isEmpty || !seen.add(id)) {
-      continue;
-    }
-    normalized.add(id);
-  }
-
-  return normalized;
-}
-
-bool _sameOrder(List<String> left, List<String> right) {
-  if (left.length != right.length) {
-    return false;
-  }
-
-  for (var i = 0; i < left.length; i++) {
-    if (left[i] != right[i]) {
-      return false;
-    }
-  }
-
-  return true;
 }

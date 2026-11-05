@@ -40,7 +40,7 @@ void main() {
         audioLibraries: [_library('book-audio', numAudioFiles: 1)],
       );
 
-      expect(buildAndroidAutoRoot(snapshot).map((item) => item.title), ['Libraries', 'Recent']);
+      expect(buildAndroidAutoRoot(snapshot).map((item) => item.title), ['Libraries']);
     });
 
     test('shows Continue only when it has playable items', () {
@@ -49,7 +49,17 @@ void main() {
         audioLibraries: [_library('book-audio', numAudioFiles: 1)],
       );
 
-      expect(buildAndroidAutoRoot(snapshot).map((item) => item.title), ['Continue', 'Libraries', 'Recent']);
+      expect(buildAndroidAutoRoot(snapshot).map((item) => item.title), ['Continue', 'Libraries']);
+    });
+
+    test('shows Downloads when downloaded items are available', () {
+      final snapshot = AndroidAutoBrowseSnapshot(
+        continueItems: const <MediaItem>[],
+        audioLibraries: const <Library>[],
+        downloadItems: const [MediaItem(id: 'download-1', title: 'Downloaded book', playable: true)],
+      );
+
+      expect(buildAndroidAutoRoot(snapshot).map((item) => item.title), ['Downloads']);
     });
 
     test('can show Continue without libraries', () {

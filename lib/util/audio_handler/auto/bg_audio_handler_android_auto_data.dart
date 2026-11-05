@@ -241,60 +241,6 @@ extension _BGAudioHandlerAndroidAutoData on BGAudioHandler {
     }
   }
 
-  Future<List<Collection>> _androidAutoFetchCollectionsForLibraryLive(String libraryId) async {
-    final api = _ref.read(absApiProvider);
-    if (api == null) {
-      return const <Collection>[];
-    }
-
-    try {
-      final response = await api.getListApi().getCollections(extra: const <String, dynamic>{'doNotCache': true});
-      final items =
-          (response.data?.items ?? const <Collection>[])
-              .where((collection) => collection.libraryId == libraryId)
-              .toList(growable: false)
-            ..sort((left, right) => left.name.toLowerCase().compareTo(right.name.toLowerCase()));
-      return items;
-    } catch (e) {
-      if (await _androidAutoIsAutomotiveSystem()) {
-        rethrow;
-      }
-      logger(
-        'Failed to fetch Android Auto collections for $libraryId: $e',
-        tag: 'AudioHandler',
-        level: InfoLevel.warning,
-      );
-      return const <Collection>[];
-    }
-  }
-
-  Future<List<Playlist>> _androidAutoFetchPlaylistsForLibraryLive(String libraryId) async {
-    final api = _ref.read(absApiProvider);
-    if (api == null) {
-      return const <Playlist>[];
-    }
-
-    try {
-      final response = await api.getListApi().getUserPlaylist(extra: const <String, dynamic>{'doNotCache': true});
-      final items =
-          (response.data?.items ?? const <Playlist>[])
-              .where((playlist) => playlist.libraryId == libraryId)
-              .toList(growable: false)
-            ..sort((left, right) => left.name.toLowerCase().compareTo(right.name.toLowerCase()));
-      return items;
-    } catch (e) {
-      if (await _androidAutoIsAutomotiveSystem()) {
-        rethrow;
-      }
-      logger(
-        'Failed to fetch Android Auto playlists for $libraryId: $e',
-        tag: 'AudioHandler',
-        level: InfoLevel.warning,
-      );
-      return const <Playlist>[];
-    }
-  }
-
   Future<_AndroidAutoLibraryItemsPage> _androidAutoFetchLibraryItemsPageLive({
     required String libraryId,
     required _AndroidAutoPagingOptions paging,

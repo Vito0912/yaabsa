@@ -2,6 +2,7 @@ import 'package:yaabsa/api/list/collection.dart';
 import 'package:yaabsa/api/list/playlist.dart';
 import 'package:yaabsa/api/list/response/collection_response.dart';
 import 'package:yaabsa/api/list/response/playlist_response.dart';
+import 'package:yaabsa/api/list/response/library_list_page.dart';
 import 'package:dio/dio.dart';
 
 import 'abs_api.dart';
@@ -10,6 +11,99 @@ class ListApi {
   final Dio _dio;
 
   ListApi(this._dio);
+
+  Future<Response<LibraryListPage<Collection>>> getLibraryCollections(
+    String libraryId, {
+    int page = 0,
+    int limit = libraryListPageSize,
+    bool trimToLimit = false,
+    bool forceServer = false,
+    Map<String, dynamic>? extra,
+  }) => _getLibraryPage(
+    libraryId,
+    'collections',
+    Collection.fromJson,
+    page: page,
+    limit: limit,
+    trimToLimit: trimToLimit,
+    forceServer: forceServer,
+    extra: extra,
+  );
+
+  Future<Response<LibraryListPage<Playlist>>> getLibraryPlaylists(
+    String libraryId, {
+    int page = 0,
+    int limit = libraryListPageSize,
+    bool trimToLimit = false,
+    bool forceServer = false,
+    Map<String, dynamic>? extra,
+  }) => _getLibraryPage(
+    libraryId,
+    'playlists',
+    Playlist.fromJson,
+    page: page,
+    limit: limit,
+    trimToLimit: trimToLimit,
+    forceServer: forceServer,
+    extra: extra,
+  );
+
+  Future<Response<LibraryListPage<T>>> _getLibraryPage<T>(
+    String libraryId,
+    String resource,
+    T Function(Map<String, dynamic>) parse, {
+    required int page,
+    required int limit,
+    required bool forceServer,
+    required bool trimToLimit,
+    Map<String, dynamic>? extra,
+  }) {
+    if (libraryId.isEmpty || page < 0 || limit <= 0) {
+      throw ArgumentError('Invalid library pagination.');
+    }
+    return ABSApi.makeApiGetRequest(
+      route: '/api/libraries/$libraryId/$resource',
+      fromJson: (data) => LibraryListPage.fromJson(
+        Map<String, dynamic>.from(data),
+        parse,
+        requestedPage: page,
+        requestedLimit: limit,
+        trimToLimit: trimToLimit,
+      ),
+      dio: _dio,
+      extra: {...?extra, if (forceServer) 'noCache': true},
+      queryParams: {'page': page, 'limit': limit},
+    );
+  }
+
+  Future<List<Collection>> getAllLibraryCollections(
+    String libraryId, {
+    bool forceServer = false,
+    Map<String, dynamic>? extra,
+  }) =>
+      _loadLibraryPages((page) => getLibraryCollections(libraryId, page: page, forceServer: forceServer, extra: extra));
+
+  Future<List<Playlist>> getAllLibraryPlaylists(
+    String libraryId, {
+    bool forceServer = false,
+    Map<String, dynamic>? extra,
+  }) => _loadLibraryPages((page) => getLibraryPlaylists(libraryId, page: page, forceServer: forceServer, extra: extra));
+
+  Future<List<T>> _loadLibraryPages<T>(Future<Response<LibraryListPage<T>>> Function(int) load) async {
+    final items = <T>[];
+    for (var page = 0; ;) {
+      final data = (await load(page)).data;
+      if (data == null || (data.hasMore && data.items.isEmpty)) {
+        throw const FormatException('Incomplete library list response.');
+      }
+      items.addAll(data.items);
+      if (!data.hasMore) {
+        return items;
+      }
+
+      page = data.nextPage;
+    }
+  }
 
   Future<Response<PlaylistResponse>> getUserPlaylist({
     bool forceServer = false,

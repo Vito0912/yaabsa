@@ -1,11 +1,13 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/components/app/item/book_collection_membership_dialog.dart';
+import 'package:yaabsa/components/app/item/book_playlist_membership_dialog.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/me/media_progress.dart';
-import 'package:yaabsa/components/app/library/library_multi_select_actions.dart';
 import 'package:yaabsa/components/common/managed_list_operations.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
+import 'package:yaabsa/provider/common/collection_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 
 Episode? selectablePodcastEpisode(LibraryItem item) {
@@ -56,14 +58,7 @@ Future<void> addLibraryItemToPlaylist({
     return;
   }
 
-  await addSelectedBooksToPlaylist(
-    context: context,
-    ref: ref,
-    libraryId: item.libraryId!,
-    currentUserId: currentUserId,
-    selectedBookIds: <String>[item.id],
-    onSuccess: () {},
-  );
+  await showBookPlaylistMembershipDialog(context: context, item: item);
 }
 
 Future<void> addLibraryItemToCollection({
@@ -76,13 +71,8 @@ Future<void> addLibraryItemToCollection({
     return;
   }
 
-  await addSelectedBooksToCollection(
-    context: context,
-    ref: ref,
-    libraryId: item.libraryId!,
-    selectedBookIds: <String>[item.id],
-    onSuccess: () {},
-  );
+  if (!ref.read(collectionMembershipEditingAllowedProvider)) return;
+  await showBookCollectionMembershipDialog(context: context, item: item);
 }
 
 bool isLibraryItemFinished(LibraryItem item, Map<String, MediaProgress> progressByKey) {
