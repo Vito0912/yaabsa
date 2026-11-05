@@ -23,6 +23,7 @@ import 'package:yaabsa/screens/player/play_history_view.dart';
 import 'package:yaabsa/screens/player/player.dart';
 import 'package:yaabsa/screens/player/subtitle_reading_mode.dart';
 import 'package:yaabsa/screens/reader/reader.dart';
+import 'package:yaabsa/screens/settings/settings_backup_settings.dart';
 import 'package:yaabsa/screens/settings/android_auto/android_auto_library_settings.dart';
 import 'package:yaabsa/screens/settings/android_auto/android_auto_podcast_library_settings.dart';
 import 'package:yaabsa/screens/settings/android_auto_settings.dart';
@@ -303,6 +304,10 @@ final globalRouter = GoRouter(
                       builder: (context, state) => const LibraryOrderSettings(),
                     ),
                     GoRoute(path: AndroidAutoSettings.routeName, builder: (context, state) => AndroidAutoSettings()),
+                    GoRoute(
+                      path: SettingsBackupSettings.routeName,
+                      builder: (context, state) => const SettingsBackupSettings(),
+                    ),
                     GoRoute(path: CachingSettings.routeName, builder: (context, state) => CachingSettings()),
                     GoRoute(
                       path: ServerConnectionSettings.routeName,
