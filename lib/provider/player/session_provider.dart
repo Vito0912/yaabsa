@@ -459,12 +459,17 @@ class SessionRepository {
       if (canReachServer) {
         final pending = await ref.read(appDatabaseProvider).getSync(updatedSession.id);
         final syncedRemotely = await _syncLocalSessionProgressDirectly(updatedSession);
-        if (syncedRemotely && pending != null) {
-          await ref.read(appDatabaseProvider).deleteSyncIfUnchanged(pending);
+        if (syncedRemotely) {
+          if (pending != null) {
+            await ref.read(appDatabaseProvider).deleteSyncIfUnchanged(pending);
+          }
+
+          PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.sync);
           return true;
         }
       }
 
+      PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.syncOffline);
       logger('Session is local; storing bound sync locally', tag: 'SessionRepository', level: InfoLevel.debug);
       return true;
     }
@@ -482,7 +487,10 @@ class SessionRepository {
     );
 
     final api = ref.read(absApiProvider);
-    if (!canReachServer || api == null || api.user?.id != session.userId) return true;
+    if (!canReachServer || api == null || api.user?.id != session.userId) {
+      PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.syncOffline);
+      return true;
+    }
 
     final db = ref.read(appDatabaseProvider);
     final pending = await db.getSync(binding.sessionId);
@@ -499,6 +507,7 @@ class SessionRepository {
       if (result) {
         await db.deleteSyncIfUnchanged(pending);
         PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.sync);
+        return true;
       }
     } catch (e) {
       logger(
@@ -507,6 +516,8 @@ class SessionRepository {
         level: InfoLevel.warning,
       );
     }
+
+    PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.syncOffline);
     return true;
   }
 
@@ -520,7 +531,6 @@ class SessionRepository {
     try {
       await api.getSessionApi().syncLocalSession(currentSession);
 
-      PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.localSync);
       return true;
     } catch (e) {
       logger('Failed direct local session sync: $e', tag: 'SessionRepository', level: InfoLevel.warning);
@@ -557,7 +567,6 @@ class SessionRepository {
     );
 
     await ref.read(appDatabaseProvider).addOrUpdateSync(sync, replaceTimeListened: sessionLocal);
-    PlayerHistoryHandler.addPlayerHistory(PlayerHistoryType.syncOffline);
     logger('Sync stored locally for session ${session.id}', tag: 'SessionRepository', level: InfoLevel.debug);
     return true;
   }

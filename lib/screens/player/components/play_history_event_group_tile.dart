@@ -16,11 +16,20 @@ class LocalHistoryEventGroup {
 }
 
 class PlayHistoryEventGroupTile extends StatelessWidget {
-  const PlayHistoryEventGroupTile({super.key, required this.group, required this.onPlayFromHere, this.pendingEntryId});
+  const PlayHistoryEventGroupTile({
+    super.key,
+    required this.group,
+    required this.onPlayFromHere,
+    required this.expanded,
+    required this.onToggleExpanded,
+    this.pendingEntryId,
+  });
 
   final LocalHistoryEventGroup group;
   final ValueChanged<PlayerHistoryEntry> onPlayFromHere;
   final int? pendingEntryId;
+  final bool expanded;
+  final VoidCallback onToggleExpanded;
 
   @override
   Widget build(BuildContext context) {
@@ -35,30 +44,21 @@ class PlayHistoryEventGroupTile extends StatelessWidget {
 
     final colorScheme = Theme.of(context).colorScheme;
     final eventColor = _eventColor(colorScheme, group.type);
-    return Theme(
-      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-      child: ExpansionTile(
-        key: PageStorageKey<String>('history-${group.type.name}-${group.latestEntry.id}-${group.entries.length}'),
-        tilePadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
-        childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
+    return Semantics(
+      expanded: expanded,
+      child: ListTile(
+        onTap: onToggleExpanded,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
         leading: _EventIcon(type: group.type, color: eventColor),
         title: Text(
-          _eventTitle(group.type),
+          'Progress updates',
           style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
         ),
         subtitle: Text(
           '${group.entries.length} events',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
         ),
-        children: [
-          for (final entry in group.entries)
-            _GroupedEventDetail(
-              entry: entry,
-              type: group.type,
-              onPlayFromHere: onPlayFromHere,
-              pending: pendingEntryId == entry.id,
-            ),
-        ],
+        trailing: Icon(expanded ? Icons.expand_less_rounded : Icons.expand_more_rounded),
       ),
     );
   }
@@ -136,8 +136,9 @@ class _HistoryEventRow extends StatelessWidget {
   }
 }
 
-class _GroupedEventDetail extends StatelessWidget {
-  const _GroupedEventDetail({
+class PlayHistoryGroupedEventDetail extends StatelessWidget {
+  const PlayHistoryGroupedEventDetail({
+    super.key,
     required this.entry,
     required this.type,
     required this.onPlayFromHere,
@@ -154,7 +155,7 @@ class _GroupedEventDetail extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final canPlay = _canPlayFrom(type);
     return Padding(
-      padding: const EdgeInsets.only(left: 48, top: 8),
+      padding: const EdgeInsets.fromLTRB(62, 8, 14, 10),
       child: Row(
         children: [
           Expanded(

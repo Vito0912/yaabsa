@@ -24,7 +24,20 @@ class _PlayHistoryLocalTabState extends ConsumerState<PlayHistoryLocalTab> {
   static const int _historyQueryLimit = 1200;
 
   final ScrollController _scrollController = ScrollController();
+  final Set<int> _expandedGroupIds = <int>{};
+  Stream<List<PlayerHistoryEntry>>? _historyStream;
+  AppDatabase? _historyDatabase;
+  String? _historyUserId;
   int? _pendingEntryId;
+
+  @override
+  void didUpdateWidget(covariant PlayHistoryLocalTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.itemId != widget.itemId || oldWidget.episodeId != widget.episodeId) {
+      _historyStream = null;
+      _expandedGroupIds.clear();
+    }
+  }
 
   @override
   void dispose() {
@@ -44,13 +57,24 @@ class _PlayHistoryLocalTabState extends ConsumerState<PlayHistoryLocalTab> {
     }
 
     final database = ref.watch(appDatabaseProvider);
-    return StreamBuilder<List<PlayerHistoryEntry>>(
-      stream: database.watchPlayerHistoryByItem(
+    if (_historyStream == null || _historyDatabase != database || _historyUserId != user.id) {
+      if (_historyDatabase != database || _historyUserId != user.id) {
+        _expandedGroupIds.clear();
+      }
+
+      _historyDatabase = database;
+      _historyUserId = user.id;
+      _historyStream = database.watchPlayerHistoryByItem(
         widget.itemId,
         user.id,
         episodeId: widget.episodeId,
         limit: _historyQueryLimit,
-      ),
+      );
+    }
+
+    return StreamBuilder<List<PlayerHistoryEntry>>(
+      key: ValueKey((database, user.id, widget.itemId, widget.episodeId)),
+      stream: _historyStream,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return _HistoryMessage(
@@ -76,7 +100,7 @@ class _PlayHistoryLocalTabState extends ConsumerState<PlayHistoryLocalTab> {
       );
     }
 
-    final groupedHistory = _groupHistoryByDate(history);
+    final rows = _buildRows(_groupHistoryByDate(history));
 
     return Stack(
       children: [
@@ -86,12 +110,35 @@ class _PlayHistoryLocalTabState extends ConsumerState<PlayHistoryLocalTab> {
             slivers: [
               SliverToBoxAdapter(child: _buildHistoryHeader(context, history.length)),
               SliverList.builder(
-                itemCount: groupedHistory.length,
-                itemBuilder: (context, index) => _DateSection(
-                  group: groupedHistory[index],
-                  pendingEntryId: _pendingEntryId,
-                  onPlayFromHere: _playFromHistory,
-                ),
+                itemCount: rows.length,
+                itemBuilder: (context, index) {
+                  final row = rows[index];
+                  final group = row.group;
+                  if (group == null) {
+                    return _DateHeader(date: row.date!);
+                  }
+
+                  final entry = row.entry;
+                  return _HistoryCardRow(
+                    first: row.first,
+                    last: row.last,
+                    showDivider: !row.first && entry == null,
+                    child: entry == null
+                        ? PlayHistoryEventGroupTile(
+                            group: group,
+                            pendingEntryId: _pendingEntryId,
+                            onPlayFromHere: _playFromHistory,
+                            expanded: _expandedGroupIds.contains(group.oldestEntry.id),
+                            onToggleExpanded: () => _toggleGroup(group),
+                          )
+                        : PlayHistoryGroupedEventDetail(
+                            entry: entry,
+                            type: playerHistoryTypeFromName(entry.type),
+                            onPlayFromHere: _playFromHistory,
+                            pending: _pendingEntryId == entry.id,
+                          ),
+                  );
+                },
               ),
               const SliverToBoxAdapter(child: SizedBox(height: 24)),
             ],
@@ -100,6 +147,43 @@ class _PlayHistoryLocalTabState extends ConsumerState<PlayHistoryLocalTab> {
         ScrollToTopButton(controller: _scrollController),
       ],
     );
+  }
+
+  void _toggleGroup(LocalHistoryEventGroup group) {
+    setState(() {
+      final id = group.oldestEntry.id;
+      if (!_expandedGroupIds.remove(id)) {
+        _expandedGroupIds.add(id);
+      }
+    });
+  }
+
+  List<_HistoryListRow> _buildRows(List<_DateGroup> days) {
+    final rows = <_HistoryListRow>[];
+    for (final day in days) {
+      rows.add(_HistoryListRow(date: day.date));
+
+      for (var index = 0; index < day.eventGroups.length; index++) {
+        final group = day.eventGroups[index];
+        final expanded = group.isGrouped && _expandedGroupIds.contains(group.oldestEntry.id);
+        final lastGroup = index == day.eventGroups.length - 1;
+        rows.add(_HistoryListRow(group: group, first: index == 0, last: lastGroup && !expanded));
+
+        if (expanded) {
+          for (var entryIndex = 0; entryIndex < group.entries.length; entryIndex++) {
+            rows.add(
+              _HistoryListRow(
+                group: group,
+                entry: group.entries[entryIndex],
+                last: lastGroup && entryIndex == group.entries.length - 1,
+              ),
+            );
+          }
+        }
+      }
+    }
+
+    return rows;
   }
 
   Widget _buildHistoryHeader(BuildContext context, int eventCount) {
@@ -148,7 +232,9 @@ class _PlayHistoryLocalTabState extends ConsumerState<PlayHistoryLocalTab> {
 
       final type = playerHistoryTypeFromName(entry.type);
       final canJoinPrevious =
-          type.category == PlayerHistoryCategory.sync && activeEvents.isNotEmpty && activeEvents.last.type == type;
+          type.category == PlayerHistoryCategory.sync &&
+          activeEvents.isNotEmpty &&
+          activeEvents.last.type.category == PlayerHistoryCategory.sync;
       if (canJoinPrevious) {
         activeEvents.last.entries.add(entry);
       } else {
@@ -195,47 +281,58 @@ class _PlayHistoryLocalTabState extends ConsumerState<PlayHistoryLocalTab> {
   }
 }
 
-class _DateSection extends StatelessWidget {
-  const _DateSection({required this.group, required this.pendingEntryId, required this.onPlayFromHere});
+class _HistoryListRow {
+  const _HistoryListRow({this.date, this.group, this.entry, this.first = false, this.last = false});
 
-  final _DateGroup group;
-  final int? pendingEntryId;
-  final ValueChanged<PlayerHistoryEntry> onPlayFromHere;
+  final DateTime? date;
+  final LocalHistoryEventGroup? group;
+  final PlayerHistoryEntry? entry;
+  final bool first;
+  final bool last;
+}
+
+class _HistoryCardRow extends StatelessWidget {
+  const _HistoryCardRow({required this.first, required this.last, required this.showDivider, required this.child});
+
+  final bool first;
+  final bool last;
+  final bool showDivider;
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(4, 0, 4, 7),
-            child: Text(_dateLabel(group.date), style: Theme.of(context).textTheme.titleSmall),
-          ),
-          Card(
-            margin: EdgeInsets.zero,
-            elevation: 0,
-            color: colorScheme.surfaceContainerLow,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-            clipBehavior: Clip.antiAlias,
-            child: Column(
-              children: [
-                for (var index = 0; index < group.eventGroups.length; index++) ...[
-                  if (index > 0)
-                    Divider(height: 1, indent: 64, color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
-                  PlayHistoryEventGroupTile(
-                    group: group.eventGroups[index],
-                    pendingEntryId: pendingEntryId,
-                    onPlayFromHere: onPlayFromHere,
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
+      padding: EdgeInsets.only(bottom: last ? 14 : 0),
+      child: Material(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(first ? 18 : 0),
+          bottom: Radius.circular(last ? 18 : 0),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (showDivider) Divider(height: 1, indent: 64, color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+            child,
+          ],
+        ),
       ),
+    );
+  }
+}
+
+class _DateHeader extends StatelessWidget {
+  const _DateHeader({required this.date});
+
+  final DateTime date;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 0, 4, 7),
+      child: Text(_dateLabel(date), style: Theme.of(context).textTheme.titleSmall),
     );
   }
 
