@@ -18,6 +18,7 @@ import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/provider/core/user_scope_invalidation.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/screens/settings/settings_backup_settings.dart';
 import 'package:yaabsa/screens/settings/android_auto_settings.dart';
 import 'package:yaabsa/screens/settings/appearance_settings.dart';
 import 'package:yaabsa/screens/settings/caching_settings.dart';
@@ -50,6 +51,12 @@ class SettingsSearchItem {
 }
 
 final List<SettingsSearchItem> searchableSettings = [
+  const SettingsSearchItem(
+    title: 'Settings backup',
+    description: 'Import or export app preferences and player layouts',
+    categoryPath: 'Settings > Application Settings',
+    route: SettingsBackupSettings.routeName,
+  ),
   const SettingsSearchItem(
     title: 'Refresh Progress on Resume',
     description: 'Update book and episode progress when the app returns to the foreground',
@@ -1159,6 +1166,11 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
                                           icon: Icons.cached_outlined,
                                           title: 'Caching',
                                           onTap: () => context.push(CachingSettings.routeName),
+                                        ),
+                                        SettingsNavigationItem(
+                                          icon: Icons.settings_backup_restore_rounded,
+                                          title: 'Settings backup',
+                                          onTap: () => context.push(SettingsBackupSettings.routeName),
                                         ),
                                         SettingsNavigationItem(
                                           icon: Icons.menu_book_outlined,
