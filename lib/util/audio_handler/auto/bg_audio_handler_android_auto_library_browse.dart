@@ -115,62 +115,6 @@ extension _BGAudioHandlerAndroidAutoLibraryBrowse on BGAudioHandler {
     return nodes;
   }
 
-  Future<List<MediaItem>> _androidAutoCollectionNodes(String libraryId, _AndroidAutoPagingOptions paging) async {
-    final collections = await _androidAutoFetchCollectionsForLibrary(libraryId);
-    final isAutomotive = await _androidAutoIsAutomotiveSystem();
-    final displayableCollections = isAutomotive
-        ? collections
-              .where(
-                (collection) => _androidAutoMediaItemsFromLibraryItems(
-                  collection.items ?? const <LibraryItem>[],
-                  subtitlePrefix: '',
-                ).isNotEmpty,
-              )
-              .toList(growable: false)
-        : collections;
-    final selectedCollections = paging.hasExplicitPaging
-        ? _androidAutoApplyPaging(displayableCollections, paging)
-        : displayableCollections;
-
-    return selectedCollections
-        .map(
-          (collection) => _androidAutoBrowsableItem(
-            id: _androidAutoCollectionNodeId(libraryId, collection.id),
-            title: collection.name,
-          ),
-        )
-        .toList(growable: false);
-  }
-
-  Future<List<MediaItem>> _androidAutoPlaylistNodes(String libraryId, _AndroidAutoPagingOptions paging) async {
-    final playlists = await _androidAutoFetchPlaylistsForLibrary(libraryId);
-    final isAutomotive = await _androidAutoIsAutomotiveSystem();
-    final displayablePlaylists = isAutomotive
-        ? playlists
-              .where(
-                (playlist) => (playlist.items ?? const []).any(
-                  (entry) =>
-                      entry.libraryItem != null &&
-                      _androidAutoIsSupportedAudioItem(entry.libraryItem!) &&
-                      (entry.episodeId != null
-                          ? entry.episode?.audioFile != null
-                          : _androidAutoMediaEntryFromLibraryItem(entry.libraryItem!) != null),
-                ),
-              )
-              .toList(growable: false)
-        : playlists;
-    final selectedPlaylists = paging.hasExplicitPaging
-        ? _androidAutoApplyPaging(displayablePlaylists, paging)
-        : displayablePlaylists;
-
-    return selectedPlaylists
-        .map(
-          (playlist) =>
-              _androidAutoBrowsableItem(id: _androidAutoPlaylistNodeId(libraryId, playlist.id), title: playlist.name),
-        )
-        .toList(growable: false);
-  }
-
   Future<List<MediaItem>> _androidAutoDiscoveryItems(String libraryId, _AndroidAutoPagingOptions paging) async {
     final personalized = await _androidAutoFetchPersonalizedLibrary(libraryId);
     final discoveryItems = personalized?.discover?.entities ?? const <LibraryItem>[];
@@ -303,14 +247,7 @@ extension _BGAudioHandlerAndroidAutoLibraryBrowse on BGAudioHandler {
     String collectionId,
     _AndroidAutoPagingOptions paging,
   ) async {
-    final collections = await _androidAutoFetchCollectionsForLibrary(libraryId);
-    Collection? collection;
-    for (final entry in collections) {
-      if (entry.id == collectionId) {
-        collection = entry;
-        break;
-      }
-    }
+    final collection = await _androidAutoCollectionById(libraryId, collectionId);
 
     if (collection == null) {
       return const <MediaItem>[];
@@ -327,14 +264,7 @@ extension _BGAudioHandlerAndroidAutoLibraryBrowse on BGAudioHandler {
     String playlistId,
     _AndroidAutoPagingOptions paging,
   ) async {
-    final playlists = await _androidAutoFetchPlaylistsForLibrary(libraryId);
-    Playlist? playlist;
-    for (final entry in playlists) {
-      if (entry.id == playlistId) {
-        playlist = entry;
-        break;
-      }
-    }
+    final playlist = await _androidAutoPlaylistById(libraryId, playlistId);
 
     if (playlist == null) {
       return const <MediaItem>[];

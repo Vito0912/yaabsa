@@ -445,6 +445,7 @@ final globalRouter = GoRouter(
                         final initialEntry = extra is MultiBookEntryData ? extra : null;
                         return CollectionDetailView(
                           collectionId: state.pathParameters['id']!,
+                          libraryId: state.uri.queryParameters['libraryId'],
                           initialEntry: initialEntry,
                         );
                       },
@@ -454,7 +455,11 @@ final globalRouter = GoRouter(
                       builder: (context, state) {
                         final extra = state.extra;
                         final initialEntry = extra is MultiBookEntryData ? extra : null;
-                        return PlaylistDetailView(playlistId: state.pathParameters['id']!, initialEntry: initialEntry);
+                        return PlaylistDetailView(
+                          playlistId: state.pathParameters['id']!,
+                          libraryId: state.uri.queryParameters['libraryId'],
+                          initialEntry: initialEntry,
+                        );
                       },
                     ),
                     GoRoute(

@@ -356,6 +356,8 @@ class _SourceEditorState extends ConsumerState<_SourceEditor> {
   String _searchQuery = '';
   bool _autocompleteRefreshScheduled = false;
   bool _refreshingAutocomplete = false;
+  String? _listIndexKey;
+  Object? _listIndexError;
 
   @override
   void dispose() {
@@ -381,6 +383,31 @@ class _SourceEditorState extends ConsumerState<_SourceEditor> {
       _searchQuery = '';
       _selectedSourceId = null;
       _selectedSourceName = null;
+    }
+    final userId = ref.watch(currentUserProvider).value?.id;
+    final indexKey = '$userId:$selectedLibraryId:${_type.name}';
+    if (_listIndexKey != indexKey) {
+      _listIndexKey = indexKey;
+      _listIndexError = null;
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted || _listIndexKey != indexKey || selectedLibraryId == null) {
+          return;
+        }
+
+        try {
+          if (_type == MediaSourceType.playlist) {
+            await ref.read(playlistsProvider(selectedLibraryId).notifier).ensureAllLoaded();
+          } else if (_type == MediaSourceType.collection) {
+            await ref.read(collectionsProvider(selectedLibraryId).notifier).ensureAllLoaded();
+          }
+        } catch (error) {
+          if (mounted && _listIndexKey == indexKey) {
+            setState(() {
+              _listIndexError = error;
+            });
+          }
+        }
+      });
     }
     final availableSourceNames = <String, String>{};
     if (selectedLibraryId != null && _type == MediaSourceType.playlist) {
@@ -460,6 +487,15 @@ class _SourceEditorState extends ConsumerState<_SourceEditor> {
                 }),
               ),
               const SizedBox(height: 16),
+              if (_listIndexError != null)
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _listIndexKey = null;
+                    });
+                  },
+                  child: const Text('Could not load all sources. Retry'),
+                ),
               if (_type != MediaSourceType.latestEpisodes)
                 RawAutocomplete<({String id, String name})>(
                   key: ValueKey('${_type.name}:${selectedLibraryId ?? ''}'),
