@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/api/library/search_library.dart';
 import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
+import 'package:yaabsa/components/settings/listening_download_settings_card.dart';
 import 'package:yaabsa/models/queue_source.dart';
 import 'package:yaabsa/models/smart_download.dart';
 import 'package:yaabsa/provider/common/collection_provider.dart';
@@ -53,8 +54,13 @@ class _SmartDownloadsSettingsState extends ConsumerState<SmartDownloadsSettings>
         else ...[
           if (manager.error != null)
             Padding(padding: const EdgeInsets.all(16), child: Text('Last reconciliation failed: ${manager.error}')),
+          ListeningDownloadSettingsCard(
+            userId: user.id,
+            profile: manager.profiles.where((profile) => profile.policy.listeningTrigger != null).firstOrNull,
+            isBusy: manager.isReconciling,
+          ),
           _ProfileSection(
-            profiles: manager.profiles,
+            profiles: manager.profiles.where((profile) => profile.policy.listeningTrigger == null).toList(),
             isBusy: manager.isReconciling,
             onAdd: () async {
               final profile = await _showProfileEditor(context, userId: user.id);

@@ -4,6 +4,8 @@ import 'package:yaabsa/models/queue_source.dart';
 part 'smart_download.freezed.dart';
 part 'smart_download.g.dart';
 
+enum ListeningDownloadTrigger { minutes, progress }
+
 @freezed
 abstract class SmartDownloadPolicy with _$SmartDownloadPolicy {
   const factory SmartDownloadPolicy({
@@ -13,6 +15,8 @@ abstract class SmartDownloadPolicy with _$SmartDownloadPolicy {
     @Default(24) int deleteAfterHours,
     @Default('audiobook') String downloadType,
     @Default(true) bool descending,
+    ListeningDownloadTrigger? listeningTrigger,
+    @Default(30) int listeningThreshold,
   }) = _SmartDownloadPolicy;
 
   factory SmartDownloadPolicy.fromJson(Map<String, dynamic> json) => _$SmartDownloadPolicyFromJson(json);

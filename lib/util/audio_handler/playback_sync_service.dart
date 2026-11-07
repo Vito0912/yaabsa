@@ -7,6 +7,7 @@ import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/core/server_reachability_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/player/session_provider.dart';
+import 'package:yaabsa/provider/library/smart_download_provider.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/audio_handler/listening_session_clock.dart';
 import 'package:yaabsa/util/setting_key.dart';
@@ -330,6 +331,14 @@ class PlaybackSyncService {
       tag: 'PlaybackSyncService',
       level: InfoLevel.debug,
     );
+
+    await _ref
+        .read(smartDownloadManagerProvider.notifier)
+        .recordListeningForDownload(
+          session: binding.session,
+          position: currentPositionSeconds,
+          listenedSeconds: listenedTime,
+        );
 
     final bool canReachServer = _ref.read(serverReachabilityProvider);
     return _ref

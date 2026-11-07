@@ -43,6 +43,13 @@ class NoDownloadableFilesException implements Exception {
   String toString() => 'No downloadable files found for item $itemId.';
 }
 
+class AutomaticDownloadTasks {
+  AutomaticDownloadTasks({required this.activeReferences, required this.smartReservations});
+
+  final Set<String> activeReferences;
+  final Map<String, int> smartReservations;
+}
+
 class _DownloadBatchProgress {
   _DownloadBatchProgress(this.expectedFileCount, {this.item});
 
@@ -129,7 +136,15 @@ class DownloadHandler {
             if (metadata != null) {
               _downloadBatchProgress[_downloadBatchKey(metadata.itemId, metadata.episodeId)]?.item = null;
             }
-            _ref.read(smartDownloadManagerProvider.notifier).requestReconcile(reason: 'download task failed');
+            if (update.status == TaskStatus.failed && metadata?.acquisitionOrigin == 'smart') {
+              _ref
+                  .read(smartDownloadManagerProvider.notifier)
+                  .recordAutomaticDownloadFailure(
+                    userId: metadata!.userId,
+                    itemId: metadata.itemId,
+                    episodeId: metadata.episodeId,
+                  );
+            }
           }
           return;
         }
@@ -450,27 +465,37 @@ class DownloadHandler {
     return canceled;
   }
 
-  Future<Map<String, int>> activeSmartDownloadReservations(String userId) async {
-    if (kIsWeb || _downloader == null) {
-      return const <String, int>{};
-    }
+  Future<AutomaticDownloadTasks> automaticDownloadTasks(String userId) async {
+    final activeReferences = <String>{};
     final reservations = <String, int>{};
+    if (kIsWeb || _downloader == null) {
+      return AutomaticDownloadTasks(activeReferences: activeReferences, smartReservations: reservations);
+    }
+
+    await _initialization;
     final records = await _downloader.database.allRecords();
     for (final record in records.where((record) => record.status.isNotFinalState)) {
       final metadata = _parseMetaData(record.task.metaData);
-      if (metadata == null || metadata.userId != userId || metadata.acquisitionOrigin != 'smart') {
+      if (metadata == null || metadata.userId != userId) {
         continue;
       }
+
       final reference = '${metadata.itemId}::${metadata.episodeId ?? ''}';
+      activeReferences.add(reference);
+      if (metadata.acquisitionOrigin != 'smart') {
+        continue;
+      }
+
       final estimatedBytes = metadata.estimatedBytes ?? 0;
       final current = reservations[reference] ?? 0;
-      if (estimatedBytes > current) {
-        reservations[reference] = estimatedBytes;
-      } else {
-        reservations.putIfAbsent(reference, () => current);
-      }
+      reservations[reference] = estimatedBytes > current ? estimatedBytes : current;
     }
-    return reservations;
+
+    return AutomaticDownloadTasks(activeReferences: activeReferences, smartReservations: reservations);
+  }
+
+  Future<Map<String, int>> activeSmartDownloadReservations(String userId) async {
+    return (await automaticDownloadTasks(userId)).smartReservations;
   }
 
   bool taskBelongsToItem(TaskRecord task, String itemId, {String? episodeId}) {
@@ -527,6 +552,11 @@ class DownloadHandler {
 
     _downloadBatchProgress.remove(key);
     return true;
+  }
+
+  Future<void> prepareAutomaticDownloads() async {
+    await _initialization;
+    await _ensureNotificationPermissionForDownloads();
   }
 
   Future<void> _ensureNotificationPermissionForDownloads({bool requestPermission = true}) async {
@@ -1189,7 +1219,13 @@ class DownloadHandler {
             completedAt: DateTime.now().millisecondsSinceEpoch,
           );
       if (_isFinalFileInDownloadBatch(parsedMetaData, update.task.taskId)) {
-        _ref.read(smartDownloadManagerProvider.notifier).requestReconcile(reason: 'download completed');
+        _ref
+            .read(smartDownloadManagerProvider.notifier)
+            .requestReconcile(reason: 'download completed', refreshSources: false);
+        if (isAudioHandlerInitialized &&
+            parsedMetaData.smartProfileIds.any((id) => id.startsWith('listening_threshold_'))) {
+          unawaited(audioHandler.useDownloadedAudio(parsedMetaData.itemId, parsedMetaData.userId));
+        }
       }
 
       final trackUri = _trackUriFromStoredUrl(storedTrackUrl);

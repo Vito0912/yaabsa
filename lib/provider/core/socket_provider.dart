@@ -136,7 +136,7 @@ ABSSocketClient absSocketClient(Ref ref) {
       ref.read(remoteMediaProgressUpdateProvider.notifier).setProgress(progress);
 
       if (becameFinished) {
-        smartDownloadNotifier.requestReconcile(reason: 'remote progress completed');
+        smartDownloadNotifier.requestReconcile(reason: 'remote progress completed', refreshSources: false);
         unawaited(
           refreshPersonalizedShelfForCompletedItem(
             container: container,
