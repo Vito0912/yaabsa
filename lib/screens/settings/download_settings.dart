@@ -15,7 +15,6 @@ import 'package:yaabsa/components/settings/settings_switch_tile.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
-import 'package:yaabsa/provider/library/smart_download_provider.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/download_destination.dart';
 import 'package:yaabsa/util/globals.dart' show downloadHandler;
@@ -32,7 +31,6 @@ class DownloadSettings extends ConsumerStatefulWidget {
 
 class _DownloadSettingsState extends ConsumerState<DownloadSettings> {
   bool _isPicking = false;
-  bool _isCleaning = false;
   late final Future<String> _defaultLocationFuture;
 
   void _showMessage(String message) {
@@ -143,7 +141,6 @@ class _DownloadSettingsState extends ConsumerState<DownloadSettings> {
                         SettingsNavigationItem(
                           icon: Icons.download_for_offline_rounded,
                           title: 'Smart Downloads',
-                          subtitle: 'Automatically download and remove items based on rules',
                           onTap: () => context.push('/settings/library/smart-downloads'),
                         ),
                       ],
@@ -206,14 +203,11 @@ class _DownloadSettingsState extends ConsumerState<DownloadSettings> {
                           label: 'Download only on Wi-Fi',
                           settingKey: SettingKeys.downloadOnlyOnWifi,
                           userId: user.id,
-                          subtitle:
-                              'Wait for a Wi-Fi connection before starting any download, including Smart Downloads.',
+                          subtitle: 'Including Smart Downloads',
                           onChanged: (_) => unawaited(downloadHandler.applyDownloadSettings()),
                         ),
                         SettingSlider<int>(
                           label: 'Maximum parallel downloads',
-                          description:
-                              'Limit simultaneous downloads across items. Files within each item download in order.',
                           values: const <int>[1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                           valueLabels: const <String>[
                             '1 file',
@@ -230,46 +224,6 @@ class _DownloadSettingsState extends ConsumerState<DownloadSettings> {
                           settingKey: SettingKeys.downloadMaxParallel,
                           userId: user.id,
                           onChanged: (_) => unawaited(downloadHandler.applyDownloadSettings()),
-                        ),
-                        SettingSwitchTile(
-                          label: 'Download Continue Listening and Continue Series',
-                          settingKey: SettingKeys.downloadContinueListeningAndSeries,
-                          userId: user.id,
-                          subtitle: 'Automatically download all items shown in Continue Listening and Continue Series.',
-                          onChanged: (enabled) {
-                            final manager = ref.read(smartDownloadManagerProvider.notifier);
-                            if (!enabled) {
-                              unawaited(manager.deleteContinueShelfDownloads(userId: user.id));
-                            }
-                            manager.requestReconcile(reason: 'continue shelf setting changed');
-                          },
-                        ),
-                        SettingButton(
-                          label: 'Delete listened items now',
-                          description: 'Remove finished smart downloads',
-                          buttonText: 'Delete',
-                          buttonIcon: Icons.delete_sweep_outlined,
-                          isDestructive: true,
-                          isLoading: _isCleaning,
-                          onPressed: _isCleaning
-                              ? null
-                              : () async {
-                                  setState(() => _isCleaning = true);
-                                  try {
-                                    final deleted = await ref
-                                        .read(smartDownloadManagerProvider.notifier)
-                                        .deleteListenedManagedDownloads(userId: user.id);
-                                    _showMessage(
-                                      deleted == 0
-                                          ? 'No listened smart downloads were ready to delete.'
-                                          : 'Deleted $deleted listened smart download${deleted == 1 ? '' : 's'}',
-                                    );
-                                  } catch (error) {
-                                    _showMessage('Failed to delete listened smart downloads: $error');
-                                  } finally {
-                                    if (mounted) setState(() => _isCleaning = false);
-                                  }
-                                },
                         ),
                       ],
                     ),

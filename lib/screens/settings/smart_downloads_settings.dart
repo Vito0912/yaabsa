@@ -1,26 +1,14 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:yaabsa/api/library/search_library.dart';
 import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
-import 'package:yaabsa/components/settings/listening_download_settings_card.dart';
+import 'package:yaabsa/components/settings/smart_download_actions_card.dart';
+import 'package:yaabsa/components/settings/smart_download_source_editor.dart';
 import 'package:yaabsa/models/queue_source.dart';
 import 'package:yaabsa/models/smart_download.dart';
-import 'package:yaabsa/provider/common/collection_provider.dart';
-import 'package:yaabsa/provider/common/library_provider.dart';
-import 'package:yaabsa/provider/common/library_search_provider.dart';
-import 'package:yaabsa/provider/common/playlist_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/library/smart_download_provider.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
-
-class _AutocompleteTextEditingController extends TextEditingController {
-  void refreshOptions() {
-    final current = value;
-    value = current.copyWith(text: '${current.text}\u200B');
-    value = current;
-  }
-}
 
 class SmartDownloadsSettings extends ConsumerStatefulWidget {
   const SmartDownloadsSettings({super.key});
@@ -54,21 +42,21 @@ class _SmartDownloadsSettingsState extends ConsumerState<SmartDownloadsSettings>
         else ...[
           if (manager.error != null)
             Padding(padding: const EdgeInsets.all(16), child: Text('Last reconciliation failed: ${manager.error}')),
-          ListeningDownloadSettingsCard(
-            userId: user.id,
-            profile: manager.profiles.where((profile) => profile.policy.listeningTrigger != null).firstOrNull,
-            isBusy: manager.isReconciling,
-          ),
+          SmartDownloadActionsCard(userId: user.id, isBusy: manager.isReconciling),
           _ProfileSection(
-            profiles: manager.profiles.where((profile) => profile.policy.listeningTrigger == null).toList(),
+            profiles: manager.profiles,
             isBusy: manager.isReconciling,
             onAdd: () async {
               final profile = await _showProfileEditor(context, userId: user.id);
-              if (profile != null) await notifier.saveProfile(profile);
+              if (profile != null) {
+                await notifier.saveProfile(profile);
+              }
             },
             onEdit: (profile) async {
               final edited = await _showProfileEditor(context, userId: user.id, initial: profile);
-              if (edited != null) await notifier.saveProfile(edited);
+              if (edited != null) {
+                await notifier.saveProfile(edited);
+              }
             },
             onDelete: (profile) async {
               final shouldDelete = await showDialog<bool>(
@@ -84,7 +72,9 @@ class _SmartDownloadsSettingsState extends ConsumerState<SmartDownloadsSettings>
                   ],
                 ),
               );
-              if (shouldDelete == true) await notifier.deleteProfile(profile.id, user.id);
+              if (shouldDelete == true) {
+                await notifier.deleteProfile(profile.id, user.id);
+              }
             },
           ),
           Padding(
@@ -160,8 +150,12 @@ class _ProfileSection extends StatelessWidget {
                 ),
                 trailing: PopupMenuButton<String>(
                   onSelected: (value) {
-                    if (value == 'edit') onEdit(profile);
-                    if (value == 'delete') onDelete(profile);
+                    if (value == 'edit') {
+                      onEdit(profile);
+                    }
+                    if (value == 'delete') {
+                      onDelete(profile);
+                    }
                   },
                   itemBuilder: (context) => const [
                     PopupMenuItem(value: 'edit', child: Text('Edit')),
@@ -194,6 +188,7 @@ class _SmartDownloadProfileEditorState extends State<_SmartDownloadProfileEditor
   late final TextEditingController _deleteAfterController;
   late bool _enabled;
   late String _downloadType;
+  late bool _downloadTypeManuallySelected;
   late List<MediaSourceDescriptor> _sources;
 
   @override
@@ -209,6 +204,7 @@ class _SmartDownloadProfileEditorState extends State<_SmartDownloadProfileEditor
     _deleteAfterController = TextEditingController(text: '${profile?.policy.deleteAfterHours ?? 24}');
     _enabled = profile?.enabled ?? true;
     _downloadType = profile?.policy.downloadType ?? 'audiobook';
+    _downloadTypeManuallySelected = profile != null;
     _sources = [...?profile?.sources];
   }
 
@@ -247,13 +243,13 @@ class _SmartDownloadProfileEditorState extends State<_SmartDownloadProfileEditor
               ),
               const SizedBox(height: 12),
               StyledTextField(
-                label: 'Managed storage cap in MB (optional)',
+                label: 'Storage budget (MB, optional)',
                 controller: _storageController,
                 keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 12),
               StyledTextField(
-                label: 'Keep finished downloads for hours',
+                label: 'Keep finished books for hours',
                 controller: _deleteAfterController,
                 keyboardType: TextInputType.number,
               ),
@@ -266,7 +262,12 @@ class _SmartDownloadProfileEditorState extends State<_SmartDownloadProfileEditor
                   DropdownMenuItem(value: 'ebook', child: Text('Ebook')),
                   DropdownMenuItem(value: 'both', child: Text('Both')),
                 ],
-                onChanged: (value) => setState(() => _downloadType = value ?? 'audiobook'),
+                onChanged: (value) {
+                  setState(() {
+                    _downloadType = value ?? 'audiobook';
+                    _downloadTypeManuallySelected = true;
+                  });
+                },
               ),
               const SizedBox(height: 8),
               SwitchListTile(
@@ -288,10 +289,14 @@ class _SmartDownloadProfileEditorState extends State<_SmartDownloadProfileEditor
                     dense: true,
                     contentPadding: const EdgeInsets.only(left: 12, right: 4),
                     title: Text(source.displayName ?? '${source.type.name} source'),
-                    subtitle: Text(source.type.name),
                     trailing: IconButton(
                       tooltip: 'Remove source',
-                      onPressed: () => setState(() => _sources.remove(source)),
+                      onPressed: () {
+                        setState(() {
+                          _sources.remove(source);
+                          _updateDefaultDownloadType();
+                        });
+                      },
                       icon: const Icon(Icons.close_rounded),
                     ),
                   ),
@@ -311,19 +316,46 @@ class _SmartDownloadProfileEditorState extends State<_SmartDownloadProfileEditor
   Future<void> _addSource() async {
     final source = await showDialog<MediaSourceDescriptor>(
       context: context,
-      builder: (context) => const _SourceEditor(),
+      builder: (context) => const SmartDownloadSourceEditor(),
     );
-    if (source != null && !_sources.contains(source)) setState(() => _sources.add(source));
+    if (source == null || !mounted || _sources.contains(source)) {
+      return;
+    }
+
+    setState(() {
+      _sources.add(source);
+      _updateDefaultDownloadType();
+    });
+  }
+
+  void _updateDefaultDownloadType() {
+    if (_downloadTypeManuallySelected) {
+      return;
+    }
+
+    final hasReading = _sources.any((source) => source.type == MediaSourceType.continueReading);
+    final hasOtherSources = _sources.any((source) => source.type != MediaSourceType.continueReading);
+    if (hasReading && hasOtherSources) {
+      _downloadType = 'both';
+    } else if (hasReading) {
+      _downloadType = 'ebook';
+    } else {
+      _downloadType = 'audiobook';
+    }
   }
 
   void _save() {
     final name = _nameController.text.trim();
     final target = int.tryParse(_targetController.text.trim());
-    if (name.isEmpty || target == null || target < 1 || target > 150) return;
+    if (name.isEmpty || target == null || target < 1 || target > 150) {
+      return;
+    }
     final age = int.tryParse(_ageController.text.trim());
     final storageMb = int.tryParse(_storageController.text.trim());
     final deleteAfterHours = int.tryParse(_deleteAfterController.text.trim()) ?? 24;
-    if (deleteAfterHours < 0 || (age != null && age < 0) || (storageMb != null && storageMb < 0)) return;
+    if (deleteAfterHours < 0 || (age != null && age < 0) || (storageMb != null && storageMb < 0)) {
+      return;
+    }
     final profile = widget.initial;
     Navigator.of(context).pop(
       SmartDownloadProfile(
@@ -341,320 +373,5 @@ class _SmartDownloadProfileEditorState extends State<_SmartDownloadProfileEditor
         sources: _sources,
       ),
     );
-  }
-}
-
-class _SourceEditor extends ConsumerStatefulWidget {
-  const _SourceEditor();
-
-  @override
-  ConsumerState<_SourceEditor> createState() => _SourceEditorState();
-}
-
-class _SourceEditorState extends ConsumerState<_SourceEditor> {
-  final _searchController = _AutocompleteTextEditingController();
-  final _searchFocusNode = FocusNode();
-  MediaSourceType _type = MediaSourceType.podcast;
-  bool _descending = true;
-  String? _libraryId;
-  String? _selectedSourceId;
-  String? _selectedSourceName;
-  String _searchQuery = '';
-  bool _autocompleteRefreshScheduled = false;
-  bool _refreshingAutocomplete = false;
-  String? _listIndexKey;
-  Object? _listIndexError;
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    _searchFocusNode.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final libraries = ref.watch(userLibrariesProvider).value ?? const [];
-    final selectedLibraryId = libraries.any((library) => library.id == _libraryId)
-        ? _libraryId
-        : libraries.firstOrNull?.id;
-    if (_libraryId != selectedLibraryId) {
-      _libraryId = selectedLibraryId;
-    }
-    final selectedLibrary = libraries.where((library) => library.id == selectedLibraryId).firstOrNull;
-    final availableSourceTypes = _sourceTypesForLibrary(selectedLibrary?.mediaType);
-    if (!availableSourceTypes.contains(_type)) {
-      _type = availableSourceTypes.first;
-      _searchController.clear();
-      _searchQuery = '';
-      _selectedSourceId = null;
-      _selectedSourceName = null;
-    }
-    final userId = ref.watch(currentUserProvider).value?.id;
-    final indexKey = '$userId:$selectedLibraryId:${_type.name}';
-    if (_listIndexKey != indexKey) {
-      _listIndexKey = indexKey;
-      _listIndexError = null;
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        if (!mounted || _listIndexKey != indexKey || selectedLibraryId == null) {
-          return;
-        }
-
-        try {
-          if (_type == MediaSourceType.playlist) {
-            await ref.read(playlistsProvider(selectedLibraryId).notifier).ensureAllLoaded();
-          } else if (_type == MediaSourceType.collection) {
-            await ref.read(collectionsProvider(selectedLibraryId).notifier).ensureAllLoaded();
-          }
-        } catch (error) {
-          if (mounted && _listIndexKey == indexKey) {
-            setState(() {
-              _listIndexError = error;
-            });
-          }
-        }
-      });
-    }
-    final availableSourceNames = <String, String>{};
-    if (selectedLibraryId != null && _type == MediaSourceType.playlist) {
-      for (final playlist in ref.watch(playlistsProvider(selectedLibraryId)).value?.items ?? const []) {
-        availableSourceNames[playlist.id] = playlist.name;
-      }
-    } else if (selectedLibraryId != null && _type == MediaSourceType.collection) {
-      for (final collection in ref.watch(collectionsProvider(selectedLibraryId)).value?.items ?? const []) {
-        availableSourceNames[collection.id] = collection.name;
-      }
-    }
-
-    final normalizedQuery = _searchQuery.trim();
-    final searchAsync =
-        normalizedQuery.isNotEmpty && (_type == MediaSourceType.podcast || _type == MediaSourceType.series)
-        ? ref.watch(librarySearchProvider((query: normalizedQuery, limit: 3, libraryId: selectedLibraryId)))
-        : null;
-    final localSuggestions = availableSourceNames.entries
-        .where(
-          (entry) => normalizedQuery.isNotEmpty && entry.value.toLowerCase().contains(normalizedQuery.toLowerCase()),
-        )
-        .take(3)
-        .toList(growable: false);
-    final remoteSuggestions = _remoteSuggestions(searchAsync);
-    final sourceSuggestions = [
-      ...localSuggestions.map((entry) => (id: entry.key, name: entry.value)),
-      ...remoteSuggestions,
-    ];
-    _scheduleAutocompleteRefresh();
-    final canAddSource =
-        _libraryId?.trim().isNotEmpty == true &&
-        (_type == MediaSourceType.latestEpisodes || _selectedSourceId?.trim().isNotEmpty == true);
-
-    return AlertDialog(
-      title: const Text('Add source'),
-      content: SizedBox(
-        width: 500,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              YaabsaDropdownField<String>(
-                label: 'Library',
-                value: selectedLibraryId,
-                items: [
-                  for (final library in libraries) DropdownMenuItem(value: library.id, child: Text(library.name)),
-                ],
-                onChanged: (value) => setState(() {
-                  _libraryId = value;
-                  _searchController.clear();
-                  _searchQuery = '';
-                  _selectedSourceId = null;
-                  _selectedSourceName = null;
-                }),
-              ),
-              const SizedBox(height: 16),
-              YaabsaDropdownField<MediaSourceType>(
-                label: 'Source type',
-                value: _type,
-                items: [
-                  for (final type in availableSourceTypes)
-                    DropdownMenuItem(
-                      value: type,
-                      child: Text(
-                        type == MediaSourceType.latestEpisodes
-                            ? 'Latest episodes'
-                            : type.name[0].toUpperCase() + type.name.substring(1),
-                      ),
-                    ),
-                ],
-                onChanged: (value) => setState(() {
-                  _type = value ?? MediaSourceType.podcast;
-                  _searchController.clear();
-                  _searchQuery = '';
-                  _selectedSourceId = null;
-                  _selectedSourceName = null;
-                }),
-              ),
-              const SizedBox(height: 16),
-              if (_listIndexError != null)
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      _listIndexKey = null;
-                    });
-                  },
-                  child: const Text('Could not load all sources. Retry'),
-                ),
-              if (_type != MediaSourceType.latestEpisodes)
-                RawAutocomplete<({String id, String name})>(
-                  key: ValueKey('${_type.name}:${selectedLibraryId ?? ''}'),
-                  textEditingController: _searchController,
-                  focusNode: _searchFocusNode,
-                  displayStringForOption: (suggestion) => suggestion.name,
-                  optionsBuilder: (textEditingValue) {
-                    final query = textEditingValue.text.trim().toLowerCase();
-                    if (query.isEmpty) return const <({String id, String name})>[];
-                    return sourceSuggestions;
-                  },
-                  onSelected: (suggestion) => setState(() {
-                    _selectedSourceId = suggestion.id;
-                    _selectedSourceName = suggestion.name;
-                  }),
-                  fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
-                    return StyledTextField(
-                      label: 'Search sources',
-                      controller: controller,
-                      focusNode: focusNode,
-                      prefixIcon: const Icon(Icons.search_rounded),
-                      textInputAction: TextInputAction.search,
-                      onChanged: (value) {
-                        if (_refreshingAutocomplete) return;
-                        final isSelectedValue = _selectedSourceId != null && value.trim() == _selectedSourceName;
-                        setState(() {
-                          _searchQuery = value;
-                          if (!isSelectedValue) {
-                            _selectedSourceId = null;
-                            _selectedSourceName = null;
-                          }
-                        });
-                        _scheduleAutocompleteRefresh();
-                      },
-                      onSubmitted: (_) => onFieldSubmitted(),
-                    );
-                  },
-                  optionsViewBuilder: (context, onSelected, options) {
-                    return Align(
-                      alignment: Alignment.topLeft,
-                      child: Material(
-                        elevation: 3,
-                        borderRadius: BorderRadius.circular(10),
-                        clipBehavior: Clip.antiAlias,
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxHeight: 220, minWidth: 280),
-                          child: ListView.builder(
-                            padding: EdgeInsets.zero,
-                            shrinkWrap: true,
-                            itemCount: options.length,
-                            itemBuilder: (context, index) {
-                              final suggestion = options.elementAt(index);
-                              return ListTile(
-                                dense: true,
-                                title: Text(suggestion.name),
-                                onTap: () => onSelected(suggestion),
-                              );
-                            },
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              if (searchAsync?.isLoading ?? false) const LinearProgressIndicator(),
-              if (searchAsync?.hasError ?? false)
-                const Align(
-                  alignment: Alignment.centerLeft,
-                  child: Padding(
-                    padding: EdgeInsets.only(top: 6),
-                    child: Text('Source search failed. Try a different search term.'),
-                  ),
-                ),
-              const SizedBox(height: 16),
-              if (_type != MediaSourceType.latestEpisodes)
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text('Descending/feed direction'),
-                  value: _descending,
-                  onChanged: (value) => setState(() => _descending = value),
-                ),
-            ],
-          ),
-        ),
-      ),
-      actions: [
-        TextButton(onPressed: () => context.pop(), child: const Text('Cancel')),
-        FilledButton(
-          onPressed: canAddSource
-              ? () {
-                  final sourceId = _type == MediaSourceType.latestEpisodes
-                      ? _libraryId!.trim()
-                      : _selectedSourceId!.trim();
-                  final libraryId = _libraryId!.trim();
-                  context.pop(
-                    MediaSourceDescriptor(
-                      type: _type,
-                      sourceId: sourceId,
-                      libraryId: libraryId,
-                      displayName: _type == MediaSourceType.latestEpisodes ? 'Latest episodes' : _selectedSourceName,
-                      descending: _descending,
-                    ),
-                  );
-                }
-              : null,
-          child: const Text('Add'),
-        ),
-      ],
-    );
-  }
-
-  List<({String id, String name})> _remoteSuggestions(AsyncValue<SearchLibrary?>? searchAsync) {
-    final result = searchAsync?.asData?.value;
-    if (result == null) {
-      return const <({String id, String name})>[];
-    }
-
-    if (_type == MediaSourceType.series) {
-      return (result.series ?? const [])
-          .take(3)
-          .map((entry) => (id: entry.series.id, name: entry.series.name))
-          .toList(growable: false);
-    }
-
-    return (result.podcast ?? const [])
-        .where((entry) => entry.libraryItem != null)
-        .take(3)
-        .map((entry) => (id: entry.libraryItem!.id, name: entry.libraryItem!.title))
-        .toList(growable: false);
-  }
-
-  void _scheduleAutocompleteRefresh() {
-    if (_autocompleteRefreshScheduled) return;
-    _autocompleteRefreshScheduled = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _autocompleteRefreshScheduled = false;
-      if (!mounted) return;
-      _refreshingAutocomplete = true;
-      _searchController.refreshOptions();
-      _refreshingAutocomplete = false;
-    });
-  }
-
-  List<MediaSourceType> _sourceTypesForLibrary(String? mediaType) {
-    return switch (mediaType?.trim().toLowerCase()) {
-      'podcast' => const [
-        MediaSourceType.latestEpisodes,
-        MediaSourceType.podcast,
-        MediaSourceType.playlist,
-        MediaSourceType.collection,
-      ],
-      'book' => const [MediaSourceType.series, MediaSourceType.playlist, MediaSourceType.collection],
-      _ => MediaSourceType.values,
-    };
   }
 }

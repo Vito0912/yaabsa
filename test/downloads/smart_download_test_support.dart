@@ -22,6 +22,7 @@ import 'package:yaabsa/models/internal_download.dart';
 import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/models/smart_download.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
+import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
@@ -118,9 +119,12 @@ class DownloadTestDatabase extends AppDatabase {
 }
 
 class CompleteTestDownload implements InternalDownload {
-  CompleteTestDownload(this.itemId);
+  CompleteTestDownload(this.itemId, {this.downloadType = 'audiobook'});
 
   final String itemId;
+
+  @override
+  final String downloadType;
 
   @override
   LibraryItem get item => LibraryItem(id: itemId, ino: itemId, media: null, libraryFiles: null);
@@ -132,6 +136,9 @@ class CompleteTestDownload implements InternalDownload {
   bool get isComplete => true;
 
   @override
+  bool isCompleteForType(String requestedType) => requestedType != 'ebook';
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -139,6 +146,7 @@ class DownloadTestHandler implements DownloadHandler {
   late DownloadTestDatabase db;
   final events = <String>[];
   final queuedOwners = <String, List<String>>{};
+  final queuedTypes = <String, String?>{};
   final estimates = <String, int?>{};
   final estimateReads = <String, int>{};
   final active = <String>{};
@@ -150,6 +158,7 @@ class DownloadTestHandler implements DownloadHandler {
     db = database;
     events.clear();
     queuedOwners.clear();
+    queuedTypes.clear();
     estimates.clear();
     estimateReads.clear();
     active.clear();
@@ -192,6 +201,7 @@ class DownloadTestHandler implements DownloadHandler {
   }) async {
     events.add('queue:$itemId');
     queuedOwners[itemId] = smartProfileIds;
+    queuedTypes[itemId] = downloadType;
     active.add('$itemId::${episodeId ?? ''}');
   }
 
@@ -246,6 +256,14 @@ class DownloadTestProgress extends MediaProgressNotifier {
   Future<void> build() async {}
 
   @override
+  MediaProgress? progressForKey(String key) => cached[key];
+
+  @override
+  List<MediaProgress> progressForLibraryItem(String itemId) {
+    return cached.values.where((entry) => entry.libraryItemId == itemId).toList();
+  }
+
+  @override
   Map<String, MediaProgress> get snapshot {
     snapshotReads++;
     return Map.unmodifiable(cached);
@@ -277,7 +295,10 @@ Future<ProviderContainer> downloadTestContainer(
   DownloadTestSettings? settings,
   ABSApi? api,
   Library? library,
+  List<Library>? libraries,
   PersonalizedLibrary? personalized,
+  Map<String, PersonalizedLibrary>? personalizedByLibrary,
+  Map<String, LibraryItem> items = const {},
 }) async {
   final container = ProviderContainer(
     retry: (_, _) => null,
@@ -287,11 +308,16 @@ Future<ProviderContainer> downloadTestContainer(
       currentUserProvider.overrideWith((ref) => Stream.value(downloadUser(testUserId))),
       serverStatusProvider.overrideWith((ref) => Stream.value(true)),
       selectedLibraryProvider.overrideWith((ref) => library),
+      userLibrariesProvider.overrideWith((ref) async => libraries ?? [?library]),
       userSettingsWatcherProvider.overrideWith(() => DownloadTestSettingsWatcher()),
       settingsManagerProvider.overrideWith(() => settings ?? DownloadTestSettings()),
       mediaProgressProvider.overrideWith(() => progress),
-      if (library != null && personalized != null)
-        personalizedLibraryProvider(library.id).overrideWith(() => DownloadTestShelves(personalized)),
+      for (final entry in items.entries) libraryItemProvider(entry.key).overrideWith((ref) async => entry.value),
+      for (final entry in {
+        if (library != null && personalized != null) library.id: personalized,
+        ...?personalizedByLibrary,
+      }.entries)
+        personalizedLibraryProvider(entry.key).overrideWith(() => DownloadTestShelves(entry.value)),
     ],
   );
   container.listen(currentUserProvider, (_, _) {});
@@ -331,9 +357,11 @@ class DownloadTestShelves extends PersonalizedLibraryNotifier {
   DownloadTestShelves(this.shelves);
 
   final PersonalizedLibrary shelves;
+  int loads = 0;
 
   @override
   Future<PersonalizedLibrary?> build(String libraryId) async {
+    loads++;
     return shelves;
   }
 }

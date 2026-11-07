@@ -139,6 +139,14 @@ abstract class InternalDownload with _$InternalDownload {
     return audioComplete && ebookComplete;
   }
 
+  bool isCompleteForType(String requestedType) {
+    if (requestedType == downloadType) {
+      return isComplete;
+    }
+
+    return copyWith(downloadType: requestedType).isComplete;
+  }
+
   Future<InternalDownload> resolvePaths() async {
     final basePath = downloadBasePath;
     if (basePath == null || basePath.isEmpty) {

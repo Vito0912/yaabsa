@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SmartDownloadPolicy {
 
- int get targetCount; int? get maxAgeDays; int? get maxStorageBytes; int get deleteAfterHours; String get downloadType; bool get descending; ListeningDownloadTrigger? get listeningTrigger; int get listeningThreshold;
+ int get targetCount; int? get maxAgeDays; int? get maxStorageBytes; int get deleteAfterHours; String get downloadType; bool get descending;
 /// Create a copy of SmartDownloadPolicy
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,16 +29,16 @@ $SmartDownloadPolicyCopyWith<SmartDownloadPolicy> get copyWith => _$SmartDownloa
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SmartDownloadPolicy&&(identical(other.targetCount, targetCount) || other.targetCount == targetCount)&&(identical(other.maxAgeDays, maxAgeDays) || other.maxAgeDays == maxAgeDays)&&(identical(other.maxStorageBytes, maxStorageBytes) || other.maxStorageBytes == maxStorageBytes)&&(identical(other.deleteAfterHours, deleteAfterHours) || other.deleteAfterHours == deleteAfterHours)&&(identical(other.downloadType, downloadType) || other.downloadType == downloadType)&&(identical(other.descending, descending) || other.descending == descending)&&(identical(other.listeningTrigger, listeningTrigger) || other.listeningTrigger == listeningTrigger)&&(identical(other.listeningThreshold, listeningThreshold) || other.listeningThreshold == listeningThreshold));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SmartDownloadPolicy&&(identical(other.targetCount, targetCount) || other.targetCount == targetCount)&&(identical(other.maxAgeDays, maxAgeDays) || other.maxAgeDays == maxAgeDays)&&(identical(other.maxStorageBytes, maxStorageBytes) || other.maxStorageBytes == maxStorageBytes)&&(identical(other.deleteAfterHours, deleteAfterHours) || other.deleteAfterHours == deleteAfterHours)&&(identical(other.downloadType, downloadType) || other.downloadType == downloadType)&&(identical(other.descending, descending) || other.descending == descending));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,targetCount,maxAgeDays,maxStorageBytes,deleteAfterHours,downloadType,descending,listeningTrigger,listeningThreshold);
+int get hashCode => Object.hash(runtimeType,targetCount,maxAgeDays,maxStorageBytes,deleteAfterHours,downloadType,descending);
 
 @override
 String toString() {
-  return 'SmartDownloadPolicy(targetCount: $targetCount, maxAgeDays: $maxAgeDays, maxStorageBytes: $maxStorageBytes, deleteAfterHours: $deleteAfterHours, downloadType: $downloadType, descending: $descending, listeningTrigger: $listeningTrigger, listeningThreshold: $listeningThreshold)';
+  return 'SmartDownloadPolicy(targetCount: $targetCount, maxAgeDays: $maxAgeDays, maxStorageBytes: $maxStorageBytes, deleteAfterHours: $deleteAfterHours, downloadType: $downloadType, descending: $descending)';
 }
 
 
@@ -49,7 +49,7 @@ abstract mixin class $SmartDownloadPolicyCopyWith<$Res>  {
   factory $SmartDownloadPolicyCopyWith(SmartDownloadPolicy value, $Res Function(SmartDownloadPolicy) _then) = _$SmartDownloadPolicyCopyWithImpl;
 @useResult
 $Res call({
- int targetCount, int? maxAgeDays, int? maxStorageBytes, int deleteAfterHours, String downloadType, bool descending, ListeningDownloadTrigger? listeningTrigger, int listeningThreshold
+ int targetCount, int? maxAgeDays, int? maxStorageBytes, int deleteAfterHours, String downloadType, bool descending
 });
 
 
@@ -66,7 +66,7 @@ class _$SmartDownloadPolicyCopyWithImpl<$Res>
 
 /// Create a copy of SmartDownloadPolicy
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? targetCount = null,Object? maxAgeDays = freezed,Object? maxStorageBytes = freezed,Object? deleteAfterHours = null,Object? downloadType = null,Object? descending = null,Object? listeningTrigger = freezed,Object? listeningThreshold = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? targetCount = null,Object? maxAgeDays = freezed,Object? maxStorageBytes = freezed,Object? deleteAfterHours = null,Object? downloadType = null,Object? descending = null,}) {
   return _then(SmartDownloadPolicy(
 targetCount: null == targetCount ? _self.targetCount : targetCount // ignore: cast_nullable_to_non_nullable
 as int,maxAgeDays: freezed == maxAgeDays ? _self.maxAgeDays : maxAgeDays // ignore: cast_nullable_to_non_nullable
@@ -74,9 +74,7 @@ as int?,maxStorageBytes: freezed == maxStorageBytes ? _self.maxStorageBytes : ma
 as int?,deleteAfterHours: null == deleteAfterHours ? _self.deleteAfterHours : deleteAfterHours // ignore: cast_nullable_to_non_nullable
 as int,downloadType: null == downloadType ? _self.downloadType : downloadType // ignore: cast_nullable_to_non_nullable
 as String,descending: null == descending ? _self.descending : descending // ignore: cast_nullable_to_non_nullable
-as bool,listeningTrigger: freezed == listeningTrigger ? _self.listeningTrigger : listeningTrigger // ignore: cast_nullable_to_non_nullable
-as ListeningDownloadTrigger?,listeningThreshold: null == listeningThreshold ? _self.listeningThreshold : listeningThreshold // ignore: cast_nullable_to_non_nullable
-as int,
+as bool,
   ));
 }
 
@@ -161,10 +159,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int targetCount,  int? maxAgeDays,  int? maxStorageBytes,  int deleteAfterHours,  String downloadType,  bool descending,  ListeningDownloadTrigger? listeningTrigger,  int listeningThreshold)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int targetCount,  int? maxAgeDays,  int? maxStorageBytes,  int deleteAfterHours,  String downloadType,  bool descending)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SmartDownloadPolicy() when $default != null:
-return $default(_that.targetCount,_that.maxAgeDays,_that.maxStorageBytes,_that.deleteAfterHours,_that.downloadType,_that.descending,_that.listeningTrigger,_that.listeningThreshold);case _:
+return $default(_that.targetCount,_that.maxAgeDays,_that.maxStorageBytes,_that.deleteAfterHours,_that.downloadType,_that.descending);case _:
   return orElse();
 
 }
@@ -182,10 +180,10 @@ return $default(_that.targetCount,_that.maxAgeDays,_that.maxStorageBytes,_that.d
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int targetCount,  int? maxAgeDays,  int? maxStorageBytes,  int deleteAfterHours,  String downloadType,  bool descending,  ListeningDownloadTrigger? listeningTrigger,  int listeningThreshold)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int targetCount,  int? maxAgeDays,  int? maxStorageBytes,  int deleteAfterHours,  String downloadType,  bool descending)  $default,) {final _that = this;
 switch (_that) {
 case _SmartDownloadPolicy():
-return $default(_that.targetCount,_that.maxAgeDays,_that.maxStorageBytes,_that.deleteAfterHours,_that.downloadType,_that.descending,_that.listeningTrigger,_that.listeningThreshold);case _:
+return $default(_that.targetCount,_that.maxAgeDays,_that.maxStorageBytes,_that.deleteAfterHours,_that.downloadType,_that.descending);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -202,10 +200,10 @@ return $default(_that.targetCount,_that.maxAgeDays,_that.maxStorageBytes,_that.d
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int targetCount,  int? maxAgeDays,  int? maxStorageBytes,  int deleteAfterHours,  String downloadType,  bool descending,  ListeningDownloadTrigger? listeningTrigger,  int listeningThreshold)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int targetCount,  int? maxAgeDays,  int? maxStorageBytes,  int deleteAfterHours,  String downloadType,  bool descending)?  $default,) {final _that = this;
 switch (_that) {
 case _SmartDownloadPolicy() when $default != null:
-return $default(_that.targetCount,_that.maxAgeDays,_that.maxStorageBytes,_that.deleteAfterHours,_that.downloadType,_that.descending,_that.listeningTrigger,_that.listeningThreshold);case _:
+return $default(_that.targetCount,_that.maxAgeDays,_that.maxStorageBytes,_that.deleteAfterHours,_that.downloadType,_that.descending);case _:
   return null;
 
 }
@@ -217,7 +215,7 @@ return $default(_that.targetCount,_that.maxAgeDays,_that.maxStorageBytes,_that.d
 @JsonSerializable()
 
 class _SmartDownloadPolicy implements SmartDownloadPolicy {
-  const _SmartDownloadPolicy({this.targetCount = 3, this.maxAgeDays, this.maxStorageBytes, this.deleteAfterHours = 24, this.downloadType = 'audiobook', this.descending = true, this.listeningTrigger, this.listeningThreshold = 30});
+  const _SmartDownloadPolicy({this.targetCount = 3, this.maxAgeDays, this.maxStorageBytes, this.deleteAfterHours = 24, this.downloadType = 'audiobook', this.descending = true});
   factory _SmartDownloadPolicy.fromJson(Map<String, dynamic> json) => _$SmartDownloadPolicyFromJson(json);
 
 @override@JsonKey() final  int targetCount;
@@ -226,8 +224,6 @@ class _SmartDownloadPolicy implements SmartDownloadPolicy {
 @override@JsonKey() final  int deleteAfterHours;
 @override@JsonKey() final  String downloadType;
 @override@JsonKey() final  bool descending;
-@override final  ListeningDownloadTrigger? listeningTrigger;
-@override@JsonKey() final  int listeningThreshold;
 
 /// Create a copy of SmartDownloadPolicy
 /// with the given fields replaced by the non-null parameter values.
@@ -242,16 +238,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SmartDownloadPolicy&&(identical(other.targetCount, targetCount) || other.targetCount == targetCount)&&(identical(other.maxAgeDays, maxAgeDays) || other.maxAgeDays == maxAgeDays)&&(identical(other.maxStorageBytes, maxStorageBytes) || other.maxStorageBytes == maxStorageBytes)&&(identical(other.deleteAfterHours, deleteAfterHours) || other.deleteAfterHours == deleteAfterHours)&&(identical(other.downloadType, downloadType) || other.downloadType == downloadType)&&(identical(other.descending, descending) || other.descending == descending)&&(identical(other.listeningTrigger, listeningTrigger) || other.listeningTrigger == listeningTrigger)&&(identical(other.listeningThreshold, listeningThreshold) || other.listeningThreshold == listeningThreshold));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SmartDownloadPolicy&&(identical(other.targetCount, targetCount) || other.targetCount == targetCount)&&(identical(other.maxAgeDays, maxAgeDays) || other.maxAgeDays == maxAgeDays)&&(identical(other.maxStorageBytes, maxStorageBytes) || other.maxStorageBytes == maxStorageBytes)&&(identical(other.deleteAfterHours, deleteAfterHours) || other.deleteAfterHours == deleteAfterHours)&&(identical(other.downloadType, downloadType) || other.downloadType == downloadType)&&(identical(other.descending, descending) || other.descending == descending));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,targetCount,maxAgeDays,maxStorageBytes,deleteAfterHours,downloadType,descending,listeningTrigger,listeningThreshold);
+int get hashCode => Object.hash(runtimeType,targetCount,maxAgeDays,maxStorageBytes,deleteAfterHours,downloadType,descending);
 
 @override
 String toString() {
-  return 'SmartDownloadPolicy(targetCount: $targetCount, maxAgeDays: $maxAgeDays, maxStorageBytes: $maxStorageBytes, deleteAfterHours: $deleteAfterHours, downloadType: $downloadType, descending: $descending, listeningTrigger: $listeningTrigger, listeningThreshold: $listeningThreshold)';
+  return 'SmartDownloadPolicy(targetCount: $targetCount, maxAgeDays: $maxAgeDays, maxStorageBytes: $maxStorageBytes, deleteAfterHours: $deleteAfterHours, downloadType: $downloadType, descending: $descending)';
 }
 
 
@@ -262,7 +258,7 @@ abstract mixin class _$SmartDownloadPolicyCopyWith<$Res> implements $SmartDownlo
   factory _$SmartDownloadPolicyCopyWith(_SmartDownloadPolicy value, $Res Function(_SmartDownloadPolicy) _then) = __$SmartDownloadPolicyCopyWithImpl;
 @override @useResult
 $Res call({
- int targetCount, int? maxAgeDays, int? maxStorageBytes, int deleteAfterHours, String downloadType, bool descending, ListeningDownloadTrigger? listeningTrigger, int listeningThreshold
+ int targetCount, int? maxAgeDays, int? maxStorageBytes, int deleteAfterHours, String downloadType, bool descending
 });
 
 
@@ -279,7 +275,7 @@ class __$SmartDownloadPolicyCopyWithImpl<$Res>
 
 /// Create a copy of SmartDownloadPolicy
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? targetCount = null,Object? maxAgeDays = freezed,Object? maxStorageBytes = freezed,Object? deleteAfterHours = null,Object? downloadType = null,Object? descending = null,Object? listeningTrigger = freezed,Object? listeningThreshold = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? targetCount = null,Object? maxAgeDays = freezed,Object? maxStorageBytes = freezed,Object? deleteAfterHours = null,Object? downloadType = null,Object? descending = null,}) {
   return _then(_SmartDownloadPolicy(
 targetCount: null == targetCount ? _self.targetCount : targetCount // ignore: cast_nullable_to_non_nullable
 as int,maxAgeDays: freezed == maxAgeDays ? _self.maxAgeDays : maxAgeDays // ignore: cast_nullable_to_non_nullable
@@ -287,9 +283,7 @@ as int?,maxStorageBytes: freezed == maxStorageBytes ? _self.maxStorageBytes : ma
 as int?,deleteAfterHours: null == deleteAfterHours ? _self.deleteAfterHours : deleteAfterHours // ignore: cast_nullable_to_non_nullable
 as int,downloadType: null == downloadType ? _self.downloadType : downloadType // ignore: cast_nullable_to_non_nullable
 as String,descending: null == descending ? _self.descending : descending // ignore: cast_nullable_to_non_nullable
-as bool,listeningTrigger: freezed == listeningTrigger ? _self.listeningTrigger : listeningTrigger // ignore: cast_nullable_to_non_nullable
-as ListeningDownloadTrigger?,listeningThreshold: null == listeningThreshold ? _self.listeningThreshold : listeningThreshold // ignore: cast_nullable_to_non_nullable
-as int,
+as bool,
   ));
 }
 

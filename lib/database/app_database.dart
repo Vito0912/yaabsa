@@ -12,6 +12,7 @@ import 'package:yaabsa/util/download_destination.dart';
 import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/models/smart_download.dart';
 import 'package:yaabsa/models/queue_source.dart';
+import 'package:yaabsa/api/json/value_parsers.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:drift/drift.dart';
@@ -21,6 +22,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'app_database.g.dart';
 part 'download_asset_updates.dart';
 part 'listening_download_updates.dart';
+part 'smart_download_migration.dart';
 
 @DataClassName('GlobalSettingEntry')
 class GlobalSettings extends Table {
@@ -174,6 +176,8 @@ class SmartDownloadSources extends Table {
   TextColumn get displayName => text().nullable()();
   BoolColumn get descending => boolean().withDefault(const Constant(false))();
   IntColumn get sourceRevision => integer().nullable()();
+  TextColumn get listeningTrigger => text().withDefault(const Constant('minutes'))();
+  IntColumn get listeningThreshold => integer().withDefault(const Constant(30))();
   TextColumn get candidateSnapshot => text().nullable()();
   IntColumn get updatedAt => integer()();
 
@@ -268,7 +272,7 @@ class AppDatabase extends _$AppDatabase {
   bool? _storedDownloadFilesAvailable;
 
   @override
-  int get schemaVersion => 26;
+  int get schemaVersion => 27;
 
   Future<void> _addColumnIfMissing(Migrator migrator, TableInfo table, GeneratedColumn column) async {
     final tableName = table.actualTableName.replaceAll('"', '""');
@@ -372,6 +376,11 @@ class AppDatabase extends _$AppDatabase {
           'FROM _smart_download_claims_old ORDER BY updated_at ASC;',
         );
         await customStatement('DROP TABLE _smart_download_claims_old;');
+      }
+      if (from < 27) {
+        await _addColumnIfMissing(m, smartDownloadSources, smartDownloadSources.listeningTrigger);
+        await _addColumnIfMissing(m, smartDownloadSources, smartDownloadSources.listeningThreshold);
+        await migrateLegacySmartDownloadOptions();
       }
     },
     beforeOpen: (details) async {},
@@ -1769,6 +1778,8 @@ class AppDatabase extends _$AppDatabase {
             displayName: Value(source.displayName),
             descending: Value(source.descending),
             sourceRevision: Value(source.revision),
+            listeningTrigger: Value(source.listeningTrigger.name),
+            listeningThreshold: Value(source.listeningThreshold),
             updatedAt: Value(now),
           ),
           mode: InsertMode.insertOrReplace,

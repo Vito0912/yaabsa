@@ -6,8 +6,10 @@ class _SmartDownloadSnapshot {
   final Set<String> finishedPodcastItems = <String>{};
   final Map<String, StoredDownloadsEntry> stored = <String, StoredDownloadsEntry>{};
   final Set<String> completeKeys = <String>{};
+  final Map<String, InternalDownload> downloadsByReference = <String, InternalDownload>{};
   final Map<String, int?> candidateBytes = <String, int?>{};
   final Map<String, Future<int?>> estimates = <String, Future<int?>>{};
+  final Map<String, Future<String?>> itemLibraries = <String, Future<String?>>{};
   List<ListeningDownloadProgressEntry> listeningProgress = const [];
   Set<String> activeReferences = <String>{};
   Map<String, int> reservations = <String, int>{};
@@ -29,7 +31,7 @@ extension _SmartDownloadSnapshots on SmartDownloadManager {
 
     final hasEnabledProfiles = profiles.any((profile) => profile.enabled);
     final hasManagedDownloads = stored.any((entry) => entry.downloadOrigin == 'smart');
-    if (hasEnabledProfiles || hasManagedDownloads || _continueDownloadsEnabled(userId)) {
+    if (hasEnabledProfiles || hasManagedDownloads) {
       for (final stored in await db.getStoredMediaProgressByUser(userId)) {
         final progress = _decodeProgressOrNull(stored.mediaProgress);
         if (progress != null) {
@@ -61,20 +63,55 @@ extension _SmartDownloadSnapshots on SmartDownloadManager {
       }
     }
 
-    if (profiles.any((profile) => profile.enabled && profile.policy.listeningTrigger != null)) {
+    final hasListeningSources = profiles.any((profile) {
+      return profile.enabled && profile.sources.any((source) => source.type == MediaSourceType.listeningThreshold);
+    });
+
+    if (hasListeningSources) {
       snapshot.listeningProgress = await db.getListeningDownloadProgress(userId);
       _throwIfReconcileStale(generation, userId);
     }
 
-    if (hasEnabledProfiles || _continueDownloadsEnabled(userId)) {
+    if (hasEnabledProfiles) {
       final downloads = await db.resolveStoredDownloadEntries(stored);
       _throwIfReconcileStale(generation, userId);
-      snapshot.completeKeys.addAll(
-        downloads.where((download) => download.isComplete).map(_downloadKey).whereType<String>(),
-      );
+      for (final download in downloads) {
+        final reference = _downloadKey(download);
+        if (reference == null) {
+          continue;
+        }
+
+        snapshot.downloadsByReference[reference] = download;
+        if (download.isComplete) {
+          snapshot.completeKeys.add(reference);
+        }
+      }
     }
 
     return snapshot;
+  }
+
+  bool _hasCompleteDownload({
+    required _SmartDownloadSnapshot snapshot,
+    required String reference,
+    required String downloadType,
+  }) {
+    final download = snapshot.downloadsByReference[reference];
+    return download?.isCompleteForType(downloadType) ?? false;
+  }
+
+  ({int bytes, String downloadType}) _storedDownloadBudget({
+    required _SmartDownloadSnapshot snapshot,
+    required String reference,
+    required String requestedType,
+  }) {
+    final entry = snapshot.stored[reference];
+    final download = snapshot.downloadsByReference[reference];
+    if (entry?.downloadOrigin != 'smart' || download == null) {
+      return (bytes: 0, downloadType: requestedType);
+    }
+
+    return (bytes: entry?.managedBytes ?? 0, downloadType: _mergeDownloadTypes(download.downloadType, requestedType));
   }
 
   Future<CandidatePage> _downloadSourcePage(
@@ -82,7 +119,15 @@ extension _SmartDownloadSnapshots on SmartDownloadManager {
     MediaSourceDescriptor source,
     int page,
   ) async {
-    final key = jsonEncode([source.type.name, source.libraryId, source.sourceId, source.descending, page]);
+    final key = jsonEncode([
+      source.type.name,
+      source.libraryId,
+      source.sourceId,
+      source.descending,
+      source.listeningTrigger.name,
+      source.listeningThreshold,
+      page,
+    ]);
     final cached = _sourcePages[key];
     if (cached != null) {
       return cached;

@@ -2569,11 +2569,6 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           return;
         }
 
-        unawaited(
-          _ref
-              .read(smartDownloadManagerProvider.notifier)
-              .deleteFinishedContinueDownload(itemId: finishedMedia.itemId, episodeId: finishedMedia.episodeId),
-        );
         _ref
             .read(smartDownloadManagerProvider.notifier)
             .requestReconcile(reason: 'playback completed', refreshSources: false);

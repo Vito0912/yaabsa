@@ -3662,6 +3662,26 @@ class $SmartDownloadSourcesTable extends SmartDownloadSources
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _listeningTriggerMeta = const VerificationMeta('listeningTrigger');
+  @override
+  late final GeneratedColumn<String> listeningTrigger = GeneratedColumn<String>(
+    'listening_trigger',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('minutes'),
+  );
+  static const VerificationMeta _listeningThresholdMeta = const VerificationMeta('listeningThreshold');
+  @override
+  late final GeneratedColumn<int> listeningThreshold = GeneratedColumn<int>(
+    'listening_threshold',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(30),
+  );
   static const VerificationMeta _candidateSnapshotMeta = const VerificationMeta('candidateSnapshot');
   @override
   late final GeneratedColumn<String> candidateSnapshot = GeneratedColumn<String>(
@@ -3689,6 +3709,8 @@ class $SmartDownloadSourcesTable extends SmartDownloadSources
     displayName,
     descending,
     sourceRevision,
+    listeningTrigger,
+    listeningThreshold,
     candidateSnapshot,
     updatedAt,
   ];
@@ -3733,6 +3755,18 @@ class $SmartDownloadSourcesTable extends SmartDownloadSources
         sourceRevision.isAcceptableOrUnknown(data['source_revision']!, _sourceRevisionMeta),
       );
     }
+    if (data.containsKey('listening_trigger')) {
+      context.handle(
+        _listeningTriggerMeta,
+        listeningTrigger.isAcceptableOrUnknown(data['listening_trigger']!, _listeningTriggerMeta),
+      );
+    }
+    if (data.containsKey('listening_threshold')) {
+      context.handle(
+        _listeningThresholdMeta,
+        listeningThreshold.isAcceptableOrUnknown(data['listening_threshold']!, _listeningThresholdMeta),
+      );
+    }
     if (data.containsKey('candidate_snapshot')) {
       context.handle(
         _candidateSnapshotMeta,
@@ -3760,6 +3794,14 @@ class $SmartDownloadSourcesTable extends SmartDownloadSources
       displayName: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}display_name']),
       descending: attachedDatabase.typeMapping.read(DriftSqlType.bool, data['${effectivePrefix}descending'])!,
       sourceRevision: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}source_revision']),
+      listeningTrigger: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}listening_trigger'],
+      )!,
+      listeningThreshold: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}listening_threshold'],
+      )!,
       candidateSnapshot: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}candidate_snapshot'],
@@ -3782,6 +3824,8 @@ class SmartDownloadSourceEntry extends DataClass implements Insertable<SmartDown
   final String? displayName;
   final bool descending;
   final int? sourceRevision;
+  final String listeningTrigger;
+  final int listeningThreshold;
   final String? candidateSnapshot;
   final int updatedAt;
   const SmartDownloadSourceEntry({
@@ -3792,6 +3836,8 @@ class SmartDownloadSourceEntry extends DataClass implements Insertable<SmartDown
     this.displayName,
     required this.descending,
     this.sourceRevision,
+    required this.listeningTrigger,
+    required this.listeningThreshold,
     this.candidateSnapshot,
     required this.updatedAt,
   });
@@ -3809,6 +3855,8 @@ class SmartDownloadSourceEntry extends DataClass implements Insertable<SmartDown
     if (!nullToAbsent || sourceRevision != null) {
       map['source_revision'] = Variable<int>(sourceRevision);
     }
+    map['listening_trigger'] = Variable<String>(listeningTrigger);
+    map['listening_threshold'] = Variable<int>(listeningThreshold);
     if (!nullToAbsent || candidateSnapshot != null) {
       map['candidate_snapshot'] = Variable<String>(candidateSnapshot);
     }
@@ -3825,6 +3873,8 @@ class SmartDownloadSourceEntry extends DataClass implements Insertable<SmartDown
       displayName: displayName == null && nullToAbsent ? const Value.absent() : Value(displayName),
       descending: Value(descending),
       sourceRevision: sourceRevision == null && nullToAbsent ? const Value.absent() : Value(sourceRevision),
+      listeningTrigger: Value(listeningTrigger),
+      listeningThreshold: Value(listeningThreshold),
       candidateSnapshot: candidateSnapshot == null && nullToAbsent ? const Value.absent() : Value(candidateSnapshot),
       updatedAt: Value(updatedAt),
     );
@@ -3840,6 +3890,8 @@ class SmartDownloadSourceEntry extends DataClass implements Insertable<SmartDown
       displayName: serializer.fromJson<String?>(json['displayName']),
       descending: serializer.fromJson<bool>(json['descending']),
       sourceRevision: serializer.fromJson<int?>(json['sourceRevision']),
+      listeningTrigger: serializer.fromJson<String>(json['listeningTrigger']),
+      listeningThreshold: serializer.fromJson<int>(json['listeningThreshold']),
       candidateSnapshot: serializer.fromJson<String?>(json['candidateSnapshot']),
       updatedAt: serializer.fromJson<int>(json['updatedAt']),
     );
@@ -3855,6 +3907,8 @@ class SmartDownloadSourceEntry extends DataClass implements Insertable<SmartDown
       'displayName': serializer.toJson<String?>(displayName),
       'descending': serializer.toJson<bool>(descending),
       'sourceRevision': serializer.toJson<int?>(sourceRevision),
+      'listeningTrigger': serializer.toJson<String>(listeningTrigger),
+      'listeningThreshold': serializer.toJson<int>(listeningThreshold),
       'candidateSnapshot': serializer.toJson<String?>(candidateSnapshot),
       'updatedAt': serializer.toJson<int>(updatedAt),
     };
@@ -3868,6 +3922,8 @@ class SmartDownloadSourceEntry extends DataClass implements Insertable<SmartDown
     Value<String?> displayName = const Value.absent(),
     bool? descending,
     Value<int?> sourceRevision = const Value.absent(),
+    String? listeningTrigger,
+    int? listeningThreshold,
     Value<String?> candidateSnapshot = const Value.absent(),
     int? updatedAt,
   }) => SmartDownloadSourceEntry(
@@ -3878,6 +3934,8 @@ class SmartDownloadSourceEntry extends DataClass implements Insertable<SmartDown
     displayName: displayName.present ? displayName.value : this.displayName,
     descending: descending ?? this.descending,
     sourceRevision: sourceRevision.present ? sourceRevision.value : this.sourceRevision,
+    listeningTrigger: listeningTrigger ?? this.listeningTrigger,
+    listeningThreshold: listeningThreshold ?? this.listeningThreshold,
     candidateSnapshot: candidateSnapshot.present ? candidateSnapshot.value : this.candidateSnapshot,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -3890,6 +3948,8 @@ class SmartDownloadSourceEntry extends DataClass implements Insertable<SmartDown
       displayName: data.displayName.present ? data.displayName.value : this.displayName,
       descending: data.descending.present ? data.descending.value : this.descending,
       sourceRevision: data.sourceRevision.present ? data.sourceRevision.value : this.sourceRevision,
+      listeningTrigger: data.listeningTrigger.present ? data.listeningTrigger.value : this.listeningTrigger,
+      listeningThreshold: data.listeningThreshold.present ? data.listeningThreshold.value : this.listeningThreshold,
       candidateSnapshot: data.candidateSnapshot.present ? data.candidateSnapshot.value : this.candidateSnapshot,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -3905,6 +3965,8 @@ class SmartDownloadSourceEntry extends DataClass implements Insertable<SmartDown
           ..write('displayName: $displayName, ')
           ..write('descending: $descending, ')
           ..write('sourceRevision: $sourceRevision, ')
+          ..write('listeningTrigger: $listeningTrigger, ')
+          ..write('listeningThreshold: $listeningThreshold, ')
           ..write('candidateSnapshot: $candidateSnapshot, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -3920,6 +3982,8 @@ class SmartDownloadSourceEntry extends DataClass implements Insertable<SmartDown
     displayName,
     descending,
     sourceRevision,
+    listeningTrigger,
+    listeningThreshold,
     candidateSnapshot,
     updatedAt,
   );
@@ -3934,6 +3998,8 @@ class SmartDownloadSourceEntry extends DataClass implements Insertable<SmartDown
           other.displayName == this.displayName &&
           other.descending == this.descending &&
           other.sourceRevision == this.sourceRevision &&
+          other.listeningTrigger == this.listeningTrigger &&
+          other.listeningThreshold == this.listeningThreshold &&
           other.candidateSnapshot == this.candidateSnapshot &&
           other.updatedAt == this.updatedAt);
 }
@@ -3946,6 +4012,8 @@ class SmartDownloadSourcesCompanion extends UpdateCompanion<SmartDownloadSourceE
   final Value<String?> displayName;
   final Value<bool> descending;
   final Value<int?> sourceRevision;
+  final Value<String> listeningTrigger;
+  final Value<int> listeningThreshold;
   final Value<String?> candidateSnapshot;
   final Value<int> updatedAt;
   final Value<int> rowid;
@@ -3957,6 +4025,8 @@ class SmartDownloadSourcesCompanion extends UpdateCompanion<SmartDownloadSourceE
     this.displayName = const Value.absent(),
     this.descending = const Value.absent(),
     this.sourceRevision = const Value.absent(),
+    this.listeningTrigger = const Value.absent(),
+    this.listeningThreshold = const Value.absent(),
     this.candidateSnapshot = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -3969,6 +4039,8 @@ class SmartDownloadSourcesCompanion extends UpdateCompanion<SmartDownloadSourceE
     this.displayName = const Value.absent(),
     this.descending = const Value.absent(),
     this.sourceRevision = const Value.absent(),
+    this.listeningTrigger = const Value.absent(),
+    this.listeningThreshold = const Value.absent(),
     this.candidateSnapshot = const Value.absent(),
     required int updatedAt,
     this.rowid = const Value.absent(),
@@ -3985,6 +4057,8 @@ class SmartDownloadSourcesCompanion extends UpdateCompanion<SmartDownloadSourceE
     Expression<String>? displayName,
     Expression<bool>? descending,
     Expression<int>? sourceRevision,
+    Expression<String>? listeningTrigger,
+    Expression<int>? listeningThreshold,
     Expression<String>? candidateSnapshot,
     Expression<int>? updatedAt,
     Expression<int>? rowid,
@@ -3997,6 +4071,8 @@ class SmartDownloadSourcesCompanion extends UpdateCompanion<SmartDownloadSourceE
       if (displayName != null) 'display_name': displayName,
       if (descending != null) 'descending': descending,
       if (sourceRevision != null) 'source_revision': sourceRevision,
+      if (listeningTrigger != null) 'listening_trigger': listeningTrigger,
+      if (listeningThreshold != null) 'listening_threshold': listeningThreshold,
       if (candidateSnapshot != null) 'candidate_snapshot': candidateSnapshot,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
@@ -4011,6 +4087,8 @@ class SmartDownloadSourcesCompanion extends UpdateCompanion<SmartDownloadSourceE
     Value<String?>? displayName,
     Value<bool>? descending,
     Value<int?>? sourceRevision,
+    Value<String>? listeningTrigger,
+    Value<int>? listeningThreshold,
     Value<String?>? candidateSnapshot,
     Value<int>? updatedAt,
     Value<int>? rowid,
@@ -4023,6 +4101,8 @@ class SmartDownloadSourcesCompanion extends UpdateCompanion<SmartDownloadSourceE
       displayName: displayName ?? this.displayName,
       descending: descending ?? this.descending,
       sourceRevision: sourceRevision ?? this.sourceRevision,
+      listeningTrigger: listeningTrigger ?? this.listeningTrigger,
+      listeningThreshold: listeningThreshold ?? this.listeningThreshold,
       candidateSnapshot: candidateSnapshot ?? this.candidateSnapshot,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -4053,6 +4133,12 @@ class SmartDownloadSourcesCompanion extends UpdateCompanion<SmartDownloadSourceE
     if (sourceRevision.present) {
       map['source_revision'] = Variable<int>(sourceRevision.value);
     }
+    if (listeningTrigger.present) {
+      map['listening_trigger'] = Variable<String>(listeningTrigger.value);
+    }
+    if (listeningThreshold.present) {
+      map['listening_threshold'] = Variable<int>(listeningThreshold.value);
+    }
     if (candidateSnapshot.present) {
       map['candidate_snapshot'] = Variable<String>(candidateSnapshot.value);
     }
@@ -4075,6 +4161,8 @@ class SmartDownloadSourcesCompanion extends UpdateCompanion<SmartDownloadSourceE
           ..write('displayName: $displayName, ')
           ..write('descending: $descending, ')
           ..write('sourceRevision: $sourceRevision, ')
+          ..write('listeningTrigger: $listeningTrigger, ')
+          ..write('listeningThreshold: $listeningThreshold, ')
           ..write('candidateSnapshot: $candidateSnapshot, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -6864,6 +6952,8 @@ typedef $$SmartDownloadSourcesTableCreateCompanionBuilder = SmartDownloadSources
   Value<String?> displayName,
   Value<bool> descending,
   Value<int?> sourceRevision,
+  Value<String> listeningTrigger,
+  Value<int> listeningThreshold,
   Value<String?> candidateSnapshot,
   required int updatedAt,
   Value<int> rowid,
@@ -6876,6 +6966,8 @@ typedef $$SmartDownloadSourcesTableUpdateCompanionBuilder = SmartDownloadSources
   Value<String?> displayName,
   Value<bool> descending,
   Value<int?> sourceRevision,
+  Value<String> listeningTrigger,
+  Value<int> listeningThreshold,
   Value<String?> candidateSnapshot,
   Value<int> updatedAt,
   Value<int> rowid,
@@ -6909,6 +7001,12 @@ class $$SmartDownloadSourcesTableFilterComposer extends Composer<_$AppDatabase, 
 
   ColumnFilters<int> get sourceRevision =>
       $composableBuilder(column: $table.sourceRevision, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get listeningTrigger =>
+      $composableBuilder(column: $table.listeningTrigger, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get listeningThreshold =>
+      $composableBuilder(column: $table.listeningThreshold, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get candidateSnapshot =>
       $composableBuilder(column: $table.candidateSnapshot, builder: (column) => ColumnFilters(column));
@@ -6946,6 +7044,12 @@ class $$SmartDownloadSourcesTableOrderingComposer extends Composer<_$AppDatabase
   ColumnOrderings<int> get sourceRevision =>
       $composableBuilder(column: $table.sourceRevision, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get listeningTrigger =>
+      $composableBuilder(column: $table.listeningTrigger, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get listeningThreshold =>
+      $composableBuilder(column: $table.listeningThreshold, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get candidateSnapshot =>
       $composableBuilder(column: $table.candidateSnapshot, builder: (column) => ColumnOrderings(column));
 
@@ -6976,6 +7080,12 @@ class $$SmartDownloadSourcesTableAnnotationComposer extends Composer<_$AppDataba
 
   GeneratedColumn<int> get sourceRevision =>
       $composableBuilder(column: $table.sourceRevision, builder: (column) => column);
+
+  GeneratedColumn<String> get listeningTrigger =>
+      $composableBuilder(column: $table.listeningTrigger, builder: (column) => column);
+
+  GeneratedColumn<int> get listeningThreshold =>
+      $composableBuilder(column: $table.listeningThreshold, builder: (column) => column);
 
   GeneratedColumn<String> get candidateSnapshot =>
       $composableBuilder(column: $table.candidateSnapshot, builder: (column) => column);
@@ -7018,6 +7128,8 @@ class $$SmartDownloadSourcesTableTableManager
                 Value<String?> displayName = const Value.absent(),
                 Value<bool> descending = const Value.absent(),
                 Value<int?> sourceRevision = const Value.absent(),
+                Value<String> listeningTrigger = const Value.absent(),
+                Value<int> listeningThreshold = const Value.absent(),
                 Value<String?> candidateSnapshot = const Value.absent(),
                 Value<int> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -7029,6 +7141,8 @@ class $$SmartDownloadSourcesTableTableManager
                 displayName: displayName,
                 descending: descending,
                 sourceRevision: sourceRevision,
+                listeningTrigger: listeningTrigger,
+                listeningThreshold: listeningThreshold,
                 candidateSnapshot: candidateSnapshot,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -7042,6 +7156,8 @@ class $$SmartDownloadSourcesTableTableManager
                 Value<String?> displayName = const Value.absent(),
                 Value<bool> descending = const Value.absent(),
                 Value<int?> sourceRevision = const Value.absent(),
+                Value<String> listeningTrigger = const Value.absent(),
+                Value<int> listeningThreshold = const Value.absent(),
                 Value<String?> candidateSnapshot = const Value.absent(),
                 required int updatedAt,
                 Value<int> rowid = const Value.absent(),
@@ -7053,6 +7169,8 @@ class $$SmartDownloadSourcesTableTableManager
                 displayName: displayName,
                 descending: descending,
                 sourceRevision: sourceRevision,
+                listeningTrigger: listeningTrigger,
+                listeningThreshold: listeningThreshold,
                 candidateSnapshot: candidateSnapshot,
                 updatedAt: updatedAt,
                 rowid: rowid,

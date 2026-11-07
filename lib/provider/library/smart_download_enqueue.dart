@@ -15,10 +15,12 @@ extension _SmartDownloadEnqueue on SmartDownloadManager {
     for (final profile in enabledProfiles) {
       for (final key in desiredByProfile[profile.id] ?? const <String>{}) {
         profileIdsByKey.putIfAbsent(key, () => <String>{}).add(profile.id);
+        final downloadType = profile.policy.downloadType;
+
         downloadTypeByKey.update(
           key,
-          (existing) => _mergeDownloadTypes(existing, profile.policy.downloadType),
-          ifAbsent: () => profile.policy.downloadType,
+          (existing) => _mergeDownloadTypes(existing, downloadType),
+          ifAbsent: () => downloadType,
         );
       }
     }
@@ -52,7 +54,7 @@ extension _SmartDownloadEnqueue on SmartDownloadManager {
     final managedBytes = <String, int>{for (final id in cappedProfiles.keys) id: 0};
     final unknownReservations = <String>{};
     for (final entry in snapshot.stored.entries) {
-      if (entry.value.downloadOrigin != 'smart' || !snapshot.completeKeys.contains(entry.key)) {
+      if (entry.value.downloadOrigin != 'smart' || !snapshot.downloadsByReference.containsKey(entry.key)) {
         continue;
       }
       for (final id in storedProfileIds[entry.key] ?? const <String>{}) {
@@ -63,31 +65,36 @@ extension _SmartDownloadEnqueue on SmartDownloadManager {
     }
 
     for (final entry in snapshot.reservations.entries.toList(growable: false)) {
-      if (snapshot.completeKeys.contains(entry.key)) {
+      final downloadType = downloadTypeByKey[entry.key];
+      if (downloadType == null) {
         continue;
       }
+
       final owners = profileIdsByKey[entry.key] ?? const <String>{};
       final cappedOwners = owners.where(cappedProfiles.containsKey).toList(growable: false);
       if (cappedOwners.isEmpty) {
         continue;
       }
 
+      final storedBudget = _storedDownloadBudget(snapshot: snapshot, reference: entry.key, requestedType: downloadType);
       var bytes = entry.value;
       if (bytes <= 0) {
         final parts = entry.key.split('::');
-        bytes =
-            await _estimateDownloadBytes(
-              snapshot,
-              parts.first,
-              parts[1].isEmpty ? null : parts[1],
-              downloadTypeByKey[entry.key]!,
-            ) ??
-            0;
+        final estimatedBytes = await _estimateDownloadBytes(
+          snapshot,
+          parts.first,
+          parts[1].isEmpty ? null : parts[1],
+          storedBudget.downloadType,
+        );
         _throwIfReconcileStale(generation, userId);
+
+        bytes = estimatedBytes ?? 0;
         snapshot.reservations[entry.key] = bytes;
       }
+
+      final reservationBytes = bytes > storedBudget.bytes ? bytes - storedBudget.bytes : 0;
       for (final id in cappedOwners) {
-        managedBytes[id] = managedBytes[id]! + bytes;
+        managedBytes[id] = managedBytes[id]! + reservationBytes;
         if (bytes <= 0) {
           unknownReservations.add(id);
         }
@@ -97,9 +104,10 @@ extension _SmartDownloadEnqueue on SmartDownloadManager {
     for (final entry in profileIdsByKey.entries) {
       _throwIfReconcileStale(generation, userId);
       final key = entry.key;
-      if (snapshot.completeKeys.contains(key) ||
-          snapshot.activeReferences.contains(key) ||
-          _retryAfter.containsKey(key)) {
+      final downloadType = downloadTypeByKey[key]!;
+      final isComplete = _hasCompleteDownload(snapshot: snapshot, reference: key, downloadType: downloadType);
+
+      if (isComplete || snapshot.activeReferences.contains(key) || _retryAfter.containsKey(key)) {
         continue;
       }
 
@@ -112,15 +120,19 @@ extension _SmartDownloadEnqueue on SmartDownloadManager {
       final parts = key.split('::');
       final itemId = parts.first;
       final episodeId = parts[1].isEmpty ? null : parts[1];
-      final downloadType = downloadTypeByKey[key]!;
+      final storedBudget = _storedDownloadBudget(snapshot: snapshot, reference: key, requestedType: downloadType);
       var estimatedBytes = snapshot.candidateBytes[key] ?? 0;
+      var additionalBytes = estimatedBytes > storedBudget.bytes ? estimatedBytes - storedBudget.bytes : 0;
+
       if (cappedOwners.isNotEmpty) {
-        final resolvedBytes = await _estimateDownloadBytes(snapshot, itemId, episodeId, downloadType);
+        final resolvedBytes = await _estimateDownloadBytes(snapshot, itemId, episodeId, storedBudget.downloadType);
         _throwIfReconcileStale(generation, userId);
         if (resolvedBytes != null && resolvedBytes > estimatedBytes) {
           estimatedBytes = resolvedBytes;
         }
-        if (estimatedBytes <= 0 || cappedOwners.any((id) => managedBytes[id]! + estimatedBytes > cappedProfiles[id]!)) {
+        additionalBytes = estimatedBytes > storedBudget.bytes ? estimatedBytes - storedBudget.bytes : 0;
+        final exceedsBudget = cappedOwners.any((id) => managedBytes[id]! + additionalBytes > cappedProfiles[id]!);
+        if (estimatedBytes <= 0 || exceedsBudget) {
           continue;
         }
       }
@@ -135,7 +147,11 @@ extension _SmartDownloadEnqueue on SmartDownloadManager {
           estimatedBytes: estimatedBytes > 0 ? estimatedBytes : null,
           requiredUserId: userId,
           requestNotificationPermission: enabledProfiles.any((profile) {
-            return entry.value.contains(profile.id) && profile.policy.listeningTrigger == null;
+            if (!entry.value.contains(profile.id)) {
+              return false;
+            }
+
+            return profile.sources.any((source) => source.type != MediaSourceType.listeningThreshold);
           }),
         );
       } on NoDownloadableFilesException {
@@ -147,7 +163,7 @@ extension _SmartDownloadEnqueue on SmartDownloadManager {
       snapshot.activeReferences.add(key);
       snapshot.reservations[key] = estimatedBytes;
       for (final id in cappedOwners) {
-        managedBytes[id] = managedBytes[id]! + estimatedBytes;
+        managedBytes[id] = managedBytes[id]! + additionalBytes;
       }
     }
   }

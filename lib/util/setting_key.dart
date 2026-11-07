@@ -176,7 +176,6 @@ class SettingKeys {
   static const String desktopSkipControlsSeek = 'desktop_skip_controls_seek';
   static const String downloadAllAudioFiles = 'download_all_audio_files';
   static const String downloadTypePreference = 'download_type_preference';
-  static const String downloadContinueListeningAndSeries = 'download_continue_shelf';
   static const String downloadOnlyOnWifi = 'download_only_on_wifi';
   static const String downloadMaxParallel = 'download_max_parallel';
 }
@@ -360,7 +359,6 @@ final defaultSettings = {
   SettingKeys.desktopSkipControlsSeek: false,
   SettingKeys.downloadAllAudioFiles: false,
   SettingKeys.downloadTypePreference: 'askEveryTime',
-  SettingKeys.downloadContinueListeningAndSeries: false,
   SettingKeys.downloadOnlyOnWifi: true,
   SettingKeys.downloadMaxParallel: 3,
 };

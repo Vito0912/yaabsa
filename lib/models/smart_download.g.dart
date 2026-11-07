@@ -13,8 +13,6 @@ _SmartDownloadPolicy _$SmartDownloadPolicyFromJson(Map<String, dynamic> json) =>
   deleteAfterHours: (json['deleteAfterHours'] as num?)?.toInt() ?? 24,
   downloadType: json['downloadType'] as String? ?? 'audiobook',
   descending: json['descending'] as bool? ?? true,
-  listeningTrigger: $enumDecodeNullable(_$ListeningDownloadTriggerEnumMap, json['listeningTrigger']),
-  listeningThreshold: (json['listeningThreshold'] as num?)?.toInt() ?? 30,
 );
 
 Map<String, dynamic> _$SmartDownloadPolicyToJson(_SmartDownloadPolicy instance) => <String, dynamic>{
@@ -24,13 +22,6 @@ Map<String, dynamic> _$SmartDownloadPolicyToJson(_SmartDownloadPolicy instance) 
   'deleteAfterHours': instance.deleteAfterHours,
   'downloadType': instance.downloadType,
   'descending': instance.descending,
-  'listeningTrigger': _$ListeningDownloadTriggerEnumMap[instance.listeningTrigger],
-  'listeningThreshold': instance.listeningThreshold,
-};
-
-const _$ListeningDownloadTriggerEnumMap = {
-  ListeningDownloadTrigger.minutes: 'minutes',
-  ListeningDownloadTrigger.progress: 'progress',
 };
 
 _SmartDownloadProfile _$SmartDownloadProfileFromJson(Map<String, dynamic> json) => _SmartDownloadProfile(

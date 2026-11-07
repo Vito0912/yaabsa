@@ -32,8 +32,9 @@ extension _SmartDownloadCleanup on SmartDownloadManager {
         continue;
       }
       final progress = snapshot.progressByKey[mediaProgressKey(entry.itemId, entry.episodeId)];
-      final finishedAt = progress?.isFinished == true ? (progress?.finishedAt ?? progress?.lastUpdate) : null;
-      if (progress?.isFinished == true && (finishedAt == null || finishedAt <= 0)) {
+      final isFinished = progress?.isFinished == true || (progress?.ebookProgress ?? 0) >= 1;
+      final finishedAt = isFinished ? (progress?.finishedAt ?? progress?.lastUpdate) : null;
+      if (isFinished && (finishedAt == null || finishedAt <= 0)) {
         continue;
       }
       final retentionStart = finishedAt != null && finishedAt > completedAt ? finishedAt : completedAt;
@@ -44,13 +45,19 @@ extension _SmartDownloadCleanup on SmartDownloadManager {
         continue;
       }
       _throwIfReconcileStale(generation, userId);
-      final download = await db.getStoredDownload(entry.itemId, userId, episodeId: entry.episodeId);
+      final download = await db.getStoredDownload(
+        entry.itemId,
+        userId,
+        episodeId: entry.episodeId,
+        allowIncomplete: true,
+      );
       _throwIfReconcileStale(generation, userId);
       if (download != null) {
         await downloadHandler.deleteDownloadedItem(download, userId: userId);
         _throwIfReconcileStale(generation, userId);
         snapshot.stored.remove(key);
         snapshot.completeKeys.remove(key);
+        snapshot.downloadsByReference.remove(key);
       }
     }
   }

@@ -5,20 +5,16 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/database/settings_manager.dart';
-import 'package:yaabsa/api/library/personalized_library.dart';
-import 'package:yaabsa/api/library_items/episode.dart';
-import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/library_items/playback_session.dart';
 import 'package:yaabsa/models/queue_source.dart';
 import 'package:yaabsa/models/smart_download.dart';
 import 'package:yaabsa/models/internal_download.dart';
 import 'package:yaabsa/api/me/media_progress.dart';
+import 'package:yaabsa/api/me/media_item_type.dart';
+import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
-import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
-import 'package:yaabsa/provider/common/library_provider.dart';
-import 'package:yaabsa/provider/library/personalized_library_provider.dart';
 import 'package:yaabsa/provider/player/queue_source_provider.dart';
 import 'package:yaabsa/util/globals.dart' show audioHandler, downloadHandler, isAudioHandlerInitialized;
 import 'package:yaabsa/util/handler/download_handler.dart' show NoDownloadableFilesException;
@@ -31,11 +27,8 @@ part 'smart_download_retry.dart';
 part 'smart_download_snapshot.dart';
 part 'smart_download_profile_cleanup.dart';
 part 'smart_download_cleanup.dart';
-part 'smart_download_continue.dart';
 part 'smart_download_enqueue.dart';
 part 'smart_download_reconcile.dart';
-
-const _continueShelfProfileId = '__continue_shelf__';
 
 class SmartDownloadState {
   const SmartDownloadState({
@@ -74,6 +67,7 @@ class _StaleSmartDownloadReconcile implements Exception {
 class SmartDownloadManager extends _$SmartDownloadManager {
   Future<void>? _activeReconcile;
   Timer? _refreshDebounce;
+  Stopwatch? _foregroundReconcileCooldown;
   Timer? _retryTimer;
   final Map<String, DateTime> _retryAfter = <String, DateTime>{};
   final Map<String, CandidatePage> _sourcePages = <String, CandidatePage>{};
@@ -85,7 +79,6 @@ class SmartDownloadManager extends _$SmartDownloadManager {
   String? _pendingReconcileReason;
   String? _downloadSettingsSignature;
   final Set<String> _thresholdReady = <String>{};
-  final Set<String> _recentlyCompletedContinueReferences = <String>{};
 
   @override
   SmartDownloadState build() {
@@ -97,7 +90,7 @@ class SmartDownloadManager extends _$SmartDownloadManager {
       }
       _generation++;
       _refreshDebounce?.cancel();
-      _recentlyCompletedContinueReferences.clear();
+      _foregroundReconcileCooldown = null;
       _thresholdReady.clear();
       _retryTimer?.cancel();
       _retryAfter.clear();
@@ -127,8 +120,6 @@ class SmartDownloadManager extends _$SmartDownloadManager {
       final settings = ref.read(settingsManagerProvider.notifier);
       final signature = jsonEncode([
         userId,
-        settings.getUserSetting<bool>(userId, SettingKeys.downloadContinueListeningAndSeries, defaultValue: false),
-        settings.getUserSetting<String>(userId, SettingKeys.downloadTypePreference, defaultValue: 'askEveryTime'),
         settings.getUserSetting<bool>(userId, SettingKeys.downloadOnlyOnWifi, defaultValue: true),
       ]);
       if (_downloadSettingsSignature == signature) {
@@ -137,12 +128,6 @@ class SmartDownloadManager extends _$SmartDownloadManager {
 
       _downloadSettingsSignature = signature;
       requestReconcile(reason: 'download setting changed', refreshSources: false);
-    });
-    ref.listen(selectedLibraryProvider, (previous, next) {
-      if (previous?.id == next?.id) {
-        return;
-      }
-      requestReconcile(reason: 'selected library changed');
     });
     ref.onDispose(() {
       _generation++;
@@ -175,15 +160,8 @@ class SmartDownloadManager extends _$SmartDownloadManager {
     final profiles = <SmartDownloadProfile>[];
     for (final row in dbProfiles) {
       SmartDownloadPolicy policy;
-      var removedChapterTrigger = false;
       try {
         final decoded = Map<String, dynamic>.from(jsonDecode(row.policy) as Map);
-        removedChapterTrigger = decoded['listeningTrigger'] == 'chapters';
-        if (removedChapterTrigger) {
-          decoded['listeningTrigger'] = ListeningDownloadTrigger.minutes.name;
-          decoded['listeningThreshold'] = 30;
-        }
-
         policy = SmartDownloadPolicy.fromJson(decoded);
       } catch (e) {
         logger('Ignoring invalid smart-download policy ${row.id}: $e', tag: 'SmartDownloadManager');
@@ -197,7 +175,7 @@ class SmartDownloadManager extends _$SmartDownloadManager {
           id: row.id,
           userId: row.userId,
           name: row.name,
-          enabled: row.enabled && !removedChapterTrigger,
+          enabled: row.enabled,
           policy: policy,
           sources: sources,
         ),
@@ -212,14 +190,16 @@ class SmartDownloadManager extends _$SmartDownloadManager {
   }
 
   Future<void> saveProfile(SmartDownloadProfile profile) async {
+    if (profile.enabled) {
+      await downloadHandler.prepareAutomaticDownloads();
+    }
+
     _generation++;
     _thresholdReady.removeWhere((key) => key.startsWith('${profile.id}::'));
     final db = ref.read(appDatabaseProvider);
-    if (profile.policy.listeningTrigger == null) {
-      await _deleteManagedDownloadsForRemovedSources(profile);
-    }
+    await _deleteManagedDownloadsForRemovedSources(profile);
     await db.upsertSmartDownloadProfile(profile);
-    if (profile.policy.listeningTrigger != null && !profile.enabled && isAudioHandlerInitialized) {
+    if (!profile.enabled && isAudioHandlerInitialized) {
       await downloadHandler.cancelSmartTasksForProfile(profile.id, userId: profile.userId);
     }
     await db.replaceSmartDownloadSources(profile.id, profile.sources);
@@ -284,106 +264,6 @@ class SmartDownloadManager extends _$SmartDownloadManager {
     return deleted;
   }
 
-  Future<int> deleteContinueShelfDownloads({required String userId}) async {
-    if (!isAudioHandlerInitialized) {
-      return 0;
-    }
-
-    final db = ref.read(appDatabaseProvider);
-    await downloadHandler.cancelSmartTasksForProfile(_continueShelfProfileId, userId: userId);
-    final entries = await db.getStoredDownloadEntriesByUser(userId);
-    final downloads = await db.getAllStoredDownloadsByUser(userId);
-    var deleted = 0;
-
-    for (final entry in entries.where((entry) => entry.downloadOrigin == 'smart')) {
-      final profileIds = _decodeProfileIds(entry.smartProfileIds);
-      if (!profileIds.contains(_continueShelfProfileId)) {
-        continue;
-      }
-
-      final remainingProfileIds = profileIds.where((id) => id != _continueShelfProfileId).toList(growable: false);
-      if (remainingProfileIds.isNotEmpty) {
-        await db.updateStoredDownloadSmartProfileIds(
-          entry.itemId,
-          userId,
-          episodeId: entry.episodeId,
-          smartProfileIds: remainingProfileIds,
-        );
-        continue;
-      }
-
-      if (_isProtected(entry.itemId, entry.episodeId) ||
-          await downloadHandler.hasActiveTask(entry.itemId, episodeId: entry.episodeId)) {
-        continue;
-      }
-      final download = downloads.where((candidate) {
-        final itemId = candidate.item?.id ?? candidate.episode?.libraryItemId;
-        return itemId == entry.itemId && candidate.episode?.id == entry.episodeId;
-      }).firstOrNull;
-      if (download == null) {
-        continue;
-      }
-
-      await downloadHandler.deleteDownloadedItem(download, userId: userId);
-      deleted++;
-    }
-
-    if (deleted > 0) {
-      requestReconcile(reason: 'Continue shelf downloads removed');
-    }
-    return deleted;
-  }
-
-  Future<bool> deleteFinishedContinueDownload({required String itemId, String? episodeId}) async {
-    if (!isAudioHandlerInitialized) {
-      return false;
-    }
-
-    final userId = ref.read(currentUserProvider).value?.id;
-    if (userId == null || userId.isEmpty) {
-      return false;
-    }
-
-    final db = ref.read(appDatabaseProvider);
-    final entry = (await db.getStoredDownloadEntriesByUser(userId))
-        .where(
-          (candidate) =>
-              candidate.itemId == itemId && candidate.episodeId == episodeId && candidate.downloadOrigin == 'smart',
-        )
-        .firstOrNull;
-    if (entry == null) {
-      return false;
-    }
-
-    final profileIds = _decodeProfileIds(entry.smartProfileIds);
-    if (profileIds.length != 1 || profileIds.first != _continueShelfProfileId) {
-      return false;
-    }
-
-    if (await downloadHandler.hasActiveTask(itemId, episodeId: episodeId)) {
-      return false;
-    }
-
-    final download = await db.getStoredDownload(itemId, userId, episodeId: episodeId);
-    if (download == null) {
-      return false;
-    }
-
-    try {
-      await downloadHandler.deleteDownloadedItem(download, userId: userId);
-    } catch (e, s) {
-      logger(
-        'Failed to remove completed Continue download for $itemId: $e\n$s',
-        tag: 'SmartDownloadManager',
-        level: InfoLevel.warning,
-      );
-      return false;
-    }
-    _recentlyCompletedContinueReferences.add(_key(PlayableRef(itemId: itemId, episodeId: episodeId)));
-    requestReconcile(reason: 'continue download completed', refreshSources: false);
-    return true;
-  }
-
   MediaProgress? _decodeProgressOrNull(String raw) {
     try {
       final decoded = jsonDecode(raw);
@@ -405,6 +285,15 @@ class SmartDownloadManager extends _$SmartDownloadManager {
     Duration delay = const Duration(milliseconds: 350),
     bool refreshSources = true,
   }) {
+    if (reason == 'app foreground' && _appReady) {
+      final cooldown = _foregroundReconcileCooldown;
+      if (cooldown != null && cooldown.elapsed < const Duration(minutes: 1)) {
+        return;
+      }
+
+      _foregroundReconcileCooldown = Stopwatch()..start();
+    }
+
     if (refreshSources) {
       _clearSourcePages();
     }

@@ -307,7 +307,7 @@ final List<SettingsSearchItem> searchableSettings = [
   ),
   const SettingsSearchItem(
     title: 'Download only on Wi-Fi',
-    description: 'Wait for Wi-Fi before starting manual and smart downloads',
+    description: 'Including Smart Downloads',
     categoryPath: 'Settings > Downloads',
     route: '/settings/downloads',
   ),

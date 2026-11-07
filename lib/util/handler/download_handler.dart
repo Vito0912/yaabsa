@@ -18,6 +18,8 @@ import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/models/download_sidecar.dart';
 import 'package:yaabsa/models/download_task_metadata.dart';
 import 'package:yaabsa/models/internal_download.dart';
+import 'package:yaabsa/models/smart_download.dart';
+import 'package:yaabsa/models/queue_source.dart';
 import 'package:yaabsa/models/download_file_entry.dart';
 import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/provider/common/library_item_provider.dart';
@@ -1222,8 +1224,17 @@ class DownloadHandler {
         _ref
             .read(smartDownloadManagerProvider.notifier)
             .requestReconcile(reason: 'download completed', refreshSources: false);
-        if (isAudioHandlerInitialized &&
-            parsedMetaData.smartProfileIds.any((id) => id.startsWith('listening_threshold_'))) {
+        final smartProfiles = _ref.read(smartDownloadManagerProvider).profiles;
+        final profileIds = parsedMetaData.smartProfileIds.toSet();
+        final isListeningDownload = smartProfiles.any((profile) {
+          if (!profile.enabled || !profileIds.contains(profile.id)) {
+            return false;
+          }
+
+          return profile.sources.any((source) => source.type == MediaSourceType.listeningThreshold);
+        });
+
+        if (isAudioHandlerInitialized && isListeningDownload) {
           unawaited(audioHandler.useDownloadedAudio(parsedMetaData.itemId, parsedMetaData.userId));
         }
       }
@@ -1812,7 +1823,15 @@ class DownloadHandler {
     try {
       final decoded = jsonDecode(rawMetaData);
       if (decoded is Map) {
-        return DownloadTaskMetadata.fromJson(Map<String, dynamic>.from(decoded));
+        final metadata = DownloadTaskMetadata.fromJson(Map<String, dynamic>.from(decoded));
+        final profileIds = metadata.smartProfileIds
+            .map((id) {
+              return normalizeSmartDownloadProfileId(id, metadata.userId);
+            })
+            .toSet()
+            .toList(growable: false);
+
+        return metadata.copyWith(smartProfileIds: profileIds);
       }
 
       if (decoded is! List<dynamic> || decoded.length < 4) {

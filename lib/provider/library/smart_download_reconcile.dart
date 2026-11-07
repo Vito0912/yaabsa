@@ -39,19 +39,30 @@ extension _SmartDownloadReconciliation on SmartDownloadManager {
         };
         final desired = <String>{};
         desiredByProfile[profile.id] = desired;
-        if (profile.policy.listeningTrigger != null) {
-          desired.addAll(await _listeningThresholdReferences(profile, generation, userId, snapshot, claims));
-          desiredByReference.addAll(desired);
-          continue;
-        }
         for (final source in profile.sources) {
           final targetCount = profile.policy.targetCount.clamp(1, 150).toInt();
           var page = 0;
           var selectedForSource = 0;
+          final selectedReferences = <String>{};
           int? sourceRevision;
           final compactSnapshot = <QueueCandidate>[];
+          final listeningCandidates = source.type == MediaSourceType.listeningThreshold
+              ? await _listeningThresholdCandidates(source: source, snapshot: snapshot, claims: claims)
+              : null;
+
           while (selectedForSource < targetCount && page < (source.type == MediaSourceType.latestEpisodes ? 100 : 20)) {
-            final result = await _downloadSourcePage(sourceRepository, source, page);
+            CandidatePage result;
+            if (listeningCandidates != null) {
+              final offset = page * queueSourcePageSize;
+              result = CandidatePage(
+                candidates: listeningCandidates.skip(offset).take(queueSourcePageSize).toList(growable: false),
+                total: listeningCandidates.length,
+                page: page,
+                pageSize: queueSourcePageSize,
+              );
+            } else {
+              result = await _downloadSourcePage(sourceRepository, source, page);
+            }
             _throwIfReconcileStale(generation, userId);
             sourceRevision ??= result.revision;
             if (compactSnapshot.length < queueSourcePageSize) {
@@ -63,7 +74,12 @@ extension _SmartDownloadReconciliation on SmartDownloadManager {
             }
             for (final candidate in candidates) {
               final progressKey = mediaProgressKey(candidate.ref.itemId, candidate.ref.episodeId);
-              final isFinished = snapshot.progressByKey[progressKey]?.isFinished ?? false;
+              final progress = snapshot.progressByKey[progressKey];
+              var isFinished = progress?.isFinished ?? false;
+              if ((source.type == MediaSourceType.continueReading || profile.policy.downloadType == 'ebook') &&
+                  progress?.ebookProgress != null) {
+                isFinished = progress!.ebookProgress! >= 1;
+              }
               if (selectedForSource >= targetCount || isFinished) {
                 continue;
               }
@@ -72,10 +88,14 @@ extension _SmartDownloadReconciliation on SmartDownloadManager {
               }
 
               final key = _key(candidate.ref);
+              if (!selectedReferences.add(key)) {
+                continue;
+              }
+
+              selectedForSource++;
               if (!desired.add(key)) {
                 continue;
               }
-              selectedForSource++;
               desiredByReference.add(key);
               snapshot.candidateBytes[key] = candidate.estimatedBytes;
               final existingClaim = claims[key];
@@ -112,18 +132,29 @@ extension _SmartDownloadReconciliation on SmartDownloadManager {
           _throwIfReconcileStale(generation, userId);
         }
 
-        for (final claim in claimRows) {
-          final key = '${claim.itemId}::${claim.episodeId ?? ''}';
-          if (!desired.contains(key)) {
-            await db.deleteSmartDownloadClaim(profile.id, claim.itemId, episodeId: claim.episodeId);
-            _throwIfReconcileStale(generation, userId);
-          }
+        final obsoleteClaims = claimRows
+            .where((claim) {
+              final reference = '${claim.itemId}::${claim.episodeId ?? ''}';
+              return !desired.contains(reference);
+            })
+            .toList(growable: false);
+
+        if (obsoleteClaims.isNotEmpty) {
+          final references = obsoleteClaims.map((claim) => '${claim.itemId}::${claim.episodeId ?? ''}').toSet();
+          await downloadHandler.cancelSmartTasksForReferences(
+            userId: userId,
+            references: references,
+            profileId: profile.id,
+          );
+          _throwIfReconcileStale(generation, userId);
+        }
+
+        for (final claim in obsoleteClaims) {
+          await db.deleteSmartDownloadClaim(profile.id, claim.itemId, episodeId: claim.episodeId);
+          _throwIfReconcileStale(generation, userId);
         }
       }
 
-      final continueReferences = await _continueShelfReferences(snapshot);
-      _throwIfReconcileStale(generation, userId);
-      desiredByReference.addAll(continueReferences.map(_key));
       if (desiredByReference.isNotEmpty || snapshot.stored.values.any((entry) => entry.downloadOrigin == 'smart')) {
         final tasks = await downloadHandler.automaticDownloadTasks(userId);
         _throwIfReconcileStale(generation, userId);
@@ -143,13 +174,6 @@ extension _SmartDownloadReconciliation on SmartDownloadManager {
         profiles: profiles,
         desiredByProfile: desiredByProfile,
         userId: userId,
-        generation: generation,
-        snapshot: snapshot,
-      );
-      _throwIfReconcileStale(generation, userId);
-      await _enqueueContinueReferences(
-        userId: userId,
-        references: continueReferences,
         generation: generation,
         snapshot: snapshot,
       );

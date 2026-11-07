@@ -5,7 +5,6 @@ import 'package:yaabsa/api/library/library.dart';
 import 'package:yaabsa/api/library/library_settings.dart';
 import 'package:yaabsa/api/library/personalized_library.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
-import 'package:yaabsa/util/setting_key.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:yaabsa/api/me/media_item_type.dart';
 import 'package:yaabsa/api/me/media_progress.dart';
@@ -48,13 +47,21 @@ void main() {
       id: id,
       userId: testUserId,
       name: id,
-      policy: SmartDownloadPolicy(
-        listeningTrigger: ListeningDownloadTrigger.minutes,
-        listeningThreshold: 1,
-        maxStorageBytes: budget,
-        deleteAfterHours: retention,
-      ),
+      policy: SmartDownloadPolicy(maxStorageBytes: budget, deleteAfterHours: retention),
+      sources: const [
+        MediaSourceDescriptor(
+          type: MediaSourceType.listeningThreshold,
+          sourceId: allLibrariesSourceId,
+          libraryId: allLibrariesSourceId,
+          listeningThreshold: 1,
+        ),
+      ],
     );
+  }
+
+  Future<void> saveRule(SmartDownloadProfile profile) async {
+    await db.upsertSmartDownloadProfile(profile);
+    await db.replaceSmartDownloadSources(profile.id, profile.sources);
   }
 
   Future<void> heard(String itemId) {
@@ -96,7 +103,7 @@ void main() {
   }
 
   test('expired downloads free the budget for a waiting book in the same pass', () async {
-    await db.upsertSmartDownloadProfile(listeningRule('rule'));
+    await saveRule(listeningRule('rule'));
     await db.addComplete('expired', ['rule']);
     await heard('waiting');
 
@@ -109,7 +116,7 @@ void main() {
   });
 
   test('retained downloads still consume budget and are not deleted early', () async {
-    await db.upsertSmartDownloadProfile(listeningRule('rule', retention: 24));
+    await saveRule(listeningRule('rule', retention: 24));
     await db.addComplete('retained', ['rule'], completedAt: DateTime.now().millisecondsSinceEpoch);
     await heard('waiting');
 
@@ -120,7 +127,7 @@ void main() {
   });
 
   test('playing or queued downloads remain protected during cleanup', () async {
-    await db.upsertSmartDownloadProfile(listeningRule('rule'));
+    await saveRule(listeningRule('rule'));
     await db.addComplete('protected', ['rule']);
     audio.protectedItems.add('protected');
     await heard('waiting');
@@ -132,8 +139,8 @@ void main() {
   });
 
   test('all listening rules and cleanup share one stored and cached progress snapshot', () async {
-    await db.upsertSmartDownloadProfile(listeningRule('first'));
-    await db.upsertSmartDownloadProfile(listeningRule('second'));
+    await saveRule(listeningRule('first'));
+    await saveRule(listeningRule('second'));
     await db.addComplete('expired', ['first']);
     await heard('waiting');
 
@@ -148,8 +155,8 @@ void main() {
   });
 
   test('a shared download must fit every owning rule budget', () async {
-    await db.upsertSmartDownloadProfile(listeningRule('large', budget: 100));
-    await db.upsertSmartDownloadProfile(listeningRule('small', budget: 40));
+    await saveRule(listeningRule('large', budget: 100));
+    await saveRule(listeningRule('small', budget: 40));
     await heard('shared');
 
     await reconcile(await manager());
@@ -159,8 +166,8 @@ void main() {
   });
 
   test('shared reservations count towards every owning rule', () async {
-    await db.upsertSmartDownloadProfile(listeningRule('first', budget: 75));
-    await db.upsertSmartDownloadProfile(listeningRule('second', budget: 75));
+    await saveRule(listeningRule('first', budget: 75));
+    await saveRule(listeningRule('second', budget: 75));
     await heard('reserved');
     await heard('waiting');
     handler.active.add('reserved::');
@@ -173,7 +180,7 @@ void main() {
   });
 
   test('unknown reservation sizes prevent oversubscribing a capped rule', () async {
-    await db.upsertSmartDownloadProfile(listeningRule('rule'));
+    await saveRule(listeningRule('rule'));
     await heard('reserved');
     await heard('waiting');
     handler.active.add('reserved::');
@@ -188,7 +195,7 @@ void main() {
   });
 
   test('a newer cached finished state overrides stale persisted progress', () async {
-    await db.upsertSmartDownloadProfile(listeningRule('rule'));
+    await saveRule(listeningRule('rule'));
     await heard('finished');
     final stale = bookProgress('finished');
     await db
@@ -211,7 +218,7 @@ void main() {
   });
 
   test('manual active downloads are skipped without per-item task scans', () async {
-    await db.upsertSmartDownloadProfile(listeningRule('rule'));
+    await saveRule(listeningRule('rule'));
     await heard('manual');
     handler.active.add('manual::');
 
@@ -225,7 +232,7 @@ void main() {
 
   test('disabled rules with no managed downloads do no progress or task work', () async {
     final rule = listeningRule('disabled').copyWith(enabled: false);
-    await db.upsertSmartDownloadProfile(rule);
+    await saveRule(rule);
 
     await reconcile(await manager());
 
@@ -248,7 +255,7 @@ void main() {
     );
     for (final id in ['first', 'second']) {
       final profile = SmartDownloadProfile(id: id, userId: testUserId, name: id, sources: [source]);
-      await db.upsertSmartDownloadProfile(profile);
+      await saveRule(profile);
       await db.replaceSmartDownloadSources(id, [source]);
     }
     container = await downloadTestContainer(db, progress, api: server.api);
@@ -281,9 +288,7 @@ void main() {
       sourceId: 'collection',
       libraryId: 'library',
     );
-    await db.upsertSmartDownloadProfile(
-      SmartDownloadProfile(id: 'rule', userId: testUserId, name: 'rule', sources: [source]),
-    );
+    await saveRule(SmartDownloadProfile(id: 'rule', userId: testUserId, name: 'rule', sources: [source]));
     await db.replaceSmartDownloadSources('rule', [source]);
     container = await downloadTestContainer(db, progress, api: server.api);
     final notifier = container!.read(smartDownloadManagerProvider.notifier);
@@ -296,10 +301,16 @@ void main() {
     expect(await db.getSmartDownloadClaims('rule'), isEmpty);
   });
   test('Continue Listening and threshold downloads share progress, tasks and duplicate checks', () async {
-    await db.upsertSmartDownloadProfile(listeningRule('rule'));
+    await saveRule(listeningRule('rule'));
     await heard('waiting');
     final settings = DownloadTestSettings();
-    settings.values[SettingKeys.downloadContinueListeningAndSeries] = true;
+    const source = MediaSourceDescriptor(
+      type: MediaSourceType.continueListening,
+      sourceId: 'library',
+      libraryId: 'library',
+    );
+    await saveRule(SmartDownloadProfile(id: 'continue', userId: testUserId, name: 'Continue'));
+    await db.replaceSmartDownloadSources('continue', [source]);
     const library = Library(
       id: 'library',
       name: 'Books',
@@ -338,7 +349,7 @@ void main() {
   });
 
   test('newer persisted progress wins over a stale cached finished state', () async {
-    await db.upsertSmartDownloadProfile(listeningRule('rule'));
+    await saveRule(listeningRule('rule'));
     await heard('book');
     final current = bookProgress('book', updated: 20);
     await db
@@ -359,7 +370,7 @@ void main() {
     expect(handler.events, ['queue:book']);
   });
   test('a failed automatic download cools down while other books can proceed', () async {
-    await db.upsertSmartDownloadProfile(listeningRule('rule', budget: 200));
+    await saveRule(listeningRule('rule', budget: 200));
     await heard('failed');
     await heard('waiting');
     final notifier = await manager();
@@ -373,7 +384,7 @@ void main() {
   });
 
   test('failures from another account cannot delay the active account downloads', () async {
-    await db.upsertSmartDownloadProfile(listeningRule('rule'));
+    await saveRule(listeningRule('rule'));
     await heard('book');
     final notifier = await manager();
     notifier.recordAutomaticDownloadFailure(userId: 'other-user', itemId: 'book');
@@ -381,6 +392,44 @@ void main() {
     await reconcile(notifier);
 
     expect(handler.events, ['queue:book']);
+  });
+
+  test('progress rules prioritize recent listening when only one book fits', () async {
+    final rule = listeningRule('rule', budget: 50);
+    await saveRule(
+      rule.copyWith(
+        sources: [
+          rule.sources.single.copyWith(listeningTrigger: ListeningDownloadTrigger.progress, listeningThreshold: 10),
+        ],
+      ),
+    );
+    await heard('older');
+    await heard('recent');
+    progress.cached['older'] = bookProgress('older', updated: 10);
+    progress.cached['recent'] = bookProgress('recent', updated: 20);
+
+    await reconcile(await manager());
+
+    expect(handler.events, ['queue:recent']);
+    expect(db.progressReads, 1);
+  });
+
+  test('progress rules prioritize known recent listening over missing timestamps', () async {
+    final rule = listeningRule('rule', budget: 50);
+    await saveRule(
+      rule.copyWith(
+        sources: [
+          rule.sources.single.copyWith(listeningTrigger: ListeningDownloadTrigger.progress, listeningThreshold: 10),
+        ],
+      ),
+    );
+    await heard('unknown');
+    await heard('recent');
+    progress.cached['recent'] = bookProgress('recent', updated: 20);
+
+    await reconcile(await manager());
+
+    expect(handler.events, ['queue:recent']);
   });
 
   test('reset progress does not inherit finished flags from cached source pages', () async {
@@ -392,9 +441,7 @@ void main() {
       sourceId: 'collection',
       libraryId: 'library',
     );
-    await db.upsertSmartDownloadProfile(
-      SmartDownloadProfile(id: 'rule', userId: testUserId, name: 'rule', sources: [source]),
-    );
+    await saveRule(SmartDownloadProfile(id: 'rule', userId: testUserId, name: 'rule', sources: [source]));
     await db.replaceSmartDownloadSources('rule', [source]);
     progress.cached['book'] = bookProgress('book', finished: true);
     container = await downloadTestContainer(db, progress, api: server.api);
@@ -407,5 +454,18 @@ void main() {
 
     expect(server.requests, hasLength(1));
     expect(handler.events, ['queue:book']);
+  });
+  test('finishing a book cancels an obsolete listening-source download', () async {
+    await saveRule(listeningRule('rule'));
+    await heard('book');
+    final notifier = await manager();
+    await reconcile(notifier);
+    expect(handler.active, contains('book::'));
+
+    progress.cached['book'] = bookProgress('book', finished: true);
+    await reconcile(notifier);
+
+    expect(handler.active, isEmpty);
+    expect(await db.getSmartDownloadClaims('rule'), isEmpty);
   });
 }

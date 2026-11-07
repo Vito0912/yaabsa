@@ -151,6 +151,10 @@ extension _SmartDownloadProfileCleanup on SmartDownloadManager {
       displayName: row.displayName,
       descending: row.descending,
       revision: row.sourceRevision,
+      listeningTrigger:
+          ListeningDownloadTrigger.values.where((trigger) => trigger.name == row.listeningTrigger).firstOrNull ??
+          ListeningDownloadTrigger.minutes,
+      listeningThreshold: row.listeningThreshold,
     );
   }
 }

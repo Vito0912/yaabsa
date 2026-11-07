@@ -1,10 +1,22 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:yaabsa/models/queue_source.dart';
 
+export 'package:yaabsa/models/queue_source.dart' show ListeningDownloadTrigger;
+
 part 'smart_download.freezed.dart';
 part 'smart_download.g.dart';
 
-enum ListeningDownloadTrigger { minutes, progress }
+const legacyContinueDownloadProfileId = '__continue_shelf__';
+
+String migratedContinueDownloadProfileId(String userId) => 'continue_shelves_$userId';
+
+String normalizeSmartDownloadProfileId(String profileId, String userId) {
+  if (profileId == legacyContinueDownloadProfileId) {
+    return migratedContinueDownloadProfileId(userId);
+  }
+
+  return profileId;
+}
 
 @freezed
 abstract class SmartDownloadPolicy with _$SmartDownloadPolicy {
@@ -15,8 +27,6 @@ abstract class SmartDownloadPolicy with _$SmartDownloadPolicy {
     @Default(24) int deleteAfterHours,
     @Default('audiobook') String downloadType,
     @Default(true) bool descending,
-    ListeningDownloadTrigger? listeningTrigger,
-    @Default(30) int listeningThreshold,
   }) = _SmartDownloadPolicy;
 
   factory SmartDownloadPolicy.fromJson(Map<String, dynamic> json) => _$SmartDownloadPolicyFromJson(json);

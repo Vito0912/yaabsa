@@ -282,7 +282,7 @@ as String?,
 /// @nodoc
 mixin _$MediaSourceDescriptor {
 
- MediaSourceType get type; String get sourceId; String get libraryId; String? get displayName; bool get descending; int? get revision;
+ MediaSourceType get type; String get sourceId; String get libraryId; String? get displayName; bool get descending; int? get revision; ListeningDownloadTrigger get listeningTrigger; int get listeningThreshold;
 /// Create a copy of MediaSourceDescriptor
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -295,16 +295,16 @@ $MediaSourceDescriptorCopyWith<MediaSourceDescriptor> get copyWith => _$MediaSou
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MediaSourceDescriptor&&(identical(other.type, type) || other.type == type)&&(identical(other.sourceId, sourceId) || other.sourceId == sourceId)&&(identical(other.libraryId, libraryId) || other.libraryId == libraryId)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.descending, descending) || other.descending == descending)&&(identical(other.revision, revision) || other.revision == revision));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MediaSourceDescriptor&&(identical(other.type, type) || other.type == type)&&(identical(other.sourceId, sourceId) || other.sourceId == sourceId)&&(identical(other.libraryId, libraryId) || other.libraryId == libraryId)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.descending, descending) || other.descending == descending)&&(identical(other.revision, revision) || other.revision == revision)&&(identical(other.listeningTrigger, listeningTrigger) || other.listeningTrigger == listeningTrigger)&&(identical(other.listeningThreshold, listeningThreshold) || other.listeningThreshold == listeningThreshold));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,type,sourceId,libraryId,displayName,descending,revision);
+int get hashCode => Object.hash(runtimeType,type,sourceId,libraryId,displayName,descending,revision,listeningTrigger,listeningThreshold);
 
 @override
 String toString() {
-  return 'MediaSourceDescriptor(type: $type, sourceId: $sourceId, libraryId: $libraryId, displayName: $displayName, descending: $descending, revision: $revision)';
+  return 'MediaSourceDescriptor(type: $type, sourceId: $sourceId, libraryId: $libraryId, displayName: $displayName, descending: $descending, revision: $revision, listeningTrigger: $listeningTrigger, listeningThreshold: $listeningThreshold)';
 }
 
 
@@ -315,7 +315,7 @@ abstract mixin class $MediaSourceDescriptorCopyWith<$Res>  {
   factory $MediaSourceDescriptorCopyWith(MediaSourceDescriptor value, $Res Function(MediaSourceDescriptor) _then) = _$MediaSourceDescriptorCopyWithImpl;
 @useResult
 $Res call({
- MediaSourceType type, String sourceId, String libraryId, String? displayName, bool descending, int? revision
+ MediaSourceType type, String sourceId, String libraryId, String? displayName, bool descending, int? revision, ListeningDownloadTrigger listeningTrigger, int listeningThreshold
 });
 
 
@@ -332,7 +332,7 @@ class _$MediaSourceDescriptorCopyWithImpl<$Res>
 
 /// Create a copy of MediaSourceDescriptor
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? sourceId = null,Object? libraryId = null,Object? displayName = freezed,Object? descending = null,Object? revision = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? sourceId = null,Object? libraryId = null,Object? displayName = freezed,Object? descending = null,Object? revision = freezed,Object? listeningTrigger = null,Object? listeningThreshold = null,}) {
   return _then(MediaSourceDescriptor(
 type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as MediaSourceType,sourceId: null == sourceId ? _self.sourceId : sourceId // ignore: cast_nullable_to_non_nullable
@@ -340,7 +340,9 @@ as String,libraryId: null == libraryId ? _self.libraryId : libraryId // ignore: 
 as String,displayName: freezed == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
 as String?,descending: null == descending ? _self.descending : descending // ignore: cast_nullable_to_non_nullable
 as bool,revision: freezed == revision ? _self.revision : revision // ignore: cast_nullable_to_non_nullable
-as int?,
+as int?,listeningTrigger: null == listeningTrigger ? _self.listeningTrigger : listeningTrigger // ignore: cast_nullable_to_non_nullable
+as ListeningDownloadTrigger,listeningThreshold: null == listeningThreshold ? _self.listeningThreshold : listeningThreshold // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 
@@ -425,10 +427,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( MediaSourceType type,  String sourceId,  String libraryId,  String? displayName,  bool descending,  int? revision)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( MediaSourceType type,  String sourceId,  String libraryId,  String? displayName,  bool descending,  int? revision,  ListeningDownloadTrigger listeningTrigger,  int listeningThreshold)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _MediaSourceDescriptor() when $default != null:
-return $default(_that.type,_that.sourceId,_that.libraryId,_that.displayName,_that.descending,_that.revision);case _:
+return $default(_that.type,_that.sourceId,_that.libraryId,_that.displayName,_that.descending,_that.revision,_that.listeningTrigger,_that.listeningThreshold);case _:
   return orElse();
 
 }
@@ -446,10 +448,10 @@ return $default(_that.type,_that.sourceId,_that.libraryId,_that.displayName,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( MediaSourceType type,  String sourceId,  String libraryId,  String? displayName,  bool descending,  int? revision)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( MediaSourceType type,  String sourceId,  String libraryId,  String? displayName,  bool descending,  int? revision,  ListeningDownloadTrigger listeningTrigger,  int listeningThreshold)  $default,) {final _that = this;
 switch (_that) {
 case _MediaSourceDescriptor():
-return $default(_that.type,_that.sourceId,_that.libraryId,_that.displayName,_that.descending,_that.revision);case _:
+return $default(_that.type,_that.sourceId,_that.libraryId,_that.displayName,_that.descending,_that.revision,_that.listeningTrigger,_that.listeningThreshold);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -466,10 +468,10 @@ return $default(_that.type,_that.sourceId,_that.libraryId,_that.displayName,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( MediaSourceType type,  String sourceId,  String libraryId,  String? displayName,  bool descending,  int? revision)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( MediaSourceType type,  String sourceId,  String libraryId,  String? displayName,  bool descending,  int? revision,  ListeningDownloadTrigger listeningTrigger,  int listeningThreshold)?  $default,) {final _that = this;
 switch (_that) {
 case _MediaSourceDescriptor() when $default != null:
-return $default(_that.type,_that.sourceId,_that.libraryId,_that.displayName,_that.descending,_that.revision);case _:
+return $default(_that.type,_that.sourceId,_that.libraryId,_that.displayName,_that.descending,_that.revision,_that.listeningTrigger,_that.listeningThreshold);case _:
   return null;
 
 }
@@ -481,7 +483,7 @@ return $default(_that.type,_that.sourceId,_that.libraryId,_that.displayName,_tha
 @JsonSerializable()
 
 class _MediaSourceDescriptor implements MediaSourceDescriptor {
-  const _MediaSourceDescriptor({required this.type, required this.sourceId, required this.libraryId, this.displayName, this.descending = false, this.revision});
+  const _MediaSourceDescriptor({required this.type, required this.sourceId, required this.libraryId, this.displayName, this.descending = false, this.revision, this.listeningTrigger = ListeningDownloadTrigger.minutes, this.listeningThreshold = 30});
   factory _MediaSourceDescriptor.fromJson(Map<String, dynamic> json) => _$MediaSourceDescriptorFromJson(json);
 
 @override final  MediaSourceType type;
@@ -490,6 +492,8 @@ class _MediaSourceDescriptor implements MediaSourceDescriptor {
 @override final  String? displayName;
 @override@JsonKey() final  bool descending;
 @override final  int? revision;
+@override@JsonKey() final  ListeningDownloadTrigger listeningTrigger;
+@override@JsonKey() final  int listeningThreshold;
 
 /// Create a copy of MediaSourceDescriptor
 /// with the given fields replaced by the non-null parameter values.
@@ -504,16 +508,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MediaSourceDescriptor&&(identical(other.type, type) || other.type == type)&&(identical(other.sourceId, sourceId) || other.sourceId == sourceId)&&(identical(other.libraryId, libraryId) || other.libraryId == libraryId)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.descending, descending) || other.descending == descending)&&(identical(other.revision, revision) || other.revision == revision));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MediaSourceDescriptor&&(identical(other.type, type) || other.type == type)&&(identical(other.sourceId, sourceId) || other.sourceId == sourceId)&&(identical(other.libraryId, libraryId) || other.libraryId == libraryId)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.descending, descending) || other.descending == descending)&&(identical(other.revision, revision) || other.revision == revision)&&(identical(other.listeningTrigger, listeningTrigger) || other.listeningTrigger == listeningTrigger)&&(identical(other.listeningThreshold, listeningThreshold) || other.listeningThreshold == listeningThreshold));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,type,sourceId,libraryId,displayName,descending,revision);
+int get hashCode => Object.hash(runtimeType,type,sourceId,libraryId,displayName,descending,revision,listeningTrigger,listeningThreshold);
 
 @override
 String toString() {
-  return 'MediaSourceDescriptor(type: $type, sourceId: $sourceId, libraryId: $libraryId, displayName: $displayName, descending: $descending, revision: $revision)';
+  return 'MediaSourceDescriptor(type: $type, sourceId: $sourceId, libraryId: $libraryId, displayName: $displayName, descending: $descending, revision: $revision, listeningTrigger: $listeningTrigger, listeningThreshold: $listeningThreshold)';
 }
 
 
@@ -524,7 +528,7 @@ abstract mixin class _$MediaSourceDescriptorCopyWith<$Res> implements $MediaSour
   factory _$MediaSourceDescriptorCopyWith(_MediaSourceDescriptor value, $Res Function(_MediaSourceDescriptor) _then) = __$MediaSourceDescriptorCopyWithImpl;
 @override @useResult
 $Res call({
- MediaSourceType type, String sourceId, String libraryId, String? displayName, bool descending, int? revision
+ MediaSourceType type, String sourceId, String libraryId, String? displayName, bool descending, int? revision, ListeningDownloadTrigger listeningTrigger, int listeningThreshold
 });
 
 
@@ -541,7 +545,7 @@ class __$MediaSourceDescriptorCopyWithImpl<$Res>
 
 /// Create a copy of MediaSourceDescriptor
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? type = null,Object? sourceId = null,Object? libraryId = null,Object? displayName = freezed,Object? descending = null,Object? revision = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? type = null,Object? sourceId = null,Object? libraryId = null,Object? displayName = freezed,Object? descending = null,Object? revision = freezed,Object? listeningTrigger = null,Object? listeningThreshold = null,}) {
   return _then(_MediaSourceDescriptor(
 type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as MediaSourceType,sourceId: null == sourceId ? _self.sourceId : sourceId // ignore: cast_nullable_to_non_nullable
@@ -549,7 +553,9 @@ as String,libraryId: null == libraryId ? _self.libraryId : libraryId // ignore: 
 as String,displayName: freezed == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
 as String?,descending: null == descending ? _self.descending : descending // ignore: cast_nullable_to_non_nullable
 as bool,revision: freezed == revision ? _self.revision : revision // ignore: cast_nullable_to_non_nullable
-as int?,
+as int?,listeningTrigger: null == listeningTrigger ? _self.listeningTrigger : listeningTrigger // ignore: cast_nullable_to_non_nullable
+as ListeningDownloadTrigger,listeningThreshold: null == listeningThreshold ? _self.listeningThreshold : listeningThreshold // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 

@@ -792,6 +792,10 @@ extension _BGAudioHandlerAutoQueueExtension on BGAudioHandler {
 
     switch (source.type) {
       case MediaSourceType.latestEpisodes:
+      case MediaSourceType.continueListening:
+      case MediaSourceType.continueSeries:
+      case MediaSourceType.continueReading:
+      case MediaSourceType.listeningThreshold:
         return null;
       case MediaSourceType.series:
         return _AutoQueueRequestContext.series(libraryId: libraryId, seriesId: source.sourceId, initialPage: 0);
