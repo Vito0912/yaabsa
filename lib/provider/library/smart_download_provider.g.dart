@@ -37,7 +37,7 @@ final class SmartDownloadManagerProvider extends $NotifierProvider<SmartDownload
   }
 }
 
-String _$smartDownloadManagerHash() => r'82a27f22652b8ae05137836472240b14f0eb6e99';
+String _$smartDownloadManagerHash() => r'a2b6a0401bed6ba93a4e61f39425a1cdcf76842e';
 
 abstract class _$SmartDownloadManager extends $Notifier<SmartDownloadState> {
   SmartDownloadState build();

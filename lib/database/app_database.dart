@@ -12,6 +12,7 @@ import 'package:yaabsa/util/download_destination.dart';
 import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/models/smart_download.dart';
 import 'package:yaabsa/models/queue_source.dart';
+import 'package:yaabsa/api/json/value_parsers.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:drift/drift.dart';
@@ -20,6 +21,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'app_database.g.dart';
 part 'download_asset_updates.dart';
+part 'listening_download_updates.dart';
+part 'smart_download_migration.dart';
 
 @DataClassName('GlobalSettingEntry')
 class GlobalSettings extends Table {
@@ -46,6 +49,18 @@ class BookPlaybackSpeeds extends Table {
   TextColumn get itemId => text()();
   RealColumn get speed => real()();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {userId, itemId};
+}
+
+@DataClassName('ListeningDownloadProgressEntry')
+class ListeningDownloadProgress extends Table {
+  TextColumn get userId => text()();
+  TextColumn get itemId => text()();
+  TextColumn get libraryId => text()();
+  RealColumn get listenedSeconds => real()();
+  RealColumn get progressPercent => real()();
 
   @override
   Set<Column> get primaryKey => {userId, itemId};
@@ -161,6 +176,8 @@ class SmartDownloadSources extends Table {
   TextColumn get displayName => text().nullable()();
   BoolColumn get descending => boolean().withDefault(const Constant(false))();
   IntColumn get sourceRevision => integer().nullable()();
+  TextColumn get listeningTrigger => text().withDefault(const Constant('minutes'))();
+  IntColumn get listeningThreshold => integer().withDefault(const Constant(30))();
   TextColumn get candidateSnapshot => text().nullable()();
   IntColumn get updatedAt => integer()();
 
@@ -226,6 +243,7 @@ const String _storedDownloadStorageBaseKey = 'base';
     GlobalSettings,
     UserSettings,
     BookPlaybackSpeeds,
+    ListeningDownloadProgress,
     StoredUsers,
     StoredSyncs,
     StoredMediaProgress,
@@ -254,7 +272,7 @@ class AppDatabase extends _$AppDatabase {
   bool? _storedDownloadFilesAvailable;
 
   @override
-  int get schemaVersion => 24;
+  int get schemaVersion => 27;
 
   Future<void> _addColumnIfMissing(Migrator migrator, TableInfo table, GeneratedColumn column) async {
     final tableName = table.actualTableName.replaceAll('"', '""');
@@ -272,6 +290,11 @@ class AppDatabase extends _$AppDatabase {
       await m.createAll();
     },
     onUpgrade: (m, from, to) async {
+      if (from < 25) {
+        await m.createTable(listeningDownloadProgress);
+      } else if (from < 26) {
+        await m.alterTable(TableMigration(listeningDownloadProgress));
+      }
       if (from <= 1) {
         await m.createTable(storedSyncs);
       }
@@ -353,6 +376,11 @@ class AppDatabase extends _$AppDatabase {
           'FROM _smart_download_claims_old ORDER BY updated_at ASC;',
         );
         await customStatement('DROP TABLE _smart_download_claims_old;');
+      }
+      if (from < 27) {
+        await _addColumnIfMissing(m, smartDownloadSources, smartDownloadSources.listeningTrigger);
+        await _addColumnIfMissing(m, smartDownloadSources, smartDownloadSources.listeningThreshold);
+        await migrateLegacySmartDownloadOptions();
       }
     },
     beforeOpen: (details) async {},
@@ -870,6 +898,10 @@ class AppDatabase extends _$AppDatabase {
 
   Future<List<InternalDownload>> getAllStoredDownloadsByUser(String userId) async {
     final entries = await (select(storedDownloads)..where((tbl) => tbl.userId.equals(userId))).get();
+    return _decodeStoredDownloads(entries);
+  }
+
+  Future<List<InternalDownload>> resolveStoredDownloadEntries(Iterable<StoredDownloadsEntry> entries) {
     return _decodeStoredDownloads(entries);
   }
 
@@ -1702,6 +1734,10 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
+  Future<List<ListeningDownloadProgressEntry>> getListeningDownloadProgress(String userId) {
+    return (select(listeningDownloadProgress)..where((row) => row.userId.equals(userId))).get();
+  }
+
   Future<List<SmartDownloadProfileEntry>> getSmartDownloadProfiles(String userId) {
     return (select(smartDownloadProfiles)..where((tbl) => tbl.userId.equals(userId))).get();
   }
@@ -1742,6 +1778,8 @@ class AppDatabase extends _$AppDatabase {
             displayName: Value(source.displayName),
             descending: Value(source.descending),
             sourceRevision: Value(source.revision),
+            listeningTrigger: Value(source.listeningTrigger.name),
+            listeningThreshold: Value(source.listeningThreshold),
             updatedAt: Value(now),
           ),
           mode: InsertMode.insertOrReplace,
@@ -2202,6 +2240,7 @@ class AppDatabase extends _$AppDatabase {
     await deleteStoredMediaProgressByUser(userId);
     await deleteStoredBookmarkSyncByUser(userId);
     await deleteBookPlaybackSpeedsByUser(userId);
+    await (delete(listeningDownloadProgress)..where((row) => row.userId.equals(userId))).go();
     await (delete(storedUsers)..where((tbl) => tbl.id.equals(userId))).go();
   }
 

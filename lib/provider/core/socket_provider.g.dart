@@ -43,4 +43,4 @@ final class AbsSocketClientProvider extends $FunctionalProvider<ABSSocketClient,
   }
 }
 
-String _$absSocketClientHash() => r'e8368b50bc01a5bfa6edbb133ea2b588976e6bb5';
+String _$absSocketClientHash() => r'dcd1f44608ea674ce1fd49629d9f29b6a78ec4e1';

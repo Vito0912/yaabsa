@@ -86,6 +86,7 @@ part 'bg_audio_handler_state.dart';
 part 'bg_audio_handler_cast.dart';
 part 'bg_audio_handler_playback_internal.dart';
 part 'bg_audio_handler_source.dart';
+part 'bg_audio_handler_download_handoff.dart';
 part 'bg_audio_handler_reader.dart';
 part 'bg_audio_handler_speech.dart';
 part 'bg_audio_handler_reader_progress.dart';
@@ -232,6 +233,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   int get sleepTimerPlaybackGeneration => _sleepTimerPlaybackGeneration;
   late final BehaviorSubject<double> _volumeSubject;
   bool _isDisposing = false;
+  bool _downloadHandoffInProgress = false;
   List<PlayerQueueEntry> queueList = [];
   List<PlayerQueueEntry> _originalQueueList = [];
   QueueItem? _lastQueueItem;
@@ -1218,6 +1220,10 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   bool get shouldShowPlayerNow {
     return _shouldShowPlayerNowInternal();
+  }
+
+  Future<void> useDownloadedAudio(String itemId, String userId) {
+    return _useDownloadedAudio(itemId, userId);
   }
 
   Future<void> playLibraryItem(
@@ -2563,12 +2569,9 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
           return;
         }
 
-        unawaited(
-          _ref
-              .read(smartDownloadManagerProvider.notifier)
-              .deleteFinishedContinueDownload(itemId: finishedMedia.itemId, episodeId: finishedMedia.episodeId),
-        );
-        _ref.read(smartDownloadManagerProvider.notifier).requestReconcile(reason: 'playback completed');
+        _ref
+            .read(smartDownloadManagerProvider.notifier)
+            .requestReconcile(reason: 'playback completed', refreshSources: false);
         unawaited(
           refreshPersonalizedShelfForCompletedItem(
             container: _ref,

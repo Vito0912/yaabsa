@@ -10,7 +10,43 @@ abstract class PlayableRef with _$PlayableRef {
   factory PlayableRef.fromJson(Map<String, dynamic> json) => _$PlayableRefFromJson(json);
 }
 
-enum MediaSourceType { podcast, series, playlist, collection, latestEpisodes }
+const String allLibrariesSourceId = '__all__';
+
+enum ListeningDownloadTrigger { minutes, progress }
+
+enum MediaSourceType {
+  podcast,
+  series,
+  playlist,
+  collection,
+  latestEpisodes,
+  continueListening,
+  continueSeries,
+  continueReading,
+  listeningThreshold;
+
+  String get label => switch (this) {
+    podcast => 'Podcast',
+    series => 'Series',
+    playlist => 'Playlist',
+    collection => 'Collection',
+    latestEpisodes => 'Latest episodes',
+    continueListening => 'Continue Listening',
+    continueSeries => 'Continue Series',
+    continueReading => 'Continue Reading',
+    listeningThreshold => 'Download after listening',
+  };
+
+  bool get supportsAllLibraries => switch (this) {
+    continueListening || continueSeries || continueReading || listeningThreshold => true,
+    _ => false,
+  };
+
+  bool get requiresSearch => switch (this) {
+    podcast || series || playlist || collection => true,
+    _ => false,
+  };
+}
 
 @freezed
 abstract class MediaSourceDescriptor with _$MediaSourceDescriptor {
@@ -21,6 +57,8 @@ abstract class MediaSourceDescriptor with _$MediaSourceDescriptor {
     String? displayName,
     @Default(false) bool descending,
     int? revision,
+    @Default(ListeningDownloadTrigger.minutes) ListeningDownloadTrigger listeningTrigger,
+    @Default(30) int listeningThreshold,
   }) = _MediaSourceDescriptor;
 
   factory MediaSourceDescriptor.fromJson(Map<String, dynamic> json) => _$MediaSourceDescriptorFromJson(json);

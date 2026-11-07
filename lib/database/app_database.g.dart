@@ -661,6 +661,336 @@ class BookPlaybackSpeedsCompanion extends UpdateCompanion<BookPlaybackSpeedEntry
   }
 }
 
+class $ListeningDownloadProgressTable extends ListeningDownloadProgress
+    with TableInfo<$ListeningDownloadProgressTable, ListeningDownloadProgressEntry> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ListeningDownloadProgressTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _itemIdMeta = const VerificationMeta('itemId');
+  @override
+  late final GeneratedColumn<String> itemId = GeneratedColumn<String>(
+    'item_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _libraryIdMeta = const VerificationMeta('libraryId');
+  @override
+  late final GeneratedColumn<String> libraryId = GeneratedColumn<String>(
+    'library_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _listenedSecondsMeta = const VerificationMeta('listenedSeconds');
+  @override
+  late final GeneratedColumn<double> listenedSeconds = GeneratedColumn<double>(
+    'listened_seconds',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _progressPercentMeta = const VerificationMeta('progressPercent');
+  @override
+  late final GeneratedColumn<double> progressPercent = GeneratedColumn<double>(
+    'progress_percent',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [userId, itemId, libraryId, listenedSeconds, progressPercent];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'listening_download_progress';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ListeningDownloadProgressEntry> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('user_id')) {
+      context.handle(_userIdMeta, userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('item_id')) {
+      context.handle(_itemIdMeta, itemId.isAcceptableOrUnknown(data['item_id']!, _itemIdMeta));
+    } else if (isInserting) {
+      context.missing(_itemIdMeta);
+    }
+    if (data.containsKey('library_id')) {
+      context.handle(_libraryIdMeta, libraryId.isAcceptableOrUnknown(data['library_id']!, _libraryIdMeta));
+    } else if (isInserting) {
+      context.missing(_libraryIdMeta);
+    }
+    if (data.containsKey('listened_seconds')) {
+      context.handle(
+        _listenedSecondsMeta,
+        listenedSeconds.isAcceptableOrUnknown(data['listened_seconds']!, _listenedSecondsMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_listenedSecondsMeta);
+    }
+    if (data.containsKey('progress_percent')) {
+      context.handle(
+        _progressPercentMeta,
+        progressPercent.isAcceptableOrUnknown(data['progress_percent']!, _progressPercentMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_progressPercentMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {userId, itemId};
+  @override
+  ListeningDownloadProgressEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ListeningDownloadProgressEntry(
+      userId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}user_id'])!,
+      itemId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}item_id'])!,
+      libraryId: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}library_id'])!,
+      listenedSeconds: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}listened_seconds'],
+      )!,
+      progressPercent: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}progress_percent'],
+      )!,
+    );
+  }
+
+  @override
+  $ListeningDownloadProgressTable createAlias(String alias) {
+    return $ListeningDownloadProgressTable(attachedDatabase, alias);
+  }
+}
+
+class ListeningDownloadProgressEntry extends DataClass implements Insertable<ListeningDownloadProgressEntry> {
+  final String userId;
+  final String itemId;
+  final String libraryId;
+  final double listenedSeconds;
+  final double progressPercent;
+  const ListeningDownloadProgressEntry({
+    required this.userId,
+    required this.itemId,
+    required this.libraryId,
+    required this.listenedSeconds,
+    required this.progressPercent,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['user_id'] = Variable<String>(userId);
+    map['item_id'] = Variable<String>(itemId);
+    map['library_id'] = Variable<String>(libraryId);
+    map['listened_seconds'] = Variable<double>(listenedSeconds);
+    map['progress_percent'] = Variable<double>(progressPercent);
+    return map;
+  }
+
+  ListeningDownloadProgressCompanion toCompanion(bool nullToAbsent) {
+    return ListeningDownloadProgressCompanion(
+      userId: Value(userId),
+      itemId: Value(itemId),
+      libraryId: Value(libraryId),
+      listenedSeconds: Value(listenedSeconds),
+      progressPercent: Value(progressPercent),
+    );
+  }
+
+  factory ListeningDownloadProgressEntry.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ListeningDownloadProgressEntry(
+      userId: serializer.fromJson<String>(json['userId']),
+      itemId: serializer.fromJson<String>(json['itemId']),
+      libraryId: serializer.fromJson<String>(json['libraryId']),
+      listenedSeconds: serializer.fromJson<double>(json['listenedSeconds']),
+      progressPercent: serializer.fromJson<double>(json['progressPercent']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'userId': serializer.toJson<String>(userId),
+      'itemId': serializer.toJson<String>(itemId),
+      'libraryId': serializer.toJson<String>(libraryId),
+      'listenedSeconds': serializer.toJson<double>(listenedSeconds),
+      'progressPercent': serializer.toJson<double>(progressPercent),
+    };
+  }
+
+  ListeningDownloadProgressEntry copyWith({
+    String? userId,
+    String? itemId,
+    String? libraryId,
+    double? listenedSeconds,
+    double? progressPercent,
+  }) => ListeningDownloadProgressEntry(
+    userId: userId ?? this.userId,
+    itemId: itemId ?? this.itemId,
+    libraryId: libraryId ?? this.libraryId,
+    listenedSeconds: listenedSeconds ?? this.listenedSeconds,
+    progressPercent: progressPercent ?? this.progressPercent,
+  );
+  ListeningDownloadProgressEntry copyWithCompanion(ListeningDownloadProgressCompanion data) {
+    return ListeningDownloadProgressEntry(
+      userId: data.userId.present ? data.userId.value : this.userId,
+      itemId: data.itemId.present ? data.itemId.value : this.itemId,
+      libraryId: data.libraryId.present ? data.libraryId.value : this.libraryId,
+      listenedSeconds: data.listenedSeconds.present ? data.listenedSeconds.value : this.listenedSeconds,
+      progressPercent: data.progressPercent.present ? data.progressPercent.value : this.progressPercent,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ListeningDownloadProgressEntry(')
+          ..write('userId: $userId, ')
+          ..write('itemId: $itemId, ')
+          ..write('libraryId: $libraryId, ')
+          ..write('listenedSeconds: $listenedSeconds, ')
+          ..write('progressPercent: $progressPercent')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(userId, itemId, libraryId, listenedSeconds, progressPercent);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ListeningDownloadProgressEntry &&
+          other.userId == this.userId &&
+          other.itemId == this.itemId &&
+          other.libraryId == this.libraryId &&
+          other.listenedSeconds == this.listenedSeconds &&
+          other.progressPercent == this.progressPercent);
+}
+
+class ListeningDownloadProgressCompanion extends UpdateCompanion<ListeningDownloadProgressEntry> {
+  final Value<String> userId;
+  final Value<String> itemId;
+  final Value<String> libraryId;
+  final Value<double> listenedSeconds;
+  final Value<double> progressPercent;
+  final Value<int> rowid;
+  const ListeningDownloadProgressCompanion({
+    this.userId = const Value.absent(),
+    this.itemId = const Value.absent(),
+    this.libraryId = const Value.absent(),
+    this.listenedSeconds = const Value.absent(),
+    this.progressPercent = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ListeningDownloadProgressCompanion.insert({
+    required String userId,
+    required String itemId,
+    required String libraryId,
+    required double listenedSeconds,
+    required double progressPercent,
+    this.rowid = const Value.absent(),
+  }) : userId = Value(userId),
+       itemId = Value(itemId),
+       libraryId = Value(libraryId),
+       listenedSeconds = Value(listenedSeconds),
+       progressPercent = Value(progressPercent);
+  static Insertable<ListeningDownloadProgressEntry> custom({
+    Expression<String>? userId,
+    Expression<String>? itemId,
+    Expression<String>? libraryId,
+    Expression<double>? listenedSeconds,
+    Expression<double>? progressPercent,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (userId != null) 'user_id': userId,
+      if (itemId != null) 'item_id': itemId,
+      if (libraryId != null) 'library_id': libraryId,
+      if (listenedSeconds != null) 'listened_seconds': listenedSeconds,
+      if (progressPercent != null) 'progress_percent': progressPercent,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ListeningDownloadProgressCompanion copyWith({
+    Value<String>? userId,
+    Value<String>? itemId,
+    Value<String>? libraryId,
+    Value<double>? listenedSeconds,
+    Value<double>? progressPercent,
+    Value<int>? rowid,
+  }) {
+    return ListeningDownloadProgressCompanion(
+      userId: userId ?? this.userId,
+      itemId: itemId ?? this.itemId,
+      libraryId: libraryId ?? this.libraryId,
+      listenedSeconds: listenedSeconds ?? this.listenedSeconds,
+      progressPercent: progressPercent ?? this.progressPercent,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (itemId.present) {
+      map['item_id'] = Variable<String>(itemId.value);
+    }
+    if (libraryId.present) {
+      map['library_id'] = Variable<String>(libraryId.value);
+    }
+    if (listenedSeconds.present) {
+      map['listened_seconds'] = Variable<double>(listenedSeconds.value);
+    }
+    if (progressPercent.present) {
+      map['progress_percent'] = Variable<double>(progressPercent.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ListeningDownloadProgressCompanion(')
+          ..write('userId: $userId, ')
+          ..write('itemId: $itemId, ')
+          ..write('libraryId: $libraryId, ')
+          ..write('listenedSeconds: $listenedSeconds, ')
+          ..write('progressPercent: $progressPercent, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $StoredUsersTable extends StoredUsers with TableInfo<$StoredUsersTable, StoredUserEntry> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -3332,6 +3662,26 @@ class $SmartDownloadSourcesTable extends SmartDownloadSources
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _listeningTriggerMeta = const VerificationMeta('listeningTrigger');
+  @override
+  late final GeneratedColumn<String> listeningTrigger = GeneratedColumn<String>(
+    'listening_trigger',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('minutes'),
+  );
+  static const VerificationMeta _listeningThresholdMeta = const VerificationMeta('listeningThreshold');
+  @override
+  late final GeneratedColumn<int> listeningThreshold = GeneratedColumn<int>(
+    'listening_threshold',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(30),
+  );
   static const VerificationMeta _candidateSnapshotMeta = const VerificationMeta('candidateSnapshot');
   @override
   late final GeneratedColumn<String> candidateSnapshot = GeneratedColumn<String>(
@@ -3359,6 +3709,8 @@ class $SmartDownloadSourcesTable extends SmartDownloadSources
     displayName,
     descending,
     sourceRevision,
+    listeningTrigger,
+    listeningThreshold,
     candidateSnapshot,
     updatedAt,
   ];
@@ -3403,6 +3755,18 @@ class $SmartDownloadSourcesTable extends SmartDownloadSources
         sourceRevision.isAcceptableOrUnknown(data['source_revision']!, _sourceRevisionMeta),
       );
     }
+    if (data.containsKey('listening_trigger')) {
+      context.handle(
+        _listeningTriggerMeta,
+        listeningTrigger.isAcceptableOrUnknown(data['listening_trigger']!, _listeningTriggerMeta),
+      );
+    }
+    if (data.containsKey('listening_threshold')) {
+      context.handle(
+        _listeningThresholdMeta,
+        listeningThreshold.isAcceptableOrUnknown(data['listening_threshold']!, _listeningThresholdMeta),
+      );
+    }
     if (data.containsKey('candidate_snapshot')) {
       context.handle(
         _candidateSnapshotMeta,
@@ -3430,6 +3794,14 @@ class $SmartDownloadSourcesTable extends SmartDownloadSources
       displayName: attachedDatabase.typeMapping.read(DriftSqlType.string, data['${effectivePrefix}display_name']),
       descending: attachedDatabase.typeMapping.read(DriftSqlType.bool, data['${effectivePrefix}descending'])!,
       sourceRevision: attachedDatabase.typeMapping.read(DriftSqlType.int, data['${effectivePrefix}source_revision']),
+      listeningTrigger: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}listening_trigger'],
+      )!,
+      listeningThreshold: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}listening_threshold'],
+      )!,
       candidateSnapshot: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}candidate_snapshot'],
@@ -3452,6 +3824,8 @@ class SmartDownloadSourceEntry extends DataClass implements Insertable<SmartDown
   final String? displayName;
   final bool descending;
   final int? sourceRevision;
+  final String listeningTrigger;
+  final int listeningThreshold;
   final String? candidateSnapshot;
   final int updatedAt;
   const SmartDownloadSourceEntry({
@@ -3462,6 +3836,8 @@ class SmartDownloadSourceEntry extends DataClass implements Insertable<SmartDown
     this.displayName,
     required this.descending,
     this.sourceRevision,
+    required this.listeningTrigger,
+    required this.listeningThreshold,
     this.candidateSnapshot,
     required this.updatedAt,
   });
@@ -3479,6 +3855,8 @@ class SmartDownloadSourceEntry extends DataClass implements Insertable<SmartDown
     if (!nullToAbsent || sourceRevision != null) {
       map['source_revision'] = Variable<int>(sourceRevision);
     }
+    map['listening_trigger'] = Variable<String>(listeningTrigger);
+    map['listening_threshold'] = Variable<int>(listeningThreshold);
     if (!nullToAbsent || candidateSnapshot != null) {
       map['candidate_snapshot'] = Variable<String>(candidateSnapshot);
     }
@@ -3495,6 +3873,8 @@ class SmartDownloadSourceEntry extends DataClass implements Insertable<SmartDown
       displayName: displayName == null && nullToAbsent ? const Value.absent() : Value(displayName),
       descending: Value(descending),
       sourceRevision: sourceRevision == null && nullToAbsent ? const Value.absent() : Value(sourceRevision),
+      listeningTrigger: Value(listeningTrigger),
+      listeningThreshold: Value(listeningThreshold),
       candidateSnapshot: candidateSnapshot == null && nullToAbsent ? const Value.absent() : Value(candidateSnapshot),
       updatedAt: Value(updatedAt),
     );
@@ -3510,6 +3890,8 @@ class SmartDownloadSourceEntry extends DataClass implements Insertable<SmartDown
       displayName: serializer.fromJson<String?>(json['displayName']),
       descending: serializer.fromJson<bool>(json['descending']),
       sourceRevision: serializer.fromJson<int?>(json['sourceRevision']),
+      listeningTrigger: serializer.fromJson<String>(json['listeningTrigger']),
+      listeningThreshold: serializer.fromJson<int>(json['listeningThreshold']),
       candidateSnapshot: serializer.fromJson<String?>(json['candidateSnapshot']),
       updatedAt: serializer.fromJson<int>(json['updatedAt']),
     );
@@ -3525,6 +3907,8 @@ class SmartDownloadSourceEntry extends DataClass implements Insertable<SmartDown
       'displayName': serializer.toJson<String?>(displayName),
       'descending': serializer.toJson<bool>(descending),
       'sourceRevision': serializer.toJson<int?>(sourceRevision),
+      'listeningTrigger': serializer.toJson<String>(listeningTrigger),
+      'listeningThreshold': serializer.toJson<int>(listeningThreshold),
       'candidateSnapshot': serializer.toJson<String?>(candidateSnapshot),
       'updatedAt': serializer.toJson<int>(updatedAt),
     };
@@ -3538,6 +3922,8 @@ class SmartDownloadSourceEntry extends DataClass implements Insertable<SmartDown
     Value<String?> displayName = const Value.absent(),
     bool? descending,
     Value<int?> sourceRevision = const Value.absent(),
+    String? listeningTrigger,
+    int? listeningThreshold,
     Value<String?> candidateSnapshot = const Value.absent(),
     int? updatedAt,
   }) => SmartDownloadSourceEntry(
@@ -3548,6 +3934,8 @@ class SmartDownloadSourceEntry extends DataClass implements Insertable<SmartDown
     displayName: displayName.present ? displayName.value : this.displayName,
     descending: descending ?? this.descending,
     sourceRevision: sourceRevision.present ? sourceRevision.value : this.sourceRevision,
+    listeningTrigger: listeningTrigger ?? this.listeningTrigger,
+    listeningThreshold: listeningThreshold ?? this.listeningThreshold,
     candidateSnapshot: candidateSnapshot.present ? candidateSnapshot.value : this.candidateSnapshot,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -3560,6 +3948,8 @@ class SmartDownloadSourceEntry extends DataClass implements Insertable<SmartDown
       displayName: data.displayName.present ? data.displayName.value : this.displayName,
       descending: data.descending.present ? data.descending.value : this.descending,
       sourceRevision: data.sourceRevision.present ? data.sourceRevision.value : this.sourceRevision,
+      listeningTrigger: data.listeningTrigger.present ? data.listeningTrigger.value : this.listeningTrigger,
+      listeningThreshold: data.listeningThreshold.present ? data.listeningThreshold.value : this.listeningThreshold,
       candidateSnapshot: data.candidateSnapshot.present ? data.candidateSnapshot.value : this.candidateSnapshot,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -3575,6 +3965,8 @@ class SmartDownloadSourceEntry extends DataClass implements Insertable<SmartDown
           ..write('displayName: $displayName, ')
           ..write('descending: $descending, ')
           ..write('sourceRevision: $sourceRevision, ')
+          ..write('listeningTrigger: $listeningTrigger, ')
+          ..write('listeningThreshold: $listeningThreshold, ')
           ..write('candidateSnapshot: $candidateSnapshot, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -3590,6 +3982,8 @@ class SmartDownloadSourceEntry extends DataClass implements Insertable<SmartDown
     displayName,
     descending,
     sourceRevision,
+    listeningTrigger,
+    listeningThreshold,
     candidateSnapshot,
     updatedAt,
   );
@@ -3604,6 +3998,8 @@ class SmartDownloadSourceEntry extends DataClass implements Insertable<SmartDown
           other.displayName == this.displayName &&
           other.descending == this.descending &&
           other.sourceRevision == this.sourceRevision &&
+          other.listeningTrigger == this.listeningTrigger &&
+          other.listeningThreshold == this.listeningThreshold &&
           other.candidateSnapshot == this.candidateSnapshot &&
           other.updatedAt == this.updatedAt);
 }
@@ -3616,6 +4012,8 @@ class SmartDownloadSourcesCompanion extends UpdateCompanion<SmartDownloadSourceE
   final Value<String?> displayName;
   final Value<bool> descending;
   final Value<int?> sourceRevision;
+  final Value<String> listeningTrigger;
+  final Value<int> listeningThreshold;
   final Value<String?> candidateSnapshot;
   final Value<int> updatedAt;
   final Value<int> rowid;
@@ -3627,6 +4025,8 @@ class SmartDownloadSourcesCompanion extends UpdateCompanion<SmartDownloadSourceE
     this.displayName = const Value.absent(),
     this.descending = const Value.absent(),
     this.sourceRevision = const Value.absent(),
+    this.listeningTrigger = const Value.absent(),
+    this.listeningThreshold = const Value.absent(),
     this.candidateSnapshot = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -3639,6 +4039,8 @@ class SmartDownloadSourcesCompanion extends UpdateCompanion<SmartDownloadSourceE
     this.displayName = const Value.absent(),
     this.descending = const Value.absent(),
     this.sourceRevision = const Value.absent(),
+    this.listeningTrigger = const Value.absent(),
+    this.listeningThreshold = const Value.absent(),
     this.candidateSnapshot = const Value.absent(),
     required int updatedAt,
     this.rowid = const Value.absent(),
@@ -3655,6 +4057,8 @@ class SmartDownloadSourcesCompanion extends UpdateCompanion<SmartDownloadSourceE
     Expression<String>? displayName,
     Expression<bool>? descending,
     Expression<int>? sourceRevision,
+    Expression<String>? listeningTrigger,
+    Expression<int>? listeningThreshold,
     Expression<String>? candidateSnapshot,
     Expression<int>? updatedAt,
     Expression<int>? rowid,
@@ -3667,6 +4071,8 @@ class SmartDownloadSourcesCompanion extends UpdateCompanion<SmartDownloadSourceE
       if (displayName != null) 'display_name': displayName,
       if (descending != null) 'descending': descending,
       if (sourceRevision != null) 'source_revision': sourceRevision,
+      if (listeningTrigger != null) 'listening_trigger': listeningTrigger,
+      if (listeningThreshold != null) 'listening_threshold': listeningThreshold,
       if (candidateSnapshot != null) 'candidate_snapshot': candidateSnapshot,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
@@ -3681,6 +4087,8 @@ class SmartDownloadSourcesCompanion extends UpdateCompanion<SmartDownloadSourceE
     Value<String?>? displayName,
     Value<bool>? descending,
     Value<int?>? sourceRevision,
+    Value<String>? listeningTrigger,
+    Value<int>? listeningThreshold,
     Value<String?>? candidateSnapshot,
     Value<int>? updatedAt,
     Value<int>? rowid,
@@ -3693,6 +4101,8 @@ class SmartDownloadSourcesCompanion extends UpdateCompanion<SmartDownloadSourceE
       displayName: displayName ?? this.displayName,
       descending: descending ?? this.descending,
       sourceRevision: sourceRevision ?? this.sourceRevision,
+      listeningTrigger: listeningTrigger ?? this.listeningTrigger,
+      listeningThreshold: listeningThreshold ?? this.listeningThreshold,
       candidateSnapshot: candidateSnapshot ?? this.candidateSnapshot,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -3723,6 +4133,12 @@ class SmartDownloadSourcesCompanion extends UpdateCompanion<SmartDownloadSourceE
     if (sourceRevision.present) {
       map['source_revision'] = Variable<int>(sourceRevision.value);
     }
+    if (listeningTrigger.present) {
+      map['listening_trigger'] = Variable<String>(listeningTrigger.value);
+    }
+    if (listeningThreshold.present) {
+      map['listening_threshold'] = Variable<int>(listeningThreshold.value);
+    }
     if (candidateSnapshot.present) {
       map['candidate_snapshot'] = Variable<String>(candidateSnapshot.value);
     }
@@ -3745,6 +4161,8 @@ class SmartDownloadSourcesCompanion extends UpdateCompanion<SmartDownloadSourceE
           ..write('displayName: $displayName, ')
           ..write('descending: $descending, ')
           ..write('sourceRevision: $sourceRevision, ')
+          ..write('listeningTrigger: $listeningTrigger, ')
+          ..write('listeningThreshold: $listeningThreshold, ')
           ..write('candidateSnapshot: $candidateSnapshot, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -4698,6 +5116,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $GlobalSettingsTable globalSettings = $GlobalSettingsTable(this);
   late final $UserSettingsTable userSettings = $UserSettingsTable(this);
   late final $BookPlaybackSpeedsTable bookPlaybackSpeeds = $BookPlaybackSpeedsTable(this);
+  late final $ListeningDownloadProgressTable listeningDownloadProgress = $ListeningDownloadProgressTable(this);
   late final $StoredUsersTable storedUsers = $StoredUsersTable(this);
   late final $StoredSyncsTable storedSyncs = $StoredSyncsTable(this);
   late final $StoredMediaProgressTable storedMediaProgress = $StoredMediaProgressTable(this);
@@ -4715,6 +5134,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     globalSettings,
     userSettings,
     bookPlaybackSpeeds,
+    listeningDownloadProgress,
     storedUsers,
     storedSyncs,
     storedMediaProgress,
@@ -5095,6 +5515,175 @@ typedef $$BookPlaybackSpeedsTableProcessedTableManager =
       $$BookPlaybackSpeedsTableUpdateCompanionBuilder,
       (BookPlaybackSpeedEntry, BaseReferences<_$AppDatabase, $BookPlaybackSpeedsTable, BookPlaybackSpeedEntry>),
       BookPlaybackSpeedEntry,
+      PrefetchHooks Function()
+    >;
+typedef $$ListeningDownloadProgressTableCreateCompanionBuilder = ListeningDownloadProgressCompanion Function({
+  required String userId,
+  required String itemId,
+  required String libraryId,
+  required double listenedSeconds,
+  required double progressPercent,
+  Value<int> rowid,
+});
+typedef $$ListeningDownloadProgressTableUpdateCompanionBuilder = ListeningDownloadProgressCompanion Function({
+  Value<String> userId,
+  Value<String> itemId,
+  Value<String> libraryId,
+  Value<double> listenedSeconds,
+  Value<double> progressPercent,
+  Value<int> rowid,
+});
+
+class $$ListeningDownloadProgressTableFilterComposer extends Composer<_$AppDatabase, $ListeningDownloadProgressTable> {
+  $$ListeningDownloadProgressTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get itemId =>
+      $composableBuilder(column: $table.itemId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get libraryId =>
+      $composableBuilder(column: $table.libraryId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get listenedSeconds =>
+      $composableBuilder(column: $table.listenedSeconds, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get progressPercent =>
+      $composableBuilder(column: $table.progressPercent, builder: (column) => ColumnFilters(column));
+}
+
+class $$ListeningDownloadProgressTableOrderingComposer
+    extends Composer<_$AppDatabase, $ListeningDownloadProgressTable> {
+  $$ListeningDownloadProgressTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get itemId =>
+      $composableBuilder(column: $table.itemId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get libraryId =>
+      $composableBuilder(column: $table.libraryId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get listenedSeconds =>
+      $composableBuilder(column: $table.listenedSeconds, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get progressPercent =>
+      $composableBuilder(column: $table.progressPercent, builder: (column) => ColumnOrderings(column));
+}
+
+class $$ListeningDownloadProgressTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ListeningDownloadProgressTable> {
+  $$ListeningDownloadProgressTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get userId => $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get itemId => $composableBuilder(column: $table.itemId, builder: (column) => column);
+
+  GeneratedColumn<String> get libraryId => $composableBuilder(column: $table.libraryId, builder: (column) => column);
+
+  GeneratedColumn<double> get listenedSeconds =>
+      $composableBuilder(column: $table.listenedSeconds, builder: (column) => column);
+
+  GeneratedColumn<double> get progressPercent =>
+      $composableBuilder(column: $table.progressPercent, builder: (column) => column);
+}
+
+class $$ListeningDownloadProgressTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ListeningDownloadProgressTable,
+          ListeningDownloadProgressEntry,
+          $$ListeningDownloadProgressTableFilterComposer,
+          $$ListeningDownloadProgressTableOrderingComposer,
+          $$ListeningDownloadProgressTableAnnotationComposer,
+          $$ListeningDownloadProgressTableCreateCompanionBuilder,
+          $$ListeningDownloadProgressTableUpdateCompanionBuilder,
+          (
+            ListeningDownloadProgressEntry,
+            BaseReferences<_$AppDatabase, $ListeningDownloadProgressTable, ListeningDownloadProgressEntry>,
+          ),
+          ListeningDownloadProgressEntry,
+          PrefetchHooks Function()
+        > {
+  $$ListeningDownloadProgressTableTableManager(_$AppDatabase db, $ListeningDownloadProgressTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () => $$ListeningDownloadProgressTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () => $$ListeningDownloadProgressTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () => $$ListeningDownloadProgressTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> userId = const Value.absent(),
+                Value<String> itemId = const Value.absent(),
+                Value<String> libraryId = const Value.absent(),
+                Value<double> listenedSeconds = const Value.absent(),
+                Value<double> progressPercent = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ListeningDownloadProgressCompanion(
+                userId: userId,
+                itemId: itemId,
+                libraryId: libraryId,
+                listenedSeconds: listenedSeconds,
+                progressPercent: progressPercent,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String userId,
+                required String itemId,
+                required String libraryId,
+                required double listenedSeconds,
+                required double progressPercent,
+                Value<int> rowid = const Value.absent(),
+              }) => ListeningDownloadProgressCompanion.insert(
+                userId: userId,
+                itemId: itemId,
+                libraryId: libraryId,
+                listenedSeconds: listenedSeconds,
+                progressPercent: progressPercent,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0.map((e) => (e.readTable(table), BaseReferences(db, table, e))).toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ListeningDownloadProgressTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ListeningDownloadProgressTable,
+      ListeningDownloadProgressEntry,
+      $$ListeningDownloadProgressTableFilterComposer,
+      $$ListeningDownloadProgressTableOrderingComposer,
+      $$ListeningDownloadProgressTableAnnotationComposer,
+      $$ListeningDownloadProgressTableCreateCompanionBuilder,
+      $$ListeningDownloadProgressTableUpdateCompanionBuilder,
+      (
+        ListeningDownloadProgressEntry,
+        BaseReferences<_$AppDatabase, $ListeningDownloadProgressTable, ListeningDownloadProgressEntry>,
+      ),
+      ListeningDownloadProgressEntry,
       PrefetchHooks Function()
     >;
 typedef $$StoredUsersTableCreateCompanionBuilder = StoredUsersCompanion Function({
@@ -6363,6 +6952,8 @@ typedef $$SmartDownloadSourcesTableCreateCompanionBuilder = SmartDownloadSources
   Value<String?> displayName,
   Value<bool> descending,
   Value<int?> sourceRevision,
+  Value<String> listeningTrigger,
+  Value<int> listeningThreshold,
   Value<String?> candidateSnapshot,
   required int updatedAt,
   Value<int> rowid,
@@ -6375,6 +6966,8 @@ typedef $$SmartDownloadSourcesTableUpdateCompanionBuilder = SmartDownloadSources
   Value<String?> displayName,
   Value<bool> descending,
   Value<int?> sourceRevision,
+  Value<String> listeningTrigger,
+  Value<int> listeningThreshold,
   Value<String?> candidateSnapshot,
   Value<int> updatedAt,
   Value<int> rowid,
@@ -6408,6 +7001,12 @@ class $$SmartDownloadSourcesTableFilterComposer extends Composer<_$AppDatabase, 
 
   ColumnFilters<int> get sourceRevision =>
       $composableBuilder(column: $table.sourceRevision, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get listeningTrigger =>
+      $composableBuilder(column: $table.listeningTrigger, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get listeningThreshold =>
+      $composableBuilder(column: $table.listeningThreshold, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get candidateSnapshot =>
       $composableBuilder(column: $table.candidateSnapshot, builder: (column) => ColumnFilters(column));
@@ -6445,6 +7044,12 @@ class $$SmartDownloadSourcesTableOrderingComposer extends Composer<_$AppDatabase
   ColumnOrderings<int> get sourceRevision =>
       $composableBuilder(column: $table.sourceRevision, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get listeningTrigger =>
+      $composableBuilder(column: $table.listeningTrigger, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get listeningThreshold =>
+      $composableBuilder(column: $table.listeningThreshold, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get candidateSnapshot =>
       $composableBuilder(column: $table.candidateSnapshot, builder: (column) => ColumnOrderings(column));
 
@@ -6475,6 +7080,12 @@ class $$SmartDownloadSourcesTableAnnotationComposer extends Composer<_$AppDataba
 
   GeneratedColumn<int> get sourceRevision =>
       $composableBuilder(column: $table.sourceRevision, builder: (column) => column);
+
+  GeneratedColumn<String> get listeningTrigger =>
+      $composableBuilder(column: $table.listeningTrigger, builder: (column) => column);
+
+  GeneratedColumn<int> get listeningThreshold =>
+      $composableBuilder(column: $table.listeningThreshold, builder: (column) => column);
 
   GeneratedColumn<String> get candidateSnapshot =>
       $composableBuilder(column: $table.candidateSnapshot, builder: (column) => column);
@@ -6517,6 +7128,8 @@ class $$SmartDownloadSourcesTableTableManager
                 Value<String?> displayName = const Value.absent(),
                 Value<bool> descending = const Value.absent(),
                 Value<int?> sourceRevision = const Value.absent(),
+                Value<String> listeningTrigger = const Value.absent(),
+                Value<int> listeningThreshold = const Value.absent(),
                 Value<String?> candidateSnapshot = const Value.absent(),
                 Value<int> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -6528,6 +7141,8 @@ class $$SmartDownloadSourcesTableTableManager
                 displayName: displayName,
                 descending: descending,
                 sourceRevision: sourceRevision,
+                listeningTrigger: listeningTrigger,
+                listeningThreshold: listeningThreshold,
                 candidateSnapshot: candidateSnapshot,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -6541,6 +7156,8 @@ class $$SmartDownloadSourcesTableTableManager
                 Value<String?> displayName = const Value.absent(),
                 Value<bool> descending = const Value.absent(),
                 Value<int?> sourceRevision = const Value.absent(),
+                Value<String> listeningTrigger = const Value.absent(),
+                Value<int> listeningThreshold = const Value.absent(),
                 Value<String?> candidateSnapshot = const Value.absent(),
                 required int updatedAt,
                 Value<int> rowid = const Value.absent(),
@@ -6552,6 +7169,8 @@ class $$SmartDownloadSourcesTableTableManager
                 displayName: displayName,
                 descending: descending,
                 sourceRevision: sourceRevision,
+                listeningTrigger: listeningTrigger,
+                listeningThreshold: listeningThreshold,
                 candidateSnapshot: candidateSnapshot,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -7009,6 +7628,8 @@ class $AppDatabaseManager {
   $$UserSettingsTableTableManager get userSettings => $$UserSettingsTableTableManager(_db, _db.userSettings);
   $$BookPlaybackSpeedsTableTableManager get bookPlaybackSpeeds =>
       $$BookPlaybackSpeedsTableTableManager(_db, _db.bookPlaybackSpeeds);
+  $$ListeningDownloadProgressTableTableManager get listeningDownloadProgress =>
+      $$ListeningDownloadProgressTableTableManager(_db, _db.listeningDownloadProgress);
   $$StoredUsersTableTableManager get storedUsers => $$StoredUsersTableTableManager(_db, _db.storedUsers);
   $$StoredSyncsTableTableManager get storedSyncs => $$StoredSyncsTableTableManager(_db, _db.storedSyncs);
   $$StoredMediaProgressTableTableManager get storedMediaProgress =>

@@ -18,6 +18,8 @@ import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/models/download_sidecar.dart';
 import 'package:yaabsa/models/download_task_metadata.dart';
 import 'package:yaabsa/models/internal_download.dart';
+import 'package:yaabsa/models/smart_download.dart';
+import 'package:yaabsa/models/queue_source.dart';
 import 'package:yaabsa/models/download_file_entry.dart';
 import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/provider/common/library_item_provider.dart';
@@ -41,6 +43,13 @@ class NoDownloadableFilesException implements Exception {
 
   @override
   String toString() => 'No downloadable files found for item $itemId.';
+}
+
+class AutomaticDownloadTasks {
+  AutomaticDownloadTasks({required this.activeReferences, required this.smartReservations});
+
+  final Set<String> activeReferences;
+  final Map<String, int> smartReservations;
 }
 
 class _DownloadBatchProgress {
@@ -129,7 +138,15 @@ class DownloadHandler {
             if (metadata != null) {
               _downloadBatchProgress[_downloadBatchKey(metadata.itemId, metadata.episodeId)]?.item = null;
             }
-            _ref.read(smartDownloadManagerProvider.notifier).requestReconcile(reason: 'download task failed');
+            if (update.status == TaskStatus.failed && metadata?.acquisitionOrigin == 'smart') {
+              _ref
+                  .read(smartDownloadManagerProvider.notifier)
+                  .recordAutomaticDownloadFailure(
+                    userId: metadata!.userId,
+                    itemId: metadata.itemId,
+                    episodeId: metadata.episodeId,
+                  );
+            }
           }
           return;
         }
@@ -450,27 +467,37 @@ class DownloadHandler {
     return canceled;
   }
 
-  Future<Map<String, int>> activeSmartDownloadReservations(String userId) async {
-    if (kIsWeb || _downloader == null) {
-      return const <String, int>{};
-    }
+  Future<AutomaticDownloadTasks> automaticDownloadTasks(String userId) async {
+    final activeReferences = <String>{};
     final reservations = <String, int>{};
+    if (kIsWeb || _downloader == null) {
+      return AutomaticDownloadTasks(activeReferences: activeReferences, smartReservations: reservations);
+    }
+
+    await _initialization;
     final records = await _downloader.database.allRecords();
     for (final record in records.where((record) => record.status.isNotFinalState)) {
       final metadata = _parseMetaData(record.task.metaData);
-      if (metadata == null || metadata.userId != userId || metadata.acquisitionOrigin != 'smart') {
+      if (metadata == null || metadata.userId != userId) {
         continue;
       }
+
       final reference = '${metadata.itemId}::${metadata.episodeId ?? ''}';
+      activeReferences.add(reference);
+      if (metadata.acquisitionOrigin != 'smart') {
+        continue;
+      }
+
       final estimatedBytes = metadata.estimatedBytes ?? 0;
       final current = reservations[reference] ?? 0;
-      if (estimatedBytes > current) {
-        reservations[reference] = estimatedBytes;
-      } else {
-        reservations.putIfAbsent(reference, () => current);
-      }
+      reservations[reference] = estimatedBytes > current ? estimatedBytes : current;
     }
-    return reservations;
+
+    return AutomaticDownloadTasks(activeReferences: activeReferences, smartReservations: reservations);
+  }
+
+  Future<Map<String, int>> activeSmartDownloadReservations(String userId) async {
+    return (await automaticDownloadTasks(userId)).smartReservations;
   }
 
   bool taskBelongsToItem(TaskRecord task, String itemId, {String? episodeId}) {
@@ -527,6 +554,11 @@ class DownloadHandler {
 
     _downloadBatchProgress.remove(key);
     return true;
+  }
+
+  Future<void> prepareAutomaticDownloads() async {
+    await _initialization;
+    await _ensureNotificationPermissionForDownloads();
   }
 
   Future<void> _ensureNotificationPermissionForDownloads({bool requestPermission = true}) async {
@@ -1189,7 +1221,22 @@ class DownloadHandler {
             completedAt: DateTime.now().millisecondsSinceEpoch,
           );
       if (_isFinalFileInDownloadBatch(parsedMetaData, update.task.taskId)) {
-        _ref.read(smartDownloadManagerProvider.notifier).requestReconcile(reason: 'download completed');
+        _ref
+            .read(smartDownloadManagerProvider.notifier)
+            .requestReconcile(reason: 'download completed', refreshSources: false);
+        final smartProfiles = _ref.read(smartDownloadManagerProvider).profiles;
+        final profileIds = parsedMetaData.smartProfileIds.toSet();
+        final isListeningDownload = smartProfiles.any((profile) {
+          if (!profile.enabled || !profileIds.contains(profile.id)) {
+            return false;
+          }
+
+          return profile.sources.any((source) => source.type == MediaSourceType.listeningThreshold);
+        });
+
+        if (isAudioHandlerInitialized && isListeningDownload) {
+          unawaited(audioHandler.useDownloadedAudio(parsedMetaData.itemId, parsedMetaData.userId));
+        }
       }
 
       final trackUri = _trackUriFromStoredUrl(storedTrackUrl);
@@ -1776,7 +1823,15 @@ class DownloadHandler {
     try {
       final decoded = jsonDecode(rawMetaData);
       if (decoded is Map) {
-        return DownloadTaskMetadata.fromJson(Map<String, dynamic>.from(decoded));
+        final metadata = DownloadTaskMetadata.fromJson(Map<String, dynamic>.from(decoded));
+        final profileIds = metadata.smartProfileIds
+            .map((id) {
+              return normalizeSmartDownloadProfileId(id, metadata.userId);
+            })
+            .toSet()
+            .toList(growable: false);
+
+        return metadata.copyWith(smartProfileIds: profileIds);
       }
 
       if (decoded is! List<dynamic> || decoded.length < 4) {
