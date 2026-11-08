@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.17.0
+
+### Added
+
+- Added UPnP casting support
+- Added settings backup and restore
+- Added controls to view and manage collection and playlist memberships from book details
+- Smart downloads can now be triggered by listening progress and configured with more filters
+- Option to prevent audio clipping during playback
+
+### Fixed
+
+- Improved listening history updates and synchronization
+- Fixed sign-in and playback with custom server headers on Wear OS
+
+### Changed
+
+- Reworked smart download planning and download management
+- Improved collection and playlist loading with pagination and synchronized membership updates
+- Improved Android Auto and Wear OS playback and browsing
+
 ## 1.16.0
 
 ### Added
