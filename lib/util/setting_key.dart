@@ -118,6 +118,7 @@ class SettingKeys {
   static const String playbackSpeedPerBook = 'playback_speed_per_book';
   static const String volume = 'volume';
   static const String skipSilence = 'skip_silence';
+  static const String preventWordClipping = 'prevent_word_clipping';
   static const String equalizerEnabled = 'equalizer_enabled';
   static const String equalizerPreset = 'equalizer_preset';
   static const String equalizerBandGains = 'equalizer_band_gains';
@@ -307,6 +308,7 @@ final defaultSettings = {
   SettingKeys.playbackSpeedPerBook: false,
   SettingKeys.volume: 1.0,
   SettingKeys.skipSilence: false,
+  SettingKeys.preventWordClipping: 'off',
   SettingKeys.equalizerEnabled: false,
   SettingKeys.equalizerPreset: 'Flat',
   SettingKeys.equalizerBandGains: '{}',

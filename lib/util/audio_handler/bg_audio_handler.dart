@@ -57,6 +57,8 @@ import 'package:yaabsa/models/queue_source.dart';
 import 'package:yaabsa/util/globals.dart' show packageInfo, downloadHandler;
 import 'package:yaabsa/util/handler/sleep_timer_handler.dart';
 import 'package:yaabsa/util/audio_handler/playback_error_classifier.dart';
+import 'package:yaabsa/util/audio_handler/playback_keep_alive.dart';
+import 'package:yaabsa/util/audio_handler/playback_keep_alive_level.dart';
 import 'package:yaabsa/util/audio_handler/playback_diagnostics.dart';
 import 'package:yaabsa/util/audio_handler/playback_sync_service.dart';
 import 'package:yaabsa/util/bluetooth_auto_resume.dart';
@@ -81,6 +83,7 @@ part 'bg_audio_handler_resume.dart';
 part 'bg_audio_handler_sleep_timer.dart';
 part 'bg_audio_handler_queue.dart';
 part 'bg_audio_handler_preferences.dart';
+part 'bg_audio_handler_keep_alive.dart';
 part 'bg_audio_handler_audio_session.dart';
 part 'bg_audio_handler_state.dart';
 part 'bg_audio_handler_cast.dart';
@@ -172,6 +175,10 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
   ];
   StreamSubscription<InternalChapter?>? _chapterSubscription;
   StreamSubscription<String?>? _skipSilenceSubscription;
+  final PlaybackKeepAlive _playbackKeepAlive = PlaybackKeepAlive();
+  final List<StreamSubscription<Object?>> _playbackKeepAliveSubscriptions = [];
+  PlaybackKeepAliveLevel _playbackKeepAliveLevel = PlaybackKeepAliveLevel.off;
+
   StreamSubscription<AudioEffectStatus>? _volumeBoostAvailabilitySubscription;
   StreamSubscription<String?>? _equalizerEnabledSubscription;
   StreamSubscription<String?>? _equalizerBandGainsSubscription;
@@ -2429,6 +2436,7 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     _playerControlStateSubject = BehaviorSubject<PlayerState>.seeded(_player.playerState);
     _volumeSubject = BehaviorSubject<double>.seeded(_readLastVolumeSetting());
     _initializeAudioSession();
+    _setupPlaybackKeepAlive();
 
     if (!kIsWeb && Platform.isAndroid) {
       _volumeBoostAvailabilitySubscription = _loudnessEnhancer!.statusStream.listen((status) {
@@ -3123,6 +3131,8 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
   Future<void> dispose() async {
     _isDisposing = true;
+    await _disposePlaybackKeepAlive();
+
     await _disposeReaderSpeech();
     await _speechPlaybackSubject.close();
     await _readerProgressSync.dispose();
