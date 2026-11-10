@@ -131,7 +131,7 @@ class LayoutHomeSidebar extends ConsumerWidget {
               ),
               child: Row(
                 children: [
-                  Icon(item.icon, color: itemColor),
+                  item.buildIcon(color: itemColor),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
@@ -161,7 +161,7 @@ class LayoutHomeSidebar extends ConsumerWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(item.icon, size: 22, color: itemColor),
+                  item.buildIcon(size: 22, color: itemColor),
                   const SizedBox(height: 2),
                   Text(
                     item.label,
@@ -191,7 +191,7 @@ class LayoutHomeSidebar extends ConsumerWidget {
                   color: isSelected ? selectedColor.withValues(alpha: 0.12) : Colors.transparent,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(item.icon, size: 22, color: itemColor),
+                child: item.buildIcon(size: 22, color: itemColor),
               ),
             ),
           ),

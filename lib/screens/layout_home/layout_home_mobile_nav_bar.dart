@@ -55,8 +55,7 @@ class LayoutHomeMobileNavBar extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
-                          item.icon,
+                        item.buildIcon(
                           color: isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
                           size: isSelected ? 26 : 22,
                         ),

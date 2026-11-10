@@ -39,6 +39,19 @@ abstract class LibraryItem with _$LibraryItem {
 
   factory LibraryItem.fromJson(Map<String, dynamic> json) => _$LibraryItemFromJson(json);
 
+  bool get hasIssue => isMissing == true || isInvalid == true;
+
+  String? get issueLabel {
+    if (isMissing == true) {
+      return 'Missing';
+    }
+    if (isInvalid == true) {
+      return 'Incomplete';
+    }
+
+    return null;
+  }
+
   // QoL
   String get title {
     final collapsedTitle = collapsedSeries?.name;

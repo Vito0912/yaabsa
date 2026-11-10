@@ -73,7 +73,8 @@ class LibraryView extends HookConsumerWidget {
       stream: currentUser == null ? null : appDatabase.watchUserSetting(currentUser.id, SettingKeys.collapseSeries),
       builder: (context, snapshot) {
         final collapseSeriesEnabled = SettingsParser.decodeValue<bool>(snapshot.data?.value, collapseSeriesFallback);
-        final initialCollapseSeries = selectedLibrary.mediaType == 'book' && collapseSeriesEnabled ? 1 : 0;
+        final initialCollapseSeries =
+            initialFilter != 'issues' && selectedLibrary.mediaType == 'book' && collapseSeriesEnabled ? 1 : 0;
         final itemsProvider = libraryItemsProvider(
           libraryId,
           initialFilter: initialFilter,
@@ -141,10 +142,16 @@ class LibraryView extends HookConsumerWidget {
                             child: items.isEmpty && !state.hasNextPage && !state.isLoadingNextPage
                                 ? ListView(
                                     physics: const AlwaysScrollableScrollPhysics(),
-                                    children: const [
+                                    children: [
                                       SizedBox(
                                         height: 200,
-                                        child: Center(child: Text('No items found in this library.')),
+                                        child: Center(
+                                          child: Text(
+                                            state.filter == 'issues'
+                                                ? 'No missing or incomplete items found.'
+                                                : 'No items found in this library.',
+                                          ),
+                                        ),
                                       ),
                                     ],
                                   )
@@ -259,7 +266,10 @@ class LibraryView extends HookConsumerWidget {
         );
         return ScreenRefreshIndicator(
           enabled: editingItemId.value == null,
-          onRefresh: () => ref.read(itemsProvider.notifier).refresh(),
+          onRefresh: () async {
+            ref.invalidate(libraryFilterDataProvider(libraryId));
+            await ref.read(itemsProvider.notifier).refresh();
+          },
           child: content,
         );
       },

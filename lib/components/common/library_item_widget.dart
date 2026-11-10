@@ -1,4 +1,5 @@
 import 'package:yaabsa/components/app/item/item_progress_actions.dart';
+import 'package:yaabsa/components/common/library_item_issue_indicator.dart';
 import 'package:flutter/foundation.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
@@ -313,7 +314,7 @@ class _LibraryItemWidgetState extends ConsumerState<LibraryItemWidget> {
                               ),
                             ),
                           )
-                        : widget.selectionMode && _isSelectableCard
+                        : (widget.selectionMode && _isSelectableCard) || widget.libraryItem.hasIssue
                         ? const SizedBox.shrink()
                         : Container(
                             decoration: BoxDecoration(
@@ -335,6 +336,8 @@ class _LibraryItemWidgetState extends ConsumerState<LibraryItemWidget> {
                             ),
                           ),
                   ),
+                  if (widget.libraryItem.hasIssue)
+                    Positioned(right: 4, bottom: 4, child: LibraryItemIssueIndicator(item: widget.libraryItem)),
                   if (showDesktopHoverEdit)
                     Positioned(
                       top: 4,

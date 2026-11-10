@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:yaabsa/provider/common/library_filter_data_provider.dart';
+
 import 'package:yaabsa/components/app/upload/library_upload_panel.dart';
 import 'package:yaabsa/components/common/desktop_page_shortcuts.dart';
 import 'package:yaabsa/database/settings_manager.dart';
@@ -165,7 +167,23 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
       }
       views.add(view);
     }
-    return views.map(_navigationItemForPrimaryView).toList(growable: false);
+    final items = views.map(_navigationItemForPrimaryView).toList();
+    final selectedLibrary = ref.read(selectedLibraryProvider);
+    final issueCount = selectedLibrary == null
+        ? 0
+        : ref.read(libraryFilterDataProvider(selectedLibrary.id)).value?.numIssues ?? 0;
+    if (issueCount > 0 || (_lastSelectedLabel == 'Issues' && selectedLibrary != null)) {
+      items.add(
+        NavigationItemConfig(
+          icon: Icons.warning_amber_rounded,
+          label: 'Issues',
+          badgeCount: issueCount,
+          page: const LibraryView(key: ValueKey('issues'), initialFilter: 'issues'),
+        ),
+      );
+    }
+
+    return items;
   }
 
   NavigationItemConfig _navigationItemForPrimaryView(HomePrimaryView view) {
@@ -301,6 +319,7 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
       'Downloads' => 'downloads',
       'Stats' => 'stats',
       'Settings' => 'settings',
+      'Issues' => 'issues',
       _ => 'shelf',
     };
   }
@@ -584,6 +603,10 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
       userId: currentUser?.id,
       libraryMediaType: selectedLibrary?.mediaType,
     );
+    if (selectedLibrary != null) {
+      ref.watch(libraryFilterDataProvider(selectedLibrary.id));
+    }
+
     final primaryItems = _visiblePrimaryItems(
       preferences: primaryPreferences,
       isAdminUser: _isAdminType(currentUser?.type),
@@ -602,6 +625,7 @@ class _LayoutHomeState extends ConsumerState<LayoutHome> {
             'downloads' => 'Downloads',
             'stats' => 'Stats',
             'settings' => 'Settings',
+            'issues' => 'Issues',
             _ => primaryPreferences.defaultView.label,
           };
 

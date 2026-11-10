@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:yaabsa/components/common/library_item_issue_indicator.dart';
+
 import 'package:yaabsa/components/common/screen_refresh_indicator.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
@@ -72,9 +74,24 @@ class _LibraryItemViewState extends ConsumerState<LibraryItemView> {
         _scheduleInitialEditor(item, isPodcast: isPodcast);
         return ScreenRefreshIndicator(
           onRefresh: _refreshItem,
-          child: isPodcast
-              ? LibraryItemPodcastView(item: item, canDownload: canDownload, initialEpisodeId: widget.initialEpisodeId)
-              : LibraryItemBookView(item: item, canDownload: canDownload),
+          child: Column(
+            children: [
+              if (item.hasIssue)
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: LibraryItemIssueIndicator(item: item, expanded: true),
+                ),
+              Expanded(
+                child: isPodcast
+                    ? LibraryItemPodcastView(
+                        item: item,
+                        canDownload: canDownload && !item.hasIssue,
+                        initialEpisodeId: widget.initialEpisodeId,
+                      )
+                    : LibraryItemBookView(item: item, canDownload: canDownload && !item.hasIssue),
+              ),
+            ],
+          ),
         );
       },
       error: (error, stackTrace) {

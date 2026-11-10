@@ -186,8 +186,12 @@ class LibraryItemBookView extends ConsumerWidget {
                                       prominentPlayback: true,
                                       playbackLabel: hasAudio ? label : null,
                                       playbackDetail: hasAudio ? detail : null,
-                                      hasAudio: hasAudio,
-                                      hasBook: hasBook,
+                                      hasAudio:
+                                          hasAudio &&
+                                          (!item.hasIssue || (storedDownload?.isCompleteForType('audiobook') ?? false)),
+                                      hasBook:
+                                          hasBook &&
+                                          (!item.hasIssue || (storedDownload?.isCompleteForType('ebook') ?? false)),
                                       canDownload: canDownload,
                                       downloadItemId: item.id,
                                       isDownloaded: isDownloaded,
