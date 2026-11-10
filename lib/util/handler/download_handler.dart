@@ -676,6 +676,10 @@ class DownloadHandler {
     if (item == null) {
       throw Exception('Library item with ID $itemId not found.');
     }
+    if (item.hasIssue) {
+      throw StateError('${item.issueLabel}: this item’s files are unavailable on the server.');
+    }
+
     final resolvedItem = item;
 
     if (resolvedItem.mediaType == 'podcast' && episodeId == null) {

@@ -1,5 +1,9 @@
 import 'dart:io';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:yaabsa/provider/common/stored_downloads_provider.dart';
+import 'package:yaabsa/components/common/library_item_issue_indicator.dart';
+
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
@@ -7,7 +11,7 @@ import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/util/globals.dart';
 
-class LibraryItemOverlayPlayButton extends StatelessWidget {
+class LibraryItemOverlayPlayButton extends ConsumerWidget {
   static const double size = 36;
 
   const LibraryItemOverlayPlayButton({
@@ -38,9 +42,21 @@ class LibraryItemOverlayPlayButton extends StatelessWidget {
   final bool isLoading;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
     final resolvedLibraryItemId = libraryItem?.id ?? libraryItemId!;
+
+    if (libraryItem?.hasIssue ?? false) {
+      final download = ref.watch(storedDownloadForItemProvider(resolvedLibraryItemId, episodeId: shelfEpisode?.id));
+      final downloadType = isEbook ? 'ebook' : 'audiobook';
+      if (download == null || !download.isCompleteForType(downloadType)) {
+        return SizedBox(
+          width: size,
+          height: size,
+          child: LibraryItemIssueIndicator(item: libraryItem!),
+        );
+      }
+    }
 
     return StreamBuilder<bool>(
       stream: audioHandler.queueTransitionLoadingStream,

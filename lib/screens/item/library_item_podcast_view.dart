@@ -425,7 +425,10 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                                           ? () => unawaited(playRandomLibraryItemOrEpisode([widget.item]))
                                           : null,
                                       onBack: () => context.pop(),
-                                      onPlayLatest: firstPlayableEpisode == null
+                                      onPlayLatest:
+                                          firstPlayableEpisode == null ||
+                                              (widget.item.hasIssue &&
+                                                  !(downloadsByEpisodeId[firstPlayableEpisode.id]?.isComplete ?? false))
                                           ? null
                                           : () {
                                               final episodeToPlay = firstPlayableEpisode;
@@ -704,7 +707,7 @@ class _LibraryItemPodcastViewState extends ConsumerState<LibraryItemPodcastView>
                                       });
                                     },
                                     onOpenDetails: () => _openEpisodeDetails(episode, visibleEpisodes),
-                                    onPlayPressed: episode.audioFile == null
+                                    onPlayPressed: episode.audioFile == null || (widget.item.hasIssue && !isDownloaded)
                                         ? null
                                         : () {
                                             if (isCurrentEpisode) {
