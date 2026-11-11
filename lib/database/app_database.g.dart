@@ -5234,7 +5234,14 @@ class $$GlobalSettingsTableTableManager
             required String value,
             Value<int> rowid = const Value.absent(),
           }) => GlobalSettingsCompanion.insert(key: key, value: value, rowid: rowid),
-          withReferenceMapper: (p0) => p0.map((e) => (e.readTable(table), BaseReferences(db, table, e))).toList(),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$GlobalSettingsTable, GlobalSettingEntry>(table),
+                  BaseReferences<_$AppDatabase, $GlobalSettingsTable, GlobalSettingEntry>(db, table, e),
+                ),
+              )
+              .toList(),
           prefetchHooksCallback: null,
         ),
       );
@@ -5352,7 +5359,14 @@ class $$UserSettingsTableTableManager
             required String value,
             Value<int> rowid = const Value.absent(),
           }) => UserSettingsCompanion.insert(userId: userId, key: key, value: value, rowid: rowid),
-          withReferenceMapper: (p0) => p0.map((e) => (e.readTable(table), BaseReferences(db, table, e))).toList(),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$UserSettingsTable, UserSettingEntry>(table),
+                  BaseReferences<_$AppDatabase, $UserSettingsTable, UserSettingEntry>(db, table, e),
+                ),
+              )
+              .toList(),
           prefetchHooksCallback: null,
         ),
       );
@@ -5497,7 +5511,14 @@ class $$BookPlaybackSpeedsTableTableManager
                 updatedAt: updatedAt,
                 rowid: rowid,
               ),
-          withReferenceMapper: (p0) => p0.map((e) => (e.readTable(table), BaseReferences(db, table, e))).toList(),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$BookPlaybackSpeedsTable, BookPlaybackSpeedEntry>(table),
+                  BaseReferences<_$AppDatabase, $BookPlaybackSpeedsTable, BookPlaybackSpeedEntry>(db, table, e),
+                ),
+              )
+              .toList(),
           prefetchHooksCallback: null,
         ),
       );
@@ -5663,7 +5684,18 @@ class $$ListeningDownloadProgressTableTableManager
                 progressPercent: progressPercent,
                 rowid: rowid,
               ),
-          withReferenceMapper: (p0) => p0.map((e) => (e.readTable(table), BaseReferences(db, table, e))).toList(),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$ListeningDownloadProgressTable, ListeningDownloadProgressEntry>(table),
+                  BaseReferences<_$AppDatabase, $ListeningDownloadProgressTable, ListeningDownloadProgressEntry>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
+              .toList(),
           prefetchHooksCallback: null,
         ),
       );
@@ -5772,7 +5804,14 @@ class $$StoredUsersTableTableManager
             required String userDataJson,
             Value<int> rowid = const Value.absent(),
           }) => StoredUsersCompanion.insert(id: id, userDataJson: userDataJson, rowid: rowid),
-          withReferenceMapper: (p0) => p0.map((e) => (e.readTable(table), BaseReferences(db, table, e))).toList(),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$StoredUsersTable, StoredUserEntry>(table),
+                  BaseReferences<_$AppDatabase, $StoredUsersTable, StoredUserEntry>(db, table, e),
+                ),
+              )
+              .toList(),
           prefetchHooksCallback: null,
         ),
       );
@@ -6006,7 +6045,14 @@ class $$StoredSyncsTableTableManager
                 mediaProgress: mediaProgress,
                 rowid: rowid,
               ),
-          withReferenceMapper: (p0) => p0.map((e) => (e.readTable(table), BaseReferences(db, table, e))).toList(),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$StoredSyncsTable, StoredSyncEntry>(table),
+                  BaseReferences<_$AppDatabase, $StoredSyncsTable, StoredSyncEntry>(db, table, e),
+                ),
+              )
+              .toList(),
           prefetchHooksCallback: null,
         ),
       );
@@ -6184,7 +6230,14 @@ class $$StoredMediaProgressTableTableManager
                 mediaProgress: mediaProgress,
                 rowid: rowid,
               ),
-          withReferenceMapper: (p0) => p0.map((e) => (e.readTable(table), BaseReferences(db, table, e))).toList(),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$StoredMediaProgressTable, StoredMediaProgressEntry>(table),
+                  BaseReferences<_$AppDatabase, $StoredMediaProgressTable, StoredMediaProgressEntry>(db, table, e),
+                ),
+              )
+              .toList(),
           prefetchHooksCallback: null,
         ),
       );
@@ -6356,7 +6409,14 @@ class $$StoredBookmarkSyncsTableTableManager
                 updatedAt: updatedAt,
                 rowid: rowid,
               ),
-          withReferenceMapper: (p0) => p0.map((e) => (e.readTable(table), BaseReferences(db, table, e))).toList(),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$StoredBookmarkSyncsTable, StoredBookmarkSyncEntry>(table),
+                  BaseReferences<_$AppDatabase, $StoredBookmarkSyncsTable, StoredBookmarkSyncEntry>(db, table, e),
+                ),
+              )
+              .toList(),
           prefetchHooksCallback: null,
         ),
       );
@@ -6559,7 +6619,14 @@ class $$StoredDownloadsTableTableManager
                 completedAt: completedAt,
                 rowid: rowid,
               ),
-          withReferenceMapper: (p0) => p0.map((e) => (e.readTable(table), BaseReferences(db, table, e))).toList(),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$StoredDownloadsTable, StoredDownloadsEntry>(table),
+                  BaseReferences<_$AppDatabase, $StoredDownloadsTable, StoredDownloadsEntry>(db, table, e),
+                ),
+              )
+              .toList(),
           prefetchHooksCallback: null,
         ),
       );
@@ -6748,7 +6815,14 @@ class $$StoredDownloadFilesTableTableManager
                 sidecarPath: sidecarPath,
                 rowid: rowid,
               ),
-          withReferenceMapper: (p0) => p0.map((e) => (e.readTable(table), BaseReferences(db, table, e))).toList(),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$StoredDownloadFilesTable, StoredDownloadFileEntry>(table),
+                  BaseReferences<_$AppDatabase, $StoredDownloadFilesTable, StoredDownloadFileEntry>(db, table, e),
+                ),
+              )
+              .toList(),
           prefetchHooksCallback: null,
         ),
       );
@@ -6921,7 +6995,14 @@ class $$SmartDownloadProfilesTableTableManager
                 updatedAt: updatedAt,
                 rowid: rowid,
               ),
-          withReferenceMapper: (p0) => p0.map((e) => (e.readTable(table), BaseReferences(db, table, e))).toList(),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$SmartDownloadProfilesTable, SmartDownloadProfileEntry>(table),
+                  BaseReferences<_$AppDatabase, $SmartDownloadProfilesTable, SmartDownloadProfileEntry>(db, table, e),
+                ),
+              )
+              .toList(),
           prefetchHooksCallback: null,
         ),
       );
@@ -7175,7 +7256,14 @@ class $$SmartDownloadSourcesTableTableManager
                 updatedAt: updatedAt,
                 rowid: rowid,
               ),
-          withReferenceMapper: (p0) => p0.map((e) => (e.readTable(table), BaseReferences(db, table, e))).toList(),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$SmartDownloadSourcesTable, SmartDownloadSourceEntry>(table),
+                  BaseReferences<_$AppDatabase, $SmartDownloadSourcesTable, SmartDownloadSourceEntry>(db, table, e),
+                ),
+              )
+              .toList(),
           prefetchHooksCallback: null,
         ),
       );
@@ -7406,7 +7494,14 @@ class $$SmartDownloadClaimsTableTableManager
                 updatedAt: updatedAt,
                 rowid: rowid,
               ),
-          withReferenceMapper: (p0) => p0.map((e) => (e.readTable(table), BaseReferences(db, table, e))).toList(),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$SmartDownloadClaimsTable, SmartDownloadClaimEntry>(table),
+                  BaseReferences<_$AppDatabase, $SmartDownloadClaimsTable, SmartDownloadClaimEntry>(db, table, e),
+                ),
+              )
+              .toList(),
           prefetchHooksCallback: null,
         ),
       );
@@ -7600,7 +7695,14 @@ class $$PlayerHistoryTableTableManager
                 detailsJson: detailsJson,
                 created: created,
               ),
-          withReferenceMapper: (p0) => p0.map((e) => (e.readTable(table), BaseReferences(db, table, e))).toList(),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$PlayerHistoryTable, PlayerHistoryEntry>(table),
+                  BaseReferences<_$AppDatabase, $PlayerHistoryTable, PlayerHistoryEntry>(db, table, e),
+                ),
+              )
+              .toList(),
           prefetchHooksCallback: null,
         ),
       );

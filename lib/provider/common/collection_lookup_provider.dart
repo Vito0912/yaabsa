@@ -45,7 +45,8 @@ Future<Collection> collectionById(Ref ref, String libraryId, String id) async {
   }
 
   final index = collectionsProvider(libraryId);
-  final known = ref.exists(index) ? ref.read(index).value : null;
+  final hasKnown = ref.read(index.exists);
+  final known = hasKnown ? ref.read(index).value : null;
   Collection? cached;
   final candidates = (known?.items ?? const <Collection>[]).followedBy(
     known?.pagination.bufferedItems ?? const <Collection>[],

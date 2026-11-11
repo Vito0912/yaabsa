@@ -29,16 +29,21 @@ $AdminBackupCopyWith<AdminBackup> get copyWith => _$AdminBackupCopyWithImpl<Admi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminBackup&&(identical(other.id, id) || other.id == id)&&(identical(other.key, key) || other.key == key)&&(identical(other.backupDirPath, backupDirPath) || other.backupDirPath == backupDirPath)&&(identical(other.datePretty, datePretty) || other.datePretty == datePretty)&&(identical(other.fullPath, fullPath) || other.fullPath == fullPath)&&(identical(other.path, path) || other.path == path)&&(identical(other.filename, filename) || other.filename == filename)&&(identical(other.fileSize, fileSize) || other.fileSize == fileSize)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.serverVersion, serverVersion) || other.serverVersion == serverVersion));
+  final _this = this as AdminBackup;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminBackup&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.key, _this.key) || other.key == _this.key)&&(identical(other.backupDirPath, _this.backupDirPath) || other.backupDirPath == _this.backupDirPath)&&(identical(other.datePretty, _this.datePretty) || other.datePretty == _this.datePretty)&&(identical(other.fullPath, _this.fullPath) || other.fullPath == _this.fullPath)&&(identical(other.path, _this.path) || other.path == _this.path)&&(identical(other.filename, _this.filename) || other.filename == _this.filename)&&(identical(other.fileSize, _this.fileSize) || other.fileSize == _this.fileSize)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.serverVersion, _this.serverVersion) || other.serverVersion == _this.serverVersion));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,key,backupDirPath,datePretty,fullPath,path,filename,fileSize,createdAt,serverVersion);
+int get hashCode {
+  final _this = this as AdminBackup;
+  return Object.hash(runtimeType,_this.id,_this.key,_this.backupDirPath,_this.datePretty,_this.fullPath,_this.path,_this.filename,_this.fileSize,_this.createdAt,_this.serverVersion);
+}
 
 @override
 String toString() {
-  return 'AdminBackup(id: $id, key: $key, backupDirPath: $backupDirPath, datePretty: $datePretty, fullPath: $fullPath, path: $path, filename: $filename, fileSize: $fileSize, createdAt: $createdAt, serverVersion: $serverVersion)';
+  final _this = this as AdminBackup;
+  return 'AdminBackup(id: ${_this.id}, key: ${_this.key}, backupDirPath: ${_this.backupDirPath}, datePretty: ${_this.datePretty}, fullPath: ${_this.fullPath}, path: ${_this.path}, filename: ${_this.filename}, fileSize: ${_this.fileSize}, createdAt: ${_this.createdAt}, serverVersion: ${_this.serverVersion})';
 }
 
 
@@ -246,16 +251,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminBackup&&(identical(other.id, id) || other.id == id)&&(identical(other.key, key) || other.key == key)&&(identical(other.backupDirPath, backupDirPath) || other.backupDirPath == backupDirPath)&&(identical(other.datePretty, datePretty) || other.datePretty == datePretty)&&(identical(other.fullPath, fullPath) || other.fullPath == fullPath)&&(identical(other.path, path) || other.path == path)&&(identical(other.filename, filename) || other.filename == filename)&&(identical(other.fileSize, fileSize) || other.fileSize == fileSize)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.serverVersion, serverVersion) || other.serverVersion == serverVersion));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminBackup&&(identical(other.id, id) || other.id == id)&&(identical(other.key, key) || other.key == key)&&(identical(other.backupDirPath, backupDirPath) || other.backupDirPath == backupDirPath)&&(identical(other.datePretty, datePretty) || other.datePretty == datePretty)&&(identical(other.fullPath, fullPath) || other.fullPath == fullPath)&&(identical(other.path, path) || other.path == path)&&(identical(other.filename, filename) || other.filename == filename)&&(identical(other.fileSize, fileSize) || other.fileSize == fileSize)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.serverVersion, serverVersion) || other.serverVersion == serverVersion));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,key,backupDirPath,datePretty,fullPath,path,filename,fileSize,createdAt,serverVersion);
+int get hashCode {
+    return Object.hash(runtimeType,id,key,backupDirPath,datePretty,fullPath,path,filename,fileSize,createdAt,serverVersion);
+}
 
 @override
 String toString() {
-  return 'AdminBackup(id: $id, key: $key, backupDirPath: $backupDirPath, datePretty: $datePretty, fullPath: $fullPath, path: $path, filename: $filename, fileSize: $fileSize, createdAt: $createdAt, serverVersion: $serverVersion)';
+    return 'AdminBackup(id: $id, key: $key, backupDirPath: $backupDirPath, datePretty: $datePretty, fullPath: $fullPath, path: $path, filename: $filename, fileSize: $fileSize, createdAt: $createdAt, serverVersion: $serverVersion)';
 }
 
 

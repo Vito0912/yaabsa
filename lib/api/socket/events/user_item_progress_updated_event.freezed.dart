@@ -29,16 +29,21 @@ $UserItemProgressUpdatedEventCopyWith<UserItemProgressUpdatedEvent> get copyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserItemProgressUpdatedEvent&&(identical(other.id, id) || other.id == id)&&(identical(other.data, data) || other.data == data));
+  final _this = this as UserItemProgressUpdatedEvent;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserItemProgressUpdatedEvent&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.data, _this.data) || other.data == _this.data));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,data);
+int get hashCode {
+  final _this = this as UserItemProgressUpdatedEvent;
+  return Object.hash(runtimeType,_this.id,_this.data);
+}
 
 @override
 String toString() {
-  return 'UserItemProgressUpdatedEvent(id: $id, data: $data)';
+  final _this = this as UserItemProgressUpdatedEvent;
+  return 'UserItemProgressUpdatedEvent(id: ${_this.id}, data: ${_this.data})';
 }
 
 
@@ -239,16 +244,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserItemProgressUpdatedEvent&&(identical(other.id, id) || other.id == id)&&(identical(other.data, data) || other.data == data));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserItemProgressUpdatedEvent&&(identical(other.id, id) || other.id == id)&&(identical(other.data, data) || other.data == data));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,data);
+int get hashCode {
+    return Object.hash(runtimeType,id,data);
+}
 
 @override
 String toString() {
-  return 'UserItemProgressUpdatedEvent(id: $id, data: $data)';
+    return 'UserItemProgressUpdatedEvent(id: $id, data: $data)';
 }
 
 

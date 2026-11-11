@@ -172,7 +172,7 @@ final class CollectionByIdProvider extends $FunctionalProvider<AsyncValue<Collec
   }
 }
 
-String _$collectionByIdHash() => r'1ca0d3bc0030c39568a94ccc23dc610ffe1da160';
+String _$collectionByIdHash() => r'04ac0724ba4a00b609b999077966a42d8a25e2c5';
 
 final class CollectionByIdFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<Collection>, (String, String)> {

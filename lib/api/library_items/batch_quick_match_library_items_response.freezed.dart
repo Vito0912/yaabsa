@@ -29,16 +29,21 @@ $BatchQuickMatchLibraryItemsResponseCopyWith<BatchQuickMatchLibraryItemsResponse
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BatchQuickMatchLibraryItemsResponse&&(identical(other.success, success) || other.success == success)&&(identical(other.updates, updates) || other.updates == updates)&&(identical(other.unmatched, unmatched) || other.unmatched == unmatched)&&(identical(other.message, message) || other.message == message)&&(identical(other.error, error) || other.error == error));
+  final _this = this as BatchQuickMatchLibraryItemsResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BatchQuickMatchLibraryItemsResponse&&(identical(other.success, _this.success) || other.success == _this.success)&&(identical(other.updates, _this.updates) || other.updates == _this.updates)&&(identical(other.unmatched, _this.unmatched) || other.unmatched == _this.unmatched)&&(identical(other.message, _this.message) || other.message == _this.message)&&(identical(other.error, _this.error) || other.error == _this.error));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,success,updates,unmatched,message,error);
+int get hashCode {
+  final _this = this as BatchQuickMatchLibraryItemsResponse;
+  return Object.hash(runtimeType,_this.success,_this.updates,_this.unmatched,_this.message,_this.error);
+}
 
 @override
 String toString() {
-  return 'BatchQuickMatchLibraryItemsResponse(success: $success, updates: $updates, unmatched: $unmatched, message: $message, error: $error)';
+  final _this = this as BatchQuickMatchLibraryItemsResponse;
+  return 'BatchQuickMatchLibraryItemsResponse(success: ${_this.success}, updates: ${_this.updates}, unmatched: ${_this.unmatched}, message: ${_this.message}, error: ${_this.error})';
 }
 
 
@@ -236,16 +241,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BatchQuickMatchLibraryItemsResponse&&(identical(other.success, success) || other.success == success)&&(identical(other.updates, updates) || other.updates == updates)&&(identical(other.unmatched, unmatched) || other.unmatched == unmatched)&&(identical(other.message, message) || other.message == message)&&(identical(other.error, error) || other.error == error));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _BatchQuickMatchLibraryItemsResponse&&(identical(other.success, success) || other.success == success)&&(identical(other.updates, updates) || other.updates == updates)&&(identical(other.unmatched, unmatched) || other.unmatched == unmatched)&&(identical(other.message, message) || other.message == message)&&(identical(other.error, error) || other.error == error));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,success,updates,unmatched,message,error);
+int get hashCode {
+    return Object.hash(runtimeType,success,updates,unmatched,message,error);
+}
 
 @override
 String toString() {
-  return 'BatchQuickMatchLibraryItemsResponse(success: $success, updates: $updates, unmatched: $unmatched, message: $message, error: $error)';
+    return 'BatchQuickMatchLibraryItemsResponse(success: $success, updates: $updates, unmatched: $unmatched, message: $message, error: $error)';
 }
 
 

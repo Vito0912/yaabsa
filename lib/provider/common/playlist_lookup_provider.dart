@@ -32,7 +32,8 @@ Future<Playlist> playlistById(Ref ref, String libraryId, String id) async {
   }
 
   final index = playlistsProvider(libraryId);
-  final known = ref.exists(index) ? ref.read(index).value : null;
+  final hasKnown = ref.read(index.exists);
+  final known = hasKnown ? ref.read(index).value : null;
   Playlist? cached;
   final candidates = (known?.items ?? const <Playlist>[]).followedBy(
     known?.pagination.bufferedItems ?? const <Playlist>[],

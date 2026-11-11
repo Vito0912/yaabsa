@@ -29,16 +29,21 @@ $AdminApiKeyCopyWith<AdminApiKey> get copyWith => _$AdminApiKeyCopyWithImpl<Admi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminApiKey&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt)&&(identical(other.lastUsedAt, lastUsedAt) || other.lastUsedAt == lastUsedAt)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.permissions, permissions) || other.permissions == permissions)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.createdByUserId, createdByUserId) || other.createdByUserId == createdByUserId)&&(identical(other.user, user) || other.user == user)&&(identical(other.createdByUser, createdByUser) || other.createdByUser == createdByUser)&&(identical(other.apiKey, apiKey) || other.apiKey == apiKey));
+  final _this = this as AdminApiKey;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminApiKey&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.description, _this.description) || other.description == _this.description)&&(identical(other.expiresAt, _this.expiresAt) || other.expiresAt == _this.expiresAt)&&(identical(other.lastUsedAt, _this.lastUsedAt) || other.lastUsedAt == _this.lastUsedAt)&&(identical(other.isActive, _this.isActive) || other.isActive == _this.isActive)&&(identical(other.permissions, _this.permissions) || other.permissions == _this.permissions)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt)&&(identical(other.userId, _this.userId) || other.userId == _this.userId)&&(identical(other.createdByUserId, _this.createdByUserId) || other.createdByUserId == _this.createdByUserId)&&(identical(other.user, _this.user) || other.user == _this.user)&&(identical(other.createdByUser, _this.createdByUser) || other.createdByUser == _this.createdByUser)&&(identical(other.apiKey, _this.apiKey) || other.apiKey == _this.apiKey));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,description,expiresAt,lastUsedAt,isActive,permissions,createdAt,updatedAt,userId,createdByUserId,user,createdByUser,apiKey);
+int get hashCode {
+  final _this = this as AdminApiKey;
+  return Object.hash(runtimeType,_this.id,_this.name,_this.description,_this.expiresAt,_this.lastUsedAt,_this.isActive,_this.permissions,_this.createdAt,_this.updatedAt,_this.userId,_this.createdByUserId,_this.user,_this.createdByUser,_this.apiKey);
+}
 
 @override
 String toString() {
-  return 'AdminApiKey(id: $id, name: $name, description: $description, expiresAt: $expiresAt, lastUsedAt: $lastUsedAt, isActive: $isActive, permissions: $permissions, createdAt: $createdAt, updatedAt: $updatedAt, userId: $userId, createdByUserId: $createdByUserId, user: $user, createdByUser: $createdByUser, apiKey: $apiKey)';
+  final _this = this as AdminApiKey;
+  return 'AdminApiKey(id: ${_this.id}, name: ${_this.name}, description: ${_this.description}, expiresAt: ${_this.expiresAt}, lastUsedAt: ${_this.lastUsedAt}, isActive: ${_this.isActive}, permissions: ${_this.permissions}, createdAt: ${_this.createdAt}, updatedAt: ${_this.updatedAt}, userId: ${_this.userId}, createdByUserId: ${_this.createdByUserId}, user: ${_this.user}, createdByUser: ${_this.createdByUser}, apiKey: ${_this.apiKey})';
 }
 
 
@@ -287,16 +292,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminApiKey&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt)&&(identical(other.lastUsedAt, lastUsedAt) || other.lastUsedAt == lastUsedAt)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.permissions, permissions) || other.permissions == permissions)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.createdByUserId, createdByUserId) || other.createdByUserId == createdByUserId)&&(identical(other.user, user) || other.user == user)&&(identical(other.createdByUser, createdByUser) || other.createdByUser == createdByUser)&&(identical(other.apiKey, apiKey) || other.apiKey == apiKey));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminApiKey&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt)&&(identical(other.lastUsedAt, lastUsedAt) || other.lastUsedAt == lastUsedAt)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.permissions, permissions) || other.permissions == permissions)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.createdByUserId, createdByUserId) || other.createdByUserId == createdByUserId)&&(identical(other.user, user) || other.user == user)&&(identical(other.createdByUser, createdByUser) || other.createdByUser == createdByUser)&&(identical(other.apiKey, apiKey) || other.apiKey == apiKey));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,description,expiresAt,lastUsedAt,isActive,permissions,createdAt,updatedAt,userId,createdByUserId,user,createdByUser,apiKey);
+int get hashCode {
+    return Object.hash(runtimeType,id,name,description,expiresAt,lastUsedAt,isActive,permissions,createdAt,updatedAt,userId,createdByUserId,user,createdByUser,apiKey);
+}
 
 @override
 String toString() {
-  return 'AdminApiKey(id: $id, name: $name, description: $description, expiresAt: $expiresAt, lastUsedAt: $lastUsedAt, isActive: $isActive, permissions: $permissions, createdAt: $createdAt, updatedAt: $updatedAt, userId: $userId, createdByUserId: $createdByUserId, user: $user, createdByUser: $createdByUser, apiKey: $apiKey)';
+    return 'AdminApiKey(id: $id, name: $name, description: $description, expiresAt: $expiresAt, lastUsedAt: $lastUsedAt, isActive: $isActive, permissions: $permissions, createdAt: $createdAt, updatedAt: $updatedAt, userId: $userId, createdByUserId: $createdByUserId, user: $user, createdByUser: $createdByUser, apiKey: $apiKey)';
 }
 
 

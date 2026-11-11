@@ -240,6 +240,9 @@ final class _MemoryFile extends PlatformFile {
   Future<int> length() async => _bytes.length;
 
   @override
+  int lengthSync() => _bytes.length;
+
+  @override
   Future<Uint8List> readAsBytes() async => _bytes;
 
   @override

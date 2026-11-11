@@ -29,16 +29,21 @@ $PermissionsCopyWith<Permissions> get copyWith => _$PermissionsCopyWithImpl<Perm
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Permissions&&(identical(other.download, download) || other.download == download)&&(identical(other.update, update) || other.update == update)&&(identical(other.delete, delete) || other.delete == delete)&&(identical(other.upload, upload) || other.upload == upload)&&(identical(other.accessAllLibraries, accessAllLibraries) || other.accessAllLibraries == accessAllLibraries)&&(identical(other.accessAllTags, accessAllTags) || other.accessAllTags == accessAllTags)&&(identical(other.accessExplicitContent, accessExplicitContent) || other.accessExplicitContent == accessExplicitContent));
+  final _this = this as Permissions;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Permissions&&(identical(other.download, _this.download) || other.download == _this.download)&&(identical(other.update, _this.update) || other.update == _this.update)&&(identical(other.delete, _this.delete) || other.delete == _this.delete)&&(identical(other.upload, _this.upload) || other.upload == _this.upload)&&(identical(other.accessAllLibraries, _this.accessAllLibraries) || other.accessAllLibraries == _this.accessAllLibraries)&&(identical(other.accessAllTags, _this.accessAllTags) || other.accessAllTags == _this.accessAllTags)&&(identical(other.accessExplicitContent, _this.accessExplicitContent) || other.accessExplicitContent == _this.accessExplicitContent));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,download,update,delete,upload,accessAllLibraries,accessAllTags,accessExplicitContent);
+int get hashCode {
+  final _this = this as Permissions;
+  return Object.hash(runtimeType,_this.download,_this.update,_this.delete,_this.upload,_this.accessAllLibraries,_this.accessAllTags,_this.accessExplicitContent);
+}
 
 @override
 String toString() {
-  return 'Permissions(download: $download, update: $update, delete: $delete, upload: $upload, accessAllLibraries: $accessAllLibraries, accessAllTags: $accessAllTags, accessExplicitContent: $accessExplicitContent)';
+  final _this = this as Permissions;
+  return 'Permissions(download: ${_this.download}, update: ${_this.update}, delete: ${_this.delete}, upload: ${_this.upload}, accessAllLibraries: ${_this.accessAllLibraries}, accessAllTags: ${_this.accessAllTags}, accessExplicitContent: ${_this.accessExplicitContent})';
 }
 
 
@@ -240,16 +245,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Permissions&&(identical(other.download, download) || other.download == download)&&(identical(other.update, update) || other.update == update)&&(identical(other.delete, delete) || other.delete == delete)&&(identical(other.upload, upload) || other.upload == upload)&&(identical(other.accessAllLibraries, accessAllLibraries) || other.accessAllLibraries == accessAllLibraries)&&(identical(other.accessAllTags, accessAllTags) || other.accessAllTags == accessAllTags)&&(identical(other.accessExplicitContent, accessExplicitContent) || other.accessExplicitContent == accessExplicitContent));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Permissions&&(identical(other.download, download) || other.download == download)&&(identical(other.update, update) || other.update == update)&&(identical(other.delete, delete) || other.delete == delete)&&(identical(other.upload, upload) || other.upload == upload)&&(identical(other.accessAllLibraries, accessAllLibraries) || other.accessAllLibraries == accessAllLibraries)&&(identical(other.accessAllTags, accessAllTags) || other.accessAllTags == accessAllTags)&&(identical(other.accessExplicitContent, accessExplicitContent) || other.accessExplicitContent == accessExplicitContent));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,download,update,delete,upload,accessAllLibraries,accessAllTags,accessExplicitContent);
+int get hashCode {
+    return Object.hash(runtimeType,download,update,delete,upload,accessAllLibraries,accessAllTags,accessExplicitContent);
+}
 
 @override
 String toString() {
-  return 'Permissions(download: $download, update: $update, delete: $delete, upload: $upload, accessAllLibraries: $accessAllLibraries, accessAllTags: $accessAllTags, accessExplicitContent: $accessExplicitContent)';
+    return 'Permissions(download: $download, update: $update, delete: $delete, upload: $upload, accessAllLibraries: $accessAllLibraries, accessAllTags: $accessAllTags, accessExplicitContent: $accessExplicitContent)';
 }
 
 

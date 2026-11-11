@@ -29,16 +29,21 @@ $PodcastMediaCopyWith<PodcastMedia> get copyWith => _$PodcastMediaCopyWithImpl<P
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PodcastMedia&&(identical(other.id, id) || other.id == id)&&(identical(other.libraryItemId, libraryItemId) || other.libraryItemId == libraryItemId)&&(identical(other.metadata, metadata) || other.metadata == metadata)&&(identical(other.coverPath, coverPath) || other.coverPath == coverPath)&&const DeepCollectionEquality().equals(other.tags, tags)&&const DeepCollectionEquality().equals(other.episodes, episodes)&&(identical(other.numEpisodes, numEpisodes) || other.numEpisodes == numEpisodes)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.autoDownloadEpisodes, autoDownloadEpisodes) || other.autoDownloadEpisodes == autoDownloadEpisodes)&&(identical(other.autoDownloadSchedule, autoDownloadSchedule) || other.autoDownloadSchedule == autoDownloadSchedule)&&(identical(other.lastEpisodeCheck, lastEpisodeCheck) || other.lastEpisodeCheck == lastEpisodeCheck)&&(identical(other.maxEpisodesToKeep, maxEpisodesToKeep) || other.maxEpisodesToKeep == maxEpisodesToKeep)&&(identical(other.maxNewEpisodesToDownload, maxNewEpisodesToDownload) || other.maxNewEpisodesToDownload == maxNewEpisodesToDownload));
+  final _this = this as PodcastMedia;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PodcastMedia&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.libraryItemId, _this.libraryItemId) || other.libraryItemId == _this.libraryItemId)&&(identical(other.metadata, _this.metadata) || other.metadata == _this.metadata)&&(identical(other.coverPath, _this.coverPath) || other.coverPath == _this.coverPath)&&const DeepCollectionEquality().equals(other.tags, _this.tags)&&const DeepCollectionEquality().equals(other.episodes, _this.episodes)&&(identical(other.numEpisodes, _this.numEpisodes) || other.numEpisodes == _this.numEpisodes)&&(identical(other.duration, _this.duration) || other.duration == _this.duration)&&(identical(other.autoDownloadEpisodes, _this.autoDownloadEpisodes) || other.autoDownloadEpisodes == _this.autoDownloadEpisodes)&&(identical(other.autoDownloadSchedule, _this.autoDownloadSchedule) || other.autoDownloadSchedule == _this.autoDownloadSchedule)&&(identical(other.lastEpisodeCheck, _this.lastEpisodeCheck) || other.lastEpisodeCheck == _this.lastEpisodeCheck)&&(identical(other.maxEpisodesToKeep, _this.maxEpisodesToKeep) || other.maxEpisodesToKeep == _this.maxEpisodesToKeep)&&(identical(other.maxNewEpisodesToDownload, _this.maxNewEpisodesToDownload) || other.maxNewEpisodesToDownload == _this.maxNewEpisodesToDownload));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,libraryItemId,metadata,coverPath,const DeepCollectionEquality().hash(tags),const DeepCollectionEquality().hash(episodes),numEpisodes,duration,autoDownloadEpisodes,autoDownloadSchedule,lastEpisodeCheck,maxEpisodesToKeep,maxNewEpisodesToDownload);
+int get hashCode {
+  final _this = this as PodcastMedia;
+  return Object.hash(runtimeType,_this.id,_this.libraryItemId,_this.metadata,_this.coverPath,const DeepCollectionEquality().hash(_this.tags),const DeepCollectionEquality().hash(_this.episodes),_this.numEpisodes,_this.duration,_this.autoDownloadEpisodes,_this.autoDownloadSchedule,_this.lastEpisodeCheck,_this.maxEpisodesToKeep,_this.maxNewEpisodesToDownload);
+}
 
 @override
 String toString() {
-  return 'PodcastMedia(id: $id, libraryItemId: $libraryItemId, metadata: $metadata, coverPath: $coverPath, tags: $tags, episodes: $episodes, numEpisodes: $numEpisodes, duration: $duration, autoDownloadEpisodes: $autoDownloadEpisodes, autoDownloadSchedule: $autoDownloadSchedule, lastEpisodeCheck: $lastEpisodeCheck, maxEpisodesToKeep: $maxEpisodesToKeep, maxNewEpisodesToDownload: $maxNewEpisodesToDownload)';
+  final _this = this as PodcastMedia;
+  return 'PodcastMedia(id: ${_this.id}, libraryItemId: ${_this.libraryItemId}, metadata: ${_this.metadata}, coverPath: ${_this.coverPath}, tags: ${_this.tags}, episodes: ${_this.episodes}, numEpisodes: ${_this.numEpisodes}, duration: ${_this.duration}, autoDownloadEpisodes: ${_this.autoDownloadEpisodes}, autoDownloadSchedule: ${_this.autoDownloadSchedule}, lastEpisodeCheck: ${_this.lastEpisodeCheck}, maxEpisodesToKeep: ${_this.maxEpisodesToKeep}, maxNewEpisodesToDownload: ${_this.maxNewEpisodesToDownload})';
 }
 
 
@@ -277,16 +282,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PodcastMedia&&(identical(other.id, id) || other.id == id)&&(identical(other.libraryItemId, libraryItemId) || other.libraryItemId == libraryItemId)&&(identical(other.metadata, metadata) || other.metadata == metadata)&&(identical(other.coverPath, coverPath) || other.coverPath == coverPath)&&const DeepCollectionEquality().equals(other._tags, _tags)&&const DeepCollectionEquality().equals(other._episodes, _episodes)&&(identical(other.numEpisodes, numEpisodes) || other.numEpisodes == numEpisodes)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.autoDownloadEpisodes, autoDownloadEpisodes) || other.autoDownloadEpisodes == autoDownloadEpisodes)&&(identical(other.autoDownloadSchedule, autoDownloadSchedule) || other.autoDownloadSchedule == autoDownloadSchedule)&&(identical(other.lastEpisodeCheck, lastEpisodeCheck) || other.lastEpisodeCheck == lastEpisodeCheck)&&(identical(other.maxEpisodesToKeep, maxEpisodesToKeep) || other.maxEpisodesToKeep == maxEpisodesToKeep)&&(identical(other.maxNewEpisodesToDownload, maxNewEpisodesToDownload) || other.maxNewEpisodesToDownload == maxNewEpisodesToDownload));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PodcastMedia&&(identical(other.id, id) || other.id == id)&&(identical(other.libraryItemId, libraryItemId) || other.libraryItemId == libraryItemId)&&(identical(other.metadata, metadata) || other.metadata == metadata)&&(identical(other.coverPath, coverPath) || other.coverPath == coverPath)&&const DeepCollectionEquality().equals(other.tags, _tags)&&const DeepCollectionEquality().equals(other.episodes, _episodes)&&(identical(other.numEpisodes, numEpisodes) || other.numEpisodes == numEpisodes)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.autoDownloadEpisodes, autoDownloadEpisodes) || other.autoDownloadEpisodes == autoDownloadEpisodes)&&(identical(other.autoDownloadSchedule, autoDownloadSchedule) || other.autoDownloadSchedule == autoDownloadSchedule)&&(identical(other.lastEpisodeCheck, lastEpisodeCheck) || other.lastEpisodeCheck == lastEpisodeCheck)&&(identical(other.maxEpisodesToKeep, maxEpisodesToKeep) || other.maxEpisodesToKeep == maxEpisodesToKeep)&&(identical(other.maxNewEpisodesToDownload, maxNewEpisodesToDownload) || other.maxNewEpisodesToDownload == maxNewEpisodesToDownload));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,libraryItemId,metadata,coverPath,const DeepCollectionEquality().hash(_tags),const DeepCollectionEquality().hash(_episodes),numEpisodes,duration,autoDownloadEpisodes,autoDownloadSchedule,lastEpisodeCheck,maxEpisodesToKeep,maxNewEpisodesToDownload);
+int get hashCode {
+    return Object.hash(runtimeType,id,libraryItemId,metadata,coverPath,const DeepCollectionEquality().hash(_tags),const DeepCollectionEquality().hash(_episodes),numEpisodes,duration,autoDownloadEpisodes,autoDownloadSchedule,lastEpisodeCheck,maxEpisodesToKeep,maxNewEpisodesToDownload);
+}
 
 @override
 String toString() {
-  return 'PodcastMedia(id: $id, libraryItemId: $libraryItemId, metadata: $metadata, coverPath: $coverPath, tags: $tags, episodes: $episodes, numEpisodes: $numEpisodes, duration: $duration, autoDownloadEpisodes: $autoDownloadEpisodes, autoDownloadSchedule: $autoDownloadSchedule, lastEpisodeCheck: $lastEpisodeCheck, maxEpisodesToKeep: $maxEpisodesToKeep, maxNewEpisodesToDownload: $maxNewEpisodesToDownload)';
+    return 'PodcastMedia(id: $id, libraryItemId: $libraryItemId, metadata: $metadata, coverPath: $coverPath, tags: $tags, episodes: $episodes, numEpisodes: $numEpisodes, duration: $duration, autoDownloadEpisodes: $autoDownloadEpisodes, autoDownloadSchedule: $autoDownloadSchedule, lastEpisodeCheck: $lastEpisodeCheck, maxEpisodesToKeep: $maxEpisodesToKeep, maxNewEpisodesToDownload: $maxNewEpisodesToDownload)';
 }
 
 

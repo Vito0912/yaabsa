@@ -29,16 +29,21 @@ $BookmarkCopyWith<Bookmark> get copyWith => _$BookmarkCopyWithImpl<Bookmark>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Bookmark&&(identical(other.libraryItemId, libraryItemId) || other.libraryItemId == libraryItemId)&&(identical(other.title, title) || other.title == title)&&(identical(other.time, time) || other.time == time)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  final _this = this as Bookmark;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Bookmark&&(identical(other.libraryItemId, _this.libraryItemId) || other.libraryItemId == _this.libraryItemId)&&(identical(other.title, _this.title) || other.title == _this.title)&&(identical(other.time, _this.time) || other.time == _this.time)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,libraryItemId,title,time,createdAt);
+int get hashCode {
+  final _this = this as Bookmark;
+  return Object.hash(runtimeType,_this.libraryItemId,_this.title,_this.time,_this.createdAt);
+}
 
 @override
 String toString() {
-  return 'Bookmark(libraryItemId: $libraryItemId, title: $title, time: $time, createdAt: $createdAt)';
+  final _this = this as Bookmark;
+  return 'Bookmark(libraryItemId: ${_this.libraryItemId}, title: ${_this.title}, time: ${_this.time}, createdAt: ${_this.createdAt})';
 }
 
 
@@ -234,16 +239,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Bookmark&&(identical(other.libraryItemId, libraryItemId) || other.libraryItemId == libraryItemId)&&(identical(other.title, title) || other.title == title)&&(identical(other.time, time) || other.time == time)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Bookmark&&(identical(other.libraryItemId, libraryItemId) || other.libraryItemId == libraryItemId)&&(identical(other.title, title) || other.title == title)&&(identical(other.time, time) || other.time == time)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,libraryItemId,title,time,createdAt);
+int get hashCode {
+    return Object.hash(runtimeType,libraryItemId,title,time,createdAt);
+}
 
 @override
 String toString() {
-  return 'Bookmark(libraryItemId: $libraryItemId, title: $title, time: $time, createdAt: $createdAt)';
+    return 'Bookmark(libraryItemId: $libraryItemId, title: $title, time: $time, createdAt: $createdAt)';
 }
 
 

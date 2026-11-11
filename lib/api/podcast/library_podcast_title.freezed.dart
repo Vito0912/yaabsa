@@ -29,16 +29,21 @@ $LibraryPodcastTitleCopyWith<LibraryPodcastTitle> get copyWith => _$LibraryPodca
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LibraryPodcastTitle&&(identical(other.id, id) || other.id == id)&&(identical(other.libraryItemId, libraryItemId) || other.libraryItemId == libraryItemId)&&(identical(other.title, title) || other.title == title)&&(identical(other.itunesId, itunesId) || other.itunesId == itunesId));
+  final _this = this as LibraryPodcastTitle;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LibraryPodcastTitle&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.libraryItemId, _this.libraryItemId) || other.libraryItemId == _this.libraryItemId)&&(identical(other.title, _this.title) || other.title == _this.title)&&(identical(other.itunesId, _this.itunesId) || other.itunesId == _this.itunesId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,libraryItemId,title,itunesId);
+int get hashCode {
+  final _this = this as LibraryPodcastTitle;
+  return Object.hash(runtimeType,_this.id,_this.libraryItemId,_this.title,_this.itunesId);
+}
 
 @override
 String toString() {
-  return 'LibraryPodcastTitle(id: $id, libraryItemId: $libraryItemId, title: $title, itunesId: $itunesId)';
+  final _this = this as LibraryPodcastTitle;
+  return 'LibraryPodcastTitle(id: ${_this.id}, libraryItemId: ${_this.libraryItemId}, title: ${_this.title}, itunesId: ${_this.itunesId})';
 }
 
 
@@ -234,16 +239,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LibraryPodcastTitle&&(identical(other.id, id) || other.id == id)&&(identical(other.libraryItemId, libraryItemId) || other.libraryItemId == libraryItemId)&&(identical(other.title, title) || other.title == title)&&(identical(other.itunesId, itunesId) || other.itunesId == itunesId));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _LibraryPodcastTitle&&(identical(other.id, id) || other.id == id)&&(identical(other.libraryItemId, libraryItemId) || other.libraryItemId == libraryItemId)&&(identical(other.title, title) || other.title == title)&&(identical(other.itunesId, itunesId) || other.itunesId == itunesId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,libraryItemId,title,itunesId);
+int get hashCode {
+    return Object.hash(runtimeType,id,libraryItemId,title,itunesId);
+}
 
 @override
 String toString() {
-  return 'LibraryPodcastTitle(id: $id, libraryItemId: $libraryItemId, title: $title, itunesId: $itunesId)';
+    return 'LibraryPodcastTitle(id: $id, libraryItemId: $libraryItemId, title: $title, itunesId: $itunesId)';
 }
 
 

@@ -29,16 +29,21 @@ $LibraryResponseCopyWith<LibraryResponse> get copyWith => _$LibraryResponseCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LibraryResponse&&const DeepCollectionEquality().equals(other.libraries, libraries));
+  final _this = this as LibraryResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LibraryResponse&&const DeepCollectionEquality().equals(other.libraries, _this.libraries));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(libraries));
+int get hashCode {
+  final _this = this as LibraryResponse;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.libraries));
+}
 
 @override
 String toString() {
-  return 'LibraryResponse(libraries: $libraries)';
+  final _this = this as LibraryResponse;
+  return 'LibraryResponse(libraries: ${_this.libraries})';
 }
 
 
@@ -234,16 +239,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LibraryResponse&&const DeepCollectionEquality().equals(other._libraries, _libraries));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _LibraryResponse&&const DeepCollectionEquality().equals(other.libraries, _libraries));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_libraries));
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_libraries));
+}
 
 @override
 String toString() {
-  return 'LibraryResponse(libraries: $libraries)';
+    return 'LibraryResponse(libraries: $libraries)';
 }
 
 

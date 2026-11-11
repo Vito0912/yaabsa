@@ -29,16 +29,21 @@ $PlayableRefCopyWith<PlayableRef> get copyWith => _$PlayableRefCopyWithImpl<Play
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PlayableRef&&(identical(other.itemId, itemId) || other.itemId == itemId)&&(identical(other.episodeId, episodeId) || other.episodeId == episodeId));
+  final _this = this as PlayableRef;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PlayableRef&&(identical(other.itemId, _this.itemId) || other.itemId == _this.itemId)&&(identical(other.episodeId, _this.episodeId) || other.episodeId == _this.episodeId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,itemId,episodeId);
+int get hashCode {
+  final _this = this as PlayableRef;
+  return Object.hash(runtimeType,_this.itemId,_this.episodeId);
+}
 
 @override
 String toString() {
-  return 'PlayableRef(itemId: $itemId, episodeId: $episodeId)';
+  final _this = this as PlayableRef;
+  return 'PlayableRef(itemId: ${_this.itemId}, episodeId: ${_this.episodeId})';
 }
 
 
@@ -230,16 +235,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PlayableRef&&(identical(other.itemId, itemId) || other.itemId == itemId)&&(identical(other.episodeId, episodeId) || other.episodeId == episodeId));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PlayableRef&&(identical(other.itemId, itemId) || other.itemId == itemId)&&(identical(other.episodeId, episodeId) || other.episodeId == episodeId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,itemId,episodeId);
+int get hashCode {
+    return Object.hash(runtimeType,itemId,episodeId);
+}
 
 @override
 String toString() {
-  return 'PlayableRef(itemId: $itemId, episodeId: $episodeId)';
+    return 'PlayableRef(itemId: $itemId, episodeId: $episodeId)';
 }
 
 
@@ -295,16 +302,21 @@ $MediaSourceDescriptorCopyWith<MediaSourceDescriptor> get copyWith => _$MediaSou
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MediaSourceDescriptor&&(identical(other.type, type) || other.type == type)&&(identical(other.sourceId, sourceId) || other.sourceId == sourceId)&&(identical(other.libraryId, libraryId) || other.libraryId == libraryId)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.descending, descending) || other.descending == descending)&&(identical(other.revision, revision) || other.revision == revision)&&(identical(other.listeningTrigger, listeningTrigger) || other.listeningTrigger == listeningTrigger)&&(identical(other.listeningThreshold, listeningThreshold) || other.listeningThreshold == listeningThreshold));
+  final _this = this as MediaSourceDescriptor;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MediaSourceDescriptor&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.sourceId, _this.sourceId) || other.sourceId == _this.sourceId)&&(identical(other.libraryId, _this.libraryId) || other.libraryId == _this.libraryId)&&(identical(other.displayName, _this.displayName) || other.displayName == _this.displayName)&&(identical(other.descending, _this.descending) || other.descending == _this.descending)&&(identical(other.revision, _this.revision) || other.revision == _this.revision)&&(identical(other.listeningTrigger, _this.listeningTrigger) || other.listeningTrigger == _this.listeningTrigger)&&(identical(other.listeningThreshold, _this.listeningThreshold) || other.listeningThreshold == _this.listeningThreshold));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,type,sourceId,libraryId,displayName,descending,revision,listeningTrigger,listeningThreshold);
+int get hashCode {
+  final _this = this as MediaSourceDescriptor;
+  return Object.hash(runtimeType,_this.type,_this.sourceId,_this.libraryId,_this.displayName,_this.descending,_this.revision,_this.listeningTrigger,_this.listeningThreshold);
+}
 
 @override
 String toString() {
-  return 'MediaSourceDescriptor(type: $type, sourceId: $sourceId, libraryId: $libraryId, displayName: $displayName, descending: $descending, revision: $revision, listeningTrigger: $listeningTrigger, listeningThreshold: $listeningThreshold)';
+  final _this = this as MediaSourceDescriptor;
+  return 'MediaSourceDescriptor(type: ${_this.type}, sourceId: ${_this.sourceId}, libraryId: ${_this.libraryId}, displayName: ${_this.displayName}, descending: ${_this.descending}, revision: ${_this.revision}, listeningTrigger: ${_this.listeningTrigger}, listeningThreshold: ${_this.listeningThreshold})';
 }
 
 
@@ -508,16 +520,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MediaSourceDescriptor&&(identical(other.type, type) || other.type == type)&&(identical(other.sourceId, sourceId) || other.sourceId == sourceId)&&(identical(other.libraryId, libraryId) || other.libraryId == libraryId)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.descending, descending) || other.descending == descending)&&(identical(other.revision, revision) || other.revision == revision)&&(identical(other.listeningTrigger, listeningTrigger) || other.listeningTrigger == listeningTrigger)&&(identical(other.listeningThreshold, listeningThreshold) || other.listeningThreshold == listeningThreshold));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _MediaSourceDescriptor&&(identical(other.type, type) || other.type == type)&&(identical(other.sourceId, sourceId) || other.sourceId == sourceId)&&(identical(other.libraryId, libraryId) || other.libraryId == libraryId)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.descending, descending) || other.descending == descending)&&(identical(other.revision, revision) || other.revision == revision)&&(identical(other.listeningTrigger, listeningTrigger) || other.listeningTrigger == listeningTrigger)&&(identical(other.listeningThreshold, listeningThreshold) || other.listeningThreshold == listeningThreshold));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,type,sourceId,libraryId,displayName,descending,revision,listeningTrigger,listeningThreshold);
+int get hashCode {
+    return Object.hash(runtimeType,type,sourceId,libraryId,displayName,descending,revision,listeningTrigger,listeningThreshold);
+}
 
 @override
 String toString() {
-  return 'MediaSourceDescriptor(type: $type, sourceId: $sourceId, libraryId: $libraryId, displayName: $displayName, descending: $descending, revision: $revision, listeningTrigger: $listeningTrigger, listeningThreshold: $listeningThreshold)';
+    return 'MediaSourceDescriptor(type: $type, sourceId: $sourceId, libraryId: $libraryId, displayName: $displayName, descending: $descending, revision: $revision, listeningTrigger: $listeningTrigger, listeningThreshold: $listeningThreshold)';
 }
 
 
@@ -579,16 +593,21 @@ $QueueCandidateCopyWith<QueueCandidate> get copyWith => _$QueueCandidateCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is QueueCandidate&&(identical(other.ref, ref) || other.ref == ref)&&(identical(other.title, title) || other.title == title)&&(identical(other.subtitle, subtitle) || other.subtitle == subtitle)&&(identical(other.author, author) || other.author == author)&&(identical(other.order, order) || other.order == order)&&(identical(other.addedAt, addedAt) || other.addedAt == addedAt)&&(identical(other.publishedAt, publishedAt) || other.publishedAt == publishedAt)&&(identical(other.estimatedBytes, estimatedBytes) || other.estimatedBytes == estimatedBytes)&&(identical(other.isFinished, isFinished) || other.isFinished == isFinished));
+  final _this = this as QueueCandidate;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is QueueCandidate&&(identical(other.ref, _this.ref) || other.ref == _this.ref)&&(identical(other.title, _this.title) || other.title == _this.title)&&(identical(other.subtitle, _this.subtitle) || other.subtitle == _this.subtitle)&&(identical(other.author, _this.author) || other.author == _this.author)&&(identical(other.order, _this.order) || other.order == _this.order)&&(identical(other.addedAt, _this.addedAt) || other.addedAt == _this.addedAt)&&(identical(other.publishedAt, _this.publishedAt) || other.publishedAt == _this.publishedAt)&&(identical(other.estimatedBytes, _this.estimatedBytes) || other.estimatedBytes == _this.estimatedBytes)&&(identical(other.isFinished, _this.isFinished) || other.isFinished == _this.isFinished));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,ref,title,subtitle,author,order,addedAt,publishedAt,estimatedBytes,isFinished);
+int get hashCode {
+  final _this = this as QueueCandidate;
+  return Object.hash(runtimeType,_this.ref,_this.title,_this.subtitle,_this.author,_this.order,_this.addedAt,_this.publishedAt,_this.estimatedBytes,_this.isFinished);
+}
 
 @override
 String toString() {
-  return 'QueueCandidate(ref: $ref, title: $title, subtitle: $subtitle, author: $author, order: $order, addedAt: $addedAt, publishedAt: $publishedAt, estimatedBytes: $estimatedBytes, isFinished: $isFinished)';
+  final _this = this as QueueCandidate;
+  return 'QueueCandidate(ref: ${_this.ref}, title: ${_this.title}, subtitle: ${_this.subtitle}, author: ${_this.author}, order: ${_this.order}, addedAt: ${_this.addedAt}, publishedAt: ${_this.publishedAt}, estimatedBytes: ${_this.estimatedBytes}, isFinished: ${_this.isFinished})';
 }
 
 
@@ -803,16 +822,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _QueueCandidate&&(identical(other.ref, ref) || other.ref == ref)&&(identical(other.title, title) || other.title == title)&&(identical(other.subtitle, subtitle) || other.subtitle == subtitle)&&(identical(other.author, author) || other.author == author)&&(identical(other.order, order) || other.order == order)&&(identical(other.addedAt, addedAt) || other.addedAt == addedAt)&&(identical(other.publishedAt, publishedAt) || other.publishedAt == publishedAt)&&(identical(other.estimatedBytes, estimatedBytes) || other.estimatedBytes == estimatedBytes)&&(identical(other.isFinished, isFinished) || other.isFinished == isFinished));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _QueueCandidate&&(identical(other.ref, ref) || other.ref == ref)&&(identical(other.title, title) || other.title == title)&&(identical(other.subtitle, subtitle) || other.subtitle == subtitle)&&(identical(other.author, author) || other.author == author)&&(identical(other.order, order) || other.order == order)&&(identical(other.addedAt, addedAt) || other.addedAt == addedAt)&&(identical(other.publishedAt, publishedAt) || other.publishedAt == publishedAt)&&(identical(other.estimatedBytes, estimatedBytes) || other.estimatedBytes == estimatedBytes)&&(identical(other.isFinished, isFinished) || other.isFinished == isFinished));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,ref,title,subtitle,author,order,addedAt,publishedAt,estimatedBytes,isFinished);
+int get hashCode {
+    return Object.hash(runtimeType,ref,title,subtitle,author,order,addedAt,publishedAt,estimatedBytes,isFinished);
+}
 
 @override
 String toString() {
-  return 'QueueCandidate(ref: $ref, title: $title, subtitle: $subtitle, author: $author, order: $order, addedAt: $addedAt, publishedAt: $publishedAt, estimatedBytes: $estimatedBytes, isFinished: $isFinished)';
+    return 'QueueCandidate(ref: $ref, title: $title, subtitle: $subtitle, author: $author, order: $order, addedAt: $addedAt, publishedAt: $publishedAt, estimatedBytes: $estimatedBytes, isFinished: $isFinished)';
 }
 
 
@@ -886,7 +907,8 @@ $CandidatePageCopyWith<CandidatePage> get copyWith => _$CandidatePageCopyWithImp
 
 @override
 String toString() {
-  return 'CandidatePage(candidates: $candidates, total: $total, page: $page, pageSize: $pageSize, nextCursor: $nextCursor, revision: $revision)';
+  final _this = this as CandidatePage;
+  return 'CandidatePage(candidates: ${_this.candidates}, total: ${_this.total}, page: ${_this.page}, pageSize: ${_this.pageSize}, nextCursor: ${_this.nextCursor}, revision: ${_this.revision})';
 }
 
 
@@ -1088,7 +1110,7 @@ Map<String, dynamic> toJson() {
 
 @override
 String toString() {
-  return 'CandidatePage(candidates: $candidates, total: $total, page: $page, pageSize: $pageSize, nextCursor: $nextCursor, revision: $revision)';
+    return 'CandidatePage(candidates: $candidates, total: $total, page: $page, pageSize: $pageSize, nextCursor: $nextCursor, revision: $revision)';
 }
 
 
@@ -1148,16 +1170,21 @@ $QueueIntentEntryCopyWith<QueueIntentEntry> get copyWith => _$QueueIntentEntryCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is QueueIntentEntry&&(identical(other.ref, ref) || other.ref == ref)&&(identical(other.title, title) || other.title == title)&&(identical(other.subtitle, subtitle) || other.subtitle == subtitle)&&(identical(other.author, author) || other.author == author));
+  final _this = this as QueueIntentEntry;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is QueueIntentEntry&&(identical(other.ref, _this.ref) || other.ref == _this.ref)&&(identical(other.title, _this.title) || other.title == _this.title)&&(identical(other.subtitle, _this.subtitle) || other.subtitle == _this.subtitle)&&(identical(other.author, _this.author) || other.author == _this.author));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,ref,title,subtitle,author);
+int get hashCode {
+  final _this = this as QueueIntentEntry;
+  return Object.hash(runtimeType,_this.ref,_this.title,_this.subtitle,_this.author);
+}
 
 @override
 String toString() {
-  return 'QueueIntentEntry(ref: $ref, title: $title, subtitle: $subtitle, author: $author)';
+  final _this = this as QueueIntentEntry;
+  return 'QueueIntentEntry(ref: ${_this.ref}, title: ${_this.title}, subtitle: ${_this.subtitle}, author: ${_this.author})';
 }
 
 
@@ -1362,16 +1389,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _QueueIntentEntry&&(identical(other.ref, ref) || other.ref == ref)&&(identical(other.title, title) || other.title == title)&&(identical(other.subtitle, subtitle) || other.subtitle == subtitle)&&(identical(other.author, author) || other.author == author));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _QueueIntentEntry&&(identical(other.ref, ref) || other.ref == ref)&&(identical(other.title, title) || other.title == title)&&(identical(other.subtitle, subtitle) || other.subtitle == subtitle)&&(identical(other.author, author) || other.author == author));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,ref,title,subtitle,author);
+int get hashCode {
+    return Object.hash(runtimeType,ref,title,subtitle,author);
+}
 
 @override
 String toString() {
-  return 'QueueIntentEntry(ref: $ref, title: $title, subtitle: $subtitle, author: $author)';
+    return 'QueueIntentEntry(ref: $ref, title: $title, subtitle: $subtitle, author: $author)';
 }
 
 
@@ -1440,7 +1469,8 @@ $QueueIntentSnapshotCopyWith<QueueIntentSnapshot> get copyWith => _$QueueIntentS
 
 @override
 String toString() {
-  return 'QueueIntentSnapshot(version: $version, manualEntries: $manualEntries, source: $source, anchor: $anchor, suppressed: $suppressed, sourceRevision: $sourceRevision)';
+  final _this = this as QueueIntentSnapshot;
+  return 'QueueIntentSnapshot(version: ${_this.version}, manualEntries: ${_this.manualEntries}, source: ${_this.source}, anchor: ${_this.anchor}, suppressed: ${_this.suppressed}, sourceRevision: ${_this.sourceRevision})';
 }
 
 
@@ -1666,7 +1696,7 @@ Map<String, dynamic> toJson() {
 
 @override
 String toString() {
-  return 'QueueIntentSnapshot(version: $version, manualEntries: $manualEntries, source: $source, anchor: $anchor, suppressed: $suppressed, sourceRevision: $sourceRevision)';
+    return 'QueueIntentSnapshot(version: $version, manualEntries: $manualEntries, source: $source, anchor: $anchor, suppressed: $suppressed, sourceRevision: $sourceRevision)';
 }
 
 

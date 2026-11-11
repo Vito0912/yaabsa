@@ -29,16 +29,21 @@ $SessionUserSummaryCopyWith<SessionUserSummary> get copyWith => _$SessionUserSum
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SessionUserSummary&&(identical(other.id, id) || other.id == id)&&(identical(other.username, username) || other.username == username)&&(identical(other.type, type) || other.type == type));
+  final _this = this as SessionUserSummary;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SessionUserSummary&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.username, _this.username) || other.username == _this.username)&&(identical(other.type, _this.type) || other.type == _this.type));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,username,type);
+int get hashCode {
+  final _this = this as SessionUserSummary;
+  return Object.hash(runtimeType,_this.id,_this.username,_this.type);
+}
 
 @override
 String toString() {
-  return 'SessionUserSummary(id: $id, username: $username, type: $type)';
+  final _this = this as SessionUserSummary;
+  return 'SessionUserSummary(id: ${_this.id}, username: ${_this.username}, type: ${_this.type})';
 }
 
 
@@ -232,16 +237,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SessionUserSummary&&(identical(other.id, id) || other.id == id)&&(identical(other.username, username) || other.username == username)&&(identical(other.type, type) || other.type == type));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SessionUserSummary&&(identical(other.id, id) || other.id == id)&&(identical(other.username, username) || other.username == username)&&(identical(other.type, type) || other.type == type));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,username,type);
+int get hashCode {
+    return Object.hash(runtimeType,id,username,type);
+}
 
 @override
 String toString() {
-  return 'SessionUserSummary(id: $id, username: $username, type: $type)';
+    return 'SessionUserSummary(id: $id, username: $username, type: $type)';
 }
 
 

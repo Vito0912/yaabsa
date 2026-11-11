@@ -29,16 +29,21 @@ $CreatePodcastResponseCopyWith<CreatePodcastResponse> get copyWith => _$CreatePo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreatePodcastResponse&&(identical(other.libraryItem, libraryItem) || other.libraryItem == libraryItem)&&(identical(other.item, item) || other.item == item));
+  final _this = this as CreatePodcastResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreatePodcastResponse&&(identical(other.libraryItem, _this.libraryItem) || other.libraryItem == _this.libraryItem)&&(identical(other.item, _this.item) || other.item == _this.item));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,libraryItem,item);
+int get hashCode {
+  final _this = this as CreatePodcastResponse;
+  return Object.hash(runtimeType,_this.libraryItem,_this.item);
+}
 
 @override
 String toString() {
-  return 'CreatePodcastResponse(libraryItem: $libraryItem, item: $item)';
+  final _this = this as CreatePodcastResponse;
+  return 'CreatePodcastResponse(libraryItem: ${_this.libraryItem}, item: ${_this.item})';
 }
 
 
@@ -254,16 +259,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreatePodcastResponse&&(identical(other.libraryItem, libraryItem) || other.libraryItem == libraryItem)&&(identical(other.item, item) || other.item == item));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreatePodcastResponse&&(identical(other.libraryItem, libraryItem) || other.libraryItem == libraryItem)&&(identical(other.item, item) || other.item == item));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,libraryItem,item);
+int get hashCode {
+    return Object.hash(runtimeType,libraryItem,item);
+}
 
 @override
 String toString() {
-  return 'CreatePodcastResponse(libraryItem: $libraryItem, item: $item)';
+    return 'CreatePodcastResponse(libraryItem: $libraryItem, item: $item)';
 }
 
 

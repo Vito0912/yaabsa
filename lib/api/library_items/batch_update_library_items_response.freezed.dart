@@ -29,16 +29,21 @@ $BatchUpdateLibraryItemsResponseCopyWith<BatchUpdateLibraryItemsResponse> get co
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BatchUpdateLibraryItemsResponse&&(identical(other.success, success) || other.success == success)&&(identical(other.updates, updates) || other.updates == updates));
+  final _this = this as BatchUpdateLibraryItemsResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BatchUpdateLibraryItemsResponse&&(identical(other.success, _this.success) || other.success == _this.success)&&(identical(other.updates, _this.updates) || other.updates == _this.updates));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,success,updates);
+int get hashCode {
+  final _this = this as BatchUpdateLibraryItemsResponse;
+  return Object.hash(runtimeType,_this.success,_this.updates);
+}
 
 @override
 String toString() {
-  return 'BatchUpdateLibraryItemsResponse(success: $success, updates: $updates)';
+  final _this = this as BatchUpdateLibraryItemsResponse;
+  return 'BatchUpdateLibraryItemsResponse(success: ${_this.success}, updates: ${_this.updates})';
 }
 
 
@@ -230,16 +235,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BatchUpdateLibraryItemsResponse&&(identical(other.success, success) || other.success == success)&&(identical(other.updates, updates) || other.updates == updates));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _BatchUpdateLibraryItemsResponse&&(identical(other.success, success) || other.success == success)&&(identical(other.updates, updates) || other.updates == updates));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,success,updates);
+int get hashCode {
+    return Object.hash(runtimeType,success,updates);
+}
 
 @override
 String toString() {
-  return 'BatchUpdateLibraryItemsResponse(success: $success, updates: $updates)';
+    return 'BatchUpdateLibraryItemsResponse(success: $success, updates: $updates)';
 }
 
 

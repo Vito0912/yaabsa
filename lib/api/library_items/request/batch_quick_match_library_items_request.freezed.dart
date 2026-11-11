@@ -29,16 +29,21 @@ $BatchQuickMatchLibraryItemsRequestCopyWith<BatchQuickMatchLibraryItemsRequest> 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BatchQuickMatchLibraryItemsRequest&&const DeepCollectionEquality().equals(other.libraryItemIds, libraryItemIds)&&(identical(other.options, options) || other.options == options));
+  final _this = this as BatchQuickMatchLibraryItemsRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BatchQuickMatchLibraryItemsRequest&&const DeepCollectionEquality().equals(other.libraryItemIds, _this.libraryItemIds)&&(identical(other.options, _this.options) || other.options == _this.options));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(libraryItemIds),options);
+int get hashCode {
+  final _this = this as BatchQuickMatchLibraryItemsRequest;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.libraryItemIds),_this.options);
+}
 
 @override
 String toString() {
-  return 'BatchQuickMatchLibraryItemsRequest(libraryItemIds: $libraryItemIds, options: $options)';
+  final _this = this as BatchQuickMatchLibraryItemsRequest;
+  return 'BatchQuickMatchLibraryItemsRequest(libraryItemIds: ${_this.libraryItemIds}, options: ${_this.options})';
 }
 
 
@@ -245,16 +250,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BatchQuickMatchLibraryItemsRequest&&const DeepCollectionEquality().equals(other._libraryItemIds, _libraryItemIds)&&(identical(other.options, options) || other.options == options));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _BatchQuickMatchLibraryItemsRequest&&const DeepCollectionEquality().equals(other.libraryItemIds, _libraryItemIds)&&(identical(other.options, options) || other.options == options));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_libraryItemIds),options);
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_libraryItemIds),options);
+}
 
 @override
 String toString() {
-  return 'BatchQuickMatchLibraryItemsRequest(libraryItemIds: $libraryItemIds, options: $options)';
+    return 'BatchQuickMatchLibraryItemsRequest(libraryItemIds: $libraryItemIds, options: $options)';
 }
 
 

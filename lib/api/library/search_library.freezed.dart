@@ -29,16 +29,21 @@ $SearchLibraryCopyWith<SearchLibrary> get copyWith => _$SearchLibraryCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SearchLibrary&&const DeepCollectionEquality().equals(other.book, book)&&const DeepCollectionEquality().equals(other.podcast, podcast)&&const DeepCollectionEquality().equals(other.narrators, narrators)&&const DeepCollectionEquality().equals(other.tags, tags)&&const DeepCollectionEquality().equals(other.genres, genres)&&const DeepCollectionEquality().equals(other.series, series)&&const DeepCollectionEquality().equals(other.authors, authors));
+  final _this = this as SearchLibrary;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SearchLibrary&&const DeepCollectionEquality().equals(other.book, _this.book)&&const DeepCollectionEquality().equals(other.podcast, _this.podcast)&&const DeepCollectionEquality().equals(other.narrators, _this.narrators)&&const DeepCollectionEquality().equals(other.tags, _this.tags)&&const DeepCollectionEquality().equals(other.genres, _this.genres)&&const DeepCollectionEquality().equals(other.series, _this.series)&&const DeepCollectionEquality().equals(other.authors, _this.authors));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(book),const DeepCollectionEquality().hash(podcast),const DeepCollectionEquality().hash(narrators),const DeepCollectionEquality().hash(tags),const DeepCollectionEquality().hash(genres),const DeepCollectionEquality().hash(series),const DeepCollectionEquality().hash(authors));
+int get hashCode {
+  final _this = this as SearchLibrary;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.book),const DeepCollectionEquality().hash(_this.podcast),const DeepCollectionEquality().hash(_this.narrators),const DeepCollectionEquality().hash(_this.tags),const DeepCollectionEquality().hash(_this.genres),const DeepCollectionEquality().hash(_this.series),const DeepCollectionEquality().hash(_this.authors));
+}
 
 @override
 String toString() {
-  return 'SearchLibrary(book: $book, podcast: $podcast, narrators: $narrators, tags: $tags, genres: $genres, series: $series, authors: $authors)';
+  final _this = this as SearchLibrary;
+  return 'SearchLibrary(book: ${_this.book}, podcast: ${_this.podcast}, narrators: ${_this.narrators}, tags: ${_this.tags}, genres: ${_this.genres}, series: ${_this.series}, authors: ${_this.authors})';
 }
 
 
@@ -296,16 +301,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SearchLibrary&&const DeepCollectionEquality().equals(other._book, _book)&&const DeepCollectionEquality().equals(other._podcast, _podcast)&&const DeepCollectionEquality().equals(other._narrators, _narrators)&&const DeepCollectionEquality().equals(other._tags, _tags)&&const DeepCollectionEquality().equals(other._genres, _genres)&&const DeepCollectionEquality().equals(other._series, _series)&&const DeepCollectionEquality().equals(other._authors, _authors));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SearchLibrary&&const DeepCollectionEquality().equals(other.book, _book)&&const DeepCollectionEquality().equals(other.podcast, _podcast)&&const DeepCollectionEquality().equals(other.narrators, _narrators)&&const DeepCollectionEquality().equals(other.tags, _tags)&&const DeepCollectionEquality().equals(other.genres, _genres)&&const DeepCollectionEquality().equals(other.series, _series)&&const DeepCollectionEquality().equals(other.authors, _authors));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_book),const DeepCollectionEquality().hash(_podcast),const DeepCollectionEquality().hash(_narrators),const DeepCollectionEquality().hash(_tags),const DeepCollectionEquality().hash(_genres),const DeepCollectionEquality().hash(_series),const DeepCollectionEquality().hash(_authors));
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_book),const DeepCollectionEquality().hash(_podcast),const DeepCollectionEquality().hash(_narrators),const DeepCollectionEquality().hash(_tags),const DeepCollectionEquality().hash(_genres),const DeepCollectionEquality().hash(_series),const DeepCollectionEquality().hash(_authors));
+}
 
 @override
 String toString() {
-  return 'SearchLibrary(book: $book, podcast: $podcast, narrators: $narrators, tags: $tags, genres: $genres, series: $series, authors: $authors)';
+    return 'SearchLibrary(book: $book, podcast: $podcast, narrators: $narrators, tags: $tags, genres: $genres, series: $series, authors: $authors)';
 }
 
 
@@ -366,16 +373,21 @@ $SearchLibraryResultCopyWith<SearchLibraryResult> get copyWith => _$SearchLibrar
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SearchLibraryResult&&(identical(other.libraryItem, libraryItem) || other.libraryItem == libraryItem)&&(identical(other.matchKey, matchKey) || other.matchKey == matchKey)&&(identical(other.matchText, matchText) || other.matchText == matchText));
+  final _this = this as SearchLibraryResult;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SearchLibraryResult&&(identical(other.libraryItem, _this.libraryItem) || other.libraryItem == _this.libraryItem)&&(identical(other.matchKey, _this.matchKey) || other.matchKey == _this.matchKey)&&(identical(other.matchText, _this.matchText) || other.matchText == _this.matchText));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,libraryItem,matchKey,matchText);
+int get hashCode {
+  final _this = this as SearchLibraryResult;
+  return Object.hash(runtimeType,_this.libraryItem,_this.matchKey,_this.matchText);
+}
 
 @override
 String toString() {
-  return 'SearchLibraryResult(libraryItem: $libraryItem, matchKey: $matchKey, matchText: $matchText)';
+  final _this = this as SearchLibraryResult;
+  return 'SearchLibraryResult(libraryItem: ${_this.libraryItem}, matchKey: ${_this.matchKey}, matchText: ${_this.matchText})';
 }
 
 
@@ -581,16 +593,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SearchLibraryResult&&(identical(other.libraryItem, libraryItem) || other.libraryItem == libraryItem)&&(identical(other.matchKey, matchKey) || other.matchKey == matchKey)&&(identical(other.matchText, matchText) || other.matchText == matchText));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SearchLibraryResult&&(identical(other.libraryItem, libraryItem) || other.libraryItem == libraryItem)&&(identical(other.matchKey, matchKey) || other.matchKey == matchKey)&&(identical(other.matchText, matchText) || other.matchText == matchText));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,libraryItem,matchKey,matchText);
+int get hashCode {
+    return Object.hash(runtimeType,libraryItem,matchKey,matchText);
+}
 
 @override
 String toString() {
-  return 'SearchLibraryResult(libraryItem: $libraryItem, matchKey: $matchKey, matchText: $matchText)';
+    return 'SearchLibraryResult(libraryItem: $libraryItem, matchKey: $matchKey, matchText: $matchText)';
 }
 
 
@@ -659,16 +673,21 @@ $SearchResultItemCopyWith<SearchResultItem> get copyWith => _$SearchResultItemCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SearchResultItem&&(identical(other.name, name) || other.name == name)&&(identical(other.numItems, numItems) || other.numItems == numItems));
+  final _this = this as SearchResultItem;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SearchResultItem&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.numItems, _this.numItems) || other.numItems == _this.numItems));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,numItems);
+int get hashCode {
+  final _this = this as SearchResultItem;
+  return Object.hash(runtimeType,_this.name,_this.numItems);
+}
 
 @override
 String toString() {
-  return 'SearchResultItem(name: $name, numItems: $numItems)';
+  final _this = this as SearchResultItem;
+  return 'SearchResultItem(name: ${_this.name}, numItems: ${_this.numItems})';
 }
 
 
@@ -860,16 +879,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SearchResultItem&&(identical(other.name, name) || other.name == name)&&(identical(other.numItems, numItems) || other.numItems == numItems));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SearchResultItem&&(identical(other.name, name) || other.name == name)&&(identical(other.numItems, numItems) || other.numItems == numItems));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,numItems);
+int get hashCode {
+    return Object.hash(runtimeType,name,numItems);
+}
 
 @override
 String toString() {
-  return 'SearchResultItem(name: $name, numItems: $numItems)';
+    return 'SearchResultItem(name: $name, numItems: $numItems)';
 }
 
 
@@ -925,16 +946,21 @@ $SearchResultNarratorCopyWith<SearchResultNarrator> get copyWith => _$SearchResu
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SearchResultNarrator&&(identical(other.name, name) || other.name == name)&&(identical(other.numBooks, numBooks) || other.numBooks == numBooks));
+  final _this = this as SearchResultNarrator;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SearchResultNarrator&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.numBooks, _this.numBooks) || other.numBooks == _this.numBooks));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,numBooks);
+int get hashCode {
+  final _this = this as SearchResultNarrator;
+  return Object.hash(runtimeType,_this.name,_this.numBooks);
+}
 
 @override
 String toString() {
-  return 'SearchResultNarrator(name: $name, numBooks: $numBooks)';
+  final _this = this as SearchResultNarrator;
+  return 'SearchResultNarrator(name: ${_this.name}, numBooks: ${_this.numBooks})';
 }
 
 
@@ -1126,16 +1152,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SearchResultNarrator&&(identical(other.name, name) || other.name == name)&&(identical(other.numBooks, numBooks) || other.numBooks == numBooks));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SearchResultNarrator&&(identical(other.name, name) || other.name == name)&&(identical(other.numBooks, numBooks) || other.numBooks == numBooks));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,numBooks);
+int get hashCode {
+    return Object.hash(runtimeType,name,numBooks);
+}
 
 @override
 String toString() {
-  return 'SearchResultNarrator(name: $name, numBooks: $numBooks)';
+    return 'SearchResultNarrator(name: $name, numBooks: $numBooks)';
 }
 
 

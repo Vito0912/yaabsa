@@ -29,16 +29,21 @@ $CreateCustomMetadataProviderRequestCopyWith<CreateCustomMetadataProviderRequest
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateCustomMetadataProviderRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.url, url) || other.url == url)&&(identical(other.mediaType, mediaType) || other.mediaType == mediaType)&&(identical(other.authHeaderValue, authHeaderValue) || other.authHeaderValue == authHeaderValue));
+  final _this = this as CreateCustomMetadataProviderRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateCustomMetadataProviderRequest&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.url, _this.url) || other.url == _this.url)&&(identical(other.mediaType, _this.mediaType) || other.mediaType == _this.mediaType)&&(identical(other.authHeaderValue, _this.authHeaderValue) || other.authHeaderValue == _this.authHeaderValue));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,url,mediaType,authHeaderValue);
+int get hashCode {
+  final _this = this as CreateCustomMetadataProviderRequest;
+  return Object.hash(runtimeType,_this.name,_this.url,_this.mediaType,_this.authHeaderValue);
+}
 
 @override
 String toString() {
-  return 'CreateCustomMetadataProviderRequest(name: $name, url: $url, mediaType: $mediaType, authHeaderValue: $authHeaderValue)';
+  final _this = this as CreateCustomMetadataProviderRequest;
+  return 'CreateCustomMetadataProviderRequest(name: ${_this.name}, url: ${_this.url}, mediaType: ${_this.mediaType}, authHeaderValue: ${_this.authHeaderValue})';
 }
 
 
@@ -234,16 +239,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateCustomMetadataProviderRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.url, url) || other.url == url)&&(identical(other.mediaType, mediaType) || other.mediaType == mediaType)&&(identical(other.authHeaderValue, authHeaderValue) || other.authHeaderValue == authHeaderValue));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateCustomMetadataProviderRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.url, url) || other.url == url)&&(identical(other.mediaType, mediaType) || other.mediaType == mediaType)&&(identical(other.authHeaderValue, authHeaderValue) || other.authHeaderValue == authHeaderValue));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,url,mediaType,authHeaderValue);
+int get hashCode {
+    return Object.hash(runtimeType,name,url,mediaType,authHeaderValue);
+}
 
 @override
 String toString() {
-  return 'CreateCustomMetadataProviderRequest(name: $name, url: $url, mediaType: $mediaType, authHeaderValue: $authHeaderValue)';
+    return 'CreateCustomMetadataProviderRequest(name: $name, url: $url, mediaType: $mediaType, authHeaderValue: $authHeaderValue)';
 }
 
 

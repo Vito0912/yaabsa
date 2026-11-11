@@ -29,16 +29,21 @@ $AdminApiKeyResponseCopyWith<AdminApiKeyResponse> get copyWith => _$AdminApiKeyR
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminApiKeyResponse&&(identical(other.apiKey, apiKey) || other.apiKey == apiKey));
+  final _this = this as AdminApiKeyResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminApiKeyResponse&&(identical(other.apiKey, _this.apiKey) || other.apiKey == _this.apiKey));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,apiKey);
+int get hashCode {
+  final _this = this as AdminApiKeyResponse;
+  return Object.hash(runtimeType,_this.apiKey);
+}
 
 @override
 String toString() {
-  return 'AdminApiKeyResponse(apiKey: $apiKey)';
+  final _this = this as AdminApiKeyResponse;
+  return 'AdminApiKeyResponse(apiKey: ${_this.apiKey})';
 }
 
 
@@ -237,16 +242,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminApiKeyResponse&&(identical(other.apiKey, apiKey) || other.apiKey == apiKey));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminApiKeyResponse&&(identical(other.apiKey, apiKey) || other.apiKey == apiKey));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,apiKey);
+int get hashCode {
+    return Object.hash(runtimeType,apiKey);
+}
 
 @override
 String toString() {
-  return 'AdminApiKeyResponse(apiKey: $apiKey)';
+    return 'AdminApiKeyResponse(apiKey: $apiKey)';
 }
 
 

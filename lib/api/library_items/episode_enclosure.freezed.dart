@@ -29,16 +29,21 @@ $EpisodeEnclosureCopyWith<EpisodeEnclosure> get copyWith => _$EpisodeEnclosureCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is EpisodeEnclosure&&(identical(other.url, url) || other.url == url)&&(identical(other.type, type) || other.type == type)&&(identical(other.length, length) || other.length == length));
+  final _this = this as EpisodeEnclosure;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is EpisodeEnclosure&&(identical(other.url, _this.url) || other.url == _this.url)&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.length, _this.length) || other.length == _this.length));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,url,type,length);
+int get hashCode {
+  final _this = this as EpisodeEnclosure;
+  return Object.hash(runtimeType,_this.url,_this.type,_this.length);
+}
 
 @override
 String toString() {
-  return 'EpisodeEnclosure(url: $url, type: $type, length: $length)';
+  final _this = this as EpisodeEnclosure;
+  return 'EpisodeEnclosure(url: ${_this.url}, type: ${_this.type}, length: ${_this.length})';
 }
 
 
@@ -232,16 +237,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _EpisodeEnclosure&&(identical(other.url, url) || other.url == url)&&(identical(other.type, type) || other.type == type)&&(identical(other.length, length) || other.length == length));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _EpisodeEnclosure&&(identical(other.url, url) || other.url == url)&&(identical(other.type, type) || other.type == type)&&(identical(other.length, length) || other.length == length));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,url,type,length);
+int get hashCode {
+    return Object.hash(runtimeType,url,type,length);
+}
 
 @override
 String toString() {
-  return 'EpisodeEnclosure(url: $url, type: $type, length: $length)';
+    return 'EpisodeEnclosure(url: $url, type: $type, length: $length)';
 }
 
 

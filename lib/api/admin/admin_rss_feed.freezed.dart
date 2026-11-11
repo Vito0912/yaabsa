@@ -29,16 +29,21 @@ $AdminRssFeedsResponseCopyWith<AdminRssFeedsResponse> get copyWith => _$AdminRss
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminRssFeedsResponse&&const DeepCollectionEquality().equals(other.feeds, feeds)&&const DeepCollectionEquality().equals(other.minified, minified));
+  final _this = this as AdminRssFeedsResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminRssFeedsResponse&&const DeepCollectionEquality().equals(other.feeds, _this.feeds)&&const DeepCollectionEquality().equals(other.minified, _this.minified));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(feeds),const DeepCollectionEquality().hash(minified));
+int get hashCode {
+  final _this = this as AdminRssFeedsResponse;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.feeds),const DeepCollectionEquality().hash(_this.minified));
+}
 
 @override
 String toString() {
-  return 'AdminRssFeedsResponse(feeds: $feeds, minified: $minified)';
+  final _this = this as AdminRssFeedsResponse;
+  return 'AdminRssFeedsResponse(feeds: ${_this.feeds}, minified: ${_this.minified})';
 }
 
 
@@ -242,16 +247,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminRssFeedsResponse&&const DeepCollectionEquality().equals(other._feeds, _feeds)&&const DeepCollectionEquality().equals(other._minified, _minified));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminRssFeedsResponse&&const DeepCollectionEquality().equals(other.feeds, _feeds)&&const DeepCollectionEquality().equals(other.minified, _minified));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_feeds),const DeepCollectionEquality().hash(_minified));
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_feeds),const DeepCollectionEquality().hash(_minified));
+}
 
 @override
 String toString() {
-  return 'AdminRssFeedsResponse(feeds: $feeds, minified: $minified)';
+    return 'AdminRssFeedsResponse(feeds: $feeds, minified: $minified)';
 }
 
 
@@ -307,16 +314,21 @@ $AdminRssFeedCopyWith<AdminRssFeed> get copyWith => _$AdminRssFeedCopyWithImpl<A
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminRssFeed&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.entityType, entityType) || other.entityType == entityType)&&(identical(other.entityId, entityId) || other.entityId == entityId)&&(identical(other.entityUpdatedAt, entityUpdatedAt) || other.entityUpdatedAt == entityUpdatedAt)&&(identical(other.coverPath, coverPath) || other.coverPath == coverPath)&&(identical(other.meta, meta) || other.meta == meta)&&(identical(other.serverAddress, serverAddress) || other.serverAddress == serverAddress)&&(identical(other.feedUrl, feedUrl) || other.feedUrl == feedUrl)&&const DeepCollectionEquality().equals(other.episodes, episodes)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  final _this = this as AdminRssFeed;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminRssFeed&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.slug, _this.slug) || other.slug == _this.slug)&&(identical(other.userId, _this.userId) || other.userId == _this.userId)&&(identical(other.entityType, _this.entityType) || other.entityType == _this.entityType)&&(identical(other.entityId, _this.entityId) || other.entityId == _this.entityId)&&(identical(other.entityUpdatedAt, _this.entityUpdatedAt) || other.entityUpdatedAt == _this.entityUpdatedAt)&&(identical(other.coverPath, _this.coverPath) || other.coverPath == _this.coverPath)&&(identical(other.meta, _this.meta) || other.meta == _this.meta)&&(identical(other.serverAddress, _this.serverAddress) || other.serverAddress == _this.serverAddress)&&(identical(other.feedUrl, _this.feedUrl) || other.feedUrl == _this.feedUrl)&&const DeepCollectionEquality().equals(other.episodes, _this.episodes)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,slug,userId,entityType,entityId,entityUpdatedAt,coverPath,meta,serverAddress,feedUrl,const DeepCollectionEquality().hash(episodes),createdAt,updatedAt);
+int get hashCode {
+  final _this = this as AdminRssFeed;
+  return Object.hash(runtimeType,_this.id,_this.slug,_this.userId,_this.entityType,_this.entityId,_this.entityUpdatedAt,_this.coverPath,_this.meta,_this.serverAddress,_this.feedUrl,const DeepCollectionEquality().hash(_this.episodes),_this.createdAt,_this.updatedAt);
+}
 
 @override
 String toString() {
-  return 'AdminRssFeed(id: $id, slug: $slug, userId: $userId, entityType: $entityType, entityId: $entityId, entityUpdatedAt: $entityUpdatedAt, coverPath: $coverPath, meta: $meta, serverAddress: $serverAddress, feedUrl: $feedUrl, episodes: $episodes, createdAt: $createdAt, updatedAt: $updatedAt)';
+  final _this = this as AdminRssFeed;
+  return 'AdminRssFeed(id: ${_this.id}, slug: ${_this.slug}, userId: ${_this.userId}, entityType: ${_this.entityType}, entityId: ${_this.entityId}, entityUpdatedAt: ${_this.entityUpdatedAt}, coverPath: ${_this.coverPath}, meta: ${_this.meta}, serverAddress: ${_this.serverAddress}, feedUrl: ${_this.feedUrl}, episodes: ${_this.episodes}, createdAt: ${_this.createdAt}, updatedAt: ${_this.updatedAt})';
 }
 
 
@@ -548,16 +560,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminRssFeed&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.entityType, entityType) || other.entityType == entityType)&&(identical(other.entityId, entityId) || other.entityId == entityId)&&(identical(other.entityUpdatedAt, entityUpdatedAt) || other.entityUpdatedAt == entityUpdatedAt)&&(identical(other.coverPath, coverPath) || other.coverPath == coverPath)&&(identical(other.meta, meta) || other.meta == meta)&&(identical(other.serverAddress, serverAddress) || other.serverAddress == serverAddress)&&(identical(other.feedUrl, feedUrl) || other.feedUrl == feedUrl)&&const DeepCollectionEquality().equals(other._episodes, _episodes)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminRssFeed&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.entityType, entityType) || other.entityType == entityType)&&(identical(other.entityId, entityId) || other.entityId == entityId)&&(identical(other.entityUpdatedAt, entityUpdatedAt) || other.entityUpdatedAt == entityUpdatedAt)&&(identical(other.coverPath, coverPath) || other.coverPath == coverPath)&&(identical(other.meta, meta) || other.meta == meta)&&(identical(other.serverAddress, serverAddress) || other.serverAddress == serverAddress)&&(identical(other.feedUrl, feedUrl) || other.feedUrl == feedUrl)&&const DeepCollectionEquality().equals(other.episodes, _episodes)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,slug,userId,entityType,entityId,entityUpdatedAt,coverPath,meta,serverAddress,feedUrl,const DeepCollectionEquality().hash(_episodes),createdAt,updatedAt);
+int get hashCode {
+    return Object.hash(runtimeType,id,slug,userId,entityType,entityId,entityUpdatedAt,coverPath,meta,serverAddress,feedUrl,const DeepCollectionEquality().hash(_episodes),createdAt,updatedAt);
+}
 
 @override
 String toString() {
-  return 'AdminRssFeed(id: $id, slug: $slug, userId: $userId, entityType: $entityType, entityId: $entityId, entityUpdatedAt: $entityUpdatedAt, coverPath: $coverPath, meta: $meta, serverAddress: $serverAddress, feedUrl: $feedUrl, episodes: $episodes, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'AdminRssFeed(id: $id, slug: $slug, userId: $userId, entityType: $entityType, entityId: $entityId, entityUpdatedAt: $entityUpdatedAt, coverPath: $coverPath, meta: $meta, serverAddress: $serverAddress, feedUrl: $feedUrl, episodes: $episodes, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -636,16 +650,21 @@ $AdminRssFeedMinifiedCopyWith<AdminRssFeedMinified> get copyWith => _$AdminRssFe
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminRssFeedMinified&&(identical(other.id, id) || other.id == id)&&(identical(other.entityType, entityType) || other.entityType == entityType)&&(identical(other.entityId, entityId) || other.entityId == entityId)&&(identical(other.feedUrl, feedUrl) || other.feedUrl == feedUrl)&&(identical(other.meta, meta) || other.meta == meta));
+  final _this = this as AdminRssFeedMinified;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminRssFeedMinified&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.entityType, _this.entityType) || other.entityType == _this.entityType)&&(identical(other.entityId, _this.entityId) || other.entityId == _this.entityId)&&(identical(other.feedUrl, _this.feedUrl) || other.feedUrl == _this.feedUrl)&&(identical(other.meta, _this.meta) || other.meta == _this.meta));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,entityType,entityId,feedUrl,meta);
+int get hashCode {
+  final _this = this as AdminRssFeedMinified;
+  return Object.hash(runtimeType,_this.id,_this.entityType,_this.entityId,_this.feedUrl,_this.meta);
+}
 
 @override
 String toString() {
-  return 'AdminRssFeedMinified(id: $id, entityType: $entityType, entityId: $entityId, feedUrl: $feedUrl, meta: $meta)';
+  final _this = this as AdminRssFeedMinified;
+  return 'AdminRssFeedMinified(id: ${_this.id}, entityType: ${_this.entityType}, entityId: ${_this.entityId}, feedUrl: ${_this.feedUrl}, meta: ${_this.meta})';
 }
 
 
@@ -855,16 +874,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminRssFeedMinified&&(identical(other.id, id) || other.id == id)&&(identical(other.entityType, entityType) || other.entityType == entityType)&&(identical(other.entityId, entityId) || other.entityId == entityId)&&(identical(other.feedUrl, feedUrl) || other.feedUrl == feedUrl)&&(identical(other.meta, meta) || other.meta == meta));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminRssFeedMinified&&(identical(other.id, id) || other.id == id)&&(identical(other.entityType, entityType) || other.entityType == entityType)&&(identical(other.entityId, entityId) || other.entityId == entityId)&&(identical(other.feedUrl, feedUrl) || other.feedUrl == feedUrl)&&(identical(other.meta, meta) || other.meta == meta));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,entityType,entityId,feedUrl,meta);
+int get hashCode {
+    return Object.hash(runtimeType,id,entityType,entityId,feedUrl,meta);
+}
 
 @override
 String toString() {
-  return 'AdminRssFeedMinified(id: $id, entityType: $entityType, entityId: $entityId, feedUrl: $feedUrl, meta: $meta)';
+    return 'AdminRssFeedMinified(id: $id, entityType: $entityType, entityId: $entityId, feedUrl: $feedUrl, meta: $meta)';
 }
 
 
@@ -935,16 +956,21 @@ $AdminRssFeedMetaCopyWith<AdminRssFeedMeta> get copyWith => _$AdminRssFeedMetaCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminRssFeedMeta&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.author, author) || other.author == author)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.feedUrl, feedUrl) || other.feedUrl == feedUrl)&&(identical(other.link, link) || other.link == link)&&(identical(other.explicit, explicit) || other.explicit == explicit)&&(identical(other.type, type) || other.type == type)&&(identical(other.language, language) || other.language == language)&&(identical(other.preventIndexing, preventIndexing) || other.preventIndexing == preventIndexing)&&(identical(other.ownerName, ownerName) || other.ownerName == ownerName)&&(identical(other.ownerEmail, ownerEmail) || other.ownerEmail == ownerEmail));
+  final _this = this as AdminRssFeedMeta;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminRssFeedMeta&&(identical(other.title, _this.title) || other.title == _this.title)&&(identical(other.description, _this.description) || other.description == _this.description)&&(identical(other.author, _this.author) || other.author == _this.author)&&(identical(other.imageUrl, _this.imageUrl) || other.imageUrl == _this.imageUrl)&&(identical(other.feedUrl, _this.feedUrl) || other.feedUrl == _this.feedUrl)&&(identical(other.link, _this.link) || other.link == _this.link)&&(identical(other.explicit, _this.explicit) || other.explicit == _this.explicit)&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.language, _this.language) || other.language == _this.language)&&(identical(other.preventIndexing, _this.preventIndexing) || other.preventIndexing == _this.preventIndexing)&&(identical(other.ownerName, _this.ownerName) || other.ownerName == _this.ownerName)&&(identical(other.ownerEmail, _this.ownerEmail) || other.ownerEmail == _this.ownerEmail));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,title,description,author,imageUrl,feedUrl,link,explicit,type,language,preventIndexing,ownerName,ownerEmail);
+int get hashCode {
+  final _this = this as AdminRssFeedMeta;
+  return Object.hash(runtimeType,_this.title,_this.description,_this.author,_this.imageUrl,_this.feedUrl,_this.link,_this.explicit,_this.type,_this.language,_this.preventIndexing,_this.ownerName,_this.ownerEmail);
+}
 
 @override
 String toString() {
-  return 'AdminRssFeedMeta(title: $title, description: $description, author: $author, imageUrl: $imageUrl, feedUrl: $feedUrl, link: $link, explicit: $explicit, type: $type, language: $language, preventIndexing: $preventIndexing, ownerName: $ownerName, ownerEmail: $ownerEmail)';
+  final _this = this as AdminRssFeedMeta;
+  return 'AdminRssFeedMeta(title: ${_this.title}, description: ${_this.description}, author: ${_this.author}, imageUrl: ${_this.imageUrl}, feedUrl: ${_this.feedUrl}, link: ${_this.link}, explicit: ${_this.explicit}, type: ${_this.type}, language: ${_this.language}, preventIndexing: ${_this.preventIndexing}, ownerName: ${_this.ownerName}, ownerEmail: ${_this.ownerEmail})';
 }
 
 
@@ -1156,16 +1182,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminRssFeedMeta&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.author, author) || other.author == author)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.feedUrl, feedUrl) || other.feedUrl == feedUrl)&&(identical(other.link, link) || other.link == link)&&(identical(other.explicit, explicit) || other.explicit == explicit)&&(identical(other.type, type) || other.type == type)&&(identical(other.language, language) || other.language == language)&&(identical(other.preventIndexing, preventIndexing) || other.preventIndexing == preventIndexing)&&(identical(other.ownerName, ownerName) || other.ownerName == ownerName)&&(identical(other.ownerEmail, ownerEmail) || other.ownerEmail == ownerEmail));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminRssFeedMeta&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.author, author) || other.author == author)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.feedUrl, feedUrl) || other.feedUrl == feedUrl)&&(identical(other.link, link) || other.link == link)&&(identical(other.explicit, explicit) || other.explicit == explicit)&&(identical(other.type, type) || other.type == type)&&(identical(other.language, language) || other.language == language)&&(identical(other.preventIndexing, preventIndexing) || other.preventIndexing == preventIndexing)&&(identical(other.ownerName, ownerName) || other.ownerName == ownerName)&&(identical(other.ownerEmail, ownerEmail) || other.ownerEmail == ownerEmail));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,title,description,author,imageUrl,feedUrl,link,explicit,type,language,preventIndexing,ownerName,ownerEmail);
+int get hashCode {
+    return Object.hash(runtimeType,title,description,author,imageUrl,feedUrl,link,explicit,type,language,preventIndexing,ownerName,ownerEmail);
+}
 
 @override
 String toString() {
-  return 'AdminRssFeedMeta(title: $title, description: $description, author: $author, imageUrl: $imageUrl, feedUrl: $feedUrl, link: $link, explicit: $explicit, type: $type, language: $language, preventIndexing: $preventIndexing, ownerName: $ownerName, ownerEmail: $ownerEmail)';
+    return 'AdminRssFeedMeta(title: $title, description: $description, author: $author, imageUrl: $imageUrl, feedUrl: $feedUrl, link: $link, explicit: $explicit, type: $type, language: $language, preventIndexing: $preventIndexing, ownerName: $ownerName, ownerEmail: $ownerEmail)';
 }
 
 
@@ -1231,16 +1259,21 @@ $AdminRssFeedEpisodeCopyWith<AdminRssFeedEpisode> get copyWith => _$AdminRssFeed
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminRssFeedEpisode&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.enclosure, enclosure) || other.enclosure == enclosure)&&(identical(other.pubDate, pubDate) || other.pubDate == pubDate)&&(identical(other.link, link) || other.link == link)&&(identical(other.author, author) || other.author == author)&&(identical(other.explicit, explicit) || other.explicit == explicit)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.season, season) || other.season == season)&&(identical(other.episode, episode) || other.episode == episode)&&(identical(other.episodeType, episodeType) || other.episodeType == episodeType)&&(identical(other.fullPath, fullPath) || other.fullPath == fullPath));
+  final _this = this as AdminRssFeedEpisode;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminRssFeedEpisode&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.title, _this.title) || other.title == _this.title)&&(identical(other.description, _this.description) || other.description == _this.description)&&(identical(other.enclosure, _this.enclosure) || other.enclosure == _this.enclosure)&&(identical(other.pubDate, _this.pubDate) || other.pubDate == _this.pubDate)&&(identical(other.link, _this.link) || other.link == _this.link)&&(identical(other.author, _this.author) || other.author == _this.author)&&(identical(other.explicit, _this.explicit) || other.explicit == _this.explicit)&&(identical(other.duration, _this.duration) || other.duration == _this.duration)&&(identical(other.season, _this.season) || other.season == _this.season)&&(identical(other.episode, _this.episode) || other.episode == _this.episode)&&(identical(other.episodeType, _this.episodeType) || other.episodeType == _this.episodeType)&&(identical(other.fullPath, _this.fullPath) || other.fullPath == _this.fullPath));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,description,enclosure,pubDate,link,author,explicit,duration,season,episode,episodeType,fullPath);
+int get hashCode {
+  final _this = this as AdminRssFeedEpisode;
+  return Object.hash(runtimeType,_this.id,_this.title,_this.description,_this.enclosure,_this.pubDate,_this.link,_this.author,_this.explicit,_this.duration,_this.season,_this.episode,_this.episodeType,_this.fullPath);
+}
 
 @override
 String toString() {
-  return 'AdminRssFeedEpisode(id: $id, title: $title, description: $description, enclosure: $enclosure, pubDate: $pubDate, link: $link, author: $author, explicit: $explicit, duration: $duration, season: $season, episode: $episode, episodeType: $episodeType, fullPath: $fullPath)';
+  final _this = this as AdminRssFeedEpisode;
+  return 'AdminRssFeedEpisode(id: ${_this.id}, title: ${_this.title}, description: ${_this.description}, enclosure: ${_this.enclosure}, pubDate: ${_this.pubDate}, link: ${_this.link}, author: ${_this.author}, explicit: ${_this.explicit}, duration: ${_this.duration}, season: ${_this.season}, episode: ${_this.episode}, episodeType: ${_this.episodeType}, fullPath: ${_this.fullPath})';
 }
 
 
@@ -1466,16 +1499,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminRssFeedEpisode&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.enclosure, enclosure) || other.enclosure == enclosure)&&(identical(other.pubDate, pubDate) || other.pubDate == pubDate)&&(identical(other.link, link) || other.link == link)&&(identical(other.author, author) || other.author == author)&&(identical(other.explicit, explicit) || other.explicit == explicit)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.season, season) || other.season == season)&&(identical(other.episode, episode) || other.episode == episode)&&(identical(other.episodeType, episodeType) || other.episodeType == episodeType)&&(identical(other.fullPath, fullPath) || other.fullPath == fullPath));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminRssFeedEpisode&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.enclosure, enclosure) || other.enclosure == enclosure)&&(identical(other.pubDate, pubDate) || other.pubDate == pubDate)&&(identical(other.link, link) || other.link == link)&&(identical(other.author, author) || other.author == author)&&(identical(other.explicit, explicit) || other.explicit == explicit)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.season, season) || other.season == season)&&(identical(other.episode, episode) || other.episode == episode)&&(identical(other.episodeType, episodeType) || other.episodeType == episodeType)&&(identical(other.fullPath, fullPath) || other.fullPath == fullPath));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,description,enclosure,pubDate,link,author,explicit,duration,season,episode,episodeType,fullPath);
+int get hashCode {
+    return Object.hash(runtimeType,id,title,description,enclosure,pubDate,link,author,explicit,duration,season,episode,episodeType,fullPath);
+}
 
 @override
 String toString() {
-  return 'AdminRssFeedEpisode(id: $id, title: $title, description: $description, enclosure: $enclosure, pubDate: $pubDate, link: $link, author: $author, explicit: $explicit, duration: $duration, season: $season, episode: $episode, episodeType: $episodeType, fullPath: $fullPath)';
+    return 'AdminRssFeedEpisode(id: $id, title: $title, description: $description, enclosure: $enclosure, pubDate: $pubDate, link: $link, author: $author, explicit: $explicit, duration: $duration, season: $season, episode: $episode, episodeType: $episodeType, fullPath: $fullPath)';
 }
 
 
@@ -1554,16 +1589,21 @@ $AdminRssFeedEpisodeEnclosureCopyWith<AdminRssFeedEpisodeEnclosure> get copyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminRssFeedEpisodeEnclosure&&(identical(other.url, url) || other.url == url)&&(identical(other.size, size) || other.size == size)&&(identical(other.type, type) || other.type == type));
+  final _this = this as AdminRssFeedEpisodeEnclosure;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminRssFeedEpisodeEnclosure&&(identical(other.url, _this.url) || other.url == _this.url)&&(identical(other.size, _this.size) || other.size == _this.size)&&(identical(other.type, _this.type) || other.type == _this.type));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,url,size,type);
+int get hashCode {
+  final _this = this as AdminRssFeedEpisodeEnclosure;
+  return Object.hash(runtimeType,_this.url,_this.size,_this.type);
+}
 
 @override
 String toString() {
-  return 'AdminRssFeedEpisodeEnclosure(url: $url, size: $size, type: $type)';
+  final _this = this as AdminRssFeedEpisodeEnclosure;
+  return 'AdminRssFeedEpisodeEnclosure(url: ${_this.url}, size: ${_this.size}, type: ${_this.type})';
 }
 
 
@@ -1757,16 +1797,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminRssFeedEpisodeEnclosure&&(identical(other.url, url) || other.url == url)&&(identical(other.size, size) || other.size == size)&&(identical(other.type, type) || other.type == type));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminRssFeedEpisodeEnclosure&&(identical(other.url, url) || other.url == url)&&(identical(other.size, size) || other.size == size)&&(identical(other.type, type) || other.type == type));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,url,size,type);
+int get hashCode {
+    return Object.hash(runtimeType,url,size,type);
+}
 
 @override
 String toString() {
-  return 'AdminRssFeedEpisodeEnclosure(url: $url, size: $size, type: $type)';
+    return 'AdminRssFeedEpisodeEnclosure(url: $url, size: $size, type: $type)';
 }
 
 

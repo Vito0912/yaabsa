@@ -29,16 +29,21 @@ $PathExistsResponseCopyWith<PathExistsResponse> get copyWith => _$PathExistsResp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PathExistsResponse&&(identical(other.exists, exists) || other.exists == exists)&&(identical(other.libraryItemTitle, libraryItemTitle) || other.libraryItemTitle == libraryItemTitle)&&(identical(other.error, error) || other.error == error));
+  final _this = this as PathExistsResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PathExistsResponse&&(identical(other.exists, _this.exists) || other.exists == _this.exists)&&(identical(other.libraryItemTitle, _this.libraryItemTitle) || other.libraryItemTitle == _this.libraryItemTitle)&&(identical(other.error, _this.error) || other.error == _this.error));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,exists,libraryItemTitle,error);
+int get hashCode {
+  final _this = this as PathExistsResponse;
+  return Object.hash(runtimeType,_this.exists,_this.libraryItemTitle,_this.error);
+}
 
 @override
 String toString() {
-  return 'PathExistsResponse(exists: $exists, libraryItemTitle: $libraryItemTitle, error: $error)';
+  final _this = this as PathExistsResponse;
+  return 'PathExistsResponse(exists: ${_this.exists}, libraryItemTitle: ${_this.libraryItemTitle}, error: ${_this.error})';
 }
 
 
@@ -232,16 +237,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PathExistsResponse&&(identical(other.exists, exists) || other.exists == exists)&&(identical(other.libraryItemTitle, libraryItemTitle) || other.libraryItemTitle == libraryItemTitle)&&(identical(other.error, error) || other.error == error));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PathExistsResponse&&(identical(other.exists, exists) || other.exists == exists)&&(identical(other.libraryItemTitle, libraryItemTitle) || other.libraryItemTitle == libraryItemTitle)&&(identical(other.error, error) || other.error == error));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,exists,libraryItemTitle,error);
+int get hashCode {
+    return Object.hash(runtimeType,exists,libraryItemTitle,error);
+}
 
 @override
 String toString() {
-  return 'PathExistsResponse(exists: $exists, libraryItemTitle: $libraryItemTitle, error: $error)';
+    return 'PathExistsResponse(exists: $exists, libraryItemTitle: $libraryItemTitle, error: $error)';
 }
 
 

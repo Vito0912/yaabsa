@@ -29,16 +29,21 @@ $RecentEpisodesResponseCopyWith<RecentEpisodesResponse> get copyWith => _$Recent
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RecentEpisodesResponse&&const DeepCollectionEquality().equals(other.episodes, episodes)&&(identical(other.limit, limit) || other.limit == limit)&&(identical(other.page, page) || other.page == page));
+  final _this = this as RecentEpisodesResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RecentEpisodesResponse&&const DeepCollectionEquality().equals(other.episodes, _this.episodes)&&(identical(other.limit, _this.limit) || other.limit == _this.limit)&&(identical(other.page, _this.page) || other.page == _this.page));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(episodes),limit,page);
+int get hashCode {
+  final _this = this as RecentEpisodesResponse;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.episodes),_this.limit,_this.page);
+}
 
 @override
 String toString() {
-  return 'RecentEpisodesResponse(episodes: $episodes, limit: $limit, page: $page)';
+  final _this = this as RecentEpisodesResponse;
+  return 'RecentEpisodesResponse(episodes: ${_this.episodes}, limit: ${_this.limit}, page: ${_this.page})';
 }
 
 
@@ -238,16 +243,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RecentEpisodesResponse&&const DeepCollectionEquality().equals(other._episodes, _episodes)&&(identical(other.limit, limit) || other.limit == limit)&&(identical(other.page, page) || other.page == page));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _RecentEpisodesResponse&&const DeepCollectionEquality().equals(other.episodes, _episodes)&&(identical(other.limit, limit) || other.limit == limit)&&(identical(other.page, page) || other.page == page));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_episodes),limit,page);
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_episodes),limit,page);
+}
 
 @override
 String toString() {
-  return 'RecentEpisodesResponse(episodes: $episodes, limit: $limit, page: $page)';
+    return 'RecentEpisodesResponse(episodes: $episodes, limit: $limit, page: $page)';
 }
 
 

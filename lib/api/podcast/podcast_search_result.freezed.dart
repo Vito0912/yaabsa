@@ -29,16 +29,21 @@ $PodcastSearchResultCopyWith<PodcastSearchResult> get copyWith => _$PodcastSearc
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PodcastSearchResult&&(identical(other.id, id) || other.id == id)&&(identical(other.artistId, artistId) || other.artistId == artistId)&&(identical(other.title, title) || other.title == title)&&(identical(other.artistName, artistName) || other.artistName == artistName)&&(identical(other.description, description) || other.description == description)&&(identical(other.descriptionPlain, descriptionPlain) || other.descriptionPlain == descriptionPlain)&&const DeepCollectionEquality().equals(other.genres, genres)&&(identical(other.cover, cover) || other.cover == cover)&&(identical(other.feedUrl, feedUrl) || other.feedUrl == feedUrl)&&(identical(other.pageUrl, pageUrl) || other.pageUrl == pageUrl)&&(identical(other.releaseDate, releaseDate) || other.releaseDate == releaseDate)&&(identical(other.explicit, explicit) || other.explicit == explicit)&&(identical(other.trackCount, trackCount) || other.trackCount == trackCount)&&(identical(other.language, language) || other.language == language)&&(identical(other.type, type) || other.type == type));
+  final _this = this as PodcastSearchResult;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PodcastSearchResult&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.artistId, _this.artistId) || other.artistId == _this.artistId)&&(identical(other.title, _this.title) || other.title == _this.title)&&(identical(other.artistName, _this.artistName) || other.artistName == _this.artistName)&&(identical(other.description, _this.description) || other.description == _this.description)&&(identical(other.descriptionPlain, _this.descriptionPlain) || other.descriptionPlain == _this.descriptionPlain)&&const DeepCollectionEquality().equals(other.genres, _this.genres)&&(identical(other.cover, _this.cover) || other.cover == _this.cover)&&(identical(other.feedUrl, _this.feedUrl) || other.feedUrl == _this.feedUrl)&&(identical(other.pageUrl, _this.pageUrl) || other.pageUrl == _this.pageUrl)&&(identical(other.releaseDate, _this.releaseDate) || other.releaseDate == _this.releaseDate)&&(identical(other.explicit, _this.explicit) || other.explicit == _this.explicit)&&(identical(other.trackCount, _this.trackCount) || other.trackCount == _this.trackCount)&&(identical(other.language, _this.language) || other.language == _this.language)&&(identical(other.type, _this.type) || other.type == _this.type));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,artistId,title,artistName,description,descriptionPlain,const DeepCollectionEquality().hash(genres),cover,feedUrl,pageUrl,releaseDate,explicit,trackCount,language,type);
+int get hashCode {
+  final _this = this as PodcastSearchResult;
+  return Object.hash(runtimeType,_this.id,_this.artistId,_this.title,_this.artistName,_this.description,_this.descriptionPlain,const DeepCollectionEquality().hash(_this.genres),_this.cover,_this.feedUrl,_this.pageUrl,_this.releaseDate,_this.explicit,_this.trackCount,_this.language,_this.type);
+}
 
 @override
 String toString() {
-  return 'PodcastSearchResult(id: $id, artistId: $artistId, title: $title, artistName: $artistName, description: $description, descriptionPlain: $descriptionPlain, genres: $genres, cover: $cover, feedUrl: $feedUrl, pageUrl: $pageUrl, releaseDate: $releaseDate, explicit: $explicit, trackCount: $trackCount, language: $language, type: $type)';
+  final _this = this as PodcastSearchResult;
+  return 'PodcastSearchResult(id: ${_this.id}, artistId: ${_this.artistId}, title: ${_this.title}, artistName: ${_this.artistName}, description: ${_this.description}, descriptionPlain: ${_this.descriptionPlain}, genres: ${_this.genres}, cover: ${_this.cover}, feedUrl: ${_this.feedUrl}, pageUrl: ${_this.pageUrl}, releaseDate: ${_this.releaseDate}, explicit: ${_this.explicit}, trackCount: ${_this.trackCount}, language: ${_this.language}, type: ${_this.type})';
 }
 
 
@@ -262,16 +267,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PodcastSearchResult&&(identical(other.id, id) || other.id == id)&&(identical(other.artistId, artistId) || other.artistId == artistId)&&(identical(other.title, title) || other.title == title)&&(identical(other.artistName, artistName) || other.artistName == artistName)&&(identical(other.description, description) || other.description == description)&&(identical(other.descriptionPlain, descriptionPlain) || other.descriptionPlain == descriptionPlain)&&const DeepCollectionEquality().equals(other._genres, _genres)&&(identical(other.cover, cover) || other.cover == cover)&&(identical(other.feedUrl, feedUrl) || other.feedUrl == feedUrl)&&(identical(other.pageUrl, pageUrl) || other.pageUrl == pageUrl)&&(identical(other.releaseDate, releaseDate) || other.releaseDate == releaseDate)&&(identical(other.explicit, explicit) || other.explicit == explicit)&&(identical(other.trackCount, trackCount) || other.trackCount == trackCount)&&(identical(other.language, language) || other.language == language)&&(identical(other.type, type) || other.type == type));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PodcastSearchResult&&(identical(other.id, id) || other.id == id)&&(identical(other.artistId, artistId) || other.artistId == artistId)&&(identical(other.title, title) || other.title == title)&&(identical(other.artistName, artistName) || other.artistName == artistName)&&(identical(other.description, description) || other.description == description)&&(identical(other.descriptionPlain, descriptionPlain) || other.descriptionPlain == descriptionPlain)&&const DeepCollectionEquality().equals(other.genres, _genres)&&(identical(other.cover, cover) || other.cover == cover)&&(identical(other.feedUrl, feedUrl) || other.feedUrl == feedUrl)&&(identical(other.pageUrl, pageUrl) || other.pageUrl == pageUrl)&&(identical(other.releaseDate, releaseDate) || other.releaseDate == releaseDate)&&(identical(other.explicit, explicit) || other.explicit == explicit)&&(identical(other.trackCount, trackCount) || other.trackCount == trackCount)&&(identical(other.language, language) || other.language == language)&&(identical(other.type, type) || other.type == type));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,artistId,title,artistName,description,descriptionPlain,const DeepCollectionEquality().hash(_genres),cover,feedUrl,pageUrl,releaseDate,explicit,trackCount,language,type);
+int get hashCode {
+    return Object.hash(runtimeType,id,artistId,title,artistName,description,descriptionPlain,const DeepCollectionEquality().hash(_genres),cover,feedUrl,pageUrl,releaseDate,explicit,trackCount,language,type);
+}
 
 @override
 String toString() {
-  return 'PodcastSearchResult(id: $id, artistId: $artistId, title: $title, artistName: $artistName, description: $description, descriptionPlain: $descriptionPlain, genres: $genres, cover: $cover, feedUrl: $feedUrl, pageUrl: $pageUrl, releaseDate: $releaseDate, explicit: $explicit, trackCount: $trackCount, language: $language, type: $type)';
+    return 'PodcastSearchResult(id: $id, artistId: $artistId, title: $title, artistName: $artistName, description: $description, descriptionPlain: $descriptionPlain, genres: $genres, cover: $cover, feedUrl: $feedUrl, pageUrl: $pageUrl, releaseDate: $releaseDate, explicit: $explicit, trackCount: $trackCount, language: $language, type: $type)';
 }
 
 

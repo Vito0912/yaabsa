@@ -29,16 +29,21 @@ $SyncSessionRequestCopyWith<SyncSessionRequest> get copyWith => _$SyncSessionReq
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SyncSessionRequest&&(identical(other.currentTime, currentTime) || other.currentTime == currentTime)&&(identical(other.timeListened, timeListened) || other.timeListened == timeListened)&&(identical(other.duration, duration) || other.duration == duration));
+  final _this = this as SyncSessionRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SyncSessionRequest&&(identical(other.currentTime, _this.currentTime) || other.currentTime == _this.currentTime)&&(identical(other.timeListened, _this.timeListened) || other.timeListened == _this.timeListened)&&(identical(other.duration, _this.duration) || other.duration == _this.duration));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,currentTime,timeListened,duration);
+int get hashCode {
+  final _this = this as SyncSessionRequest;
+  return Object.hash(runtimeType,_this.currentTime,_this.timeListened,_this.duration);
+}
 
 @override
 String toString() {
-  return 'SyncSessionRequest(currentTime: $currentTime, timeListened: $timeListened, duration: $duration)';
+  final _this = this as SyncSessionRequest;
+  return 'SyncSessionRequest(currentTime: ${_this.currentTime}, timeListened: ${_this.timeListened}, duration: ${_this.duration})';
 }
 
 
@@ -232,16 +237,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SyncSessionRequest&&(identical(other.currentTime, currentTime) || other.currentTime == currentTime)&&(identical(other.timeListened, timeListened) || other.timeListened == timeListened)&&(identical(other.duration, duration) || other.duration == duration));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SyncSessionRequest&&(identical(other.currentTime, currentTime) || other.currentTime == currentTime)&&(identical(other.timeListened, timeListened) || other.timeListened == timeListened)&&(identical(other.duration, duration) || other.duration == duration));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,currentTime,timeListened,duration);
+int get hashCode {
+    return Object.hash(runtimeType,currentTime,timeListened,duration);
+}
 
 @override
 String toString() {
-  return 'SyncSessionRequest(currentTime: $currentTime, timeListened: $timeListened, duration: $duration)';
+    return 'SyncSessionRequest(currentTime: $currentTime, timeListened: $timeListened, duration: $duration)';
 }
 
 

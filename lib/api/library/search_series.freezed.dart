@@ -29,16 +29,21 @@ $SearchSeriesCopyWith<SearchSeries> get copyWith => _$SearchSeriesCopyWithImpl<S
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SearchSeries&&(identical(other.series, series) || other.series == series)&&const DeepCollectionEquality().equals(other.books, books));
+  final _this = this as SearchSeries;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SearchSeries&&(identical(other.series, _this.series) || other.series == _this.series)&&const DeepCollectionEquality().equals(other.books, _this.books));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,series,const DeepCollectionEquality().hash(books));
+int get hashCode {
+  final _this = this as SearchSeries;
+  return Object.hash(runtimeType,_this.series,const DeepCollectionEquality().hash(_this.books));
+}
 
 @override
 String toString() {
-  return 'SearchSeries(series: $series, books: $books)';
+  final _this = this as SearchSeries;
+  return 'SearchSeries(series: ${_this.series}, books: ${_this.books})';
 }
 
 
@@ -245,16 +250,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SearchSeries&&(identical(other.series, series) || other.series == series)&&const DeepCollectionEquality().equals(other._books, _books));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SearchSeries&&(identical(other.series, series) || other.series == series)&&const DeepCollectionEquality().equals(other.books, _books));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,series,const DeepCollectionEquality().hash(_books));
+int get hashCode {
+    return Object.hash(runtimeType,series,const DeepCollectionEquality().hash(_books));
+}
 
 @override
 String toString() {
-  return 'SearchSeries(series: $series, books: $books)';
+    return 'SearchSeries(series: $series, books: $books)';
 }
 
 

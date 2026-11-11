@@ -29,16 +29,21 @@ $ItemsInProgressCopyWith<ItemsInProgress> get copyWith => _$ItemsInProgressCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ItemsInProgress&&const DeepCollectionEquality().equals(other.libraryItems, libraryItems));
+  final _this = this as ItemsInProgress;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ItemsInProgress&&const DeepCollectionEquality().equals(other.libraryItems, _this.libraryItems));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(libraryItems));
+int get hashCode {
+  final _this = this as ItemsInProgress;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.libraryItems));
+}
 
 @override
 String toString() {
-  return 'ItemsInProgress(libraryItems: $libraryItems)';
+  final _this = this as ItemsInProgress;
+  return 'ItemsInProgress(libraryItems: ${_this.libraryItems})';
 }
 
 
@@ -234,16 +239,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ItemsInProgress&&const DeepCollectionEquality().equals(other._libraryItems, _libraryItems));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ItemsInProgress&&const DeepCollectionEquality().equals(other.libraryItems, _libraryItems));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_libraryItems));
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_libraryItems));
+}
 
 @override
 String toString() {
-  return 'ItemsInProgress(libraryItems: $libraryItems)';
+    return 'ItemsInProgress(libraryItems: $libraryItems)';
 }
 
 

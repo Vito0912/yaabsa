@@ -29,16 +29,21 @@ $MetaTagsCopyWith<MetaTags> get copyWith => _$MetaTagsCopyWithImpl<MetaTags>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MetaTags&&(identical(other.tagAlbum, tagAlbum) || other.tagAlbum == tagAlbum)&&(identical(other.tagAlbumSort, tagAlbumSort) || other.tagAlbumSort == tagAlbumSort)&&(identical(other.tagArtist, tagArtist) || other.tagArtist == tagArtist)&&(identical(other.tagArtistSort, tagArtistSort) || other.tagArtistSort == tagArtistSort)&&(identical(other.tagGenre, tagGenre) || other.tagGenre == tagGenre)&&(identical(other.tagTitle, tagTitle) || other.tagTitle == tagTitle)&&(identical(other.tagTitleSort, tagTitleSort) || other.tagTitleSort == tagTitleSort)&&(identical(other.tagSeries, tagSeries) || other.tagSeries == tagSeries)&&(identical(other.tagSeriesPart, tagSeriesPart) || other.tagSeriesPart == tagSeriesPart)&&(identical(other.tagTrack, tagTrack) || other.tagTrack == tagTrack)&&(identical(other.tagDisc, tagDisc) || other.tagDisc == tagDisc)&&(identical(other.tagDate, tagDate) || other.tagDate == tagDate)&&(identical(other.tagComment, tagComment) || other.tagComment == tagComment)&&(identical(other.tagEncoder, tagEncoder) || other.tagEncoder == tagEncoder)&&(identical(other.tagLanguage, tagLanguage) || other.tagLanguage == tagLanguage)&&(identical(other.tagItunesId, tagItunesId) || other.tagItunesId == tagItunesId)&&(identical(other.tagPodcastType, tagPodcastType) || other.tagPodcastType == tagPodcastType));
+  final _this = this as MetaTags;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MetaTags&&(identical(other.tagAlbum, _this.tagAlbum) || other.tagAlbum == _this.tagAlbum)&&(identical(other.tagAlbumSort, _this.tagAlbumSort) || other.tagAlbumSort == _this.tagAlbumSort)&&(identical(other.tagArtist, _this.tagArtist) || other.tagArtist == _this.tagArtist)&&(identical(other.tagArtistSort, _this.tagArtistSort) || other.tagArtistSort == _this.tagArtistSort)&&(identical(other.tagGenre, _this.tagGenre) || other.tagGenre == _this.tagGenre)&&(identical(other.tagTitle, _this.tagTitle) || other.tagTitle == _this.tagTitle)&&(identical(other.tagTitleSort, _this.tagTitleSort) || other.tagTitleSort == _this.tagTitleSort)&&(identical(other.tagSeries, _this.tagSeries) || other.tagSeries == _this.tagSeries)&&(identical(other.tagSeriesPart, _this.tagSeriesPart) || other.tagSeriesPart == _this.tagSeriesPart)&&(identical(other.tagTrack, _this.tagTrack) || other.tagTrack == _this.tagTrack)&&(identical(other.tagDisc, _this.tagDisc) || other.tagDisc == _this.tagDisc)&&(identical(other.tagDate, _this.tagDate) || other.tagDate == _this.tagDate)&&(identical(other.tagComment, _this.tagComment) || other.tagComment == _this.tagComment)&&(identical(other.tagEncoder, _this.tagEncoder) || other.tagEncoder == _this.tagEncoder)&&(identical(other.tagLanguage, _this.tagLanguage) || other.tagLanguage == _this.tagLanguage)&&(identical(other.tagItunesId, _this.tagItunesId) || other.tagItunesId == _this.tagItunesId)&&(identical(other.tagPodcastType, _this.tagPodcastType) || other.tagPodcastType == _this.tagPodcastType));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,tagAlbum,tagAlbumSort,tagArtist,tagArtistSort,tagGenre,tagTitle,tagTitleSort,tagSeries,tagSeriesPart,tagTrack,tagDisc,tagDate,tagComment,tagEncoder,tagLanguage,tagItunesId,tagPodcastType);
+int get hashCode {
+  final _this = this as MetaTags;
+  return Object.hash(runtimeType,_this.tagAlbum,_this.tagAlbumSort,_this.tagArtist,_this.tagArtistSort,_this.tagGenre,_this.tagTitle,_this.tagTitleSort,_this.tagSeries,_this.tagSeriesPart,_this.tagTrack,_this.tagDisc,_this.tagDate,_this.tagComment,_this.tagEncoder,_this.tagLanguage,_this.tagItunesId,_this.tagPodcastType);
+}
 
 @override
 String toString() {
-  return 'MetaTags(tagAlbum: $tagAlbum, tagAlbumSort: $tagAlbumSort, tagArtist: $tagArtist, tagArtistSort: $tagArtistSort, tagGenre: $tagGenre, tagTitle: $tagTitle, tagTitleSort: $tagTitleSort, tagSeries: $tagSeries, tagSeriesPart: $tagSeriesPart, tagTrack: $tagTrack, tagDisc: $tagDisc, tagDate: $tagDate, tagComment: $tagComment, tagEncoder: $tagEncoder, tagLanguage: $tagLanguage, tagItunesId: $tagItunesId, tagPodcastType: $tagPodcastType)';
+  final _this = this as MetaTags;
+  return 'MetaTags(tagAlbum: ${_this.tagAlbum}, tagAlbumSort: ${_this.tagAlbumSort}, tagArtist: ${_this.tagArtist}, tagArtistSort: ${_this.tagArtistSort}, tagGenre: ${_this.tagGenre}, tagTitle: ${_this.tagTitle}, tagTitleSort: ${_this.tagTitleSort}, tagSeries: ${_this.tagSeries}, tagSeriesPart: ${_this.tagSeriesPart}, tagTrack: ${_this.tagTrack}, tagDisc: ${_this.tagDisc}, tagDate: ${_this.tagDate}, tagComment: ${_this.tagComment}, tagEncoder: ${_this.tagEncoder}, tagLanguage: ${_this.tagLanguage}, tagItunesId: ${_this.tagItunesId}, tagPodcastType: ${_this.tagPodcastType})';
 }
 
 
@@ -260,16 +265,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MetaTags&&(identical(other.tagAlbum, tagAlbum) || other.tagAlbum == tagAlbum)&&(identical(other.tagAlbumSort, tagAlbumSort) || other.tagAlbumSort == tagAlbumSort)&&(identical(other.tagArtist, tagArtist) || other.tagArtist == tagArtist)&&(identical(other.tagArtistSort, tagArtistSort) || other.tagArtistSort == tagArtistSort)&&(identical(other.tagGenre, tagGenre) || other.tagGenre == tagGenre)&&(identical(other.tagTitle, tagTitle) || other.tagTitle == tagTitle)&&(identical(other.tagTitleSort, tagTitleSort) || other.tagTitleSort == tagTitleSort)&&(identical(other.tagSeries, tagSeries) || other.tagSeries == tagSeries)&&(identical(other.tagSeriesPart, tagSeriesPart) || other.tagSeriesPart == tagSeriesPart)&&(identical(other.tagTrack, tagTrack) || other.tagTrack == tagTrack)&&(identical(other.tagDisc, tagDisc) || other.tagDisc == tagDisc)&&(identical(other.tagDate, tagDate) || other.tagDate == tagDate)&&(identical(other.tagComment, tagComment) || other.tagComment == tagComment)&&(identical(other.tagEncoder, tagEncoder) || other.tagEncoder == tagEncoder)&&(identical(other.tagLanguage, tagLanguage) || other.tagLanguage == tagLanguage)&&(identical(other.tagItunesId, tagItunesId) || other.tagItunesId == tagItunesId)&&(identical(other.tagPodcastType, tagPodcastType) || other.tagPodcastType == tagPodcastType));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _MetaTags&&(identical(other.tagAlbum, tagAlbum) || other.tagAlbum == tagAlbum)&&(identical(other.tagAlbumSort, tagAlbumSort) || other.tagAlbumSort == tagAlbumSort)&&(identical(other.tagArtist, tagArtist) || other.tagArtist == tagArtist)&&(identical(other.tagArtistSort, tagArtistSort) || other.tagArtistSort == tagArtistSort)&&(identical(other.tagGenre, tagGenre) || other.tagGenre == tagGenre)&&(identical(other.tagTitle, tagTitle) || other.tagTitle == tagTitle)&&(identical(other.tagTitleSort, tagTitleSort) || other.tagTitleSort == tagTitleSort)&&(identical(other.tagSeries, tagSeries) || other.tagSeries == tagSeries)&&(identical(other.tagSeriesPart, tagSeriesPart) || other.tagSeriesPart == tagSeriesPart)&&(identical(other.tagTrack, tagTrack) || other.tagTrack == tagTrack)&&(identical(other.tagDisc, tagDisc) || other.tagDisc == tagDisc)&&(identical(other.tagDate, tagDate) || other.tagDate == tagDate)&&(identical(other.tagComment, tagComment) || other.tagComment == tagComment)&&(identical(other.tagEncoder, tagEncoder) || other.tagEncoder == tagEncoder)&&(identical(other.tagLanguage, tagLanguage) || other.tagLanguage == tagLanguage)&&(identical(other.tagItunesId, tagItunesId) || other.tagItunesId == tagItunesId)&&(identical(other.tagPodcastType, tagPodcastType) || other.tagPodcastType == tagPodcastType));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,tagAlbum,tagAlbumSort,tagArtist,tagArtistSort,tagGenre,tagTitle,tagTitleSort,tagSeries,tagSeriesPart,tagTrack,tagDisc,tagDate,tagComment,tagEncoder,tagLanguage,tagItunesId,tagPodcastType);
+int get hashCode {
+    return Object.hash(runtimeType,tagAlbum,tagAlbumSort,tagArtist,tagArtistSort,tagGenre,tagTitle,tagTitleSort,tagSeries,tagSeriesPart,tagTrack,tagDisc,tagDate,tagComment,tagEncoder,tagLanguage,tagItunesId,tagPodcastType);
+}
 
 @override
 String toString() {
-  return 'MetaTags(tagAlbum: $tagAlbum, tagAlbumSort: $tagAlbumSort, tagArtist: $tagArtist, tagArtistSort: $tagArtistSort, tagGenre: $tagGenre, tagTitle: $tagTitle, tagTitleSort: $tagTitleSort, tagSeries: $tagSeries, tagSeriesPart: $tagSeriesPart, tagTrack: $tagTrack, tagDisc: $tagDisc, tagDate: $tagDate, tagComment: $tagComment, tagEncoder: $tagEncoder, tagLanguage: $tagLanguage, tagItunesId: $tagItunesId, tagPodcastType: $tagPodcastType)';
+    return 'MetaTags(tagAlbum: $tagAlbum, tagAlbumSort: $tagAlbumSort, tagArtist: $tagArtist, tagArtistSort: $tagArtistSort, tagGenre: $tagGenre, tagTitle: $tagTitle, tagTitleSort: $tagTitleSort, tagSeries: $tagSeries, tagSeriesPart: $tagSeriesPart, tagTrack: $tagTrack, tagDisc: $tagDisc, tagDate: $tagDate, tagComment: $tagComment, tagEncoder: $tagEncoder, tagLanguage: $tagLanguage, tagItunesId: $tagItunesId, tagPodcastType: $tagPodcastType)';
 }
 
 
