@@ -14,9 +14,9 @@ list(APPEND FLUTTER_PLUGIN_LIST
   media_kit_libs_windows_audio
   permission_handler_windows
   screen_retriever_windows
-  share_plus
   tray_manager
   url_launcher_windows
+  share_plus
   window_manager
 )
 
