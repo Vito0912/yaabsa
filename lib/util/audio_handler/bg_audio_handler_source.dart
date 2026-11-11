@@ -89,7 +89,7 @@ extension _BGAudioHandlerSource on BGAudioHandler {
         'action=${_classifyPlaybackError(error).name}, '
         'processingState=${player.processingState.name}, playing=${player.playing}, '
         'bufferedPosition=${player.bufferedPosition}, '
-        'message=${sanitizePlaybackDiagnostic(error.message ?? '')}). See MPV entries for native failure details.',
+        'message=${sanitizePlaybackDiagnostic(error.message ?? '')})',
         tag: 'AudioHandler',
         level: InfoLevel.debug,
       );
@@ -163,15 +163,23 @@ extension _BGAudioHandlerSource on BGAudioHandler {
     final serverUrl = user?.server?.url;
     final serverUri = serverUrl == null ? null : Uri.tryParse(serverUrl);
     final headerNames = headers.keys.map((key) => key.toLowerCase()).toSet();
-    final backend = !kIsWeb && (Platform.isWindows || Platform.isLinux) ? 'media_kit/mpv' : 'just_audio';
+    var backend = 'just_audio';
+    var backendConfiguration = '';
+    if (!kIsWeb && Platform.isLinux) {
+      backend = 'media_kit/mpv';
+      backendConfiguration =
+          'bufferBytes=${JustAudioMediaKit.bufferSize}, excludedDecoders=${JustAudioMediaKit.excludedAudioDecoders}';
+    } else if (!kIsWeb && Platform.isWindows) {
+      backend = 'Windows.Media.Playback.MediaPlayer';
+    }
+
     logger(
       'Source load context: platform=${kIsWeb ? 'web' : Platform.operatingSystem}, backend=$backend, '
       'itemId=${media.itemId}, sessionId=${media.sessionId}, playMethod=${session?.playMethod}, '
       'local=${media.local}, trackIndex=$trackIndex, trackCount=${media.tracks.length}, '
       'transcodeStartupAttempt=$transcodeStartupAttempt, headerCount=${headers.length}, '
       'authorizationHeader=${headerNames.contains('authorization')}, cookieHeader=${headerNames.contains('cookie')}, '
-      'requestHeaderProxy=$_useRequestHeaderProxy, '
-      'bufferBytes=${JustAudioMediaKit.bufferSize}, excludedDecoders=${JustAudioMediaKit.excludedAudioDecoders}',
+      'requestHeaderProxy=$_useRequestHeaderProxy$backendConfiguration',
       tag: 'AudioHandler',
       level: InfoLevel.debug,
     );

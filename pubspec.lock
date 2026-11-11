@@ -1148,6 +1148,15 @@ packages:
       relative: true
     source: path
     version: "0.4.16"
+  just_audio_windows_plus:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: e3663432f6abb68bceb26b5d3b3940243e9f3583
+      resolved-ref: e3663432f6abb68bceb26b5d3b3940243e9f3583
+      url: "https://github.com/OmarAfifi-CSE/just_audio_windows_plus.git"
+    source: git
+    version: "0.5.6"
   leak_tracker:
     dependency: transitive
     description:
@@ -1260,15 +1269,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.1"
-  media_kit_libs_windows_audio:
-    dependency: "direct main"
-    description:
-      path: "libs/windows/media_kit_libs_windows_audio"
-      ref: aed5d67c9364e7e67361cba5947fdec6af1ffca4
-      resolved-ref: aed5d67c9364e7e67361cba5947fdec6af1ffca4
-      url: "https://github.com/Vito0912/media-kit.git"
-    source: git
-    version: "1.0.10"
   menu_base:
     dependency: transitive
     description:
