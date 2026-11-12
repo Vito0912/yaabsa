@@ -31,7 +31,8 @@ $DownloadTaskMetadataCopyWith<DownloadTaskMetadata> get copyWith => _$DownloadTa
 
 @override
 String toString() {
-  return 'DownloadTaskMetadata(itemId: $itemId, userId: $userId, episodeId: $episodeId, track: $track, expectedFileCount: $expectedFileCount, fileInode: $fileInode, fileIndex: $fileIndex, fileKind: $fileKind, fileName: $fileName, fileMimeType: $fileMimeType, saf: $saf, downloadBasePath: $downloadBasePath, libraryId: $libraryId, serverUrl: $serverUrl, serverHost: $serverHost, serverPort: $serverPort, serverSsl: $serverSsl, title: $title, downloadType: $downloadType, acquisitionOrigin: $acquisitionOrigin, smartProfileIds: $smartProfileIds, estimatedBytes: $estimatedBytes)';
+  final _this = this as DownloadTaskMetadata;
+  return 'DownloadTaskMetadata(itemId: ${_this.itemId}, userId: ${_this.userId}, episodeId: ${_this.episodeId}, track: ${_this.track}, expectedFileCount: ${_this.expectedFileCount}, fileInode: ${_this.fileInode}, fileIndex: ${_this.fileIndex}, fileKind: ${_this.fileKind}, fileName: ${_this.fileName}, fileMimeType: ${_this.fileMimeType}, saf: ${_this.saf}, downloadBasePath: ${_this.downloadBasePath}, libraryId: ${_this.libraryId}, serverUrl: ${_this.serverUrl}, serverHost: ${_this.serverHost}, serverPort: ${_this.serverPort}, serverSsl: ${_this.serverSsl}, title: ${_this.title}, downloadType: ${_this.downloadType}, acquisitionOrigin: ${_this.acquisitionOrigin}, smartProfileIds: ${_this.smartProfileIds}, estimatedBytes: ${_this.estimatedBytes})';
 }
 
 
@@ -277,7 +278,7 @@ Map<String, dynamic> toJson() {
 
 @override
 String toString() {
-  return 'DownloadTaskMetadata(itemId: $itemId, userId: $userId, episodeId: $episodeId, track: $track, expectedFileCount: $expectedFileCount, fileInode: $fileInode, fileIndex: $fileIndex, fileKind: $fileKind, fileName: $fileName, fileMimeType: $fileMimeType, saf: $saf, downloadBasePath: $downloadBasePath, libraryId: $libraryId, serverUrl: $serverUrl, serverHost: $serverHost, serverPort: $serverPort, serverSsl: $serverSsl, title: $title, downloadType: $downloadType, acquisitionOrigin: $acquisitionOrigin, smartProfileIds: $smartProfileIds, estimatedBytes: $estimatedBytes)';
+    return 'DownloadTaskMetadata(itemId: $itemId, userId: $userId, episodeId: $episodeId, track: $track, expectedFileCount: $expectedFileCount, fileInode: $fileInode, fileIndex: $fileIndex, fileKind: $fileKind, fileName: $fileName, fileMimeType: $fileMimeType, saf: $saf, downloadBasePath: $downloadBasePath, libraryId: $libraryId, serverUrl: $serverUrl, serverHost: $serverHost, serverPort: $serverPort, serverSsl: $serverSsl, title: $title, downloadType: $downloadType, acquisitionOrigin: $acquisitionOrigin, smartProfileIds: $smartProfileIds, estimatedBytes: $estimatedBytes)';
 }
 
 

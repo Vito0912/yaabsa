@@ -29,16 +29,21 @@ $DeviceInfoCopyWith<DeviceInfo> get copyWith => _$DeviceInfoCopyWithImpl<DeviceI
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DeviceInfo&&(identical(other.deviceId, deviceId) || other.deviceId == deviceId)&&(identical(other.clientName, clientName) || other.clientName == clientName)&&(identical(other.clientVersion, clientVersion) || other.clientVersion == clientVersion)&&(identical(other.manufacturer, manufacturer) || other.manufacturer == manufacturer)&&(identical(other.model, model) || other.model == model)&&(identical(other.sdkVersion, sdkVersion) || other.sdkVersion == sdkVersion));
+  final _this = this as DeviceInfo;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DeviceInfo&&(identical(other.deviceId, _this.deviceId) || other.deviceId == _this.deviceId)&&(identical(other.clientName, _this.clientName) || other.clientName == _this.clientName)&&(identical(other.clientVersion, _this.clientVersion) || other.clientVersion == _this.clientVersion)&&(identical(other.manufacturer, _this.manufacturer) || other.manufacturer == _this.manufacturer)&&(identical(other.model, _this.model) || other.model == _this.model)&&(identical(other.sdkVersion, _this.sdkVersion) || other.sdkVersion == _this.sdkVersion));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,deviceId,clientName,clientVersion,manufacturer,model,sdkVersion);
+int get hashCode {
+  final _this = this as DeviceInfo;
+  return Object.hash(runtimeType,_this.deviceId,_this.clientName,_this.clientVersion,_this.manufacturer,_this.model,_this.sdkVersion);
+}
 
 @override
 String toString() {
-  return 'DeviceInfo(deviceId: $deviceId, clientName: $clientName, clientVersion: $clientVersion, manufacturer: $manufacturer, model: $model, sdkVersion: $sdkVersion)';
+  final _this = this as DeviceInfo;
+  return 'DeviceInfo(deviceId: ${_this.deviceId}, clientName: ${_this.clientName}, clientVersion: ${_this.clientVersion}, manufacturer: ${_this.manufacturer}, model: ${_this.model}, sdkVersion: ${_this.sdkVersion})';
 }
 
 
@@ -238,16 +243,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DeviceInfo&&(identical(other.deviceId, deviceId) || other.deviceId == deviceId)&&(identical(other.clientName, clientName) || other.clientName == clientName)&&(identical(other.clientVersion, clientVersion) || other.clientVersion == clientVersion)&&(identical(other.manufacturer, manufacturer) || other.manufacturer == manufacturer)&&(identical(other.model, model) || other.model == model)&&(identical(other.sdkVersion, sdkVersion) || other.sdkVersion == sdkVersion));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DeviceInfo&&(identical(other.deviceId, deviceId) || other.deviceId == deviceId)&&(identical(other.clientName, clientName) || other.clientName == clientName)&&(identical(other.clientVersion, clientVersion) || other.clientVersion == clientVersion)&&(identical(other.manufacturer, manufacturer) || other.manufacturer == manufacturer)&&(identical(other.model, model) || other.model == model)&&(identical(other.sdkVersion, sdkVersion) || other.sdkVersion == sdkVersion));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,deviceId,clientName,clientVersion,manufacturer,model,sdkVersion);
+int get hashCode {
+    return Object.hash(runtimeType,deviceId,clientName,clientVersion,manufacturer,model,sdkVersion);
+}
 
 @override
 String toString() {
-  return 'DeviceInfo(deviceId: $deviceId, clientName: $clientName, clientVersion: $clientVersion, manufacturer: $manufacturer, model: $model, sdkVersion: $sdkVersion)';
+    return 'DeviceInfo(deviceId: $deviceId, clientName: $clientName, clientVersion: $clientVersion, manufacturer: $manufacturer, model: $model, sdkVersion: $sdkVersion)';
 }
 
 

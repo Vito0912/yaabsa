@@ -29,16 +29,21 @@ $CollapsedSeriesCopyWith<CollapsedSeries> get copyWith => _$CollapsedSeriesCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CollapsedSeries&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.nameIgnorePrefix, nameIgnorePrefix) || other.nameIgnorePrefix == nameIgnorePrefix)&&(identical(other.sequence, sequence) || other.sequence == sequence)&&(identical(other.numBooks, numBooks) || other.numBooks == numBooks)&&const DeepCollectionEquality().equals(other.libraryItemIds, libraryItemIds));
+  final _this = this as CollapsedSeries;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CollapsedSeries&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.nameIgnorePrefix, _this.nameIgnorePrefix) || other.nameIgnorePrefix == _this.nameIgnorePrefix)&&(identical(other.sequence, _this.sequence) || other.sequence == _this.sequence)&&(identical(other.numBooks, _this.numBooks) || other.numBooks == _this.numBooks)&&const DeepCollectionEquality().equals(other.libraryItemIds, _this.libraryItemIds));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,nameIgnorePrefix,sequence,numBooks,const DeepCollectionEquality().hash(libraryItemIds));
+int get hashCode {
+  final _this = this as CollapsedSeries;
+  return Object.hash(runtimeType,_this.id,_this.name,_this.nameIgnorePrefix,_this.sequence,_this.numBooks,const DeepCollectionEquality().hash(_this.libraryItemIds));
+}
 
 @override
 String toString() {
-  return 'CollapsedSeries(id: $id, name: $name, nameIgnorePrefix: $nameIgnorePrefix, sequence: $sequence, numBooks: $numBooks, libraryItemIds: $libraryItemIds)';
+  final _this = this as CollapsedSeries;
+  return 'CollapsedSeries(id: ${_this.id}, name: ${_this.name}, nameIgnorePrefix: ${_this.nameIgnorePrefix}, sequence: ${_this.sequence}, numBooks: ${_this.numBooks}, libraryItemIds: ${_this.libraryItemIds})';
 }
 
 
@@ -246,16 +251,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CollapsedSeries&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.nameIgnorePrefix, nameIgnorePrefix) || other.nameIgnorePrefix == nameIgnorePrefix)&&(identical(other.sequence, sequence) || other.sequence == sequence)&&(identical(other.numBooks, numBooks) || other.numBooks == numBooks)&&const DeepCollectionEquality().equals(other._libraryItemIds, _libraryItemIds));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CollapsedSeries&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.nameIgnorePrefix, nameIgnorePrefix) || other.nameIgnorePrefix == nameIgnorePrefix)&&(identical(other.sequence, sequence) || other.sequence == sequence)&&(identical(other.numBooks, numBooks) || other.numBooks == numBooks)&&const DeepCollectionEquality().equals(other.libraryItemIds, _libraryItemIds));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,nameIgnorePrefix,sequence,numBooks,const DeepCollectionEquality().hash(_libraryItemIds));
+int get hashCode {
+    return Object.hash(runtimeType,id,name,nameIgnorePrefix,sequence,numBooks,const DeepCollectionEquality().hash(_libraryItemIds));
+}
 
 @override
 String toString() {
-  return 'CollapsedSeries(id: $id, name: $name, nameIgnorePrefix: $nameIgnorePrefix, sequence: $sequence, numBooks: $numBooks, libraryItemIds: $libraryItemIds)';
+    return 'CollapsedSeries(id: $id, name: $name, nameIgnorePrefix: $nameIgnorePrefix, sequence: $sequence, numBooks: $numBooks, libraryItemIds: $libraryItemIds)';
 }
 
 

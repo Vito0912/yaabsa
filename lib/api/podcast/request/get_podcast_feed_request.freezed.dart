@@ -29,16 +29,21 @@ $GetPodcastFeedRequestCopyWith<GetPodcastFeedRequest> get copyWith => _$GetPodca
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GetPodcastFeedRequest&&(identical(other.rssFeed, rssFeed) || other.rssFeed == rssFeed));
+  final _this = this as GetPodcastFeedRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GetPodcastFeedRequest&&(identical(other.rssFeed, _this.rssFeed) || other.rssFeed == _this.rssFeed));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,rssFeed);
+int get hashCode {
+  final _this = this as GetPodcastFeedRequest;
+  return Object.hash(runtimeType,_this.rssFeed);
+}
 
 @override
 String toString() {
-  return 'GetPodcastFeedRequest(rssFeed: $rssFeed)';
+  final _this = this as GetPodcastFeedRequest;
+  return 'GetPodcastFeedRequest(rssFeed: ${_this.rssFeed})';
 }
 
 
@@ -228,16 +233,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GetPodcastFeedRequest&&(identical(other.rssFeed, rssFeed) || other.rssFeed == rssFeed));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _GetPodcastFeedRequest&&(identical(other.rssFeed, rssFeed) || other.rssFeed == rssFeed));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,rssFeed);
+int get hashCode {
+    return Object.hash(runtimeType,rssFeed);
+}
 
 @override
 String toString() {
-  return 'GetPodcastFeedRequest(rssFeed: $rssFeed)';
+    return 'GetPodcastFeedRequest(rssFeed: $rssFeed)';
 }
 
 

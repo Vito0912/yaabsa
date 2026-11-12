@@ -29,16 +29,21 @@ $UpdateBackupPathRequestCopyWith<UpdateBackupPathRequest> get copyWith => _$Upda
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateBackupPathRequest&&(identical(other.path, path) || other.path == path));
+  final _this = this as UpdateBackupPathRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UpdateBackupPathRequest&&(identical(other.path, _this.path) || other.path == _this.path));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,path);
+int get hashCode {
+  final _this = this as UpdateBackupPathRequest;
+  return Object.hash(runtimeType,_this.path);
+}
 
 @override
 String toString() {
-  return 'UpdateBackupPathRequest(path: $path)';
+  final _this = this as UpdateBackupPathRequest;
+  return 'UpdateBackupPathRequest(path: ${_this.path})';
 }
 
 
@@ -228,16 +233,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateBackupPathRequest&&(identical(other.path, path) || other.path == path));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _UpdateBackupPathRequest&&(identical(other.path, path) || other.path == path));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,path);
+int get hashCode {
+    return Object.hash(runtimeType,path);
+}
 
 @override
 String toString() {
-  return 'UpdateBackupPathRequest(path: $path)';
+    return 'UpdateBackupPathRequest(path: $path)';
 }
 
 

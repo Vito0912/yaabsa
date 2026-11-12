@@ -29,16 +29,21 @@ $FilesystemPathsResponseCopyWith<FilesystemPathsResponse> get copyWith => _$File
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is FilesystemPathsResponse&&(identical(other.posix, posix) || other.posix == posix)&&const DeepCollectionEquality().equals(other.directories, directories));
+  final _this = this as FilesystemPathsResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is FilesystemPathsResponse&&(identical(other.posix, _this.posix) || other.posix == _this.posix)&&const DeepCollectionEquality().equals(other.directories, _this.directories));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,posix,const DeepCollectionEquality().hash(directories));
+int get hashCode {
+  final _this = this as FilesystemPathsResponse;
+  return Object.hash(runtimeType,_this.posix,const DeepCollectionEquality().hash(_this.directories));
+}
 
 @override
 String toString() {
-  return 'FilesystemPathsResponse(posix: $posix, directories: $directories)';
+  final _this = this as FilesystemPathsResponse;
+  return 'FilesystemPathsResponse(posix: ${_this.posix}, directories: ${_this.directories})';
 }
 
 
@@ -236,16 +241,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _FilesystemPathsResponse&&(identical(other.posix, posix) || other.posix == posix)&&const DeepCollectionEquality().equals(other._directories, _directories));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _FilesystemPathsResponse&&(identical(other.posix, posix) || other.posix == posix)&&const DeepCollectionEquality().equals(other.directories, _directories));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,posix,const DeepCollectionEquality().hash(_directories));
+int get hashCode {
+    return Object.hash(runtimeType,posix,const DeepCollectionEquality().hash(_directories));
+}
 
 @override
 String toString() {
-  return 'FilesystemPathsResponse(posix: $posix, directories: $directories)';
+    return 'FilesystemPathsResponse(posix: $posix, directories: $directories)';
 }
 
 

@@ -29,16 +29,21 @@ $SeriesCopyWith<Series> get copyWith => _$SeriesCopyWithImpl<Series>(this as Ser
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Series&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.sequence, sequence) || other.sequence == sequence)&&(identical(other.description, description) || other.description == description)&&(identical(other.addedAt, addedAt) || other.addedAt == addedAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.nameIgnorePrefix, nameIgnorePrefix) || other.nameIgnorePrefix == nameIgnorePrefix)&&(identical(other.nameIgnorePrefixSort, nameIgnorePrefixSort) || other.nameIgnorePrefixSort == nameIgnorePrefixSort)&&const DeepCollectionEquality().equals(other.libraryItemIds, libraryItemIds)&&(identical(other.numBooks, numBooks) || other.numBooks == numBooks)&&const DeepCollectionEquality().equals(other.books, books)&&(identical(other.totalDuration, totalDuration) || other.totalDuration == totalDuration));
+  final _this = this as Series;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Series&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.sequence, _this.sequence) || other.sequence == _this.sequence)&&(identical(other.description, _this.description) || other.description == _this.description)&&(identical(other.addedAt, _this.addedAt) || other.addedAt == _this.addedAt)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt)&&(identical(other.nameIgnorePrefix, _this.nameIgnorePrefix) || other.nameIgnorePrefix == _this.nameIgnorePrefix)&&(identical(other.nameIgnorePrefixSort, _this.nameIgnorePrefixSort) || other.nameIgnorePrefixSort == _this.nameIgnorePrefixSort)&&const DeepCollectionEquality().equals(other.libraryItemIds, _this.libraryItemIds)&&(identical(other.numBooks, _this.numBooks) || other.numBooks == _this.numBooks)&&const DeepCollectionEquality().equals(other.books, _this.books)&&(identical(other.totalDuration, _this.totalDuration) || other.totalDuration == _this.totalDuration));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,sequence,description,addedAt,updatedAt,nameIgnorePrefix,nameIgnorePrefixSort,const DeepCollectionEquality().hash(libraryItemIds),numBooks,const DeepCollectionEquality().hash(books),totalDuration);
+int get hashCode {
+  final _this = this as Series;
+  return Object.hash(runtimeType,_this.id,_this.name,_this.sequence,_this.description,_this.addedAt,_this.updatedAt,_this.nameIgnorePrefix,_this.nameIgnorePrefixSort,const DeepCollectionEquality().hash(_this.libraryItemIds),_this.numBooks,const DeepCollectionEquality().hash(_this.books),_this.totalDuration);
+}
 
 @override
 String toString() {
-  return 'Series(id: $id, name: $name, sequence: $sequence, description: $description, addedAt: $addedAt, updatedAt: $updatedAt, nameIgnorePrefix: $nameIgnorePrefix, nameIgnorePrefixSort: $nameIgnorePrefixSort, libraryItemIds: $libraryItemIds, numBooks: $numBooks, books: $books, totalDuration: $totalDuration)';
+  final _this = this as Series;
+  return 'Series(id: ${_this.id}, name: ${_this.name}, sequence: ${_this.sequence}, description: ${_this.description}, addedAt: ${_this.addedAt}, updatedAt: ${_this.updatedAt}, nameIgnorePrefix: ${_this.nameIgnorePrefix}, nameIgnorePrefixSort: ${_this.nameIgnorePrefixSort}, libraryItemIds: ${_this.libraryItemIds}, numBooks: ${_this.numBooks}, books: ${_this.books}, totalDuration: ${_this.totalDuration})';
 }
 
 
@@ -266,16 +271,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Series&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.sequence, sequence) || other.sequence == sequence)&&(identical(other.description, description) || other.description == description)&&(identical(other.addedAt, addedAt) || other.addedAt == addedAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.nameIgnorePrefix, nameIgnorePrefix) || other.nameIgnorePrefix == nameIgnorePrefix)&&(identical(other.nameIgnorePrefixSort, nameIgnorePrefixSort) || other.nameIgnorePrefixSort == nameIgnorePrefixSort)&&const DeepCollectionEquality().equals(other._libraryItemIds, _libraryItemIds)&&(identical(other.numBooks, numBooks) || other.numBooks == numBooks)&&const DeepCollectionEquality().equals(other._books, _books)&&(identical(other.totalDuration, totalDuration) || other.totalDuration == totalDuration));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Series&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.sequence, sequence) || other.sequence == sequence)&&(identical(other.description, description) || other.description == description)&&(identical(other.addedAt, addedAt) || other.addedAt == addedAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.nameIgnorePrefix, nameIgnorePrefix) || other.nameIgnorePrefix == nameIgnorePrefix)&&(identical(other.nameIgnorePrefixSort, nameIgnorePrefixSort) || other.nameIgnorePrefixSort == nameIgnorePrefixSort)&&const DeepCollectionEquality().equals(other.libraryItemIds, _libraryItemIds)&&(identical(other.numBooks, numBooks) || other.numBooks == numBooks)&&const DeepCollectionEquality().equals(other.books, _books)&&(identical(other.totalDuration, totalDuration) || other.totalDuration == totalDuration));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,sequence,description,addedAt,updatedAt,nameIgnorePrefix,nameIgnorePrefixSort,const DeepCollectionEquality().hash(_libraryItemIds),numBooks,const DeepCollectionEquality().hash(_books),totalDuration);
+int get hashCode {
+    return Object.hash(runtimeType,id,name,sequence,description,addedAt,updatedAt,nameIgnorePrefix,nameIgnorePrefixSort,const DeepCollectionEquality().hash(_libraryItemIds),numBooks,const DeepCollectionEquality().hash(_books),totalDuration);
+}
 
 @override
 String toString() {
-  return 'Series(id: $id, name: $name, sequence: $sequence, description: $description, addedAt: $addedAt, updatedAt: $updatedAt, nameIgnorePrefix: $nameIgnorePrefix, nameIgnorePrefixSort: $nameIgnorePrefixSort, libraryItemIds: $libraryItemIds, numBooks: $numBooks, books: $books, totalDuration: $totalDuration)';
+    return 'Series(id: $id, name: $name, sequence: $sequence, description: $description, addedAt: $addedAt, updatedAt: $updatedAt, nameIgnorePrefix: $nameIgnorePrefix, nameIgnorePrefixSort: $nameIgnorePrefixSort, libraryItemIds: $libraryItemIds, numBooks: $numBooks, books: $books, totalDuration: $totalDuration)';
 }
 
 

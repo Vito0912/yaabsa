@@ -29,16 +29,21 @@ $LibraryFolderCopyWith<LibraryFolder> get copyWith => _$LibraryFolderCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LibraryFolder&&(identical(other.id, id) || other.id == id)&&(identical(other.fullPath, fullPath) || other.fullPath == fullPath)&&(identical(other.libraryId, libraryId) || other.libraryId == libraryId)&&(identical(other.addedAt, addedAt) || other.addedAt == addedAt));
+  final _this = this as LibraryFolder;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LibraryFolder&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.fullPath, _this.fullPath) || other.fullPath == _this.fullPath)&&(identical(other.libraryId, _this.libraryId) || other.libraryId == _this.libraryId)&&(identical(other.addedAt, _this.addedAt) || other.addedAt == _this.addedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,fullPath,libraryId,addedAt);
+int get hashCode {
+  final _this = this as LibraryFolder;
+  return Object.hash(runtimeType,_this.id,_this.fullPath,_this.libraryId,_this.addedAt);
+}
 
 @override
 String toString() {
-  return 'LibraryFolder(id: $id, fullPath: $fullPath, libraryId: $libraryId, addedAt: $addedAt)';
+  final _this = this as LibraryFolder;
+  return 'LibraryFolder(id: ${_this.id}, fullPath: ${_this.fullPath}, libraryId: ${_this.libraryId}, addedAt: ${_this.addedAt})';
 }
 
 
@@ -234,16 +239,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LibraryFolder&&(identical(other.id, id) || other.id == id)&&(identical(other.fullPath, fullPath) || other.fullPath == fullPath)&&(identical(other.libraryId, libraryId) || other.libraryId == libraryId)&&(identical(other.addedAt, addedAt) || other.addedAt == addedAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _LibraryFolder&&(identical(other.id, id) || other.id == id)&&(identical(other.fullPath, fullPath) || other.fullPath == fullPath)&&(identical(other.libraryId, libraryId) || other.libraryId == libraryId)&&(identical(other.addedAt, addedAt) || other.addedAt == addedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,fullPath,libraryId,addedAt);
+int get hashCode {
+    return Object.hash(runtimeType,id,fullPath,libraryId,addedAt);
+}
 
 @override
 String toString() {
-  return 'LibraryFolder(id: $id, fullPath: $fullPath, libraryId: $libraryId, addedAt: $addedAt)';
+    return 'LibraryFolder(id: $id, fullPath: $fullPath, libraryId: $libraryId, addedAt: $addedAt)';
 }
 
 

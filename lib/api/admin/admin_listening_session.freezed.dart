@@ -26,16 +26,21 @@ $AdminListeningSessionCopyWith<AdminListeningSession> get copyWith => _$AdminLis
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminListeningSession&&(identical(other.session, session) || other.session == session)&&(identical(other.user, user) || other.user == user));
+  final _this = this as AdminListeningSession;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminListeningSession&&(identical(other.session, _this.session) || other.session == _this.session)&&(identical(other.user, _this.user) || other.user == _this.user));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,session,user);
+int get hashCode {
+  final _this = this as AdminListeningSession;
+  return Object.hash(runtimeType,_this.session,_this.user);
+}
 
 @override
 String toString() {
-  return 'AdminListeningSession(session: $session, user: $user)';
+  final _this = this as AdminListeningSession;
+  return 'AdminListeningSession(session: ${_this.session}, user: ${_this.user})';
 }
 
 
@@ -245,16 +250,18 @@ _$AdminListeningSessionCopyWith<_AdminListeningSession> get copyWith => __$Admin
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminListeningSession&&(identical(other.session, session) || other.session == session)&&(identical(other.user, user) || other.user == user));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminListeningSession&&(identical(other.session, session) || other.session == session)&&(identical(other.user, user) || other.user == user));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,session,user);
+int get hashCode {
+    return Object.hash(runtimeType,session,user);
+}
 
 @override
 String toString() {
-  return 'AdminListeningSession(session: $session, user: $user)';
+    return 'AdminListeningSession(session: $session, user: $user)';
 }
 
 

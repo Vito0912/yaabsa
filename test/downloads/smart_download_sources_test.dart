@@ -189,7 +189,7 @@ void main() {
     );
 
     expect(handler.events, ['queue:first']);
-    expect(container!.exists(personalizedLibraryProvider('other')), isFalse);
+    expect(container!.read(personalizedLibraryProvider('other').exists), isFalse);
   });
 
   test('overlapping Listening and Reading sources merge their file requirements', () async {

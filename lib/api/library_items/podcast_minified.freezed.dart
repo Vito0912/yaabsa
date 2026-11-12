@@ -29,16 +29,21 @@ $PodcastMinifiedCopyWith<PodcastMinified> get copyWith => _$PodcastMinifiedCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PodcastMinified&&(identical(other.metadata, metadata) || other.metadata == metadata)&&(identical(other.coverPath, coverPath) || other.coverPath == coverPath)&&const DeepCollectionEquality().equals(other.tags, tags)&&(identical(other.numEpisodes, numEpisodes) || other.numEpisodes == numEpisodes)&&(identical(other.autoDownloadEpisodes, autoDownloadEpisodes) || other.autoDownloadEpisodes == autoDownloadEpisodes)&&(identical(other.autoDownloadSchedule, autoDownloadSchedule) || other.autoDownloadSchedule == autoDownloadSchedule)&&(identical(other.lastEpisodeCheck, lastEpisodeCheck) || other.lastEpisodeCheck == lastEpisodeCheck)&&(identical(other.maxEpisodesToKeep, maxEpisodesToKeep) || other.maxEpisodesToKeep == maxEpisodesToKeep)&&(identical(other.maxNewEpisodesToDownload, maxNewEpisodesToDownload) || other.maxNewEpisodesToDownload == maxNewEpisodesToDownload)&&(identical(other.size, size) || other.size == size));
+  final _this = this as PodcastMinified;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PodcastMinified&&(identical(other.metadata, _this.metadata) || other.metadata == _this.metadata)&&(identical(other.coverPath, _this.coverPath) || other.coverPath == _this.coverPath)&&const DeepCollectionEquality().equals(other.tags, _this.tags)&&(identical(other.numEpisodes, _this.numEpisodes) || other.numEpisodes == _this.numEpisodes)&&(identical(other.autoDownloadEpisodes, _this.autoDownloadEpisodes) || other.autoDownloadEpisodes == _this.autoDownloadEpisodes)&&(identical(other.autoDownloadSchedule, _this.autoDownloadSchedule) || other.autoDownloadSchedule == _this.autoDownloadSchedule)&&(identical(other.lastEpisodeCheck, _this.lastEpisodeCheck) || other.lastEpisodeCheck == _this.lastEpisodeCheck)&&(identical(other.maxEpisodesToKeep, _this.maxEpisodesToKeep) || other.maxEpisodesToKeep == _this.maxEpisodesToKeep)&&(identical(other.maxNewEpisodesToDownload, _this.maxNewEpisodesToDownload) || other.maxNewEpisodesToDownload == _this.maxNewEpisodesToDownload)&&(identical(other.size, _this.size) || other.size == _this.size));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,metadata,coverPath,const DeepCollectionEquality().hash(tags),numEpisodes,autoDownloadEpisodes,autoDownloadSchedule,lastEpisodeCheck,maxEpisodesToKeep,maxNewEpisodesToDownload,size);
+int get hashCode {
+  final _this = this as PodcastMinified;
+  return Object.hash(runtimeType,_this.metadata,_this.coverPath,const DeepCollectionEquality().hash(_this.tags),_this.numEpisodes,_this.autoDownloadEpisodes,_this.autoDownloadSchedule,_this.lastEpisodeCheck,_this.maxEpisodesToKeep,_this.maxNewEpisodesToDownload,_this.size);
+}
 
 @override
 String toString() {
-  return 'PodcastMinified(metadata: $metadata, coverPath: $coverPath, tags: $tags, numEpisodes: $numEpisodes, autoDownloadEpisodes: $autoDownloadEpisodes, autoDownloadSchedule: $autoDownloadSchedule, lastEpisodeCheck: $lastEpisodeCheck, maxEpisodesToKeep: $maxEpisodesToKeep, maxNewEpisodesToDownload: $maxNewEpisodesToDownload, size: $size)';
+  final _this = this as PodcastMinified;
+  return 'PodcastMinified(metadata: ${_this.metadata}, coverPath: ${_this.coverPath}, tags: ${_this.tags}, numEpisodes: ${_this.numEpisodes}, autoDownloadEpisodes: ${_this.autoDownloadEpisodes}, autoDownloadSchedule: ${_this.autoDownloadSchedule}, lastEpisodeCheck: ${_this.lastEpisodeCheck}, maxEpisodesToKeep: ${_this.maxEpisodesToKeep}, maxNewEpisodesToDownload: ${_this.maxNewEpisodesToDownload}, size: ${_this.size})';
 }
 
 
@@ -261,16 +266,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PodcastMinified&&(identical(other.metadata, metadata) || other.metadata == metadata)&&(identical(other.coverPath, coverPath) || other.coverPath == coverPath)&&const DeepCollectionEquality().equals(other._tags, _tags)&&(identical(other.numEpisodes, numEpisodes) || other.numEpisodes == numEpisodes)&&(identical(other.autoDownloadEpisodes, autoDownloadEpisodes) || other.autoDownloadEpisodes == autoDownloadEpisodes)&&(identical(other.autoDownloadSchedule, autoDownloadSchedule) || other.autoDownloadSchedule == autoDownloadSchedule)&&(identical(other.lastEpisodeCheck, lastEpisodeCheck) || other.lastEpisodeCheck == lastEpisodeCheck)&&(identical(other.maxEpisodesToKeep, maxEpisodesToKeep) || other.maxEpisodesToKeep == maxEpisodesToKeep)&&(identical(other.maxNewEpisodesToDownload, maxNewEpisodesToDownload) || other.maxNewEpisodesToDownload == maxNewEpisodesToDownload)&&(identical(other.size, size) || other.size == size));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PodcastMinified&&(identical(other.metadata, metadata) || other.metadata == metadata)&&(identical(other.coverPath, coverPath) || other.coverPath == coverPath)&&const DeepCollectionEquality().equals(other.tags, _tags)&&(identical(other.numEpisodes, numEpisodes) || other.numEpisodes == numEpisodes)&&(identical(other.autoDownloadEpisodes, autoDownloadEpisodes) || other.autoDownloadEpisodes == autoDownloadEpisodes)&&(identical(other.autoDownloadSchedule, autoDownloadSchedule) || other.autoDownloadSchedule == autoDownloadSchedule)&&(identical(other.lastEpisodeCheck, lastEpisodeCheck) || other.lastEpisodeCheck == lastEpisodeCheck)&&(identical(other.maxEpisodesToKeep, maxEpisodesToKeep) || other.maxEpisodesToKeep == maxEpisodesToKeep)&&(identical(other.maxNewEpisodesToDownload, maxNewEpisodesToDownload) || other.maxNewEpisodesToDownload == maxNewEpisodesToDownload)&&(identical(other.size, size) || other.size == size));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,metadata,coverPath,const DeepCollectionEquality().hash(_tags),numEpisodes,autoDownloadEpisodes,autoDownloadSchedule,lastEpisodeCheck,maxEpisodesToKeep,maxNewEpisodesToDownload,size);
+int get hashCode {
+    return Object.hash(runtimeType,metadata,coverPath,const DeepCollectionEquality().hash(_tags),numEpisodes,autoDownloadEpisodes,autoDownloadSchedule,lastEpisodeCheck,maxEpisodesToKeep,maxNewEpisodesToDownload,size);
+}
 
 @override
 String toString() {
-  return 'PodcastMinified(metadata: $metadata, coverPath: $coverPath, tags: $tags, numEpisodes: $numEpisodes, autoDownloadEpisodes: $autoDownloadEpisodes, autoDownloadSchedule: $autoDownloadSchedule, lastEpisodeCheck: $lastEpisodeCheck, maxEpisodesToKeep: $maxEpisodesToKeep, maxNewEpisodesToDownload: $maxNewEpisodesToDownload, size: $size)';
+    return 'PodcastMinified(metadata: $metadata, coverPath: $coverPath, tags: $tags, numEpisodes: $numEpisodes, autoDownloadEpisodes: $autoDownloadEpisodes, autoDownloadSchedule: $autoDownloadSchedule, lastEpisodeCheck: $lastEpisodeCheck, maxEpisodesToKeep: $maxEpisodesToKeep, maxNewEpisodesToDownload: $maxNewEpisodesToDownload, size: $size)';
 }
 
 

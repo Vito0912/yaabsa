@@ -118,7 +118,7 @@ ABSSocketClient absSocketClient(Ref ref) {
   void refreshCollections(String libraryId, String id) {
     ref.invalidate(collectionByIdProvider(libraryId, id));
     final index = collectionsProvider(libraryId);
-    if (!ref.exists(index)) {
+    if (!ref.read(index.exists)) {
       return;
     }
 
@@ -219,7 +219,7 @@ ABSSocketClient absSocketClient(Ref ref) {
       smartDownloadNotifier.requestReconcile(reason: 'collection removed');
       ref.invalidate(collectionByIdProvider(collection.libraryId, collection.id));
       final index = collectionsProvider(collection.libraryId);
-      if (ref.exists(index)) {
+      if (ref.read(index.exists)) {
         ref.read(index.notifier).applyServerRemoval(collection.id);
       }
     },
@@ -228,7 +228,7 @@ ABSSocketClient absSocketClient(Ref ref) {
       smartDownloadNotifier.requestReconcile(reason: 'playlist added');
       ref.invalidate(playlistByIdProvider(playlist.libraryId, playlist.id));
       final index = playlistsProvider(playlist.libraryId);
-      if (ref.exists(index)) {
+      if (ref.read(index.exists)) {
         ref.read(index.notifier).applyServerUpdate(playlist);
       }
     },
@@ -237,7 +237,7 @@ ABSSocketClient absSocketClient(Ref ref) {
       smartDownloadNotifier.requestReconcile(reason: 'playlist updated');
       ref.invalidate(playlistByIdProvider(playlist.libraryId, playlist.id));
       final index = playlistsProvider(playlist.libraryId);
-      if (ref.exists(index)) {
+      if (ref.read(index.exists)) {
         ref.read(index.notifier).applyServerUpdate(playlist);
       }
     },
@@ -246,7 +246,7 @@ ABSSocketClient absSocketClient(Ref ref) {
       smartDownloadNotifier.requestReconcile(reason: 'playlist removed');
       ref.invalidate(playlistByIdProvider(playlist.libraryId, playlist.id));
       final index = playlistsProvider(playlist.libraryId);
-      if (ref.exists(index)) {
+      if (ref.read(index.exists)) {
         ref.read(index.notifier).applyServerRemoval(playlist.id);
       }
     },

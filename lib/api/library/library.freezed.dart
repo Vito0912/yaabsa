@@ -29,16 +29,21 @@ $LibraryCopyWith<Library> get copyWith => _$LibraryCopyWithImpl<Library>(this as
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Library&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.displayOrder, displayOrder) || other.displayOrder == displayOrder)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.mediaType, mediaType) || other.mediaType == mediaType)&&(identical(other.provider, provider) || other.provider == provider)&&(identical(other.lastScan, lastScan) || other.lastScan == lastScan)&&(identical(other.lastScanVersion, lastScanVersion) || other.lastScanVersion == lastScanVersion)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.lastUpdate, lastUpdate) || other.lastUpdate == lastUpdate)&&(identical(other.settings, settings) || other.settings == settings)&&const DeepCollectionEquality().equals(other.folders, folders)&&(identical(other.stats, stats) || other.stats == stats));
+  final _this = this as Library;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Library&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.displayOrder, _this.displayOrder) || other.displayOrder == _this.displayOrder)&&(identical(other.icon, _this.icon) || other.icon == _this.icon)&&(identical(other.mediaType, _this.mediaType) || other.mediaType == _this.mediaType)&&(identical(other.provider, _this.provider) || other.provider == _this.provider)&&(identical(other.lastScan, _this.lastScan) || other.lastScan == _this.lastScan)&&(identical(other.lastScanVersion, _this.lastScanVersion) || other.lastScanVersion == _this.lastScanVersion)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.lastUpdate, _this.lastUpdate) || other.lastUpdate == _this.lastUpdate)&&(identical(other.settings, _this.settings) || other.settings == _this.settings)&&const DeepCollectionEquality().equals(other.folders, _this.folders)&&(identical(other.stats, _this.stats) || other.stats == _this.stats));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,displayOrder,icon,mediaType,provider,lastScan,lastScanVersion,createdAt,lastUpdate,settings,const DeepCollectionEquality().hash(folders),stats);
+int get hashCode {
+  final _this = this as Library;
+  return Object.hash(runtimeType,_this.id,_this.name,_this.displayOrder,_this.icon,_this.mediaType,_this.provider,_this.lastScan,_this.lastScanVersion,_this.createdAt,_this.lastUpdate,_this.settings,const DeepCollectionEquality().hash(_this.folders),_this.stats);
+}
 
 @override
 String toString() {
-  return 'Library(id: $id, name: $name, displayOrder: $displayOrder, icon: $icon, mediaType: $mediaType, provider: $provider, lastScan: $lastScan, lastScanVersion: $lastScanVersion, createdAt: $createdAt, lastUpdate: $lastUpdate, settings: $settings, folders: $folders, stats: $stats)';
+  final _this = this as Library;
+  return 'Library(id: ${_this.id}, name: ${_this.name}, displayOrder: ${_this.displayOrder}, icon: ${_this.icon}, mediaType: ${_this.mediaType}, provider: ${_this.provider}, lastScan: ${_this.lastScan}, lastScanVersion: ${_this.lastScanVersion}, createdAt: ${_this.createdAt}, lastUpdate: ${_this.lastUpdate}, settings: ${_this.settings}, folders: ${_this.folders}, stats: ${_this.stats})';
 }
 
 
@@ -281,16 +286,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Library&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.displayOrder, displayOrder) || other.displayOrder == displayOrder)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.mediaType, mediaType) || other.mediaType == mediaType)&&(identical(other.provider, provider) || other.provider == provider)&&(identical(other.lastScan, lastScan) || other.lastScan == lastScan)&&(identical(other.lastScanVersion, lastScanVersion) || other.lastScanVersion == lastScanVersion)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.lastUpdate, lastUpdate) || other.lastUpdate == lastUpdate)&&(identical(other.settings, settings) || other.settings == settings)&&const DeepCollectionEquality().equals(other._folders, _folders)&&(identical(other.stats, stats) || other.stats == stats));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Library&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.displayOrder, displayOrder) || other.displayOrder == displayOrder)&&(identical(other.icon, icon) || other.icon == icon)&&(identical(other.mediaType, mediaType) || other.mediaType == mediaType)&&(identical(other.provider, provider) || other.provider == provider)&&(identical(other.lastScan, lastScan) || other.lastScan == lastScan)&&(identical(other.lastScanVersion, lastScanVersion) || other.lastScanVersion == lastScanVersion)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.lastUpdate, lastUpdate) || other.lastUpdate == lastUpdate)&&(identical(other.settings, settings) || other.settings == settings)&&const DeepCollectionEquality().equals(other.folders, _folders)&&(identical(other.stats, stats) || other.stats == stats));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,displayOrder,icon,mediaType,provider,lastScan,lastScanVersion,createdAt,lastUpdate,settings,const DeepCollectionEquality().hash(_folders),stats);
+int get hashCode {
+    return Object.hash(runtimeType,id,name,displayOrder,icon,mediaType,provider,lastScan,lastScanVersion,createdAt,lastUpdate,settings,const DeepCollectionEquality().hash(_folders),stats);
+}
 
 @override
 String toString() {
-  return 'Library(id: $id, name: $name, displayOrder: $displayOrder, icon: $icon, mediaType: $mediaType, provider: $provider, lastScan: $lastScan, lastScanVersion: $lastScanVersion, createdAt: $createdAt, lastUpdate: $lastUpdate, settings: $settings, folders: $folders, stats: $stats)';
+    return 'Library(id: $id, name: $name, displayOrder: $displayOrder, icon: $icon, mediaType: $mediaType, provider: $provider, lastScan: $lastScan, lastScanVersion: $lastScanVersion, createdAt: $createdAt, lastUpdate: $lastUpdate, settings: $settings, folders: $folders, stats: $stats)';
 }
 
 

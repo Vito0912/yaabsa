@@ -29,16 +29,21 @@ $AdminEmailSettingsResponseCopyWith<AdminEmailSettingsResponse> get copyWith => 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminEmailSettingsResponse&&(identical(other.settings, settings) || other.settings == settings));
+  final _this = this as AdminEmailSettingsResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminEmailSettingsResponse&&(identical(other.settings, _this.settings) || other.settings == _this.settings));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,settings);
+int get hashCode {
+  final _this = this as AdminEmailSettingsResponse;
+  return Object.hash(runtimeType,_this.settings);
+}
 
 @override
 String toString() {
-  return 'AdminEmailSettingsResponse(settings: $settings)';
+  final _this = this as AdminEmailSettingsResponse;
+  return 'AdminEmailSettingsResponse(settings: ${_this.settings})';
 }
 
 
@@ -240,16 +245,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminEmailSettingsResponse&&(identical(other.settings, settings) || other.settings == settings));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminEmailSettingsResponse&&(identical(other.settings, settings) || other.settings == settings));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,settings);
+int get hashCode {
+    return Object.hash(runtimeType,settings);
+}
 
 @override
 String toString() {
-  return 'AdminEmailSettingsResponse(settings: $settings)';
+    return 'AdminEmailSettingsResponse(settings: $settings)';
 }
 
 

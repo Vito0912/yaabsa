@@ -29,16 +29,21 @@ $GenreStatsCopyWith<GenreStats> get copyWith => _$GenreStatsCopyWithImpl<GenreSt
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GenreStats&&(identical(other.genre, genre) || other.genre == genre)&&(identical(other.count, count) || other.count == count));
+  final _this = this as GenreStats;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GenreStats&&(identical(other.genre, _this.genre) || other.genre == _this.genre)&&(identical(other.count, _this.count) || other.count == _this.count));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,genre,count);
+int get hashCode {
+  final _this = this as GenreStats;
+  return Object.hash(runtimeType,_this.genre,_this.count);
+}
 
 @override
 String toString() {
-  return 'GenreStats(genre: $genre, count: $count)';
+  final _this = this as GenreStats;
+  return 'GenreStats(genre: ${_this.genre}, count: ${_this.count})';
 }
 
 
@@ -230,16 +235,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GenreStats&&(identical(other.genre, genre) || other.genre == genre)&&(identical(other.count, count) || other.count == count));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _GenreStats&&(identical(other.genre, genre) || other.genre == genre)&&(identical(other.count, count) || other.count == count));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,genre,count);
+int get hashCode {
+    return Object.hash(runtimeType,genre,count);
+}
 
 @override
 String toString() {
-  return 'GenreStats(genre: $genre, count: $count)';
+    return 'GenreStats(genre: $genre, count: $count)';
 }
 
 

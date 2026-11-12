@@ -29,16 +29,21 @@ $LibraryAuthorsCopyWith<LibraryAuthors> get copyWith => _$LibraryAuthorsCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LibraryAuthors&&const DeepCollectionEquality().equals(other.results, results)&&(identical(other.total, total) || other.total == total)&&(identical(other.limit, limit) || other.limit == limit)&&(identical(other.page, page) || other.page == page)&&(identical(other.sortBy, sortBy) || other.sortBy == sortBy)&&(identical(other.sortDesc, sortDesc) || other.sortDesc == sortDesc)&&(identical(other.filterBy, filterBy) || other.filterBy == filterBy)&&(identical(other.minified, minified) || other.minified == minified)&&(identical(other.include, include) || other.include == include));
+  final _this = this as LibraryAuthors;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LibraryAuthors&&const DeepCollectionEquality().equals(other.results, _this.results)&&(identical(other.total, _this.total) || other.total == _this.total)&&(identical(other.limit, _this.limit) || other.limit == _this.limit)&&(identical(other.page, _this.page) || other.page == _this.page)&&(identical(other.sortBy, _this.sortBy) || other.sortBy == _this.sortBy)&&(identical(other.sortDesc, _this.sortDesc) || other.sortDesc == _this.sortDesc)&&(identical(other.filterBy, _this.filterBy) || other.filterBy == _this.filterBy)&&(identical(other.minified, _this.minified) || other.minified == _this.minified)&&(identical(other.include, _this.include) || other.include == _this.include));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(results),total,limit,page,sortBy,sortDesc,filterBy,minified,include);
+int get hashCode {
+  final _this = this as LibraryAuthors;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.results),_this.total,_this.limit,_this.page,_this.sortBy,_this.sortDesc,_this.filterBy,_this.minified,_this.include);
+}
 
 @override
 String toString() {
-  return 'LibraryAuthors(results: $results, total: $total, limit: $limit, page: $page, sortBy: $sortBy, sortDesc: $sortDesc, filterBy: $filterBy, minified: $minified, include: $include)';
+  final _this = this as LibraryAuthors;
+  return 'LibraryAuthors(results: ${_this.results}, total: ${_this.total}, limit: ${_this.limit}, page: ${_this.page}, sortBy: ${_this.sortBy}, sortDesc: ${_this.sortDesc}, filterBy: ${_this.filterBy}, minified: ${_this.minified}, include: ${_this.include})';
 }
 
 
@@ -250,16 +255,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LibraryAuthors&&const DeepCollectionEquality().equals(other._results, _results)&&(identical(other.total, total) || other.total == total)&&(identical(other.limit, limit) || other.limit == limit)&&(identical(other.page, page) || other.page == page)&&(identical(other.sortBy, sortBy) || other.sortBy == sortBy)&&(identical(other.sortDesc, sortDesc) || other.sortDesc == sortDesc)&&(identical(other.filterBy, filterBy) || other.filterBy == filterBy)&&(identical(other.minified, minified) || other.minified == minified)&&(identical(other.include, include) || other.include == include));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _LibraryAuthors&&const DeepCollectionEquality().equals(other.results, _results)&&(identical(other.total, total) || other.total == total)&&(identical(other.limit, limit) || other.limit == limit)&&(identical(other.page, page) || other.page == page)&&(identical(other.sortBy, sortBy) || other.sortBy == sortBy)&&(identical(other.sortDesc, sortDesc) || other.sortDesc == sortDesc)&&(identical(other.filterBy, filterBy) || other.filterBy == filterBy)&&(identical(other.minified, minified) || other.minified == minified)&&(identical(other.include, include) || other.include == include));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_results),total,limit,page,sortBy,sortDesc,filterBy,minified,include);
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_results),total,limit,page,sortBy,sortDesc,filterBy,minified,include);
+}
 
 @override
 String toString() {
-  return 'LibraryAuthors(results: $results, total: $total, limit: $limit, page: $page, sortBy: $sortBy, sortDesc: $sortDesc, filterBy: $filterBy, minified: $minified, include: $include)';
+    return 'LibraryAuthors(results: $results, total: $total, limit: $limit, page: $page, sortBy: $sortBy, sortDesc: $sortDesc, filterBy: $filterBy, minified: $minified, include: $include)';
 }
 
 

@@ -29,16 +29,21 @@ $ReorderLibraryEntryRequestCopyWith<ReorderLibraryEntryRequest> get copyWith => 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReorderLibraryEntryRequest&&(identical(other.id, id) || other.id == id)&&(identical(other.newOrder, newOrder) || other.newOrder == newOrder));
+  final _this = this as ReorderLibraryEntryRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReorderLibraryEntryRequest&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.newOrder, _this.newOrder) || other.newOrder == _this.newOrder));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,newOrder);
+int get hashCode {
+  final _this = this as ReorderLibraryEntryRequest;
+  return Object.hash(runtimeType,_this.id,_this.newOrder);
+}
 
 @override
 String toString() {
-  return 'ReorderLibraryEntryRequest(id: $id, newOrder: $newOrder)';
+  final _this = this as ReorderLibraryEntryRequest;
+  return 'ReorderLibraryEntryRequest(id: ${_this.id}, newOrder: ${_this.newOrder})';
 }
 
 
@@ -230,16 +235,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReorderLibraryEntryRequest&&(identical(other.id, id) || other.id == id)&&(identical(other.newOrder, newOrder) || other.newOrder == newOrder));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReorderLibraryEntryRequest&&(identical(other.id, id) || other.id == id)&&(identical(other.newOrder, newOrder) || other.newOrder == newOrder));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,newOrder);
+int get hashCode {
+    return Object.hash(runtimeType,id,newOrder);
+}
 
 @override
 String toString() {
-  return 'ReorderLibraryEntryRequest(id: $id, newOrder: $newOrder)';
+    return 'ReorderLibraryEntryRequest(id: $id, newOrder: $newOrder)';
 }
 
 

@@ -31,7 +31,8 @@ $ServerCopyWith<Server> get copyWith => _$ServerCopyWithImpl<Server>(this as Ser
 
 @override
 String toString() {
-  return 'Server(externalPort: $externalPort, externalHost: $externalHost, externalSsl: $externalSsl, externalSubdirectory: $externalSubdirectory, headers: $headers, localHost: $localHost, localPort: $localPort, localSsl: $localSsl, localSubdirectory: $localSubdirectory, activeConnection: $activeConnection)';
+  final _this = this as Server;
+  return 'Server(externalPort: ${_this.externalPort}, externalHost: ${_this.externalHost}, externalSsl: ${_this.externalSsl}, externalSubdirectory: ${_this.externalSubdirectory}, headers: ${_this.headers}, localHost: ${_this.localHost}, localPort: ${_this.localPort}, localSsl: ${_this.localSsl}, localSubdirectory: ${_this.localSubdirectory}, activeConnection: ${_this.activeConnection})';
 }
 
 
@@ -241,7 +242,7 @@ Map<String, dynamic> toJson() {
 
 @override
 String toString() {
-  return 'Server(externalPort: $externalPort, externalHost: $externalHost, externalSsl: $externalSsl, externalSubdirectory: $externalSubdirectory, headers: $headers, localHost: $localHost, localPort: $localPort, localSsl: $localSsl, localSubdirectory: $localSubdirectory, activeConnection: $activeConnection)';
+    return 'Server(externalPort: $externalPort, externalHost: $externalHost, externalSsl: $externalSsl, externalSubdirectory: $externalSubdirectory, headers: $headers, localHost: $localHost, localPort: $localPort, localSsl: $localSsl, localSubdirectory: $localSubdirectory, activeConnection: $activeConnection)';
 }
 
 

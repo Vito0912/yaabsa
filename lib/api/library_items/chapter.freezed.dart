@@ -29,16 +29,21 @@ $ChapterCopyWith<Chapter> get copyWith => _$ChapterCopyWithImpl<Chapter>(this as
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Chapter&&(identical(other.id, id) || other.id == id)&&(identical(other.start, start) || other.start == start)&&(identical(other.end, end) || other.end == end)&&(identical(other.title, title) || other.title == title));
+  final _this = this as Chapter;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Chapter&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.start, _this.start) || other.start == _this.start)&&(identical(other.end, _this.end) || other.end == _this.end)&&(identical(other.title, _this.title) || other.title == _this.title));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,start,end,title);
+int get hashCode {
+  final _this = this as Chapter;
+  return Object.hash(runtimeType,_this.id,_this.start,_this.end,_this.title);
+}
 
 @override
 String toString() {
-  return 'Chapter(id: $id, start: $start, end: $end, title: $title)';
+  final _this = this as Chapter;
+  return 'Chapter(id: ${_this.id}, start: ${_this.start}, end: ${_this.end}, title: ${_this.title})';
 }
 
 
@@ -234,16 +239,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Chapter&&(identical(other.id, id) || other.id == id)&&(identical(other.start, start) || other.start == start)&&(identical(other.end, end) || other.end == end)&&(identical(other.title, title) || other.title == title));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Chapter&&(identical(other.id, id) || other.id == id)&&(identical(other.start, start) || other.start == start)&&(identical(other.end, end) || other.end == end)&&(identical(other.title, title) || other.title == title));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,start,end,title);
+int get hashCode {
+    return Object.hash(runtimeType,id,start,end,title);
+}
 
 @override
 String toString() {
-  return 'Chapter(id: $id, start: $start, end: $end, title: $title)';
+    return 'Chapter(id: $id, start: $start, end: $end, title: $title)';
 }
 
 

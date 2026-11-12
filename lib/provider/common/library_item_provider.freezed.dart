@@ -26,16 +26,21 @@ $LibraryItemStateCopyWith<LibraryItemState> get copyWith => _$LibraryItemStateCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LibraryItemState&&const DeepCollectionEquality().equals(other.items, items)&&(identical(other.currentPage, currentPage) || other.currentPage == currentPage)&&(identical(other.hasNextPage, hasNextPage) || other.hasNextPage == hasNextPage)&&(identical(other.libraryId, libraryId) || other.libraryId == libraryId)&&(identical(other.sort, sort) || other.sort == sort)&&(identical(other.desc, desc) || other.desc == desc)&&(identical(other.filter, filter) || other.filter == filter)&&(identical(other.collapseseries, collapseseries) || other.collapseseries == collapseseries)&&(identical(other.include, include) || other.include == include)&&const DeepCollectionEquality().equals(other.error, error)&&(identical(other.stackTrace, stackTrace) || other.stackTrace == stackTrace)&&(identical(other.isLoadingNextPage, isLoadingNextPage) || other.isLoadingNextPage == isLoadingNextPage)&&(identical(other.totalItems, totalItems) || other.totalItems == totalItems));
+  final _this = this as LibraryItemState;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LibraryItemState&&const DeepCollectionEquality().equals(other.items, _this.items)&&(identical(other.currentPage, _this.currentPage) || other.currentPage == _this.currentPage)&&(identical(other.hasNextPage, _this.hasNextPage) || other.hasNextPage == _this.hasNextPage)&&(identical(other.libraryId, _this.libraryId) || other.libraryId == _this.libraryId)&&(identical(other.sort, _this.sort) || other.sort == _this.sort)&&(identical(other.desc, _this.desc) || other.desc == _this.desc)&&(identical(other.filter, _this.filter) || other.filter == _this.filter)&&(identical(other.collapseseries, _this.collapseseries) || other.collapseseries == _this.collapseseries)&&(identical(other.include, _this.include) || other.include == _this.include)&&const DeepCollectionEquality().equals(other.error, _this.error)&&(identical(other.stackTrace, _this.stackTrace) || other.stackTrace == _this.stackTrace)&&(identical(other.isLoadingNextPage, _this.isLoadingNextPage) || other.isLoadingNextPage == _this.isLoadingNextPage)&&(identical(other.totalItems, _this.totalItems) || other.totalItems == _this.totalItems));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(items),currentPage,hasNextPage,libraryId,sort,desc,filter,collapseseries,include,const DeepCollectionEquality().hash(error),stackTrace,isLoadingNextPage,totalItems);
+int get hashCode {
+  final _this = this as LibraryItemState;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.items),_this.currentPage,_this.hasNextPage,_this.libraryId,_this.sort,_this.desc,_this.filter,_this.collapseseries,_this.include,const DeepCollectionEquality().hash(_this.error),_this.stackTrace,_this.isLoadingNextPage,_this.totalItems);
+}
 
 @override
 String toString() {
-  return 'LibraryItemState(items: $items, currentPage: $currentPage, hasNextPage: $hasNextPage, libraryId: $libraryId, sort: $sort, desc: $desc, filter: $filter, collapseseries: $collapseseries, include: $include, error: $error, stackTrace: $stackTrace, isLoadingNextPage: $isLoadingNextPage, totalItems: $totalItems)';
+  final _this = this as LibraryItemState;
+  return 'LibraryItemState(items: ${_this.items}, currentPage: ${_this.currentPage}, hasNextPage: ${_this.hasNextPage}, libraryId: ${_this.libraryId}, sort: ${_this.sort}, desc: ${_this.desc}, filter: ${_this.filter}, collapseseries: ${_this.collapseseries}, include: ${_this.include}, error: ${_this.error}, stackTrace: ${_this.stackTrace}, isLoadingNextPage: ${_this.isLoadingNextPage}, totalItems: ${_this.totalItems})';
 }
 
 
@@ -251,16 +256,18 @@ _$LibraryItemStateCopyWith<_LibraryItemState> get copyWith => __$LibraryItemStat
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LibraryItemState&&const DeepCollectionEquality().equals(other._items, _items)&&(identical(other.currentPage, currentPage) || other.currentPage == currentPage)&&(identical(other.hasNextPage, hasNextPage) || other.hasNextPage == hasNextPage)&&(identical(other.libraryId, libraryId) || other.libraryId == libraryId)&&(identical(other.sort, sort) || other.sort == sort)&&(identical(other.desc, desc) || other.desc == desc)&&(identical(other.filter, filter) || other.filter == filter)&&(identical(other.collapseseries, collapseseries) || other.collapseseries == collapseseries)&&(identical(other.include, include) || other.include == include)&&const DeepCollectionEquality().equals(other.error, error)&&(identical(other.stackTrace, stackTrace) || other.stackTrace == stackTrace)&&(identical(other.isLoadingNextPage, isLoadingNextPage) || other.isLoadingNextPage == isLoadingNextPage)&&(identical(other.totalItems, totalItems) || other.totalItems == totalItems));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _LibraryItemState&&const DeepCollectionEquality().equals(other.items, _items)&&(identical(other.currentPage, currentPage) || other.currentPage == currentPage)&&(identical(other.hasNextPage, hasNextPage) || other.hasNextPage == hasNextPage)&&(identical(other.libraryId, libraryId) || other.libraryId == libraryId)&&(identical(other.sort, sort) || other.sort == sort)&&(identical(other.desc, desc) || other.desc == desc)&&(identical(other.filter, filter) || other.filter == filter)&&(identical(other.collapseseries, collapseseries) || other.collapseseries == collapseseries)&&(identical(other.include, include) || other.include == include)&&const DeepCollectionEquality().equals(other.error, error)&&(identical(other.stackTrace, stackTrace) || other.stackTrace == stackTrace)&&(identical(other.isLoadingNextPage, isLoadingNextPage) || other.isLoadingNextPage == isLoadingNextPage)&&(identical(other.totalItems, totalItems) || other.totalItems == totalItems));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_items),currentPage,hasNextPage,libraryId,sort,desc,filter,collapseseries,include,const DeepCollectionEquality().hash(error),stackTrace,isLoadingNextPage,totalItems);
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_items),currentPage,hasNextPage,libraryId,sort,desc,filter,collapseseries,include,const DeepCollectionEquality().hash(error),stackTrace,isLoadingNextPage,totalItems);
+}
 
 @override
 String toString() {
-  return 'LibraryItemState(items: $items, currentPage: $currentPage, hasNextPage: $hasNextPage, libraryId: $libraryId, sort: $sort, desc: $desc, filter: $filter, collapseseries: $collapseseries, include: $include, error: $error, stackTrace: $stackTrace, isLoadingNextPage: $isLoadingNextPage, totalItems: $totalItems)';
+    return 'LibraryItemState(items: $items, currentPage: $currentPage, hasNextPage: $hasNextPage, libraryId: $libraryId, sort: $sort, desc: $desc, filter: $filter, collapseseries: $collapseseries, include: $include, error: $error, stackTrace: $stackTrace, isLoadingNextPage: $isLoadingNextPage, totalItems: $totalItems)';
 }
 
 

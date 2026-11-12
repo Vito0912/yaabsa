@@ -29,16 +29,21 @@ $CreateAdminApiKeyRequestCopyWith<CreateAdminApiKeyRequest> get copyWith => _$Cr
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateAdminApiKeyRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.expiresIn, expiresIn) || other.expiresIn == expiresIn)&&(identical(other.isActive, isActive) || other.isActive == isActive));
+  final _this = this as CreateAdminApiKeyRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreateAdminApiKeyRequest&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.userId, _this.userId) || other.userId == _this.userId)&&(identical(other.expiresIn, _this.expiresIn) || other.expiresIn == _this.expiresIn)&&(identical(other.isActive, _this.isActive) || other.isActive == _this.isActive));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,userId,expiresIn,isActive);
+int get hashCode {
+  final _this = this as CreateAdminApiKeyRequest;
+  return Object.hash(runtimeType,_this.name,_this.userId,_this.expiresIn,_this.isActive);
+}
 
 @override
 String toString() {
-  return 'CreateAdminApiKeyRequest(name: $name, userId: $userId, expiresIn: $expiresIn, isActive: $isActive)';
+  final _this = this as CreateAdminApiKeyRequest;
+  return 'CreateAdminApiKeyRequest(name: ${_this.name}, userId: ${_this.userId}, expiresIn: ${_this.expiresIn}, isActive: ${_this.isActive})';
 }
 
 
@@ -234,16 +239,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateAdminApiKeyRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.expiresIn, expiresIn) || other.expiresIn == expiresIn)&&(identical(other.isActive, isActive) || other.isActive == isActive));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreateAdminApiKeyRequest&&(identical(other.name, name) || other.name == name)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.expiresIn, expiresIn) || other.expiresIn == expiresIn)&&(identical(other.isActive, isActive) || other.isActive == isActive));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,userId,expiresIn,isActive);
+int get hashCode {
+    return Object.hash(runtimeType,name,userId,expiresIn,isActive);
+}
 
 @override
 String toString() {
-  return 'CreateAdminApiKeyRequest(name: $name, userId: $userId, expiresIn: $expiresIn, isActive: $isActive)';
+    return 'CreateAdminApiKeyRequest(name: $name, userId: $userId, expiresIn: $expiresIn, isActive: $isActive)';
 }
 
 

@@ -29,16 +29,21 @@ $AdminApiKeysResponseCopyWith<AdminApiKeysResponse> get copyWith => _$AdminApiKe
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminApiKeysResponse&&const DeepCollectionEquality().equals(other.apiKeys, apiKeys));
+  final _this = this as AdminApiKeysResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminApiKeysResponse&&const DeepCollectionEquality().equals(other.apiKeys, _this.apiKeys));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(apiKeys));
+int get hashCode {
+  final _this = this as AdminApiKeysResponse;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.apiKeys));
+}
 
 @override
 String toString() {
-  return 'AdminApiKeysResponse(apiKeys: $apiKeys)';
+  final _this = this as AdminApiKeysResponse;
+  return 'AdminApiKeysResponse(apiKeys: ${_this.apiKeys})';
 }
 
 
@@ -234,16 +239,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminApiKeysResponse&&const DeepCollectionEquality().equals(other._apiKeys, _apiKeys));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminApiKeysResponse&&const DeepCollectionEquality().equals(other.apiKeys, _apiKeys));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_apiKeys));
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_apiKeys));
+}
 
 @override
 String toString() {
-  return 'AdminApiKeysResponse(apiKeys: $apiKeys)';
+    return 'AdminApiKeysResponse(apiKeys: $apiKeys)';
 }
 
 

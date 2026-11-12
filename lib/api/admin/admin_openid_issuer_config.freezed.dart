@@ -29,16 +29,21 @@ $AdminOpenIdIssuerConfigCopyWith<AdminOpenIdIssuerConfig> get copyWith => _$Admi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminOpenIdIssuerConfig&&(identical(other.issuer, issuer) || other.issuer == issuer)&&(identical(other.authorizationEndpoint, authorizationEndpoint) || other.authorizationEndpoint == authorizationEndpoint)&&(identical(other.tokenEndpoint, tokenEndpoint) || other.tokenEndpoint == tokenEndpoint)&&(identical(other.userInfoEndpoint, userInfoEndpoint) || other.userInfoEndpoint == userInfoEndpoint)&&(identical(other.endSessionEndpoint, endSessionEndpoint) || other.endSessionEndpoint == endSessionEndpoint)&&(identical(other.jwksUri, jwksUri) || other.jwksUri == jwksUri)&&const DeepCollectionEquality().equals(other.signingAlgorithms, signingAlgorithms));
+  final _this = this as AdminOpenIdIssuerConfig;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminOpenIdIssuerConfig&&(identical(other.issuer, _this.issuer) || other.issuer == _this.issuer)&&(identical(other.authorizationEndpoint, _this.authorizationEndpoint) || other.authorizationEndpoint == _this.authorizationEndpoint)&&(identical(other.tokenEndpoint, _this.tokenEndpoint) || other.tokenEndpoint == _this.tokenEndpoint)&&(identical(other.userInfoEndpoint, _this.userInfoEndpoint) || other.userInfoEndpoint == _this.userInfoEndpoint)&&(identical(other.endSessionEndpoint, _this.endSessionEndpoint) || other.endSessionEndpoint == _this.endSessionEndpoint)&&(identical(other.jwksUri, _this.jwksUri) || other.jwksUri == _this.jwksUri)&&const DeepCollectionEquality().equals(other.signingAlgorithms, _this.signingAlgorithms));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,issuer,authorizationEndpoint,tokenEndpoint,userInfoEndpoint,endSessionEndpoint,jwksUri,const DeepCollectionEquality().hash(signingAlgorithms));
+int get hashCode {
+  final _this = this as AdminOpenIdIssuerConfig;
+  return Object.hash(runtimeType,_this.issuer,_this.authorizationEndpoint,_this.tokenEndpoint,_this.userInfoEndpoint,_this.endSessionEndpoint,_this.jwksUri,const DeepCollectionEquality().hash(_this.signingAlgorithms));
+}
 
 @override
 String toString() {
-  return 'AdminOpenIdIssuerConfig(issuer: $issuer, authorizationEndpoint: $authorizationEndpoint, tokenEndpoint: $tokenEndpoint, userInfoEndpoint: $userInfoEndpoint, endSessionEndpoint: $endSessionEndpoint, jwksUri: $jwksUri, signingAlgorithms: $signingAlgorithms)';
+  final _this = this as AdminOpenIdIssuerConfig;
+  return 'AdminOpenIdIssuerConfig(issuer: ${_this.issuer}, authorizationEndpoint: ${_this.authorizationEndpoint}, tokenEndpoint: ${_this.tokenEndpoint}, userInfoEndpoint: ${_this.userInfoEndpoint}, endSessionEndpoint: ${_this.endSessionEndpoint}, jwksUri: ${_this.jwksUri}, signingAlgorithms: ${_this.signingAlgorithms})';
 }
 
 
@@ -246,16 +251,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminOpenIdIssuerConfig&&(identical(other.issuer, issuer) || other.issuer == issuer)&&(identical(other.authorizationEndpoint, authorizationEndpoint) || other.authorizationEndpoint == authorizationEndpoint)&&(identical(other.tokenEndpoint, tokenEndpoint) || other.tokenEndpoint == tokenEndpoint)&&(identical(other.userInfoEndpoint, userInfoEndpoint) || other.userInfoEndpoint == userInfoEndpoint)&&(identical(other.endSessionEndpoint, endSessionEndpoint) || other.endSessionEndpoint == endSessionEndpoint)&&(identical(other.jwksUri, jwksUri) || other.jwksUri == jwksUri)&&const DeepCollectionEquality().equals(other._signingAlgorithms, _signingAlgorithms));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminOpenIdIssuerConfig&&(identical(other.issuer, issuer) || other.issuer == issuer)&&(identical(other.authorizationEndpoint, authorizationEndpoint) || other.authorizationEndpoint == authorizationEndpoint)&&(identical(other.tokenEndpoint, tokenEndpoint) || other.tokenEndpoint == tokenEndpoint)&&(identical(other.userInfoEndpoint, userInfoEndpoint) || other.userInfoEndpoint == userInfoEndpoint)&&(identical(other.endSessionEndpoint, endSessionEndpoint) || other.endSessionEndpoint == endSessionEndpoint)&&(identical(other.jwksUri, jwksUri) || other.jwksUri == jwksUri)&&const DeepCollectionEquality().equals(other.signingAlgorithms, _signingAlgorithms));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,issuer,authorizationEndpoint,tokenEndpoint,userInfoEndpoint,endSessionEndpoint,jwksUri,const DeepCollectionEquality().hash(_signingAlgorithms));
+int get hashCode {
+    return Object.hash(runtimeType,issuer,authorizationEndpoint,tokenEndpoint,userInfoEndpoint,endSessionEndpoint,jwksUri,const DeepCollectionEquality().hash(_signingAlgorithms));
+}
 
 @override
 String toString() {
-  return 'AdminOpenIdIssuerConfig(issuer: $issuer, authorizationEndpoint: $authorizationEndpoint, tokenEndpoint: $tokenEndpoint, userInfoEndpoint: $userInfoEndpoint, endSessionEndpoint: $endSessionEndpoint, jwksUri: $jwksUri, signingAlgorithms: $signingAlgorithms)';
+    return 'AdminOpenIdIssuerConfig(issuer: $issuer, authorizationEndpoint: $authorizationEndpoint, tokenEndpoint: $tokenEndpoint, userInfoEndpoint: $userInfoEndpoint, endSessionEndpoint: $endSessionEndpoint, jwksUri: $jwksUri, signingAlgorithms: $signingAlgorithms)';
 }
 
 

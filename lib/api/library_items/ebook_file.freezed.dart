@@ -29,16 +29,21 @@ $EbookFileCopyWith<EbookFile> get copyWith => _$EbookFileCopyWithImpl<EbookFile>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is EbookFile&&(identical(other.ino, ino) || other.ino == ino)&&(identical(other.metadata, metadata) || other.metadata == metadata)&&(identical(other.ebookFormat, ebookFormat) || other.ebookFormat == ebookFormat)&&(identical(other.addedAt, addedAt) || other.addedAt == addedAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  final _this = this as EbookFile;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is EbookFile&&(identical(other.ino, _this.ino) || other.ino == _this.ino)&&(identical(other.metadata, _this.metadata) || other.metadata == _this.metadata)&&(identical(other.ebookFormat, _this.ebookFormat) || other.ebookFormat == _this.ebookFormat)&&(identical(other.addedAt, _this.addedAt) || other.addedAt == _this.addedAt)&&(identical(other.updatedAt, _this.updatedAt) || other.updatedAt == _this.updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,ino,metadata,ebookFormat,addedAt,updatedAt);
+int get hashCode {
+  final _this = this as EbookFile;
+  return Object.hash(runtimeType,_this.ino,_this.metadata,_this.ebookFormat,_this.addedAt,_this.updatedAt);
+}
 
 @override
 String toString() {
-  return 'EbookFile(ino: $ino, metadata: $metadata, ebookFormat: $ebookFormat, addedAt: $addedAt, updatedAt: $updatedAt)';
+  final _this = this as EbookFile;
+  return 'EbookFile(ino: ${_this.ino}, metadata: ${_this.metadata}, ebookFormat: ${_this.ebookFormat}, addedAt: ${_this.addedAt}, updatedAt: ${_this.updatedAt})';
 }
 
 
@@ -245,16 +250,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _EbookFile&&(identical(other.ino, ino) || other.ino == ino)&&(identical(other.metadata, metadata) || other.metadata == metadata)&&(identical(other.ebookFormat, ebookFormat) || other.ebookFormat == ebookFormat)&&(identical(other.addedAt, addedAt) || other.addedAt == addedAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _EbookFile&&(identical(other.ino, ino) || other.ino == ino)&&(identical(other.metadata, metadata) || other.metadata == metadata)&&(identical(other.ebookFormat, ebookFormat) || other.ebookFormat == ebookFormat)&&(identical(other.addedAt, addedAt) || other.addedAt == addedAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,ino,metadata,ebookFormat,addedAt,updatedAt);
+int get hashCode {
+    return Object.hash(runtimeType,ino,metadata,ebookFormat,addedAt,updatedAt);
+}
 
 @override
 String toString() {
-  return 'EbookFile(ino: $ino, metadata: $metadata, ebookFormat: $ebookFormat, addedAt: $addedAt, updatedAt: $updatedAt)';
+    return 'EbookFile(ino: $ino, metadata: $metadata, ebookFormat: $ebookFormat, addedAt: $addedAt, updatedAt: $updatedAt)';
 }
 
 

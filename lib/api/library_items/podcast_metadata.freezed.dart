@@ -29,16 +29,21 @@ $PodcastMetadataCopyWith<PodcastMetadata> get copyWith => _$PodcastMetadataCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PodcastMetadata&&(identical(other.title, title) || other.title == title)&&(identical(other.author, author) || other.author == author)&&(identical(other.description, description) || other.description == description)&&(identical(other.releaseDate, releaseDate) || other.releaseDate == releaseDate)&&const DeepCollectionEquality().equals(other.genres, genres)&&(identical(other.feedUrl, feedUrl) || other.feedUrl == feedUrl)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.itunesPageUrl, itunesPageUrl) || other.itunesPageUrl == itunesPageUrl)&&(identical(other.itunesId, itunesId) || other.itunesId == itunesId)&&(identical(other.itunesArtistId, itunesArtistId) || other.itunesArtistId == itunesArtistId)&&(identical(other.explicit, explicit) || other.explicit == explicit)&&(identical(other.language, language) || other.language == language)&&(identical(other.type, type) || other.type == type)&&(identical(other.titleIgnorePrefix, titleIgnorePrefix) || other.titleIgnorePrefix == titleIgnorePrefix));
+  final _this = this as PodcastMetadata;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PodcastMetadata&&(identical(other.title, _this.title) || other.title == _this.title)&&(identical(other.author, _this.author) || other.author == _this.author)&&(identical(other.description, _this.description) || other.description == _this.description)&&(identical(other.releaseDate, _this.releaseDate) || other.releaseDate == _this.releaseDate)&&const DeepCollectionEquality().equals(other.genres, _this.genres)&&(identical(other.feedUrl, _this.feedUrl) || other.feedUrl == _this.feedUrl)&&(identical(other.imageUrl, _this.imageUrl) || other.imageUrl == _this.imageUrl)&&(identical(other.itunesPageUrl, _this.itunesPageUrl) || other.itunesPageUrl == _this.itunesPageUrl)&&(identical(other.itunesId, _this.itunesId) || other.itunesId == _this.itunesId)&&(identical(other.itunesArtistId, _this.itunesArtistId) || other.itunesArtistId == _this.itunesArtistId)&&(identical(other.explicit, _this.explicit) || other.explicit == _this.explicit)&&(identical(other.language, _this.language) || other.language == _this.language)&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.titleIgnorePrefix, _this.titleIgnorePrefix) || other.titleIgnorePrefix == _this.titleIgnorePrefix));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,title,author,description,releaseDate,const DeepCollectionEquality().hash(genres),feedUrl,imageUrl,itunesPageUrl,itunesId,itunesArtistId,explicit,language,type,titleIgnorePrefix);
+int get hashCode {
+  final _this = this as PodcastMetadata;
+  return Object.hash(runtimeType,_this.title,_this.author,_this.description,_this.releaseDate,const DeepCollectionEquality().hash(_this.genres),_this.feedUrl,_this.imageUrl,_this.itunesPageUrl,_this.itunesId,_this.itunesArtistId,_this.explicit,_this.language,_this.type,_this.titleIgnorePrefix);
+}
 
 @override
 String toString() {
-  return 'PodcastMetadata(title: $title, author: $author, description: $description, releaseDate: $releaseDate, genres: $genres, feedUrl: $feedUrl, imageUrl: $imageUrl, itunesPageUrl: $itunesPageUrl, itunesId: $itunesId, itunesArtistId: $itunesArtistId, explicit: $explicit, language: $language, type: $type, titleIgnorePrefix: $titleIgnorePrefix)';
+  final _this = this as PodcastMetadata;
+  return 'PodcastMetadata(title: ${_this.title}, author: ${_this.author}, description: ${_this.description}, releaseDate: ${_this.releaseDate}, genres: ${_this.genres}, feedUrl: ${_this.feedUrl}, imageUrl: ${_this.imageUrl}, itunesPageUrl: ${_this.itunesPageUrl}, itunesId: ${_this.itunesId}, itunesArtistId: ${_this.itunesArtistId}, explicit: ${_this.explicit}, language: ${_this.language}, type: ${_this.type}, titleIgnorePrefix: ${_this.titleIgnorePrefix})';
 }
 
 
@@ -262,16 +267,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PodcastMetadata&&(identical(other.title, title) || other.title == title)&&(identical(other.author, author) || other.author == author)&&(identical(other.description, description) || other.description == description)&&(identical(other.releaseDate, releaseDate) || other.releaseDate == releaseDate)&&const DeepCollectionEquality().equals(other._genres, _genres)&&(identical(other.feedUrl, feedUrl) || other.feedUrl == feedUrl)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.itunesPageUrl, itunesPageUrl) || other.itunesPageUrl == itunesPageUrl)&&(identical(other.itunesId, itunesId) || other.itunesId == itunesId)&&(identical(other.itunesArtistId, itunesArtistId) || other.itunesArtistId == itunesArtistId)&&(identical(other.explicit, explicit) || other.explicit == explicit)&&(identical(other.language, language) || other.language == language)&&(identical(other.type, type) || other.type == type)&&(identical(other.titleIgnorePrefix, titleIgnorePrefix) || other.titleIgnorePrefix == titleIgnorePrefix));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PodcastMetadata&&(identical(other.title, title) || other.title == title)&&(identical(other.author, author) || other.author == author)&&(identical(other.description, description) || other.description == description)&&(identical(other.releaseDate, releaseDate) || other.releaseDate == releaseDate)&&const DeepCollectionEquality().equals(other.genres, _genres)&&(identical(other.feedUrl, feedUrl) || other.feedUrl == feedUrl)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.itunesPageUrl, itunesPageUrl) || other.itunesPageUrl == itunesPageUrl)&&(identical(other.itunesId, itunesId) || other.itunesId == itunesId)&&(identical(other.itunesArtistId, itunesArtistId) || other.itunesArtistId == itunesArtistId)&&(identical(other.explicit, explicit) || other.explicit == explicit)&&(identical(other.language, language) || other.language == language)&&(identical(other.type, type) || other.type == type)&&(identical(other.titleIgnorePrefix, titleIgnorePrefix) || other.titleIgnorePrefix == titleIgnorePrefix));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,title,author,description,releaseDate,const DeepCollectionEquality().hash(_genres),feedUrl,imageUrl,itunesPageUrl,itunesId,itunesArtistId,explicit,language,type,titleIgnorePrefix);
+int get hashCode {
+    return Object.hash(runtimeType,title,author,description,releaseDate,const DeepCollectionEquality().hash(_genres),feedUrl,imageUrl,itunesPageUrl,itunesId,itunesArtistId,explicit,language,type,titleIgnorePrefix);
+}
 
 @override
 String toString() {
-  return 'PodcastMetadata(title: $title, author: $author, description: $description, releaseDate: $releaseDate, genres: $genres, feedUrl: $feedUrl, imageUrl: $imageUrl, itunesPageUrl: $itunesPageUrl, itunesId: $itunesId, itunesArtistId: $itunesArtistId, explicit: $explicit, language: $language, type: $type, titleIgnorePrefix: $titleIgnorePrefix)';
+    return 'PodcastMetadata(title: $title, author: $author, description: $description, releaseDate: $releaseDate, genres: $genres, feedUrl: $feedUrl, imageUrl: $imageUrl, itunesPageUrl: $itunesPageUrl, itunesId: $itunesId, itunesArtistId: $itunesArtistId, explicit: $explicit, language: $language, type: $type, titleIgnorePrefix: $titleIgnorePrefix)';
 }
 
 

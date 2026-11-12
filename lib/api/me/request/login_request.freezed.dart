@@ -29,16 +29,21 @@ $LoginRequestCopyWith<LoginRequest> get copyWith => _$LoginRequestCopyWithImpl<L
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LoginRequest&&(identical(other.username, username) || other.username == username)&&(identical(other.password, password) || other.password == password));
+  final _this = this as LoginRequest;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LoginRequest&&(identical(other.username, _this.username) || other.username == _this.username)&&(identical(other.password, _this.password) || other.password == _this.password));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,username,password);
+int get hashCode {
+  final _this = this as LoginRequest;
+  return Object.hash(runtimeType,_this.username,_this.password);
+}
 
 @override
 String toString() {
-  return 'LoginRequest(username: $username, password: $password)';
+  final _this = this as LoginRequest;
+  return 'LoginRequest(username: ${_this.username}, password: ${_this.password})';
 }
 
 
@@ -230,16 +235,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LoginRequest&&(identical(other.username, username) || other.username == username)&&(identical(other.password, password) || other.password == password));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _LoginRequest&&(identical(other.username, username) || other.username == username)&&(identical(other.password, password) || other.password == password));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,username,password);
+int get hashCode {
+    return Object.hash(runtimeType,username,password);
+}
 
 @override
 String toString() {
-  return 'LoginRequest(username: $username, password: $password)';
+    return 'LoginRequest(username: $username, password: $password)';
 }
 
 

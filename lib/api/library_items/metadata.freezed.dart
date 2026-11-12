@@ -26,16 +26,21 @@ $MetadataCopyWith<Metadata> get copyWith => _$MetadataCopyWithImpl<Metadata>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Metadata&&(identical(other.podcastMetadata, podcastMetadata) || other.podcastMetadata == podcastMetadata)&&(identical(other.bookMetadata, bookMetadata) || other.bookMetadata == bookMetadata));
+  final _this = this as Metadata;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Metadata&&(identical(other.podcastMetadata, _this.podcastMetadata) || other.podcastMetadata == _this.podcastMetadata)&&(identical(other.bookMetadata, _this.bookMetadata) || other.bookMetadata == _this.bookMetadata));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,podcastMetadata,bookMetadata);
+int get hashCode {
+  final _this = this as Metadata;
+  return Object.hash(runtimeType,_this.podcastMetadata,_this.bookMetadata);
+}
 
 @override
 String toString() {
-  return 'Metadata(podcastMetadata: $podcastMetadata, bookMetadata: $bookMetadata)';
+  final _this = this as Metadata;
+  return 'Metadata(podcastMetadata: ${_this.podcastMetadata}, bookMetadata: ${_this.bookMetadata})';
 }
 
 
@@ -248,16 +253,18 @@ _$MetadataCopyWith<_Metadata> get copyWith => __$MetadataCopyWithImpl<_Metadata>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Metadata&&(identical(other.podcastMetadata, podcastMetadata) || other.podcastMetadata == podcastMetadata)&&(identical(other.bookMetadata, bookMetadata) || other.bookMetadata == bookMetadata));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Metadata&&(identical(other.podcastMetadata, podcastMetadata) || other.podcastMetadata == podcastMetadata)&&(identical(other.bookMetadata, bookMetadata) || other.bookMetadata == bookMetadata));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,podcastMetadata,bookMetadata);
+int get hashCode {
+    return Object.hash(runtimeType,podcastMetadata,bookMetadata);
+}
 
 @override
 String toString() {
-  return 'Metadata(podcastMetadata: $podcastMetadata, bookMetadata: $bookMetadata)';
+    return 'Metadata(podcastMetadata: $podcastMetadata, bookMetadata: $bookMetadata)';
 }
 
 

@@ -29,16 +29,21 @@ $BookMediaCopyWith<BookMedia> get copyWith => _$BookMediaCopyWithImpl<BookMedia>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BookMedia&&(identical(other.id, id) || other.id == id)&&(identical(other.libraryItemId, libraryItemId) || other.libraryItemId == libraryItemId)&&(identical(other.metadata, metadata) || other.metadata == metadata)&&(identical(other.coverPath, coverPath) || other.coverPath == coverPath)&&const DeepCollectionEquality().equals(other.tags, tags)&&const DeepCollectionEquality().equals(other.audioFiles, audioFiles)&&const DeepCollectionEquality().equals(other.chapters, chapters)&&(identical(other.ebookFile, ebookFile) || other.ebookFile == ebookFile)&&(identical(other.numTracks, numTracks) || other.numTracks == numTracks)&&(identical(other.numChapters, numChapters) || other.numChapters == numChapters)&&(identical(other.numAudioFiles, numAudioFiles) || other.numAudioFiles == numAudioFiles)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.size, size) || other.size == size)&&(identical(other.ebookFormat, ebookFormat) || other.ebookFormat == ebookFormat));
+  final _this = this as BookMedia;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BookMedia&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.libraryItemId, _this.libraryItemId) || other.libraryItemId == _this.libraryItemId)&&(identical(other.metadata, _this.metadata) || other.metadata == _this.metadata)&&(identical(other.coverPath, _this.coverPath) || other.coverPath == _this.coverPath)&&const DeepCollectionEquality().equals(other.tags, _this.tags)&&const DeepCollectionEquality().equals(other.audioFiles, _this.audioFiles)&&const DeepCollectionEquality().equals(other.chapters, _this.chapters)&&(identical(other.ebookFile, _this.ebookFile) || other.ebookFile == _this.ebookFile)&&(identical(other.numTracks, _this.numTracks) || other.numTracks == _this.numTracks)&&(identical(other.numChapters, _this.numChapters) || other.numChapters == _this.numChapters)&&(identical(other.numAudioFiles, _this.numAudioFiles) || other.numAudioFiles == _this.numAudioFiles)&&(identical(other.duration, _this.duration) || other.duration == _this.duration)&&(identical(other.size, _this.size) || other.size == _this.size)&&(identical(other.ebookFormat, _this.ebookFormat) || other.ebookFormat == _this.ebookFormat));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,libraryItemId,metadata,coverPath,const DeepCollectionEquality().hash(tags),const DeepCollectionEquality().hash(audioFiles),const DeepCollectionEquality().hash(chapters),ebookFile,numTracks,numChapters,numAudioFiles,duration,size,ebookFormat);
+int get hashCode {
+  final _this = this as BookMedia;
+  return Object.hash(runtimeType,_this.id,_this.libraryItemId,_this.metadata,_this.coverPath,const DeepCollectionEquality().hash(_this.tags),const DeepCollectionEquality().hash(_this.audioFiles),const DeepCollectionEquality().hash(_this.chapters),_this.ebookFile,_this.numTracks,_this.numChapters,_this.numAudioFiles,_this.duration,_this.size,_this.ebookFormat);
+}
 
 @override
 String toString() {
-  return 'BookMedia(id: $id, libraryItemId: $libraryItemId, metadata: $metadata, coverPath: $coverPath, tags: $tags, audioFiles: $audioFiles, chapters: $chapters, ebookFile: $ebookFile, numTracks: $numTracks, numChapters: $numChapters, numAudioFiles: $numAudioFiles, duration: $duration, size: $size, ebookFormat: $ebookFormat)';
+  final _this = this as BookMedia;
+  return 'BookMedia(id: ${_this.id}, libraryItemId: ${_this.libraryItemId}, metadata: ${_this.metadata}, coverPath: ${_this.coverPath}, tags: ${_this.tags}, audioFiles: ${_this.audioFiles}, chapters: ${_this.chapters}, ebookFile: ${_this.ebookFile}, numTracks: ${_this.numTracks}, numChapters: ${_this.numChapters}, numAudioFiles: ${_this.numAudioFiles}, duration: ${_this.duration}, size: ${_this.size}, ebookFormat: ${_this.ebookFormat})';
 }
 
 
@@ -299,16 +304,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BookMedia&&(identical(other.id, id) || other.id == id)&&(identical(other.libraryItemId, libraryItemId) || other.libraryItemId == libraryItemId)&&(identical(other.metadata, metadata) || other.metadata == metadata)&&(identical(other.coverPath, coverPath) || other.coverPath == coverPath)&&const DeepCollectionEquality().equals(other._tags, _tags)&&const DeepCollectionEquality().equals(other._audioFiles, _audioFiles)&&const DeepCollectionEquality().equals(other._chapters, _chapters)&&(identical(other.ebookFile, ebookFile) || other.ebookFile == ebookFile)&&(identical(other.numTracks, numTracks) || other.numTracks == numTracks)&&(identical(other.numChapters, numChapters) || other.numChapters == numChapters)&&(identical(other.numAudioFiles, numAudioFiles) || other.numAudioFiles == numAudioFiles)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.size, size) || other.size == size)&&(identical(other.ebookFormat, ebookFormat) || other.ebookFormat == ebookFormat));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _BookMedia&&(identical(other.id, id) || other.id == id)&&(identical(other.libraryItemId, libraryItemId) || other.libraryItemId == libraryItemId)&&(identical(other.metadata, metadata) || other.metadata == metadata)&&(identical(other.coverPath, coverPath) || other.coverPath == coverPath)&&const DeepCollectionEquality().equals(other.tags, _tags)&&const DeepCollectionEquality().equals(other.audioFiles, _audioFiles)&&const DeepCollectionEquality().equals(other.chapters, _chapters)&&(identical(other.ebookFile, ebookFile) || other.ebookFile == ebookFile)&&(identical(other.numTracks, numTracks) || other.numTracks == numTracks)&&(identical(other.numChapters, numChapters) || other.numChapters == numChapters)&&(identical(other.numAudioFiles, numAudioFiles) || other.numAudioFiles == numAudioFiles)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.size, size) || other.size == size)&&(identical(other.ebookFormat, ebookFormat) || other.ebookFormat == ebookFormat));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,libraryItemId,metadata,coverPath,const DeepCollectionEquality().hash(_tags),const DeepCollectionEquality().hash(_audioFiles),const DeepCollectionEquality().hash(_chapters),ebookFile,numTracks,numChapters,numAudioFiles,duration,size,ebookFormat);
+int get hashCode {
+    return Object.hash(runtimeType,id,libraryItemId,metadata,coverPath,const DeepCollectionEquality().hash(_tags),const DeepCollectionEquality().hash(_audioFiles),const DeepCollectionEquality().hash(_chapters),ebookFile,numTracks,numChapters,numAudioFiles,duration,size,ebookFormat);
+}
 
 @override
 String toString() {
-  return 'BookMedia(id: $id, libraryItemId: $libraryItemId, metadata: $metadata, coverPath: $coverPath, tags: $tags, audioFiles: $audioFiles, chapters: $chapters, ebookFile: $ebookFile, numTracks: $numTracks, numChapters: $numChapters, numAudioFiles: $numAudioFiles, duration: $duration, size: $size, ebookFormat: $ebookFormat)';
+    return 'BookMedia(id: $id, libraryItemId: $libraryItemId, metadata: $metadata, coverPath: $coverPath, tags: $tags, audioFiles: $audioFiles, chapters: $chapters, ebookFile: $ebookFile, numTracks: $numTracks, numChapters: $numChapters, numAudioFiles: $numAudioFiles, duration: $duration, size: $size, ebookFormat: $ebookFormat)';
 }
 
 

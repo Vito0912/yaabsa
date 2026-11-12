@@ -29,16 +29,21 @@ $AdminBackupsResponseCopyWith<AdminBackupsResponse> get copyWith => _$AdminBacku
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminBackupsResponse&&const DeepCollectionEquality().equals(other.backups, backups)&&(identical(other.backupLocation, backupLocation) || other.backupLocation == backupLocation)&&(identical(other.backupPathEnvSet, backupPathEnvSet) || other.backupPathEnvSet == backupPathEnvSet));
+  final _this = this as AdminBackupsResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminBackupsResponse&&const DeepCollectionEquality().equals(other.backups, _this.backups)&&(identical(other.backupLocation, _this.backupLocation) || other.backupLocation == _this.backupLocation)&&(identical(other.backupPathEnvSet, _this.backupPathEnvSet) || other.backupPathEnvSet == _this.backupPathEnvSet));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(backups),backupLocation,backupPathEnvSet);
+int get hashCode {
+  final _this = this as AdminBackupsResponse;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.backups),_this.backupLocation,_this.backupPathEnvSet);
+}
 
 @override
 String toString() {
-  return 'AdminBackupsResponse(backups: $backups, backupLocation: $backupLocation, backupPathEnvSet: $backupPathEnvSet)';
+  final _this = this as AdminBackupsResponse;
+  return 'AdminBackupsResponse(backups: ${_this.backups}, backupLocation: ${_this.backupLocation}, backupPathEnvSet: ${_this.backupPathEnvSet})';
 }
 
 
@@ -238,16 +243,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminBackupsResponse&&const DeepCollectionEquality().equals(other._backups, _backups)&&(identical(other.backupLocation, backupLocation) || other.backupLocation == backupLocation)&&(identical(other.backupPathEnvSet, backupPathEnvSet) || other.backupPathEnvSet == backupPathEnvSet));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminBackupsResponse&&const DeepCollectionEquality().equals(other.backups, _backups)&&(identical(other.backupLocation, backupLocation) || other.backupLocation == backupLocation)&&(identical(other.backupPathEnvSet, backupPathEnvSet) || other.backupPathEnvSet == backupPathEnvSet));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_backups),backupLocation,backupPathEnvSet);
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_backups),backupLocation,backupPathEnvSet);
+}
 
 @override
 String toString() {
-  return 'AdminBackupsResponse(backups: $backups, backupLocation: $backupLocation, backupPathEnvSet: $backupPathEnvSet)';
+    return 'AdminBackupsResponse(backups: $backups, backupLocation: $backupLocation, backupPathEnvSet: $backupPathEnvSet)';
 }
 
 

@@ -136,7 +136,7 @@ final class PlaylistByIdProvider extends $FunctionalProvider<AsyncValue<Playlist
   }
 }
 
-String _$playlistByIdHash() => r'2bf0471762994421e944f8a539c4f528c209670c';
+String _$playlistByIdHash() => r'40e984694d9c50c355b97ed7960700a4ebb7a2da';
 
 final class PlaylistByIdFamily extends $Family with $FunctionalFamilyOverride<FutureOr<Playlist>, (String, String)> {
   PlaylistByIdFamily._()

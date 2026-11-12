@@ -29,16 +29,21 @@ $AbsTaskCopyWith<AbsTask> get copyWith => _$AbsTaskCopyWithImpl<AbsTask>(this as
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AbsTask&&(identical(other.id, id) || other.id == id)&&(identical(other.action, action) || other.action == action)&&(identical(other.data, data) || other.data == data)&&(identical(other.title, title) || other.title == title)&&(identical(other.titleKey, titleKey) || other.titleKey == titleKey)&&const DeepCollectionEquality().equals(other.titleSubs, titleSubs)&&(identical(other.description, description) || other.description == description)&&(identical(other.descriptionKey, descriptionKey) || other.descriptionKey == descriptionKey)&&const DeepCollectionEquality().equals(other.descriptionSubs, descriptionSubs)&&(identical(other.error, error) || other.error == error)&&(identical(other.errorKey, errorKey) || other.errorKey == errorKey)&&const DeepCollectionEquality().equals(other.errorSubs, errorSubs)&&(identical(other.showSuccess, showSuccess) || other.showSuccess == showSuccess)&&(identical(other.isFailed, isFailed) || other.isFailed == isFailed)&&(identical(other.isFinished, isFinished) || other.isFinished == isFinished)&&(identical(other.startedAt, startedAt) || other.startedAt == startedAt)&&(identical(other.finishedAt, finishedAt) || other.finishedAt == finishedAt));
+  final _this = this as AbsTask;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AbsTask&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.action, _this.action) || other.action == _this.action)&&(identical(other.data, _this.data) || other.data == _this.data)&&(identical(other.title, _this.title) || other.title == _this.title)&&(identical(other.titleKey, _this.titleKey) || other.titleKey == _this.titleKey)&&const DeepCollectionEquality().equals(other.titleSubs, _this.titleSubs)&&(identical(other.description, _this.description) || other.description == _this.description)&&(identical(other.descriptionKey, _this.descriptionKey) || other.descriptionKey == _this.descriptionKey)&&const DeepCollectionEquality().equals(other.descriptionSubs, _this.descriptionSubs)&&(identical(other.error, _this.error) || other.error == _this.error)&&(identical(other.errorKey, _this.errorKey) || other.errorKey == _this.errorKey)&&const DeepCollectionEquality().equals(other.errorSubs, _this.errorSubs)&&(identical(other.showSuccess, _this.showSuccess) || other.showSuccess == _this.showSuccess)&&(identical(other.isFailed, _this.isFailed) || other.isFailed == _this.isFailed)&&(identical(other.isFinished, _this.isFinished) || other.isFinished == _this.isFinished)&&(identical(other.startedAt, _this.startedAt) || other.startedAt == _this.startedAt)&&(identical(other.finishedAt, _this.finishedAt) || other.finishedAt == _this.finishedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,action,data,title,titleKey,const DeepCollectionEquality().hash(titleSubs),description,descriptionKey,const DeepCollectionEquality().hash(descriptionSubs),error,errorKey,const DeepCollectionEquality().hash(errorSubs),showSuccess,isFailed,isFinished,startedAt,finishedAt);
+int get hashCode {
+  final _this = this as AbsTask;
+  return Object.hash(runtimeType,_this.id,_this.action,_this.data,_this.title,_this.titleKey,const DeepCollectionEquality().hash(_this.titleSubs),_this.description,_this.descriptionKey,const DeepCollectionEquality().hash(_this.descriptionSubs),_this.error,_this.errorKey,const DeepCollectionEquality().hash(_this.errorSubs),_this.showSuccess,_this.isFailed,_this.isFinished,_this.startedAt,_this.finishedAt);
+}
 
 @override
 String toString() {
-  return 'AbsTask(id: $id, action: $action, data: $data, title: $title, titleKey: $titleKey, titleSubs: $titleSubs, description: $description, descriptionKey: $descriptionKey, descriptionSubs: $descriptionSubs, error: $error, errorKey: $errorKey, errorSubs: $errorSubs, showSuccess: $showSuccess, isFailed: $isFailed, isFinished: $isFinished, startedAt: $startedAt, finishedAt: $finishedAt)';
+  final _this = this as AbsTask;
+  return 'AbsTask(id: ${_this.id}, action: ${_this.action}, data: ${_this.data}, title: ${_this.title}, titleKey: ${_this.titleKey}, titleSubs: ${_this.titleSubs}, description: ${_this.description}, descriptionKey: ${_this.descriptionKey}, descriptionSubs: ${_this.descriptionSubs}, error: ${_this.error}, errorKey: ${_this.errorKey}, errorSubs: ${_this.errorSubs}, showSuccess: ${_this.showSuccess}, isFailed: ${_this.isFailed}, isFinished: ${_this.isFinished}, startedAt: ${_this.startedAt}, finishedAt: ${_this.finishedAt})';
 }
 
 
@@ -290,16 +295,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AbsTask&&(identical(other.id, id) || other.id == id)&&(identical(other.action, action) || other.action == action)&&(identical(other.data, data) || other.data == data)&&(identical(other.title, title) || other.title == title)&&(identical(other.titleKey, titleKey) || other.titleKey == titleKey)&&const DeepCollectionEquality().equals(other._titleSubs, _titleSubs)&&(identical(other.description, description) || other.description == description)&&(identical(other.descriptionKey, descriptionKey) || other.descriptionKey == descriptionKey)&&const DeepCollectionEquality().equals(other._descriptionSubs, _descriptionSubs)&&(identical(other.error, error) || other.error == error)&&(identical(other.errorKey, errorKey) || other.errorKey == errorKey)&&const DeepCollectionEquality().equals(other._errorSubs, _errorSubs)&&(identical(other.showSuccess, showSuccess) || other.showSuccess == showSuccess)&&(identical(other.isFailed, isFailed) || other.isFailed == isFailed)&&(identical(other.isFinished, isFinished) || other.isFinished == isFinished)&&(identical(other.startedAt, startedAt) || other.startedAt == startedAt)&&(identical(other.finishedAt, finishedAt) || other.finishedAt == finishedAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AbsTask&&(identical(other.id, id) || other.id == id)&&(identical(other.action, action) || other.action == action)&&(identical(other.data, data) || other.data == data)&&(identical(other.title, title) || other.title == title)&&(identical(other.titleKey, titleKey) || other.titleKey == titleKey)&&const DeepCollectionEquality().equals(other.titleSubs, _titleSubs)&&(identical(other.description, description) || other.description == description)&&(identical(other.descriptionKey, descriptionKey) || other.descriptionKey == descriptionKey)&&const DeepCollectionEquality().equals(other.descriptionSubs, _descriptionSubs)&&(identical(other.error, error) || other.error == error)&&(identical(other.errorKey, errorKey) || other.errorKey == errorKey)&&const DeepCollectionEquality().equals(other.errorSubs, _errorSubs)&&(identical(other.showSuccess, showSuccess) || other.showSuccess == showSuccess)&&(identical(other.isFailed, isFailed) || other.isFailed == isFailed)&&(identical(other.isFinished, isFinished) || other.isFinished == isFinished)&&(identical(other.startedAt, startedAt) || other.startedAt == startedAt)&&(identical(other.finishedAt, finishedAt) || other.finishedAt == finishedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,action,data,title,titleKey,const DeepCollectionEquality().hash(_titleSubs),description,descriptionKey,const DeepCollectionEquality().hash(_descriptionSubs),error,errorKey,const DeepCollectionEquality().hash(_errorSubs),showSuccess,isFailed,isFinished,startedAt,finishedAt);
+int get hashCode {
+    return Object.hash(runtimeType,id,action,data,title,titleKey,const DeepCollectionEquality().hash(_titleSubs),description,descriptionKey,const DeepCollectionEquality().hash(_descriptionSubs),error,errorKey,const DeepCollectionEquality().hash(_errorSubs),showSuccess,isFailed,isFinished,startedAt,finishedAt);
+}
 
 @override
 String toString() {
-  return 'AbsTask(id: $id, action: $action, data: $data, title: $title, titleKey: $titleKey, titleSubs: $titleSubs, description: $description, descriptionKey: $descriptionKey, descriptionSubs: $descriptionSubs, error: $error, errorKey: $errorKey, errorSubs: $errorSubs, showSuccess: $showSuccess, isFailed: $isFailed, isFinished: $isFinished, startedAt: $startedAt, finishedAt: $finishedAt)';
+    return 'AbsTask(id: $id, action: $action, data: $data, title: $title, titleKey: $titleKey, titleSubs: $titleSubs, description: $description, descriptionKey: $descriptionKey, descriptionSubs: $descriptionSubs, error: $error, errorKey: $errorKey, errorSubs: $errorSubs, showSuccess: $showSuccess, isFailed: $isFailed, isFinished: $isFinished, startedAt: $startedAt, finishedAt: $finishedAt)';
 }
 
 
@@ -382,16 +389,21 @@ $AbsTaskDataCopyWith<AbsTaskData> get copyWith => _$AbsTaskDataCopyWithImpl<AbsT
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AbsTaskData&&(identical(other.libraryItemId, libraryItemId) || other.libraryItemId == libraryItemId)&&(identical(other.libraryId, libraryId) || other.libraryId == libraryId)&&(identical(other.ino, ino) || other.ino == ino)&&(identical(other.encodeOptions, encodeOptions) || other.encodeOptions == encodeOptions)&&(identical(other.scanResults, scanResults) || other.scanResults == scanResults));
+  final _this = this as AbsTaskData;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AbsTaskData&&(identical(other.libraryItemId, _this.libraryItemId) || other.libraryItemId == _this.libraryItemId)&&(identical(other.libraryId, _this.libraryId) || other.libraryId == _this.libraryId)&&(identical(other.ino, _this.ino) || other.ino == _this.ino)&&(identical(other.encodeOptions, _this.encodeOptions) || other.encodeOptions == _this.encodeOptions)&&(identical(other.scanResults, _this.scanResults) || other.scanResults == _this.scanResults));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,libraryItemId,libraryId,ino,encodeOptions,scanResults);
+int get hashCode {
+  final _this = this as AbsTaskData;
+  return Object.hash(runtimeType,_this.libraryItemId,_this.libraryId,_this.ino,_this.encodeOptions,_this.scanResults);
+}
 
 @override
 String toString() {
-  return 'AbsTaskData(libraryItemId: $libraryItemId, libraryId: $libraryId, ino: $ino, encodeOptions: $encodeOptions, scanResults: $scanResults)';
+  final _this = this as AbsTaskData;
+  return 'AbsTaskData(libraryItemId: ${_this.libraryItemId}, libraryId: ${_this.libraryId}, ino: ${_this.ino}, encodeOptions: ${_this.encodeOptions}, scanResults: ${_this.scanResults})';
 }
 
 
@@ -613,16 +625,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AbsTaskData&&(identical(other.libraryItemId, libraryItemId) || other.libraryItemId == libraryItemId)&&(identical(other.libraryId, libraryId) || other.libraryId == libraryId)&&(identical(other.ino, ino) || other.ino == ino)&&(identical(other.encodeOptions, encodeOptions) || other.encodeOptions == encodeOptions)&&(identical(other.scanResults, scanResults) || other.scanResults == scanResults));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AbsTaskData&&(identical(other.libraryItemId, libraryItemId) || other.libraryItemId == libraryItemId)&&(identical(other.libraryId, libraryId) || other.libraryId == libraryId)&&(identical(other.ino, ino) || other.ino == ino)&&(identical(other.encodeOptions, encodeOptions) || other.encodeOptions == encodeOptions)&&(identical(other.scanResults, scanResults) || other.scanResults == scanResults));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,libraryItemId,libraryId,ino,encodeOptions,scanResults);
+int get hashCode {
+    return Object.hash(runtimeType,libraryItemId,libraryId,ino,encodeOptions,scanResults);
+}
 
 @override
 String toString() {
-  return 'AbsTaskData(libraryItemId: $libraryItemId, libraryId: $libraryId, ino: $ino, encodeOptions: $encodeOptions, scanResults: $scanResults)';
+    return 'AbsTaskData(libraryItemId: $libraryItemId, libraryId: $libraryId, ino: $ino, encodeOptions: $encodeOptions, scanResults: $scanResults)';
 }
 
 
@@ -705,16 +719,21 @@ $AbsTaskEncodeOptionsCopyWith<AbsTaskEncodeOptions> get copyWith => _$AbsTaskEnc
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AbsTaskEncodeOptions&&(identical(other.codec, codec) || other.codec == codec)&&(identical(other.bitrate, bitrate) || other.bitrate == bitrate)&&(identical(other.channels, channels) || other.channels == channels));
+  final _this = this as AbsTaskEncodeOptions;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AbsTaskEncodeOptions&&(identical(other.codec, _this.codec) || other.codec == _this.codec)&&(identical(other.bitrate, _this.bitrate) || other.bitrate == _this.bitrate)&&(identical(other.channels, _this.channels) || other.channels == _this.channels));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,codec,bitrate,channels);
+int get hashCode {
+  final _this = this as AbsTaskEncodeOptions;
+  return Object.hash(runtimeType,_this.codec,_this.bitrate,_this.channels);
+}
 
 @override
 String toString() {
-  return 'AbsTaskEncodeOptions(codec: $codec, bitrate: $bitrate, channels: $channels)';
+  final _this = this as AbsTaskEncodeOptions;
+  return 'AbsTaskEncodeOptions(codec: ${_this.codec}, bitrate: ${_this.bitrate}, channels: ${_this.channels})';
 }
 
 
@@ -908,16 +927,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AbsTaskEncodeOptions&&(identical(other.codec, codec) || other.codec == codec)&&(identical(other.bitrate, bitrate) || other.bitrate == bitrate)&&(identical(other.channels, channels) || other.channels == channels));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AbsTaskEncodeOptions&&(identical(other.codec, codec) || other.codec == codec)&&(identical(other.bitrate, bitrate) || other.bitrate == bitrate)&&(identical(other.channels, channels) || other.channels == channels));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,codec,bitrate,channels);
+int get hashCode {
+    return Object.hash(runtimeType,codec,bitrate,channels);
+}
 
 @override
 String toString() {
-  return 'AbsTaskEncodeOptions(codec: $codec, bitrate: $bitrate, channels: $channels)';
+    return 'AbsTaskEncodeOptions(codec: $codec, bitrate: $bitrate, channels: $channels)';
 }
 
 
@@ -974,16 +995,21 @@ $AbsTaskScanResultsCopyWith<AbsTaskScanResults> get copyWith => _$AbsTaskScanRes
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AbsTaskScanResults&&(identical(other.added, added) || other.added == added)&&(identical(other.updated, updated) || other.updated == updated)&&(identical(other.missing, missing) || other.missing == missing)&&(identical(other.elapsed, elapsed) || other.elapsed == elapsed));
+  final _this = this as AbsTaskScanResults;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AbsTaskScanResults&&(identical(other.added, _this.added) || other.added == _this.added)&&(identical(other.updated, _this.updated) || other.updated == _this.updated)&&(identical(other.missing, _this.missing) || other.missing == _this.missing)&&(identical(other.elapsed, _this.elapsed) || other.elapsed == _this.elapsed));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,added,updated,missing,elapsed);
+int get hashCode {
+  final _this = this as AbsTaskScanResults;
+  return Object.hash(runtimeType,_this.added,_this.updated,_this.missing,_this.elapsed);
+}
 
 @override
 String toString() {
-  return 'AbsTaskScanResults(added: $added, updated: $updated, missing: $missing, elapsed: $elapsed)';
+  final _this = this as AbsTaskScanResults;
+  return 'AbsTaskScanResults(added: ${_this.added}, updated: ${_this.updated}, missing: ${_this.missing}, elapsed: ${_this.elapsed})';
 }
 
 
@@ -1179,16 +1205,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AbsTaskScanResults&&(identical(other.added, added) || other.added == added)&&(identical(other.updated, updated) || other.updated == updated)&&(identical(other.missing, missing) || other.missing == missing)&&(identical(other.elapsed, elapsed) || other.elapsed == elapsed));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AbsTaskScanResults&&(identical(other.added, added) || other.added == added)&&(identical(other.updated, updated) || other.updated == updated)&&(identical(other.missing, missing) || other.missing == missing)&&(identical(other.elapsed, elapsed) || other.elapsed == elapsed));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,added,updated,missing,elapsed);
+int get hashCode {
+    return Object.hash(runtimeType,added,updated,missing,elapsed);
+}
 
 @override
 String toString() {
-  return 'AbsTaskScanResults(added: $added, updated: $updated, missing: $missing, elapsed: $elapsed)';
+    return 'AbsTaskScanResults(added: $added, updated: $updated, missing: $missing, elapsed: $elapsed)';
 }
 
 

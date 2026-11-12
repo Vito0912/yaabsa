@@ -29,16 +29,21 @@ $QuickMatchLibraryItemResponseCopyWith<QuickMatchLibraryItemResponse> get copyWi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is QuickMatchLibraryItemResponse&&(identical(other.updated, updated) || other.updated == updated)&&(identical(other.libraryItem, libraryItem) || other.libraryItem == libraryItem)&&(identical(other.message, message) || other.message == message)&&(identical(other.error, error) || other.error == error));
+  final _this = this as QuickMatchLibraryItemResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is QuickMatchLibraryItemResponse&&(identical(other.updated, _this.updated) || other.updated == _this.updated)&&(identical(other.libraryItem, _this.libraryItem) || other.libraryItem == _this.libraryItem)&&(identical(other.message, _this.message) || other.message == _this.message)&&(identical(other.error, _this.error) || other.error == _this.error));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,updated,libraryItem,message,error);
+int get hashCode {
+  final _this = this as QuickMatchLibraryItemResponse;
+  return Object.hash(runtimeType,_this.updated,_this.libraryItem,_this.message,_this.error);
+}
 
 @override
 String toString() {
-  return 'QuickMatchLibraryItemResponse(updated: $updated, libraryItem: $libraryItem, message: $message, error: $error)';
+  final _this = this as QuickMatchLibraryItemResponse;
+  return 'QuickMatchLibraryItemResponse(updated: ${_this.updated}, libraryItem: ${_this.libraryItem}, message: ${_this.message}, error: ${_this.error})';
 }
 
 
@@ -246,16 +251,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _QuickMatchLibraryItemResponse&&(identical(other.updated, updated) || other.updated == updated)&&(identical(other.libraryItem, libraryItem) || other.libraryItem == libraryItem)&&(identical(other.message, message) || other.message == message)&&(identical(other.error, error) || other.error == error));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _QuickMatchLibraryItemResponse&&(identical(other.updated, updated) || other.updated == updated)&&(identical(other.libraryItem, libraryItem) || other.libraryItem == libraryItem)&&(identical(other.message, message) || other.message == message)&&(identical(other.error, error) || other.error == error));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,updated,libraryItem,message,error);
+int get hashCode {
+    return Object.hash(runtimeType,updated,libraryItem,message,error);
+}
 
 @override
 String toString() {
-  return 'QuickMatchLibraryItemResponse(updated: $updated, libraryItem: $libraryItem, message: $message, error: $error)';
+    return 'QuickMatchLibraryItemResponse(updated: $updated, libraryItem: $libraryItem, message: $message, error: $error)';
 }
 
 

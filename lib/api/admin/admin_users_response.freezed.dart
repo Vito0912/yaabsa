@@ -26,16 +26,21 @@ $AdminUsersResponseCopyWith<AdminUsersResponse> get copyWith => _$AdminUsersResp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminUsersResponse&&const DeepCollectionEquality().equals(other.users, users));
+  final _this = this as AdminUsersResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AdminUsersResponse&&const DeepCollectionEquality().equals(other.users, _this.users));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(users));
+int get hashCode {
+  final _this = this as AdminUsersResponse;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.users));
+}
 
 @override
 String toString() {
-  return 'AdminUsersResponse(users: $users)';
+  final _this = this as AdminUsersResponse;
+  return 'AdminUsersResponse(users: ${_this.users})';
 }
 
 
@@ -228,16 +233,18 @@ _$AdminUsersResponseCopyWith<_AdminUsersResponse> get copyWith => __$AdminUsersR
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminUsersResponse&&const DeepCollectionEquality().equals(other._users, _users));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AdminUsersResponse&&const DeepCollectionEquality().equals(other.users, _users));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_users));
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_users));
+}
 
 @override
 String toString() {
-  return 'AdminUsersResponse(users: $users)';
+    return 'AdminUsersResponse(users: $users)';
 }
 
 

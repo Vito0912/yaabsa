@@ -29,16 +29,21 @@ $LibraryItemDurationStatsCopyWith<LibraryItemDurationStats> get copyWith => _$Li
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LibraryItemDurationStats&&(identical(other.id, id) || other.id == id)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.title, title) || other.title == title));
+  final _this = this as LibraryItemDurationStats;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LibraryItemDurationStats&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.duration, _this.duration) || other.duration == _this.duration)&&(identical(other.title, _this.title) || other.title == _this.title));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,duration,title);
+int get hashCode {
+  final _this = this as LibraryItemDurationStats;
+  return Object.hash(runtimeType,_this.id,_this.duration,_this.title);
+}
 
 @override
 String toString() {
-  return 'LibraryItemDurationStats(id: $id, duration: $duration, title: $title)';
+  final _this = this as LibraryItemDurationStats;
+  return 'LibraryItemDurationStats(id: ${_this.id}, duration: ${_this.duration}, title: ${_this.title})';
 }
 
 
@@ -232,16 +237,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LibraryItemDurationStats&&(identical(other.id, id) || other.id == id)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.title, title) || other.title == title));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _LibraryItemDurationStats&&(identical(other.id, id) || other.id == id)&&(identical(other.duration, duration) || other.duration == duration)&&(identical(other.title, title) || other.title == title));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,duration,title);
+int get hashCode {
+    return Object.hash(runtimeType,id,duration,title);
+}
 
 @override
 String toString() {
-  return 'LibraryItemDurationStats(id: $id, duration: $duration, title: $title)';
+    return 'LibraryItemDurationStats(id: $id, duration: $duration, title: $title)';
 }
 
 

@@ -29,16 +29,21 @@ $SearchProvidersResponseCopyWith<SearchProvidersResponse> get copyWith => _$Sear
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SearchProvidersResponse&&(identical(other.providers, providers) || other.providers == providers));
+  final _this = this as SearchProvidersResponse;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SearchProvidersResponse&&(identical(other.providers, _this.providers) || other.providers == _this.providers));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,providers);
+int get hashCode {
+  final _this = this as SearchProvidersResponse;
+  return Object.hash(runtimeType,_this.providers);
+}
 
 @override
 String toString() {
-  return 'SearchProvidersResponse(providers: $providers)';
+  final _this = this as SearchProvidersResponse;
+  return 'SearchProvidersResponse(providers: ${_this.providers})';
 }
 
 
@@ -237,16 +242,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SearchProvidersResponse&&(identical(other.providers, providers) || other.providers == providers));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SearchProvidersResponse&&(identical(other.providers, providers) || other.providers == providers));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,providers);
+int get hashCode {
+    return Object.hash(runtimeType,providers);
+}
 
 @override
 String toString() {
-  return 'SearchProvidersResponse(providers: $providers)';
+    return 'SearchProvidersResponse(providers: $providers)';
 }
 
 
