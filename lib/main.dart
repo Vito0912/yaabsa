@@ -84,7 +84,6 @@ void main() {
       );
 
       appLoggerService.setMinimumLevel(InfoLevel.fromSettingValue(startupLogLevelSetting));
-      await DesktopWindowState.initialize(settingsManager);
 
       unawaited(containerRef.read(currentUserProvider.future));
       unawaited(containerRef.read(serverStatusProvider.future));
@@ -124,6 +123,7 @@ void main() {
       }
 
       await _configureAndroidEdgeToEdge();
+      await DesktopWindowState.initialize(settingsManager);
 
       runApp(UncontrolledProviderScope(container: containerRef, child: MyApp()));
       containerRef.read(smartDownloadManagerProvider.notifier).markAppReady();

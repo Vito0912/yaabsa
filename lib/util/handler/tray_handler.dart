@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:io' show Platform;
 
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/foundation.dart' show VoidCallback, kIsWeb;
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tray_manager/tray_manager.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:tray_manager/tray_manager.dart' as tray;
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/handler/desktop_window_state.dart';
 import 'package:yaabsa/util/logger.dart';
@@ -13,134 +13,260 @@ import 'package:yaabsa/util/logger.dart';
 class TrayManager extends ConsumerStatefulWidget {
   const TrayManager(this.child, {super.key});
 
-  static const String playLatestKey = 'play_latest';
-  static const String exitKey = 'exit_app';
-  static const String playPauseKey = 'play_pause';
-  static const String fastForwardKey = 'fast_forward';
-  static const String rewindKey = 'rewind';
-  static const String nextKey = 'next';
-  static const String previousKey = 'previous';
-  static const String stopKey = 'stop';
-
   static Future<void> update() async {
     if (kIsWeb || (!Platform.isLinux && !Platform.isWindows && !Platform.isMacOS)) {
       return;
     }
 
-    // TODO: Icon for Windows
-    final isFlatpak = Platform.isLinux && Platform.environment.containsKey('FLATPAK_ID');
-    await trayManager.setIcon(isFlatpak ? 'de.vito0912.yaabsa' : 'assets/logo_blue_fill.png');
-    Menu menu = Menu(
-      items: [
-        if (audioHandler.currentMediaItem != null)
-          MenuItem.submenu(
-            key: 'playback',
-            label: 'Playback',
-            submenu: Menu(
-              items: [
-                MenuItem(
-                  key: TrayManager.playPauseKey,
-                  label: audioHandler.playerControlState.playing ? 'Pause' : 'Play',
-                ),
-                MenuItem(key: TrayManager.stopKey, label: 'Stop'),
-                MenuItem(key: TrayManager.nextKey, label: 'Next'),
-                MenuItem(key: TrayManager.previousKey, label: 'Previous'),
-                MenuItem(key: TrayManager.fastForwardKey, label: 'Fast Forward'),
-                MenuItem(key: TrayManager.rewindKey, label: 'Rewind'),
-              ],
-            ),
-          ),
-        MenuItem.separator(),
-        MenuItem(key: TrayManager.playLatestKey, label: 'Play Last Played'),
-        MenuItem.separator(),
-        MenuItem(key: TrayManager.exitKey, label: 'Exit App'),
-      ],
-    );
-    await trayManager.setContextMenu(menu);
+    _DesktopTrayController.instance.update();
   }
 
   final Widget child;
+
   @override
   ConsumerState<TrayManager> createState() => _TrayManagerState();
 }
 
-class _TrayManagerState extends ConsumerState<TrayManager> with TrayListener {
+class _TrayManagerState extends ConsumerState<TrayManager> {
   @override
   void initState() {
-    if (!kIsWeb) {
-      trayManager.addListener(this);
-    }
     super.initState();
+    if (!kIsWeb) {
+      _DesktopTrayController.instance.attachView();
+    }
   }
 
   @override
   void dispose() {
     if (!kIsWeb) {
-      trayManager.removeListener(this);
+      _DesktopTrayController.instance.detachView();
     }
     super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) {
-    return widget.child;
-  }
+  Widget build(BuildContext context) => widget.child;
+}
 
-  @override
-  void onTrayIconMouseDown() {
-    trayManager.popUpContextMenu();
-  }
+class _DesktopTrayController {
+  _DesktopTrayController._();
 
-  @override
-  void onTrayIconRightMouseDown() {}
+  static final _DesktopTrayController instance = _DesktopTrayController._();
 
-  @override
-  void onTrayIconRightMouseUp() {}
+  tray.TrayIcon? _trayIcon;
+  tray.Image? _iconImage;
+  tray.ListenerId? _trayListenerId;
+  _TrayMenuBinding? _menuBinding;
+  int _attachedViews = 0;
 
-  @override
-  void onTrayMenuItemClick(MenuItem menuItem) {
-    switch (menuItem.key) {
-      case TrayManager.playLatestKey:
-        unawaited(
-          audioHandler.playLastPlayed().then((started) {
-            logger(
-              started
-                  ? 'Tray action resumed last played item.'
-                  : 'Tray action did not find a resumable last played item.',
-              tag: 'TrayManager',
-              level: InfoLevel.info,
-            );
-          }),
-        );
-        break;
-      case TrayManager.playPauseKey:
-        audioHandler.playerControlState.playing ? audioHandler.pause() : audioHandler.play();
-        break;
-      case TrayManager.fastForwardKey:
-        audioHandler.seekAbsolute(audioHandler.position + const Duration(seconds: 10));
-        break;
-      case TrayManager.rewindKey:
-        audioHandler.seekAbsolute(audioHandler.position - const Duration(seconds: 10));
-        break;
-      case TrayManager.nextKey:
-        audioHandler.skipToNextInApp();
-        break;
-      case TrayManager.previousKey:
-        audioHandler.skipToPreviousInApp();
-        break;
-      case TrayManager.stopKey:
-        audioHandler.stop();
-        break;
-      case TrayManager.exitKey:
-        if (DesktopWindowState.isSupported) {
-          unawaited(DesktopWindowState.close());
-        } else {
-          SystemChannels.platform.invokeMethod('SystemNavigator.pop');
-        }
-        break;
-      default:
-        logger('Unknown menu item clicked: ${menuItem.key}', tag: 'TrayManager', level: InfoLevel.warning);
-        break;
+  void attachView() {
+    _attachedViews++;
+    final trayIcon = _trayIcon;
+    if (trayIcon != null) {
+      _wireTrayEvents(trayIcon);
     }
+  }
+
+  void detachView() {
+    if (_attachedViews > 0) {
+      _attachedViews--;
+    }
+
+    if (_attachedViews == 0) {
+      _unwireTrayEvents();
+    }
+  }
+
+  void update() {
+    if (!tray.TrayManager.instance.isSupported()) {
+      return;
+    }
+
+    final trayIcon = _ensureTrayIcon();
+    if (trayIcon == null) {
+      return;
+    }
+
+    _ensureIconImage(trayIcon);
+
+    final nextMenuBinding = _TrayMenuBinding.build();
+    if (nextMenuBinding == null) {
+      return;
+    }
+
+    trayIcon.setContextMenu(nextMenuBinding.rootMenu);
+    if (Platform.isLinux) {
+      trayIcon.setContextMenuTrigger(tray.ContextMenuTrigger.rightClicked);
+    }
+
+    final previousBinding = _menuBinding;
+    _menuBinding = nextMenuBinding;
+    if (previousBinding != null) {
+      Timer.run(previousBinding.dispose);
+    }
+  }
+
+  tray.TrayIcon? _ensureTrayIcon() {
+    final existingIcon = _trayIcon;
+    if (existingIcon != null) {
+      _wireTrayEvents(existingIcon);
+      return existingIcon;
+    }
+
+    final createdIcon = tray.TrayIcon.create();
+    if (createdIcon == null) {
+      logger('Unable to create desktop tray icon.', tag: 'TrayManager', level: InfoLevel.warning);
+      return null;
+    }
+
+    createdIcon.setVisible(true);
+    _trayIcon = createdIcon;
+    _wireTrayEvents(createdIcon);
+    return createdIcon;
+  }
+
+  void _ensureIconImage(tray.TrayIcon trayIcon) {
+    if (_iconImage != null) {
+      return;
+    }
+
+    final loadedImage = tray.ImageAsset.fromAsset('assets/logo_blue_fill.png');
+    if (loadedImage == null) {
+      logger('Unable to load desktop tray icon image.', tag: 'TrayManager', level: InfoLevel.warning);
+      return;
+    }
+
+    trayIcon.icon = loadedImage;
+    trayIcon.setVisible(true);
+    _iconImage = loadedImage;
+  }
+
+  void _wireTrayEvents(tray.TrayIcon trayIcon) {
+    if (_attachedViews == 0 || _trayListenerId != null) {
+      return;
+    }
+
+    _trayListenerId = trayIcon.addListener((event) {
+      if (event is tray.TrayIconClickedEvent) {
+        trayIcon.openContextMenu();
+      }
+    });
+  }
+
+  void _unwireTrayEvents() {
+    final listenerId = _trayListenerId;
+    if (listenerId == null) {
+      return;
+    }
+
+    _trayIcon?.removeListener(listenerId);
+    _trayListenerId = null;
+  }
+}
+
+class _TrayMenuBinding {
+  _TrayMenuBinding._({required this.rootMenu, required this.menus, required this.items});
+
+  final tray.Menu rootMenu;
+  final List<tray.Menu> menus;
+  final List<(tray.MenuItem, tray.ListenerId?)> items;
+
+  static _TrayMenuBinding? build() {
+    final rootMenu = tray.Menu.create();
+    if (rootMenu == null) {
+      logger('Unable to create tray context menu.', tag: 'TrayManager', level: InfoLevel.warning);
+      return null;
+    }
+
+    final menus = <tray.Menu>[rootMenu];
+    final items = <(tray.MenuItem, tray.ListenerId?)>[];
+
+    void addActionItem(tray.Menu targetMenu, String label, VoidCallback onSelected) {
+      final item = tray.MenuItem.createWithLabelAndType(label, tray.MenuItemType.normal);
+      if (item == null) {
+        return;
+      }
+
+      final listenerId = item.addListener((event) {
+        if (event is tray.MenuItemClickedEvent) {
+          onSelected();
+        }
+      });
+      items.add((item, listenerId));
+      targetMenu.addItem(item);
+    }
+
+    if (audioHandler.currentMediaItem != null) {
+      final playbackMenu = tray.Menu.create();
+      final playbackItem = tray.MenuItem.createWithLabelAndType('Playback', tray.MenuItemType.submenu);
+      if (playbackMenu != null && playbackItem != null) {
+        menus.add(playbackMenu);
+        final isPlaying = audioHandler.playerControlState.playing;
+        addActionItem(playbackMenu, isPlaying ? 'Pause' : 'Play', () {
+          if (audioHandler.playerControlState.playing) {
+            audioHandler.pause();
+          } else {
+            audioHandler.play();
+          }
+        });
+        addActionItem(playbackMenu, 'Stop', audioHandler.stop);
+        addActionItem(playbackMenu, 'Next', audioHandler.skipToNextInApp);
+        addActionItem(playbackMenu, 'Previous', audioHandler.skipToPreviousInApp);
+        addActionItem(playbackMenu, 'Fast Forward', () {
+          audioHandler.seekAbsolute(audioHandler.position + const Duration(seconds: 10));
+        });
+        addActionItem(playbackMenu, 'Rewind', () {
+          audioHandler.seekAbsolute(audioHandler.position - const Duration(seconds: 10));
+        });
+
+        playbackItem.submenu = playbackMenu;
+        items.add((playbackItem, null));
+        rootMenu.addItem(playbackItem);
+      } else {
+        playbackMenu?.dispose();
+        playbackItem?.dispose();
+      }
+    }
+
+    rootMenu.addSeparator();
+    addActionItem(rootMenu, 'Play Last Played', _playLastPlayed);
+    rootMenu.addSeparator();
+    addActionItem(rootMenu, 'Exit App', _exitApp);
+
+    return _TrayMenuBinding._(rootMenu: rootMenu, menus: menus, items: items);
+  }
+
+  static void _playLastPlayed() {
+    unawaited(
+      audioHandler.playLastPlayed().then((started) {
+        final message = started
+            ? 'Tray action resumed last played item.'
+            : 'Tray action did not find a resumable last played item.';
+        logger(message, tag: 'TrayManager', level: InfoLevel.info);
+      }),
+    );
+  }
+
+  static void _exitApp() {
+    if (DesktopWindowState.isSupported) {
+      unawaited(DesktopWindowState.close());
+    } else {
+      SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+    }
+  }
+
+  void dispose() {
+    for (final (item, listenerId) in items) {
+      if (listenerId != null) {
+        item.removeListener(listenerId);
+      }
+      item.dispose();
+    }
+    items.clear();
+
+    for (final menu in menus) {
+      menu.dispose();
+    }
+    menus.clear();
   }
 }

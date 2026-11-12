@@ -58,8 +58,6 @@ class _SettingsBackupSettingsState extends ConsumerState<SettingsBackupSettings>
     final destination = await FilePicker.saveFile(
       dialogTitle: 'Export settings',
       fileName: 'yaabsa_settings_$date.json',
-      type: FileType.custom,
-      allowedExtensions: const ['json'],
       bytes: Uint8List.fromList(utf8.encode(backup)),
     );
 
@@ -77,7 +75,9 @@ class _SettingsBackupSettingsState extends ConsumerState<SettingsBackupSettings>
     if (file == null) {
       return;
     }
-    if (await file.length() > SettingsBackup.maxBytes) {
+
+    final fileLength = await file.length();
+    if (fileLength != null && fileLength > SettingsBackup.maxBytes) {
       throw const FormatException('The settings backup is too large.');
     }
 
