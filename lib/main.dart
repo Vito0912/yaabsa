@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:yaabsa/components/common/android_edge_to_edge_inset_guard.dart';
+import 'package:yaabsa/components/common/app_startup_view.dart';
 import 'package:yaabsa/components/common/desktop_navigation_controls.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
@@ -16,7 +17,6 @@ import 'package:yaabsa/util/aaos_service.dart';
 import 'package:yaabsa/util/app_theme.dart';
 import 'package:yaabsa/util/changelog.dart';
 import 'package:yaabsa/util/handler/tray_handler.dart' show TrayManager;
-import 'package:yaabsa/util/handler/sleep_timer_handler.dart';
 import 'package:yaabsa/util/handler/desktop_window_state.dart';
 import 'package:yaabsa/util/init.dart' show Init;
 import 'package:yaabsa/util/reader/reader_speech_providers.dart';
@@ -91,43 +91,21 @@ void main() {
       containerRef.read(oidcStateProvider.notifier).initializeDeepLinkListener();
       Init.initLogger();
 
-      try {
-        final handler = await Init.initAudioHandler().timeout(const Duration(seconds: 5));
-
-        audioHandler = handler;
-        unawaited(audioHandler.restoreLastPlayedMiniPlayerIfEnabled());
-      } catch (e, s) {
-        logger(
-          'AudioHandler initialization timed out or failed on startup: $e\n$s',
-          tag: 'Main',
-          level: InfoLevel.error,
-        );
-      }
-
-      try {
-        await AaosService.instance.initialize().timeout(const Duration(seconds: 2));
-      } catch (e, s) {
-        logger(
-          'AaosService initialization timed out or failed on startup: $e\n$s',
-          tag: 'Main',
-          level: InfoLevel.error,
-        );
-      }
-
-      TrayManager.update();
-
-      Init.late();
-
-      if (!AaosService.instance.currentState.isAutomotiveDevice) {
-        initPhoneWearHandler();
-      }
-
-      await _configureAndroidEdgeToEdge();
       await DesktopWindowState.initialize(settingsManager);
 
-      runApp(UncontrolledProviderScope(container: containerRef, child: MyApp()));
-      containerRef.read(smartDownloadManagerProvider.notifier).markAppReady();
-      unawaited(_resumeLastPlayedOnStartup());
+      final initialization = _initializePlayback();
+      unawaited(
+        initialization.catchError((Object error, StackTrace stack) {
+          logger('Startup initialization failed: $error\n$stack', tag: 'Main', level: InfoLevel.error);
+        }),
+      );
+
+      runApp(
+        UncontrolledProviderScope(
+          container: containerRef,
+          child: MyApp(initialization: initialization),
+        ),
+      );
     },
     (error, stack) {
       logger('Uncaught Dart error: $error\n$stack', tag: 'ZoneError', level: InfoLevel.error);
@@ -135,32 +113,69 @@ void main() {
   );
 }
 
+Future<void> _initializePlayback() async {
+  final handler = await Init.initAudioHandler();
+
+  audioHandler = handler;
+  unawaited(handler.restoreLastPlayedMiniPlayerIfEnabled());
+
+  try {
+    await AaosService.instance.initialize().timeout(const Duration(seconds: 2));
+  } catch (error, stack) {
+    logger('AaosService initialization failed: $error\n$stack', tag: 'Main', level: InfoLevel.error);
+  }
+
+  await TrayManager.update();
+  await Init.late();
+
+  if (!AaosService.instance.currentState.isAutomotiveDevice) {
+    initPhoneWearHandler();
+  }
+
+  await _configureAndroidEdgeToEdge();
+  containerRef.read(smartDownloadManagerProvider.notifier).markAppReady();
+  unawaited(_resumeLastPlayedOnStartup());
+}
+
 class MyApp extends ConsumerWidget {
-  const MyApp({super.key});
+  const MyApp({super.key, required this.initialization});
+
+  final Future<void> initialization;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (!isAudioHandlerInitialized) {
-      Future.microtask(() async {
-        if (!isAudioHandlerInitialized) {
-          try {
-            final handler = await Init.initAudioHandler().timeout(const Duration(seconds: 5));
-
-            audioHandler = handler;
-            containerRef.read(sleepTimerHandlerProvider.notifier).attachPlaybackListeners();
-            unawaited(audioHandler.restoreLastPlayedMiniPlayerIfEnabled());
-            unawaited(_resumeLastPlayedOnStartup());
-          } catch (e, s) {
-            logger('Retry AudioHandler initialization failed: $e\n$s', tag: 'Main', level: InfoLevel.error);
-          }
-        }
-      });
-    }
-
     final appLogLevelSetting = ref.watch(globalSettingByKeyProvider(SettingKeys.appLogLevel)).asData?.value;
 
     appLoggerService.setMinimumLevel(InfoLevel.fromSettingValue(appLogLevelSetting));
 
+    final themeSelection = watchAppThemeSelection(ref);
+
+    return FutureBuilder<void>(
+      future: initialization,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done || snapshot.hasError) {
+          return MaterialApp(
+            title: appName,
+            debugShowCheckedModeBanner: false,
+            localizationsDelegates: [...GlobalMaterialLocalizations.delegates, FlutterQuillLocalizations.delegate],
+            themeMode: themeSelection.materialThemeMode,
+            theme: themeSelection.themeData(Brightness.light),
+            darkTheme: themeSelection.themeData(Brightness.dark),
+            home: AppStartupView(error: snapshot.error),
+          );
+        }
+
+        return const _ReadyApp();
+      },
+    );
+  }
+}
+
+class _ReadyApp extends ConsumerWidget {
+  const _ReadyApp();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     final themeSelection = watchAppThemeSelection(ref);
 
     ref.watch(mediaProgressProvider);

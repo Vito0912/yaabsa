@@ -15,6 +15,7 @@ class TrayManager extends ConsumerStatefulWidget {
 
   static Future<void> update() async {
     if (kIsWeb ||
+        !isAudioHandlerInitialized ||
         DesktopWindowState.isShuttingDown ||
         (!Platform.isLinux && !Platform.isWindows && !Platform.isMacOS)) {
       return;
