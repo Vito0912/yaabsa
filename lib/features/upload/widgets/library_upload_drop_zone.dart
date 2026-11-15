@@ -7,18 +7,27 @@ class LibraryUploadDropZone extends StatelessWidget {
     required this.isDropHovering,
     required this.enabled,
     required this.onChooseFiles,
-    required this.onChooseFolder,
+    this.onChooseFolder,
   });
 
   final bool supportsDragDrop;
   final bool isDropHovering;
   final bool enabled;
   final VoidCallback onChooseFiles;
-  final VoidCallback onChooseFolder;
+  final VoidCallback? onChooseFolder;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final allowsFolders = onChooseFolder != null;
+    final String description;
+    if (supportsDragDrop) {
+      description = allowsFolders
+          ? 'Drop files or folders here, or choose them below.'
+          : 'Drop files here, or choose them below.';
+    } else {
+      description = allowsFolders ? 'Choose files or a folder below.' : 'Choose files below.';
+    }
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 180),
@@ -39,10 +48,7 @@ class LibraryUploadDropZone extends StatelessWidget {
         children: [
           Icon(isDropHovering ? Icons.move_to_inbox_rounded : Icons.upload_file_rounded, size: 26),
           const SizedBox(height: 8),
-          Text(
-            supportsDragDrop ? 'Drop files or folders here, or choose them below.' : 'Choose files or a folder below.',
-            textAlign: TextAlign.center,
-          ),
+          Text(description, textAlign: TextAlign.center),
           const SizedBox(height: 12),
           Wrap(
             alignment: WrapAlignment.center,
@@ -54,11 +60,12 @@ class LibraryUploadDropZone extends StatelessWidget {
                 icon: const Icon(Icons.file_open_rounded),
                 label: const Text('Choose files'),
               ),
-              OutlinedButton.icon(
-                onPressed: enabled ? onChooseFolder : null,
-                icon: const Icon(Icons.folder_open_rounded),
-                label: const Text('Choose folder'),
-              ),
+              if (allowsFolders)
+                OutlinedButton.icon(
+                  onPressed: enabled ? onChooseFolder : null,
+                  icon: const Icon(Icons.folder_open_rounded),
+                  label: const Text('Choose folder'),
+                ),
             ],
           ),
         ],

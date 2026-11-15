@@ -145,6 +145,10 @@ class _UiLabState extends State<UiLab> {
         return const SingleChildScrollView(child: StatisticsSurfaceCardsPreview());
       case 'Upload controls':
         return const UploadQueueActionsPreview();
+      case 'Add book files':
+        return const UploadWorkspacePreview(addToBook: true);
+      case 'Add book files queue':
+        return itemUploadQueuePreview();
       case 'Upload workspace':
         return const UploadWorkspacePreview();
       case 'Upload drop zone':
@@ -294,6 +298,8 @@ class _UiLabState extends State<UiLab> {
                       'Statistics messages',
                       'Statistics surface cards',
                       'Upload workspace',
+                      'Add book files',
+                      'Add book files queue',
                       'Upload controls',
                       'Upload drop zone',
                       'Upload metadata',

@@ -11,6 +11,7 @@ import 'package:yaabsa/api/library_items/media.dart';
 import 'package:yaabsa/api/library_items/podcast_metadata.dart';
 import 'package:yaabsa/api/library_items/podcast_media.dart';
 import 'package:yaabsa/features/upload/library_upload_models.dart';
+import 'package:yaabsa/features/upload/item_upload_destination.dart';
 import 'package:yaabsa/api/library/library.dart';
 import 'package:yaabsa/api/library/library_folder.dart';
 import 'package:yaabsa/api/library/library_settings.dart';
@@ -366,4 +367,19 @@ ListeningActivityStats previewListeningActivity({int days = 365}) {
   }
 
   return ListeningActivityStats(dailyListeningSeconds: listeningByDay, loadedPages: 4, loadedSessions: 82);
+}
+
+ItemUploadDestination previewItemUploadDestination() {
+  const item = LibraryItem(
+    id: 'preview-book',
+    ino: 'preview-book-ino',
+    libraryId: 'preview-library',
+    folderId: 'preview-folder',
+    path: '/audiobooks/Mira Ellery/The Tidemark Stories/The Distant Shore',
+    isFile: false,
+    media: null,
+    libraryFiles: [],
+  );
+
+  return ItemUploadDestination.resolve(item: item, library: previewUploadLibrary(), serverWatcherDisabled: false)!;
 }

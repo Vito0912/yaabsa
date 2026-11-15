@@ -157,16 +157,15 @@ class LibraryItemMediaSections extends StatelessWidget {
             primaryFileIno: ebookFile?.ino,
           ),
         ],
-        if (libraryFiles.isNotEmpty) ...[
-          const SizedBox(height: 8),
-          ItemMediaFileSection(
-            itemId: itemId,
-            title: 'Library files (${libraryFiles.length})',
-            files: libraryFiles,
-            audioFiles: audioFiles,
-            primaryFileIno: ebookFile?.ino,
-          ),
-        ],
+        const SizedBox(height: 8),
+        ItemMediaFileSection(
+          itemId: itemId,
+          title: 'Library files (${libraryFiles.length})',
+          allowUpload: true,
+          files: libraryFiles,
+          audioFiles: audioFiles,
+          primaryFileIno: ebookFile?.ino,
+        ),
       ],
     );
   }

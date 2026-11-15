@@ -3,10 +3,12 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/search/search_provider_option.dart';
 import 'package:yaabsa/features/upload/library_upload_panel.dart';
+import 'package:yaabsa/components/app/item/library_item_upload_button.dart';
 import 'package:yaabsa/features/upload/widgets/library_upload_bulk_field.dart';
 import 'package:yaabsa/features/upload/widgets/library_upload_advanced_options.dart';
 import 'package:yaabsa/features/upload/widgets/library_upload_drop_zone.dart';
 import 'package:yaabsa/features/upload/widgets/library_upload_item_card.dart';
+import 'package:yaabsa/features/upload/widgets/item_upload_file_queue.dart';
 import 'package:yaabsa/features/upload/widgets/library_upload_queue_actions.dart';
 import 'package:yaabsa/features/upload/widgets/upload_path_conflict_dialog.dart';
 import 'package:yaabsa/features/upload/library_upload_models.dart';
@@ -79,6 +81,22 @@ Widget uploadDropZonePreview() => const UploadDropZonePreview();
 @Preview(name: 'Upload workspace / wide / AMOLED', size: Size(1086, 800), wrapper: yaabsaPreviewAmoled)
 Widget uploadWorkspacePreview() => const UploadWorkspacePreview();
 
+@Preview(name: 'Add book files / phone', size: Size(390, 800), wrapper: yaabsaPreviewLight)
+@Preview(name: 'Add book files / desktop', size: Size(900, 800), wrapper: yaabsaPreviewDark)
+Widget itemUploadWorkspacePreview() => const UploadWorkspacePreview(addToBook: true);
+
+@Preview(name: 'Add book files / queue', size: Size(390, 720), wrapper: yaabsaPreviewLight)
+Widget itemUploadQueuePreview() {
+  return Padding(
+    padding: const EdgeInsets.all(16),
+    child: ItemUploadFileQueue(
+      items: [previewUploadItemDraft().copyWith(clearPendingMetadata: true)],
+      enabled: true,
+      onRemoveFile: _ignoreQueuedFileRemoval,
+    ),
+  );
+}
+
 @Preview(name: 'Upload path conflicts / light', size: Size(640, 520), wrapper: yaabsaPreviewLight)
 @Preview(name: 'Upload path conflicts / dark', size: Size(640, 520), wrapper: yaabsaPreviewDark)
 @Preview(name: 'Upload path conflicts / AMOLED', size: Size(640, 520), wrapper: yaabsaPreviewAmoled)
@@ -108,7 +126,9 @@ class UploadPathConflictDialogLauncher extends StatelessWidget {
 }
 
 class UploadWorkspacePreview extends StatelessWidget {
-  const UploadWorkspacePreview({super.key});
+  const UploadWorkspacePreview({super.key, this.addToBook = false});
+
+  final bool addToBook;
 
   @override
   Widget build(BuildContext context) {
@@ -119,11 +139,13 @@ class UploadWorkspacePreview extends StatelessWidget {
         uploadMetadataProvidersProvider('book')
             .overrideWith((ref) async => const [SearchProviderOption(value: 'Audible.com', text: 'Audible.com')]),
       ],
-      child: LibraryUploadPanel(
-        selectedLibrary: previewUploadLibrary(),
-        onClose: _ignoreUploadAction,
-        advancedOptionsInitiallyExpanded: true,
-      ),
+      child: addToBook
+          ? LibraryItemUploadDialog(library: previewUploadLibrary(), destination: previewItemUploadDestination())
+          : LibraryUploadPanel(
+              selectedLibrary: previewUploadLibrary(),
+              onClose: _ignoreUploadAction,
+              advancedOptionsInitiallyExpanded: true,
+            ),
     );
   }
 }
@@ -308,3 +330,5 @@ class UploadDropZonePreview extends StatelessWidget {
 void _ignoreUploadAction() {}
 
 void _ignoreUploadItemChange(UploadItemDraft _) {}
+
+void _ignoreQueuedFileRemoval(int itemId, UploadPickedFile file) {}

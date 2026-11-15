@@ -47,6 +47,15 @@ class LibraryItemApi {
     return statusCode != null && statusCode >= 200 && statusCode < 300;
   }
 
+  Future<void> scanLibraryItem(String itemId) async {
+    await ABSApi.makeApiPostRequest<Object>(
+      route: '/api/items/$itemId/scan',
+      fromJson: (data) => data,
+      bodyData: const <String, dynamic>{},
+      dio: _dio,
+    );
+  }
+
   Future<Response<LibraryItem>> getLibraryItem({
     required String itemId,
     CancelToken? cancelToken,

@@ -15,9 +15,13 @@ import 'package:yaabsa/features/upload/widgets/library_upload_advanced_options.d
 import 'package:yaabsa/features/upload/widgets/library_upload_drop_zone.dart';
 import 'package:yaabsa/features/upload/widgets/library_upload_destination_fields.dart';
 import 'package:yaabsa/features/upload/widgets/library_upload_item_card.dart';
+import 'package:yaabsa/features/upload/widgets/item_upload_file_queue.dart';
 import 'package:yaabsa/features/upload/widgets/library_upload_queue_actions.dart';
 import 'package:yaabsa/features/upload/widgets/upload_path_conflict_dialog.dart';
 import 'package:yaabsa/features/upload/library_upload_models.dart';
+import 'package:yaabsa/features/upload/item_upload_destination.dart';
+import 'package:yaabsa/provider/common/library_item_provider.dart';
+import 'package:yaabsa/provider/common/library_item_sync.dart';
 import 'package:yaabsa/features/upload/upload_metadata_parser.dart';
 import 'package:yaabsa/features/upload/upload_draft_factory.dart';
 import 'package:yaabsa/features/upload/upload_progress_tracker.dart';
@@ -33,10 +37,16 @@ class LibraryUploadPanel extends ConsumerStatefulWidget {
     required this.selectedLibrary,
     required this.onClose,
     this.onUploadingChanged,
+    this.itemDestination,
+    this.embeddedInDialog = false,
+    this.onUploadComplete,
     this.advancedOptionsInitiallyExpanded = false,
   });
 
   final Library selectedLibrary;
+  final ItemUploadDestination? itemDestination;
+  final bool embeddedInDialog;
+  final VoidCallback? onUploadComplete;
   final VoidCallback onClose;
   final ValueChanged<bool>? onUploadingChanged;
   final bool advancedOptionsInitiallyExpanded;
@@ -101,6 +111,10 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
   void initState() {
     super.initState();
     _resetSelectionsForLibrary();
+    if (widget.itemDestination != null) {
+      _autoFetchMetadata = false;
+      _autocompleteSeriesAndAuthors = false;
+    }
     unawaited(_refreshFolderAutocompleteSuggestions(force: true));
   }
 
@@ -137,7 +151,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
   }
 
   void _resetSelectionsForLibrary() {
-    _selectedFolderId = _folders.isEmpty ? null : _folders.first.id;
+    _selectedFolderId = widget.itemDestination?.folder.id ?? (_folders.isEmpty ? null : _folders.first.id);
     _selectedProvider = widget.selectedLibrary.provider.trim().isEmpty ? null : widget.selectedLibrary.provider.trim();
   }
 
@@ -370,7 +384,9 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
 
       final entityType = await FileSystemEntity.type(path, followLinks: false);
       if (entityType == FileSystemEntityType.directory) {
-        folders.add(path);
+        if (widget.itemDestination == null) {
+          folders.add(path);
+        }
       } else if (entityType == FileSystemEntityType.file) {
         directFiles.add(draftFactory.classifyFile(absolutePath: path, relativePath: p.basename(path)));
       }
@@ -378,7 +394,12 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
 
     final createdItems = <UploadItemDraft>[];
     if (directFiles.isNotEmpty) {
-      createdItems.addAll(draftFactory.buildDirectFileItems(directFiles, nextId: _takeNextItemId));
+      final directItems = draftFactory.buildDirectFileItems(
+        directFiles,
+        nextId: _takeNextItemId,
+        groupAsSingleItem: widget.itemDestination != null,
+      );
+      createdItems.addAll(directItems);
     }
 
     for (final folderPath in folders) {
@@ -389,6 +410,17 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
       );
       if (item != null) {
         createdItems.add(item);
+      }
+    }
+
+    final destination = widget.itemDestination;
+    if (destination != null) {
+      for (var index = 0; index < createdItems.length; index++) {
+        createdItems[index] = createdItems[index].copyWith(
+          title: destination.title,
+          author: destination.author,
+          series: destination.series,
+        );
       }
     }
 
@@ -416,6 +448,32 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
         unawaited(_fetchMetadataForItem(item.id, silentNoResults: true));
       }
     }
+  }
+
+  void _removeQueuedFile(int itemId, UploadPickedFile file) {
+    if (_isUploading) {
+      return;
+    }
+
+    final remainingItems = <UploadItemDraft>[];
+    for (final item in _items) {
+      if (item.id != itemId) {
+        remainingItems.add(item);
+        continue;
+      }
+
+      final remainingMedia = item.itemFiles.where((entry) => entry.absolutePath != file.absolutePath).toList();
+      final remainingSidecars = item.otherFiles.where((entry) => entry.absolutePath != file.absolutePath).toList();
+      if (remainingMedia.isEmpty && remainingSidecars.isEmpty) {
+        continue;
+      }
+
+      remainingItems.add(item.copyWith(itemFiles: remainingMedia, otherFiles: remainingSidecars, clearMessage: true));
+    }
+
+    setState(() {
+      _items = remainingItems;
+    });
   }
 
   Future<void> _pickFiles() async {
@@ -823,6 +881,16 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
 
     final conflicts = <String>[];
     for (final item in candidates) {
+      final destination = widget.itemDestination;
+      if (destination != null) {
+        for (final file in item.uploadFiles) {
+          if (destination.existingFileNames.contains(file.fileName)) {
+            conflicts.add('${file.fileName} (a file with this name already exists in this book)');
+          }
+        }
+        continue;
+      }
+
       _updateItem(
         item.id,
         (current) => current.copyWith(
@@ -896,14 +964,49 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
       }
     }
 
+    String? scanMessage;
+    final destination = widget.itemDestination;
+    if (uploaded > 0 && destination != null) {
+      if (destination.requiresScan) {
+        try {
+          await api.getLibraryItemApi().scanLibraryItem(destination.itemId);
+          final response = await api.getLibraryItemApi().getLibraryItem(
+            itemId: destination.itemId,
+            extra: const {'doNotCache': true},
+          );
+          final updatedItem = response.data;
+          if (mounted && updatedItem != null) {
+            await processLibraryItemUpdate(
+              container: ProviderScope.containerOf(context),
+              item: updatedItem,
+              source: 'item-upload',
+            );
+          }
+        } catch (error) {
+          scanMessage = 'Files uploaded, but the book scan failed. Please rescan this book.';
+          logger('Item scan after upload failed: $error', tag: 'LibraryUploadPanel', level: InfoLevel.warning);
+        }
+      }
+      if (!mounted) {
+        return;
+      }
+      ref.invalidate(libraryItemProvider(destination.itemId));
+    }
+
     if (!mounted) {
       return;
     }
 
+    final completedSuccessfully = _isUploading && uploaded == candidates.length && scanMessage == null;
+
     _setUploading(false);
     setState(() {
-      _panelMessage = 'Upload finished. Success: $uploaded, failed/canceled: $failed.';
+      _panelMessage = scanMessage ?? 'Upload finished. Success: $uploaded, failed/canceled: $failed.';
     });
+
+    if (completedSuccessfully) {
+      widget.onUploadComplete?.call();
+    }
   }
 
   void _applyBulkAuthor() {
@@ -932,8 +1035,10 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
 
   @override
   Widget build(BuildContext context) {
-    final metadataProvidersAsync = ref.watch(uploadMetadataProvidersProvider(widget.selectedLibrary.mediaType));
-    final metadataProviders = metadataProvidersAsync.value ?? const <SearchProviderOption>[];
+    final metadataProviders = widget.itemDestination == null
+        ? ref.watch(uploadMetadataProvidersProvider(widget.selectedLibrary.mediaType)).value ??
+              const <SearchProviderOption>[]
+        : const <SearchProviderOption>[];
 
     if (_selectedProvider == null && metadataProviders.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -980,114 +1085,120 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
 
     final colorScheme = Theme.of(context).colorScheme;
     return Material(
-      color: colorScheme.surface,
+      color: widget.embeddedInDialog ? Colors.transparent : colorScheme.surface,
       child: SingleChildScrollView(
         child: Align(
           alignment: Alignment.topCenter,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 1100),
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+              padding: widget.embeddedInDialog ? EdgeInsets.zero : const EdgeInsets.fromLTRB(12, 10, 12, 12),
               child: Builder(
                 builder: (context) {
                   final content = Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          IconButton(
-                            tooltip: 'Back',
-                            onPressed: widget.onClose,
-                            icon: const Icon(Icons.arrow_back_rounded),
-                          ),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              'Upload to ${widget.selectedLibrary.name}',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                      if (!widget.embeddedInDialog)
+                        Row(
+                          children: [
+                            IconButton(
+                              tooltip: 'Back',
+                              onPressed: widget.onClose,
+                              icon: const Icon(Icons.arrow_back_rounded),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Builder(
-                        builder: (context) {
-                          final canApplyBulk = !_isUploading && hasQueuedItems;
-
-                          final destinationFields = LibraryUploadDestinationFields(
-                            folderValue: _selectedFolder?.id,
-                            providerValue: _selectedProvider,
-                            folderItems: _folders
-                                .map(
-                                  (folder) => DropdownMenuItem<String>(
-                                    value: folder.id,
-                                    child: Text(folder.fullPath, overflow: TextOverflow.ellipsis),
-                                  ),
-                                )
-                                .toList(growable: false),
-                            providerItems: [
-                              if (_selectedProvider != null &&
-                                  _selectedProvider!.isNotEmpty &&
-                                  !metadataProviders.any((option) => option.value == _selectedProvider))
-                                DropdownMenuItem<String>(value: _selectedProvider, child: Text(_selectedProvider!)),
-                              ...metadataProviders.map(
-                                (option) => DropdownMenuItem<String>(
-                                  value: option.value,
-                                  child: Text(option.text, overflow: TextOverflow.ellipsis),
-                                ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                widget.itemDestination == null
+                                    ? 'Upload to ${widget.selectedLibrary.name}'
+                                    : 'Add files to ${widget.itemDestination!.itemTitle}',
+                                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
                               ),
-                            ],
-                            enabled: !_isUploading,
-                            onFolderChanged: (value) {
-                              setState(() {
-                                _selectedFolderId = value;
-                                _loadedAutocompleteFolderPath = null;
-                              });
-                              unawaited(_refreshFolderAutocompleteSuggestions(force: true));
-                            },
-                            onProviderChanged: (value) {
-                              setState(() {
-                                _selectedProvider = value;
-                              });
-                            },
-                          );
+                            ),
+                          ],
+                        ),
+                      if (!widget.embeddedInDialog) const SizedBox(height: 10),
+                      if (widget.itemDestination == null)
+                        Builder(
+                          builder: (context) {
+                            final canApplyBulk = !_isUploading && hasQueuedItems;
 
-                          final advancedBulkSection = LibraryUploadAdvancedOptions(
-                            initiallyExpanded: widget.advancedOptionsInitiallyExpanded,
-                            autoFetchMetadata: _autoFetchMetadata,
-                            autoAcceptMetadata: _autoAcceptMetadata,
-                            autocompleteSeriesAndAuthors: canUseAutocomplete,
-                            enabled: !_isUploading,
-                            canEditAutocomplete: isAdminUser && !_isUploading,
-                            isAdminUser: isAdminUser,
-                            isLoadingAutocompleteSuggestions: _isLoadingAutocompleteSuggestions,
-                            canApplyBulk: canApplyBulk,
-                            bulkAuthorController: _bulkAuthorController,
-                            bulkSeriesController: _bulkSeriesController,
-                            onAutoFetchMetadataChanged: (selected) {
-                              setState(() {
-                                _autoFetchMetadata = selected;
-                              });
-                            },
-                            onAutoAcceptMetadataChanged: (selected) {
-                              setState(() {
-                                _autoAcceptMetadata = selected;
-                              });
-                            },
-                            onAutocompleteChanged: (selected) {
-                              setState(() {
-                                _autocompleteSeriesAndAuthors = selected;
-                                _loadedAutocompleteFolderPath = null;
-                              });
-                              unawaited(_refreshFolderAutocompleteSuggestions(force: true));
-                            },
-                            onApplyAuthor: _applyBulkAuthor,
-                            onApplySeries: _applyBulkSeries,
-                          );
+                            final destinationFields = LibraryUploadDestinationFields(
+                              folderValue: _selectedFolder?.id,
+                              providerValue: _selectedProvider,
+                              folderItems: _folders
+                                  .map(
+                                    (folder) => DropdownMenuItem<String>(
+                                      value: folder.id,
+                                      child: Text(folder.fullPath, overflow: TextOverflow.ellipsis),
+                                    ),
+                                  )
+                                  .toList(growable: false),
+                              providerItems: [
+                                if (_selectedProvider != null &&
+                                    _selectedProvider!.isNotEmpty &&
+                                    !metadataProviders.any((option) => option.value == _selectedProvider))
+                                  DropdownMenuItem<String>(value: _selectedProvider, child: Text(_selectedProvider!)),
+                                ...metadataProviders.map(
+                                  (option) => DropdownMenuItem<String>(
+                                    value: option.value,
+                                    child: Text(option.text, overflow: TextOverflow.ellipsis),
+                                  ),
+                                ),
+                              ],
+                              enabled: !_isUploading,
+                              onFolderChanged: (value) {
+                                setState(() {
+                                  _selectedFolderId = value;
+                                  _loadedAutocompleteFolderPath = null;
+                                });
+                                unawaited(_refreshFolderAutocompleteSuggestions(force: true));
+                              },
+                              onProviderChanged: (value) {
+                                setState(() {
+                                  _selectedProvider = value;
+                                });
+                              },
+                            );
 
-                          return Column(children: [destinationFields, const SizedBox(height: 8), advancedBulkSection]);
-                        },
-                      ),
+                            final advancedBulkSection = LibraryUploadAdvancedOptions(
+                              initiallyExpanded: widget.advancedOptionsInitiallyExpanded,
+                              autoFetchMetadata: _autoFetchMetadata,
+                              autoAcceptMetadata: _autoAcceptMetadata,
+                              autocompleteSeriesAndAuthors: canUseAutocomplete,
+                              enabled: !_isUploading,
+                              canEditAutocomplete: isAdminUser && !_isUploading,
+                              isAdminUser: isAdminUser,
+                              isLoadingAutocompleteSuggestions: _isLoadingAutocompleteSuggestions,
+                              canApplyBulk: canApplyBulk,
+                              bulkAuthorController: _bulkAuthorController,
+                              bulkSeriesController: _bulkSeriesController,
+                              onAutoFetchMetadataChanged: (selected) {
+                                setState(() {
+                                  _autoFetchMetadata = selected;
+                                });
+                              },
+                              onAutoAcceptMetadataChanged: (selected) {
+                                setState(() {
+                                  _autoAcceptMetadata = selected;
+                                });
+                              },
+                              onAutocompleteChanged: (selected) {
+                                setState(() {
+                                  _autocompleteSeriesAndAuthors = selected;
+                                  _loadedAutocompleteFolderPath = null;
+                                });
+                                unawaited(_refreshFolderAutocompleteSuggestions(force: true));
+                              },
+                              onApplyAuthor: _applyBulkAuthor,
+                              onApplySeries: _applyBulkSeries,
+                            );
+
+                            return Column(
+                              children: [destinationFields, const SizedBox(height: 8), advancedBulkSection],
+                            );
+                          },
+                        ),
                       const SizedBox(height: 10),
                       _buildDropArea(),
                       const SizedBox(height: 6),
@@ -1115,15 +1226,18 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
                         const SizedBox(height: 8),
                         Text(_panelMessage!, style: Theme.of(context).textTheme.bodySmall),
                       ],
-                      const SizedBox(height: 10),
-                      if (_items.isEmpty)
-                        YaabsaEmptyStateCard(
-                          key: const ValueKey<String>('uploadQueueEmptyState'),
-                          icon: Icons.drive_folder_upload_outlined,
-                          title: 'Your queue is empty',
-                          centered: true,
-                          compact: true,
-                        )
+                      if (_items.isNotEmpty || widget.itemDestination == null) const SizedBox(height: 10),
+                      if (_items.isEmpty) ...[
+                        if (widget.itemDestination == null)
+                          YaabsaEmptyStateCard(
+                            key: const ValueKey<String>('uploadQueueEmptyState'),
+                            icon: Icons.drive_folder_upload_outlined,
+                            title: 'Your queue is empty',
+                            centered: true,
+                            compact: true,
+                          ),
+                      ] else if (widget.itemDestination != null)
+                        ItemUploadFileQueue(items: _items, enabled: !_isUploading, onRemoveFile: _removeQueuedFile)
                       else ...[
                         ScrollConfiguration(
                           behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
@@ -1146,7 +1260,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
                               return LibraryUploadItemCard(
                                 item: item,
                                 enabled: !_isUploading,
-                                canFetchMetadata: !_isUploading,
+                                canFetchMetadata: !_isUploading && widget.itemDestination == null,
                                 authorSuggestions: canUseAutocomplete ? _authorAutocompleteOptions : const <String>[],
                                 seriesSuggestions: canUseAutocomplete
                                     ? _seriesSuggestionsForAuthor(item.author)
@@ -1189,7 +1303,7 @@ class _LibraryUploadPanelState extends ConsumerState<LibraryUploadPanel> {
       isDropHovering: _isDropHovering,
       enabled: !_isUploading,
       onChooseFiles: _pickFiles,
-      onChooseFolder: _pickFolder,
+      onChooseFolder: widget.itemDestination == null ? _pickFolder : null,
     );
 
     if (!_supportsDragDrop) {

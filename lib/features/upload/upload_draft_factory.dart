@@ -40,10 +40,33 @@ class UploadDraftFactory {
     return UploadPickedFile(absolutePath: absolutePath, relativePath: relativePath, fileName: fileName, kind: kind);
   }
 
-  List<UploadItemDraft> buildDirectFileItems(List<UploadPickedFile> directFiles, {required int Function() nextId}) {
+  List<UploadItemDraft> buildDirectFileItems(
+    List<UploadPickedFile> directFiles, {
+    required int Function() nextId,
+    bool groupAsSingleItem = false,
+  }) {
     final itemFiles = directFiles.where((file) => file.kind == UploadFileKind.item).toList(growable: false);
     final otherFiles = directFiles.where((file) => file.kind == UploadFileKind.other).toList(growable: false);
     final ignoredFiles = directFiles.where((file) => file.kind == UploadFileKind.ignored).toList(growable: false);
+
+    if (groupAsSingleItem) {
+      if (itemFiles.isEmpty && otherFiles.isEmpty) {
+        return const [];
+      }
+
+      return [
+        _buildItem(
+          nextId: nextId,
+          title: libraryName,
+          author: '',
+          series: '',
+          itemFiles: itemFiles,
+          otherFiles: otherFiles,
+          ignoredFiles: ignoredFiles,
+          sourceDescription: 'Selected files',
+        ),
+      ];
+    }
 
     if (itemFiles.isEmpty) {
       return otherFiles

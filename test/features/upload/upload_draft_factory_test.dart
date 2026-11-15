@@ -7,6 +7,21 @@ import 'package:yaabsa/features/upload/upload_draft_factory.dart';
 
 void main() {
   group('UploadDraftFactory', () {
+    test('existing book selections retain media and standalone sidecars together', () {
+      final factory = UploadDraftFactory(isBookLibrary: true, libraryName: 'Audiobooks');
+      for (final names in [
+        ['part1.mp3', 'part2.mp3', 'cover.jpg', 'subtitles.srt'],
+        ['cover.jpg', 'subtitles.srt'],
+      ]) {
+        final files = names
+            .map((name) => factory.classifyFile(absolutePath: '/uploads/$name', relativePath: name))
+            .toList();
+        final drafts = factory.buildDirectFileItems(files, nextId: () => 1, groupAsSingleItem: true);
+        expect(drafts, hasLength(1));
+        expect(drafts.single.uploadFiles.map((file) => file.fileName), names);
+      }
+    });
+
     test('book selections create separate drafts and ignore sidecars', () {
       final factory = UploadDraftFactory(isBookLibrary: true, libraryName: 'Audiobooks');
       final files = [

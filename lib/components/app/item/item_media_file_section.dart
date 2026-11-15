@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/library_items/library_file.dart';
 import 'package:yaabsa/api/library_items/audio_file.dart';
 import 'package:yaabsa/components/app/item/library_item_file_menu.dart';
+import 'package:yaabsa/components/app/item/library_item_upload_button.dart';
 import 'package:yaabsa/components/common/expressive_expandable_card.dart';
 import 'package:yaabsa/ui/theme/component_styles.dart';
 import 'package:yaabsa/util/item_formatters.dart';
@@ -15,6 +16,7 @@ class ItemMediaFileSection extends StatefulWidget {
     required this.title,
     required this.files,
     this.primaryFileIno,
+    this.allowUpload = false,
     this.audioFiles = const [],
   });
 
@@ -23,6 +25,7 @@ class ItemMediaFileSection extends StatefulWidget {
   final List<AudioFile> audioFiles;
   final List<LibraryFile> files;
   final String? primaryFileIno;
+  final bool allowUpload;
 
   @override
   State<ItemMediaFileSection> createState() => _ItemMediaFileSectionState();
@@ -30,6 +33,7 @@ class ItemMediaFileSection extends StatefulWidget {
 
 class _ItemMediaFileSectionState extends State<ItemMediaFileSection> {
   var _showAbsolutePaths = false;
+  var _expanded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +47,11 @@ class _ItemMediaFileSectionState extends State<ItemMediaFileSection> {
 
         return ExpressiveExpandableCard(
           title: widget.title,
+          onExpansionChanged: (expanded) {
+            setState(() {
+              _expanded = expanded;
+            });
+          },
           childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
           initiallyExpanded: false,
           actions: [
@@ -100,6 +109,7 @@ class _ItemMediaFileSectionState extends State<ItemMediaFileSection> {
                 },
               ),
             ),
+            if (_expanded && widget.allowUpload) LibraryItemUploadButton(itemId: widget.itemId),
           ],
         );
       },
