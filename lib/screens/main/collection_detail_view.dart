@@ -2,11 +2,8 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 
-import 'package:yaabsa/components/common/screen_refresh_indicator.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/list/collection.dart';
@@ -16,7 +13,7 @@ import 'package:yaabsa/components/common/list_entity_missing_view.dart';
 import 'package:yaabsa/components/common/managed_list_operations.dart';
 import 'package:yaabsa/components/common/library_item_widget.dart';
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
-import 'package:yaabsa/components/common/scroll_to_top_button.dart';
+import 'package:yaabsa/features/library/widgets/managed_list_detail_frame.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/common/collection_provider.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
@@ -24,10 +21,11 @@ import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
-import 'package:yaabsa/util/layout_sizes.dart';
 import 'package:yaabsa/util/random_playback.dart';
 import 'package:yaabsa/util/server_management_preferences.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/ui/components/menus/yaabsa_context_menu_button.dart';
 
 class CollectionDetailView extends HookConsumerWidget {
   const CollectionDetailView({required this.collectionId, super.key, this.initialEntry, this.libraryId});
@@ -57,7 +55,7 @@ class CollectionDetailView extends HookConsumerWidget {
 
     if (resolvedCollection == null) {
       if (details.isLoading) {
-        return const Center(child: CircularProgressIndicator());
+        return const Center(child: YaabsaCircularProgressIndicator());
       }
       final error = details.error;
       final missing = error is DioException && error.response?.statusCode == 404;
@@ -98,140 +96,91 @@ class CollectionDetailView extends HookConsumerWidget {
     final description = resolvedCollection.description?.trim();
 
     return LibraryGridLayoutBuilder(
-      builder: (context, gridLayout, _, _) {
-        final horizontalPadding = gridLayout.horizontalPadding;
-
-        return Column(
+      builder: (context, _, tileWidth, _) => ManagedListDetailFrame(
+        title: resolvedEntry?.title ?? resolvedCollection.name,
+        description: description,
+        emptyTitle: 'No books in this collection',
+        emptyMessage: 'Add books to this collection to see them here.',
+        emptyIcon: Icons.collections_bookmark_outlined,
+        scrollController: scrollController,
+        tileWidth: tileWidth,
+        onRefresh: () => ref.refresh(collectionByIdProvider(libraryId, collectionId).future).then<void>((_) {}),
+        itemCount: collectionItems.length,
+        itemBuilder: (context, index) {
+          final item = collectionItems[index];
+          return LibraryItemWidget(
+            item,
+            api,
+            showProgress: true,
+            squareCover: true,
+            onPlay: () {
+              audioHandler.playLibraryItem(
+                item,
+                autoQueueStart: AutoQueueStart(
+                  type: AutoQueueStartType.collection,
+                  sourceId: collectionId,
+                  globalIndex: index,
+                ),
+              );
+            },
+          );
+        },
+        headerActions: Wrap(
+          spacing: 0,
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(8, 10, 8, 8),
-              child: Row(
-                children: [
-                  IconButton(
-                    onPressed: () => context.pop(),
-                    icon: const Icon(Icons.arrow_back_rounded),
-                    tooltip: 'Back',
+            if (showShuffleButton && hasRandomPlaybackTarget(collectionItems))
+              IconButton(
+                onPressed: () => unawaited(
+                  playRandomLibraryItemOrEpisode(
+                    collectionItems,
+                    sourceType: AutoQueueStartType.collection,
+                    sourceId: collectionId,
                   ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      resolvedEntry?.title ?? resolvedCollection.name,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                  ),
-                  if (showShuffleButton && hasRandomPlaybackTarget(collectionItems))
-                    IconButton(
-                      onPressed: () => unawaited(
-                        playRandomLibraryItemOrEpisode(
-                          collectionItems,
-                          sourceType: AutoQueueStartType.collection,
-                          sourceId: collectionId,
-                        ),
+                ),
+                icon: const Icon(Icons.shuffle_rounded),
+                tooltip: 'Play random item',
+              ),
+            if (canEditCollection || canDeleteCollection)
+              YaabsaContextMenuButton<_CollectionDetailAction>(
+                tooltip: 'Collection actions',
+                onSelected: (action) => _handleCollectionAction(
+                  context: context,
+                  ref: ref,
+                  libraryId: libraryId,
+                  collection: resolvedCollection,
+                  action: action,
+                ),
+                itemBuilder: (context) {
+                  final items = <PopupMenuEntry<_CollectionDetailAction>>[];
+                  if (canEditCollection) {
+                    items.add(
+                      const PopupMenuItem<_CollectionDetailAction>(
+                        value: _CollectionDetailAction.editBooks,
+                        child: Text('Edit books'),
                       ),
-                      icon: const Icon(Icons.shuffle_rounded),
-                      tooltip: 'Play random item',
-                    ),
-                  if (canEditCollection || canDeleteCollection)
-                    PopupMenuButton<_CollectionDetailAction>(
-                      tooltip: 'Collection actions',
-                      onSelected: (action) => _handleCollectionAction(
-                        context: context,
-                        ref: ref,
-                        libraryId: libraryId,
-                        collection: resolvedCollection,
-                        action: action,
+                    );
+                    items.add(
+                      const PopupMenuItem<_CollectionDetailAction>(
+                        value: _CollectionDetailAction.edit,
+                        child: Text('Edit details'),
                       ),
-                      itemBuilder: (context) {
-                        final items = <PopupMenuEntry<_CollectionDetailAction>>[];
-                        if (canEditCollection) {
-                          items.add(
-                            const PopupMenuItem<_CollectionDetailAction>(
-                              value: _CollectionDetailAction.editBooks,
-                              child: Text('Edit books'),
-                            ),
-                          );
-                          items.add(
-                            const PopupMenuItem<_CollectionDetailAction>(
-                              value: _CollectionDetailAction.edit,
-                              child: Text('Edit details'),
-                            ),
-                          );
-                        }
-                        if (canDeleteCollection) {
-                          items.add(
-                            const PopupMenuItem<_CollectionDetailAction>(
-                              value: _CollectionDetailAction.delete,
-                              child: Text('Delete collection'),
-                            ),
-                          );
-                        }
+                    );
+                  }
+                  if (canDeleteCollection) {
+                    items.add(
+                      const PopupMenuItem<_CollectionDetailAction>(
+                        value: _CollectionDetailAction.delete,
+                        child: Text('Delete collection'),
+                      ),
+                    );
+                  }
 
-                        return items;
-                      },
-                    ),
-                ],
-              ),
-            ),
-            if (description != null && description.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    description,
-                    style: Theme.of(context).textTheme.bodySmall
-                        ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                  ),
-                ),
-              ),
-            if (collectionItems.isEmpty)
-              const Expanded(child: Center(child: Text('No books found in this collection.')))
-            else
-              Expanded(
-                child: Stack(
-                  children: [
-                    Positioned.fill(
-                      child: ScreenRefreshIndicator(
-                        onRefresh: () => ref.refresh(collectionByIdProvider(libraryId, collectionId).future),
-                        child: AlignedGridView.count(
-                          controller: scrollController,
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          padding: EdgeInsets.fromLTRB(horizontalPadding, 0, horizontalPadding, 16),
-                          crossAxisCount: gridLayout.crossAxisCount,
-                          mainAxisSpacing: appGridSpacing,
-                          crossAxisSpacing: appGridSpacing,
-                          itemCount: collectionItems.length,
-                          itemBuilder: (context, index) {
-                            final item = collectionItems[index];
-                            return LibraryItemWidget(
-                              item,
-                              api,
-                              showProgress: true,
-                              squareCover: true,
-                              onPlay: () {
-                                audioHandler.playLibraryItem(
-                                  item,
-                                  autoQueueStart: AutoQueueStart(
-                                    type: AutoQueueStartType.collection,
-                                    sourceId: collectionId,
-                                    globalIndex: index,
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                    ScrollToTopButton(controller: scrollController),
-                  ],
-                ),
+                  return items;
+                },
               ),
           ],
-        );
-      },
+        ),
+      ),
     );
   }
 }

@@ -14,7 +14,8 @@ import 'package:yaabsa/screens/auth/widgets/sign_in_header_editor_dialog.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/network/dio_factory.dart';
-import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class ServerConnectionSettings extends ConsumerStatefulWidget {
   const ServerConnectionSettings({super.key});
@@ -360,7 +361,7 @@ class _ServerConnectionSettingsState extends ConsumerState<ServerConnectionSetti
             ? SizedBox(
                 width: 18,
                 height: 18,
-                child: CircularProgressIndicator(strokeWidth: 2, color: colorScheme.onPrimary),
+                child: YaabsaCircularProgressIndicator(strokeWidth: 2, color: colorScheme.onPrimary),
               )
             : const Icon(Icons.save_outlined),
         label: Text(_isSaving ? 'Saving changes…' : 'Save changes'),
@@ -445,7 +446,7 @@ class _ServerConnectionSettingsState extends ConsumerState<ServerConnectionSetti
           },
           loading: () => const Padding(
             padding: EdgeInsets.all(32),
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(child: YaabsaCircularProgressIndicator()),
           ),
           error: (error, _) => Padding(padding: const EdgeInsets.all(20), child: Text('Failed to load user: $error')),
         ),

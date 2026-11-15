@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/library/request/library_sort.dart';
+import 'package:yaabsa/features/library/widgets/library_sort_option_sheet.dart';
 
 class LibrarySortSheet extends StatelessWidget {
   const LibrarySortSheet({
@@ -24,85 +25,29 @@ class LibrarySortSheet extends StatelessWidget {
       activeSort: activeSort,
       activeDesc: activeSortDesc,
     );
-    final selectedSort = LibrarySortValueX.tryParse(currentSelection.sort);
-    final double listHeight = (options.length * 48.0).clamp(180.0, 360.0).toDouble();
-    final colorScheme = Theme.of(context).colorScheme;
+    final selectedSort = LibrarySortValueX.tryParse(currentSelection.sort) ?? LibrarySortValue.addedAt;
 
-    return SafeArea(
-      top: false,
-      child: SizedBox(
-        height: listHeight + 54,
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 12, 6),
-              child: Row(
-                children: [
-                  const Expanded(
-                    child: Text('Sort Library', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
-                  ),
-                  IconButton(
-                    tooltip: 'Close',
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close_rounded),
-                  ),
-                ],
-              ),
+    return LibrarySortOptionSheet<LibrarySortValue>(
+      title: 'Sort',
+      selectedValue: selectedSort,
+      isDescending: currentSelection.isDescending,
+      options: options
+          .map(
+            (option) => LibrarySortOption<LibrarySortValue>(
+              value: option,
+              label: option.displayName,
+              supportsDirection: option != LibrarySortValue.random,
             ),
-            const Divider(height: 1),
-            Expanded(
-              child: ListView.separated(
-                itemCount: options.length,
-                separatorBuilder: (_, _) => const Divider(height: 1),
-                itemBuilder: (context, index) {
-                  final option = options[index];
-                  final isSelected = option == selectedSort;
-                  final isDescending = currentSelection.desc == 1;
-                  final isRandom = option == LibrarySortValue.random;
-                  final trailingText = isSelected && !isRandom ? (isDescending ? 'DESC' : 'ASC') : null;
-                  final trailingIcon = isSelected && !isRandom
-                      ? (isDescending ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded)
-                      : null;
-
-                  return ListTile(
-                    dense: true,
-                    visualDensity: VisualDensity.compact,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 14),
-                    title: Text(option.displayName),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (trailingText != null)
-                          Text(
-                            trailingText,
-                            style: Theme.of(context).textTheme.labelSmall
-                                ?.copyWith(color: colorScheme.onSurfaceVariant),
-                          ),
-                        if (trailingIcon != null) ...[
-                          const SizedBox(width: 4),
-                          Icon(trailingIcon, size: 16, color: colorScheme.onSurfaceVariant),
-                        ],
-                        if (isSelected) ...[
-                          const SizedBox(width: 6),
-                          Icon(Icons.check_rounded, size: 18, color: colorScheme.primary),
-                        ],
-                      ],
-                    ),
-                    onTap: () {
-                      final nextSelection = _nextSelectionForTap(
-                        option: option,
-                        currentSelection: currentSelection,
-                        isSelected: isSelected,
-                      );
-                      Navigator.of(context).pop(nextSelection);
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
+          )
+          .toList(growable: false),
+      onSelected: (option) {
+        final nextSelection = _nextSelectionForTap(
+          option: option,
+          currentSelection: currentSelection,
+          isSelected: option == selectedSort,
+        );
+        Navigator.of(context).pop(nextSelection);
+      },
     );
   }
 

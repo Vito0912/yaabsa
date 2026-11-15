@@ -1,5 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/app/item/match/manual_match/manual_match_models.dart';
+import 'package:yaabsa/ui/components/media/yaabsa_cover_image.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class ManualMatchResultsPane extends StatelessWidget {
   const ManualMatchResultsPane({
@@ -29,7 +31,7 @@ class ManualMatchResultsPane extends StatelessWidget {
           const Divider(height: 1),
           Expanded(
             child: searching
-                ? const Center(child: CircularProgressIndicator())
+                ? const Center(child: YaabsaCircularProgressIndicator())
                 : results.isEmpty
                 ? const Center(child: Text('Run a search to load metadata match results.'))
                 : ListView.separated(
@@ -75,24 +77,14 @@ class _ManualMatchResultTile extends StatelessWidget {
       selected: selected,
       selectedTileColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
       onTap: onTap,
-      leading: ClipRRect(
+      leading: YaabsaCoverImage(
+        image: result.coverUrl == null ? null : NetworkImage(result.coverUrl!),
+        width: 46,
+        height: 64,
         borderRadius: BorderRadius.circular(6),
-        child: SizedBox(
-          width: 46,
-          height: 64,
-          child: result.coverUrl == null
-              ? Container(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  child: const Icon(Icons.menu_book_rounded, size: 20),
-                )
-              : Image.network(
-                  result.coverUrl!,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) => Container(
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                    child: const Icon(Icons.menu_book_rounded, size: 20),
-                  ),
-                ),
+        placeholder: Container(
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          child: const Icon(Icons.menu_book_rounded, size: 20),
         ),
       ),
       title: Text(result.title, maxLines: 2, overflow: TextOverflow.ellipsis),

@@ -1,7 +1,10 @@
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
+import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
 import 'package:yaabsa/components/common/screen_refresh_indicator.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/admin/metadata_term_update_response.dart';
 import 'package:yaabsa/components/common/list_management_dialogs.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 typedef MetadataTermRenameCallback = Future<MetadataTermUpdateResponse> Function(String currentTerm, String newTerm);
 typedef MetadataTermDeleteCallback = Future<MetadataTermUpdateResponse> Function(String term);
@@ -86,15 +89,13 @@ class _AdminMetadataTermManagerState extends State<AdminMetadataTermManager> {
 
             return AlertDialog(
               title: Text('Rename ${widget.entityLabel}'),
-              content: TextField(
+              content: StyledTextField(
                 controller: controller,
                 autofocus: true,
                 textInputAction: TextInputAction.done,
-                decoration: InputDecoration(
-                  labelText: 'Name',
-                  errorText: validationError.isEmpty ? null : validationError,
-                ),
                 onSubmitted: (_) => submit(),
+                label: 'Name',
+                errorText: validationError.isEmpty ? null : validationError,
               ),
               actions: [
                 TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: const Text('Cancel')),
@@ -240,17 +241,20 @@ class _AdminMetadataTermManagerState extends State<AdminMetadataTermManager> {
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
                               if (processingThisTerm)
-                                const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                                const SizedBox(
+                                  height: 18,
+                                  width: 18,
+                                  child: YaabsaCircularProgressIndicator(strokeWidth: 2),
+                                )
                               else ...[
                                 IconButton(
                                   tooltip: 'Rename ${widget.entityLabel}',
                                   onPressed: _isBusy ? null : () => _renameTerm(term),
                                   icon: const Icon(Icons.edit_outlined),
                                 ),
-                                IconButton(
+                                YaabsaDeleteIconButton(
                                   tooltip: 'Delete ${widget.entityLabel}',
                                   onPressed: _isBusy ? null : () => _deleteTerm(term),
-                                  icon: Icon(Icons.delete_outline, color: Theme.of(context).colorScheme.error),
                                 ),
                               ],
                             ],

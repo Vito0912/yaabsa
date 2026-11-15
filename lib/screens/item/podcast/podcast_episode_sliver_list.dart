@@ -19,17 +19,12 @@ class PodcastEpisodeSliverList extends StatelessWidget {
     final childCount = itemCount == 0 ? 0 : (itemCount * 2) - 1;
 
     return SliverPadding(
-      padding: EdgeInsets.fromLTRB(horizontalPadding, 0, horizontalPadding, 16),
+      padding: EdgeInsets.fromLTRB(horizontalPadding, 16, horizontalPadding, 16),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate(
           (context, index) {
             if (index.isOdd) {
-              return Center(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: maxWidth),
-                  child: const Divider(height: 1),
-                ),
-              );
+              return const SizedBox(height: 10);
             }
 
             return Center(

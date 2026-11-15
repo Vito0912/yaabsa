@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
+import 'package:yaabsa/ui/components/feedback/feedback_panel.dart';
 
 class ConnectionIssueView extends StatelessWidget {
   const ConnectionIssueView({
@@ -89,7 +90,6 @@ class ConnectionIssueView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final effectiveBackAction = showBackAction
         ? (onBackAction ??
               () async {
@@ -110,73 +110,46 @@ class ConnectionIssueView extends StatelessWidget {
             : null);
     final effectiveSecondaryLabel = secondaryActionLabel ?? (showDownloadsShortcut ? 'Open Downloads' : null);
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 520),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 36, color: colorScheme.primary),
-              const SizedBox(height: 12),
-              Text(title, textAlign: TextAlign.center, style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 8),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
-              ),
-              if (details != null && details!.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Text(
-                  details!,
-                  textAlign: TextAlign.center,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
-                ),
+    return YaabsaFeedbackPanel(
+      icon: icon,
+      title: title,
+      message: message,
+      details: details,
+      action: onRetry != null || effectiveSecondaryAction != null
+          ? Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              alignment: WrapAlignment.center,
+              children: [
+                if (effectiveBackAction != null)
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      await effectiveBackAction();
+                    },
+                    icon: const Icon(Icons.arrow_back_rounded),
+                    label: Text(backActionLabel),
+                  ),
+                if (onRetry != null)
+                  FilledButton.icon(
+                    onPressed: () async {
+                      await onRetry!();
+                    },
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: Text(retryLabel),
+                  ),
+                if (effectiveSecondaryAction != null &&
+                    effectiveSecondaryLabel != null &&
+                    effectiveSecondaryLabel.isNotEmpty)
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      await effectiveSecondaryAction();
+                    },
+                    icon: const Icon(Icons.download_rounded),
+                    label: Text(effectiveSecondaryLabel),
+                  ),
               ],
-              if (onRetry != null || effectiveSecondaryAction != null) ...[
-                const SizedBox(height: 14),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  alignment: WrapAlignment.center,
-                  children: [
-                    if (effectiveBackAction != null)
-                      OutlinedButton.icon(
-                        onPressed: () async {
-                          await effectiveBackAction();
-                        },
-                        icon: const Icon(Icons.arrow_back_rounded),
-                        label: Text(backActionLabel),
-                      ),
-                    if (onRetry != null)
-                      FilledButton.icon(
-                        onPressed: () async {
-                          await onRetry!();
-                        },
-                        icon: const Icon(Icons.refresh_rounded),
-                        label: Text(retryLabel),
-                      ),
-                    if (effectiveSecondaryAction != null &&
-                        effectiveSecondaryLabel != null &&
-                        effectiveSecondaryLabel.isNotEmpty)
-                      OutlinedButton.icon(
-                        onPressed: () async {
-                          await effectiveSecondaryAction();
-                        },
-                        icon: const Icon(Icons.download_rounded),
-                        label: Text(effectiveSecondaryLabel),
-                      ),
-                  ],
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
+            )
+          : null,
     );
   }
 }

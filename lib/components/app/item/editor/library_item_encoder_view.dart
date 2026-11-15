@@ -1,7 +1,9 @@
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/library_items/audio_file.dart';
-import 'package:yaabsa/components/common/inputs/expressive_dropdown.dart';
+import 'package:yaabsa/ui/components/inputs/expressive_dropdown.dart';
 import 'package:yaabsa/util/item_formatters.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 final double textfieldWidth = 130;
 
@@ -177,7 +179,7 @@ class _EncoderActionCard extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 6),
-              LinearProgressIndicator(
+              YaabsaLinearProgressIndicator(
                 value: progressPercent == null ? null : progressPercent / 100,
                 minHeight: 6,
                 borderRadius: BorderRadius.circular(999),
@@ -230,14 +232,14 @@ class _EncoderActionCard extends StatelessWidget {
                 OutlinedButton.icon(
                   onPressed: (!isTaskRunning || isStarting || isCanceling) ? null : onCancelEncoding,
                   icon: isCanceling
-                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2.1))
+                      ? const SizedBox(width: 16, height: 16, child: YaabsaCircularProgressIndicator(strokeWidth: 2.1))
                       : const Icon(Icons.stop_circle_outlined),
                   label: Text(isCanceling ? 'Canceling...' : 'Cancel'),
                 ),
                 FilledButton.icon(
                   onPressed: (isStarting || isCanceling || isTaskRunning) ? null : onStartEncoding,
                   icon: isStarting || isTaskRunning
-                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2.1))
+                      ? const SizedBox(width: 16, height: 16, child: YaabsaCircularProgressIndicator(strokeWidth: 2.1))
                       : const Icon(Icons.play_arrow_rounded),
                   label: Text(startButtonLabel),
                 ),
@@ -352,32 +354,24 @@ class _AdvancedOptions extends StatelessWidget {
           children: [
             SizedBox(
               width: textfieldWidth,
-              child: TextFormField(
-                initialValue: codec,
-                decoration: const InputDecoration(labelText: 'Codec', border: OutlineInputBorder()),
-                onChanged: onCodecChanged,
-              ),
+              child: StyledTextFormField(initialValue: codec, onChanged: onCodecChanged, label: 'Codec'),
             ),
             SizedBox(
               width: textfieldWidth,
-              child: TextFormField(
-                initialValue: bitrate,
-                decoration: const InputDecoration(labelText: 'Bitrate', border: OutlineInputBorder()),
-                onChanged: onBitrateChanged,
-              ),
+              child: StyledTextFormField(initialValue: bitrate, onChanged: onBitrateChanged, label: 'Bitrate'),
             ),
             SizedBox(
               width: textfieldWidth,
-              child: TextFormField(
+              child: StyledTextFormField(
                 initialValue: channels.toString(),
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Channels', border: OutlineInputBorder()),
                 onChanged: (value) {
                   final parsed = int.tryParse(value.trim());
                   if (parsed != null && parsed > 0) {
                     onChannelsChanged(parsed);
                   }
                 },
+                label: 'Channels',
               ),
             ),
           ],
@@ -526,7 +520,7 @@ class _DropdownCard<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     return YaabsaExpressiveDropdownField<T>(
       value: value,
-      decoration: InputDecoration(labelText: label, border: const OutlineInputBorder()),
+      decoration: InputDecoration(labelText: label),
       options: [for (final entry in values) YaabsaDropdownOption<T>(value: entry, label: display(entry))],
       onChanged: onChanged,
     );

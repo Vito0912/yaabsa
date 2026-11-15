@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/ui/components/settings/yaabsa_switch_tile.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/api/library/library.dart';
 import 'package:yaabsa/api/library/library_folder.dart';
@@ -7,12 +8,14 @@ import 'package:yaabsa/api/library/request/library_folder_payload.dart';
 import 'package:yaabsa/api/search/search_provider_option.dart';
 import 'package:yaabsa/components/common/expressive_tab_view.dart';
 import 'package:yaabsa/components/common/filesystem_directory_picker_dialog.dart';
-import 'package:yaabsa/components/common/inputs/expressive_dropdown.dart';
-import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
+import 'package:yaabsa/ui/components/inputs/expressive_dropdown.dart';
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:yaabsa/components/settings/libraries/library_folder_list_editor.dart';
 import 'package:yaabsa/components/settings/libraries/library_metadata_precedence_editor.dart';
 import 'package:yaabsa/provider/common/upload_providers.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/ui/components/dialogs/dialog_actions.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class LibraryUpsertFormResult {
   const LibraryUpsertFormResult({
@@ -763,7 +766,10 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
           ),
           const SizedBox(height: 10),
           if (providerOptionsAsync.isLoading && providerOptionsAsync.value == null)
-            const Padding(padding: EdgeInsets.symmetric(vertical: 8), child: LinearProgressIndicator(minHeight: 2)),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: YaabsaLinearProgressIndicator(minHeight: 2),
+            ),
           _buildProviderField(providerOptions),
           const SizedBox(height: 10),
           YaabsaExpressiveDropdownField<String>(
@@ -785,7 +791,7 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
           const SizedBox(height: 12),
           Text('Library behavior', style: Theme.of(context).textTheme.titleSmall),
           const SizedBox(height: 8),
-          SwitchListTile.adaptive(
+          YaabsaSwitchTile.adaptive(
             contentPadding: EdgeInsets.zero,
             title: const Text('Use square book covers'),
             value: _useSquareBookCovers,
@@ -796,7 +802,7 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
             },
           ),
           if (_selectedMediaType == 'book') ...[
-            SwitchListTile.adaptive(
+            YaabsaSwitchTile.adaptive(
               contentPadding: EdgeInsets.zero,
               title: const Text('Audiobooks only'),
               value: _audiobooksOnly,
@@ -806,7 +812,7 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
                 });
               },
             ),
-            SwitchListTile.adaptive(
+            YaabsaSwitchTile.adaptive(
               contentPadding: EdgeInsets.zero,
               title: const Text('Hide single-book series'),
               value: _hideSingleBookSeries,
@@ -816,7 +822,7 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
                 });
               },
             ),
-            SwitchListTile.adaptive(
+            YaabsaSwitchTile.adaptive(
               contentPadding: EdgeInsets.zero,
               title: const Text('Only show later books in continue series'),
               value: _showLaterBooks,
@@ -826,7 +832,7 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
                 });
               },
             ),
-            SwitchListTile.adaptive(
+            YaabsaSwitchTile.adaptive(
               contentPadding: EdgeInsets.zero,
               title: const Text('Allow scripted ebook content'),
               value: _epubScriptedContent,
@@ -916,7 +922,7 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
     }
 
     final controls = <Widget>[
-      SwitchListTile.adaptive(
+      YaabsaSwitchTile.adaptive(
         contentPadding: EdgeInsets.zero,
         title: const Text('Enable folder watcher'),
         subtitle: const Text('Disable if your host cannot provide reliable filesystem watch events.'),
@@ -927,7 +933,7 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
           });
         },
       ),
-      SwitchListTile.adaptive(
+      YaabsaSwitchTile.adaptive(
         contentPadding: EdgeInsets.zero,
         title: const Text('Skip matching books with ASIN'),
         value: _skipMatchingMediaWithAsin,
@@ -937,7 +943,7 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
           });
         },
       ),
-      SwitchListTile.adaptive(
+      YaabsaSwitchTile.adaptive(
         contentPadding: EdgeInsets.zero,
         title: const Text('Skip matching books with ISBN'),
         value: _skipMatchingMediaWithIsbn,
@@ -995,7 +1001,7 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          SwitchListTile.adaptive(
+          YaabsaSwitchTile.adaptive(
             contentPadding: EdgeInsets.zero,
             title: const Text('Enable scheduled scans'),
             subtitle: const Text('Use cron syntax. Example: 0 0 * * 1 runs weekly on Monday at 00:00.'),
@@ -1092,7 +1098,7 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
             FilledButton.icon(
               onPressed: _isRunningToolAction ? null : _runMatchAllBooks,
               icon: _isRunningToolAction
-                  ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                  ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                   : const Icon(Icons.auto_fix_high_rounded),
               label: const Text('Start match-all'),
             ),
@@ -1131,11 +1137,11 @@ class _LibraryUpsertFormDialogState extends ConsumerState<_LibraryUpsertFormDial
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
-        FilledButton.icon(
-          onPressed: _submit,
-          icon: Icon(widget.isCreate ? Icons.add_rounded : Icons.save_rounded),
-          label: Text(widget.isCreate ? 'Create library' : 'Save changes'),
+        YaabsaDialogActions(
+          actionLabel: widget.isCreate ? 'Create library' : 'Save changes',
+          actionIcon: widget.isCreate ? Icons.add_rounded : Icons.save_rounded,
+          onAction: _submit,
+          onCancel: () => Navigator.of(context).pop(),
         ),
       ],
     );

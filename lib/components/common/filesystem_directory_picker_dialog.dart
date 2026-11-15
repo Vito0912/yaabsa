@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/api/filesystem/filesystem_directory.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 Future<String?> showFilesystemDirectoryPickerDialog(
   BuildContext context, {
@@ -175,7 +176,7 @@ class _FilesystemDirectoryPickerDialogState extends ConsumerState<_FilesystemDir
             ],
             Expanded(
               child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
+                  ? const Center(child: YaabsaCircularProgressIndicator())
                   : _directories.isEmpty
                   ? Container(
                       decoration: BoxDecoration(

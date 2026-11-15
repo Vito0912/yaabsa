@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
+import 'package:yaabsa/features/player/widgets/player_media_info_presentation.dart';
 import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/screens/player/layout/player_layout_config.dart';
 
@@ -27,28 +28,20 @@ class PlayerMediaInfoComponent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final resolvedScale = fontScale.clamp(0.75, 1.6);
-    final textAlign = textAlignMode.textAlign;
-    final crossAxis = textAlignMode.crossAxisAlignment;
-
-    final titleStyle = Theme.of(context).textTheme.titleMedium
-        ?.copyWith(fontSize: (Theme.of(context).textTheme.titleLarge?.fontSize ?? 16) * resolvedScale);
-
-    final detailStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(
-      color: Theme.of(context).colorScheme.onSurfaceVariant,
-      fontSize: (Theme.of(context).textTheme.bodyLarge?.fontSize ?? 14) * (resolvedScale * 0.9),
-    );
-
-    final seriesText = media.series == null || media.series!.trim().isEmpty
-        ? null
-        : media.seriesPosition == null || media.seriesPosition!.trim().isEmpty
-        ? media.series!.trim()
-        : '${media.series!.trim()} #${media.seriesPosition!.trim()}';
-
-    final narratorText = media.narrator?.trim();
-
-    return GestureDetector(
-      onTap: () {
+    return PlayerMediaInfoPresentation(
+      title: media.title,
+      author: media.author,
+      narrator: media.narrator,
+      series: media.series,
+      seriesPosition: media.seriesPosition,
+      showAuthor: showAuthor,
+      showNarrator: showNarrator,
+      showSeries: showSeries,
+      textAlignMode: textAlignMode,
+      fontScale: fontScale,
+      titleMaxLines: titleMaxLines,
+      detailMaxLines: detailMaxLines,
+      onPressed: () {
         final navigator = Navigator.of(context);
         final router = GoRouter.of(context);
         final matchedLocation = GoRouterState.of(context).matchedLocation;
@@ -66,52 +59,6 @@ class PlayerMediaInfoComponent extends StatelessWidget {
           ).toString(),
         );
       },
-      child: Padding(
-        padding: const EdgeInsets.all(4.0),
-        child: Column(
-          crossAxisAlignment: crossAxis,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            Text(
-              media.title,
-              textAlign: textAlign,
-              maxLines: titleMaxLines,
-              overflow: TextOverflow.ellipsis,
-              style: titleStyle,
-            ),
-            if (showAuthor && media.author?.trim().isNotEmpty == true) ...<Widget>[
-              const SizedBox(height: 4),
-              Text(
-                media.author!.trim(),
-                textAlign: textAlign,
-                maxLines: detailMaxLines,
-                overflow: TextOverflow.ellipsis,
-                style: detailStyle,
-              ),
-            ],
-            if (showNarrator && narratorText?.isNotEmpty == true) ...<Widget>[
-              const SizedBox(height: 3),
-              Text(
-                narratorText!,
-                textAlign: textAlign,
-                maxLines: detailMaxLines,
-                overflow: TextOverflow.ellipsis,
-                style: detailStyle,
-              ),
-            ],
-            if (showSeries && seriesText != null) ...<Widget>[
-              const SizedBox(height: 3),
-              Text(
-                seriesText,
-                textAlign: textAlign,
-                maxLines: detailMaxLines,
-                overflow: TextOverflow.ellipsis,
-                style: detailStyle,
-              ),
-            ],
-          ],
-        ),
-      ),
     );
   }
 }

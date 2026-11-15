@@ -74,6 +74,7 @@ import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/desktop_navigation_history.dart';
 import 'package:yaabsa/util/handler/tray_handler.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 const String _bootRoutePath = '/boot';
 
@@ -488,7 +489,9 @@ class _AppStartupScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Center(child: const SizedBox(width: 28, height: 28, child: CircularProgressIndicator(strokeWidth: 2.6))),
+        child: Center(
+          child: const SizedBox(width: 28, height: 28, child: YaabsaCircularProgressIndicator(strokeWidth: 2.6)),
+        ),
       ),
     );
   }

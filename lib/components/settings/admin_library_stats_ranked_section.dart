@@ -1,5 +1,5 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:yaabsa/components/stats/stats_components.dart';
+import 'package:yaabsa/features/statistics/widgets/statistics_components.dart';
 
 class AdminLibraryStatsRankedEntry {
   const AdminLibraryStatsRankedEntry({required this.label, required this.value, required this.trailing, this.onTap});

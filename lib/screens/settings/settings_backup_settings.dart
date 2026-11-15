@@ -8,6 +8,7 @@ import 'package:yaabsa/components/settings/settings_navigation_section.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/settings_backup.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class SettingsBackupSettings extends ConsumerStatefulWidget {
   const SettingsBackupSettings({super.key});
@@ -154,7 +155,7 @@ class _SettingsBackupSettingsState extends ConsumerState<SettingsBackupSettings>
         if (_busy)
           const Padding(
             padding: EdgeInsets.all(24),
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(child: YaabsaCircularProgressIndicator()),
           ),
       ],
     );

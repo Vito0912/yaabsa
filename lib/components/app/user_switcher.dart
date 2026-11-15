@@ -9,6 +9,8 @@ import 'package:yaabsa/util/globals.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/ui/components/menus/yaabsa_context_menu_button.dart';
 
 const String _addNewUserValue = '__ADD_NEW_USER__';
 
@@ -101,7 +103,7 @@ class UserSwitcher extends ConsumerWidget {
     List<User> allUsers, {
     required bool? serverReachable,
   }) {
-    return PopupMenuButton<String>(
+    return YaabsaContextMenuButton<String>(
       tooltip: 'Switch or Add User',
       offset: const Offset(0, 40),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
@@ -166,7 +168,7 @@ class UserSwitcher extends ConsumerWidget {
     required bool isTablet,
     required bool? serverReachable,
   }) {
-    return PopupMenuButton<String>(
+    return YaabsaContextMenuButton<String>(
       tooltip: 'Switch or Add User',
       offset: const Offset(0, 55),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(isTablet ? 16.0 : 10.0)),
@@ -208,11 +210,11 @@ class UserSwitcher extends ConsumerWidget {
               ),
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const Center(child: YaabsaCircularProgressIndicator()),
           error: (error, stack) => Center(child: Text('Error loading users: $error')),
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const Center(child: YaabsaCircularProgressIndicator()),
       error: (error, stack) => Tooltip(
         message: 'Could not load the active user. Tap to retry.',
         child: SizedBox(

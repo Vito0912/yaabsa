@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/library/library.dart';
 import 'package:yaabsa/api/library/library_settings.dart';
-import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:yaabsa/components/settings/smart_download_source_editor.dart';
 import 'package:yaabsa/models/queue_source.dart';
 

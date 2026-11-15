@@ -4,6 +4,7 @@ import 'package:yaabsa/components/sessions/session_duration_picker_field.dart';
 import 'package:yaabsa/components/sessions/listening_session_utils.dart';
 import 'package:yaabsa/screens/main/stats/stats_formatters.dart';
 import 'package:yaabsa/util/extensions.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 Future<bool?> showListeningSessionEditorDialog(
   BuildContext context, {
@@ -447,14 +448,14 @@ class _ListeningSessionEditorDialogState extends State<_ListeningSessionEditorDi
             style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
             onPressed: _isSaving || _isDeleting ? null : _delete,
             child: _isDeleting
-                ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                 : const Text('Delete'),
           ),
         if (widget.canEdit)
           FilledButton(
             onPressed: _isSaving || _isDeleting ? null : _save,
             child: _isSaving
-                ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                 : const Text('Save'),
           ),
       ],

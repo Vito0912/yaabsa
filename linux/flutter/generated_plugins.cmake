@@ -5,6 +5,7 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   app_links_linux
   desktop_drop
+  dynamic_color
   file_selector_linux
   flutter_secure_storage_linux
   media_kit_libs_linux

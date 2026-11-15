@@ -1,4 +1,5 @@
 import 'package:yaabsa/api/library_items/book_media.dart';
+import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/api/library_items/podcast_media.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -55,19 +56,39 @@ abstract class Media with _$Media {
 
   bool get hasBook => bookMedia?.ebookFile != null || bookMedia?.ebookFormat != null;
 
+  double _episodeDuration(Episode episode) {
+    final audioDuration = episode.audioFile?.duration;
+    if (audioDuration != null && audioDuration > 0) {
+      return audioDuration;
+    }
+
+    return episode.duration ?? 0;
+  }
+
   double duration({String? episodeId}) {
     if (podcastMedia != null) {
       if (episodeId != null) {
         final episode = podcastMedia!.episodes?.where((e) => e.id == episodeId).firstOrNull;
-        return episode?.audioFile?.duration ?? 0;
+        return episode == null ? 0 : _episodeDuration(episode);
       }
+
+      final mediaDuration = podcastMedia!.duration;
+      if (mediaDuration != null && mediaDuration > 0) {
+        return mediaDuration;
+      }
+
       final episodes = podcastMedia!.episodes;
       if (episodes == null || episodes.isEmpty) {
         return 0;
       }
 
-      return episodes.fold<double>(0, (total, episode) => total + (episode.audioFile?.duration ?? 0));
+      return episodes.fold<double>(0, (total, episode) => total + _episodeDuration(episode));
     } else {
+      final mediaDuration = bookMedia?.duration;
+      if (mediaDuration != null && mediaDuration > 0) {
+        return mediaDuration;
+      }
+
       final audioFiles = bookMedia?.audioFiles;
       if (audioFiles == null || audioFiles.isEmpty) {
         return 0;

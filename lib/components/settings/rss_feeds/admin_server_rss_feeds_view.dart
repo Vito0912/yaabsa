@@ -5,11 +5,13 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/api/admin/admin_rss_feed.dart';
 import 'package:yaabsa/components/common/list_management_dialogs.dart';
-import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:yaabsa/components/common/tables/expressive_action_table.dart';
 import 'package:yaabsa/components/settings/rss_feeds/admin_rss_feed_details_dialog.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/ui/components/media/yaabsa_cover_image.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class AdminServerRssFeedsView extends ConsumerStatefulWidget {
   const AdminServerRssFeedsView({super.key});
@@ -332,33 +334,14 @@ class _AdminServerRssFeedsViewState extends ConsumerState<AdminServerRssFeedsVie
     final imageUrl = _resolvedCoverImageUrl(feed, minifiedById);
     final colorScheme = Theme.of(context).colorScheme;
 
-    if (imageUrl == null || imageUrl.isEmpty) {
-      return Container(
-        width: 52,
-        height: 52,
-        decoration: BoxDecoration(color: colorScheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(10)),
-        child: Icon(Icons.rss_feed_rounded, color: colorScheme.onSurfaceVariant),
-      );
-    }
-
-    return ClipRRect(
+    return YaabsaCoverImage(
+      image: imageUrl == null || imageUrl.isEmpty ? null : NetworkImage(imageUrl),
+      width: 52,
+      height: 52,
       borderRadius: BorderRadius.circular(10),
-      child: Image.network(
-        imageUrl,
-        width: 52,
-        height: 52,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(Icons.rss_feed_rounded, color: colorScheme.onSurfaceVariant),
-          );
-        },
+      placeholder: Container(
+        color: colorScheme.surfaceContainerHighest,
+        child: Icon(Icons.rss_feed_rounded, color: colorScheme.onSurfaceVariant),
       ),
     );
   }
@@ -591,7 +574,7 @@ class _AdminServerRssFeedsViewState extends ConsumerState<AdminServerRssFeedsVie
             children: [
               if (_isLoading && _feeds.isNotEmpty) ...[
                 const SizedBox(height: 8),
-                const LinearProgressIndicator(minHeight: 2),
+                const YaabsaLinearProgressIndicator(minHeight: 2),
               ],
               const SizedBox(height: 10),
               _buildErrorCard(),
@@ -634,7 +617,7 @@ class _AdminServerRssFeedsViewState extends ConsumerState<AdminServerRssFeedsVie
       },
       loading: () => const Padding(
         padding: EdgeInsets.all(32.0),
-        child: Center(child: CircularProgressIndicator()),
+        child: Center(child: YaabsaCircularProgressIndicator()),
       ),
       error: (error, _) => Padding(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),

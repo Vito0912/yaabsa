@@ -44,7 +44,6 @@ class BookPlaylistMembershipDialog extends ConsumerWidget {
       onLoadMore: () => ref.read(playlistsProvider(libraryId).notifier).loadNextPage(),
       allowed: userId != null && userId.isNotEmpty,
       plural: 'playlists',
-      bookTitle: item.title,
       id: (entry) => entry.id,
       name: (entry) => entry.name,
       membership: (entry) => switch (playlistMembership(entry, item.id)) {

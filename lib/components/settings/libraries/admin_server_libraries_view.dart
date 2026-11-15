@@ -11,13 +11,15 @@ import 'package:yaabsa/api/library/request/library_folder_payload.dart';
 import 'package:yaabsa/api/library/request/reorder_library_entry_request.dart';
 import 'package:yaabsa/api/library/request/update_library_request.dart';
 import 'package:yaabsa/api/library/request/update_library_settings_request.dart';
-import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:yaabsa/components/common/list_management_dialogs.dart';
 import 'package:yaabsa/components/common/tables/expressive_tile_list.dart';
 import 'package:yaabsa/components/settings/libraries/library_upsert_form_dialog.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/ui/components/menus/yaabsa_context_menu_button.dart';
 
 class AdminServerLibrariesView extends ConsumerStatefulWidget {
   const AdminServerLibrariesView({super.key});
@@ -608,13 +610,13 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
               ),
               const SizedBox(width: 8),
               if (_isSavingOrder)
-                const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2)),
+                const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2)),
               const Spacer(),
               IconButton.filled(
                 tooltip: 'Add library',
                 onPressed: _isLoading || _isCreating ? null : _createLibrary,
                 icon: _isCreating
-                    ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                    ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                     : const Icon(Icons.library_add_rounded),
               ),
             ],
@@ -659,7 +661,7 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
             ),
             const SizedBox(width: 10),
             if (_isSavingOrder) ...[
-              const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2)),
+              const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2)),
               const SizedBox(width: 8),
               Text(
                 'Saving order...',
@@ -671,7 +673,7 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
             FilledButton.icon(
               onPressed: _isLoading || _isCreating ? null : _createLibrary,
               icon: _isCreating
-                  ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                  ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                   : const Icon(Icons.library_add_rounded),
               label: const Text('Add library'),
             ),
@@ -701,7 +703,7 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
         onReorderItem: canReorder ? _reorderLibraries : null,
         trailingBuilder: (context, library) {
           if (_busyLibraryIds.contains(library.id)) {
-            return const [SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))];
+            return const [SizedBox(width: 18, height: 18, child: YaabsaCircularProgressIndicator(strokeWidth: 2))];
           }
 
           return [
@@ -710,7 +712,7 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
               style: FilledButton.styleFrom(visualDensity: VisualDensity.compact),
               child: const Text('Scan'),
             ),
-            PopupMenuButton<String>(
+            YaabsaContextMenuButton<String>(
               tooltip: 'Library actions',
               onSelected: (value) {
                 if (value == 'edit') {
@@ -800,7 +802,7 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
             children: [
               if (_isLoading && _libraries.isNotEmpty) ...[
                 const SizedBox(height: 8),
-                const LinearProgressIndicator(minHeight: 2),
+                const YaabsaLinearProgressIndicator(minHeight: 2),
               ],
               const SizedBox(height: 10),
               _buildErrorCard(),
@@ -814,7 +816,7 @@ class _AdminServerLibrariesViewState extends ConsumerState<AdminServerLibrariesV
       },
       loading: () => const Padding(
         padding: EdgeInsets.all(32.0),
-        child: Center(child: CircularProgressIndicator()),
+        child: Center(child: YaabsaCircularProgressIndicator()),
       ),
       error: (error, _) => Padding(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),

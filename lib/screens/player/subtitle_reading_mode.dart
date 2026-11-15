@@ -10,6 +10,7 @@ import 'package:yaabsa/util/setting_key.dart';
 import 'package:yaabsa/util/subtitles/subtitle_loader.dart';
 import 'package:yaabsa/util/subtitles/subtitle_parser.dart';
 import 'package:yaabsa/util/subtitles/subtitle_segment_spans.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class SubtitleReadingModeView extends ConsumerStatefulWidget {
   const SubtitleReadingModeView({super.key});
@@ -87,7 +88,7 @@ class _SubtitleReadingModeViewState extends ConsumerState<SubtitleReadingModeVie
           future: subtitleFuture,
           builder: (context, subtitleSnapshot) {
             if (subtitleSnapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
+              return const Center(child: YaabsaCircularProgressIndicator());
             }
 
             final loaded = subtitleSnapshot.data;

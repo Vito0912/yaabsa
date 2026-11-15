@@ -1,5 +1,5 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 
 class SignInHeaderEntry {
   const SignInHeaderEntry({required this.name, required this.value});

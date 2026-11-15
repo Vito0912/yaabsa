@@ -68,10 +68,10 @@ class PlaylistView extends HookConsumerWidget {
             .toList(growable: false);
 
         return ManagedMultiBookView(
-          title: 'Playlists',
           createLabel: 'New playlist',
           emptyTitle: 'No playlists yet.',
           emptyMessage: 'Create one when you want to queue your next listens.',
+          emptyIcon: Icons.playlist_play_rounded,
           onCreate: canCreatePlaylists
               ? () => _createPlaylist(
                   context: context,

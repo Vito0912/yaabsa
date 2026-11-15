@@ -15,6 +15,7 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/screens/item/library_item_book_view.dart';
 import 'package:yaabsa/screens/item/library_item_podcast_view.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class LibraryItemView extends ConsumerStatefulWidget {
   const LibraryItemView(this.itemId, {super.key, this.initialEditorTab, this.initialEpisodeId});
@@ -110,7 +111,7 @@ class _LibraryItemViewState extends ConsumerState<LibraryItemView> {
         );
       },
       loading: () {
-        return const Center(child: CircularProgressIndicator());
+        return const Center(child: YaabsaCircularProgressIndicator());
       },
     );
   }

@@ -1,8 +1,11 @@
+import 'package:yaabsa/ui/components/inputs/search_field.dart';
+
 import 'dart:async';
 
 import 'package:foliate_reader/foliate_reader.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:pdfrx/pdfrx.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 const _maxEpubSearchResults = 300;
 
@@ -295,10 +298,9 @@ class _ReaderSearchSheetState extends State<ReaderSearchSheet> {
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: TextField(
+              child: YaabsaSearchField(
                 controller: _queryController,
                 autofocus: true,
-                textInputAction: TextInputAction.search,
                 onChanged: _onQueryChanged,
                 onSubmitted: (text) {
                   if (_query.isNotEmpty && (_debounce?.isActive == true || !_hasSearched || _error != null)) {
@@ -308,25 +310,20 @@ class _ReaderSearchSheetState extends State<ReaderSearchSheet> {
 
                   FocusScope.of(context).unfocus();
                 },
-                decoration: InputDecoration(
-                  hintText: 'Find a word or phrase',
-                  prefixIcon: const Icon(Icons.search_rounded),
-                  suffixIcon: _queryController.text.isEmpty
-                      ? null
-                      : IconButton(
-                          tooltip: 'Clear search',
-                          icon: const Icon(Icons.close_rounded),
-                          onPressed: () {
-                            _queryController.clear();
-                            _onQueryChanged('');
-                          },
-                        ),
-                  filled: true,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(28), borderSide: BorderSide.none),
-                ),
+                hintText: 'Find a word or phrase',
+                suffixIcon: _queryController.text.isEmpty
+                    ? null
+                    : IconButton(
+                        tooltip: 'Clear search',
+                        icon: const Icon(Icons.close_rounded),
+                        onPressed: () {
+                          _queryController.clear();
+                          _onQueryChanged('');
+                        },
+                      ),
               ),
             ),
-            if (_searching) const Padding(padding: EdgeInsets.only(top: 16), child: LinearProgressIndicator()),
+            if (_searching) const Padding(padding: EdgeInsets.only(top: 16), child: YaabsaLinearProgressIndicator()),
             if (_query.isNotEmpty && _error == null && (_searching || _hasSearched))
               Padding(
                 padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';
+import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/screens/settings/player/player_settings.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
@@ -438,9 +439,8 @@ class _PlayerSettingsNotificationState extends ConsumerState<PlayerSettingsNotif
               Text('Notification Pages', style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
               const Spacer(),
               if (_pages.length > 1)
-                IconButton(
+                YaabsaDeleteIconButton(
                   tooltip: 'Delete Current Page',
-                  icon: Icon(Icons.delete_outline_rounded, color: colorScheme.error),
                   onPressed: () => _deletePage(_selectedPageIndex),
                 ),
               if (_pages.length < 4)

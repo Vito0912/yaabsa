@@ -1,7 +1,8 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
+import 'package:yaabsa/ui/components/settings/settings_switch_presentation.dart';
 import 'package:yaabsa/components/settings/smart_download_actions_card.dart';
 import 'package:yaabsa/components/settings/smart_download_source_editor.dart';
 import 'package:yaabsa/models/queue_source.dart';
@@ -9,6 +10,8 @@ import 'package:yaabsa/models/smart_download.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/provider/library/smart_download_provider.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/ui/components/menus/yaabsa_context_menu_button.dart';
 
 class SmartDownloadsSettings extends ConsumerStatefulWidget {
   const SmartDownloadsSettings({super.key});
@@ -82,7 +85,7 @@ class _SmartDownloadsSettingsState extends ConsumerState<SmartDownloadsSettings>
             child: OutlinedButton.icon(
               onPressed: manager.isReconciling ? null : () => notifier.reconcile(reason: 'manual refresh'),
               icon: manager.isReconciling
-                  ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                  ? const SizedBox.square(dimension: 18, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                   : const Icon(Icons.sync_rounded),
               label: const Text('Reconcile now'),
             ),
@@ -148,7 +151,7 @@ class _ProfileSection extends StatelessWidget {
                 subtitle: Text(
                   '${profile.sources.length} sources · ${profile.policy.targetCount.clamp(1, 150)} items per source',
                 ),
-                trailing: PopupMenuButton<String>(
+                trailing: YaabsaContextMenuButton<String>(
                   onSelected: (value) {
                     if (value == 'edit') {
                       onEdit(profile);
@@ -270,9 +273,9 @@ class _SmartDownloadProfileEditorState extends State<_SmartDownloadProfileEditor
                 },
               ),
               const SizedBox(height: 8),
-              SwitchListTile(
+              SettingsSwitchPresentation(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Enabled'),
+                label: 'Enabled',
                 value: _enabled,
                 onChanged: (value) => setState(() => _enabled = value),
               ),

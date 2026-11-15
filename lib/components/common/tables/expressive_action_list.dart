@@ -1,6 +1,9 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
+import 'package:yaabsa/ui/components/feedback/empty_state_card.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
-enum ExpressiveListActionTone { neutral, primary, danger }
+typedef ExpressiveListActionTone = YaabsaActionTone;
 
 class ExpressiveListField<T> {
   const ExpressiveListField({required this.id, required this.label, required this.valueBuilder, this.tooltipBuilder});
@@ -58,18 +61,6 @@ class ExpressiveActionList<T> extends StatelessWidget {
   final bool shrinkWrap;
 
   bool get _isReorderable => onReorderItem != null;
-
-  Color _actionColor(BuildContext context, ExpressiveListActionTone tone) {
-    final colorScheme = Theme.of(context).colorScheme;
-    switch (tone) {
-      case ExpressiveListActionTone.primary:
-        return colorScheme.primary;
-      case ExpressiveListActionTone.danger:
-        return colorScheme.error;
-      case ExpressiveListActionTone.neutral:
-        return colorScheme.onSurfaceVariant;
-    }
-  }
 
   Future<void> _handleActionTap(ExpressiveListAction<T> action, T row) async {
     await action.onPressed.call(row);
@@ -139,7 +130,7 @@ class ExpressiveActionList<T> extends StatelessWidget {
 
     final actionWidgets = <Widget>[
       if (busyRowIds.contains(key))
-        const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+        const SizedBox(width: 18, height: 18, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
       else
         Wrap(
           spacing: 2,
@@ -147,11 +138,11 @@ class ExpressiveActionList<T> extends StatelessWidget {
           alignment: WrapAlignment.end,
           children: [
             for (final action in actions)
-              IconButton(
+              YaabsaActionIconButton(
+                icon: action.icon,
                 tooltip: action.tooltip,
-                visualDensity: VisualDensity.compact,
+                tone: action.tone,
                 onPressed: () => _handleActionTap(action, row),
-                icon: Icon(action.icon, size: 19, color: _actionColor(context, action.tone)),
               ),
           ],
         ),
@@ -209,28 +200,7 @@ class ExpressiveActionList<T> extends StatelessWidget {
   }
 
   Widget _buildEmptyState(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 18),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(emptyTitle, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-          if (emptySubtitle != null && emptySubtitle!.trim().isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Text(emptySubtitle!, style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant)),
-          ],
-        ],
-      ),
-    );
+    return YaabsaEmptyStateCard(title: emptyTitle, subtitle: emptySubtitle);
   }
 
   Widget _buildLoadingList() {
@@ -241,7 +211,7 @@ class ExpressiveActionList<T> extends StatelessWidget {
       children: const [
         Padding(
           padding: EdgeInsets.symmetric(vertical: 28),
-          child: Center(child: CircularProgressIndicator()),
+          child: Center(child: YaabsaCircularProgressIndicator()),
         ),
       ],
     );

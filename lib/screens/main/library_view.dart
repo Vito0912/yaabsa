@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/components/app/item/editor/library_item_edit_overlay.dart';
 import 'package:yaabsa/components/app/library/library_filter_toolbar.dart';
+import 'package:yaabsa/components/app/library/library_item_context_menu.dart';
 import 'package:yaabsa/components/app/library/library_items_grid.dart';
 import 'package:yaabsa/components/app/library/library_multi_select_host.dart';
 import 'package:yaabsa/components/common/connection_issue_view.dart';
@@ -24,9 +25,11 @@ import 'package:yaabsa/util/library_view_subtitle_preferences.dart';
 import 'package:yaabsa/util/library_view_subtitles.dart';
 
 class LibraryView extends HookConsumerWidget {
-  const LibraryView({super.key, this.initialFilter});
+  const LibraryView({super.key, this.initialFilter, this.toolbarTitle, this.onToolbarBack});
 
   final String? initialFilter;
+  final String? toolbarTitle;
+  final VoidCallback? onToolbarBack;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -137,6 +140,8 @@ class LibraryView extends HookConsumerWidget {
                                 .read(itemsProvider.notifier)
                                 .setSort(sortSelection.sort, newDesc: sortSelection.desc),
                             onClearFilter: () => ref.read(itemsProvider.notifier).clearFilter(),
+                            title: toolbarTitle,
+                            onBack: onToolbarBack,
                           ),
                           Expanded(
                             child: items.isEmpty && !state.hasNextPage && !state.isLoadingNextPage
@@ -218,6 +223,32 @@ class LibraryView extends HookConsumerWidget {
                                         return;
                                       }
                                       editingItemId.value = item.id;
+                                    },
+                                    onItemContextMenu: (item, _, position) async {
+                                      await showLibraryItemContextMenu(
+                                        context: context,
+                                        ref: ref,
+                                        item: item,
+                                        position: position,
+                                        canEdit: canEditItems && item.collapsedSeries == null,
+                                        canQuickMatch: canQuickMatchItems,
+                                        canDelete:
+                                            canManageBooks &&
+                                            hasDeletePermission &&
+                                            managementPreferences.deleteItemsEnabled,
+                                        canAddToCollection:
+                                            canManageBooks &&
+                                            hasUpdatePermission &&
+                                            managementPreferences.collectionsEnabled,
+                                        currentUserId: currentUser?.id,
+                                        filterData: filterDataAsync.asData?.value,
+                                        onEdit: () {
+                                          if (!selection.selectionMode && item.collapsedSeries == null) {
+                                            editingItemId.value = item.id;
+                                          }
+                                        },
+                                        onAfterDelete: () => ref.read(itemsProvider.notifier).refresh(),
+                                      );
                                     },
                                   ),
                           ),

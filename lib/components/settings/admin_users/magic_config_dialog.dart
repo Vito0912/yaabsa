@@ -3,10 +3,12 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/ui/components/settings/yaabsa_switch_tile.dart';
 import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:yaabsa/api/magic/magic_config.dart';
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:yaabsa/util/globals.dart';
 
 Future<void> showMagicConfigDialog(
@@ -251,9 +253,10 @@ class _MagicConfigDialogState extends State<_MagicConfigDialog> {
               ),
               const SizedBox(height: 16),
               if (widget.localServerUrl != null && widget.localServerUrl != widget.serverUrl)
-                DropdownButtonFormField<String>(
-                  initialValue: _selectedServerUrl,
-                  decoration: const InputDecoration(labelText: 'Server URL'),
+                YaabsaDropdownField<String>(
+                  label: 'Server URL',
+                  value: _selectedServerUrl,
+                  enabled: !_isGenerating,
                   items: [
                     DropdownMenuItem(value: widget.serverUrl, child: Text('${widget.serverUrl} (external)')),
                     DropdownMenuItem(value: widget.localServerUrl, child: Text('${widget.localServerUrl} (local)')),
@@ -274,7 +277,7 @@ class _MagicConfigDialogState extends State<_MagicConfigDialog> {
                 const SizedBox(height: 16),
               if (widget.allowPassword && widget.password != null)
                 _MagicConfigOption(
-                  child: SwitchListTile.adaptive(
+                  child: YaabsaSwitchTile.adaptive(
                     title: const Text('Include set password'),
                     subtitle: const Text(
                       'The user can sign in without typing the password and must choose a new password immediately',
@@ -294,7 +297,7 @@ class _MagicConfigDialogState extends State<_MagicConfigDialog> {
                 ),
               if (hasHeaders)
                 _MagicConfigOption(
-                  child: SwitchListTile.adaptive(
+                  child: YaabsaSwitchTile.adaptive(
                     title: const Text('Include custom headers'),
                     subtitle: Text(
                       '${widget.headers.length} saved header${widget.headers.length == 1 ? '' : 's'} will be included',

@@ -12,6 +12,7 @@ import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/app_update_checker.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class LibrarySettings extends ConsumerStatefulWidget {
   const LibrarySettings({super.key});
@@ -115,7 +116,7 @@ class _LibrarySettingsState extends ConsumerState<LibrarySettings> {
           },
           loading: () => const Padding(
             padding: EdgeInsets.all(16),
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(child: YaabsaCircularProgressIndicator()),
           ),
           error: (error, _) =>
               Padding(padding: const EdgeInsets.all(16), child: Text('Failed to load user settings: $error')),

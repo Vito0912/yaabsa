@@ -9,6 +9,8 @@ import 'package:yaabsa/provider/common/library_item_provider.dart';
 import 'package:yaabsa/provider/common/library_item_sync.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/interceptors/cache_interceptor.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/ui/components/menus/yaabsa_context_menu_button.dart';
 
 class LibraryItemFileMenu extends ConsumerStatefulWidget {
   const LibraryItemFileMenu({
@@ -160,11 +162,11 @@ class _LibraryItemFileMenuState extends ConsumerState<LibraryItemFileMenu> {
       return const SizedBox(
         width: 40,
         height: 40,
-        child: Center(child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))),
+        child: Center(child: SizedBox(width: 18, height: 18, child: YaabsaCircularProgressIndicator(strokeWidth: 2))),
       );
     }
 
-    return PopupMenuButton<String>(
+    return YaabsaContextMenuButton<String>(
       tooltip: 'File actions',
       icon: const Icon(Icons.more_vert_rounded),
       onSelected: _act,

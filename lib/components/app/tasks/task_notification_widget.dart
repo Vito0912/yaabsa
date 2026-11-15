@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/components/app/tasks/task_notification_panel.dart';
 import 'package:yaabsa/provider/core/server_tasks_provider.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class TaskNotificationWidget extends ConsumerStatefulWidget {
   const TaskNotificationWidget({super.key});
@@ -182,7 +183,7 @@ class _NotificationIconButton extends StatelessWidget {
           alignment: Alignment.center,
           children: [
             tasksRunning
-                ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.2))
+                ? const SizedBox(width: 18, height: 18, child: YaabsaCircularProgressIndicator(strokeWidth: 2.2))
                 : Icon(Icons.notifications_none_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant),
             if (hasUnseenCompletedTask)
               Positioned(

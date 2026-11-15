@@ -6,6 +6,8 @@ import 'package:yaabsa/components/common/expressive_list_tile.dart';
 import 'package:yaabsa/models/internal_download.dart';
 import 'package:yaabsa/provider/common/item_download_status_provider.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/ui/components/menus/yaabsa_context_menu_button.dart';
 
 class DownloadListTile extends ConsumerWidget {
   const DownloadListTile({
@@ -91,7 +93,7 @@ class DownloadListTile extends ConsumerWidget {
             const SizedBox(height: 10),
             ClipRRect(
               borderRadius: BorderRadius.circular(20),
-              child: LinearProgressIndicator(
+              child: YaabsaLinearProgressIndicator(
                 value: total == 0 ? 0 : (downloaded / total).clamp(0.0, 1.0),
                 minHeight: 4,
                 backgroundColor: colors.surfaceContainerHighest,
@@ -110,7 +112,7 @@ class DownloadListTile extends ConsumerWidget {
       ),
       trailing: selectionMode
           ? null
-          : PopupMenuButton<String>(
+          : YaabsaContextMenuButton<String>(
               enabled: !isDeleting,
               tooltip: 'Download actions',
               icon: const Icon(Icons.more_vert_rounded),

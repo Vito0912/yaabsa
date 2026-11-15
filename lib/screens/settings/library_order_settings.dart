@@ -8,6 +8,7 @@ import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/api/library/library.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class LibraryOrderSettings extends ConsumerWidget {
   const LibraryOrderSettings({super.key});
@@ -106,7 +107,7 @@ class LibraryOrderSettings extends ConsumerWidget {
               },
               loading: () => const Padding(
                 padding: EdgeInsets.all(16),
-                child: Center(child: CircularProgressIndicator()),
+                child: Center(child: YaabsaCircularProgressIndicator()),
               ),
               error: (error, _) =>
                   Padding(padding: const EdgeInsets.all(16), child: Text('Failed to load libraries: $error')),
@@ -114,7 +115,7 @@ class LibraryOrderSettings extends ConsumerWidget {
           },
           loading: () => const Padding(
             padding: EdgeInsets.all(16),
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(child: YaabsaCircularProgressIndicator()),
           ),
           error: (error, _) => Padding(padding: const EdgeInsets.all(16), child: Text('Failed to load user: $error')),
         ),

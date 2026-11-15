@@ -1,6 +1,7 @@
 import 'package:background_downloader/background_downloader.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/provider/common/item_download_status_provider.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class ItemDownloadIndicator extends StatelessWidget {
   const ItemDownloadIndicator({super.key, required this.status, this.size = 26});
@@ -30,7 +31,7 @@ class ItemDownloadIndicator extends StatelessWidget {
               if (running || status.percent > 0)
                 SizedBox.square(
                   dimension: size,
-                  child: CircularProgressIndicator(
+                  child: YaabsaCircularProgressIndicator(
                     value: status.percent / 100,
                     strokeWidth: 2,
                     color: IconTheme.of(context).color,

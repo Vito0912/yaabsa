@@ -16,3 +16,7 @@
 [submodule "packages/just_audio_media_kit"]
 	path = packages/just_audio_media_kit
 	url = git@github.com:Vito0912/just_audio_media_kit.git
+[submodule "yaabsa-golden"]
+	path = test/ui/goldens/baselines
+	url = git@github.com:Vito0912/yaabsa-golden.git
+	update = none

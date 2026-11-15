@@ -8,6 +8,7 @@ import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/library_view_subtitle_preferences.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class LibraryViewSubtitleSettings extends ConsumerWidget {
   const LibraryViewSubtitleSettings({super.key});
@@ -42,7 +43,7 @@ class LibraryViewSubtitleSettings extends ConsumerWidget {
           },
           loading: () => const Padding(
             padding: EdgeInsets.all(16),
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(child: YaabsaCircularProgressIndicator()),
           ),
           error: (error, _) =>
               Padding(padding: const EdgeInsets.all(16), child: Text('Failed to load view subtitle settings: $error')),

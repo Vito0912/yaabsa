@@ -73,10 +73,10 @@ class CollectionView extends HookConsumerWidget {
             .toList(growable: false);
 
         return ManagedMultiBookView(
-          title: 'Collections',
           createLabel: 'New collection',
           emptyTitle: 'No collections yet.',
           emptyMessage: 'Create one to group books you want to revisit together.',
+          emptyIcon: Icons.collections_bookmark_outlined,
           onCreate: canCreateCollections
               ? () => _createCollection(context: context, ref: ref, libraryId: libraryId)
               : null,

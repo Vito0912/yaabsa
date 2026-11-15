@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class TextboxButton extends StatelessWidget {
   const TextboxButton({
@@ -16,18 +17,19 @@ class TextboxButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final buttonChild = isLoading
-        ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+        ? SizedBox(
+            width: 16,
+            height: 16,
+            child: YaabsaCircularProgressIndicator(strokeWidth: 2, color: colorScheme.onPrimary),
+          )
         : Icon(icon);
 
     return SizedBox(
       height: 52,
-      child: ElevatedButton(
+      child: FilledButton(
         onPressed: isLoading ? null : onPressed,
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
         child: Row(mainAxisSize: MainAxisSize.min, spacing: 8, children: [buttonChild, Text(label)]),
       ),
     );

@@ -5,6 +5,8 @@ import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:yaabsa/features/settings/widgets/settings_slider_presentation.dart';
+import 'package:yaabsa/features/settings/widgets/settings_control_status_presentation.dart';
 
 class SettingSlider<T> extends ConsumerWidget {
   final String label;
@@ -59,7 +61,7 @@ class SettingSlider<T> extends ConsumerWidget {
               .read(settingsManagerProvider.notifier)
               .getUserSetting<T>(userId, settingKey, defaultValue: defaultValueDynamic);
           final currentValue = SettingsParser.decodeValue<T>(snapshot.data?.value, fallbackValue);
-          return _buildSliderContent(context, ref, currentValue, theme, textTheme);
+          return _buildSliderContent(ref, currentValue);
         },
       );
     }
@@ -72,7 +74,7 @@ class SettingSlider<T> extends ConsumerWidget {
         if (defaultValueDynamic is! T) {
           if (values.isNotEmpty && defaultValueDynamic == null) {
             final T currentValue = SettingsParser.decodeValue<T>(stringValue, values.first);
-            return _buildSliderContent(context, ref, currentValue, theme, textTheme);
+            return _buildSliderContent(ref, currentValue);
           }
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
@@ -84,212 +86,41 @@ class SettingSlider<T> extends ConsumerWidget {
         }
         final T defaultValue = defaultValueDynamic;
         final T currentValue = SettingsParser.decodeValue<T>(stringValue, defaultValue);
-        return _buildSliderContent(context, ref, currentValue, theme, textTheme);
+        return _buildSliderContent(ref, currentValue);
       },
-      loading: () => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Flexible(
-              child: Text(
-                label,
-                style: textTheme.titleMedium?.copyWith(color: theme.disabledColor),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-              ),
-            ),
-            const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.5)),
-          ],
-        ),
-      ),
-      error: (error, stackTrace) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Flexible(
-              child: Text(
-                label,
-                style: textTheme.titleMedium?.copyWith(color: theme.colorScheme.error),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-              ),
-            ),
-            Icon(Icons.error_outline, color: theme.colorScheme.error, size: 22),
-          ],
-        ),
-      ),
+      loading: () => SettingsControlStatusPresentation(label: label, state: SettingsControlLoadState.loading),
+      error: (error, stackTrace) =>
+          SettingsControlStatusPresentation(label: label, state: SettingsControlLoadState.error),
     );
   }
 
-  Widget _buildSliderContent(
-    BuildContext context,
-    WidgetRef ref,
-    T currentValue,
-    ThemeData theme,
-    TextTheme textTheme,
-  ) {
-    if (values.isEmpty || valueLabels.isEmpty || values.length != valueLabels.length) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
-        child: Text(
-          'Configuration error for slider: $label',
-          style: textTheme.bodyMedium?.copyWith(color: theme.colorScheme.error),
-        ),
-      );
-    }
-
-    final colorScheme = theme.colorScheme;
-    final int currentIndex = values.indexOf(currentValue);
-    final int safeIndex = currentIndex >= 0 && currentIndex < values.length ? currentIndex : 0;
-    final String currentDisplayValue = valueLabels[safeIndex];
-    final isEnabled = enabled;
-
+  Widget _buildSliderContent(WidgetRef ref, T currentValue) {
     final details = <String>[
       if (description != null && description!.isNotEmpty) description!,
       if (!enabled && disabledReason != null && disabledReason!.isNotEmpty) disabledReason!,
     ];
     final subtitleText = details.isEmpty ? null : details.join('\n');
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 14.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      label,
-                      style: textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w500,
-                        color: isEnabled ? colorScheme.onSurface : colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
-                      ),
-                    ),
-                    if (subtitleText != null) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        subtitleText,
-                        style: textTheme.bodySmall?.copyWith(
-                          color: isEnabled
-                              ? colorScheme.onSurfaceVariant
-                              : colorScheme.onSurfaceVariant.withValues(alpha: 0.38),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              const SizedBox(width: 16),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (icon != null && tooltip != null)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8.0),
-                      child: Tooltip(
-                        message: tooltip!,
-                        child: Icon(icon, size: 20, color: colorScheme.onSurfaceVariant),
-                      ),
-                    ),
-                  Text(
-                    currentDisplayValue,
-                    style: textTheme.bodyMedium?.copyWith(
-                      color: isEnabled ? colorScheme.primary : theme.disabledColor,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          if (values.length > 1) ...[
-            SliderTheme(
-              data: SliderTheme.of(context).copyWith(
-                activeTrackColor: colorScheme.primary,
-                inactiveTrackColor: colorScheme.primaryContainer,
-                thumbColor: colorScheme.primary,
-                overlayColor: colorScheme.primary.withValues(alpha: 0.12),
-                valueIndicatorTextStyle: textTheme.labelSmall?.copyWith(color: colorScheme.onPrimary),
-                valueIndicatorColor: colorScheme.primary,
-              ),
-              child: Slider(
-                min: 0,
-                max: (values.length - 1).toDouble(),
-                divisions: values.length - 1,
-                value: safeIndex.toDouble(),
-                label: valueLabels[safeIndex],
-                onChanged: isEnabled
-                    ? (double newIndex) {
-                        final T newValue = values[newIndex.round()];
-                        final settings = ref.read(settingsManagerProvider.notifier);
-                        if (userId == null) {
-                          unawaited(settings.setGlobalSetting<T>(settingKey, newValue));
-                        } else {
-                          unawaited(settings.setUserSetting<T>(userId, settingKey, newValue));
-                        }
-                        onChanged?.call(newValue);
-                      }
-                    : null,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    valueLabels.first,
-                    style: textTheme.labelSmall?.copyWith(
-                      color: isEnabled
-                          ? colorScheme.onSurfaceVariant
-                          : colorScheme.onSurfaceVariant.withValues(alpha: 0.38),
-                    ),
-                  ),
-                  if (valueLabels.length > 2 && valueLabels.length.isOdd)
-                    Text(
-                      valueLabels[(valueLabels.length ~/ 2)],
-                      style: textTheme.labelSmall?.copyWith(
-                        color: isEnabled
-                            ? colorScheme.onSurfaceVariant
-                            : colorScheme.onSurfaceVariant.withValues(alpha: 0.38),
-                      ),
-                    ),
-                  if (valueLabels.length > 1)
-                    Text(
-                      valueLabels.last,
-                      style: textTheme.labelSmall?.copyWith(
-                        color: isEnabled
-                            ? colorScheme.onSurfaceVariant
-                            : colorScheme.onSurfaceVariant.withValues(alpha: 0.38),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ] else if (values.length == 1) ...[
-            Padding(
-              padding: const EdgeInsets.only(top: 8.0),
-              child: Text(
-                valueLabels.first,
-                style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
-              ),
-            ),
-          ],
-        ],
-      ),
+    return SettingsSliderPresentation<T>(
+      label: label,
+      description: subtitleText,
+      icon: icon,
+      tooltip: tooltip,
+      values: values,
+      valueLabels: valueLabels,
+      value: currentValue,
+      enabled: enabled,
+      onChanged: enabled
+          ? (newValue) {
+              final settings = ref.read(settingsManagerProvider.notifier);
+              if (userId == null) {
+                unawaited(settings.setGlobalSetting<T>(settingKey, newValue));
+              } else {
+                unawaited(settings.setUserSetting<T>(userId, settingKey, newValue));
+              }
+              onChanged?.call(newValue);
+            }
+          : null,
     );
   }
 }

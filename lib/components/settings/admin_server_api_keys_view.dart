@@ -6,12 +6,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/api/admin/admin_api_key.dart';
 import 'package:yaabsa/api/admin/session_user_summary.dart';
-import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:yaabsa/components/common/list_management_dialogs.dart';
 import 'package:yaabsa/components/settings/api_keys/admin_api_key_form_dialog.dart';
 import 'package:yaabsa/components/settings/api_keys/admin_api_key_table.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class AdminServerApiKeysView extends ConsumerStatefulWidget {
   const AdminServerApiKeysView({super.key});
@@ -499,7 +500,7 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
                     ? () => _createApiKey(currentUserId: currentUserId, isRootUser: isRootUser)
                     : null,
                 icon: _isCreating
-                    ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                    ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                     : const Icon(Icons.vpn_key_rounded),
               ),
             ],
@@ -535,7 +536,7 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
               ? () => _createApiKey(currentUserId: currentUserId, isRootUser: isRootUser)
               : null,
           icon: _isCreating
-              ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+              ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
               : const Icon(Icons.add_rounded),
           label: const Text('Add API Key'),
         ),
@@ -609,7 +610,7 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
             children: [
               if (_isLoading && _apiKeys.isNotEmpty) ...[
                 const SizedBox(height: 8),
-                const LinearProgressIndicator(minHeight: 2),
+                const YaabsaLinearProgressIndicator(minHeight: 2),
               ],
               const SizedBox(height: 10),
               _buildErrorCard(),
@@ -640,7 +641,11 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
                                 unawaited(_bulkDeleteSelectedApiKeys());
                               },
                         icon: _isBulkDeleting
-                            ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                            ? const SizedBox(
+                                width: 14,
+                                height: 14,
+                                child: YaabsaCircularProgressIndicator(strokeWidth: 2),
+                              )
                             : const Icon(Icons.delete_outline_rounded),
                         label: const Text('Delete Selected'),
                       ),
@@ -674,7 +679,7 @@ class _AdminServerApiKeysViewState extends ConsumerState<AdminServerApiKeysView>
       },
       loading: () => const Padding(
         padding: EdgeInsets.all(32.0),
-        child: Center(child: CircularProgressIndicator()),
+        child: Center(child: YaabsaCircularProgressIndicator()),
       ),
       error: (error, _) => Padding(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),

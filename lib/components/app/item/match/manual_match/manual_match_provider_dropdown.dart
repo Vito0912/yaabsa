@@ -1,7 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/search/search_provider_option.dart';
 import 'package:yaabsa/util/globals.dart';
-import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 
 class ManualMatchProviderDropdown extends StatelessWidget {
   const ManualMatchProviderDropdown({

@@ -10,6 +10,7 @@ import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/components/player/common/cast_button.dart';
 import 'package:yaabsa/components/player/common/stop_button.dart';
 import 'package:yaabsa/database/settings_manager.dart';
+import 'package:yaabsa/ui/components/settings/settings_switch_presentation.dart';
 import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/components/player/common/bookmarks_button.dart';
@@ -38,6 +39,8 @@ import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/ui/components/menus/yaabsa_context_menu_button.dart';
 
 enum _PlayerAppBarMenuAction { queue, stop, addBookmark, carMode, playHistory, cast, equalizer, restartSession }
 
@@ -722,7 +725,7 @@ class _PlayerState extends ConsumerState<Player> {
               tooltip: 'Exit edit mode',
             ),
             actions: <Widget>[
-              PopupMenuButton<PlayerComponentType>(
+              YaabsaContextMenuButton<PlayerComponentType>(
                 enabled: hiddenComponents.isNotEmpty,
                 tooltip: 'Add component',
                 icon: const Icon(Icons.add_box_rounded),
@@ -818,7 +821,7 @@ class _PlayerState extends ConsumerState<Player> {
               ),
               if (!isMobile && castSupported) const CastButton(),
               if (isCustomMode) const StopButton(),
-              PopupMenuButton<_PlayerAppBarMenuAction>(
+              YaabsaContextMenuButton<_PlayerAppBarMenuAction>(
                 tooltip: 'More options',
                 icon: const Icon(Icons.more_vert),
                 onSelected: (_PlayerAppBarMenuAction action) async {
@@ -864,7 +867,7 @@ class _PlayerState extends ConsumerState<Player> {
                 initialData: audioHandler.currentMediaItem,
                 builder: (BuildContext context, AsyncSnapshot<InternalMedia?> mediaSnapshot) {
                   if (mediaSnapshot.connectionState == ConnectionState.waiting && mediaSnapshot.data == null) {
-                    return const Center(child: CircularProgressIndicator());
+                    return const Center(child: YaabsaCircularProgressIndicator());
                   }
 
                   final media = mediaSnapshot.data;
@@ -975,7 +978,7 @@ class _PlayerTransitionLoadingView extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           const RepaintBoundary(
-            child: SizedBox(width: 28, height: 28, child: CircularProgressIndicator(strokeWidth: 2.6)),
+            child: SizedBox(width: 28, height: 28, child: YaabsaCircularProgressIndicator(strokeWidth: 2.6)),
           ),
           const SizedBox(height: 10),
           Text('Loading next item...', style: Theme.of(context).textTheme.bodyMedium),
@@ -1226,9 +1229,9 @@ class _PlayerQuickSettingsSheet extends ConsumerWidget {
                 ),
               ],
               const SizedBox(height: 8),
-              SwitchListTile(
+              SettingsSwitchPresentation(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Immersive player colors'),
+                label: 'Immersive player colors',
                 value: immersiveColors,
                 onChanged: (value) {
                   settingsManager.setGlobalSetting<bool>(SettingKeys.playerImmersiveColors, value);

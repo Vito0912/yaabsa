@@ -19,6 +19,7 @@ import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/download_destination.dart';
 import 'package:yaabsa/util/globals.dart' show downloadHandler;
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class DownloadSettings extends ConsumerStatefulWidget {
   const DownloadSettings({super.key});
@@ -232,7 +233,7 @@ class _DownloadSettingsState extends ConsumerState<DownloadSettings> {
               },
               loading: () => const Padding(
                 padding: EdgeInsets.all(16),
-                child: Center(child: CircularProgressIndicator()),
+                child: Center(child: YaabsaCircularProgressIndicator()),
               ),
               error: (error, _) =>
                   Padding(padding: const EdgeInsets.all(16), child: Text('Failed to load download settings: $error')),

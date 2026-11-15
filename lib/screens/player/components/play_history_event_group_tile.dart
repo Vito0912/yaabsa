@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/util/audio_handler/player_history_handler.dart';
 import 'package:yaabsa/util/extensions.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class LocalHistoryEventGroup {
   LocalHistoryEventGroup({required this.type, required this.entries}) : assert(entries.isNotEmpty);
@@ -126,7 +127,7 @@ class _HistoryEventRow extends StatelessWidget {
               visualDensity: VisualDensity.compact,
               onPressed: pending ? null : () => onPlayFromHere(entry),
               icon: pending
-                  ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                  ? const SizedBox.square(dimension: 18, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                   : const Icon(Icons.play_arrow_rounded),
             ),
           ],
@@ -170,7 +171,7 @@ class PlayHistoryGroupedEventDetail extends StatelessWidget {
               visualDensity: VisualDensity.compact,
               onPressed: pending ? null : () => onPlayFromHere(entry),
               icon: pending
-                  ? const SizedBox.square(dimension: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                  ? const SizedBox.square(dimension: 16, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                   : const Icon(Icons.play_arrow_rounded, size: 20),
             ),
         ],

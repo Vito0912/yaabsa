@@ -8,6 +8,7 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/item_formatters.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class ItemBookStatsCard extends ConsumerStatefulWidget {
   const ItemBookStatsCard({
@@ -236,7 +237,7 @@ class _ItemBookStatsCardState extends ConsumerState<ItemBookStatsCard> {
         if (_isLoading)
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 24),
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(child: YaabsaCircularProgressIndicator()),
           )
         else if (_errorMessage != null)
           Padding(

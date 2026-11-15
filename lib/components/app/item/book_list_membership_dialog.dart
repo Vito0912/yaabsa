@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show setEquals;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/common/paged_list_footer.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class BookListMembershipDialog<T> extends StatefulWidget {
   const BookListMembershipDialog({
@@ -11,7 +12,6 @@ class BookListMembershipDialog<T> extends StatefulWidget {
     required this.entries,
     required this.allowed,
     required this.plural,
-    required this.bookTitle,
     required this.id,
     required this.name,
     required this.membership,
@@ -25,12 +25,13 @@ class BookListMembershipDialog<T> extends StatefulWidget {
     this.onLoadMore,
     this.sameRevision,
     this.canRetryEntry,
+    this.createEntryLabel,
+    this.onCreateEntry,
   });
 
   final AsyncValue<List<T>> entries;
   final bool allowed;
   final String plural;
-  final String bookTitle;
   final String Function(T) id;
   final String Function(T) name;
   final bool? Function(T) membership;
@@ -44,6 +45,8 @@ class BookListMembershipDialog<T> extends StatefulWidget {
   final Future<void> Function()? onLoadMore;
   final bool Function(T original, T current)? sameRevision;
   final bool Function(T entry)? canRetryEntry;
+  final String? createEntryLabel;
+  final Future<bool> Function()? onCreateEntry;
 
   @override
   State<BookListMembershipDialog<T>> createState() => _BookListMembershipDialogState<T>();
@@ -59,6 +62,7 @@ class _BookListMembershipDialogState<T> extends State<BookListMembershipDialog<T
   Set<String> _initialSelected = {};
   bool _saving = false;
   bool _reloading = false;
+  bool _loadingMore = false;
   String? _error;
 
   void _reconcileEntries(List<T> entries) {
@@ -217,10 +221,53 @@ class _BookListMembershipDialogState<T> extends State<BookListMembershipDialog<T
     }
   }
 
+  Future<void> _createEntry() async {
+    final createEntry = widget.onCreateEntry;
+    if (!widget.allowed || _saving || createEntry == null) {
+      return;
+    }
+
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+
+    try {
+      final created = await createEntry();
+      if (created && mounted) {
+        Navigator.of(context).pop(true);
+      }
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _error = error.toString();
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _saving = false;
+        });
+      }
+    }
+  }
+
   void _loadMore() {
+    unawaited(_loadMoreAsync());
+  }
+
+  Future<void> _loadMoreAsync() async {
     final load = widget.onLoadMore;
-    if (load != null && !_saving && !_reloading && !widget.isLoadingNextPage) {
-      unawaited(load());
+    if (load == null || _saving || _reloading || _loadingMore || widget.isLoadingNextPage) {
+      return;
+    }
+
+    _loadingMore = true;
+    try {
+      await load();
+    } finally {
+      await WidgetsBinding.instance.endOfFrame;
+      _loadingMore = false;
     }
   }
 
@@ -251,7 +298,7 @@ class _BookListMembershipDialogState<T> extends State<BookListMembershipDialog<T
 
     Widget content;
     if (loading && _original == null) {
-      content = const Center(child: CircularProgressIndicator());
+      content = const Center(child: YaabsaCircularProgressIndicator());
     } else if (loadFailed || data == null) {
       content = Center(
         child: Column(
@@ -317,13 +364,25 @@ class _BookListMembershipDialogState<T> extends State<BookListMembershipDialog<T
     return PopScope(
       canPop: !_saving,
       child: AlertDialog(
-        title: Text('Manage ${widget.plural}: ${widget.bookTitle}'),
+        title: Text('Manage ${widget.plural}'),
         content: SizedBox(
           width: 520,
           height: MediaQuery.sizeOf(context).height * 0.55,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              if (widget.onCreateEntry != null)
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: OutlinedButton.icon(
+                      onPressed: allowed && !_saving && !loading ? _createEntry : null,
+                      icon: const Icon(Icons.add_rounded),
+                      label: Text(widget.createEntryLabel ?? 'Create'),
+                    ),
+                  ),
+                ),
               if (!allowed) const Text('Editing is not allowed.'),
               if (_conflictedIds.isNotEmpty)
                 TextButton(onPressed: _saving || loading ? null : _reviewUpdates, child: const Text('Review updates')),
@@ -339,7 +398,7 @@ class _BookListMembershipDialogState<T> extends State<BookListMembershipDialog<T
                   ),
                 ),
               Expanded(flex: 3, child: content),
-              if (_saving) const LinearProgressIndicator(),
+              if (_saving) const YaabsaLinearProgressIndicator(),
             ],
           ),
         ),

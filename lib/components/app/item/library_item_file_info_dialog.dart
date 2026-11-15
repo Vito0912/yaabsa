@@ -8,6 +8,7 @@ import 'package:yaabsa/api/library_items/audio_file.dart';
 import 'package:yaabsa/components/common/list_management_dialogs.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/item_formatters.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class LibraryItemFileInfoDialog extends ConsumerStatefulWidget {
   const LibraryItemFileInfoDialog({super.key, required this.itemId, required this.audioFile});
@@ -115,7 +116,7 @@ class _LibraryItemFileInfoDialogState extends ConsumerState<LibraryItemFileInfoD
               ],
               const SizedBox(height: 12),
               if (_error != null) Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
-              if (_loading) const LinearProgressIndicator(),
+              if (_loading) const YaabsaLinearProgressIndicator(),
               if (probe != null) ...[
                 Text('FFprobe data', style: Theme.of(context).textTheme.titleSmall),
                 const SizedBox(height: 8),

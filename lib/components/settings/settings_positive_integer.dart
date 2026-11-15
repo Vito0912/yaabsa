@@ -1,3 +1,4 @@
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
@@ -53,21 +54,18 @@ class _SettingPositiveIntegerState extends ConsumerState<SettingPositiveInteger>
     }
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      child: TextField(
+      child: StyledTextField(
         controller: _controller,
         enabled: widget.enabled,
         keyboardType: TextInputType.number,
         inputFormatters: [FilteringTextInputFormatter.digitsOnly],
         onSubmitted: (_) => _save(),
-        decoration: InputDecoration(
-          labelText: widget.label,
-          errorText: _error,
-          border: const OutlineInputBorder(),
-          suffixIcon: IconButton(
-            tooltip: 'Save',
-            onPressed: widget.enabled ? _save : null,
-            icon: const Icon(Icons.check),
-          ),
+        label: widget.label,
+        errorText: _error,
+        suffixIcon: IconButton(
+          tooltip: 'Save',
+          onPressed: widget.enabled ? _save : null,
+          icon: const Icon(Icons.check),
         ),
       ),
     );

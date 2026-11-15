@@ -69,10 +69,10 @@ packages:
     dependency: transitive
     description:
       name: archive
-      sha256: de5ac590b8155e4e676088d714bd41ea620449a6adc0f7950c5073874b287ddb
+      sha256: "2fda90592c0afd219c5e285618a98da835cd10df38372666093d25dfe457a2d0"
       url: "https://pub.dev"
     source: hosted
-    version: "4.6.0"
+    version: "4.7.1"
   args:
     dependency: transitive
     description:
@@ -469,14 +469,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.35.3"
+  dynamic_color:
+    dependency: transitive
+    description:
+      name: dynamic_color
+      sha256: "869b3bce0100eb519768ecd71c0111f0b5ea679f5f62e1f59c49d80067e730c5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.0"
   equatable:
     dependency: transitive
     description:
       name: equatable
-      sha256: ea36e500cbf0ec18361deabca755434f73e42fe53c5130021c7e2d6b5ebe1702
+      sha256: "3bce007a596ff8b3119c45d68aaef631272537c03d30e5d4534dd24bf4c5eaa2"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.0"
+    version: "2.1.0"
   fading_edge_scrollview:
     dependency: transitive
     description:
@@ -996,10 +1004,10 @@ packages:
     dependency: transitive
     description:
       name: image
-      sha256: "89ed75b2f8231fe676808c5564f9590d728024ded7ac782a7ed8474f1c95b72a"
+      sha256: "19d2aafa92672df0edf30303c1aa82e6c74ef4e7cdc8676198ecbf5693941de0"
       url: "https://pub.dev"
     source: hosted
-    version: "4.12.0"
+    version: "4.13.0"
   intl:
     dependency: "direct main"
     description:
@@ -1172,6 +1180,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.3.0"
+  marionette_flutter:
+    dependency: "direct main"
+    description:
+      name: marionette_flutter
+      sha256: f74b192ddd7e486b026203caa35b5a5d0c515de023e73958ba2035531c0a62bf
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.7.0"
+  marionette_mcp:
+    dependency: "direct dev"
+    description:
+      name: marionette_mcp
+      sha256: b24c595b2e9f195c9e86cbdead507d583c8d5699e0b2cc9cfe7b488d5d0ca36a
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.7.0"
   markdown:
     dependency: transitive
     description:
@@ -1196,6 +1220,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.12.20"
+  material_3_expressive:
+    dependency: "direct main"
+    description:
+      name: material_3_expressive
+      sha256: "34241ba9930dd3e6d401f8e0062c62281a0538562575a7d2b9318303fed460e5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.1"
   material_color_utilities:
     dependency: transitive
     description:
@@ -1204,6 +1236,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.13.0"
+  material_new_shapes:
+    dependency: transitive
+    description:
+      name: material_new_shapes
+      sha256: e4bc375205e187e8fb232573387112dd8c0dd45b03af8aa2b3c79eb4b9e3e0dc
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   material_ui:
     dependency: "direct main"
     description:
@@ -1212,6 +1252,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.11.0"
+  mcp_dart:
+    dependency: transitive
+    description:
+      name: mcp_dart
+      sha256: af0b2e25412f70440c881314a0b70a56ef87fd090b3eb71f31c356313096e6f5
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.4.3"
   media_kit:
     dependency: transitive
     description:
@@ -1261,6 +1309,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.5.0"
+  motor:
+    dependency: transitive
+    description:
+      name: motor
+      sha256: cbd49f21b00e568c2b1a55f134ed803614a107782f4fea7769693bca32940c58
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.0"
   native_dio_adapter:
     dependency: "direct main"
     description:
@@ -1401,34 +1457,34 @@ packages:
     dependency: transitive
     description:
       name: pdfium_dart
-      sha256: "3e250021b2f462058aae216837902fdc8b2cb7f0657e4ec2bc9ac541f960ff84"
+      sha256: caf60231f755418e66e76ad0699503b09b03bd8bd8949f1c7a532239c80d7531
       url: "https://pub.dev"
     source: hosted
-    version: "0.4.1"
+    version: "0.4.2"
   pdfium_flutter:
     dependency: transitive
     description:
       name: pdfium_flutter
-      sha256: "4d18e6181aa87200750aa4fc607c870f957731b1de9252c2ea19627c19109388"
+      sha256: "4b98ef6d86ada59ad99abd07cf90871929fa733677d6fbcac83a4f575e759ac3"
       url: "https://pub.dev"
     source: hosted
-    version: "0.4.1"
+    version: "0.4.2"
   pdfrx:
     dependency: "direct main"
     description:
       name: pdfrx
-      sha256: b3bd49fd0918ba7f807ceb0860f4110c346fc70dd96bd68b992418cf17f97650
+      sha256: "98041d7076304542d047ada21cd759994ebb097a98f2949be79ddf07b13f006b"
       url: "https://pub.dev"
     source: hosted
-    version: "2.12.0"
+    version: "2.12.1"
   pdfrx_engine:
     dependency: transitive
     description:
       name: pdfrx_engine
-      sha256: "4f86165b90c8ae7647747e2d2f9880727f0480caab976a712de1c95076c48762"
+      sha256: "67faaaac9de5d0e76c3f5742d943e13731c70a5e3fdabf59e0c9049b10a1c5da"
       url: "https://pub.dev"
     source: hosted
-    version: "0.9.1"
+    version: "0.9.2"
   permission_handler:
     dependency: transitive
     description:

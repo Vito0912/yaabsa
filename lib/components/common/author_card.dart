@@ -2,6 +2,7 @@ import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/components/common/cover_loading_placeholder.dart';
+import 'package:yaabsa/features/library/widgets/library_entity_list_card.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 
@@ -29,53 +30,20 @@ class AuthorCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final imageSize = compact ? (context.isMobile ? 54.0 : 58.0) : (context.isMobile ? 64.0 : 72.0);
     final titleStyle = compact ? Theme.of(context).textTheme.bodyLarge : Theme.of(context).textTheme.titleMedium;
-    final subtitleStyle = Theme.of(context).textTheme.bodySmall;
-
-    final cardChild = Padding(
-      padding: EdgeInsets.symmetric(horizontal: compact ? 10 : 12, vertical: compact ? 8 : 10),
-      child: Row(
-        children: [
-          AuthorImage(authorId: authorId, imagePath: imagePath, width: imageSize, height: imageSize, borderRadius: 12),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(name, maxLines: 2, overflow: TextOverflow.ellipsis, style: titleStyle),
-                if (subtitle != null && subtitle!.trim().isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle!.trim(),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: subtitleStyle?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                  ),
-                ],
-                if (description != null && description!.trim().isNotEmpty && !compact) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    description!.trim(),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: subtitleStyle?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          if (onTap != null) ...[
-            const SizedBox(width: 6),
-            Icon(Icons.chevron_right_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant),
-          ],
-        ],
+    return LibraryEntityListCard(
+      leading: AuthorImage(
+        authorId: authorId,
+        imagePath: imagePath,
+        width: imageSize,
+        height: imageSize,
+        borderRadius: 12,
       ),
-    );
-
-    return Card(
-      margin: EdgeInsets.zero,
-      clipBehavior: Clip.antiAlias,
-      child: onTap == null ? cardChild : InkWell(onTap: onTap, child: cardChild),
+      title: name,
+      subtitle: subtitle,
+      description: description,
+      titleStyle: titleStyle,
+      compact: compact,
+      onTap: onTap,
     );
   }
 }

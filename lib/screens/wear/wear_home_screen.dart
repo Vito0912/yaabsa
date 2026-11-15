@@ -5,6 +5,7 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/wear/components/wear_ambient_view.dart';
 import 'package:yaabsa/screens/wear/wear_pairing_screen.dart';
 import 'package:yaabsa/screens/wear/wear_player_screen.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class WearHomeScreen extends ConsumerWidget {
   const WearHomeScreen({super.key});
@@ -29,7 +30,7 @@ class WearHomeScreen extends ConsumerWidget {
                   return const WearAmbientView();
                 }
 
-                return const Scaffold(body: Center(child: CircularProgressIndicator(strokeWidth: 2)));
+                return const Scaffold(body: Center(child: YaabsaCircularProgressIndicator(strokeWidth: 2)));
               },
               error: (_, _) => WearPairingScreen(isAmbient: mode == WearMode.ambient),
             );

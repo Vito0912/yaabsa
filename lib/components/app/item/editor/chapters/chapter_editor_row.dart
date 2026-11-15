@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/app/item/editor/chapters/chapter_editor_draft.dart';
-import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
+import 'package:yaabsa/ui/components/menus/yaabsa_context_menu_button.dart';
 
 class ChapterEditorRow extends StatefulWidget {
   const ChapterEditorRow({
@@ -118,7 +119,7 @@ class _ChapterEditorRowState extends State<ChapterEditorRow> {
           tooltip: widget.isPreviewing ? 'Stop preview' : 'Preview up to 20 seconds. Pauses playback.',
           icon: Icon(widget.isPreviewing ? Icons.stop_rounded : Icons.play_arrow_rounded, size: 20),
         ),
-        PopupMenuButton<String>(
+        YaabsaContextMenuButton<String>(
           enabled: widget.enabled,
           tooltip: 'Chapter actions',
           onSelected: (action) {

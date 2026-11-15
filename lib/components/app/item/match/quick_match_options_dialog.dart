@@ -6,6 +6,8 @@ import 'package:yaabsa/api/search/search_provider_option.dart';
 import 'package:yaabsa/components/app/item/match/manual_match/manual_match_provider_dropdown.dart';
 import 'package:yaabsa/components/app/item/match/quick_match_preview_dialog.dart';
 import 'package:yaabsa/provider/common/upload_providers.dart';
+import 'package:yaabsa/ui/components/settings/settings_switch_presentation.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 Future<QuickMatchLibraryItemOptions?> showQuickMatchOptionsDialog({
   required BuildContext context,
@@ -154,7 +156,7 @@ class _QuickMatchOptionsDialogState extends ConsumerState<QuickMatchOptionsDialo
                 padding: EdgeInsets.symmetric(vertical: 8),
                 child: Row(
                   children: [
-                    SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.2)),
+                    SizedBox(width: 18, height: 18, child: YaabsaCircularProgressIndicator(strokeWidth: 2.2)),
                     SizedBox(width: 10),
                     Text('Loading providers...'),
                   ],
@@ -182,22 +184,22 @@ class _QuickMatchOptionsDialogState extends ConsumerState<QuickMatchOptionsDialo
               },
             ),
             const SizedBox(height: 8),
-            SwitchListTile(
+            SettingsSwitchPresentation(
               value: _overrideDetails,
+              label: 'Overwrite current metadata',
               contentPadding: EdgeInsets.zero,
-              title: const Text('Overwrite current metadata'),
-              subtitle: const Text('Replace existing title, author, description, and related fields.'),
+              description: 'Replace existing title, author, description, and related fields.',
               onChanged: (value) {
                 setState(() {
                   _overrideDetails = value;
                 });
               },
             ),
-            SwitchListTile(
+            SettingsSwitchPresentation(
               value: _overrideCover,
+              label: 'Overwrite cover image',
               contentPadding: EdgeInsets.zero,
-              title: const Text('Overwrite cover image'),
-              subtitle: const Text('Replace current cover artwork when a match provides one.'),
+              description: 'Replace current cover artwork when a match provides one.',
               onChanged: (value) {
                 setState(() {
                   _overrideCover = value;

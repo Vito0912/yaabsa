@@ -24,6 +24,7 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 Future<bool> showLibraryItemManualMatchDialog({
   required BuildContext context,
@@ -1109,7 +1110,7 @@ class _LibraryItemManualMatchViewState extends ConsumerState<LibraryItemManualMa
               FilledButton.icon(
                 onPressed: _saving || _selectedResult == null ? null : _saveSelection,
                 icon: _saving
-                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2.2))
+                    ? const SizedBox(width: 16, height: 16, child: YaabsaCircularProgressIndicator(strokeWidth: 2.2))
                     : const Icon(Icons.save_rounded),
                 label: Text(_saving ? 'Saving...' : 'Save matched fields'),
               ),

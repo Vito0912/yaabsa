@@ -7,6 +7,8 @@ import 'package:yaabsa/components/app/downloads/download_files_sheet.dart';
 import 'package:yaabsa/components/app/downloads/download_activity_indicator.dart';
 export 'package:yaabsa/components/app/downloads/download_activity_indicator.dart';
 import 'package:yaabsa/util/globals.dart' show downloadHandler;
+import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class ItemDownloadBadges extends ConsumerWidget {
   const ItemDownloadBadges({super.key, required this.itemId, this.episodeId, this.sequenceBadge});
@@ -106,45 +108,59 @@ class _ItemDownloadButtonState extends ConsumerState<ItemDownloadButton> {
         ref.watch(downloadAvailabilityProvider.select((value) => value.value?[(widget.itemId, widget.episodeId)])) ??
         (count: 0, total: 0, complete: widget.isDownloaded);
     final partial = availability.total > 0 && !availability.complete;
-    return IconButton.filledTonal(
-      onPressed: _isCanceling
-          ? null
-          : status != null
-          ? _cancelDownload
-          : partial
-          ? () => showDownloadFiles(context, widget.itemId, episodeId: widget.episodeId)
-          : (widget.isDownloaded ? widget.onDeleteDownload : widget.onDownload),
+    final iconWidget = status != null
+        ? Row(
+            mainAxisSize: MainAxisSize.min,
+            spacing: 4,
+            children: [
+              RepaintBoundary(child: ItemDownloadIndicator(status: status)),
+              const Icon(Icons.close_rounded, size: 18),
+            ],
+          )
+        : partial
+        ? SizedBox.square(
+            dimension: 26,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                YaabsaCircularProgressIndicator(
+                  value: availability.total == 0 ? 0 : (availability.count / availability.total).clamp(0.0, 1.0),
+                  strokeWidth: 2,
+                  backgroundColor: Theme.of(context).colorScheme.outlineVariant,
+                ),
+                const Icon(Icons.download_rounded, size: 16),
+              ],
+            ),
+          )
+        : null;
+    final icon = status != null || partial
+        ? null
+        : (widget.isDownloaded ? Icons.delete_outline_rounded : Icons.download_rounded);
+
+    if (widget.isDownloaded && status == null && !partial) {
+      return YaabsaDeleteIconButton(
+        tooltip: 'Delete download',
+        onPressed: widget.onDeleteDownload,
+        enabled: !_isCanceling,
+      );
+    }
+
+    return YaabsaActionIconButton(
+      icon: icon,
+      iconWidget: iconWidget,
       tooltip: status != null
           ? 'Cancel download'
           : partial
           ? '${availability.count} of ${availability.total} files offline. Manage files'
           : (widget.isDownloaded ? 'Delete download' : 'Download'),
-      icon: status != null
-          ? Row(
-              mainAxisSize: MainAxisSize.min,
-              spacing: 4,
-              children: [
-                RepaintBoundary(child: ItemDownloadIndicator(status: status)),
-                const Icon(Icons.close_rounded, size: 18),
-              ],
-            )
+      variant: YaabsaActionButtonVariant.filledTonal,
+      shape: YaabsaActionButtonShape.rounded,
+      enabled: !_isCanceling,
+      onPressed: status != null
+          ? _cancelDownload
           : partial
-          ? SizedBox.square(
-              dimension: 26,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  CircularProgressIndicator(
-                    value: availability.total == 0 ? 0 : (availability.count / availability.total).clamp(0.0, 1.0),
-                    strokeWidth: 2,
-                    backgroundColor: Theme.of(context).colorScheme.outlineVariant,
-                  ),
-                  const Icon(Icons.download_rounded, size: 16),
-                ],
-              ),
-            )
-          : Icon(widget.isDownloaded ? Icons.delete_outline_rounded : Icons.download_rounded),
-      visualDensity: VisualDensity.compact,
+          ? () => showDownloadFiles(context, widget.itemId, episodeId: widget.episodeId)
+          : (widget.isDownloaded ? widget.onDeleteDownload : widget.onDownload),
     );
   }
 }

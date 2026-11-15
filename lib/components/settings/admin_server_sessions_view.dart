@@ -8,7 +8,7 @@ import 'package:yaabsa/api/admin/open_share_session.dart';
 import 'package:yaabsa/api/admin/session_user_summary.dart';
 import 'package:yaabsa/api/library_items/playback_session.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
-import 'package:yaabsa/components/common/inputs/expressive_dropdown.dart';
+import 'package:yaabsa/ui/components/inputs/expressive_dropdown.dart';
 import 'package:yaabsa/components/common/tables/expressive_action_table.dart';
 import 'package:yaabsa/components/sessions/listening_session_editor_dialog.dart';
 import 'package:yaabsa/components/sessions/listening_session_list.dart';
@@ -17,6 +17,7 @@ import 'package:yaabsa/components/sessions/open_share_session_dialog.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/main/stats/stats_formatters.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class AdminServerSessionsView extends ConsumerStatefulWidget {
   const AdminServerSessionsView({super.key});
@@ -554,7 +555,7 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
           onNext: _currentPage < (_numPages - 1) ? _goToNextPage : null,
         ),
         if (_isLoadingLibrarySessions)
-          const Padding(padding: EdgeInsets.only(top: 8), child: LinearProgressIndicator(minHeight: 2)),
+          const Padding(padding: EdgeInsets.only(top: 8), child: YaabsaLinearProgressIndicator(minHeight: 2)),
         if (_selectedLibrarySessionIds.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 8),
@@ -569,7 +570,7 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
                           unawaited(_bulkDeleteSelectedLibrarySessions(canDelete: canDelete));
                         },
                   icon: _isBulkDeleting
-                      ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                      ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                       : const Icon(Icons.delete_outline_rounded),
                   label: const Text('Delete Selected'),
                 ),
@@ -604,7 +605,7 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
         _buildSectionTitle('Open Sessions', trailingText: '${_openSessions.length} active'),
         const SizedBox(height: 8),
         if (_isLoadingOpenSessions)
-          const Padding(padding: EdgeInsets.only(bottom: 8), child: LinearProgressIndicator(minHeight: 2)),
+          const Padding(padding: EdgeInsets.only(bottom: 8), child: YaabsaLinearProgressIndicator(minHeight: 2)),
         ListeningSessionTable(
           sessions: _openSessions.map((entry) => entry.session).toList(growable: false),
           emptyMessage: 'No open sessions found.',
@@ -646,7 +647,7 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
         _buildSectionTitle('Shared Sessions', trailingText: '${sortedSessions.length} active'),
         const SizedBox(height: 8),
         if (_isLoadingOpenSessions)
-          const Padding(padding: EdgeInsets.only(bottom: 8), child: LinearProgressIndicator(minHeight: 2)),
+          const Padding(padding: EdgeInsets.only(bottom: 8), child: YaabsaLinearProgressIndicator(minHeight: 2)),
         Card(
           margin: EdgeInsets.zero,
           child: sortedSessions.isEmpty
@@ -754,7 +755,7 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
                     Expanded(
                       child: YaabsaExpressiveDropdownField<String?>(
                         value: _selectedFilterUserId,
-                        decoration: const InputDecoration(labelText: 'Filter by User', border: OutlineInputBorder()),
+                        decoration: const InputDecoration(labelText: 'Filter by User'),
                         options: [
                           const YaabsaDropdownOption<String?>(value: null, label: 'All Users'),
                           ..._availableUsers.map(
@@ -793,7 +794,7 @@ class _AdminServerSessionsViewState extends ConsumerState<AdminServerSessionsVie
       },
       loading: () => const Padding(
         padding: EdgeInsets.all(32.0),
-        child: Center(child: CircularProgressIndicator()),
+        child: Center(child: YaabsaCircularProgressIndicator()),
       ),
       error: (error, _) => Padding(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),

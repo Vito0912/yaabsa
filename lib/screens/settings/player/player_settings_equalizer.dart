@@ -4,10 +4,13 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:yaabsa/database/settings_manager.dart';
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
+import 'package:yaabsa/ui/components/settings/settings_switch_presentation.dart';
 import 'package:yaabsa/screens/settings/player/player_settings.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 // TODO: These need fixing later. The presets are mostly random values with a bit of AI sanity help.
 // Most of them are for music anyway, which should be neat, but if you are a dev and come across these values, because you think the presets are of
@@ -91,14 +94,13 @@ class _PlayerSettingsEqualizerState extends ConsumerState<PlayerSettingsEqualize
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SwitchListTile(
-                  title: const Text('Enable Equalizer'),
+                SettingsSwitchPresentation(
+                  label: 'Enable Equalizer',
                   value: equalizerEnabled,
-                  onChanged: unavailable
-                      ? null
-                      : (newValue) => ref
-                            .read(settingsManagerProvider.notifier)
-                            .setGlobalSetting<bool>(SettingKeys.equalizerEnabled, newValue),
+                  enabled: !unavailable,
+                  onChanged: (newValue) => ref
+                      .read(settingsManagerProvider.notifier)
+                      .setGlobalSetting<bool>(SettingKeys.equalizerEnabled, newValue),
                 ),
                 const SizedBox(height: 12),
                 if (!equalizerEnabled)
@@ -204,7 +206,7 @@ class _PlayerSettingsEqualizerState extends ConsumerState<PlayerSettingsEqualize
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Padding(
             padding: EdgeInsets.all(24.0),
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(child: YaabsaCircularProgressIndicator()),
           );
         }
 
@@ -260,13 +262,9 @@ class _PlayerSettingsEqualizerState extends ConsumerState<PlayerSettingsEqualize
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: DropdownButtonFormField<String>(
-                initialValue: currentPreset,
-                decoration: const InputDecoration(
-                  labelText: 'Equalizer Preset',
-                  border: OutlineInputBorder(),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                ),
+              child: YaabsaDropdownField<String>(
+                label: 'Equalizer Preset',
+                value: currentPreset,
                 items: [
                   ...equalizerPresets.keys.map((preset) => DropdownMenuItem(value: preset, child: Text(preset))),
                   const DropdownMenuItem(value: 'Custom', child: Text('Custom')),

@@ -16,6 +16,7 @@ import 'package:yaabsa/screens/settings/admin_server_rss_feeds_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_sessions_settings.dart';
 import 'package:yaabsa/screens/settings/admin_server_users_settings.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class AdminServerSettings extends ConsumerWidget {
   const AdminServerSettings({super.key});
@@ -147,7 +148,7 @@ class AdminServerSettings extends ConsumerWidget {
           },
           loading: () => const Padding(
             padding: EdgeInsets.all(32.0),
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(child: YaabsaCircularProgressIndicator()),
           ),
           error: (error, stackTrace) => Padding(
             padding: const EdgeInsets.all(16.0),

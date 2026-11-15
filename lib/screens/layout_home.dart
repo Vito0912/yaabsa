@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:yaabsa/provider/common/library_filter_data_provider.dart';
 
-import 'package:yaabsa/components/app/upload/library_upload_panel.dart';
+import 'package:yaabsa/features/upload/library_upload_panel.dart';
 import 'package:yaabsa/components/common/desktop_page_shortcuts.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/screens/automotive/aaos_settings_scaffold.dart';

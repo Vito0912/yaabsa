@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
 
 class ReaderAnnotationTile extends StatelessWidget {
   const ReaderAnnotationTile({
@@ -53,7 +54,7 @@ class ReaderAnnotationTile extends StatelessWidget {
         'CFI: ${cfi.length > 30 ? '${cfi.substring(0, 30)}...' : cfi}',
         style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 12),
       ),
-      trailing: IconButton(icon: const Icon(Icons.delete_outline), onPressed: onRemove),
+      trailing: YaabsaDeleteIconButton(tooltip: 'Delete annotation', onPressed: onRemove),
     );
   }
 }

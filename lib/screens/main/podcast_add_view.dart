@@ -1,3 +1,5 @@
+import 'package:yaabsa/ui/components/inputs/search_field.dart';
+
 import 'dart:async';
 
 import 'package:dio/dio.dart';
@@ -14,6 +16,7 @@ import 'package:yaabsa/components/common/textbox_button.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class PodcastAddView extends ConsumerStatefulWidget {
   const PodcastAddView({super.key});
@@ -321,7 +324,7 @@ class _PodcastAddViewState extends ConsumerState<PodcastAddView> {
     final selectedLibrary = ref.watch(selectedLibraryProvider);
 
     if (api == null || currentUser == null) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: YaabsaCircularProgressIndicator());
     }
 
     if (selectedLibrary == null) {
@@ -374,34 +377,29 @@ class _PodcastAddViewState extends ConsumerState<PodcastAddView> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    TextField(
+                    YaabsaSearchField(
                       controller: _searchController,
-                      textInputAction: TextInputAction.search,
                       onSubmitted: (_) {
                         if (!hasFolders || isBusy) {
                           return;
                         }
                         unawaited(_handleSearch(api: api, library: selectedLibrary));
                       },
-                      decoration: InputDecoration(
-                        border: const OutlineInputBorder(),
-                        hintText: 'Search podcasts or paste RSS URL',
-                        prefixIcon: const Icon(Icons.search_rounded),
-                        suffixIcon: _searchController.text.trim().isEmpty
-                            ? null
-                            : IconButton(
-                                tooltip: 'Clear',
-                                onPressed: () {
-                                  setState(() {
-                                    _searchController.clear();
-                                    _searchResults = const <PodcastSearchResult>[];
-                                    _searchError = null;
-                                  });
-                                },
-                                icon: const Icon(Icons.close_rounded),
-                              ),
-                      ),
                       onChanged: (_) => setState(() {}),
+                      hintText: 'Search podcasts or paste RSS URL',
+                      suffixIcon: _searchController.text.trim().isEmpty
+                          ? null
+                          : IconButton(
+                              tooltip: 'Clear',
+                              onPressed: () {
+                                setState(() {
+                                  _searchController.clear();
+                                  _searchResults = const <PodcastSearchResult>[];
+                                  _searchError = null;
+                                });
+                              },
+                              icon: const Icon(Icons.close_rounded),
+                            ),
                     ),
                     if (!keyboardVisible) ...[
                       const SizedBox(height: 10),
@@ -425,34 +423,29 @@ class _PodcastAddViewState extends ConsumerState<PodcastAddView> {
                 Row(
                   children: [
                     Expanded(
-                      child: TextField(
+                      child: YaabsaSearchField(
                         controller: _searchController,
-                        textInputAction: TextInputAction.search,
                         onSubmitted: (_) {
                           if (!hasFolders || isBusy) {
                             return;
                           }
                           unawaited(_handleSearch(api: api, library: selectedLibrary));
                         },
-                        decoration: InputDecoration(
-                          border: const OutlineInputBorder(),
-                          hintText: 'Search podcasts or paste RSS URL',
-                          prefixIcon: const Icon(Icons.search_rounded),
-                          suffixIcon: _searchController.text.trim().isEmpty
-                              ? null
-                              : IconButton(
-                                  tooltip: 'Clear',
-                                  onPressed: () {
-                                    setState(() {
-                                      _searchController.clear();
-                                      _searchResults = const <PodcastSearchResult>[];
-                                      _searchError = null;
-                                    });
-                                  },
-                                  icon: const Icon(Icons.close_rounded),
-                                ),
-                        ),
                         onChanged: (_) => setState(() {}),
+                        hintText: 'Search podcasts or paste RSS URL',
+                        suffixIcon: _searchController.text.trim().isEmpty
+                            ? null
+                            : IconButton(
+                                tooltip: 'Clear',
+                                onPressed: () {
+                                  setState(() {
+                                    _searchController.clear();
+                                    _searchResults = const <PodcastSearchResult>[];
+                                    _searchError = null;
+                                  });
+                                },
+                                icon: const Icon(Icons.close_rounded),
+                              ),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -525,7 +518,7 @@ class _EmptyPodcastAddState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isBusy) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: YaabsaCircularProgressIndicator());
     }
 
     return Center(

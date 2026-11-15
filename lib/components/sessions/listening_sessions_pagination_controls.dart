@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:yaabsa/components/common/inputs/expressive_dropdown.dart';
+import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
+import 'package:yaabsa/ui/components/inputs/expressive_dropdown.dart';
 
 class ListeningSessionsPaginationControls extends StatelessWidget {
   const ListeningSessionsPaginationControls({
@@ -36,9 +37,25 @@ class ListeningSessionsPaginationControls extends StatelessWidget {
 
     options.sort((left, right) => left.compareTo(right));
 
+    Widget buildPageAction({required bool previous}) {
+      final onPressed = previous ? onPrevious : onNext;
+
+      return YaabsaActionIconButton(
+        icon: previous ? Icons.chevron_left_rounded : Icons.chevron_right_rounded,
+        tooltip: previous ? 'Previous page' : 'Next page',
+        enabled: !isLoading && onPressed != null,
+        iconSize: 20,
+        buttonSize: 48,
+        compact: false,
+        variant: YaabsaActionButtonVariant.filledTonal,
+        shape: YaabsaActionButtonShape.rounded,
+        onPressed: isLoading ? null : onPressed,
+      );
+    }
+
     Widget buildPerPageSelector() {
       return SizedBox(
-        width: 96,
+        width: 88,
         child: YaabsaExpressiveDropdown<int>(
           value: itemsPerPage,
           enabled: !isLoading && onItemsPerPageChanged != null,
@@ -55,65 +72,84 @@ class ListeningSessionsPaginationControls extends StatelessWidget {
       );
     }
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final compact = constraints.maxWidth < 760;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final compact = constraints.maxWidth < 760;
 
-        if (compact) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+          if (compact) {
+            final pageSizeLabel = Text('Per page:', style: Theme.of(context).textTheme.bodyMedium);
+            final pageSizeLabelPainter = TextPainter(
+              text: TextSpan(text: 'Per page:', style: Theme.of(context).textTheme.bodyMedium),
+              textDirection: Directionality.of(context),
+              textScaler: MediaQuery.textScalerOf(context),
+              maxLines: 1,
+            )..layout();
+            final canKeepPageSizeLabelInline = constraints.maxWidth >= pageSizeLabelPainter.width + 6 + 88;
+            final pageSizeControl = canKeepPageSizeLabelInline
+                ? Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [pageSizeLabel, const SizedBox(width: 6), buildPerPageSelector()],
+                  )
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [pageSizeLabel, const SizedBox(height: 4), buildPerPageSelector()],
+                  );
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: [
+                    Text('Total: $total', maxLines: 1, overflow: TextOverflow.ellipsis),
+                    Text('Page $currentPage of $clampedPages', maxLines: 1, overflow: TextOverflow.ellipsis),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    pageSizeControl,
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        buildPageAction(previous: true),
+                        const SizedBox(width: 4),
+                        buildPageAction(previous: false),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            );
+          }
+
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Row(
-                children: [
-                  Expanded(child: Text('Total: $total', overflow: TextOverflow.ellipsis)),
-                  Text('Page $currentPage / $clampedPages'),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Text('Per page:', style: Theme.of(context).textTheme.bodyMedium),
-                  const SizedBox(width: 6),
-                  buildPerPageSelector(),
-                  const Spacer(),
-                  IconButton(
-                    tooltip: 'Previous page',
-                    onPressed: isLoading ? null : onPrevious,
-                    icon: const Icon(Icons.chevron_left_rounded),
-                  ),
-                  IconButton(
-                    tooltip: 'Next page',
-                    onPressed: isLoading ? null : onNext,
-                    icon: const Icon(Icons.chevron_right_rounded),
-                  ),
-                ],
-              ),
+              Expanded(child: Text('Total: $total', overflow: TextOverflow.ellipsis)),
+              Text('Per page:', style: Theme.of(context).textTheme.bodyMedium),
+              const SizedBox(width: 6),
+              buildPerPageSelector(),
+              const SizedBox(width: 12),
+              Text('Page $currentPage of $clampedPages', style: Theme.of(context).textTheme.bodyMedium),
+              const SizedBox(width: 8),
+              buildPageAction(previous: true),
+              const SizedBox(width: 4),
+              buildPageAction(previous: false),
             ],
           );
-        }
-
-        return Row(
-          children: [
-            Expanded(child: Text('Total: $total', overflow: TextOverflow.ellipsis)),
-            Text('Per page:', style: Theme.of(context).textTheme.bodyMedium),
-            const SizedBox(width: 6),
-            buildPerPageSelector(),
-            const SizedBox(width: 12),
-            Text('Page $currentPage / $clampedPages', style: Theme.of(context).textTheme.bodyMedium),
-            const SizedBox(width: 8),
-            IconButton(
-              tooltip: 'Previous page',
-              onPressed: isLoading ? null : onPrevious,
-              icon: const Icon(Icons.chevron_left_rounded),
-            ),
-            IconButton(
-              tooltip: 'Next page',
-              onPressed: isLoading ? null : onNext,
-              icon: const Icon(Icons.chevron_right_rounded),
-            ),
-          ],
-        );
-      },
+        },
+      ),
     );
   }
 }

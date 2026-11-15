@@ -1,4 +1,8 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/ui/theme/component_styles.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+
+const double _minimumInlineMetadataValueWidth = 180;
 
 class ItemHeroCard extends StatelessWidget {
   const ItemHeroCard({
@@ -47,7 +51,7 @@ class ItemHeroCard extends StatelessWidget {
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    child: LinearProgressIndicator(
+                    child: YaabsaLinearProgressIndicator(
                       value: progressValue.clamp(0.0, 1.0),
                       minHeight: 6,
                       backgroundColor: Colors.black54,
@@ -235,15 +239,29 @@ class ItemMetadataCard extends StatelessWidget {
               },
             )
           else
-            for (var index = 0; index < rows.length; index++) ...[
-              if (index > 0)
-                Divider(
-                  height: 8,
-                  thickness: 1,
-                  color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.45),
-                ),
-              _ItemMetadataRow(row: rows[index], inlineValues: inlineValues),
-            ],
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final textScale = MediaQuery.textScalerOf(context).scale(14) / 14;
+                final labelWidth = MediaQuery.textScalerOf(context).scale(80.0).clamp(80.0, 120.0);
+                final valueWidth = _minimumInlineMetadataValueWidth * (textScale < 1 ? 1 : textScale);
+                final useInlineValues = inlineValues && constraints.maxWidth >= labelWidth + 8 + valueWidth;
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    for (var index = 0; index < rows.length; index++) ...[
+                      if (index > 0)
+                        Divider(
+                          height: 8,
+                          thickness: 1,
+                          color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.45),
+                        ),
+                      _ItemMetadataRow(row: rows[index], inlineValues: useInlineValues),
+                    ],
+                  ],
+                );
+              },
+            ),
         ],
       ),
     );
@@ -382,15 +400,6 @@ class _InlineLinkText extends StatelessWidget {
       return Text(label, style: Theme.of(context).textTheme.bodyMedium);
     }
 
-    return TextButton(
-      onPressed: onTap,
-      style: TextButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 2),
-        minimumSize: const Size(0, 28),
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        alignment: Alignment.centerLeft,
-      ),
-      child: Text(label),
-    );
+    return TextButton(onPressed: onTap, style: YaabsaButtonStyles.inlineMetadataLink, child: Text(label));
   }
 }

@@ -5,6 +5,7 @@ import 'package:yaabsa/screens/wear/components/wear_ambient_view.dart';
 import 'package:yaabsa/screens/wear/components/wear_scroll_view.dart';
 import 'package:yaabsa/screens/wear/components/wear_swipe_to_dismiss.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class WearPairingScreen extends StatefulWidget {
   const WearPairingScreen({this.isAmbient = false, super.key});
@@ -84,7 +85,7 @@ class _WearPairingScreenState extends State<WearPairingScreen> {
                   ),
                   const SizedBox(height: 20),
                   if (_isRequesting) ...[
-                    const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                    const Center(child: YaabsaCircularProgressIndicator(strokeWidth: 2)),
                     const SizedBox(height: 8),
                     Text(
                       'Sign in on your phone\nto continue...',

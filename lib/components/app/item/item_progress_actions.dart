@@ -5,6 +5,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/me/media_progress.dart';
+import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/components/common/managed_list_operations.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/provider/common/collection_provider.dart';
@@ -115,7 +116,7 @@ Future<void> _setLibraryItemFinishedState({
   required LibraryItem item,
   required bool isFinished,
 }) async {
-  final stateLabel = isFinished ? 'finished' : 'unfinished';
+  const stateLabel = 'finished';
 
   if (!supportsFinishedProgressUpdates(item)) {
     ScaffoldMessenger.of(context)
@@ -131,12 +132,43 @@ Future<void> _setLibraryItemFinishedState({
         throw Exception('API not available');
       }
 
-      await api.getMeApi().patchMediaProgress(item.id, updatePayload: <String, dynamic>{'isFinished': isFinished});
-      await ref.read(mediaProgressProvider.notifier).fetchOrRefreshIndividualProgress(item.id);
+      if (isFinished) {
+        await api.getMeApi().patchMediaProgress(item.id, updatePayload: const <String, dynamic>{'isFinished': true});
+        await ref.read(mediaProgressProvider.notifier).fetchOrRefreshIndividualProgress(item.id);
+        return;
+      }
+
+      await _deleteMediaProgressRecord(ref: ref, api: api, libraryItemId: item.id);
     },
-    successMessage: 'Marked "${item.title}" as $stateLabel.',
-    errorFallback: 'Could not mark item as $stateLabel.',
+    successMessage: isFinished ? 'Marked "${item.title}" as $stateLabel.' : 'Cleared progress for "${item.title}".',
+    errorFallback: isFinished ? 'Could not mark item as $stateLabel.' : 'Could not clear progress for "${item.title}".',
   );
+}
+
+Future<void> _deleteMediaProgressRecord({
+  required WidgetRef ref,
+  required ABSApi api,
+  required String libraryItemId,
+  String? episodeId,
+}) async {
+  final progressKey = mediaProgressKey(libraryItemId, episodeId);
+  final notifier = ref.read(mediaProgressProvider.notifier);
+  var progress = notifier.progressForKey(progressKey);
+  progress ??= await notifier.fetchOrRefreshIndividualProgress(libraryItemId, episodeId: episodeId);
+  if (progress == null) {
+    return;
+  }
+
+  if (api.user?.id != progress.userId) {
+    throw Exception('The active user changed before progress could be cleared.');
+  }
+
+  final deleted = await api.getMeApi().deleteMediaProgress(progress.id);
+  if (!deleted) {
+    throw Exception('The server did not delete the progress record.');
+  }
+
+  await notifier.removeProgressRecordLocally(libraryItemId, episodeId: episodeId, userId: progress.userId);
 }
 
 Future<void> markLibraryItemAsFinished({
@@ -155,6 +187,154 @@ Future<void> markLibraryItemAsUnfinished({
   return _setLibraryItemFinishedState(context: context, ref: ref, item: item, isFinished: false);
 }
 
+Future<void> setLibraryItemProgress({
+  required BuildContext context,
+  required WidgetRef ref,
+  required LibraryItem item,
+  required Episode? episode,
+  required double progress,
+  required double durationSeconds,
+  required DateTime startedDate,
+  required DateTime? finishedDate,
+}) async {
+  if (durationSeconds <= 0) {
+    return;
+  }
+
+  final boundedProgress = progress.clamp(0.0, 1.0).toDouble();
+  final currentTime = durationSeconds * boundedProgress;
+  final isFinished = boundedProgress >= 1.0;
+  final selectedFinishedDate = isFinished ? finishedDate ?? startedDate : null;
+  final startedAt = _calendarDateTimestamp(startedDate);
+  final finishedAt = selectedFinishedDate == null ? null : _calendarDateTimestamp(selectedFinishedDate);
+
+  await runManagedListMutation(
+    context: context,
+    action: () async {
+      final api = ref.read(absApiProvider);
+      if (api == null) {
+        throw Exception('API not available');
+      }
+
+      final progressNotifier = ref.read(mediaProgressProvider.notifier);
+      final progressKey = mediaProgressKey(item.id, episode?.id);
+      var existingProgress = progressNotifier.progressForKey(progressKey);
+      existingProgress ??= await progressNotifier.fetchOrRefreshIndividualProgress(item.id, episodeId: episode?.id);
+      final existingFinishedAt = existingProgress?.finishedAt;
+      final didChangeStartedDate =
+          existingProgress != null && !_hasSameCalendarDate(existingProgress.startedAt, startedDate);
+      final didChangeFinishedDate =
+          existingProgress != null &&
+          isFinished &&
+          selectedFinishedDate != null &&
+          (existingFinishedAt == null || !_hasSameCalendarDate(existingFinishedAt, selectedFinishedDate));
+      final shouldReplaceProgress = didChangeStartedDate || didChangeFinishedDate;
+
+      if (shouldReplaceProgress) {
+        await _deleteMediaProgressRecord(ref: ref, api: api, libraryItemId: item.id, episodeId: episode?.id);
+      }
+
+      final updatePayload = existingProgress == null || shouldReplaceProgress
+          ? _newProgressPayload(
+              durationSeconds: durationSeconds,
+              currentTime: currentTime,
+              progress: boundedProgress,
+              isFinished: isFinished,
+              startedAt: startedAt,
+              finishedAt: finishedAt,
+            )
+          : buildChangedProgressPayload(
+              existingProgress: existingProgress,
+              durationSeconds: durationSeconds,
+              currentTime: currentTime,
+              progress: boundedProgress,
+              isFinished: isFinished,
+              selectedFinishedDate: selectedFinishedDate,
+              finishedAt: finishedAt,
+            );
+
+      if (updatePayload.isEmpty) {
+        return;
+      }
+
+      await api.getMeApi().patchMediaProgress(item.id, episodeId: episode?.id, updatePayload: updatePayload);
+      await progressNotifier.fetchOrRefreshIndividualProgress(item.id, episodeId: episode?.id);
+    },
+    successMessage: 'Progress updated for "${episode?.title ?? item.title}".',
+    errorFallback: 'Could not update progress.',
+  );
+}
+
+Map<String, dynamic> _newProgressPayload({
+  required double durationSeconds,
+  required double currentTime,
+  required double progress,
+  required bool isFinished,
+  required int startedAt,
+  required int? finishedAt,
+}) {
+  final payload = <String, dynamic>{
+    'duration': durationSeconds,
+    'currentTime': currentTime,
+    'progress': progress,
+    'isFinished': isFinished,
+    'createdAt': startedAt,
+  };
+
+  if (finishedAt != null) {
+    payload['finishedAt'] = finishedAt;
+  }
+
+  return payload;
+}
+
+@visibleForTesting
+Map<String, dynamic> buildChangedProgressPayload({
+  required MediaProgress existingProgress,
+  required double durationSeconds,
+  required double currentTime,
+  required double progress,
+  required bool isFinished,
+  required DateTime? selectedFinishedDate,
+  required int? finishedAt,
+}) {
+  final updatePayload = <String, dynamic>{};
+
+  if (existingProgress.duration != durationSeconds) {
+    updatePayload['duration'] = durationSeconds;
+  }
+  if (existingProgress.currentTime != currentTime) {
+    updatePayload['currentTime'] = currentTime;
+  }
+  if (existingProgress.progress != progress) {
+    updatePayload['progress'] = progress;
+  }
+  if (existingProgress.isFinished != isFinished) {
+    updatePayload['isFinished'] = isFinished;
+  }
+
+  final existingFinishedAt = existingProgress.finishedAt;
+  final finishedDateChanged = existingFinishedAt == null
+      ? selectedFinishedDate != null
+      : selectedFinishedDate == null || !_hasSameCalendarDate(existingFinishedAt, selectedFinishedDate);
+  if (finishedDateChanged) {
+    updatePayload['finishedAt'] = finishedAt;
+  }
+
+  return updatePayload;
+}
+
+bool _hasSameCalendarDate(int timestamp, DateTime selectedDate) {
+  final existingDate = DateTime.fromMillisecondsSinceEpoch(timestamp);
+  return existingDate.year == selectedDate.year &&
+      existingDate.month == selectedDate.month &&
+      existingDate.day == selectedDate.day;
+}
+
+int _calendarDateTimestamp(DateTime date) {
+  return DateTime(date.year, date.month, date.day).millisecondsSinceEpoch;
+}
+
 Future<void> _setPodcastEpisodeFinishedState({
   required BuildContext context,
   required WidgetRef ref,
@@ -162,7 +342,7 @@ Future<void> _setPodcastEpisodeFinishedState({
   required Episode episode,
   required bool isFinished,
 }) async {
-  final stateLabel = isFinished ? 'finished' : 'unfinished';
+  const stateLabel = 'finished';
 
   if (!supportsPodcastEpisodeFinishedProgressUpdates(item)) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -182,15 +362,22 @@ Future<void> _setPodcastEpisodeFinishedState({
         throw Exception('API not available');
       }
 
-      await api.getMeApi().patchMediaProgress(
-        item.id,
-        episodeId: episode.id,
-        updatePayload: <String, dynamic>{'isFinished': isFinished},
-      );
-      await ref.read(mediaProgressProvider.notifier).fetchOrRefreshIndividualProgress(item.id, episodeId: episode.id);
+      if (isFinished) {
+        await api.getMeApi().patchMediaProgress(
+          item.id,
+          episodeId: episode.id,
+          updatePayload: const <String, dynamic>{'isFinished': true},
+        );
+        await ref.read(mediaProgressProvider.notifier).fetchOrRefreshIndividualProgress(item.id, episodeId: episode.id);
+        return;
+      }
+
+      await _deleteMediaProgressRecord(ref: ref, api: api, libraryItemId: item.id, episodeId: episode.id);
     },
-    successMessage: 'Marked "$episodeTitle" as $stateLabel.',
-    errorFallback: 'Could not mark episode as $stateLabel.',
+    successMessage: isFinished ? 'Marked "$episodeTitle" as $stateLabel.' : 'Cleared progress for "$episodeTitle".',
+    errorFallback: isFinished
+        ? 'Could not mark episode as $stateLabel.'
+        : 'Could not clear progress for "$episodeTitle".',
   );
 }
 

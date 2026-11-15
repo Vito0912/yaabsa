@@ -1,12 +1,14 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/ui/components/settings/yaabsa_switch_tile.dart';
 import 'package:flutter/services.dart';
 import 'package:yaabsa/api/admin/admin_api_key.dart';
 import 'package:yaabsa/api/admin/create_admin_api_key_request.dart';
 import 'package:yaabsa/api/admin/session_user_summary.dart';
 import 'package:yaabsa/api/admin/update_admin_api_key_request.dart';
-import 'package:yaabsa/components/common/inputs/expressive_dropdown.dart';
-import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
+import 'package:yaabsa/ui/components/inputs/expressive_dropdown.dart';
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:yaabsa/screens/main/stats/stats_formatters.dart';
+import 'package:yaabsa/ui/components/dialogs/dialog_actions.dart';
 
 Future<CreateAdminApiKeyRequest?> showCreateAdminApiKeyDialog(
   BuildContext context, {
@@ -207,7 +209,7 @@ class _CreateAdminApiKeyDialogState extends State<_CreateAdminApiKeyDialog> {
                 ).copyWith(errorText: _userError),
               ),
               const SizedBox(height: 4),
-              SwitchListTile.adaptive(
+              YaabsaSwitchTile.adaptive(
                 contentPadding: EdgeInsets.zero,
                 title: const Text('API key is active'),
                 subtitle: const Text('Inactive keys cannot authenticate API requests.'),
@@ -218,7 +220,7 @@ class _CreateAdminApiKeyDialogState extends State<_CreateAdminApiKeyDialog> {
                   });
                 },
               ),
-              SwitchListTile.adaptive(
+              YaabsaSwitchTile.adaptive(
                 contentPadding: EdgeInsets.zero,
                 title: const Text('Never expires'),
                 subtitle: const Text('Turn off to set an expiration in days.'),
@@ -254,8 +256,12 @@ class _CreateAdminApiKeyDialogState extends State<_CreateAdminApiKeyDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
-        FilledButton.icon(onPressed: _submit, icon: const Icon(Icons.key_rounded), label: const Text('Create key')),
+        YaabsaDialogActions(
+          actionLabel: 'Create key',
+          actionIcon: Icons.key_rounded,
+          onAction: _submit,
+          onCancel: () => Navigator.of(context).pop(),
+        ),
       ],
     );
   }
@@ -354,7 +360,7 @@ class _UpdateAdminApiKeyDialogState extends State<_UpdateAdminApiKeyDialog> {
                 decoration: yaabsaFieldDecoration(context, label: 'Owner', hintText: 'Select key owner'),
               ),
               const SizedBox(height: 8),
-              SwitchListTile.adaptive(
+              YaabsaSwitchTile.adaptive(
                 contentPadding: EdgeInsets.zero,
                 title: const Text('API key is active'),
                 subtitle: const Text('Inactive keys cannot authenticate API requests.'),
@@ -382,11 +388,11 @@ class _UpdateAdminApiKeyDialogState extends State<_UpdateAdminApiKeyDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
-        FilledButton.icon(
-          onPressed: _hasChanges ? _submit : null,
-          icon: const Icon(Icons.save_outlined),
-          label: const Text('Save changes'),
+        YaabsaDialogActions(
+          actionLabel: 'Save changes',
+          actionIcon: Icons.save_outlined,
+          onAction: _hasChanges ? _submit : null,
+          onCancel: () => Navigator.of(context).pop(),
         ),
       ],
     );

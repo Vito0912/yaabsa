@@ -6,6 +6,7 @@ import 'package:yaabsa/screens/settings/widgets/local_log_settings_section.dart'
 import 'package:yaabsa/screens/settings/widgets/log_entry_tile.dart';
 import 'package:yaabsa/util/log_exporter.dart';
 import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class LogView extends HookWidget {
   const LogView({super.key});
@@ -99,7 +100,7 @@ class LogView extends HookWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(width: 28, height: 28, child: CircularProgressIndicator(strokeWidth: 2.5)),
+            const SizedBox(width: 28, height: 28, child: YaabsaCircularProgressIndicator(strokeWidth: 2.5)),
             const SizedBox(height: 10),
             Text(
               'Loading logs...',
@@ -196,7 +197,11 @@ class LogView extends HookWidget {
                                 }
                               },
                         icon: isExporting.value
-                            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: YaabsaCircularProgressIndicator(strokeWidth: 2),
+                              )
                             : const Icon(Icons.save_alt_outlined, size: 18),
                         label: Text(isExporting.value ? 'Exporting .log...' : 'Export .log'),
                       ),

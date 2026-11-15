@@ -1,7 +1,8 @@
+import 'package:yaabsa/ui/components/lists/settings_control_label.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
-class SettingButton extends ConsumerWidget {
+class SettingButton extends StatelessWidget {
   final String label;
   final String? description;
   final String? tooltip;
@@ -26,10 +27,9 @@ class SettingButton extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final ThemeData theme = Theme.of(context);
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final TextTheme textTheme = theme.textTheme;
     final isEnabled = onPressed != null;
 
     return Padding(
@@ -39,71 +39,24 @@ class SettingButton extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Flexible(
-                      child: Text(
-                        label,
-                        style: textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w500,
-                          color: isEnabled
-                              ? colorScheme.onSurface
-                              : colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                      ),
-                    ),
-                    if (icon != null && tooltip != null)
-                      Padding(
-                        padding: const EdgeInsets.only(left: 6.0),
-                        child: Tooltip(
-                          message: tooltip!,
-                          child: Icon(icon, size: 20, color: colorScheme.onSurfaceVariant),
-                        ),
-                      ),
-                  ],
-                ),
-                if (description != null && description!.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    description!,
-                    style: textTheme.bodySmall?.copyWith(
-                      color: isEnabled
-                          ? colorScheme.onSurfaceVariant
-                          : colorScheme.onSurfaceVariant.withValues(alpha: 0.38),
-                    ),
-                  ),
-                ],
-              ],
+            child: SettingsControlLabel(
+              label: label,
+              description: description,
+              enabled: isEnabled,
+              icon: icon,
+              tooltip: tooltip,
             ),
           ),
           const SizedBox(width: 16),
           isLoading
-              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.5))
+              ? const SizedBox(width: 20, height: 20, child: YaabsaCircularProgressIndicator(strokeWidth: 2.5))
               : FilledButton.icon(
                   onPressed: onPressed,
-                  icon: buttonIcon != null
-                      ? Icon(buttonIcon, size: 16, color: isDestructive ? colorScheme.onError : colorScheme.onPrimary)
-                      : const SizedBox.shrink(),
-                  label: Text(
-                    buttonText,
-                    style: textTheme.labelMedium?.copyWith(
-                      color: isDestructive ? colorScheme.onError : colorScheme.onPrimary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: isDestructive ? colorScheme.error : colorScheme.primary,
-                    foregroundColor: isDestructive ? colorScheme.onError : colorScheme.onPrimary,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
+                  icon: buttonIcon != null ? Icon(buttonIcon, size: 16) : const SizedBox.shrink(),
+                  label: Text(buttonText, style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w600)),
+                  style: isDestructive
+                      ? FilledButton.styleFrom(backgroundColor: colorScheme.error, foregroundColor: colorScheme.onError)
+                      : null,
                 ),
         ],
       ),

@@ -9,6 +9,7 @@ import 'package:yaabsa/screens/player/components/play_history_event_group_tile.d
 import 'package:yaabsa/util/audio_handler/player_history_handler.dart';
 import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class PlayHistoryLocalTab extends ConsumerStatefulWidget {
   const PlayHistoryLocalTab({super.key, required this.itemId, required this.episodeId});
@@ -84,7 +85,7 @@ class _PlayHistoryLocalTabState extends ConsumerState<PlayHistoryLocalTab> {
           );
         }
         if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: YaabsaCircularProgressIndicator());
         }
         return _buildHistory(context, snapshot.data!);
       },

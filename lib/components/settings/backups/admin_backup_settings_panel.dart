@@ -1,7 +1,9 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/ui/components/settings/yaabsa_switch_tile.dart';
 import 'package:flutter/services.dart';
 import 'package:yaabsa/components/common/expressive_expandable_card.dart';
-import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class AdminBackupSettingsPanel extends StatelessWidget {
   const AdminBackupSettingsPanel({
@@ -104,7 +106,7 @@ class AdminBackupSettingsPanel extends StatelessWidget {
               FilledButton.icon(
                 onPressed: canEditBackupPath && !isSavingBackupPath ? onSaveBackupPath : null,
                 icon: isSavingBackupPath
-                    ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                    ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                     : const Icon(Icons.save_outlined),
                 label: const Text('Save Path'),
               ),
@@ -114,7 +116,7 @@ class AdminBackupSettingsPanel extends StatelessWidget {
           ),
         ],
         const SizedBox(height: 8),
-        SwitchListTile.adaptive(
+        YaabsaSwitchTile.adaptive(
           contentPadding: const EdgeInsets.symmetric(horizontal: 4),
           title: const Text('Enable automatic backups'),
           value: enableAutomaticBackups,
@@ -180,7 +182,7 @@ class AdminBackupSettingsPanel extends StatelessWidget {
           child: FilledButton.icon(
             onPressed: isUpdatingSettings ? null : onSaveBackupSettings,
             icon: isUpdatingSettings
-                ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                 : const Icon(Icons.save_outlined),
             label: const Text('Save Backup Settings'),
           ),

@@ -65,7 +65,7 @@ extension _ReaderSurface on _ReaderState {
                                     child: Column(
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
-                                        CircularProgressIndicator(),
+                                        YaabsaCircularProgressIndicator(),
                                         SizedBox(height: 16),
                                         Text('Loading local ebook files...'),
                                       ],
@@ -109,7 +109,7 @@ extension _ReaderSurface on _ReaderState {
                                 return Center(child: Text('Failed to load user profile: $error'));
                               },
                               loading: () {
-                                return const Center(child: CircularProgressIndicator());
+                                return const Center(child: YaabsaCircularProgressIndicator());
                               },
                             );
                           },
@@ -117,7 +117,7 @@ extension _ReaderSurface on _ReaderState {
                             return Center(child: Text('Failed to load ebook metadata: $error'));
                           },
                           loading: () {
-                            return const Center(child: CircularProgressIndicator());
+                            return const Center(child: YaabsaCircularProgressIndicator());
                           },
                         ),
                       ),

@@ -17,13 +17,19 @@ class DesktopWindowState {
   DesktopWindowState._(this._settings);
 
   static bool get isSupported => !kIsWeb && (Platform.isLinux || Platform.isWindows || Platform.isMacOS);
+  static bool get isShuttingDown => _shutdownRequested;
 
   static DesktopWindowState? _instance;
   static Future<void>? _initialization;
   static Future<void>? _closeOperation;
+  static FutureOr<void> Function()? _beforeCloseCleanup;
   static bool _shutdownRequested = false;
   static const _operationTimeout = Duration(seconds: 2);
   static const _shutdownTimeout = Duration(seconds: 10);
+
+  static void registerBeforeCloseCleanup(FutureOr<void> Function()? cleanup) {
+    _beforeCloseCleanup = cleanup;
+  }
 
   final SettingsManager _settings;
 
@@ -101,6 +107,8 @@ class DesktopWindowState {
   AppLifecycleListener _createExitListener() {
     return AppLifecycleListener(
       onExitRequested: () async {
+        await _runBeforeCloseCleanup();
+
         try {
           await _flush().timeout(_shutdownTimeout);
         } catch (e, s) {
@@ -429,6 +437,8 @@ class DesktopWindowState {
       }
     }
 
+    await _runBeforeCloseCleanup();
+
     final instance = _instance;
     if (instance != null) {
       instance._closing = true;
@@ -475,6 +485,23 @@ class DesktopWindowState {
 
     instance?._dispose();
     _instance = null;
+  }
+
+  static Future<void> _runBeforeCloseCleanup() async {
+    final cleanup = _beforeCloseCleanup;
+    if (cleanup == null) {
+      return;
+    }
+
+    try {
+      await Future<void>.sync(cleanup).timeout(_shutdownTimeout);
+    } catch (error, stack) {
+      logger(
+        'Failed to release desktop resources before closing: $error\n$stack',
+        tag: 'WindowState',
+        level: InfoLevel.warning,
+      );
+    }
   }
 
   void _onWindowEvent(WindowEvent event) {

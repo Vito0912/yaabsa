@@ -14,11 +14,18 @@ class TrayManager extends ConsumerStatefulWidget {
   const TrayManager(this.child, {super.key});
 
   static Future<void> update() async {
-    if (kIsWeb || (!Platform.isLinux && !Platform.isWindows && !Platform.isMacOS)) {
+    if (kIsWeb ||
+        DesktopWindowState.isShuttingDown ||
+        (!Platform.isLinux && !Platform.isWindows && !Platform.isMacOS)) {
       return;
     }
 
     _DesktopTrayController.instance.update();
+  }
+
+  static Future<void> shutdown() {
+    _DesktopTrayController.instance.dispose();
+    return Future<void>.value();
   }
 
   final Widget child;
@@ -32,6 +39,7 @@ class _TrayManagerState extends ConsumerState<TrayManager> {
   void initState() {
     super.initState();
     if (!kIsWeb) {
+      DesktopWindowState.registerBeforeCloseCleanup(TrayManager.shutdown);
       _DesktopTrayController.instance.attachView();
     }
   }
@@ -161,6 +169,26 @@ class _DesktopTrayController {
 
     _trayIcon?.removeListener(listenerId);
     _trayListenerId = null;
+  }
+
+  void dispose() {
+    _unwireTrayEvents();
+
+    final trayIcon = _trayIcon;
+    if (trayIcon != null) {
+      trayIcon
+        ..setContextMenu(null)
+        ..setVisible(false);
+    }
+
+    _menuBinding?.dispose();
+    _menuBinding = null;
+
+    _iconImage?.dispose();
+    _iconImage = null;
+
+    trayIcon?.dispose();
+    _trayIcon = null;
   }
 }
 

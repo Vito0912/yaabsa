@@ -1,6 +1,7 @@
 import 'package:background_downloader/background_downloader.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class DownloadStatus extends StatelessWidget {
   const DownloadStatus({super.key});
@@ -41,7 +42,7 @@ class DownloadStatus extends StatelessWidget {
                   SizedBox(
                     width: 26,
                     height: 26,
-                    child: CircularProgressIndicator(
+                    child: YaabsaCircularProgressIndicator(
                       value: overallProgress,
                       strokeWidth: 2.6,
                       backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
@@ -106,7 +107,7 @@ class DownloadStatus extends StatelessWidget {
                       const SizedBox(height: 12),
                       ClipRRect(
                         borderRadius: BorderRadius.circular(999),
-                        child: LinearProgressIndicator(value: overallProgress, minHeight: 6),
+                        child: YaabsaLinearProgressIndicator(value: overallProgress, minHeight: 6),
                       ),
                       const SizedBox(height: 12),
                       Expanded(
@@ -150,7 +151,7 @@ class DownloadStatus extends StatelessWidget {
                                   const SizedBox(height: 6),
                                   ClipRRect(
                                     borderRadius: BorderRadius.circular(999),
-                                    child: LinearProgressIndicator(value: progress, minHeight: 5),
+                                    child: YaabsaLinearProgressIndicator(value: progress, minHeight: 5),
                                   ),
                                   const SizedBox(height: 4),
                                   Text('${_statusLabel(task.status)} | ${(progress * 100).toStringAsFixed(0)}%'),

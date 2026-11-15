@@ -4,6 +4,7 @@ import 'package:yaabsa/provider/player/user_bookmarks_provider.dart';
 import 'package:yaabsa/screens/player/components/bookmark_title_dialog.dart';
 import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class BookmarkAddButton extends ConsumerStatefulWidget {
   const BookmarkAddButton({super.key, required this.itemId});
@@ -83,7 +84,7 @@ class _BookmarkAddButtonState extends ConsumerState<BookmarkAddButton> {
             visualDensity: VisualDensity.compact,
           ),
           icon: _isCreating
-              ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
+              ? const SizedBox.square(dimension: 18, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
               : const Icon(Icons.add_rounded),
           label: Text(_isCreating ? 'Adding' : 'Add bookmark'),
         );

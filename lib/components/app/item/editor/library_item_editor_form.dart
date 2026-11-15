@@ -10,9 +10,10 @@ import 'package:yaabsa/components/app/item/editor/library_item_edit_models.dart'
 import 'package:yaabsa/components/app/item/editor/library_item_editor_field_container.dart';
 import 'package:yaabsa/components/app/item/editor/library_item_editor_inputs.dart';
 import 'package:yaabsa/components/common/inputs/string_chip_list_input.dart';
-import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:yaabsa/components/common/inputs/rich_text_quill_field.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class LibraryItemEditorForm extends StatefulWidget {
   const LibraryItemEditorForm({
@@ -280,16 +281,13 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
 
           return AlertDialog(
             title: const Text('Series number'),
-            content: TextField(
+            content: StyledTextField(
               controller: controller,
               autofocus: true,
               textInputAction: TextInputAction.done,
-              decoration: const InputDecoration(
-                labelText: 'Sequence',
-                hintText: 'e.g. 1,2.5,03 (no spaces)',
-                border: OutlineInputBorder(),
-              ),
               onSubmitted: complete,
+              label: 'Sequence',
+              hintText: 'e.g. 1,2.5,03 (no spaces)',
             ),
             actions: [
               TextButton(
@@ -494,7 +492,7 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
               FilledButton.icon(
                 onPressed: widget.isSaving ? null : _submit,
                 icon: widget.isSaving
-                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2.2))
+                    ? const SizedBox(width: 16, height: 16, child: YaabsaCircularProgressIndicator(strokeWidth: 2.2))
                     : const Icon(Icons.save_rounded),
                 label: Text(widget.isSaving ? 'Saving...' : 'Save'),
               ),
@@ -502,7 +500,7 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
               FilledButton.icon(
                 onPressed: widget.isSaving ? null : () => _submit(pop: true),
                 icon: widget.isSaving
-                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2.2))
+                    ? const SizedBox(width: 16, height: 16, child: YaabsaCircularProgressIndicator(strokeWidth: 2.2))
                     : const Icon(Icons.save_rounded),
                 label: Text(widget.isSaving ? 'Saving...' : 'Save & Close'),
               ),
@@ -520,49 +518,32 @@ class _LibraryItemEditorFormState extends State<LibraryItemEditorForm> {
     required List<String> publisherSuggestions,
   }) {
     final fields = <Widget>[
-      StyledTextField(label: 'Title', controller: _titleController, onChanged: (_) => setState(() {})),
-      if (!isPodcast)
-        StyledTextField(label: 'Subtitle', controller: _subtitleController, onChanged: (_) => setState(() {})),
-      if (isPodcast)
-        StyledTextField(label: 'Author', controller: _podcastAuthorController, onChanged: (_) => setState(() {})),
+      StyledTextField(label: 'Title', controller: _titleController),
+      if (!isPodcast) StyledTextField(label: 'Subtitle', controller: _subtitleController),
+      if (isPodcast) StyledTextField(label: 'Author', controller: _podcastAuthorController),
       if (!isPodcast)
         StyledTextField(
           label: 'Published year',
           controller: _publishedYearController,
           keyboardType: TextInputType.number,
-          onChanged: (_) => setState(() {}),
         ),
       if (!isPodcast)
         StyledTextField(
           label: 'Publisher',
           controller: _publisherController,
           hintText: publisherSuggestions.isEmpty ? null : publisherSuggestions.first,
-          onChanged: (_) => setState(() {}),
         ),
-      if (isPodcast)
-        StyledTextField(
-          label: 'Release date',
-          controller: _releaseDateController,
-          hintText: 'YYYY-MM-DD',
-          onChanged: (_) => setState(() {}),
-        ),
+      if (isPodcast) StyledTextField(label: 'Release date', controller: _releaseDateController, hintText: 'YYYY-MM-DD'),
       StyledTextField(
         label: 'Language',
         controller: _languageController,
         hintText: languageSuggestions.isEmpty ? null : languageSuggestions.first,
-        onChanged: (_) => setState(() {}),
       ),
-      if (!isPodcast) StyledTextField(label: 'ISBN', controller: _isbnController, onChanged: (_) => setState(() {})),
-      if (!isPodcast) StyledTextField(label: 'ASIN', controller: _asinController, onChanged: (_) => setState(() {})),
+      if (!isPodcast) StyledTextField(label: 'ISBN', controller: _isbnController),
+      if (!isPodcast) StyledTextField(label: 'ASIN', controller: _asinController),
       if (isPodcast)
-        StyledTextField(
-          label: 'Feed URL',
-          controller: _feedUrlController,
-          hintText: 'https://example.com/feed.xml',
-          onChanged: (_) => setState(() {}),
-        ),
-      if (isPodcast)
-        StyledTextField(label: 'iTunes ID', controller: _itunesIdController, onChanged: (_) => setState(() {})),
+        StyledTextField(label: 'Feed URL', controller: _feedUrlController, hintText: 'https://example.com/feed.xml'),
+      if (isPodcast) StyledTextField(label: 'iTunes ID', controller: _itunesIdController),
       if (isPodcast)
         LibraryItemEditorPodcastTypeField(
           value: _podcastTypeValue,
@@ -691,7 +672,7 @@ class _ResponsiveEditorFields extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final twoColumns = context.isDesktop || (context.isTablet && constraints.maxWidth >= 720);
+        final twoColumns = constraints.maxWidth >= 720;
         final width = twoColumns ? (constraints.maxWidth - 8) / 2 : constraints.maxWidth;
 
         return Wrap(

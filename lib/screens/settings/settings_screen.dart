@@ -15,6 +15,7 @@ import 'package:yaabsa/components/common/desktop_page_shortcuts.dart';
 import 'package:yaabsa/components/settings/admin_users/magic_config_dialog.dart';
 import 'package:yaabsa/components/settings/management_settings_section.dart';
 import 'package:yaabsa/components/settings/settings_navigation_section.dart';
+import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
 import 'package:yaabsa/database/app_database.dart';
 import 'package:yaabsa/provider/core/user_scope_invalidation.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
@@ -35,6 +36,7 @@ import 'package:yaabsa/screens/settings/server_management_settings.dart';
 import 'package:yaabsa/util/aaos_service.dart';
 import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/util/network/dio_factory.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class SettingsSearchItem {
   final String title;
@@ -878,7 +880,7 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
       },
       loading: () => const Padding(
         padding: EdgeInsets.all(32.0),
-        child: Center(child: CircularProgressIndicator()),
+        child: Center(child: YaabsaCircularProgressIndicator()),
       ),
       error: (e, st) => Padding(
         padding: const EdgeInsets.all(16.0),
@@ -972,11 +974,7 @@ class _MainSettingsScreenState extends ConsumerState<MainSettingsScreen> {
                                       await _switchActiveUser(context, ref, user);
                                     },
                                   ),
-                                  IconButton(
-                                    icon: Icon(
-                                      Icons.delete_outline_rounded,
-                                      color: Theme.of(context).colorScheme.error,
-                                    ),
+                                  YaabsaDeleteIconButton(
                                     tooltip: 'Delete this user',
                                     onPressed: () {
                                       Navigator.pop(bottomSheetContext);

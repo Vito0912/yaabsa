@@ -21,9 +21,12 @@ import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
+import 'package:yaabsa/ui/components/buttons/sort_button.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
 import 'package:yaabsa/util/library_view_subtitle_preferences.dart';
 import 'package:yaabsa/util/library_view_subtitles.dart';
+import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 const int _seriesPrefetchThreshold = 8;
 const int _seriesApproxScrollPastCount = 24;
@@ -299,8 +302,6 @@ class _SeriesToolbar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final filterButtonLabel = filterLabel == null ? 'Filter' : _truncateLabel(filterLabel!);
-    final sortButtonLabel = _truncateLabel(sortLabel);
-
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
       child: Align(
@@ -313,14 +314,16 @@ class _SeriesToolbar extends StatelessWidget {
             OutlinedButton.icon(
               onPressed: isBusy ? null : onFilterPressed,
               icon: isFilterLoading
-                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                  ? const SizedBox(width: 16, height: 16, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                   : const Icon(Icons.filter_alt_rounded),
               label: Text(filterButtonLabel, overflow: TextOverflow.ellipsis),
             ),
-            OutlinedButton.icon(
-              onPressed: isBusy ? null : onSortPressed,
-              icon: const Icon(Icons.sort_rounded),
-              label: Text(sortButtonLabel, overflow: TextOverflow.ellipsis),
+            YaabsaSortButton(
+              label: sortLabel,
+              tooltip: 'Sort: $sortLabel',
+              onPressed: onSortPressed,
+              iconOnly: context.isMobile,
+              isLoading: isBusy,
             ),
           ],
         ),

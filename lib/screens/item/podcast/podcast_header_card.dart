@@ -3,6 +3,9 @@ import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/components/app/item/item_more_actions_button.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/item_formatters.dart';
+import 'package:yaabsa/ui/components/buttons/action_icon_button.dart';
+import 'package:yaabsa/ui/components/buttons/playback_action_button.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class PodcastHeaderCard extends StatelessWidget {
   const PodcastHeaderCard({
@@ -200,9 +203,6 @@ class _PodcastHeaderText extends StatelessWidget {
     final playLabel = isLoadingCurrentPlayableEpisode
         ? 'Loading'
         : (isPlayingCurrentPlayableEpisode ? 'Pause' : (isCurrentPlayableEpisode ? 'Resume' : 'Play'));
-    final iconWidget = isLoadingCurrentPlayableEpisode
-        ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.2))
-        : Icon(isPlayingCurrentPlayableEpisode ? Icons.pause_rounded : Icons.play_arrow_rounded);
     final onPressed = isLoadingCurrentPlayableEpisode
         ? null
         : (isPlayingCurrentPlayableEpisode ? onPauseLatest : onPlayLatest);
@@ -233,40 +233,52 @@ class _PodcastHeaderText extends StatelessWidget {
           spacing: 8,
           runSpacing: 8,
           children: [
-            FilledButton.icon(onPressed: onPressed, icon: iconWidget, label: Text(playLabel)),
+            YaabsaPlaybackActionButton(
+              label: playLabel,
+              isPlaying: isPlayingCurrentPlayableEpisode,
+              isLoading: isLoadingCurrentPlayableEpisode,
+              onPressed: onPressed,
+            ),
             if (onShuffle != null)
-              IconButton.filledTonal(
-                onPressed: onShuffle,
+              YaabsaActionIconButton(
+                icon: Icons.shuffle_rounded,
+                variant: YaabsaActionButtonVariant.filledTonal,
+                shape: YaabsaActionButtonShape.rounded,
                 tooltip: 'Play random episode',
-                icon: const Icon(Icons.shuffle_rounded),
-                visualDensity: VisualDensity.compact,
+                onPressed: onShuffle,
               ),
             if (onDownloadPress != null)
-              IconButton.filledTonal(
-                onPressed: onDownloadPress,
+              YaabsaActionIconButton(
+                icon: Icons.download_rounded,
+                variant: YaabsaActionButtonVariant.filledTonal,
+                shape: YaabsaActionButtonShape.rounded,
                 tooltip: 'Download options',
-                icon: const Icon(Icons.download_rounded),
-                visualDensity: VisualDensity.compact,
+                onPressed: onDownloadPress,
               ),
             if (onFindEpisodes != null)
-              IconButton.filledTonal(
-                onPressed: isFindingEpisodes ? null : onFindEpisodes,
+              YaabsaActionIconButton(
+                icon: isFindingEpisodes ? null : Icons.search_rounded,
+                iconWidget: isFindingEpisodes
+                    ? const SizedBox(width: 16, height: 16, child: YaabsaCircularProgressIndicator(strokeWidth: 2.2))
+                    : null,
+                variant: YaabsaActionButtonVariant.filledTonal,
+                shape: YaabsaActionButtonShape.rounded,
+                enabled: !isFindingEpisodes,
                 tooltip: 'Find episodes',
-                icon: isFindingEpisodes
-                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2.2))
-                    : const Icon(Icons.search_rounded),
-                visualDensity: VisualDensity.compact,
+                onPressed: onFindEpisodes,
               ),
             if (onEditPodcast != null)
-              IconButton.filledTonal(
-                onPressed: onEditPodcast,
+              YaabsaActionIconButton(
+                icon: Icons.edit_rounded,
+                variant: YaabsaActionButtonVariant.filledTonal,
+                shape: YaabsaActionButtonShape.rounded,
                 tooltip: 'Edit podcast',
-                icon: const Icon(Icons.edit_rounded),
-                visualDensity: VisualDensity.compact,
+                onPressed: onEditPodcast,
               ),
             if (onMoreActionSelected != null)
               ItemMoreActionsButton(
                 onActionSelected: onMoreActionSelected!,
+                shape: YaabsaActionButtonShape.rounded,
                 showMarkAction: false,
                 showPinAction: true,
                 isPinned: isPinned,

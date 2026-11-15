@@ -1,3 +1,8 @@
+import 'dart:math' as math;
+
+import 'package:yaabsa/ui/components/inputs/search_field.dart';
+import 'package:yaabsa/ui/components/inputs/expressive_dropdown.dart';
+import 'package:yaabsa/ui/components/inputs/field_decoration.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/screens/item/podcast/podcast_episode_utils.dart';
 
@@ -8,7 +13,6 @@ class PodcastEpisodesHeaderCard extends StatelessWidget {
     required this.visibleEpisodeCount,
     required this.searchQuery,
     required this.searchController,
-    required this.isMobileLayout,
     required this.progressFilter,
     required this.sortMode,
     required this.onSearchChanged,
@@ -29,7 +33,6 @@ class PodcastEpisodesHeaderCard extends StatelessWidget {
   final int visibleEpisodeCount;
   final String searchQuery;
   final TextEditingController searchController;
-  final bool isMobileLayout;
   final PodcastEpisodeProgressFilter progressFilter;
   final PodcastEpisodeSortMode sortMode;
   final ValueChanged<String> onSearchChanged;
@@ -96,45 +99,49 @@ class PodcastEpisodesHeaderCard extends StatelessWidget {
     final resultLabel = visibleEpisodeCount == totalEpisodeCount
         ? '$totalEpisodeCount episodes'
         : '$visibleEpisodeCount of $totalEpisodeCount episodes';
-
-    final searchField = TextField(
+    final searchField = YaabsaSearchField(
       controller: searchController,
       onChanged: onSearchChanged,
-      textInputAction: TextInputAction.search,
-      decoration: InputDecoration(
+      isDense: true,
+      hintText: 'Search episodes by title',
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      suffixIcon: searchQuery.trim().isEmpty
+          ? null
+          : IconButton(onPressed: onClearSearch, icon: const Icon(Icons.close_rounded), tooltip: 'Clear search'),
+    );
+
+    final filterButton = YaabsaExpressiveDropdownField<PodcastEpisodeProgressFilter>(
+      value: progressFilter,
+      options: PodcastEpisodeProgressFilter.values
+          .map((value) => YaabsaDropdownOption(value: value, label: podcastEpisodeProgressFilterLabel(value)))
+          .toList(growable: false),
+      onChanged: (value) {
+        if (value != null) {
+          onFilterChanged(value);
+        }
+      },
+      decoration: const InputDecoration(
         isDense: true,
-        prefixIcon: const Icon(Icons.search_rounded),
-        hintText: 'Search episodes by title',
-        suffixIcon: searchQuery.trim().isEmpty
-            ? null
-            : IconButton(onPressed: onClearSearch, icon: const Icon(Icons.close_rounded), tooltip: 'Clear search'),
-        border: const OutlineInputBorder(),
+        prefixIcon: Icon(Icons.filter_alt_rounded, size: 18),
+        constraints: BoxConstraints(minHeight: YaabsaFieldDimensions.compactHeight),
       ),
     );
 
-    final filterButton = PopupMenuButton<PodcastEpisodeProgressFilter>(
-      initialValue: progressFilter,
-      onSelected: onFilterChanged,
-      itemBuilder: (context) {
-        return PodcastEpisodeProgressFilter.values
-            .map((value) => PopupMenuItem(value: value, child: Text(podcastEpisodeProgressFilterLabel(value))))
-            .toList(growable: false);
+    final sortButton = YaabsaExpressiveDropdownField<PodcastEpisodeSortMode>(
+      value: sortMode,
+      options: PodcastEpisodeSortMode.values
+          .map((value) => YaabsaDropdownOption(value: value, label: podcastEpisodeSortModeLabel(value)))
+          .toList(growable: false),
+      onChanged: (value) {
+        if (value != null) {
+          onSortChanged(value);
+        }
       },
-      child: _PopupActionButton(
-        icon: Icons.filter_alt_rounded,
-        label: 'Filter: ${podcastEpisodeProgressFilterLabel(progressFilter)}',
+      decoration: const InputDecoration(
+        isDense: true,
+        prefixIcon: Icon(Icons.sort_rounded, size: 18),
+        constraints: BoxConstraints(minHeight: YaabsaFieldDimensions.compactHeight),
       ),
-    );
-
-    final sortButton = PopupMenuButton<PodcastEpisodeSortMode>(
-      initialValue: sortMode,
-      onSelected: onSortChanged,
-      itemBuilder: (context) {
-        return PodcastEpisodeSortMode.values
-            .map((value) => PopupMenuItem(value: value, child: Text(podcastEpisodeSortModeLabel(value))))
-            .toList(growable: false);
-      },
-      child: _PopupActionButton(icon: Icons.sort_rounded, label: 'Sort: ${podcastEpisodeSortModeLabel(sortMode)}'),
     );
 
     return Card(
@@ -153,31 +160,73 @@ class PodcastEpisodesHeaderCard extends StatelessWidget {
                   ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant, fontWeight: FontWeight.w400),
             ),
             const SizedBox(height: 8),
-            if (isMobileLayout)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  searchField,
-                  const SizedBox(height: 8),
-                  Row(
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final filterWidth = _widestDropdownFieldWidth(
+                  context,
+                  PodcastEpisodeProgressFilter.values.map(podcastEpisodeProgressFilterLabel),
+                );
+                final sortWidth = _widestDropdownFieldWidth(
+                  context,
+                  PodcastEpisodeSortMode.values.map(podcastEpisodeSortModeLabel),
+                );
+                const fieldSpacing = 8.0;
+                const minimumSearchWidth = 200.0;
+                final actionsWidth = filterWidth + sortWidth + fieldSpacing;
+                final oneRowMinimumWidth = actionsWidth + minimumSearchWidth + fieldSpacing * 2;
+                final hasFiniteWidth = constraints.maxWidth.isFinite;
+                final availableWidth = constraints.maxWidth;
+                final canKeepAllControlsInOneRow = hasFiniteWidth && availableWidth >= oneRowMinimumWidth;
+
+                if (canKeepAllControlsInOneRow) {
+                  return Row(
                     children: [
-                      Expanded(child: filterButton),
-                      const SizedBox(width: 8),
-                      Expanded(child: sortButton),
+                      Expanded(child: searchField),
+                      const SizedBox(width: fieldSpacing),
+                      SizedBox(width: filterWidth, child: filterButton),
+                      const SizedBox(width: fieldSpacing),
+                      SizedBox(width: sortWidth, child: sortButton),
+                    ],
+                  );
+                }
+
+                final compactRow = Row(
+                  children: [
+                    Expanded(child: filterButton),
+                    const SizedBox(width: fieldSpacing),
+                    Expanded(child: sortButton),
+                  ],
+                );
+
+                if (hasFiniteWidth) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      searchField,
+                      const SizedBox(height: fieldSpacing),
+                      compactRow,
+                    ],
+                  );
+                }
+
+                final unboundedWidth = math.max(
+                  minimumSearchWidth + actionsWidth + fieldSpacing * 2,
+                  math.max(filterWidth, sortWidth),
+                );
+                return SizedBox(
+                  width: unboundedWidth,
+                  child: Row(
+                    children: [
+                      Expanded(child: searchField),
+                      const SizedBox(width: fieldSpacing),
+                      SizedBox(width: filterWidth, child: filterButton),
+                      const SizedBox(width: fieldSpacing),
+                      SizedBox(width: sortWidth, child: sortButton),
                     ],
                   ),
-                ],
-              )
-            else
-              Row(
-                children: [
-                  Expanded(child: searchField),
-                  const SizedBox(width: 8),
-                  filterButton,
-                  const SizedBox(width: 8),
-                  sortButton,
-                ],
-              ),
+                );
+              },
+            ),
           ],
         ),
       ),
@@ -185,32 +234,22 @@ class PodcastEpisodesHeaderCard extends StatelessWidget {
   }
 }
 
-class _PopupActionButton extends StatelessWidget {
-  const _PopupActionButton({required this.icon, required this.label});
+double _widestDropdownFieldWidth(BuildContext context, Iterable<String> labels) {
+  final style = Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500);
+  final textScaler = MediaQuery.textScalerOf(context);
+  final textDirection = Directionality.of(context);
+  var widestLabel = 0.0;
 
-  final IconData icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.outlineVariant),
-        color: colorScheme.surface,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 18),
-          const SizedBox(width: 8),
-          Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis)),
-          const SizedBox(width: 6),
-          const Icon(Icons.arrow_drop_down_rounded),
-        ],
-      ),
-    );
+  for (final label in labels) {
+    final painter = TextPainter(
+      text: TextSpan(text: label, style: style),
+      textDirection: textDirection,
+      textScaler: textScaler,
+      maxLines: 1,
+    )..layout();
+    widestLabel = widestLabel < painter.width ? painter.width : widestLabel;
   }
+
+  const fieldChromeWidth = 76.0;
+  return widestLabel + fieldChromeWidth;
 }

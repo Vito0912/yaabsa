@@ -217,6 +217,39 @@ void main() {
     expect(find.text('Beta'), findsNothing);
   });
 
+  testWidgets('manage collections creates a named collection containing only the current book', (tester) async {
+    final server = CollectionTestServer([]);
+    final container = server.container();
+    addTearDown(container.dispose);
+    await mount(tester, container);
+
+    await tester.tap(find.text('Manage'));
+    await tester.pumpAndSettle();
+    expect(find.text('Manage collections'), findsOneWidget);
+    expect(find.textContaining('Manage collections:'), findsNothing);
+
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Create collection'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(find.text('Create collection'), findsNWidgets(2));
+    expect(find.byType(TextField), findsNWidgets(2));
+
+    await tester.enterText(find.byType(TextField).at(0), 'Quiet evenings');
+    await tester.enterText(find.byType(TextField).at(1), 'Books for late reading');
+    await tester.tap(find.widgetWithText(FilledButton, 'Create'));
+    await tester.pumpAndSettle();
+
+    final createRequest = server.requests.singleWhere(
+      (request) => request.method == 'POST' && request.path == '/api/collections',
+    );
+    expect(createRequest.data['name'], 'Quiet evenings');
+    expect(createRequest.data['description'], 'Books for late reading');
+    expect(createRequest.data['books'], ['book']);
+    expect(server.collections.single.items?.map((book) => book.id).toList(), ['book']);
+    expect(find.text('Manage collections'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('save disables controls during submission and updates metadata', (tester) async {
     final server = CollectionTestServer([
       collection('Alpha', books: [testBook, otherBook]),

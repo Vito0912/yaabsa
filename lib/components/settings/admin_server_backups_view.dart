@@ -14,6 +14,7 @@ import 'package:yaabsa/components/settings/backups/admin_backup_settings_panel.d
 import 'package:yaabsa/components/settings/backups/admin_backup_table.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/main/stats/stats_formatters.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class AdminServerBackupsView extends ConsumerStatefulWidget {
   const AdminServerBackupsView({super.key});
@@ -672,7 +673,7 @@ class _AdminServerBackupsViewState extends ConsumerState<AdminServerBackupsView>
             tooltip: 'Upload backup',
             onPressed: canStartOperation ? _uploadBackup : null,
             icon: _isUploadingBackup
-                ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                 : const Icon(Icons.upload_file_rounded),
           ),
           const SizedBox(width: 6),
@@ -680,7 +681,7 @@ class _AdminServerBackupsViewState extends ConsumerState<AdminServerBackupsView>
             tooltip: 'Create backup',
             onPressed: canStartOperation ? _createBackup : null,
             icon: _isCreatingBackup
-                ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                 : const Icon(Icons.archive_rounded),
           ),
         ],
@@ -698,7 +699,7 @@ class _AdminServerBackupsViewState extends ConsumerState<AdminServerBackupsView>
         OutlinedButton.icon(
           onPressed: canStartOperation ? _uploadBackup : null,
           icon: _isUploadingBackup
-              ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+              ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
               : const Icon(Icons.upload_file_outlined),
           label: const Text('Upload Backup'),
         ),
@@ -706,7 +707,7 @@ class _AdminServerBackupsViewState extends ConsumerState<AdminServerBackupsView>
         FilledButton.icon(
           onPressed: canStartOperation ? _createBackup : null,
           icon: _isCreatingBackup
-              ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+              ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
               : const Icon(Icons.archive_rounded),
           label: const Text('Create Backup'),
         ),
@@ -813,7 +814,7 @@ class _AdminServerBackupsViewState extends ConsumerState<AdminServerBackupsView>
         const SizedBox(height: 10),
         if (_isLoading && _backups.isNotEmpty) ...[
           const SizedBox(height: 8),
-          const LinearProgressIndicator(minHeight: 2),
+          const YaabsaLinearProgressIndicator(minHeight: 2),
         ],
         const SizedBox(height: 10),
         _buildErrorCard(),
@@ -903,7 +904,7 @@ class _AdminServerBackupsViewState extends ConsumerState<AdminServerBackupsView>
       },
       loading: () => const Padding(
         padding: EdgeInsets.all(32.0),
-        child: Center(child: CircularProgressIndicator()),
+        child: Center(child: YaabsaCircularProgressIndicator()),
       ),
       error: (error, _) => Padding(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),

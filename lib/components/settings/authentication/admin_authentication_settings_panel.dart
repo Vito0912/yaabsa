@@ -1,10 +1,12 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/ui/components/settings/yaabsa_switch_tile.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:yaabsa/components/common/expressive_expandable_card.dart';
 import 'package:yaabsa/components/common/inputs/string_chip_list_input.dart';
-import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:yaabsa/components/common/inputs/rich_text_quill_field.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class AdminAuthenticationSettingsPanel extends StatelessWidget {
   const AdminAuthenticationSettingsPanel({
@@ -192,7 +194,7 @@ class AdminAuthenticationSettingsPanel extends StatelessWidget {
           icon: Icons.message_outlined,
           initiallyExpanded: true,
           children: [
-            SwitchListTile.adaptive(
+            YaabsaSwitchTile.adaptive(
               contentPadding: const EdgeInsets.symmetric(horizontal: 4),
               title: const Text('Show custom login message'),
               value: showCustomLoginMessage,
@@ -217,7 +219,7 @@ class AdminAuthenticationSettingsPanel extends StatelessWidget {
           icon: Icons.security_rounded,
           initiallyExpanded: false,
           children: [
-            SwitchListTile.adaptive(
+            YaabsaSwitchTile.adaptive(
               contentPadding: const EdgeInsets.symmetric(horizontal: 4),
               title: const Text('Enable local authentication'),
               value: enableLocalAuth,
@@ -233,7 +235,7 @@ class AdminAuthenticationSettingsPanel extends StatelessWidget {
                 ),
               ),
             const SizedBox(height: 8),
-            SwitchListTile.adaptive(
+            YaabsaSwitchTile.adaptive(
               contentPadding: const EdgeInsets.symmetric(horizontal: 4),
               title: const Text('Enable OpenID authentication'),
               value: enableOpenIdAuth,
@@ -255,7 +257,7 @@ class AdminAuthenticationSettingsPanel extends StatelessWidget {
                   final autoPopulateButton = FilledButton.icon(
                     onPressed: _canEditFields ? onAutoPopulateOpenId : null,
                     icon: isAutoPopulatingOpenId
-                        ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                        ? const SizedBox(width: 14, height: 14, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                         : const Icon(Icons.auto_fix_high_rounded),
                     label: const Text('Auto-populate'),
                   );
@@ -416,14 +418,14 @@ class AdminAuthenticationSettingsPanel extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 8),
-              SwitchListTile.adaptive(
+              YaabsaSwitchTile.adaptive(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 4),
                 title: const Text('Auto-launch OpenID login'),
                 subtitle: const Text('Automatically redirect users to OpenID sign-in on the login page.'),
                 value: authOpenIdAutoLaunch,
                 onChanged: _canEditFields ? onAuthOpenIdAutoLaunchChanged : null,
               ),
-              SwitchListTile.adaptive(
+              YaabsaSwitchTile.adaptive(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 4),
                 title: const Text('Auto-register OpenID users'),
                 subtitle: const Text('Create local users automatically when OpenID users sign in for the first time.'),

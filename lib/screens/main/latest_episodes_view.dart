@@ -17,6 +17,7 @@ import 'package:yaabsa/provider/library/latest_episodes_provider.dart';
 import 'package:yaabsa/screens/item/podcast/podcast_episode_utils.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/item_formatters.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class LatestEpisodesView extends HookConsumerWidget {
   const LatestEpisodesView({super.key});
@@ -139,7 +140,7 @@ class LatestEpisodesView extends HookConsumerWidget {
                   child: state.isLoadingNextPage
                       ? const Padding(
                           padding: EdgeInsets.all(24),
-                          child: Center(child: CircularProgressIndicator()),
+                          child: Center(child: YaabsaCircularProgressIndicator()),
                         )
                       : const SizedBox(height: 8),
                 );

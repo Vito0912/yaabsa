@@ -7,12 +7,13 @@ import 'package:yaabsa/api/library/request/library_filter.dart';
 import 'package:yaabsa/api/library/stats/library_stats.dart';
 import 'package:yaabsa/components/settings/admin_library_stats_preview_icons.dart';
 import 'package:yaabsa/components/settings/admin_library_stats_ranked_section.dart';
-import 'package:yaabsa/components/stats/stats_components.dart';
+import 'package:yaabsa/features/statistics/widgets/statistics_components.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/item_formatters.dart';
 import 'package:yaabsa/util/item_view_navigation.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class AdminServerLibraryStatsView extends ConsumerStatefulWidget {
   const AdminServerLibraryStatsView({super.key});
@@ -196,7 +197,7 @@ class _AdminServerLibraryStatsViewState extends ConsumerState<AdminServerLibrary
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (isLoading && stats != null) ...[const SizedBox(height: 8), const LinearProgressIndicator()],
+              if (isLoading && stats != null) ...[const SizedBox(height: 8), const YaabsaLinearProgressIndicator()],
               const SizedBox(height: 8),
               if (_errorMessage case final message?)
                 StatsMessage(
@@ -212,7 +213,7 @@ class _AdminServerLibraryStatsViewState extends ConsumerState<AdminServerLibrary
               else if (stats == null)
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 72),
-                  child: Center(child: CircularProgressIndicator()),
+                  child: Center(child: YaabsaCircularProgressIndicator()),
                 )
               else ...[
                 StatsSection(
@@ -262,7 +263,7 @@ class _AdminServerLibraryStatsViewState extends ConsumerState<AdminServerLibrary
       },
       loading: () => const Padding(
         padding: EdgeInsets.all(48),
-        child: Center(child: CircularProgressIndicator()),
+        child: Center(child: YaabsaCircularProgressIndicator()),
       ),
       error: (error, _) => StatsMessage(
         icon: Icons.person_off_outlined,

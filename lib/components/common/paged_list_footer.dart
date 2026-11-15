@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class PagedListFooter extends StatelessWidget {
   const PagedListFooter({super.key, required this.loading, required this.onLoadMore, this.error});
@@ -13,7 +14,7 @@ class PagedListFooter extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       child: Center(
         child: loading
-            ? const CircularProgressIndicator()
+            ? const YaabsaCircularProgressIndicator()
             : TextButton.icon(
                 onPressed: onLoadMore,
                 icon: Icon(error == null ? Icons.expand_more_rounded : Icons.refresh_rounded),

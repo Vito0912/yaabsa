@@ -72,7 +72,7 @@ class CollectionTestServer {
                 'created-${collections.length}',
                 libraryId: request.data['libraryId'] as String,
                 books: (request.data['books'] as List).map((id) => testBook.copyWith(id: id as String)).toList(),
-              ).copyWith(name: request.data['name'] as String);
+              ).copyWith(name: request.data['name'] as String, description: request.data['description'] as String?);
               collections.add(created);
               handler.resolve(
                 Response(requestOptions: request, statusCode: 200, data: jsonDecode(jsonEncode(created))),

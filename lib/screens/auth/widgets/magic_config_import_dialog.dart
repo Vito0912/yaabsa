@@ -1,3 +1,4 @@
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:material_ui/material_ui.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -38,16 +39,13 @@ class _MagicConfigImportDialogState extends State<_MagicConfigImportDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            TextField(
+            StyledTextField(
               controller: _controller,
               minLines: 3,
               maxLines: 8,
               autofocus: true,
-              decoration: const InputDecoration(
-                labelText: 'Authentication Code',
-                hintText: 'Paste the raw Authentication Code here',
-                border: OutlineInputBorder(),
-              ),
+              label: 'Authentication Code',
+              hintText: 'Paste the raw Authentication Code here',
             ),
             const SizedBox(height: 12),
             if (_scannerSupported)
@@ -241,18 +239,18 @@ class _MagicPasswordChangeDialogState extends State<_MagicPasswordChangeDialog> 
         children: [
           const Text('For your security, the initial password from this Authentication Code can only be used once.'),
           const SizedBox(height: 14),
-          TextField(
+          StyledTextField(
             controller: _newPasswordController,
             obscureText: true,
             autofocus: true,
-            decoration: const InputDecoration(labelText: 'New password', border: OutlineInputBorder()),
+            label: 'New password',
           ),
           const SizedBox(height: 10),
-          TextField(
+          StyledTextField(
             controller: _confirmationController,
             obscureText: true,
             onSubmitted: (_) => _submit(),
-            decoration: const InputDecoration(labelText: 'Confirm new password', border: OutlineInputBorder()),
+            label: 'Confirm new password',
           ),
           if (_error != null) ...[
             const SizedBox(height: 8),

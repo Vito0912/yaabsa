@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/screens/player/layout/player_layout_config.dart';
+import 'package:yaabsa/ui/components/menus/yaabsa_context_menu_button.dart';
 
 typedef PlayerPlacementVisiblePredicate = bool Function(PlayerComponentPlacement placement);
 typedef PlayerPlacementWidgetBuilder = Widget Function(PlayerComponentPlacement placement);
@@ -353,7 +354,7 @@ class _EditableGridTileState extends State<_EditableGridTile> {
                   ),
                 ),
               ),
-              PopupMenuButton<_TileComponentAction>(
+              YaabsaContextMenuButton<_TileComponentAction>(
                 tooltip: 'Component actions',
                 onSelected: (_TileComponentAction action) {
                   switch (action) {

@@ -85,6 +85,8 @@ void main() {
     await mount(tester, container);
     await tester.tap(find.text('Manage'));
     await tester.pumpAndSettle();
+    expect(find.text('Manage playlists'), findsOneWidget);
+    expect(find.textContaining('Manage playlists:'), findsNothing);
     await tester.tap(tile('Alpha'));
     await tester.pump();
     final notifier = container.read(playlistsProvider('library').notifier);

@@ -2,11 +2,8 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 
-import 'package:yaabsa/components/common/screen_refresh_indicator.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:yaabsa/api/library_items/episode.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
@@ -18,7 +15,7 @@ import 'package:yaabsa/components/common/list_entity_missing_view.dart';
 import 'package:yaabsa/components/common/managed_list_operations.dart';
 import 'package:yaabsa/components/common/library_item_widget.dart';
 import 'package:yaabsa/components/common/multi_book_entry_widget.dart';
-import 'package:yaabsa/components/common/scroll_to_top_button.dart';
+import 'package:yaabsa/features/library/widgets/managed_list_detail_frame.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/common/playlist_provider.dart';
@@ -26,9 +23,10 @@ import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
-import 'package:yaabsa/util/layout_sizes.dart';
 import 'package:yaabsa/util/random_playback.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/ui/components/menus/yaabsa_context_menu_button.dart';
 
 class PlaylistDetailView extends HookConsumerWidget {
   const PlaylistDetailView({required this.playlistId, super.key, this.initialEntry, this.libraryId});
@@ -61,7 +59,7 @@ class PlaylistDetailView extends HookConsumerWidget {
 
     if (resolvedPlaylist == null) {
       if (details.isLoading) {
-        return const Center(child: CircularProgressIndicator());
+        return const Center(child: YaabsaCircularProgressIndicator());
       }
       final error = details.error;
       final missing = error is DioException && error.response?.statusCode == 404;
@@ -98,164 +96,106 @@ class PlaylistDetailView extends HookConsumerWidget {
     final description = resolvedPlaylist.description?.trim();
 
     return LibraryGridLayoutBuilder(
-      builder: (context, gridLayout, _, _) {
-        final horizontalPadding = gridLayout.horizontalPadding;
+      builder: (context, _, tileWidth, _) => ManagedListDetailFrame(
+        title: resolvedEntry?.title ?? resolvedPlaylist.name,
+        description: description,
+        statusMessage: missingCount > 0
+            ? '$missingCount playlist entr${missingCount == 1 ? 'y could' : 'ies could'} not be loaded.'
+            : null,
+        emptyTitle: 'No library items in this playlist',
+        emptyMessage: 'Add books or podcast episodes to this playlist to see them here.',
+        emptyIcon: Icons.playlist_play_rounded,
+        scrollController: scrollController,
+        tileWidth: tileWidth,
+        onRefresh: () => ref.refresh(playlistByIdProvider(libraryId, playlistId).future).then<void>((_) {}),
+        itemCount: displayEntries.length,
+        itemBuilder: (context, index) {
+          final entry = displayEntries[index];
+          final item = entry.displayItem;
+          final episode = entry.episode;
+          return LibraryItemWidget(
+            item,
+            api,
+            showProgress: true,
+            squareCover: true,
+            episodeIdToReveal: episode?.id,
+            onPlay: () {
+              if (episode != null) {
+                audioHandler.playPodcastEpisode(
+                  entry.libraryItem,
+                  episode,
+                  autoQueueStart: AutoQueueStart(
+                    type: AutoQueueStartType.playlist,
+                    sourceId: playlistId,
+                    globalIndex: entry.playlistIndex,
+                  ),
+                );
+                return;
+              }
 
-        return Column(
+              audioHandler.playLibraryItem(
+                item,
+                autoQueueStart: AutoQueueStart(
+                  type: AutoQueueStartType.playlist,
+                  sourceId: playlistId,
+                  globalIndex: entry.playlistIndex,
+                ),
+              );
+            },
+          );
+        },
+        headerActions: Wrap(
+          spacing: 0,
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(8, 10, 8, 8),
-              child: Row(
-                children: [
-                  IconButton(
-                    onPressed: () => context.pop(),
-                    icon: const Icon(Icons.arrow_back_rounded),
-                    tooltip: 'Back',
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      resolvedEntry?.title ?? resolvedPlaylist.name,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                  ),
-                  if (showShuffleButton && hasRandomPlaylistPlaybackTarget(playlistItems))
-                    IconButton(
-                      onPressed: () => unawaited(
-                        playRandomPlaylistItemOrEpisode(
-                          playlistItems,
-                          sourceType: AutoQueueStartType.playlist,
-                          sourceId: playlistId,
-                        ),
-                      ),
-                      icon: const Icon(Icons.shuffle_rounded),
-                      tooltip: 'Play random item',
-                    ),
-                  if (canManagePlaylist)
-                    PopupMenuButton<_PlaylistDetailAction>(
-                      tooltip: 'Playlist actions',
-                      onSelected: (action) => _handlePlaylistAction(
-                        context: context,
-                        ref: ref,
-                        libraryId: libraryId,
-                        playlist: resolvedPlaylist,
-                        allowBookSelection: allowBookSelection,
-                        action: action,
-                      ),
-                      itemBuilder: (context) {
-                        final items = <PopupMenuEntry<_PlaylistDetailAction>>[];
-                        if (allowBookSelection) {
-                          items.add(
-                            const PopupMenuItem<_PlaylistDetailAction>(
-                              value: _PlaylistDetailAction.editBooks,
-                              child: Text('Edit books'),
-                            ),
-                          );
-                        }
-                        items.addAll(const [
-                          PopupMenuItem<_PlaylistDetailAction>(
-                            value: _PlaylistDetailAction.edit,
-                            child: Text('Edit details'),
-                          ),
-                          PopupMenuItem<_PlaylistDetailAction>(
-                            value: _PlaylistDetailAction.delete,
-                            child: Text('Delete playlist'),
-                          ),
-                        ]);
-                        return items;
-                      },
-                    ),
-                ],
-              ),
-            ),
-            if (description != null && description.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    description,
-                    style: Theme.of(context).textTheme.bodySmall
-                        ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+            if (showShuffleButton && hasRandomPlaylistPlaybackTarget(playlistItems))
+              IconButton(
+                onPressed: () => unawaited(
+                  playRandomPlaylistItemOrEpisode(
+                    playlistItems,
+                    sourceType: AutoQueueStartType.playlist,
+                    sourceId: playlistId,
                   ),
                 ),
+                icon: const Icon(Icons.shuffle_rounded),
+                tooltip: 'Play random item',
               ),
-            if (missingCount > 0)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    '$missingCount playlist entr${missingCount == 1 ? 'y could' : 'ies could'} not be loaded.',
-                    style: Theme.of(context).textTheme.bodySmall
-                        ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-                  ),
+            if (canManagePlaylist)
+              YaabsaContextMenuButton<_PlaylistDetailAction>(
+                tooltip: 'Playlist actions',
+                onSelected: (action) => _handlePlaylistAction(
+                  context: context,
+                  ref: ref,
+                  libraryId: libraryId,
+                  playlist: resolvedPlaylist,
+                  allowBookSelection: allowBookSelection,
+                  action: action,
                 ),
-              ),
-            if (displayEntries.isEmpty)
-              const Expanded(child: Center(child: Text('No library items found in this playlist.')))
-            else
-              Expanded(
-                child: Stack(
-                  children: [
-                    Positioned.fill(
-                      child: ScreenRefreshIndicator(
-                        onRefresh: () => ref.refresh(playlistByIdProvider(libraryId, playlistId).future),
-                        child: AlignedGridView.count(
-                          controller: scrollController,
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          padding: EdgeInsets.fromLTRB(horizontalPadding, 0, horizontalPadding, 16),
-                          crossAxisCount: gridLayout.crossAxisCount,
-                          mainAxisSpacing: appGridSpacing,
-                          crossAxisSpacing: appGridSpacing,
-                          itemCount: displayEntries.length,
-                          itemBuilder: (context, index) {
-                            final entry = displayEntries[index];
-                            final item = entry.displayItem;
-                            final episode = entry.episode;
-                            return LibraryItemWidget(
-                              item,
-                              api,
-                              showProgress: true,
-                              squareCover: true,
-                              episodeIdToReveal: episode?.id,
-                              onPlay: () {
-                                if (episode != null) {
-                                  audioHandler.playPodcastEpisode(
-                                    entry.libraryItem,
-                                    episode,
-                                    autoQueueStart: AutoQueueStart(
-                                      type: AutoQueueStartType.playlist,
-                                      sourceId: playlistId,
-                                      globalIndex: entry.playlistIndex,
-                                    ),
-                                  );
-                                  return;
-                                }
-
-                                audioHandler.playLibraryItem(
-                                  item,
-                                  autoQueueStart: AutoQueueStart(
-                                    type: AutoQueueStartType.playlist,
-                                    sourceId: playlistId,
-                                    globalIndex: entry.playlistIndex,
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                        ),
+                itemBuilder: (context) {
+                  final items = <PopupMenuEntry<_PlaylistDetailAction>>[];
+                  if (allowBookSelection) {
+                    items.add(
+                      const PopupMenuItem<_PlaylistDetailAction>(
+                        value: _PlaylistDetailAction.editBooks,
+                        child: Text('Edit books'),
                       ),
+                    );
+                  }
+                  items.addAll(const [
+                    PopupMenuItem<_PlaylistDetailAction>(
+                      value: _PlaylistDetailAction.edit,
+                      child: Text('Edit details'),
                     ),
-                    ScrollToTopButton(controller: scrollController),
-                  ],
-                ),
+                    PopupMenuItem<_PlaylistDetailAction>(
+                      value: _PlaylistDetailAction.delete,
+                      child: Text('Delete playlist'),
+                    ),
+                  ]);
+                  return items;
+                },
               ),
           ],
-        );
-      },
+        ),
+      ),
     );
   }
 }

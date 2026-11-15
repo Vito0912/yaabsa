@@ -12,6 +12,7 @@ import 'package:yaabsa/models/internal_media.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class CarModeScreen extends ConsumerWidget {
   const CarModeScreen({super.key});
@@ -47,7 +48,7 @@ class CarModeScreen extends ConsumerWidget {
         stream: audioHandler.mediaItemStream.stream,
         builder: (context, snapshot) {
           if (!snapshot.hasData || snapshot.data == null) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: YaabsaCircularProgressIndicator());
           }
 
           final media = snapshot.data!;

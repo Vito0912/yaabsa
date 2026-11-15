@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/library_items/library_item.dart';
 import 'package:yaabsa/api/list/collection.dart';
 import 'package:yaabsa/components/app/item/book_list_membership_dialog.dart';
+import 'package:yaabsa/components/common/list_management_dialogs.dart';
 import 'package:yaabsa/provider/common/collection_provider.dart';
 import 'package:yaabsa/util/collection_membership.dart';
 
@@ -42,7 +43,22 @@ class BookCollectionMembershipDialog extends ConsumerWidget {
       onLoadMore: () => ref.read(collectionsProvider(libraryId).notifier).loadNextPage(),
       allowed: ref.watch(collectionMembershipEditingAllowedProvider),
       plural: 'collections',
-      bookTitle: item.title,
+      createEntryLabel: 'Create collection',
+      onCreateEntry: () async {
+        final details = await showListManagementFormDialog(
+          context: context,
+          title: 'Create collection',
+          confirmLabel: 'Create',
+        );
+        if (!context.mounted || details == null) {
+          return false;
+        }
+
+        await ref
+            .read(collectionsProvider(libraryId).notifier)
+            .createCollection(name: details.name, description: details.description, bookIds: <String>[item.id]);
+        return true;
+      },
       id: (entry) => entry.id,
       name: (entry) => entry.name,
       membership: (entry) => switch (collectionMembership(entry, item.id)) {

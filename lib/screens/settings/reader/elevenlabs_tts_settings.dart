@@ -1,3 +1,5 @@
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
+
 import 'dart:async';
 
 import 'package:dio/dio.dart';
@@ -8,6 +10,8 @@ import 'package:yaabsa/database/auth_secret_store.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/util/reader/elevenlabs/elevenlabs_speech_api.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/ui/components/menus/yaabsa_context_menu_button.dart';
 
 class ElevenLabsTtsSettings extends ConsumerStatefulWidget {
   const ElevenLabsTtsSettings({super.key, required this.api});
@@ -247,24 +251,22 @@ class _ElevenLabsTtsSettingsState extends ConsumerState<ElevenLabsTtsSettings> {
             children: [
               Text('ElevenLabs', style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),
-              TextField(
+              StyledTextField(
                 controller: _keyController,
                 enabled: !_loadingKey && !_savingKey,
                 obscureText: _obscureKey,
                 autocorrect: false,
                 enableSuggestions: false,
                 keyboardType: TextInputType.visiblePassword,
-                decoration: InputDecoration(
-                  labelText: 'API key',
-                  helperText: 'Stored securely on this device',
-                  errorText: _keyError,
-                  suffixIcon: IconButton(
-                    tooltip: _obscureKey ? 'Show API key' : 'Hide API key',
-                    icon: Icon(_obscureKey ? Icons.visibility_outlined : Icons.visibility_off_outlined),
-                    onPressed: () => setState(() => _obscureKey = !_obscureKey),
-                  ),
-                ),
                 onSubmitted: (_) => unawaited(_saveKey()),
+                label: 'API key',
+                helperText: 'Stored securely on this device',
+                errorText: _keyError,
+                suffixIcon: IconButton(
+                  tooltip: _obscureKey ? 'Show API key' : 'Hide API key',
+                  icon: Icon(_obscureKey ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+                  onPressed: () => setState(() => _obscureKey = !_obscureKey),
+                ),
               ),
               const SizedBox(height: 12),
               Wrap(
@@ -283,7 +285,10 @@ class _ElevenLabsTtsSettingsState extends ConsumerState<ElevenLabsTtsSettings> {
                   ),
                 ],
               ),
-              if (_loadingKey || _loadingCatalog) ...[const SizedBox(height: 12), const LinearProgressIndicator()],
+              if (_loadingKey || _loadingCatalog) ...[
+                const SizedBox(height: 12),
+                const YaabsaLinearProgressIndicator(),
+              ],
             ],
           ),
         ),
@@ -311,46 +316,25 @@ class _ElevenLabsTtsSettingsState extends ConsumerState<ElevenLabsTtsSettings> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                TextFormField(
+                StyledTextFormField(
                   controller: _voiceController,
                   enabled: !_savingPreferences,
                   autocorrect: false,
                   enableSuggestions: false,
-                  decoration: const InputDecoration(
-                    labelText: 'Voice ID',
-                    helperText: 'Use any voice available to your account',
-                  ),
                   validator: (value) =>
                       value?.trim().isNotEmpty == true && !RegExp(r'^[a-zA-Z0-9_-]+$').hasMatch(value!.trim())
                       ? 'Enter a valid voice ID'
                       : null,
                   onFieldSubmitted: (_) => unawaited(_savePreferences()),
+                  label: 'Voice ID',
+                  helperText: 'Use any voice available to your account',
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
+                StyledTextFormField(
                   controller: _languageController,
                   enabled: !_savingPreferences,
                   autocorrect: false,
                   enableSuggestions: false,
-                  decoration: InputDecoration(
-                    labelText: 'Preferred language',
-                    hintText: 'en, de, fr',
-                    helperText: selectedModel?.supportsLanguageCode == false
-                        ? 'This model detects the language from the text'
-                        : 'Leave empty to detect the language from the text',
-                    suffixIcon: selectedModel?.languages.isNotEmpty == true
-                        ? PopupMenuButton<String>(
-                            tooltip: 'Choose language',
-                            icon: const Icon(Icons.language),
-                            onSelected: (value) => _languageController.text = value,
-                            itemBuilder: (context) => [
-                              const PopupMenuItem(value: '', child: Text('Automatic')),
-                              for (final language in selectedModel!.languages.entries)
-                                PopupMenuItem(value: language.key, child: Text(language.value)),
-                            ],
-                          )
-                        : null,
-                  ),
                   validator: (value) {
                     final language = value?.trim() ?? '';
 
@@ -370,6 +354,23 @@ class _ElevenLabsTtsSettingsState extends ConsumerState<ElevenLabsTtsSettings> {
                     return null;
                   },
                   onFieldSubmitted: (_) => unawaited(_savePreferences()),
+                  label: 'Preferred language',
+                  hintText: 'en, de, fr',
+                  helperText: selectedModel?.supportsLanguageCode == false
+                      ? 'This model detects the language from the text'
+                      : 'Leave empty to detect the language from the text',
+                  suffixIcon: selectedModel?.languages.isNotEmpty == true
+                      ? YaabsaContextMenuButton<String>(
+                          tooltip: 'Choose language',
+                          icon: const Icon(Icons.language),
+                          onSelected: (value) => _languageController.text = value,
+                          itemBuilder: (context) => [
+                            const PopupMenuItem(value: '', child: Text('Automatic')),
+                            for (final language in selectedModel!.languages.entries)
+                              PopupMenuItem(value: language.key, child: Text(language.value)),
+                          ],
+                        )
+                      : null,
                 ),
                 const SizedBox(height: 16),
                 Align(

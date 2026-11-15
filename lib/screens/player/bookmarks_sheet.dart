@@ -9,6 +9,7 @@ import 'package:yaabsa/screens/player/components/bookmark_card.dart';
 import 'package:yaabsa/screens/player/components/bookmark_title_dialog.dart';
 import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/globals.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class PlayerBookmarksSheet extends ConsumerStatefulWidget {
   const PlayerBookmarksSheet({super.key, required this.itemId, required this.itemTitle, this.embedded = false});
@@ -274,7 +275,7 @@ class _PlayerBookmarksSheetState extends ConsumerState<PlayerBookmarksSheet> {
                   onPressed: _isBulkDeleting ? null : () => _deleteSelectedBookmarks(bookmarks),
                   style: FilledButton.styleFrom(backgroundColor: colorScheme.error),
                   icon: _isBulkDeleting
-                      ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                      ? const SizedBox.square(dimension: 18, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                       : const Icon(Icons.delete_outline_rounded),
                   label: const Text('Delete'),
                 ),
@@ -283,7 +284,7 @@ class _PlayerBookmarksSheetState extends ConsumerState<PlayerBookmarksSheet> {
           if (selectionMode) const SizedBox(height: 16),
           Expanded(
             child: bookmarksState.isLoading && bookmarks.isEmpty
-                ? const Center(child: CircularProgressIndicator())
+                ? const Center(child: YaabsaCircularProgressIndicator())
                 : bookmarks.isEmpty
                 ? Center(
                     child: Padding(

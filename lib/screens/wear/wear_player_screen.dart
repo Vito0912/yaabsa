@@ -23,6 +23,7 @@ import 'package:yaabsa/util/audio_handler/wear_audio_handler.dart';
 import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/globals.dart' show BreakpointContextX, downloadHandler;
 import 'package:yaabsa/util/server_version.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class WearPlayerScreen extends ConsumerStatefulWidget {
   const WearPlayerScreen({this.isAmbient = false, super.key});
@@ -327,7 +328,7 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
         body: widget.isAmbient
             ? WearAmbientView(title: _title, author: _author)
             : _isLoading
-            ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
+            ? const Center(child: YaabsaCircularProgressIndicator(strokeWidth: 2))
             : _error != null
             ? _err()
             : Stack(fit: StackFit.expand, children: [_coverBackground(), _player()]),
@@ -460,7 +461,7 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
                       children: [
                         SizedBox.square(
                           dimension: 24,
-                          child: CircularProgressIndicator(value: _downloadProgress, strokeWidth: 2),
+                          child: YaabsaCircularProgressIndicator(value: _downloadProgress, strokeWidth: 2),
                         ),
                         const SizedBox(height: 4),
                         Text(
@@ -504,7 +505,7 @@ class _WearPlayerScreenState extends ConsumerState<WearPlayerScreen> {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(2),
-            child: LinearProgressIndicator(
+            child: YaabsaLinearProgressIndicator(
               value: fraction,
               minHeight: 3,
               backgroundColor: _onSurface(0.12),

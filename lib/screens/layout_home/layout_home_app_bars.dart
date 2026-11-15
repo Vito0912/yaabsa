@@ -1,3 +1,4 @@
+import 'package:yaabsa/ui/components/inputs/search_field.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/components/app/download_status.dart';
 import 'package:yaabsa/components/app/library_switcher.dart';
@@ -7,6 +8,8 @@ import 'package:yaabsa/components/common/app_update_notifier.dart';
 import 'package:yaabsa/components/changelog/changelog_startup_trigger.dart';
 import 'package:yaabsa/provider/core/multi_select_app_bar_provider.dart';
 import 'package:yaabsa/screens/layout_home/navigation_item_config.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/ui/components/menus/yaabsa_context_menu_button.dart';
 
 class LayoutHomeMultiSelectAppBar extends StatelessWidget {
   const LayoutHomeMultiSelectAppBar({
@@ -58,7 +61,7 @@ class LayoutHomeMultiSelectAppBar extends StatelessWidget {
                 child: SizedBox(
                   width: 16,
                   height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: Theme.of(context).colorScheme.primary),
+                  child: YaabsaCircularProgressIndicator(strokeWidth: 2, color: Theme.of(context).colorScheme.primary),
                 ),
               ),
             for (var index = 0; index < state.actions.length; index++) ...[
@@ -191,7 +194,7 @@ class LayoutHomeMobileAppBar extends StatelessWidget {
   }
 
   Widget _buildAdvancedMenuButton(BuildContext context) {
-    return PopupMenuButton<String>(
+    return YaabsaContextMenuButton<String>(
       icon: const Icon(Icons.more_vert),
       onSelected: (value) {
         if (value == '__upload__') {
@@ -370,25 +373,19 @@ class _LayoutHomeSearchField extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       height: 40,
-      child: TextField(
+      child: YaabsaSearchField(
         controller: controller,
         focusNode: focusNode,
         autofocus: autofocus,
-        textInputAction: TextInputAction.search,
         onChanged: onChanged,
         onSubmitted: onSubmitted,
-        decoration: InputDecoration(
-          hintText: 'Search this library',
-          isDense: true,
-          prefixIcon: const Icon(Icons.search_rounded),
-          suffixIcon: searchQuery.isNotEmpty
-              ? IconButton(tooltip: 'Clear search', onPressed: onClear, icon: const Icon(Icons.close_rounded))
-              : null,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-          filled: true,
-        ),
         style: TextStyle(fontSize: isMobile ? 14 : 15),
+        hintText: 'Search this library',
+        isDense: true,
+        suffixIcon: searchQuery.isNotEmpty
+            ? IconButton(tooltip: 'Clear search', onPressed: onClear, icon: const Icon(Icons.close_rounded))
+            : null,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       ),
     );
   }

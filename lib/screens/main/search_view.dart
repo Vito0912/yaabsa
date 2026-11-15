@@ -12,6 +12,7 @@ import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/common/library_search_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/item_view_navigation.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class SearchView extends HookConsumerWidget {
   const SearchView({required this.query, this.limit = 5, super.key});
@@ -153,7 +154,7 @@ class SearchView extends HookConsumerWidget {
           ],
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const Center(child: YaabsaCircularProgressIndicator()),
       error: (err, stack) => Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),

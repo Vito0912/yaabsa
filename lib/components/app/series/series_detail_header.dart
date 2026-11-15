@@ -1,4 +1,6 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/ui/components/buttons/sort_button.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 import 'package:yaabsa/util/globals.dart';
 
 class SeriesDetailHeader extends StatelessWidget {
@@ -28,95 +30,41 @@ class SeriesDetailHeader extends StatelessWidget {
     final resolvedSubtitle = subtitle?.trim();
     final hasSubtitle = resolvedSubtitle != null && resolvedSubtitle.isNotEmpty;
 
-    return LayoutBuilder(
-      builder: (context, _) {
-        final iconOnlySortAction = context.isMobile;
-
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(8, 10, 12, 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 10, 12, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  IconButton(onPressed: onBack, icon: const Icon(Icons.arrow_back_rounded), tooltip: 'Back'),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: _SeriesDetailTitle(title: title, isLoading: isTitleLoading, hasError: hasTitleError),
-                  ),
-                  const SizedBox(width: 4),
-                  _SeriesSortAction(
-                    sortLabel: sortLabel,
-                    onPressed: onSortPressed,
-                    isBusy: isSortBusy,
-                    iconOnly: iconOnlySortAction,
-                  ),
-                ],
+              IconButton(onPressed: onBack, icon: const Icon(Icons.arrow_back_rounded), tooltip: 'Back'),
+              const SizedBox(width: 6),
+              Expanded(
+                child: _SeriesDetailTitle(title: title, isLoading: isTitleLoading, hasError: hasTitleError),
               ),
-              if (hasSubtitle)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(58, 0, 0, 0),
-                  child: Text(
-                    resolvedSubtitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                ),
+              const SizedBox(width: 4),
+              YaabsaSortButton(
+                label: sortLabel,
+                tooltip: 'Sort: $sortLabel',
+                onPressed: onSortPressed,
+                iconOnly: context.isMobile,
+                isLoading: isSortBusy,
+              ),
             ],
           ),
-        );
-      },
-    );
-  }
-}
-
-class _SeriesSortAction extends StatelessWidget {
-  const _SeriesSortAction({
-    required this.sortLabel,
-    required this.onPressed,
-    required this.isBusy,
-    required this.iconOnly,
-  });
-
-  final String sortLabel;
-  final VoidCallback onPressed;
-  final bool isBusy;
-  final bool iconOnly;
-
-  @override
-  Widget build(BuildContext context) {
-    final tooltipMessage = 'Sort: $sortLabel';
-
-    if (iconOnly) {
-      return IconButton(
-        tooltip: tooltipMessage,
-        onPressed: isBusy ? null : onPressed,
-        icon: isBusy
-            ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-            : const Icon(Icons.sort_rounded),
-      );
-    }
-
-    return Tooltip(
-      message: tooltipMessage,
-      child: OutlinedButton.icon(
-        onPressed: isBusy ? null : onPressed,
-        icon: isBusy
-            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-            : const Icon(Icons.sort_rounded),
-        label: Text(_truncateSortLabel(sortLabel)),
+          if (hasSubtitle)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(58, 0, 0, 0),
+              child: Text(
+                resolvedSubtitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
+        ],
       ),
     );
-  }
-
-  static String _truncateSortLabel(String label) {
-    const maxChars = 30;
-    if (label.length <= maxChars) {
-      return label;
-    }
-
-    return '${label.substring(0, maxChars - 3)}...';
   }
 }
 
@@ -142,7 +90,7 @@ class _SeriesDetailTitle extends StatelessWidget {
     if (isLoading) {
       return const Align(
         alignment: Alignment.centerLeft,
-        child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.2)),
+        child: SizedBox(width: 20, height: 20, child: YaabsaCircularProgressIndicator(strokeWidth: 2.2)),
       );
     }
 

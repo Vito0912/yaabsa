@@ -4,6 +4,7 @@ import 'package:yaabsa/components/settings/personalized_shelf_sections_editor.da
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/home_navigation_preferences.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class LibraryShelfSettings extends ConsumerWidget {
   const LibraryShelfSettings({super.key});
@@ -38,7 +39,7 @@ class LibraryShelfSettings extends ConsumerWidget {
           },
           loading: () => const Padding(
             padding: EdgeInsets.all(16),
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(child: YaabsaCircularProgressIndicator()),
           ),
           error: (error, _) =>
               Padding(padding: const EdgeInsets.all(16), child: Text('Failed to load shelf settings: $error')),

@@ -1,9 +1,11 @@
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/handler/sleep_timer_handler.dart';
+import 'package:yaabsa/features/player/widgets/sleep_timer_active_presentation.dart';
 
 class SleepTimerModal extends ConsumerStatefulWidget {
   const SleepTimerModal({super.key});
@@ -61,7 +63,7 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (sleepTimer.isActive) ...[const SizedBox(height: 8), _ActiveTimerCard(sleepTimer: sleepTimer)],
+                if (sleepTimer.isActive) ...[const SizedBox(height: 8), _buildActiveTimerPresentation(sleepTimer)],
                 const SizedBox(height: 8),
                 Text('Quick start', style: Theme.of(context).textTheme.labelLarge),
                 const SizedBox(height: 8),
@@ -93,7 +95,7 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Expanded(
-                        child: TextField(
+                        child: StyledTextField(
                           controller: _customController,
                           keyboardType: TextInputType.number,
                           textInputAction: TextInputAction.done,
@@ -102,12 +104,9 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal> {
                             if (!chapterMode) setState(() => _selectedMinutes = null);
                           },
                           onSubmitted: (_) => _handleCustomInput(chapterMode),
-                          decoration: InputDecoration(
-                            labelText: chapterMode ? 'Number of chapters' : 'Minutes',
-                            hintText: chapterMode ? '1' : 'Minutes',
-                            suffixText: chapterMode ? 'chapters' : 'min',
-                            border: const OutlineInputBorder(),
-                          ),
+                          label: chapterMode ? 'Number of chapters' : 'Minutes',
+                          hintText: chapterMode ? '1' : 'Minutes',
+                          suffixText: chapterMode ? 'chapters' : 'min',
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -234,50 +233,14 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal> {
     Navigator.of(context).pop();
     HapticFeedback.lightImpact();
   }
-}
 
-class _ActiveTimerCard extends StatelessWidget {
-  const _ActiveTimerCard({required this.sleepTimer});
-
-  final SleepTimerData sleepTimer;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
+  Widget _buildActiveTimerPresentation(SleepTimerData sleepTimer) {
     final description = sleepTimer.isChapterTimer
         ? '${sleepTimer.remainingChapters} chapter${sleepTimer.remainingChapters == 1 ? '' : 's'} remaining'
               ' • ${sleepTimer.remainingTime.toCompactRemainingString()} remaining'
         : '${sleepTimer.remainingTime.toCompactRemainingString()} remaining';
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(color: colors.secondaryContainer, borderRadius: BorderRadius.circular(16)),
-      child: Row(
-        children: [
-          Icon(
-            sleepTimer.isRunning ? Icons.timer_outlined : Icons.pause_circle_outline,
-            color: colors.onSecondaryContainer,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  sleepTimer.isRunning ? 'Timer active' : 'Timer paused',
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(color: colors.onSecondaryContainer),
-                ),
-                Text(
-                  description,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: colors.onSecondaryContainer),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+    return SleepTimerActivePresentation(isRunning: sleepTimer.isRunning, description: description);
   }
 }
 

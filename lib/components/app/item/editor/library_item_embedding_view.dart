@@ -1,10 +1,12 @@
 import 'dart:convert';
 
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/ui/components/settings/yaabsa_switch_tile.dart';
 import 'package:yaabsa/api/library_items/audio_file.dart';
 import 'package:yaabsa/api/library_items/chapter.dart';
 import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/item_formatters.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class LibraryItemEmbeddingView extends StatelessWidget {
   const LibraryItemEmbeddingView({
@@ -106,7 +108,7 @@ class LibraryItemEmbeddingView extends StatelessWidget {
                     title: 'Metadata To Embed',
                     child: isMetadataLoading
                         ? const Center(
-                            child: Padding(padding: EdgeInsets.all(18), child: CircularProgressIndicator()),
+                            child: Padding(padding: EdgeInsets.all(18), child: YaabsaCircularProgressIndicator()),
                           )
                         : _MetadataRows(entries: metadataEntries),
                   ),
@@ -171,14 +173,14 @@ class _EmbedActionCard extends StatelessWidget {
           children: [
             Text('Embedding', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 4),
-            SwitchListTile.adaptive(
+            YaabsaSwitchTile.adaptive(
               dense: true,
               contentPadding: EdgeInsets.zero,
               value: backupAudioFiles,
               onChanged: controlsLocked ? null : onBackupAudioFilesChanged,
               title: const Text('Backup audio files before embedding'),
             ),
-            SwitchListTile.adaptive(
+            YaabsaSwitchTile.adaptive(
               dense: true,
               contentPadding: EdgeInsets.zero,
               value: forceEmbedChapters,
@@ -204,7 +206,7 @@ class _EmbedActionCard extends StatelessWidget {
                 FilledButton.icon(
                   onPressed: controlsLocked ? null : onStartEmbedding,
                   icon: controlsLocked
-                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2.1))
+                      ? const SizedBox(width: 16, height: 16, child: YaabsaCircularProgressIndicator(strokeWidth: 2.1))
                       : const Icon(Icons.auto_fix_high_rounded),
                   label: Text(startLabel),
                 ),

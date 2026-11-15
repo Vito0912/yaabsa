@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 Future<T> runWithLoadingSnackBar<T>({
   required BuildContext context,
@@ -14,7 +15,7 @@ Future<T> runWithLoadingSnackBar<T>({
       duration: const Duration(days: 1),
       content: Row(
         children: [
-          const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2.2)),
+          const SizedBox(width: 18, height: 18, child: YaabsaCircularProgressIndicator(strokeWidth: 2.2)),
           const SizedBox(width: 12),
           Expanded(child: Text(message)),
         ],

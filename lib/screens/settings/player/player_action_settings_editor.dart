@@ -1,7 +1,9 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/ui/components/settings/yaabsa_switch_tile.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/screens/player/layout/player_presentation_config.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class PlayerActionSettingsEditor extends ConsumerWidget {
   const PlayerActionSettingsEditor({
@@ -35,7 +37,7 @@ class PlayerActionSettingsEditor extends ConsumerWidget {
       },
       loading: () => const ListTile(
         contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-        leading: SizedBox.square(dimension: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+        leading: SizedBox.square(dimension: 20, child: YaabsaCircularProgressIndicator(strokeWidth: 2)),
         title: Text('Loading actions'),
       ),
       error: (error, stackTrace) => ListTile(
@@ -118,7 +120,7 @@ class _PlayerActionEditorSheetState extends State<_PlayerActionEditorSheet> {
               },
               itemBuilder: (context, index) {
                 final action = _order[index];
-                return SwitchListTile(
+                return YaabsaSwitchTile(
                   key: ValueKey<PlayerActionType>(action),
                   value: _selected.contains(action),
                   secondary: Icon(action.icon),

@@ -1,6 +1,8 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/me/bookmark.dart';
 import 'package:yaabsa/util/extensions.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/ui/components/menus/yaabsa_context_menu_button.dart';
 
 class BookmarkCard extends StatelessWidget {
   const BookmarkCard({
@@ -93,10 +95,10 @@ class BookmarkCard extends StatelessWidget {
               else if (isBusy)
                 const Padding(
                   padding: EdgeInsets.all(10),
-                  child: SizedBox.square(dimension: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+                  child: SizedBox.square(dimension: 20, child: YaabsaCircularProgressIndicator(strokeWidth: 2)),
                 )
               else
-                PopupMenuButton<_BookmarkAction>(
+                YaabsaContextMenuButton<_BookmarkAction>(
                   tooltip: 'Bookmark actions',
                   onSelected: (action) {
                     switch (action) {

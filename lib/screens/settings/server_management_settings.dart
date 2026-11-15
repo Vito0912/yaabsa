@@ -7,6 +7,7 @@ import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class ServerManagementSettings extends ConsumerWidget {
   const ServerManagementSettings({super.key});
@@ -110,7 +111,7 @@ class ServerManagementSettings extends ConsumerWidget {
           },
           loading: () => const Padding(
             padding: EdgeInsets.all(32.0),
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(child: YaabsaCircularProgressIndicator()),
           ),
           error: (error, stackTrace) => Padding(
             padding: const EdgeInsets.all(16.0),

@@ -360,7 +360,14 @@ class LibraryItemApi {
     );
   }
 
-  Widget getLibraryItemCover(String id, {LibraryItem? item, double? width, double? height}) {
+  Widget getLibraryItemCover(
+    String id, {
+    LibraryItem? item,
+    double? width,
+    double? height,
+    double? cacheWidth,
+    double? cacheHeight,
+  }) {
     if (item != null && !item.hasCover) {
       return const CoverPlaceholder();
     }
@@ -373,17 +380,21 @@ class LibraryItemApi {
         placeholder: const CoverPlaceholder(),
         width: width,
         height: height,
+        cacheWidth: cacheWidth?.round(),
+        cacheHeight: cacheHeight?.round(),
         fit: BoxFit.cover,
       );
     }
 
-    final uri = _buildCoverUri(id, item: item, width: width, height: height);
+    final uri = _buildCoverUri(id, item: item, width: cacheWidth ?? width, height: cacheHeight ?? height);
 
     return CachedNetworkImage(
       imageUrl: uri.toString(),
       httpHeaders: Map<String, String>.from(_dio.options.headers),
       width: width,
       height: height,
+      memCacheWidth: cacheWidth?.round(),
+      memCacheHeight: cacheHeight?.round(),
       fit: BoxFit.cover,
       fadeInDuration: const Duration(milliseconds: 120),
       fadeOutDuration: const Duration(milliseconds: 70),

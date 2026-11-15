@@ -13,6 +13,7 @@ import 'package:yaabsa/screens/item/podcast/podcast_episode_utils.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/audio_handler/bg_audio_handler.dart';
 import 'package:yaabsa/util/item_formatters.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class PodcastEpisodeDetailsPage extends StatelessWidget {
   const PodcastEpisodeDetailsPage({
@@ -202,7 +203,7 @@ class _PodcastEpisodeDetailsContentState extends ConsumerState<PodcastEpisodeDet
                         const SizedBox(height: 8),
                         ClipRRect(
                           borderRadius: BorderRadius.circular(99),
-                          child: LinearProgressIndicator(value: progressValue, minHeight: 4),
+                          child: YaabsaLinearProgressIndicator(value: progressValue, minHeight: 4),
                         ),
                       ],
                       const SizedBox(height: 12),

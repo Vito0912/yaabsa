@@ -9,6 +9,7 @@ import 'package:yaabsa/components/settings/settings_slider.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/screens/settings/settings_page_scaffold.dart';
 import 'package:yaabsa/util/setting_key.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class ReaderTtsSettings extends ConsumerStatefulWidget {
   const ReaderTtsSettings({super.key, this.showTitle = true});
@@ -138,7 +139,7 @@ class _ReaderTtsSettingsState extends ConsumerState<ReaderTtsSettings> {
             ),
             if (registration.showStandardVoiceSettings && _isLoadingTts)
               const Center(
-                child: Padding(padding: EdgeInsets.symmetric(vertical: 16.0), child: CircularProgressIndicator()),
+                child: Padding(padding: EdgeInsets.symmetric(vertical: 16.0), child: YaabsaCircularProgressIndicator()),
               )
             else if (registration.showStandardVoiceSettings) ...[
               SettingDropdown<String>(

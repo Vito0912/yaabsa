@@ -7,7 +7,9 @@ import 'package:yaabsa/api/list/collection.dart';
 import 'package:yaabsa/api/list/playlist.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
 import 'package:yaabsa/components/common/additional_information_text.dart';
+import 'package:yaabsa/features/library/widgets/library_item_card.dart';
 import 'package:yaabsa/util/library_view_subtitles.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 const int defaultMultiBookPreviewLimit = 5;
 const int _maxRenderedSeriesCovers = 5;
@@ -109,39 +111,27 @@ class MultiBookEntryWidget extends StatelessWidget {
     final subtitle = _resolveSubtitle();
     final hiddenBookCount = (entry.totalBookCount - previewBookIds.length).clamp(0, entry.totalBookCount);
 
-    final content = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _StackedCovers(
-          api: api,
-          itemIds: previewBookIds,
-          hiddenBookCount: hiddenBookCount,
-          compact: compact,
-          squareCover: squareCover,
-          coverHeight: coverHeight,
-          progress: progress,
-        ),
-        SizedBox(height: compact ? 6 : 8),
-        Text(
-          entry.title,
-          maxLines: compact ? 1 : 2,
-          overflow: TextOverflow.ellipsis,
-          style: compact ? Theme.of(context).textTheme.bodyMedium : null,
-        ),
-        if (showSubtitle && subtitle != null)
-          AdditionalInformationText(
-            subtitle: subtitle,
-            style: Theme.of(context).textTheme.bodySmall
-                ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-          ),
-      ],
-    );
-
-    if (onTap == null && onLongPress == null) return content;
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(onTap: onTap, onLongPress: onLongPress, borderRadius: BorderRadius.circular(16), child: content),
+    return LibraryItemCard(
+      cover: _StackedCovers(
+        api: api,
+        itemIds: previewBookIds,
+        hiddenBookCount: hiddenBookCount,
+        compact: compact,
+        squareCover: squareCover,
+        coverHeight: coverHeight,
+        progress: progress,
+      ),
+      title: entry.title,
+      subtitle: showSubtitle && subtitle != null
+          ? AdditionalInformationText(
+              subtitle: subtitle,
+              style: Theme.of(context).textTheme.bodySmall
+                  ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+            )
+          : null,
+      compact: compact,
+      onTap: onTap,
+      onLongPress: onLongPress,
     );
   }
 
@@ -208,7 +198,7 @@ class _StackedCovers extends StatelessWidget {
                 left: 0,
                 right: 0,
                 bottom: 0,
-                child: LinearProgressIndicator(value: progress, minHeight: 6, backgroundColor: Colors.black45),
+                child: YaabsaLinearProgressIndicator(value: progress, minHeight: 6, backgroundColor: Colors.black45),
               ),
           ],
         ),
@@ -231,7 +221,11 @@ class _StackedCovers extends StatelessWidget {
                       left: 0,
                       right: 0,
                       bottom: 0,
-                      child: LinearProgressIndicator(value: progress, minHeight: 6, backgroundColor: Colors.black45),
+                      child: YaabsaLinearProgressIndicator(
+                        value: progress,
+                        minHeight: 6,
+                        backgroundColor: Colors.black45,
+                      ),
                     ),
                 ],
               ),
@@ -284,7 +278,11 @@ class _StackedCovers extends StatelessWidget {
                         left: 0,
                         right: 0,
                         bottom: 0,
-                        child: LinearProgressIndicator(value: progress, minHeight: 6, backgroundColor: Colors.black45),
+                        child: YaabsaLinearProgressIndicator(
+                          value: progress,
+                          minHeight: 6,
+                          backgroundColor: Colors.black45,
+                        ),
                       ),
                   ],
                 ),

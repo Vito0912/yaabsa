@@ -1,3 +1,5 @@
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
+
 import 'dart:async';
 
 import 'package:dio/dio.dart';
@@ -866,16 +868,13 @@ class SignIn extends HookConsumerWidget {
                               style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
                             ),
                             const SizedBox(height: 22),
-                            TextField(
+                            StyledTextField(
                               controller: serverAddressController,
                               enabled: !isLoading.value && !oidcLoading && !importedCodeNeedsPassword,
                               keyboardType: TextInputType.url,
-                              decoration: InputDecoration(
-                                labelText: 'Server Address',
-                                hintText: 'https://your-audiobookshelf.example',
-                                prefixIcon: const Icon(Icons.dns_outlined),
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                              ),
+                              label: 'Server Address',
+                              hintText: 'https://your-audiobookshelf.example',
+                              prefixIcon: const Icon(Icons.dns_outlined),
                             ),
                             const SizedBox(height: 8),
                             SignInServerStatus(

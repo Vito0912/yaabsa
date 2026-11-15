@@ -2,13 +2,15 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/api/library/search_library.dart';
-import 'package:yaabsa/components/common/inputs/styled_form_fields.dart';
+import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
+import 'package:yaabsa/ui/components/settings/settings_switch_presentation.dart';
 import 'package:yaabsa/models/queue_source.dart';
 import 'package:yaabsa/provider/common/collection_provider.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/common/library_search_provider.dart';
 import 'package:yaabsa/provider/common/playlist_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 
 class _AutocompleteTextEditingController extends TextEditingController {
   void refreshOptions() {
@@ -296,7 +298,7 @@ class _SmartDownloadSourceEditorState extends ConsumerState<SmartDownloadSourceE
                     );
                   },
                 ),
-              if (searchAsync?.isLoading ?? false) const LinearProgressIndicator(),
+              if (searchAsync?.isLoading ?? false) const YaabsaLinearProgressIndicator(),
               if (searchAsync?.hasError ?? false)
                 const Align(
                   alignment: Alignment.centerLeft,
@@ -307,9 +309,9 @@ class _SmartDownloadSourceEditorState extends ConsumerState<SmartDownloadSourceE
                 ),
               const SizedBox(height: 16),
               if (_type.requiresSearch)
-                SwitchListTile(
+                SettingsSwitchPresentation(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('Descending/feed direction'),
+                  label: 'Descending/feed direction',
                   value: _descending,
                   onChanged: (value) => setState(() => _descending = value),
                 ),

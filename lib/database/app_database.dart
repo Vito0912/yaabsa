@@ -2057,6 +2057,19 @@ class AppDatabase extends _$AppDatabase {
         .go();
   }
 
+  Future<void> clearMediaProgressFromSyncs(String userId, String itemId, {String? episodeId}) {
+    var whereClause = storedSyncs.userId.equals(userId) & storedSyncs.itemId.equals(itemId);
+    if (episodeId != null) {
+      whereClause = whereClause & storedSyncs.episodeId.equals(episodeId);
+    } else {
+      whereClause = whereClause & storedSyncs.episodeId.isNull();
+    }
+
+    return (update(
+      storedSyncs,
+    )..where((tbl) => whereClause)).write(const StoredSyncsCompanion(mediaProgress: Value('{}')));
+  }
+
   Future<StoredSyncEntry?> getSync(String sessionId) async {
     final query = select(storedSyncs)..where((tbl) => tbl.sessionId.equals(sessionId));
     final entry = await query.getSingleOrNull();

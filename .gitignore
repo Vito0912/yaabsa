@@ -49,6 +49,9 @@ output
 flatpak-build/
 flatpak-repo/
 AGENTS.md
+.widget_preview/
+.widget_test/
 /web/drift_worker.js
 /web/sqlite3.wasm
 .github/images/**.png
+internal/
