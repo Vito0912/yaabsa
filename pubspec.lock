@@ -2266,6 +2266,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.1.0"
+  yaabsa_flutter_tts_windows:
+    dependency: "direct main"
+    description:
+      path: "packages/yaabsa_flutter_tts_windows"
+      relative: true
+    source: path
+    version: "0.0.1"
   yaml:
     dependency: transitive
     description:
