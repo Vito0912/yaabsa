@@ -90,6 +90,8 @@ dependencies:
   screen_retriever: ^0.4.0
 
   ## Windows
+  yaabsa_flutter_tts_windows:
+    path: ./packages/yaabsa_flutter_tts_windows
   audio_service_win:
     path: ./packages/audio_service_win
   media_kit_libs_windows_audio:
