@@ -1964,7 +1964,9 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
     required bool internal,
     bool Function()? continuationIsCurrent,
   }) {
-    if (_currentMediaItem == null || ((_castConnecting || _castTrackLoading) && _castHandoffPosition == null)) {
+    final seekMedia = _currentMediaItem;
+
+    if (seekMedia == null || ((_castConnecting || _castTrackLoading) && _castHandoffPosition == null)) {
       return Future.value();
     }
 
@@ -1973,17 +1975,19 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
     _sleepTimerPendingSeeks++;
 
-    final operation = _sleepTimerSeekQueue
-        .catchError((Object _) {})
-        .then(
-          (_) => _performSleepTimerAwareSeek(
-            position,
-            internal: internal,
-            navigationGeneration: navigationGeneration,
-            seekRequestGeneration: seekRequestGeneration,
-            continuationIsCurrent: continuationIsCurrent,
-          ),
-        );
+    final operation = _sleepTimerSeekQueue.catchError((Object _) {}).then((_) async {
+      if (_isDisposing || !identical(_currentMediaItem, seekMedia)) {
+        return;
+      }
+
+      await _performSleepTimerAwareSeek(
+        position,
+        internal: internal,
+        navigationGeneration: navigationGeneration,
+        seekRequestGeneration: seekRequestGeneration,
+        continuationIsCurrent: continuationIsCurrent,
+      );
+    });
 
     _sleepTimerSeekQueue = operation.catchError((Object _) {});
 
@@ -2046,11 +2050,16 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
         _syncService.markProgressDirty();
       }
 
+      if (!_isInternalSeek && _streamRecoveryResumePosition != null) {
+        _streamRecoveryResumePosition = boundedPosition;
+      }
+
       final shouldRecordPausedManualSeek =
           _internalSeekGuardDepth == 0 &&
           !playerControlState.playing &&
           (playerControlState.processingState == ProcessingState.ready ||
-              playerControlState.processingState == ProcessingState.completed);
+              playerControlState.processingState == ProcessingState.completed ||
+              playerControlState.processingState == ProcessingState.idle);
 
       if (shouldRecordPausedManualSeek) {
         _markPausedManualSeek(boundedPosition);
@@ -2106,22 +2115,36 @@ class BGAudioHandler extends BaseAudioHandler with QueueHandler, SeekHandler {
 
       final relativeTrackPosition = boundedPosition - _currentMediaItem!.startDurationForTrack(newTrackIndex);
 
-      if (newTrackIndex != _currentTrackIndex) {
-        _currentTrackIndex = newTrackIndex;
-        await _player.seek(relativeTrackPosition, index: _currentTrackIndex);
+      try {
+        if (newTrackIndex != _currentTrackIndex) {
+          _currentTrackIndex = newTrackIndex;
+          await _player.seek(relativeTrackPosition, index: _currentTrackIndex);
 
-        if (!kIsWeb && (Platform.isWindows || Platform.isLinux)) {
-          // Bugfix for Windows as it doesn't seek correctly if the index changed
-          _player.playerStateStream.firstWhere((state) => state.processingState == ProcessingState.ready).then((
-            _,
-          ) async {
-            if (identical(_currentMediaItem, seekMedia) && seekRequestGeneration == _sleepTimerSeekRequestGeneration) {
-              await _player.seek(relativeTrackPosition, index: _currentTrackIndex);
-            }
-          });
+          if (!kIsWeb && (Platform.isWindows || Platform.isLinux)) {
+            // Bugfix for Windows as it doesn't seek correctly if the index changed
+            unawaited(
+              _player.playerStateStream
+                  .firstWhere((state) => state.processingState == ProcessingState.ready)
+                  .then((_) async {
+                    if (identical(_currentMediaItem, seekMedia) &&
+                        seekRequestGeneration == _sleepTimerSeekRequestGeneration) {
+                      await _player.seek(relativeTrackPosition, index: _currentTrackIndex);
+                    }
+                  })
+                  .catchError((Object _) {}),
+            );
+          }
+        } else {
+          await _player.seek(relativeTrackPosition, index: _currentTrackIndex);
         }
-      } else {
-        await _player.seek(relativeTrackPosition, index: _currentTrackIndex);
+      } catch (error) {
+        logger('Player seek to $boundedPosition failed: $error', tag: 'AudioHandler', level: InfoLevel.warning);
+
+        return;
+      }
+
+      if (_isDisposing || !identical(_currentMediaItem, seekMedia)) {
+        return;
       }
 
       _refreshChapterNotificationState(customPosition: boundedPosition);

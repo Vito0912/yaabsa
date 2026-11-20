@@ -21,17 +21,30 @@ extension _BGAudioHandlerRuntime on BGAudioHandler {
       return true;
     }
 
+    final bool handled;
+
     switch (_classifyPlaybackError(error)) {
       case PlaybackFailureAction.retryStream:
         _scheduleStreamRecoveryRetry(error);
-        return Future<bool>.value(true);
+        handled = true;
       case PlaybackFailureAction.transcode:
-        return _attemptTranscodeFallback(error);
+        handled = await _attemptTranscodeFallback(error);
       case PlaybackFailureAction.ignore:
-        return Future<bool>.value(true);
+        handled = true;
       case PlaybackFailureAction.fail:
-        return Future<bool>.value(false);
+        handled = false;
     }
+
+    if (!handled && !_isDisposing && !isCastControlActive) {
+      if (_player.playing) {
+        await pause();
+      } else {
+        _refreshPlayerControlState();
+        unawaited(_updatePlaybackState());
+      }
+    }
+
+    return handled;
   }
 
   Future<bool> _attemptLocalStreamingFallback(
