@@ -1,4 +1,3 @@
-import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,6 +5,7 @@ import 'package:yaabsa/util/extensions.dart';
 import 'package:yaabsa/util/globals.dart';
 import 'package:yaabsa/util/handler/sleep_timer_handler.dart';
 import 'package:yaabsa/features/player/widgets/sleep_timer_active_presentation.dart';
+import 'package:yaabsa/features/player/widgets/sleep_timer_custom_input.dart';
 
 class SleepTimerModal extends ConsumerStatefulWidget {
   const SleepTimerModal({super.key});
@@ -90,36 +90,15 @@ class _SleepTimerModalState extends ConsumerState<SleepTimerModal> {
                   ],
                 ),
                 const SizedBox(height: 20),
-                IntrinsicHeight(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Expanded(
-                        child: StyledTextField(
-                          controller: _customController,
-                          keyboardType: TextInputType.number,
-                          textInputAction: TextInputAction.done,
-                          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                          onChanged: (_) {
-                            if (!chapterMode) setState(() => _selectedMinutes = null);
-                          },
-                          onSubmitted: (_) => _handleCustomInput(chapterMode),
-                          label: chapterMode ? 'Number of chapters' : 'Minutes',
-                          hintText: chapterMode ? '1' : 'Minutes',
-                          suffixText: chapterMode ? 'chapters' : 'min',
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      FilledButton.icon(
-                        onPressed: () => _handleCustomInput(chapterMode),
-                        style: FilledButton.styleFrom(
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                        ),
-                        icon: const Icon(Icons.bedtime),
-                        label: const Text('Set'),
-                      ),
-                    ],
-                  ),
+                SleepTimerCustomInput(
+                  controller: _customController,
+                  chapterMode: chapterMode,
+                  onChanged: (_) {
+                    if (!chapterMode) {
+                      setState(() => _selectedMinutes = null);
+                    }
+                  },
+                  onSet: () => _handleCustomInput(chapterMode),
                 ),
                 if (sleepTimer.isActive) ...[
                   const SizedBox(height: 20),

@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 import 'package:yaabsa/ui/components/inputs/expressive_dropdown.dart';
 import 'package:yaabsa/ui/components/menus/yaabsa_context_menu_button.dart';
+import 'package:yaabsa/ui/components/buttons/yaabsa_button.dart';
 
 import 'preview_theme.dart';
 
@@ -10,6 +11,44 @@ import 'preview_theme.dart';
 @Preview(name: 'Material 3 Expressive controls / dark', size: Size(640, 520), wrapper: yaabsaPreviewDark)
 @Preview(name: 'Material 3 Expressive controls / AMOLED', size: Size(640, 520), wrapper: yaabsaPreviewAmoled)
 Widget material3ExpressiveControlsPreview() => const Material3ExpressiveControlsPreview();
+
+@Preview(name: 'Shared buttons / light', size: Size(390, 640), wrapper: yaabsaPreviewLight)
+@Preview(name: 'Shared buttons / dark', size: Size(390, 640), wrapper: yaabsaPreviewDark)
+@Preview(name: 'Shared buttons / AMOLED', size: Size(390, 640), wrapper: yaabsaPreviewAmoled)
+Widget sharedButtonsPreview() {
+  return ListView(
+    padding: const EdgeInsets.all(16),
+    children: [
+      for (final variant in YaabsaButtonVariant.values)
+        Wrap(
+          spacing: 8,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            YaabsaButton(
+              label: Text(variant.name),
+              icon: const Icon(Icons.add_rounded),
+              variant: variant,
+              onPressed: () {},
+            ),
+            YaabsaButton.small(label: const Text('Small'), variant: variant, onPressed: () {}),
+            YaabsaButton.iconSmall(
+              icon: const Icon(Icons.add_rounded),
+              tooltip: 'Add',
+              variant: variant,
+              onPressed: () {},
+            ),
+          ],
+        ),
+      const YaabsaButton(label: Text('Disabled'), onPressed: null),
+      YaabsaButton.small(label: const Text('Loading'), isLoading: true, onPressed: () {}),
+      YaabsaButton.small(
+        label: const Text('A long representative collection action'),
+        icon: const Icon(Icons.add_rounded),
+        onPressed: () {},
+      ),
+    ],
+  );
+}
 
 class Material3ExpressiveControlsPreview extends StatefulWidget {
   const Material3ExpressiveControlsPreview({super.key});

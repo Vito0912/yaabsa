@@ -1,5 +1,5 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/ui/components/buttons/yaabsa_button.dart';
 
 class YaabsaDialogActions extends StatelessWidget {
   const YaabsaDialogActions({
@@ -33,13 +33,12 @@ class YaabsaDialogActions extends StatelessWidget {
       spacing: 8,
       runSpacing: 8,
       children: [
-        TextButton(onPressed: onCancel, child: Text(cancelLabel)),
-        FilledButton.icon(
-          onPressed: isLoading ? null : onAction,
+        YaabsaButton(variant: YaabsaButtonVariant.text, onPressed: onCancel, label: Text(cancelLabel)),
+        YaabsaButton(
+          onPressed: onAction,
           style: actionStyle,
-          icon: isLoading
-              ? const SizedBox.square(dimension: 16, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
-              : Icon(actionIcon),
+          isLoading: isLoading,
+          icon: Icon(actionIcon),
           label: Text(actionLabel),
         ),
       ],

@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:material_3_expressive/material_3_expressive.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:yaabsa/components/common/desktop_page_shortcuts.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
@@ -14,9 +15,12 @@ class ScreenRefreshIndicator extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return DesktopPageShortcuts(
       onRefresh: enabled ? onRefresh : null,
-      child: RefreshIndicator(
+      child: M3ERefreshIndicator(
         onRefresh: () async {
-          if (!enabled) return;
+          if (!enabled) {
+            return;
+          }
+
           await Future.wait<void>([
             ref.read(mediaProgressProvider.notifier).refreshAllProgress(),
             Future<void>.sync(onRefresh),
