@@ -5,6 +5,13 @@ abstract final class YaabsaButtonStyles {
   static const minimumSize = Size(64, 48);
   static const padding = EdgeInsets.symmetric(horizontal: 16, vertical: 12);
 
+  static const toolbarAction = ButtonStyle(
+    minimumSize: WidgetStatePropertyAll<Size>(Size(40, 40)),
+    padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(EdgeInsets.symmetric(horizontal: 16, vertical: 6)),
+    visualDensity: VisualDensity.standard,
+    tapTargetSize: MaterialTapTargetSize.padded,
+  );
+
   static const compactProminentAction = ButtonStyle(
     minimumSize: WidgetStatePropertyAll<Size>(Size(0, 40)),
     padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(EdgeInsets.symmetric(horizontal: 16, vertical: 6)),

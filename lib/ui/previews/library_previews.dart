@@ -18,6 +18,7 @@ import 'package:yaabsa/screens/item/podcast/podcast_episode_utils.dart';
 import 'package:yaabsa/screens/item/podcast/podcast_episodes_header_card.dart';
 import 'package:yaabsa/components/app/item/item_more_actions_button.dart';
 import 'package:yaabsa/ui/components/buttons/media_play_button.dart';
+import 'package:yaabsa/ui/components/buttons/sort_button.dart';
 
 import 'preview_fixtures.dart';
 import 'preview_theme.dart';
@@ -43,6 +44,19 @@ Widget sharedMediaPlayButtonsPreview() => const SharedMediaPlayButtonsPreview();
 @Preview(name: 'Series and narrator sort headers / dark', size: Size(390, 260), wrapper: yaabsaPreviewDark)
 @Preview(name: 'Series and narrator sort headers / AMOLED', size: Size(390, 260), wrapper: yaabsaPreviewAmoled)
 Widget sortHeaderControlsPreview() => const SortHeaderControlsPreview();
+
+@Preview(name: 'Sort button / light', size: Size(280, 80), wrapper: yaabsaPreviewLight)
+@Preview(name: 'Sort button / dark', size: Size(280, 80), wrapper: yaabsaPreviewDark)
+Widget sortButtonPreview() {
+  return Center(
+    child: YaabsaSortButton(
+      label: 'Title A-Z',
+      tooltip: 'Sort: Title A-Z',
+      onPressed: _ignoreEntityAction,
+      iconOnly: false,
+    ),
+  );
+}
 
 @Preview(name: 'Set progress dialog / light', size: Size(480, 480), wrapper: yaabsaPreviewLight)
 @Preview(name: 'Set progress dialog / dark', size: Size(480, 480), wrapper: yaabsaPreviewDark)

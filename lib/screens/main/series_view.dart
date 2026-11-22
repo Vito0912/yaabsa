@@ -22,6 +22,7 @@ import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/common/media_progress_provider.dart';
 import 'package:yaabsa/ui/components/buttons/sort_button.dart';
+import 'package:yaabsa/ui/components/buttons/yaabsa_button.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
 import 'package:yaabsa/util/library_view_subtitle_preferences.dart';
 import 'package:yaabsa/util/library_view_subtitles.dart';
@@ -311,8 +312,9 @@ class _SeriesToolbar extends StatelessWidget {
           spacing: 8,
           runSpacing: 8,
           children: [
-            OutlinedButton.icon(
+            YaabsaButton.small(
               onPressed: isBusy ? null : onFilterPressed,
+              variant: YaabsaButtonVariant.outlined,
               icon: isFilterLoading
                   ? const SizedBox(width: 16, height: 16, child: YaabsaCircularProgressIndicator(strokeWidth: 2))
                   : const Icon(Icons.filter_alt_rounded),

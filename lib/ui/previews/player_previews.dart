@@ -15,6 +15,7 @@ import 'package:yaabsa/features/player/widgets/player_queue_item_presentation.da
 import 'package:yaabsa/features/player/widgets/playback_speed_sheet.dart';
 import 'package:yaabsa/features/player/widgets/player_subtitle_presentation.dart';
 import 'package:yaabsa/features/player/widgets/sleep_timer_active_presentation.dart';
+import 'package:yaabsa/features/player/widgets/sleep_timer_custom_input.dart';
 import 'package:yaabsa/features/player/widgets/playback_button.dart';
 import 'package:yaabsa/screens/player/components/player_cover_component.dart';
 import 'package:yaabsa/screens/player/components/player_action_bar.dart';
@@ -67,6 +68,10 @@ Widget playerTransportButtonsPreview() => const PlayerTransportButtonsPreview();
 @Preview(name: 'Sleep timer states / dark', size: Size(560, 260), wrapper: yaabsaPreviewDark)
 @Preview(name: 'Sleep timer states / AMOLED', size: Size(560, 260), wrapper: yaabsaPreviewAmoled)
 Widget sleepTimerStatesPreview() => const SleepTimerStatesPreview();
+
+@Preview(name: 'Sleep timer input / phone', size: Size(360, 100), wrapper: yaabsaPreviewLight)
+@Preview(name: 'Sleep timer input / dark', size: Size(360, 100), wrapper: yaabsaPreviewDark)
+Widget sleepTimerInputPreview() => const SleepTimerCustomInputPreview();
 
 @Preview(name: 'Playback speed settings / light', size: Size(560, 420), wrapper: yaabsaPreviewLight)
 @Preview(name: 'Playback speed settings / dark', size: Size(560, 420), wrapper: yaabsaPreviewDark)
@@ -417,8 +422,39 @@ class SleepTimerStatesPreview extends StatelessWidget {
           SleepTimerActivePresentation(isRunning: true, description: '15 min remaining'),
           SizedBox(height: 12),
           SleepTimerActivePresentation(isRunning: false, description: '2 chapters · 24 min remaining'),
+          SizedBox(height: 12),
+          SleepTimerCustomInputPreview(),
         ],
       ),
+    );
+  }
+}
+
+class SleepTimerCustomInputPreview extends StatefulWidget {
+  const SleepTimerCustomInputPreview({super.key, this.chapterMode = false});
+
+  final bool chapterMode;
+
+  @override
+  State<SleepTimerCustomInputPreview> createState() => _SleepTimerCustomInputPreviewState();
+}
+
+class _SleepTimerCustomInputPreviewState extends State<SleepTimerCustomInputPreview> {
+  late final _controller = TextEditingController(text: widget.chapterMode ? '1' : '15');
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SleepTimerCustomInput(
+      controller: _controller,
+      chapterMode: widget.chapterMode,
+      onChanged: (_) {},
+      onSet: () {},
     );
   }
 }

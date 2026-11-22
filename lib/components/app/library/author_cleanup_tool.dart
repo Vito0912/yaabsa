@@ -12,6 +12,7 @@ import 'package:yaabsa/provider/common/library_filter_data_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/setting_key.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/ui/components/buttons/yaabsa_button.dart';
 
 const int _authorCleanupPageSize = 100;
 
@@ -43,7 +44,7 @@ class _RemoveAuthorsWithoutBooksToolState extends ConsumerState<RemoveAuthorsWit
       return const SizedBox.shrink();
     }
 
-    return FilledButton.icon(
+    return YaabsaButton.small(
       onPressed: _isRunning ? null : _removeAuthorsWithoutBooks,
       icon: _isRunning
           ? const SizedBox(width: 16, height: 16, child: YaabsaCircularProgressIndicator(strokeWidth: 2.2))

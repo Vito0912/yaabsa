@@ -21,6 +21,7 @@ import 'package:yaabsa/provider/common/library_provider.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/user_providers.dart';
 import 'package:yaabsa/util/layout_sizes.dart';
+import 'package:yaabsa/ui/components/buttons/yaabsa_button.dart';
 import 'package:yaabsa/util/library_view_subtitle_preferences.dart';
 import 'package:yaabsa/util/library_view_subtitles.dart';
 
@@ -227,8 +228,9 @@ class _AuthorsToolbar extends StatelessWidget {
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             if (trailingAction != null) trailingAction!,
-            OutlinedButton.icon(
+            YaabsaButton.small(
               onPressed: onSortPressed,
+              variant: YaabsaButtonVariant.outlined,
               icon: const Icon(Icons.sort_rounded),
               label: Text(sortButtonLabel),
             ),

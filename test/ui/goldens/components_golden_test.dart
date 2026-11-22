@@ -148,6 +148,12 @@ void main() {
       build: () => const Material3ExpressiveControlsPreview(),
     ),
     (
+      name: 'shared button variants and states',
+      fileName: 'shared_buttons',
+      size: const Size(390, 640),
+      build: sharedButtonsPreview,
+    ),
+    (
       name: 'playback button states',
       fileName: 'playback_states',
       size: const Size(390, 220),
@@ -708,6 +714,7 @@ void main() {
             componentGolden.fileName == 'player_collection_empty' ||
             componentGolden.fileName == 'statistics_loading_states' ||
             componentGolden.fileName == 'material_3_controls' ||
+            componentGolden.fileName == 'shared_buttons' ||
             componentGolden.fileName == 'shared_media_play_buttons' ||
             componentGolden.fileName.startsWith('podcast_episode_controls')) {
           await tester.pump(const Duration(milliseconds: 400));
@@ -727,6 +734,66 @@ void main() {
           matchesGoldenFile(_goldenBaselinePath('${componentGolden.fileName}_$appearance.png')),
         );
       });
+    }
+
+    for (final layout in [
+      (name: 'phone', width: 320.0, textScale: 1.0),
+      (name: 'wide', width: 560.0, textScale: 1.0),
+      (name: 'phone_accessibility', width: 320.0, textScale: 2.0),
+    ]) {
+      for (final chapterMode in [false, true]) {
+        final mode = chapterMode ? 'chapters' : 'minutes';
+        testWidgets('sleep timer input ${layout.name} $mode $appearance', (tester) async {
+          tester.view.devicePixelRatio = 1;
+          tester.view.physicalSize = Size(layout.width, 140);
+          tester.platformDispatcher.textScaleFactorTestValue = layout.textScale;
+          addTearDown(tester.view.resetPhysicalSize);
+          addTearDown(tester.view.resetDevicePixelRatio);
+          addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+          final boundary = GlobalKey();
+
+          await tester.pumpWidget(
+            YaabsaPreviewApp(
+              brightness: appearance == 'light' ? Brightness.light : Brightness.dark,
+              amoled: appearance == 'amoled',
+              child: RepaintBoundary(
+                key: boundary,
+                child: Builder(
+                  builder: (context) {
+                    final theme = Theme.of(context);
+                    return Theme(
+                      data: theme.copyWith(textTheme: theme.textTheme.apply(fontFamily: 'Roboto')),
+                      child: Material(
+                        color: theme.scaffoldBackgroundColor,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Align(
+                            alignment: Alignment.topCenter,
+                            child: SleepTimerCustomInputPreview(chapterMode: chapterMode),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          final fieldContainer = InputDecorator.containerOf(tester.element(find.byType(EditableText)))!;
+          final fieldRect = fieldContainer.localToGlobal(Offset.zero) & fieldContainer.size;
+          final buttonMaterial = find.descendant(of: find.byType(FilledButton), matching: find.byType(Material));
+          final buttonRect = tester.getRect(buttonMaterial);
+          expect(buttonRect.top, fieldRect.top);
+          expect(buttonRect.bottom, fieldRect.bottom);
+          expect(tester.takeException(), isNull);
+          await expectLater(
+            find.byKey(boundary),
+            matchesGoldenFile(_goldenBaselinePath('sleep_timer_input_${layout.name}_${mode}_$appearance.png')),
+          );
+        });
+      }
     }
 
     testWidgets('Material 3 Expressive dropdown open $appearance', (tester) async {

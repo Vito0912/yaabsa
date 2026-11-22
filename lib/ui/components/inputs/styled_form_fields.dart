@@ -17,6 +17,7 @@ class StyledTextField extends StatelessWidget {
     this.showCursor,
     this.enableInteractiveSelection = true,
     this.textAlign = TextAlign.start,
+    this.textAlignVertical,
     this.maxLength,
     this.minLines,
     this.textCapitalization = TextCapitalization.none,
@@ -30,6 +31,7 @@ class StyledTextField extends StatelessWidget {
     this.alignLabelWithHint,
     this.errorText,
     this.maxLines = 1,
+    this.expands = false,
     this.keyboardType,
     this.onChanged,
     this.onSubmitted,
@@ -54,6 +56,7 @@ class StyledTextField extends StatelessWidget {
   final int? minLines;
   final int? maxLength;
   final TextAlign textAlign;
+  final TextAlignVertical? textAlignVertical;
   final bool enableInteractiveSelection;
   final bool? showCursor;
   final VoidCallback? onTap;
@@ -66,6 +69,7 @@ class StyledTextField extends StatelessWidget {
   final bool? alignLabelWithHint;
   final String? errorText;
   final int? maxLines;
+  final bool expands;
   final TextInputType? keyboardType;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
@@ -108,6 +112,7 @@ class StyledTextField extends StatelessWidget {
       showCursor: showCursor,
       enableInteractiveSelection: enableInteractiveSelection,
       textAlign: textAlign,
+      textAlignVertical: textAlignVertical,
       maxLength: maxLength,
       minLines: minLines,
       textCapitalization: textCapitalization,
@@ -117,6 +122,7 @@ class StyledTextField extends StatelessWidget {
       focusNode: focusNode,
       keyboardType: keyboardType,
       maxLines: maxLines,
+      expands: expands,
       onChanged: onChanged,
       onSubmitted: onSubmitted,
       onEditingComplete: onEditingComplete,
