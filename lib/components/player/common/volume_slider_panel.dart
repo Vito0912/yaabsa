@@ -18,10 +18,10 @@ class VolumeSliderPanel extends StatelessWidget {
       builder: (context, _) {
         return StreamBuilder<double>(
           stream: audioHandler.volumeStream,
-          initialData: 1.0,
+          initialData: audioHandler.volume,
           builder: (context, snapshot) {
             final maxVolume = audioHandler.maxVolume;
-            final volume = snapshot.data ?? 1.0;
+            final volume = snapshot.data ?? audioHandler.volume;
 
             return VolumeSliderPresentation(
               axis: axis,
@@ -276,6 +276,7 @@ class _VolumeSliderState extends State<_VolumeSlider> {
       children: [
         track,
         CustomPaint(
+          key: const ValueKey('volume-unity-marker'),
           painter: _UnityMarkerPainter(
             axis: widget.axis,
             position: widget.unitySliderValue,
@@ -289,6 +290,10 @@ class _VolumeSliderState extends State<_VolumeSlider> {
 
   @override
   Widget build(BuildContext context) {
+    String formatVolume(double value) {
+      return '${(widget.sliderValueToVolume(value) * 100).round()}%';
+    }
+
     void handleChangeEnd(double _) {
       _detentLatched = false;
     }
@@ -300,8 +305,9 @@ class _VolumeSliderState extends State<_VolumeSlider> {
             max: 1.0,
             onChanged: _handleChanged,
             onChangeEnd: handleChangeEnd,
+            label: formatVolume(widget.value),
             semanticLabel: 'Volume',
-            semanticFormatterCallback: (value) => '${(widget.sliderValueToVolume(value) * 100).round()}%',
+            semanticFormatterCallback: formatVolume,
             size: M3ESliderSize.xs,
             trackBuilder: _buildTrack,
           )
@@ -311,8 +317,9 @@ class _VolumeSliderState extends State<_VolumeSlider> {
             max: 1.0,
             onChanged: _handleChanged,
             onChangeEnd: handleChangeEnd,
+            label: formatVolume(widget.value),
             semanticLabel: 'Volume',
-            semanticFormatterCallback: (value) => '${(widget.sliderValueToVolume(value) * 100).round()}%',
+            semanticFormatterCallback: formatVolume,
             size: M3ESliderSize.xs,
             trackBuilder: _buildTrack,
           );
@@ -343,7 +350,7 @@ class _UnityMarkerPainter extends CustomPainter {
     final markerPaint = Paint()..color = color;
 
     if (axis == Axis.vertical) {
-      final markerY = size.height * (1.0 - position);
+      final markerY = size.height * position;
       canvas.drawRect(Rect.fromCenter(center: Offset(size.width / 2, markerY), width: 8, height: 2), markerPaint);
       return;
     }

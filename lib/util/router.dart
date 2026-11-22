@@ -226,10 +226,7 @@ final globalRouter = GoRouter(
 
               return SlideTransition(
                 position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero).animate(curvedAnimation),
-                child: FadeTransition(
-                  opacity: Tween<double>(begin: 0.96, end: 1).animate(curvedAnimation),
-                  child: child,
-                ),
+                child: RepaintBoundary(child: child),
               );
             },
             child: const Player(),

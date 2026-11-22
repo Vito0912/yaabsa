@@ -14,9 +14,42 @@ import 'package:yaabsa/features/player/widgets/sleep_timer_active_presentation.d
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 import 'package:yaabsa/ui/previews/player_previews.dart';
 import 'package:yaabsa/ui/previews/preview_theme.dart';
+import 'package:yaabsa/ui/previews/preview_fixtures.dart';
+import 'package:yaabsa/screens/player/components/player_cover_component.dart';
 import 'package:yaabsa/screens/player/layout/player_layout_config.dart';
 
 void main() {
+  testWidgets('player cover reuses decoded artwork across small resizes', (tester) async {
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final media = previewInternalMedia().copyWith(cover: Uri.file('/preview-cover.png'));
+
+    Future<ImageProvider> coverAtWidth(double width) async {
+      await tester.pumpWidget(
+        YaabsaPreviewApp(
+          child: Center(
+            child: SizedBox(
+              width: width,
+              height: 400,
+              child: PlayerCoverComponent(api: null, media: media, fitMode: PlayerCoverFitMode.width),
+            ),
+          ),
+        ),
+      );
+      final cover = find.descendant(of: find.byType(PlayerCoverComponent), matching: find.byType(Image));
+      return tester.widget<Image>(cover).image;
+    }
+
+    final initial = await coverAtWidth(260);
+    final slightlyResized = await coverAtWidth(270);
+    final enlarged = await coverAtWidth(400);
+
+    expect(slightlyResized, initial);
+    expect(enlarged, isNot(initial));
+    expect((enlarged as ResizeImage).width, greaterThanOrEqualTo(400));
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('skip button presentation keeps disabled and actionable states', (tester) async {
     var previousCount = 0;
 

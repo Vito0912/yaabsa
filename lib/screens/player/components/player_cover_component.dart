@@ -38,7 +38,10 @@ class PlayerCoverComponent extends StatelessWidget {
           if (!logicalExtent.isFinite || logicalExtent <= 0) {
             return null;
           }
-          return (logicalExtent * devicePixelRatio).ceil().clamp(1, playerCoverRequestDimension).toInt();
+          const decodeStep = 128;
+          final physicalExtent = logicalExtent * devicePixelRatio;
+          final decodeExtent = (physicalExtent / decodeStep).ceil() * decodeStep;
+          return decodeExtent.clamp(1, playerCoverRequestDimension).toInt();
         }
 
         final cacheWidth = fitMode == PlayerCoverFitMode.height ? null : targetPixels(constraints.maxWidth);

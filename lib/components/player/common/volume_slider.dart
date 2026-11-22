@@ -55,9 +55,9 @@ class _VolumeSliderState extends State<VolumeSlider> {
   Widget build(BuildContext context) {
     return StreamBuilder<double>(
       stream: audioHandler.volumeStream,
-      initialData: 1.0,
+      initialData: audioHandler.volume,
       builder: (context, snapshot) {
-        final volume = (snapshot.data ?? 1.0).clamp(0.0, audioHandler.maxVolume).toDouble();
+        final volume = (snapshot.data ?? audioHandler.volume).clamp(0.0, audioHandler.maxVolume).toDouble();
         if (volume > 0) {
           _lastNonZeroVolume = volume;
         }
