@@ -2,13 +2,17 @@ import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
 class WearSwipeToDismiss extends StatelessWidget {
-  const WearSwipeToDismiss({required this.child, super.key});
+  const WearSwipeToDismiss({required this.child, this.enabled = true, super.key});
 
   final Widget child;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
     final route = ModalRoute.of(context);
+    if (!enabled) {
+      return child;
+    }
 
     return Dismissible(
       key: const ValueKey('wear-screen'),

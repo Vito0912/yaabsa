@@ -2,6 +2,7 @@ import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
 
 import 'dart:async';
 
+import 'package:yaabsa/util/auth/account_sign_in.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:material_ui/material_ui.dart';
@@ -13,7 +14,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:yaabsa/api/me/request/login_request.dart';
 import 'package:yaabsa/api/magic/magic_config.dart';
-import 'package:yaabsa/api/me/server.dart';
 import 'package:yaabsa/api/me/status.dart';
 import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/api/routes/abs_api.dart';
@@ -170,7 +170,7 @@ class SignIn extends HookConsumerWidget {
         setErrorMessage(null);
       }
 
-      final normalizedServer = _normalizeServerAddress(serverAddressController.text.trim());
+      final normalizedServer = normalizeServerAddress(serverAddressController.text.trim());
       if (normalizedServer == null) {
         if (showErrors) {
           statusError.value = 'Please enter a valid server address.';
@@ -313,52 +313,10 @@ class SignIn extends HookConsumerWidget {
       ref.read(magicConfigImportProvider.notifier).clear();
     }
 
-    Future<void> initializeSelectedLibraryAfterLogin({
-      required AppDatabase db,
-      required String userId,
-      required ABSApi? api,
-      String? serverDefaultLibraryId,
-    }) async {
-      final normalizedDefaultLibraryId = serverDefaultLibraryId?.trim();
-
-      if (normalizedDefaultLibraryId != null && normalizedDefaultLibraryId.isNotEmpty) {
-        await db.setUserSetting(userId, 'selectedLibraryId', normalizedDefaultLibraryId);
-      }
-
-      if (api == null) {
-        return;
-      }
-
-      try {
-        final librariesResponse = await api.getLibraryApi().getLibraries();
-        final libraries = librariesResponse.data?.libraries;
-        if (libraries == null || libraries.isEmpty) {
-          return;
-        }
-
-        final hasValidDefault =
-            normalizedDefaultLibraryId != null &&
-            normalizedDefaultLibraryId.isNotEmpty &&
-            libraries.any((library) => library.id == normalizedDefaultLibraryId);
-
-        final selectedLibraryId = hasValidDefault ? normalizedDefaultLibraryId : libraries.first.id;
-
-        if (selectedLibraryId.isNotEmpty) {
-          await db.setUserSetting(userId, 'selectedLibraryId', selectedLibraryId);
-        }
-      } catch (e, s) {
-        logger(
-          'Failed to initialize selected library after login for user $userId: $e\\n$s',
-          tag: 'SignIn',
-          level: InfoLevel.warning,
-        );
-      }
-    }
-
     Future<void> validateAndSignIn() async {
       setErrorMessage(null);
 
-      final normalizedServer = _normalizeServerAddress(serverAddressController.text.trim());
+      final normalizedServer = normalizeServerAddress(serverAddressController.text.trim());
       if (normalizedServer == null) {
         setErrorMessage('Please enter a valid server address.');
         return;
@@ -428,17 +386,7 @@ class SignIn extends HookConsumerWidget {
 
           final api = buildServerApi(normalizedServer);
 
-          final apiResponse = await api.getMeApi().login(
-            loginRequest: LoginRequest(username: username, password: password),
-            returnTokens: true,
-          );
-
-          final loginData = apiResponse.data;
-
-          if (loginData == null) {
-            setErrorMessage('Login failed: Invalid response from server.');
-            return;
-          }
+          final loginData = await signInWithPassword(api: api, username: username, password: password);
 
           loggedInUser = loginData.user.copyWith(setting: loginData.serverSettings);
           serverDefaultLibraryId = loginData.userDefaultLibraryId;
@@ -567,24 +515,14 @@ class SignIn extends HookConsumerWidget {
 
         final headers = buildRequestHeaders(serverHeaders: customHeaders.value);
         final db = ref.read(appDatabaseProvider);
-        await db.addOrUpdateStoredUser(
-          loggedInUser.copyWith(
-            server: Server.fromExternalAddress(
-              externalAddress: normalizedServer,
-              headers: headers.isEmpty ? null : headers,
-              activeConnection: ServerConnection.external,
-            ),
-          ),
-        );
-
-        await initializeSelectedLibraryAfterLogin(
+        await storeSignedInAccount(
           db: db,
-          userId: loggedInUser.id,
+          user: loggedInUser,
+          serverUrl: normalizedServer,
+          headers: headers,
           api: authenticatedApi,
           serverDefaultLibraryId: serverDefaultLibraryId,
         );
-
-        await db.setActiveUserId(loggedInUser.id);
         if (magicConfig != null) {
           clearImportedMagicConfig();
         }
@@ -648,7 +586,7 @@ class SignIn extends HookConsumerWidget {
       setErrorMessage(null);
       ref.read(oidcStateProvider.notifier).clearError();
 
-      final normalizedServer = _normalizeServerAddress(serverAddressController.text.trim());
+      final normalizedServer = normalizeServerAddress(serverAddressController.text.trim());
       if (normalizedServer == null) {
         setErrorMessage('Please enter a valid server address first');
         return;
@@ -709,7 +647,7 @@ class SignIn extends HookConsumerWidget {
           return;
         }
 
-        final normalized = _normalizeServerAddress(serverAddressController.text.trim());
+        final normalized = normalizeServerAddress(serverAddressController.text.trim());
 
         statusDebounce.value?.cancel();
 
@@ -723,7 +661,7 @@ class SignIn extends HookConsumerWidget {
         }
 
         statusDebounce.value = Timer(const Duration(milliseconds: 500), () {
-          final latest = _normalizeServerAddress(serverAddressController.text.trim());
+          final latest = normalizeServerAddress(serverAddressController.text.trim());
           if (latest == null) return;
           if (latest == lastCheckedServer.value && status.value != null) return;
           fetchStatus(showErrors: false);
@@ -787,7 +725,7 @@ class SignIn extends HookConsumerWidget {
     final serverAddressText = useValueListenable(serverAddressController).text;
     final headersSentOverHttp =
         customHeaders.value.isNotEmpty &&
-        (_normalizeServerAddress(serverAddressText)?.toLowerCase().startsWith('http://') ?? false);
+        (normalizeServerAddress(serverAddressText)?.toLowerCase().startsWith('http://') ?? false);
 
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
@@ -967,32 +905,6 @@ class SignIn extends HookConsumerWidget {
       ),
     );
   }
-}
-
-String? _normalizeServerAddress(String input) {
-  final trimmedInput = input.trim();
-  if (trimmedInput.isEmpty) return null;
-
-  final lowerInput = trimmedInput.toLowerCase();
-  final hasExplicitHttpScheme = RegExp(r'^https?://').hasMatch(lowerInput);
-  final hasExplicitScheme = lowerInput.contains('://');
-  final isIncompleteHttpScheme =
-      lowerInput == 'http' || lowerInput == 'https' || RegExp(r'^https?:/{0,2}$').hasMatch(lowerInput);
-  if (isIncompleteHttpScheme || (hasExplicitScheme && !hasExplicitHttpScheme)) return null;
-
-  final withScheme = hasExplicitHttpScheme ? trimmedInput : 'https://$trimmedInput';
-  final uri = Uri.tryParse(withScheme);
-  final scheme = uri?.scheme.toLowerCase();
-
-  if (uri == null || !uri.hasAuthority || uri.host.isEmpty || (scheme != 'http' && scheme != 'https')) {
-    return null;
-  }
-
-  final pathSegments = uri.pathSegments.where((segment) => segment.trim().isNotEmpty).toList(growable: false);
-  final normalizedPath = pathSegments.isEmpty ? '' : '/${pathSegments.join('/')}';
-
-  final normalized = uri.replace(path: normalizedPath, query: null, fragment: null).toString();
-  return normalized.endsWith('/') ? normalized.substring(0, normalized.length - 1) : normalized;
 }
 
 String _parseDioErrorMessage(DioException exception, {required String fallback}) {

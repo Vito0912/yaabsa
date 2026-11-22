@@ -3,12 +3,13 @@ import 'dart:math' as math;
 import 'package:flutter/gestures.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:wear_plus/wear_plus.dart';
-import 'package:yaabsa/screens/wear/components/wear_ambient_view.dart';
-import 'package:yaabsa/screens/wear/components/wear_swipe_to_dismiss.dart';
-import 'package:yaabsa/screens/wear/components/wear_fixed_view.dart';
+import 'package:yaabsa/ui/components/wear/wear_ambient_view.dart';
+import 'package:yaabsa/ui/components/wear/wear_fixed_view.dart';
+import 'package:yaabsa/ui/components/wear/wear_swipe_to_dismiss.dart';
 
 class WearVolumeControl extends StatefulWidget {
   const WearVolumeControl({required this.volume, required this.onChanged, super.key});
+
   final double volume;
   final ValueChanged<double> onChanged;
 
@@ -128,12 +129,15 @@ class _WearVolumeControlState extends State<WearVolumeControl> {
 
 class _CircularVolumePainter extends CustomPainter {
   _CircularVolumePainter({required this.volume, required this.color, required this.bg});
+
   final double volume;
-  final Color color, bg;
+  final Color color;
+  final Color bg;
 
   @override
   void paint(Canvas c, Size s) {
-    final o = Offset(s.width / 2, s.height / 2), r = s.width / 2 - 8;
+    final o = Offset(s.width / 2, s.height / 2);
+    final r = s.width / 2 - 8;
     c.drawCircle(
       o,
       r,

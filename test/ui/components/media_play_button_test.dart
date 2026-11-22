@@ -64,4 +64,67 @@ void main() {
     expect((background.decoration! as BoxDecoration).shape, BoxShape.circle);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('scalloped style renders StarBorder progress border and filled button', (tester) async {
+    var tapped = false;
+    await tester.pumpWidget(
+      YaabsaPreviewApp(
+        child: YaabsaMediaPlayButton(
+          style: YaabsaMediaPlayButtonStyle.scalloped,
+          size: 72,
+          tooltip: 'Play',
+          isPlaying: false,
+          isFinished: false,
+          isLoading: false,
+          progress: 0.4,
+          onPressed: () {
+            tapped = true;
+          },
+        ),
+      ),
+    );
+
+    expect(find.byKey(const ValueKey('yaabsa-media-play-scalloped-border')), findsOneWidget);
+    expect(find.byIcon(Icons.play_arrow_rounded), findsOneWidget);
+
+    await tester.tap(find.byType(IconButton));
+    expect(tapped, isTrue);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('scalloped style shows pause icon when playing and loading indicator when loading', (tester) async {
+    await tester.pumpWidget(
+      YaabsaPreviewApp(
+        child: YaabsaMediaPlayButton(
+          style: YaabsaMediaPlayButtonStyle.scalloped,
+          size: 56,
+          tooltip: 'Pause',
+          isPlaying: true,
+          isFinished: false,
+          isLoading: false,
+          onPressed: () {},
+        ),
+      ),
+    );
+
+    expect(find.byIcon(Icons.pause_rounded), findsOneWidget);
+    expect(find.byKey(const ValueKey('yaabsa-media-play-scalloped-border')), findsNothing);
+
+    await tester.pumpWidget(
+      YaabsaPreviewApp(
+        child: YaabsaMediaPlayButton(
+          style: YaabsaMediaPlayButtonStyle.scalloped,
+          size: 56,
+          tooltip: 'Loading',
+          isPlaying: false,
+          isFinished: false,
+          isLoading: true,
+          onPressed: null,
+        ),
+      ),
+    );
+
+    expect(find.byIcon(Icons.play_arrow_rounded), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
 }
