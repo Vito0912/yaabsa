@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart' show defaultTargetPlatform;
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb;
 import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yaabsa/components/settings/settings_dropdown.dart';
@@ -26,13 +26,14 @@ class GlobalPlayerSettings extends StatelessWidget {
           title: 'Buffer & Screen',
           topPadding: 0,
           settings: [
-            const SettingSlider<int>(
-              label: 'Max buffer size',
-              description: 'Maximum size of the audio buffer in bytes (hint for the OS)',
-              values: [512 * 1024, 1024 * 1024, 2 * 1024 * 1024, 5 * 1024 * 1024, 10 * 1024 * 1024],
-              valueLabels: ['512 KB', '1 MB', '2 MB', '5 MB', '10 MB'],
-              settingKey: SettingKeys.bufferSize,
-            ),
+            if (kIsWeb || defaultTargetPlatform != TargetPlatform.windows)
+              const SettingSlider<int>(
+                label: 'Max buffer size',
+                description: 'Maximum size of the audio buffer in bytes (hint for the OS)',
+                values: [512 * 1024, 1024 * 1024, 2 * 1024 * 1024, 5 * 1024 * 1024, 10 * 1024 * 1024],
+                valueLabels: ['512 KB', '1 MB', '2 MB', '5 MB', '10 MB'],
+                settingKey: SettingKeys.bufferSize,
+              ),
             const SettingSwitchTile(
               label: 'Keep Screen On',
               subtitle: 'Prevent screen from turning off during playback',
