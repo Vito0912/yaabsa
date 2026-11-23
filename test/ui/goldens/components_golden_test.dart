@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/gestures.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_3_expressive/material_3_expressive.dart';
 import 'package:material_ui/material_ui.dart';
@@ -19,6 +20,8 @@ import 'package:yaabsa/ui/previews/media_previews.dart';
 import 'package:yaabsa/ui/previews/mini_player_previews.dart';
 import 'package:yaabsa/ui/previews/switcher_previews.dart';
 import 'package:yaabsa/ui/previews/reader_previews.dart';
+import 'package:yaabsa/ui/previews/wear_previews.dart';
+import 'package:yaabsa/ui/theme/wear_theme.dart';
 import 'package:yaabsa/components/app/item/item_more_actions_button.dart';
 import 'package:yaabsa/components/app/user_switcher_avatar.dart';
 import 'package:yaabsa/components/app/app_switcher_chip.dart';
@@ -1281,6 +1284,116 @@ void main() {
         );
       });
     }
+  }
+
+  final wearGoldens = <({String name, String fileName, String shape, Widget Function() build})>[
+    (
+      name: 'wear browse curved round',
+      fileName: 'wear_browse_curved_amoled',
+      shape: 'round',
+      build: () => const WearBrowsePreview(flatScrolling: false),
+    ),
+    (
+      name: 'wear browse flat round',
+      fileName: 'wear_browse_flat_amoled',
+      shape: 'round',
+      build: () => const WearBrowsePreview(flatScrolling: true),
+    ),
+    (
+      name: 'wear browse square',
+      fileName: 'wear_browse_square_amoled',
+      shape: 'square',
+      build: () => const WearBrowsePreview(flatScrolling: false),
+    ),
+    (
+      name: 'wear cover grid',
+      fileName: 'wear_cover_grid_amoled',
+      shape: 'round',
+      build: () => const WearCoverGridPreview(),
+    ),
+    (
+      name: 'wear player controls and scalloped play button',
+      fileName: 'wear_player_controls_amoled',
+      shape: 'round',
+      build: () => const WearPlayerControlsPreview(),
+    ),
+    (
+      name: 'wear volume control',
+      fileName: 'wear_volume_amoled',
+      shape: 'round',
+      build: () => const WearVolumePreview(),
+    ),
+    (name: 'wear settings', fileName: 'wear_settings_amoled', shape: 'round', build: () => const WearSettingsPreview()),
+    (
+      name: 'wear confirmation',
+      fileName: 'wear_confirmation_amoled',
+      shape: 'round',
+      build: () => const WearConfirmationPreview(),
+    ),
+    (
+      name: 'wear ambient with metadata',
+      fileName: 'wear_ambient_metadata_amoled',
+      shape: 'round',
+      build: () => const WearAmbientPreview(showMetadata: true),
+    ),
+    (
+      name: 'wear ambient clock only',
+      fileName: 'wear_ambient_clock_amoled',
+      shape: 'round',
+      build: () => const WearAmbientPreview(showMetadata: false),
+    ),
+    (
+      name: 'wear account details',
+      fileName: 'wear_account_amoled',
+      shape: 'round',
+      build: () => const WearAccountPreview(),
+    ),
+  ];
+
+  for (final golden in wearGoldens) {
+    testWidgets('${golden.name} amoled', (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(227, 227);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      const wearChannel = MethodChannel('wear');
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(wearChannel, (call) async {
+        if (call.method == 'getShape') {
+          return golden.shape;
+        }
+        if (call.method == 'isAmbient') {
+          return false;
+        }
+        return null;
+      });
+      addTearDown(() {
+        tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(wearChannel, null);
+      });
+
+      final boundary = GlobalKey();
+      await tester.pumpWidget(
+        MaterialApp(
+          debugShowCheckedModeBanner: false,
+          theme: buildWearTheme(ThemeData.dark(useMaterial3: true)),
+          home: RepaintBoundary(
+            key: boundary,
+            child: Builder(
+              builder: (context) {
+                final theme = Theme.of(context);
+                return Theme(
+                  data: theme.copyWith(textTheme: theme.textTheme.apply(fontFamily: 'Roboto')),
+                  child: golden.build(),
+                );
+              },
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      await expectLater(find.byKey(boundary), matchesGoldenFile(_goldenBaselinePath('${golden.fileName}.png')));
+    });
   }
 }
 

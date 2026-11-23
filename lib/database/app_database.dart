@@ -905,6 +905,25 @@ class AppDatabase extends _$AppDatabase {
     return _decodeStoredDownloads(entries);
   }
 
+  Future<({List<InternalDownload> downloads, bool hasMore})> getStoredDownloadsPage({
+    required String userId,
+    required int page,
+    required int pageSize,
+  }) async {
+    if (page < 0 || pageSize < 1 || pageSize > 100) {
+      throw ArgumentError('Invalid download page.');
+    }
+
+    final query = select(storedDownloads);
+    query.where((table) => table.userId.equals(userId));
+    query.orderBy([(table) => OrderingTerm.asc(table.itemId), (table) => OrderingTerm.asc(table.episodeId)]);
+    query.limit(pageSize + 1, offset: page * pageSize);
+
+    final entries = await query.get();
+    final downloads = await _decodeStoredDownloads(entries.take(pageSize));
+    return (downloads: downloads, hasMore: entries.length > pageSize);
+  }
+
   Future<List<StoredDownloadsEntry>> getStoredDownloadEntriesByUser(String userId) {
     return (select(storedDownloads)..where((tbl) => tbl.userId.equals(userId))).get();
   }

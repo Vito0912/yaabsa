@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
+import 'package:yaabsa/util/network/request_headers.dart';
 
 class SignInHeaderEntry {
   const SignInHeaderEntry({required this.name, required this.value});
@@ -49,9 +50,10 @@ class _SignInHeaderEditorDialogState extends State<_SignInHeaderEditorDialog> {
     final key = _keyController.text.trim();
     final value = _valueController.text.trim();
 
-    if (key.isEmpty || value.isEmpty) {
+    final validationError = validateServerHeader(name: key, value: _valueController.text);
+    if (validationError != null) {
       setState(() {
-        _dialogError = 'Header name and value are required.';
+        _dialogError = validationError;
       });
       return;
     }

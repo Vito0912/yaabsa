@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:yaabsa/provider/core/socket_work_policy.dart';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -106,7 +108,14 @@ class RemoteMediaProgressUpdateNotifier extends Notifier<MediaProgress?> {
 @Riverpod(keepAlive: true)
 ABSSocketClient absSocketClient(Ref ref) {
   final serverTasksNotifier = ref.read(serverTasksProvider.notifier);
-  final smartDownloadNotifier = ref.read(smartDownloadManagerProvider.notifier);
+  final policy = ref.watch(socketPolicyProvider);
+
+  void reconcileSmartDownloads({required String reason, bool refreshSources = true}) {
+    if (policy.reconcileSmartDownloads) {
+      ref.read(smartDownloadManagerProvider.notifier).requestReconcile(reason: reason, refreshSources: refreshSources);
+    }
+  }
+
   final container = ref.container;
 
   void refreshAutomotiveBrowse() {
@@ -136,7 +145,7 @@ ABSSocketClient absSocketClient(Ref ref) {
       ref.read(remoteMediaProgressUpdateProvider.notifier).setProgress(progress);
 
       if (becameFinished) {
-        smartDownloadNotifier.requestReconcile(reason: 'remote progress completed', refreshSources: false);
+        reconcileSmartDownloads(reason: 'remote progress completed', refreshSources: false);
         unawaited(
           refreshPersonalizedShelfForCompletedItem(
             container: container,
@@ -148,15 +157,15 @@ ABSSocketClient absSocketClient(Ref ref) {
       }
     },
     onItemUpdated: (item) {
-      smartDownloadNotifier.requestReconcile(reason: 'library item updated');
+      reconcileSmartDownloads(reason: 'library item updated');
       unawaited(processLibraryItemUpdate(container: ref.container, item: item, source: 'socket.item_updated'));
     },
     onItemAdded: (item) {
-      smartDownloadNotifier.requestReconcile(reason: 'library item added');
+      reconcileSmartDownloads(reason: 'library item added');
       unawaited(processLibraryItemAdded(container: ref.container, item: item, source: 'socket.item_added'));
     },
     onItemRemoved: ({required itemId, libraryId, item}) {
-      smartDownloadNotifier.requestReconcile(reason: 'library item removed');
+      reconcileSmartDownloads(reason: 'library item removed');
       unawaited(
         processLibraryItemRemovedById(
           container: ref.container,
@@ -168,11 +177,11 @@ ABSSocketClient absSocketClient(Ref ref) {
       );
     },
     onItemsAdded: (items) {
-      smartDownloadNotifier.requestReconcile(reason: 'library items added');
+      reconcileSmartDownloads(reason: 'library items added');
       unawaited(processLibraryItemsAdded(container: ref.container, items: items, source: 'socket.items_added'));
     },
     onItemsUpdated: (items) {
-      smartDownloadNotifier.requestReconcile(reason: 'library items updated');
+      reconcileSmartDownloads(reason: 'library items updated');
       unawaited(processLibraryItemsUpdated(container: ref.container, items: items, source: 'socket.items_updated'));
     },
     onBatchQuickMatchComplete: ({required success, required updates, required unmatched}) {
@@ -206,17 +215,17 @@ ABSSocketClient absSocketClient(Ref ref) {
     },
     onCollectionAdded: (collection) {
       refreshAutomotiveBrowse();
-      smartDownloadNotifier.requestReconcile(reason: 'collection added');
+      reconcileSmartDownloads(reason: 'collection added');
       refreshCollections(collection.libraryId, collection.id);
     },
     onCollectionUpdated: (collection) {
       refreshAutomotiveBrowse();
-      smartDownloadNotifier.requestReconcile(reason: 'collection updated');
+      reconcileSmartDownloads(reason: 'collection updated');
       refreshCollections(collection.libraryId, collection.id);
     },
     onCollectionRemoved: (collection) {
       refreshAutomotiveBrowse();
-      smartDownloadNotifier.requestReconcile(reason: 'collection removed');
+      reconcileSmartDownloads(reason: 'collection removed');
       ref.invalidate(collectionByIdProvider(collection.libraryId, collection.id));
       final index = collectionsProvider(collection.libraryId);
       if (ref.read(index.exists)) {
@@ -225,7 +234,7 @@ ABSSocketClient absSocketClient(Ref ref) {
     },
     onPlaylistAdded: (playlist) {
       refreshAutomotiveBrowse();
-      smartDownloadNotifier.requestReconcile(reason: 'playlist added');
+      reconcileSmartDownloads(reason: 'playlist added');
       ref.invalidate(playlistByIdProvider(playlist.libraryId, playlist.id));
       final index = playlistsProvider(playlist.libraryId);
       if (ref.read(index.exists)) {
@@ -234,7 +243,7 @@ ABSSocketClient absSocketClient(Ref ref) {
     },
     onPlaylistUpdated: (playlist) {
       refreshAutomotiveBrowse();
-      smartDownloadNotifier.requestReconcile(reason: 'playlist updated');
+      reconcileSmartDownloads(reason: 'playlist updated');
       ref.invalidate(playlistByIdProvider(playlist.libraryId, playlist.id));
       final index = playlistsProvider(playlist.libraryId);
       if (ref.read(index.exists)) {
@@ -243,7 +252,7 @@ ABSSocketClient absSocketClient(Ref ref) {
     },
     onPlaylistRemoved: (playlist) {
       refreshAutomotiveBrowse();
-      smartDownloadNotifier.requestReconcile(reason: 'playlist removed');
+      reconcileSmartDownloads(reason: 'playlist removed');
       ref.invalidate(playlistByIdProvider(playlist.libraryId, playlist.id));
       final index = playlistsProvider(playlist.libraryId);
       if (ref.read(index.exists)) {
@@ -268,6 +277,10 @@ ABSSocketClient absSocketClient(Ref ref) {
   AppLifecycleState appLifecycleState = WidgetsBinding.instance.lifecycleState ?? AppLifecycleState.resumed;
 
   Future<void> hydrateServerTasksForUser(User? user, {required bool serverReachable}) async {
+    if (!policy.hydrateAdminTasks) {
+      return;
+    }
+
     if (user == null) {
       serverTasksNotifier.reset();
       return;
@@ -353,9 +366,10 @@ ABSSocketClient absSocketClient(Ref ref) {
 
   void syncSocketConnection() {
     final shouldSuppressForBackground =
-        !AaosService.instance.currentState.isAutomotiveDevice &&
-        !keepSocketConnectedInBackground &&
-        _isBackgroundLifecycleState(appLifecycleState);
+        !ref.read(socketInteractionActiveProvider) ||
+        (!AaosService.instance.currentState.isAutomotiveDevice &&
+            (!policy.allowBackground || !keepSocketConnectedInBackground) &&
+            _isBackgroundLifecycleState(appLifecycleState));
 
     if (shouldSuppressForBackground) {
       if (!socketSuppressedForBackground) {
@@ -375,6 +389,10 @@ ABSSocketClient absSocketClient(Ref ref) {
     updateSocketForUser(currentUser, serverReachable: canReachServer);
   }
 
+  ref.listen<bool>(socketInteractionActiveProvider, (_, _) {
+    syncSocketConnection();
+  });
+
   ref.listen<AsyncValue<User?>>(currentUserProvider, (previous, next) {
     if (previous?.value?.id != next.value?.id) {
       serverTasksNotifier.reset();
@@ -382,7 +400,7 @@ ABSSocketClient absSocketClient(Ref ref) {
 
     currentUser = next.value;
     syncSocketConnection();
-    smartDownloadNotifier.requestReconcile(reason: 'user changed');
+    reconcileSmartDownloads(reason: 'user changed');
     unawaited(hydrateServerTasksForUser(currentUser, serverReachable: canReachServer));
   });
 
@@ -390,7 +408,7 @@ ABSSocketClient absSocketClient(Ref ref) {
     canReachServer = next.value ?? false;
     syncSocketConnection();
     if (canReachServer) {
-      smartDownloadNotifier.requestReconcile(reason: 'server reconnected');
+      reconcileSmartDownloads(reason: 'server reconnected');
     }
     unawaited(hydrateServerTasksForUser(currentUser, serverReachable: canReachServer));
   });
@@ -425,7 +443,7 @@ ABSSocketClient absSocketClient(Ref ref) {
       appLifecycleState = state;
       syncSocketConnection();
       if (state == AppLifecycleState.resumed) {
-        smartDownloadNotifier.requestReconcile(reason: 'app foreground');
+        reconcileSmartDownloads(reason: 'app foreground');
         unawaited(refreshProgressAfterResume());
       }
     },

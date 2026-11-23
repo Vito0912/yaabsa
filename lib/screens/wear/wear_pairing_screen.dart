@@ -1,11 +1,15 @@
+import 'package:yaabsa/screens/wear/wear_sign_in_screen.dart';
+import 'package:yaabsa/provider/wear/wear_sign_in_provider.dart';
 import 'package:dio/dio.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/provider/wear/wear_providers.dart';
-import 'package:yaabsa/screens/wear/components/wear_ambient_view.dart';
-import 'package:yaabsa/screens/wear/components/wear_scroll_view.dart';
-import 'package:yaabsa/screens/wear/components/wear_swipe_to_dismiss.dart';
-import 'package:yaabsa/util/logger.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/ui/components/wear/wear_ambient_view.dart';
+import 'package:yaabsa/ui/components/wear/wear_scroll_view.dart';
+import 'package:yaabsa/ui/components/wear/wear_swipe_to_dismiss.dart';
+import 'package:yaabsa/util/logger.dart';
+import 'package:yaabsa/ui/components/wear/wear_page_header.dart';
+import 'package:yaabsa/ui/components/wear/wear_browse_button.dart';
 
 class WearPairingScreen extends StatefulWidget {
   const WearPairingScreen({this.isAmbient = false, super.key});
@@ -19,6 +23,13 @@ class WearPairingScreen extends StatefulWidget {
 class _WearPairingScreenState extends State<WearPairingScreen> {
   bool _isRequesting = false;
   String? _errorMessage;
+  final _cancelToken = CancelToken();
+
+  @override
+  void dispose() {
+    _cancelToken.cancel();
+    super.dispose();
+  }
 
   Future<void> _requestCredentials() async {
     setState(() {
@@ -27,7 +38,7 @@ class _WearPairingScreenState extends State<WearPairingScreen> {
     });
 
     try {
-      final result = await pairWithPhone();
+      final result = await pairWithPhone(cancelToken: _cancelToken);
 
       if (!mounted) {
         return;
@@ -51,7 +62,7 @@ class _WearPairingScreenState extends State<WearPairingScreen> {
       logger('Wear pairing failed: $detail\n$stack', tag: 'WearPairing', level: InfoLevel.error);
       if (mounted) {
         setState(() {
-          _errorMessage = 'Failed: $detail';
+          _errorMessage = wearRequestError(e);
         });
       }
     } finally {
@@ -72,20 +83,9 @@ class _WearPairingScreenState extends State<WearPairingScreen> {
             ? const WearAmbientView()
             : WearScrollView(
                 children: [
-                  Text(
-                    'Welcome',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: colorScheme.onSurface),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Connect to your Audiobookshelf',
-                    style: TextStyle(fontSize: 13, color: colorScheme.onSurface.withValues(alpha: 0.70)),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 20),
+                  const WearPageHeader(title: 'Welcome', subtitle: 'Connect to your Audiobookshelf'),
                   if (_isRequesting) ...[
-                    const Center(child: YaabsaCircularProgressIndicator(strokeWidth: 2)),
+                    const Center(child: YaabsaCircularProgressIndicator(strokeWidth: 2, size: 32)),
                     const SizedBox(height: 8),
                     Text(
                       'Sign in on your phone\nto continue...',
@@ -93,20 +93,19 @@ class _WearPairingScreenState extends State<WearPairingScreen> {
                       textAlign: TextAlign.center,
                     ),
                   ] else ...[
-                    ElevatedButton(
+                    WearBrowseButton(
+                      title: 'Sign in on watch',
+                      icon: Icons.watch_outlined,
+                      primary: true,
+                      onPressed: () {
+                        Navigator.of(context).push(MaterialPageRoute(builder: (_) => const WearSignInScreen()));
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    WearBrowseButton(
+                      title: 'Continue on phone',
+                      icon: Icons.phone_android_rounded,
                       onPressed: _requestCredentials,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: colorScheme.primary,
-                        foregroundColor: colorScheme.onPrimary,
-                        shape: const StadiumBorder(),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                        minimumSize: const Size(48, 48),
-                      ),
-                      child: const Text(
-                        'Continue on phone',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 14),
-                      ),
                     ),
                   ],
                   if (_errorMessage != null && !_isRequesting) ...[

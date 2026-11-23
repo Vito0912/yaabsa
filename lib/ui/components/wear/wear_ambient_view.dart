@@ -1,20 +1,21 @@
 import 'package:material_ui/material_ui.dart';
 
 class WearAmbientView extends StatelessWidget {
-  const WearAmbientView({this.title, this.author, super.key});
+  const WearAmbientView({this.title, this.author, this.nowOverride, super.key});
 
   final String? title;
   final String? author;
+  final DateTime? nowOverride;
 
   @override
   Widget build(BuildContext context) {
-    final now = DateTime.now();
+    final now = nowOverride ?? DateTime.now();
     final time = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
     final mediaTitle = title?.trim();
     final mediaAuthor = author?.trim();
 
     return SizedBox.expand(
-      child: ColoredBox(
+      child: Material(
         color: Colors.black,
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -33,6 +34,7 @@ class WearAmbientView extends StatelessWidget {
                         time,
                         textAlign: TextAlign.center,
                         style: const TextStyle(
+                          decoration: TextDecoration.none,
                           fontSize: 26,
                           fontWeight: FontWeight.w300,
                           height: 1.1,
@@ -47,7 +49,12 @@ class WearAmbientView extends StatelessWidget {
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             textAlign: TextAlign.center,
-                            style: const TextStyle(fontSize: 12, height: 1.3, color: Colors.white70),
+                            style: const TextStyle(
+                              decoration: TextDecoration.none,
+                              fontSize: 12,
+                              height: 1.3,
+                              color: Colors.white70,
+                            ),
                           ),
                         ),
                       ],
@@ -59,7 +66,12 @@ class WearAmbientView extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             textAlign: TextAlign.center,
-                            style: const TextStyle(fontSize: 12, height: 1.3, color: Colors.white54),
+                            style: const TextStyle(
+                              decoration: TextDecoration.none,
+                              fontSize: 12,
+                              height: 1.3,
+                              color: Colors.white54,
+                            ),
                           ),
                         ),
                       ],

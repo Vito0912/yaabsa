@@ -1,5 +1,11 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show LicenseEntryWithLineBreaks, LicenseRegistry;
+import 'package:flutter/services.dart' show rootBundle;
+
+import 'package:yaabsa/provider/core/socket_work_policy.dart';
+
+import 'package:yaabsa/screens/wear/components/wear_activity_scope.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +13,7 @@ import 'package:yaabsa/database/settings_manager.dart';
 import 'package:yaabsa/provider/core/server_status_provider.dart';
 import 'package:yaabsa/provider/core/socket_provider.dart';
 import 'package:yaabsa/screens/wear/wear_home_screen.dart';
+import 'package:yaabsa/ui/theme/wear_theme.dart';
 import 'package:yaabsa/util/app_theme.dart';
 import 'package:yaabsa/util/audio_handler/wear_audio_handler.dart';
 import 'package:yaabsa/util/globals.dart' show containerRef;
@@ -19,6 +26,18 @@ void main() {
   runZonedGuarded(
     () async {
       WidgetsFlutterBinding.ensureInitialized();
+      LicenseRegistry.addLicense(() async* {
+        final notice = await rootBundle.loadString('assets/browse_icons/LICENSE');
+        yield LicenseEntryWithLineBreaks(['Audiobookshelf library icons'], notice);
+      });
+      final imageCache = PaintingBinding.instance.imageCache;
+      imageCache.maximumSize = 64;
+      imageCache.maximumSizeBytes = 8 * 1024 * 1024;
+      containerRef
+          .read(socketPolicyProvider.notifier)
+          .configure(
+            const SocketWorkPolicy(hydrateAdminTasks: false, reconcileSmartDownloads: false, allowBackground: false),
+          );
       await Init.globals();
       await containerRef.read(settingsManagerProvider.notifier).ensureInitialized();
       // Tracks reachability and replays offline progress syncs on reconnect.
@@ -54,11 +73,18 @@ class WearApp extends ConsumerWidget {
     // same palette as the phone app on a pure-black background.
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: buildAppThemeData(
-        brightness: Brightness.dark,
-        preset: themeSelection.preset,
-        customSeedColor: themeSelection.customSeedColor,
-        useAmoledDark: true,
+      theme: buildWearTheme(
+        buildAppThemeData(
+          brightness: Brightness.dark,
+          preset: themeSelection.preset,
+          customSeedColor: themeSelection.customSeedColor,
+          useAmoledDark: true,
+        ),
+      ),
+      builder: (context, child) => WearActivityHost(
+        mediaStream: wearAudioHandler.mediaItem,
+        currentMediaItem: () => wearAudioHandler.mediaItem.value,
+        child: child ?? const SizedBox.shrink(),
       ),
       home: const WearHomeScreen(),
     );

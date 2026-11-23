@@ -4,6 +4,12 @@ import 'package:flutter/foundation.dart';
 import 'package:yaabsa/util/logger.dart';
 
 class SettingKeys {
+  static const String wearCoverBackground = 'wear_cover_background';
+  static const String wearAmbientMetadata = 'wear_ambient_metadata';
+  static const String wearItemProgress = 'wear_item_progress';
+  static const String wearCoverGrid = 'wear_cover_grid';
+  static const String wearFlatScrolling = 'wear_flat_scrolling';
+
   // Global Settings
   static const String changelogLastVersion = 'changelog_last_version';
   static const String changelogDisabled = 'changelog_disabled';
@@ -199,6 +205,7 @@ bool get _defaultEnableOnDesktop {
 bool get _defaultEnableOnMobile => !_defaultEnableOnDesktop;
 
 final defaultSettings = {
+  SettingKeys.wearFlatScrolling: false,
   SettingKeys.appThemeMode: AppThemeMode.dark.toString(),
   SettingKeys.appThemePreset: AppThemePreset.yaabsa.toString(),
   SettingKeys.appThemeCustomRed: 15,
