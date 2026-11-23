@@ -1,3 +1,4 @@
+import 'package:yaabsa/components/app/app_switcher_chip.dart';
 import 'package:yaabsa/api/me/user.dart';
 import 'package:yaabsa/components/app/user_switcher_avatar.dart';
 import 'package:yaabsa/components/platform_builder.dart';
@@ -9,7 +10,6 @@ import 'package:yaabsa/util/globals.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 import 'package:yaabsa/ui/components/menus/yaabsa_context_menu_button.dart';
 
 const String _addNewUserValue = '__ADD_NEW_USER__';
@@ -50,7 +50,9 @@ class UserSwitcher extends ConsumerWidget {
     if (value == _addNewUserValue) {
       context.push('/add-user');
     } else {
-      if (value == currentUser?.id) return;
+      if (value == currentUser?.id) {
+        return;
+      }
       final db = ref.read(appDatabaseProvider);
       await db.setActiveUserId(value);
       invalidateUserScopedProviders(ref);
@@ -127,21 +129,25 @@ class UserSwitcher extends ConsumerWidget {
     User? currentUser, {
     required bool compact,
     required bool? serverReachable,
+    bool loading = false,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Container(
-      height: 40,
-      padding: EdgeInsets.symmetric(horizontal: compact ? 8 : 10, vertical: compact ? 6 : 8),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(compact ? 12 : 14),
-        border: Border.all(color: colorScheme.outlineVariant),
-      ),
+    final loadingMinWidth = compact ? 68.0 : 140.0;
+
+    return AppSwitcherChip(
+      minWidth: loading ? loadingMinWidth : 0,
+      horizontalPadding: compact ? 8 : 10,
       child: Row(
         mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          UserSwitcherAvatar(username: currentUser?.username, compact: compact, serverReachable: serverReachable),
+          UserSwitcherAvatar(
+            username: currentUser?.username,
+            compact: compact,
+            serverReachable: serverReachable,
+            loading: loading,
+          ),
           if (!compact) ...[
             const SizedBox(width: 8),
             ConstrainedBox(
@@ -178,6 +184,16 @@ class UserSwitcher extends ConsumerWidget {
     );
   }
 
+  Widget _buildLoading(BuildContext context, User? currentUser) {
+    return PlatformBuilder(
+      mobileBuilder: (ctx) => _selectorContainer(ctx, currentUser, compact: true, serverReachable: null, loading: true),
+      tabletBuilder: (ctx) =>
+          _selectorContainer(ctx, currentUser, compact: false, serverReachable: null, loading: true),
+      desktopBuilder: (ctx) =>
+          _selectorContainer(ctx, currentUser, compact: false, serverReachable: null, loading: true),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentUserAsync = ref.watch(currentUserProvider);
@@ -210,11 +226,11 @@ class UserSwitcher extends ConsumerWidget {
               ),
             );
           },
-          loading: () => const Center(child: YaabsaCircularProgressIndicator()),
+          loading: () => _buildLoading(context, currentUser),
           error: (error, stack) => Center(child: Text('Error loading users: $error')),
         );
       },
-      loading: () => const Center(child: YaabsaCircularProgressIndicator()),
+      loading: () => _buildLoading(context, currentUserAsync.value),
       error: (error, stack) => Tooltip(
         message: 'Could not load the active user. Tap to retry.',
         child: SizedBox(

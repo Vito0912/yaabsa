@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:material_ui/material_ui.dart';
 
 abstract final class YaabsaFieldDimensions {
+  static const borderRadius = BorderRadius.all(Radius.circular(10));
   static const double compactHeight = 48;
   static const double standardHeight = 56;
 }
@@ -26,11 +27,11 @@ InputDecoration yaabsaFieldDecoration(
   final minimumHeight = isDense ? YaabsaFieldDimensions.compactHeight : YaabsaFieldDimensions.standardHeight;
   final minHeight = math.max(minimumHeight, contentHeight);
   final defaultBorder = OutlineInputBorder(
-    borderRadius: BorderRadius.circular(10),
+    borderRadius: YaabsaFieldDimensions.borderRadius,
     borderSide: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.34)),
   );
   final focusedBorder = OutlineInputBorder(
-    borderRadius: BorderRadius.circular(10),
+    borderRadius: YaabsaFieldDimensions.borderRadius,
     borderSide: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
   );
 

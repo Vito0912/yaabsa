@@ -1,3 +1,4 @@
+import 'package:yaabsa/components/app/app_switcher_chip.dart';
 import 'package:yaabsa/components/platform_builder.dart';
 import 'package:yaabsa/api/library/library.dart';
 import 'package:yaabsa/provider/common/library_provider.dart';
@@ -9,18 +10,15 @@ import 'package:yaabsa/ui/components/menus/yaabsa_context_menu_button.dart';
 class LibrarySwitcher extends ConsumerWidget {
   const LibrarySwitcher({super.key});
 
-  Widget _chipButton(BuildContext context, String label, {required bool compact}) {
-    final borderRadius = BorderRadius.circular(compact ? 12 : 14);
-    return Container(
-      height: 40,
-      padding: EdgeInsets.symmetric(horizontal: compact ? 10 : 12, vertical: compact ? 6 : 8),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHigh,
-        borderRadius: borderRadius,
-        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
-      ),
+  Widget _chipButton(BuildContext context, String label, {required bool compact, bool loading = false}) {
+    final loadingMinWidth = compact ? 120.0 : 160.0;
+
+    return AppSwitcherChip(
+      minWidth: loading ? loadingMinWidth : 0,
+      horizontalPadding: compact ? 10 : 12,
       child: Row(
         mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           ConstrainedBox(
             constraints: BoxConstraints(maxWidth: compact ? 90 : 150),
@@ -32,11 +30,14 @@ class LibrarySwitcher extends ConsumerWidget {
             ),
           ),
           const SizedBox(width: 2),
-          Icon(
-            Icons.arrow_drop_down_rounded,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-            size: compact ? 20 : 22,
-          ),
+          if (loading)
+            const YaabsaLoadingIndicator(size: 20, semanticLabel: 'Loading libraries')
+          else
+            Icon(
+              Icons.arrow_drop_down_rounded,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              size: compact ? 20 : 22,
+            ),
         ],
       ),
     );
@@ -138,7 +139,11 @@ class LibrarySwitcher extends ConsumerWidget {
           ),
         );
       },
-      loading: () => const SizedBox(width: 26, height: 26, child: YaabsaCircularProgressIndicator(strokeWidth: 2)),
+      loading: () => PlatformBuilder(
+        mobileBuilder: (ctx) => _chipButton(ctx, selectedLibrary?.name ?? 'Library', compact: true, loading: true),
+        tabletBuilder: (ctx) => _chipButton(ctx, selectedLibrary?.name ?? 'Library', compact: false, loading: true),
+        desktopBuilder: (ctx) => _chipButton(ctx, selectedLibrary?.name ?? 'Library', compact: false, loading: true),
+      ),
       error: (error, stack) => _chipButton(context, selectedLibrary?.name ?? 'Library error', compact: true),
     );
   }

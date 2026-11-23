@@ -17,8 +17,12 @@ import 'package:yaabsa/ui/previews/list_controls_preview.dart';
 import 'package:yaabsa/ui/previews/dialog_previews.dart';
 import 'package:yaabsa/ui/previews/media_previews.dart';
 import 'package:yaabsa/ui/previews/mini_player_previews.dart';
+import 'package:yaabsa/ui/previews/switcher_previews.dart';
 import 'package:yaabsa/ui/previews/reader_previews.dart';
 import 'package:yaabsa/components/app/item/item_more_actions_button.dart';
+import 'package:yaabsa/components/app/user_switcher_avatar.dart';
+import 'package:yaabsa/components/app/app_switcher_chip.dart';
+import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
 import 'package:yaabsa/components/app/item/set_library_item_progress_dialog.dart';
 import 'package:yaabsa/features/library/widgets/library_item_card.dart';
 import 'package:yaabsa/ui/components/inputs/styled_form_fields.dart';
@@ -38,6 +42,55 @@ void main() {
     coverArtwork = MemoryImage(imageBytes);
   });
   final componentGoldens = <({String name, String fileName, Size size, Widget Function() build})>[
+    (
+      name: 'switchers ready with short names',
+      fileName: 'switchers_ready_short_names',
+      size: const Size(1100, 100),
+      build: switchersShortNamesPreview,
+    ),
+    (
+      name: 'switchers ready on phone',
+      fileName: 'switchers_ready_phone',
+      size: const Size(360, 100),
+      build: switchersReadyPreview,
+    ),
+    (
+      name: 'switchers ready on desktop',
+      fileName: 'switchers_ready_desktop',
+      size: const Size(1100, 100),
+      build: switchersReadyPreview,
+    ),
+    (
+      name: 'switchers loading on phone',
+      fileName: 'switchers_loading_phone',
+      size: const Size(360, 100),
+      build: switchersLoadingPreview,
+    ),
+    (
+      name: 'switchers loading on desktop',
+      fileName: 'switchers_loading_desktop',
+      size: const Size(1100, 100),
+      build: switchersLoadingPreview,
+    ),
+    (
+      name: 'switchers loading with stored user',
+      fileName: 'switchers_loading_stored_user',
+      size: const Size(1100, 100),
+      build: switchersStoredUserLoadingPreview,
+    ),
+    (
+      name: 'switchers loading with enlarged text',
+      fileName: 'switchers_loading_accessibility',
+      size: const Size(1100, 100),
+      build: () => Builder(
+        builder: (context) {
+          return MediaQuery(
+            data: MediaQuery.of(context).copyWith(textScaler: const TextScaler.linear(2)),
+            child: switchersStoredUserLoadingPreview(),
+          );
+        },
+      ),
+    ),
     (
       name: 'administration user table',
       fileName: 'admin_users_table',
@@ -702,7 +755,8 @@ void main() {
             ),
           ),
         );
-        if (componentGolden.fileName == 'playback_states' ||
+        if (componentGolden.fileName.startsWith('switchers_loading_') ||
+            componentGolden.fileName == 'playback_states' ||
             componentGolden.fileName == 'settings_controls' ||
             componentGolden.fileName == 'player_bookmarks' ||
             componentGolden.fileName == 'player_collection_empty' ||
@@ -718,6 +772,46 @@ void main() {
           await tester.pumpAndSettle();
         }
         expect(tester.takeException(), isNull, reason: componentGolden.name);
+        if (componentGolden.fileName.startsWith('switchers_')) {
+          final chips = find.byType(AppSwitcherChip);
+          expect(chips, findsNWidgets(2));
+          final userRect = tester.getRect(chips.at(0));
+          final libraryRect = tester.getRect(chips.at(1));
+          expect(userRect.height, libraryRect.height);
+          expect(userRect.top, libraryRect.top);
+          expect(userRect.bottom, libraryRect.bottom);
+          for (final chip in chips.evaluate()) {
+            final container = tester.widget<Container>(
+              find.descendant(of: find.byWidget(chip.widget), matching: find.byType(Container)).first,
+            );
+            final decoration = container.decoration! as BoxDecoration;
+            expect(decoration.borderRadius, YaabsaFieldDimensions.borderRadius);
+          }
+          if (componentGolden.fileName.startsWith('switchers_ready_')) {
+            final chipWidgets = tester.widgetList<AppSwitcherChip>(chips);
+            expect(chipWidgets.every((chip) => chip.minWidth == 0), isTrue);
+            final avatar = find.byType(UserSwitcherAvatar);
+            expect(find.descendant(of: avatar, matching: find.byType(Positioned)), findsOneWidget);
+            expect(find.descendant(of: avatar, matching: find.byType(YaabsaLoadingIndicator)), findsNothing);
+          }
+          if (componentGolden.fileName == 'switchers_ready_short_names') {
+            expect(userRect.width, lessThan(140));
+            expect(libraryRect.width, lessThan(160));
+          }
+        }
+        final isSwitcherLoading = componentGolden.fileName.startsWith('switchers_loading_');
+        if (isSwitcherLoading) {
+          final avatar = find.byType(UserSwitcherAvatar);
+          expect(find.descendant(of: avatar, matching: find.byType(YaabsaLoadingIndicator)), findsOneWidget);
+          expect(find.descendant(of: avatar, matching: find.byType(Positioned)), findsNothing);
+          final circle = tester.widget<CircleAvatar>(find.descendant(of: avatar, matching: find.byType(CircleAvatar)));
+          expect(circle.child, isA<YaabsaLoadingIndicator>());
+        }
+        if (componentGolden.fileName == 'switchers_loading_stored_user') {
+          final username = tester.widget<Text>(find.text('Preview Admin'));
+          final library = tester.widget<Text>(find.text('Library'));
+          expect(username.style, library.style);
+        }
         if (componentGolden.fileName == 'cover_images') {
           final rawImage = tester.widget<RawImage>(find.byType(RawImage));
           expect(rawImage.image, isNotNull, reason: 'The local cover fixture must decode in the golden.');

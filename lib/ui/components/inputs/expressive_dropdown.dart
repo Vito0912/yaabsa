@@ -113,7 +113,7 @@ class YaabsaExpressiveDropdownField<T> extends StatelessWidget {
         border: _borderSide(fieldDecoration.enabledBorder ?? fieldDecoration.border),
         focusedBorder: _borderSide(fieldDecoration.focusedBorder ?? fieldDecoration.enabledBorder),
         errorBorder: _borderSide(fieldDecoration.errorBorder ?? fieldDecoration.enabledBorder),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: YaabsaFieldDimensions.borderRadius,
       ),
       dropdownStyle: M3EDropdownPanelStyle(
         backgroundColor: menuBackground ?? theme.colorScheme.surfaceContainerHigh,
