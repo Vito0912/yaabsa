@@ -4,9 +4,53 @@ import 'package:material_ui/material_ui.dart';
 import 'package:yaabsa/api/library/filter_data/library_filter_data.dart';
 import 'package:yaabsa/components/app/library/library_filter_toolbar.dart';
 import 'package:yaabsa/components/app/series/series_detail_header.dart';
+import 'package:yaabsa/components/common/list_management_header.dart';
 import 'package:yaabsa/ui/previews/preview_theme.dart';
 
 void main() {
+  testWidgets('library filter and sort buttons have compact surfaces and padded touch targets', (tester) async {
+    for (final activeFilter in <String?>[null, 'issues']) {
+      await tester.pumpWidget(
+        YaabsaPreviewApp(
+          child: LibraryFilterToolbar(
+            libraryMediaType: 'book',
+            activeFilter: activeFilter,
+            activeSort: null,
+            activeSortDesc: null,
+            filterDataAsync: const AsyncData<LibraryFilterData?>(null),
+            onFilterSelected: (_) async {},
+            onSortSelected: (_) async {},
+            onClearFilter: () async {},
+          ),
+        ),
+      );
+
+      for (final button in find.byType(OutlinedButton).evaluate()) {
+        final buttonFinder = find.byWidget(button.widget);
+        final materialFinder = find.descendant(of: buttonFinder, matching: find.byType(Material));
+        expect(tester.getSize(buttonFinder).height, 48);
+        expect(tester.getSize(materialFinder).height, 40);
+      }
+      expect(tester.takeException(), isNull);
+    }
+  });
+
+  testWidgets('collection and playlist creation buttons use compact surfaces', (tester) async {
+    for (final label in ['New collection', 'New playlist']) {
+      await tester.pumpWidget(
+        YaabsaPreviewApp(
+          child: ListManagementHeader(createLabel: label, onCreate: () {}),
+        ),
+      );
+
+      final buttonFinder = find.byType(FilledButton);
+      final materialFinder = find.descendant(of: buttonFinder, matching: find.byType(Material));
+      expect(tester.getSize(buttonFinder).height, 48);
+      expect(tester.getSize(materialFinder).height, 40);
+      expect(tester.takeException(), isNull);
+    }
+  });
+
   testWidgets('mobile series detail keeps the shared sort button color and height without its label', (tester) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
@@ -230,5 +274,11 @@ void _expectSortIconUsesThemePrimary(WidgetTester tester, Finder buttonFinder) {
 
   expect(IconTheme.of(tester.element(iconFinder)).color, colorScheme.primary);
   expect(button.style?.foregroundColor?.resolve(enabledStates), colorScheme.primary);
-  expect(button.style?.side?.resolve(enabledStates), BorderSide(color: colorScheme.primary));
+  expect(button.style?.side, isNull);
+
+  final materialFinder = find.descendant(of: buttonFinder, matching: find.byType(Material));
+  final material = tester.widget<Material>(materialFinder);
+  final shape = material.shape! as OutlinedBorder;
+  expect(shape.side.color, colorScheme.outline);
+  expect(tester.getSize(materialFinder).height, 40);
 }

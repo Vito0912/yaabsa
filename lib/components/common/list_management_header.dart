@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:yaabsa/ui/components/buttons/yaabsa_button.dart';
 
 class ListManagementHeader extends StatelessWidget {
   const ListManagementHeader({this.title, this.subtitle, this.onCreate, this.createLabel, this.padding, super.key});
@@ -33,8 +34,9 @@ class ListManagementHeader extends StatelessWidget {
         : null;
     final createButton = onCreate == null
         ? null
-        : FilledButton.tonalIcon(
+        : YaabsaButton.small(
             onPressed: onCreate,
+            variant: YaabsaButtonVariant.tonal,
             icon: const Icon(Icons.add_rounded),
             label: Text(createLabel ?? 'Create'),
           );

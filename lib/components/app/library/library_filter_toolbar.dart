@@ -8,6 +8,7 @@ import 'package:yaabsa/components/app/library/library_filter_sheet.dart';
 import 'package:yaabsa/components/app/library/library_sort_sheet.dart';
 import 'package:yaabsa/ui/components/buttons/sort_button.dart';
 import 'package:yaabsa/ui/components/feedback/progress_indicators.dart';
+import 'package:yaabsa/ui/components/buttons/yaabsa_button.dart';
 import 'package:yaabsa/util/globals.dart';
 
 class LibraryFilterToolbar extends StatelessWidget {
@@ -94,13 +95,14 @@ class LibraryFilterToolbar extends StatelessWidget {
               constraints: BoxConstraints(maxWidth: _maxButtonWidth),
               child: Tooltip(
                 message: activeFilterLabel ?? 'Filter library',
-                child: OutlinedButton.icon(
+                child: YaabsaButton.small(
                   onPressed: () => _openFilterSheet(context),
+                  variant: YaabsaButtonVariant.outlined,
                   style: hasActiveFilter
-                      ? OutlinedButton.styleFrom(
-                          backgroundColor: colorScheme.secondaryContainer,
-                          foregroundColor: colorScheme.onSecondaryContainer,
-                          side: BorderSide(color: colorScheme.primary),
+                      ? ButtonStyle(
+                          backgroundColor: WidgetStatePropertyAll(colorScheme.secondaryContainer),
+                          foregroundColor: WidgetStatePropertyAll(colorScheme.onSecondaryContainer),
+                          side: WidgetStatePropertyAll(BorderSide(color: colorScheme.primary)),
                         )
                       : null,
                   icon: filterDataAsync.isLoading

@@ -9,6 +9,7 @@ import 'admin_previews.dart';
 import 'dialog_previews.dart';
 import 'list_controls_preview.dart';
 import 'library_previews.dart';
+import 'material_3_controls_preview.dart';
 import 'library_grid_preview.dart';
 import 'player_previews.dart';
 import 'mini_player_previews.dart';
@@ -85,6 +86,8 @@ class _UiLabState extends State<UiLab> {
         return sharedSideActionsPreview();
       case 'Series and narrator sort headers':
         return const SortHeaderControlsPreview();
+      case 'Shared buttons':
+        return sharedButtonsPreview();
       case 'Prominent library playback':
         return prominentLibraryPlaybackActionsPreview();
       case 'Player layout':
@@ -270,6 +273,7 @@ class _UiLabState extends State<UiLab> {
                       'Player vertical volume',
                       'Shared side actions',
                       'Series and narrator sort headers',
+                      'Shared buttons',
                       'Prominent library playback',
                       'Player layout',
                       'Player component settings',

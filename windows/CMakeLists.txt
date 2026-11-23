@@ -49,6 +49,10 @@ endfunction()
 set(FLUTTER_MANAGED_DIR "${CMAKE_CURRENT_SOURCE_DIR}/flutter")
 add_subdirectory(${FLUTTER_MANAGED_DIR})
 
+target_compile_options(flutter_wrapper_plugin PRIVATE
+  "/FI${CMAKE_CURRENT_SOURCE_DIR}/flutter_messenger_shutdown.h"
+)
+
 # Application build; see runner/CMakeLists.txt.
 add_subdirectory("runner")
 
@@ -56,6 +60,7 @@ add_subdirectory("runner")
 # Generated plugin build rules, which manage building the plugins and adding
 # them to the application.
 include(flutter/generated_plugins.cmake)
+include(patch_inappwebview_shutdown.cmake)
 
 
 # === Installation ===
